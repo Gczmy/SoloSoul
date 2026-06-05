@@ -1,30 +1,31 @@
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
+import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info } from 'lucide-react';
 
 const settingGroups = [
   {
     title: 'Security',
     items: [
-      { label: 'Security Settings', icon: '🔒', path: '/settings/security' },
-      { label: 'Sensitivity Settings', icon: '👁️', path: '/settings/sensitivity' },
+      { label: 'Security Settings', icon: Shield, path: '/settings/security' },
+      { label: 'Sensitivity Settings', icon: Eye, path: '/settings/sensitivity' },
     ],
   },
   {
     title: 'Data',
     items: [
-      { label: 'Data Management', icon: '💾', path: '/settings/data' },
-      { label: 'Export & Import', icon: '📤', path: '/settings/export-import' },
-      { label: 'Trash', icon: '🗑️', path: '/settings/trash' },
-      { label: 'Backup & Restore', icon: '💿', path: '/settings/backup' },
-      { label: 'Operation Log', icon: '📋', path: '/settings/operation-log' },
+      { label: 'Data Management', icon: HardDrive, path: '/settings/data' },
+      { label: 'Export & Import', icon: Upload, path: '/settings/export-import' },
+      { label: 'Trash', icon: Trash2, path: '/settings/trash' },
+      { label: 'Backup & Restore', icon: Disc, path: '/settings/backup' },
+      { label: 'Operation Log', icon: ClipboardList, path: '/settings/operation-log' },
     ],
   },
   {
     title: 'System',
     items: [
-      { label: 'Debug Log', icon: '🐛', path: '/debug-log' },
-      { label: 'About', icon: 'ℹ️', path: '/about' },
+      { label: 'Debug Log', icon: Bug, path: '/debug-log' },
+      { label: 'About', icon: Info, path: '/about' },
     ],
   },
 ];
@@ -69,7 +70,7 @@ export function SettingsPage() {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <span style={{ fontSize: 18 }}>{item.icon}</span>
+                      <item.icon size={20} />
                       <span style={{ fontSize: 14, fontWeight: 500 }}>{item.label}</span>
                     </div>
                     <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>›</span>

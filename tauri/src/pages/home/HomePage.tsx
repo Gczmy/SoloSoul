@@ -1,15 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
+import { IdCard, Plane, Banknote, Briefcase } from 'lucide-react';
 
 const sections = [
-  { type: 'identity', label: 'Identity', icon: '🆔', desc: 'Personal info, ID cards, contacts' },
-  { type: 'travel', label: 'Travel', icon: '🛂', desc: 'Passports, visas, travel history' },
-  { type: 'financial', label: 'Financial', icon: '💰', desc: 'Bank accounts, cards, tax info' },
+  { type: 'identity', label: 'Identity', icon: IdCard, desc: 'Personal info, ID cards, contacts' },
+  { type: 'travel', label: 'Travel', icon: Plane, desc: 'Passports, visas, travel history' },
+  { type: 'financial', label: 'Financial', icon: Banknote, desc: 'Bank accounts, cards, tax info' },
   {
     type: 'professional',
     label: 'Professional',
-    icon: '💼',
+    icon: Briefcase,
     desc: 'Education, employment, skills',
   },
 ];
@@ -44,7 +45,7 @@ export function HomePage() {
         >
           {sections.map((s) => (
             <Card key={s.type} interactive onClick={() => navigate(`/workspace?section=${s.type}`)}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>{s.icon}</div>
+              <div style={{ marginBottom: 8 }}><s.icon size={28} /></div>
               <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{s.label}</h3>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{s.desc}</p>
             </Card>

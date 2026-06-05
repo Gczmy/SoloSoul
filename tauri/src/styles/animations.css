@@ -1,0 +1,308 @@
+/* ============================================================
+   animations.css — Keyframe Animations and Utility Classes
+   Entrance/exit transitions, loading states, and skeleton
+   animations. Uses tokens.css for duration/easing.
+   ============================================================ */
+
+/* ── Fade Transitions ───────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── Slide Transitions ──────────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Legacy aliases — kept for existing components */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideOutLeft {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-16px); }
+}
+
+/* ── Scale Transitions ──────────────────────────────────── */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scaleOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.96); }
+}
+
+/* ── Loading / Shimmer ──────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes shimmerSlow {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Spin — loading indicators ──────────────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+/* ── Pulse — skeleton loading / breathing ───────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
+}
+
+/* ── Gentle bounce — draw attention ─────────────────────── */
+@keyframes gentleBounce {
+  0%, 100% { transform: translateY(0); }
+  25%      { transform: translateY(-3px); }
+  75%      { transform: translateY(-1px); }
+}
+
+/* ── Progress bar indeterminate ─────────────────────────── */
+@keyframes indeterminateBar {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(50%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ── Skeleton wave ──────────────────────────────────────── */
+@keyframes skeletonWave {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ── Rotate entrance (for cards, panels) ────────────────── */
+@keyframes rotateIn {
+  from { opacity: 0; transform: perspective(600px) rotateX(3deg) translateY(8px); }
+  to   { opacity: 1; transform: perspective(600px) rotateX(0) translateY(0); }
+}
+
+/* ============================================================
+   Utility Classes
+   ============================================================ */
+
+/* ── Shimmer utility ────────────────────────────────────── */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--border-subtle) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s var(--ease-in-out, ease-in-out) infinite;
+}
+
+/* ── Spinner utilities ──────────────────────────────────── */
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-spin-slow {
+  animation: spin 2s linear infinite;
+}
+
+.animate-spin-reverse {
+  animation: spinReverse 1.5s linear infinite;
+}
+
+/* ── Pulse utilities ────────────────────────────────────── */
+.pulse {
+  animation: pulse 2s var(--ease-in-out, ease-in-out) infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s var(--ease-in-out, ease-in-out) infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2.5s var(--ease-in-out, ease-in-out) infinite;
+}
+
+/* ── Fade utilities ─────────────────────────────────────── */
+.animate-fade-in {
+  animation: fadeIn var(--duration-normal, 250ms) var(--ease-smooth, ease) both;
+}
+
+.animate-fade-out {
+  animation: fadeOut var(--duration-normal, 250ms) var(--ease-smooth, ease) both;
+}
+
+/* ── Slide utilities ────────────────────────────────────── */
+.animate-slide-up {
+  animation: slideUp var(--duration-normal, 250ms) var(--ease-smooth, ease) both;
+}
+
+.animate-slide-down {
+  animation: slideDown var(--duration-normal, 250ms) var(--ease-smooth, ease) both;
+}
+
+.animate-slide-left {
+  animation: slideLeft var(--duration-normal, 250ms) var(--ease-smooth, ease) both;
+}
+
+.animate-slide-right {
+  animation: slideRight var(--duration-normal, 250ms) var(--ease-smooth, ease) both;
+}
+
+/* ── Scale utilities ────────────────────────────────────── */
+.animate-scale-in {
+  animation: scaleIn var(--duration-normal, 250ms) var(--ease-spring, ease) both;
+}
+
+.animate-scale-out {
+  animation: scaleOut var(--duration-fast, 150ms) var(--ease-smooth, ease) both;
+}
+
+/* ── Entrance delay classes — staggered list animations ─── */
+.animate-delay-1 { animation-delay: 0ms; }
+.animate-delay-2 { animation-delay: 50ms; }
+.animate-delay-3 { animation-delay: 100ms; }
+.animate-delay-4 { animation-delay: 150ms; }
+.animate-delay-5 { animation-delay: 200ms; }
+.animate-delay-6 { animation-delay: 250ms; }
+.animate-delay-7 { animation-delay: 300ms; }
+.animate-delay-8 { animation-delay: 350ms; }
+
+/* ── Page enter transition ──────────────────────────────── */
+.page-enter {
+  animation: fadeIn 0.2s var(--ease-smooth, ease), slideUp 0.25s var(--ease-smooth, ease);
+}
+
+/* ── Content card stagger ───────────────────────────────── */
+.stagger-enter > * {
+  animation: slideUp 0.3s var(--ease-smooth, ease) both;
+}
+
+.stagger-enter > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-enter > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-enter > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-enter > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-enter > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-enter > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-enter > *:nth-child(7) { animation-delay: 240ms; }
+.stagger-enter > *:nth-child(8) { animation-delay: 280ms; }
+
+/* ============================================================
+   Skeleton Loading
+   ============================================================ */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-inset, var(--bg-elevated));
+  border-radius: var(--radius-sm, 4px);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 40%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 60%,
+    transparent 100%
+  );
+  animation: skeletonWave 1.8s var(--ease-in-out, ease-in-out) infinite;
+}
+
+/* Skeleton shape variants */
+.skeleton-text {
+  height: var(--text-base, 1rem);
+  margin-bottom: var(--space-sm, 4px);
+}
+
+.skeleton-text-sm {
+  height: var(--text-sm, 0.875rem);
+  margin-bottom: var(--space-sm, 4px);
+  width: 75%;
+}
+
+.skeleton-heading {
+  height: var(--text-xl, 1.5rem);
+  margin-bottom: var(--space-md, 8px);
+  width: 60%;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.skeleton-avatar-lg {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.skeleton-card {
+  height: 120px;
+  border-radius: var(--radius-lg, 12px);
+}
+
+.skeleton-button {
+  height: 40px;
+  width: 120px;
+  border-radius: var(--radius-md, 8px);
+}
+
+/* ── Reduced Motion — respect user preference ───────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

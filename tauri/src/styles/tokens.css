@@ -1,0 +1,159 @@
+/* ============================================================
+   tokens.css — Design Tokens (Warm Stone Palette)
+   Low-saturation warm tones: warm beige, muted clay, soft slate.
+   All values are CSS custom properties on :root.
+   ============================================================ */
+
+:root {
+  /* ── Warm Stone Color Palette ─────────────────────────── */
+  /* Base neutrals — warm beige → soft slate */
+  --stone-25: #fdfcf9;
+  --stone-50: #fafaf6;
+  --stone-75: #f7f5f0;
+  --stone-100: #f2f0e9;
+  --stone-150: #ece9e0;
+  --stone-200: #e5e1d6;
+  --stone-300: #d5d0c3;
+  --stone-400: #b8b0a0;
+  --stone-500: #9e9585;
+  --stone-600: #7a7265;
+  --stone-700: #5c5549;
+  --stone-800: #3d3831;
+  --stone-900: #1f1c18;
+  --stone-950: #121110;
+
+  /* Warm accent — muted clay */
+  --clay-100: #f7efe3;
+  --clay-200: #edd9b8;
+  --clay-300: #dbb88a;
+  --clay-400: #c4925c;
+  --clay-500: #b3804a;
+  --clay-600: #94693b;
+  --clay-700: #755232;
+  --clay-800: #563c28;
+
+  /* Slate accent — soft blue-gray */
+  --slate-accent-100: #e6eef5;
+  --slate-accent-200: #c4d6e5;
+  --slate-accent-300: #8eafc8;
+  --slate-accent-400: #5b7c99;
+  --slate-accent-500: #4a6a85;
+  --slate-accent-600: #3a5770;
+  --slate-accent-700: #2d4459;
+
+  /* Semantic accent aliases (used by themes.css) */
+  --accent-cool: var(--slate-accent-400);
+  --accent-cool-hover: var(--slate-accent-500);
+  --accent-warm: var(--clay-400);
+  --accent-warm-hover: var(--clay-500);
+
+  /* ── Spacing Scale ────────────────────────────────────── */
+  --space-xs: 2px;
+  --space-sm: 4px;
+  --space-md: 8px;
+  --space-lg: 12px;
+  --space-xl: 16px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  --space-4xl: 48px;
+
+  /* ── Border Radius Tokens ─────────────────────────────── */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* ── Typography Scale ─────────────────────────────────── */
+
+  /* Font families */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI',
+    'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+  --font-mono:
+    'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono',
+    'Noto Sans Mono SC', monospace;
+  --font-display:
+    'SF Pro Display', var(--font-sans);
+
+  /* Font sizes — modular scale (1.25 ratio) */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-md: 1.125rem;   /* 18px */
+  --text-lg: 1.25rem;    /* 20px */
+  --text-xl: 1.5rem;     /* 24px */
+  --text-2xl: 1.875rem;  /* 30px */
+  --text-3xl: 2.25rem;   /* 36px */
+  --text-4xl: 3rem;      /* 48px */
+
+  /* Font weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Line heights */
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* Letter spacing */
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+
+  /* ── Shadow Tokens — Soft and layered, no harsh shadows ─ */
+  --shadow-xs: 0 0 0 1px rgba(0, 0, 0, 0.03);
+  --shadow-sm:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.03);
+  --shadow-md:
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-lg:
+    0 4px 8px rgba(0, 0, 0, 0.04),
+    0 8px 16px rgba(0, 0, 0, 0.05),
+    0 12px 24px rgba(0, 0, 0, 0.04);
+  --shadow-xl:
+    0 8px 16px rgba(0, 0, 0, 0.05),
+    0 16px 32px rgba(0, 0, 0, 0.06),
+    0 24px 48px rgba(0, 0, 0, 0.04);
+  --shadow-2xl:
+    0 12px 24px rgba(0, 0, 0, 0.06),
+    0 24px 48px rgba(0, 0, 0, 0.08),
+    0 36px 72px rgba(0, 0, 0, 0.06);
+
+  /* Inset shadows for subtle depth */
+  --shadow-inset-sm: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-inset-md: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+
+  /* ── Transition / Easing Tokens ───────────────────────── */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Duration scale */
+  --duration-instant: 50ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-lazy: 700ms;
+
+  /* ── Z-Index Scale ────────────────────────────────────── */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-popover: 500;
+  --z-tooltip: 600;
+  --z-toast: 700;
+  --z-max: 9999;
+}

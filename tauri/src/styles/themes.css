@@ -1,0 +1,130 @@
+/* ============================================================
+   themes.css — Light and Dark Theme
+   Semantic color variables mapped from tokens.css raw tokens.
+   Aligned with existing colors from global.css while
+   referencing token variables from tokens.css.
+   ============================================================ */
+
+/* ── Light Theme (default) ──────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-base: var(--stone-50);
+  --bg-elevated: var(--stone-25);
+  --bg-toolbar: rgba(253, 252, 249, 0.85); /* stone-25 at 85% */
+  --bg-inset: var(--stone-100);
+  --bg-hover: var(--stone-100);
+  --bg-active: var(--stone-150);
+  --bg-overlay: rgba(31, 28, 24, 0.4);     /* stone-900 at 40% */
+
+  /* Text */
+  --text-primary: var(--stone-900);
+  --text-secondary: var(--stone-600);
+  --text-tertiary: var(--stone-400);
+  --text-inverse: var(--stone-25);
+  --text-accent: var(--accent-cool);
+  --text-warm: var(--accent-warm);
+  --text-error: #c0392b;
+  --text-success: #27ae60;
+  --text-warning: #d4a017;
+
+  /* Accents */
+  --accent-primary: var(--accent-cool);
+  --accent-hover: var(--accent-cool-hover);
+  --accent-warm: var(--accent-warm);
+  --accent-warm-hover: var(--accent-warm-hover);
+
+  /* Borders */
+  --border-subtle: var(--stone-200);
+  --border-default: var(--stone-300);
+  --border-strong: var(--stone-400);
+  --border-focus: var(--accent-cool);
+
+  /* Shadows — warm-tinted for light theme */
+  --shadow-sm: 0 1px 2px rgba(31, 28, 24, 0.04);
+  --shadow-md: 0 2px 4px rgba(31, 28, 24, 0.04), 0 4px 8px rgba(31, 28, 24, 0.04);
+  --shadow-lg: 0 4px 8px rgba(31, 28, 24, 0.04), 0 8px 16px rgba(31, 28, 24, 0.05);
+
+  /* Interactive states */
+  --state-hover: rgba(31, 28, 24, 0.04);
+  --state-pressed: rgba(31, 28, 24, 0.08);
+  --state-selected: rgba(91, 124, 153, 0.1);
+  --state-disabled: rgba(31, 28, 24, 0.15);
+  --state-focus-ring: 0 0 0 2px var(--slate-accent-400);
+
+  /* Status colors — semantic */
+  --color-error-bg: #fdf0ef;
+  --color-error-border: #f5c6cb;
+  --color-error-text: #c0392b;
+  --color-success-bg: #edf7ef;
+  --color-success-border: #c3e6cb;
+  --color-success-text: #27ae60;
+  --color-warning-bg: #fef9e7;
+  --color-warning-border: #fdebd0;
+  --color-warning-text: #d4a017;
+  --color-info-bg: #eaf2f8;
+  --color-info-border: #c4d6e5;
+  --color-info-text: #2c5f8a;
+}
+
+/* ── Dark Theme ─────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Backgrounds */
+    --bg-base: var(--stone-950);
+    --bg-elevated: var(--stone-900);
+    --bg-toolbar: rgba(18, 17, 16, 0.9);    /* stone-950 at 90% */
+    --bg-inset: rgba(31, 28, 24, 0.4);       /* stone-900 at 40% */
+    --bg-hover: var(--stone-800);
+    --bg-active: var(--stone-700);
+    --bg-overlay: rgba(18, 17, 16, 0.6);     /* stone-950 at 60% */
+
+    /* Text */
+    --text-primary: var(--stone-100);
+    --text-secondary: var(--stone-400);
+    --text-tertiary: var(--stone-500);
+    --text-inverse: var(--stone-900);
+    --text-accent: var(--slate-accent-300);
+    --text-warm: var(--clay-300);
+    --text-error: #e74c3c;
+    --text-success: #2ecc71;
+    --text-warning: #f1c40f;
+
+    /* Accents — brightened for dark backgrounds */
+    --accent-primary: var(--slate-accent-300);
+    --accent-hover: var(--slate-accent-200);
+    --accent-warm: var(--clay-300);
+    --accent-warm-hover: var(--clay-200);
+
+    /* Borders */
+    --border-subtle: var(--stone-800);
+    --border-default: var(--stone-700);
+    --border-strong: var(--stone-600);
+    --border-focus: var(--slate-accent-300);
+
+    /* Shadows — deeper and darker for dark theme */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.25);
+
+    /* Interactive states */
+    --state-hover: rgba(242, 240, 233, 0.06);  /* stone-100 at 6% */
+    --state-pressed: rgba(242, 240, 233, 0.12);
+    --state-selected: rgba(142, 175, 200, 0.15); /* slate-accent-300 at 15% */
+    --state-disabled: rgba(242, 240, 233, 0.1);
+    --state-focus-ring: 0 0 0 2px var(--slate-accent-300);
+
+    /* Status colors — darkened backgrounds */
+    --color-error-bg: rgba(231, 76, 60, 0.12);
+    --color-error-border: rgba(231, 76, 60, 0.3);
+    --color-error-text: #e74c3c;
+    --color-success-bg: rgba(46, 204, 113, 0.12);
+    --color-success-border: rgba(46, 204, 113, 0.3);
+    --color-success-text: #2ecc71;
+    --color-warning-bg: rgba(241, 196, 15, 0.12);
+    --color-warning-border: rgba(241, 196, 15, 0.3);
+    --color-warning-text: #f1c40f;
+    --color-info-bg: rgba(142, 175, 200, 0.12);
+    --color-info-border: rgba(142, 175, 200, 0.3);
+    --color-info-text: #8eafc8;
+  }
+}

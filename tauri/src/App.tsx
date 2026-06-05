@@ -69,6 +69,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/search"
+        element={
+          <AuthGuard>
+            <SearchPage />
+          </AuthGuard>
+        }
+      />
+      <Route
         path="/settings"
         element={
           <AuthGuard>
@@ -81,6 +89,22 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <SecuritySettingsPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/settings/sensitivity"
+        element={
+          <AuthGuard>
+            <SensitivitySettingsPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/settings/export-import"
+        element={
+          <AuthGuard>
+            <ExportImportPage />
           </AuthGuard>
         }
       />

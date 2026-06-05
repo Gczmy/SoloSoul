@@ -1,0 +1,227 @@
+/* ============================================================
+   liquid-glass.css — Glass Morphism Effects
+   Frosted glass with warm tint, subtle border glow,
+   and smooth transitions. Built on tokens.css + themes.css.
+   ============================================================ */
+
+/* ── Shared glass foundation ────────────────────────────── */
+.glass-card,
+.glass-panel,
+.glass-sheet {
+  /* Frosted glass core */
+  background: linear-gradient(
+    135deg,
+    rgba(253, 252, 249, 0.55) 0%,
+    rgba(242, 240, 233, 0.35) 50%,
+    rgba(236, 233, 224, 0.25) 100%
+  );
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+
+  /* Subtle warm-tinted border */
+  border: 1px solid rgba(213, 208, 195, 0.25);
+
+  /* Inner highlight for depth */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 4px rgba(31, 28, 24, 0.04),
+    0 8px 16px rgba(31, 28, 24, 0.05);
+
+  /* Smooth transitions */
+  transition:
+    background var(--duration-normal) var(--ease-smooth),
+    border-color var(--duration-normal) var(--ease-smooth),
+    box-shadow var(--duration-normal) var(--ease-smooth),
+    backdrop-filter var(--duration-normal) var(--ease-smooth);
+}
+
+/* ── Glass Card — elevated surface, common for cards ───── */
+.glass-card {
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+}
+
+.glass-card:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(253, 252, 249, 0.7) 0%,
+    rgba(242, 240, 233, 0.45) 50%,
+    rgba(236, 233, 224, 0.35) 100%
+  );
+  border-color: rgba(184, 176, 160, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 4px 8px rgba(31, 28, 24, 0.06),
+    0 12px 24px rgba(31, 28, 24, 0.06);
+}
+
+.glass-card:focus-visible {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 0 2px rgba(91, 124, 153, 0.3),
+    0 4px 16px rgba(31, 28, 24, 0.06);
+}
+
+/* ── Glass Panel — larger surface for sections/sidebars ── */
+.glass-panel {
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+}
+
+.glass-panel:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(253, 252, 249, 0.65) 0%,
+    rgba(242, 240, 233, 0.4) 50%,
+    rgba(236, 233, 224, 0.3) 100%
+  );
+  border-color: rgba(184, 176, 160, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 4px 8px rgba(31, 28, 24, 0.05),
+    0 12px 28px rgba(31, 28, 24, 0.06);
+}
+
+/* ── Glass Sheet — modal / bottom sheet surface ────────── */
+.glass-sheet {
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-2xl);
+  backdrop-filter: blur(24px) saturate(130%);
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
+  border-bottom: none;
+}
+
+/* ── Glass divider — subtle separation line ────────────── */
+.glass-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(184, 176, 160, 0.3) 10%,
+    rgba(184, 176, 160, 0.3) 90%,
+    transparent 100%
+  );
+  border: none;
+  margin: 0;
+}
+
+/* ── Glass elevated — higher prominence variant ────────── */
+.glass-elevated {
+  background: linear-gradient(
+    135deg,
+    rgba(253, 252, 249, 0.75) 0%,
+    rgba(242, 240, 233, 0.5) 50%,
+    rgba(236, 233, 224, 0.4) 100%
+  );
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(213, 208, 195, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 8px 16px rgba(31, 28, 24, 0.06),
+    0 16px 32px rgba(31, 28, 24, 0.08);
+}
+
+/* ── Glass border glow effect ───────────────────────────── */
+.glass-glow {
+  position: relative;
+}
+
+.glass-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(196, 146, 92, 0.2) 0%,   /* warm accent glow */
+    rgba(91, 124, 153, 0.15) 50%,  /* cool accent glow */
+    rgba(196, 146, 92, 0.1) 100%
+  );
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-smooth);
+}
+
+.glass-glow:hover::before {
+  opacity: 1;
+}
+
+/* ── Dark mode overrides ────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .glass-card,
+  .glass-panel,
+  .glass-sheet {
+    background: linear-gradient(
+      135deg,
+      rgba(31, 28, 24, 0.55) 0%,
+      rgba(31, 28, 24, 0.35) 50%,
+      rgba(18, 17, 16, 0.3) 100%
+    );
+    border-color: rgba(92, 85, 73, 0.2);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 2px 4px rgba(0, 0, 0, 0.15),
+      0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .glass-card:hover,
+  .glass-panel:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(61, 56, 49, 0.55) 0%,
+      rgba(61, 56, 49, 0.35) 50%,
+      rgba(31, 28, 24, 0.3) 100%
+    );
+    border-color: rgba(92, 85, 73, 0.3);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 4px 8px rgba(0, 0, 0, 0.2),
+      0 12px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-card:focus-visible {
+    border-color: var(--slate-accent-300);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 0 2px rgba(142, 175, 200, 0.3),
+      0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-divider {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(92, 85, 73, 0.25) 10%,
+      rgba(92, 85, 73, 0.25) 90%,
+      transparent 100%
+    );
+  }
+
+  .glass-elevated {
+    background: linear-gradient(
+      135deg,
+      rgba(61, 56, 49, 0.7) 0%,
+      rgba(61, 56, 49, 0.45) 50%,
+      rgba(31, 28, 24, 0.4) 100%
+    );
+    border-color: rgba(92, 85, 73, 0.35);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 8px 16px rgba(0, 0, 0, 0.25),
+      0 16px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-glow::before {
+    background: linear-gradient(
+      135deg,
+      rgba(196, 146, 92, 0.15) 0%,
+      rgba(142, 175, 200, 0.12) 50%,
+      rgba(196, 146, 92, 0.08) 100%
+    );
+    filter: blur(12px);
+  }
+}

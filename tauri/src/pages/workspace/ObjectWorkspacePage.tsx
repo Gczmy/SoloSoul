@@ -5,12 +5,13 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore, ObjectSummary } from '@/stores/objectStore';
+import { IdCard, Plane, Banknote, Briefcase, FileText } from 'lucide-react';
 
 const categories = [
-  { type: 'identity', label: 'Identity', icon: '🆔' },
-  { type: 'travel', label: 'Travel', icon: '🛂' },
-  { type: 'financial', label: 'Financial', icon: '💰' },
-  { type: 'professional', label: 'Professional', icon: '💼' },
+  { type: 'identity', label: 'Identity', icon: IdCard },
+  { type: 'travel', label: 'Travel', icon: Plane },
+  { type: 'financial', label: 'Financial', icon: Banknote },
+  { type: 'professional', label: 'Professional', icon: Briefcase },
 ];
 
 export function ObjectWorkspacePage() {
@@ -62,7 +63,7 @@ export function ObjectWorkspacePage() {
                 fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
               }}
             >
-              <span>{cat.icon}</span> {cat.label}
+              <span><cat.icon size={16} /></span> {cat.label}
             </button>
           ))}
           {sectionFilter && (
@@ -111,7 +112,7 @@ export function ObjectWorkspacePage() {
               onClick={() => navigate(`/editor/${obj.id}`)}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 24 }}>📄</span>
+                <span><FileText size={24} /></span>
                 <span style={{ fontSize: 14, fontWeight: 500 }}>{obj.name}</span>
               </div>
             </Card>
