@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Dialog } from '@/components/ui/Dialog';
-import { PasswordInput } from '@/components/forms/PasswordInput';
+import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { useToastError } from '@/hooks/useToastError';
 
@@ -12,6 +12,8 @@ interface PasswordVerificationDialogProps {
   title?: string;
   description?: string;
   confirmLabel?: string;
+  /** Optional password hint to display */
+  hint?: string | null;
 }
 
 /**
@@ -26,6 +28,7 @@ export function PasswordVerificationDialog({
   title = 'Enter Password',
   description = 'Please enter your vault password to continue.',
   confirmLabel = 'Confirm',
+  hint,
 }: PasswordVerificationDialogProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -67,12 +70,13 @@ export function PasswordVerificationDialog({
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
           {description}
         </p>
-        <PasswordInput
+        <SecurePasswordInput
           value={password}
           onChange={(v) => { setPassword(v); setError(null); }}
           placeholder="Vault password"
           error={error}
           autoComplete="current-password"
+          hint={hint}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
           <Button variant="secondary" onClick={handleClose}>
