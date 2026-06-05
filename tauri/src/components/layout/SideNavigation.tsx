@@ -1,19 +1,36 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, User, Briefcase, Wallet, Search, Settings } from 'lucide-react';
+import { Home, User, Briefcase, Wallet, Lock, Search, Settings } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import styles from './SideNavigation.module.css';
+import { useVaultStore } from '@/stores/vaultStore';
 
-/* 9.2 — Primary Nav（上区）：核心数据对象对应的默认页面 */
-const primaryItems = [
-  { path: '/', icon: Home, label: 'Home' },
-  { path: '/workspace', icon: User, label: 'Profile' },
-  { path: '/workspace?section=travel', icon: Briefcase, label: 'Travel' },
-  { path: '/workspace?section=financial', icon: Wallet, label: 'Financial' },
+interface NavLink {
+  type: 'link';
+  path: string;
+  icon: LucideIcon;
+  label: string;
+}
+
+interface NavAction {
+  type: 'action';
+  icon: LucideIcon;
+  label: string;
+  action: () => void;
+}
+
+type NavItem = NavLink | NavAction;
+
+const primaryItems: NavLink[] = [
+  { type: 'link', path: '/', icon: Home, label: 'Home' },
+  { type: 'link', path: '/workspace', icon: User, label: 'Profile' },
+  { type: 'link', path: '/workspace?section=travel', icon: Briefcase, label: 'Travel' },
+  { type: 'link', path: '/workspace?section=financial', icon: Wallet, label: 'Financial' },
 ];
 
-/* 9.2 — Secondary Nav（下区）：工具性功能入口 */
-const secondaryItems = [
-  { path: '/search', icon: Search, label: 'Search' },
-  { path: '/settings', icon: Settings, label: 'Settings' },
+const secondaryItems: NavItem[] = [
+  { type: 'action', icon: Lock, label: 'Lock Vault', action: () => {} },
+  { type: 'link', path: '/search', icon: Search, label: 'Search' },
+  { type: 'link', path: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 function NavButton({
@@ -21,25 +38,26 @@ function NavButton({
   Icon,
   label,
   isActive,
-  navigate,
+  onClick,
 }: {
-  path: string;
-  Icon: React.ComponentType<{ size: number }>;
+  path?: string;
+  Icon: LucideIcon;
   label: string;
-  isActive: boolean;
-  navigate: (path: string) => void;
+  isActive?: boolean;
+  onClick: () => void;
 }) {
   return (
     <div className={styles.navItemWrapper}>
-      <div className={`${styles.activeIndicator} ${isActive ? styles.activeIndicatorVisible : ''}`} />
+      {path && (
+        <div className={`${styles.activeIndicator} ${isActive ? styles.activeIndicatorVisible : ''}`} />
+      )}
       <button
         className={`${styles.navButton} ${isActive ? styles.activeButton : ''}`}
-        onClick={() => navigate(path)}
+        onClick={onClick}
         title={label}
       >
         <Icon size={20} />
       </button>
-      {/* 9.3 — Warp 风格悬停名称卡片 */}
       <div className={styles.nameCard} aria-hidden="true">
         {label}
       </div>
@@ -50,12 +68,16 @@ function NavButton({
 export function SideNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
+  const vaultLock = useVaultStore((s) => s.lock);
+
+  const items = secondaryItems.map((item) =>
+    item.type === 'action' ? { ...item, action: vaultLock } as NavAction : item
+  );
 
   return (
     <nav className={styles.sideNav}>
       <div className={styles.logo}>S</div>
 
-      {/* 9.2 — Primary Nav（上区） */}
       <div className={styles.navPrimary}>
         {primaryItems.map((item) => {
           const isActive =
@@ -72,15 +94,24 @@ export function SideNavigation() {
               Icon={item.icon}
               label={item.label}
               isActive={isActive}
-              navigate={navigate}
+              onClick={() => navigate(item.path)}
             />
           );
         })}
       </div>
 
-      {/* 9.2 — Secondary Nav（下区） */}
       <div className={styles.navSecondary}>
-        {secondaryItems.map((item) => {
+        {items.map((item, i) => {
+          if (item.type === 'action') {
+            return (
+              <NavButton
+                key={`action-${i}`}
+                Icon={item.icon}
+                label={item.label}
+                onClick={item.action}
+              />
+            );
+          }
           const isActive = location.pathname.startsWith(item.path);
           return (
             <NavButton
@@ -89,7 +120,7 @@ export function SideNavigation() {
               Icon={item.icon}
               label={item.label}
               isActive={isActive}
-              navigate={navigate}
+              onClick={() => navigate(item.path)}
             />
           );
         })}
