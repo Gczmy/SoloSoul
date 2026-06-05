@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 
 export function SecuritySettingsPage() {
   const [oldPw, setOldPw] = useState('');
@@ -45,22 +45,19 @@ export function SecuritySettingsPage() {
         <Card>
           <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>Change Password</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <Input
-              type="password"
+            <SecurePasswordInput
               value={oldPw}
-              onChange={(e) => setOldPw(e.target.value)}
+              onChange={(v) => setOldPw(v)}
               placeholder="Current password"
             />
-            <Input
-              type="password"
+            <SecurePasswordInput
               value={newPw}
-              onChange={(e) => setNewPw(e.target.value)}
+              onChange={(v) => setNewPw(v)}
               placeholder="New password"
             />
-            <Input
-              type="password"
+            <SecurePasswordInput
               value={confirmPw}
-              onChange={(e) => setConfirmPw(e.target.value)}
+              onChange={(v) => setConfirmPw(v)}
               placeholder="Confirm new password"
             />
             <Button size="sm" style={{ alignSelf: 'flex-start' }}>

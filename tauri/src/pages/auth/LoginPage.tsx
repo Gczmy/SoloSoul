@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -71,10 +71,9 @@ export function LoginPage() {
               ))}
             </select>
           )}
-          <Input
-            type="password"
+          <SecurePasswordInput
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(v) => setPassword(v)}
             placeholder="Enter master password"
           />
           {error && <div style={{ color: '#e74c3c', fontSize: 13 }}>{error}</div>}

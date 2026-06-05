@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 
 const levelColors: Record<SensitivityLevel, string> = {
@@ -88,15 +89,10 @@ export function SensitivitySettingsPage() {
                       <option value="sensitive">Sensitive</option>
                       <option value="critical">Critical</option>
                     </select>
-                    <input
-                      type="password"
+                    <SecurePasswordInput
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(v) => setPassword(v)}
                       placeholder="Password (required for downgrade)"
-                      style={{
-                        padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
-                        fontSize: 13, background: 'var(--bg-elevated)',
-                      }}
                     />
                     <input
                       value={reason}

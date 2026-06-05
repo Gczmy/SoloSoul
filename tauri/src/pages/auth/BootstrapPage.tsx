@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 
 export function BootstrapPage() {
   const navigate = useNavigate();
@@ -42,18 +43,16 @@ export function BootstrapPage() {
             onChange={(e) => setAccountName(e.target.value)}
             placeholder="e.g. Personal Vault"
           />
-          <Input
+          <SecurePasswordInput
             label="Master Password"
-            type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(v) => setPassword(v)}
             placeholder="At least 8 characters"
           />
-          <Input
+          <SecurePasswordInput
             label="Confirm Password"
-            type="password"
             value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
+            onChange={(v) => setConfirm(v)}
             placeholder="Repeat password"
           />
           {error && <div style={{ color: '#e74c3c', fontSize: 13 }}>{error}</div>}

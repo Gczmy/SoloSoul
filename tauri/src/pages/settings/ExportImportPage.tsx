@@ -3,6 +3,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 
@@ -120,8 +121,8 @@ export function ExportImportPage() {
             </Card>
             <Card>
               <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Encryption</h3>
-              <Input type="password" value={password}
-                onChange={(e) => setPassword(e.target.value)}
+              <SecurePasswordInput value={password}
+                onChange={(v) => setPassword(v)}
                 placeholder="Enter export password" />
             </Card>
             <Button onClick={handleExport} loading={isExporting}
@@ -161,8 +162,8 @@ export function ExportImportPage() {
                   </ul>
                 </div>
                 <div style={{ marginTop: 12 }}>
-                  <Input type="password" value={importPw}
-                    onChange={(e) => setImportPw(e.target.value)}
+                  <SecurePasswordInput value={importPw}
+                    onChange={(v) => setImportPw(v)}
                     placeholder="Export password" />
                 </div>
                 <div style={{ marginTop: 8 }}>
