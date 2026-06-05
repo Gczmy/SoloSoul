@@ -23,6 +23,20 @@ pub struct LoadProfilePayload {
     pub account_id: String,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct SectionData {
+    pub section_type: String,
+    pub fields: Vec<FieldValue>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct FieldValue {
+    pub key: String,
+    pub label: String,
+    pub value: serde_json::Value,
+    pub sensitivity_level: Option<String>,
+}
+
 #[tauri::command]
 pub async fn profile_save(
     state: State<'_, AppState>,
@@ -98,4 +112,85 @@ pub async fn profile_delete(state: State<'_, AppState>, profile_id: String) -> R
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     vault.delete_profile(&profile_id)
+}
+
+#[tauri::command]
+pub async fn profile_get_section(
+    state: State<'_, AppState>,
+    account_id: String,
+    section_type: String,
+) -> Result<Option<SectionData>, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    let profile = vault.load_profile(&account_id)?;
+    match profile {
+        Some(p) => {
+            let data: serde_json::Value = serde_json::from_slice(&p.data)
+                .map_err(|e| format!("Parse error: {}", e))?;
+            let sections = data.get("sections").and_then(|s| s.as_array());
+            if let Some(sections) = sections {
+                for sec in sections {
+                    if sec.get("type").and_then(|t| t.as_str()) == Some(&section_type) {
+                        let st = sec.get("type").and_then(|t| t.as_str()).unwrap_or("").to_string();
+                        let fields: Vec<FieldValue> = sec.get("fields")
+                            .and_then(|f| f.as_array())
+                            .map(|arr| {
+                                arr.iter().map(|f| FieldValue {
+                                    key: f.get("key").and_then(|k| k.as_str()).unwrap_or("").to_string(),
+                                    label: f.get("label").and_then(|l| l.as_str()).unwrap_or("").to_string(),
+                                    value: f.get("value").cloned().unwrap_or(serde_json::Value::Null),
+                                    sensitivity_level: f.get("sensitivityLevel").and_then(|s| s.as_str()).map(|s| s.to_string()),
+                                }).collect()
+                            })
+                            .unwrap_or_default();
+                        return Ok(Some(SectionData { section_type: st, fields }));
+                    }
+                }
+            }
+            Ok(None)
+        }
+        None => Ok(None),
+    }
+}
+
+#[tauri::command]
+pub async fn profile_update_field(
+    state: State<'_, AppState>,
+    account_id: String,
+    section_type: String,
+    field_key: String,
+    field_value: serde_json::Value,
+) -> Result<(), String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    let mut profile = vault.load_profile(&account_id)?
+        .ok_or("Profile not found")?;
+
+    let mut data: serde_json::Value = serde_json::from_slice(&profile.data)
+        .map_err(|e| format!("Parse error: {}", e))?;
+
+    if let Some(sections) = data.get_mut("sections").and_then(|s| s.as_array_mut()) {
+        for sec in sections.iter_mut() {
+            if sec.get("type").and_then(|t| t.as_str()) == Some(&section_type) {
+                if let Some(fields) = sec.get_mut("fields").and_then(|f| f.as_array_mut()) {
+                    for field in fields.iter_mut() {
+                        if field.get("key").and_then(|k| k.as_str()) == Some(&field_key) {
+                            field["value"] = field_value.clone();
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
+    profile.updated_at = chrono::Utc::now();
+    profile.version += 1;
+    vault.save_profile(&profile)
 }

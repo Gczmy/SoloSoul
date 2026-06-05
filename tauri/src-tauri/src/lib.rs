@@ -55,6 +55,7 @@ pub fn run() {
 
             // Search commands
             commands::search::search_unified,
+            commands::search::search_advanced,
 
             // Export/Import commands
             commands::export_import::export_get_scope_tree,
@@ -73,6 +74,8 @@ pub fn run() {
             commands::profile::profile_load,
             commands::profile::profile_list,
             commands::profile::profile_delete,
+            commands::profile::profile_get_section,
+            commands::profile::profile_update_field,
             // Crypto commands
             commands::crypto::encrypt_bytes,
             commands::crypto::decrypt_bytes,
@@ -102,6 +105,9 @@ pub fn run() {
             commands::backup::backup_create,
             commands::backup::backup_restore,
             commands::backup::backup_delete,
+            // Settings / user_data commands
+            commands::settings::user_data_get_preferences,
+            commands::settings::user_data_update_preference,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

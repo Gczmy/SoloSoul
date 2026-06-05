@@ -20,6 +20,7 @@ import { SearchPage } from '@/pages/search/SearchPage';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { OperationLogPage } from '@/pages/settings/OperationLogPage';
 import { AboutPage } from '@/pages/system/AboutPage';
+import { DebugLogPage } from '@/pages/system/DebugLogPage';
 import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -145,6 +146,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <AboutPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/debug-log"
+        element={
+          <AuthGuard>
+            <DebugLogPage />
           </AuthGuard>
         }
       />
