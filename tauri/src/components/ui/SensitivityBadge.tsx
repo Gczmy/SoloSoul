@@ -1,13 +1,30 @@
 import { useTranslation } from 'react-i18next';
+import { Circle, CircleDot, Lock } from 'lucide-react';
 import type { SensitivityLevel } from '@/stores/sensitivityStore';
 
 // §12 敏感度等级系统重构 + §9.4 视觉规范 — 唯一真理来源
-const STYLES: Record<SensitivityLevel, { bg: string; fg: string; dot: string }> = {
-  public:    { bg: 'rgba(61,139,94,0.10)',   fg: '#3D8B5E', dot: '○' },
-  internal:  { bg: 'rgba(74,144,217,0.10)',  fg: '#4A90D9', dot: '●' },
-  sensitive: { bg: 'rgba(212,133,10,0.10)',  fg: '#D4850A', dot: '●' },
-  critical:  { bg: 'rgba(192,57,43,0.10)',   fg: '#C0392B', dot: '🔒' },
+// Icons use Lucide SVG (no emoji, per §9.4)
+const STYLES: Record<SensitivityLevel, { bg: string; fg: string }> = {
+  public:    { bg: 'rgba(61,139,94,0.10)',   fg: '#3D8B5E' },
+  internal:  { bg: 'rgba(74,144,217,0.10)',  fg: '#4A90D9' },
+  sensitive: { bg: 'rgba(212,133,10,0.10)',  fg: '#D4850A' },
+  critical:  { bg: 'rgba(192,57,43,0.10)',   fg: '#C0392B' },
 };
+
+function SensitivityIcon({ level, size = 10 }: { level: SensitivityLevel; size?: number }) {
+  switch (level) {
+    case 'public':
+      // Hollow ring (outline circle)
+      return <Circle size={size} strokeWidth={2} />;
+    case 'internal':
+    case 'sensitive':
+      // Filled dot
+      return <CircleDot size={size} strokeWidth={2} />;
+    case 'critical':
+      // Lock icon
+      return <Lock size={size} strokeWidth={2.5} />;
+  }
+}
 
 export function getSensitivityStyle(level: SensitivityLevel) {
   return STYLES[level] || STYLES.internal;
@@ -28,7 +45,7 @@ export function SensitivityBadge({ level }: { level: SensitivityLevel }) {
         lineHeight: 1.3,
       }}
     >
-      <span style={{ fontSize: level === 'critical' ? 9 : 7, lineHeight: 1 }}>{s.dot}</span>
+      <SensitivityIcon level={level} />
       {label}
     </span>
   );
