@@ -96,5 +96,20 @@
   "import_preview": "Import Preview",
   "export_time": "Export time",
   "profiles_count": "Profiles",
-  "unknown": "Unknown"
+  "unknown": "Unknown",
+  "collections_title": "Collections",
+  "collections_builtin": "Built-in Collections",
+  "collections_builtin_badge": "Built-in",
+  "collections_my": "My Collections",
+  "collections_name_placeholder": "Collection name",
+  "collections_add": "Add",
+  "collections_empty": "No custom collections yet. Create your first one above.",
+  "collections_smart_badge": "Smart",
+  "collections_delete": "Delete",
+  "collections_smart_desc": "Smart Collections are dynamic views that automatically show objects matching filter criteria. Smart filter conditions can be configured when creating a collection. Objects matching the filter appear automatically — no manual organization needed.",
+  "collections_created": "Collection created",
+  "collections_deleted": "Collection deleted",
+  "collections_load_failed": "Failed to load collections",
+  "collections_create_failed": "Failed to create collection",
+  "collections_delete_failed": "Failed to delete"
 }

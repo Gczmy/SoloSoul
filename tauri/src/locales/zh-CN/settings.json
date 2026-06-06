@@ -96,5 +96,20 @@
   "import_preview": "导入预览",
   "export_time": "导出时间",
   "profiles_count": "档案数",
-  "unknown": "未知"
+  "unknown": "未知",
+  "collections_title": "集合",
+  "collections_builtin": "内置集合",
+  "collections_builtin_badge": "内置",
+  "collections_my": "我的集合",
+  "collections_name_placeholder": "集合名称",
+  "collections_add": "添加",
+  "collections_empty": "暂无自定义集合，在上方创建第一个。",
+  "collections_smart_badge": "智能",
+  "collections_delete": "删除",
+  "collections_smart_desc": "智能集合是基于筛选条件自动聚合对象的动态视图。创建集合时可配置筛选条件，匹配的对象会自动出现——无需手动整理。",
+  "collections_created": "集合已创建",
+  "collections_deleted": "集合已删除",
+  "collections_load_failed": "加载集合失败",
+  "collections_create_failed": "创建集合失败",
+  "collections_delete_failed": "删除集合失败"
 }

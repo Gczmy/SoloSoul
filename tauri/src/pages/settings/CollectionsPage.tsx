@@ -18,16 +18,11 @@ interface CollectionDef {
   sortOrder: number; createdAt: string;
 }
 
-const BUILTIN_COLLECTIONS = [
-  { name: 'Identity', iconName: 'person' },
-  { name: 'Travel', iconName: 'flight' },
-  { name: 'Financial', iconName: 'account_balance' },
-  { name: 'Professional', iconName: 'work' },
-];
+const BUILTIN_COLLECTION_KEYS = ['identity', 'travel', 'financial', 'professional'] as const;
 
 export function CollectionsPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation(['settings', 'common']);
+  const { t } = useTranslation(['settings', 'common', 'navigation']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { onError, onSuccess } = useToastError();
 
@@ -41,7 +36,7 @@ export function CollectionsPage() {
     try {
       const cols = await invoke<CollectionDef[]>('collection_list', { accountId });
       setCollections(cols);
-    } catch (e) { onError(e, 'Failed to load collections'); }
+    } catch (e) { onError(e, t('settings:collections_load_failed')); }
     finally { setIsLoading(false); }
   };
 
@@ -55,9 +50,9 @@ export function CollectionsPage() {
         input: { accountId, name: newName.trim(), iconName: 'folder' },
       });
       setNewName('');
-      onSuccess('Collection created');
+      onSuccess(t('settings:collections_created'));
       await load();
-    } catch (e) { onError(e, 'Failed to create collection'); }
+    } catch (e) { onError(e, t('settings:collections_create_failed')); }
     finally { setIsCreating(false); }
   };
 
@@ -65,30 +60,30 @@ export function CollectionsPage() {
     if (!accountId || !confirm(t('common:confirm'))) return;
     try {
       await invoke('collection_delete', { accountId, collectionId: id });
-      onSuccess('Collection deleted');
+      onSuccess(t('settings:collections_deleted'));
       await load();
-    } catch (e) { onError(e, 'Failed to delete'); }
+    } catch (e) { onError(e, t('settings:collections_delete_failed')); }
   };
 
-  if (isLoading) return <AppShell title="Collections" onBack={() => navigate('/settings')}><p>Loading...</p></AppShell>;
+  if (isLoading) return <AppShell title={t('settings:collections_title')} onBack={() => navigate('/settings')}><p>Loading...</p></AppShell>;
 
   return (
-    <AppShell title="Collections" onBack={() => navigate('/settings')}>
+    <AppShell title={t('settings:collections_title')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Built-in collections (read-only) */}
         <Card>
           <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
             <Layers size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-            Built-in Collections
+            {t('settings:collections_builtin')}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {BUILTIN_COLLECTIONS.map((c) => (
-              <div key={c.name} style={{
+            {BUILTIN_COLLECTION_KEYS.map((key) => (
+              <div key={key} style={{
                 display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
                 borderRadius: 8, background: 'var(--bg-toolbar)', fontSize: 13,
               }}>
-                <span style={{ fontWeight: 500 }}>{c.name}</span>
-                <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-tertiary)' }}>Built-in</span>
+                <span style={{ fontWeight: 500 }}>{t(`navigation:${key}`, key)}</span>
+                <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-tertiary)' }}>{t('settings:collections_builtin_badge')}</span>
               </div>
             ))}
           </div>
@@ -98,25 +93,25 @@ export function CollectionsPage() {
         <Card>
           <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
             <Layers size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-            My Collections
+            {t('settings:collections_my')}
           </h3>
           {/* Create form */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Collection name"
+              placeholder={t('settings:collections_name_placeholder')}
               onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
               style={{ flex: 1 }}
             />
             <Button onClick={handleCreate} loading={isCreating} disabled={!newName.trim()}>
-              <Plus size={14} style={{ marginRight: 4 }} /> Add
+              <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:collections_add')}
             </Button>
           </div>
           {/* List */}
           {collections.length === 0 ? (
             <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: 16 }}>
-              No custom collections yet. Create your first one above.
+              {t('settings:collections_empty')}
             </p>
           ) : (
             collections.map((c) => (
@@ -127,11 +122,11 @@ export function CollectionsPage() {
               }}>
                 {c.filter ? <Filter size={12} style={{ color: 'var(--accent-primary)' }} /> : null}
                 <span style={{ fontWeight: 500 }}>{c.name}</span>
-                {c.filter && <span style={{ fontSize: 10, color: 'var(--accent-primary)', marginLeft: 4 }}>Smart</span>}
+                {c.filter && <span style={{ fontSize: 10, color: 'var(--accent-primary)', marginLeft: 4 }}>{t('settings:collections_smart_badge')}</span>}
                 <span style={{ marginLeft: 'auto' }} />
                 <button
                   onClick={() => handleDelete(c.id)}
-                  title="Delete"
+                  title={t('settings:collections_delete')}
                   style={{ padding: 4, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}
                 >
                   <Trash2 size={14} />
@@ -144,10 +139,7 @@ export function CollectionsPage() {
         {/* Smart collection info */}
         <Card>
           <div style={{ fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.6 }}>
-            <strong style={{ color: 'var(--text-secondary)' }}>Smart Collections</strong> are dynamic views
-            that automatically show objects matching filter criteria. Smart filter conditions
-            can be configured when creating a collection. Objects matching the filter appear
-            automatically — no manual organization needed.
+            {t('settings:collections_smart_desc')}
           </div>
         </Card>
       </div>
