@@ -74,7 +74,7 @@ export function SecuritySettingsPage() {
       }
 
       // Refresh accounts to sync updated hint to LoginPage
-      useAuthStore.getState().listAccounts();
+      await useAuthStore.getState().listAccounts();
 
       setOldPw('');
       setNewPw('');
