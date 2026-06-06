@@ -202,6 +202,7 @@ interface AttachmentItem {
   sizeBytes: number;
   createdAt: string;
   deletedAt?: string | null;
+  srcPath?: string | null;
 }
 
 function formatSize(bytes: number): string {
@@ -219,7 +220,30 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
+  const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
   const { t } = useTranslation(['common', 'editor']);
+
+  const openWithDefault = async (path: string) => {
+    try {
+      const { open } = await import('@tauri-apps/plugin-shell');
+      await open(path);
+    } catch {
+      try {
+        await invoke('shell_open', { path });
+      } catch { /* no fallback */ }
+    }
+  };
+
+  const handlePreview = (item: AttachmentItem) => {
+    const isText = item.mimeType.startsWith('text/') || ['json','xml','csv','md','txt'].some(e => item.fileName.endsWith(e));
+    const isImage = item.mimeType.startsWith('image/');
+    const isPdf = item.mimeType === 'application/pdf';
+    if (isImage || isPdf || isText) {
+      setPreviewItem(item);
+    } else {
+      openWithDefault(item.fileName);
+    }
+  };
 
   const loadAttachments = useCallback(async () => {
     setLoading(true);
@@ -246,7 +270,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
         objectId, meta: {
           id: crypto.randomUUID(), objectId,
           fileName, mimeType: 'application/octet-stream',
-          sizeBytes, createdAt: new Date().toISOString(),
+          sizeBytes, createdAt: new Date().toISOString(), srcPath: filePath,
         },
       });
       await loadAttachments();
@@ -323,7 +347,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
             <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)' }}>{t('common:loading')}</div>
           ) : displayItems.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>
-              {showTrash ? ' ' : t('common:no_attachments')}
+              {showTrash ? t('common:attachments_trash_empty') : t('common:no_attachments')}
             </div>
           ) : displayItems.map((item) => (
             <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 6px', borderBottom: '1px solid var(--border-subtle)', fontSize: 13 }}>
@@ -349,7 +373,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
                     <input ref={renameInputRef} value={renameValue} onChange={(e) => setRenameValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmRename(); if (e.key === 'Escape') setRenamingId(null); }} onBlur={handleConfirmRename} style={{ width: 100, padding: '3px 6px', fontSize: 12, borderRadius: 4, border: '1px solid var(--accent-primary)', background: 'transparent', color: 'var(--text-primary)', outline: 'none' }} />
                   ) : (
                     <>
-                    <button onClick={() => {}} style={miniBtn} title="Preview"><Eye size={12} /></button>
+                    <button onClick={() => handlePreview(item)} style={miniBtn} title="Preview"><Eye size={12} /></button>
                     <button onClick={() => handleStartRename(item)} style={miniBtn} title={t('common:rename')}><Edit2 size={12} /></button>
                     </>
                   )}
@@ -360,6 +384,30 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
           ))}
         </div>
       </div>
+      {/* Preview: image */}
+      {previewItem && previewItem.mimeType.startsWith('image/') && (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', flexDirection:'column', background:'rgba(0,0,0,0.8)', backdropFilter:'blur(12px)' }} onClick={() => setPreviewItem(null)}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 18px', background:'var(--bg-toolbar)' }}>
+            <span style={{ fontSize:13, fontWeight:500 }}>{previewItem.fileName}</span>
+            <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
+          </div>
+          <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
+            <img src={`asset://localhost/${encodeURIComponent(previewItem.fileName)}`} alt={previewItem.fileName} style={{ maxWidth:'90%', maxHeight:'90%', objectFit:'contain', borderRadius:8 }} />
+          </div>
+        </div>
+      )}
+      {/* Preview: PDF */}
+      {previewItem && previewItem.mimeType === 'application/pdf' && (
+        <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', flexDirection:'column', background:'rgba(0,0,0,0.8)', backdropFilter:'blur(12px)' }} onClick={() => setPreviewItem(null)}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 18px', background:'var(--bg-toolbar)' }}>
+            <span style={{ fontSize:13, fontWeight:500 }}>{previewItem.fileName}</span>
+            <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
+          </div>
+          <div style={{ flex:1, padding:24 }}>
+            <iframe src={`asset://localhost/${encodeURIComponent(previewItem.fileName)}`} style={{ width:'100%', height:'100%', border:'none', borderRadius:8, background:'white' }} />
+          </div>
+        </div>
+      )}
       {/* Permanent delete confirmation */}
       {permDeleteItem && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }} onClick={() => setPermDeleteItem(null)}>

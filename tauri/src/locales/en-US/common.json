@@ -127,6 +127,7 @@
   "attachments_active": "Active ({{n}})",
   "attachments_trash": "Trash ({{n}})",
   "no_attachments": "No attachments",
+  "attachments_trash_empty": "No attachments in this object's trash.",
   "rename": "Rename",
   "rename_prompt": "Rename:",
   "cancel": "Cancel",

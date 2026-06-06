@@ -17,6 +17,9 @@ pub struct AttachmentMeta {
     pub created_at: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub deleted_at: Option<String>,
+    /// Original source file path on disk (for preview/opening)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub src_path: Option<String>,
 }
 
 fn load_attachments(props: &Value) -> Vec<AttachmentMeta> {

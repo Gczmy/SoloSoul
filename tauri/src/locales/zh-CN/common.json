@@ -127,6 +127,7 @@
   "attachments_active": "活跃 ({{n}})",
   "attachments_trash": "回收站 ({{n}})",
   "no_attachments": "暂无附件",
+  "attachments_trash_empty": "目前没有附件在该对象回收站中",
   "rename": "重命名",
   "rename_prompt": "重命名：",
   "cancel": "取消",
