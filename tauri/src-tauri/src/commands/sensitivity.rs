@@ -44,6 +44,31 @@ pub async fn sensitivity_update_field(
     // Downgrade protection: downgrading requires vault password verification
     if (level as i32) < (old as i32) {
         verify_vault_password(&app, &password)?;
+
+        // Cooldown check (§5): same field cannot be downgraded again within 5 min
+        const DOWNGRADE_COOLDOWN_SECS: i64 = 300;
+        let log = manager.log.read().await;
+        if let Some(last_downgrade) = log
+            .entries
+            .iter()
+            .rev()
+            .find(|e| e.field_id == field_id && (e.old_level as i32) > (e.new_level as i32))
+        {
+            if let Ok(last_ts) =
+                chrono::DateTime::parse_from_rfc3339(&last_downgrade.timestamp)
+            {
+                let elapsed = chrono::Utc::now()
+                    .signed_duration_since(last_ts.with_timezone(&chrono::Utc))
+                    .num_seconds();
+                if elapsed < DOWNGRADE_COOLDOWN_SECS {
+                    let remaining = DOWNGRADE_COOLDOWN_SECS - elapsed;
+                    return Err(format!(
+                        "Downgrade cooldown active. Please wait {} more seconds before downgrading this field again.",
+                        remaining
+                    ));
+                }
+            }
+        }
     }
 
     map.set(&field_id, level);
