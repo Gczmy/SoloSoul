@@ -6,5 +6,10 @@
   "professional": "Professional",
   "search": "Search",
   "settings": "Settings",
-  "lock_vault": "Lock Vault"
+  "lock_vault": "Lock Vault",
+  "plugin": "Plugins",
+  "ai_chat": "AI Chat",
+  "add_page": "Add Page",
+  "add_page_placeholder": "Page name",
+  "custom_page": "My Projects"
 }

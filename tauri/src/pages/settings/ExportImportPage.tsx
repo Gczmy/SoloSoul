@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -20,7 +22,9 @@ interface ImportPreview {
 }
 
 export function ExportImportPage() {
+  const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
+  const { t } = useTranslation(['settings', 'common']);
   const [tab, setTab] = useState<'export' | 'import'>('export');
   const [scope, setScope] = useState<ScopeNode[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -83,7 +87,7 @@ export function ExportImportPage() {
   };
 
   return (
-    <AppShell title="Export & Import" onBack={() => window.history.back()}>
+    <AppShell title={t('settings:export_import')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', gap: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
           {(['export', 'import'] as const).map((t) => (
@@ -99,12 +103,12 @@ export function ExportImportPage() {
         {tab === 'export' && (
           <>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-              Select profiles to export as an encrypted .solosoul file.
+              {t('export_desc', { ns: 'settings', defaultValue: 'Select profiles to export as an encrypted .solosoul file.' })}
             </p>
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Profiles</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{t('common:profile')}</h3>
               {scope.length === 0 ? (
-                <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>No profiles found</p>
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{t('common:no_data')}</p>
               ) : (
                 scope.map((node) => (
                   <label key={node.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', cursor: 'pointer' }}>
@@ -120,14 +124,14 @@ export function ExportImportPage() {
               )}
             </Card>
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Encryption</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{t('settings:encryption')}</h3>
               <SecurePasswordInput value={password}
                 onChange={(v) => setPassword(v)}
-                placeholder="Enter export password" />
+                placeholder="common:password_placeholder" />
             </Card>
             <Button onClick={handleExport} loading={isExporting}
               disabled={selectedIds.size === 0 || !password}>
-              Export Selected ({selectedIds.size})
+              {t('settings:export_selected')} ({selectedIds.size})
             </Button>
           </>
         )}
@@ -135,26 +139,26 @@ export function ExportImportPage() {
         {tab === 'import' && (
           <>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-              Import profiles from a .solosoul file.
+              {t('settings:import_desc')}
             </p>
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Select File</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{t('settings:select_file')}</h3>
               <Input value={importPath}
                 onChange={(e) => { setImportPath(e.target.value); setImportPreview(null); }}
-                placeholder="Path to .solosoul file" />
+                placeholder={t('settings:path_to_file')} />
               <div style={{ marginTop: 8 }}>
                 <Button size="sm" onClick={handlePreviewImport} disabled={!importPath}>
-                  Preview
+                  {t('settings:preview')}
                 </Button>
               </div>
             </Card>
 
             {importPreview && (
               <Card>
-                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Import Preview</h3>
+                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{t('settings:import_preview')}</h3>
                 <div style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <p>Export time: {importPreview.exportTime || 'Unknown'}</p>
-                  <p>Profiles: {importPreview.profileCount}</p>
+                  <p>{t('settings:export_time')}: {importPreview.exportTime || t('settings:unknown')}</p>
+                  <p>{t('settings:profiles_count')}: {importPreview.profileCount}</p>
                   <ul style={{ margin: '4px 0 0 16px', fontSize: 12, color: 'var(--text-secondary)' }}>
                     {importPreview.profileNames.map((name) => (
                       <li key={name} style={{ marginBottom: 2 }}>{name}</li>
@@ -164,11 +168,11 @@ export function ExportImportPage() {
                 <div style={{ marginTop: 12 }}>
                   <SecurePasswordInput value={importPw}
                     onChange={(v) => setImportPw(v)}
-                    placeholder="Export password" />
+                    placeholder="common:password_placeholder" />
                 </div>
                 <div style={{ marginTop: 8 }}>
                   <Button onClick={handleImport} loading={isImporting} disabled={!importPw}>
-                    Import {importPreview.profileCount} Profile(s)
+                    {t('settings:import')} {importPreview.profileCount} {t('common:profile', { defaultValue: 'Profile(s)' })}(s)
                   </Button>
                 </div>
               </Card>

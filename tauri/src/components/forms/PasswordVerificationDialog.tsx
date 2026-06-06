@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog } from '@/components/ui/Dialog';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Button } from '@/components/ui/Button';
@@ -25,19 +26,20 @@ export function PasswordVerificationDialog({
   open,
   onClose,
   onVerify,
-  title = 'Enter Password',
-  description = 'Please enter your vault password to continue.',
-  confirmLabel = 'Confirm',
+  title,
+  description,
+  confirmLabel,
   hint,
 }: PasswordVerificationDialogProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { onError } = useToastError();
+  const { t } = useTranslation(['auth', 'common']);
 
   const handleConfirm = async () => {
     if (!password) {
-      setError('Password is required');
+      setError(t('auth:password_required'));
       return;
     }
     setLoading(true);
@@ -48,10 +50,10 @@ export function PasswordVerificationDialog({
         setPassword('');
         onClose();
       } else {
-        setError('Incorrect password');
+        setError(t('auth:incorrect_password'));
       }
     } catch (e) {
-      onError(e, 'Verification failed');
+      onError(e, t('common:error'));
     } finally {
       setLoading(false);
     }
@@ -66,24 +68,26 @@ export function PasswordVerificationDialog({
   return (
     <Dialog isOpen={open} onClose={handleClose}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 320 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{title}</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
+          {title || t('auth:verification_title')}
+        </h2>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
-          {description}
+          {description || t('auth:verification_description')}
         </p>
         <SecurePasswordInput
           value={password}
           onChange={(v) => { setPassword(v); setError(null); }}
-          placeholder="Vault password"
+          placeholder="common:password_placeholder"
           error={error}
           autoComplete="current-password"
           hint={hint}
         />
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
           <Button variant="secondary" onClick={handleClose}>
-            Cancel
+            {t('common:cancel')}
           </Button>
           <Button onClick={handleConfirm} loading={loading} disabled={!password}>
-            {confirmLabel}
+            {confirmLabel || t('common:confirm')}
           </Button>
         </div>
       </div>

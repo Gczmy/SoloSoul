@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 
 export type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
@@ -28,6 +29,7 @@ export function SensitiveValue({
   className = '',
 }: SensitiveValueProps) {
   const [revealed, setRevealed] = useState(forceRevealed);
+  const { t } = useTranslation('sensitivity');
 
   if (level === 'public' || level === 'internal' || (revealed || forceRevealed)) {
     return (
@@ -42,7 +44,7 @@ export function SensitiveValue({
             width: 6, height: 6, borderRadius: '50%',
             background: 'var(--accent-warning, #f59e0b)',
             display: 'inline-block', flexShrink: 0,
-          }} title="Internal — edit requires verification" />
+          }} title={t('internal_hint')} />
         )}
         {value}
         {!forceRevealed && level === 'sensitive' && (
@@ -56,7 +58,7 @@ export function SensitiveValue({
               color: 'var(--text-tertiary)', padding: 2,
               display: 'inline-flex', alignItems: 'center',
             }}
-            title="Hide"
+            title={t('hide')}
           >
             <EyeOff size={14} />
           </button>
@@ -88,7 +90,7 @@ export function SensitiveValue({
           color: 'transparent', textShadow: '0 0 8px var(--text-primary, #000)',
           transition: 'all 0.2s',
         }}
-        title={onReveal ? 'Click to reveal' : 'Sensitive'}
+        title={onReveal ? t('click_to_reveal') : t('sensitive_label')}
       >
         <Eye size={14} style={{ color: 'var(--text-secondary)' }} />
         ••••••••
@@ -116,10 +118,10 @@ export function SensitiveValue({
         color: 'var(--text-critical, #dc2626)',
         transition: 'all 0.2s',
       }}
-      title={onReveal ? 'Unlock to view' : 'Critical'}
+      title={onReveal ? t('unlock_to_view') : t('critical_label')}
     >
       <Lock size={14} />
-      {onReveal ? 'Unlock to view' : '••••••••'}
+      {onReveal ? t('unlock_to_view') : '••••••••'}
     </button>
   );
 }

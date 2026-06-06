@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { GlassCard } from '@/components/liquid-glass/GlassCard';
 import { invoke } from '@tauri-apps/api/core';
@@ -14,8 +16,10 @@ interface AppInfo {
 }
 
 export function AboutPage() {
+  const navigate = useNavigate();
   const [info, setInfo] = useState<AppInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation(['settings', 'common']);
 
   useEffect(() => {
     invoke<AppInfo>('get_app_info')
@@ -25,13 +29,13 @@ export function AboutPage() {
   }, []);
 
   const links = [
-    { label: 'GitHub Repository', url: 'https://github.com/Gczmy/SoloSoul', icon: <Code2 size={14} /> },
-    { label: 'Privacy Policy', url: 'https://github.com/Gczmy/SoloSoul/blob/main/docs/PRIVACY_POLICY.md', icon: <ExternalLink size={14} /> },
-    { label: 'Terms of Service', url: 'https://github.com/Gczmy/SoloSoul/blob/main/docs/TERMS_OF_SERVICE.md', icon: <ExternalLink size={14} /> },
+    { labelKey: 'github_repo', url: 'https://github.com/Gczmy/SoloSoul', icon: <Code2 size={14} /> },
+    { labelKey: 'privacy_policy', url: 'https://github.com/Gczmy/SoloSoul/blob/main/docs/PRIVACY_POLICY.md', icon: <ExternalLink size={14} /> },
+    { labelKey: 'terms_of_service', url: 'https://github.com/Gczmy/SoloSoul/blob/main/docs/TERMS_OF_SERVICE.md', icon: <ExternalLink size={14} /> },
   ];
 
   return (
-    <AppShell title="About" onBack={() => window.history.back()}>
+    <AppShell title={t('settings:about')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
         {/* Logo + Name */}
         <div style={{ textAlign: 'center', marginTop: 24 }}>
@@ -54,18 +58,18 @@ export function AboutPage() {
           <GlassCard>
             {loading ? (
               <div style={{ textAlign: 'center', padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>
-                Loading...
+                {t('settings:loading')}
               </div>
             ) : info ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>
-                <Row label="Version" value={`v${info.version}`} />
-                <Row label="Build" value={info.buildNumber} />
-                <Row label="Platform" value={`${info.os} (${info.arch})`} />
-                <Row label="Frontend" value={`React ${pkg.dependencies?.react?.replace('^', '') || '19'}`} />
+                <Row label={t('settings:version')} value={`v${info.version}`} />
+                <Row label={t('settings:build')} value={info.buildNumber} />
+                <Row label={t('settings:platform')} value={`${info.os} (${info.arch})`} />
+                <Row label={t('settings:frontend')} value={`React ${pkg.dependencies?.react?.replace('^', '') || '19'}`} />
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>
-                Could not load app info
+                {t('settings:could_not_load')}
               </div>
             )}
           </GlassCard>
@@ -91,7 +95,7 @@ export function AboutPage() {
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
               >
                 {link.icon}
-                <span style={{ flex: 1 }}>{link.label}</span>
+                <span style={{ flex: 1 }}>{t(`settings:${link.labelKey}`)}</span>
                 <ExternalLink size={12} style={{ color: 'var(--text-tertiary)' }} />
               </a>
             ))}

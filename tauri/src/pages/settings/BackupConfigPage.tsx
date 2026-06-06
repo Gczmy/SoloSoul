@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -24,7 +26,9 @@ function formatSize(bytes: number): string {
 }
 
 export function BackupConfigPage() {
+  const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
+  const { t } = useTranslation(['settings', 'common']);
   const [backups, setBackups] = useState<BackupInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [backupName, setBackupName] = useState('');
@@ -86,27 +90,27 @@ export function BackupConfigPage() {
   };
 
   return (
-    <AppShell title="Backup & Restore" onBack={() => window.history.back()}>
+    <AppShell title={t('settings:backup_restore')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Create Backup */}
         <Card>
           <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 6 }}>
             <HardDrive size={16} />
-            Create Backup
+            {t('settings:create_backup_title')}
           </h3>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>
-            Back up all vault data to a local snapshot. Restore anytime.
+            {t('settings:backup_hint')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
             <Input
               value={backupName}
               onChange={(e) => setBackupName(e.target.value)}
-              placeholder="Backup name (e.g., before-update)"
+              placeholder={t('settings:backup_name_placeholder')}
               style={{ flex: 1 }}
             />
             <Button onClick={handleCreate} loading={isCreating} disabled={!backupName.trim()}>
               <Plus size={14} />
-              Create
+              {t('settings:create')}
             </Button>
           </div>
         </Card>
@@ -114,19 +118,19 @@ export function BackupConfigPage() {
         {/* Backup List */}
         <Card>
           <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px' }}>
-            Saved Backups
+            {t('settings:saved_backups')}
           </h3>
 
           {isLoading ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
-              Loading backups...
+              {t('settings:loading')}
             </div>
           ) : backups.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>
               <HardDrive size={24} style={{ marginBottom: 8, opacity: 0.4 }} />
-              <p style={{ fontSize: 14, margin: 0 }}>No backups yet</p>
+              <p style={{ fontSize: 14, margin: 0 }}>{t('settings:no_backups_yet')}</p>
               <p style={{ fontSize: 12, margin: '4px 0 0' }}>
-                Create your first backup above
+                {t('settings:create_first_backup')}
               </p>
             </div>
           ) : (
@@ -144,7 +148,7 @@ export function BackupConfigPage() {
                     <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-tertiary)' }}>
                       {new Date(backup.created_at).toLocaleString()} &middot;{' '}
                       {formatSize(backup.size_bytes)} &middot;{' '}
-                      {backup.object_count} objects
+                      {backup.object_count} {t('settings:objects_count')}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 4 }}>
@@ -153,7 +157,7 @@ export function BackupConfigPage() {
                       size="sm"
                       onClick={() => handleRestore(backup.id)}
                       loading={restoringId === backup.id}
-                      title="Restore this backup"
+                      title={t('settings:restore_title')}
                     >
                       <RotateCcw size={14} />
                     </Button>
@@ -161,7 +165,7 @@ export function BackupConfigPage() {
                       variant="tertiary"
                       size="sm"
                       onClick={() => handleDelete(backup.id)}
-                      title="Delete this backup"
+                      title={t('settings:delete_title')}
                       style={{ color: 'var(--accent-danger, #ef4444)' }}
                     >
                       <Trash2 size={14} />
@@ -175,9 +179,9 @@ export function BackupConfigPage() {
 
         {/* Info */}
         <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center' }}>
-          Backups are stored locally in your vault directory.
+          {t('settings:backups_stored_locally')}
           <br />
-          For external backup, use Export & Import to create portable .solosoul files.
+          {t('settings:export_hint')}
         </p>
       </div>
     </AppShell>

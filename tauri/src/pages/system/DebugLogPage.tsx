@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { invoke } from '@tauri-apps/api/core';
@@ -15,9 +17,11 @@ interface LogEntry {
 const LEVELS = ['error', 'warn', 'info', 'debug', 'trace'] as const;
 
 export function DebugLogPage() {
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation(['settings', 'common']);
 
   const loadLogs = async () => {
     setIsLoading(true);
@@ -53,7 +57,7 @@ export function DebugLogPage() {
     : logs.filter((l) => l.level === levelFilter);
 
   return (
-    <AppShell title="Debug Log" onBack={() => window.history.back()}>
+    <AppShell title={t('settings:debug_log')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* Toolbar */}
@@ -66,7 +70,7 @@ export function DebugLogPage() {
               fontSize: 13, background: 'var(--bg-elevated)', color: 'var(--text-primary)',
             }}
           >
-            <option value="all">All Levels</option>
+            <option value="all">{t('settings:all_levels')}</option>
             {LEVELS.map((l) => (
               <option key={l} value={l}>{l.toUpperCase()}</option>
             ))}
@@ -80,7 +84,7 @@ export function DebugLogPage() {
               fontSize: 13, color: 'var(--text-primary)',
             }}
           >
-            <RefreshCw size={14} /> Refresh
+            <RefreshCw size={14} /> {t('settings:refresh')}
           </button>
 
           <button
@@ -91,11 +95,11 @@ export function DebugLogPage() {
               fontSize: 13, color: 'var(--text-primary)',
             }}
           >
-            <Download size={14} /> Export
+            <Download size={14} /> {t('settings:export')}
           </button>
 
           <span style={{ fontSize: 12, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
-            {filteredLogs.length} entries
+            {filteredLogs.length} {t('settings:entries_count')}
           </span>
         </div>
 
@@ -103,12 +107,12 @@ export function DebugLogPage() {
         <Card>
           {isLoading ? (
             <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)', fontSize: 13 }}>
-              Loading logs...
+              {t('settings:loading_logs_debug')}
             </div>
           ) : filteredLogs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)', fontSize: 13 }}>
               <Bug size={24} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
-              No log entries found
+              {t('settings:no_log_entries_debug')}
             </div>
           ) : (
             <div style={{ fontFamily: 'var(--font-mono, "SF Mono", Monaco, monospace)', fontSize: 12, lineHeight: 1.6 }}>

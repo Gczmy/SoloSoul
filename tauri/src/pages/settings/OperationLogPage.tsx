@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
-import { Search, Filter, Download } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 
 interface LogEntry {
   timestamp: string;
@@ -23,7 +25,9 @@ const LEVEL_COLORS: Record<string, string> = {
 };
 
 export function OperationLogPage() {
+  const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
+  const { t } = useTranslation(['settings', 'common']);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
@@ -70,7 +74,7 @@ export function OperationLogPage() {
   const levels = [...new Set(logs.map((l) => l.level))];
 
   return (
-    <AppShell title="Operation Log" onBack={() => window.history.back()}>
+    <AppShell title={t('settings:operation_log')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Toolbar */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -84,7 +88,7 @@ export function OperationLogPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search logs..."
+              placeholder={t('settings:search_logs')}
               style={{
                 flex: 1, border: 'none', outline: 'none', padding: '8px 4px',
                 fontSize: 14, background: 'transparent', color: 'var(--text-primary)',
@@ -103,7 +107,7 @@ export function OperationLogPage() {
                 cursor: 'pointer', fontSize: 12, fontWeight: 500,
               }}
             >
-              All
+              {t('settings:all')}
             </button>
             {levels.map((level) => (
               <button
@@ -124,21 +128,21 @@ export function OperationLogPage() {
 
           <Button variant="secondary" size="sm" onClick={handleExport}>
             <Download size={14} />
-            Export
+            {t('settings:export_logs')}
           </Button>
         </div>
 
         {/* Log entries */}
         {isLoading ? (
           <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
-            Loading logs...
+            {t('settings:loading_logs')}
           </div>
         ) : filteredLogs.length === 0 ? (
           <Card>
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
-              <p style={{ fontSize: 14 }}>No log entries found</p>
+              <p style={{ fontSize: 14 }}>{t('settings:no_log_entries')}</p>
               <p style={{ fontSize: 12, marginTop: 4 }}>
-                {searchQuery || levelFilter ? 'Try adjusting your filters' : 'Operations will appear here as you use the app'}
+                {searchQuery || levelFilter ? t('settings:adjust_filters') : t('settings:logs_hint')}
               </p>
             </div>
           </Card>
@@ -146,14 +150,12 @@ export function OperationLogPage() {
           filteredLogs.map((entry, i) => (
             <Card key={i}>
               <div style={{ display: 'flex', gap: 12, fontSize: 13 }}>
-                {/* Level indicator */}
                 <div style={{
                   width: 3, borderRadius: 2, flexShrink: 0,
                   backgroundColor: LEVEL_COLORS[entry.level] || 'var(--text-tertiary)',
                 }} />
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{
                       fontSize: 11, fontWeight: 600, padding: '1px 6px',
@@ -170,11 +172,7 @@ export function OperationLogPage() {
                       {new Date(entry.timestamp).toLocaleString()}
                     </span>
                   </div>
-
-                  {/* Message */}
                   <p style={{ margin: 0, color: 'var(--text-primary)' }}>{entry.message}</p>
-
-                  {/* Details */}
                   {entry.details && (
                     <p style={{
                       margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)',

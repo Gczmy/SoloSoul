@@ -1,10 +1,15 @@
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 
 export function DataManagementPage() {
+  const navigate = useNavigate();
+  const { t } = useTranslation(['settings', 'common']);
+
   return (
-    <AppShell title="Data Management" onBack={() => window.history.back()}>
+    <AppShell title={t('settings:data_management')} onBack={() => navigate('/settings')}>
       <div
         style={{
           maxWidth: 480,
@@ -15,30 +20,30 @@ export function DataManagementPage() {
         }}
       >
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Backup</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{t('settings:backup')}</h3>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
-            Create encrypted backups of your vault data.
+            {t('settings:backup_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
             <Button size="sm" variant="primary">
-              Create Backup
+              {t('settings:create_backup')}
             </Button>
             <Button size="sm" variant="secondary">
-              Restore
+              {t('settings:restore')}
             </Button>
           </div>
         </Card>
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Export & Import</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{t('settings:export_import')}</h3>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
-            Export or import your data in .solosoul format.
+            {t('settings:export_import_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
             <Button size="sm" variant="primary">
-              Export
+              {t('settings:export')}
             </Button>
             <Button size="sm" variant="secondary">
-              Import
+              {t('settings:import')}
             </Button>
           </div>
         </Card>

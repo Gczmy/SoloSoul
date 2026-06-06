@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -9,8 +11,10 @@ import { invoke } from '@tauri-apps/api/core';
 import { Info } from 'lucide-react';
 
 export function SecuritySettingsPage() {
+  const navigate = useNavigate();
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const { onError, onSuccess } = useToastError();
+  const { t } = useTranslation(['settings', 'common']);
 
   const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
@@ -23,7 +27,7 @@ export function SecuritySettingsPage() {
     setError(null);
 
     if (!oldPw) {
-      setError('Current password is required');
+      setError(t('common:password_required', { ns: 'common' }));
       return;
     }
 
@@ -32,11 +36,11 @@ export function SecuritySettingsPage() {
     // Validate new + confirm only if attempting to change password
     if (isChangingPw) {
       if (newPw.length < 8 && confirmPw.length < 8) {
-        setError('Password must be at least 8 characters');
+        setError(t('settings:password_too_short'));
         return;
       }
       if (newPw !== confirmPw) {
-        setError('New passwords do not match');
+        setError(t('settings:password_mismatch'));
         return;
       }
     }
@@ -51,11 +55,11 @@ export function SecuritySettingsPage() {
           newPassword: newPw,
         });
         // TODO: update password_hint via separate IPC after backend support
-        onSuccess('Password updated. Please re-login with your new password.');
+        onSuccess(t('settings:password_updated'));
       } else {
         // 10.3 — 仅修改密码提示
         // TODO: call dedicated update_hint IPC once backend supports it
-        onSuccess('Password hint updated');
+        onSuccess(t('settings:hint_updated'));
       }
 
       setOldPw('');
@@ -65,17 +69,20 @@ export function SecuritySettingsPage() {
     } catch (e) {
       const msg = String(e);
       if (msg.includes('Invalid password') || msg.includes('incorrect')) {
-        setError('Current password is incorrect. Please try again.');
+        setError(t('settings:current_password_incorrect'));
       } else {
-        onError(e, 'Password update failed');
+        onError(e, t('common:error'));
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const allEmpty = !newPw && !confirmPw && !hint;
+  const shouldDisableSave = !oldPw || loading;
+
   return (
-    <AppShell title="Security Settings" onBack={() => window.history.back()}>
+    <AppShell title={t('settings:change_password')} onBack={() => navigate('/settings')}>
       <div
         style={{
           maxWidth: 480,
@@ -86,9 +93,11 @@ export function SecuritySettingsPage() {
         }}
       >
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>Auto Lock</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
+            {t('settings:auto_lock')}
+          </h3>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 14 }}>Auto-lock timeout</span>
+            <span style={{ fontSize: 14 }}>{t('settings:auto_lock')}</span>
             <select
               style={{
                 padding: '6px 10px',
@@ -98,24 +107,26 @@ export function SecuritySettingsPage() {
                 fontSize: 13,
               }}
             >
-              <option value="1">1 minute</option>
-              <option value="5">5 minutes</option>
-              <option value="15">15 minutes</option>
-              <option value="30">30 minutes</option>
-              <option value="0">Never</option>
+              <option value="1">1 {t('common:minute', { ns: 'common', defaultValue: 'minute' })}</option>
+              <option value="5">5 {t('common:minutes', { ns: 'common', defaultValue: 'minutes' })}</option>
+              <option value="15">15 {t('common:minutes', { ns: 'common', defaultValue: 'minutes' })}</option>
+              <option value="30">30 {t('common:minutes', { ns: 'common', defaultValue: 'minutes' })}</option>
+              <option value="0">{t('common:never', { ns: 'common', defaultValue: 'Never' })}</option>
             </select>
           </div>
         </Card>
 
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>Change Password</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
+            {t('settings:change_password')}
+          </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* 10.1 — 当前密码 */}
             <SecurePasswordInput
-              label="Current Password"
+              label={t('common:current_password')}
               value={oldPw}
               onChange={(v) => { setOldPw(v); setError(null); }}
-              placeholder="Current password"
+              placeholder="common:password_placeholder"
               autoComplete="current-password"
             />
 
@@ -123,7 +134,7 @@ export function SecuritySettingsPage() {
             <SecurePasswordInput
               label={
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  New Password
+                  {t('common:new_password')}
                   <span
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 3,
@@ -131,37 +142,37 @@ export function SecuritySettingsPage() {
                     }}
                   >
                     <Info size={12} />
-                    Password must be at least 8 characters
+                    {t('common:password_length_requirement')}
                   </span>
                 </span>
               }
               showHintButton={false}
               value={newPw}
               onChange={(v) => { setNewPw(v); setError(null); }}
-              placeholder="New password (leave empty to only update hint)"
+              placeholder="common:new_password"
               autoComplete="new-password"
             />
 
             {/* 10.1 — 确认新密码 */}
             <SecurePasswordInput
-              label="Confirm New Password"
+              label={t('common:confirm_password')}
               showHintButton={false}
               value={confirmPw}
               onChange={(v) => { setConfirmPw(v); setError(null); }}
-              placeholder="Confirm new password"
+              placeholder="common:confirm_password"
               autoComplete="new-password"
             />
 
             {/* 10.1 — 密码提示（始终明文可见，普通文本输入框） */}
             <div>
               <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-                Password Hint
+                {t('common:password_hint')}
               </label>
               <input
                 type="text"
                 value={hint}
                 onChange={(e) => { setHint(e.target.value); setError(null); }}
-                placeholder="Optional reminder for your password"
+                placeholder={t('common:optional')}
                 style={{
                   width: '100%', padding: '10px 14px', fontSize: 14,
                   border: '1px solid var(--border-subtle)', borderRadius: 8,
@@ -180,9 +191,9 @@ export function SecuritySettingsPage() {
               style={{ alignSelf: 'flex-start' }}
               onClick={handleChangePassword}
               loading={loading}
-              disabled={!oldPw}
+              disabled={shouldDisableSave}
             >
-              Update Password
+              {t('common:save')}
             </Button>
           </div>
         </Card>

@@ -6,5 +6,11 @@
   "change_level": "更改级别",
   "password_required_for_downgrade": "密码（降级需要验证）",
   "reason_placeholder": "原因（可选，用于审计）",
-  "recent_changes": "最近变更"
+  "recent_changes": "最近变更",
+  "internal_hint": "内部 — 编辑需要验证",
+  "click_to_reveal": "点击显示",
+  "sensitive_label": "敏感",
+  "unlock_to_view": "解锁查看",
+  "critical_label": "关键",
+  "hide": "隐藏"
 }

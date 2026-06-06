@@ -64,5 +64,17 @@
     "light": "Light (Warm Stone)",
     "dark": "Dark (Warm Stone)",
     "system": "System"
-  }
+  },
+  "never": "Never",
+  "minute": "minute",
+  "minutes": "minutes",
+  "welcome_back": "Welcome back",
+  "vault_description": "Your personal data vault. All data encrypted and stored locally.",
+  "search_placeholder": "Search objects, profiles...",
+  "searching": "Searching...",
+  "search_failed": "Search failed",
+  "identity_desc": "Personal info, ID cards, contacts",
+  "travel_desc": "Passports, visas, travel history",
+  "financial_desc": "Bank accounts, cards, tax info",
+  "professional_desc": "Education, employment, skills"
 }

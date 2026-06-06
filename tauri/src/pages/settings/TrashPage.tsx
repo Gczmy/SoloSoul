@@ -1,9 +1,14 @@
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 
 export function TrashPage() {
+  const navigate = useNavigate();
+  const { t } = useTranslation(['settings', 'common']);
+
   return (
-    <AppShell title="Trash" onBack={() => window.history.back()}>
+    <AppShell title={t('settings:trash')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
         <Card>
           <p
@@ -14,7 +19,7 @@ export function TrashPage() {
               padding: '24px 0',
             }}
           >
-            Trash is empty. Deleted items appear here and are automatically cleaned after 30 days.
+            {t('settings:trash_empty')}
           </p>
         </Card>
       </div>

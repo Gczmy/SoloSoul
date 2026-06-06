@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/Button';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
@@ -13,6 +14,7 @@ export function LoginPage() {
   } = useAuthStore();
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [password, setPassword] = useState('');
+  const { t } = useTranslation(['auth', 'common']);
 
   useEffect(() => {
     checkHasAccount().then(() => listAccounts());
@@ -49,9 +51,9 @@ export function LoginPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: 'white', fontWeight: 700, fontSize: 22, margin: '0 auto 16px',
         }}>S</div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>SoloSoul</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>{t('auth:login_title')}</h1>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
-          Unlock your vault to continue
+          {t('auth:login_subtitle')}
         </p>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {accounts.length > 1 && (
@@ -74,11 +76,11 @@ export function LoginPage() {
           <SecurePasswordInput
             value={password}
             onChange={(v) => setPassword(v)}
-            placeholder="Enter master password"
+            placeholder="common:password_placeholder"
           />
           {error && <div style={{ color: '#e74c3c', fontSize: 13 }}>{error}</div>}
           <Button type="submit" loading={isLoading} style={{ width: '100%' }}>
-            Unlock
+            {t('auth:login_button')}
           </Button>
         </form>
       </div>

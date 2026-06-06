@@ -25,7 +25,7 @@ export function AppearanceSettingsPage() {
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const { settings, updateSetting } = useSettingsStore();
   const accountId = currentAccount?.id || '';
-  const { t } = useTranslation();
+  const { t } = useTranslation(['settings', 'common']);
 
   const handlePresetChange = (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
@@ -50,11 +50,11 @@ export function AppearanceSettingsPage() {
   };
 
   return (
-    <AppShell title="Appearance" onBack={() => navigate('/settings')}>
+    <AppShell title={t('settings:items.appearance')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Theme preset */}
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Theme</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:groups.appearance')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {(['light', 'dark', 'system'] as const).map((preset) => (
               <label
@@ -73,8 +73,7 @@ export function AppearanceSettingsPage() {
                   onChange={() => handlePresetChange(preset)}
                   style={{ accentColor: 'var(--accent-primary)' }}
                 />
-                {preset === 'light' ? 'Light (Warm Stone)' :
-                 preset === 'dark' ? 'Dark (Warm Stone)' : 'System'}
+                {t(`common:theme.${preset}`)}
               </label>
             ))}
           </div>

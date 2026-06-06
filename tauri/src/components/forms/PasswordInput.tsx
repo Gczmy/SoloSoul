@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import { Lock, Eye, EyeOff, HelpCircle, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SecurePasswordInputProps {
   value: string;
@@ -23,7 +24,7 @@ const TOOLTIP_CLOSE_DELAY = 300;
 export function SecurePasswordInput({
   value,
   onChange,
-  placeholder = 'Enter password',
+  placeholder = 'common:password_placeholder',
   disabled = false,
   className = '',
   label,
@@ -37,6 +38,7 @@ export function SecurePasswordInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const tooltipTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const { t } = useTranslation(['common', 'auth']);
 
   // Blur resets visibility
   const handleBlur = useCallback(() => {
@@ -108,7 +110,7 @@ export function SecurePasswordInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={handleBlur}
-          placeholder={placeholder}
+          placeholder={t(placeholder)}
           disabled={disabled}
           autoComplete={autoComplete}
           aria-live="polite"
@@ -133,7 +135,7 @@ export function SecurePasswordInput({
             <button
               type="button"
               onClick={() => setVisible((prev) => !prev)}
-              aria-label={visible ? 'Hide password' : 'Show password'}
+              aria-label={visible ? t('common:hide_password') : t('common:show_password')}
               aria-pressed={visible}
               tabIndex={-1}
               style={{
@@ -156,7 +158,7 @@ export function SecurePasswordInput({
               <button
                 type="button"
                 onClick={handleTooltipToggle}
-                aria-label="Password hint"
+                aria-label={t('common:password_hint_tooltip')}
                 aria-pressed={tooltipOpen}
                 tabIndex={-1}
                 style={{
@@ -202,11 +204,13 @@ export function SecurePasswordInput({
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
-                    <span style={{ flex: 1 }}>{hasHint ? hint : 'No hint available'}</span>
+                    <span style={{ flex: 1 }}>
+                      {hasHint ? hint : t('common:no_hint_available')}
+                    </span>
                     <button
                       type="button"
                       onClick={() => setTooltipOpen(false)}
-                      aria-label="Close hint"
+                      aria-label={t('common:close')}
                       tabIndex={-1}
                       style={{
                         background: 'none', border: 'none', cursor: 'pointer',

@@ -1,46 +1,48 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette } from 'lucide-react';
 
-const settingGroups = [
-  {
-    title: 'Appearance',
-    items: [
-      { label: 'Theme & Appearance', icon: Palette, path: '/settings/appearance' },
-    ],
-  },
-  {
-    title: 'Security',
-    items: [
-      { label: 'Security Settings', icon: Shield, path: '/settings/security' },
-      { label: 'Sensitivity Settings', icon: Eye, path: '/settings/sensitivity' },
-    ],
-  },
-  {
-    title: 'Data',
-    items: [
-      { label: 'Data Management', icon: HardDrive, path: '/settings/data' },
-      { label: 'Export & Import', icon: Upload, path: '/settings/export-import' },
-      { label: 'Trash', icon: Trash2, path: '/settings/trash' },
-      { label: 'Backup & Restore', icon: Disc, path: '/settings/backup' },
-      { label: 'Operation Log', icon: ClipboardList, path: '/settings/operation-log' },
-    ],
-  },
-  {
-    title: 'System',
-    items: [
-      { label: 'Debug Log', icon: Bug, path: '/debug-log' },
-      { label: 'About', icon: Info, path: '/about' },
-    ],
-  },
-];
-
 export function SettingsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(['settings', 'common']);
+
+  const settingGroups = [
+    {
+      title: t('settings:groups.appearance'),
+      items: [
+        { label: t('settings:items.theme_appearance'), icon: Palette, path: '/settings/appearance' },
+      ],
+    },
+    {
+      title: t('settings:groups.security'),
+      items: [
+        { label: t('settings:items.security_settings'), icon: Shield, path: '/settings/security' },
+        { label: t('settings:items.sensitivity_settings'), icon: Eye, path: '/settings/sensitivity' },
+      ],
+    },
+    {
+      title: t('settings:groups.data'),
+      items: [
+        { label: t('settings:items.data_management'), icon: HardDrive, path: '/settings/data' },
+        { label: t('settings:items.export_import'), icon: Upload, path: '/settings/export-import' },
+        { label: t('settings:items.trash'), icon: Trash2, path: '/settings/trash' },
+        { label: t('settings:items.backup_restore'), icon: Disc, path: '/settings/backup' },
+        { label: t('settings:items.operation_log'), icon: ClipboardList, path: '/settings/operation-log' },
+      ],
+    },
+    {
+      title: t('settings:groups.system'),
+      items: [
+        { label: t('settings:items.debug_log'), icon: Bug, path: '/debug-log' },
+        { label: t('settings:items.about'), icon: Info, path: '/about' },
+      ],
+    },
+  ];
 
   return (
-    <AppShell title="Settings">
+    <AppShell title={t('settings:title')}>
       <div
         style={{
           maxWidth: 600,

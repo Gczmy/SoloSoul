@@ -2,6 +2,15 @@ import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
 
+// 9.8.3 — Custom page data structure
+export interface CustomPage {
+  id: string;
+  name: string;
+  icon: 'document';
+  createdAt: string;
+  sortOrder: number;
+}
+
 interface AppSettings {
   theme: 'light' | 'dark' | 'system';
   accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'custom';
@@ -13,6 +22,7 @@ interface AppSettings {
   autoLockTimeoutMinutes: number;
   biometricEnabled: boolean;
   confirmDelete: boolean;
+  customPages: CustomPage[];
 }
 
 interface SettingsState {
@@ -22,6 +32,8 @@ interface SettingsState {
   loadSettings: (accountId: string) => Promise<void>;
   updateSetting: (accountId: string, key: keyof AppSettings, value: string | number | boolean) => Promise<void>;
   clearOnVaultLock: () => void;
+  addCustomPage: (accountId: string, name: string) => Promise<CustomPage>;
+  removeCustomPage: (accountId: string, pageId: string) => Promise<void>;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -35,6 +47,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoLockTimeoutMinutes: 5,
   biometricEnabled: false,
   confirmDelete: true,
+  customPages: [],
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -64,6 +77,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (typeof prefs.autoLockTimeoutMinutes === 'number') parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
       if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
+      if (Array.isArray(prefs.customPages)) parsed.customPages = prefs.customPages as CustomPage[];
       set({ settings: parsed, isLoading: false });
     } catch {
       set({ isLoading: false });
@@ -83,6 +97,40 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       }
     } catch {
       set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));
+    }
+  },
+
+  addCustomPage: async (accountId, name) => {
+    const pages = [...get().settings.customPages];
+    const newPage: CustomPage = {
+      id: crypto.randomUUID(),
+      name,
+      icon: 'document',
+      createdAt: new Date().toISOString(),
+      sortOrder: pages.length,
+    };
+    pages.push(newPage);
+    set((s) => ({ settings: { ...s.settings, customPages: pages } }));
+    try {
+      await invoke('user_data_update_preference', {
+        payload: { accountId, preferences: { customPages: pages } },
+      });
+    } catch {
+      // Rollback
+      set((s) => ({ settings: { ...s.settings, customPages: get().settings.customPages } }));
+    }
+    return newPage;
+  },
+
+  removeCustomPage: async (accountId, pageId) => {
+    const pages = get().settings.customPages.filter((p) => p.id !== pageId);
+    set((s) => ({ settings: { ...s.settings, customPages: pages } }));
+    try {
+      await invoke('user_data_update_preference', {
+        payload: { accountId, preferences: { customPages: pages } },
+      });
+    } catch {
+      set((s) => ({ settings: { ...s.settings, customPages: get().settings.customPages } }));
     }
   },
 

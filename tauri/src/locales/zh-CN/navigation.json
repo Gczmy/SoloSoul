@@ -6,5 +6,10 @@
   "professional": "职业",
   "search": "搜索",
   "settings": "设置",
-  "lock_vault": "锁定保险库"
+  "lock_vault": "锁定保险库",
+  "plugin": "插件",
+  "ai_chat": "AI 对话",
+  "add_page": "添加页面",
+  "add_page_placeholder": "页面名称",
+  "custom_page": "我的项目"
 }

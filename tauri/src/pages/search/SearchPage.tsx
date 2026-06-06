@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -21,6 +22,7 @@ export function SearchPage() {
   const navigate = useNavigate();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { onError } = useToastError();
+  const { t } = useTranslation(['common', 'navigation']);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -41,11 +43,11 @@ export function SearchPage() {
       );
       setResults(res.items);
     } catch (e) {
-      onError(e, 'Search failed');
+      onError(e, t('common:search_failed'));
     } finally {
       setIsSearching(false);
     }
-  }, [accountId, onError]);
+  }, [accountId, onError, t]);
 
   const handleChange = (val: string) => {
     setQuery(val);
@@ -54,10 +56,10 @@ export function SearchPage() {
   };
 
   return (
-    <AppShell title="Search">
+    <AppShell title={t('navigation:search')}>
       <div style={{ maxWidth: 600, margin: '0 auto' }}>
         <Input
-          placeholder="Search objects, profiles..."
+          placeholder={t('common:search_placeholder')}
           value={query}
           onChange={(e) => handleChange(e.target.value)}
           autoFocus
@@ -66,14 +68,14 @@ export function SearchPage() {
         <div style={{ marginTop: 12 }}>
           {isSearching && (
             <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              Searching...
+              {t('common:searching')}
             </p>
           )}
 
           {!isSearching && hasSearched && results.length === 0 && (
             <Card>
               <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '24px 0' }}>
-                No results found
+                {t('common:no_results')}
               </p>
             </Card>
           )}

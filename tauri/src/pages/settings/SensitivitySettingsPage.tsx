@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -13,11 +15,14 @@ const levelColors: Record<SensitivityLevel, string> = {
 };
 
 export function SensitivitySettingsPage() {
+  const navigate = useNavigate();
   const { map, log, loadMap, updateField, loadLog, isLoading } = useSensitivityStore();
   const [editingField, setEditingField] = useState<string | null>(null);
   const [newLevel, setNewLevel] = useState<SensitivityLevel>('internal');
   const [password, setPassword] = useState('');
   const [reason, setReason] = useState('');
+  const { t } = useTranslation(['sensitivity', 'settings', 'common']);
+  const accountId = '';
 
   useEffect(() => {
     loadMap();
@@ -39,11 +44,10 @@ export function SensitivitySettingsPage() {
   }) : [];
 
   return (
-    <AppShell title="Sensitivity Settings" onBack={() => window.history.back()}>
+    <AppShell title={t('settings:sensitivity_settings')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
-          Manage field-level sensitivity. Downgrading a field's protection requires password verification.
-          Changes are audited and cannot be reverted without trace.
+          {t('settings:sensitivity_desc')}
         </p>
 
         {/* Level legend */}
@@ -51,7 +55,7 @@ export function SensitivitySettingsPage() {
           {(['public', 'internal', 'sensitive', 'critical'] as SensitivityLevel[]).map((l) => (
             <span key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: 4, background: levelColors[l] }} />
-              {l}
+              {t(`sensitivity:${l}`)}
             </span>
           ))}
         </div>
@@ -70,7 +74,7 @@ export function SensitivitySettingsPage() {
                     background: `${levelColors[level]}20`,
                     color: levelColors[level], fontWeight: 600,
                   }}>
-                    {level}
+                    {t(`sensitivity:${level}`)}
                   </span>
                 </div>
 
@@ -84,28 +88,28 @@ export function SensitivitySettingsPage() {
                         fontSize: 13, background: 'var(--bg-elevated)',
                       }}
                     >
-                      <option value="public">Public</option>
-                      <option value="internal">Internal</option>
-                      <option value="sensitive">Sensitive</option>
-                      <option value="critical">Critical</option>
+                      <option value="public">{t('sensitivity:public')}</option>
+                      <option value="internal">{t('sensitivity:internal')}</option>
+                      <option value="sensitive">{t('sensitivity:sensitive')}</option>
+                      <option value="critical">{t('sensitivity:critical')}</option>
                     </select>
                     <SecurePasswordInput
                       value={password}
                       onChange={(v) => setPassword(v)}
-                      placeholder="Password (required for downgrade)"
+                      placeholder="common:password_placeholder"
                     />
                     <input
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
-                      placeholder="Reason (optional, for audit)"
+                      placeholder={t('sensitivity:reason_placeholder')}
                       style={{
                         padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
                         fontSize: 13, background: 'var(--bg-elevated)',
                       }}
                     />
                     <div style={{ display: 'flex', gap: 4 }}>
-                      <Button size="sm" onClick={() => handleUpdate(fieldId)} loading={isLoading}>Save</Button>
-                      <Button size="sm" variant="secondary" onClick={() => setEditingField(null)}>Cancel</Button>
+                      <Button size="sm" onClick={() => handleUpdate(fieldId)} loading={isLoading}>{t('common:save')}</Button>
+                      <Button size="sm" variant="secondary" onClick={() => setEditingField(null)}>{t('common:cancel')}</Button>
                     </div>
                   </div>
                 ) : (
@@ -113,7 +117,7 @@ export function SensitivitySettingsPage() {
                     setEditingField(fieldId);
                     setNewLevel(level);
                   }}>
-                    Change
+                    {t('sensitivity:change_level')}
                   </Button>
                 )}
               </div>
@@ -124,12 +128,12 @@ export function SensitivitySettingsPage() {
         {/* Change history */}
         {log.length > 0 && (
           <Card>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Recent Changes</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{t('sensitivity:recent_changes')}</h3>
             {log.slice(0, 5).map((entry, i) => (
               <div key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4 }}>
                 <span style={{ color: 'var(--text-primary)' }}>{entry.field_id}</span>:
-                {entry.old_level} → {entry.new_level}
-                <span style={{ marginLeft: 8 }}>({entry.reason || 'no reason'})</span>
+                {t(`sensitivity:${entry.old_level}`)} → {t(`sensitivity:${entry.new_level}`)}
+                <span style={{ marginLeft: 8 }}>({entry.reason || t('sensitivity:no_reason', { defaultValue: 'no reason' })})</span>
               </div>
             ))}
           </Card>
