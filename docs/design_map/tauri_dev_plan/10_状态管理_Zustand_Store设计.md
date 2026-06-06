@@ -135,6 +135,12 @@ export const useSettingsStore = create(
 );
 
 // [正确] 正确：通过 IPC → Rust Vault 加密存储
+const DEFAULT_SETTINGS = {
+  language: 'zh-CN' as 'zh-CN' | 'en-US',  // 加密存储的用户偏好，首次启动时系统检测
+  theme: DEFAULT_THEME_CONFIG,
+  // ... 其他用户偏好
+};
+
 export const useSettingsStore = create<SettingsState>()(
   immer((set, get) => ({
     settings: DEFAULT_SETTINGS,
@@ -144,6 +150,8 @@ export const useSettingsStore = create<SettingsState>()(
       // 从 Rust Vault 读取加密的偏好
       const settings = await commands.userDataGetPreferences();
       set({ settings: { ...DEFAULT_SETTINGS, ...settings } });
+      // 加载完成后应用语言设置
+      await i18next.changeLanguage(settings.language || DEFAULT_SETTINGS.language);
     },
 
     updateSetting: async (key, value) => {
@@ -151,6 +159,10 @@ export const useSettingsStore = create<SettingsState>()(
       set((state) => { state.settings[key] = value; });
       try {
         await commands.userDataUpdatePreference(key, value);
+        // 语言切换即时生效
+        if (key === 'language') {
+          await i18next.changeLanguage(value);
+        }
       } catch (err) {
         set((state) => { state.settings[key] = oldValue; });
         throw err;

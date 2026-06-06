@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import i18next from '@/lib/i18n';
 
 interface AppSettings {
   theme: 'light' | 'dark' | 'system';
@@ -7,6 +8,7 @@ interface AppSettings {
   customAccentHex: string;
   backgroundType: 'solid' | 'gradient' | 'image';
   backgroundValue: string;
+  language: string;
   locale: string;
   autoLockTimeoutMinutes: number;
   biometricEnabled: boolean;
@@ -28,6 +30,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   customAccentHex: '',
   backgroundType: 'solid',
   backgroundValue: '',
+  language: 'en-US',
   locale: 'en',
   autoLockTimeoutMinutes: 5,
   biometricEnabled: false,
@@ -54,6 +57,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         parsed.backgroundType = prefs.backgroundType as AppSettings['backgroundType'];
       }
       if (typeof prefs.backgroundValue === 'string') parsed.backgroundValue = prefs.backgroundValue;
+      if (prefs.language && ['zh-CN', 'en-US'].includes(prefs.language as string)) {
+        parsed.language = prefs.language as string;
+      }
       if (prefs.locale) parsed.locale = prefs.locale as string;
       if (typeof prefs.autoLockTimeoutMinutes === 'number') parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
       if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
@@ -71,6 +77,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       await invoke('user_data_update_preference', {
         payload: { accountId, preferences: { [key]: value } },
       });
+      // 15.8 — Language switch is instant
+      if (key === 'language' && typeof value === 'string') {
+        await i18next.changeLanguage(value);
+      }
     } catch {
       set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));
     }

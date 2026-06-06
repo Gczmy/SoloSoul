@@ -4,7 +4,9 @@ import { Card } from '@/components/ui/Card';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { applyTheme } from '@/lib/theme';
+import { useTranslation } from 'react-i18next';
 import type { AccentPreset } from '@/types';
+import type { SupportedLang } from '@/lib/i18n';
 
 const ACCENT_OPTIONS: { value: AccentPreset; label: string; color: string }[] = [
   { value: 'ocean', label: 'Ocean', color: '#5B7C99' },
@@ -13,11 +15,17 @@ const ACCENT_OPTIONS: { value: AccentPreset; label: string; color: string }[] = 
   { value: 'rose', label: 'Rose', color: '#B06B7A' },
 ];
 
+const LANG_OPTIONS: { value: SupportedLang; label: string }[] = [
+  { value: 'zh-CN', label: '中文（简体）' },
+  { value: 'en-US', label: 'English' },
+];
+
 export function AppearanceSettingsPage() {
   const navigate = useNavigate();
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const { settings, updateSetting } = useSettingsStore();
   const accountId = currentAccount?.id || '';
+  const { t } = useTranslation();
 
   const handlePresetChange = (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
@@ -89,6 +97,35 @@ export function AppearanceSettingsPage() {
                   transform: settings.accentColor === opt.value ? 'scale(1.1)' : 'scale(1)',
                 }}
               />
+            ))}
+          </div>
+        </Card>
+
+        {/* Language selector (15.7) */}
+        <Card>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:items.language')}</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {LANG_OPTIONS.map((opt) => (
+              <label
+                key={opt.value}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                  padding: '8px 10px', borderRadius: 8,
+                  background: settings.language === opt.value ? 'var(--state-selected)' : 'transparent',
+                  fontSize: 14,
+                }}
+              >
+                <input
+                  type="radio"
+                  name="language"
+                  checked={settings.language === opt.value}
+                  onChange={() => {
+                    updateSetting(accountId, 'language', opt.value);
+                  }}
+                  style={{ accentColor: 'var(--accent-primary)' }}
+                />
+                {opt.label}
+              </label>
             ))}
           </div>
         </Card>

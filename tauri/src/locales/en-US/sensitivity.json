@@ -1,0 +1,10 @@
+{
+  "public": "Public",
+  "internal": "Internal",
+  "sensitive": "Sensitive",
+  "critical": "Critical",
+  "change_level": "Change Level",
+  "password_required_for_downgrade": "Password (required for downgrade)",
+  "reason_placeholder": "Reason (optional, for audit)",
+  "recent_changes": "Recent Changes"
+}

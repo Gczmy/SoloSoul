@@ -1,0 +1,32 @@
+{
+  "title": "设置",
+  "groups": {
+    "appearance": "外观",
+    "security": "安全",
+    "data": "数据",
+    "system": "系统",
+    "general": "通用"
+  },
+  "items": {
+    "theme_appearance": "主题与外观",
+    "security_settings": "安全设置",
+    "sensitivity_settings": "敏感度设置",
+    "data_management": "数据管理",
+    "export_import": "导出与导入",
+    "trash": "回收站",
+    "backup_restore": "备份与恢复",
+    "operation_log": "操作日志",
+    "debug_log": "调试日志",
+    "about": "关于",
+    "language": "语言",
+    "appearance": "外观"
+  },
+  "auto_lock": "自动锁定",
+  "change_password": "修改密码",
+  "password_updated": "密码已修改，请使用新密码重新登录",
+  "hint_updated": "密码提示已更新",
+  "current_password_incorrect": "当前密码不正确，请重新输入",
+  "password_mismatch": "两次输入的密码不一致",
+  "password_too_short": "密码长度不少于 8 位",
+  "language_select": "选择语言"
+}

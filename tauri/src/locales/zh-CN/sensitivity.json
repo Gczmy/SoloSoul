@@ -1,0 +1,10 @@
+{
+  "public": "公开",
+  "internal": "内部",
+  "sensitive": "敏感",
+  "critical": "关键",
+  "change_level": "更改级别",
+  "password_required_for_downgrade": "密码（降级需要验证）",
+  "reason_placeholder": "原因（可选，用于审计）",
+  "recent_changes": "最近变更"
+}
