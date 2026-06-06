@@ -51,7 +51,22 @@ function AppRoutes() {
     const account = useAuthStore.getState().currentAccount;
     if (isAuthenticated && account) {
       useProfileStore.getState().loadProfile(account.id);
-      useSettingsStore.getState().loadSettings(account.id);
+      useSettingsStore.getState().loadSettings(account.id).then(() => {
+        // Re-apply theme with loaded settings (otherwise stays at defaults)
+        const s = useSettingsStore.getState().settings;
+        applyTheme({
+          preset: s.theme === 'dark' ? 'warm-stone-dark' :
+                  s.theme === 'light' ? 'warm-stone-light' : 'system',
+          accentColor: s.accentColor,
+          backgroundType: s.backgroundType,
+          backgroundValue: s.backgroundValue,
+        });
+        if (s.language) {
+          import('@/lib/i18n').then((mod) => {
+            mod.default.changeLanguage(s.language);
+          });
+        }
+      });
       // P0-1: Load custom pages from objects table (separate from profile preferences)
       useSettingsStore.getState().loadCustomPages(account.id);
     }
