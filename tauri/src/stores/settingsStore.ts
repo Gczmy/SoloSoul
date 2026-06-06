@@ -115,6 +115,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         parsed.customPages = prefs.customPages as CustomPage[];
       }
       set({ settings: parsed, isLoading: false });
+      // Sync UI prefs to plaintext file so next startup shows correct theme
+      if (parsed.theme) invoke('ui_update_preference', { key: 'theme', value: parsed.theme }).catch(() => {});
+      if (parsed.accentColor) invoke('ui_update_preference', { key: 'accentColor', value: parsed.accentColor }).catch(() => {});
+      if (parsed.language) invoke('ui_update_preference', { key: 'language', value: parsed.language }).catch(() => {});
     } catch {
       set({ isLoading: false });
     }
