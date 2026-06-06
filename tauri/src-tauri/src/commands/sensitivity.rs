@@ -1,5 +1,7 @@
+use crate::core::sensitivity::{
+    SensitivityLevel, SensitivityLogEntry, SensitivityManager, SensitivityMap,
+};
 use tauri::State;
-use crate::core::sensitivity::{SensitivityManager, SensitivityLevel, SensitivityMap, SensitivityLogEntry};
 
 #[tauri::command]
 pub async fn sensitivity_get_field(
@@ -57,6 +59,12 @@ pub async fn sensitivity_get_log(
     limit: Option<usize>,
 ) -> Result<Vec<SensitivityLogEntry>, String> {
     let log = manager.log.read().await;
-    let entries: Vec<_> = log.entries.iter().rev().take(limit.unwrap_or(100)).cloned().collect();
+    let entries: Vec<_> = log
+        .entries
+        .iter()
+        .rev()
+        .take(limit.unwrap_or(100))
+        .cloned()
+        .collect();
     Ok(entries)
 }

@@ -23,9 +23,10 @@ pub async fn user_data_get_preferences(
     // Load profile for preferences
     match vault.load_profile(&account_id) {
         Ok(Some(profile)) => {
-            let data: Value = serde_json::from_slice(&profile.data)
-                .map_err(|e| format!("Parse error: {}", e))?;
-            let prefs = data.get("preferences")
+            let data: Value =
+                serde_json::from_slice(&profile.data).map_err(|e| format!("Parse error: {}", e))?;
+            let prefs = data
+                .get("preferences")
                 .and_then(|p| p.as_object())
                 .map(|obj| obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
                 .unwrap_or_default();
@@ -44,15 +45,15 @@ pub async fn user_data_update_preference(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let mut profile = vault.load_profile(&payload.account_id)
+    let mut profile = vault
+        .load_profile(&payload.account_id)
         .map_err(|_| "Profile not found".to_string())?
         .ok_or("Profile not found".to_string())?;
 
-    let mut data: Value = serde_json::from_slice(&profile.data)
-        .map_err(|e| format!("Parse error: {}", e))?;
+    let mut data: Value =
+        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse error: {}", e))?;
 
-    let prefs = data.get_mut("preferences")
-        .and_then(|p| p.as_object_mut());
+    let prefs = data.get_mut("preferences").and_then(|p| p.as_object_mut());
 
     if let Some(prefs) = prefs {
         for (k, v) in &payload.preferences {

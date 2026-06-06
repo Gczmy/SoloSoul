@@ -1,5 +1,5 @@
-use tauri::{State, Emitter};
 use crate::state::AppState;
+use tauri::{Emitter, State};
 
 #[tauri::command]
 pub async fn unlock(

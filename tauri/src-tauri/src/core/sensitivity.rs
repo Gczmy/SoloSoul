@@ -1,11 +1,11 @@
 //! SensitivityMap -- the single source of truth for field-level sensitivity.
 //! Per 21_矛盾冲突与待审批事项.md: unified to 4 levels (public/internal/sensitive/critical)
 
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use chrono::Utc;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -73,7 +73,10 @@ impl SensitivityMap {
     }
 
     pub fn get(&self, field_id: &str) -> SensitivityLevel {
-        self.entries.get(field_id).copied().unwrap_or(SensitivityLevel::Internal)
+        self.entries
+            .get(field_id)
+            .copied()
+            .unwrap_or(SensitivityLevel::Internal)
     }
 
     pub fn set(&mut self, field_id: &str, level: SensitivityLevel) {
@@ -98,10 +101,18 @@ pub struct SensitivityLog {
 
 impl SensitivityLog {
     pub fn new() -> Self {
-        Self { entries: Vec::new() }
+        Self {
+            entries: Vec::new(),
+        }
     }
 
-    pub fn push(&mut self, field_id: &str, old: SensitivityLevel, new: SensitivityLevel, reason: String) {
+    pub fn push(
+        &mut self,
+        field_id: &str,
+        old: SensitivityLevel,
+        new: SensitivityLevel,
+        reason: String,
+    ) {
         self.entries.push(SensitivityLogEntry {
             timestamp: Utc::now().to_rfc3339(),
             field_id: field_id.to_string(),
@@ -122,7 +133,9 @@ pub struct SensitivityManager {
 }
 
 impl Default for SensitivityManager {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SensitivityManager {
@@ -134,5 +147,13 @@ impl SensitivityManager {
     }
 }
 
-impl Default for SensitivityMap { fn default() -> Self { Self::new() } }
-impl Default for SensitivityLog { fn default() -> Self { Self::new() } }
+impl Default for SensitivityMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl Default for SensitivityLog {
+    fn default() -> Self {
+        Self::new()
+    }
+}

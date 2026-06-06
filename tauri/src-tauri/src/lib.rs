@@ -39,29 +39,24 @@ pub fn run() {
             commands::discovery::mdns_advertise,
             // Vault-locked event: broadcast when vault is locked
             commands::vault::lock,
-
             // Object commands (UnifiedObject → Object, per 21_矛盾冲突)
             commands::object::object_list,
             commands::object::object_get,
             commands::object::object_create,
             commands::object::object_update,
             commands::object::object_delete,
-
             // Sensitivity commands
             commands::sensitivity::sensitivity_get_field,
             commands::sensitivity::sensitivity_get_map,
             commands::sensitivity::sensitivity_update_field,
             commands::sensitivity::sensitivity_get_log,
-
             // Search commands
             commands::search::search_unified,
             commands::search::search_advanced,
-
             // Export/Import commands
             commands::export_import::export_get_scope_tree,
             commands::export_import::export_estimate_size,
             commands::export_import::export_execute,
-
             // Import commands
             commands::export_import::import_preview_package,
             commands::export_import::import_execute,

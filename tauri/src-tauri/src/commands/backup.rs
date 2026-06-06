@@ -16,14 +16,12 @@ pub struct BackupInfo {
     pub object_count: usize,
 }
 
-fn backups_dir(base_path: &PathBuf) -> PathBuf {
+fn backups_dir(base_path: &std::path::Path) -> PathBuf {
     base_path.join("backups")
 }
 
 #[tauri::command]
-pub async fn backup_list(
-    state: State<'_, AppState>,
-) -> Result<Vec<BackupInfo>, String> {
+pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, String> {
     let svc = state.vault_service.read().await;
     let backup_dir = backups_dir(svc.base_path());
     if !backup_dir.exists() {
@@ -75,10 +73,7 @@ pub async fn backup_list(
 }
 
 #[tauri::command]
-pub async fn backup_create(
-    state: State<'_, AppState>,
-    name: String,
-) -> Result<BackupInfo, String> {
+pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<BackupInfo, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
@@ -219,10 +214,7 @@ pub async fn backup_restore(
 }
 
 #[tauri::command]
-pub async fn backup_delete(
-    state: State<'_, AppState>,
-    backup_id: String,
-) -> Result<(), String> {
+pub async fn backup_delete(state: State<'_, AppState>, backup_id: String) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let backup_dir = backups_dir(svc.base_path());
 

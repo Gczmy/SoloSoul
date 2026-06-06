@@ -1,6 +1,6 @@
-use tauri::State;
 use crate::state::AppState;
 use serde::Serialize;
+use tauri::State;
 
 #[derive(Serialize)]
 pub struct AccountInfo {

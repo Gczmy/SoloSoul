@@ -1,16 +1,16 @@
 #![allow(unused_imports)]
 pub mod auth;
-pub mod profile;
-pub mod vault;
-pub mod system;
-pub mod crypto;
-pub mod fs;
-pub mod object;
-pub mod sensitivity;
-pub mod search;
-pub mod export_import;
-pub mod discovery;
-pub mod log;
 pub mod backup;
+pub mod crypto;
+pub mod discovery;
+pub mod export_import;
+pub mod fs;
+pub mod log;
+pub mod object;
+pub mod profile;
+pub mod search;
+pub mod sensitivity;
 pub mod settings;
 pub mod sync;
+pub mod system;
+pub mod vault;

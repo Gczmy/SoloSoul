@@ -18,9 +18,7 @@ pub struct SyncStatus {
 }
 
 #[tauri::command]
-pub async fn sync_discover(
-    state: State<'_, AppState>,
-) -> Result<SyncStatus, String> {
+pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String> {
     let _ = state.vault_service.read().await;
     // For now, return empty status — full mDNS integration requires
     // running a background discovery service via the solosoul-sync crate.
@@ -32,9 +30,7 @@ pub async fn sync_discover(
 }
 
 #[tauri::command]
-pub async fn sync_get_status(
-    state: State<'_, AppState>,
-) -> Result<SyncStatus, String> {
+pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
     let _ = state.vault_service.read().await;
     Ok(SyncStatus {
         is_discovering: false,
@@ -44,10 +40,7 @@ pub async fn sync_get_status(
 }
 
 #[tauri::command]
-pub async fn sync_enable(
-    state: State<'_, AppState>,
-    _enable: bool,
-) -> Result<(), String> {
+pub async fn sync_enable(state: State<'_, AppState>, _enable: bool) -> Result<(), String> {
     let _ = state.vault_service.read().await;
     // TODO: Start/stop background sync daemon
     Ok(())

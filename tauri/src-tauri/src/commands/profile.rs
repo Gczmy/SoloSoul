@@ -127,25 +127,49 @@ pub async fn profile_get_section(
     let profile = vault.load_profile(&account_id)?;
     match profile {
         Some(p) => {
-            let data: serde_json::Value = serde_json::from_slice(&p.data)
-                .map_err(|e| format!("Parse error: {}", e))?;
+            let data: serde_json::Value =
+                serde_json::from_slice(&p.data).map_err(|e| format!("Parse error: {}", e))?;
             let sections = data.get("sections").and_then(|s| s.as_array());
             if let Some(sections) = sections {
                 for sec in sections {
                     if sec.get("type").and_then(|t| t.as_str()) == Some(&section_type) {
-                        let st = sec.get("type").and_then(|t| t.as_str()).unwrap_or("").to_string();
-                        let fields: Vec<FieldValue> = sec.get("fields")
+                        let st = sec
+                            .get("type")
+                            .and_then(|t| t.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        let fields: Vec<FieldValue> = sec
+                            .get("fields")
                             .and_then(|f| f.as_array())
                             .map(|arr| {
-                                arr.iter().map(|f| FieldValue {
-                                    key: f.get("key").and_then(|k| k.as_str()).unwrap_or("").to_string(),
-                                    label: f.get("label").and_then(|l| l.as_str()).unwrap_or("").to_string(),
-                                    value: f.get("value").cloned().unwrap_or(serde_json::Value::Null),
-                                    sensitivity_level: f.get("sensitivityLevel").and_then(|s| s.as_str()).map(|s| s.to_string()),
-                                }).collect()
+                                arr.iter()
+                                    .map(|f| FieldValue {
+                                        key: f
+                                            .get("key")
+                                            .and_then(|k| k.as_str())
+                                            .unwrap_or("")
+                                            .to_string(),
+                                        label: f
+                                            .get("label")
+                                            .and_then(|l| l.as_str())
+                                            .unwrap_or("")
+                                            .to_string(),
+                                        value: f
+                                            .get("value")
+                                            .cloned()
+                                            .unwrap_or(serde_json::Value::Null),
+                                        sensitivity_level: f
+                                            .get("sensitivityLevel")
+                                            .and_then(|s| s.as_str())
+                                            .map(|s| s.to_string()),
+                                    })
+                                    .collect()
                             })
                             .unwrap_or_default();
-                        return Ok(Some(SectionData { section_type: st, fields }));
+                        return Ok(Some(SectionData {
+                            section_type: st,
+                            fields,
+                        }));
                     }
                 }
             }
@@ -167,11 +191,12 @@ pub async fn profile_update_field(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let mut profile = vault.load_profile(&account_id)?
+    let mut profile = vault
+        .load_profile(&account_id)?
         .ok_or("Profile not found")?;
 
-    let mut data: serde_json::Value = serde_json::from_slice(&profile.data)
-        .map_err(|e| format!("Parse error: {}", e))?;
+    let mut data: serde_json::Value =
+        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse error: {}", e))?;
 
     if let Some(sections) = data.get_mut("sections").and_then(|s| s.as_array_mut()) {
         for sec in sections.iter_mut() {

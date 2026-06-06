@@ -19,15 +19,22 @@ pub struct SyncTransport {
 
 impl SyncTransport {
     pub fn new(peer_addr: String) -> Self {
-        Self { peer_addr, stream: None }
+        Self {
+            peer_addr,
+            stream: None,
+        }
     }
 
     /// Connect to a peer
     pub fn connect(&mut self) -> Result<(), String> {
         let stream = TcpStream::connect_timeout(
-            &self.peer_addr.parse().map_err(|e| format!("Invalid addr: {}", e))?,
+            &self
+                .peer_addr
+                .parse()
+                .map_err(|e| format!("Invalid addr: {}", e))?,
             DEFAULT_TIMEOUT,
-        ).map_err(|e| format!("Connect failed: {}", e))?;
+        )
+        .map_err(|e| format!("Connect failed: {}", e))?;
         stream.set_read_timeout(Some(DEFAULT_TIMEOUT)).ok();
         stream.set_write_timeout(Some(DEFAULT_TIMEOUT)).ok();
         self.stream = Some(stream);
@@ -42,7 +49,9 @@ impl SyncTransport {
         frame.extend_from_slice(MAGIC_PREFIX);
         frame.extend_from_slice(&len);
         frame.extend_from_slice(data);
-        stream.write_all(&frame).map_err(|e| format!("Send failed: {}", e))
+        stream
+            .write_all(&frame)
+            .map_err(|e| format!("Send failed: {}", e))
     }
 
     /// Read a framed message
@@ -51,19 +60,25 @@ impl SyncTransport {
 
         // Read magic prefix
         let mut prefix = vec![0u8; MAGIC_PREFIX.len()];
-        stream.read_exact(&mut prefix).map_err(|e| format!("Read prefix failed: {}", e))?;
+        stream
+            .read_exact(&mut prefix)
+            .map_err(|e| format!("Read prefix failed: {}", e))?;
         if prefix != MAGIC_PREFIX {
             return Err("Invalid magic prefix".into());
         }
 
         // Read length
         let mut len_buf = [0u8; 4];
-        stream.read_exact(&mut len_buf).map_err(|e| format!("Read length failed: {}", e))?;
+        stream
+            .read_exact(&mut len_buf)
+            .map_err(|e| format!("Read length failed: {}", e))?;
         let len = u32::from_be_bytes(len_buf) as usize;
 
         // Read payload
         let mut payload = vec![0u8; len];
-        stream.read_exact(&mut payload).map_err(|e| format!("Read payload failed: {}", e))?;
+        stream
+            .read_exact(&mut payload)
+            .map_err(|e| format!("Read payload failed: {}", e))?;
         Ok(payload)
     }
 
@@ -79,8 +94,7 @@ pub struct SyncListener {
 
 impl SyncListener {
     pub fn bind(addr: &str) -> Result<Self, String> {
-        let listener = TcpListener::bind(addr)
-            .map_err(|e| format!("Bind failed: {}", e))?;
+        let listener = TcpListener::bind(addr).map_err(|e| format!("Bind failed: {}", e))?;
         listener.set_nonblocking(true).ok();
         Ok(Self { listener })
     }
@@ -102,7 +116,8 @@ impl SyncListener {
     }
 
     pub fn local_addr(&self) -> Result<String, String> {
-        self.listener.local_addr()
+        self.listener
+            .local_addr()
             .map(|a| a.to_string())
             .map_err(|e| e.to_string())
     }

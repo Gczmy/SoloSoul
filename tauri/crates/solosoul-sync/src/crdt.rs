@@ -22,7 +22,9 @@ pub struct CrdtMap {
 
 impl CrdtMap {
     pub fn new() -> Self {
-        Self { entries: HashMap::new() }
+        Self {
+            entries: HashMap::new(),
+        }
     }
 
     /// Apply a local change, returning true if this is newer
@@ -32,12 +34,15 @@ impl CrdtMap {
             None => true,
         };
         if is_newer {
-            self.entries.insert(key.clone(), CrdtEntry {
-                key,
-                value,
-                timestamp: now,
-                node_id,
-            });
+            self.entries.insert(
+                key.clone(),
+                CrdtEntry {
+                    key,
+                    value,
+                    timestamp: now,
+                    node_id,
+                },
+            );
         }
         is_newer
     }

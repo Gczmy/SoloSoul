@@ -27,23 +27,29 @@ pub struct DiscoveryManager {
 
 impl DiscoveryManager {
     pub fn new() -> Self {
-        Self { peers: HashMap::new() }
+        Self {
+            peers: HashMap::new(),
+        }
     }
 
     /// Register or update a discovered peer
     pub fn add_peer(&mut self, id: String, name: String, addr: SocketAddr) {
-        self.peers.insert(id.clone(), DiscoveredPeer {
-            id,
-            name,
-            addr,
-            last_seen: Instant::now(),
-        });
+        self.peers.insert(
+            id.clone(),
+            DiscoveredPeer {
+                id,
+                name,
+                addr,
+                last_seen: Instant::now(),
+            },
+        );
     }
 
     /// Get all currently visible peers (not expired)
     pub fn visible_peers(&self, max_age: Duration) -> Vec<&DiscoveredPeer> {
         let now = Instant::now();
-        self.peers.values()
+        self.peers
+            .values()
             .filter(|p| now.duration_since(p.last_seen) < max_age)
             .collect()
     }
@@ -51,7 +57,8 @@ impl DiscoveryManager {
     /// Remove stale peers
     pub fn prune(&mut self, max_age: Duration) {
         let now = Instant::now();
-        self.peers.retain(|_, p| now.duration_since(p.last_seen) < max_age);
+        self.peers
+            .retain(|_, p| now.duration_since(p.last_seen) < max_age);
     }
 
     pub fn peer_count(&self) -> usize {

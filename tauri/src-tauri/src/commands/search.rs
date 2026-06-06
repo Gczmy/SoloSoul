@@ -1,6 +1,6 @@
-use tauri::State;
-use serde::Serialize;
 use crate::state::AppState;
+use serde::Serialize;
+use tauri::State;
 
 #[derive(Serialize)]
 pub struct SearchResultItem {
@@ -29,7 +29,11 @@ pub async fn search_advanced(
     limit: Option<usize>,
 ) -> Result<SearchResult, String> {
     if query.trim().is_empty() {
-        return Ok(SearchResult { items: vec![], total: 0, has_more: false });
+        return Ok(SearchResult {
+            items: vec![],
+            total: 0,
+            has_more: false,
+        });
     }
 
     let svc = state.vault_service.read().await;
@@ -48,16 +52,30 @@ pub async fn search_advanced(
             }
         }
 
-        let name_score = if p.name.to_lowercase().contains(&q) { 3.0 } else { 0.0 };
+        let name_score = if p.name.to_lowercase().contains(&q) {
+            3.0
+        } else {
+            0.0
+        };
 
         // Also search in profile data (best-effort)
         let profile_full = vault.load_profile(&p.id).ok().flatten();
         let data_score = if let Some(ref full) = profile_full {
             if let Ok(data_json) = serde_json::from_slice::<serde_json::Value>(&full.data) {
-                let data_str = serde_json::to_string(&data_json).unwrap_or_default().to_lowercase();
-                if data_str.contains(&q) { 1.0 } else { 0.0 }
-            } else { 0.0 }
-        } else { 0.0 };
+                let data_str = serde_json::to_string(&data_json)
+                    .unwrap_or_default()
+                    .to_lowercase();
+                if data_str.contains(&q) {
+                    1.0
+                } else {
+                    0.0
+                }
+            } else {
+                0.0
+            }
+        } else {
+            0.0
+        };
 
         let score = name_score + data_score;
         if score > 0.0 {
@@ -78,7 +96,11 @@ pub async fn search_advanced(
     items.truncate(limit);
 
     let total = items.len();
-    Ok(SearchResult { items, total, has_more })
+    Ok(SearchResult {
+        items,
+        total,
+        has_more,
+    })
 }
 
 #[tauri::command]
@@ -89,7 +111,11 @@ pub async fn search_unified(
     limit: Option<usize>,
 ) -> Result<SearchResult, String> {
     if query.trim().is_empty() {
-        return Ok(SearchResult { items: vec![], total: 0, has_more: false });
+        return Ok(SearchResult {
+            items: vec![],
+            total: 0,
+            has_more: false,
+        });
     }
 
     let svc = state.vault_service.read().await;
@@ -101,7 +127,11 @@ pub async fn search_unified(
     let mut items: Vec<SearchResultItem> = Vec::new();
 
     for p in &profiles {
-        let score = if p.name.to_lowercase().contains(&q) { 2.0 } else { 0.0 };
+        let score = if p.name.to_lowercase().contains(&q) {
+            2.0
+        } else {
+            0.0
+        };
         if score > 0.0 {
             items.push(SearchResultItem {
                 object_id: p.id.clone(),
@@ -120,5 +150,9 @@ pub async fn search_unified(
     items.truncate(limit);
 
     let total = items.len();
-    Ok(SearchResult { items, total, has_more })
+    Ok(SearchResult {
+        items,
+        total,
+        has_more,
+    })
 }

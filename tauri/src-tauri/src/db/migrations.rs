@@ -145,25 +145,19 @@ pub fn run_migrations(conn: &Connection) -> Result<(), String> {
 
 /// Execute a single migration's SQL and record it in `_migrations`.
 fn apply_single(conn: &Connection, migration: &Migration) -> Result<(), String> {
-    conn.execute_batch(migration.sql)
-        .map_err(|e| {
-            format!(
-                "Migration v{} ({}) SQL error: {e}",
-                migration.version, migration.name,
-            )
-        })?;
+    conn.execute_batch(migration.sql).map_err(|e| {
+        format!(
+            "Migration v{} ({}) SQL error: {e}",
+            migration.version, migration.name,
+        )
+    })?;
 
     let now = chrono::Utc::now().to_rfc3339();
     conn.execute(
         "INSERT INTO _migrations (version, name, applied_at) VALUES (?1, ?2, ?3)",
         rusqlite::params![migration.version, migration.name, now],
     )
-    .map_err(|e| {
-        format!(
-            "Failed to record migration v{}: {e}",
-            migration.version,
-        )
-    })?;
+    .map_err(|e| format!("Failed to record migration v{}: {e}", migration.version,))?;
 
     Ok(())
 }
@@ -223,9 +217,7 @@ mod tests {
             .prepare("SELECT version, name, applied_at FROM _migrations ORDER BY version")
             .unwrap();
         let rows: Vec<(u32, String, String)> = stmt
-            .query_map([], |row| {
-                Ok((row.get(0)?, row.get(1)?, row.get(2)?))
-            })
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))
             .unwrap()
             .filter_map(|r| r.ok())
             .collect();

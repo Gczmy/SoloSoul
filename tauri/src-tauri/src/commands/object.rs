@@ -1,9 +1,9 @@
 //! Object CRUD commands (formerly unified_object)
 //! Uses terminology approved per 21_矛盾冲突与待审批事项.md: UnifiedObject → Object
 
-use tauri::State;
-use serde::{Deserialize, Serialize};
 use crate::state::AppState;
+use serde::{Deserialize, Serialize};
+use tauri::State;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ObjectSummary {
@@ -137,7 +137,8 @@ pub async fn object_update(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let mut profile = vault.load_profile(&object_id)
+    let mut profile = vault
+        .load_profile(&object_id)
         .map_err(|e| e.to_string())?
         .ok_or("Object not found".to_string())?;
 
@@ -161,10 +162,7 @@ pub async fn object_update(
 }
 
 #[tauri::command]
-pub async fn object_delete(
-    state: State<'_, AppState>,
-    object_id: String,
-) -> Result<(), String> {
+pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;

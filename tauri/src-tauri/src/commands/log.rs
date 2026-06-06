@@ -111,9 +111,7 @@ pub async fn log_get_recent(
 }
 
 #[tauri::command]
-pub async fn log_export(
-    state: tauri::State<'_, crate::state::AppState>,
-) -> Result<String, String> {
+pub async fn log_export(state: tauri::State<'_, crate::state::AppState>) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let base = svc.base_path().clone();
     let log_path = base.join("logs").join("operations.jsonl");
