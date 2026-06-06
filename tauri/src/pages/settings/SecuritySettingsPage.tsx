@@ -73,6 +73,9 @@ export function SecuritySettingsPage() {
         onSuccess(t('settings:hint_updated'));
       }
 
+      // Refresh accounts to sync updated hint to LoginPage
+      useAuthStore.getState().listAccounts();
+
       setOldPw('');
       setNewPw('');
       setConfirmPw('');
