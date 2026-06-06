@@ -99,6 +99,8 @@ pub struct ObjectSummary {
     pub updated_at: String,
     #[serde(rename = "isDeleted")]
     pub is_deleted: bool,
+    /// First few property key-value pairs for card previews
+    pub properties: serde_json::Value,
 }
 
 impl ObjectSummary {
@@ -111,6 +113,7 @@ impl ObjectSummary {
             created_at: r.created_at.clone(),
             updated_at: r.updated_at.clone(),
             is_deleted: r.is_deleted,
+            properties: r.properties.clone(),
         }
     }
 }

@@ -76,9 +76,17 @@ export function LoginPage() {
           <SecurePasswordInput
             value={password}
             onChange={(v) => setPassword(v)}
-            placeholder="common:password_placeholder"
+            placeholder={t('common:password_placeholder')}
           />
-          {error && <div style={{ color: '#e74c3c', fontSize: 13 }}>{error}</div>}
+          {error && (
+            <div style={{ color: '#e74c3c', fontSize: 13 }}>
+              {error.toLowerCase().includes('password') || error.toLowerCase().includes('invalid')
+                ? t('auth:incorrect_password')
+                : error.toLowerCase().includes('required')
+                  ? t('auth:password_required')
+                  : error}
+            </div>
+          )}
           <Button type="submit" loading={isLoading} style={{ width: '100%' }}>
             {t('auth:login_button')}
           </Button>

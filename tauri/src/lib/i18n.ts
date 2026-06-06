@@ -7,12 +7,14 @@ import enNav from '@/locales/en-US/navigation.json';
 import enSettings from '@/locales/en-US/settings.json';
 import enAuth from '@/locales/en-US/auth.json';
 import enSensitivity from '@/locales/en-US/sensitivity.json';
+import enEditor from '@/locales/en-US/editor.json';
 
 import zhCommon from '@/locales/zh-CN/common.json';
 import zhNav from '@/locales/zh-CN/navigation.json';
 import zhSettings from '@/locales/zh-CN/settings.json';
 import zhAuth from '@/locales/zh-CN/auth.json';
 import zhSensitivity from '@/locales/zh-CN/sensitivity.json';
+import zhEditor from '@/locales/zh-CN/editor.json';
 
 export const SUPPORTED_LANGS = ['zh-CN', 'en-US'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
@@ -24,6 +26,7 @@ const resources = {
     settings: enSettings,
     auth: enAuth,
     sensitivity: enSensitivity,
+    editor: enEditor,
   },
   'zh-CN': {
     common: zhCommon,
@@ -31,6 +34,7 @@ const resources = {
     settings: zhSettings,
     auth: zhAuth,
     sensitivity: zhSensitivity,
+    editor: zhEditor,
   },
 };
 
@@ -47,7 +51,7 @@ void i18next
     resources,
     fallbackLng: 'en-US',
     defaultNS: 'common',
-    ns: ['common', 'navigation', 'settings', 'auth', 'sensitivity'],
+    ns: ['common', 'navigation', 'settings', 'auth', 'sensitivity', 'editor'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],

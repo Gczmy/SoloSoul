@@ -1,0 +1,40 @@
+{
+  "templates": {
+    "identity": "Identity",
+    "passport": "Passport",
+    "visa": "Visa",
+    "bank": "Bank Account",
+    "card": "Card",
+    "education": "Education",
+    "employment": "Employment"
+  },
+  "fields": {
+    "fullName": "Full Name",
+    "dateOfBirth": "Date of Birth",
+    "nationality": "Nationality",
+    "idNumber": "ID Number",
+    "email": "Email",
+    "phone": "Phone",
+    "passportNumber": "Passport Number",
+    "issueDate": "Issue Date",
+    "expiryDate": "Expiry Date",
+    "country": "Country",
+    "visaType": "Visa Type",
+    "number": "Number",
+    "bankName": "Bank Name",
+    "accountNumber": "Account Number",
+    "accountType": "Account Type",
+    "currency": "Currency",
+    "cardNumber": "Card Number",
+    "cardType": "Card Type",
+    "holderName": "Holder Name",
+    "institution": "Institution",
+    "degree": "Degree",
+    "field": "Field",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "company": "Company",
+    "position": "Position"
+  },
+  "in_section": "in {{section}}"
+}

@@ -45,7 +45,7 @@ export function BackupConfigPage() {
       const list = await invoke<BackupInfo[]>('backup_list');
       setBackups(list);
     } catch (e) {
-      onError(e, 'Failed to load backups');
+      onError(e, t('common:backups_load_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +60,7 @@ export function BackupConfigPage() {
       setBackupName('');
       loadBackups();
     } catch (e) {
-      onError(e, 'Backup failed');
+      onError(e, t('common:backup_failed'));
     } finally {
       setIsCreating(false);
     }
@@ -73,7 +73,7 @@ export function BackupConfigPage() {
       onSuccess(`Restored ${count} object(s) from backup`);
       loadBackups();
     } catch (e) {
-      onError(e, 'Restore failed');
+      onError(e, t('common:restore_failed'));
     } finally {
       setRestoringId(null);
     }
@@ -82,10 +82,10 @@ export function BackupConfigPage() {
   const handleDelete = async (id: string) => {
     try {
       await invoke('backup_delete', { backupId: id });
-      onSuccess('Backup deleted');
+      onSuccess(t('common:backup_deleted'));
       loadBackups();
     } catch (e) {
-      onError(e, 'Delete failed');
+      onError(e, t('common:delete_failed'));
     }
   };
 

@@ -4,8 +4,10 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore, ObjectData } from '@/stores/objectStore';
+import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useToastError } from '@/hooks/useToastError';
 
 // Each template belongs to a workspace section.
@@ -73,6 +75,40 @@ const objectTemplates: Record<string, { key: string; label: string; type: string
   ],
 };
 
+/** Sensitivity-level badge per §12 敏感度等级系统重构 + §9.4 视觉规范.
+ *  public   = hollow ring,  warm green
+ *  internal = filled dot,   blue-gray
+ *  sensitive = filled dot,  amber
+ *  critical = lock icon,    deep red
+ */
+const SENSITIVITY_STYLES: Record<SensitivityLevel, { bg: string; fg: string; dot: string }> = {
+  public:    { bg: 'transparent',             fg: '#65996B', dot: '○' },
+  internal:  { bg: 'rgba(108,122,137,0.12)',  fg: '#6C7A89', dot: '●' },
+  sensitive: { bg: 'rgba(196,146,92,0.12)',   fg: '#C4925C', dot: '●' },
+  critical:  { bg: 'rgba(180,60,50,0.12)',    fg: '#B43C32', dot: '🔒' },
+};
+
+function SensitivityBadge({ level }: { level: SensitivityLevel }) {
+  const { t } = useTranslation('sensitivity');
+  const s = SENSITIVITY_STYLES[level] || SENSITIVITY_STYLES.internal;
+  const label = t(level);
+  return (
+    <span
+      title={`${t('sensitivity_label')}: ${label}`}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 3,
+        fontSize: 10, fontWeight: 500, padding: '2px 6px', borderRadius: 4,
+        background: s.bg, color: s.fg,
+        border: level === 'public' ? `1px solid ${s.fg}` : '1px solid transparent',
+        lineHeight: 1.3,
+      }}
+    >
+      <span style={{ fontSize: level === 'critical' ? 9 : 7, lineHeight: 1 }}>{s.dot}</span>
+      {label}
+    </span>
+  );
+}
+
 export function ObjectEditorPage() {
   const { objectId } = useParams();
   const navigate = useNavigate();
@@ -83,8 +119,27 @@ export function ObjectEditorPage() {
 
   const isNew = !objectId;
   const accountId = useAuthStore((s) => s.currentAccount?.id);
-  const { getObject, createObject, updateObject } = useObjectStore();
+  const { t } = useTranslation(['common', 'editor', 'navigation']);
+  const { getObject, createObject, updateObject, currentObject } = useObjectStore();
+  const { map: sensitivityMap, loadMap } = useSensitivityStore();
   const { onError, onSuccess } = useToastError();
+
+  // Load sensitivity map for field-level indicators
+  useEffect(() => { loadMap(); }, []);
+
+  /** Resolve sensitivity level for a property field. */
+  const getSensitivity = (fieldKey: string): SensitivityLevel => {
+    // Build field ID like "travel.passport_number" or "identity.full_name"
+    const fieldId = `${collectionType || sectionParam || 'collection'}.${fieldKey}`;
+    if (sensitivityMap?.entries?.[fieldId]) {
+      return sensitivityMap.entries[fieldId];
+    }
+    // Fallback: check if the field key alone matches
+    for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
+      if (id.endsWith(`.${fieldKey}`)) return level;
+    }
+    return 'internal'; // default level
+  };
 
   // Filter templates to only show those belonging to the current section
   const visibleTemplates = useMemo(() => {
@@ -104,18 +159,53 @@ export function ObjectEditorPage() {
   const [name, setName] = useState('');
   const [values, setValues] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const fields = objectTemplates[selectedType] || [];
 
-  // Determine collectionType from section param (not template type)
-  const collectionType = sectionParam || (selectedType ? (templateMeta[selectedType]?.category || selectedType) : '');
+  // Determine collectionType
+  const collectionType = isNew
+    ? sectionParam || (selectedType ? (templateMeta[selectedType]?.category || selectedType) : '')
+    : currentObject?.collectionType || '';
 
-  // Load existing object for editing
+  // Load existing object and populate form
   useEffect(() => {
     if (!isNew && objectId && accountId) {
-      getObject(accountId, objectId).catch((e) => onError(e, 'Failed to load object'));
+      getObject(accountId, objectId).catch((e) => onError(e, t('common:object_load_failed')));
     }
   }, [objectId, accountId]);
+
+  // When currentObject loads (for editing), populate the form
+  useEffect(() => {
+    if (isNew || !currentObject || dataLoaded) return;
+    setName(currentObject.name || '');
+    // Populate property values
+    const vals: Record<string, string> = {};
+    if (currentObject.properties && typeof currentObject.properties === 'object') {
+      for (const [k, v] of Object.entries(currentObject.properties)) {
+        if (typeof v === 'string') vals[k] = v;
+        else if (typeof v === 'number' || typeof v === 'boolean') vals[k] = String(v);
+        else if (v !== null && v !== undefined) vals[k] = JSON.stringify(v);
+      }
+    }
+    setValues(vals);
+    // Try to detect template from property keys
+    const propKeys = Object.keys(vals);
+    let bestMatch = '';
+    let bestScore = 0;
+    for (const [tplName, tplFields] of Object.entries(objectTemplates)) {
+      const tplKeys = tplFields.map((f) => f.key);
+      const matchCount = tplKeys.filter((k) => propKeys.includes(k)).length;
+      if (matchCount > bestScore && matchCount >= tplKeys.length * 0.5) {
+        bestScore = matchCount;
+        bestMatch = tplName;
+      }
+    }
+    if (bestMatch) {
+      setSelectedType(bestMatch);
+    }
+    setDataLoaded(true);
+  }, [currentObject, isNew, dataLoaded]);
 
   const handleSave = async () => {
     if (!accountId) return;
@@ -129,32 +219,32 @@ export function ObjectEditorPage() {
           properties: values as unknown as Record<string, unknown>,
           parentId,
         });
-        onSuccess('Object created');
+        onSuccess(t('common:object_created'));
       } else {
         await updateObject(objectId!, {
-          name: name || 'Untitled',
+          name: name || t('common:object_name_placeholder'),
           properties: values as unknown as Record<string, unknown>,
         });
-        onSuccess('Object saved');
+        onSuccess(t('common:object_saved'));
       }
       navigate(-1);
     } catch (e) {
-      onError(e, 'Failed to save');
+      onError(e, t('common:object_save_failed'));
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <AppShell title={isNew ? 'New Object' : 'Edit Object'} onBack={() => navigate(-1)}>
+    <AppShell title={isNew ? t('common:new_object') : t('common:edit_object')} onBack={() => navigate(-1)}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {isNew && (
           <Card>
             <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-              Object Type
+              {t('common:object_type')}
               {sectionParam && (
                 <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 8, fontWeight: 400 }}>
-                  in {sectionParam.charAt(0).toUpperCase() + sectionParam.slice(1)}
+                  {t('editor:in_section', { section: t(`navigation:${sectionParam}`, sectionParam) })}
                 </span>
               )}
             </h3>
@@ -170,9 +260,28 @@ export function ObjectEditorPage() {
                     fontSize: 13, cursor: 'pointer',
                   }}
                 >
-                  {templateMeta[type]?.label || type.charAt(0).toUpperCase() + type.slice(1)}
+                  {t(`editor:templates.${type}`, type)}
                 </button>
               ))}
+            </div>
+          </Card>
+        )}
+
+        {!isNew && collectionType && (
+          <Card>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t('common:object_type')}:</span>
+              <span style={{
+                fontSize: 12, fontWeight: 500, padding: '2px 8px', borderRadius: 4,
+                background: 'var(--bg-toolbar)', color: 'var(--text-primary)',
+              }}>
+                {collectionType}
+              </span>
+              {selectedType && (
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                  · {t('editor:templates.' + selectedType, t('editor:templates.' + selectedType.toLowerCase(), selectedType))}
+                </span>
+              )}
             </div>
           </Card>
         )}
@@ -181,41 +290,40 @@ export function ObjectEditorPage() {
           <>
             <Card>
               <Input
-                label="Object Name"
+                label={t('common:object_name')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={templateMeta[selectedType]?.label || 'Enter name'}
+                placeholder={t('common:object_name_placeholder')}
               />
             </Card>
             <Card>
               <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-                {templateMeta[selectedType]?.label || 'Properties'}
+                {t('common:properties')}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {fields.map((field) => (
+                {fields.map((field) => {
+                    const sensitivity = getSensitivity(field.key);
+                    const fieldLabel = t(`editor:fields.${field.key}`, field.label);
+                    return (
                   <div key={field.key}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <label style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{field.label}</label>
-                      {field.sensitive && (
-                        <span style={{
-                          fontSize: 10, padding: '1px 6px', borderRadius: 4,
-                          background: 'rgba(196,146,92,0.15)', color: 'var(--accent-warm)',
-                        }}>SENSITIVE</span>
-                      )}
+                      <label style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{fieldLabel}</label>
+                      <SensitivityBadge level={sensitivity} />
                     </div>
                     <Input
                       type={field.type}
                       value={values[field.key] || ''}
                       onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
-                      placeholder={field.label}
+                      placeholder={fieldLabel}
                     />
                   </div>
-                ))}
+                    );
+                  })}
               </div>
             </Card>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={() => navigate(-1)}>Cancel</Button>
-              <Button onClick={handleSave} loading={isSaving}>Save</Button>
+              <Button variant="secondary" onClick={() => navigate(-1)}>{t('common:cancel')}</Button>
+              <Button onClick={handleSave} loading={isSaving}>{t('common:save')}</Button>
             </div>
           </>
         )}

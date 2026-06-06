@@ -96,7 +96,7 @@ export function SensitivitySettingsPage() {
                     <SecurePasswordInput
                       value={password}
                       onChange={(v) => setPassword(v)}
-                      placeholder="common:password_placeholder"
+                      placeholder={t('common:password_placeholder')}
                     />
                     <input
                       value={reason}

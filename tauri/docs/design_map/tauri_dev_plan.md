@@ -1,9 +1,9 @@
 # Tauri 客户端开发审计与未完成任务清单
 
 > **审计日期:** 2026-06-06
-> **最后更新:** 2026-06-06 (P0-2~P1-4 已完成)
-> **审计范围:** `tauri/src-tauri/src/` (Rust 后端) + `tauri/src/` (TypeScript 前端)
-> **审计方法:** 逐文件代码审查，识别桩代码、硬编码、未使用参数、TODO 标记、占位页面
+> **最后更新:** 2026-06-06 (第二轮：文档 vs 代码交叉审计)
+> **审计范围:** `tauri/src-tauri/src/` (Rust 后端) + `tauri/src/` (TypeScript 前端) + `docs/design_map/` (设计文档)
+> **审计方法:** 逐文件代码审查 + 设计文档逐项对比
 
 ---
 
@@ -309,6 +309,123 @@
 - `settingsStore.ts`: `addCustomPage` 修复回滚逻辑；`CustomPage.icon` → `iconId`
 - `settings.rs`: 自动创建 profile 当不存在时
 - `pageIcons.ts`: 新增 SSOT 图标映射
+
+---
+
+---
+
+## 八、第二轮审计：设计文档 vs 代码实现交叉检查 (2026-06-06)
+
+### 8.1 已知 Bug 状态（对照 doc #22）
+
+| # | Bug | 文档状态 | 实际状态 |
+|---|-----|---------|---------|
+| 1 | 密码提示浮层竖向排列 | [ ] 待修复 | **仍存在** — `.nameCardPortal` CSS 仍为 `white-space: nowrap` |
+| 2 | 主题/Accent/语言无反应 | [ ] 待修复 | **需验证** — `handlePresetChange`/`handleAccentChange` 存在但需端到端测试 |
+| 3 | 侧边栏名称/图标/缺失 | [ ] 待修复 | **已修复** — Professional 按钮存在，PAGE_ICON_MAP SSOT 就位 |
+| 4 | "Vault not unlocked" | [ ] 待修复 | **已修复** — AuthGuard 统一处理认证检查 |
+| 5 | 锁定按钮无反应 | [ ] 待修复 | **已修复** — `vaultStore.lock()` 已绑定到锁定按钮 |
+| 6 | 缺少插件/AI 图标 | [ ] 待修复 | **已修复** — `secondaryItems` 包含所有 5 个按钮 |
+| 7 | 输入框被截断 | [ ] 待修复 | **已修复** — Portal 方案，固定定位到侧边栏外 |
+| 8 | 加号按钮重叠 | [ ] 待修复 | **已修复** — `flex:1` + `overflow-y:auto` 滚动方案 |
+| 9 | 自定义页面路由失效 | [ ] 待修复 | **已修复** — `isWorkspaceSectionActive` 排除 custom 路由 |
+
+### 8.2 IPC 命令对照（doc #07 规范 61 个命令）
+
+| 模块 | 规范数 | 实现数 | 差距 |
+|------|--------|--------|------|
+| Auth | 4 | 5 | ✅ +1（含 `get_current_account`） |
+| Vault | 6 | 8 | ✅ +2（含 mDNS） |
+| Profile | 5 | 6 | ✅ +1 |
+| Object | 8 | 8 | ✅ 完全对齐 |
+| Search | 2 | 2 | ✅ |
+| Settings | 4 | 2 | ❌ 缺 2（`user_data_delete_preference`、`user_data_get_all_preferences`） |
+| Sensitivity | 4 | 4 | ✅ |
+| Export/Import | 3 | 5 | ✅ +2 |
+| Backup | 4 | 4 | ✅ |
+| Crypto | 0 | 8 | ✅（设计阶段未计入） |
+| FS | 0 | 5 | ✅（设计阶段未计入） |
+| Discovery | 0 | 3 | ✅（设计阶段未计入） |
+| System | 3 | 2 | ❌ 缺 1（`system_check_update` 实际连接） |
+| Log | 2 | 2 | ✅ |
+| Sync | 4 | 4 | ⚠️ 4 个全为桩代码 |
+| **Plugin** | **7** | **0** | ❌ **完全缺失** |
+| **OCR** | **3** | **0** | ❌ **完全缺失** |
+| **LLM** | **4** | **0** | ❌ **完全缺失** |
+
+**总计：规范 61 个，实际实现 59 个（含额外 crypto/fs/discovery），但 14 个关键功能缺失。**
+
+### 8.3 页面迁移对照（doc #11 规范 20+ 页面）
+
+| # | 页面 | 优先级 | 状态 |
+|---|------|--------|------|
+| 1 | BootstrapPage | P0 | ✅ 功能完整 |
+| 2 | LoginPage | P0 | ✅ 功能完整 |
+| 3 | HomePage | P0 | ✅ 功能完整 |
+| 4 | ObjectWorkspacePage | P0 | ✅ 属性展示 + 编辑/删除操作 |
+| 5 | ObjectEditorPage | P0 | ✅ 模板选择 + 敏感度徽章 |
+| 6 | SearchPage | P1 | ⚠️ 功能有限（后端搜索仍为桩） |
+| 7 | SettingsPage | P1 | ✅ |
+| 8 | SecuritySettingsPage | P1 | ✅ |
+| 9 | SensitivitySettingsPage | P1 | ✅ |
+| 10 | DataManagementPage | P2 | ✅ |
+| 11 | ExportImportPage | P2 | ✅ |
+| 12 | BackupConfigPage | P2 | ✅ |
+| 13 | TrashPage | P2 | ✅（回收站列表 + 恢复/永久删除） |
+| 14 | OperationLogPage | P2 | ✅ |
+| 15 | LlmChatPage | P3 | ⚠️ P3 线框（26 行） |
+| 16 | PluginDashboardPage | P3 | ⚠️ P3 线框（26 行） |
+| 17 | **ScanConfigPage** | P3 | ❌ **文件不存在** |
+| 18 | SyncPage | P3 | ⚠️ P3 线框（26 行） |
+| 19 | DebugLogPage | P3 | ✅ |
+| 20 | AboutPage | P3 | ✅ |
+
+### 8.4 敏感度系统对照（doc #12 完成标准）
+
+| 标准 | 状态 |
+|------|------|
+| SensitivityMap 为唯一真理来源 | ✅ `SensitivityManager` + IPC 已实现 |
+| PropertyDefinition.sensitivity 已废弃 | ✅（Tauri 代码中不存在 property 级 sensitivity） |
+| 降级需要密码验证 | ✅ P0-4 修复，真实 Argon2id 校验 |
+| 降级冷却期（5 分钟） | ❌ **未实现**（spec §5） |
+| 变更历史不可删除 | ⚠️ 日志存在但 `sensitivity_log.enc` 加密存储未实现 |
+| 临时揭示不写入 SensitivityMap | ❌ **未实现**（spec §7，纯前端 RevealState） |
+| 插件无法修改敏感度 | ✅（插件模块未实现，暂无入口） |
+| 数据迁移可处理旧格式 | ❌ **未实现**（spec §9） |
+
+### 8.5 对象存储层对照（doc #06 + ADR-005）
+
+| 要求 | 状态 |
+|------|------|
+| 独立 objects 表 | ✅ P0-1 完成 |
+| 支持 parent/children 层级 | ✅ `parent_id` + `children_ids` |
+| SQLite 全文搜索 | ✅ `search_objects` SQL LIKE |
+| **Repository 模式抽象** | ❌ **未实现**（spec 要求 trait 抽象层） |
+| **加密 blob 存储** | ❌ objects 表数据未加密（spec 要求 `encrypted_blob`） |
+| **审计日志表** | ❌ audit_log 表存在但无 object 操作写入 |
+
+### 8.6 视觉规范对照（doc #09 §7.4 + §9.4）
+
+| 要求 | 状态 |
+|------|------|
+| 敏感度 public 空心圆环暖绿 | ✅ |
+| 敏感度 internal 蓝灰填充圆点 | ✅ |
+| 敏感度 sensitive 琥珀实心圆点 | ✅ |
+| 敏感度 critical 深红锁形图标 | ✅ |
+| 图标 SSOT 映射表 | ✅ `PAGE_ICON_MAP` |
+| 侧边栏 64px 宽 | ✅ |
+| Liquid Glass 背景效果 | ⚠️ CSS 变量存在但实际 glass shader 未实现 |
+
+### 8.7 i18n 覆盖
+
+| 命名空间 | 状态 |
+|---------|------|
+| common | ✅ 全面（对象/工作区/错误） |
+| navigation | ✅（含 identity 键） |
+| settings | ✅ |
+| auth | ✅（已修复 zh-CN 翻译） |
+| sensitivity | ✅ |
+| editor | ✅（新建，模板+字段全翻译） |
 
 ---
 

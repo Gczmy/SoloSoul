@@ -120,7 +120,8 @@
 
 /* ── 9.3 — 悬停名称卡片（Portal 到 body，不被 overflow 裁剪） ── */
 .nameCardPortal {
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 240px;
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 14px;

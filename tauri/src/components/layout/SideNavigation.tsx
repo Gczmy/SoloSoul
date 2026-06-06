@@ -316,7 +316,7 @@ function AddPageButton({
                 flexShrink: 0,
               }}
               title={t('add_page_placeholder') ?? 'Choose icon'}
-              aria-label="Choose icon"
+              aria-label={t("navigation:add_page")}
             >
               <SelectedIcon size={18} style={{ color: 'var(--accent-primary)' }} />
             </button>

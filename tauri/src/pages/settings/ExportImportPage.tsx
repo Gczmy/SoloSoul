@@ -62,7 +62,7 @@ export function ExportImportPage() {
         },
       });
       onSuccess(`Exported to ${path}`);
-    } catch (e) { onError(e, 'Export failed');
+    } catch (e) { onError(e, t('common:export_failed'));
     } finally { setIsExporting(false); }
   };
 
@@ -71,7 +71,7 @@ export function ExportImportPage() {
     try {
       const preview = await invoke<ImportPreview>('import_preview_package', { filePath: importPath });
       setImportPreview(preview);
-    } catch (e) { onError(e, 'Preview failed'); }
+    } catch (e) { onError(e, t('common:preview_failed')); }
   };
 
   const handleImport = async () => {
@@ -82,7 +82,7 @@ export function ExportImportPage() {
       onSuccess(`Imported ${count} profile(s)`);
       setImportPreview(null);
       invoke<ScopeNode[]>('export_get_scope_tree').then(setScope).catch(() => {});
-    } catch (e) { onError(e, 'Import failed');
+    } catch (e) { onError(e, t('common:import_failed'));
     } finally { setIsImporting(false); }
   };
 
@@ -127,7 +127,7 @@ export function ExportImportPage() {
               <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{t('settings:encryption')}</h3>
               <SecurePasswordInput value={password}
                 onChange={(v) => setPassword(v)}
-                placeholder="common:password_placeholder" />
+                placeholder={t('common:password_placeholder')} />
             </Card>
             <Button onClick={handleExport} loading={isExporting}
               disabled={selectedIds.size === 0 || !password}>
@@ -168,7 +168,7 @@ export function ExportImportPage() {
                 <div style={{ marginTop: 12 }}>
                   <SecurePasswordInput value={importPw}
                     onChange={(v) => setImportPw(v)}
-                    placeholder="common:password_placeholder" />
+                    placeholder={t('common:password_placeholder')} />
                 </div>
                 <div style={{ marginTop: 8 }}>
                   <Button onClick={handleImport} loading={isImporting} disabled={!importPw}>

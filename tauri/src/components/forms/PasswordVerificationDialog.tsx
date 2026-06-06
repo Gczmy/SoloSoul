@@ -77,7 +77,7 @@ export function PasswordVerificationDialog({
         <SecurePasswordInput
           value={password}
           onChange={(v) => { setPassword(v); setError(null); }}
-          placeholder="common:password_placeholder"
+          placeholder={t('common:password_placeholder')}
           error={error}
           autoComplete="current-password"
           hint={hint}

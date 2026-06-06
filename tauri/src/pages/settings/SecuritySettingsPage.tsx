@@ -126,7 +126,7 @@ export function SecuritySettingsPage() {
               label={t('common:current_password')}
               value={oldPw}
               onChange={(v) => { setOldPw(v); setError(null); }}
-              placeholder="common:password_placeholder"
+              placeholder={t('common:password_placeholder')}
               autoComplete="current-password"
             />
 
@@ -149,7 +149,7 @@ export function SecuritySettingsPage() {
               showHintButton={false}
               value={newPw}
               onChange={(v) => { setNewPw(v); setError(null); }}
-              placeholder="common:new_password"
+              placeholder={t('common:new_password')}
               autoComplete="new-password"
             />
 
@@ -159,7 +159,7 @@ export function SecuritySettingsPage() {
               showHintButton={false}
               value={confirmPw}
               onChange={(v) => { setConfirmPw(v); setError(null); }}
-              placeholder="common:confirm_password"
+              placeholder={t('common:confirm_password')}
               autoComplete="new-password"
             />
 

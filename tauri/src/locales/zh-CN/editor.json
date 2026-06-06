@@ -1,0 +1,40 @@
+{
+  "templates": {
+    "identity": "身份",
+    "passport": "护照",
+    "visa": "签证",
+    "bank": "银行账户",
+    "card": "卡片",
+    "education": "教育",
+    "employment": "工作经历"
+  },
+  "fields": {
+    "fullName": "全名",
+    "dateOfBirth": "出生日期",
+    "nationality": "国籍",
+    "idNumber": "身份证号",
+    "email": "邮箱",
+    "phone": "电话",
+    "passportNumber": "护照号码",
+    "issueDate": "签发日期",
+    "expiryDate": "到期日期",
+    "country": "国家",
+    "visaType": "签证类型",
+    "number": "号码",
+    "bankName": "银行名称",
+    "accountNumber": "账号",
+    "accountType": "账户类型",
+    "currency": "货币",
+    "cardNumber": "卡号",
+    "cardType": "卡类型",
+    "holderName": "持卡人姓名",
+    "institution": "学校/机构",
+    "degree": "学位",
+    "field": "专业",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "company": "公司",
+    "position": "职位"
+  },
+  "in_section": "位于{{section}}"
+}

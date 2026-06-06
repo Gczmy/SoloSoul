@@ -43,7 +43,7 @@ export function OperationLogPage() {
       const entries = await invoke<LogEntry[]>('log_get_recent', { limit: 200 });
       setLogs(entries);
     } catch (e) {
-      onError(e, 'Failed to load logs');
+      onError(e, t('common:logs_load_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +54,7 @@ export function OperationLogPage() {
       const path = await invoke<string>('log_export');
       onSuccess(`Exported to ${path}`);
     } catch (e) {
-      onError(e, 'Export failed');
+      onError(e, t('common:logs_export_failed'));
     }
   };
 

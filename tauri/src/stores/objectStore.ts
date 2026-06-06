@@ -8,6 +8,8 @@ export interface ObjectSummary {
   sensitivityLevel: string;
   createdAt: string;
   updatedAt: string;
+  isDeleted?: boolean;
+  properties?: Record<string, unknown>;
 }
 
 export interface ObjectData {
