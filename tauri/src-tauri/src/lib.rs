@@ -109,6 +109,10 @@ pub fn run() {
             // LLM commands
             commands::llm::llm_get_config,
             commands::llm::llm_update_config,
+            // Attachment commands
+            commands::attachment::attachment_list,
+            commands::attachment::attachment_save,
+            commands::attachment::attachment_delete,
             // Sync commands
             commands::sync::sync_discover,
             commands::sync::sync_get_status,

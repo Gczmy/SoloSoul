@@ -1,4 +1,5 @@
 #![allow(unused_imports)]
+pub mod attachment;
 pub mod auth;
 pub mod backup;
 pub mod crypto;
