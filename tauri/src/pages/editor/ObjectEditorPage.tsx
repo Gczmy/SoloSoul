@@ -258,7 +258,13 @@ export function ObjectEditorPage() {
           </Card>
         )}
 
-        {(selectedType || !isNew) && (
+        {(!isNew && !dataLoaded) ? (
+          <Card>
+            <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '24px 0', fontSize: 13 }}>
+              {t('common:loading')}
+            </p>
+          </Card>
+        ) : (selectedType || !isNew) && (
           <>
             <Card>
               <Input
