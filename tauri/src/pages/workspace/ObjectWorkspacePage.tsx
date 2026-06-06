@@ -12,7 +12,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw } from 'lucide-react';
+import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw, Eye, Image, FileText } from 'lucide-react';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
 // Labels resolved at render time via t() so they support i18n
@@ -201,7 +201,7 @@ interface AttachmentItem {
   mimeType: string;
   sizeBytes: number;
   createdAt: string;
-  isDeleted?: boolean;
+  deletedAt?: string | null;
 }
 
 function formatSize(bytes: number): string {
@@ -261,8 +261,9 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
 
   const handleConfirmRename = async () => {
     if (renamingId && renameValue.trim()) {
-      await invoke('attachment_rename', { objectId, attachmentId: renamingId, newName: renameValue.trim() });
-      await loadAttachments();
+      // Update locally first, avoid flash from full reload
+      setItems((prev) => prev.map((i) => i.id === renamingId ? { ...i, fileName: renameValue.trim() } : i));
+      invoke('attachment_rename', { objectId, attachmentId: renamingId, newName: renameValue.trim() }).catch(() => {});
     }
     setRenamingId(null);
   };
@@ -326,7 +327,11 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
             </div>
           ) : displayItems.map((item) => (
             <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 6px', borderBottom: '1px solid var(--border-subtle)', fontSize: 13 }}>
-              {showTrash ? <Trash2 size={14} style={{ color: '#e74c3c', flexShrink: 0 }} /> : <Paperclip size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />}
+              {showTrash ? <Trash2 size={14} style={{ color: '#e74c3c', flexShrink: 0 }} /> : (
+                item.mimeType.startsWith('image/') ? <Image size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} /> :
+                item.mimeType === 'application/pdf' ? <FileText size={14} style={{ color: '#e74c3c', flexShrink: 0 }} /> :
+                <Paperclip size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+              )}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: showTrash ? 'line-through' : 'none', opacity: showTrash ? 0.5 : 1 }}>{item.fileName}</div>
                 <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
@@ -343,7 +348,10 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
                   {renamingId === item.id ? (
                     <input ref={renameInputRef} value={renameValue} onChange={(e) => setRenameValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmRename(); if (e.key === 'Escape') setRenamingId(null); }} onBlur={handleConfirmRename} style={{ width: 100, padding: '3px 6px', fontSize: 12, borderRadius: 4, border: '1px solid var(--accent-primary)', background: 'transparent', color: 'var(--text-primary)', outline: 'none' }} />
                   ) : (
+                    <>
+                    <button onClick={() => {}} style={miniBtn} title="Preview"><Eye size={12} /></button>
                     <button onClick={() => handleStartRename(item)} style={miniBtn} title={t('common:rename')}><Edit2 size={12} /></button>
+                    </>
                   )}
                   <button onClick={() => handleDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title={t('common:delete')}><Trash2 size={12} /></button>
                 </>

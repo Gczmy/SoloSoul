@@ -15,8 +15,8 @@ pub struct AttachmentMeta {
     pub mime_type: String,
     pub size_bytes: u64,
     pub created_at: String,
-    #[serde(default)]
-    pub is_deleted: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deleted_at: Option<String>,
 }
 
 fn load_attachments(props: &Value) -> Vec<AttachmentMeta> {
@@ -48,7 +48,7 @@ pub async fn attachment_list(
     match vault.load_object(&object_id) {
         Ok(Some(rec)) => Ok(load_attachments(&rec.properties)
             .into_iter()
-            .filter(|a| if show { a.is_deleted } else { !a.is_deleted })
+            .filter(|a| if show { a.deleted_at.is_some() } else { a.deleted_at.is_none() })
             .collect()),
         _ => Ok(vec![]),
     }
@@ -87,7 +87,7 @@ pub async fn attachment_restore(
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
-        a.is_deleted = false;
+        a.deleted_at = None;
     }
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
@@ -146,8 +146,9 @@ pub async fn attachment_soft_delete(
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
-        a.is_deleted = true;
+        a.deleted_at = Some(chrono::Utc::now().to_rfc3339());
     }
+
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
@@ -167,7 +168,7 @@ pub async fn attachment_count_batch(
         if let Ok(Some(rec)) = vault.load_object(id) {
             let count = load_attachments(&rec.properties)
                 .iter()
-                .filter(|a| !a.is_deleted)
+                .filter(|a| a.deleted_at.is_none())
                 .count();
             result.insert(id.clone(), count);
         }
