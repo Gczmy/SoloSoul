@@ -228,24 +228,32 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
     try {
       const { open } = await import('@tauri-apps/plugin-shell');
       await open(path);
-    } catch { /* silently fail */ }
+    } catch {
+      alert('Cannot open file. Make sure the file still exists at: ' + path);
+    }
   };
 
   const handlePreview = async (item: AttachmentItem) => {
     const isImage = item.mimeType.startsWith('image/');
     const isPdf = item.mimeType === 'application/pdf';
     const isText = item.mimeType.startsWith('text/') || ['json','xml','csv','md','txt'].some(e => item.fileName.endsWith(e));
-    if ((isImage || isPdf || isText) && item.srcPath) {
+
+    if (item.srcPath && (isImage || isPdf || isText)) {
+      // Built-in preview via data URL
       setPreviewItem(item);
       setPreviewUrl('');
       try {
         const url = await invoke<string>('fs_read_file_as_data_url', { path: item.srcPath });
         setPreviewUrl(url);
       } catch {
-        setPreviewUrl('');
+        setPreviewUrl('error');
       }
+    } else if (item.srcPath) {
+      // Office docs, etc. — open with system default
+      openWithDefault(item.srcPath);
     } else {
-      openWithDefault(item.srcPath || item.fileName);
+      // No srcPath — likely an old attachment; try to open by name as fallback
+      openWithDefault(item.fileName);
     }
   };
 
@@ -398,7 +406,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
             <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
           </div>
           <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
-            {previewUrl ? <img src={previewUrl} alt={previewItem.fileName} style={{ maxWidth:'90%', maxHeight:'90%', objectFit:'contain', borderRadius:8 }} /> : <div style={{ color:'var(--text-tertiary)', padding:24 }}>Loading...</div>}
+            {previewUrl === 'error' ? <div style={{ color:'#e74c3c', padding:24 }}>Failed to load preview.</div> : previewUrl ? <img src={previewUrl} alt={previewItem.fileName} style={{ maxWidth:'90%', maxHeight:'90%', objectFit:'contain', borderRadius:8 }} /> : <div style={{ color:'var(--text-tertiary)', padding:24 }}>Loading...</div>}
           </div>
         </div>
       )}
@@ -410,7 +418,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
             <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
           </div>
           <div style={{ flex:1, padding:24 }}>
-            {previewUrl ? <iframe src={previewUrl} style={{ width:'100%', height:'100%', border:'none', borderRadius:8, background:'white' }} /> : <div style={{ color:'var(--text-tertiary)', padding:24 }}>Loading...</div>}
+            {previewUrl === 'error' ? <div style={{ color:'#e74c3c', padding:24 }}>Failed to load preview.</div> : previewUrl ? <iframe src={previewUrl} style={{ width:'100%', height:'100%', border:'none', borderRadius:8, background:'white' }} /> : <div style={{ color:'var(--text-tertiary)', padding:24 }}>Loading...</div>}
           </div>
         </div>
       )}
