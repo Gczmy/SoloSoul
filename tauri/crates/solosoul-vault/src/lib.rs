@@ -92,6 +92,8 @@ pub struct ObjectRecord {
     pub account_id: String,
     #[serde(rename = "typeId")]
     pub type_id: String,
+    #[serde(rename = "sectionType")]
+    pub section_type: String,
     pub name: String,
     #[serde(rename = "iconName")]
     pub icon_name: String,

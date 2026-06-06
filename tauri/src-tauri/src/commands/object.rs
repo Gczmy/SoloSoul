@@ -136,6 +136,7 @@ pub async fn object_create(
         id: id.clone(),
         account_id: input.account_id.clone(),
         type_id: input.collection_type.clone(),
+        section_type: input.collection_type.clone(), // §25.1.3: page affiliation (currently mirrors type_id)
         name: input.name.clone(),
         icon_name: input.icon_name.unwrap_or_else(|| "document".to_string()),
         parent_id: input.parent_id.clone(),

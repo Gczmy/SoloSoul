@@ -83,6 +83,7 @@ impl VaultStore {
                 id TEXT PRIMARY KEY,
                 account_id TEXT NOT NULL,
                 type_id TEXT NOT NULL DEFAULT 'note',
+                section_type TEXT NOT NULL DEFAULT 'identity',
                 name TEXT NOT NULL,
                 icon_name TEXT NOT NULL DEFAULT 'document',
                 parent_id TEXT,
@@ -123,8 +124,9 @@ impl VaultStore {
         .map_err(|e| format!("Failed to init schema: {}", e))?;
 
         // Migration: add tags_json column if missing (added in schema v2, §24)
-        // Ignore error if column already exists
         let _ = conn.execute("ALTER TABLE objects ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]'", []);
+        // Migration: add section_type column if missing (§25.1.3)
+        let _ = conn.execute("ALTER TABLE objects ADD COLUMN section_type TEXT NOT NULL DEFAULT 'identity'", []);
 
         let version_exists: bool = conn
             .query_row(
@@ -285,12 +287,12 @@ impl VaultStore {
             .unwrap_or_default();
         let tags_str = serde_json::to_string(&obj.tags_json).unwrap_or_default();
         conn.execute(
-            "INSERT INTO objects (id, account_id, type_id, name, icon_name, parent_id,
+            "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name, parent_id,
              children_ids, properties, property_labels, sensitivity_level,
              is_deleted, deleted_at, tags_json, created_at, updated_at, version)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17)
              ON CONFLICT(id) DO UPDATE SET
-               type_id=excluded.type_id, name=excluded.name, icon_name=excluded.icon_name,
+               type_id=excluded.type_id, section_type=excluded.section_type, name=excluded.name, icon_name=excluded.icon_name,
                parent_id=excluded.parent_id, children_ids=excluded.children_ids,
                properties=excluded.properties, property_labels=excluded.property_labels,
                sensitivity_level=excluded.sensitivity_level,
@@ -298,7 +300,7 @@ impl VaultStore {
                tags_json=excluded.tags_json,
                updated_at=excluded.updated_at, version=excluded.version",
             params![
-                obj.id, obj.account_id, obj.type_id, obj.name, obj.icon_name,
+                obj.id, obj.account_id, obj.type_id, obj.section_type, obj.name, obj.icon_name,
                 obj.parent_id, children_json, props_json, labels_json,
                 obj.sensitivity_level, obj.is_deleted as i32, obj.deleted_at,
                 tags_str, obj.created_at, obj.updated_at, obj.version,
@@ -329,6 +331,7 @@ impl VaultStore {
                 id: row.get(0)?,
                 account_id: row.get(1)?,
                 type_id: row.get(2)?,
+                section_type: String::new(),
                 name: row.get(3)?,
                 icon_name: row.get(4)?,
                 parent_id: row.get(5)?,
@@ -484,6 +487,7 @@ impl VaultStore {
                     id: row.get(0)?,
                     account_id: row.get(1)?,
                     type_id: row.get(2)?,
+                section_type: String::new(),
                     name: row.get(3)?,
                     icon_name: row.get(4)?,
                     parent_id: row.get(5)?,
