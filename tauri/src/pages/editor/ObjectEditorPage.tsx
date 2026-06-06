@@ -4,6 +4,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { invoke } from '@tauri-apps/api/core';
+import { open } from '@tauri-apps/plugin-dialog';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore, ObjectData } from '@/stores/objectStore';
@@ -290,9 +292,37 @@ export function ObjectEditorPage() {
             </Card>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               {!isNew && objectId && (
-                <Button variant="secondary" onClick={() => navigate(`/history?objectId=${objectId}`)} style={{ marginRight: 'auto' }}>
+                <>
+                <Button variant="secondary" onClick={() => navigate(`/history?objectId=${objectId}`)}>
                   History
                 </Button>
+                <Button variant="secondary" onClick={async () => {
+                  const name = prompt('Template name:', currentObject?.name || '');
+                  if (name && objectId) {
+                    try {
+                      await invoke('template_save_from_object', { objectId, templateName: name });
+                      alert('Template saved');
+                    } catch (e) { alert('Failed: ' + e); }
+                  }
+                }}>
+                  Save as Template
+                </Button>
+                <Button variant="secondary" onClick={async () => {
+                  const path = await open({ multiple: false, title: 'Select file to attach' });
+                  if (path && typeof path === 'string' && objectId) {
+                    try {
+                      await invoke('attachment_save', { objectId, meta: {
+                        id: crypto.randomUUID(), objectId,
+                        fileName: path.split('/').pop() || 'file',
+                        mimeType: 'application/octet-stream', sizeBytes: 0, createdAt: new Date().toISOString(),
+                      }});
+                      alert('Attachment added');
+                    } catch (e) { alert('Failed: ' + e); }
+                  }
+                }}>
+                  Add Attachment
+                </Button>
+                </>
               )}
               <Button variant="secondary" onClick={() => navigate(-1)}>{t('common:cancel')}</Button>
               <Button onClick={handleSave} loading={isSaving}>{t('common:save')}</Button>
