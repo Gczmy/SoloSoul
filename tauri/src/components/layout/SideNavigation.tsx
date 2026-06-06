@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Home,
@@ -95,6 +95,8 @@ function AddPageButton({
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation('navigation');
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const addCustomPage = useSettingsStore((s) => s.addCustomPage);
@@ -115,20 +117,72 @@ function AddPageButton({
     setName('');
   }, []);
 
+  // Close popover on outside click
+  useEffect(() => {
+    if (!isCreating) return;
+    const handler = (e: MouseEvent) => {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(e.target as Node)
+      ) {
+        handleCancel();
+      }
+    };
+    // Small delay to avoid conflicting with the button click
+    setTimeout(() => document.addEventListener('mousedown', handler), 0);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isCreating, handleCancel]);
+
   return (
     <div className={styles.addPageRow}>
-      {/* Create row — shown when + is clicked */}
+      {/* + button */}
+      <button
+        ref={buttonRef}
+        className={styles.addPageButton}
+        onClick={() => {
+          setIsCreating(true);
+          setTimeout(() => inputRef.current?.focus(), 100);
+        }}
+        aria-label={t('add_page')}
+        title={t('add_page')}
+      >
+        <Plus size={20} />
+      </button>
+
+      {/* Popover create row — rendered outside sidebar flow */}
       {isCreating && (
-        <div className={styles.createRow}>
-          <div className={styles.createIcon}>
-            <FileText size={24} />
-          </div>
+        <div
+          ref={popoverRef}
+          style={{
+            position: 'fixed',
+            left: 56, /* 48px sidebar + 8px gap */
+            top: buttonRef.current
+              ? buttonRef.current.getBoundingClientRect().top + 48 + 4
+              : '50%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '6px 10px',
+            background: 'var(--bg-elevated)',
+            borderRadius: 8,
+            boxShadow: 'var(--shadow-lg)',
+            zIndex: 300,
+            border: '1px solid var(--border-subtle)',
+          }}
+        >
+          <FileText size={20} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
           <input
             ref={inputRef}
-            className={styles.createInput}
             value={name}
             onChange={(e) => setName(e.target.value.slice(0, 20))}
-            onBlur={handleConfirm}
+            onBlur={(e) => {
+              // Only confirm if the blur is not caused by clicking inside the popover
+              if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
+                handleConfirm();
+              }
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleConfirm();
               if (e.key === 'Escape') handleCancel();
@@ -137,22 +191,20 @@ function AddPageButton({
             maxLength={20}
             autoFocus
             aria-label={t('add_page_placeholder')}
+            style={{
+              padding: '6px 10px',
+              fontSize: 14,
+              border: '1px solid var(--accent-primary)',
+              borderRadius: 6,
+              background: 'transparent',
+              color: 'var(--text-primary)',
+              fontFamily: 'inherit',
+              outline: 'none',
+              width: 160,
+            }}
           />
         </div>
       )}
-
-      {/* + button */}
-      <button
-        className={`${styles.addPageButton} ${isCreating ? styles.addPageShifted : styles.addPageUnshifted}`}
-        onClick={() => {
-          setIsCreating(true);
-          setTimeout(() => inputRef.current?.focus(), 50);
-        }}
-        aria-label={t('add_page')}
-        title={t('add_page')}
-      >
-        <Plus size={20} />
-      </button>
     </div>
   );
 }

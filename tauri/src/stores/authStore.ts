@@ -68,11 +68,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await commands.login(accountId, password);
-      const accounts = get().accounts;
-      const account = accounts.find((a) => a.id === accountId) || null;
+      // Fetch fresh account info to ensure currentAccount is set correctly
+      const result = await commands.vaultListAccounts();
+      const accounts = result || [];
+      const account = accounts.find((a) => a.id === accountId) || { id: accountId, name: accountId };
       set({
         isAuthenticated: true,
         currentAccount: account,
+        accounts,
         isLoading: false,
       });
     } catch (err) {

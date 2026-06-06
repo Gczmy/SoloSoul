@@ -39,6 +39,15 @@ function AppRoutes() {
     checkHasAccount();
   }, []);
 
+  // Load settings and profile after authentication
+  useEffect(() => {
+    const account = useAuthStore.getState().currentAccount;
+    if (isAuthenticated && account) {
+      useProfileStore.getState().loadProfile(account.id);
+      useSettingsStore.getState().loadSettings(account.id);
+    }
+  }, [isAuthenticated]);
+
   // Apply theme on mount (4.3.5 — instant, no refresh needed)
   useEffect(() => {
     const settings = useSettingsStore.getState().settings;
@@ -71,6 +80,7 @@ function AppRoutes() {
       useObjectStore.getState().clearOnVaultLock();
       useSettingsStore.getState().clearOnVaultLock();
       useProfileStore.getState().clear();
+      useAuthStore.getState().logout();
       navigate('/login');
     });
     return () => { unlisten.then((f) => f()); };
@@ -214,6 +224,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <ObjectEditorPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/workspace/custom/:pageId"
+        element={
+          <AuthGuard>
+            <ObjectWorkspacePage />
           </AuthGuard>
         }
       />

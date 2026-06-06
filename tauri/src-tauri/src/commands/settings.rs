@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use tauri::State;
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdatePreferencesPayload {
     pub account_id: String,
     pub preferences: HashMap<String, Value>,

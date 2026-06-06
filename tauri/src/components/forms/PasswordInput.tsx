@@ -192,6 +192,8 @@ export function SecurePasswordInput({
                     position: 'absolute', bottom: 'calc(100% + 6px)',
                     right: 0,
                     maxWidth: 240,
+                    minWidth: 80,
+                    width: 'max-content',
                     padding: '8px 10px',
                     borderRadius: 6,
                     fontSize: 11,
@@ -200,7 +202,9 @@ export function SecurePasswordInput({
                     background: 'var(--bg-elevated)',
                     boxShadow: 'var(--shadow-md)',
                     zIndex: 100,
-                    wordBreak: 'break-word',
+                    whiteSpace: 'normal',
+                    wordBreak: 'keep-all',
+                    overflowWrap: 'break-word',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>

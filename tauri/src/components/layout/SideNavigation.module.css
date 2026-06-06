@@ -158,7 +158,8 @@
   gap: 6px;
   padding: 8px 0;
   width: 100%;
-  overflow: hidden;
+  overflow: visible; /* Allow input to overflow sidebar */
+  position: relative;
 }
 
 .createIcon {
@@ -232,15 +233,4 @@
 .addPageButton:hover {
   background: rgba(128, 128, 128, 0.06);
   color: var(--text-primary);
-}
-
-.addPageShifted {
-  /* 9.8.1 — + 按钮下移 52px (48px button + 4px gap) */
-  transform: translateY(52px);
-  transition: transform 300ms var(--ease-spring);
-}
-
-.addPageUnshifted {
-  transform: translateY(0);
-  transition: transform 300ms var(--ease-spring);
 }
