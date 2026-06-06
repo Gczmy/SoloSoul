@@ -145,6 +145,7 @@ pub async fn object_create(
         sensitivity_level: "internal".to_string(),
         is_deleted: false,
         deleted_at: None,
+        tags_json: vec![],
         created_at: now.clone(),
         updated_at: now,
         version: 1,
