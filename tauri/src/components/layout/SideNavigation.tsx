@@ -222,6 +222,8 @@ export function SideNavigation() {
   );
 
   const isWorkspaceSectionActive = (sectionPath: string): boolean => {
+    // Custom pages are at /workspace/custom/:id — they never match section-based routes
+    if (location.pathname.startsWith('/workspace/custom/')) return false;
     if (!location.pathname.startsWith('/workspace')) return false;
     const section = sectionPath.split('section=')[1];
     if (!section) return !location.search.includes('section=');
