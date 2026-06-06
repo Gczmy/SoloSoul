@@ -131,5 +131,8 @@
   "rename": "重命名",
   "rename_prompt": "重命名：",
   "cancel": "取消",
+  "undo": "撤销",
+  "clear_hint": "清除提示词",
+  "clear_hint_warning": "提示词将在保存时清除。点击「撤销」取消。",
   "slogan": "您的个人数据保险库"
 }

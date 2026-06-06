@@ -131,5 +131,8 @@
   "rename": "Rename",
   "rename_prompt": "Rename:",
   "cancel": "Cancel",
+  "undo": "Undo",
+  "clear_hint": "Clear hint",
+  "clear_hint_warning": "The password hint will be cleared when you save. Click Undo to cancel.",
   "slogan": "Your Personal Data Vault"
 }

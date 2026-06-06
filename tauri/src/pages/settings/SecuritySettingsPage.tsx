@@ -201,7 +201,7 @@ export function SecuritySettingsPage() {
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  {hintCleared ? 'Undo' : 'Clear hint'}
+                  {hintCleared ? t('common:undo') : t('common:clear_hint')}
                 </button>
               </div>
               <input
@@ -222,7 +222,7 @@ export function SecuritySettingsPage() {
               />
               {hintCleared && (
                 <div style={{ marginTop: 6, fontSize: 12, color: '#e74c3c', lineHeight: 1.4 }}>
-                  The password hint will be cleared when you save. Click "Undo" to cancel.
+                  {t('common:clear_hint_warning')}
                 </div>
               )}
             </div>
