@@ -311,8 +311,11 @@ export function applyTheme(theme: ThemeConfig) {
 // 错误：硬编码
 <NavButton icon={<IconHome />} label="identity" to="/" />
 
-// 正确：使用国际化
+// 错误：直接 import 图标，绕过唯一映射表
 <NavButton icon={<IconHome />} label={t('navigation:sidebar.home')} to="/" />
+
+// 正确：通过唯一映射表引用图标 + 国际化
+<NavButton icon={<PAGE_ICON_MAP.home />} label={t('navigation:sidebar.home')} to="/" />
 ```
 
 #### 3.2.2 缺少 Professional 按钮修复
@@ -321,12 +324,13 @@ export function applyTheme(theme: ThemeConfig) {
 
 ```tsx
 <NavPrimary>
-  <NavButton icon={<IconHome />} label={t('navigation:sidebar.home')} to="/" />
-  <NavButton icon={<IconProfile />} label={t('navigation:sidebar.profile')} to="/profile" />
-  <NavButton icon={<IconTravel />} label={t('navigation:sidebar.travel')} to="/workspace/travel" />
-  <NavButton icon={<IconFinancial />} label={t('navigation:sidebar.financial')} to="/workspace/financial" />
+  {/* 修复：统一使用 PAGE_ICON_MAP 引用图标 */}
+  <NavButton icon={<PAGE_ICON_MAP.home />} label={t('navigation:sidebar.home')} to="/" />
+  <NavButton icon={<PAGE_ICON_MAP.profile />} label={t('navigation:sidebar.profile')} to="/profile" />
+  <NavButton icon={<PAGE_ICON_MAP.travel />} label={t('navigation:sidebar.travel')} to="/workspace/travel" />
+  <NavButton icon={<PAGE_ICON_MAP.financial />} label={t('navigation:sidebar.financial')} to="/workspace/financial" />
   {/* 修复：补充 Professional 按钮 */}
-  <NavButton icon={<IconProfessional />} label={t('navigation:sidebar.professional')} to="/workspace/professional" />
+  <NavButton icon={<PAGE_ICON_MAP.professional />} label={t('navigation:sidebar.professional')} to="/workspace/professional" />
   {customPages.map(...)}
   <AddPageButton onCreate={handleCreateCustomPage} />
 </NavPrimary>
