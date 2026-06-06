@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
+import { useRevealState } from '@/hooks/useRevealState';
 import { Pencil, Trash2 } from 'lucide-react';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
@@ -51,9 +53,24 @@ export function ObjectWorkspacePage() {
   const { t } = useTranslation(['common', 'navigation', 'editor']);
   const { objects, loadObjects, deleteObject, isLoading, error } = useObjectStore();
   const customPages = useSettingsStore((s) => s.settings.customPages);
+  const { map: sensitivityMap, loadMap } = useSensitivityStore();
+  const { maskValue, isRevealed, reveal } = useRevealState();
   const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
 
   const activeCategoryLabel = sectionFilter ? t(`navigation:${sectionFilter}`, sectionFilter) : null;
+
+  // Load sensitivity map for field-level masking
+  useEffect(() => { loadMap(); }, []);
+
+  /** Resolve sensitivity level for a property key within an object's collection. */
+  const getFieldSensitivity = (collectionType: string, fieldKey: string): SensitivityLevel => {
+    const fieldId = `${collectionType}.${fieldKey}`;
+    if (sensitivityMap?.entries?.[fieldId]) return sensitivityMap.entries[fieldId];
+    for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
+      if (id.endsWith(`.${fieldKey}`)) return level;
+    }
+    return 'internal';
+  };
 
   useEffect(() => {
     if (accountId) {
@@ -239,7 +256,21 @@ export function ObjectWorkspacePage() {
                         <span style={{ fontWeight: 500, color: 'var(--text-tertiary)', marginRight: 4 }}>
                           {t(`editor:fields.${f.key}`, f.key)}:
                         </span>
-                        {f.value}
+                        {(() => {
+                          const sens = getFieldSensitivity(obj.collectionType, f.key);
+                          if (sens === 'sensitive' || sens === 'critical') {
+                            const fieldId = `${obj.collectionType}.${f.key}`;
+                            const masked = maskValue(f.value, fieldId, sens);
+                            const revealed = isRevealed(fieldId);
+                            return (
+                              <span onClick={(e) => { e.stopPropagation(); if (!revealed) reveal(fieldId); }} style={{ cursor: revealed ? 'default' : 'pointer' }}>
+                                {masked}
+                                {!revealed && <span style={{ fontSize: 9, marginLeft: 2, opacity: 0.5 }}>🔒</span>}
+                              </span>
+                            );
+                          }
+                          return <>{f.value}</>;
+                        })()}
                       </span>
                     ))}
                   </div>
