@@ -36,6 +36,8 @@
   "vault_locked": "保险库已锁定",
   "vault_unlocked": "保险库已解锁",
   "overwrite": "覆盖",
+  "perm_delete_title": "永久删除？",
+  "perm_delete_body": "删除 {{name}}？此操作不可撤销。文件将被永久移除。",
   "restore": "恢复",
   "export": "导出",
   "import": "导入",
@@ -121,5 +123,12 @@
   "select_file_attach": "选择要附加的文件",
   "attachment_added": "附件已添加",
   "attachment_failed": "添加附件失败",
+  "attachments": "附件",
+  "attachments_active": "活跃 ({{n}})",
+  "attachments_trash": "回收站 ({{n}})",
+  "no_attachments": "暂无附件",
+  "rename": "重命名",
+  "rename_prompt": "重命名：",
+  "cancel": "取消",
   "slogan": "您的个人数据保险库"
 }

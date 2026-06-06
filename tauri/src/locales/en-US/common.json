@@ -36,6 +36,8 @@
   "vault_locked": "Vault locked",
   "vault_unlocked": "Vault unlocked",
   "overwrite": "Overwrite",
+  "perm_delete_title": "Permanently delete?",
+  "perm_delete_body": "Delete {{name}}? This cannot be undone.",
   "restore": "Restore",
   "export": "Export",
   "import": "Import",
@@ -121,5 +123,12 @@
   "select_file_attach": "Select file to attach",
   "attachment_added": "Attachment added",
   "attachment_failed": "Failed to add attachment",
+  "attachments": "Attachments",
+  "attachments_active": "Active ({{n}})",
+  "attachments_trash": "Trash ({{n}})",
+  "no_attachments": "No attachments",
+  "rename": "Rename",
+  "rename_prompt": "Rename:",
+  "cancel": "Cancel",
   "slogan": "Your Personal Data Vault"
 }

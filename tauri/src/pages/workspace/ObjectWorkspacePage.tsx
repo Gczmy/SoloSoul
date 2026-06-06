@@ -251,7 +251,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
   };
 
   const handleRename = async (item: AttachmentItem) => {
-    const newName = prompt('Rename:', item.fileName);
+    const newName = prompt(t('common:rename_prompt'), item.fileName);
     if (newName && newName !== item.fileName) {
       await invoke('attachment_rename', { objectId, attachmentId: item.id, newName });
       await loadAttachments();
@@ -259,7 +259,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
   };
 
   const handleDelete = async (item: AttachmentItem) => {
-    if (!confirm(`Delete "${item.fileName}"?`)) return;
+    if (!confirm(item.fileName)) return;
     await invoke('attachment_soft_delete', { objectId, attachmentId: item.id });
     await loadAttachments();
   };
@@ -297,23 +297,23 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Paperclip size={14} /> Attachments
+              <Paperclip size={14} /> {t('common:attachments')}
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
-              <button onClick={() => setShowTrash(false)} style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, border: '1px solid var(--border-subtle)', background: !showTrash ? 'var(--accent-primary)' : 'transparent', color: !showTrash ? 'white' : 'var(--text-secondary)', cursor: 'pointer' }}>Active ({items.length})</button>
-              <button onClick={() => setShowTrash(true)} style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, border: '1px solid var(--border-subtle)', background: showTrash ? '#e74c3c' : 'transparent', color: showTrash ? 'white' : 'var(--text-secondary)', cursor: 'pointer' }}>Trash ({trashItems.length})</button>
+              <button onClick={() => setShowTrash(false)} style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, border: '1px solid var(--border-subtle)', background: !showTrash ? 'var(--accent-primary)' : 'transparent', color: !showTrash ? 'white' : 'var(--text-secondary)', cursor: 'pointer' }}>{t('common:attachments_active', { n: items.length })}</button>
+              <button onClick={() => setShowTrash(true)} style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, border: '1px solid var(--border-subtle)', background: showTrash ? '#e74c3c' : 'transparent', color: showTrash ? 'white' : 'var(--text-secondary)', cursor: 'pointer' }}>{t('common:attachments_trash', { n: trashItems.length })}</button>
             </div>
           </div>
-          {!showTrash && <button onClick={handleAdd} style={{ ...pgBtn, fontSize: 11, fontWeight: 600 }}>+ Add</button>}
+          {!showTrash && <button onClick={handleAdd} style={{ ...pgBtn, fontSize: 11, fontWeight: 600 }}>+ {t('common:create')}</button>}
           <button onClick={onClose} style={pgBtn}><X size={16} /></button>
         </div>
         {/* List */}
         <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)' }}>Loading...</div>
+            <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)' }}>{t('common:loading')}</div>
           ) : displayItems.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>
-              {showTrash ? 'Trash is empty.' : 'No attachments.'}
+              {showTrash ? ' ' : t('common:no_attachments')}
             </div>
           ) : displayItems.map((item) => (
             <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 6px', borderBottom: '1px solid var(--border-subtle)', fontSize: 13 }}>
@@ -326,13 +326,13 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
               </div>
               {showTrash ? (
                 <>
-                  <button onClick={() => handleRestore(item)} style={miniBtn} title="Restore"><RotateCw size={12} /></button>
-                  <button onClick={() => setPermDeleteItem(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Permanently delete"><Trash2 size={12} /></button>
+                  <button onClick={() => handleRestore(item)} style={miniBtn} title={t('common:restore')}><RotateCw size={12} /></button>
+                  <button onClick={() => setPermDeleteItem(item)} style={{ ...miniBtn, color: '#e74c3c' }} title={t('common:delete_permanently')}><Trash2 size={12} /></button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => handleRename(item)} style={miniBtn} title="Rename"><Edit2 size={12} /></button>
-                  <button onClick={() => handleDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Delete"><Trash2 size={12} /></button>
+                  <button onClick={() => handleRename(item)} style={miniBtn} title={t('common:rename')}><Edit2 size={12} /></button>
+                  <button onClick={() => handleDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title={t('common:delete')}><Trash2 size={12} /></button>
                 </>
               )}
             </div>
@@ -343,14 +343,13 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
       {permDeleteItem && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }} onClick={() => setPermDeleteItem(null)}>
           <div style={{ background: 'var(--bg-elevated)', borderRadius: 12, padding: '24px 28px', maxWidth: 360, width: '90%', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-subtle)' }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>Permanently delete?</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>{t('common:perm_delete_title')}</h3>
             <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Delete <strong>{permDeleteItem.fileName}</strong>?<br />
-              This action <strong style={{ color: '#e74c3c' }}>cannot be undone</strong>. The file will be permanently removed.
+              {t('common:perm_delete_body', { name: permDeleteItem.fileName })}
             </p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button onClick={() => setPermDeleteItem(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', fontSize: 13 }}>Cancel</button>
-              <button onClick={() => handlePermanentDelete(permDeleteItem)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#e74c3c', color: 'white', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Delete Permanently</button>
+              <button onClick={() => setPermDeleteItem(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'var(--bg-elevated)', cursor: 'pointer', fontSize: 13, color: 'var(--text-primary)' }}>{t('common:cancel')}</button>
+              <button onClick={() => handlePermanentDelete(permDeleteItem)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#e74c3c', color: 'white', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>{t('common:delete_permanently')}</button>
             </div>
           </div>
         </div>
