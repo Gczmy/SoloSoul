@@ -293,9 +293,6 @@ export function ObjectEditorPage() {
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               {!isNew && objectId && (
                 <>
-                <Button variant="secondary" onClick={() => navigate(`/history?objectId=${objectId}`)}>
-                  History
-                </Button>
                 <Button variant="secondary" onClick={async () => {
                   const name = prompt('Template name:', currentObject?.name || '');
                   if (name && objectId) {
