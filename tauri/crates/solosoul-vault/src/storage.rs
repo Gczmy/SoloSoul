@@ -119,6 +119,17 @@ impl VaultStore {
             CREATE INDEX IF NOT EXISTS idx_trash_expires ON trash_items(expires_at);
             CREATE INDEX IF NOT EXISTS idx_trash_deleted_at ON trash_items(deleted_at);
             CREATE INDEX IF NOT EXISTS idx_trash_type ON trash_items(item_type);
+
+            CREATE TABLE IF NOT EXISTS object_snapshots (
+                id TEXT PRIMARY KEY,
+                object_id TEXT NOT NULL,
+                timestamp INTEGER NOT NULL,
+                triggered_by TEXT NOT NULL DEFAULT 'user_edit',
+                data BLOB NOT NULL,
+                diff_summary TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_snapshots_object ON object_snapshots(object_id, timestamp DESC);
+            CREATE INDEX IF NOT EXISTS idx_snapshots_timestamp ON object_snapshots(timestamp);
             "#,
         )
         .map_err(|e| format!("Failed to init schema: {}", e))?;
@@ -587,6 +598,20 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         conn.execute("DELETE FROM trash_items WHERE id = ?1", rusqlite::params![id])
             .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
+    /// §25.5 — Save an object snapshot for history
+    pub fn save_snapshot(&self, object_id: &str, triggered_by: &str, data: &[u8], diff_summary: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let id = uuid::Uuid::new_v4().to_string();
+        let now = chrono::Utc::now().timestamp_millis();
+        conn.execute(
+            "INSERT INTO object_snapshots (id, object_id, timestamp, triggered_by, data, diff_summary)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            rusqlite::params![id, object_id, now, triggered_by, data, diff_summary],
+        ).map_err(|e| format!("save_snapshot: {}", e))?;
         Ok(())
     }
 

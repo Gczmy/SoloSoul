@@ -192,6 +192,15 @@ pub async fn object_update(
     record.version += 1;
 
     vault.save_object(&record)?;
+
+    // §25.5 — Save snapshot for history
+    let snapshot_data = serde_json::to_vec(&serde_json::json!({
+        "name": record.name,
+        "tags": record.tags_json,
+        "properties": record.properties,
+    })).unwrap_or_default();
+    let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "");
+
     let _ = vault.log_action("object_update", &format!("id={} name={}", object_id, record.name));
     Ok(record_to_data(&record))
 }
