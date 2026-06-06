@@ -13,6 +13,9 @@ interface SecurePasswordInputProps {
   autoComplete?: string;
   /** Password hint shown via the hint button tooltip */
   hint?: string | null;
+  /** Whether to show the hint button. Defaults to true.
+   *  Set false for new/confirm password fields (8.3). */
+  showHintButton?: boolean;
 }
 
 const TOOLTIP_CLOSE_DELAY = 300;
@@ -27,6 +30,7 @@ export function SecurePasswordInput({
   error,
   autoComplete,
   hint,
+  showHintButton = true,
 }: SecurePasswordInputProps) {
   const [visible, setVisible] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
@@ -34,15 +38,12 @@ export function SecurePasswordInput({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const tooltipTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // 8.2 — 失焦后自动恢复遮蔽
+  // Blur resets visibility
   const handleBlur = useCallback(() => {
     setVisible(false);
   }, []);
 
-  // 8.7 — 明文状态不持久化到任何 Store
-  // visible state is local to this component only
-
-  // 8.3 — 提示 Tooltip 点击外部关闭
+  // Close tooltip on outside click
   useEffect(() => {
     if (!tooltipOpen) return;
     const handler = (e: MouseEvent) => {
@@ -114,7 +115,7 @@ export function SecurePasswordInput({
           style={{
             flex: 1,
             border: 'none', outline: 'none',
-            padding: '10px 72px 10px 32px',
+            padding: showHintButton ? '10px 72px 10px 32px' : '10px 48px 10px 32px',
             fontSize: 14,
             background: 'transparent',
             color: 'var(--text-primary)',
@@ -122,12 +123,12 @@ export function SecurePasswordInput({
           }}
         />
 
-        {/* 8.4 — 按钮区（absolute 定位在输入框右侧） */}
+        {/* Button area (absolute positioned on the right) */}
         <div style={{
           position: 'absolute', right: 8, top: 0, bottom: 0,
           display: 'flex', alignItems: 'center', gap: 2,
         }}>
-          {/* 8.2 — 揭示按钮 */}
+          {/* Visibility toggle button */}
           {value.length > 0 && (
             <button
               type="button"
@@ -149,76 +150,78 @@ export function SecurePasswordInput({
             </button>
           )}
 
-          {/* 8.3 — 提示按钮（始终显示） */}
-          <div style={{ position: 'relative', display: 'flex' }}>
-            <button
-              type="button"
-              onClick={handleTooltipToggle}
-              aria-label="Password hint"
-              aria-pressed={tooltipOpen}
-              tabIndex={-1}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                padding: 4, borderRadius: 4,
-                display: 'flex', alignItems: 'center',
-                color: tooltipOpen ? 'var(--accent-primary)' : 'var(--text-tertiary)',
-                transition: 'color 0.15s',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-              onMouseLeave={(e) => {
-                if (!tooltipOpen) e.currentTarget.style.color = 'var(--text-tertiary)';
-              }}
-            >
-              <HelpCircle size={16} />
-            </button>
-
-            {/* 8.3 — Tooltip 浮层 */}
-            {tooltipOpen && (
-              <div
-                ref={tooltipRef}
-                role="tooltip"
-                onMouseEnter={() => {
-                  if (tooltipTimeoutRef.current) {
-                    clearTimeout(tooltipTimeoutRef.current);
-                    tooltipTimeoutRef.current = undefined;
-                  }
-                }}
-                onMouseLeave={handleTooltipClose}
+          {/* Hint button (optional, controlled by showHintButton prop) */}
+          {showHintButton && (
+            <div style={{ position: 'relative', display: 'flex' }}>
+              <button
+                type="button"
+                onClick={handleTooltipToggle}
+                aria-label="Password hint"
+                aria-pressed={tooltipOpen}
+                tabIndex={-1}
                 style={{
-                  position: 'absolute', bottom: 'calc(100% + 6px)',
-                  right: 0,
-                  maxWidth: 240,
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  fontSize: 11,
-                  lineHeight: 1.4,
-                  color: 'var(--text-secondary)',
-                  background: 'var(--bg-elevated)',
-                  boxShadow: 'var(--shadow-md)',
-                  zIndex: 100,
-                  wordBreak: 'break-word',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: 4, borderRadius: 4,
+                  display: 'flex', alignItems: 'center',
+                  color: tooltipOpen ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
+                onMouseLeave={(e) => {
+                  if (!tooltipOpen) e.currentTarget.style.color = 'var(--text-tertiary)';
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
-                  <span style={{ flex: 1 }}>{hasHint ? hint : 'No hint available'}</span>
-                  <button
-                    type="button"
-                    onClick={() => setTooltipOpen(false)}
-                    aria-label="Close hint"
-                    tabIndex={-1}
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      padding: 0, display: 'flex',
-                      color: 'var(--text-tertiary)',
-                      flexShrink: 0, marginTop: 1,
-                    }}
-                  >
-                    <X size={12} />
-                  </button>
+                <HelpCircle size={16} />
+              </button>
+
+              {/* Tooltip popup */}
+              {tooltipOpen && (
+                <div
+                  ref={tooltipRef}
+                  role="tooltip"
+                  onMouseEnter={() => {
+                    if (tooltipTimeoutRef.current) {
+                      clearTimeout(tooltipTimeoutRef.current);
+                      tooltipTimeoutRef.current = undefined;
+                    }
+                  }}
+                  onMouseLeave={handleTooltipClose}
+                  style={{
+                    position: 'absolute', bottom: 'calc(100% + 6px)',
+                    right: 0,
+                    maxWidth: 240,
+                    padding: '8px 10px',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    lineHeight: 1.4,
+                    color: 'var(--text-secondary)',
+                    background: 'var(--bg-elevated)',
+                    boxShadow: 'var(--shadow-md)',
+                    zIndex: 100,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+                    <span style={{ flex: 1 }}>{hasHint ? hint : 'No hint available'}</span>
+                    <button
+                      type="button"
+                      onClick={() => setTooltipOpen(false)}
+                      aria-label="Close hint"
+                      tabIndex={-1}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        padding: 0, display: 'flex',
+                        color: 'var(--text-tertiary)',
+                        flexShrink: 0, marginTop: 1,
+                      }}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       {error && (

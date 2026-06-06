@@ -135,6 +135,7 @@ export function SecuritySettingsPage() {
                   </span>
                 </span>
               }
+              showHintButton={false}
               value={newPw}
               onChange={(v) => { setNewPw(v); setError(null); }}
               placeholder="New password (leave empty to only update hint)"
@@ -144,20 +145,31 @@ export function SecuritySettingsPage() {
             {/* 10.1 — 确认新密码 */}
             <SecurePasswordInput
               label="Confirm New Password"
+              showHintButton={false}
               value={confirmPw}
               onChange={(v) => { setConfirmPw(v); setError(null); }}
               placeholder="Confirm new password"
               autoComplete="new-password"
             />
 
-            {/* 10.1 — 密码提示 */}
-            <SecurePasswordInput
-              label="Password Hint"
-              value={hint}
-              onChange={(v) => { setHint(v); setError(null); }}
-              placeholder="Optional reminder for your password"
-              hint={hint || null}
-            />
+            {/* 10.1 — 密码提示（始终明文可见，普通文本输入框） */}
+            <div>
+              <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
+                Password Hint
+              </label>
+              <input
+                type="text"
+                value={hint}
+                onChange={(e) => { setHint(e.target.value); setError(null); }}
+                placeholder="Optional reminder for your password"
+                style={{
+                  width: '100%', padding: '10px 14px', fontSize: 14,
+                  border: '1px solid var(--border-subtle)', borderRadius: 8,
+                  background: 'transparent', color: 'var(--text-primary)',
+                  fontFamily: 'inherit', outline: 'none',
+                }}
+              />
+            </div>
 
             {error && (
               <div style={{ color: '#dc2626', fontSize: 13, padding: '4px 0' }}>{error}</div>
