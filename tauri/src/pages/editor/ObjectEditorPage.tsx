@@ -289,6 +289,11 @@ export function ObjectEditorPage() {
               </div>
             </Card>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              {!isNew && objectId && (
+                <Button variant="secondary" onClick={() => navigate(`/history?objectId=${objectId}`)} style={{ marginRight: 'auto' }}>
+                  History
+                </Button>
+              )}
               <Button variant="secondary" onClick={() => navigate(-1)}>{t('common:cancel')}</Button>
               <Button onClick={handleSave} loading={isSaving}>{t('common:save')}</Button>
             </div>
