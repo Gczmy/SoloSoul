@@ -86,12 +86,16 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 -- unified_objects: 统一对象
+-- 数据组织模型为扁平结构：页面(section_type)直接包含对象列表
+-- 不引入集合/分组中间层，分组需求通过 tags_json + 智能筛选实现
+-- 详见文档 24_数据组织模型架构决策.md
 CREATE TABLE IF NOT EXISTS unified_objects (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL,
     name TEXT NOT NULL,
-    section_type TEXT NOT NULL,
+    section_type TEXT NOT NULL,        -- 页面分类：identity/travel/financial/professional
     section_data_json TEXT NOT NULL,
+    tags_json TEXT DEFAULT '[]',       -- 标签数组，用于智能筛选视图
     sensitivity_level TEXT DEFAULT 'internal',
     created_at TEXT, updated_at TEXT, deleted_at TEXT,
     FOREIGN KEY (account_id) REFERENCES profiles(account_id)
