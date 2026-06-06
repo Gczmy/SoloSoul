@@ -319,7 +319,7 @@ impl VaultStore {
             let children_str: String = row.get(6)?;
             let props_str: String = row.get(7)?;
             let labels_str: String = row.get(8)?;
-            let tags_str: String = row.get(11)?;
+            let tags_str: String = row.get(12)?;
             let deleted: i32 = row.get(10)?;
             Ok(ObjectRecord {
                 id: row.get(0)?,
@@ -360,7 +360,7 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
 
         let mut sql = String::from(
-            "SELECT id, name, type_id, sensitivity_level, created_at, updated_at, is_deleted, properties
+            "SELECT id, name, type_id, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
@@ -405,6 +405,7 @@ impl VaultStore {
             .query_map(params_refs.as_slice(), |row| {
                 let deleted_int: i32 = row.get(6)?;
                 let props_str: String = row.get(7)?;
+                let tags_str: String = row.get(8)?;
                 Ok(ObjectSummary {
                     id: row.get(0)?,
                     name: row.get(1)?,
@@ -414,6 +415,7 @@ impl VaultStore {
                     updated_at: row.get(5)?,
                     is_deleted: deleted_int != 0,
                     properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
+                    tags: serde_json::from_str(&tags_str).unwrap_or_default(),
                 })
             })
             .map_err(|e| format!("list_objects query: {}", e))?

@@ -292,6 +292,20 @@ export function ObjectWorkspacePage() {
                     ))}
                   </div>
                 )}
+                {/* Tag pills */}
+                {obj.tags && obj.tags.length > 0 && (
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                    {obj.tags.map((tag) => (
+                      <span key={tag} style={{
+                        padding: '1px 7px', borderRadius: 10, fontSize: 10,
+                        background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)',
+                        fontWeight: 500,
+                      }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </Card>
             );
           })}

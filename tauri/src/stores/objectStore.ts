@@ -10,6 +10,7 @@ export interface ObjectSummary {
   updatedAt: string;
   isDeleted?: boolean;
   properties?: Record<string, unknown>;
+  tags?: string[];
 }
 
 export interface ObjectData {

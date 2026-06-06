@@ -131,6 +131,7 @@ pub struct ObjectSummary {
     pub is_deleted: bool,
     /// First few property key-value pairs for card previews
     pub properties: serde_json::Value,
+    pub tags: Vec<String>,
 }
 
 impl ObjectSummary {
@@ -144,6 +145,7 @@ impl ObjectSummary {
             updated_at: r.updated_at.clone(),
             is_deleted: r.is_deleted,
             properties: r.properties.clone(),
+            tags: r.tags_json.clone(),
         }
     }
 }
