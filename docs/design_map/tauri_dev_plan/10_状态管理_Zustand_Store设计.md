@@ -123,57 +123,129 @@ updateField: async (sectionType, fieldKey, value) => {
 
 ## 5. settingsStore（关键变更）
 
-### [错误] 禁止：localStorage 持久化用户偏好
+### 5.1 双层存储设计
+
+settingsStore 同时管理**非敏感 UI 偏好**（明文存储，登录前可读）和**敏感偏好**（Vault 加密存储，解锁后可读）。
 
 ```typescript
-// [错误] 错误：
-export const useSettingsStore = create(
-  persist(immer(...), {
-    name: 'solosoul-settings',
-    storage: createJSONStorage(() => localStorage),  // 明文暴露！
-  })
-);
+// 非敏感 UI 偏好：明文存储于 ui_preferences.json，登录前即可读取
+interface UiPreferences {
+  language: 'zh-CN' | 'en-US';
+  theme: ThemeConfig;
+  accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'custom';
+  customAccentHex?: string;
+  sidebarWidth: number;
+  sidebarCollapsed: boolean;
+  windowSize: { width: number; height: number };
+}
 
-// [正确] 正确：通过 IPC → Rust Vault 加密存储
-const DEFAULT_SETTINGS = {
-  language: 'zh-CN' as 'zh-CN' | 'en-US',  // 加密存储的用户偏好，首次启动时系统检测
-  theme: DEFAULT_THEME_CONFIG,
-  // ... 其他用户偏好
-};
+// 敏感偏好：加密存储于 Vault 内的 preferences.enc
+interface SensitivePreferences {
+  autoLockTimeout: number;           // 自动锁定超时（秒）
+  biometricEnabled: boolean;         // 生物识别启用状态
+  trashRetentionPeriod: TrashRetentionPeriod;
+  historyRetentionPolicy: HistoryRetentionPolicy;
+  passwordHint?: string;             // 密码提示词
+  // ... 其他安全相关偏好
+}
 
+interface SettingsState {
+  uiPreferences: UiPreferences;
+  sensitivePreferences: SensitivePreferences | null;  // null = Vault 未解锁
+  isLoading: boolean;
+}
+```
+
+### 5.2 启动加载流程（修复 Bug 2 时序问题）
+
+```typescript
 export const useSettingsStore = create<SettingsState>()(
   immer((set, get) => ({
-    settings: DEFAULT_SETTINGS,
+    uiPreferences: DEFAULT_UI_PREFERENCES,
+    sensitivePreferences: null,
     isLoading: false,
 
-    loadSettings: async () => {
-      // 从 Rust Vault 读取加密的偏好
-      const settings = await commands.userDataGetPreferences();
-      set({ settings: { ...DEFAULT_SETTINGS, ...settings } });
-      // 加载完成后应用语言设置
-      await i18next.changeLanguage(settings.language || DEFAULT_SETTINGS.language);
+    // 第 1 步：应用启动时立即加载（登录前）
+    loadUiPreferences: async () => {
+      try {
+        const prefs = await commands.loadUiPreferences();
+        set({ uiPreferences: { ...DEFAULT_UI_PREFERENCES, ...prefs } });
+        // 立即应用主题和语言
+        applyTheme(prefs.theme);
+        await i18next.changeLanguage(prefs.language || detectSystemLanguage());
+      } catch {
+        // 首次启动：ui_preferences.json 不存在，使用系统检测
+        const systemLang = detectSystemLanguage();
+        set({
+          uiPreferences: { ...DEFAULT_UI_PREFERENCES, language: systemLang }
+        });
+        applyTheme(DEFAULT_UI_PREFERENCES.theme);
+        await i18next.changeLanguage(systemLang);
+      }
     },
 
-    updateSetting: async (key, value) => {
-      const oldValue = get().settings[key];
-      set((state) => { state.settings[key] = value; });
+    // 第 2 步：用户登录后加载（Vault 解锁后）
+    loadSensitivePreferences: async () => {
+      const prefs = await commands.userDataGetPreferences();
+      set({ sensitivePreferences: prefs });
+    },
+
+    // 更新非敏感 UI 偏好
+    updateUiPreference: async (key, value) => {
+      const oldValue = get().uiPreferences[key];
+      set((state) => { state.uiPreferences[key] = value; });
+      try {
+        await commands.saveUiPreference(key, value);
+        // 即时生效
+        if (key === 'language') await i18next.changeLanguage(value);
+        if (key === 'theme') applyTheme(value);
+      } catch (err) {
+        set((state) => { state.uiPreferences[key] = oldValue; });
+        throw err;
+      }
+    },
+
+    // 更新敏感偏好
+    updateSensitivePreference: async (key, value) => {
+      const oldValue = get().sensitivePreferences?.[key];
+      set((state) => { if (state.sensitivePreferences) state.sensitivePreferences[key] = value; });
       try {
         await commands.userDataUpdatePreference(key, value);
-        // 语言切换即时生效
-        if (key === 'language') {
-          await i18next.changeLanguage(value);
-        }
       } catch (err) {
-        set((state) => { state.settings[key] = oldValue; });
+        set((state) => { if (state.sensitivePreferences) state.sensitivePreferences[key] = oldValue; });
         throw err;
       }
     },
 
     clearOnVaultLock: () => {
-      set({ settings: DEFAULT_SETTINGS });  // Vault 锁定后清空
+      set({ sensitivePreferences: null });  // 仅清空敏感偏好，UI 偏好保留
     },
   }))
 );
+```
+
+### 5.3 [错误] 禁止：localStorage 持久化用户偏好
+
+```typescript
+// [错误] 错误：所有偏好都存 localStorage
+export const useSettingsStore = create(
+  persist(immer(...), {
+    name: 'solosoul-settings',
+    storage: createJSONStorage(() => localStorage),  // 敏感偏好明文暴露！
+  })
+);
+
+// [错误] 错误：所有偏好都存 Vault（导致登录页无法读取主题/语言）
+loadSettings: async () => {
+  const settings = await commands.userDataGetPreferences(); // ❌ 需要 Vault 解锁
+  applyTheme(settings.theme);  // ❌ 登录页主题无法应用
+}
+
+// [正确] 正确：非敏感偏好明文存储，敏感偏好 Vault 加密
+loadUiPreferences: async () => {
+  const prefs = await commands.loadUiPreferences();  // ✅ 无需解锁 Vault
+  applyTheme(prefs.theme);  // ✅ 登录页即可正确显示主题
+}
 ```
 
 ---

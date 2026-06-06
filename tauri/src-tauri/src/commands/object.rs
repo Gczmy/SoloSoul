@@ -275,3 +275,50 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
 pub async fn trash_restore(state: State<'_, AppState>, trash_id: String) -> Result<(), String> {
     object_restore(state, trash_id).await
 }
+
+// ── Snapshot / History commands (§25.5) ─────────────────────
+
+#[tauri::command]
+pub async fn snapshot_list(
+    state: State<'_, AppState>,
+    object_id: String,
+) -> Result<Vec<serde_json::Value>, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    vault.list_snapshots(&object_id)
+}
+
+#[tauri::command]
+pub async fn snapshot_rollback(
+    state: State<'_, AppState>,
+    snapshot_id: String,
+    object_id: String,
+) -> Result<(), String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    // Get snapshot data
+    let data = vault.get_snapshot(&snapshot_id)?.ok_or("Snapshot not found")?;
+    let snapshot: serde_json::Value = serde_json::from_slice(&data).map_err(|e| format!("Parse: {}", e))?;
+
+    // Load current object and restore from snapshot
+    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
+    if let Some(name) = snapshot["name"].as_str() { record.name = name.to_string(); }
+    if let Some(tags) = snapshot["tags"].as_array() {
+        record.tags_json = tags.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+    }
+    if !snapshot["properties"].is_null() { record.properties = snapshot["properties"].clone(); }
+    record.updated_at = chrono::Utc::now().to_rfc3339();
+    record.version += 1;
+    vault.save_object(&record)?;
+
+    // Save rollback snapshot
+    let rollback_data = serde_json::to_vec(&serde_json::json!({
+        "name": record.name, "tags": record.tags_json, "properties": record.properties,
+    })).unwrap_or_default();
+    let _ = vault.save_snapshot(&object_id, "rollback", &rollback_data, "Rolled back to previous version");
+    let _ = vault.log_action("object_rollback", &format!("id={} snapshot={}", object_id, snapshot_id));
+    Ok(())
+}

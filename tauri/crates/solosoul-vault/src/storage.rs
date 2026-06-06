@@ -601,6 +601,32 @@ impl VaultStore {
         Ok(())
     }
 
+    pub fn list_snapshots(&self, object_id: &str) -> Result<Vec<serde_json::Value>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn.prepare(
+            "SELECT id, timestamp, triggered_by, diff_summary FROM object_snapshots WHERE object_id=?1 ORDER BY timestamp DESC LIMIT 50"
+        ).map_err(|e| e.to_string())?;
+        let snapshots = stmt.query_map(rusqlite::params![object_id], |row| {
+            Ok(serde_json::json!({
+                "id": row.get::<_,String>(0)?,
+                "timestamp": row.get::<_,i64>(1)?,
+                "triggeredBy": row.get::<_,String>(2)?,
+                "diffSummary": row.get::<_,String>(3)?,
+            }))
+        }).map_err(|e| e.to_string())?.collect::<Result<Vec<_>,_>>().map_err(|e| e.to_string())?;
+        Ok(snapshots)
+    }
+
+    pub fn get_snapshot(&self, snapshot_id: &str) -> Result<Option<Vec<u8>>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let result: Option<Vec<u8>> = conn.query_row(
+            "SELECT data FROM object_snapshots WHERE id=?1", rusqlite::params![snapshot_id], |r| r.get(0)
+        ).ok();
+        Ok(result)
+    }
+
     /// §25.5 — Save an object snapshot for history
     pub fn save_snapshot(&self, object_id: &str, triggered_by: &str, data: &[u8], diff_summary: &str) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
