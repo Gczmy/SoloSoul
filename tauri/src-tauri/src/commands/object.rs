@@ -163,6 +163,7 @@ pub async fn object_create(
     }
 
     vault.save_object(&record)?;
+    let _ = vault.log_action("object_create", &format!("id={} name={} type={}", id, input.name, input.collection_type));
     Ok(record_to_data(&record))
 }
 
@@ -189,6 +190,7 @@ pub async fn object_update(
     record.version += 1;
 
     vault.save_object(&record)?;
+    let _ = vault.log_action("object_update", &format!("id={} name={}", object_id, record.name));
     Ok(record_to_data(&record))
 }
 
@@ -197,7 +199,9 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    vault.delete_object(&object_id, true)
+    vault.delete_object(&object_id, true)?;
+    let _ = vault.log_action("object_delete", &format!("id={} (soft)", object_id));
+    Ok(())
 }
 
 #[tauri::command]
@@ -217,7 +221,9 @@ pub async fn object_restore(state: State<'_, AppState>, object_id: String) -> Re
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    vault.restore_object(&object_id)
+    vault.restore_object(&object_id)?;
+    let _ = vault.log_action("object_restore", &format!("id={}", object_id));
+    Ok(())
 }
 
 #[tauri::command]
@@ -225,5 +231,7 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    vault.delete_object(&object_id, false)
+    vault.delete_object(&object_id, false)?;
+    let _ = vault.log_action("object_purge", &format!("id={}", object_id));
+    Ok(())
 }

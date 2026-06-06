@@ -480,6 +480,19 @@ impl VaultStore {
         Ok(results)
     }
 
+    /// Write an audit log entry.
+    pub fn log_action(&self, action: &str, details: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let now = chrono::Utc::now().to_rfc3339();
+        conn.execute(
+            "INSERT INTO audit_log (timestamp, action, details) VALUES (?1, ?2, ?3)",
+            rusqlite::params![now, action, details],
+        )
+        .map_err(|e| format!("log_action: {}", e))?;
+        Ok(())
+    }
+
     // Metadata helpers for encrypted blob storage
     fn read_metadata(&self, key: &str, prefix: &str) -> Result<Option<Vec<u8>>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
