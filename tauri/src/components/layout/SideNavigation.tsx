@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { invoke } from '@tauri-apps/api/core';
 import { Plus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import styles from './SideNavigation.module.css';
@@ -141,6 +142,128 @@ function NavButton({
         <Icon size={20} />
       </button>
       {createPortal(nameCard, document.body)}
+    </div>
+  );
+}
+
+// =============================================================================
+// RenameableNavButton — custom page button with double-click rename
+// =============================================================================
+
+function RenameableNavButton({
+  page,
+  isActive,
+  onClick,
+}: {
+  page: CustomPage;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(page.name);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRenameValue(page.name);
+    setIsRenaming(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const handleConfirmRename = async () => {
+    const trimmed = renameValue.trim();
+    if (trimmed && trimmed !== page.name) {
+      // Update the object name in the objects table
+      try {
+        await invoke('object_update', {
+          objectId: page.id,
+          input: { name: trimmed, properties: {} },
+        });
+      } catch { /* silent */ }
+      // Update Zustand state so sidebar reflects the change
+      const store = useSettingsStore.getState();
+      store.updateSetting('', 'customPages',
+        store.settings.customPages.map((p) =>
+          p.id === page.id ? { ...p, name: trimmed } : p
+        ) as any
+      );
+    }
+    setIsRenaming(false);
+  };
+
+  const handleCancelRename = () => {
+    setIsRenaming(false);
+    setRenameValue(page.name);
+  };
+
+  // Close on outside click
+  useEffect(() => {
+    if (!isRenaming) return;
+    const handler = (e: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(e.target as Node) &&
+          wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        handleConfirmRename();
+      }
+    };
+    setTimeout(() => document.addEventListener('mousedown', handler), 0);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [isRenaming, renameValue]);
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative' }} onDoubleClick={handleDoubleClick}>
+      <NavButton
+        path={`/workspace/custom/${page.id}`}
+        Icon={resolveCustomIcon(page.iconId)}
+        label={page.name}
+        isActive={isActive}
+        onClick={onClick}
+      />
+      {isRenaming && (
+        <div
+          style={{
+            position: 'fixed',
+            left: wrapperRef.current
+              ? wrapperRef.current.getBoundingClientRect().right + 8
+              : 56,
+            top: wrapperRef.current
+              ? wrapperRef.current.getBoundingClientRect().top
+              : '50%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 10px',
+            background: 'var(--bg-elevated)',
+            borderRadius: 8,
+            boxShadow: 'var(--shadow-lg)',
+            zIndex: 300,
+            border: '1px solid var(--border-subtle)',
+          }}
+        >
+          <input
+            ref={inputRef}
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value.slice(0, 30))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleConfirmRename();
+              if (e.key === 'Escape') handleCancelRename();
+            }}
+            maxLength={30}
+            autoFocus
+            style={{
+              padding: '6px 10px',
+              fontSize: 14,
+              border: '1px solid var(--accent-primary)',
+              borderRadius: 6,
+              background: 'transparent',
+              color: 'var(--text-primary)',
+              fontFamily: 'inherit',
+              outline: 'none',
+              width: 140,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -466,11 +589,9 @@ export function SideNavigation() {
 
         {/* Custom pages — icons from CUSTOM_ICON_MAP via iconId (§9.8) */}
         {customPages.map((page) => (
-          <NavButton
+          <RenameableNavButton
             key={page.id}
-            path={`/workspace/custom/${page.id}`}
-            Icon={resolveCustomIcon(page.iconId)}
-            label={page.name}
+            page={page}
             isActive={isCustomPageActive(page.id)}
             onClick={() => handleCustomPageNavigate(page)}
           />
