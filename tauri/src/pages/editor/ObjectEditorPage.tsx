@@ -244,7 +244,7 @@ export function ObjectEditorPage() {
                 fontSize: 12, fontWeight: 500, padding: '2px 8px', borderRadius: 4,
                 background: 'var(--bg-toolbar)', color: 'var(--text-primary)',
               }}>
-                {collectionType}
+                {t(`navigation:${collectionType}`, collectionType)}
               </span>
               {selectedType && (
                 <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
