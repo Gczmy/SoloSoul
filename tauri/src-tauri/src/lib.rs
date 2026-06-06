@@ -109,6 +109,10 @@ pub fn run() {
             // LLM commands
             commands::llm::llm_get_config,
             commands::llm::llm_update_config,
+            // Collection commands
+            commands::collection::collection_list,
+            commands::collection::collection_create,
+            commands::collection::collection_delete,
             // OCR commands
             commands::ocr::ocr_scan_image,
             commands::ocr::ocr_get_supported_languages,

@@ -24,6 +24,7 @@ import { AboutPage } from '@/pages/system/AboutPage';
 import { DebugLogPage } from '@/pages/system/DebugLogPage';
 import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage';
 import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
+import { CollectionsPage } from '@/pages/settings/CollectionsPage';
 import { PluginDashboardPage } from '@/pages/ai/PluginDashboardPage';
 import { LlmChatPage } from '@/pages/ai/LlmChatPage';
 import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
@@ -167,6 +168,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <ExportImportPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/settings/collections"
+        element={
+          <AuthGuard>
+            <CollectionsPage />
           </AuthGuard>
         }
       />
