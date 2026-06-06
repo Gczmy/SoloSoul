@@ -108,5 +108,10 @@
   "choose_icon": "选择图标",
   "current_version": "当前版本",
   "previous_version": "前一版本",
+  "history": "历史记录",
+  "no_history": "暂无历史记录",
+  "version": "版本",
+  "trigger_user_edit": "用户编辑",
+  "trigger_rollback": "回滚",
   "slogan": "您的个人数据保险库"
 }

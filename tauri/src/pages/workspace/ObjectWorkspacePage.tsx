@@ -100,7 +100,7 @@ function HistoryViewer({ objectId, onClose }: { objectId: string; onClose: () =>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
           <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Clock size={14} /> History
+            <Clock size={14} /> {t('common:history')}
             <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 400 }}>{loading ? '' : `${currentIdx + 1} / ${total}`}</span>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
@@ -112,16 +112,16 @@ function HistoryViewer({ objectId, onClose }: { objectId: string; onClose: () =>
         {/* Content */}
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-tertiary)' }}>Loading...</div>
+            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-tertiary)' }}>{t('common:loading')}</div>
           ) : !snap ? (
-            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>No history snapshots yet.</div>
+            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>{t('common:no_history')}</div>
           ) : (
             <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} />
           )}
         </div>
         {/* Footer */}
         <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border-subtle)', fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center' }}>
-          {snap && `#${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${snap.triggeredBy}`}
+          {snap && `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${t(`common:trigger_${snap.triggeredBy}`)}`}
         </div>
       </div>
     </div>

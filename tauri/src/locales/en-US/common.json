@@ -108,5 +108,10 @@
   "choose_icon": "Choose icon",
   "current_version": "Current version",
   "previous_version": "Previous version",
+  "history": "History",
+  "no_history": "No history snapshots yet.",
+  "version": "Version",
+  "trigger_user_edit": "User edit",
+  "trigger_rollback": "Rollback",
   "slogan": "Your Personal Data Vault"
 }
