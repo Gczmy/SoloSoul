@@ -3,65 +3,130 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
-import { useObjectStore } from '@/stores/objectStore';
+import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashStore';
+import { Trash2, RotateCcw, FileText } from 'lucide-react';
+
+const TIME_OPTIONS: { value: TrashTimeFilter; labelKey: string }[] = [
+  { value: 'all', labelKey: 'all' },
+  { value: '1d', labelKey: '1d' },
+  { value: '3d', labelKey: '3d' },
+  { value: '7d', labelKey: '7d' },
+  { value: '30d', labelKey: '30d' },
+  { value: 'half_year', labelKey: 'half_year' },
+];
+
+const TYPE_OPTIONS: { value: TrashTypeFilter; labelKey: string }[] = [
+  { value: 'all', labelKey: 'all' },
+  { value: 'page', labelKey: 'page' },
+  { value: 'collection', labelKey: 'collection' },
+  { value: 'object', labelKey: 'object' },
+];
+
+function timeAgo(ms: number): string {
+  const diff = Date.now() - ms;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
 
 export function TrashPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
-  const { trashObjects, loadTrashObjects, restoreObject, purgeObject, isLoading } = useObjectStore();
+  const {
+    items, timeFilter, typeFilter, searchQuery,
+    loadItems, setTimeFilter, setTypeFilter, setSearchQuery,
+    restoreItem, permanentDelete, isLoading,
+  } = useTrashStore();
 
   useEffect(() => {
-    if (accountId) {
-      loadTrashObjects(accountId);
-    }
-  }, [accountId]);
+    if (accountId) loadItems(accountId);
+  }, [accountId, timeFilter]);
+
+  const filtered = items
+    .filter((i) => typeFilter === 'all' || i.itemType === typeFilter)
+    .filter((i) => !searchQuery || i.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <AppShell title={t('settings:trash')} onBack={() => navigate('/settings')}>
-      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Filters */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {TIME_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setTimeFilter(opt.value)}
+              style={{
+                padding: '5px 12px', borderRadius: 6, border: '1px solid var(--border-subtle)',
+                background: timeFilter === opt.value ? 'var(--accent-primary)' : 'transparent',
+                color: timeFilter === opt.value ? 'white' : 'var(--text-secondary)',
+                fontSize: 12, cursor: 'pointer',
+              }}
+            >
+              {t(`settings:${opt.labelKey}`, opt.labelKey)}
+            </button>
+          ))}
+          <span style={{ width: 1, background: 'var(--border-subtle)', margin: '2px 4px' }} />
+          {TYPE_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setTypeFilter(opt.value)}
+              style={{
+                padding: '5px 12px', borderRadius: 6, border: '1px solid var(--border-subtle)',
+                background: typeFilter === opt.value ? 'var(--accent-primary)' : 'transparent',
+                color: typeFilter === opt.value ? 'white' : 'var(--text-secondary)',
+                fontSize: 12, cursor: 'pointer',
+              }}
+            >
+              {opt.labelKey === 'all' ? t('settings:all') : opt.labelKey}
+            </button>
+          ))}
+        </div>
+
+        <Input
+          placeholder={t('settings:search_logs')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
+        {/* List */}
         {isLoading ? (
+          <Card><p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 24 }}>{t('common:loading')}</p></Card>
+        ) : filtered.length === 0 ? (
           <Card>
-            <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '24px 0' }}>
-              {t('common:loading')}
-            </p>
-          </Card>
-        ) : trashObjects.length === 0 ? (
-          <Card>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '24px 0', fontSize: 14 }}>
-              {t('settings:trash_empty')}
-            </p>
+            <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+              <Trash2 size={48} style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }} />
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{t('settings:trash_empty')}</p>
+            </div>
           </Card>
         ) : (
-          trashObjects.map((obj) => (
-            <Card key={obj.id}>
+          filtered.map((item) => (
+            <Card key={item.id}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>{obj.name}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                    {obj.collectionType}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <FileText size={18} style={{ color: 'var(--text-tertiary)' }} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{item.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                      {item.itemType} · {timeAgo(item.deletedAt)}
+                      {item.expiresAt && ` · expires in ${Math.max(0, Math.floor((item.expiresAt - Date.now()) / 86400000))}d`}
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => restoreObject(obj.id)}
-                  >
-                    {t('common:restore')}
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <Button size="sm" onClick={() => restoreItem(item.id)}>
+                    <RotateCcw size={13} style={{ marginRight: 3 }} /> {t('common:restore')}
                   </Button>
-                  <button
-                    onClick={() => purgeObject(obj.id)}
-                    style={{
-                      padding: '6px 12px', borderRadius: 8, border: 'none',
-                      background: '#e74c3c', color: 'white',
-                      fontSize: 13, fontWeight: 500, cursor: 'pointer',
-                    }}
-                  >
+                  <Button size="sm" variant="secondary" onClick={() => permanentDelete([item.id])}>
                     {t('common:delete_permanently')}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </Card>

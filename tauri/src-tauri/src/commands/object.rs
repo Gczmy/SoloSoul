@@ -199,6 +199,25 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    // Create trash item snapshot before soft-deleting (§23.2)
+    if let Ok(Some(rec)) = vault.load_object(&object_id) {
+        let now_ms = chrono::Utc::now().timestamp_millis();
+        let retention_ms = 30 * 24 * 3600 * 1000i64; // default 30 days
+        let trash = solosoul_vault::TrashItem {
+            id: format!("trash_{}", uuid::Uuid::new_v4()),
+            item_type: "object".to_string(),
+            original_id: object_id.clone(),
+            original_parent_id: rec.parent_id.clone(),
+            original_sort_order: None,
+            data: serde_json::to_vec(&rec.properties).unwrap_or_default(),
+            deleted_at: now_ms,
+            expires_at: Some(now_ms + retention_ms),
+            deleted_by: "user".to_string(),
+            name_snapshot: rec.name.clone(),
+            icon_snapshot: Some(rec.icon_name.clone()),
+        };
+        let _ = vault.save_trash_item(&trash);
+    }
     vault.delete_object(&object_id, true)?;
     let _ = vault.log_action("object_delete", &format!("id={} (soft)", object_id));
     Ok(())
@@ -207,22 +226,25 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
 #[tauri::command]
 pub async fn object_trash_list(
     state: State<'_, AppState>,
-    account_id: String,
-) -> Result<Vec<solosoul_vault::ObjectSummary>, String> {
+    _account_id: String,
+) -> Result<Vec<solosoul_vault::TrashItemSummary>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    // Use SQL-level filtering — no double-loading
-    vault.list_objects(&account_id, None, None, None, true, true)
+    vault.list_trash_items(None, None)
 }
 
 #[tauri::command]
-pub async fn object_restore(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
+pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    vault.restore_object(&object_id)?;
-    let _ = vault.log_action("object_restore", &format!("id={}", object_id));
+    // Find trash item, restore original object, remove from trash
+    if let Ok(Some(trash)) = vault.get_trash_item(&trash_id) {
+        vault.restore_object(&trash.original_id)?;
+        vault.delete_trash_item(&trash_id)?;
+    }
+    let _ = vault.log_action("object_restore", &format!("trash_id={}", trash_id));
     Ok(())
 }
 
@@ -232,6 +254,13 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     vault.delete_object(&object_id, false)?;
+    // Also remove any trash entry for this object
+    vault.delete_trash_item(&object_id).ok();
     let _ = vault.log_action("object_purge", &format!("id={}", object_id));
     Ok(())
+}
+
+#[tauri::command]
+pub async fn trash_restore(state: State<'_, AppState>, trash_id: String) -> Result<(), String> {
+    object_restore(state, trash_id).await
 }

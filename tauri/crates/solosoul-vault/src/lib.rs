@@ -49,6 +49,35 @@ pub struct VaultStats {
 }
 
 pub use profile::{Profile, ProfileData, ProfileSummary, VersionedProfileData};
+
+// ── Trash items (§23 回收站功能规范) ────────────────────────
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct TrashItem {
+    pub id: String,
+    pub item_type: String,
+    pub original_id: String,
+    pub original_parent_id: Option<String>,
+    pub original_sort_order: Option<i32>,
+    pub data: Vec<u8>,
+    pub deleted_at: i64,
+    pub expires_at: Option<i64>,
+    pub deleted_by: String,
+    pub name_snapshot: String,
+    pub icon_snapshot: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TrashItemSummary {
+    pub id: String,
+    pub item_type: String,
+    pub name: String,
+    pub icon_id: Option<String>,
+    pub deleted_at: i64,
+    pub expires_at: Option<i64>,
+    pub original_parent_name: Option<String>,
+}
 pub use storage::VaultStore;
 
 // =============================================================================

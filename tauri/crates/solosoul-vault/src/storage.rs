@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use crate::migration::run_migrations;
-use crate::{ObjectRecord, ObjectSummary, Profile, ProfileSummary, VaultConfig, VaultState, VaultStats};
+use crate::{ObjectRecord, ObjectSummary, Profile, ProfileSummary, TrashItem, TrashItemSummary, VaultConfig, VaultState, VaultStats};
 
 /// Vault store with SQLite backing
 pub struct VaultStore {
@@ -100,6 +100,23 @@ impl VaultStore {
             CREATE INDEX IF NOT EXISTS idx_objects_parent ON objects(parent_id);
             CREATE INDEX IF NOT EXISTS idx_objects_type ON objects(type_id);
             CREATE INDEX IF NOT EXISTS idx_objects_deleted ON objects(is_deleted);
+
+            CREATE TABLE IF NOT EXISTS trash_items (
+                id TEXT PRIMARY KEY,
+                item_type TEXT NOT NULL CHECK(item_type IN ('page','collection','object')),
+                original_id TEXT NOT NULL,
+                original_parent_id TEXT,
+                original_sort_order INTEGER,
+                data BLOB NOT NULL,
+                deleted_at INTEGER NOT NULL,
+                expires_at INTEGER,
+                deleted_by TEXT NOT NULL DEFAULT 'user',
+                name_snapshot TEXT NOT NULL,
+                icon_snapshot TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_trash_expires ON trash_items(expires_at);
+            CREATE INDEX IF NOT EXISTS idx_trash_deleted_at ON trash_items(deleted_at);
+            CREATE INDEX IF NOT EXISTS idx_trash_type ON trash_items(item_type);
             "#,
         )
         .map_err(|e| format!("Failed to init schema: {}", e))?;
@@ -478,6 +495,83 @@ impl VaultStore {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| format!("search_objects collect: {}", e))?;
         Ok(results)
+    }
+
+    // ── Trash CRUD (§23) ────────────────────────────────────
+
+    pub fn save_trash_item(&self, item: &TrashItem) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "INSERT INTO trash_items (id, item_type, original_id, original_parent_id,
+             original_sort_order, data, deleted_at, expires_at, deleted_by,
+             name_snapshot, icon_snapshot)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
+            rusqlite::params![
+                item.id, item.item_type, item.original_id, item.original_parent_id,
+                item.original_sort_order, item.data, item.deleted_at, item.expires_at,
+                item.deleted_by, item.name_snapshot, item.icon_snapshot,
+            ],
+        ).map_err(|e| format!("save_trash_item: {}", e))?;
+        Ok(())
+    }
+
+    pub fn list_trash_items(
+        &self, item_type: Option<&str>, since: Option<i64>,
+    ) -> Result<Vec<TrashItemSummary>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut sql = String::from(
+            "SELECT id, item_type, name_snapshot, icon_snapshot, deleted_at, expires_at, original_parent_id
+             FROM trash_items WHERE 1=1"
+        );
+        let mut params: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
+        if let Some(t) = item_type {
+            sql.push_str(" AND item_type = ?1");
+            params.push(Box::new(t.to_string()));
+        }
+        if let Some(s) = since {
+            sql.push_str(&format!(" AND deleted_at >= ?{}", params.len() + 1));
+            params.push(Box::new(s));
+        }
+        sql.push_str(" ORDER BY deleted_at DESC LIMIT 500");
+        let p: Vec<&dyn rusqlite::types::ToSql> = params.iter().map(|b| b.as_ref()).collect();
+        let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
+        let items = stmt.query_map(p.as_slice(), |row| {
+            Ok(TrashItemSummary {
+                id: row.get(0)?, item_type: row.get(1)?, name: row.get(2)?,
+                icon_id: row.get(3)?, deleted_at: row.get(4)?, expires_at: row.get(5)?,
+                original_parent_name: row.get(6)?,
+            })
+        }).map_err(|e| e.to_string())?.collect::<Result<Vec<_>,_>>().map_err(|e| e.to_string())?;
+        Ok(items)
+    }
+
+    pub fn get_trash_item(&self, id: &str) -> Result<Option<TrashItem>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn.prepare(
+            "SELECT id, item_type, original_id, original_parent_id, original_sort_order,
+             data, deleted_at, expires_at, deleted_by, name_snapshot, icon_snapshot
+             FROM trash_items WHERE id = ?1"
+        ).map_err(|e| e.to_string())?;
+        let result = stmt.query_row(rusqlite::params![id], |row| {
+            Ok(TrashItem {
+                id: row.get(0)?, item_type: row.get(1)?, original_id: row.get(2)?,
+                original_parent_id: row.get(3)?, original_sort_order: row.get(4)?,
+                data: row.get(5)?, deleted_at: row.get(6)?, expires_at: row.get(7)?,
+                deleted_by: row.get(8)?, name_snapshot: row.get(9)?, icon_snapshot: row.get(10)?,
+            })
+        }).ok();
+        Ok(result)
+    }
+
+    pub fn delete_trash_item(&self, id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute("DELETE FROM trash_items WHERE id = ?1", rusqlite::params![id])
+            .map_err(|e| e.to_string())?;
+        Ok(())
     }
 
     /// Write an audit log entry.
