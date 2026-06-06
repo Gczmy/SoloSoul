@@ -215,6 +215,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
   const [trashItems, setTrashItems] = useState<AttachmentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTrash, setShowTrash] = useState(false);
+  const [permDeleteItem, setPermDeleteItem] = useState<AttachmentItem | null>(null);
   const { t } = useTranslation(['common', 'editor']);
 
   const loadAttachments = useCallback(async () => {
@@ -269,7 +270,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
   };
 
   const handlePermanentDelete = async (item: AttachmentItem) => {
-    if (!confirm(`Permanently delete "${item.fileName}"? This cannot be undone.`)) return;
+    setPermDeleteItem(null);
     await invoke('attachment_delete', { objectId, attachmentId: item.id });
     await loadAttachments();
   };
@@ -326,7 +327,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
               {showTrash ? (
                 <>
                   <button onClick={() => handleRestore(item)} style={miniBtn} title="Restore"><RotateCw size={12} /></button>
-                  <button onClick={() => handlePermanentDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Permanently delete"><Trash2 size={12} /></button>
+                  <button onClick={() => setPermDeleteItem(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Permanently delete"><Trash2 size={12} /></button>
                 </>
               ) : (
                 <>
@@ -338,6 +339,22 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
           ))}
         </div>
       </div>
+      {/* Permanent delete confirmation */}
+      {permDeleteItem && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }} onClick={() => setPermDeleteItem(null)}>
+          <div style={{ background: 'var(--bg-elevated)', borderRadius: 12, padding: '24px 28px', maxWidth: 360, width: '90%', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-subtle)' }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>Permanently delete?</h3>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              Delete <strong>{permDeleteItem.fileName}</strong>?<br />
+              This action <strong style={{ color: '#e74c3c' }}>cannot be undone</strong>. The file will be permanently removed.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setPermDeleteItem(null)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', fontSize: 13 }}>Cancel</button>
+              <button onClick={() => handlePermanentDelete(permDeleteItem)} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#e74c3c', color: 'white', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Delete Permanently</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
