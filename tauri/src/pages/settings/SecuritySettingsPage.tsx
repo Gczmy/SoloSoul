@@ -20,6 +20,7 @@ export function SecuritySettingsPage() {
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [hint, setHint] = useState('');
+  const [hintCleared, setHintCleared] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +55,7 @@ export function SecuritySettingsPage() {
           oldPassword: oldPw,
           newPassword: newPw,
         });
-        if (hint.trim()) {
+        if (hint.trim() || hintCleared) {
           await invoke('vault_update_hint', { accountId: currentAccount?.id || '', password: oldPw, hint: hint.trim() });
         }
         onSuccess(t('settings:password_updated'));
@@ -65,7 +66,10 @@ export function SecuritySettingsPage() {
           setLoading(false);
           return;
         }
-        await invoke('vault_update_hint', { accountId: currentAccount?.id || '', password: oldPw, hint: hint.trim() });
+        if (hint.trim() || hintCleared) {
+          // hint.trim() 空但 hintCleared=true → 用户显式点击清除按钮，清除提示词
+          await invoke('vault_update_hint', { accountId: currentAccount?.id || '', password: oldPw, hint: hint.trim() });
+        }
         onSuccess(t('settings:hint_updated'));
       }
 
@@ -73,6 +77,7 @@ export function SecuritySettingsPage() {
       setNewPw('');
       setConfirmPw('');
       setHint('');
+      setHintCleared(false);
     } catch (e) {
       const msg = String(e);
       if (msg.includes('Invalid password') || msg.includes('incorrect')) {
@@ -172,9 +177,24 @@ export function SecuritySettingsPage() {
 
             {/* 10.1 — 密码提示（始终明文可见，普通文本输入框） */}
             <div>
-              <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>
-                {t('common:password_hint')}
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                  {t('common:password_hint')}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => { setHint(''); setHintCleared(true); setError(null); }}
+                  style={{
+                    padding: '2px 8px', borderRadius: 4, border: '1px solid var(--border-subtle)',
+                    background: 'transparent', cursor: 'pointer', fontSize: 11,
+                    color: 'var(--text-tertiary)',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = '#e74c3c'; e.currentTarget.style.borderColor = '#e74c3c'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
+                >
+                  Clear hint
+                </button>
+              </div>
               <input
                 type="text"
                 value={hint}
