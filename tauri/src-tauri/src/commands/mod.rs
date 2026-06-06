@@ -8,6 +8,7 @@ pub mod export_import;
 pub mod fs;
 pub mod log;
 pub mod llm;
+pub mod ocr;
 pub mod object;
 pub mod profile;
 pub mod search;

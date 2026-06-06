@@ -109,6 +109,9 @@ pub fn run() {
             // LLM commands
             commands::llm::llm_get_config,
             commands::llm::llm_update_config,
+            // OCR commands
+            commands::ocr::ocr_scan_image,
+            commands::ocr::ocr_get_supported_languages,
             // Attachment commands
             commands::attachment::attachment_list,
             commands::attachment::attachment_save,

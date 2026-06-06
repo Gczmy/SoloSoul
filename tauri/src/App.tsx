@@ -28,6 +28,7 @@ import { PluginDashboardPage } from '@/pages/ai/PluginDashboardPage';
 import { LlmChatPage } from '@/pages/ai/LlmChatPage';
 import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
 import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
+import { OcrPage } from '@/pages/scan/OcrPage';
 import { SyncPage } from '@/pages/sync/SyncPage';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -246,6 +247,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <ScanLocalPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/ocr"
+        element={
+          <AuthGuard>
+            <OcrPage />
           </AuthGuard>
         }
       />
