@@ -212,7 +212,7 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: () => void }) {
+function AttachmentViewer({ objectId, onClose, onCountChange }: { objectId: string; onClose: () => void; onCountChange: () => void }) {
   const [items, setItems] = useState<AttachmentItem[]>([]);
   const [trashItems, setTrashItems] = useState<AttachmentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -294,6 +294,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
         },
       });
       await loadAttachments();
+      onCountChange();
     }
   };
 
@@ -316,17 +317,20 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
     if (!confirm(item.fileName)) return;
     await invoke('attachment_soft_delete', { objectId, attachmentId: item.id }).catch((e) => alert('Delete failed: ' + e));
     await loadAttachments();
+      onCountChange();
   };
 
   const handleRestore = async (item: AttachmentItem) => {
     await invoke('attachment_restore', { objectId, attachmentId: item.id });
     await loadAttachments();
+      onCountChange();
   };
 
   const handlePermanentDelete = async (item: AttachmentItem) => {
     setPermDeleteItem(null);
     await invoke('attachment_delete', { objectId, attachmentId: item.id });
     await loadAttachments();
+      onCountChange();
   };
 
   const displayItems = showTrash ? trashItems : items;
@@ -518,13 +522,15 @@ export function ObjectWorkspacePage() {
   }, [visibleObjects.length]);
 
   // Load attachment counts for visible objects
-  useEffect(() => {
+  const refreshAttachmentCounts = useCallback(() => {
     const ids = visibleObjects.map(o => o.id);
     if (ids.length === 0) return;
     invoke<Record<string, number>>('attachment_count_batch', { objectIds: ids })
       .then(setAttachmentCounts)
       .catch(() => {});
   }, [visibleObjects.length]);
+
+  useEffect(() => { refreshAttachmentCounts(); }, [refreshAttachmentCounts]);
 
 
   const newObjectUrl = pageId
@@ -882,7 +888,7 @@ export function ObjectWorkspacePage() {
         )}
       </div>
       {historyObjId && <HistoryViewer objectId={historyObjId} onClose={() => setHistoryObjId(null)} />}
-      {attachmentObjId && <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} />}
+      {attachmentObjId && <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} onCountChange={refreshAttachmentCounts} />}
     </AppShell>
   );
 }
