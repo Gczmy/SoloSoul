@@ -213,3 +213,9 @@ fn scan_dir_recursive(dir: &Path, files: &mut Vec<ScannedFile>, max_depth: u32) 
     }
     Ok(())
 }
+
+#[tauri::command]
+pub async fn fs_get_file_size(path: String) -> Result<u64, String> {
+    let meta = std::fs::metadata(&path).map_err(|e| format!("Read: {}", e))?;
+    Ok(meta.len())
+}

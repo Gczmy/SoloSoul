@@ -231,11 +231,12 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
     const filePath = await open({ multiple: false, title: 'Select file to attach' });
     if (filePath && typeof filePath === 'string') {
       const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || 'file';
+      const sizeBytes = await invoke<number>('fs_get_file_size', { path: filePath }).catch(() => 0);
       await invoke('attachment_save', {
         objectId, meta: {
           id: crypto.randomUUID(), objectId,
           fileName, mimeType: 'application/octet-stream',
-          sizeBytes: 0, createdAt: new Date().toISOString(),
+          sizeBytes, createdAt: new Date().toISOString(),
         },
       });
       await loadAttachments();
