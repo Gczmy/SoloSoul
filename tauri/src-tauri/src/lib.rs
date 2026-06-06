@@ -93,7 +93,6 @@ pub fn run() {
             commands::fs::inspect_backup,
             // Discovery commands
             commands::discovery::mdns_discover,
-            commands::discovery::mdns_advertise,
             // System commands
             commands::system::get_app_info,
             commands::system::check_version,

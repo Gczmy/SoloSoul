@@ -54,22 +54,29 @@ function AppRoutes() {
     applyTheme({
       preset: settings.theme === 'dark' ? 'warm-stone-dark' :
               settings.theme === 'light' ? 'warm-stone-light' : 'system',
-      accentColor: 'ocean',
-      backgroundType: 'solid',
-      backgroundValue: '',
+      accentColor: settings.accentColor,
+      backgroundType: settings.backgroundType,
+      backgroundValue: settings.backgroundValue,
     });
 
+    // Apply saved language on startup
+    if (settings.language) {
+      import('@/lib/i18n').then((mod) => {
+        mod.default.changeLanguage(settings.language);
+      });
+    }
+
     // Listen for system theme changes
-    const config = { preset: settings.theme as 'system', accentColor: 'ocean' as const,
-      backgroundType: 'solid' as const, backgroundValue: '' };
+    const config = { preset: settings.theme as 'system', accentColor: settings.accentColor as
+      'ocean' | 'amber' | 'forest' | 'rose' | 'custom', backgroundType: settings.backgroundType as 'solid' | 'gradient' | 'image', backgroundValue: settings.backgroundValue };
     listenForSystemTheme(config, () => {
       const s = useSettingsStore.getState().settings;
       applyTheme({
         preset: s.theme === 'dark' ? 'warm-stone-dark' :
                 s.theme === 'light' ? 'warm-stone-light' : 'system',
-        accentColor: 'ocean',
-        backgroundType: 'solid',
-        backgroundValue: '',
+        accentColor: s.accentColor,
+        backgroundType: s.backgroundType,
+        backgroundValue: s.backgroundValue,
       });
     });
   }, []);
