@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -11,7 +12,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { Pencil, Trash2, Trash } from 'lucide-react';
+import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
 // Labels resolved at render time via t() so they support i18n
@@ -40,6 +41,118 @@ function flattenProperties(
   return result;
 }
 
+// =============================================================================
+// HistoryViewer — flip-book style snapshot browser (§25.5)
+// =============================================================================
+
+interface SnapshotEntry {
+  id: string;
+  timestamp: number;
+  triggeredBy: string;
+  diffSummary: string;
+}
+
+function HistoryViewer({ objectId, onClose }: { objectId: string; onClose: () => void }) {
+  const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
+  const { t } = useTranslation(['common', 'editor']);
+
+  useEffect(() => {
+    invoke<SnapshotEntry[]>('snapshot_get', { objectId })
+      .then(setSnapshots)
+      .finally(() => setLoading(false));
+  }, [objectId]);
+
+  const goPrev = () => {
+    if (currentIdx < snapshots.length - 1) { setAnimDir('right'); setTimeout(() => { setCurrentIdx(i => i + 1); setAnimDir(null); }, 150); }
+  };
+  const goNext = () => {
+    if (currentIdx > 0) { setAnimDir('left'); setTimeout(() => { setCurrentIdx(i => i - 1); setAnimDir(null); }, 150); }
+  };
+
+  const snap = snapshots[currentIdx];
+  const total = snapshots.length;
+  const isOldest = currentIdx >= total - 1;
+  const isLatest = currentIdx <= 0;
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)',
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'relative', width: 460, maxHeight: '80vh', display: 'flex', flexDirection: 'column',
+          background: 'var(--bg-elevated)', borderRadius: 16, boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
+          border: '1px solid var(--border-subtle)',
+          transform: animDir === 'left' ? 'perspective(1200px) rotateY(-8deg)' :
+                    animDir === 'right' ? 'perspective(1200px) rotateY(8deg)' : 'perspective(1200px) rotateY(0)',
+          transition: 'transform 0.15s ease',
+          transformOrigin: animDir === 'left' ? 'left center' : animDir === 'right' ? 'right center' : 'center',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Clock size={14} /> History
+            <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 400 }}>{loading ? '' : `${currentIdx + 1} / ${total}`}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={goPrev} disabled={isOldest || loading} style={{ ...pgBtn, opacity: isOldest || loading ? 0.3 : 1 }}><ChevronLeft size={16} /></button>
+            <button onClick={goNext} disabled={isLatest || loading} style={{ ...pgBtn, opacity: isLatest || loading ? 0.3 : 1 }}><ChevronRight size={16} /></button>
+            <button onClick={onClose} style={{ ...pgBtn, marginLeft: 4 }}><X size={16} /></button>
+          </div>
+        </div>
+        {/* Content */}
+        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-tertiary)' }}>Loading...</div>
+          ) : !snap ? (
+            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>No history snapshots yet.</div>
+          ) : (
+            <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} />
+          )}
+        </div>
+        {/* Footer */}
+        <div style={{ padding: '10px 18px', borderTop: '1px solid var(--border-subtle)', fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'center' }}>
+          {snap && `#${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${snap.triggeredBy}`}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SnapshotCard({ snap, index, total, t }: { snap: SnapshotEntry; index: number; total: number; t: (k: string) => string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* Version badge */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+        {total - index <= 2 && (
+          <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600, background: total - index === 1 ? 'rgba(39,174,96,0.12)' : 'rgba(91,124,153,0.08)', color: total - index === 1 ? '#27ae60' : 'var(--accent-primary)' }}>
+            {total - index === 1 ? 'Current' : 'Previous'}
+          </span>
+        )}
+      </div>
+      {/* Snapshot summary */}
+      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
+        ID: {snap.id.slice(0, 16)}...
+      </div>
+    </div>
+  );
+}
+
+const pgBtn: React.CSSProperties = {
+  width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  border: 'none', borderRadius: 6, background: 'transparent', cursor: 'pointer',
+  color: 'var(--text-secondary)', fontSize: 14,
+};
+
 export function ObjectWorkspacePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -49,6 +162,7 @@ export function ObjectWorkspacePage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
+  const [historyObjId, setHistoryObjId] = useState<string | null>(null);
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
@@ -214,8 +328,23 @@ export function ObjectWorkspacePage() {
                       </span>
                     </div>
                   </div>
-                  {/* Edit + Delete actions */}
+                  {/* Edit + Delete + History actions */}
                   <div style={{ display: 'flex', gap: 2 }} onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => {
+                        setHistoryObjId(obj.id);
+                      }}
+                      title="History"
+                      style={{
+                        width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer',
+                        color: 'var(--text-tertiary)', transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(128,128,128,0.08)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+                    >
+                      <Clock size={14} />
+                    </button>
                     <button
                       onClick={() => navigate(`/editor/${obj.id}`)}
                       title="Edit"
@@ -394,6 +523,7 @@ export function ObjectWorkspacePage() {
           </div>
         )}
       </div>
+      {historyObjId && <HistoryViewer objectId={historyObjId} onClose={() => setHistoryObjId(null)} />}
     </AppShell>
   );
 }

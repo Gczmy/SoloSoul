@@ -50,6 +50,7 @@ pub fn run() {
             commands::object::object_purge,
             commands::object::trash_restore,
             commands::object::snapshot_list,
+            commands::object::snapshot_get,
             commands::object::snapshot_rollback,
             commands::template::template_save_from_object,
             commands::template::template_list,

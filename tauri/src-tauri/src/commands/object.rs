@@ -279,6 +279,17 @@ pub async fn trash_restore(state: State<'_, AppState>, trash_id: String) -> Resu
 // ── Snapshot / History commands (§25.5) ─────────────────────
 
 #[tauri::command]
+pub async fn snapshot_get(
+    state: State<'_, AppState>,
+    object_id: String,
+) -> Result<Vec<serde_json::Value>, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    vault.list_snapshots(&object_id)
+}
+
+#[tauri::command]
 pub async fn snapshot_list(
     state: State<'_, AppState>,
     object_id: String,
