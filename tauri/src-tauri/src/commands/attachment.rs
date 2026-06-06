@@ -1,7 +1,9 @@
-//! File attachment commands — attach encrypted files to objects
+//! File attachment commands — attach files to objects, with soft-delete support (§25.6)
 
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
 use tauri::State;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,6 +15,24 @@ pub struct AttachmentMeta {
     pub mime_type: String,
     pub size_bytes: u64,
     pub created_at: String,
+    #[serde(default)]
+    pub is_deleted: bool,
+}
+
+fn load_attachments(props: &Value) -> Vec<AttachmentMeta> {
+    props
+        .get("__attachments")
+        .and_then(|v| serde_json::from_value::<Vec<AttachmentMeta>>(v.clone()).ok())
+        .unwrap_or_default()
+}
+
+fn save_attachments(props: &mut Value, atts: &[AttachmentMeta]) {
+    if let Value::Object(ref mut obj) = props {
+        obj.insert(
+            "__attachments".to_string(),
+            serde_json::to_value(atts).unwrap_or_default(),
+        );
+    }
 }
 
 #[tauri::command]
@@ -23,17 +43,11 @@ pub async fn attachment_list(
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-
-    // Load the object and return its attachments list
     match vault.load_object(&object_id) {
-        Ok(Some(rec)) => {
-            let props = rec.properties;
-            let atts = props
-                .get("__attachments")
-                .and_then(|v| serde_json::from_value::<Vec<AttachmentMeta>>(v.clone()).ok())
-                .unwrap_or_default();
-            Ok(atts)
-        }
+        Ok(Some(rec)) => Ok(load_attachments(&rec.properties)
+            .into_iter()
+            .filter(|a| !a.is_deleted)
+            .collect()),
         _ => Ok(vec![]),
     }
 }
@@ -47,30 +61,38 @@ pub async fn attachment_save(
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-
-    let mut atts: Vec<AttachmentMeta> = record
-        .properties
-        .get("__attachments")
-        .and_then(|v| serde_json::from_value::<Vec<AttachmentMeta>>(v.clone()).ok())
-        .unwrap_or_default();
-
+    let mut atts = load_attachments(&record.properties);
     atts.push(meta);
-    if let serde_json::Value::Object(ref mut obj) = record.properties {
-        obj.insert(
-            "__attachments".to_string(),
-            serde_json::to_value(&atts).map_err(|e| e.to_string())?,
-        );
-    }
-
+    save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
     vault.save_object(&record)
 }
 
 #[tauri::command]
-pub async fn attachment_delete(
+pub async fn attachment_rename(
+    state: State<'_, AppState>,
+    object_id: String,
+    attachment_id: String,
+    new_name: String,
+) -> Result<(), String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
+    let mut atts = load_attachments(&record.properties);
+    if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
+        a.file_name = new_name;
+    }
+    save_attachments(&mut record.properties, &atts);
+    record.updated_at = chrono::Utc::now().to_rfc3339();
+    record.version += 1;
+    vault.save_object(&record)
+}
+
+#[tauri::command]
+pub async fn attachment_soft_delete(
     state: State<'_, AppState>,
     object_id: String,
     attachment_id: String,
@@ -78,26 +100,34 @@ pub async fn attachment_delete(
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-
-    let atts: Vec<AttachmentMeta> = record
-        .properties
-        .get("__attachments")
-        .and_then(|v| serde_json::from_value::<Vec<AttachmentMeta>>(v.clone()).ok())
-        .unwrap_or_default()
-        .into_iter()
-        .filter(|a: &AttachmentMeta| a.id != attachment_id)
-        .collect();
-
-    if let serde_json::Value::Object(ref mut obj) = record.properties {
-        obj.insert(
-            "__attachments".to_string(),
-            serde_json::to_value(&atts).map_err(|e| e.to_string())?,
-        );
+    let mut atts = load_attachments(&record.properties);
+    if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
+        a.is_deleted = true;
     }
-
+    save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
     vault.save_object(&record)
+}
+
+#[tauri::command]
+pub async fn attachment_count_batch(
+    state: State<'_, AppState>,
+    object_ids: Vec<String>,
+) -> Result<HashMap<String, usize>, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let mut result = HashMap::new();
+    for id in &object_ids {
+        if let Ok(Some(rec)) = vault.load_object(id) {
+            let count = load_attachments(&rec.properties)
+                .iter()
+                .filter(|a| !a.is_deleted)
+                .count();
+            result.insert(id.clone(), count);
+        }
+    }
+    Ok(result)
 }

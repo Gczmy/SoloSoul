@@ -12,7 +12,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip } from 'lucide-react';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
 // Labels resolved at render time via t() so they support i18n
@@ -190,6 +190,127 @@ const pgBtn: React.CSSProperties = {
   color: 'var(--text-secondary)', fontSize: 14,
 };
 
+// =============================================================================
+// AttachmentViewer — attachment list for an object (§25.6)
+// =============================================================================
+
+interface AttachmentItem {
+  id: string;
+  objectId: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+  isDeleted?: boolean;
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: () => void }) {
+  const [items, setItems] = useState<AttachmentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { t } = useTranslation(['common', 'editor']);
+
+  const loadAttachments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const list = await invoke<AttachmentItem[]>('attachment_list', { objectId });
+      setItems(list);
+    } catch { setItems([]); }
+    finally { setLoading(false); }
+  }, [objectId]);
+
+  useEffect(() => { loadAttachments(); }, [loadAttachments]);
+
+  const handleAdd = async () => {
+    const { open } = await import('@tauri-apps/plugin-dialog');
+    const filePath = await open({ multiple: false, title: 'Select file to attach' });
+    if (filePath && typeof filePath === 'string') {
+      const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || 'file';
+      await invoke('attachment_save', {
+        objectId, meta: {
+          id: crypto.randomUUID(), objectId,
+          fileName, mimeType: 'application/octet-stream',
+          sizeBytes: 0, createdAt: new Date().toISOString(),
+        },
+      });
+      await loadAttachments();
+    }
+  };
+
+  const handleRename = async (item: AttachmentItem) => {
+    const newName = prompt('Rename:', item.fileName);
+    if (newName && newName !== item.fileName) {
+      await invoke('attachment_rename', { objectId, attachmentId: item.id, newName });
+      await loadAttachments();
+    }
+  };
+
+  const handleDelete = async (item: AttachmentItem) => {
+    if (!confirm(`Delete "${item.fileName}"? It will be hidden.`)) return;
+    await invoke('attachment_soft_delete', { objectId, attachmentId: item.id });
+    await loadAttachments();
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)',
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 500, maxHeight: '80vh', display: 'flex', flexDirection: 'column',
+          background: 'var(--bg-elevated)', borderRadius: 16, boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
+          border: '1px solid var(--border-subtle)',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Paperclip size={14} /> Attachments ({items.length})
+          </div>
+          <button onClick={handleAdd} style={{ ...pgBtn, marginLeft: 'auto', marginRight: 8, fontSize: 11, fontWeight: 600 }}>+ Add</button>
+          <button onClick={onClose} style={pgBtn}><X size={16} /></button>
+        </div>
+        {/* List */}
+        <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)' }}>Loading...</div>
+          ) : items.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>No attachments.</div>
+          ) : items.map((item) => (
+            <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 6px', borderBottom: '1px solid var(--border-subtle)', fontSize: 13 }}>
+              <Paperclip size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.fileName}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
+                  {formatSize(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+              <button onClick={() => handleRename(item)} style={miniBtn} title="Rename">✏️</button>
+              <button onClick={() => handleDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Delete">🗑</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const miniBtn: React.CSSProperties = {
+  width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  border: 'none', borderRadius: 6, background: 'transparent', cursor: 'pointer',
+  fontSize: 12, color: 'var(--text-secondary)',
+};
+
 export function ObjectWorkspacePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -201,6 +322,8 @@ export function ObjectWorkspacePage() {
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
   const [historyObjId, setHistoryObjId] = useState<string | null>(null);
   const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
+  const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
+  const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
@@ -249,6 +372,15 @@ export function ObjectWorkspacePage() {
     if (ids.length === 0) return;
     invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
       .then(setSnapshotCounts)
+      .catch(() => {});
+  }, [visibleObjects.length]);
+
+  // Load attachment counts for visible objects
+  useEffect(() => {
+    const ids = visibleObjects.map(o => o.id);
+    if (ids.length === 0) return;
+    invoke<Record<string, number>>('attachment_count_batch', { objectIds: ids })
+      .then(setAttachmentCounts)
       .catch(() => {});
   }, [visibleObjects.length]);
 
@@ -400,6 +532,32 @@ export function ObjectWorkspacePage() {
                           borderRadius: 7, padding: '0 3px', lineHeight: 1,
                         }}>
                           {snapshotCounts[obj.id]}
+                        </span>
+                      )}
+                    </div>
+                    {/* Attachment button */}
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => setAttachmentObjId(obj.id)}
+                        title="Attachments"
+                        style={{
+                          width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer',
+                          color: 'var(--text-tertiary)', transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(128,128,128,0.08)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+                      >
+                        <Paperclip size={14} />
+                      </button>
+                      {attachmentCounts[obj.id] !== undefined && attachmentCounts[obj.id] > 0 && (
+                        <span style={{
+                          position: 'absolute', top: -2, right: -2, minWidth: 14, height: 14,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: 'var(--accent-primary)', color: 'white', fontSize: 9, fontWeight: 700,
+                          borderRadius: 7, padding: '0 3px', lineHeight: 1,
+                        }}>
+                          {attachmentCounts[obj.id]}
                         </span>
                       )}
                     </div>
@@ -582,6 +740,7 @@ export function ObjectWorkspacePage() {
         )}
       </div>
       {historyObjId && <HistoryViewer objectId={historyObjId} onClose={() => setHistoryObjId(null)} />}
+      {attachmentObjId && <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} />}
     </AppShell>
   );
 }
