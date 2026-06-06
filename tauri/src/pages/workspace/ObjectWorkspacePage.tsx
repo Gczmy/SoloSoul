@@ -11,7 +11,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Trash } from 'lucide-react';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
 // Labels resolved at render time via t() so they support i18n
@@ -48,11 +48,13 @@ export function ObjectWorkspacePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [confirmPageDelete, setConfirmPageDelete] = useState(false);
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
   const { objects, loadObjects, deleteObject, isLoading, error } = useObjectStore();
   const customPages = useSettingsStore((s) => s.settings.customPages);
+  const removeCustomPage = useSettingsStore((s) => s.removeCustomPage);
   const { map: sensitivityMap, loadMap } = useSensitivityStore();
   const { maskValue, isRevealed, reveal } = useRevealState();
   const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
@@ -108,16 +110,31 @@ export function ObjectWorkspacePage() {
     <AppShell
       title={customPage?.name || activeCategoryLabel || t('objects')}
       actions={
-        <button
-          onClick={() => navigate(newObjectUrl)}
-          style={{
-            padding: '8px 16px', borderRadius: 8, border: 'none',
-            background: 'var(--accent-primary)', color: 'white',
-            fontSize: 13, fontWeight: 500, cursor: 'pointer',
-          }}
-        >
-          + {t('create')}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => navigate(newObjectUrl)}
+            style={{
+              padding: '8px 16px', borderRadius: 8, border: 'none',
+              background: 'var(--accent-primary)', color: 'white',
+              fontSize: 13, fontWeight: 500, cursor: 'pointer',
+            }}
+          >
+            + {t('create')}
+          </button>
+          {pageId && customPage && (
+            <button
+              onClick={() => setConfirmPageDelete(true)}
+              title={t('delete')}
+              style={{
+                padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)',
+                background: 'transparent', color: '#e74c3c', cursor: 'pointer',
+                fontSize: 13, display: 'flex', alignItems: 'center', gap: 4,
+              }}
+            >
+              <Trash size={14} /> {t('delete')} {customPage?.name || t('objects')}
+            </button>
+          )}
+        </div>
       }
     >
       <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -278,6 +295,51 @@ export function ObjectWorkspacePage() {
               </Card>
             );
           })}
+
+        {/* Page delete confirmation dialog */}
+        {confirmPageDelete && pageId && customPage && (
+          <div
+            style={{
+              position: 'fixed', inset: 0, zIndex: 1000,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+            }}
+            onClick={() => setConfirmPageDelete(false)}
+          >
+            <div
+              style={{
+                background: 'var(--bg-elevated)', borderRadius: 12, padding: '24px 28px',
+                maxWidth: 360, width: '90%', boxShadow: 'var(--shadow-lg)',
+                border: '1px solid var(--border-subtle)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>{t('object_delete_confirm_title')}</h3>
+              <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {t('object_delete_confirm_body', { name: customPage.name })}
+              </p>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <Button variant="secondary" onClick={() => setConfirmPageDelete(false)}>{t('cancel')}</Button>
+                <button
+                  onClick={async () => {
+                    setConfirmPageDelete(false);
+                    if (accountId) {
+                      await removeCustomPage(accountId, pageId);
+                      navigate('/');
+                    }
+                  }}
+                  style={{
+                    padding: '8px 16px', borderRadius: 8, border: 'none',
+                    background: '#e74c3c', color: 'white',
+                    fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                  }}
+                >
+                  {t('delete')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delete confirmation dialog */}
         {confirmDelete && (

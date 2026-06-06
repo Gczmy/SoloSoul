@@ -195,13 +195,14 @@ function AddPageButton({
         buttonRef.current &&
         !buttonRef.current.contains(e.target as Node)
       ) {
-        handleCancel();
+        // If input has text → create page; if empty → cancel
+        handleConfirm();
       }
     };
     // Small delay to avoid conflicting with the button click
     setTimeout(() => document.addEventListener('mousedown', handler), 0);
     return () => document.removeEventListener('mousedown', handler);
-  }, [isCreating, handleCancel]);
+  }, [isCreating, handleConfirm]);
 
   const SelectedIcon = CUSTOM_ICON_MAP[selectedIconId];
 
@@ -283,9 +284,11 @@ function AddPageButton({
           ref={popoverRef}
           style={{
             position: 'fixed',
-            left: 56, /* 48px sidebar + 8px gap */
+            left: buttonRef.current
+              ? buttonRef.current.getBoundingClientRect().right + 8
+              : 56,
             top: buttonRef.current
-              ? buttonRef.current.getBoundingClientRect().top + 48 + 4
+              ? buttonRef.current.getBoundingClientRect().top
               : '50%',
             display: 'flex',
             flexDirection: 'column',
