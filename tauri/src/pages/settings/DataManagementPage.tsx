@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { HardDrive } from 'lucide-react';
 
 interface VaultStats {
-  profileCount: number;
-  totalSizeBytes: number;
-  lastModified?: string;
+  profile_count: number;
+  total_size_bytes: number;
+  last_modified?: string;
 }
 
 function formatBytes(bytes: number): string {
@@ -44,13 +44,13 @@ export function DataManagementPage() {
               <HardDrive size={22} style={{ color: 'var(--accent-primary)' }} />
             </div>
             <div>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Vault Size</div>
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('settings:vault_size')}</div>
               <div style={{ fontSize: 20, fontWeight: 600 }}>
-                {stats ? formatBytes(stats.totalSizeBytes) : '...'}
+                {stats ? formatBytes(stats.total_size_bytes) : '...'}
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                {stats ? `${stats.profileCount} profile(s)` : t('common:loading')}
-                {stats?.lastModified && ` · Updated ${new Date(stats.lastModified).toLocaleDateString()}`}
+                {stats ? t('settings:profile_count', { count: stats.profile_count }) : t('common:loading')}
+                {stats?.last_modified && ` · ${t('settings:updated')} ${new Date(stats.last_modified).toLocaleDateString()}`}
               </div>
             </div>
           </div>
