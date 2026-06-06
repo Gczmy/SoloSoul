@@ -183,30 +183,48 @@ export function SecuritySettingsPage() {
                 </label>
                 <button
                   type="button"
-                  onClick={() => { setHint(''); setHintCleared(true); setError(null); }}
-                  style={{
-                    padding: '2px 8px', borderRadius: 4, border: '1px solid var(--border-subtle)',
-                    background: 'transparent', cursor: 'pointer', fontSize: 11,
-                    color: 'var(--text-tertiary)',
+                  onClick={() => {
+                    if (hintCleared) {
+                      setHintCleared(false); // undo clear
+                    } else {
+                      setHint('');
+                      setHintCleared(true);
+                      setError(null);
+                    }
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = '#e74c3c'; e.currentTarget.style.borderColor = '#e74c3c'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
+                  style={{
+                    padding: '3px 10px', borderRadius: 4, border: '1px solid',
+                    borderColor: hintCleared ? '#e74c3c' : 'var(--border-subtle)',
+                    background: hintCleared ? '#e74c3c' : 'transparent',
+                    cursor: 'pointer', fontSize: 11, fontWeight: 500,
+                    color: hintCleared ? 'white' : 'var(--text-tertiary)',
+                    transition: 'all 0.15s ease',
+                  }}
                 >
-                  Clear hint
+                  {hintCleared ? 'Undo' : 'Clear hint'}
                 </button>
               </div>
               <input
                 type="text"
                 value={hint}
-                onChange={(e) => { setHint(e.target.value); setError(null); }}
+                onChange={(e) => { setHint(e.target.value); setHintCleared(false); setError(null); }}
+                disabled={hintCleared}
                 placeholder={t('common:optional')}
                 style={{
                   width: '100%', padding: '10px 14px', fontSize: 14,
-                  border: '1px solid var(--border-subtle)', borderRadius: 8,
-                  background: 'transparent', color: 'var(--text-primary)',
+                  border: '1px solid', borderRadius: 8,
+                  borderColor: hintCleared ? '#e74c3c' : 'var(--border-subtle)',
+                  background: hintCleared ? 'rgba(231,76,60,0.05)' : 'transparent',
+                  color: hintCleared ? '#e74c3c' : 'var(--text-primary)',
                   fontFamily: 'inherit', outline: 'none',
+                  opacity: hintCleared ? 0.6 : 1,
                 }}
               />
+              {hintCleared && (
+                <div style={{ marginTop: 6, fontSize: 12, color: '#e74c3c', lineHeight: 1.4 }}>
+                  The password hint will be cleared when you save. Click "Undo" to cancel.
+                </div>
+              )}
             </div>
 
             {error && (
