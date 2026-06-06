@@ -129,6 +129,7 @@ pub fn run() {
             commands::attachment::attachment_soft_delete,
             commands::attachment::attachment_restore,
             commands::attachment::attachment_rename,
+            commands::attachment::attachment_delete,
             commands::attachment::attachment_count_batch,
             // Sync commands
             commands::sync::sync_discover,
