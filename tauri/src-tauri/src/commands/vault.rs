@@ -1,3 +1,4 @@
+use crate::services::vault_service::VaultService;
 use crate::state::AppState;
 use tauri::{Emitter, State};
 
@@ -53,4 +54,14 @@ pub async fn delete_account(
 pub async fn list_accounts(state: State<'_, AppState>) -> Result<Vec<serde_json::Value>, String> {
     let svc = state.vault_service.read().await;
     Ok(svc.list_accounts())
+}
+
+#[tauri::command]
+pub async fn vault_update_hint(
+    state: State<'_, AppState>,
+    account_id: String,
+    hint: String,
+) -> Result<(), String> {
+    let svc = state.vault_service.read().await;
+    svc.update_password_hint(&account_id, &hint)
 }

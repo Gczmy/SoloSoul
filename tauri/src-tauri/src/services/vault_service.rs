@@ -437,6 +437,17 @@ impl VaultService {
     pub fn get_current_account(&self) -> Option<String> {
         self.unlocked_account.read().ok()?.clone()
     }
+
+    pub fn update_password_hint(&self, account_id: &str, hint: &str) -> Result<(), String> {
+        let config_path = self.config_path(account_id);
+        let content = std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
+        let mut config: AccountConfig =
+            serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
+        config.password_hint = Some(hint.to_string());
+        let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
+        std::fs::write(&config_path, config_json).map_err(|e| e.to_string())?;
+        Ok(())
+    }
 }
 
 impl Default for VaultService {

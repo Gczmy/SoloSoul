@@ -15,6 +15,7 @@ export function LoginPage() {
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [password, setPassword] = useState('');
   const { t } = useTranslation(['auth', 'common']);
+  const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
 
   useEffect(() => {
     checkHasAccount().then(() => listAccounts());
@@ -77,6 +78,7 @@ export function LoginPage() {
             value={password}
             onChange={(v) => setPassword(v)}
             placeholder={t('common:password_placeholder')}
+            hint={(selectedAccount as { passwordHint?: string })?.passwordHint || null}
           />
           {error && (
             <div style={{ color: '#e74c3c', fontSize: 13 }}>

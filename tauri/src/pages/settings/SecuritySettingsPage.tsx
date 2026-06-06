@@ -54,11 +54,13 @@ export function SecuritySettingsPage() {
           oldPassword: oldPw,
           newPassword: newPw,
         });
-        // TODO: update password_hint via separate IPC after backend support
+        if (hint.trim()) {
+          await invoke('vault_update_hint', { accountId: currentAccount?.id || '', hint: hint.trim() });
+        }
         onSuccess(t('settings:password_updated'));
       } else {
         // 10.3 — 仅修改密码提示
-        // TODO: call dedicated update_hint IPC once backend supports it
+        await invoke('vault_update_hint', { accountId: currentAccount?.id || '', hint: hint.trim() });
         onSuccess(t('settings:hint_updated'));
       }
 
