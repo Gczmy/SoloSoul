@@ -1,9 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info } from 'lucide-react';
+import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette } from 'lucide-react';
 
 const settingGroups = [
+  {
+    title: 'Appearance',
+    items: [
+      { label: 'Theme & Appearance', icon: Palette, path: '/settings/appearance' },
+    ],
+  },
   {
     title: 'Security',
     items: [

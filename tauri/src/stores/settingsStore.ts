@@ -3,6 +3,10 @@ import { invoke } from '@tauri-apps/api/core';
 
 interface AppSettings {
   theme: 'light' | 'dark' | 'system';
+  accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'custom';
+  customAccentHex: string;
+  backgroundType: 'solid' | 'gradient' | 'image';
+  backgroundValue: string;
   locale: string;
   autoLockTimeoutMinutes: number;
   biometricEnabled: boolean;
@@ -20,6 +24,10 @@ interface SettingsState {
 
 const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
+  accentColor: 'ocean',
+  customAccentHex: '',
+  backgroundType: 'solid',
+  backgroundValue: '',
   locale: 'en',
   autoLockTimeoutMinutes: 5,
   biometricEnabled: false,
@@ -38,6 +46,14 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.theme && ['light', 'dark', 'system'].includes(prefs.theme as string)) {
         parsed.theme = prefs.theme as AppSettings['theme'];
       }
+      if (prefs.accentColor && ['ocean', 'amber', 'forest', 'rose', 'custom'].includes(prefs.accentColor as string)) {
+        parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
+      }
+      if (typeof prefs.customAccentHex === 'string') parsed.customAccentHex = prefs.customAccentHex;
+      if (prefs.backgroundType && ['solid', 'gradient', 'image'].includes(prefs.backgroundType as string)) {
+        parsed.backgroundType = prefs.backgroundType as AppSettings['backgroundType'];
+      }
+      if (typeof prefs.backgroundValue === 'string') parsed.backgroundValue = prefs.backgroundValue;
       if (prefs.locale) parsed.locale = prefs.locale as string;
       if (typeof prefs.autoLockTimeoutMinutes === 'number') parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
       if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;

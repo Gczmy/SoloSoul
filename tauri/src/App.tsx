@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
+import { applyTheme, listenForSystemTheme } from '@/lib/theme';
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { HomePage } from '@/pages/home/HomePage';
@@ -21,6 +22,7 @@ import { ToastContainer } from '@/components/ui/ToastContainer';
 import { OperationLogPage } from '@/pages/settings/OperationLogPage';
 import { AboutPage } from '@/pages/system/AboutPage';
 import { DebugLogPage } from '@/pages/system/DebugLogPage';
+import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage';
 import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -35,6 +37,32 @@ function AppRoutes() {
 
   useEffect(() => {
     checkHasAccount();
+  }, []);
+
+  // Apply theme on mount (4.3.5 — instant, no refresh needed)
+  useEffect(() => {
+    const settings = useSettingsStore.getState().settings;
+    applyTheme({
+      preset: settings.theme === 'dark' ? 'warm-stone-dark' :
+              settings.theme === 'light' ? 'warm-stone-light' : 'system',
+      accentColor: 'ocean',
+      backgroundType: 'solid',
+      backgroundValue: '',
+    });
+
+    // Listen for system theme changes
+    const config = { preset: settings.theme as 'system', accentColor: 'ocean' as const,
+      backgroundType: 'solid' as const, backgroundValue: '' };
+    listenForSystemTheme(config, () => {
+      const s = useSettingsStore.getState().settings;
+      applyTheme({
+        preset: s.theme === 'dark' ? 'warm-stone-dark' :
+                s.theme === 'light' ? 'warm-stone-light' : 'system',
+        accentColor: 'ocean',
+        backgroundType: 'solid',
+        backgroundValue: '',
+      });
+    });
   }, []);
 
   // Listen for vault-locked event — clear sensitive state and redirect
@@ -82,6 +110,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <SettingsPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/settings/appearance"
+        element={
+          <AuthGuard>
+            <AppearanceSettingsPage />
           </AuthGuard>
         }
       />
