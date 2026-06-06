@@ -114,5 +114,19 @@
   "collections_deleted": "Collection deleted",
   "collections_load_failed": "Failed to load collections",
   "collections_create_failed": "Failed to create collection",
-  "collections_delete_failed": "Failed to delete"
+  "collections_delete_failed": "Failed to delete",
+    "1d": "1 day",
+    "3d": "3 days",
+    "7d": "7 days",
+    "30d": "30 days",
+    "half_year": "6 months",
+    "trash_type_all": "All Types",
+    "trash_type_page": "Pages",
+    "trash_type_collection": "Collections",
+    "trash_type_object": "Objects",
+    "trash_expires_in": "expires in {{days}}d",
+    "time_minutes_ago": "{n}m ago",
+    "time_hours_ago": "{n}h ago",
+    "time_days_ago": "{n}d ago",
+    "time_months_ago": "{n}mo ago"
 }

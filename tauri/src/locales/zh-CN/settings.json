@@ -114,5 +114,19 @@
   "collections_deleted": "集合已删除",
   "collections_load_failed": "加载集合失败",
   "collections_create_failed": "创建集合失败",
-  "collections_delete_failed": "删除集合失败"
+  "collections_delete_failed": "删除集合失败",
+    "1d": "1天内",
+    "3d": "3天内",
+    "7d": "7天内",
+    "30d": "30天内",
+    "half_year": "半年内",
+    "trash_type_all": "全部类型",
+    "trash_type_page": "页面",
+    "trash_type_collection": "集合",
+    "trash_type_object": "对象",
+    "trash_expires_in": "{{days}} 天后过期",
+    "time_minutes_ago": "{n} 分钟前",
+    "time_hours_ago": "{n} 小时前",
+    "time_days_ago": "{n} 天前",
+    "time_months_ago": "{n} 个月前"
 }

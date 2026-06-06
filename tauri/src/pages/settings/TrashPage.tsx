@@ -18,22 +18,22 @@ const TIME_OPTIONS: { value: TrashTimeFilter; labelKey: string }[] = [
   { value: 'half_year', labelKey: 'half_year' },
 ];
 
-const TYPE_OPTIONS: { value: TrashTypeFilter; labelKey: string }[] = [
-  { value: 'all', labelKey: 'all' },
-  { value: 'page', labelKey: 'page' },
-  { value: 'collection', labelKey: 'collection' },
-  { value: 'object', labelKey: 'object' },
+const TYPE_OPTIONS: { value: TrashTypeFilter; i18nKey: string }[] = [
+  { value: 'all', i18nKey: 'all' },
+  { value: 'page', i18nKey: 'page' },
+  { value: 'collection', i18nKey: 'collection' },
+  { value: 'object', i18nKey: 'object' },
 ];
 
-function timeAgo(ms: number): string {
+function timeAgo(ms: number, t: (k: string) => string): string {
   const diff = Date.now() - ms;
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) return t('time_minutes_ago').replace('{n}', String(mins));
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t('time_hours_ago').replace('{n}', String(hours));
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return `${Math.floor(days / 30)}mo ago`;
+  if (days < 30) return t('time_days_ago').replace('{n}', String(days));
+  return t('time_months_ago').replace('{n}', String(Math.floor(days / 30)));
 }
 
 export function TrashPage() {
@@ -85,7 +85,7 @@ export function TrashPage() {
                 fontSize: 12, cursor: 'pointer',
               }}
             >
-              {opt.labelKey === 'all' ? t('settings:all') : opt.labelKey}
+              {t(`settings:trash_type_${opt.value}`)}
             </button>
           ))}
         </div>
@@ -115,8 +115,8 @@ export function TrashPage() {
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 500 }}>{item.name}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                      {item.itemType} · {timeAgo(item.deletedAt)}
-                      {item.expiresAt && ` · expires in ${Math.max(0, Math.floor((item.expiresAt - Date.now()) / 86400000))}d`}
+                      {t(`settings:trash_type_${item.itemType}`)} · {timeAgo(item.deletedAt, t)}
+                      {item.expiresAt && ` · ${t('settings:trash_expires_in', { days: Math.max(0, Math.floor((item.expiresAt - Date.now()) / 86400000)) })}`}
                     </div>
                   </div>
                 </div>
