@@ -2,7 +2,69 @@ use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use tauri::State;
+
+// ── Plaintext UI preferences (§4.1) ─────────────────────────
+
+fn ui_prefs_path(svc: &crate::services::vault_service::VaultService) -> PathBuf {
+    svc.base_path().join("ui_preferences.json")
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UiPreferences {
+    pub theme: String,
+    pub accent_color: String,
+    pub language: String,
+}
+
+impl Default for UiPreferences {
+    fn default() -> Self {
+        Self {
+            theme: "system".to_string(),
+            accent_color: "ocean".to_string(),
+            language: "en-US".to_string(),
+        }
+    }
+}
+
+#[tauri::command]
+pub async fn ui_get_preferences(
+    state: State<'_, AppState>,
+) -> Result<UiPreferences, String> {
+    let svc = state.vault_service.read().await;
+    let path = ui_prefs_path(&svc);
+    if !path.exists() {
+        return Ok(UiPreferences::default());
+    }
+    let content = std::fs::read_to_string(&path).map_err(|e| format!("Read UI prefs: {}", e))?;
+    serde_json::from_str(&content).map_err(|e| format!("Parse UI prefs: {}", e))
+}
+
+#[tauri::command]
+pub async fn ui_update_preference(
+    state: State<'_, AppState>,
+    key: String,
+    value: String,
+) -> Result<(), String> {
+    let svc = state.vault_service.read().await;
+    let path = ui_prefs_path(&svc);
+    let mut prefs = if path.exists() {
+        let content = std::fs::read_to_string(&path).map_err(|e| format!("Read: {}", e))?;
+        serde_json::from_str::<serde_json::Value>(&content).unwrap_or_default()
+    } else {
+        serde_json::Value::Object(serde_json::Map::new())
+    };
+    if let Some(obj) = prefs.as_object_mut() {
+        obj.insert(key, serde_json::Value::String(value));
+    }
+    let json = serde_json::to_string(&prefs).map_err(|e| e.to_string())?;
+    std::fs::write(&path, json).map_err(|e| format!("Write UI prefs: {}", e))?;
+    Ok(())
+}
+
+// ── Vault-encrypted preferences ─────────────────────────────
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]

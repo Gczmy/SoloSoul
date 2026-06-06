@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
+import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
 
 // 9.8.3 — Custom page data structure
@@ -32,6 +33,9 @@ interface SettingsState {
   settings: AppSettings;
   isLoading: boolean;
 
+  /** Load UI-only prefs (theme/language/accent) from plaintext ui_preferences.json.
+   *  Can be called before Vault unlock — fixes login page theme bug. */
+  loadUiPreferences: () => Promise<void>;
   loadSettings: (accountId: string) => Promise<void>;
   loadCustomPages: (accountId: string) => Promise<void>;
   updateSetting: (accountId: string, key: keyof AppSettings, value: string | number | boolean) => Promise<void>;
@@ -57,6 +61,30 @@ const DEFAULT_SETTINGS: AppSettings = {
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
   isLoading: false,
+
+  /** Load UI-only prefs from plaintext file — no Vault needed */
+  loadUiPreferences: async () => {
+    try {
+      const prefs = await invoke<{ theme?: string; accentColor?: string; language?: string }>('ui_get_preferences');
+      const parsed = { ...get().settings };
+      if (prefs.theme) parsed.theme = prefs.theme as AppSettings['theme'];
+      if (prefs.accentColor) parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
+      if (prefs.language) parsed.language = prefs.language;
+      applyTheme({
+        preset: parsed.theme === 'dark' ? 'warm-stone-dark' :
+                parsed.theme === 'light' ? 'warm-stone-light' : 'system',
+        accentColor: parsed.accentColor,
+        backgroundType: 'solid',
+        backgroundValue: '',
+      });
+      set({ settings: parsed });
+      if (prefs.language) {
+        import('@/lib/i18n').then((mod) => {
+          mod.default.changeLanguage(prefs.language!);
+        });
+      }
+    } catch { /* file may not exist yet — use defaults */ }
+  },
 
   loadSettings: async (accountId) => {
     set({ isLoading: true });

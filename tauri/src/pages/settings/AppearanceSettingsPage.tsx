@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
+import { invoke } from '@tauri-apps/api/core';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { applyTheme } from '@/lib/theme';
@@ -29,6 +30,7 @@ export function AppearanceSettingsPage() {
 
   const handlePresetChange = (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
+    invoke('ui_update_preference', { key: 'theme', value: preset }).catch(() => {});
     applyTheme({
       preset: preset === 'dark' ? 'warm-stone-dark' :
               preset === 'light' ? 'warm-stone-light' : 'system',
@@ -40,6 +42,7 @@ export function AppearanceSettingsPage() {
 
   const handleAccentChange = (accent: AccentPreset) => {
     updateSetting(accountId, 'accentColor', accent);
+    invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch(() => {});
     applyTheme({
       preset: settings.theme === 'dark' ? 'warm-stone-dark' :
               settings.theme === 'light' ? 'warm-stone-light' : 'system',

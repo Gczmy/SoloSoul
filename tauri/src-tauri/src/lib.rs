@@ -114,6 +114,8 @@ pub fn run() {
             // Settings / user_data commands
             commands::settings::user_data_get_preferences,
             commands::settings::user_data_update_preference,
+            commands::settings::ui_get_preferences,
+            commands::settings::ui_update_preference,
             // LLM commands
             commands::llm::llm_get_config,
             commands::llm::llm_update_config,
