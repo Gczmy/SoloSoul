@@ -234,9 +234,10 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
   };
 
   const handlePreview = async (item: AttachmentItem) => {
-    const isImage = item.mimeType.startsWith('image/');
-    const isPdf = item.mimeType === 'application/pdf';
-    const isText = item.mimeType.startsWith('text/') || ['json','xml','csv','md','txt'].some(e => item.fileName.endsWith(e));
+    const ext = item.fileName.split('.').pop()?.toLowerCase() || '';
+    const isImage = item.mimeType.startsWith('image/') || ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
+    const isPdf = item.mimeType === 'application/pdf' || ext === 'pdf';
+    const isText = item.mimeType.startsWith('text/') || ['json','xml','csv','md','txt'].includes(ext);
 
     if (item.srcPath && (isImage || isPdf || isText)) {
       // Built-in preview via data URL
