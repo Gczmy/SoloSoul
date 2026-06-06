@@ -144,9 +144,12 @@ export function ObjectEditorPage() {
     }
   }, [objectId, accountId]);
 
+  // Reset dataLoaded when navigating to a different object
+  useEffect(() => { setDataLoaded(false); setName(''); setValues({}); }, [objectId]);
+
   // When currentObject loads (for editing), populate the form
   useEffect(() => {
-    if (isNew || !currentObject || dataLoaded) return;
+    if (isNew || !currentObject || dataLoaded || currentObject.id !== objectId) return;
     setName(currentObject.name || '');
     // Populate property values
     const vals: Record<string, string> = {};
