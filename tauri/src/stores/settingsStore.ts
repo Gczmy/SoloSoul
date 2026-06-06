@@ -78,6 +78,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         backgroundValue: '',
       });
       set({ settings: parsed });
+      // Cache in localStorage for instant read on next startup
+      try { localStorage.setItem('solosoul_ui_prefs', JSON.stringify({ theme: parsed.theme, accentColor: parsed.accentColor })); } catch {}
       if (prefs.language) {
         import('@/lib/i18n').then((mod) => {
           mod.default.changeLanguage(prefs.language!);
