@@ -413,7 +413,7 @@ function AttachmentViewer({ objectId, onClose, onCountChange }: { objectId: stri
         <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', flexDirection:'column', background:'rgba(0,0,0,0.8)', backdropFilter:'blur(12px)' }} onClick={() => setPreviewItem(null)}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 18px', background:'var(--bg-toolbar)' }}>
             <span style={{ fontSize:13, fontWeight:500 }}>{previewItem.fileName}</span>
-            <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
+            <button onClick={(e) => { e.stopPropagation(); setPreviewItem(null); }} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
           </div>
           <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
             {previewUrl === 'error' ? <div style={{ color:'#e74c3c', padding:24 }}>Failed to load preview.</div> : previewUrl ? <img src={previewUrl} alt={previewItem.fileName} style={{ maxWidth:'90%', maxHeight:'90%', objectFit:'contain', borderRadius:8 }} /> : <div style={{ color:'var(--text-tertiary)', padding:24 }}>Loading...</div>}
@@ -425,7 +425,7 @@ function AttachmentViewer({ objectId, onClose, onCountChange }: { objectId: stri
         <div style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', flexDirection:'column', background:'rgba(0,0,0,0.8)', backdropFilter:'blur(12px)' }} onClick={() => setPreviewItem(null)}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 18px', background:'var(--bg-toolbar)' }}>
             <span style={{ fontSize:13, fontWeight:500 }}>{previewItem.fileName}</span>
-            <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
+            <button onClick={(e) => { e.stopPropagation(); setPreviewItem(null); }} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
           </div>
           <div style={{ flex:1, padding:24 }}>
             {previewUrl === 'error' ? <div style={{ color:'#e74c3c', padding:24 }}>Failed to load preview.</div> : previewUrl ? <iframe src={previewUrl} style={{ width:'100%', height:'100%', border:'none', borderRadius:8, background:'white' }} /> : <div style={{ color:'var(--text-tertiary)', padding:24 }}>Loading...</div>}
