@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, convertFileSrc } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -266,10 +266,12 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
     if (filePath && typeof filePath === 'string') {
       const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || 'file';
       const sizeBytes = await invoke<number>('fs_get_file_size', { path: filePath }).catch(() => 0);
+      const ext = fileName.split('.').pop()?.toLowerCase() || '';
+      const mimeMap: Record<string, string> = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp', svg:'image/svg+xml', pdf:'application/pdf', txt:'text/plain', md:'text/markdown', json:'application/json', xml:'application/xml', csv:'text/csv' };
       await invoke('attachment_save', {
         objectId, meta: {
           id: crypto.randomUUID(), objectId,
-          fileName, mimeType: 'application/octet-stream',
+          fileName, mimeType: mimeMap[ext] || 'application/octet-stream',
           sizeBytes, createdAt: new Date().toISOString(), srcPath: filePath,
         },
       });
@@ -392,7 +394,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
             <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
           </div>
           <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
-            <img src={`asset://localhost/${encodeURIComponent(previewItem.fileName)}`} alt={previewItem.fileName} style={{ maxWidth:'90%', maxHeight:'90%', objectFit:'contain', borderRadius:8 }} />
+            <img src={convertFileSrc(previewItem.srcPath || '')} alt={previewItem.fileName} style={{ maxWidth:'90%', maxHeight:'90%', objectFit:'contain', borderRadius:8 }} />
           </div>
         </div>
       )}
@@ -404,7 +406,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
             <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
           </div>
           <div style={{ flex:1, padding:24 }}>
-            <iframe src={`asset://localhost/${encodeURIComponent(previewItem.fileName)}`} style={{ width:'100%', height:'100%', border:'none', borderRadius:8, background:'white' }} />
+            <iframe src={convertFileSrc(previewItem.srcPath || '')} style={{ width:'100%', height:'100%', border:'none', borderRadius:8, background:'white' }} />
           </div>
         </div>
       )}
