@@ -148,7 +148,29 @@
 界面更新
 ```
 
-**可能根因**：
+**已确认根因（启动时序问题）**：
+
+问题本质：**前端启动时序错误**——`loadSettings` 是异步操作，但主题应用逻辑没有等待其完成。
+
+```
+启动时间线（修复前）：
+  1. App 挂载 → applyTheme(DEFAULT: system, ocean) ← 默认值生效
+  2. 用户登录 → loadSettings() 从磁盘读取保存值
+  3. settings store 更新为保存值（如 theme: dark, accent: amber）
+  4. ❌ applyTheme 没有再被调用 → 界面仍是默认值
+  5. 用户看到：主题没变（还是 system）
+
+启动时间线（修复后）：
+  1. App 挂载 → applyTheme(DEFAULT)
+  2. 用户登录 → loadSettings().then(() => {
+  3.   ✅ applyTheme(SAVED: dark, amber) ← 保存值生效
+  4. })
+  5. 用户看到：正确的保存主题
+```
+
+> **注意**：数据一直持久化在磁盘（`~/.solosoul/`），dev 和 production 都一样。问题纯粹是前端启动时序——`loadSettings` 是异步的，之前没有等它完成就跳过了主题重新应用。
+
+**其他可能根因**：
 
 | 断点 | 根因描述 | 验证方法 |
 |------|---------|---------|
