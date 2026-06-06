@@ -122,6 +122,10 @@ impl VaultStore {
         )
         .map_err(|e| format!("Failed to init schema: {}", e))?;
 
+        // Migration: add tags_json column if missing (added in schema v2, §24)
+        // Ignore error if column already exists
+        let _ = conn.execute("ALTER TABLE objects ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]'", []);
+
         let version_exists: bool = conn
             .query_row(
                 "SELECT EXISTS(SELECT 1 FROM sys_config WHERE key = 'data_version')",
