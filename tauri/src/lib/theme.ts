@@ -1,12 +1,18 @@
-// Theme system utilities (per 09_ 4.3)
-// Applies accent colors and theme mode via data attributes on <html>.
+// Theme system utilities (per 09_跨平台材质系统与视觉规范 §4.3)
+// Applies accent colors and theme mode by setting CSS custom properties
+// on <html>, driving light/dark via [data-theme] selectors.
 
 import type { AccentPreset, ThemeConfig } from '@/types';
 
-const THEME_ATTR = 'data-theme';
-const ACCENT_ATTR = 'data-accent';
-const SYSTEM_DARK_MQ = '(prefers-color-scheme: dark)';
+const ACCENT_COLORS: Record<AccentPreset, string> = {
+  ocean: '#5B7C99',
+  amber: '#C4925C',
+  forest: '#5B8C6F',
+  rose: '#B06B7A',
+  custom: '', // filled by customAccentHex
+};
 
+const SYSTEM_DARK_MQ = '(prefers-color-scheme: dark)';
 let systemMediaQuery: MediaQueryList | null = null;
 let systemListener: ((e: MediaQueryListEvent) => void) | null = null;
 
@@ -18,29 +24,43 @@ export function resolveEffectiveTheme(preset: ThemeConfig['preset']): 'light' | 
   return preset === 'warm-stone-dark' ? 'dark' : 'light';
 }
 
-/** Apply theme mode (light/dark) as a data attribute */
-export function applyThemeMode(mode: 'light' | 'dark') {
-  document.documentElement.setAttribute(THEME_ATTR, mode);
-  // Also set a CSS variable so dark-mode selectors work via attribute
-  document.documentElement.style.setProperty('--data-theme', mode);
+/** Apply accent color as a CSS custom property on <html> */
+export function applyAccentColor(accent: AccentPreset, customHex?: string) {
+  const root = document.documentElement;
+  if (accent === 'custom' && customHex) {
+    root.style.setProperty('--accent-primary', customHex);
+  } else {
+    const color = ACCENT_COLORS[accent] || ACCENT_COLORS.ocean;
+    root.style.setProperty('--accent-primary', color);
+  }
 }
 
-/** Apply accent color preset as a data attribute */
-export function applyAccentColor(accent: AccentPreset) {
-  document.documentElement.setAttribute(ACCENT_ATTR, accent);
-  document.documentElement.style.setProperty('--data-accent', accent);
+/** Full theme application: mode (data-theme attr) + accent color (4.3.5 — instant) */
+export function applyTheme(config: ThemeConfig) {
+  const root = document.documentElement;
+  // Set theme data attribute for CSS selectors
+  if (config.preset === 'warm-stone-light') {
+    root.setAttribute('data-theme', 'light');
+  } else if (config.preset === 'warm-stone-dark') {
+    root.setAttribute('data-theme', 'dark');
+  } else {
+    root.setAttribute('data-theme', 'system');
+  }
+  // Apply accent color
+  applyAccentColor(
+    config.accentColor as AccentPreset,
+    (config as { customAccentHex?: string }).customAccentHex,
+  );
 }
 
-/** Listen for system theme changes and auto-switch (4.3.5) */
+/** Listen for system theme changes (4.3.5) */
 export function listenForSystemTheme(
   config: ThemeConfig,
   onThemeChange: (mode: 'light' | 'dark') => void,
 ) {
-  // Clean up previous listener
   if (systemMediaQuery && systemListener) {
     systemMediaQuery.removeEventListener('change', systemListener);
   }
-
   systemMediaQuery = window.matchMedia(SYSTEM_DARK_MQ);
   systemListener = (e: MediaQueryListEvent) => {
     if (config.preset === 'system') {
@@ -50,23 +70,10 @@ export function listenForSystemTheme(
   systemMediaQuery.addEventListener('change', systemListener);
 }
 
-/** Remove system theme listener */
 export function stopListeningForSystemTheme() {
   if (systemMediaQuery && systemListener) {
     systemMediaQuery.removeEventListener('change', systemListener);
     systemMediaQuery = null;
     systemListener = null;
   }
-}
-
-/** Full theme application: mode + accent (4.3.5 — instant, no refresh) */
-export function applyTheme(config: ThemeConfig) {
-  const mode = resolveEffectiveTheme(config.preset);
-  applyThemeMode(mode);
-  applyAccentColor(config.accentColor);
-}
-
-/** Apply custom accent hex via CSS variable (for "custom" preset) */
-export function applyCustomAccent(hex: string) {
-  document.documentElement.style.setProperty('--accent-primary', hex);
 }
