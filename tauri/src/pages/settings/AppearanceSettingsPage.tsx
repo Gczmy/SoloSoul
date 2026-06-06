@@ -28,6 +28,11 @@ export function AppearanceSettingsPage() {
   const accountId = currentAccount?.id || '';
   const { t } = useTranslation(['settings', 'common']);
 
+  const syncUiCache = () => {
+    const s = useSettingsStore.getState().settings;
+    try { localStorage.setItem('solosoul_ui_prefs', JSON.stringify({ theme: s.theme, accentColor: s.accentColor })); } catch {}
+  };
+
   const handlePresetChange = (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
     invoke('ui_update_preference', { key: 'theme', value: preset }).catch(() => {});
@@ -38,6 +43,7 @@ export function AppearanceSettingsPage() {
       backgroundType: 'solid',
       backgroundValue: '',
     });
+    syncUiCache();
   };
 
   const handleAccentChange = (accent: AccentPreset) => {
@@ -50,6 +56,7 @@ export function AppearanceSettingsPage() {
       backgroundType: 'solid',
       backgroundValue: '',
     });
+    syncUiCache();
   };
 
   return (
