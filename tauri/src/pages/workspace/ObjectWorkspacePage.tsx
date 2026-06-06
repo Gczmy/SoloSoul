@@ -12,7 +12,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip } from 'lucide-react';
+import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, Trash as TrashIcon } from 'lucide-react';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
 // Labels resolved at render time via t() so they support i18n
@@ -295,8 +295,8 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
                   {formatSize(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
                 </div>
               </div>
-              <button onClick={() => handleRename(item)} style={miniBtn} title="Rename">✏️</button>
-              <button onClick={() => handleDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Delete">🗑</button>
+              <button onClick={() => handleRename(item)} style={miniBtn} title="Rename"><Edit2 size={12} /></button>
+              <button onClick={() => handleDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Delete"><TrashIcon size={12} /></button>
             </div>
           ))}
         </div>

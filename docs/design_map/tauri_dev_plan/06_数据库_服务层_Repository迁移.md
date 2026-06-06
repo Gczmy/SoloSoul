@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS unified_objects (
 
 -- attachments: 附件
 -- 附件独立管理，无快照/历史记录功能
+-- 删除采用对象属性级软删除（deleted_at 标记），不进入全局回收站
 -- 详见文档 25_对象规范.md §6
 CREATE TABLE IF NOT EXISTS attachments (
     id TEXT PRIMARY KEY,
@@ -113,6 +114,7 @@ CREATE TABLE IF NOT EXISTS attachments (
     file_size INTEGER,           -- 文件大小（字节）
     mime_type TEXT,              -- MIME 类型，用于预览路由选择
     created_at TEXT,
+    deleted_at TEXT,             -- 软删除时间戳（NULL = 正常）
     FOREIGN KEY (object_id) REFERENCES unified_objects(id)
 );
 
@@ -120,6 +122,8 @@ CREATE TABLE IF NOT EXISTS attachments (
 CREATE INDEX idx_attachments_object ON attachments(object_id);
 CREATE INDEX idx_attachments_mime ON attachments(mime_type);
 CREATE INDEX idx_attachments_created ON attachments(created_at);
+-- 有效附件索引（过滤已软删除）
+CREATE INDEX idx_attachments_active ON attachments(object_id) WHERE deleted_at IS NULL;
 
 -- object_snapshots: 对象历史记录快照
 -- 每次对象数据变更自动创建，记录完整加密数据快照
