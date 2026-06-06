@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import { Lock, Eye, EyeOff, HelpCircle, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Lock, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface SecurePasswordInputProps {
@@ -34,10 +35,10 @@ export function SecurePasswordInput({
   showHintButton = true,
 }: SecurePasswordInputProps) {
   const [visible, setVisible] = useState(false);
-  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [isHintHovered, setIsHintHovered] = useState(false);
+  const [hintCardPos, setHintCardPos] = useState<{ top: number; left: number } | null>(null);
+  const hintBtnRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-  const tooltipTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { t } = useTranslation(['common', 'auth']);
 
   // Blur resets visibility
@@ -45,34 +46,31 @@ export function SecurePasswordInput({
     setVisible(false);
   }, []);
 
-  // Close tooltip on outside click
-  useEffect(() => {
-    if (!tooltipOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (
-        tooltipRef.current &&
-        !tooltipRef.current.contains(e.target as Node)
-      ) {
-        setTooltipOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [tooltipOpen]);
-
-  const handleTooltipToggle = () => {
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current);
-      tooltipTimeoutRef.current = undefined;
+  const updateHintCardPos = useCallback(() => {
+    if (hintBtnRef.current) {
+      const rect = hintBtnRef.current.getBoundingClientRect();
+      setHintCardPos({ top: rect.top + rect.height / 2, left: rect.right + 8 });
     }
-    setTooltipOpen((prev) => !prev);
-  };
+  }, []);
 
-  const handleTooltipClose = () => {
-    tooltipTimeoutRef.current = setTimeout(() => {
-      setTooltipOpen(false);
-    }, TOOLTIP_CLOSE_DELAY);
-  };
+  const handleHintEnter = useCallback(() => {
+    setIsHintHovered(true);
+    updateHintCardPos();
+  }, [updateHintCardPos]);
+
+  const handleHintLeave = useCallback(() => {
+    setIsHintHovered(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isHintHovered) return;
+    window.addEventListener('scroll', updateHintCardPos, true);
+    window.addEventListener('resize', updateHintCardPos);
+    return () => {
+      window.removeEventListener('scroll', updateHintCardPos, true);
+      window.removeEventListener('resize', updateHintCardPos);
+    };
+  }, [isHintHovered, updateHintCardPos]);
 
   const hasHint = hint && hint.trim().length > 0;
 
@@ -152,81 +150,52 @@ export function SecurePasswordInput({
             </button>
           )}
 
-          {/* Hint button (optional, controlled by showHintButton prop) */}
+          {/* Hint button — hover to show via Portal (no close button) */}
           {showHintButton && (
-            <div style={{ position: 'relative', display: 'flex' }}>
+            <div
+              style={{ position: 'relative', display: 'flex' }}
+              onMouseEnter={handleHintEnter}
+              onMouseLeave={handleHintLeave}
+            >
               <button
+                ref={hintBtnRef}
                 type="button"
-                onClick={handleTooltipToggle}
                 aria-label={t('common:password_hint_tooltip')}
-                aria-pressed={tooltipOpen}
                 tabIndex={-1}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   padding: 4, borderRadius: 4,
                   display: 'flex', alignItems: 'center',
-                  color: tooltipOpen ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                  color: isHintHovered ? 'var(--accent-primary)' : 'var(--text-tertiary)',
                   transition: 'color 0.15s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                onMouseLeave={(e) => {
-                  if (!tooltipOpen) e.currentTarget.style.color = 'var(--text-tertiary)';
                 }}
               >
                 <HelpCircle size={16} />
               </button>
 
-              {/* Tooltip popup */}
-              {tooltipOpen && (
-                <div
-                  ref={tooltipRef}
-                  role="tooltip"
-                  onMouseEnter={() => {
-                    if (tooltipTimeoutRef.current) {
-                      clearTimeout(tooltipTimeoutRef.current);
-                      tooltipTimeoutRef.current = undefined;
-                    }
-                  }}
-                  onMouseLeave={handleTooltipClose}
-                  style={{
-                    position: 'absolute', bottom: 'calc(100% + 6px)',
-                    right: 0,
-                    maxWidth: 240,
-                    minWidth: 80,
-                    width: 'max-content',
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    fontSize: 11,
-                    lineHeight: 1.4,
-                    color: 'var(--text-secondary)',
-                    background: 'var(--bg-elevated)',
-                    boxShadow: 'var(--shadow-md)',
-                    zIndex: 100,
-                    whiteSpace: 'normal',
-                    wordBreak: 'keep-all',
-                    overflowWrap: 'break-word',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
-                    <span style={{ flex: 1 }}>
-                      {hasHint ? hint : t('common:no_hint_available')}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setTooltipOpen(false)}
-                      aria-label={t('common:close')}
-                      tabIndex={-1}
-                      style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        padding: 0, display: 'flex',
-                        color: 'var(--text-tertiary)',
-                        flexShrink: 0, marginTop: 1,
-                      }}
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                </div>
+              {/* Card via Portal (not clipped by overflow) */}
+              {isHintHovered && createPortal(
+                <div style={{
+                  position: 'fixed',
+                  top: hintCardPos?.top ?? 0,
+                  left: hintCardPos?.left ?? 0,
+                  transform: 'translateY(-50%)',
+                  zIndex: 200,
+                  whiteSpace: 'normal',
+                  wordBreak: 'keep-all',
+                  overflowWrap: 'break-word',
+                  maxWidth: 240,
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  fontSize: 11,
+                  lineHeight: 1.4,
+                  color: 'var(--text-secondary)',
+                  background: 'var(--bg-elevated)',
+                  boxShadow: 'var(--shadow-md)',
+                }}>
+                  {hasHint ? hint : t('common:no_hint_available')}
+                </div>,
+                document.body
               )}
             </div>
           )}
