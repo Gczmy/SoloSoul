@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
-import i18next from '@/lib/i18n';
+import i18next, { detectSystemLanguage } from '@/lib/i18n';
 
 // 9.8.3 — Custom page data structure
 export interface CustomPage {
@@ -42,8 +42,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   customAccentHex: '',
   backgroundType: 'solid',
   backgroundValue: '',
-  language: 'en-US',
-  locale: 'en',
+  language: detectSystemLanguage(),
+  locale: detectSystemLanguage().startsWith('zh') ? 'zh' : 'en',
   autoLockTimeoutMinutes: 5,
   biometricEnabled: false,
   confirmDelete: true,
