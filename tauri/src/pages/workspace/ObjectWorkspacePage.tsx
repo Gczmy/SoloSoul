@@ -203,6 +203,7 @@ interface AttachmentItem {
   createdAt: string;
   deletedAt?: string | null;
   srcPath?: string | null;
+  vaultPath?: string | null;
 }
 
 function formatSize(bytes: number): string {
@@ -239,21 +240,22 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
     const isPdf = item.mimeType === 'application/pdf' || ext === 'pdf';
     const isText = item.mimeType.startsWith('text/') || ['json','xml','csv','md','txt'].includes(ext);
 
-    if (item.srcPath && (isImage || isPdf || isText)) {
+    const filePath = item.vaultPath || item.srcPath; // vault copy preferred, original as fallback
+    if (filePath && (isImage || isPdf || isText)) {
       // Built-in preview via data URL
       setPreviewItem(item);
       setPreviewUrl('');
       try {
-        const url = await invoke<string>('fs_read_file_as_data_url', { path: item.srcPath });
+        const url = await invoke<string>('fs_read_file_as_data_url', { path: filePath });
         setPreviewUrl(url);
       } catch {
         setPreviewUrl('error');
       }
-    } else if (item.srcPath) {
+    } else if (filePath) {
       // Office docs, etc. — open with system default
-      openWithDefault(item.srcPath);
+      openWithDefault(filePath);
     } else {
-      // No srcPath — likely an old attachment; try to open by name as fallback
+      // No path — likely an old attachment; try to open by name as fallback
       openWithDefault(item.fileName);
     }
   };
@@ -281,11 +283,14 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
       const sizeBytes = await invoke<number>('fs_get_file_size', { path: filePath }).catch(() => 0);
       const ext = fileName.split('.').pop()?.toLowerCase() || '';
       const mimeMap: Record<string, string> = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp', svg:'image/svg+xml', pdf:'application/pdf', txt:'text/plain', md:'text/markdown', json:'application/json', xml:'application/xml', csv:'text/csv' };
+      const id = crypto.randomUUID();
+      // Copy file into vault storage so it survives original deletion
+      const vaultPath = await invoke<string>('attachment_copy_to_vault', { srcPath: filePath, objectId, attachmentId: id, fileName }).catch(() => filePath);
       await invoke('attachment_save', {
         objectId, meta: {
-          id: crypto.randomUUID(), objectId,
+          id, objectId,
           fileName, mimeType: mimeMap[ext] || 'application/octet-stream',
-          sizeBytes, createdAt: new Date().toISOString(), srcPath: filePath,
+          sizeBytes, createdAt: new Date().toISOString(), srcPath: filePath, vaultPath,
         },
       });
       await loadAttachments();

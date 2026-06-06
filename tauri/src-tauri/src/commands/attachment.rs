@@ -4,6 +4,7 @@ use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::path::PathBuf;
 use tauri::State;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,9 +18,12 @@ pub struct AttachmentMeta {
     pub created_at: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub deleted_at: Option<String>,
-    /// Original source file path on disk (for preview/opening)
+    /// Original source path (transient, only set at upload time)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub src_path: Option<String>,
+    /// Vault storage path (persistent, survives original file deletion)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vault_path: Option<String>,
 }
 
 fn load_attachments(props: &Value) -> Vec<AttachmentMeta> {
@@ -177,4 +181,23 @@ pub async fn attachment_count_batch(
         }
     }
     Ok(result)
+}
+
+/// Copy a file into vault-managed attachment storage.
+/// Returns the vault path that should be stored as `vault_path` on the attachment meta.
+#[tauri::command]
+pub async fn attachment_copy_to_vault(
+    state: State<'_, AppState>,
+    src_path: String,
+    object_id: String,
+    attachment_id: String,
+    file_name: String,
+) -> Result<String, String> {
+    let svc = state.vault_service.read().await;
+    let base = svc.base_path().clone();
+    let dest_dir = base.join("attachments").join(&object_id).join(&attachment_id);
+    std::fs::create_dir_all(&dest_dir).map_err(|e| format!("Mkdir: {}", e))?;
+    let dest_path = dest_dir.join(&file_name);
+    std::fs::copy(&src_path, &dest_path).map_err(|e| format!("Copy: {}", e))?;
+    Ok(dest_path.to_string_lossy().to_string())
 }
