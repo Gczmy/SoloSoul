@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette, Layers } from 'lucide-react';
+import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette } from 'lucide-react';
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -42,7 +42,6 @@ export function SettingsPage() {
       title: t('settings:groups.data'),
       items: [
         { label: t('settings:items.data_management'), icon: HardDrive, path: '/settings/data', badge: vaultSize },
-        { label: t('settings:collections_title'), icon: Layers, path: '/settings/collections' },
         { label: t('settings:items.export_import'), icon: Upload, path: '/settings/export-import' },
         { label: t('settings:items.trash'), icon: Trash2, path: '/settings/trash' },
         { label: t('settings:items.backup_restore'), icon: Disc, path: '/settings/backup' },
