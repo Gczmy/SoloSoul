@@ -39,17 +39,39 @@ fn save_attachments(props: &mut Value, atts: &[AttachmentMeta]) {
 pub async fn attachment_list(
     state: State<'_, AppState>,
     object_id: String,
+    show_deleted: Option<bool>,
 ) -> Result<Vec<AttachmentMeta>, String> {
+    let show = show_deleted.unwrap_or(false);
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     match vault.load_object(&object_id) {
         Ok(Some(rec)) => Ok(load_attachments(&rec.properties)
             .into_iter()
-            .filter(|a| !a.is_deleted)
+            .filter(|a| if show { a.is_deleted } else { !a.is_deleted })
             .collect()),
         _ => Ok(vec![]),
     }
+}
+
+#[tauri::command]
+pub async fn attachment_restore(
+    state: State<'_, AppState>,
+    object_id: String,
+    attachment_id: String,
+) -> Result<(), String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
+    let mut atts = load_attachments(&record.properties);
+    if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
+        a.is_deleted = false;
+    }
+    save_attachments(&mut record.properties, &atts);
+    record.updated_at = chrono::Utc::now().to_rfc3339();
+    record.version += 1;
+    vault.save_object(&record)
 }
 
 #[tauri::command]

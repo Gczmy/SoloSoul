@@ -12,7 +12,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, Trash as TrashIcon } from 'lucide-react';
+import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw } from 'lucide-react';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
 // Labels resolved at render time via t() so they support i18n
@@ -212,15 +212,21 @@ function formatSize(bytes: number): string {
 
 function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: () => void }) {
   const [items, setItems] = useState<AttachmentItem[]>([]);
+  const [trashItems, setTrashItems] = useState<AttachmentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTrash, setShowTrash] = useState(false);
   const { t } = useTranslation(['common', 'editor']);
 
   const loadAttachments = useCallback(async () => {
     setLoading(true);
     try {
-      const list = await invoke<AttachmentItem[]>('attachment_list', { objectId });
-      setItems(list);
-    } catch { setItems([]); }
+      const [active, deleted] = await Promise.all([
+        invoke<AttachmentItem[]>('attachment_list', { objectId, showDeleted: false }),
+        invoke<AttachmentItem[]>('attachment_list', { objectId, showDeleted: true }),
+      ]);
+      setItems(active);
+      setTrashItems(deleted);
+    } catch { setItems([]); setTrashItems([]); }
     finally { setLoading(false); }
   }, [objectId]);
 
@@ -252,10 +258,23 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
   };
 
   const handleDelete = async (item: AttachmentItem) => {
-    if (!confirm(`Delete "${item.fileName}"? It will be hidden.`)) return;
+    if (!confirm(`Delete "${item.fileName}"?`)) return;
     await invoke('attachment_soft_delete', { objectId, attachmentId: item.id });
     await loadAttachments();
   };
+
+  const handleRestore = async (item: AttachmentItem) => {
+    await invoke('attachment_restore', { objectId, attachmentId: item.id });
+    await loadAttachments();
+  };
+
+  const handlePermanentDelete = async (item: AttachmentItem) => {
+    if (!confirm(`Permanently delete "${item.fileName}"? This cannot be undone.`)) return;
+    await invoke('attachment_delete', { objectId, attachmentId: item.id });
+    await loadAttachments();
+  };
+
+  const displayItems = showTrash ? trashItems : items;
 
   return (
     <div
@@ -275,29 +294,46 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Paperclip size={14} /> Attachments ({items.length})
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Paperclip size={14} /> Attachments
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button onClick={() => setShowTrash(false)} style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, border: '1px solid var(--border-subtle)', background: !showTrash ? 'var(--accent-primary)' : 'transparent', color: !showTrash ? 'white' : 'var(--text-secondary)', cursor: 'pointer' }}>Active ({items.length})</button>
+              <button onClick={() => setShowTrash(true)} style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, border: '1px solid var(--border-subtle)', background: showTrash ? '#e74c3c' : 'transparent', color: showTrash ? 'white' : 'var(--text-secondary)', cursor: 'pointer' }}>Trash ({trashItems.length})</button>
+            </div>
           </div>
-          <button onClick={handleAdd} style={{ ...pgBtn, marginLeft: 'auto', marginRight: 8, fontSize: 11, fontWeight: 600 }}>+ Add</button>
+          {!showTrash && <button onClick={handleAdd} style={{ ...pgBtn, fontSize: 11, fontWeight: 600 }}>+ Add</button>}
           <button onClick={onClose} style={pgBtn}><X size={16} /></button>
         </div>
         {/* List */}
         <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)' }}>Loading...</div>
-          ) : items.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>No attachments.</div>
-          ) : items.map((item) => (
+          ) : displayItems.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>
+              {showTrash ? 'Trash is empty.' : 'No attachments.'}
+            </div>
+          ) : displayItems.map((item) => (
             <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 6px', borderBottom: '1px solid var(--border-subtle)', fontSize: 13 }}>
-              <Paperclip size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+              {showTrash ? <Trash2 size={14} style={{ color: '#e74c3c', flexShrink: 0 }} /> : <Paperclip size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.fileName}</div>
+                <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: showTrash ? 'line-through' : 'none', opacity: showTrash ? 0.5 : 1 }}>{item.fileName}</div>
                 <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
                   {formatSize(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
                 </div>
               </div>
-              <button onClick={() => handleRename(item)} style={miniBtn} title="Rename"><Edit2 size={12} /></button>
-              <button onClick={() => handleDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Delete"><TrashIcon size={12} /></button>
+              {showTrash ? (
+                <>
+                  <button onClick={() => handleRestore(item)} style={miniBtn} title="Restore"><RotateCw size={12} /></button>
+                  <button onClick={() => handlePermanentDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Permanently delete"><Trash2 size={12} /></button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => handleRename(item)} style={miniBtn} title="Rename"><Edit2 size={12} /></button>
+                  <button onClick={() => handleDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title="Delete"><Trash2 size={12} /></button>
+                </>
+              )}
             </div>
           ))}
         </div>
