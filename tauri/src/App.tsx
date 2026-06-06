@@ -26,6 +26,7 @@ import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage'
 import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
 import { PluginDashboardPage } from '@/pages/ai/PluginDashboardPage';
 import { LlmChatPage } from '@/pages/ai/LlmChatPage';
+import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
 import { SyncPage } from '@/pages/sync/SyncPage';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -220,6 +221,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <PluginDashboardPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/settings/llm"
+        element={
+          <AuthGuard>
+            <LlmConfigPage />
           </AuthGuard>
         }
       />

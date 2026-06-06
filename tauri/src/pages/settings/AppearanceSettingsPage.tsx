@@ -81,13 +81,13 @@ export function AppearanceSettingsPage() {
 
         {/* Accent color */}
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Accent Color</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t("settings:accent_color")}</h3>
           <div style={{ display: 'flex', gap: 12 }}>
             {ACCENT_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => handleAccentChange(opt.value)}
-                title={opt.label}
+                title={t(`settings:accent_${opt.value}`)}
                 style={{
                   width: 36, height: 36, borderRadius: 10, border: '2px solid',
                   borderColor: settings.accentColor === opt.value ? 'var(--accent-primary)' : 'var(--border-subtle)',

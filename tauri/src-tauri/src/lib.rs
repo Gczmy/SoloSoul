@@ -105,6 +105,9 @@ pub fn run() {
             // Settings / user_data commands
             commands::settings::user_data_get_preferences,
             commands::settings::user_data_update_preference,
+            // LLM commands
+            commands::llm::llm_get_config,
+            commands::llm::llm_update_config,
             // Sync commands
             commands::sync::sync_discover,
             commands::sync::sync_get_status,
