@@ -42,9 +42,7 @@ function AppRoutes() {
   const navigate = useNavigate();
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
 
-  // Load UI preferences on mount (Tauri IPC is ready here, unlike main.tsx)
   useEffect(() => {
-    useSettingsStore.getState().loadUiPreferences();
     checkHasAccount();
   }, []);
 
