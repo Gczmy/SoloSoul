@@ -1,6 +1,8 @@
 use crate::state::AppState;
+use serde::Serialize;
 use std::fs::{self as fs_std, File};
 use std::io::{Read, Write};
+use std::path::Path;
 use tauri::State;
 
 /// Encrypt a file using chunked AES-256-GCM (SOLO blob v3)
@@ -168,4 +170,46 @@ pub async fn inspect_backup(
         obj_count,
         type_ids
     ))
+}
+
+// ── Directory scanning for local import ────────────────────
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ScannedFile {
+    pub path: String,
+    pub name: String,
+    pub size: u64,
+    pub ext: String,
+}
+
+#[tauri::command]
+pub async fn fs_scan_directory(path: String) -> Result<Vec<ScannedFile>, String> {
+    let dir = Path::new(&path);
+    if !dir.is_dir() {
+        return Err("Not a directory".to_string());
+    }
+    let mut files = Vec::new();
+    scan_dir_recursive(dir, &mut files, 3)?; // max depth 3
+    Ok(files)
+}
+
+fn scan_dir_recursive(dir: &Path, files: &mut Vec<ScannedFile>, max_depth: u32) -> Result<(), String> {
+    if max_depth == 0 { return Ok(()); }
+    let entries = fs_std::read_dir(dir).map_err(|e| e.to_string())?;
+    for entry in entries {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if path.is_dir() {
+            scan_dir_recursive(&path, files, max_depth - 1)?;
+        } else if path.is_file() {
+            let metadata = fs_std::metadata(&path).map_err(|e| e.to_string())?;
+            files.push(ScannedFile {
+                path: path.to_string_lossy().to_string(),
+                name: path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default(),
+                size: metadata.len(),
+                ext: path.extension().map(|e| e.to_string_lossy().to_string()).unwrap_or_default(),
+            });
+        }
+    }
+    Ok(())
 }

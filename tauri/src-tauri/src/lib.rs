@@ -89,6 +89,7 @@ pub fn run() {
             commands::fs::create_zip_package,
             commands::fs::extract_zip_package,
             commands::fs::inspect_backup,
+            commands::fs::fs_scan_directory,
             // Discovery commands
             commands::discovery::mdns_discover,
             // System commands

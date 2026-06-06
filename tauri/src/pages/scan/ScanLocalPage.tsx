@@ -1,0 +1,167 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
+import { open } from '@tauri-apps/plugin-dialog';
+import { AppShell } from '@/components/layout/AppShell';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { useAuthStore } from '@/stores/authStore';
+import { useObjectStore } from '@/stores/objectStore';
+import { useToastError } from '@/hooks/useToastError';
+import { FolderOpen, FileText, Upload, Search } from 'lucide-react';
+
+interface ScannedFile {
+  path: string;
+  name: string;
+  size: number;
+  ext: string;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+const SUPPORTED_EXTS = new Set([
+  'pdf', 'txt', 'md', 'json', 'csv', 'xml',
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp',
+  'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+]);
+
+export function ScanLocalPage() {
+  const navigate = useNavigate();
+  const { t } = useTranslation(['settings', 'common']);
+  const accountId = useAuthStore((s) => s.currentAccount?.id);
+  const { createObject } = useObjectStore();
+  const { onError, onSuccess } = useToastError();
+
+  const [files, setFiles] = useState<ScannedFile[]>([]);
+  const [isScanning, setIsScanning] = useState(false);
+  const [selectedDir, setSelectedDir] = useState('');
+  const [importing, setImporting] = useState<Set<string>>(new Set());
+
+  const handleSelectDir = async () => {
+    try {
+      const dir = await open({ directory: true, multiple: false, title: 'Select directory to scan' });
+      if (dir && typeof dir === 'string') {
+        setSelectedDir(dir);
+        setIsScanning(true);
+        const result = await invoke<ScannedFile[]>('fs_scan_directory', { path: dir });
+        setFiles(result.filter((f) => SUPPORTED_EXTS.has(f.ext.toLowerCase())));
+      }
+    } catch (e) {
+      onError(e, 'Failed to scan directory');
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleImport = async (file: ScannedFile) => {
+    if (!accountId) return;
+    setImporting((prev) => new Set(prev).add(file.path));
+    try {
+      await createObject({
+        accountId,
+        name: file.name,
+        collectionType: 'document',
+        properties: {
+          sourcePath: file.path,
+          fileSize: file.size,
+          fileExt: file.ext,
+          importedAt: new Date().toISOString(),
+        },
+      });
+      onSuccess(`Imported: ${file.name}`);
+    } catch (e) {
+      onError(e, `Failed to import: ${file.name}`);
+    } finally {
+      setImporting((prev) => {
+        const next = new Set(prev);
+        next.delete(file.path);
+        return next;
+      });
+    }
+  };
+
+  const handleImportAll = async () => {
+    for (const file of files) {
+      await handleImport(file);
+    }
+  };
+
+  return (
+    <AppShell
+      title={t('settings:local_import', { defaultValue: 'Local Import' })}
+      onBack={() => navigate(-1)}
+    >
+      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Directory picker */}
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(91,124,153,0.1)',
+            }}>
+              <FolderOpen size={22} style={{ color: 'var(--accent-primary)' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>Select Directory</div>
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                {selectedDir || 'Choose a folder to scan for documents'}
+              </div>
+            </div>
+            <Button onClick={handleSelectDir} loading={isScanning}>
+              <Search size={14} style={{ marginRight: 4 }} /> Scan
+            </Button>
+          </div>
+        </Card>
+
+        {/* File list */}
+        {files.length > 0 && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                {files.length} file(s) found
+              </span>
+              <Button size="sm" variant="secondary" onClick={handleImportAll}>
+                <Upload size={14} style={{ marginRight: 4 }} /> Import All
+              </Button>
+            </div>
+            {files.map((file) => (
+              <Card key={file.path}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <FileText size={20} style={{ color: 'var(--text-tertiary)' }} />
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 500 }}>{file.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                        {file.ext.toUpperCase()} · {formatFileSize(file.size)}
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => handleImport(file)}
+                    loading={importing.has(file.path)}
+                  >
+                    Import
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </>
+        )}
+
+        {!isScanning && files.length === 0 && selectedDir && (
+          <Card>
+            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 24, fontSize: 14 }}>
+              No supported files found in this directory.
+            </p>
+          </Card>
+        )}
+      </div>
+    </AppShell>
+  );
+}
