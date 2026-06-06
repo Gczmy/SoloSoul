@@ -53,7 +53,7 @@ impl DbPool {
 
 ```rust
 // src-tauri/src/db/migrations.rs
-pub const CURRENT_SCHEMA_VERSION: i32 = 6;
+pub const CURRENT_SCHEMA_VERSION: i32 = 7;
 
 pub fn run_migrations(conn: &Connection) -> Result<()> {
     let user_version: i32 = conn.query_row(
@@ -102,13 +102,46 @@ CREATE TABLE IF NOT EXISTS unified_objects (
 );
 
 -- attachments: 附件
+-- 附件独立管理，无快照/历史记录功能
+-- 详见文档 25_对象规范.md §6
 CREATE TABLE IF NOT EXISTS attachments (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL,
-    file_name TEXT NOT NULL, file_path TEXT NOT NULL,
+    object_id TEXT NOT NULL,     -- 关联对象 ID
+    file_name TEXT NOT NULL,     -- 原文件名（展示用）
+    file_path TEXT NOT NULL,     -- 存储路径（UUID 文件名）
     file_size INTEGER, mime_type TEXT,
-    section_type TEXT, object_id TEXT,
-    created_at TEXT
+    created_at TEXT,
+    FOREIGN KEY (object_id) REFERENCES unified_objects(id)
+);
+
+-- object_snapshots: 对象历史记录快照
+-- 每次对象数据变更自动创建，记录完整加密数据快照
+-- 详见文档 25_对象规范.md §5
+CREATE TABLE IF NOT EXISTS object_snapshots (
+    id TEXT PRIMARY KEY,
+    object_id TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,      -- Unix timestamp (ms)
+    triggered_by TEXT NOT NULL,      -- user_edit / template_update / import / sync / rollback
+    data BLOB NOT NULL,              -- 加密快照数据（完整对象属性数据）
+    diff_summary TEXT,               -- 差异摘要（用户可见）
+    FOREIGN KEY (object_id) REFERENCES unified_objects(id)
+);
+
+CREATE INDEX idx_snapshots_object ON object_snapshots(object_id, timestamp DESC);
+
+-- user_templates: 用户自定义模板
+-- 系统模板硬编码，不存数据库；用户模板可编辑/删除
+-- 详见文档 25_对象规范.md §3
+CREATE TABLE IF NOT EXISTS user_templates (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    icon_id TEXT,                    -- CUSTOM_ICON_MAP 中的图标 ID
+    properties_json TEXT NOT NULL,   -- PropertyDefinition[] 序列化
+    created_at TEXT,
+    updated_at TEXT,
+    FOREIGN KEY (account_id) REFERENCES profiles(account_id)
 );
 ```
 

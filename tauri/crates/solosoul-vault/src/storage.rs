@@ -92,6 +92,7 @@ impl VaultStore {
                 sensitivity_level TEXT NOT NULL DEFAULT 'internal',
                 is_deleted INTEGER NOT NULL DEFAULT 0,
                 deleted_at TEXT,
+                tags_json TEXT NOT NULL DEFAULT '[]',
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 version INTEGER DEFAULT 1
@@ -278,23 +279,25 @@ impl VaultStore {
             .as_ref()
             .map(|v| serde_json::to_string(v).unwrap_or_default())
             .unwrap_or_default();
+        let tags_str = serde_json::to_string(&obj.tags_json).unwrap_or_default();
         conn.execute(
             "INSERT INTO objects (id, account_id, type_id, name, icon_name, parent_id,
              children_ids, properties, property_labels, sensitivity_level,
-             is_deleted, deleted_at, created_at, updated_at, version)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)
+             is_deleted, deleted_at, tags_json, created_at, updated_at, version)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16)
              ON CONFLICT(id) DO UPDATE SET
                type_id=excluded.type_id, name=excluded.name, icon_name=excluded.icon_name,
                parent_id=excluded.parent_id, children_ids=excluded.children_ids,
                properties=excluded.properties, property_labels=excluded.property_labels,
                sensitivity_level=excluded.sensitivity_level,
                is_deleted=excluded.is_deleted, deleted_at=excluded.deleted_at,
+               tags_json=excluded.tags_json,
                updated_at=excluded.updated_at, version=excluded.version",
             params![
                 obj.id, obj.account_id, obj.type_id, obj.name, obj.icon_name,
                 obj.parent_id, children_json, props_json, labels_json,
                 obj.sensitivity_level, obj.is_deleted as i32, obj.deleted_at,
-                obj.created_at, obj.updated_at, obj.version,
+                tags_str, obj.created_at, obj.updated_at, obj.version,
             ],
         )
         .map_err(|e| format!("save_object: {}", e))?;
@@ -308,7 +311,7 @@ impl VaultStore {
             .prepare(
                 "SELECT id, account_id, type_id, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
-                 is_deleted, deleted_at, created_at, updated_at, version
+                 is_deleted, deleted_at, tags_json, created_at, updated_at, version
                  FROM objects WHERE id = ?1",
             )
             .map_err(|e| format!("load_object: {}", e))?;
@@ -316,6 +319,7 @@ impl VaultStore {
             let children_str: String = row.get(6)?;
             let props_str: String = row.get(7)?;
             let labels_str: String = row.get(8)?;
+            let tags_str: String = row.get(11)?;
             let deleted: i32 = row.get(10)?;
             Ok(ObjectRecord {
                 id: row.get(0)?,
@@ -333,10 +337,11 @@ impl VaultStore {
                 },
                 sensitivity_level: row.get(9)?,
                 is_deleted: deleted != 0,
-                deleted_at: row.get(11)?,
-                created_at: row.get(12)?,
-                updated_at: row.get(13)?,
-                version: row.get(14)?,
+                deleted_at: row.get(11)?, // note: deleted_at col index changed due to tags_json insert
+                tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
+                created_at: row.get(13)?,
+                updated_at: row.get(14)?,
+                version: row.get(15)?,
             })
         }).ok();
         Ok(result)
@@ -456,7 +461,7 @@ impl VaultStore {
             .prepare(
                 "SELECT id, account_id, type_id, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
-                 is_deleted, deleted_at, created_at, updated_at, version
+                 is_deleted, deleted_at, tags_json, created_at, updated_at, version
                  FROM objects
                  WHERE account_id = ?1 AND is_deleted = 0
                    AND (name LIKE ?2 OR properties LIKE ?2)
@@ -468,6 +473,7 @@ impl VaultStore {
                 let children_str: String = row.get(6)?;
                 let props_str: String = row.get(7)?;
                 let labels_str: String = row.get(8)?;
+                let tags_str: String = row.get(11)?;
                 let deleted: i32 = row.get(10)?;
                 Ok(ObjectRecord {
                     id: row.get(0)?,
@@ -485,10 +491,11 @@ impl VaultStore {
                     },
                     sensitivity_level: row.get(9)?,
                     is_deleted: deleted != 0,
-                    deleted_at: row.get(11)?,
-                    created_at: row.get(12)?,
-                    updated_at: row.get(13)?,
-                    version: row.get(14)?,
+                    deleted_at: row.get(12)?,
+                    tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
+                    created_at: row.get(13)?,
+                    updated_at: row.get(14)?,
+                    version: row.get(15)?,
                 })
             })
             .map_err(|e| format!("search_objects query: {}", e))?

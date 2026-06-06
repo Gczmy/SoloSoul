@@ -108,6 +108,7 @@ pub struct ObjectRecord {
     pub is_deleted: bool,
     #[serde(rename = "deletedAt")]
     pub deleted_at: Option<String>,
+    pub tags_json: Vec<String>,
     pub created_at: String,
     pub updated_at: String,
     pub version: u32,
