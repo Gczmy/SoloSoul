@@ -51,6 +51,8 @@ pub fn run() {
             commands::object::trash_restore,
             commands::object::snapshot_list,
             commands::object::snapshot_rollback,
+            commands::template::template_save_from_object,
+            commands::template::template_list,
             // Sensitivity commands
             commands::sensitivity::sensitivity_get_field,
             commands::sensitivity::sensitivity_get_map,

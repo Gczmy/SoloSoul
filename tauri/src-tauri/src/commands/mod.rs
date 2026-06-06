@@ -15,5 +15,6 @@ pub mod search;
 pub mod sensitivity;
 pub mod settings;
 pub mod sync;
+pub mod template;
 pub mod system;
 pub mod vault;
