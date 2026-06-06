@@ -60,8 +60,10 @@ pub async fn list_accounts(state: State<'_, AppState>) -> Result<Vec<serde_json:
 pub async fn vault_update_hint(
     state: State<'_, AppState>,
     account_id: String,
+    password: String,
     hint: String,
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
+    svc.unlock(&account_id, &password)?;
     svc.update_password_hint(&account_id, &hint)
 }

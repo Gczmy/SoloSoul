@@ -55,12 +55,17 @@ export function SecuritySettingsPage() {
           newPassword: newPw,
         });
         if (hint.trim()) {
-          await invoke('vault_update_hint', { accountId: currentAccount?.id || '', hint: hint.trim() });
+          await invoke('vault_update_hint', { accountId: currentAccount?.id || '', password: oldPw, hint: hint.trim() });
         }
         onSuccess(t('settings:password_updated'));
       } else {
-        // 10.3 — 仅修改密码提示
-        await invoke('vault_update_hint', { accountId: currentAccount?.id || '', hint: hint.trim() });
+        // 10.3 — 仅修改密码提示（需要验证当前密码）
+        if (!oldPw.trim()) {
+          setError(t('common:password_required'));
+          setLoading(false);
+          return;
+        }
+        await invoke('vault_update_hint', { accountId: currentAccount?.id || '', password: oldPw, hint: hint.trim() });
         onSuccess(t('settings:hint_updated'));
       }
 
