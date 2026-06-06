@@ -48,6 +48,8 @@ function AppRoutes() {
     if (isAuthenticated && account) {
       useProfileStore.getState().loadProfile(account.id);
       useSettingsStore.getState().loadSettings(account.id);
+      // P0-1: Load custom pages from objects table (separate from profile preferences)
+      useSettingsStore.getState().loadCustomPages(account.id);
     }
   }, [isAuthenticated]);
 

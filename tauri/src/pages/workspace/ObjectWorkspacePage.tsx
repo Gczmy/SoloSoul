@@ -1,44 +1,68 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/stores/authStore';
-import { useObjectStore, ObjectSummary } from '@/stores/objectStore';
-import { IdCard, Plane, Banknote, Briefcase, FileText } from 'lucide-react';
+import { useObjectStore } from '@/stores/objectStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
+// Category tabs — each maps to a section-based workspace filter
+// Icons sourced from PAGE_ICON_MAP — §7.4 Single Source of Truth
 const categories = [
-  { type: 'identity', label: 'Identity', icon: IdCard },
-  { type: 'travel', label: 'Travel', icon: Plane },
-  { type: 'financial', label: 'Financial', icon: Banknote },
-  { type: 'professional', label: 'Professional', icon: Briefcase },
+  { type: 'identity', label: 'Identity', icon: PAGE_ICON_MAP.profile },
+  { type: 'travel', label: 'Travel', icon: PAGE_ICON_MAP.travel },
+  { type: 'financial', label: 'Financial', icon: PAGE_ICON_MAP.financial },
+  { type: 'professional', label: 'Professional', icon: PAGE_ICON_MAP.professional },
 ];
 
 export function ObjectWorkspacePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { pageId } = useParams(); // from /workspace/custom/:pageId
   const sectionFilter = searchParams.get('section') || '';
   const [searchQuery, setSearchQuery] = useState('');
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { objects, loadObjects, isLoading, error } = useObjectStore();
+  const customPages = useSettingsStore((s) => s.settings.customPages);
+
+  // Find custom page name for title
+  const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
 
   useEffect(() => {
     if (accountId) {
-      loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
+      // Custom pages filter by parentId; section pages filter by collectionType
+      if (pageId) {
+        loadObjects(accountId, { parentId: pageId });
+      } else {
+        loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
+      }
     }
-  }, [accountId, sectionFilter]);
+  }, [accountId, sectionFilter, pageId]);
 
-  const filtered = objects.filter((obj) =>
-    (obj.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Filter out page-type objects and apply local search
+  const visibleObjects = objects.filter(
+    (obj) =>
+      obj.collectionType !== 'page' &&
+      obj.collectionType !== 'unknown' &&
+      obj.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const activeCategory = categories.find((c) => c.type === sectionFilter);
+
+  // Build editor URL: pass section for section pages, parentId for custom pages
+  const newObjectUrl = pageId
+    ? `/editor?parentId=${pageId}`
+    : `/editor${sectionFilter ? `?section=${sectionFilter}` : ''}`;
 
   return (
     <AppShell
-      title={sectionFilter ? `${categories.find(c => c.type === sectionFilter)?.label || 'Objects'}` : 'Objects'}
+      title={customPage?.name || activeCategory?.label || 'Objects'}
       actions={
         <button
-          onClick={() => navigate('/editor')}
+          onClick={() => navigate(newObjectUrl)}
           style={{
             padding: '8px 16px', borderRadius: 8, border: 'none',
             background: 'var(--accent-primary)', color: 'white',
@@ -50,35 +74,37 @@ export function ObjectWorkspacePage() {
       }
     >
       <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Category tabs */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {categories.map((cat) => (
-            <button
-              key={cat.type}
-              onClick={() => navigate(`/workspace?section=${cat.type}`)}
-              style={{
-                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
-                background: sectionFilter === cat.type ? 'var(--accent-primary)' : 'transparent',
-                color: sectionFilter === cat.type ? 'white' : 'var(--text-primary)',
-                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-              }}
-            >
-              <span><cat.icon size={16} /></span> {cat.label}
-            </button>
-          ))}
-          {sectionFilter && (
-            <button
-              onClick={() => navigate('/workspace')}
-              style={{
-                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
-                background: 'transparent', color: 'var(--text-tertiary)',
-                fontSize: 13, cursor: 'pointer',
-              }}
-            >
-              Clear
-            </button>
-          )}
-        </div>
+        {/* Category tabs — only show on section pages, not custom pages */}
+        {!pageId && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {categories.map((cat) => (
+              <button
+                key={cat.type}
+                onClick={() => navigate(`/workspace?section=${cat.type}`)}
+                style={{
+                  padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
+                  background: sectionFilter === cat.type ? 'var(--accent-primary)' : 'transparent',
+                  color: sectionFilter === cat.type ? 'white' : 'var(--text-primary)',
+                  fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                }}
+              >
+                <span><cat.icon size={16} /></span> {cat.label}
+              </button>
+            ))}
+            {sectionFilter && (
+              <button
+                onClick={() => navigate('/workspace')}
+                style={{
+                  padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
+                  background: 'transparent', color: 'var(--text-tertiary)',
+                  fontSize: 13, cursor: 'pointer',
+                }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        )}
 
         <Input
           placeholder="Search objects..."
@@ -98,22 +124,31 @@ export function ObjectWorkspacePage() {
               {error}
             </p>
           </Card>
-        ) : filtered.length === 0 ? (
+        ) : visibleObjects.length === 0 ? (
           <Card>
-            <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '24px 0' }}>
+            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '24px 0', fontSize: 14 }}>
               {searchQuery ? 'No matching objects' : 'No objects yet'}
             </p>
           </Card>
         ) : (
-          filtered.map((obj) => (
+          visibleObjects.map((obj) => (
             <Card
               key={obj.id}
               interactive
               onClick={() => navigate(`/editor/${obj.id}`)}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span><FileText size={24} /></span>
-                <span style={{ fontSize: 14, fontWeight: 500 }}>{obj.name}</span>
+                <span><PAGE_ICON_MAP.custom size={24} /></span>
+                <div>
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>{obj.name}</span>
+                  <span style={{
+                    fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 8,
+                    padding: '1px 6px', borderRadius: 4,
+                    background: 'var(--bg-elevated)',
+                  }}>
+                    {obj.collectionType}
+                  </span>
+                </div>
               </div>
             </Card>
           ))

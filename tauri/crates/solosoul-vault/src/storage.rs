@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use crate::migration::run_migrations;
-use crate::{Profile, ProfileSummary, VaultConfig, VaultState, VaultStats};
+use crate::{ObjectRecord, ObjectSummary, Profile, ProfileSummary, VaultConfig, VaultState, VaultStats};
 
 /// Vault store with SQLite backing
 pub struct VaultStore {
@@ -78,6 +78,28 @@ impl VaultStore {
                 applied_at INTEGER NOT NULL,
                 description TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS objects (
+                id TEXT PRIMARY KEY,
+                account_id TEXT NOT NULL,
+                type_id TEXT NOT NULL DEFAULT 'note',
+                name TEXT NOT NULL,
+                icon_name TEXT NOT NULL DEFAULT 'document',
+                parent_id TEXT,
+                children_ids TEXT NOT NULL DEFAULT '[]',
+                properties TEXT NOT NULL DEFAULT '{}',
+                property_labels TEXT DEFAULT '{}',
+                sensitivity_level TEXT NOT NULL DEFAULT 'internal',
+                is_deleted INTEGER NOT NULL DEFAULT 0,
+                deleted_at TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                version INTEGER DEFAULT 1
+            );
+            CREATE INDEX IF NOT EXISTS idx_objects_account ON objects(account_id);
+            CREATE INDEX IF NOT EXISTS idx_objects_parent ON objects(parent_id);
+            CREATE INDEX IF NOT EXISTS idx_objects_type ON objects(type_id);
+            CREATE INDEX IF NOT EXISTS idx_objects_deleted ON objects(is_deleted);
             "#,
         )
         .map_err(|e| format!("Failed to init schema: {}", e))?;
@@ -225,6 +247,235 @@ impl VaultStore {
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| format!("Failed to collect: {}", e))?;
         Ok(profiles)
+    }
+
+    // ── Object CRUD ─────────────────────────────────────────
+
+    pub fn save_object(&self, obj: &ObjectRecord) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let children_json = serde_json::to_string(&obj.children_ids).unwrap_or_default();
+        let props_json = serde_json::to_string(&obj.properties).unwrap_or_default();
+        let labels_json = obj
+            .property_labels
+            .as_ref()
+            .map(|v| serde_json::to_string(v).unwrap_or_default())
+            .unwrap_or_default();
+        conn.execute(
+            "INSERT INTO objects (id, account_id, type_id, name, icon_name, parent_id,
+             children_ids, properties, property_labels, sensitivity_level,
+             is_deleted, deleted_at, created_at, updated_at, version)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15)
+             ON CONFLICT(id) DO UPDATE SET
+               type_id=excluded.type_id, name=excluded.name, icon_name=excluded.icon_name,
+               parent_id=excluded.parent_id, children_ids=excluded.children_ids,
+               properties=excluded.properties, property_labels=excluded.property_labels,
+               sensitivity_level=excluded.sensitivity_level,
+               is_deleted=excluded.is_deleted, deleted_at=excluded.deleted_at,
+               updated_at=excluded.updated_at, version=excluded.version",
+            params![
+                obj.id, obj.account_id, obj.type_id, obj.name, obj.icon_name,
+                obj.parent_id, children_json, props_json, labels_json,
+                obj.sensitivity_level, obj.is_deleted as i32, obj.deleted_at,
+                obj.created_at, obj.updated_at, obj.version,
+            ],
+        )
+        .map_err(|e| format!("save_object: {}", e))?;
+        Ok(())
+    }
+
+    pub fn load_object(&self, id: &str) -> Result<Option<ObjectRecord>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, account_id, type_id, name, icon_name, parent_id,
+                 children_ids, properties, property_labels, sensitivity_level,
+                 is_deleted, deleted_at, created_at, updated_at, version
+                 FROM objects WHERE id = ?1",
+            )
+            .map_err(|e| format!("load_object: {}", e))?;
+        let result = stmt.query_row(params![id], |row| {
+            let children_str: String = row.get(6)?;
+            let props_str: String = row.get(7)?;
+            let labels_str: String = row.get(8)?;
+            let deleted: i32 = row.get(10)?;
+            Ok(ObjectRecord {
+                id: row.get(0)?,
+                account_id: row.get(1)?,
+                type_id: row.get(2)?,
+                name: row.get(3)?,
+                icon_name: row.get(4)?,
+                parent_id: row.get(5)?,
+                children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
+                properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
+                property_labels: if labels_str.is_empty() {
+                    None
+                } else {
+                    serde_json::from_str(&labels_str).ok()
+                },
+                sensitivity_level: row.get(9)?,
+                is_deleted: deleted != 0,
+                deleted_at: row.get(11)?,
+                created_at: row.get(12)?,
+                updated_at: row.get(13)?,
+                version: row.get(14)?,
+            })
+        }).ok();
+        Ok(result)
+    }
+
+    pub fn list_objects(
+        &self,
+        account_id: &str,
+        type_id: Option<&str>,
+        parent_id: Option<&str>,
+        keyword: Option<&str>,
+        include_deleted: bool,
+        only_deleted: bool,
+    ) -> Result<Vec<ObjectSummary>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+
+        let mut sql = String::from(
+            "SELECT id, name, type_id, sensitivity_level, created_at, updated_at, is_deleted
+             FROM objects WHERE account_id = ?1",
+        );
+        let mut param_idx = 2;
+        let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> = vec![Box::new(account_id.to_string())];
+
+        if only_deleted {
+            sql.push_str(" AND is_deleted = 1");
+        } else if !include_deleted {
+            sql.push_str(" AND is_deleted = 0");
+        }
+
+        if let Some(tid) = type_id {
+            sql.push_str(&format!(" AND type_id = ?{}", param_idx));
+            param_values.push(Box::new(tid.to_string()));
+            param_idx += 1;
+        }
+
+        if let Some(pid) = parent_id {
+            sql.push_str(&format!(" AND parent_id = ?{}", param_idx));
+            param_values.push(Box::new(pid.to_string()));
+            param_idx += 1;
+        }
+
+        if let Some(kw) = keyword {
+            let like = format!("%{}%", kw);
+            sql.push_str(&format!(
+                " AND (name LIKE ?{} OR properties LIKE ?{})",
+                param_idx,
+                param_idx + 1,
+            ));
+            param_values.push(Box::new(like.clone()));
+            param_values.push(Box::new(like));
+        }
+
+        sql.push_str(" ORDER BY updated_at DESC");
+
+        let mut stmt = conn.prepare(&sql).map_err(|e| format!("list_objects: {}", e))?;
+
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> = param_values.iter().map(|p| p.as_ref()).collect();
+
+        let objects = stmt
+            .query_map(params_refs.as_slice(), |row| {
+                let deleted_int: i32 = row.get(6)?;
+                Ok(ObjectSummary {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    collection_type: row.get(2)?,
+                    sensitivity_level: row.get(3)?,
+                    created_at: row.get(4)?,
+                    updated_at: row.get(5)?,
+                    is_deleted: deleted_int != 0,
+                })
+            })
+            .map_err(|e| format!("list_objects query: {}", e))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("list_objects collect: {}", e))?;
+        Ok(objects)
+    }
+
+    pub fn delete_object(&self, id: &str, soft: bool) -> Result<(), String> {
+        if soft {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            let now = chrono::Utc::now().to_rfc3339();
+            conn.execute(
+                "UPDATE objects SET is_deleted = 1, deleted_at = ?1, updated_at = ?1 WHERE id = ?2",
+                params![now, id],
+            )
+            .map_err(|e| format!("soft_delete_object: {}", e))?;
+            Ok(())
+        } else {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            conn.execute("DELETE FROM objects WHERE id = ?1", params![id])
+                .map_err(|e| format!("delete_object: {}", e))?;
+            Ok(())
+        }
+    }
+
+    pub fn restore_object(&self, id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "UPDATE objects SET is_deleted = 0, deleted_at = NULL, updated_at = ?1 WHERE id = ?2",
+            params![chrono::Utc::now().to_rfc3339(), id],
+        )
+        .map_err(|e| format!("restore_object: {}", e))?;
+        Ok(())
+    }
+
+    pub fn search_objects(&self, account_id: &str, query: &str) -> Result<Vec<ObjectRecord>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let like = format!("%{}%", query);
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, account_id, type_id, name, icon_name, parent_id,
+                 children_ids, properties, property_labels, sensitivity_level,
+                 is_deleted, deleted_at, created_at, updated_at, version
+                 FROM objects
+                 WHERE account_id = ?1 AND is_deleted = 0
+                   AND (name LIKE ?2 OR properties LIKE ?2)
+                 ORDER BY updated_at DESC",
+            )
+            .map_err(|e| format!("search_objects: {}", e))?;
+        let results = stmt
+            .query_map(params![account_id, like], |row| {
+                let children_str: String = row.get(6)?;
+                let props_str: String = row.get(7)?;
+                let labels_str: String = row.get(8)?;
+                let deleted: i32 = row.get(10)?;
+                Ok(ObjectRecord {
+                    id: row.get(0)?,
+                    account_id: row.get(1)?,
+                    type_id: row.get(2)?,
+                    name: row.get(3)?,
+                    icon_name: row.get(4)?,
+                    parent_id: row.get(5)?,
+                    children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
+                    properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
+                    property_labels: if labels_str.is_empty() {
+                        None
+                    } else {
+                        serde_json::from_str(&labels_str).ok()
+                    },
+                    sensitivity_level: row.get(9)?,
+                    is_deleted: deleted != 0,
+                    deleted_at: row.get(11)?,
+                    created_at: row.get(12)?,
+                    updated_at: row.get(13)?,
+                    version: row.get(14)?,
+                })
+            })
+            .map_err(|e| format!("search_objects query: {}", e))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("search_objects collect: {}", e))?;
+        Ok(results)
     }
 
     // Metadata helpers for encrypted blob storage

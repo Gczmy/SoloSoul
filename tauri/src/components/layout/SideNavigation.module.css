@@ -118,12 +118,8 @@
   color: var(--accent-primary);
 }
 
-/* ── 9.3 — 悬停名称卡片（Warp 风格） ──────────────── */
-.nameCard {
-  position: absolute;
-  left: calc(100% + 8px);
-  top: 50%;
-  transform: translateY(-50%) translateX(-6px);
+/* ── 9.3 — 悬停名称卡片（Portal 到 body，不被 overflow 裁剪） ── */
+.nameCardPortal {
   white-space: nowrap;
   padding: 8px 12px;
   border-radius: 8px;
@@ -136,22 +132,18 @@
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-md);
   pointer-events: none;
-  z-index: 200;
-  opacity: 0;
-  transition:
-    opacity 0.15s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)),
-    transform 0.2s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+  animation: cardSlideIn 0.15s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
 }
 
-.navItemWrapper:hover .nameCard,
-.navItemWrapper:focus-within .nameCard {
-  opacity: 1;
-  transform: translateY(-50%) translateX(0);
-}
-
-.navItemWrapper:not(:hover) .nameCard {
-  transition-delay: 0s;
-  transition-duration: 0.15s, 0.15s;
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
 }
 
 /* ── 9.8 — 自定义页面创建行 ────────────────────────── */

@@ -45,6 +45,9 @@ pub fn run() {
             commands::object::object_create,
             commands::object::object_update,
             commands::object::object_delete,
+            commands::object::object_trash_list,
+            commands::object::object_restore,
+            commands::object::object_purge,
             // Sensitivity commands
             commands::sensitivity::sensitivity_get_field,
             commands::sensitivity::sensitivity_get_map,

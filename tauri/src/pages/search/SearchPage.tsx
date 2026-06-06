@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
-import { FileText } from 'lucide-react';
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
 interface SearchItem {
   objectId: string;
@@ -88,7 +88,7 @@ export function SearchPage() {
                 onClick={() => navigate(`/editor/${item.objectId}`)}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <FileText size={18} />
+                  <PAGE_ICON_MAP.custom size={18} />
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 500 }}>{item.name}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>

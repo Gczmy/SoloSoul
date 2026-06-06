@@ -1,6 +1,8 @@
 use crate::core::sensitivity::{
     SensitivityLevel, SensitivityLogEntry, SensitivityManager, SensitivityMap,
 };
+use crate::state::AppState;
+use solosoul_crypto::kdf::{derive_key, KdfConfig};
 use tauri::State;
 
 #[tauri::command]
@@ -22,6 +24,7 @@ pub async fn sensitivity_get_map(
 
 #[tauri::command]
 pub async fn sensitivity_update_field(
+    app: State<'_, AppState>,
     manager: State<'_, SensitivityManager>,
     field_id: String,
     new_level: String,
@@ -38,19 +41,70 @@ pub async fn sensitivity_update_field(
     let mut map = manager.map.write().await;
     let old = map.get(&field_id);
 
-    // Downgrade protection: downgrading requires password (already provided)
-    // Upgrade is always allowed
+    // Downgrade protection: downgrading requires vault password verification
     if (level as i32) < (old as i32) {
-        // Only debug-level password check; real impl would verify against vault
-        if password != "debug" {
-            return Err("Invalid password".to_string());
-        }
+        verify_vault_password(&app, &password)?;
     }
 
     map.set(&field_id, level);
     let mut log = manager.log.write().await;
     log.push(&field_id, old, level, reason.unwrap_or_default());
     Ok(())
+}
+
+/// Verify the given password against stored account credentials.
+/// Uses the same Argon2id derivation as vault unlock.
+fn verify_vault_password(app: &AppState, password: &str) -> Result<(), String> {
+    let svc = app.vault_service.blocking_read();
+    let accounts = svc.list_accounts();
+
+    if accounts.is_empty() {
+        return Err("No accounts configured".to_string());
+    }
+
+    let main_config = KdfConfig::balanced();
+
+    for account in &accounts {
+        let stored_salt = account["salt"].as_str().unwrap_or("");
+        let stored_hash = account["verifyHash"].as_str().unwrap_or("");
+
+        // Decode salt from base64
+        let salt_bytes = base64::Engine::decode(
+            &base64::engine::general_purpose::STANDARD,
+            stored_salt,
+        )
+        .map_err(|_| "Invalid salt encoding".to_string())?;
+
+        let salt_arr: [u8; 16] = salt_bytes
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Invalid salt length".to_string())?;
+
+        // Derive master key from password + salt (same as unlock)
+        let master_key = derive_key(password, &salt_arr, &main_config)
+            .map_err(|_| "Key derivation failed".to_string())?;
+
+        // Derive verification sub-key (same as unlock)
+        let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
+        let verify_key = derive_key(
+            &hex::encode(master_key.as_slice()),
+            verify_data,
+            &KdfConfig {
+                memory_kb: 8192,
+                iterations: 1,
+                parallelism: 1,
+            },
+        )
+        .map_err(|_| "Verify key derivation failed".to_string())?;
+
+        let computed_hash = hex::encode(verify_key.as_slice());
+
+        if computed_hash == stored_hash {
+            return Ok(());
+        }
+    }
+
+    Err("Invalid password".to_string())
 }
 
 #[tauri::command]

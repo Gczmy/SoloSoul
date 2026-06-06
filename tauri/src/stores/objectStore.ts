@@ -28,11 +28,15 @@ interface ObjectState {
   isLoading: boolean;
   error: string | null;
 
-  loadObjects: (accountId: string, filter?: { collectionType?: string }) => Promise<void>;
+  loadObjects: (accountId: string, filter?: { collectionType?: string; parentId?: string }) => Promise<void>;
   getObject: (accountId: string, objectId: string) => Promise<void>;
-  createObject: (input: { accountId: string; name: string; collectionType: string; properties: Record<string, unknown> }) => Promise<ObjectData>;
+  createObject: (input: { accountId: string; name: string; collectionType: string; properties: Record<string, unknown>; parentId?: string; iconName?: string }) => Promise<ObjectData>;
   updateObject: (objectId: string, input: { name: string; properties: Record<string, unknown> }) => Promise<void>;
   deleteObject: (objectId: string) => Promise<void>;
+  loadTrashObjects: (accountId: string) => Promise<void>;
+  restoreObject: (objectId: string) => Promise<void>;
+  purgeObject: (objectId: string) => Promise<void>;
+  trashObjects: ObjectSummary[];
   clearOnVaultLock: () => void;
 }
 
@@ -101,5 +105,43 @@ export const useObjectStore = create<ObjectState>((set) => ({
     }
   },
 
-  clearOnVaultLock: () => set({ objects: [], currentObject: null, error: null }),
+  trashObjects: [],
+
+  loadTrashObjects: async (accountId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const items = await invoke<ObjectSummary[]>('object_trash_list', { accountId });
+      set({ trashObjects: items, isLoading: false });
+    } catch (err) {
+      set({ error: String(err), isLoading: false });
+    }
+  },
+
+  restoreObject: async (objectId) => {
+    set({ isLoading: true, error: null });
+    try {
+      await invoke('object_restore', { objectId });
+      set((s) => ({
+        trashObjects: s.trashObjects.filter((o) => o.id !== objectId),
+        isLoading: false,
+      }));
+    } catch (err) {
+      set({ error: String(err), isLoading: false });
+    }
+  },
+
+  purgeObject: async (objectId) => {
+    set({ isLoading: true, error: null });
+    try {
+      await invoke('object_purge', { objectId });
+      set((s) => ({
+        trashObjects: s.trashObjects.filter((o) => o.id !== objectId),
+        isLoading: false,
+      }));
+    } catch (err) {
+      set({ error: String(err), isLoading: false });
+    }
+  },
+
+  clearOnVaultLock: () => set({ objects: [], trashObjects: [], currentObject: null, error: null }),
 }));

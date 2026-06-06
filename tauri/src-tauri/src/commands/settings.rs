@@ -45,13 +45,24 @@ pub async fn user_data_update_preference(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let mut profile = vault
-        .load_profile(&payload.account_id)
-        .map_err(|_| "Profile not found".to_string())?
-        .ok_or("Profile not found".to_string())?;
+    // Load or create profile so preferences can always be saved.
+    // This mirrors user_data_get_preferences which returns an empty map
+    // when the profile doesn't exist — the two must be symmetric.
+    let mut profile = match vault.load_profile(&payload.account_id) {
+        Ok(Some(profile)) => profile,
+        Ok(None) => solosoul_vault::Profile::new_with_id(
+            &payload.account_id,
+            &payload.account_id,
+            Vec::new(),
+        ),
+        Err(e) => return Err(format!("Failed to load profile: {}", e)),
+    };
 
-    let mut data: Value =
-        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse error: {}", e))?;
+    let mut data: Value = if profile.data.is_empty() {
+        Value::Object(serde_json::Map::new())
+    } else {
+        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse error: {}", e))?
+    };
 
     let prefs = data.get_mut("preferences").and_then(|p| p.as_object_mut());
 

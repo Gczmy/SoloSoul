@@ -50,3 +50,67 @@ pub struct VaultStats {
 
 pub use profile::{Profile, ProfileData, ProfileSummary, VersionedProfileData};
 pub use storage::VaultStore;
+
+// =============================================================================
+// Object storage layer — unified object model (P0-1)
+// =============================================================================
+
+/// A single unified object stored in the objects table.
+/// This is the canonical representation of a user-visible "thing" in SoloSoul.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ObjectRecord {
+    pub id: String,
+    pub account_id: String,
+    #[serde(rename = "typeId")]
+    pub type_id: String,
+    pub name: String,
+    #[serde(rename = "iconName")]
+    pub icon_name: String,
+    #[serde(rename = "parentId")]
+    pub parent_id: Option<String>,
+    #[serde(rename = "childrenIds")]
+    pub children_ids: Vec<String>,
+    pub properties: serde_json::Value,
+    #[serde(rename = "propertyLabels")]
+    pub property_labels: Option<serde_json::Value>,
+    #[serde(rename = "sensitivityLevel")]
+    pub sensitivity_level: String,
+    #[serde(rename = "isDeleted")]
+    pub is_deleted: bool,
+    #[serde(rename = "deletedAt")]
+    pub deleted_at: Option<String>,
+    pub created_at: String,
+    pub updated_at: String,
+    pub version: u32,
+}
+
+/// Lightweight summary of an object for listing (no full properties).
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ObjectSummary {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "collectionType")]
+    pub collection_type: String,
+    #[serde(rename = "sensitivityLevel")]
+    pub sensitivity_level: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    #[serde(rename = "updatedAt")]
+    pub updated_at: String,
+    #[serde(rename = "isDeleted")]
+    pub is_deleted: bool,
+}
+
+impl ObjectSummary {
+    pub fn from_record(r: &ObjectRecord) -> Self {
+        Self {
+            id: r.id.clone(),
+            name: r.name.clone(),
+            collection_type: r.type_id.clone(),
+            sensitivity_level: r.sensitivity_level.clone(),
+            created_at: r.created_at.clone(),
+            updated_at: r.updated_at.clone(),
+            is_deleted: r.is_deleted,
+        }
+    }
+}

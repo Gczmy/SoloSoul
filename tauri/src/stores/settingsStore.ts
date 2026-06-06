@@ -1,12 +1,15 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
+import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
 
 // 9.8.3 — Custom page data structure
+// Custom pages are now stored in the objects table (P0-1), not in preferences.
+// iconId references CUSTOM_ICON_MAP from src/lib/pageIcons.ts (Single Source of Truth)
 export interface CustomPage {
   id: string;
   name: string;
-  icon: 'document';
+  iconId: string;
   createdAt: string;
   sortOrder: number;
 }
@@ -30,9 +33,10 @@ interface SettingsState {
   isLoading: boolean;
 
   loadSettings: (accountId: string) => Promise<void>;
+  loadCustomPages: (accountId: string) => Promise<void>;
   updateSetting: (accountId: string, key: keyof AppSettings, value: string | number | boolean) => Promise<void>;
   clearOnVaultLock: () => void;
-  addCustomPage: (accountId: string, name: string) => Promise<CustomPage>;
+  addCustomPage: (accountId: string, name: string, iconId?: string) => Promise<CustomPage>;
   removeCustomPage: (accountId: string, pageId: string) => Promise<void>;
 }
 
@@ -77,10 +81,72 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (typeof prefs.autoLockTimeoutMinutes === 'number') parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
       if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
-      if (Array.isArray(prefs.customPages)) parsed.customPages = prefs.customPages as CustomPage[];
+      // Load old-format customPages from preferences for migration.
+      // Once loaded, also try the new objects-table source via loadCustomPages().
+      if (Array.isArray(prefs.customPages)) {
+        parsed.customPages = prefs.customPages as CustomPage[];
+      }
       set({ settings: parsed, isLoading: false });
     } catch {
       set({ isLoading: false });
+    }
+  },
+
+  /** Load custom pages from the objects table (P0-1 — objects storage layer).
+   *  If the objects table has pages, use those (new format).
+   *  If empty but old-format pages exist in preferences, migrate them automatically. */
+  loadCustomPages: async (accountId) => {
+    try {
+      const objects = await invoke<Array<{ id: string; name: string; collectionType: string; createdAt: string; updatedAt: string }>>(
+        'object_list',
+        { accountId, filter: { collectionType: 'page' } }
+      );
+      if (objects.length > 0) {
+        // New-format pages exist in objects table — use them
+        const pages: CustomPage[] = objects.map((o, i) => ({
+          id: o.id,
+          name: o.name,
+          iconId: DEFAULT_CUSTOM_ICON,
+          createdAt: o.createdAt,
+          sortOrder: i,
+        }));
+        set((s) => ({ settings: { ...s.settings, customPages: pages } }));
+        return;
+      }
+
+      // No pages in objects table — check for old-format pages from preferences
+      const oldPages = get().settings.customPages;
+      if (oldPages.length > 0) {
+        // Migrate each old page into the objects table
+        const migrated: CustomPage[] = [];
+        for (const p of oldPages) {
+          try {
+            await invoke('object_create', {
+              input: {
+                accountId,
+                name: p.name,
+                collectionType: 'page',
+                iconName: p.iconId || DEFAULT_CUSTOM_ICON,
+                properties: {},
+              },
+            });
+            migrated.push(p);
+          } catch {
+            // If migration fails for one, skip it but continue
+          }
+        }
+        if (migrated.length > 0) {
+          set((s) => ({ settings: { ...s.settings, customPages: migrated } }));
+          // Clear old-format pages from preferences
+          try {
+            await invoke('user_data_update_preference', {
+              payload: { accountId, preferences: { customPages: [] } },
+            });
+          } catch { /* silent */ }
+        }
+      }
+    } catch {
+      // objects table might be empty — keep whatever loadSettings found
     }
   },
 
@@ -91,7 +157,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       await invoke('user_data_update_preference', {
         payload: { accountId, preferences: { [key]: value } },
       });
-      // 15.8 — Language switch is instant
       if (key === 'language' && typeof value === 'string') {
         await i18next.changeLanguage(value);
       }
@@ -100,37 +165,45 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
-  addCustomPage: async (accountId, name) => {
-    const pages = [...get().settings.customPages];
+  addCustomPage: async (accountId, name, iconId) => {
+    const prevPages = get().settings.customPages;
+    const id = crypto.randomUUID();
     const newPage: CustomPage = {
-      id: crypto.randomUUID(),
+      id,
       name,
-      icon: 'document',
+      iconId: iconId ?? DEFAULT_CUSTOM_ICON,
       createdAt: new Date().toISOString(),
-      sortOrder: pages.length,
+      sortOrder: prevPages.length,
     };
-    pages.push(newPage);
-    set((s) => ({ settings: { ...s.settings, customPages: pages } }));
+    // Optimistic UI update
+    set((s) => ({ settings: { ...s.settings, customPages: [...prevPages, newPage] } }));
     try {
-      await invoke('user_data_update_preference', {
-        payload: { accountId, preferences: { customPages: pages } },
+      // P0-1: Store in objects table (not preferences JSON)
+      await invoke('object_create', {
+        input: {
+          accountId,
+          name,
+          collectionType: 'page',
+          iconName: iconId ?? DEFAULT_CUSTOM_ICON,
+          properties: {},
+        },
       });
     } catch {
       // Rollback
-      set((s) => ({ settings: { ...s.settings, customPages: get().settings.customPages } }));
+      set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
     }
     return newPage;
   },
 
-  removeCustomPage: async (accountId, pageId) => {
-    const pages = get().settings.customPages.filter((p) => p.id !== pageId);
+  removeCustomPage: async (_accountId, pageId) => {
+    const prevPages = get().settings.customPages;
+    const pages = prevPages.filter((p) => p.id !== pageId);
     set((s) => ({ settings: { ...s.settings, customPages: pages } }));
     try {
-      await invoke('user_data_update_preference', {
-        payload: { accountId, preferences: { customPages: pages } },
-      });
+      // P0-1: Soft-delete from objects table (moves to trash)
+      await invoke('object_delete', { objectId: pageId });
     } catch {
-      set((s) => ({ settings: { ...s.settings, customPages: get().settings.customPages } }));
+      set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
     }
   },
 

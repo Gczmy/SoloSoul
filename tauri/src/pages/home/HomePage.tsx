@@ -2,14 +2,15 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { IdCard, Plane, Banknote, Briefcase } from 'lucide-react';
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import type { ProfileSection } from '@/types';
 
-const sections: { type: ProfileSection; labelKey: string; icon: typeof IdCard; descKey: string }[] = [
-  { type: 'identity', labelKey: 'profile', icon: IdCard, descKey: 'identity_desc' },
-  { type: 'travel', labelKey: 'travel', icon: Plane, descKey: 'travel_desc' },
-  { type: 'financial', labelKey: 'financial', icon: Banknote, descKey: 'financial_desc' },
-  { type: 'professional', labelKey: 'professional', icon: Briefcase, descKey: 'professional_desc' },
+// Icons sourced from PAGE_ICON_MAP — §7.4 Single Source of Truth
+const sections: { type: ProfileSection; labelKey: string; icon: typeof PAGE_ICON_MAP.profile; descKey: string }[] = [
+  { type: 'identity', labelKey: 'profile', icon: PAGE_ICON_MAP.profile, descKey: 'identity_desc' },
+  { type: 'travel', labelKey: 'travel', icon: PAGE_ICON_MAP.travel, descKey: 'travel_desc' },
+  { type: 'financial', labelKey: 'financial', icon: PAGE_ICON_MAP.financial, descKey: 'financial_desc' },
+  { type: 'professional', labelKey: 'professional', icon: PAGE_ICON_MAP.professional, descKey: 'professional_desc' },
 ];
 
 export function HomePage() {
