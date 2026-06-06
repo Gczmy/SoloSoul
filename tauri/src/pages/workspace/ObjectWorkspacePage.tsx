@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { invoke, convertFileSrc } from '@tauri-apps/api/core';
+import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -221,27 +221,31 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
   const { t } = useTranslation(['common', 'editor']);
 
   const openWithDefault = async (path: string) => {
     try {
       const { open } = await import('@tauri-apps/plugin-shell');
       await open(path);
-    } catch {
-      try {
-        await invoke('shell_open', { path });
-      } catch { /* no fallback */ }
-    }
+    } catch { /* silently fail */ }
   };
 
-  const handlePreview = (item: AttachmentItem) => {
-    const isText = item.mimeType.startsWith('text/') || ['json','xml','csv','md','txt'].some(e => item.fileName.endsWith(e));
+  const handlePreview = async (item: AttachmentItem) => {
     const isImage = item.mimeType.startsWith('image/');
     const isPdf = item.mimeType === 'application/pdf';
-    if (isImage || isPdf || isText) {
+    const isText = item.mimeType.startsWith('text/') || ['json','xml','csv','md','txt'].some(e => item.fileName.endsWith(e));
+    if ((isImage || isPdf || isText) && item.srcPath) {
       setPreviewItem(item);
+      setPreviewUrl('');
+      try {
+        const url = await invoke<string>('fs_read_file_as_data_url', { path: item.srcPath });
+        setPreviewUrl(url);
+      } catch {
+        setPreviewUrl('');
+      }
     } else {
-      openWithDefault(item.fileName);
+      openWithDefault(item.srcPath || item.fileName);
     }
   };
 
@@ -394,7 +398,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
             <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
           </div>
           <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
-            <img src={convertFileSrc(previewItem.srcPath || '')} alt={previewItem.fileName} style={{ maxWidth:'90%', maxHeight:'90%', objectFit:'contain', borderRadius:8 }} />
+            {previewUrl ? <img src={previewUrl} alt={previewItem.fileName} style={{ maxWidth:'90%', maxHeight:'90%', objectFit:'contain', borderRadius:8 }} /> : <div style={{ color:'var(--text-tertiary)', padding:24 }}>Loading...</div>}
           </div>
         </div>
       )}
@@ -406,7 +410,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
             <button onClick={() => setPreviewItem(null)} style={{ color:'var(--text-secondary)', background:'transparent', border:'none', cursor:'pointer' }}><X size={18} /></button>
           </div>
           <div style={{ flex:1, padding:24 }}>
-            <iframe src={convertFileSrc(previewItem.srcPath || '')} style={{ width:'100%', height:'100%', border:'none', borderRadius:8, background:'white' }} />
+            {previewUrl ? <iframe src={previewUrl} style={{ width:'100%', height:'100%', border:'none', borderRadius:8, background:'white' }} /> : <div style={{ color:'var(--text-tertiary)', padding:24 }}>Loading...</div>}
           </div>
         </div>
       )}

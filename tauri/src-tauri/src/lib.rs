@@ -99,6 +99,7 @@ pub fn run() {
             commands::fs::inspect_backup,
             commands::fs::fs_scan_directory,
             commands::fs::fs_get_file_size,
+            commands::fs::fs_read_file_as_data_url,
             // Discovery commands
             commands::discovery::mdns_discover,
             // System commands

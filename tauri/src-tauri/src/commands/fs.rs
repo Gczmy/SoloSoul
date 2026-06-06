@@ -219,3 +219,20 @@ pub async fn fs_get_file_size(path: String) -> Result<u64, String> {
     let meta = std::fs::metadata(&path).map_err(|e| format!("Read: {}", e))?;
     Ok(meta.len())
 }
+
+#[tauri::command]
+pub async fn fs_read_file_as_data_url(path: String) -> Result<String, String> {
+    use std::io::Read;
+    let mut file = std::fs::File::open(&path).map_err(|e| format!("Open: {}", e))?;
+    let mut buf = Vec::new();
+    file.read_to_end(&mut buf).map_err(|e| format!("Read: {}", e))?;
+    let ext = std::path::Path::new(&path).extension().and_then(|e| e.to_str()).unwrap_or("");
+    let mime = match ext.to_lowercase().as_str() {
+        "png" => "image/png", "jpg"|"jpeg" => "image/jpeg", "gif" => "image/gif",
+        "webp" => "image/webp", "svg" => "image/svg+xml", "pdf" => "application/pdf",
+        "txt" => "text/plain", "md" => "text/markdown", "json" => "application/json",
+        "xml" => "application/xml", "csv" => "text/csv", _ => "application/octet-stream",
+    };
+    let b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &buf);
+    Ok(format!("data:{};base64,{}", mime, b64))
+}
