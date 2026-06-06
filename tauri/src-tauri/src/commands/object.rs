@@ -165,6 +165,11 @@ pub async fn object_create(
     }
 
     vault.save_object(&record)?;
+    // §25.5 — Initial snapshot on create
+    let snapshot_data = serde_json::to_vec(&serde_json::json!({
+        "name": record.name, "tags": record.tags_json, "properties": record.properties,
+    })).unwrap_or_default();
+    let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "Created");
     let _ = vault.log_action("object_create", &format!("id={} name={} type={}", id, input.name, input.collection_type));
     Ok(record_to_data(&record))
 }
