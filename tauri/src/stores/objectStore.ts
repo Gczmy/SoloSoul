@@ -5,6 +5,7 @@ export interface ObjectSummary {
   id: string;
   name: string;
   collectionType: string;
+  sectionType?: string; // §25.1.3 — page affiliation
   sensitivityLevel: string;
   createdAt: string;
   updatedAt: string;
