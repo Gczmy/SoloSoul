@@ -24,6 +24,9 @@ import { AboutPage } from '@/pages/system/AboutPage';
 import { DebugLogPage } from '@/pages/system/DebugLogPage';
 import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage';
 import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
+import { PluginDashboardPage } from '@/pages/ai/PluginDashboardPage';
+import { LlmChatPage } from '@/pages/ai/LlmChatPage';
+import { SyncPage } from '@/pages/sync/SyncPage';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -207,6 +210,30 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <DebugLogPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/plugins"
+        element={
+          <AuthGuard>
+            <PluginDashboardPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/llm-chat"
+        element={
+          <AuthGuard>
+            <LlmChatPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/sync"
+        element={
+          <AuthGuard>
+            <SyncPage />
           </AuthGuard>
         }
       />
