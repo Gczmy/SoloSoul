@@ -29,6 +29,7 @@ import { LlmChatPage } from '@/pages/ai/LlmChatPage';
 import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
 import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
 import { OcrPage } from '@/pages/scan/OcrPage';
+import { HistoryPage } from '@/pages/editor/HistoryPage';
 import { SyncPage } from '@/pages/sync/SyncPage';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -262,6 +263,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <ScanLocalPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <AuthGuard>
+            <HistoryPage />
           </AuthGuard>
         }
       />
