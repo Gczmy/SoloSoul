@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SoloSoul</title>
+    <script>
+    /* Apply cached UI prefs before React/Vite load. Runs sync from localStorage. */
+    try {
+      var r = localStorage.getItem('solosoul_ui_prefs');
+      if (r) {
+        var p = JSON.parse(r), d = document.documentElement;
+        if (p.theme) d.setAttribute('data-theme', p.theme === 'dark' ? 'dark' : p.theme === 'light' ? 'light' : 'system');
+        var cs = {ocean:'#5B7C99',amber:'#C4925C',forest:'#5B8C6F',rose:'#B06B7A'};
+        if (p.accentColor) d.style.setProperty('--accent-primary', cs[p.accentColor] || '#5B7C99');
+      }
+    } catch(e){}
+    </script>
+    <style>
+      /* Fallback to dark if no cache — prevents white flash. */
+      html:not([data-theme]) { background: #1c1c1e; --bg-base: #1c1c1e; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

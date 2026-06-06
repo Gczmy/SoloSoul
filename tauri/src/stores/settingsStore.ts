@@ -62,8 +62,29 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
   isLoading: false,
 
-  /** Load UI-only prefs from plaintext file — no Vault needed */
+  /** Load UI-only prefs: read localStorage cache sync first (instant),
+   *  then refresh from IPC asynchronously. */
   loadUiPreferences: async () => {
+    // Step 1: apply cached prefs instantly from localStorage
+    try {
+      const raw = localStorage.getItem('solosoul_ui_prefs');
+      if (raw) {
+        const cached = JSON.parse(raw);
+        const p = { ...get().settings };
+        if (cached.theme) p.theme = cached.theme;
+        if (cached.accentColor) p.accentColor = cached.accentColor;
+        applyTheme({
+          preset: p.theme === 'dark' ? 'warm-stone-dark' :
+                  p.theme === 'light' ? 'warm-stone-light' : 'system',
+          accentColor: p.accentColor,
+          backgroundType: 'solid',
+          backgroundValue: '',
+        });
+        set({ settings: p });
+      }
+    } catch {}
+
+    // Step 2: fetch fresh prefs from IPC (slow, async)
     try {
       const prefs = await invoke<{ theme?: string; accentColor?: string; language?: string }>('ui_get_preferences');
       const parsed = { ...get().settings };
@@ -78,14 +99,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         backgroundValue: '',
       });
       set({ settings: parsed });
-      // Cache in localStorage for instant read on next startup
       try { localStorage.setItem('solosoul_ui_prefs', JSON.stringify({ theme: parsed.theme, accentColor: parsed.accentColor })); } catch {}
       if (prefs.language) {
-        import('@/lib/i18n').then((mod) => {
-          mod.default.changeLanguage(prefs.language!);
-        });
+        import('@/lib/i18n').then((mod) => { mod.default.changeLanguage(prefs.language!); });
       }
-    } catch { /* file may not exist yet — use defaults */ }
+    } catch { /* no ui_preferences file yet */ }
   },
 
   loadSettings: async (accountId) => {
