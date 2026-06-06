@@ -110,10 +110,16 @@ CREATE TABLE IF NOT EXISTS attachments (
     object_id TEXT NOT NULL,     -- 关联对象 ID
     file_name TEXT NOT NULL,     -- 原文件名（展示用）
     file_path TEXT NOT NULL,     -- 存储路径（UUID 文件名）
-    file_size INTEGER, mime_type TEXT,
+    file_size INTEGER,           -- 文件大小（字节）
+    mime_type TEXT,              -- MIME 类型，用于预览路由选择
     created_at TEXT,
     FOREIGN KEY (object_id) REFERENCES unified_objects(id)
 );
+
+-- 附件元数据索引（支持按对象/MIME类型/时间范围查询）
+CREATE INDEX idx_attachments_object ON attachments(object_id);
+CREATE INDEX idx_attachments_mime ON attachments(mime_type);
+CREATE INDEX idx_attachments_created ON attachments(created_at);
 
 -- object_snapshots: 对象历史记录快照
 -- 每次对象数据变更自动创建，记录完整加密数据快照
