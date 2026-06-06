@@ -6,13 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
-
-const levelColors: Record<SensitivityLevel, string> = {
-  public: '#27ae60',
-  internal: '#5B7C99',
-  sensitive: '#C4925C',
-  critical: '#e74c3c',
-};
+import { SensitivityBadge, getSensitivityStyle } from '@/components/ui/SensitivityBadge';
 
 export function SensitivitySettingsPage() {
   const navigate = useNavigate();
@@ -51,12 +45,9 @@ export function SensitivitySettingsPage() {
         </p>
 
         {/* Level legend */}
-        <div style={{ display: 'flex', gap: 16, fontSize: 12 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {(['public', 'internal', 'sensitive', 'critical'] as SensitivityLevel[]).map((l) => (
-            <span key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ width: 8, height: 8, borderRadius: 4, background: levelColors[l] }} />
-              {t(`sensitivity:${l}`)}
-            </span>
+            <SensitivityBadge key={l} level={l} />
           ))}
         </div>
 
@@ -69,13 +60,7 @@ export function SensitivitySettingsPage() {
                   <div style={{ fontSize: 13, fontWeight: 500, fontFamily: 'var(--font-mono, monospace)' }}>
                     {fieldId}
                   </div>
-                  <span style={{
-                    fontSize: 11, padding: '2px 8px', borderRadius: 4,
-                    background: `${levelColors[level]}20`,
-                    color: levelColors[level], fontWeight: 600,
-                  }}>
-                    {t(`sensitivity:${level}`)}
-                  </span>
+                  <SensitivityBadge level={level} />
                 </div>
 
                 {editingField === fieldId ? (

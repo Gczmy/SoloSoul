@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore, ObjectData } from '@/stores/objectStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useToastError } from '@/hooks/useToastError';
 
 // Each template belongs to a workspace section.
@@ -74,40 +75,6 @@ const objectTemplates: Record<string, { key: string; label: string; type: string
     { key: 'endDate', label: 'End Date', type: 'date' },
   ],
 };
-
-/** Sensitivity-level badge per §12 敏感度等级系统重构 + §9.4 视觉规范.
- *  public   = hollow ring,  warm green
- *  internal = filled dot,   blue-gray
- *  sensitive = filled dot,  amber
- *  critical = lock icon,    deep red
- */
-const SENSITIVITY_STYLES: Record<SensitivityLevel, { bg: string; fg: string; dot: string }> = {
-  public:    { bg: 'transparent',             fg: '#65996B', dot: '○' },
-  internal:  { bg: 'rgba(108,122,137,0.12)',  fg: '#6C7A89', dot: '●' },
-  sensitive: { bg: 'rgba(196,146,92,0.12)',   fg: '#C4925C', dot: '●' },
-  critical:  { bg: 'rgba(180,60,50,0.12)',    fg: '#B43C32', dot: '🔒' },
-};
-
-function SensitivityBadge({ level }: { level: SensitivityLevel }) {
-  const { t } = useTranslation('sensitivity');
-  const s = SENSITIVITY_STYLES[level] || SENSITIVITY_STYLES.internal;
-  const label = t(level);
-  return (
-    <span
-      title={`${t('sensitivity_label')}: ${label}`}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 3,
-        fontSize: 10, fontWeight: 500, padding: '2px 6px', borderRadius: 4,
-        background: s.bg, color: s.fg,
-        border: level === 'public' ? `1px solid ${s.fg}` : '1px solid transparent',
-        lineHeight: 1.3,
-      }}
-    >
-      <span style={{ fontSize: level === 'critical' ? 9 : 7, lineHeight: 1 }}>{s.dot}</span>
-      {label}
-    </span>
-  );
-}
 
 export function ObjectEditorPage() {
   const { objectId } = useParams();
