@@ -113,5 +113,13 @@
   "version": "版本",
   "trigger_user_edit": "用户编辑",
   "trigger_rollback": "回滚",
+  "save_as_template": "保存为模板",
+  "add_attachment": "添加附件",
+  "template_name_prompt": "模板名称：",
+  "template_saved": "模板已保存",
+  "template_save_failed": "保存模板失败",
+  "select_file_attach": "选择要附加的文件",
+  "attachment_added": "附件已添加",
+  "attachment_failed": "添加附件失败",
   "slogan": "您的个人数据保险库"
 }

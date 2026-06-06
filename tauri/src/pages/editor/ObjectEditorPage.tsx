@@ -294,18 +294,18 @@ export function ObjectEditorPage() {
               {!isNew && objectId && (
                 <>
                 <Button variant="secondary" onClick={async () => {
-                  const name = prompt('Template name:', currentObject?.name || '');
+                  const name = prompt(t('common:template_name_prompt'), currentObject?.name || '');
                   if (name && objectId) {
                     try {
                       await invoke('template_save_from_object', { objectId, templateName: name });
-                      alert('Template saved');
-                    } catch (e) { alert('Failed: ' + e); }
+                      alert(t('common:template_saved'));
+                    } catch (e) { alert(t('common:template_save_failed') + ': ' + e); }
                   }
                 }}>
-                  Save as Template
+                  {t('common:save_as_template')}
                 </Button>
                 <Button variant="secondary" onClick={async () => {
-                  const path = await open({ multiple: false, title: 'Select file to attach' });
+                  const path = await open({ multiple: false, title: t('common:select_file_attach') });
                   if (path && typeof path === 'string' && objectId) {
                     try {
                       await invoke('attachment_save', { objectId, meta: {
@@ -313,11 +313,11 @@ export function ObjectEditorPage() {
                         fileName: path.split('/').pop() || 'file',
                         mimeType: 'application/octet-stream', sizeBytes: 0, createdAt: new Date().toISOString(),
                       }});
-                      alert('Attachment added');
-                    } catch (e) { alert('Failed: ' + e); }
+                      alert(t('common:attachment_added'));
+                    } catch (e) { alert(t('common:attachment_failed') + ': ' + e); }
                   }
                 }}>
-                  Add Attachment
+                  {t('common:add_attachment')}
                 </Button>
                 </>
               )}

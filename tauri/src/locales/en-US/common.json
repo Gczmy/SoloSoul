@@ -113,5 +113,13 @@
   "version": "Version",
   "trigger_user_edit": "User edit",
   "trigger_rollback": "Rollback",
+  "save_as_template": "Save as Template",
+  "add_attachment": "Add Attachment",
+  "template_name_prompt": "Template name:",
+  "template_saved": "Template saved",
+  "template_save_failed": "Failed to save template",
+  "select_file_attach": "Select file to attach",
+  "attachment_added": "Attachment added",
+  "attachment_failed": "Failed to add attachment",
   "slogan": "Your Personal Data Vault"
 }
