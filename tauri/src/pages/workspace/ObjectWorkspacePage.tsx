@@ -129,20 +129,57 @@ function HistoryViewer({ objectId, onClose }: { objectId: string; onClose: () =>
 }
 
 function SnapshotCard({ snap, index, total, t }: { snap: SnapshotEntry; index: number; total: number; t: (k: string) => string }) {
+  const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
+
+  useEffect(() => {
+    invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id })
+      .then(setSnapData);
+  }, [snap.id]);
+
+  const rawProps = snapData && typeof snapData === 'object' && 'properties' in snapData
+    ? (snapData.properties as Record<string, unknown> | undefined)
+    : undefined;
+  const fields = flattenProperties(rawProps);
+  const snapName = snapData && typeof snapData === 'object' && 'name' in snapData ? String(snapData.name) : '';
+  const tags: string[] = snapData && typeof snapData === 'object' && 'tags' in snapData && Array.isArray(snapData.tags)
+    ? snapData.tags as string[] : [];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {/* Version badge */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
-        {total - index <= 2 && (
-          <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600, background: total - index === 1 ? 'rgba(39,174,96,0.12)' : 'rgba(91,124,153,0.08)', color: total - index === 1 ? '#27ae60' : 'var(--accent-primary)' }}>
-            {total - index === 1 ? 'Current' : 'Previous'}
-          </span>
-        )}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          {index <= 1 && (
+            <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600, background: index === 0 ? 'rgba(39,174,96,0.12)' : 'rgba(91,124,153,0.08)', color: index === 0 ? '#27ae60' : 'var(--accent-primary)' }}>
+              {index === 0 ? t('common:current_version') : t('common:previous_version')}
+            </span>
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+          {snapName}
+        </div>
       </div>
-      {/* Snapshot summary */}
-      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
-        ID: {snap.id.slice(0, 16)}...
-      </div>
+      {/* Properties */}
+      {fields.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+          {fields.map((f) => (
+            <div key={f.key} style={{ display: 'flex', gap: 8, fontSize: 12, padding: '4px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+              <span style={{ fontWeight: 500, color: 'var(--text-secondary)', minWidth: 90 }}>{t(`editor:fields.${f.key}`)}</span>
+              <span style={{ color: 'var(--text-primary)' }}>{f.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {/* Tags */}
+      {tags.length > 0 && (
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+          {tags.map((tag) => (
+            <span key={tag} style={{ padding: '1px 7px', borderRadius: 10, fontSize: 10, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)', fontWeight: 500 }}>
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

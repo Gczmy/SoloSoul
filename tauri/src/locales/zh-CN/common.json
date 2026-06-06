@@ -106,5 +106,7 @@
   "delete_failed": "删除失败",
   "backup_deleted": "备份已删除",
   "choose_icon": "选择图标",
+  "current_version": "当前版本",
+  "previous_version": "前一版本",
   "slogan": "您的个人数据保险库"
 }

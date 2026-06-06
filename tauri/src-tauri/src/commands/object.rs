@@ -290,6 +290,20 @@ pub async fn snapshot_get(
 }
 
 #[tauri::command]
+pub async fn snapshot_get_data(
+    state: State<'_, AppState>,
+    snapshot_id: String,
+) -> Result<Option<serde_json::Value>, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    match vault.get_snapshot(&snapshot_id)? {
+        Some(data) => serde_json::from_slice(&data).map(Some).map_err(|e| e.to_string()),
+        None => Ok(None),
+    }
+}
+
+#[tauri::command]
 pub async fn snapshot_list(
     state: State<'_, AppState>,
     object_id: String,

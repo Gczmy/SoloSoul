@@ -106,5 +106,7 @@
   "delete_failed": "Delete failed",
   "backup_deleted": "Backup deleted",
   "choose_icon": "Choose icon",
+  "current_version": "Current version",
+  "previous_version": "Previous version",
   "slogan": "Your Personal Data Vault"
 }
