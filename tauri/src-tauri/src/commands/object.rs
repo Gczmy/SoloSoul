@@ -281,6 +281,19 @@ pub async fn trash_restore(state: State<'_, AppState>, trash_id: String) -> Resu
     object_restore(state, trash_id).await
 }
 
+// ── Snapshot count badge ────────────────────────────────────
+
+#[tauri::command]
+pub async fn snapshot_count_batch(
+    state: State<'_, AppState>,
+    object_ids: Vec<String>,
+) -> Result<std::collections::HashMap<String, usize>, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    vault.count_snapshots_batch(&object_ids)
+}
+
 // ── Snapshot / History commands (§25.5) ─────────────────────
 
 #[tauri::command]

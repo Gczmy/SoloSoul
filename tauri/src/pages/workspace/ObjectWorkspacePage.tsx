@@ -200,6 +200,7 @@ export function ObjectWorkspacePage() {
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
   const [historyObjId, setHistoryObjId] = useState<string | null>(null);
+  const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
@@ -241,6 +242,15 @@ export function ObjectWorkspacePage() {
       obj.collectionType !== 'unknown' &&
       obj.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Load snapshot counts for visible objects
+  useEffect(() => {
+    const ids = visibleObjects.map(o => o.id);
+    if (ids.length === 0) return;
+    invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
+      .then(setSnapshotCounts)
+      .catch(() => {});
+  }, [visibleObjects.length]);
 
 
   const newObjectUrl = pageId
@@ -288,7 +298,7 @@ export function ObjectWorkspacePage() {
         </div>
       }
     >
-      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }} onMouseDown={(e) => { if (e.detail > 1) e.preventDefault(); }}>
         {!pageId && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {CATEGORY_TYPES.map((catType) => (
@@ -350,7 +360,7 @@ export function ObjectWorkspacePage() {
           visibleObjects.map((obj) => {
             const fields = flattenProperties(obj.properties as Record<string, unknown> | undefined);
             return (
-              <Card key={obj.id} interactive onClick={() => navigate(`/editor/${obj.id}`)}>
+              <Card key={obj.id} interactive>
                 {/* Header row */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fields.length > 0 ? 8 : 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -367,21 +377,32 @@ export function ObjectWorkspacePage() {
                   </div>
                   {/* Edit + Delete + History actions */}
                   <div style={{ display: 'flex', gap: 2 }} onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={() => {
-                        setHistoryObjId(obj.id);
-                      }}
-                      title="History"
-                      style={{
-                        width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer',
-                        color: 'var(--text-tertiary)', transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(128,128,128,0.08)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-                    >
-                      <Clock size={14} />
-                    </button>
+                    <div style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => setHistoryObjId(obj.id)}
+                        title="History"
+                        style={{
+                          width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer',
+                          color: 'var(--text-tertiary)', transition: 'all 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(128,128,128,0.08)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+                      >
+                        <Clock size={14} />
+                      </button>
+                      {/* Badge count */}
+                      {snapshotCounts[obj.id] !== undefined && snapshotCounts[obj.id] > 0 && (
+                        <span style={{
+                          position: 'absolute', top: -2, right: -2, minWidth: 14, height: 14,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: 'var(--accent-primary)', color: 'white', fontSize: 9, fontWeight: 700,
+                          borderRadius: 7, padding: '0 3px', lineHeight: 1,
+                        }}>
+                          {snapshotCounts[obj.id]}
+                        </span>
+                      )}
+                    </div>
                     <button
                       onClick={() => navigate(`/editor/${obj.id}`)}
                       title="Edit"

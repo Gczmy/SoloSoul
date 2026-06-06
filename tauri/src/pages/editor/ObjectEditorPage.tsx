@@ -242,7 +242,7 @@ export function ObjectEditorPage() {
               <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t('common:object_type')}:</span>
               <span style={{
                 fontSize: 12, fontWeight: 500, padding: '2px 8px', borderRadius: 4,
-                background: 'var(--bg-toolbar)', color: 'var(--text-primary)',
+                background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)',
               }}>
                 {t(`navigation:${collectionType}`, collectionType)}
               </span>

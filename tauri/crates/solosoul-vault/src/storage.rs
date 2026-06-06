@@ -627,6 +627,21 @@ impl VaultStore {
         Ok(result)
     }
 
+    pub fn count_snapshots_batch(&self, object_ids: &[String]) -> Result<std::collections::HashMap<String, usize>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let placeholders: Vec<String> = object_ids.iter().enumerate().map(|(i, _)| format!("?{}", i + 1)).collect();
+        let sql = format!("SELECT object_id, COUNT(*) FROM object_snapshots WHERE object_id IN ({}) GROUP BY object_id", placeholders.join(","));
+        let params: Vec<&dyn rusqlite::types::ToSql> = object_ids.iter().map(|s| s as &dyn rusqlite::types::ToSql).collect();
+        let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
+        let map = stmt.query_map(params.as_slice(), |row| {
+            Ok((row.get::<_,String>(0)?, row.get::<_,i64>(1)? as usize))
+        }).map_err(|e| e.to_string())?
+        .collect::<Result<std::collections::HashMap<String, usize>, _>>()
+        .map_err(|e| e.to_string())?;
+        Ok(map)
+    }
+
     /// §25.5 — Save an object snapshot for history
     pub fn save_snapshot(&self, object_id: &str, triggered_by: &str, data: &[u8], diff_summary: &str) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
