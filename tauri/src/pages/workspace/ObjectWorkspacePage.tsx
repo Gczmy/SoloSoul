@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -216,6 +216,9 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
   const [loading, setLoading] = useState(true);
   const [showTrash, setShowTrash] = useState(false);
   const [permDeleteItem, setPermDeleteItem] = useState<AttachmentItem | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const renameInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation(['common', 'editor']);
 
   const loadAttachments = useCallback(async () => {
@@ -250,17 +253,23 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
     }
   };
 
-  const handleRename = async (item: AttachmentItem) => {
-    const newName = prompt(t('common:rename_prompt'), item.fileName);
-    if (newName && newName !== item.fileName) {
-      await invoke('attachment_rename', { objectId, attachmentId: item.id, newName });
+  const handleStartRename = (item: AttachmentItem) => {
+    setRenamingId(item.id);
+    setRenameValue(item.fileName);
+    setTimeout(() => renameInputRef.current?.focus(), 50);
+  };
+
+  const handleConfirmRename = async () => {
+    if (renamingId && renameValue.trim()) {
+      await invoke('attachment_rename', { objectId, attachmentId: renamingId, newName: renameValue.trim() });
       await loadAttachments();
     }
+    setRenamingId(null);
   };
 
   const handleDelete = async (item: AttachmentItem) => {
     if (!confirm(item.fileName)) return;
-    await invoke('attachment_soft_delete', { objectId, attachmentId: item.id });
+    await invoke('attachment_soft_delete', { objectId, attachmentId: item.id }).catch((e) => alert('Delete failed: ' + e));
     await loadAttachments();
   };
 
@@ -304,7 +313,7 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
               <button onClick={() => setShowTrash(true)} style={{ padding: '3px 8px', borderRadius: 6, fontSize: 11, border: '1px solid var(--border-subtle)', background: showTrash ? '#e74c3c' : 'transparent', color: showTrash ? 'white' : 'var(--text-secondary)', cursor: 'pointer' }}>{t('common:attachments_trash', { n: trashItems.length })}</button>
             </div>
           </div>
-          {!showTrash && <button onClick={handleAdd} style={{ ...pgBtn, fontSize: 11, fontWeight: 600 }}>+ {t('common:create')}</button>}
+          {!showTrash && <button onClick={handleAdd} style={{ ...pgBtn, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>+ {t('common:create')}</button>}
           <button onClick={onClose} style={pgBtn}><X size={16} /></button>
         </div>
         {/* List */}
@@ -331,7 +340,11 @@ function AttachmentViewer({ objectId, onClose }: { objectId: string; onClose: ()
                 </>
               ) : (
                 <>
-                  <button onClick={() => handleRename(item)} style={miniBtn} title={t('common:rename')}><Edit2 size={12} /></button>
+                  {renamingId === item.id ? (
+                    <input ref={renameInputRef} value={renameValue} onChange={(e) => setRenameValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmRename(); if (e.key === 'Escape') setRenamingId(null); }} onBlur={handleConfirmRename} style={{ width: 100, padding: '3px 6px', fontSize: 12, borderRadius: 4, border: '1px solid var(--accent-primary)', background: 'transparent', color: 'var(--text-primary)', outline: 'none' }} />
+                  ) : (
+                    <button onClick={() => handleStartRename(item)} style={miniBtn} title={t('common:rename')}><Edit2 size={12} /></button>
+                  )}
                   <button onClick={() => handleDelete(item)} style={{ ...miniBtn, color: '#e74c3c' }} title={t('common:delete')}><Trash2 size={12} /></button>
                 </>
               )}
