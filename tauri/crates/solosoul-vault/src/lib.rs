@@ -42,6 +42,7 @@ pub enum VaultState {
 
 /// Vault statistics
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VaultStats {
     pub profile_count: usize,
     pub total_size_bytes: u64,
