@@ -19,40 +19,6 @@ interface AuditLogEntry {
   details: string | null;
 }
 
-const ACTION_LABELS: Record<string, string> = {
-  object_create: 'object.create',
-  object_update: 'object.update',
-  object_delete: 'object.delete',
-  object_restore: 'object.restore',
-  object_purge: 'object.purge',
-  object_rollback: 'object.rollback',
-  page_delete: 'page.delete',
-  page_restore: 'page.restore',
-  trash_permanent_delete: 'trash.permanent_delete',
-  trash_set_retention: 'preference.trash_retention',
-  profile_save: 'profile.save',
-  profile_delete: 'profile.delete',
-  biometric_saved: 'biometric.saved',
-  biometric_unlock: 'biometric.unlock',
-  biometric_deleted: 'biometric.deleted',
-  llm_risk_accepted: 'llm.risk_accepted',
-  template_save: 'template.save',
-  export_execute: 'export.execute',
-  import_execute: 'import.execute',
-  attachment_cleanup: 'attachment.cleanup',
-};
-
-function formatActionType(actionType: string): string {
-  const label = ACTION_LABELS[actionType];
-  if (label) {
-    const parts = label.split('.');
-    return parts.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-  }
-  return actionType
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 export function OperationLogPage() {
   const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
@@ -198,10 +164,10 @@ export function OperationLogPage() {
                         entry.actionType.includes('create') ? 'var(--accent-success, #22c55e)' :
                         'var(--accent-primary, #3b82f6)',
                     }}>
-                      {formatActionType(entry.actionType)}
+                      {t(`settings:log.action.${entry.actionType}`, entry.actionType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()))}
                     </span>
                     <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                      {entry.entityType}{entry.entityName ? `: ${entry.entityName}` : ''}
+                      {t(`settings:log.entity.${entry.entityType}`, entry.entityType)}{entry.entityName ? `: ${entry.entityName}` : ''}
                     </span>
                     {entry.performedBy === 'system' && (
                       <span style={{
@@ -209,7 +175,7 @@ export function OperationLogPage() {
                         backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.08))',
                         color: 'var(--text-tertiary)',
                       }}>
-                        SYSTEM
+                        {t('settings:log.performed_by_system')}
                       </span>
                     )}
                     <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
