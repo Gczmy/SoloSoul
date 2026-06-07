@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 4;
+pub const CURRENT_SCHEMA_VERSION: u32 = 5;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -76,6 +76,40 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add original_section_type to trash_items",
         )?;
     }
+    if current < 5 {
+        // Add structured audit log columns (may already exist from init_schema)
+        let has_entity_type: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('audit_log') WHERE name = 'entity_type'",
+                [],
+                |r| r.get::<_, i32>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_entity_type {
+            let tx = conn.transaction().map_err(|e| format!("Begin tx: {}", e))?;
+            tx.execute_batch(
+                "ALTER TABLE audit_log ADD COLUMN entity_type TEXT;
+                 ALTER TABLE audit_log ADD COLUMN entity_id TEXT;
+                 ALTER TABLE audit_log ADD COLUMN entity_name TEXT;
+                 ALTER TABLE audit_log ADD COLUMN performed_by TEXT DEFAULT 'user';"
+            ).map_err(|e| format!("Migration 5 failed: {}", e))?;
+            let now = Utc::now().timestamp();
+            tx.execute(
+                "INSERT INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![5, now, "Add structured columns to audit_log"],
+            ).map_err(|e| format!("Record migration 5: {}", e))?;
+            tx.commit().map_err(|e| format!("Commit migration 5: {}", e))?;
+        } else {
+            // Fresh DB: init_schema already has the columns, just mark version 5
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![5, now, "audit_log columns already present (init_schema)"],
+            ).ok();
+        }
+        set_schema_version(conn, 5)?;
+    }
     Ok(())
 }
 
@@ -113,7 +147,8 @@ mod tests {
             "CREATE TABLE IF NOT EXISTS sys_config (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL);
              CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL, description TEXT);
              CREATE TABLE IF NOT EXISTS profiles (id TEXT PRIMARY KEY, name TEXT NOT NULL, data BLOB NOT NULL);
-             CREATE TABLE IF NOT EXISTS trash_items (id TEXT PRIMARY KEY, item_type TEXT NOT NULL, original_id TEXT NOT NULL, data BLOB NOT NULL, deleted_at INTEGER NOT NULL, expires_at INTEGER, deleted_by TEXT DEFAULT 'user', name_snapshot TEXT NOT NULL);"
+             CREATE TABLE IF NOT EXISTS trash_items (id TEXT PRIMARY KEY, item_type TEXT NOT NULL, original_id TEXT NOT NULL, data BLOB NOT NULL, deleted_at INTEGER NOT NULL, expires_at INTEGER, deleted_by TEXT DEFAULT 'user', name_snapshot TEXT NOT NULL);
+             CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, action TEXT NOT NULL, details TEXT);"
         ).unwrap();
         set_schema_version(&conn, 1).unwrap();
         (conn, dir)
