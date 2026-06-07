@@ -315,11 +315,13 @@
       "enable": "开启",
       "disable": "关闭"
     },
+    "conflict_renamed": "名称已调整",
+    "conflict_none": "无冲突",
     "detail": {
       "object_create": "{{name}}（{{section}}）",
       "object_update": "{{name}}（{{section}}）",
       "object_delete": "{{name}}（{{section}}）— 已移入回收站",
-      "object_restore": "{{name}}（{{section}}）— 从回收站恢复（{{was_conflict}}）",
+      "object_restore": "{{name}}（{{section}}）— {{was_conflict}}",
       "object_rollback": "{{name}}（{{section}}）— 回滚到快照版本",
       "object_purge": "{{name}}（{{section}}）— 已永久删除",
       "page_delete": "从页面移除了 {{count}} 项",

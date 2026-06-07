@@ -315,11 +315,13 @@
       "enable": "Enable",
       "disable": "Disable"
     },
+    "conflict_renamed": "with name conflict",
+    "conflict_none": "no conflict",
     "detail": {
       "object_create": "{{name}} ({{section}})",
       "object_update": "{{name}} ({{section}})",
       "object_delete": "{{name}} ({{section}}) — moved to trash",
-      "object_restore": "{{name}} ({{section}}) — restored ({{was_conflict}})",
+      "object_restore": "{{name}} ({{section}}) — {{was_conflict}}",
       "object_rollback": "{{name}} ({{section}}) — restored to snapshot",
       "object_purge": "{{name}} ({{section}}) — permanently deleted",
       "page_delete": "{{count}} item(s) removed from page",
