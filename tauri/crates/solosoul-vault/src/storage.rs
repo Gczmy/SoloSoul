@@ -168,22 +168,38 @@ impl VaultStore {
         let profile_count: usize = conn
             .query_row("SELECT COUNT(*) FROM profiles", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
-        // Sum data from profiles table + objects table properties
+
+        // Profiles data
         let profiles_size: u64 = conn
             .query_row("SELECT COALESCE(SUM(LENGTH(data)), 0) FROM profiles", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
+        // Objects properties
         let objects_size: u64 = conn
             .query_row("SELECT COALESCE(SUM(LENGTH(properties)), 0) FROM objects", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
-        let db_size = profiles_size + objects_size;
+        // Trash data
+        let trash_size: u64 = conn
+            .query_row("SELECT COALESCE(SUM(LENGTH(data)), 0) FROM trash_items", [], |r| r.get(0))
+            .map_err(|e| e.to_string())?;
+        // Snapshots data
+        let snapshots_size: u64 = conn
+            .query_row("SELECT COALESCE(SUM(LENGTH(data)), 0) FROM object_snapshots", [], |r| r.get(0))
+            .map_err(|e| e.to_string())?;
+
         let last_modified: Option<String> = conn
             .query_row("SELECT MAX(updated_at) FROM profiles", [], |r| r.get(0))
             .ok();
 
         Ok(VaultStats {
             profile_count,
-            total_size_bytes: db_size,
+            total_size_bytes: profiles_size + objects_size + trash_size + snapshots_size,
             last_modified,
+            profiles_size,
+            objects_size,
+            trash_size,
+            snapshots_size,
+            attachments_size: 0, // filled in by get_vault_stats command
+            ai_conversations_size: 0,
         })
     }
 

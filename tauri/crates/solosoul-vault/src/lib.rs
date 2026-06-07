@@ -46,6 +46,13 @@ pub struct VaultStats {
     pub profile_count: usize,
     pub total_size_bytes: u64,
     pub last_modified: Option<String>,
+    // Breakdown components
+    pub profiles_size: u64,
+    pub objects_size: u64,
+    pub trash_size: u64,
+    pub snapshots_size: u64,
+    pub attachments_size: u64,
+    pub ai_conversations_size: u64,
 }
 
 pub use profile::{Profile, ProfileData, ProfileSummary, VersionedProfileData};

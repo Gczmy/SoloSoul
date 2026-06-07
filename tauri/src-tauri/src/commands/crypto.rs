@@ -80,7 +80,7 @@ pub async fn constant_time_compare(a: Vec<u8>, b: Vec<u8>) -> bool {
     solosoul_crypto::secure::secure_compare(&a, &b)
 }
 
-/// Get vault statistics (includes attachments stored at base_path/attachments/)
+/// Get vault statistics with breakdown components
 #[tauri::command]
 pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::Value, String> {
     let svc = state.vault_service.read().await;
@@ -88,16 +88,35 @@ pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::V
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     let mut stats = vault.stats()?;
 
-    // Attachments are stored at base_path/attachments/{objectId}/{attachmentId}/ (see attachment.rs)
+    // Attachments stored at base_path/attachments/{objectId}/{attachmentId}/
     let attachments_dir = svc.base_path().join("attachments");
-    let attachments_size: u64 = sum_dir_file_sizes(&attachments_dir);
-    stats.total_size_bytes += attachments_size;
+    stats.attachments_size = sum_dir_file_sizes(&attachments_dir);
 
-    Ok(serde_json::json!({
-        "profile_count": stats.profile_count,
-        "total_size_bytes": stats.total_size_bytes,
-        "last_modified": stats.last_modified,
-    }))
+    // AI conversations stored inside profiles (in the preferences JSON blob)
+    // Estimate by loading profile data and checking llmConversations key
+    if let Some(account_id) = &svc.get_current_account() {
+        if let Ok(Some(profile)) = vault.load_profile(account_id) {
+            if !profile.data.is_empty() {
+                if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
+                    if let Some(convs) = data.pointer("/preferences/llmConversations") {
+                        if let Some(arr) = convs.as_array() {
+                            let raw = serde_json::to_vec(arr).unwrap_or_default();
+                            stats.ai_conversations_size = raw.len() as u64;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    stats.total_size_bytes = stats.profiles_size
+        + stats.objects_size
+        + stats.trash_size
+        + stats.snapshots_size
+        + stats.attachments_size
+        + stats.ai_conversations_size;
+
+    Ok(serde_json::json!(stats))
 }
 
 /// Recursively sum file sizes under a directory (returns 0 if path doesn't exist).
