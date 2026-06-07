@@ -203,7 +203,7 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            // 详见文档 07_IPC命令接口完整规范.md
+            // 详见文档 08_IPC命令接口完整规范.md
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

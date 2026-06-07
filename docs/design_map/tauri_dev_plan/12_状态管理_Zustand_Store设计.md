@@ -1,6 +1,6 @@
 # 10 — 状态管理：Zustand Store 设计
 
-> **前置阅读**：`07_IPC命令接口完整规范.md`、`08_前端技术架构与组件映射.md`
+> **前置阅读**：`08_IPC命令接口完整规范.md`、`10_前端技术架构与组件映射.md`
 > **Manifesto 对齐**：隐私优先 | 安全默认 | 最少惊喜
 > **源文档**：`tauri_refactor/状态管理方案.md`
 
@@ -310,15 +310,19 @@ useEffect(() => {
 
 ## 10. 完成标准
 
-- [ ] 所有 Store 单元测试通过
-- [ ] 乐观更新 + 回滚逻辑正确（模拟 IPC 失败）
+### P0（必须）
 - [ ] settingsStore/searchStore 不写入 localStorage
 - [ ] Vault 锁定事件触发所有敏感 Store 清空
 - [ ] 无 Store 间循环依赖
+
+### P1（重要）
+- [ ] 所有 Store 单元测试通过
+- [ ] 乐观更新 + 回滚逻辑正确（模拟 IPC 失败）
 - [ ] profileStore 的防抖保存正确（500ms delay）
 
 ---
 
-*文档版本：v1.0*
+*文档版本：v1.1 (priority-refactored)*
 *创建日期：2026-06-05*
+*最后更新：2026-06-07*
 *对应开发阶段：Phase 2（状态管理）*

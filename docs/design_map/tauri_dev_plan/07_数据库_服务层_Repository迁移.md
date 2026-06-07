@@ -6,7 +6,7 @@
 >
 > **[警告] 术语迁移（审批通过）**：开发时使用新术语，但本文档中的代码示例保留旧术语作为参考对照。
 > 旧→新：`UnifiedObject` → `Object`, `PropertyDefinition` → `Property`, `unified_objects` 表 → `objects` 表。
-> 详见文档 17 的术语规范。
+> 详见文档 23 的术语规范。
 
 ---
 
@@ -20,7 +20,7 @@
 | `UnifiedObjectService` | `services/unified_object_service.rs` | 中 |
 | `SearchService` | `services/search_service.rs` | 中 |
 | `ExportImportService` | `services/export_import_service.rs` | 中 |
-| `BiometricService` | `commands/auth.rs` + Tauri plugin | 中 |
+| `BiometricService` | `commands/auth.rs` + Tauri plugin | 中 | 详见文档 21（生物识别功能规范） |
 | `KeychainService` | `commands/auth.rs` + Tauri plugin | 中 |
 | `OcrService` | `services/ocr_service.rs` | 高 |
 | `LlmService` | `services/llm_service.rs` | 高 |
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- unified_objects: 统一对象
 -- 数据组织模型为扁平结构：页面(section_type)直接包含对象列表
 -- 不引入集合/分组中间层，分组需求通过 tags_json + 智能筛选实现
--- 详见文档 24_数据组织模型架构决策.md
+-- 详见文档 06_数据组织模型架构决策.md
 CREATE TABLE IF NOT EXISTS unified_objects (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL,
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS unified_objects (
 -- attachments: 附件
 -- 附件独立管理，无快照/历史记录功能
 -- 删除采用对象属性级软删除（deleted_at 标记），不进入全局回收站
--- 详见文档 25_对象规范.md §6
+-- 详见文档 09_对象规范.md §6
 CREATE TABLE IF NOT EXISTS attachments (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL,
@@ -127,7 +127,7 @@ CREATE INDEX idx_attachments_active ON attachments(object_id) WHERE deleted_at I
 
 -- object_snapshots: 对象历史记录快照
 -- 每次对象数据变更自动创建，记录完整加密数据快照
--- 详见文档 25_对象规范.md §5
+-- 详见文档 09_对象规范.md §5
 CREATE TABLE IF NOT EXISTS object_snapshots (
     id TEXT PRIMARY KEY,
     object_id TEXT NOT NULL,
@@ -142,7 +142,7 @@ CREATE INDEX idx_snapshots_object ON object_snapshots(object_id, timestamp DESC)
 
 -- user_templates: 用户自定义模板
 -- 系统模板硬编码，不存数据库；用户模板可编辑/删除
--- 详见文档 25_对象规范.md §3
+-- 详见文档 09_对象规范.md §3
 CREATE TABLE IF NOT EXISTS user_templates (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL,
@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS user_templates (
 
 ```sql
 -- [错误] app_settings 表已移除 —— 用户偏好改为加密文件存储
---    见文档 13_用户数据边界与加密存储.md
+--    见文档 15_用户数据边界与加密存储.md
 -- [错误] operation_logs 表已移除 —— 审计日志改为加密文件存储
 ```
 
@@ -237,7 +237,7 @@ impl<'a> SearchService<'a> {
 
 ### 3.4 UserDataService（替代旧 SettingsService）
 
-> **重要**：用户偏好（设置）现为加密存储。详见文档 13。
+> **重要**：用户偏好（设置）现为加密存储。详见文档 15。
 
 ```rust
 pub struct UserDataService<'a> {
@@ -318,15 +318,19 @@ pub struct OperationEntry {
 
 ## 8. 完成标准
 
+### P0（必须）
 - [ ] `cargo test` 全部通过（Repository 使用内存数据库）
 - [ ] Schema 迁移可处理所有版本（v0→v6）
 - [ ] Profile CRUD 完整工作
-- [ ] UnifiedObject 软删除 + 30 天回收站逻辑正确
+- [ ] UnifiedObject 软删除 + 回收站逻辑正确
+
+### P1（重要）
 - [ ] 搜索支持中英文关键词
 - [ ] 操作日志在每次 CRUD 后自动生成
 
 ---
 
-*文档版本：v1.0*
+*文档版本：v1.1 (priority-refactored)*
 *创建日期：2026-06-05*
+*最后更新：2026-06-07*
 *对应开发阶段：Phase 1（数据库与服务层）*
