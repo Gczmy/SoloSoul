@@ -143,6 +143,7 @@ export function SecuritySettingsPage() {
               onChange={(v) => { setOldPw(v); setError(null); }}
               placeholder={t('common:password_placeholder')}
               autoComplete="current-password"
+              hint={(currentAccount as { passwordHint?: string } | null)?.passwordHint || null}
             />
 
             {/* 10.1 — 新密码 + 10.2 密码要求提示 */}

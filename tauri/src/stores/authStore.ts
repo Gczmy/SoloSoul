@@ -41,7 +41,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   listAccounts: async () => {
     try {
       const accounts = await commands.vaultListAccounts();
-      set({ accounts, hasAccount: accounts.length > 0, backendError: false });
+      const currentId = get().currentAccount?.id;
+      const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
+      set({ accounts, currentAccount: refreshed || get().currentAccount, hasAccount: accounts.length > 0, backendError: false });
     } catch {
       // silent — vault may be locked
     }
