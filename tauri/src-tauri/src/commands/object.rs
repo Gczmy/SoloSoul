@@ -268,6 +268,29 @@ pub async fn object_trash_list(
     vault.list_trash_items(None, None)
 }
 
+/// Read the user's language setting from plaintext UI preferences.
+fn get_ui_language(svc: &crate::services::vault_service::VaultService) -> String {
+    let path = svc.base_path().join("ui_preferences.json");
+    if path.exists() {
+        if let Ok(content) = std::fs::read_to_string(&path) {
+            if let Ok(prefs) = serde_json::from_str::<serde_json::Value>(&content) {
+                if let Some(lang) = prefs.get("language").and_then(|v| v.as_str()) {
+                    return lang.to_string();
+                }
+            }
+        }
+    }
+    "en-US".to_string()
+}
+
+/// Get the "(restored)" suffix localized to the user's language.
+fn restored_suffix(language: &str) -> &'static str {
+    match language {
+        "zh-CN" => "（已恢复）",
+        _ => " (restored)",
+    }
+}
+
 /// Restore an object from trash. Handles conflict: if an object with the same ID
 /// already exists, restore as a new copy with name appended " (restored)".
 #[tauri::command]
@@ -293,6 +316,9 @@ pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Res
     let objects = vault.list_objects(account_id, None, None, Some(&trash.name_snapshot), false, false).unwrap_or_default();
     let exists = objects.iter().any(|o| o.name == trash.name_snapshot && o.section_type == target_section);
 
+    let lang = get_ui_language(&svc);
+    let suffix = restored_suffix(&lang);
+
     let new_id = if exists {
         format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
     } else {
@@ -300,7 +326,7 @@ pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Res
     };
 
     let new_name = if exists {
-        format!("{} (restored)", trash.name_snapshot)
+        format!("{}{}", trash.name_snapshot, suffix)
     } else {
         trash.name_snapshot.clone()
     };
@@ -476,6 +502,8 @@ pub async fn page_restore(
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let lang = get_ui_language(&svc);
+    let suffix = restored_suffix(&lang);
 
     // Fetch all trash items and filter by original_section_type
     let all = vault.list_trash_items(None, None)?;
@@ -494,7 +522,7 @@ pub async fn page_restore(
                     trash.original_id.clone()
                 };
                 let new_name = if exists {
-                    format!("{} (restored)", trash.name_snapshot)
+                    format!("{}{}", trash.name_snapshot, suffix)
                 } else {
                     trash.name_snapshot.clone()
                 };

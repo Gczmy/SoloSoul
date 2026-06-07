@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
@@ -22,15 +22,6 @@ interface AuditLogEntry {
 /** All known entity types — used for filter buttons */
 const ALL_ENTITY_TYPES = ['object', 'page', 'preference', 'profile', 'biometric', 'template', 'export', 'import', 'attachment', 'trash_item', 'llm'];
 
-/** Translate "(restored)" suffix in entity names */
-function localizeName(name: string, t: (key: string, opts?: any) => string): string {
-  const suffix = ' (restored)';
-  if (name.endsWith(suffix)) {
-    return name.slice(0, -suffix.length) + t('settings:log.restored_suffix');
-  }
-  return name;
-}
-
 function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => string): string {
   const key = `settings:log.detail.${entry.actionType}`;
   const raw = entry.details || '';
@@ -46,7 +37,7 @@ function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => stri
     vars[match[1]] = /^\d+$/.test(val) ? parseInt(val, 10) : val;
   }
   if (entry.entityName) {
-    vars.name = localizeName(entry.entityName, t);
+    vars.name = entry.entityName;
   }
   if (Object.keys(vars).length > 0) {
     if (vars.was_conflict === 'true') vars.was_conflict = t('settings:log.conflict_renamed');
@@ -207,7 +198,7 @@ export function OperationLogPage() {
                       {t(`settings:log.action.${entry.actionType}`, entry.actionType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()))}
                     </span>
                     <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                      {t(`settings:log.entity.${entry.entityType}`, entry.entityType)}{entry.entityName ? `: ${localizeName(entry.entityName, t)}` : ''}
+                      {t(`settings:log.entity.${entry.entityType}`, entry.entityType)}{entry.entityName ? `: ${entry.entityName}` : ''}
                     </span>
                     {entry.performedBy === 'system' && (
                       <span style={{
