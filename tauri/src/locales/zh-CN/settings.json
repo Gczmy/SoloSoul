@@ -305,7 +305,19 @@
       "llm": "AI"
     },
     "performed_by_user": "用户",
-    "performed_by_system": "系统"
+    "performed_by_system": "系统",
+    "detail": {
+      "object_create": "所属页面：{{type}}",
+      "object_delete": "已移入回收站",
+      "object_restore": "从回收站恢复（{{was_conflict}}）",
+      "object_rollback": "回滚到快照版本",
+      "page_delete": "从页面移除了 {{count}} 项",
+      "page_restore": "恢复了 {{count}} 项到页面",
+      "trash_set_retention": "设置为 {{period}}",
+      "export_execute": "导出了 {{count}} 个对象",
+      "import_execute": "导入了 {{count}} 个对象（策略：{{strategy}}）",
+      "attachment_cleanup": "清理了 {{count}} 个孤立附件，释放 {{bytes}}"
+    }
   },
   "desc": {
     "theme_appearance": "自定义主题、主题色、语言和背景",

@@ -19,6 +19,30 @@ interface AuditLogEntry {
   details: string | null;
 }
 
+function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => string): string {
+  const key = `settings:log.detail.${entry.actionType}`;
+  const raw = entry.details || '';
+  // i18next returns the key itself when the key doesn't exist
+  const translated = t(key, { defaultValue: raw });
+  if (translated === key || translated === raw) {
+    return raw;
+  }
+  // Parse "key=value key2=value2" style variables
+  const re = /(\w+)=([^\s]+)/g;
+  const vars: Record<string, string | number> = {};
+  let match;
+  while ((match = re.exec(raw)) !== null) {
+    const val = match[2];
+    vars[match[1]] = /^\d+$/.test(val) ? parseInt(val, 10) : val;
+  }
+  if (Object.keys(vars).length > 0) {
+    if (vars.was_conflict === 'true') vars.was_conflict = t('common:yes').toLowerCase();
+    else if (vars.was_conflict === 'false') vars.was_conflict = t('common:no').toLowerCase();
+    return t(key, { defaultValue: raw, ...vars });
+  }
+  return t(key, { defaultValue: raw, reason: raw });
+}
+
 export function OperationLogPage() {
   const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
@@ -182,14 +206,14 @@ export function OperationLogPage() {
                       {new Date(entry.timestamp).toLocaleString(i18n.language)}
                     </span>
                   </div>
-                  {entry.details && (
+                  {entry.details && formatDetail(entry, t) && (
                     <p style={{
                       margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)',
                       fontFamily: 'monospace', whiteSpace: 'pre-wrap',
                       backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.04))',
                       padding: '6px 8px', borderRadius: 4,
                     }}>
-                      {entry.details}
+                      {formatDetail(entry, t)}
                     </p>
                   )}
                 </div>

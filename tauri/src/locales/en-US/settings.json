@@ -305,7 +305,19 @@
       "llm": "AI"
     },
     "performed_by_user": "User",
-    "performed_by_system": "System"
+    "performed_by_system": "System",
+    "detail": {
+      "object_create": "Section: {{type}}",
+      "object_delete": "Moved to trash",
+      "object_restore": "Restored from trash ({{was_conflict}})",
+      "object_rollback": "Restored to snapshot version",
+      "page_delete": "{{count}} item(s) removed from page",
+      "page_restore": "{{count}} item(s) restored to page",
+      "trash_set_retention": "Set to {{period}}",
+      "export_execute": "{{count}} object(s) exported",
+      "import_execute": "{{count}} object(s) imported ({{strategy}})",
+      "attachment_cleanup": "{{count}} orphan(s) freed {{bytes}}"
+    }
   },
   "desc": {
     "theme_appearance": "Customize theme, accent color, language and background",
