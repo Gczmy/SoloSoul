@@ -61,7 +61,7 @@ pub async fn attachment_list(
     }
 }
 
-/// Physical delete (permanent — removes from object properties entirely)
+/// Physical delete (permanent — removes metadata + deletes file from disk)
 #[tauri::command]
 pub async fn attachment_delete(
     state: State<'_, AppState>,
@@ -76,6 +76,11 @@ pub async fn attachment_delete(
         .into_iter()
         .filter(|a: &AttachmentMeta| a.id != attachment_id)
         .collect();
+
+    // Also delete the physical file from disk
+    let attachments_dir = svc.base_path().join("attachments").join(&object_id).join(&attachment_id);
+    let _ = std::fs::remove_dir_all(&attachments_dir);
+
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
