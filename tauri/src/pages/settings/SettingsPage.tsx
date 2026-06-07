@@ -19,8 +19,8 @@ export function SettingsPage() {
   const [vaultSize, setVaultSize] = useState<string | null>(null);
 
   useEffect(() => {
-    invoke<{ total_size_bytes: number }>('get_vault_stats')
-      .then((s) => setVaultSize(formatBytes(s.total_size_bytes)))
+    invoke<{ totalSizeBytes: number }>('get_vault_stats')
+      .then((s) => setVaultSize(formatBytes(s.totalSizeBytes)))
       .catch(() => setVaultSize(null));
   }, []);
 
