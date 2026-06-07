@@ -168,19 +168,27 @@ impl VaultStore {
         let profile_count: usize = conn
             .query_row("SELECT COUNT(*) FROM profiles", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
-        let total_size_bytes: u64 = conn
-            .query_row(
-                "SELECT COALESCE(SUM(LENGTH(data)), 0) FROM profiles",
-                [],
-                |r| r.get(0),
-            )
+        // Sum data from profiles table + objects table properties
+        let profiles_size: u64 = conn
+            .query_row("SELECT COALESCE(SUM(LENGTH(data)), 0) FROM profiles", [], |r| r.get(0))
             .map_err(|e| e.to_string())?;
+        let objects_size: u64 = conn
+            .query_row("SELECT COALESCE(SUM(LENGTH(properties)), 0) FROM objects", [], |r| r.get(0))
+            .map_err(|e| e.to_string())?;
+        let db_size = profiles_size + objects_size;
+        // Add objects row count
+        let total_size_bytes = db_size;
         let last_modified: Option<String> = conn
             .query_row("SELECT MAX(updated_at) FROM profiles", [], |r| r.get(0))
             .ok();
+
+        // Add attachments directory size (best-effort)
+        let attachments_dir = self.config.path.join("attachments");
+        let attachments_size: u64 = sum_file_sizes(&attachments_dir);
+
         Ok(VaultStats {
             profile_count,
-            total_size_bytes,
+            total_size_bytes: total_size_bytes + attachments_size,
             last_modified,
         })
     }
@@ -719,6 +727,27 @@ impl VaultStore {
             .map_err(|e| format!("Failed to delete metadata: {}", e))?;
         Ok(())
     }
+}
+
+/// Recursively sum file sizes under a directory (returns 0 if path doesn't exist).
+fn sum_file_sizes(dir: &std::path::Path) -> u64 {
+    if !dir.exists() {
+        return 0;
+    }
+    let mut total = 0u64;
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                total += sum_file_sizes(&path);
+            } else if path.is_file() {
+                if let Ok(meta) = path.metadata() {
+                    total += meta.len();
+                }
+            }
+        }
+    }
+    total
 }
 
 #[cfg(test)]
