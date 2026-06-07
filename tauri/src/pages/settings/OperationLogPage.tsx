@@ -35,6 +35,10 @@ function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => stri
     const val = match[2];
     vars[match[1]] = /^\d+$/.test(val) ? parseInt(val, 10) : val;
   }
+  // Pass entityName as {{name}} for templates that show object names
+  if (entry.entityName) {
+    vars.name = entry.entityName;
+  }
   if (Object.keys(vars).length > 0) {
     if (vars.was_conflict === 'true') vars.was_conflict = t('common:yes').toLowerCase();
     else if (vars.was_conflict === 'false') vars.was_conflict = t('common:no').toLowerCase();

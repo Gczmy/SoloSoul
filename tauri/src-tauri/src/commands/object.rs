@@ -207,7 +207,7 @@ pub async fn object_update(
     })).unwrap_or_default();
     let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "");
 
-    let _ = vault.log_structured("object_update", "object", Some(&object_id), Some(&record.name), "user", None);
+    let _ = vault.log_structured("object_update", "object", Some(&object_id), Some(&record.name), "user", Some(&format!("id={}", object_id)));
     Ok(record_to_data(&record))
 }
 
@@ -250,7 +250,8 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
         let _ = vault.save_trash_item(&trash);
     }
     vault.delete_object(&object_id, true)?;
-    let _ = vault.log_structured("object_delete", "object", Some(&object_id), None, "user", Some("soft"));
+    let rec_name = vault.load_object(&object_id).ok().flatten().map(|r| r.name).unwrap_or_default();
+    let _ = vault.log_structured("object_delete", "object", Some(&object_id), Some(&rec_name), "user", Some("soft"));
     Ok(())
 }
 
@@ -345,7 +346,8 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     vault.delete_object(&object_id, false)?;
     vault.delete_trash_item(&object_id).ok();
-    let _ = vault.log_structured("object_purge", "object", Some(&object_id), None, "user", None);
+    let rec_name = vault.load_object(&object_id).ok().flatten().map(|r| r.name).unwrap_or_default();
+    let _ = vault.log_structured("object_purge", "object", Some(&object_id), Some(&rec_name), "user", None);
     Ok(())
 }
 
@@ -595,7 +597,8 @@ pub async fn snapshot_rollback(
         "name": record.name, "tags": record.tags_json, "properties": record.properties,
     })).unwrap_or_default();
     let _ = vault.save_snapshot(&object_id, "rollback", &rollback_data, "Rolled back to previous version");
-    let _ = vault.log_structured("object_rollback", "object", Some(&object_id), None, "user", Some(&format!("snapshot={}", snapshot_id)));
+    let rec_name = vault.load_object(&object_id).ok().flatten().map(|r| r.name).unwrap_or_default();
+    let _ = vault.log_structured("object_rollback", "object", Some(&object_id), Some(&rec_name), "user", Some(&format!("snapshot={}", snapshot_id)));
     Ok(())
 }
 
