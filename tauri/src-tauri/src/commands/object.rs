@@ -288,8 +288,10 @@ pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Res
         .or(record_data["section_type"].as_str())
         .unwrap_or("identity");
 
-    // Check if object already exists and is NOT soft-deleted (conflict)
-    let exists = vault.load_object(&trash.original_id).ok().flatten().map(|r| !r.is_deleted).unwrap_or(false);
+    // Check if a non-deleted object with the same name exists in the target section (conflict)
+    let account_id = record_data["account_id"].as_str().unwrap_or("imported");
+    let objects = vault.list_objects(account_id, None, None, Some(&trash.name_snapshot), false, false).unwrap_or_default();
+    let exists = objects.iter().any(|o| o.name == trash.name_snapshot && o.section_type == target_section);
 
     let new_id = if exists {
         format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
@@ -482,7 +484,10 @@ pub async fn page_restore(
         if item.original_section_type.as_deref() == Some(&section_type) {
             // Use object_restore logic inline
             if let Ok(Some(trash)) = vault.get_trash_item(&item.id) {
-                let exists = vault.load_object(&trash.original_id).ok().flatten().map(|r| !r.is_deleted).unwrap_or(false);
+                let record_data: serde_json::Value = serde_json::from_slice(&trash.data).unwrap_or_default();
+                let account_id = record_data["account_id"].as_str().unwrap_or("");
+                let active = vault.list_objects(account_id, None, None, Some(&trash.name_snapshot), false, false).unwrap_or_default();
+                let exists = active.iter().any(|o| o.name == trash.name_snapshot);
                 let new_id = if exists {
                     format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
                 } else {
