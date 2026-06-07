@@ -647,7 +647,72 @@ pub async fn trash_set_retention(
     profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;
-    vault.save_profile(&profile)
+    vault.save_profile(&profile)?;
+    let _ = vault.log_action("trash_set_retention", &format!("period={}", period));
+    Ok(())
+}
+
+/// Get full detail of a trash item including preview data.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TrashDetail {
+    pub id: String,
+    pub item_type: String,
+    pub original_id: String,
+    pub name: String,
+    pub section_type: Option<String>,
+    pub deleted_at: i64,
+    pub expires_at: Option<i64>,
+    pub deleted_by: String,
+    pub remaining_days: Option<i64>,
+    pub original_location: String,
+    pub preview_properties: Vec<serde_json::Value>,
+}
+
+#[tauri::command]
+pub async fn trash_get_detail(
+    state: State<'_, AppState>,
+    trash_id: String,
+) -> Result<TrashDetail, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let trash = vault.get_trash_item(&trash_id)?.ok_or("Trash item not found")?;
+
+    let remaining_days = trash.expires_at.map(|exp| {
+        let diff_ms = exp - chrono::Utc::now().timestamp_millis();
+        std::cmp::max(0, diff_ms / 86400000)
+    });
+
+    let original_location = match trash.item_type.as_str() {
+        "page" => format!("Page: {}", trash.name_snapshot),
+        "object" => trash.original_section_type
+            .as_deref()
+            .map(|st| format!("From page: {}", st))
+            .unwrap_or_else(|| "From unknown page".to_string()),
+        _ => "Unknown".to_string(),
+    };
+
+    let preview_properties: Vec<serde_json::Value> = (|| -> Option<Vec<serde_json::Value>> {
+        let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
+        let props = data.get("properties")?;
+        let obj = props.as_object()?;
+        Some(obj.iter().take(5).map(|(k, v)| serde_json::json!({"key": k, "value": v})).collect())
+    })().unwrap_or_default();
+
+    Ok(TrashDetail {
+        id: trash.id,
+        item_type: trash.item_type,
+        original_id: trash.original_id,
+        name: trash.name_snapshot,
+        section_type: trash.original_section_type,
+        deleted_at: trash.deleted_at,
+        expires_at: trash.expires_at,
+        deleted_by: trash.deleted_by,
+        remaining_days,
+        original_location,
+        preview_properties,
+    })
 }
 
 /// Load trash retention period from profile preferences.

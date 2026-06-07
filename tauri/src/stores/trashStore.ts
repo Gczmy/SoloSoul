@@ -25,6 +25,7 @@ interface TrashState {
   searchQuery: string;
   isLoading: boolean;
   error: string | null;
+  selectedIds: Set<string>;
 
   loadItems: (accountId: string) => Promise<void>;
   setTimeFilter: (f: TrashTimeFilter) => void;
@@ -32,6 +33,9 @@ interface TrashState {
   setSearchQuery: (q: string) => void;
   restoreItem: (trashId: string) => Promise<void>;
   permanentDelete: (trashIds: string[]) => Promise<void>;
+  toggleSelection: (id: string) => void;
+  selectAll: (ids: string[]) => void;
+  clearSelection: () => void;
   clearOnVaultLock: () => void;
 }
 
@@ -51,6 +55,7 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   searchQuery: '',
   isLoading: false,
   error: null,
+  selectedIds: new Set(),
 
   loadItems: async (_accountId) => {
     set({ isLoading: true, error: null });
@@ -60,7 +65,7 @@ export const useTrashStore = create<TrashState>((set, get) => ({
         accountId: _accountId,
         ...(since && { since }),
       });
-      set({ items, isLoading: false });
+      set({ items, isLoading: false, selectedIds: new Set() });
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }
@@ -82,5 +87,24 @@ export const useTrashStore = create<TrashState>((set, get) => ({
     set((s) => ({ items: s.items.filter((i) => !trashIds.includes(i.id)) }));
   },
 
-  clearOnVaultLock: () => set({ items: [], timeFilter: 'all', typeFilter: 'all', searchQuery: '' }),
+  toggleSelection: (id) => {
+    set((s) => {
+      const next = new Set(s.selectedIds);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return { selectedIds: next };
+    });
+  },
+
+  selectAll: (ids) => {
+    set({ selectedIds: new Set(ids) });
+  },
+
+  clearSelection: () => {
+    set({ selectedIds: new Set() });
+  },
+
+  clearOnVaultLock: () => set({
+    items: [], timeFilter: 'all', typeFilter: 'all', searchQuery: '',
+    selectedIds: new Set(),
+  }),
 }));

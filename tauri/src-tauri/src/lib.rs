@@ -54,6 +54,7 @@ pub fn run() {
             commands::object::page_restore,
             commands::object::trash_get_retention,
             commands::object::trash_set_retention,
+            commands::object::trash_get_detail,
             commands::object::snapshot_list,
             commands::object::snapshot_get,
             commands::object::snapshot_count_batch,
