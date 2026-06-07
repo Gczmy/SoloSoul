@@ -479,7 +479,7 @@ export function TrashPage() {
                           </div>
                           {currentSnap.diffSummary && (
                             <div style={{ fontSize: 11, color: 'var(--text-tertiary)', padding: '2px 8px', marginBottom: 4 }}>
-                              {currentSnap.diffSummary}
+                              {t(`common:diff_${currentSnap.diffSummary}`, currentSnap.diffSummary)}
                             </div>
                           )}
                           {/* Content area — fixed minHeight prevents layout jump */}

@@ -118,6 +118,7 @@
   "version": "Version",
   "trigger_user_edit": "User edit",
   "trigger_rollback": "Rollback",
+  "diff_Created": "Initial snapshot",
   "save_as_template": "Save as Template",
   "add_attachment": "Add Attachment",
   "template_name_prompt": "Template name:",

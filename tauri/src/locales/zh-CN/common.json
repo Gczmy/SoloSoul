@@ -117,6 +117,7 @@
   "version": "版本",
   "trigger_user_edit": "用户编辑",
   "trigger_rollback": "回滚",
+  "diff_Created": "初始版本",
   "save_as_template": "保存为模板",
   "add_attachment": "添加附件",
   "template_name_prompt": "模板名称：",
