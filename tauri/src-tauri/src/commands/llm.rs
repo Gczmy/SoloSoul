@@ -104,9 +104,6 @@ fn save_api_key(vault: &VaultStore, account_id: &str, provider_id: &str, api_key
     profile.updated_at = chrono::Utc::now(); profile.version += 1; vault.save_profile(&profile)
 }
 
-fn vault_ref<'a>(state: &'a AppState) -> Result<tokio::sync::RwLockReadGuard<'a, crate::services::vault_service::VaultService>, String> {
-    Ok(state.vault_service.blocking_read())
-}
 
 // ── Commands ───────────────────────────────────────────────
 

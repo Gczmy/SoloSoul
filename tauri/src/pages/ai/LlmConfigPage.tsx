@@ -8,26 +8,32 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
+import { Settings, Plus, Check, Loader2 } from 'lucide-react';
 
-interface LlmConfig {
-  provider: string;
-  apiKey: string;
+interface ProviderConfig {
+  id: string;
+  name: string;
+  baseUrl: string;
   model: string;
-  baseUrl?: string;
-  enabled: boolean;
+  isEnabled: boolean;
+  isBuiltIn: boolean;
+  apiKey: string;
 }
 
-const PROVIDERS = [
-  { id: 'ollama', label: 'Ollama (Local)', desc: 'Runs locally, no API key needed' },
-  { id: 'openai', label: 'OpenAI', desc: 'GPT-4o, GPT-4, etc.' },
-  { id: 'anthropic', label: 'Anthropic', desc: 'Claude Opus, Sonnet, Haiku' },
-];
+interface AiFeatures {
+  chat: boolean;
+  smartFill: boolean;
+  commandGen: boolean;
+  naturalLanguageSearch: boolean;
+}
 
-const DEFAULT_MODELS: Record<string, string> = {
-  ollama: 'llama3',
-  openai: 'gpt-4o',
-  anthropic: 'claude-sonnet-4-6',
-};
+const BUILTIN_PROVIDERS = [
+  { id: 'builtin_openai', name: 'OpenAI', defaultModel: 'gpt-4o', defaultBaseUrl: 'https://api.openai.com/v1' },
+  { id: 'builtin_anthropic', name: 'Anthropic', defaultModel: 'claude-3-sonnet-20241022', defaultBaseUrl: 'https://api.anthropic.com/v1' },
+  { id: 'builtin_ollama', name: 'Ollama (Local)', defaultModel: 'llama3.1', defaultBaseUrl: 'http://localhost:11434/v1' },
+  { id: 'builtin_deepseek', name: 'DeepSeek', defaultModel: 'deepseek-chat', defaultBaseUrl: 'https://api.deepseek.com/v1' },
+  { id: 'builtin_alibaba', name: 'Alibaba Cloud', defaultModel: 'qwen-max', defaultBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
+];
 
 export function LlmConfigPage() {
   const navigate = useNavigate();
@@ -35,146 +41,245 @@ export function LlmConfigPage() {
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { onError, onSuccess } = useToastError();
 
-  const [config, setConfig] = useState<LlmConfig>({
-    provider: 'ollama',
-    apiKey: '',
-    model: 'llama3',
-    baseUrl: 'http://localhost:11434',
-    enabled: false,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const [providers, setProviders] = useState<ProviderConfig[]>([]);
+  const [activeId, setActiveId] = useState<string>('');
+  const [features, setFeatures] = useState<AiFeatures>({ chat: false, smartFill: false, commandGen: false, naturalLanguageSearch: false });
+  const [hasAcceptedRisk, setHasAcceptedRisk] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showRiskDialog, setShowRiskDialog] = useState(false);
+  const [riskChecked, setRiskChecked] = useState(false);
+  const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(null);
+  const [testResult, setTestResult] = useState<string | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [savingProvider, setSavingProvider] = useState(false);
 
   useEffect(() => {
-    if (accountId) {
-      invoke<LlmConfig>('llm_get_config', { accountId })
-        .then((cfg) => setConfig(cfg))
-        .catch(() => { /* use defaults */ })
-        .finally(() => setIsLoading(false));
-    }
+    if (!accountId) return;
+    Promise.all([
+      invoke<ProviderConfig[]>('llm_get_providers', { accountId }),
+      invoke<{ activeProviderId?: string; aiFeaturesEnabled?: AiFeatures; hasAcceptedRisk?: boolean }>('llm_get_config', { accountId }),
+    ]).then(([provs, cfg]) => {
+      setProviders(provs);
+      if (cfg.activeProviderId) setActiveId(cfg.activeProviderId);
+      if (cfg.aiFeaturesEnabled) setFeatures(cfg.aiFeaturesEnabled);
+      if (cfg.hasAcceptedRisk) setHasAcceptedRisk(true);
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [accountId]);
 
-  const handleSave = async () => {
+  const handleSetActive = async (id: string) => {
     if (!accountId) return;
-    setIsSaving(true);
+    setActiveId(id);
+    await invoke('llm_set_active_provider', { accountId, providerId: id }).catch(() => {});
+  };
+
+  const handleFeatureToggle = async (key: keyof AiFeatures) => {
+    const next = { ...features, [key]: !features[key] };
+    // Show risk dialog on first enable
+    if (!hasAcceptedRisk && next[key]) { setShowRiskDialog(true); setRiskChecked(false); return; }
+    setFeatures(next);
+    if (accountId) await invoke('llm_set_ai_features', { accountId, features: next }).catch(() => {});
+  };
+
+  const handleAcceptRisk = async () => {
+    if (!accountId) return;
+    await invoke('llm_accept_risk', { accountId }).catch(() => {});
+    setHasAcceptedRisk(true);
+    setShowRiskDialog(false);
+    // Actually enable the feature
+    const next = { ...features, chat: true };
+    setFeatures(next);
+    await invoke('llm_set_ai_features', { accountId, features: next }).catch(() => {});
+  };
+
+  const handleSaveProvider = async () => {
+    if (!editingProvider || !accountId) return;
+    setSavingProvider(true);
     try {
-      await invoke('llm_update_config', { accountId, config });
+      await invoke('llm_save_provider', { accountId, provider: editingProvider });
+      setProviders((prev) => {
+        const idx = prev.findIndex((p) => p.id === editingProvider.id);
+        const updated = { ...editingProvider, apiKey: editingProvider.apiKey ? '••••••••' : '' };
+        if (idx >= 0) { const n = [...prev]; n[idx] = updated; return n; }
+        return [...prev, updated];
+      });
+      setEditingProvider(null);
       onSuccess(t('common:success'));
+    } catch (e) { onError(e, t('common:error')); }
+    finally { setSavingProvider(false); }
+  };
+
+  const handleTestConnection = async () => {
+    if (!editingProvider) return;
+    setTesting(true);
+    setTestResult(null);
+    try {
+      // Get real API key for testing
+      let key = editingProvider.apiKey;
+      if (key === '••••••••' && accountId) {
+        key = await invoke<string>('llm_get_api_key', { accountId, providerId: editingProvider.id });
+      }
+      const result = await invoke<string>('llm_test_provider', {
+        baseUrl: editingProvider.baseUrl, apiKey: key, model: editingProvider.model,
+      });
+      setTestResult(`✓ Connection OK: "${result.slice(0, 80)}"`);
     } catch (e) {
-      onError(e, t('common:error'));
-    } finally {
-      setIsSaving(false);
-    }
+      setTestResult(`✗ Failed: ${String(e).slice(0, 120)}`);
+    } finally { setTesting(false); }
   };
 
-  const handleProviderChange = (provider: string) => {
-    setConfig((c) => ({
-      ...c,
-      provider,
-      model: DEFAULT_MODELS[provider] || c.model,
-      baseUrl: provider === 'ollama' ? 'http://localhost:11434' : undefined,
-    }));
+  const handleDeleteProvider = async (id: string) => {
+    if (!accountId || !confirm(t('common:confirm'))) return;
+    await invoke('llm_delete_provider', { accountId, providerId: id }).catch(() => {});
+    setProviders((prev) => prev.filter((p) => p.id !== id));
+    if (activeId === id) setActiveId('');
   };
 
-  if (isLoading) {
-    return <AppShell title="LLM Config" onBack={() => navigate('/settings')}><p>Loading...</p></AppShell>;
-  }
+  const handleAddCustom = () => {
+    const id = `custom_${Date.now()}`;
+    setEditingProvider({ id, name: '', baseUrl: '', model: '', isEnabled: false, isBuiltIn: false, apiKey: '' });
+  };
+
+  if (loading) return <AppShell title="LLM Config" onBack={() => navigate('/settings')}><p>Loading...</p></AppShell>;
 
   return (
-    <AppShell title="LLM Config" onBack={() => navigate('/settings')}>
-      <div style={{ maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Enable toggle */}
+    <AppShell title="AI & LLM Config" onBack={() => navigate('/settings')}>
+      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Risk notice */}
+        {!hasAcceptedRisk && (
+          <Card>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
+              <span style={{ color: '#e67e22' }}>⚠</span> AI features send data to external services.
+              All features are disabled by default. Enable individual features below.
+            </p>
+          </Card>
+        )}
+
+        {/* AI Features */}
         <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{t('common:enable', { defaultValue: 'Enable LLM' })}</h3>
-              <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                {t('settings:ai_chat_description', { defaultValue: 'Enable AI-powered features.' })}
-              </p>
-            </div>
-            <label style={{ position: 'relative', display: 'inline-block', width: 44, height: 24 }}>
-              <input
-                type="checkbox"
-                checked={config.enabled}
-                onChange={(e) => setConfig((c) => ({ ...c, enabled: e.target.checked }))}
-                style={{ opacity: 0, width: 0, height: 0 }}
-              />
-              <span style={{
-                position: 'absolute', cursor: 'pointer', inset: 0,
-                background: config.enabled ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                borderRadius: 12, transition: '0.2s',
-              }}>
-                <span style={{
-                  position: 'absolute', height: 18, width: 18, left: config.enabled ? 23 : 3,
-                  bottom: 3, background: 'white', borderRadius: '50%', transition: '0.2s',
-                }} />
-              </span>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>AI Features</h3>
+          {(['chat', 'smartFill', 'commandGen', 'naturalLanguageSearch'] as const).map((key) => (
+            <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', cursor: 'pointer', fontSize: 13 }}>
+              <input type="checkbox" checked={features[key]} onChange={() => handleFeatureToggle(key)} style={{ accentColor: 'var(--accent-primary)' }} />
+              {t(`settings:ai_${key}`)}
             </label>
-          </div>
+          ))}
         </Card>
 
-        {/* Provider selection */}
+        {/* Provider list */}
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Provider</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {PROVIDERS.map((p) => (
-              <label
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>AI Service Providers</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {providers.map((p) => (
+              <div
                 key={p.id}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-                  padding: '10px 12px', borderRadius: 8,
-                  background: config.provider === p.id ? 'var(--state-selected)' : 'var(--bg-toolbar)',
-                  border: config.provider === p.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 10px', borderRadius: 8,
+                  background: activeId === p.id ? 'rgba(91,124,153,0.08)' : 'var(--bg-toolbar)',
+                  border: activeId === p.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                  cursor: 'pointer', fontSize: 13,
                 }}
+                onClick={() => handleSetActive(p.id)}
               >
-                <input
-                  type="radio"
-                  name="provider"
-                  checked={config.provider === p.id}
-                  onChange={() => handleProviderChange(p.id)}
-                  style={{ accentColor: 'var(--accent-primary)' }}
-                />
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>{p.label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{p.desc}</div>
+                <input type="radio" checked={activeId === p.id} onChange={() => handleSetActive(p.id)} style={{ accentColor: 'var(--accent-primary)' }} />
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontWeight: 500 }}>{p.name}</span>
+                  <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--text-tertiary)' }}>{p.model}</span>
+                  {p.isBuiltIn && <span style={{ marginLeft: 4, fontSize: 10, padding: '1px 4px', borderRadius: 3, background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>built-in</span>}
                 </div>
-              </label>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setEditingProvider({ ...p }); }}
+                  style={{ padding: 4, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}
+                >
+                  <Settings size={14} />
+                </button>
+                {!p.isBuiltIn && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDeleteProvider(p.id); }}
+                    style={{ padding: 4, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e74c3c', fontSize: 14 }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             ))}
           </div>
+          <Button variant="secondary" size="sm" onClick={handleAddCustom} style={{ marginTop: 10 }}>
+            <Plus size={14} style={{ marginRight: 4 }} /> Add Custom Provider
+          </Button>
         </Card>
 
-        {/* Model + URL */}
-        <Card>
-          <Input
-            label="Model"
-            value={config.model}
-            onChange={(e) => setConfig((c) => ({ ...c, model: e.target.value }))}
-            placeholder={DEFAULT_MODELS[config.provider]}
-          />
-          {config.provider === 'ollama' && (
-            <div style={{ marginTop: 12 }}>
+        {/* Provider edit panel */}
+        {editingProvider && (
+          <Card>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+              {editingProvider.isBuiltIn ? `Configure ${editingProvider.name}` : 'Custom Provider'}
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Input
+                label="Name"
+                value={editingProvider.name}
+                onChange={(e) => setEditingProvider((p) => p ? { ...p, name: e.target.value } : null)}
+                disabled={editingProvider.isBuiltIn}
+              />
               <Input
                 label="Base URL"
-                value={config.baseUrl || ''}
-                onChange={(e) => setConfig((c) => ({ ...c, baseUrl: e.target.value }))}
-                placeholder="http://localhost:11434"
+                value={editingProvider.baseUrl}
+                onChange={(e) => setEditingProvider((p) => p ? { ...p, baseUrl: e.target.value } : null)}
               />
-            </div>
-          )}
-          {(config.provider === 'openai' || config.provider === 'anthropic') && (
-            <div style={{ marginTop: 12 }}>
+              <Input
+                label="Model"
+                value={editingProvider.model}
+                onChange={(e) => setEditingProvider((p) => p ? { ...p, model: e.target.value } : null)}
+              />
               <Input
                 label="API Key"
                 type="password"
-                value={config.apiKey}
-                onChange={(e) => setConfig((c) => ({ ...c, apiKey: e.target.value }))}
-                placeholder={config.provider === 'openai' ? 'sk-...' : 'sk-ant-...'}
+                value={editingProvider.apiKey}
+                onChange={(e) => setEditingProvider((p) => p ? { ...p, apiKey: e.target.value } : null)}
+                placeholder={editingProvider.apiKey === '••••••••' ? '•••••••• (unchanged)' : 'Enter API key'}
               />
+              {testResult && (
+                <div style={{ fontSize: 12, padding: '6px 10px', borderRadius: 6, background: testResult.startsWith('✓') ? 'rgba(39,174,96,0.08)' : 'rgba(231,76,60,0.08)', color: testResult.startsWith('✓') ? '#27ae60' : '#e74c3c' }}>
+                  {testResult}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button variant="secondary" onClick={handleTestConnection} loading={testing}>Test Connection</Button>
+                <Button onClick={handleSaveProvider} loading={savingProvider}>{t('common:save')}</Button>
+                <Button variant="secondary" onClick={() => { setEditingProvider(null); setTestResult(null); }}>{t('common:cancel')}</Button>
+              </div>
             </div>
-          )}
-        </Card>
+          </Card>
+        )}
 
-        <Button onClick={handleSave} loading={isSaving}>{t('common:save')}</Button>
+        {/* Risk dialog */}
+        {showRiskDialog && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
+            <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, padding: '28px 32px', maxWidth: 400, width: '90%', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-subtle)' }}>
+              <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 20 }}>⚠</span> Enable AI Feature?
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 16 }}>
+                You are about to enable AI features. Depending on your provider, your input will be sent to an external server.
+              </p>
+              <ul style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.8, paddingLeft: 16, marginBottom: 16 }}>
+                <li>SoloSoul will not send data automatically</li>
+                <li>You control what gets sent — each request requires confirmation</li>
+                <li>API keys are stored encrypted on your device only</li>
+                <li>You can disable this at any time</li>
+              </ul>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 16, fontSize: 13 }}>
+                <input type="checkbox" checked={riskChecked} onChange={() => setRiskChecked(!riskChecked)} style={{ accentColor: 'var(--accent-primary)' }} />
+                I understand and agree to enable this feature
+              </label>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <Button variant="secondary" onClick={() => setShowRiskDialog(false)}>{t('common:cancel')}</Button>
+                <Button onClick={handleAcceptRisk} disabled={!riskChecked}>Enable</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );
