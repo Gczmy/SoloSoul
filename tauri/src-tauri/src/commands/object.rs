@@ -697,7 +697,11 @@ pub async fn trash_get_detail(
         let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
         let props = data.get("properties")?;
         let obj = props.as_object()?;
-        Some(obj.iter().take(5).map(|(k, v)| serde_json::json!({"key": k, "value": v})).collect())
+        Some(obj.iter()
+            .filter(|(k, _)| !k.starts_with("__")) // skip internal fields like __attachments
+            .take(5)
+            .map(|(k, v)| serde_json::json!({"key": k, "value": v}))
+            .collect())
     })().unwrap_or_default();
 
     Ok(TrashDetail {

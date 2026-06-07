@@ -25,13 +25,14 @@ const CATEGORY_ICONS: Record<string, typeof PAGE_ICON_MAP.profile> = {
   professional: PAGE_ICON_MAP.professional,
 };
 
-/** Extract displayable key-value pairs from object properties. */
+/** Extract displayable key-value pairs from object properties (filters internal __ fields). */
 function flattenProperties(
   props: Record<string, unknown> | undefined
 ): { key: string; value: string }[] {
   if (!props) return [];
   const result: { key: string; value: string }[] = [];
   for (const [k, v] of Object.entries(props)) {
+    if (k.startsWith('__')) continue; // skip internal fields like __attachments
     if (v === null || v === undefined || v === '') continue;
     if (typeof v === 'string') {
       result.push({ key: k, value: v });
