@@ -462,19 +462,19 @@ export function TrashPage() {
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', background: 'var(--bg-elevated-hover)', borderRadius: 6, marginBottom: 6, minHeight: 32 }}>
                             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                               {currentSnap.diffSummary && (
-                                <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)' }}>
+                                <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 500, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)' }}>
                                   {t(`common:diff_${currentSnap.diffSummary}`, currentSnap.diffSummary)}
                                 </span>
                               )}
                               {snapIdx <= 1 && (
-                                <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600,
+                                <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 500,
                                   background: snapIdx === 0 ? 'rgba(39,174,96,0.12)' : 'rgba(91,124,153,0.08)',
                                   color: snapIdx === 0 ? '#27ae60' : 'var(--accent-primary)',
                                 }}>
                                   {snapIdx === 0 ? t('common:current_version') : t('common:previous_version')}
                                 </span>
                               )}
-                              <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)' }}>
+                              <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 500, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)' }}>
                                 {t(`common:trigger_${currentSnap.triggeredBy}`, currentSnap.triggeredBy)}
                               </span>
                             </div>
