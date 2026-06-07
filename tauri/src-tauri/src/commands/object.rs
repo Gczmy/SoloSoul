@@ -274,8 +274,10 @@ fn get_ui_language(svc: &crate::services::vault_service::VaultService) -> String
     if path.exists() {
         if let Ok(content) = std::fs::read_to_string(&path) {
             if let Ok(prefs) = serde_json::from_str::<serde_json::Value>(&content) {
-                if let Some(lang) = prefs.get("language").and_then(|v| v.as_str()) {
-                    return lang.to_string();
+                if prefs.is_object() {
+                    if let Some(lang) = prefs.get("language").and_then(|v| v.as_str()) {
+                        return lang.to_string();
+                    }
                 }
             }
         }

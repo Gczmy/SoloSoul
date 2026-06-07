@@ -50,12 +50,16 @@ pub async fn ui_update_preference(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let path = ui_prefs_path(&svc);
-    let mut prefs = if path.exists() {
+    let mut prefs: serde_json::Value = if path.exists() {
         let content = std::fs::read_to_string(&path).map_err(|e| format!("Read: {}", e))?;
         serde_json::from_str::<serde_json::Value>(&content).unwrap_or_default()
     } else {
         serde_json::Value::Object(serde_json::Map::new())
     };
+    // Handle corrupted file (e.g. literal null)
+    if !prefs.is_object() {
+        prefs = serde_json::Value::Object(serde_json::Map::new());
+    }
     if let Some(obj) = prefs.as_object_mut() {
         obj.insert(key, serde_json::Value::String(value));
     }
