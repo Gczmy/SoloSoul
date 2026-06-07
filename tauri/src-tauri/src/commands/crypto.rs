@@ -80,16 +80,43 @@ pub async fn constant_time_compare(a: Vec<u8>, b: Vec<u8>) -> bool {
     solosoul_crypto::secure::secure_compare(&a, &b)
 }
 
-/// Get vault statistics
+/// Get vault statistics (includes attachments stored at base_path/attachments/)
 #[tauri::command]
 pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::Value, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    let stats = vault.stats()?;
+    let mut stats = vault.stats()?;
+
+    // Attachments are stored at base_path/attachments/{objectId}/{attachmentId}/ (see attachment.rs)
+    let attachments_dir = svc.base_path().join("attachments");
+    let attachments_size: u64 = sum_dir_file_sizes(&attachments_dir);
+    stats.total_size_bytes += attachments_size;
+
     Ok(serde_json::json!({
         "profile_count": stats.profile_count,
         "total_size_bytes": stats.total_size_bytes,
         "last_modified": stats.last_modified,
     }))
+}
+
+/// Recursively sum file sizes under a directory (returns 0 if path doesn't exist).
+fn sum_dir_file_sizes(dir: &std::path::Path) -> u64 {
+    if !dir.exists() {
+        return 0;
+    }
+    let mut total = 0u64;
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                total += sum_dir_file_sizes(&path);
+            } else if path.is_file() {
+                if let Ok(meta) = path.metadata() {
+                    total += meta.len();
+                }
+            }
+        }
+    }
+    total
 }
