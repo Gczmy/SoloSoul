@@ -45,6 +45,8 @@ function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => stri
     // Translate location and action codes to human-readable i18n
     if (vars.location) vars.location = t(`settings:log.location.${vars.location}`, vars.location);
     if (vars.action) vars.action = t(`settings:log.action_name.${vars.action}`, vars.action);
+    // Translate section codes (identity/travel/financial/professional)
+    if (vars.section) vars.section = t(`common:${vars.section}`, vars.section);
     return t(key, { defaultValue: raw, ...vars });
   }
   return t(key, { defaultValue: raw, reason: raw });
