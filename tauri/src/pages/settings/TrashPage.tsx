@@ -66,6 +66,14 @@ export function TrashPage() {
   const [detailItem, setDetailItem] = useState<TrashDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
+  // ── Confirmation dialog state ──────────────────────────────────
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'restore' | 'delete';
+    ids: string[];
+    count: number;
+    callback: () => Promise<void>;
+  } | null>(null);
+
   useEffect(() => {
     if (accountId) loadItems(accountId);
   }, [accountId, timeFilter]);
@@ -76,6 +84,29 @@ export function TrashPage() {
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((i) => selectedIds.has(i.id));
   const hasSelection = selectedIds.size > 0;
+
+  // ── Confirmation wrappers ─────────────────────────────────────
+  const doRestore = (ids: string[]) => {
+    const count = ids.length;
+    setConfirmAction({
+      type: 'restore', ids, count,
+      callback: async () => {
+        for (const id of ids) await restoreItem(id);
+        clearSelection();
+      },
+    });
+  };
+
+  const doDelete = (ids: string[]) => {
+    const count = ids.length;
+    setConfirmAction({
+      type: 'delete', ids, count,
+      callback: async () => {
+        await permanentDelete(ids);
+        clearSelection();
+      },
+    });
+  };
 
   const openDetail = async (trashId: string) => {
     setLoadingDetail(true);
@@ -181,10 +212,10 @@ export function TrashPage() {
                     </div>
                   </div>
                 </div>
-                <Button size="sm" onClick={() => restoreItem(item.id)} title={t('common:restore')}>
+                <Button size="sm" onClick={() => doRestore([item.id])} title={t('common:restore')}>
                   <RotateCcw size={13} />
                 </Button>
-                <Button size="sm" variant="secondary" onClick={() => permanentDelete([item.id])} title={t('common:delete_permanently')}>
+                <Button size="sm" variant="secondary" onClick={() => doDelete([item.id])} title={t('common:delete_permanently')}>
                   <Trash2 size={13} />
                 </Button>
                 <button
@@ -213,10 +244,10 @@ export function TrashPage() {
             <span style={{ fontSize: 13, color: 'var(--text-secondary)', marginRight: 'auto' }}>
               {selectedIds.size} {t('settings:selected')}
             </span>
-            <Button size="sm" onClick={async () => { for (const id of selectedIds) await restoreItem(id); clearSelection(); }}>
+            <Button size="sm" onClick={() => doRestore(Array.from(selectedIds))}>
               <RotateCcw size={13} style={{ marginRight: 4 }} /> {t('common:restore')}
             </Button>
-            <Button size="sm" variant="secondary" onClick={async () => { await permanentDelete(Array.from(selectedIds)); clearSelection(); }}>
+            <Button size="sm" variant="secondary" onClick={() => doDelete(Array.from(selectedIds))}>
               {t('common:delete_permanently')}
             </Button>
           </div>
@@ -283,11 +314,48 @@ export function TrashPage() {
               )}
 
               <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-                <Button size="sm" onClick={async () => { await restoreItem(detailItem.id); setDetailItem(null); }}>
+                <Button size="sm" onClick={() => { doRestore([detailItem.id]); setDetailItem(null); }}>
                   <RotateCcw size={13} style={{ marginRight: 4 }} /> {t('common:restore')}
                 </Button>
-                <Button size="sm" variant="secondary" onClick={async () => { await permanentDelete([detailItem.id]); setDetailItem(null); }}>
+                <Button size="sm" variant="secondary" onClick={() => { doDelete([detailItem.id]); setDetailItem(null); }}>
                   {t('common:delete_permanently')}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+        {/* ── Confirmation dialog ──────────────────────────── */}
+        {confirmAction && (
+          <>
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 99 }} onClick={() => setConfirmAction(null)} />
+            <div style={{
+              position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: 340, zIndex: 100, background: 'var(--bg-elevated)', borderRadius: 12, padding: 24,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+            }}>
+              <h3 style={{ fontSize: 15, fontWeight: 600, margin: '0 0 8px' }}>
+                {confirmAction.type === 'delete'
+                  ? t('settings:confirm_delete_title')
+                  : t('settings:confirm_restore_title')}
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+                {confirmAction.type === 'delete'
+                  ? t('settings:confirm_delete_desc', { count: confirmAction.count })
+                  : t('settings:confirm_restore_desc', { count: confirmAction.count })}
+              </p>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <Button size="sm" variant="secondary" onClick={() => setConfirmAction(null)}>
+                  {t('common:cancel')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant={confirmAction.type === 'delete' ? 'secondary' : 'primary'}
+                  onClick={async () => {
+                    await confirmAction.callback();
+                    setConfirmAction(null);
+                  }}
+                >
+                  {confirmAction.type === 'delete' ? t('common:delete_permanently') : t('common:restore')}
                 </Button>
               </div>
             </div>
