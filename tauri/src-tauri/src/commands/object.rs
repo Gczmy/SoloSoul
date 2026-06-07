@@ -171,7 +171,7 @@ pub async fn object_create(
         "name": record.name, "tags": record.tags_json, "properties": record.properties,
     })).unwrap_or_default();
     let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "Created");
-    let _ = vault.log_structured("object_create", "object", Some(&id), Some(&input.name), "user", Some(&format!("type={}", input.collection_type)));
+    let _ = vault.log_structured("object_create", "object", Some(&id), Some(&input.name), "user", Some(&format!("section={}", input.collection_type)));
     Ok(record_to_data(&record))
 }
 
@@ -207,7 +207,7 @@ pub async fn object_update(
     })).unwrap_or_default();
     let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "");
 
-    let _ = vault.log_structured("object_update", "object", Some(&object_id), Some(&record.name), "user", Some(&format!("id={}", object_id)));
+    let _ = vault.log_structured("object_update", "object", Some(&object_id), Some(&record.name), "user", Some(&format!("section={}", record.section_type)));
     Ok(record_to_data(&record))
 }
 
@@ -224,6 +224,8 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
 
     if let Ok(Some(rec)) = vault.load_object(&object_id) {
         let now_ms = chrono::Utc::now().timestamp_millis();
+        let obj_name = rec.name.clone();
+        let obj_section = rec.section_type.clone();
         // Store complete ObjectRecord as data (§23.2.2)
         let full_record = serde_json::json!({
             "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
@@ -248,11 +250,11 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
             icon_snapshot: Some(rec.icon_name.clone()),
         };
         let _ = vault.save_trash_item(&trash);
+        vault.delete_object(&object_id, true)?;
+        let _ = vault.log_structured("object_delete", "object", Some(&object_id), Some(&obj_name), "user", Some(&format!("section={}", obj_section)));
+        return Ok(());
     }
-    vault.delete_object(&object_id, true)?;
-    let rec_name = vault.load_object(&object_id).ok().flatten().map(|r| r.name).unwrap_or_default();
-    let _ = vault.log_structured("object_delete", "object", Some(&object_id), Some(&rec_name), "user", Some("soft"));
-    Ok(())
+    Err("Object not found".to_string())
 }
 
 #[tauri::command]
@@ -334,7 +336,8 @@ pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Res
 
     vault.save_object(&record)?;
     vault.delete_trash_item(&trash_id)?;
-    let _ = vault.log_structured("object_restore", "object", Some(&trash.original_id), Some(&trash.name_snapshot), "user", Some(&format!("trash_id={} was_conflict={}", trash_id, exists)));
+    let _ = vault.log_structured("object_restore", "object", Some(&trash.original_id), Some(&trash.name_snapshot), "user",
+        Some(&format!("section={} was_conflict={}", target_section, exists)));
 
     Ok(new_id)
 }
@@ -344,10 +347,13 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    let (obj_name, obj_section) = vault.load_object(&object_id).ok().flatten()
+        .map(|r| (r.name, r.section_type))
+        .unwrap_or_default();
     vault.delete_object(&object_id, false)?;
     vault.delete_trash_item(&object_id).ok();
-    let rec_name = vault.load_object(&object_id).ok().flatten().map(|r| r.name).unwrap_or_default();
-    let _ = vault.log_structured("object_purge", "object", Some(&object_id), Some(&rec_name), "user", None);
+    let _ = vault.log_structured("object_purge", "object", Some(&object_id), Some(&obj_name), "user", Some(&format!("section={}", obj_section)));
     Ok(())
 }
 
@@ -368,6 +374,10 @@ pub async fn trash_permanent_delete(
 
     if let Ok(Some(trash)) = vault.get_trash_item(&trash_id) {
         vault.delete_object(&trash.original_id, false)?;
+        let _ = vault.log_structured("trash_permanent_delete", "trash_item", Some(&trash_id), Some(&trash.name_snapshot), "user",
+            Some(&format!("original_id={}", trash.original_id)));
+        vault.delete_trash_item(&trash_id).ok();
+        return Ok(());
     }
     vault.delete_trash_item(&trash_id).ok();
     let _ = vault.log_structured("trash_permanent_delete", "trash_item", Some(&trash_id), None, "user", None);
@@ -597,8 +607,8 @@ pub async fn snapshot_rollback(
         "name": record.name, "tags": record.tags_json, "properties": record.properties,
     })).unwrap_or_default();
     let _ = vault.save_snapshot(&object_id, "rollback", &rollback_data, "Rolled back to previous version");
-    let rec_name = vault.load_object(&object_id).ok().flatten().map(|r| r.name).unwrap_or_default();
-    let _ = vault.log_structured("object_rollback", "object", Some(&object_id), Some(&rec_name), "user", Some(&format!("snapshot={}", snapshot_id)));
+    let _ = vault.log_structured("object_rollback", "object", Some(&object_id), Some(&record.name), "user",
+        Some(&format!("section={} snapshot={}", record.section_type, snapshot_id)));
     Ok(())
 }
 

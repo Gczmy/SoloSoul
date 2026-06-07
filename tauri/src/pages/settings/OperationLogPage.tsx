@@ -19,15 +19,16 @@ interface AuditLogEntry {
   details: string | null;
 }
 
+/** All known entity types — used for filter buttons */
+const ALL_ENTITY_TYPES = ['object', 'page', 'preference', 'profile', 'biometric', 'template', 'export', 'import', 'attachment', 'trash_item', 'llm'];
+
 function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => string): string {
   const key = `settings:log.detail.${entry.actionType}`;
   const raw = entry.details || '';
-  // i18next returns the key itself when the key doesn't exist
   const translated = t(key, { defaultValue: raw });
   if (translated === key || translated === raw) {
     return raw;
   }
-  // Parse "key=value key2=value2" style variables
   const re = /(\w+)=([^\s]+)/g;
   const vars: Record<string, string | number> = {};
   let match;
@@ -35,7 +36,6 @@ function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => stri
     const val = match[2];
     vars[match[1]] = /^\d+$/.test(val) ? parseInt(val, 10) : val;
   }
-  // Pass entityName as {{name}} for templates that show object names
   if (entry.entityName) {
     vars.name = entry.entityName;
   }
@@ -95,17 +95,15 @@ export function OperationLogPage() {
     return true;
   });
 
-  const entityTypes = [...new Set(logs.map((l) => l.entityType).filter(Boolean))];
-
   return (
     <AppShell title={t('settings:operation_log')} onBack={() => navigate('/settings')}>
-      <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Toolbar */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Row 1: Search + Export */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <div style={{
             flex: 1, display: 'flex', alignItems: 'center', gap: 6,
             border: '1px solid var(--border-subtle)', borderRadius: 8,
-            padding: '0 10px', minWidth: 200,
+            padding: '0 10px',
           }}>
             <Search size={14} style={{ color: 'var(--text-tertiary)' }} />
             <input
@@ -120,39 +118,39 @@ export function OperationLogPage() {
               }}
             />
           </div>
-
-          <div style={{ display: 'flex', gap: 4 }}>
-            <button
-              onClick={() => setEntityTypeFilter(null)}
-              style={{
-                padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
-                background: entityTypeFilter === null ? 'var(--accent-primary)' : 'transparent',
-                color: entityTypeFilter === null ? 'white' : 'var(--text-primary)',
-                cursor: 'pointer', fontSize: 12, fontWeight: 500,
-              }}
-            >
-              {t('settings:all')}
-            </button>
-            {entityTypes.map((type) => (
-              <button
-                key={type}
-                onClick={() => setEntityTypeFilter(type === entityTypeFilter ? null : type)}
-                style={{
-                  padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
-                  background: entityTypeFilter === type ? 'var(--accent-primary)' : 'transparent',
-                  color: entityTypeFilter === type ? 'white' : 'var(--text-primary)',
-                  cursor: 'pointer', fontSize: 12, fontWeight: 500,
-                }}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
-
           <Button variant="secondary" size="sm" onClick={handleExport}>
             <Download size={14} />
             {t('settings:export_logs')}
           </Button>
+        </div>
+
+        {/* Row 2: Entity type filter */}
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setEntityTypeFilter(null)}
+            style={{
+              padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
+              background: entityTypeFilter === null ? 'var(--accent-primary)' : 'transparent',
+              color: entityTypeFilter === null ? 'white' : 'var(--text-primary)',
+              cursor: 'pointer', fontSize: 12, fontWeight: 500,
+            }}
+          >
+            {t('settings:all')}
+          </button>
+          {ALL_ENTITY_TYPES.map((type) => (
+            <button
+              key={type}
+              onClick={() => setEntityTypeFilter(type === entityTypeFilter ? null : type)}
+              style={{
+                padding: '5px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
+                background: entityTypeFilter === type ? 'var(--accent-primary)' : 'transparent',
+                color: entityTypeFilter === type ? 'white' : 'var(--text-primary)',
+                cursor: 'pointer', fontSize: 12, fontWeight: 500,
+              }}
+            >
+              {t(`settings:log.entity.${type}`, type)}
+            </button>
+          ))}
         </div>
 
         {/* Log entries */}
