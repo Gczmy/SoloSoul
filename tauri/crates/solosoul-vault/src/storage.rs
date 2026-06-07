@@ -326,26 +326,26 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn
             .prepare(
-                "SELECT id, account_id, type_id, name, icon_name, parent_id,
+                "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
                  is_deleted, deleted_at, tags_json, created_at, updated_at, version
                  FROM objects WHERE id = ?1",
             )
             .map_err(|e| format!("load_object: {}", e))?;
         let result = stmt.query_row(params![id], |row| {
-            let children_str: String = row.get(6)?;
-            let props_str: String = row.get(7)?;
-            let labels_str: String = row.get(8)?;
-            let tags_str: String = row.get(12)?;
-            let deleted: i32 = row.get(10)?;
+            let children_str: String = row.get(7)?;
+            let props_str: String = row.get(8)?;
+            let labels_str: String = row.get(9)?;
+            let tags_str: String = row.get(13)?;
+            let deleted: i32 = row.get(11)?;
             Ok(ObjectRecord {
                 id: row.get(0)?,
                 account_id: row.get(1)?,
                 type_id: row.get(2)?,
-                section_type: String::new(),
-                name: row.get(3)?,
-                icon_name: row.get(4)?,
-                parent_id: row.get(5)?,
+                section_type: row.get(3)?,
+                name: row.get(4)?,
+                icon_name: row.get(5)?,
+                parent_id: row.get(6)?,
                 children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
                 properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
                 property_labels: if labels_str.is_empty() {
@@ -353,13 +353,13 @@ impl VaultStore {
                 } else {
                     serde_json::from_str(&labels_str).ok()
                 },
-                sensitivity_level: row.get(9)?,
+                sensitivity_level: row.get(10)?,
                 is_deleted: deleted != 0,
-                deleted_at: row.get(11)?, // note: deleted_at col index changed due to tags_json insert
+                deleted_at: row.get(12)?,
                 tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
-                created_at: row.get(13)?,
-                updated_at: row.get(14)?,
-                version: row.get(15)?,
+                created_at: row.get(14)?,
+                updated_at: row.get(15)?,
+                version: row.get(16)?,
             })
         }).ok();
         Ok(result)
@@ -378,7 +378,7 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
 
         let mut sql = String::from(
-            "SELECT id, name, type_id, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
@@ -421,16 +421,17 @@ impl VaultStore {
 
         let objects = stmt
             .query_map(params_refs.as_slice(), |row| {
-                let deleted_int: i32 = row.get(6)?;
-                let props_str: String = row.get(7)?;
-                let tags_str: String = row.get(8)?;
+                let deleted_int: i32 = row.get(7)?;
+                let props_str: String = row.get(8)?;
+                let tags_str: String = row.get(9)?;
                 Ok(ObjectSummary {
                     id: row.get(0)?,
                     name: row.get(1)?,
                     collection_type: row.get(2)?,
-                    sensitivity_level: row.get(3)?,
-                    created_at: row.get(4)?,
-                    updated_at: row.get(5)?,
+                    section_type: row.get(3)?,
+                    sensitivity_level: row.get(4)?,
+                    created_at: row.get(5)?,
+                    updated_at: row.get(6)?,
                     is_deleted: deleted_int != 0,
                     properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
                     tags: serde_json::from_str(&tags_str).unwrap_or_default(),

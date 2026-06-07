@@ -64,13 +64,15 @@ pub fn run() {
             // Search commands
             commands::search::search_unified,
             commands::search::search_advanced,
-            // Export/Import commands
+            // Export/Import commands (P0+P1)
             commands::export_import::export_get_scope_tree,
             commands::export_import::export_estimate_size,
             commands::export_import::export_execute,
-            // Import commands
-            commands::export_import::import_preview_package,
+            commands::export_import::import_parse_package,
+            commands::export_import::import_get_password_hint,
+            commands::export_import::import_decrypt_preview,
             commands::export_import::import_execute,
+            commands::export_import::import_execute_advanced,
             commands::vault::get_state,
             commands::vault::change_password,
             commands::vault::delete_account,

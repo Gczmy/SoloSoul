@@ -100,6 +100,7 @@
   "export_failed": "Export failed",
   "import_failed": "Import failed",
   "preview_failed": "Preview failed",
+  "decrypt_failed": "Decryption failed — wrong password or corrupted file",
   "logs_load_failed": "Failed to load logs",
   "logs_export_failed": "Export failed",
   "backups_load_failed": "Failed to load backups",

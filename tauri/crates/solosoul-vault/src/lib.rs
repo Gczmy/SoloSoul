@@ -123,6 +123,8 @@ pub struct ObjectSummary {
     pub name: String,
     #[serde(rename = "collectionType")]
     pub collection_type: String,
+    #[serde(rename = "sectionType")]
+    pub section_type: String,
     #[serde(rename = "sensitivityLevel")]
     pub sensitivity_level: String,
     #[serde(rename = "createdAt")]
@@ -142,6 +144,7 @@ impl ObjectSummary {
             id: r.id.clone(),
             name: r.name.clone(),
             collection_type: r.type_id.clone(),
+            section_type: r.section_type.clone(),
             sensitivity_level: r.sensitivity_level.clone(),
             created_at: r.created_at.clone(),
             updated_at: r.updated_at.clone(),

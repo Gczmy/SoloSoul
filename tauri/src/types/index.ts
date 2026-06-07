@@ -70,11 +70,11 @@ export interface ProfileSectionMeta {
 // Object (unified entity CRUD)
 // ---------------------------------------------------------------------------
 
-/** Summary row for object listing */
 export interface ObjectSummary {
   id: string;
   name: string;
   collectionType: string;
+  sectionType: string;
   sensitivityLevel: string;
   createdAt: string;
   updatedAt: string;
