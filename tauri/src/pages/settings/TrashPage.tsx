@@ -184,6 +184,9 @@ export function TrashPage() {
                 <Button size="sm" onClick={() => restoreItem(item.id)} title={t('common:restore')}>
                   <RotateCcw size={13} />
                 </Button>
+                <Button size="sm" variant="secondary" onClick={() => permanentDelete([item.id])} title={t('common:delete_permanently')}>
+                  <Trash2 size={13} />
+                </Button>
                 <button
                   onClick={() => openDetail(item.id)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-tertiary)' }}
