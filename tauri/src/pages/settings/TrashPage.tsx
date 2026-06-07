@@ -458,42 +458,67 @@ export function TrashPage() {
                       )}
                       {currentSnap && (
                         <div>
-                          <div style={{ padding: '6px 8px', background: 'var(--bg-elevated-hover)', borderRadius: 6, marginBottom: 6 }}>
-                            <div style={{ color: 'var(--text-tertiary)', marginBottom: 2 }}>
-                              {new Date(currentSnap.timestamp).toLocaleString()}
-                            </div>
-                            <div style={{ color: 'var(--accent-primary)', fontSize: 11 }}>
-                              {currentSnap.triggeredBy}
-                              {currentSnap.diffSummary && ` · ${currentSnap.diffSummary}`}
-                            </div>
-                          </div>
-                          {loading && <p style={{ color: 'var(--text-tertiary)', padding: '8px 0' }}>{t('common:loading')}</p>}
-                          {data && (() => {
-                            const d = data as Record<string, unknown>;
-                            return (
-                            <div style={{ padding: '6px 8px', fontSize: 11, color: 'var(--text-secondary)' }}>
-                              {Object.entries(d)
-                                .filter(([k]) => k !== '__attachments' && typeof d[k] !== 'object')
-                                .slice(0, 5)
-                                .map(([k, v]) => (
-                                  <div key={k} style={{ display: 'flex', gap: 6, marginBottom: 2 }}>
-                                    <span style={{ fontWeight: 500, flexShrink: 0 }}>{t(`editor:fields.${k}`, k)}:</span>
-                                    <span>{typeof v === 'string' ? v : JSON.stringify(v)}</span>
-                                  </div>
-                                ))}
-                              {(d.properties as any) && typeof d.properties === 'object' && !Array.isArray(d.properties) && (
-                                Object.entries(d.properties as Record<string, unknown>)
-                                  .filter(([k]) => !k.startsWith('__'))
-                                  .slice(0, 5)
-                                  .map(([k, v]) => (
-                                    <div key={k} style={{ display: 'flex', gap: 6, marginBottom: 2 }}>
-                                      <span style={{ fontWeight: 500, flexShrink: 0 }}>{t(`editor:fields.${k}`, k)}:</span>
-                                      <span>{String(v ?? '')}</span>
-                                    </div>
-                                  ))
+                          {/* Header */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', background: 'var(--bg-elevated-hover)', borderRadius: 6, marginBottom: 6, minHeight: 32 }}>
+                            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                              {snapIdx <= 1 && (
+                                <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600,
+                                  background: snapIdx === 0 ? 'rgba(39,174,96,0.12)' : 'rgba(91,124,153,0.08)',
+                                  color: snapIdx === 0 ? '#27ae60' : 'var(--accent-primary)',
+                                }}>
+                                  {snapIdx === 0 ? t('common:current_version') : t('common:previous_version')}
+                                </span>
                               )}
-                            </div>);
-                          })()}
+                              <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)' }}>
+                                {t(`common:trigger_${currentSnap.triggeredBy}`, currentSnap.triggeredBy)}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                              {new Date(currentSnap.timestamp).toLocaleString()}
+                            </span>
+                          </div>
+                          {currentSnap.diffSummary && (
+                            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', padding: '2px 8px', marginBottom: 4 }}>
+                              {currentSnap.diffSummary}
+                            </div>
+                          )}
+                          {/* Content area — fixed minHeight prevents layout jump */}
+                          <div style={{ minHeight: 60 }}>
+                            {loading && <p style={{ color: 'var(--text-tertiary)', padding: '8px 0' }}>{t('common:loading')}</p>}
+                            {data && !loading && (() => {
+                              const d = data as Record<string, unknown>;
+                              const rawProps = d.properties as Record<string, unknown> | undefined;
+                              const fields = rawProps && typeof rawProps === 'object'
+                                ? Object.entries(rawProps)
+                                    .filter(([k, v]) => !k.startsWith('__') && v !== null && v !== undefined && v !== '')
+                                    .map(([k, v]) => ({ key: k, value: typeof v === 'string' ? v : JSON.stringify(v) }))
+                                : [];
+                              const tags: string[] = Array.isArray(d.tags) ? d.tags as string[] : [];
+                              const snapName = typeof d.name === 'string' ? d.name : '';
+                              return (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                  {snapName && (
+                                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'right' }}>{snapName}</div>
+                                  )}
+                                  {fields.slice(0, 8).map((f) => (
+                                    <div key={f.key} style={{ display: 'flex', gap: 8, fontSize: 12, padding: '3px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                                      <span style={{ fontWeight: 500, color: 'var(--text-secondary)', minWidth: 80 }}>{t(`editor:fields.${f.key}`, f.key)}:</span>
+                                      <span style={{ color: 'var(--text-primary)' }}>{f.value}</span>
+                                    </div>
+                                  ))}
+                                  {tags.length > 0 && (
+                                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                                      {tags.map((tag) => (
+                                        <span key={tag} style={{ padding: '1px 7px', borderRadius: 10, fontSize: 10, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)', fontWeight: 500 }}>
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
                         </div>
                       )}
                     </div>
