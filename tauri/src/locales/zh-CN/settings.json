@@ -317,9 +317,9 @@
       "page_restore": "恢复了 {{count}} 项到页面",
       "trash_permanent_delete": "{{name}}",
       "trash_set_retention": "设置为 {{period}}",
-      "biometric_unlock": "{{location}}",
-      "biometric_saved": "{{location}}",
-      "biometric_deleted": "{{location}}",
+      "biometric_unlock": "{{location}} — {{action}}",
+      "biometric_saved": "{{location}} — {{action}}",
+      "biometric_deleted": "{{location}} — {{action}}",
       "export_execute": "导出了 {{count}} 个对象",
       "import_execute": "导入了 {{count}} 个对象（策略：{{strategy}}）",
       "attachment_cleanup": "清理了 {{count}} 个孤立附件，释放 {{bytes}}"

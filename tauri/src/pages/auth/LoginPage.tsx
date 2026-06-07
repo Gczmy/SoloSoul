@@ -74,7 +74,7 @@ export function LoginPage() {
     setBioLoading(true);
     setBioError(null);
     try {
-      await invoke('biometric_unlock', { accountId: selectedAccountId, location: 'login_page' });
+      await invoke('biometric_unlock', { accountId: selectedAccountId, location: 'login_page', action: 'unlock' });
       // Vault already unlocked — set auth state directly
       const result = await invoke<any[]>('list_accounts');
       const accs = result || [];

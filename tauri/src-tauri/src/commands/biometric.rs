@@ -133,7 +133,7 @@ pub async fn biometric_check_availability(account_id: String) -> Result<Biometri
 #[tauri::command]
 pub async fn biometric_save_credential(
     state: State<'_, AppState>, account_id: String, password: String, silent: Option<bool>,
-    location: Option<String>,
+    location: Option<String>, action: Option<String>,
 ) -> Result<(), String> {
     if !is_macos() { return Err("platform not supported".into()); }
     verify_password(&password, &account_id)?;
@@ -147,14 +147,15 @@ pub async fn biometric_save_credential(
     if let Some(vg) = svc.get_vault_store() {
         if let Some(vault) = vg.as_ref() {
             let loc = location.unwrap_or_else(|| "unknown".to_string());
-            let _ = vault.log_structured("biometric_saved", "biometric", Some(&account_id), None, "user", Some(&format!("location={}", loc)));
+            let act = action.unwrap_or_else(|| "enable".to_string());
+            let _ = vault.log_structured("biometric_saved", "biometric", Some(&account_id), None, "user", Some(&format!("location={} action={}", loc, act)));
         }
     }
     Ok(())
 }
 
 #[tauri::command]
-pub async fn biometric_unlock(state: State<'_, AppState>, account_id: String, location: Option<String>) -> Result<(), String> {
+pub async fn biometric_unlock(state: State<'_, AppState>, account_id: String, location: Option<String>, action: Option<String>) -> Result<(), String> {
     if !is_macos() { return Err("platform not supported".into()); }
     trigger_system_biometric("unlock SoloSoul")?;
     let key_hex = read_master_key(&account_id)?;
@@ -165,7 +166,8 @@ pub async fn biometric_unlock(state: State<'_, AppState>, account_id: String, lo
     if let Some(vg) = svc.get_vault_store() {
         if let Some(vault) = vg.as_ref() {
             let loc = location.unwrap_or_else(|| "unknown".to_string());
-            let _ = vault.log_structured("biometric_unlock", "biometric", Some(&account_id), None, "user", Some(&format!("location={}", loc)));
+            let act = action.unwrap_or_else(|| "unlock".to_string());
+            let _ = vault.log_structured("biometric_unlock", "biometric", Some(&account_id), None, "user", Some(&format!("location={} action={}", loc, act)));
         }
     }
     Ok(())
@@ -174,7 +176,7 @@ pub async fn biometric_unlock(state: State<'_, AppState>, account_id: String, lo
 #[tauri::command]
 pub async fn biometric_delete_credential(
     state: State<'_, AppState>, account_id: String, password: String,
-    location: Option<String>,
+    location: Option<String>, action: Option<String>,
 ) -> Result<(), String> {
     if !is_macos() { return Err("platform not supported".into()); }
     verify_password(&password, &account_id)?;
@@ -184,7 +186,8 @@ pub async fn biometric_delete_credential(
     if let Some(vg) = svc.get_vault_store() {
         if let Some(vault) = vg.as_ref() {
             let loc = location.unwrap_or_else(|| "unknown".to_string());
-    let _ = vault.log_structured("biometric_deleted", "biometric", Some(&account_id), None, "user", Some(&format!("location={}", loc)));
+    let act = action.unwrap_or_else(|| "disable".to_string());
+    let _ = vault.log_structured("biometric_deleted", "biometric", Some(&account_id), None, "user", Some(&format!("location={} action={}", loc, act)));
         }
     }
     Ok(())

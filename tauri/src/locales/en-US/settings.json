@@ -317,9 +317,9 @@
       "page_restore": "{{count}} item(s) restored to page",
       "trash_permanent_delete": "{{name}}",
       "trash_set_retention": "Set to {{period}}",
-      "biometric_unlock": "{{location}}",
-      "biometric_saved": "{{location}}",
-      "biometric_deleted": "{{location}}",
+      "biometric_unlock": "{{location}} — {{action}}",
+      "biometric_saved": "{{location}} — {{action}}",
+      "biometric_deleted": "{{location}} — {{action}}",
       "export_execute": "{{count}} object(s) exported",
       "import_execute": "{{count}} object(s) imported ({{strategy}})",
       "attachment_cleanup": "{{count}} orphan(s) freed {{bytes}}"
