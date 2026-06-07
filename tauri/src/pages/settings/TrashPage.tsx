@@ -484,8 +484,8 @@ export function TrashPage() {
                           </div>
                           {/* Content area — fixed minHeight prevents layout jump */}
                           <div style={{ minHeight: 60 }}>
-                            {loading && <p style={{ color: 'var(--text-tertiary)', padding: '8px 0' }}>{t('common:loading')}</p>}
-                            {data && !loading && (() => {
+                            {loading && !data && <p style={{ color: 'var(--text-tertiary)', padding: '8px 0' }}>{t('common:loading')}</p>}
+                            {data && (() => {
                               const d = data as Record<string, unknown>;
                               const rawProps = d.properties as Record<string, unknown> | undefined;
                               const fields = rawProps && typeof rawProps === 'object'
