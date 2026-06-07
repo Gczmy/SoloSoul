@@ -75,6 +75,7 @@ export function LoginPage() {
             </select>
           )}
           <SecurePasswordInput
+            key={selectedAccountId + ((selectedAccount as { passwordHint?: string })?.passwordHint || '')}
             value={password}
             onChange={(v) => setPassword(v)}
             placeholder={t('common:password_placeholder')}
