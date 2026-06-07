@@ -54,7 +54,7 @@ function timeAgo(ms: number, t: (k: string) => string): string {
 
 export function TrashPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation(['settings', 'common']);
+  const { t } = useTranslation(['settings', 'common', 'editor']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const {
     items, timeFilter, typeFilter, searchQuery,
@@ -251,7 +251,7 @@ export function TrashPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:original_location')}</span>
-                  <span>{detailItem.sectionType || detailItem.originalLocation}</span>
+                  <span>{t(`navigation:${detailItem.sectionType}`, detailItem.originalLocation)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:remaining_retention')}</span>
@@ -269,7 +269,7 @@ export function TrashPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text-secondary)' }}>
                     {detailItem.previewProperties.map((p, i) => (
                       <div key={i} style={{ display: 'flex', gap: 8 }}>
-                        <span style={{ fontWeight: 500, flexShrink: 0 }}>{p.key}:</span>
+                        <span style={{ fontWeight: 500, flexShrink: 0 }}>{t(`editor:fields.${p.key}`, p.key)}:</span>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {typeof p.value === 'string' ? p.value : JSON.stringify(p.value)}
                         </span>
