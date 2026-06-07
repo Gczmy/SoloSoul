@@ -42,7 +42,7 @@
   "data_objects": "对象数据",
   "data_trash": "回收站",
   "data_snapshots": "快照",
-  "data_attachments": "附件",
+  "data_attachments": "附件（含软删除附件）",
   "data_ai_chat": "AI 对话",
   "snapshot_retention": "快照保留策略",
   "snapshot_retention_desc": "配置每个对象保留的快照数量，超出限制的旧快照将被自动删除。",

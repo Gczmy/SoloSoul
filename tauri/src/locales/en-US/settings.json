@@ -42,7 +42,7 @@
   "data_objects": "Objects",
   "data_trash": "Trash",
   "data_snapshots": "Snapshots",
-  "data_attachments": "Attachments",
+  "data_attachments": "Attachments (incl. soft-deleted)",
   "data_ai_chat": "AI Chat conversations",
   "snapshot_retention": "Snapshot Retention",
   "snapshot_retention_desc": "Configure how many snapshots to keep for each object. Older snapshots may be auto-deleted.",
