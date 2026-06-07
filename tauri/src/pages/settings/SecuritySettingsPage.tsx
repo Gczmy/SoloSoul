@@ -55,11 +55,11 @@ export function SecuritySettingsPage() {
     setBioLoading(true);
     try {
       if (bioAction === 'enable') {
-        await invoke('biometric_save_credential', { accountId: currentAccount.id, password: bioPw, silent: false });
+        await invoke('biometric_save_credential', { accountId: currentAccount.id, password: bioPw, silent: false, location: 'settings_page' });
         await useSettingsStore.getState().updateSetting(currentAccount.id, 'biometricEnabled', true);
         onSuccess(t('settings:biometric_enabled_toast', { type: biometryType }));
       } else {
-        await invoke('biometric_delete_credential', { accountId: currentAccount.id, password: bioPw });
+        await invoke('biometric_delete_credential', { accountId: currentAccount.id, password: bioPw, location: 'settings_page' });
         await useSettingsStore.getState().updateSetting(currentAccount.id, 'biometricEnabled', false);
         onSuccess(t('settings:biometric_disabled_toast', { type: biometryType }));
       }
