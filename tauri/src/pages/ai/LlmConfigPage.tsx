@@ -8,32 +8,10 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
-import { Settings, Plus, Check, Loader2 } from 'lucide-react';
+import { Settings, Plus } from 'lucide-react';
 
-interface ProviderConfig {
-  id: string;
-  name: string;
-  baseUrl: string;
-  model: string;
-  isEnabled: boolean;
-  isBuiltIn: boolean;
-  apiKey: string;
-}
-
-interface AiFeatures {
-  chat: boolean;
-  smartFill: boolean;
-  commandGen: boolean;
-  naturalLanguageSearch: boolean;
-}
-
-const BUILTIN_PROVIDERS = [
-  { id: 'builtin_openai', name: 'OpenAI', defaultModel: 'gpt-4o', defaultBaseUrl: 'https://api.openai.com/v1' },
-  { id: 'builtin_anthropic', name: 'Anthropic', defaultModel: 'claude-3-sonnet-20241022', defaultBaseUrl: 'https://api.anthropic.com/v1' },
-  { id: 'builtin_ollama', name: 'Ollama (Local)', defaultModel: 'llama3.1', defaultBaseUrl: 'http://localhost:11434/v1' },
-  { id: 'builtin_deepseek', name: 'DeepSeek', defaultModel: 'deepseek-chat', defaultBaseUrl: 'https://api.deepseek.com/v1' },
-  { id: 'builtin_alibaba', name: 'Alibaba Cloud', defaultModel: 'qwen-max', defaultBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
-];
+interface ProviderConfig { id: string; name: string; baseUrl: string; model: string; isEnabled: boolean; isBuiltIn: boolean; apiKey: string; apiType: 'openAI' | 'anthropic'; }
+interface AiFeatures { chat: boolean; smartFill: boolean; commandGen: boolean; naturalLanguageSearch: boolean; }
 
 export function LlmConfigPage() {
   const navigate = useNavigate();
@@ -74,7 +52,6 @@ export function LlmConfigPage() {
 
   const handleFeatureToggle = async (key: keyof AiFeatures) => {
     const next = { ...features, [key]: !features[key] };
-    // Show risk dialog on first enable
     if (!hasAcceptedRisk && next[key]) { setShowRiskDialog(true); setRiskChecked(false); return; }
     setFeatures(next);
     if (accountId) await invoke('llm_set_ai_features', { accountId, features: next }).catch(() => {});
@@ -85,7 +62,6 @@ export function LlmConfigPage() {
     await invoke('llm_accept_risk', { accountId }).catch(() => {});
     setHasAcceptedRisk(true);
     setShowRiskDialog(false);
-    // Actually enable the feature
     const next = { ...features, chat: true };
     setFeatures(next);
     await invoke('llm_set_ai_features', { accountId, features: next }).catch(() => {});
@@ -110,20 +86,14 @@ export function LlmConfigPage() {
 
   const handleTestConnection = async () => {
     if (!editingProvider) return;
-    setTesting(true);
-    setTestResult(null);
+    setTesting(true); setTestResult(null);
     try {
-      // Get real API key for testing
       let key = editingProvider.apiKey;
-      if (key === '••••••••' && accountId) {
-        key = await invoke<string>('llm_get_api_key', { accountId, providerId: editingProvider.id });
-      }
-      const result = await invoke<string>('llm_test_provider', {
-        baseUrl: editingProvider.baseUrl, apiKey: key, model: editingProvider.model,
-      });
-      setTestResult(`✓ Connection OK: "${result.slice(0, 80)}"`);
+      if (key === '••••••••' && accountId) { key = await invoke<string>('llm_get_api_key', { accountId, providerId: editingProvider.id }); }
+      const result = await invoke<string>('llm_test_provider', { baseUrl: editingProvider.baseUrl, apiKey: key, model: editingProvider.model, apiType: editingProvider.apiType });
+      setTestResult(t('settings:llm_test_ok') + ' "' + result.slice(0, 80) + '"');
     } catch (e) {
-      setTestResult(`✗ Failed: ${String(e).slice(0, 120)}`);
+      setTestResult(t('settings:llm_test_fail') + ' ' + String(e).slice(0, 120));
     } finally { setTesting(false); }
   };
 
@@ -135,117 +105,74 @@ export function LlmConfigPage() {
   };
 
   const handleAddCustom = () => {
-    const id = `custom_${Date.now()}`;
-    setEditingProvider({ id, name: '', baseUrl: '', model: '', isEnabled: false, isBuiltIn: false, apiKey: '' });
+    setEditingProvider({ id: 'custom_' + Date.now(), name: '', baseUrl: '', model: '', isEnabled: false, isBuiltIn: false, apiKey: '', apiType: 'openAI' });
   };
 
-  if (loading) return <AppShell title="LLM Config" onBack={() => navigate('/settings')}><p>Loading...</p></AppShell>;
+  if (loading) return <AppShell title={t('settings:llm_config')} onBack={() => navigate('/settings')}><p>{t('common:loading')}</p></AppShell>;
 
   return (
-    <AppShell title="AI & LLM Config" onBack={() => navigate('/settings')}>
+    <AppShell title={t('settings:llm_config')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Risk notice */}
         {!hasAcceptedRisk && (
           <Card>
             <p style={{ fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
-              <span style={{ color: '#e67e22' }}>⚠</span> AI features send data to external services.
-              All features are disabled by default. Enable individual features below.
+              <span style={{ color: '#e67e22' }}>⚠</span> {t('settings:ai_risk_notice')}
             </p>
           </Card>
         )}
 
-        {/* AI Features */}
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>AI Features</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:ai_features')}</h3>
           {(['chat', 'smartFill', 'commandGen', 'naturalLanguageSearch'] as const).map((key) => (
             <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', cursor: 'pointer', fontSize: 13 }}>
               <input type="checkbox" checked={features[key]} onChange={() => handleFeatureToggle(key)} style={{ accentColor: 'var(--accent-primary)' }} />
-              {t(`settings:ai_${key}`)}
+              {t('settings:ai_' + key)}
             </label>
           ))}
         </Card>
 
-        {/* Provider list */}
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>AI Service Providers</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:ai_service_providers')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {providers.map((p) => (
-              <div
-                key={p.id}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 10px', borderRadius: 8,
-                  background: activeId === p.id ? 'rgba(91,124,153,0.08)' : 'var(--bg-toolbar)',
-                  border: activeId === p.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                  cursor: 'pointer', fontSize: 13,
-                }}
-                onClick={() => handleSetActive(p.id)}
-              >
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: activeId === p.id ? 'rgba(91,124,153,0.08)' : 'var(--bg-toolbar)', border: activeId === p.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)', cursor: 'pointer', fontSize: 13 }}
+                onClick={() => handleSetActive(p.id)}>
                 <input type="radio" checked={activeId === p.id} onChange={() => handleSetActive(p.id)} style={{ accentColor: 'var(--accent-primary)' }} />
                 <div style={{ flex: 1 }}>
                   <span style={{ fontWeight: 500 }}>{p.name}</span>
                   <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--text-tertiary)' }}>{p.model}</span>
-                  {p.isBuiltIn && <span style={{ marginLeft: 4, fontSize: 10, padding: '1px 4px', borderRadius: 3, background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>built-in</span>}
+                  {p.isBuiltIn && <span style={{ marginLeft: 4, fontSize: 10, padding: '1px 4px', borderRadius: 3, background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}>{t('settings:llm_builtin_badge')}</span>}
                 </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setEditingProvider({ ...p }); }}
-                  style={{ padding: 4, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}
-                >
-                  <Settings size={14} />
-                </button>
-                {!p.isBuiltIn && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDeleteProvider(p.id); }}
-                    style={{ padding: 4, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e74c3c', fontSize: 14 }}
-                  >
-                    ×
-                  </button>
-                )}
+                <button onClick={(e) => { e.stopPropagation(); setEditingProvider({ ...p }); }} style={{ padding: 4, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}><Settings size={14} /></button>
+                {!p.isBuiltIn && <button onClick={(e) => { e.stopPropagation(); handleDeleteProvider(p.id); }} style={{ padding: 4, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e74c3c', fontSize: 14 }}>×</button>}
               </div>
             ))}
           </div>
           <Button variant="secondary" size="sm" onClick={handleAddCustom} style={{ marginTop: 10 }}>
-            <Plus size={14} style={{ marginRight: 4 }} /> Add Custom Provider
+            <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:llm_add_custom')}
           </Button>
         </Card>
 
-        {/* Provider edit panel */}
         {editingProvider && (
           <Card>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-              {editingProvider.isBuiltIn ? `Configure ${editingProvider.name}` : 'Custom Provider'}
-            </h3>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{editingProvider.isBuiltIn ? t('settings:llm_configure') + ' ' + editingProvider.name : t('settings:llm_custom_provider')}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Input
-                label="Name"
-                value={editingProvider.name}
-                onChange={(e) => setEditingProvider((p) => p ? { ...p, name: e.target.value } : null)}
-                disabled={editingProvider.isBuiltIn}
-              />
-              <Input
-                label="Base URL"
-                value={editingProvider.baseUrl}
-                onChange={(e) => setEditingProvider((p) => p ? { ...p, baseUrl: e.target.value } : null)}
-              />
-              <Input
-                label="Model"
-                value={editingProvider.model}
-                onChange={(e) => setEditingProvider((p) => p ? { ...p, model: e.target.value } : null)}
-              />
-              <Input
-                label="API Key"
-                type="password"
-                value={editingProvider.apiKey}
-                onChange={(e) => setEditingProvider((p) => p ? { ...p, apiKey: e.target.value } : null)}
-                placeholder={editingProvider.apiKey === '••••••••' ? '•••••••• (unchanged)' : 'Enter API key'}
-              />
-              {testResult && (
-                <div style={{ fontSize: 12, padding: '6px 10px', borderRadius: 6, background: testResult.startsWith('✓') ? 'rgba(39,174,96,0.08)' : 'rgba(231,76,60,0.08)', color: testResult.startsWith('✓') ? '#27ae60' : '#e74c3c' }}>
-                  {testResult}
-                </div>
-              )}
+              <Input label={t('settings:llm_provider_name')} value={editingProvider.name} onChange={(e) => setEditingProvider((p) => p ? { ...p, name: e.target.value } : null)} disabled={editingProvider.isBuiltIn} />
+              <Input label={t('settings:llm_base_url')} value={editingProvider.baseUrl} onChange={(e) => setEditingProvider((p) => p ? { ...p, baseUrl: e.target.value } : null)} />
+              <Input label={t('settings:llm_model')} value={editingProvider.model} onChange={(e) => setEditingProvider((p) => p ? { ...p, model: e.target.value } : null)} />
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>{t('settings:llm_api_type')}</label>
+                <select value={editingProvider.apiType} onChange={(e) => setEditingProvider((p) => p ? { ...p, apiType: e.target.value as 'openAI' | 'anthropic' } : null)}
+                  style={{ width: '100%', padding: '10px 14px', fontSize: 14, border: '1px solid var(--border-subtle)', borderRadius: 8, background: 'var(--bg-elevated)', color: 'var(--text-primary)', fontFamily: 'inherit', outline: 'none' }}>
+                  <option value="openAI">OpenAI Compatible</option>
+                  <option value="anthropic">Anthropic</option>
+                </select>
+              </div>
+              <Input label={t('settings:llm_api_key')} type="password" value={editingProvider.apiKey} onChange={(e) => setEditingProvider((p) => p ? { ...p, apiKey: e.target.value } : null)}
+                placeholder={editingProvider.apiKey === '••••••••' ? t('settings:llm_api_key_unchanged') : t('settings:llm_api_key_enter')} />
+              {testResult && <div style={{ fontSize: 12, padding: '6px 10px', borderRadius: 6, background: 'rgba(128,128,128,0.08)', color: testResult.startsWith(t('settings:llm_test_ok')) ? '#27ae60' : '#e74c3c' }}>{testResult}</div>}
               <div style={{ display: 'flex', gap: 8 }}>
-                <Button variant="secondary" onClick={handleTestConnection} loading={testing}>Test Connection</Button>
+                <Button variant="secondary" onClick={handleTestConnection} loading={testing}>{t('settings:llm_test_connection')}</Button>
                 <Button onClick={handleSaveProvider} loading={savingProvider}>{t('common:save')}</Button>
                 <Button variant="secondary" onClick={() => { setEditingProvider(null); setTestResult(null); }}>{t('common:cancel')}</Button>
               </div>
@@ -253,29 +180,24 @@ export function LlmConfigPage() {
           </Card>
         )}
 
-        {/* Risk dialog */}
         {showRiskDialog && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
             <div style={{ background: 'var(--bg-elevated)', borderRadius: 16, padding: '28px 32px', maxWidth: 400, width: '90%', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-subtle)' }}>
-              <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>⚠</span> Enable AI Feature?
-              </h3>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 16 }}>
-                You are about to enable AI features. Depending on your provider, your input will be sent to an external server.
-              </p>
+              <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 20 }}>⚠</span> {t('settings:ai_risk_title')}</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 16 }}>{t('settings:ai_risk_desc')}</p>
               <ul style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.8, paddingLeft: 16, marginBottom: 16 }}>
-                <li>SoloSoul will not send data automatically</li>
-                <li>You control what gets sent — each request requires confirmation</li>
-                <li>API keys are stored encrypted on your device only</li>
-                <li>You can disable this at any time</li>
+                <li>{t('settings:ai_risk_li1')}</li>
+                <li>{t('settings:ai_risk_li2')}</li>
+                <li>{t('settings:ai_risk_li3')}</li>
+                <li>{t('settings:ai_risk_li4')}</li>
               </ul>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 16, fontSize: 13 }}>
                 <input type="checkbox" checked={riskChecked} onChange={() => setRiskChecked(!riskChecked)} style={{ accentColor: 'var(--accent-primary)' }} />
-                I understand and agree to enable this feature
+                {t('settings:ai_risk_agree')}
               </label>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <Button variant="secondary" onClick={() => setShowRiskDialog(false)}>{t('common:cancel')}</Button>
-                <Button onClick={handleAcceptRisk} disabled={!riskChecked}>Enable</Button>
+                <Button onClick={handleAcceptRisk} disabled={!riskChecked}>{t('settings:ai_enable')}</Button>
               </div>
             </div>
           </div>
