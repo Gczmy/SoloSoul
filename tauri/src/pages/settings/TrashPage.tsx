@@ -21,7 +21,6 @@ const TIME_OPTIONS: { value: TrashTimeFilter; labelKey: string }[] = [
 const TYPE_OPTIONS: { value: TrashTypeFilter; i18nKey: string }[] = [
   { value: 'all', i18nKey: 'all' },
   { value: 'page', i18nKey: 'page' },
-  { value: 'collection', i18nKey: 'collection' },
   { value: 'object', i18nKey: 'object' },
 ];
 

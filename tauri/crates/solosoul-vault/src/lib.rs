@@ -66,6 +66,7 @@ pub struct TrashItem {
     pub item_type: String,
     pub original_id: String,
     pub original_parent_id: Option<String>,
+    pub original_section_type: Option<String>,
     pub original_sort_order: Option<i32>,
     pub data: Vec<u8>,
     pub deleted_at: i64,
@@ -85,6 +86,7 @@ pub struct TrashItemSummary {
     pub deleted_at: i64,
     pub expires_at: Option<i64>,
     pub original_parent_name: Option<String>,
+    pub original_section_type: Option<String>,
 }
 pub use storage::VaultStore;
 

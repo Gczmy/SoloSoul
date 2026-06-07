@@ -550,12 +550,13 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         conn.execute(
             "INSERT INTO trash_items (id, item_type, original_id, original_parent_id,
-             original_sort_order, data, deleted_at, expires_at, deleted_by,
+             original_section_type, original_sort_order, data, deleted_at, expires_at, deleted_by,
              name_snapshot, icon_snapshot)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)",
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)",
             rusqlite::params![
                 item.id, item.item_type, item.original_id, item.original_parent_id,
-                item.original_sort_order, item.data, item.deleted_at, item.expires_at,
+                item.original_section_type, item.original_sort_order, item.data,
+                item.deleted_at, item.expires_at,
                 item.deleted_by, item.name_snapshot, item.icon_snapshot,
             ],
         ).map_err(|e| format!("save_trash_item: {}", e))?;
@@ -568,7 +569,7 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut sql = String::from(
-            "SELECT id, item_type, name_snapshot, icon_snapshot, deleted_at, expires_at, original_parent_id
+            "SELECT id, item_type, name_snapshot, icon_snapshot, deleted_at, expires_at, original_parent_id, original_section_type
              FROM trash_items WHERE 1=1"
         );
         let mut params: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
@@ -587,7 +588,7 @@ impl VaultStore {
             Ok(TrashItemSummary {
                 id: row.get(0)?, item_type: row.get(1)?, name: row.get(2)?,
                 icon_id: row.get(3)?, deleted_at: row.get(4)?, expires_at: row.get(5)?,
-                original_parent_name: row.get(6)?,
+                original_parent_name: row.get(6)?, original_section_type: row.get(7)?,
             })
         }).map_err(|e| e.to_string())?.collect::<Result<Vec<_>,_>>().map_err(|e| e.to_string())?;
         Ok(items)
@@ -597,16 +598,17 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
-            "SELECT id, item_type, original_id, original_parent_id, original_sort_order,
-             data, deleted_at, expires_at, deleted_by, name_snapshot, icon_snapshot
+            "SELECT id, item_type, original_id, original_parent_id, original_section_type,
+             original_sort_order, data, deleted_at, expires_at, deleted_by, name_snapshot, icon_snapshot
              FROM trash_items WHERE id = ?1"
         ).map_err(|e| e.to_string())?;
         let result = stmt.query_row(rusqlite::params![id], |row| {
             Ok(TrashItem {
                 id: row.get(0)?, item_type: row.get(1)?, original_id: row.get(2)?,
-                original_parent_id: row.get(3)?, original_sort_order: row.get(4)?,
-                data: row.get(5)?, deleted_at: row.get(6)?, expires_at: row.get(7)?,
-                deleted_by: row.get(8)?, name_snapshot: row.get(9)?, icon_snapshot: row.get(10)?,
+                original_parent_id: row.get(3)?, original_section_type: row.get(4)?,
+                original_sort_order: row.get(5)?,
+                data: row.get(6)?, deleted_at: row.get(7)?, expires_at: row.get(8)?,
+                deleted_by: row.get(9)?, name_snapshot: row.get(10)?, icon_snapshot: row.get(11)?,
             })
         }).ok();
         Ok(result)

@@ -7,6 +7,7 @@
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_vault::{ObjectRecord, ObjectSummary};
+use std::collections::HashMap;
 use tauri::State;
 use uuid::Uuid;
 
@@ -215,17 +216,31 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    // Create trash item snapshot before soft-deleting (§23.2)
+
+    // Load retention period from preferences
+    let account_id = svc.get_current_account().unwrap_or_default();
+    let period = load_trash_retention(vault, &account_id);
+    let retention_ms = retention_ms(&period);
+
     if let Ok(Some(rec)) = vault.load_object(&object_id) {
         let now_ms = chrono::Utc::now().timestamp_millis();
-        let retention_ms = 30 * 24 * 3600 * 1000i64; // default 30 days
+        // Store complete ObjectRecord as data (§23.2.2)
+        let full_record = serde_json::json!({
+            "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
+            "section_type": rec.section_type, "name": rec.name, "icon_name": rec.icon_name,
+            "parent_id": rec.parent_id, "children_ids": rec.children_ids,
+            "properties": rec.properties, "property_labels": rec.property_labels,
+            "sensitivity_level": rec.sensitivity_level, "tags": rec.tags_json,
+            "created_at": rec.created_at, "updated_at": rec.updated_at, "version": rec.version,
+        });
         let trash = solosoul_vault::TrashItem {
             id: format!("trash_{}", uuid::Uuid::new_v4()),
             item_type: "object".to_string(),
             original_id: object_id.clone(),
             original_parent_id: rec.parent_id.clone(),
+            original_section_type: Some(rec.section_type.clone()),
             original_sort_order: None,
-            data: serde_json::to_vec(&rec.properties).unwrap_or_default(),
+            data: serde_json::to_vec(&full_record).unwrap_or_default(),
             deleted_at: now_ms,
             expires_at: Some(now_ms + retention_ms),
             deleted_by: "user".to_string(),
@@ -250,18 +265,77 @@ pub async fn object_trash_list(
     vault.list_trash_items(None, None)
 }
 
+/// Restore an object from trash. Handles conflict: if an object with the same ID
+/// already exists, restore as a new copy with name appended " (restored)".
 #[tauri::command]
-pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Result<(), String> {
+pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    // Find trash item, restore original object, remove from trash
-    if let Ok(Some(trash)) = vault.get_trash_item(&trash_id) {
-        vault.restore_object(&trash.original_id)?;
-        vault.delete_trash_item(&trash_id)?;
-    }
-    let _ = vault.log_action("object_restore", &format!("trash_id={}", trash_id));
-    Ok(())
+
+    let trash = vault.get_trash_item(&trash_id)?.ok_or("Trash item not found")?;
+
+    // Deserialize the full record from stored data
+    let record_data: serde_json::Value = serde_json::from_slice(&trash.data)
+        .map_err(|e| format!("Invalid trash data: {}", e))?;
+
+    // Use original_section_type if present, fall back to stored data
+    let target_section = trash.original_section_type
+        .as_deref()
+        .or(record_data["section_type"].as_str())
+        .unwrap_or("identity");
+
+    // Check if object already exists (conflict)
+    let exists = vault.load_object(&trash.original_id).ok().flatten().is_some();
+
+    let new_id = if exists {
+        format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
+    } else {
+        trash.original_id.clone()
+    };
+
+    let new_name = if exists {
+        format!("{} (restored)", trash.name_snapshot)
+    } else {
+        trash.name_snapshot.clone()
+    };
+
+    let now = chrono::Utc::now().to_rfc3339();
+    let record = solosoul_vault::ObjectRecord {
+        id: new_id.clone(),
+        account_id: record_data["account_id"].as_str().unwrap_or("imported").to_string(),
+        type_id: record_data["type_id"].as_str().unwrap_or("note").to_string(),
+        section_type: target_section.to_string(),
+        name: new_name,
+        icon_name: record_data["icon_name"].as_str().unwrap_or("document").to_string(),
+        parent_id: record_data["parent_id"].as_str().map(String::from),
+        children_ids: record_data["children_ids"]
+            .as_array()
+            .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            .unwrap_or_default(),
+        properties: record_data["properties"].clone(),
+        property_labels: if record_data["property_labels"].is_null() {
+            None
+        } else {
+            Some(record_data["property_labels"].clone())
+        },
+        sensitivity_level: record_data["sensitivity_level"].as_str().unwrap_or("internal").to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: record_data["tags"]
+            .as_array()
+            .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            .unwrap_or_default(),
+        created_at: record_data["created_at"].as_str().unwrap_or(&now).to_string(),
+        updated_at: now,
+        version: record_data["version"].as_u64().unwrap_or(1) as u32,
+    };
+
+    vault.save_object(&record)?;
+    vault.delete_trash_item(&trash_id)?;
+    let _ = vault.log_action("object_restore", &format!("trash_id={} was_conflict={}", trash_id, exists));
+
+    Ok(new_id)
 }
 
 #[tauri::command]
@@ -270,15 +344,174 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     vault.delete_object(&object_id, false)?;
-    // Also remove any trash entry for this object
     vault.delete_trash_item(&object_id).ok();
     let _ = vault.log_action("object_purge", &format!("id={}", object_id));
     Ok(())
 }
 
 #[tauri::command]
-pub async fn trash_restore(state: State<'_, AppState>, trash_id: String) -> Result<(), String> {
+pub async fn trash_restore(state: State<'_, AppState>, trash_id: String) -> Result<String, String> {
     object_restore(state, trash_id).await
+}
+
+/// Permanently delete a trash item (by trash_id → looks up original_id).
+#[tauri::command]
+pub async fn trash_permanent_delete(
+    state: State<'_, AppState>,
+    trash_id: String,
+) -> Result<(), String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    if let Ok(Some(trash)) = vault.get_trash_item(&trash_id) {
+        vault.delete_object(&trash.original_id, false)?;
+    }
+    vault.delete_trash_item(&trash_id).ok();
+    let _ = vault.log_action("trash_permanent_delete", &format!("trash_id={}", trash_id));
+    Ok(())
+}
+
+/// Delete a page (section_type) and all its objects into trash.
+/// If `page_object_id` is provided, the custom page object is also deleted.
+#[tauri::command]
+pub async fn page_delete(
+    state: State<'_, AppState>,
+    account_id: String,
+    section_type: String,
+    page_object_id: Option<String>,
+) -> Result<usize, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    let now_ms = chrono::Utc::now().timestamp_millis();
+    let period = load_trash_retention(vault, &account_id);
+    let retention_ms = retention_ms(&period);
+    let mut count = 0usize;
+
+    // Delete the custom page object itself if provided
+    if let Some(pid) = &page_object_id {
+        if let Ok(Some(rec)) = vault.load_object(pid) {
+            let trash = solosoul_vault::TrashItem {
+                id: format!("trash_{}", uuid::Uuid::new_v4()),
+                item_type: "page".to_string(),
+                original_id: rec.id.clone(),
+                original_parent_id: None,
+                original_section_type: Some(rec.section_type.clone()),
+                original_sort_order: None,
+                data: serde_json::to_vec(&serde_json::json!({
+                    "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
+                    "section_type": rec.section_type, "name": rec.name, "icon_name": rec.icon_name,
+                    "properties": rec.properties,
+                })).unwrap_or_default(),
+                deleted_at: now_ms,
+                expires_at: Some(now_ms + retention_ms),
+                deleted_by: "user".to_string(),
+                name_snapshot: rec.name.clone(),
+                icon_snapshot: Some(rec.icon_name.clone()),
+            };
+            let _ = vault.save_trash_item(&trash);
+            vault.delete_object(pid, true)?;
+            count += 1;
+        }
+    }
+
+    // Delete all objects in this section_type
+    let objects = vault.list_objects(&account_id, None, None, None, false, false)
+        .map_err(|e| format!("list: {}", e))?;
+    for obj in &objects {
+        if obj.section_type == section_type || obj.collection_type == section_type {
+            if let Ok(Some(rec)) = vault.load_object(&obj.id) {
+                let full_record = serde_json::json!({
+                    "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
+                    "section_type": rec.section_type, "name": rec.name, "icon_name": rec.icon_name,
+                    "properties": rec.properties,
+                });
+                let trash = solosoul_vault::TrashItem {
+                    id: format!("trash_{}", uuid::Uuid::new_v4()),
+                    item_type: "object".to_string(),
+                    original_id: rec.id.clone(),
+                    original_parent_id: None,
+                    original_section_type: Some(rec.section_type.clone()),
+                    original_sort_order: None,
+                    data: serde_json::to_vec(&full_record).unwrap_or_default(),
+                    deleted_at: now_ms,
+                    expires_at: Some(now_ms + retention_ms),
+                    deleted_by: "user".to_string(),
+                    name_snapshot: rec.name.clone(),
+                    icon_snapshot: Some(rec.icon_name.clone()),
+                };
+                let _ = vault.save_trash_item(&trash);
+                vault.delete_object(&obj.id, true)?;
+                count += 1;
+            }
+        }
+    }
+
+    let _ = vault.log_action("page_delete", &format!("section_type={} count={}", section_type, count));
+    Ok(count)
+}
+
+/// Restore a page (all trash items with matching original_section_type).
+#[tauri::command]
+pub async fn page_restore(
+    state: State<'_, AppState>,
+    section_type: String,
+) -> Result<usize, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    // Fetch all trash items and filter by original_section_type
+    let all = vault.list_trash_items(None, None)?;
+    let mut count = 0usize;
+    for item in &all {
+        if item.original_section_type.as_deref() == Some(&section_type) {
+            // Use object_restore logic inline
+            if let Ok(Some(trash)) = vault.get_trash_item(&item.id) {
+                let exists = vault.load_object(&trash.original_id).ok().flatten().is_some();
+                let new_id = if exists {
+                    format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
+                } else {
+                    trash.original_id.clone()
+                };
+                let new_name = if exists {
+                    format!("{} (restored)", trash.name_snapshot)
+                } else {
+                    trash.name_snapshot.clone()
+                };
+                if let Ok(record_data) = serde_json::from_slice::<serde_json::Value>(&trash.data) {
+                    let now = chrono::Utc::now().to_rfc3339();
+                    let record = solosoul_vault::ObjectRecord {
+                        id: new_id,
+                        account_id: record_data["account_id"].as_str().unwrap_or("imported").to_string(),
+                        type_id: record_data["type_id"].as_str().unwrap_or("note").to_string(),
+                        section_type: section_type.clone(),
+                        name: new_name,
+                        icon_name: record_data["icon_name"].as_str().unwrap_or("document").to_string(),
+                        parent_id: record_data["parent_id"].as_str().map(String::from),
+                        children_ids: record_data["children_ids"].as_array().map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect()).unwrap_or_default(),
+                        properties: record_data["properties"].clone(),
+                        property_labels: if record_data["property_labels"].is_null() { None } else { Some(record_data["property_labels"].clone()) },
+                        sensitivity_level: record_data["sensitivity_level"].as_str().unwrap_or("internal").to_string(),
+                        is_deleted: false, deleted_at: None,
+                        tags_json: Vec::new(),
+                        created_at: record_data["created_at"].as_str().unwrap_or(&now).to_string(),
+                        updated_at: now,
+                        version: record_data["version"].as_u64().unwrap_or(1) as u32,
+                    };
+                    if vault.save_object(&record).is_ok() {
+                        vault.delete_trash_item(&item.id).ok();
+                        count += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    let _ = vault.log_action("page_restore", &format!("section_type={} count={}", section_type, count));
+    Ok(count)
 }
 
 // ── Snapshot count badge ────────────────────────────────────
@@ -364,4 +597,80 @@ pub async fn snapshot_rollback(
     let _ = vault.save_snapshot(&object_id, "rollback", &rollback_data, "Rolled back to previous version");
     let _ = vault.log_action("object_rollback", &format!("id={} snapshot={}", object_id, snapshot_id));
     Ok(())
+}
+
+/// Get trash retention preferences for the current account.
+#[tauri::command]
+pub async fn trash_get_retention(
+    state: State<'_, AppState>,
+) -> Result<String, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let account_id = svc.get_current_account().ok_or("No account")?;
+    if let Ok(Some(profile)) = vault.load_profile(&account_id) {
+        if !profile.data.is_empty() {
+            if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
+                if let Some(ret) = data.pointer("/preferences/trashRetention").and_then(|v| v.as_str()) {
+                    return Ok(ret.to_string());
+                }
+            }
+        }
+    }
+    Ok("30d".to_string())
+}
+
+/// Set trash retention period.
+#[tauri::command]
+pub async fn trash_set_retention(
+    state: State<'_, AppState>,
+    period: String,
+) -> Result<(), String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let account_id = svc.get_current_account().ok_or("No account")?;
+    let mut profile = match vault.load_profile(&account_id) {
+        Ok(Some(p)) => p,
+        Ok(None) => solosoul_vault::Profile::new_with_id(&account_id, &account_id, Vec::new()),
+        Err(e) => return Err(format!("Load: {}", e)),
+    };
+    let mut data: serde_json::Value = if profile.data.is_empty() {
+        serde_json::Value::Object(serde_json::Map::new())
+    } else {
+        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
+    };
+    let prefs = data.as_object_mut().ok_or("Invalid")?
+        .entry("preferences".to_string())
+        .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
+    prefs["trashRetention"] = serde_json::Value::String(period.clone());
+    profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
+    profile.updated_at = chrono::Utc::now();
+    profile.version += 1;
+    vault.save_profile(&profile)
+}
+
+/// Load trash retention period from profile preferences.
+fn load_trash_retention(vault: &solosoul_vault::VaultStore, account_id: &str) -> String {
+    if let Ok(Some(profile)) = vault.load_profile(account_id) {
+        if !profile.data.is_empty() {
+            if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
+                if let Some(ret) = data.pointer("/preferences/trashRetention").and_then(|v| v.as_str()) {
+                    return ret.to_string();
+                }
+            }
+        }
+    }
+    "30d".to_string()
+}
+
+/// Compute retention ms from period string.
+fn retention_ms(period: &str) -> i64 {
+    match period {
+        "60d" => 60 * 24 * 3600 * 1000i64,
+        "half_year" => 180 * 24 * 3600 * 1000i64,
+        "one_year" => 365 * 24 * 3600 * 1000i64,
+        "never" => i64::MAX,
+        _ => 30 * 24 * 3600 * 1000i64,
+    }
 }

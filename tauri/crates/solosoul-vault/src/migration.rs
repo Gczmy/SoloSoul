@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 3;
+pub const CURRENT_SCHEMA_VERSION: u32 = 4;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -67,6 +67,14 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             }
         }
         set_schema_version(conn, 3)?;
+    }
+    if current < 4 {
+        apply_migration(
+            conn,
+            4,
+            "ALTER TABLE trash_items ADD COLUMN original_section_type TEXT;",
+            "Add original_section_type to trash_items",
+        )?;
     }
     Ok(())
 }

@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 
+export type TrashRetentionPeriod = '30d' | '60d' | 'half_year' | 'one_year' | 'never';
+
 // §23.9 — TrashItemSummary from backend
 export interface TrashItemSummary {
   id: string;
@@ -10,10 +12,11 @@ export interface TrashItemSummary {
   deletedAt: number;
   expiresAt?: number;
   originalParentName?: string;
+  originalSectionType?: string;
 }
 
 export type TrashTimeFilter = 'all' | '1d' | '3d' | '7d' | '30d' | 'half_year';
-export type TrashTypeFilter = 'all' | 'page' | 'collection' | 'object';
+export type TrashTypeFilter = 'all' | 'page' | 'object';
 
 interface TrashState {
   items: TrashItemSummary[];
@@ -74,7 +77,7 @@ export const useTrashStore = create<TrashState>((set, get) => ({
 
   permanentDelete: async (trashIds) => {
     for (const id of trashIds) {
-      await invoke('object_purge', { objectId: id });
+      await invoke('trash_permanent_delete', { trashId: id });
     }
     set((s) => ({ items: s.items.filter((i) => !trashIds.includes(i.id)) }));
   },
