@@ -94,6 +94,8 @@ export function TrashPage() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [showTrashAttachments, setShowTrashAttachments] = useState(false);
   const [historySnapIndex, setHistorySnapIndex] = useState<Record<string, number>>({});
+  const [historySnapData, setHistorySnapData] = useState<Record<string, Record<string, unknown> | null>>({});
+  const [historySnapLoading, setHistorySnapLoading] = useState<Record<string, boolean>>({});
 
   // ── Confirmation dialog state ──────────────────────────────────
   const [confirmAction, setConfirmAction] = useState<{
@@ -142,10 +144,33 @@ export function TrashPage() {
     try {
       const d = await invoke<TrashDetail>('trash_get_detail', { trashId });
       setDetailItem(d);
+      // Load first snapshot data
+      if (d.snapshots.length > 0) {
+        loadSnapshotData(d.id, d.snapshots[0].id);
+      }
     } catch {
       setDetailItem(null);
     } finally {
       setLoadingDetail(false);
+    }
+  };
+
+  const loadSnapshotData = async (detailId: string, snapshotId: string) => {
+    setHistorySnapLoading(prev => ({ ...prev, [detailId]: true }));
+    try {
+      const data = await invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId });
+      setHistorySnapData(prev => ({ ...prev, [detailId]: data }));
+    } catch {
+      setHistorySnapData(prev => ({ ...prev, [detailId]: null }));
+    } finally {
+      setHistorySnapLoading(prev => ({ ...prev, [detailId]: false }));
+    }
+  };
+
+  const changeSnapshot = (detailId: string, snapshots: SnapshotEntry[], newIdx: number) => {
+    setHistorySnapIndex(prev => ({ ...prev, [detailId]: newIdx }));
+    if (snapshots[newIdx]) {
+      loadSnapshotData(detailId, snapshots[newIdx].id);
     }
   };
 
@@ -343,15 +368,14 @@ export function TrashPage() {
               )}
 
               {/* ── Attachments section ─────────────────────────── */}
-              {(detailItem.attachments.length > 0 || detailItem.deletedAttachments.length > 0) && (
-                <div style={{ marginTop: 12, borderTop: '1px solid var(--border-subtle)', paddingTop: 10 }}>
-                  <div
-                    onClick={() => setExpandedSections(prev => ({ ...prev, attachments: !prev.attachments }))}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600, userSelect: 'none' }}
-                  >
-                    <span style={{ transform: expandedSections.attachments ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', fontSize: 10 }}>▶</span>
-                    {t('common:attachments')} ({detailItem.attachments.length + detailItem.deletedAttachments.length})
-                  </div>
+              <div style={{ marginTop: 12, borderTop: '1px solid var(--border-subtle)', paddingTop: 10 }}>
+                <div
+                  onClick={() => setExpandedSections(prev => ({ ...prev, attachments: !prev.attachments }))}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600, userSelect: 'none' }}
+                >
+                  <span style={{ transform: expandedSections.attachments ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', fontSize: 10 }}>▶</span>
+                  {t('common:attachments')} ({detailItem.attachments.length + detailItem.deletedAttachments.length})
+                </div>
                   {expandedSections.attachments && (
                     <div style={{ marginTop: 8 }}>
                       {/* Active/Trash toggle */}
@@ -392,48 +416,49 @@ export function TrashPage() {
                     </div>
                   )}
                 </div>
-              )}
 
               {/* ── Snapshots/History section ──────────────────── */}
-              {detailItem.snapshots.length > 0 && (
-                <div style={{ marginTop: 12, borderTop: '1px solid var(--border-subtle)', paddingTop: 10 }}>
-                  <div
-                    onClick={() => setExpandedSections(prev => ({ ...prev, snapshots: !prev.snapshots }))}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600, userSelect: 'none' }}
-                  >
-                    <span style={{ transform: expandedSections.snapshots ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', fontSize: 10 }}>▶</span>
-                    {t('settings:data_snapshots')} ({detailItem.snapshots.length})
-                  </div>
-                  {expandedSections.snapshots && (() => {
-                    const snapIdx = historySnapIndex[detailItem.id] ?? 0;
-                    const currentSnap = detailItem.snapshots[snapIdx];
-                    return (
-                      <div style={{ marginTop: 8, fontSize: 12 }}>
-                        {detailItem.snapshots.length > 1 && (
-                          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                            <button
-                              disabled={snapIdx <= 0}
-                              onClick={() => setHistorySnapIndex(prev => ({ ...prev, [detailItem.id]: Math.max(0, snapIdx - 1) }))}
-                              style={{
-                                padding: '3px 8px', border: '1px solid var(--border-subtle)', borderRadius: 4,
-                                cursor: snapIdx <= 0 ? 'default' : 'pointer', fontSize: 11,
-                                opacity: snapIdx <= 0 ? 0.4 : 1, background: 'transparent',
-                              }}
-                            >‹ {t('common:previous')}</button>
-                            <span style={{ padding: '3px 0', color: 'var(--text-tertiary)' }}>{snapIdx + 1} / {detailItem.snapshots.length}</span>
-                            <button
-                              disabled={snapIdx >= detailItem.snapshots.length - 1}
-                              onClick={() => setHistorySnapIndex(prev => ({ ...prev, [detailItem.id]: Math.min(detailItem.snapshots.length - 1, snapIdx + 1) }))}
-                              style={{
-                                padding: '3px 8px', border: '1px solid var(--border-subtle)', borderRadius: 4,
-                                cursor: snapIdx >= detailItem.snapshots.length - 1 ? 'default' : 'pointer', fontSize: 11,
-                                opacity: snapIdx >= detailItem.snapshots.length - 1 ? 0.4 : 1, background: 'transparent',
-                              }}
-                            >{t('common:next')} ›</button>
-                          </div>
-                        )}
-                        {currentSnap && (
-                          <div style={{ padding: '6px 8px', background: 'var(--bg-elevated-hover)', borderRadius: 6 }}>
+              <div style={{ marginTop: 12, borderTop: '1px solid var(--border-subtle)', paddingTop: 10 }}>
+                <div
+                  onClick={() => setExpandedSections(prev => ({ ...prev, snapshots: !prev.snapshots }))}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600, userSelect: 'none' }}
+                >
+                  <span style={{ transform: expandedSections.snapshots ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', fontSize: 10 }}>▶</span>
+                  {t('settings:data_snapshots')} ({detailItem.snapshots.length})
+                </div>
+                {expandedSections.snapshots && (() => {
+                  const snapIdx = historySnapIndex[detailItem.id] ?? 0;
+                  const currentSnap = detailItem.snapshots[snapIdx];
+                  const data = historySnapData[detailItem.id];
+                  const loading = historySnapLoading[detailItem.id];
+                  return (
+                    <div style={{ marginTop: 8, fontSize: 12 }}>
+                      {detailItem.snapshots.length > 1 && (
+                        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                          <button
+                            disabled={snapIdx >= detailItem.snapshots.length - 1}
+                            onClick={() => changeSnapshot(detailItem.id, detailItem.snapshots, snapIdx + 1)}
+                            style={{
+                              padding: '3px 8px', border: '1px solid var(--border-subtle)', borderRadius: 4,
+                              cursor: 'pointer', fontSize: 11, background: 'transparent',
+                              opacity: snapIdx >= detailItem.snapshots.length - 1 ? 0.4 : 1,
+                            }}
+                          >‹ {t('common:previous')}</button>
+                          <span style={{ padding: '3px 0', color: 'var(--text-tertiary)' }}>{snapIdx + 1} / {detailItem.snapshots.length}</span>
+                          <button
+                            disabled={snapIdx <= 0}
+                            onClick={() => changeSnapshot(detailItem.id, detailItem.snapshots, Math.max(0, snapIdx - 1))}
+                            style={{
+                              padding: '3px 8px', border: '1px solid var(--border-subtle)', borderRadius: 4,
+                              cursor: 'pointer', fontSize: 11, background: 'transparent',
+                              opacity: snapIdx <= 0 ? 0.4 : 1,
+                            }}
+                          >{t('common:next')} ›</button>
+                        </div>
+                      )}
+                      {currentSnap && (
+                        <div>
+                          <div style={{ padding: '6px 8px', background: 'var(--bg-elevated-hover)', borderRadius: 6, marginBottom: 6 }}>
                             <div style={{ color: 'var(--text-tertiary)', marginBottom: 2 }}>
                               {new Date(currentSnap.timestamp).toLocaleString()}
                             </div>
@@ -442,12 +467,39 @@ export function TrashPage() {
                               {currentSnap.diffSummary && ` · ${currentSnap.diffSummary}`}
                             </div>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
+                          {loading && <p style={{ color: 'var(--text-tertiary)', padding: '8px 0' }}>{t('common:loading')}</p>}
+                          {data && (() => {
+                            const d = data as Record<string, unknown>;
+                            return (
+                            <div style={{ padding: '6px 8px', fontSize: 11, color: 'var(--text-secondary)' }}>
+                              {Object.entries(d)
+                                .filter(([k]) => k !== '__attachments' && typeof d[k] !== 'object')
+                                .slice(0, 5)
+                                .map(([k, v]) => (
+                                  <div key={k} style={{ display: 'flex', gap: 6, marginBottom: 2 }}>
+                                    <span style={{ fontWeight: 500, flexShrink: 0 }}>{t(`editor:fields.${k}`, k)}:</span>
+                                    <span>{typeof v === 'string' ? v : JSON.stringify(v)}</span>
+                                  </div>
+                                ))}
+                              {(d.properties as any) && typeof d.properties === 'object' && !Array.isArray(d.properties) && (
+                                Object.entries(d.properties as Record<string, unknown>)
+                                  .filter(([k]) => !k.startsWith('__'))
+                                  .slice(0, 5)
+                                  .map(([k, v]) => (
+                                    <div key={k} style={{ display: 'flex', gap: 6, marginBottom: 2 }}>
+                                      <span style={{ fontWeight: 500, flexShrink: 0 }}>{t(`editor:fields.${k}`, k)}:</span>
+                                      <span>{String(v ?? '')}</span>
+                                    </div>
+                                  ))
+                              )}
+                            </div>);
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
 
               <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
                 <Button size="sm" onClick={() => { doRestore([detailItem.id]); setDetailItem(null); }}>
