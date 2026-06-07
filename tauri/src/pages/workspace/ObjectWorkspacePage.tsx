@@ -12,7 +12,8 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw, Eye, Image, FileText } from 'lucide-react';
+import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw, Eye, Image, FileText, Copy, Check } from 'lucide-react';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
 // Labels resolved at render time via t() so they support i18n
@@ -470,6 +471,8 @@ export function ObjectWorkspacePage() {
   const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
   const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
+  const [detailObj, setDetailObj] = useState<typeof visibleObjects[number] | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
@@ -640,7 +643,7 @@ export function ObjectWorkspacePage() {
           visibleObjects.map((obj) => {
             const fields = flattenProperties(obj.properties as Record<string, unknown> | undefined);
             return (
-              <Card key={obj.id} interactive>
+              <Card key={obj.id} interactive onClick={() => setDetailObj(obj)}>
                 {/* Header row */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fields.length > 0 ? 8 : 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -849,6 +852,91 @@ export function ObjectWorkspacePage() {
         )}
 
         {/* Delete confirmation dialog */}
+        {/* Object detail modal */}
+        {detailObj && (() => {
+          const dFields = flattenProperties(detailObj.properties as Record<string, unknown> | undefined);
+          const dSensitivity = detailObj.collectionType && sensitivityMap?.entries
+            ? Object.entries(sensitivityMap.entries).filter(([k]) => k.startsWith(detailObj.collectionType + '.'))
+            : [];
+          const handleCopyField = async (value: string, key: string) => {
+            try { await navigator.clipboard.writeText(value); setCopiedField(key); setTimeout(() => setCopiedField(null), 1500); } catch {}
+          };
+          return (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
+          onClick={() => { setDetailObj(null); setCopiedField(null); }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: 'var(--bg-elevated)', borderRadius: 16, padding: '28px 32px', maxWidth: 560, width: '90%', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-subtle)' }}
+          >
+            {/* Title row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <PAGE_ICON_MAP.custom size={24} />
+                <div>
+                  <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{detailObj.name}</h2>
+                  <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                    {t('navigation:' + detailObj.collectionType, detailObj.collectionType)} · {t('common:created')}: {(detailObj as any).createdAt?.slice(0, 10) || '—'} · {t('common:updated')}: {(detailObj as any).updatedAt?.slice(0, 10) || '—'}
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => { setDetailObj(null); setCopiedField(null); }} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: 'var(--border-subtle)', marginBottom: 16 }} />
+
+            {/* Properties */}
+            {dFields.length === 0 ? (
+              <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '16px 0' }}>{t('no_properties')}</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {dFields.map((f) => {
+                  const sens = getFieldSensitivity(detailObj.collectionType, f.key);
+                  const fieldId = sensitivityMap?.entries ? `${detailObj.collectionType}.${f.key}` : '';
+                  const masked = sens === 'critical' || sens === 'sensitive' ? maskValue(f.value, fieldId, sens) : f.value;
+                  const revealed = fieldId ? isRevealed(fieldId) : true;
+                  return (
+                    <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--bg-toolbar)', border: '1px solid var(--border-subtle)' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                            {t('editor:fields.' + f.key, f.key)}
+                          </span>
+                          <SensitivityBadge level={sens} />
+                        </div>
+                        <div style={{ fontSize: 14, color: (sens === 'critical' && !revealed) || (sens === 'sensitive' && !revealed) ? 'var(--text-tertiary)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {revealed ? f.value : masked}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleCopyField(f.value, f.key)}
+                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', fontSize: 11, color: copiedField === f.key ? '#27ae60' : 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, transition: 'all 0.15s' }}
+                      >
+                        {copiedField === f.key ? <><Check size={12} /> {t('common:copied') || 'Copied'}</> : <><Copy size={12} /> {t('common:copy') || 'Copy'}</>}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Tags */}
+            {detailObj.tags && detailObj.tags.length > 0 && (
+              <div style={{ marginTop: 16, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {detailObj.tags.map((tag: string) => (
+                  <span key={tag} style={{ padding: '2px 8px', borderRadius: 10, fontSize: 11, background: 'var(--bg-toolbar)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>{tag}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+          );
+        })()}
+
         {confirmDelete && (
           <div
             style={{

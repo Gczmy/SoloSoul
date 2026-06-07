@@ -106,6 +106,8 @@
   "backup_failed": "Backup failed",
   "restore_failed": "Restore failed",
   "delete_failed": "Delete failed",
+  "object_count": "{{n}} item",
+  "object_count_plural": "{{n}} items",
   "backup_deleted": "Backup deleted",
   "choose_icon": "Choose icon",
   "current_version": "Current version",
@@ -134,5 +136,12 @@
   "undo": "Undo",
   "clear_hint": "Clear hint",
   "clear_hint_warning": "The password hint will be cleared when you save. Click Undo to cancel.",
+  "created": "created",
+  "updated": "updated",
+  "copy": "Copy",
+  "copied": "Copied",
+  "no_properties": "No properties",
+  "export_path": "Export Path",
+  "browse": "Browse",
   "slogan": "Your Personal Data Vault"
 }

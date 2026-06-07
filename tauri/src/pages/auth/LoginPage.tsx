@@ -133,7 +133,7 @@ export function LoginPage() {
             >
               <Fingerprint size={40} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
               <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)' }}>
-                {bioLoading ? '验证中…' : `使用 ${biometryType} 解锁 SoloSoul`}
+                {bioLoading ? t('auth:bio_verifying') : t('auth:bio_unlock_reason', { type: biometryType })}
               </span>
             </button>
             <button

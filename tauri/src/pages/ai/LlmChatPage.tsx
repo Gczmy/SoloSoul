@@ -374,13 +374,13 @@ export function LlmChatPage() {
         <div style={{ width: 220, minWidth: 180, maxWidth: 360, borderRight: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', background: 'var(--bg-toolbar)', overflow: 'hidden', height: '100%' }}>
           <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border-subtle)', flexShrink: 0 }}>
             <Button variant="secondary" size="sm" onClick={handleNewConversation} style={{ width: '100%' }}>
-              <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:ai_new_conv') || '新对话'}
+              <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:ai_new_conv') }
             </Button>
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: '6px 0', minHeight: 0 }}>
             {conversations.length === 0 && (
               <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', padding: '24px 12px' }}>
-                {t('settings:ai_no_convs') || '暂无对话'}
+                {t('settings:ai_no_convs') }
               </p>
             )}
             {conversations.map((conv) => (
@@ -398,7 +398,7 @@ export function LlmChatPage() {
                   ) : (
                     <>
                       <div style={{ fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
-                        {conv.name || t('settings:ai_untitled') || '未命名对话'}
+                        {conv.name || t('settings:ai_untitled') }
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>{formatRelative(conv.updatedAt)}</div>
                     </>
@@ -421,19 +421,19 @@ export function LlmChatPage() {
             <button onClick={() => setShowTrash(!showTrash)}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', border: 'none', background: showTrash ? 'rgba(91,124,153,0.08)' : 'transparent', cursor: 'pointer', fontSize: 13, color: 'var(--text-tertiary)' }}>
               <Trash2 size={14} />
-              <span>回收站</span>
+              <span>{t("settings:ai_trash")}</span>
               {trashList.length > 0 && <span style={{ marginLeft: 'auto', fontSize: 11, background: 'rgba(231,76,60,0.15)', color: '#e74c3c', padding: '1px 6px', borderRadius: 8 }}>{trashList.length}</span>}
             </button>
             {showTrash && (
               <div style={{ maxHeight: 200, overflowY: 'auto', borderTop: '1px solid var(--border-subtle)' }}>
                 {trashList.length === 0 ? (
-                  <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', padding: '16px 12px' }}>回收站为空</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', padding: '16px 12px' }}>{t('settings:ai_trash_empty')}</p>
                 ) : (
                   trashList.map((conv) => (
                     <div key={conv.id} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px', fontSize: 12 }}>
                       <div style={{ flex: 1, overflow: 'hidden', cursor: 'pointer' }} onClick={() => handleViewTrashConv(conv.id)}>
                         <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-secondary)' }}>
-                          {conv.name || t('settings:ai_untitled') || '未命名对话'}
+                          {conv.name || t('settings:ai_untitled') }
                         </div>
                         <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{conv.deletedAt ? formatRelative(conv.deletedAt) : ''}</div>
                       </div>
@@ -442,9 +442,9 @@ export function LlmChatPage() {
                         <Undo2 size={12} />
                       </button>
                       {confirmPermanentDelete === conv.id ? (
-                        <button onClick={() => handlePermanentDelete(conv.id)} title="确认永久删除"
+                        <button onClick={() => handlePermanentDelete(conv.id)} title={t("settings:ai_confirm_delete")}
                           style={{ padding: '2px 6px', borderRadius: 4, border: '1px solid #e74c3c', background: '#e74c3c', cursor: 'pointer', color: 'white', fontSize: 10 }}>
-                          确认?
+                          {t('settings:ai_confirm_btn')}
                         </button>
                       ) : (
                         <button onClick={() => setConfirmPermanentDelete(conv.id)} title="永久删除"
@@ -498,7 +498,7 @@ export function LlmChatPage() {
                 <div style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', padding: '2px 20px' }}>
                   <button onClick={() => handleCopy(msg.content, i)}
                     style={{ padding: '2px 6px', borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 11, color: copiedIndex === i ? '#27ae60' : 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 3 }}>
-                    {copiedIndex === i ? <><Check size={11} /> 已复制</> : <><Copy size={11} /> 复制</>}
+                    {copiedIndex === i ? <><Check size={11} /> {t('settings:ai_copied')}</> : <><Copy size={11} /> {t('settings:ai_copy')}</>}
                   </button>
                 </div>
               </div>
@@ -526,21 +526,21 @@ export function LlmChatPage() {
                     padding: '1px 5px', borderRadius: 3, fontSize: 10,
                     background: isLocal ? 'rgba(39,174,96,0.12)' : 'rgba(41,128,185,0.12)',
                     color: isLocal ? '#27ae60' : '#2980b9',
-                  }}>{isLocal ? '本地' : '云端'}</span>
+                  }}>{isLocal ? t('settings:ai_local') : t('settings:ai_cloud')}</span>
                   <span>·</span>
                   {checkingOnline ? (
                     <span style={{ color: 'var(--text-tertiary)' }}>
-                      <RefreshCw size={10} style={{ verticalAlign: 'middle' }} /> 检测中…
+                      <RefreshCw size={10} style={{ verticalAlign: 'middle' }} /> {t('settings:ai_checking')}
                     </span>
                   ) : isOnline === true ? (
                     <span style={{ color: '#27ae60', display: 'flex', alignItems: 'center', gap: 2 }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#27ae60', display: 'inline-block' }} />
-                      在线
+                      {t('settings:ai_online')}
                     </span>
                   ) : isOnline === false ? (
                     <span style={{ color: '#e74c3c', display: 'flex', alignItems: 'center', gap: 2 }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e74c3c', display: 'inline-block' }} />
-                      离线
+                      {t('settings:ai_offline')}
                       <button onClick={checkOnline} style={{ padding: 0, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e74c3c' }}>
                         <RotateCw size={10} />
                       </button>
@@ -559,7 +559,7 @@ export function LlmChatPage() {
                   background: 'var(--bg-elevated)', color: 'var(--text-primary)', resize: 'none', outline: 'none',
                 }} />
               <button onClick={sendMessage} disabled={isSending || !input.trim() || isOnline === false}
-                title={isOnline === false ? '模型离线，无法发送' : ''}
+                title={isOnline === false ? t('settings:ai_model_offline') : ''}
                 style={{
                   padding: '8px 16px', borderRadius: 10, border: 'none', height: 40,
                   background: isSending || !input.trim() || isOnline === false ? 'var(--border-subtle)' : 'var(--accent-primary)',
@@ -581,7 +581,7 @@ export function LlmChatPage() {
               border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', overflow: 'hidden',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: 14, fontWeight: 600 }}>{floatingConv.name || '已删除对话'}</span>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>{floatingConv.name || t('settings:ai_deleted_conv')}</span>
                 <button onClick={() => setFloatingConv(null)} style={{ padding: 4, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}>
                   <X size={16} />
                 </button>

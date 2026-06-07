@@ -96,6 +96,22 @@ export function DataManagementPage() {
             {t('settings:trash')}
           </Button>
         </Card>
+
+        {/* Snapshot retention config */}
+        <Card>
+          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{t('settings:snapshot_retention')}</h3>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+            {t('settings:snapshot_retention_desc')}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {(['unlimited', '50', '100', '200'] as const).map((opt) => (
+              <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, padding: '4px 0' }}>
+                <input type="radio" name="snapshotLimit" defaultChecked={opt === 'unlimited'} style={{ accentColor: 'var(--accent-primary)' }} />
+                {opt === 'unlimited' ? t('settings:snapshot_unlimited') : t('settings:snapshot_count', { n: opt })}
+              </label>
+            ))}
+          </div>
+        </Card>
       </div>
     </AppShell>
   );

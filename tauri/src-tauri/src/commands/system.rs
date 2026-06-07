@@ -6,7 +6,6 @@ pub async fn get_app_info() -> Result<serde_json::Value, String> {
     Ok(serde_json::json!({
         "appName": "SoloSoul",
         "version": "2.0.0",
-        "buildNumber": "1",
         "os": std::env::consts::OS,
         "arch": std::env::consts::ARCH,
     }))

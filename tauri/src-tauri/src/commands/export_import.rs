@@ -27,21 +27,27 @@ pub struct ExportEstimate {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExportRequest {
     pub profile_ids: Vec<String>,
     pub include_preferences: bool,
     pub include_audit_log: bool,
     pub password: String,
     pub save_path: String,
+    pub password_hint: Option<String>,
 }
 
 // ── Import types ──
 
 #[derive(Serialize)]
 pub struct ImportPreview {
+    #[serde(rename = "filePath")]
     pub file_path: String,
+    #[serde(rename = "exportTime")]
     pub export_time: Option<String>,
+    #[serde(rename = "profileCount")]
     pub profile_count: usize,
+    #[serde(rename = "profileNames")]
     pub profile_names: Vec<String>,
 }
 
@@ -99,12 +105,22 @@ pub async fn export_execute(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let zip_path = if req.save_path.ends_with(".solosoul") {
-        req.save_path.clone()
+    // Expand ~/ to $HOME
+    let save_path = if req.save_path.starts_with("~/") {
+        let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".into());
+        home + &req.save_path[1..]
     } else {
-        format!("{}.solosoul", req.save_path)
+        req.save_path.clone()
     };
-
+    let zip_path = if save_path.ends_with(".solosoul") {
+        save_path.clone()
+    } else {
+        format!("{}.solosoul", save_path)
+    };
+    // Ensure parent directory exists
+    if let Some(parent) = std::path::Path::new(&zip_path).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
     let file = File::create(&zip_path).map_err(|e| format!("Create ZIP: {}", e))?;
     let mut zip = ZipWriter::new(file);
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
@@ -137,63 +153,54 @@ pub async fn export_execute(
 /// Read the manifest from a .solosoul file and return a preview of what's inside
 #[tauri::command]
 pub async fn import_preview_package(file_path: String) -> Result<ImportPreview, String> {
-    let path = Path::new(&file_path);
-    let file = File::open(path).map_err(|e| format!("Open: {}", e))?;
-    let mut archive = ZipArchive::new(file).map_err(|e| format!("Read ZIP: {}", e))?;
-
-    // Read manifest
-    let mut manifest_str = String::new();
-    let mut got_manifest = false;
-
-    for i in 0..archive.len() {
-        let mut entry = archive.by_index(i).map_err(|e| e.to_string())?;
-        let name = entry.name().to_string();
-
-        if name == "manifest.json" {
-            entry
-                .read_to_string(&mut manifest_str)
-                .map_err(|e| e.to_string())?;
-            got_manifest = true;
-            break;
+    let fp = file_path.clone();
+    let result = tokio::task::spawn_blocking(move || {
+        let path = std::path::Path::new(&fp);
+        if !path.exists() {
+            return Err(format!("File not found: {}", fp));
         }
-    }
+        let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;
+        let mut archive = ZipArchive::new(file).map_err(|_| "Not a valid .solosoul file".to_string())?;
 
-    if !got_manifest {
-        return Err("Invalid .solosoul file: no manifest.json found".to_string());
-    }
+        // Read manifest (scoped to release archive borrow)
+        let (_manifest_str, export_time, profile_count) = {
+            let mut entry = archive.by_name("manifest.json")
+                .map_err(|_| "No manifest.json found".to_string())?;
+            let mut buf = Vec::new();
+            entry.read_to_end(&mut buf).map_err(|e| format!("Read err: {}", e))?;
+            let s = String::from_utf8_lossy(&buf).to_string();
+            let v: serde_json::Value = serde_json::from_str(&s)
+                .map_err(|e| format!("Invalid JSON: {} — {}", e, s.chars().take(80).collect::<String>()))?;
+            let t = v.get("export_time").and_then(|x| x.as_str()).map(|x| x.to_string());
+            let c = v.get("profile_count").and_then(|x| x.as_u64()).unwrap_or(0) as usize;
+            (s, t, c)
+        }; // entry dropped here — archive borrow released
 
-    let manifest: serde_json::Value =
-        serde_json::from_str(&manifest_str).map_err(|e| format!("Invalid manifest: {}", e))?;
-
-    let export_time = manifest
-        .get("export_time")
-        .and_then(|v| v.as_str())
-        .map(|s| s.to_string());
-    let profile_count = manifest
-        .get("profile_count")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(0) as usize;
-
-    // Collect profile names from the archive
-    let mut profile_names = Vec::new();
-    for i in 0..archive.len() {
-        let entry = archive.by_index(i).map_err(|e| e.to_string())?;
-        let name = entry.name().to_string();
-        if name.starts_with("profiles/") && name.ends_with(".enc") {
-            // Extract profile ID from filename
-            let id = name
-                .trim_start_matches("profiles/")
-                .trim_end_matches(".enc");
-            profile_names.push(id.to_string());
+        let mut profile_names = Vec::new();
+        let count = archive.len();
+        for i in 0..count {
+            if let Ok(entry) = archive.by_index(i) {
+                let name = entry.name().to_string();
+                if name.starts_with("profiles/") && name.ends_with(".enc") {
+                    let id = name.trim_start_matches("profiles/").trim_end_matches(".enc");
+                    profile_names.push(id.to_string());
+                }
+            }
         }
-    }
 
-    Ok(ImportPreview {
-        file_path,
-        export_time,
-        profile_count,
-        profile_names,
-    })
+        Ok(ImportPreview {
+            file_path: fp,
+            export_time,
+            profile_count,
+            profile_names,
+        })
+    }).await;
+
+    match result {
+        Ok(Ok(preview)) => Ok(preview),
+        Ok(Err(e)) => Err(e),
+        Err(join_err) => Err(format!("Blocking task failed: {}", join_err)),
+    }
 }
 
 /// Execute import of profiles from a .solosoul file

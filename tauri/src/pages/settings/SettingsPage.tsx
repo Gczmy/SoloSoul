@@ -28,31 +28,31 @@ export function SettingsPage() {
     {
       title: t('settings:groups.appearance'),
       items: [
-        { label: t('settings:items.theme_appearance'), icon: Palette, path: '/settings/appearance' },
+        { label: t('settings:items.theme_appearance'), icon: Palette, path: '/settings/appearance', desc: t('settings:desc.theme_appearance') },
       ],
     },
     {
       title: t('settings:groups.security'),
       items: [
-        { label: t('settings:items.security_settings'), icon: Shield, path: '/settings/security' },
-        { label: t('settings:items.sensitivity_settings'), icon: Eye, path: '/settings/sensitivity' },
+        { label: t('settings:items.security_settings'), icon: Shield, path: '/settings/security', desc: t('settings:desc.security_settings') },
+        { label: t('settings:items.sensitivity_settings'), icon: Eye, path: '/settings/sensitivity', desc: t('settings:desc.sensitivity_settings') },
       ],
     },
     {
       title: t('settings:groups.data'),
       items: [
-        { label: t('settings:items.data_management'), icon: HardDrive, path: '/settings/data', badge: vaultSize },
-        { label: t('settings:items.export_import'), icon: Upload, path: '/settings/export-import' },
-        { label: t('settings:items.trash'), icon: Trash2, path: '/settings/trash' },
-        { label: t('settings:items.backup_restore'), icon: Disc, path: '/settings/backup' },
-        { label: t('settings:items.operation_log'), icon: ClipboardList, path: '/settings/operation-log' },
+        { label: t('settings:items.data_management'), icon: HardDrive, path: '/settings/data', badge: vaultSize, desc: t('settings:desc.data_management') },
+        { label: t('settings:items.export_import'), icon: Upload, path: '/settings/export-import', desc: t('settings:desc.export_import') },
+        { label: t('settings:items.trash'), icon: Trash2, path: '/settings/trash', desc: t('settings:desc.trash') },
+        { label: t('settings:items.backup_restore'), icon: Disc, path: '/settings/backup', desc: t('settings:desc.backup_restore') },
+        { label: t('settings:items.operation_log'), icon: ClipboardList, path: '/settings/operation-log', desc: t('settings:desc.operation_log') },
       ],
     },
     {
       title: t('settings:groups.system'),
       items: [
-        { label: t('settings:items.debug_log'), icon: Bug, path: '/debug-log' },
-        { label: t('settings:items.about'), icon: Info, path: '/about' },
+        { label: t('settings:items.debug_log'), icon: Bug, path: '/debug-log', desc: t('settings:desc.debug_log') },
+        { label: t('settings:items.about'), icon: Info, path: '/about', desc: t('settings:desc.about') },
       ],
     },
   ];
@@ -74,7 +74,10 @@ export function SettingsPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <item.icon size={20} />
-                      <span style={{ fontSize: 14, fontWeight: 500 }}>{item.label}</span>
+                      <div>
+                        <span style={{ fontSize: 14, fontWeight: 500 }}>{item.label}</span>
+                        {'desc' in item && (item as any).desc && <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>{(item as any).desc}</div>}
+                      </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {item.badge && (

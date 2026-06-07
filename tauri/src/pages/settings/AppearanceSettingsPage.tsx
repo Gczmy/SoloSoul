@@ -60,7 +60,7 @@ export function AppearanceSettingsPage() {
   };
 
   return (
-    <AppShell title={t('settings:items.appearance')} onBack={() => navigate('/settings')}>
+    <AppShell title={t('settings:items.theme_appearance')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Theme preset */}
         <Card>
