@@ -109,14 +109,24 @@ pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::V
         }
     }
 
-    stats.total_size_bytes = stats.profiles_size
+    let total = stats.profiles_size
         + stats.objects_size
         + stats.trash_size
         + stats.snapshots_size
         + stats.attachments_size
         + stats.ai_conversations_size;
 
-    Ok(serde_json::json!(stats))
+    Ok(serde_json::json!({
+        "profileCount": stats.profile_count,
+        "totalSizeBytes": total,
+        "lastModified": stats.last_modified,
+        "profilesSize": stats.profiles_size,
+        "objectsSize": stats.objects_size,
+        "trashSize": stats.trash_size,
+        "snapshotsSize": stats.snapshots_size,
+        "attachmentsSize": stats.attachments_size,
+        "aiConversationsSize": stats.ai_conversations_size,
+    }))
 }
 
 /// Recursively sum file sizes under a directory (returns 0 if path doesn't exist).
