@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { HardDrive, PieChart, X } from 'lucide-react';
+import { HardDrive, PieChart, Trash2, X } from 'lucide-react';
 
 interface VaultStats {
   profileCount: number;
@@ -104,6 +104,8 @@ export function DataManagementPage() {
   const { t } = useTranslation(['settings', 'common']);
   const [stats, setStats] = useState<VaultStats | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [cleaningOrphans, setCleaningOrphans] = useState(false);
+  const [orphanResult, setOrphanResult] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -186,6 +188,41 @@ export function DataManagementPage() {
                   <span>{formatBytes(item.size)}</span>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* ── Orphaned attachment cleanup ──────────────────── */}
+          {stats && (
+            <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border-subtle)' }}>
+              {orphanResult && (
+                <div style={{ fontSize: 12, color: '#2e7d32', marginBottom: 6 }}>{orphanResult}</div>
+              )}
+              <Button
+                size="sm"
+                variant="secondary"
+                loading={cleaningOrphans}
+                onClick={async () => {
+                  setCleaningOrphans(true);
+                  setOrphanResult(null);
+                  try {
+                    const accountId = (await import('@/stores/authStore')).useAuthStore.getState().currentAccount?.id;
+                    if (!accountId) return;
+                    const count = await invoke<number>('attachment_cleanup_orphans', { accountId });
+                    setOrphanResult(t('settings:orphan_cleanup_result', { count }));
+                    // Refresh stats
+                    const newStats = await invoke<VaultStats>('get_vault_stats');
+                    setStats(newStats);
+                  } catch (e) {
+                    setOrphanResult(String(e));
+                  } finally {
+                    setCleaningOrphans(false);
+                  }
+                }}
+                style={{ fontSize: 12 }}
+              >
+                <Trash2 size={14} style={{ marginRight: 4 }} />
+                {t('settings:cleanup_orphans')}
+              </Button>
             </div>
           )}
         </Card>

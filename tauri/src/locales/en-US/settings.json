@@ -48,6 +48,8 @@
   "snapshot_retention_desc": "Configure how many snapshots to keep for each object. Older snapshots may be auto-deleted.",
   "snapshot_unlimited": "Keep all (unlimited)",
   "snapshot_count": "Keep latest {{n}}",
+  "cleanup_orphans": "Clean up orphaned attachments",
+  "orphan_cleanup_result": "Removed {{count}} orphaned attachment(s)",
   "language_select": "Select Language",
   "data_management": "Data Management",
   "backup": "Backup",
