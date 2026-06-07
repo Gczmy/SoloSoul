@@ -39,7 +39,7 @@ pub async fn template_save_from_object(
     profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
     profile.updated_at = chrono::Utc::now(); profile.version += 1;
     vault.save_profile(&profile)?;
-    let _ = vault.log_action("template_save", &format!("object={}", object_id));
+    let _ = vault.log_structured("template_save", "template", Some(&object_id), None, "user", None);
     Ok(())
 }
 

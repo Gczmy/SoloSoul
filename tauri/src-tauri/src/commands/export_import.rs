@@ -443,9 +443,13 @@ pub async fn export_execute(
 
     zip.finish().map_err(|e| format!("ZIP finish: {}", e))?;
 
-    let _ = vault.log_action(
+    let _ = vault.log_structured(
         "export_execute",
-        &format!("exported {} objects to {}", records.len(), zip_path),
+        "export",
+        None,
+        None,
+        "user",
+        Some(&format!("exported {} objects to {}", records.len(), zip_path)),
     );
 
     Ok(zip_path)
@@ -710,9 +714,13 @@ async fn import_execute_internal(
         }
     }
 
-    let _ = vault.log_action(
+    let _ = vault.log_structured(
         "import_execute",
-        &format!("imported {} objects from {} (strategy: {:?})", imported, file_path, strategy),
+        "import",
+        None,
+        None,
+        "user",
+        Some(&format!("imported {} objects from {} (strategy: {:?})", imported, file_path, strategy)),
     );
 
     Ok(imported)

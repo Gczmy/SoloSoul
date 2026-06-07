@@ -56,16 +56,6 @@ CREATE TABLE IF NOT EXISTS sensitivity_map (
     level          TEXT NOT NULL,
     last_modified  TEXT NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS operation_log (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id   TEXT NOT NULL,
-    action       TEXT NOT NULL,
-    target_type  TEXT NOT NULL,
-    target_id    TEXT,
-    detail       TEXT,
-    timestamp    TEXT NOT NULL
-);
 "#,
     },
 ];
@@ -192,7 +182,6 @@ mod tests {
         assert!(tables.contains(&"objects".to_string()));
         assert!(tables.contains(&"settings".to_string()));
         assert!(tables.contains(&"sensitivity_map".to_string()));
-        assert!(tables.contains(&"operation_log".to_string()));
     }
 
     #[test]

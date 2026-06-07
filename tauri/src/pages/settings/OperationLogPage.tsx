@@ -8,29 +8,58 @@ import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import { Search, Download } from 'lucide-react';
 
-interface LogEntry {
+interface AuditLogEntry {
+  id: number;
   timestamp: string;
-  level: string;
-  module: string;
-  message: string;
-  details?: string | null;
+  actionType: string;
+  entityType: string;
+  entityId: string | null;
+  entityName: string | null;
+  performedBy: string;
+  details: string | null;
 }
 
-const LEVEL_COLORS: Record<string, string> = {
-  info: 'var(--accent-primary, #3b82f6)',
-  success: 'var(--accent-success, #22c55e)',
-  warning: 'var(--accent-warning, #f59e0b)',
-  error: 'var(--accent-danger, #ef4444)',
-  debug: 'var(--text-tertiary, #9ca3af)',
+const ACTION_LABELS: Record<string, string> = {
+  object_create: 'object.create',
+  object_update: 'object.update',
+  object_delete: 'object.delete',
+  object_restore: 'object.restore',
+  object_purge: 'object.purge',
+  object_rollback: 'object.rollback',
+  page_delete: 'page.delete',
+  page_restore: 'page.restore',
+  trash_permanent_delete: 'trash.permanent_delete',
+  trash_set_retention: 'preference.trash_retention',
+  profile_save: 'profile.save',
+  profile_delete: 'profile.delete',
+  biometric_saved: 'biometric.saved',
+  biometric_unlock: 'biometric.unlock',
+  biometric_deleted: 'biometric.deleted',
+  llm_risk_accepted: 'llm.risk_accepted',
+  template_save: 'template.save',
+  export_execute: 'export.execute',
+  import_execute: 'import.execute',
+  attachment_cleanup: 'attachment.cleanup',
 };
+
+function formatActionType(actionType: string): string {
+  const label = ACTION_LABELS[actionType];
+  if (label) {
+    const parts = label.split('.');
+    return parts.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+  }
+  return actionType
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export function OperationLogPage() {
   const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
-  const { t } = useTranslation(['settings', 'common']);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const { t, i18n } = useTranslation(['settings', 'common']);
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [levelFilter, setLevelFilter] = useState<string | null>(null);
+  const [entityTypeFilter, setEntityTypeFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -40,7 +69,7 @@ export function OperationLogPage() {
   const loadLogs = async () => {
     setIsLoading(true);
     try {
-      const entries = await invoke<LogEntry[]>('log_get_recent', { limit: 200 });
+      const entries = await invoke<AuditLogEntry[]>('log_get_recent', { limit: 200 });
       setLogs(entries);
     } catch (e) {
       onError(e, t('common:logs_load_failed'));
@@ -52,26 +81,27 @@ export function OperationLogPage() {
   const handleExport = async () => {
     try {
       const path = await invoke<string>('log_export');
-      onSuccess(`Exported to ${path}`);
+      onSuccess(`${t('common:export')} → ${path}`);
     } catch (e) {
       onError(e, t('common:logs_export_failed'));
     }
   };
 
   const filteredLogs = logs.filter((entry) => {
-    if (levelFilter && entry.level !== levelFilter) return false;
+    if (entityTypeFilter && entry.entityType !== entityTypeFilter) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       return (
-        entry.message.toLowerCase().includes(q) ||
-        entry.module.toLowerCase().includes(q) ||
+        entry.actionType.toLowerCase().includes(q) ||
+        entry.entityType.toLowerCase().includes(q) ||
+        (entry.entityName?.toLowerCase().includes(q) ?? false) ||
         (entry.details?.toLowerCase().includes(q) ?? false)
       );
     }
     return true;
   });
 
-  const levels = [...new Set(logs.map((l) => l.level))];
+  const entityTypes = [...new Set(logs.map((l) => l.entityType).filter(Boolean))];
 
   return (
     <AppShell title={t('settings:operation_log')} onBack={() => navigate('/settings')}>
@@ -99,29 +129,28 @@ export function OperationLogPage() {
 
           <div style={{ display: 'flex', gap: 4 }}>
             <button
-              onClick={() => setLevelFilter(null)}
+              onClick={() => setEntityTypeFilter(null)}
               style={{
                 padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
-                background: levelFilter === null ? 'var(--accent-primary)' : 'transparent',
-                color: levelFilter === null ? 'white' : 'var(--text-primary)',
+                background: entityTypeFilter === null ? 'var(--accent-primary)' : 'transparent',
+                color: entityTypeFilter === null ? 'white' : 'var(--text-primary)',
                 cursor: 'pointer', fontSize: 12, fontWeight: 500,
               }}
             >
               {t('settings:all')}
             </button>
-            {levels.map((level) => (
+            {entityTypes.map((type) => (
               <button
-                key={level}
-                onClick={() => setLevelFilter(level === levelFilter ? null : level)}
+                key={type}
+                onClick={() => setEntityTypeFilter(type === entityTypeFilter ? null : type)}
                 style={{
                   padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
-                  background: levelFilter === level ? (LEVEL_COLORS[level] || 'var(--accent-primary)') : 'transparent',
-                  color: levelFilter === level ? 'white' : 'var(--text-primary)',
+                  background: entityTypeFilter === type ? 'var(--accent-primary)' : 'transparent',
+                  color: entityTypeFilter === type ? 'white' : 'var(--text-primary)',
                   cursor: 'pointer', fontSize: 12, fontWeight: 500,
-                  textTransform: 'capitalize',
                 }}
               >
-                {level}
+                {type}
               </button>
             ))}
           </div>
@@ -142,37 +171,51 @@ export function OperationLogPage() {
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
               <p style={{ fontSize: 14 }}>{t('settings:no_log_entries')}</p>
               <p style={{ fontSize: 12, marginTop: 4 }}>
-                {searchQuery || levelFilter ? t('settings:adjust_filters') : t('settings:logs_hint')}
+                {searchQuery || entityTypeFilter ? t('settings:adjust_filters') : t('settings:logs_hint')}
               </p>
             </div>
           </Card>
         ) : (
-          filteredLogs.map((entry, i) => (
-            <Card key={i}>
+          filteredLogs.map((entry) => (
+            <Card key={entry.id}>
               <div style={{ display: 'flex', gap: 12, fontSize: 13 }}>
                 <div style={{
                   width: 3, borderRadius: 2, flexShrink: 0,
-                  backgroundColor: LEVEL_COLORS[entry.level] || 'var(--text-tertiary)',
+                  backgroundColor: entry.actionType.includes('delete') ? 'var(--accent-danger, #ef4444)' :
+                    entry.actionType.includes('create') ? 'var(--accent-success, #22c55e)' :
+                    'var(--accent-primary, #3b82f6)',
                 }} />
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{
                       fontSize: 11, fontWeight: 600, padding: '1px 6px',
-                      borderRadius: 4, textTransform: 'uppercase',
-                      backgroundColor: (LEVEL_COLORS[entry.level] || 'var(--text-tertiary)') + '20',
-                      color: LEVEL_COLORS[entry.level] || 'var(--text-tertiary)',
+                      borderRadius: 4,
+                      backgroundColor: entry.actionType.includes('delete') ? 'rgba(239,68,68,0.12)' :
+                        entry.actionType.includes('create') ? 'rgba(34,197,94,0.12)' :
+                        'rgba(59,130,246,0.12)',
+                      color: entry.actionType.includes('delete') ? 'var(--accent-danger, #ef4444)' :
+                        entry.actionType.includes('create') ? 'var(--accent-success, #22c55e)' :
+                        'var(--accent-primary, #3b82f6)',
                     }}>
-                      {entry.level}
+                      {formatActionType(entry.actionType)}
                     </span>
-                    <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                      {entry.module}
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                      {entry.entityType}{entry.entityName ? `: ${entry.entityName}` : ''}
                     </span>
+                    {entry.performedBy === 'system' && (
+                      <span style={{
+                        fontSize: 10, padding: '1px 4px', borderRadius: 3,
+                        backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.08))',
+                        color: 'var(--text-tertiary)',
+                      }}>
+                        SYSTEM
+                      </span>
+                    )}
                     <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
-                      {new Date(entry.timestamp).toLocaleString()}
+                      {new Date(entry.timestamp).toLocaleString(i18n.language)}
                     </span>
                   </div>
-                  <p style={{ margin: 0, color: 'var(--text-primary)' }}>{entry.message}</p>
                   {entry.details && (
                     <p style={{
                       margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)',

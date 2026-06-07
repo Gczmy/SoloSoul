@@ -145,7 +145,7 @@ pub async fn biometric_save_credential(
     let svc = state.vault_service.read().await;
     if let Some(vg) = svc.get_vault_store() {
         if let Some(vault) = vg.as_ref() {
-            let _ = vault.log_action("biometric_saved", &format!("account={}", account_id));
+            let _ = vault.log_structured("biometric_saved", "biometric", Some(&account_id), None, "user", None);
         }
     }
     Ok(())
@@ -162,7 +162,7 @@ pub async fn biometric_unlock(state: State<'_, AppState>, account_id: String) ->
     svc.unlock_with_session_key(&account_id, &key)?;
     if let Some(vg) = svc.get_vault_store() {
         if let Some(vault) = vg.as_ref() {
-            let _ = vault.log_action("biometric_unlock", &format!("account={}", account_id));
+            let _ = vault.log_structured("biometric_unlock", "biometric", Some(&account_id), None, "user", None);
         }
     }
     Ok(())
@@ -179,7 +179,7 @@ pub async fn biometric_delete_credential(
     let svc = state.vault_service.read().await;
     if let Some(vg) = svc.get_vault_store() {
         if let Some(vault) = vg.as_ref() {
-            let _ = vault.log_action("biometric_deleted", &format!("account={}", account_id));
+            let _ = vault.log_structured("biometric_deleted", "biometric", Some(&account_id), None, "user", None);
         }
     }
     Ok(())

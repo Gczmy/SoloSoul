@@ -272,6 +272,7 @@ pub async fn attachment_cleanup_orphans(
         }
     }
 
-    let _ = vault.log_action("attachment_cleanup", &format!("removed {} orphaned attachments, freed {} bytes", removed, total_freed));
+    let _ = vault.log_structured("attachment_cleanup", "attachment", None, None, "system",
+        Some(&format!("removed {} orphaned attachments, freed {} bytes", removed, total_freed)));
     Ok(removed)
 }

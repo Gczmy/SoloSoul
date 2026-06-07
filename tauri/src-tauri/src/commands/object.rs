@@ -171,7 +171,7 @@ pub async fn object_create(
         "name": record.name, "tags": record.tags_json, "properties": record.properties,
     })).unwrap_or_default();
     let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "Created");
-    let _ = vault.log_action("object_create", &format!("id={} name={} type={}", id, input.name, input.collection_type));
+    let _ = vault.log_structured("object_create", "object", Some(&id), Some(&input.name), "user", Some(&format!("type={}", input.collection_type)));
     Ok(record_to_data(&record))
 }
 
@@ -207,7 +207,7 @@ pub async fn object_update(
     })).unwrap_or_default();
     let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "");
 
-    let _ = vault.log_action("object_update", &format!("id={} name={}", object_id, record.name));
+    let _ = vault.log_structured("object_update", "object", Some(&object_id), Some(&record.name), "user", None);
     Ok(record_to_data(&record))
 }
 
@@ -250,7 +250,7 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
         let _ = vault.save_trash_item(&trash);
     }
     vault.delete_object(&object_id, true)?;
-    let _ = vault.log_action("object_delete", &format!("id={} (soft)", object_id));
+    let _ = vault.log_structured("object_delete", "object", Some(&object_id), None, "user", Some("soft"));
     Ok(())
 }
 
@@ -333,7 +333,7 @@ pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Res
 
     vault.save_object(&record)?;
     vault.delete_trash_item(&trash_id)?;
-    let _ = vault.log_action("object_restore", &format!("trash_id={} was_conflict={}", trash_id, exists));
+    let _ = vault.log_structured("object_restore", "object", Some(&trash.original_id), Some(&trash.name_snapshot), "user", Some(&format!("trash_id={} was_conflict={}", trash_id, exists)));
 
     Ok(new_id)
 }
@@ -345,7 +345,7 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     vault.delete_object(&object_id, false)?;
     vault.delete_trash_item(&object_id).ok();
-    let _ = vault.log_action("object_purge", &format!("id={}", object_id));
+    let _ = vault.log_structured("object_purge", "object", Some(&object_id), None, "user", None);
     Ok(())
 }
 
@@ -368,7 +368,7 @@ pub async fn trash_permanent_delete(
         vault.delete_object(&trash.original_id, false)?;
     }
     vault.delete_trash_item(&trash_id).ok();
-    let _ = vault.log_action("trash_permanent_delete", &format!("trash_id={}", trash_id));
+    let _ = vault.log_structured("trash_permanent_delete", "trash_item", Some(&trash_id), None, "user", None);
     Ok(())
 }
 
@@ -449,7 +449,7 @@ pub async fn page_delete(
         }
     }
 
-    let _ = vault.log_action("page_delete", &format!("section_type={} count={}", section_type, count));
+    let _ = vault.log_structured("page_delete", "page", Some(&section_type), None, "user", Some(&format!("count={}", count)));
     Ok(count)
 }
 
@@ -510,7 +510,7 @@ pub async fn page_restore(
         }
     }
 
-    let _ = vault.log_action("page_restore", &format!("section_type={} count={}", section_type, count));
+    let _ = vault.log_structured("page_restore", "page", Some(&section_type), None, "user", Some(&format!("count={}", count)));
     Ok(count)
 }
 
@@ -595,7 +595,7 @@ pub async fn snapshot_rollback(
         "name": record.name, "tags": record.tags_json, "properties": record.properties,
     })).unwrap_or_default();
     let _ = vault.save_snapshot(&object_id, "rollback", &rollback_data, "Rolled back to previous version");
-    let _ = vault.log_action("object_rollback", &format!("id={} snapshot={}", object_id, snapshot_id));
+    let _ = vault.log_structured("object_rollback", "object", Some(&object_id), None, "user", Some(&format!("snapshot={}", snapshot_id)));
     Ok(())
 }
 
@@ -648,7 +648,7 @@ pub async fn trash_set_retention(
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;
     vault.save_profile(&profile)?;
-    let _ = vault.log_action("trash_set_retention", &format!("period={}", period));
+    let _ = vault.log_structured("trash_set_retention", "preference", None, None, "user", Some(&format!("period={}", period)));
     Ok(())
 }
 

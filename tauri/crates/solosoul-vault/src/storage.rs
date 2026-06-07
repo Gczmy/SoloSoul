@@ -58,7 +58,11 @@ impl VaultStore {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
                 action TEXT NOT NULL,
-                details TEXT
+                details TEXT,
+                entity_type TEXT,
+                entity_id TEXT,
+                entity_name TEXT,
+                performed_by TEXT DEFAULT 'user'
             );
 
             CREATE TABLE IF NOT EXISTS sync_state (
@@ -677,17 +681,77 @@ impl VaultStore {
         Ok(())
     }
 
-    /// Write an audit log entry.
+    /// Write an audit log entry with structured fields.
+    /// Backward-compatible: old entries log_action(action, details) will have entity_type/entity_id/entity_name/performed_by as NULL.
     pub fn log_action(&self, action: &str, details: &str) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let now = chrono::Utc::now().to_rfc3339();
         conn.execute(
-            "INSERT INTO audit_log (timestamp, action, details) VALUES (?1, ?2, ?3)",
+            "INSERT INTO audit_log (timestamp, action, performed_by, details) VALUES (?1, ?2, 'system', ?3)",
             rusqlite::params![now, action, details],
         )
         .map_err(|e| format!("log_action: {}", e))?;
         Ok(())
+    }
+
+    /// Write a structured audit log entry with full fields.
+    pub fn log_structured(
+        &self,
+        action_type: &str,
+        entity_type: &str,
+        entity_id: Option<&str>,
+        entity_name: Option<&str>,
+        performed_by: &str,
+        details: Option<&str>,
+    ) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let now = chrono::Utc::now().to_rfc3339();
+        conn.execute(
+            "INSERT INTO audit_log (timestamp, action, entity_type, entity_id, entity_name, performed_by, details)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            rusqlite::params![
+                now,
+                action_type,
+                entity_type,
+                entity_id,
+                entity_name,
+                performed_by,
+                details,
+            ],
+        )
+        .map_err(|e| format!("log_structured: {}", e))?;
+        Ok(())
+    }
+
+    /// List recent audit log entries, newest first.
+    pub fn list_audit_log(&self, limit: usize) -> Result<Vec<crate::AuditLogEntry>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn.prepare(
+            "SELECT id, timestamp, action, entity_type, entity_id, entity_name, performed_by, details
+             FROM audit_log ORDER BY id DESC LIMIT ?1"
+        ).map_err(|e| format!("list_audit_log prepare: {}", e))?;
+        let entries = stmt
+            .query_map(rusqlite::params![limit as i64], |row| {
+                Ok(crate::AuditLogEntry {
+                    id: row.get(0)?,
+                    timestamp: row.get(1)?,
+                    action_type: row.get(2)?,
+                    entity_type: row.get::<_, Option<String>>(3)?.unwrap_or_default(),
+                    entity_id: row.get::<_, Option<String>>(4)?,
+                    entity_name: row.get::<_, Option<String>>(5)?,
+                    performed_by: row.get::<_, Option<String>>(6)?.unwrap_or_else(|| "system".to_string()),
+                    details: row.get::<_, Option<String>>(7)?,
+                })
+            })
+            .map_err(|e| format!("list_audit_log query: {}", e))?;
+        let mut result = Vec::new();
+        for entry in entries {
+            result.push(entry.map_err(|e| format!("list_audit_log row: {}", e))?);
+        }
+        Ok(result)
     }
 
     // Metadata helpers for encrypted blob storage

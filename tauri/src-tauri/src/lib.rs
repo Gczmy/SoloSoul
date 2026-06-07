@@ -115,6 +115,7 @@ pub fn run() {
             commands::system::get_app_info,
             commands::system::check_version,
             // Log commands
+            commands::log::log_write,
             commands::log::log_get_recent,
             commands::log::log_export,
             // Backup commands

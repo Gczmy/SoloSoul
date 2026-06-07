@@ -88,6 +88,20 @@ pub struct TrashItemSummary {
     pub original_parent_name: Option<String>,
     pub original_section_type: Option<String>,
 }
+/// Structured audit log entry
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AuditLogEntry {
+    pub id: i64,
+    pub timestamp: String,
+    pub action_type: String,
+    pub entity_type: String,
+    pub entity_id: Option<String>,
+    pub entity_name: Option<String>,
+    pub performed_by: String,
+    pub details: Option<String>,
+}
+
 pub use storage::VaultStore;
 
 // =============================================================================

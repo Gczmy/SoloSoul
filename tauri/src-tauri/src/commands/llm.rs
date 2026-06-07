@@ -231,7 +231,7 @@ pub async fn llm_accept_risk(state: State<'_, AppState>, account_id: String) -> 
     let mut config = load_config(vault, &account_id)?;
     config.has_accepted_risk = true;
     save_config(vault, &account_id, &config)?;
-    let _ = vault.log_action("llm_risk_accepted", &format!("account={}", account_id));
+    let _ = vault.log_structured("llm_risk_accepted", "preference", Some(&account_id), None, "user", None);
     Ok(())
 }
 

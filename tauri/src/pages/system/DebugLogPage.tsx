@@ -6,19 +6,22 @@ import { Card } from '@/components/ui/Card';
 import { invoke } from '@tauri-apps/api/core';
 import { Bug, Download, RefreshCw } from 'lucide-react';
 
-interface LogEntry {
+interface AuditLogEntry {
   id: number;
   timestamp: string;
-  level: string;
-  module: string;
-  message: string;
+  actionType: string;
+  entityType: string;
+  entityId: string | null;
+  entityName: string | null;
+  performedBy: string;
+  details: string | null;
 }
 
-const LEVELS = ['error', 'warn', 'info', 'debug', 'trace'] as const;
+const LEVELS = ['all'] as const;
 
 export function DebugLogPage() {
   const navigate = useNavigate();
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation(['settings', 'common']);
@@ -26,10 +29,9 @@ export function DebugLogPage() {
   const loadLogs = async () => {
     setIsLoading(true);
     try {
-      const entries = await invoke<LogEntry[]>('log_get_recent', { limit: 200 });
+      const entries = await invoke<AuditLogEntry[]>('log_get_recent', { limit: 200 });
       setLogs(entries);
     } catch {
-      // Fallback to empty
       setLogs([]);
     } finally {
       setIsLoading(false);
@@ -42,11 +44,7 @@ export function DebugLogPage() {
 
   const handleExport = async () => {
     try {
-      const path = await invoke<string>('log_export', { format: 'text' });
-      // For now copy to clipboard as fallback
-      await navigator.clipboard.writeText(
-        filteredLogs.map((l) => `[${l.timestamp}] [${l.level}] ${l.message}`).join('\n')
-      );
+      await navigate('/settings/operation-log');
     } catch {
       // silent
     }
@@ -54,7 +52,7 @@ export function DebugLogPage() {
 
   const filteredLogs = levelFilter === 'all'
     ? logs
-    : logs.filter((l) => l.level === levelFilter);
+    : logs.filter((l) => l.entityType === levelFilter);
 
   return (
     <AppShell title={t('settings:debug_log')} onBack={() => navigate('/settings')}>
@@ -62,20 +60,6 @@ export function DebugLogPage() {
 
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <select
-            value={levelFilter}
-            onChange={(e) => setLevelFilter(e.target.value)}
-            style={{
-              padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
-              fontSize: 13, background: 'var(--bg-elevated)', color: 'var(--text-primary)',
-            }}
-          >
-            <option value="all">{t('settings:all_levels')}</option>
-            {LEVELS.map((l) => (
-              <option key={l} value={l}>{l.toUpperCase()}</option>
-            ))}
-          </select>
-
           <button
             onClick={loadLogs}
             style={{
@@ -116,13 +100,13 @@ export function DebugLogPage() {
             </div>
           ) : (
             <div style={{ fontFamily: 'var(--font-mono, "SF Mono", Monaco, monospace)', fontSize: 12, lineHeight: 1.6 }}>
-              {filteredLogs.map((log, i) => (
+              {filteredLogs.map((log) => (
                 <div
-                  key={log.id || i}
+                  key={log.id}
                   style={{
                     display: 'flex', gap: 8, padding: '2px 4px',
-                    background: log.level === 'error' ? 'rgba(220, 38, 38, 0.06)' :
-                                log.level === 'warn' ? 'rgba(196, 146, 92, 0.06)' : 'transparent',
+                    background: log.actionType.includes('delete') ? 'rgba(220, 38, 38, 0.06)' :
+                                log.actionType.includes('create') ? 'rgba(34,197,94,0.06)' : 'transparent',
                     borderRadius: 2,
                   }}
                 >
@@ -131,13 +115,14 @@ export function DebugLogPage() {
                   </span>
                   <span style={{
                     minWidth: 48, fontWeight: 600,
-                    color: log.level === 'error' ? '#dc2626' :
-                           log.level === 'warn' ? '#c4925c' :
-                           log.level === 'info' ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                    color: log.actionType.includes('delete') ? '#dc2626' :
+                           log.actionType.includes('create') ? 'var(--accent-success)' : 'var(--accent-primary)',
                   }}>
-                    {log.level?.toUpperCase()}
+                    {log.actionType.toUpperCase()}
                   </span>
-                  <span style={{ color: 'var(--text-secondary)', flex: 1 }}>{log.message}</span>
+                  <span style={{ color: 'var(--text-secondary)', flex: 1 }}>
+                    {log.entityType}{log.entityName ? `: ${log.entityName}` : ''}{log.details ? ` - ${log.details}` : ''}
+                  </span>
                 </div>
               ))}
             </div>
