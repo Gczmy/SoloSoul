@@ -206,3 +206,72 @@ pub async fn attachment_copy_to_vault(
     std::fs::copy(&src_path, &dest_path).map_err(|e| format!("Copy: {}", e))?;
     Ok(dest_path.to_string_lossy().to_string())
 }
+
+/// Collect all attachment IDs that are currently referenced in any object's __attachments.
+fn load_all_referenced_attachment_ids(vault: &solosoul_vault::VaultStore, account_id: &str) -> Result<std::collections::HashSet<String>, String> {
+    let objects = vault.list_objects(account_id, None, None, None, false, false)?;
+    let mut active_ids = std::collections::HashSet::new();
+    for summary in &objects {
+        if let Ok(Some(rec)) = vault.load_object(&summary.id) {
+            let atts: Vec<AttachmentMeta> = rec.properties
+                .get("__attachments")
+                .and_then(|v| serde_json::from_value::<Vec<AttachmentMeta>>(v.clone()).ok())
+                .unwrap_or_default();
+            // Include ALL attachments (both active and soft-deleted) — the soft-deleted ones
+            // still have a reference; only truly orphaned files (no __attachments entry at all)
+            // should be cleaned up. Permanently deleting removes the entry, so those are orphans.
+            for a in &atts {
+                active_ids.insert(a.id.clone());
+            }
+        }
+    }
+    Ok(active_ids)
+}
+
+/// Scan attachments directory and remove files not referenced in any object's metadata.
+#[tauri::command]
+pub async fn attachment_cleanup_orphans(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<usize, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    let active_ids = load_all_referenced_attachment_ids(vault, &account_id)?;
+    let base_dir = svc.base_path().join("attachments");
+
+    if !base_dir.exists() {
+        return Ok(0);
+    }
+
+    let mut removed = 0usize;
+    let mut total_freed = 0u64;
+    if let Ok(object_entries) = std::fs::read_dir(&base_dir) {
+        for obj_entry in object_entries.flatten() {
+            let obj_path = obj_entry.path();
+            if !obj_path.is_dir() { continue; }
+            if let Ok(att_entries) = std::fs::read_dir(&obj_path) {
+                for att_entry in att_entries.flatten() {
+                    let att_path = att_entry.path();
+                    let att_id = att_entry.file_name().to_string_lossy().to_string();
+                    if !active_ids.contains(&att_id) {
+                        // Orphaned — delete it
+                        if let Ok(meta) = att_path.metadata() {
+                            total_freed += meta.len();
+                        }
+                        let _ = std::fs::remove_dir_all(&att_path);
+                        removed += 1;
+                    }
+                }
+            }
+            // Remove empty object directories too
+            if std::fs::read_dir(&obj_path).map(|mut d| d.next().is_none()).unwrap_or(false) {
+                let _ = std::fs::remove_dir(&obj_path);
+            }
+        }
+    }
+
+    let _ = vault.log_action("attachment_cleanup", &format!("removed {} orphaned attachments, freed {} bytes", removed, total_freed));
+    Ok(removed)
+}

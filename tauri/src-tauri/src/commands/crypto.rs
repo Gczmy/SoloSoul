@@ -89,8 +89,31 @@ pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::V
     let mut stats = vault.stats()?;
 
     // Attachments stored at base_path/attachments/{objectId}/{attachmentId}/
-    let attachments_dir = svc.base_path().join("attachments");
-    stats.attachments_size = sum_dir_file_sizes(&attachments_dir);
+    // Only count sizes of attachments that are referenced in object metadata
+    // (orphaned files from old attachment_delete bug will be ignored)
+    // Only count attachment files that are referenced in object __attachments metadata
+    // (orphaned files from legacy attachment_delete bug are excluded)
+    let base_dir = svc.base_path().join("attachments");
+    let mut attachments_size = 0u64;
+    if let Some(account_id) = &svc.get_current_account() {
+        if let Ok(objects) = vault.list_objects(account_id, None, None, None, false, false) {
+            for summary in &objects {
+                if let Ok(Some(rec)) = vault.load_object(&summary.id) {
+                    let atts: Vec<serde_json::Value> = rec.properties
+                        .get("__attachments")
+                        .and_then(|v| serde_json::from_value(v.clone()).ok())
+                        .unwrap_or_default();
+                    for att_val in &atts {
+                        if let Some(att_id) = att_val["id"].as_str() {
+                            let att_dir = base_dir.join(&summary.id).join(att_id);
+                            attachments_size += sum_dir_file_sizes(&att_dir);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    stats.attachments_size = attachments_size;
 
     // AI conversations stored inside profiles (in the preferences JSON blob)
     // Estimate by loading profile data and checking llmConversations key
