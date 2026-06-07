@@ -180,7 +180,7 @@ export function SecurePasswordInput({
                   top: hintCardPos?.top ?? 0,
                   left: hintCardPos?.left ?? 0,
                   transform: 'translateY(-50%)',
-                  zIndex: 200,
+                  zIndex: 5000,
                   whiteSpace: 'normal',
                   wordBreak: 'keep-all',
                   overflowWrap: 'break-word',

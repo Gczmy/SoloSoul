@@ -22,6 +22,8 @@ pub struct AccountConfig {
     pub last_login_at: Option<String>,
     pub last_operation_at: Option<String>,
     pub last_operation_desc: Option<String>,
+    #[serde(default)]
+    pub biometric_enabled: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -201,6 +203,7 @@ impl VaultService {
             verify_hash,
             created_at: now.clone(),
             crypto_version: 2,
+            biometric_enabled: false,
             password_hint: None,
             last_login_at: Some(now.clone()),
             last_operation_at: None,
@@ -326,6 +329,32 @@ impl VaultService {
         let key = self.session_key.read().ok();
         let ua = self.unlocked_account.read().ok();
         key.map(|k| k.is_some()).unwrap_or(false) && ua.map(|u| u.is_some()).unwrap_or(false)
+    }
+
+    /// Unlock vault with a pre-derived session key (used by biometric unlock).
+    /// The session key must match the account's encryption key.
+    pub fn unlock_with_session_key(
+        &self,
+        account_id: &str,
+        session_key: &[u8; 32],
+    ) -> Result<(), String> {
+        // Set session key
+        if let Ok(mut key) = self.session_key.write() {
+            *key = Some(Zeroizing::new(*session_key));
+        }
+        if let Ok(mut ua) = self.unlocked_account.write() {
+            *ua = Some(account_id.to_string());
+        }
+
+        // Open vault
+        let vault_config = VaultConfig::new(account_id, self.account_dir(account_id));
+        let vault =
+            VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
+        if let Ok(mut store) = self.vault_store.write() {
+            *store = Some(vault);
+        }
+
+        Ok(())
     }
 
     pub fn change_password(

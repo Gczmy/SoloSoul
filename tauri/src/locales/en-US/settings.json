@@ -167,5 +167,22 @@
     "ai_chat_input_placeholder": "Type a message... (Enter to send)",
     "ai_new_conv": "New Conversation",
     "ai_no_convs": "No conversations yet",
-    "ai_untitled": "Untitled"
+    "ai_untitled": "Untitled",
+    "biometric_title": "Biometric Unlock",
+    "biometric_desc": "Use {{type}} to unlock",
+    "biometric_toggle_label": "Use {{type}}",
+    "biometric_test_button": "Test {{type}}",
+    "biometric_enable_prompt": "Enter your master password to enable {{type}}",
+    "biometric_disable_prompt": "Enter your master password to disable {{type}}",
+    "biometric_enabled_toast": "{{type}} enabled",
+    "biometric_disabled_toast": "{{type}} disabled",
+    "biometric_test_success": "{{type}} verification successful",
+    "biometric_test_failed": "{{type}} verification failed",
+    "biometric_credential_expired": "Password changed. Please update {{type}} settings.",
+    "biometric_credential_expired_unlock": "Password changed. Please use password and re-enable biometrics.",
+    "biometric_not_available": "{{type}} is not available on this device",
+    "biometric_auth_failed": "{{type}} authentication failed or was cancelled",
+    "biometric_locked_out": "Too many failed attempts. Please use your password.",
+    "biometric_save_failed": "Failed to save {{type}} credential. Please try again.",
+    "biometric_needs_update": "Needs Update"
 }

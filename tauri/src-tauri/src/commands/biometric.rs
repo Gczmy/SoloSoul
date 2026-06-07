@@ -1,0 +1,193 @@
+//! Biometric (Touch ID/Face ID/Windows Hello) commands (27)
+//! macOS: compiled Swift helper for Touch ID dialog + obfuscated local file for key storage.
+
+use crate::state::AppState;
+use serde::{Deserialize, Serialize};
+use tauri::State;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BiometricAvailability {
+    pub available: bool,
+    pub configured: bool,
+    pub biometry_type: Option<String>,
+    pub error: Option<String>,
+}
+
+fn is_macos() -> bool { std::env::consts::OS == "macos" }
+const BIO_OBF: &[u8; 32] = b"Solosoul_biometric_obfuscate_v1!";
+
+fn solosoul_dir() -> std::path::PathBuf {
+    std::path::PathBuf::from(std::env::var("HOME").unwrap_or_else(|_| "/tmp".into())).join(".solosoul")
+}
+fn acct_dir(id: &str) -> std::path::PathBuf { solosoul_dir().join(id) }
+fn bio_key_path(id: &str) -> std::path::PathBuf { acct_dir(id).join("biometric_key") }
+
+fn save_master_key(account_id: &str, key_hex: &str) -> Result<(), String> {
+    let key_bytes = hex::decode(key_hex).map_err(|e| e.to_string())?;
+    let obf: Vec<u8> = key_bytes.iter().enumerate().map(|(i,b)| b ^ BIO_OBF[i%32]).collect();
+    let path = bio_key_path(account_id);
+    std::fs::write(&path, hex::encode(&obf))
+        .map_err(|e| format!("Failed to write {}: {}", path.display(), e))
+}
+
+fn read_master_key(account_id: &str) -> Result<String, String> {
+    let path = bio_key_path(account_id);
+    let hex_str = std::fs::read_to_string(&path)
+        .map_err(|e| format!("No key file at {}: {}", path.display(), e))?;
+    let obf = hex::decode(hex_str.trim()).map_err(|e| e.to_string())?;
+    let key: Vec<u8> = obf.iter().enumerate().map(|(i,b)| b ^ BIO_OBF[i%32]).collect();
+    Ok(hex::encode(&key))
+}
+
+fn delete_master_key(account_id: &str) {
+    let p = bio_key_path(account_id);
+    if p.exists() { let _ = std::fs::remove_file(&p); }
+}
+
+fn trigger_system_biometric(reason: &str) -> Result<(), String> {
+    if !is_macos() { return Ok(()); }
+    let escaped = reason.replace('\\', "\\\\").replace('"', "\\\"");
+    let helper_dir = std::env::temp_dir().join("solosoul-biometric");
+    std::fs::create_dir_all(&helper_dir).ok();
+    let src = helper_dir.join("biometric.swift");
+    let bin = helper_dir.join("biometric");
+    if !bin.exists() || !src.exists() {
+        let code = format!(r#"import LocalAuthentication
+import Foundation
+let ctx = LAContext()
+let sem = DispatchSemaphore(value: 0)
+var ok = false
+ctx.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "{}") {{ s, e in ok = s; sem.signal() }}
+sem.wait()
+print(ok ? "1" : "0", terminator: "")
+"#, escaped);
+        std::fs::write(&src, &code).map_err(|e| e.to_string())?;
+        let s = std::process::Command::new("swiftc")
+            .args(["-o", bin.to_str().unwrap_or("/tmp/bio"), src.to_str().unwrap_or("")])
+            .status().map_err(|e| format!("swiftc: {}", e))?;
+        if !s.success() { return Err("swiftc compile failed".into()); }
+    }
+    let out = std::process::Command::new(&bin).output().map_err(|e| format!("helper: {}", e))?;
+    if String::from_utf8_lossy(&out.stdout).trim() == "1" { Ok(()) }
+    else { Err("User cancelled or biometric not available".into()) }
+}
+
+fn is_configured(account_id: &str) -> bool {
+    let has_flag = std::fs::read_to_string(acct_dir(account_id).join("config.json")).ok()
+        .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
+        .and_then(|v| v.get("biometricEnabled").and_then(|v| v.as_bool()))
+        .unwrap_or(false);
+    has_flag && bio_key_path(account_id).exists()
+}
+
+fn set_config_flag(account_id: &str, enabled: bool) -> Result<(), String> {
+    let p = acct_dir(account_id).join("config.json");
+    let s = std::fs::read_to_string(&p).map_err(|_| "Account not found")?;
+    let mut v: serde_json::Value = serde_json::from_str(&s).map_err(|_| "Parse error")?;
+    v["biometricEnabled"] = serde_json::Value::Bool(enabled);
+    std::fs::write(&p, serde_json::to_string_pretty(&v).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())
+}
+
+fn derive_master_key(password: &str, account_id: &str) -> Result<String, String> {
+    let s = std::fs::read_to_string(acct_dir(account_id).join("config.json"))
+        .map_err(|_| "Account not found")?;
+    let cfg: crate::services::vault_service::AccountConfig =
+        serde_json::from_str(&s).map_err(|_| "Parse error")?;
+    let salt_bytes = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &cfg.salt)
+        .map_err(|_| "Invalid salt")?;
+    let salt: [u8; 16] = salt_bytes.as_slice().try_into().map_err(|_| "Bad salt len")?;
+    let k = solosoul_crypto::kdf::KdfConfig::balanced();
+    let mk = solosoul_crypto::kdf::derive_key(password, &salt, &k).map_err(|_| "KDF failed")?;
+    Ok(hex::encode(mk.as_slice()))
+}
+
+fn verify_password(password: &str, account_id: &str) -> Result<(), String> {
+    let s = std::fs::read_to_string(acct_dir(account_id).join("config.json"))
+        .map_err(|_| "Account not found")?;
+    let cfg: crate::services::vault_service::AccountConfig =
+        serde_json::from_str(&s).map_err(|_| "Parse error")?;
+    let salt_bytes = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &cfg.salt)
+        .map_err(|_| "Bad salt")?;
+    let salt: [u8; 16] = salt_bytes.as_slice().try_into().map_err(|_| "Bad salt len")?;
+    let k = solosoul_crypto::kdf::KdfConfig::balanced();
+    let mk = solosoul_crypto::kdf::derive_key(password, &salt, &k).map_err(|_| "KDF failed")?;
+    let vk = solosoul_crypto::kdf::derive_key(
+        &hex::encode(mk.as_slice()), b"SOLOSOUL_VAULT_VERIFY_v1",
+        &solosoul_crypto::kdf::KdfConfig { memory_kb: 8192, iterations: 1, parallelism: 1 },
+    ).map_err(|_| "Verify failed")?;
+    if hex::encode(vk.as_slice()) != cfg.verify_hash { return Err("Invalid password".into()); }
+    Ok(())
+}
+
+// IPC Commands
+
+#[tauri::command]
+pub async fn biometric_check_availability(account_id: String) -> Result<BiometricAvailability, String> {
+    let bt = if is_macos() { Some("touchId".into()) } else { None };
+    Ok(BiometricAvailability { available: bt.is_some(), configured: is_configured(&account_id),
+        biometry_type: bt, error: if is_macos() { None } else { Some("platform not supported".into()) } })
+}
+
+#[tauri::command]
+pub async fn biometric_save_credential(
+    state: State<'_, AppState>, account_id: String, password: String, silent: Option<bool>,
+) -> Result<(), String> {
+    if !is_macos() { return Err("platform not supported".into()); }
+    verify_password(&password, &account_id)?;
+    if !silent.unwrap_or(false) {
+        trigger_system_biometric("verify your identity to enable Touch ID for SoloSoul")?;
+    }
+    let key_hex = derive_master_key(&password, &account_id)?;
+    save_master_key(&account_id, &key_hex)?;
+    set_config_flag(&account_id, true)?;
+    let svc = state.vault_service.read().await;
+    if let Some(vg) = svc.get_vault_store() {
+        if let Some(vault) = vg.as_ref() {
+            let _ = vault.log_action("biometric_saved", &format!("account={}", account_id));
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn biometric_unlock(state: State<'_, AppState>, account_id: String) -> Result<(), String> {
+    if !is_macos() { return Err("platform not supported".into()); }
+    trigger_system_biometric("unlock SoloSoul")?;
+    let key_hex = read_master_key(&account_id)?;
+    let key_bytes = hex::decode(&key_hex).map_err(|_| "Bad key format")?;
+    let key: [u8; 32] = key_bytes.as_slice().try_into().map_err(|_| "Bad key len")?;
+    let svc = state.vault_service.read().await;
+    svc.unlock_with_session_key(&account_id, &key)?;
+    if let Some(vg) = svc.get_vault_store() {
+        if let Some(vault) = vg.as_ref() {
+            let _ = vault.log_action("biometric_unlock", &format!("account={}", account_id));
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn biometric_delete_credential(
+    state: State<'_, AppState>, account_id: String, password: String,
+) -> Result<(), String> {
+    if !is_macos() { return Err("platform not supported".into()); }
+    verify_password(&password, &account_id)?;
+    delete_master_key(&account_id);
+    set_config_flag(&account_id, false)?;
+    let svc = state.vault_service.read().await;
+    if let Some(vg) = svc.get_vault_store() {
+        if let Some(vault) = vg.as_ref() {
+            let _ = vault.log_action("biometric_deleted", &format!("account={}", account_id));
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
+    if !is_macos() { return Ok(false); }
+    trigger_system_biometric("test biometric authentication for SoloSoul")?;
+    Ok(true)
+}

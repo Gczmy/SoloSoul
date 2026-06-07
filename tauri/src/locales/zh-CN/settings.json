@@ -167,5 +167,22 @@
     "ai_chat_input_placeholder": "输入消息... (Enter 发送)",
     "ai_new_conv": "新对话",
     "ai_no_convs": "暂无对话",
-    "ai_untitled": "未命名对话"
+    "ai_untitled": "未命名对话",
+    "biometric_title": "生物识别解锁",
+    "biometric_desc": "使用 {{type}} 解锁",
+    "biometric_toggle_label": "使用 {{type}}",
+    "biometric_test_button": "测试 {{type}}",
+    "biometric_enable_prompt": "输入主密码以启用 {{type}}",
+    "biometric_disable_prompt": "输入主密码以禁用 {{type}}",
+    "biometric_enabled_toast": "{{type}} 已启用",
+    "biometric_disabled_toast": "{{type}} 已禁用",
+    "biometric_test_success": "{{type}} 验证成功",
+    "biometric_test_failed": "{{type}} 验证失败",
+    "biometric_credential_expired": "密码已变更，请更新 {{type}} 设置",
+    "biometric_credential_expired_unlock": "密码已变更，请使用密码解锁后重新设置生物识别",
+    "biometric_not_available": "此设备不支持 {{type}}",
+    "biometric_auth_failed": "{{type}} 验证失败或已取消",
+    "biometric_locked_out": "验证失败次数过多，请使用密码解锁",
+    "biometric_save_failed": "保存 {{type}} 凭证失败，请重试",
+    "biometric_needs_update": "需要更新"
 }

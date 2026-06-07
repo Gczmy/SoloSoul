@@ -140,6 +140,12 @@ pub fn run() {
             commands::llm::llm_permanent_delete,
             commands::llm::llm_list_trash,
             commands::llm::llm_check_connection,
+            // Biometric commands
+            commands::biometric::biometric_check_availability,
+            commands::biometric::biometric_save_credential,
+            commands::biometric::biometric_unlock,
+            commands::biometric::biometric_delete_credential,
+            commands::biometric::biometric_test,
             // OCR commands
             commands::ocr::ocr_scan_image,
             commands::ocr::ocr_get_supported_languages,
