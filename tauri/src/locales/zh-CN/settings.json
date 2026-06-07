@@ -317,6 +317,7 @@
     },
     "conflict_renamed": "名称已调整",
     "conflict_none": "无冲突",
+    "restored_suffix": "（已恢复）",
     "detail": {
       "object_create": "{{name}}（{{section}}）",
       "object_update": "{{name}}（{{section}}）",

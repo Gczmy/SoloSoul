@@ -317,6 +317,7 @@
     },
     "conflict_renamed": "with name conflict",
     "conflict_none": "no conflict",
+    "restored_suffix": " (restored)",
     "detail": {
       "object_create": "{{name}} ({{section}})",
       "object_update": "{{name}} ({{section}})",

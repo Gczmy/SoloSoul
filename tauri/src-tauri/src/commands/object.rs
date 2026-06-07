@@ -288,8 +288,8 @@ pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Res
         .or(record_data["section_type"].as_str())
         .unwrap_or("identity");
 
-    // Check if object already exists (conflict)
-    let exists = vault.load_object(&trash.original_id).ok().flatten().is_some();
+    // Check if object already exists and is NOT soft-deleted (conflict)
+    let exists = vault.load_object(&trash.original_id).ok().flatten().map(|r| !r.is_deleted).unwrap_or(false);
 
     let new_id = if exists {
         format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
@@ -482,7 +482,7 @@ pub async fn page_restore(
         if item.original_section_type.as_deref() == Some(&section_type) {
             // Use object_restore logic inline
             if let Ok(Some(trash)) = vault.get_trash_item(&item.id) {
-                let exists = vault.load_object(&trash.original_id).ok().flatten().is_some();
+                let exists = vault.load_object(&trash.original_id).ok().flatten().map(|r| !r.is_deleted).unwrap_or(false);
                 let new_id = if exists {
                     format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
                 } else {
