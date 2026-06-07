@@ -1106,6 +1106,8 @@
   "changePasswordNewRequired": "请输入新密码",
   "changePasswordMustDiffer": "新密码必须与当前密码不同",
   "changePasswordFailed": "密码修改失败",
+  "changePasswordClearHint": "清除提示词",
+  "changePasswordClearHintWarning": "提示词将在保存时清除",
   "errorInvalidCurrentPassword": "当前密码不正确",
   "entryAttachments": "{count, plural, =1{1 个附件} other{{count} 个附件}}",
   "@entryAttachments": {

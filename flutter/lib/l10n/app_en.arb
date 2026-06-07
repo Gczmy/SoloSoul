@@ -1333,6 +1333,8 @@
   "changePasswordNewRequired": "New password is required",
   "changePasswordMustDiffer": "New password must be different",
   "changePasswordFailed": "Failed to change password",
+  "changePasswordClearHint": "Clear hint",
+  "changePasswordClearHintWarning": "Hint will be cleared when saved",
   "errorInvalidCurrentPassword": "Invalid current password",
   "entryAttachments": "{count, plural, =1{1 attachment} other{{count} attachments}}",
   "@entryAttachments": {

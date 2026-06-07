@@ -80,6 +80,9 @@ class _ChangePasswordDialogContentState
   bool _obscureConfirm = true;
   bool _isLoading = false;
   String? _error;
+  bool _hintCleared = false;
+  bool _isHoveringClear = false;
+  String _preClearHintText = '';
 
   @override
   void initState() {
@@ -116,18 +119,25 @@ class _ChangePasswordDialogContentState
       return;
     }
 
-    // Case 1: Only updating password hint
-    final isHintOnly = newPwd.isEmpty && confirm.isEmpty && hint.isNotEmpty;
+    // Case 1: Only updating password hint (including clearing)
+    final isHintOnly = newPwd.isEmpty && confirm.isEmpty;
     if (isHintOnly) {
+      // If hint text is empty and user didn't explicitly clear, nothing to change
+      if (hint.isEmpty && !_hintCleared) {
+        Navigator.pop(context, ChangePasswordDialogResult.cancelled);
+        return;
+      }
+
       setState(() {
         _isLoading = true;
         _error = null;
       });
 
       final authNotifier = ref.read(authNotifierProvider.notifier);
+      final effectiveHint = _hintCleared ? '' : hint;
       final result = await authNotifier.updatePasswordHintOnly(
         currentPassword: current,
-        newPasswordHint: hint,
+        newPasswordHint: effectiveHint,
       );
 
       if (result.success && mounted) {
@@ -165,10 +175,11 @@ class _ChangePasswordDialogContentState
     });
 
     final authNotifier = ref.read(authNotifierProvider.notifier);
+    final finalHint = _hintCleared ? '' : (hint.isNotEmpty ? hint : null);
     final result = await authNotifier.changePassword(
       currentPassword: current,
       newPassword: newPwd,
-      newPasswordHint: hint.isNotEmpty ? hint : null,
+      newPasswordHint: finalHint,
     );
 
     if (result.success && mounted) {
@@ -341,16 +352,124 @@ class _ChangePasswordDialogContentState
             ),
             const SizedBox(height: 16),
 
-            // New Password Hint (Optional)
-            TextField(
-              controller: _newPasswordHintController,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.loginPasswordHintOptional,
-                prefixIcon: const Icon(Icons.help_outline),
-                hintText: l10n.loginPasswordHintHelp,
-              ),
+            // New Password Hint (Optional) — with Clear Hint button
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _newPasswordHintController,
+                    enabled: !_hintCleared,
+                    onChanged: (_) {
+                      if (!_hintCleared) setState(() {});
+                    },
+                    decoration: InputDecoration(
+                      labelText: l10n.loginPasswordHintOptional,
+                      prefixIcon: Icon(
+                        _hintCleared ? Icons.warning_amber : Icons.help_outline,
+                        color: _hintCleared ? Colors.red : null,
+                      ),
+                      hintText: l10n.loginPasswordHintHelp,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: _hintCleared ? Colors.red.shade300 : Colors.grey.shade400,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: _hintCleared ? Colors.red.shade400 : Colors.indigo.shade300,
+                          width: 2,
+                        ),
+                      ),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.red.shade200),
+                      ),
+                      fillColor: _hintCleared ? Colors.red.shade50 : null,
+                      filled: _hintCleared,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Clear Hint button
+                MouseRegion(
+                  onEnter: (_) => setState(() => _isHoveringClear = true),
+                  onExit: (_) => setState(() => _isHoveringClear = false),
+                  cursor: _hintCleared
+                      ? SystemMouseCursors.click
+                      : (_newPasswordHintController.text.isNotEmpty
+                          ? SystemMouseCursors.click
+                          : SystemMouseCursors.basic),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (_hintCleared) {
+                        // Undo: restore input
+                        _newPasswordHintController.text = _preClearHintText;
+                        setState(() {
+                          _hintCleared = false;
+                          _isHoveringClear = false;
+                        });
+                      } else if (_newPasswordHintController.text.isNotEmpty) {
+                        // Clear: save text and lock input
+                        _preClearHintText = _newPasswordHintController.text;
+                        _newPasswordHintController.text = '';
+                        setState(() => _hintCleared = true);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _hintCleared
+                            ? Colors.red
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: _hintCleared
+                              ? Colors.red
+                              : (_isHoveringClear && _newPasswordHintController.text.isNotEmpty
+                                  ? Colors.red.shade300
+                                  : Colors.grey.shade400),
+                        ),
+                      ),
+                      child: Text(
+                        _hintCleared
+                            ? l10n.commonUndo
+                            : l10n.changePasswordClearHint,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _hintCleared
+                              ? Colors.white
+                              : (_isHoveringClear && _newPasswordHintController.text.isNotEmpty
+                                  ? Colors.red.shade600
+                                  : Colors.grey.shade600),
+                          fontWeight: _hintCleared ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
+
+            // Clear hint warning text
+            if (_hintCleared)
+              Padding(
+                padding: const EdgeInsets.only(left: 4, top: 4),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 14, color: Colors.red.shade600),
+                    const SizedBox(width: 4),
+                    Text(
+                      l10n.changePasswordClearHintWarning,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
             if (_error != null) ...[
               const SizedBox(height: 16),

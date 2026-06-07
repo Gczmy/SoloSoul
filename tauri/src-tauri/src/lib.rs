@@ -121,7 +121,14 @@ pub fn run() {
             commands::settings::ui_update_preference,
             // LLM commands
             commands::llm::llm_get_config,
-            commands::llm::llm_update_config,
+            commands::llm::llm_get_providers,
+            commands::llm::llm_save_provider,
+            commands::llm::llm_set_active_provider,
+            commands::llm::llm_set_ai_features,
+            commands::llm::llm_accept_risk,
+            commands::llm::llm_delete_provider,
+            commands::llm::llm_test_provider,
+            commands::llm::llm_send_message,
             // OCR commands
             commands::ocr::ocr_scan_image,
             commands::ocr::ocr_get_supported_languages,

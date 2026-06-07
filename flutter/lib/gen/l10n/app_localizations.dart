@@ -4826,6 +4826,18 @@ abstract class AppLocalizations {
   /// **'Failed to change password'**
   String get changePasswordFailed;
 
+  /// No description provided for @changePasswordClearHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear hint'**
+  String get changePasswordClearHint;
+
+  /// No description provided for @changePasswordClearHintWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Hint will be cleared when saved'**
+  String get changePasswordClearHintWarning;
+
   /// No description provided for @errorInvalidCurrentPassword.
   ///
   /// In en, this message translates to:

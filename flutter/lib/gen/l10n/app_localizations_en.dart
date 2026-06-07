@@ -2584,6 +2584,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changePasswordFailed => 'Failed to change password';
 
   @override
+  String get changePasswordClearHint => 'Clear hint';
+
+  @override
+  String get changePasswordClearHintWarning =>
+      'Hint will be cleared when saved';
+
+  @override
   String get errorInvalidCurrentPassword => 'Invalid current password';
 
   @override

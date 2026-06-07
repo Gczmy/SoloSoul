@@ -2522,6 +2522,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changePasswordFailed => '密码修改失败';
 
   @override
+  String get changePasswordClearHint => '清除提示词';
+
+  @override
+  String get changePasswordClearHintWarning => '提示词将在保存时清除';
+
+  @override
   String get errorInvalidCurrentPassword => '当前密码不正确';
 
   @override

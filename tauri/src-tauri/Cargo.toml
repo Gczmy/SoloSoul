@@ -52,7 +52,10 @@ sha2 = { workspace = true }
 zip = { version = "2.2", default-features = false, features = ["deflate"] }
 walkdir = "2.5"
 mdns-sd = "0.11"
+reqwest = { workspace = true }
 
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+
+# HTTP client (LLM proxy)
