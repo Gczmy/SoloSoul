@@ -569,23 +569,26 @@ pub async fn import_decrypt_preview(
 #[tauri::command]
 pub async fn import_execute(
     state: State<'_, AppState>,
+    account_id: String,
     file_path: String,
     password: String,
 ) -> Result<usize, String> {
-    import_execute_internal(state, file_path, password, ImportStrategy::SkipExisting, None).await
+    import_execute_internal(state, account_id, file_path, password, ImportStrategy::SkipExisting, None).await
 }
 
 /// P2: Advanced import with object selection and strategy
 #[tauri::command]
 pub async fn import_execute_advanced(
     state: State<'_, AppState>,
+    account_id: String,
     req: AdvancedImportRequest,
 ) -> Result<usize, String> {
-    import_execute_internal(state, req.source_path, req.password, req.strategy, Some(req.selections)).await
+    import_execute_internal(state, account_id, req.source_path, req.password, req.strategy, Some(req.selections)).await
 }
 
 async fn import_execute_internal(
     state: State<'_, AppState>,
+    account_id: String,
     file_path: String,
     password: String,
     strategy: ImportStrategy,
@@ -648,7 +651,7 @@ async fn import_execute_internal(
 
         let record = solosoul_vault::ObjectRecord {
             id: id.to_string(),
-            account_id: obj_val["account_id"].as_str().unwrap_or("imported").to_string(),
+            account_id: account_id.clone(),
             type_id: obj_val["type_id"].as_str().unwrap_or("note").to_string(),
             section_type: obj_val["section_type"].as_str().unwrap_or("identity").to_string(),
             name: obj_val["name"].as_str().unwrap_or("Imported").to_string(),
@@ -701,7 +704,7 @@ async fn import_execute_internal(
         let prefs_key = derive_export_key(&format!("{}_prefs_salt", password), &prefs_salt)?;
         if let Ok(prefs_enc) = read_file_from_zip(&file_path, "preferences.enc") {
             if let Ok(prefs_dec) = solosoul_crypto::cipher::decrypt_from_bytes(&prefs_key, &prefs_enc, None) {
-                let profile = solosoul_vault::Profile::new_with_id(&account_id(), &account_id(), prefs_dec.to_vec());
+                let profile = solosoul_vault::Profile::new_with_id(&account_id, &account_id, prefs_dec.to_vec());
                 let _ = vault.save_profile(&profile);
             }
         }
@@ -760,9 +763,4 @@ fn read_file_from_zip(file_path: &str, name: &str) -> Result<Vec<u8>, String> {
     let mut buf = Vec::new();
     entry.read_to_end(&mut buf).map_err(|e| format!("Read {}: {}", name, e))?;
     Ok(buf)
-}
-
-/// HACK: extract account_id from the vault — used for preferences import
-fn account_id() -> String {
-    "imported".to_string()
 }

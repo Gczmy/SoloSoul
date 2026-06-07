@@ -27,6 +27,7 @@ interface ObjectSummary {
   sensitivityLevel: string;
   createdAt: string;
   updatedAt: string;
+  tags?: string[];
 }
 
 interface ExportScope {
@@ -111,6 +112,10 @@ export function ExportImportPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [showWeakWarning, setShowWeakWarning] = useState(false);
 
+  // ── Export estimate ──────────────────────────────────────────
+  const [exportEstimate, setExportEstimate] = useState<ExportEstimate | null>(null);
+  const [estimating, setEstimating] = useState(false);
+
   // ── P2: Export extras ────────────────────────────────────────
   const [includeAttachments, setIncludeAttachments] = useState(false);
   const [includePreferences, setIncludePreferences] = useState(false);
@@ -188,6 +193,31 @@ export function ExportImportPage() {
   };
 
   const totalSelected = selectedObjectIds.size;
+
+  // ── Estimate export size when selection changes ──────────────
+  useEffect(() => {
+    if (totalSelected === 0) {
+      setExportEstimate(null);
+      return;
+    }
+    const debounce = setTimeout(() => {
+      setEstimating(true);
+      invoke<ExportEstimate>('export_estimate_size', {
+        accountId,
+        scope: {
+          selectedPageIds: Array.from(selectedPageIds),
+          selectedObjectIds: Array.from(selectedObjectIds),
+          selectedTags: [],
+          includeAttachments,
+          includePreferences,
+        },
+      })
+        .then(setExportEstimate)
+        .catch(() => setExportEstimate(null))
+        .finally(() => setEstimating(false));
+    }, 300);
+    return () => clearTimeout(debounce);
+  }, [totalSelected, selectedPageIds, selectedObjectIds, includeAttachments, includePreferences, accountId]);
 
   // ── Password strength ───────────────────────────────────────
   const pwStrength = assessPasswordStrength(exportPassword);
@@ -311,6 +341,7 @@ export function ExportImportPage() {
           ([objectId, selected]) => ({ objectId, selected }),
         );
         const count = await invoke<number>('import_execute_advanced', {
+          accountId,
           req: {
             selections,
             strategy: importStrategy,
@@ -321,6 +352,7 @@ export function ExportImportPage() {
         onSuccess(t('settings:import_success', { count }));
       } else {
         const count = await invoke<number>('import_execute', {
+          accountId,
           filePath: importPath,
           password: importPw,
         });
@@ -526,6 +558,21 @@ export function ExportImportPage() {
             </Card>
 
             {/* ── P2: Export extras (attachments + preferences) ── */}
+            {totalSelected > 0 && (
+              <Card>
+                <div style={{ fontSize: 13, color: 'var(--text-secondary)', padding: '4px 0' }}>
+                  {estimating
+                    ? t('settings:estimating')
+                    : exportEstimate
+                      ? `${exportEstimate.objectCount} ${t('settings:objects_count')}` +
+                        (exportEstimate.attachmentCount > 0
+                          ? ` + ${exportEstimate.attachmentCount} ${t('settings:attachments_count')}`
+                          : '') +
+                        ` · ${formatBytes(exportEstimate.estimatedBytes)}`
+                      : ''}
+                </div>
+              </Card>
+            )}
             <Card>
               <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
                 {t('settings:export_options')}

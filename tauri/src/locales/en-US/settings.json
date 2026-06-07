@@ -138,6 +138,8 @@
   "strategy_Merge": "Merge",
   "strategy_Merge_desc": "Overwrite conflicts, keep non-conflicting originals",
   "password_required_for_decrypt": "Enter the export password above to decrypt and preview",
+  "estimating": "Estimating size…",
+  "attachments_count": "attachment(s)",
   "collections_title": "Collections",
   "collections_builtin": "Built-in Collections",
   "collections_builtin_badge": "Built-in",

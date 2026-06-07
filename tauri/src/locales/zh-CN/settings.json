@@ -138,6 +138,8 @@
   "strategy_Merge": "合并",
   "strategy_Merge_desc": "覆盖冲突项，保留非冲突项",
   "password_required_for_decrypt": "请输入导出密码后解密预览",
+  "estimating": "正在估算大小…",
+  "attachments_count": "个附件",
   "collections_title": "集合",
   "collections_builtin": "内置集合",
   "collections_builtin_badge": "内置",
