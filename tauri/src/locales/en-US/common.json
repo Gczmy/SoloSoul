@@ -145,5 +145,8 @@
   "export_path": "Export Path",
   "browse": "Browse",
   "total": "Total",
+  "active": "Active",
+  "previous": "Previous",
+  "next": "Next",
   "slogan": "Your Personal Data Vault"
 }

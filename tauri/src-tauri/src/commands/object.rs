@@ -667,6 +667,22 @@ pub struct TrashDetail {
     pub remaining_days: Option<i64>,
     pub original_location: String,
     pub preview_properties: Vec<serde_json::Value>,
+    /// Attachments parsed from stored data (active + soft-deleted)
+    pub attachments: Vec<TrashAttachmentInfo>,
+    pub deleted_attachments: Vec<TrashAttachmentInfo>,
+    /// Snapshots from object_snapshots table
+    pub snapshots: Vec<serde_json::Value>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TrashAttachmentInfo {
+    pub id: String,
+    pub file_name: String,
+    pub mime_type: String,
+    pub size_bytes: u64,
+    pub created_at: String,
+    pub deleted_at: Option<String>,
 }
 
 #[tauri::command]
@@ -698,11 +714,38 @@ pub async fn trash_get_detail(
         let props = data.get("properties")?;
         let obj = props.as_object()?;
         Some(obj.iter()
-            .filter(|(k, _)| !k.starts_with("__")) // skip internal fields like __attachments
+            .filter(|(k, _)| !k.starts_with("__"))
             .take(5)
             .map(|(k, v)| serde_json::json!({"key": k, "value": v}))
             .collect())
     })().unwrap_or_default();
+
+    // Parse attachments from stored data
+    let parsed = (|| -> Option<(Vec<TrashAttachmentInfo>, Vec<TrashAttachmentInfo>)> {
+        let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
+        let props = data.get("properties")?;
+        let atts: Vec<serde_json::Value> = props.get("__attachments")
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+        let mut active = Vec::new();
+        let mut deleted = Vec::new();
+        for a in &atts {
+            let info = TrashAttachmentInfo {
+                id: a["id"].as_str().unwrap_or("").to_string(),
+                file_name: a["fileName"].as_str().unwrap_or("").to_string(),
+                mime_type: a["mimeType"].as_str().unwrap_or("").to_string(),
+                size_bytes: a["sizeBytes"].as_u64().unwrap_or(0),
+                created_at: a["createdAt"].as_str().unwrap_or("").to_string(),
+                deleted_at: if a["deletedAt"].is_null() { None } else { a["deletedAt"].as_str().map(String::from) },
+            };
+            if info.deleted_at.is_some() { deleted.push(info); } else { active.push(info); }
+        }
+        Some((active, deleted))
+    })();
+    let (attachments, deleted_attachments) = parsed.unwrap_or_default();
+
+    // Fetch snapshots
+    let snapshots = vault.list_snapshots(&trash.original_id).unwrap_or_default();
 
     Ok(TrashDetail {
         id: trash.id,
@@ -716,6 +759,9 @@ pub async fn trash_get_detail(
         remaining_days,
         original_location,
         preview_properties,
+        attachments,
+        deleted_attachments,
+        snapshots,
     })
 }
 

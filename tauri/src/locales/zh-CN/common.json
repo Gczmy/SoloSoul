@@ -144,5 +144,8 @@
   "export_path": "导出路径",
   "browse": "选择",
   "total": "总计",
+  "active": "活跃",
+  "previous": "上一个",
+  "next": "下一个",
   "slogan": "您的个人数据保险库"
 }

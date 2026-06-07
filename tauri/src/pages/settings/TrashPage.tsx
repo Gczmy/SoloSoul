@@ -24,6 +24,25 @@ interface TrashDetail {
   remainingDays?: number;
   originalLocation: string;
   previewProperties: { key: string; value: unknown }[];
+  attachments: TrashAttachment[];
+  deletedAttachments: TrashAttachment[];
+  snapshots: SnapshotEntry[];
+}
+
+interface TrashAttachment {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+  deletedAt?: string | null;
+}
+
+interface SnapshotEntry {
+  id: string;
+  timestamp: number;
+  triggeredBy: string;
+  diffSummary: string;
 }
 
 const TIME_OPTIONS: { value: TrashTimeFilter; labelKey: string }[] = [
@@ -40,6 +59,13 @@ const TYPE_OPTIONS: { value: TrashTypeFilter; i18nKey: string }[] = [
   { value: 'page', i18nKey: 'page' },
   { value: 'object', i18nKey: 'object' },
 ];
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
 
 function timeAgo(ms: number, t: (k: string) => string): string {
   const diff = Date.now() - ms;
@@ -65,6 +91,9 @@ export function TrashPage() {
 
   const [detailItem, setDetailItem] = useState<TrashDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [showTrashAttachments, setShowTrashAttachments] = useState(false);
+  const [historySnapIndex, setHistorySnapIndex] = useState<Record<string, number>>({});
 
   // ── Confirmation dialog state ──────────────────────────────────
   const [confirmAction, setConfirmAction] = useState<{
@@ -310,6 +339,113 @@ export function TrashPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* ── Attachments section ─────────────────────────── */}
+              {(detailItem.attachments.length > 0 || detailItem.deletedAttachments.length > 0) && (
+                <div style={{ marginTop: 12, borderTop: '1px solid var(--border-subtle)', paddingTop: 10 }}>
+                  <div
+                    onClick={() => setExpandedSections(prev => ({ ...prev, attachments: !prev.attachments }))}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600, userSelect: 'none' }}
+                  >
+                    <span style={{ transform: expandedSections.attachments ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', fontSize: 10 }}>▶</span>
+                    {t('common:attachments')} ({detailItem.attachments.length + detailItem.deletedAttachments.length})
+                  </div>
+                  {expandedSections.attachments && (
+                    <div style={{ marginTop: 8 }}>
+                      {/* Active/Trash toggle */}
+                      {(detailItem.deletedAttachments.length > 0) && (
+                        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                          <button
+                            onClick={() => setShowTrashAttachments(false)}
+                            style={{
+                              padding: '3px 10px', borderRadius: 4, border: '1px solid var(--border-subtle)', cursor: 'pointer', fontSize: 11,
+                              background: !showTrashAttachments ? 'var(--accent-primary)' : 'transparent',
+                              color: !showTrashAttachments ? 'white' : 'var(--text-secondary)',
+                            }}
+                          >{t('common:active')} ({detailItem.attachments.length})</button>
+                          <button
+                            onClick={() => setShowTrashAttachments(true)}
+                            style={{
+                              padding: '3px 10px', borderRadius: 4, border: '1px solid var(--border-subtle)', cursor: 'pointer', fontSize: 11,
+                              background: showTrashAttachments ? 'var(--accent-primary)' : 'transparent',
+                              color: showTrashAttachments ? 'white' : 'var(--text-secondary)',
+                            }}
+                          >{t('common:trash')} ({detailItem.deletedAttachments.length})</button>
+                        </div>
+                      )}
+                      {(showTrashAttachments ? detailItem.deletedAttachments : detailItem.attachments).length === 0 ? (
+                        <p style={{ fontSize: 12, color: 'var(--text-tertiary)', padding: '8px 0' }}>{t('common:no_data')}</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {(showTrashAttachments ? detailItem.deletedAttachments : detailItem.attachments).map((a) => (
+                            <div key={a.id} style={{ fontSize: 12, padding: '6px 8px', background: 'var(--bg-elevated-hover)', borderRadius: 6 }}>
+                              <div style={{ fontWeight: 500, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.fileName}</div>
+                              <div style={{ color: 'var(--text-tertiary)', fontSize: 11 }}>
+                                {formatBytes(a.sizeBytes)} · {new Date(a.createdAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Snapshots/History section ──────────────────── */}
+              {detailItem.snapshots.length > 0 && (
+                <div style={{ marginTop: 12, borderTop: '1px solid var(--border-subtle)', paddingTop: 10 }}>
+                  <div
+                    onClick={() => setExpandedSections(prev => ({ ...prev, snapshots: !prev.snapshots }))}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, fontWeight: 600, userSelect: 'none' }}
+                  >
+                    <span style={{ transform: expandedSections.snapshots ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', fontSize: 10 }}>▶</span>
+                    {t('settings:data_snapshots')} ({detailItem.snapshots.length})
+                  </div>
+                  {expandedSections.snapshots && (() => {
+                    const snapIdx = historySnapIndex[detailItem.id] ?? 0;
+                    const currentSnap = detailItem.snapshots[snapIdx];
+                    return (
+                      <div style={{ marginTop: 8, fontSize: 12 }}>
+                        {detailItem.snapshots.length > 1 && (
+                          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                            <button
+                              disabled={snapIdx <= 0}
+                              onClick={() => setHistorySnapIndex(prev => ({ ...prev, [detailItem.id]: Math.max(0, snapIdx - 1) }))}
+                              style={{
+                                padding: '3px 8px', border: '1px solid var(--border-subtle)', borderRadius: 4,
+                                cursor: snapIdx <= 0 ? 'default' : 'pointer', fontSize: 11,
+                                opacity: snapIdx <= 0 ? 0.4 : 1, background: 'transparent',
+                              }}
+                            >‹ {t('common:previous')}</button>
+                            <span style={{ padding: '3px 0', color: 'var(--text-tertiary)' }}>{snapIdx + 1} / {detailItem.snapshots.length}</span>
+                            <button
+                              disabled={snapIdx >= detailItem.snapshots.length - 1}
+                              onClick={() => setHistorySnapIndex(prev => ({ ...prev, [detailItem.id]: Math.min(detailItem.snapshots.length - 1, snapIdx + 1) }))}
+                              style={{
+                                padding: '3px 8px', border: '1px solid var(--border-subtle)', borderRadius: 4,
+                                cursor: snapIdx >= detailItem.snapshots.length - 1 ? 'default' : 'pointer', fontSize: 11,
+                                opacity: snapIdx >= detailItem.snapshots.length - 1 ? 0.4 : 1, background: 'transparent',
+                              }}
+                            >{t('common:next')} ›</button>
+                          </div>
+                        )}
+                        {currentSnap && (
+                          <div style={{ padding: '6px 8px', background: 'var(--bg-elevated-hover)', borderRadius: 6 }}>
+                            <div style={{ color: 'var(--text-tertiary)', marginBottom: 2 }}>
+                              {new Date(currentSnap.timestamp).toLocaleString()}
+                            </div>
+                            <div style={{ color: 'var(--accent-primary)', fontSize: 11 }}>
+                              {currentSnap.triggeredBy}
+                              {currentSnap.diffSummary && ` · ${currentSnap.diffSummary}`}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
