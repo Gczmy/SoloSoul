@@ -42,6 +42,9 @@ function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => stri
   if (Object.keys(vars).length > 0) {
     if (vars.was_conflict === 'true') vars.was_conflict = t('common:yes').toLowerCase();
     else if (vars.was_conflict === 'false') vars.was_conflict = t('common:no').toLowerCase();
+    // Translate location and action codes to human-readable i18n
+    if (vars.location) vars.location = t(`settings:log.location.${vars.location}`, vars.location);
+    if (vars.action) vars.action = t(`settings:log.action_name.${vars.action}`, vars.action);
     return t(key, { defaultValue: raw, ...vars });
   }
   return t(key, { defaultValue: raw, reason: raw });

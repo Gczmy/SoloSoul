@@ -306,6 +306,15 @@
     },
     "performed_by_user": "用户",
     "performed_by_system": "系统",
+    "location": {
+      "login_page": "登录页面",
+      "settings_page": "设置"
+    },
+    "action_name": {
+      "unlock": "解锁",
+      "enable": "开启",
+      "disable": "关闭"
+    },
     "detail": {
       "object_create": "{{name}}（{{section}}）",
       "object_update": "{{name}}（{{section}}）",

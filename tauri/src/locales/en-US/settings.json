@@ -306,6 +306,15 @@
     },
     "performed_by_user": "User",
     "performed_by_system": "System",
+    "location": {
+      "login_page": "Login page",
+      "settings_page": "Settings"
+    },
+    "action_name": {
+      "unlock": "Unlock",
+      "enable": "Enable",
+      "disable": "Disable"
+    },
     "detail": {
       "object_create": "{{name}} ({{section}})",
       "object_update": "{{name}} ({{section}})",
