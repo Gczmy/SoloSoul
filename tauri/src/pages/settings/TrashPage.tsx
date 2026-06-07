@@ -461,6 +461,11 @@ export function TrashPage() {
                           {/* Header */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', background: 'var(--bg-elevated-hover)', borderRadius: 6, marginBottom: 6, minHeight: 32 }}>
                             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                              {currentSnap.diffSummary && (
+                                <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)' }}>
+                                  {t(`common:diff_${currentSnap.diffSummary}`, currentSnap.diffSummary)}
+                                </span>
+                              )}
                               {snapIdx <= 1 && (
                                 <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600,
                                   background: snapIdx === 0 ? 'rgba(39,174,96,0.12)' : 'rgba(91,124,153,0.08)',
@@ -477,11 +482,6 @@ export function TrashPage() {
                               {new Date(currentSnap.timestamp).toLocaleString()}
                             </span>
                           </div>
-                          {currentSnap.diffSummary && (
-                            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', padding: '2px 8px', marginBottom: 4 }}>
-                              {t(`common:diff_${currentSnap.diffSummary}`, currentSnap.diffSummary)}
-                            </div>
-                          )}
                           {/* Content area — fixed minHeight prevents layout jump */}
                           <div style={{ minHeight: 60 }}>
                             {loading && <p style={{ color: 'var(--text-tertiary)', padding: '8px 0' }}>{t('common:loading')}</p>}
