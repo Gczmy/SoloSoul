@@ -741,6 +741,13 @@ use tokio::sync::RwLock;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct TokenUsage {
+    pub prompt_tokens: u64,
+    pub completion_tokens: u64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct LlmUsageStats {
     pub usage_count: u64,
     pub prompt_tokens: u64,
@@ -754,8 +761,12 @@ pub struct LlmUsageStats {
 #[serde(rename_all = "camelCase")]
 pub struct ModelUsage {
     pub model: String,
+    pub provider: String,
     pub count: u64,
     pub tokens: u64,
+    pub prompt_tokens: u64,
+    pub completion_tokens: u64,
+    pub last_used_time: Option<String>, // ISO8601
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -764,6 +775,7 @@ pub struct DailyUsage {
     pub date: String, // YYYY-MM-DD
     pub count: u64,
     pub tokens: u64,
+    pub per_model_tokens: HashMap<String, u64>, // Key: "provider/model"
 }
 
 /// 内存中的使用统计（按账户隔离）
@@ -775,44 +787,77 @@ pub fn estimate_tokens(text: &str) -> u64 {
     text.chars().count() as u64
 }
 
-/// 记录一次 AI 调用
-pub async fn record_usage(account_id: &str, model: &str, prompt: &str, completion: &str) {
-    let prompt_tokens = estimate_tokens(prompt);
-    let completion_tokens = estimate_tokens(completion);
+/// 记录一次 AI 调用（使用真实 token 数）
+/// 四层聚合：account totals → per-model → daily (with per-model breakdown)
+pub async fn record_usage(
+    account_id: &str,
+    model: &str,
+    provider: &str,
+    prompt_tokens: u64,
+    completion_tokens: u64,
+) {
     let total = prompt_tokens + completion_tokens;
+    let now_iso = chrono::Utc::now().to_rfc3339();
+    let model_key = format!("{}/{}", provider, model);
+    let today = chrono::Local::now().format("%Y-%m-%d").to_string();
 
     let mut map: tokio::sync::RwLockWriteGuard<'_, HashMap<String, LlmUsageStats>> = STATS_MAP.write().await;
     let stats: &mut LlmUsageStats = map.entry(account_id.to_string()).or_default();
 
+    // 1. Account-level totals
     stats.usage_count += 1;
     stats.prompt_tokens += prompt_tokens;
     stats.completion_tokens += completion_tokens;
     stats.total_tokens += total;
 
-    // 更新按模型统计
-    if let Some(m) = stats.per_model_stats.iter_mut().find(|m| m.model == model) {
+    // 2. Per-model stats
+    if let Some(m) = stats.per_model_stats.iter_mut().find(|m| m.model == model && m.provider == provider) {
         m.count += 1;
         m.tokens += total;
+        m.prompt_tokens += prompt_tokens;
+        m.completion_tokens += completion_tokens;
+        m.last_used_time = Some(now_iso.clone());
     } else {
         stats.per_model_stats.push(ModelUsage {
             model: model.to_string(),
+            provider: provider.to_string(),
             count: 1,
             tokens: total,
+            prompt_tokens,
+            completion_tokens,
+            last_used_time: Some(now_iso.clone()),
         });
     }
 
-    // 更新每日统计
-    let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+    // 3. Daily stats (with per-model breakdown)
     if let Some(d) = stats.daily_stats.iter_mut().find(|d| d.date == today) {
         d.count += 1;
         d.tokens += total;
+        let prev = d.per_model_tokens.get(&model_key).copied().unwrap_or(0);
+        d.per_model_tokens.insert(model_key, prev + total);
     } else {
+        let mut per_model = HashMap::new();
+        per_model.insert(model_key, total);
         stats.daily_stats.push(DailyUsage {
             date: today,
             count: 1,
             tokens: total,
+            per_model_tokens: per_model,
         });
     }
+}
+
+/// 回退：当 API 未返回真实 token 时，使用估算值
+pub async fn record_usage_fallback(
+    account_id: &str,
+    model: &str,
+    provider: &str,
+    prompt: &str,
+    completion: &str,
+) {
+    let prompt_tokens = estimate_tokens(prompt);
+    let completion_tokens = estimate_tokens(completion);
+    record_usage(account_id, model, provider, prompt_tokens, completion_tokens).await;
 }
 
 fn save_stats_to_vault(vault: &VaultStore, account_id: &str, stats: &LlmUsageStats) -> Result<(), String> {
@@ -896,6 +941,18 @@ pub async fn persist_stats(account_id: &str, vault: &VaultStore) -> Result<(), S
     save_stats_to_vault(vault, account_id, &stats)
 }
 
+#[tauri::command]
+pub async fn llm_persist_stats(state: State<'_, AppState>, account_id: String) -> Result<(), String> {
+    let stats: LlmUsageStats = {
+        let map: tokio::sync::RwLockReadGuard<'_, HashMap<String, LlmUsageStats>> = STATS_MAP.read().await;
+        map.get(&account_id).cloned().unwrap_or_default()
+    };
+    let svc = state.vault_service.read().await;
+    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vg.as_ref().ok_or("Vault not unlocked")?;
+    save_stats_to_vault(vault, &account_id, &stats)
+}
+
 // =============================================================================
 // Streaming Response (§5.3)
 // =============================================================================
@@ -954,6 +1011,7 @@ async fn emit_typing_effect(
 }
 
 /// 发送聊天请求并流式推送结果（Phase 2.3：SSE 流式 + 打字机降级）
+/// 返回 (完整文本, 可选的真实 TokenUsage)
 async fn send_chat_stream(
     app: tauri::AppHandle,
     conversation_id: String,
@@ -962,7 +1020,7 @@ async fn send_chat_stream(
     model: String,
     api_type: ApiType,
     messages: Vec<serde_json::Value>,
-) -> Result<String, String> {
+) -> Result<(String, Option<TokenUsage>), String> {
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(60))
         .build()
@@ -987,7 +1045,8 @@ async fn send_chat_stream(
         }
         (format!("{}/messages", base_url.trim_end_matches('/')), b, "x-api-key", api_key)
     } else {
-        let b = serde_json::json!({"model": model, "messages": messages, "stream": true});
+        let mut b = serde_json::json!({"model": model, "messages": messages, "stream": true});
+        b["stream_options"] = serde_json::json!({"include_usage": true});
         (format!("{}/chat/completions", base_url.trim_end_matches('/')), b, "Authorization", format!("Bearer {}", api_key))
     };
 
@@ -1025,6 +1084,12 @@ async fn send_chat_stream(
         let mut stream = resp.bytes_stream();
         let mut buffer = String::new();
         let mut full_text = String::new();
+        let mut token_usage = TokenUsage::default();
+
+        // Anthropic 跨事件累积
+        let mut anthropic_prompt_tokens: u64 = 0;
+        let mut anthropic_completion_tokens: u64 = 0;
+        let mut current_event: String = String::new();
 
         while let Some(chunk_result) = stream.next().await {
             let chunk = chunk_result.map_err(|e| format!("Stream error: {}", e))?;
@@ -1040,47 +1105,90 @@ async fn send_chat_stream(
                     continue;
                 }
 
-                // 只处理 data: 行（忽略 event: 等）
-                if line.starts_with("data: ") {
-                    let data = &line[6..];
+                // 处理 event: 行（Anthropic 使用）
+                if line.starts_with("event: ") {
+                    current_event = line[7..].to_string();
+                    continue;
+                }
 
-                    // OpenAI 风格结束标记
-                    if data == "[DONE]" {
+                // 只处理 data: 行
+                if !line.starts_with("data: ") {
+                    continue;
+                }
+                let data = &line[6..];
+
+                // OpenAI 风格结束标记
+                if data == "[DONE]" {
+                    let _ = app.emit("llm-stream-chunk", LlmStreamPayload {
+                        conversation_id: conversation_id.clone(),
+                        chunk: String::new(),
+                        is_done: true,
+                        error: None,
+                    });
+                    let usage = if token_usage.prompt_tokens > 0 || token_usage.completion_tokens > 0 {
+                        Some(token_usage)
+                    } else {
+                        None
+                    };
+                    return Ok((full_text, usage));
+                }
+
+                // 尝试解析 JSON
+                let Ok(json) = serde_json::from_str::<serde_json::Value>(data) else {
+                    continue;
+                };
+
+                // ── 提取 delta content ──
+                let delta_text = if is_anthropic(&api_type) {
+                    json.get("delta")
+                        .and_then(|d| d.get("text"))
+                        .and_then(|t| t.as_str())
+                } else {
+                    json.get("choices")
+                        .and_then(|c| c.get(0))
+                        .and_then(|choice| choice.get("delta"))
+                        .and_then(|delta| delta.get("content"))
+                        .and_then(|c| c.as_str())
+                };
+
+                if let Some(text) = delta_text {
+                    if !text.is_empty() {
+                        full_text.push_str(text);
                         let _ = app.emit("llm-stream-chunk", LlmStreamPayload {
                             conversation_id: conversation_id.clone(),
-                            chunk: String::new(),
-                            is_done: true,
+                            chunk: text.to_string(),
+                            is_done: false,
                             error: None,
                         });
-                        return Ok(full_text);
                     }
+                }
 
-                    // 尝试解析 JSON
-                    if let Ok(json) = serde_json::from_str::<serde_json::Value>(data) {
-                        let delta_text = if is_anthropic(&api_type) {
-                            // Anthropic: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"..."}}
-                            json.get("delta")
-                                .and_then(|d| d.get("text"))
-                                .and_then(|t| t.as_str())
-                        } else {
-                            // OpenAI: {"choices":[{"delta":{"content":"..."},"index":0}]}
-                            json.get("choices")
-                                .and_then(|c| c.get(0))
-                                .and_then(|choice| choice.get("delta"))
-                                .and_then(|delta| delta.get("content"))
-                                .and_then(|c| c.as_str())
-                        };
-
-                        if let Some(text) = delta_text {
-                            if !text.is_empty() {
-                                full_text.push_str(text);
-                                let _ = app.emit("llm-stream-chunk", LlmStreamPayload {
-                                    conversation_id: conversation_id.clone(),
-                                    chunk: text.to_string(),
-                                    is_done: false,
-                                    error: None,
-                                });
-                            }
+                // ── 提取 usage ──
+                if is_anthropic(&api_type) {
+                    if current_event == "message_start" {
+                        if let Some(input_tokens) = json.get("message")
+                            .and_then(|m| m.get("usage"))
+                            .and_then(|u| u.get("input_tokens"))
+                            .and_then(|v| v.as_u64()) {
+                            anthropic_prompt_tokens = input_tokens;
+                        }
+                    } else if current_event == "message_delta" {
+                        if let Some(output_tokens) = json.get("usage")
+                            .and_then(|u| u.get("output_tokens"))
+                            .and_then(|v| v.as_u64()) {
+                            anthropic_completion_tokens = output_tokens;
+                        }
+                    }
+                    token_usage.prompt_tokens = anthropic_prompt_tokens;
+                    token_usage.completion_tokens = anthropic_completion_tokens;
+                } else {
+                    // OpenAI: usage 可能在 choices 为空的 chunk 中
+                    if let Some(usage) = json.get("usage") {
+                        if let Some(prompt) = usage.get("prompt_tokens").and_then(|v| v.as_u64()) {
+                            token_usage.prompt_tokens = prompt;
+                        }
+                        if let Some(completion) = usage.get("completion_tokens").and_then(|v| v.as_u64()) {
+                            token_usage.completion_tokens = completion;
                         }
                     }
                 }
@@ -1113,6 +1221,17 @@ async fn send_chat_stream(
                             });
                         }
                     }
+                    // 剩余内容也可能含 usage
+                    if !is_anthropic(&api_type) {
+                        if let Some(usage) = json.get("usage") {
+                            if let Some(prompt) = usage.get("prompt_tokens").and_then(|v| v.as_u64()) {
+                                token_usage.prompt_tokens = prompt;
+                            }
+                            if let Some(completion) = usage.get("completion_tokens").and_then(|v| v.as_u64()) {
+                                token_usage.completion_tokens = completion;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1124,7 +1243,12 @@ async fn send_chat_stream(
             is_done: true,
             error: None,
         });
-        Ok(full_text)
+        let usage = if token_usage.prompt_tokens > 0 || token_usage.completion_tokens > 0 {
+            Some(token_usage)
+        } else {
+            None
+        };
+        Ok((full_text, usage))
     } else {
         // ===================== 非 SSE：完整获取 + 打字机效果 =====================
         let result: serde_json::Value = resp.json().await.map_err(|e| format!("Parse: {}", e))?;
@@ -1139,8 +1263,27 @@ async fn send_chat_stream(
             result["choices"][0]["message"]["content"].as_str().unwrap_or("").to_string()
         };
 
+        // 提取非 SSE 的真实 usage
+        let mut token_usage = TokenUsage::default();
+        if !is_anthropic(&api_type) {
+            if let Some(usage) = result.get("usage") {
+                if let Some(prompt) = usage.get("prompt_tokens").and_then(|v| v.as_u64()) {
+                    token_usage.prompt_tokens = prompt;
+                }
+                if let Some(completion) = usage.get("completion_tokens").and_then(|v| v.as_u64()) {
+                    token_usage.completion_tokens = completion;
+                }
+            }
+        }
+        // Anthropic 非流式响应通常也有 usage（如果需要可以后续补充）
+
         emit_typing_effect(&app, &conversation_id, &full_text).await;
-        Ok(full_text)
+        let usage = if token_usage.prompt_tokens > 0 || token_usage.completion_tokens > 0 {
+            Some(token_usage)
+        } else {
+            None
+        };
+        Ok((full_text, usage))
     }
 }
 
@@ -1161,11 +1304,16 @@ pub async fn llm_send_message_stream(
         .collect::<Vec<_>>()
         .join("\n");
 
-    let full_text = send_chat_stream(
-        app, conversation_id.clone(), base_url, api_key, model.clone(), api_type, messages,
+    let (full_text, token_usage) = send_chat_stream(
+        app, conversation_id.clone(), base_url, api_key, model.clone(), api_type.clone(), messages,
     ).await?;
 
-    let _ = record_usage(&account_id, &model, &prompt_text, &full_text).await;
+    let provider_name = format!("{:?}", api_type);
+    if let Some(usage) = token_usage {
+        let _ = record_usage(&account_id, &model, &provider_name, usage.prompt_tokens, usage.completion_tokens).await;
+    } else {
+        let _ = record_usage_fallback(&account_id, &model, &provider_name, &prompt_text, &full_text).await;
+    }
     Ok(())
 }
 
@@ -1281,18 +1429,23 @@ pub async fn llm_chat(
         .join("\n");
 
     // 5. 发送请求（复用 send_chat_stream，Phase 2.3 将替换为 SSE）
-    let full_text = send_chat_stream(
+    let (full_text, token_usage) = send_chat_stream(
         app,
         request.conversation_id.clone(),
         base_url,
         api_key,
         model.clone(),
-        api_type,
+        api_type.clone(),
         messages,
     ).await?;
 
     // 6. 记录统计
-    let _ = record_usage(&request.account_id, &model, &prompt_text, &full_text).await;
+    let provider_name = format!("{:?}", api_type);
+    if let Some(usage) = token_usage {
+        let _ = record_usage(&request.account_id, &model, &provider_name, usage.prompt_tokens, usage.completion_tokens).await;
+    } else {
+        let _ = record_usage_fallback(&request.account_id, &model, &provider_name, &prompt_text, &full_text).await;
+    }
 
     Ok(())
 }

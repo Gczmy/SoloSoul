@@ -27,6 +27,7 @@ import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
 import { PluginDashboardPage } from '@/pages/ai/PluginDashboardPage';
 import { LlmChatPage } from '@/pages/ai/LlmChatPage';
 import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
+import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
 import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
 import { OcrPage } from '@/pages/scan/OcrPage';
 import { HistoryPage } from '@/pages/editor/HistoryPage';
@@ -247,6 +248,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <LlmConfigPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/settings/llm/stats"
+        element={
+          <AuthGuard>
+            <LlmStatsPage />
           </AuthGuard>
         }
       />

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
-import { Settings, Plus } from 'lucide-react';
+import { Settings, Plus, BarChart3 } from 'lucide-react';
 
 interface ProviderConfig { id: string; name: string; baseUrl: string; model: string; isEnabled: boolean; isBuiltIn: boolean; apiKey: string; apiType: 'openAI' | 'anthropic'; }
 interface AiFeatures { chat: boolean; smartFill: boolean; commandGen: boolean; naturalLanguageSearch: boolean; }
@@ -173,6 +173,19 @@ export function LlmConfigPage() {
           <Button variant="secondary" size="sm" onClick={handleAddCustom} style={{ marginTop: 10 }}>
             <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:llm_add_custom')}
           </Button>
+        </Card>
+
+        <Card interactive onClick={() => navigate('/settings/llm/stats', { state: { from: '/settings/llm' } })}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <BarChart3 size={20} color="var(--accent-primary)" />
+              <div>
+                <span style={{ fontSize: 14, fontWeight: 500 }}>使用统计</span>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>查看 LLM Token 消耗和对话统计</div>
+              </div>
+            </div>
+            <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>›</span>
+          </div>
         </Card>
 
         {editingProvider && (

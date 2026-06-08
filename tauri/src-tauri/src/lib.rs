@@ -157,6 +157,7 @@ pub fn run() {
             commands::llm::llm_reset_stats,
             commands::llm::llm_send_message_stream,
             commands::llm::llm_chat,
+            commands::llm::llm_persist_stats,
             // Biometric commands
             commands::biometric::biometric_check_availability,
             commands::biometric::biometric_save_credential,

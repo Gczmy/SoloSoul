@@ -11,7 +11,7 @@ import { buildSystemPrompt, buildMessagesWithSystemPrompt } from '@/lib/llm/syst
 import { findRelevantGuides, formatGuideAsSystemMessage } from '@/lib/llm/guideService';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
-import { MessageSquare, Settings, Send, Plus, Copy, Check, Trash2, Pencil, RotateCw, RefreshCw, X, Undo2, Delete } from 'lucide-react';
+import { MessageSquare, Settings, Send, Plus, Copy, Check, Trash2, Pencil, RotateCw, RefreshCw, X, Undo2, Delete, BarChart3 } from 'lucide-react';
 
 interface ChatMsg {
   role: string;
@@ -454,10 +454,16 @@ export function LlmChatPage() {
   return (
     <AppShell title={t('settings:ai_chat')} onBack={() => navigate('/home')}
       actions={
-        <button onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })} title={t('settings:llm_config')}
-          style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-          <Settings size={16} />
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => navigate('/settings/llm/stats', { state: { from: '/llm-chat' } })} title="使用统计"
+            style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+            <BarChart3 size={16} />
+          </button>
+          <button onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })} title={t('settings:llm_config')}
+            style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+            <Settings size={16} />
+          </button>
+        </div>
       }
     >
       <div style={{ position: 'fixed', top: 56, left: 48, right: 0, bottom: 0, display: 'flex', overflow: 'hidden' }}>
