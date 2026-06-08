@@ -28,6 +28,7 @@ import { PluginDashboardPage } from '@/pages/ai/PluginDashboardPage';
 import { LlmChatPage } from '@/pages/ai/LlmChatPage';
 import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
 import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
+import { HelpPage } from '@/pages/help/HelpPage';
 import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
 import { OcrPage } from '@/pages/scan/OcrPage';
 import { HistoryPage } from '@/pages/editor/HistoryPage';
@@ -296,6 +297,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <SyncPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/help"
+        element={
+          <AuthGuard>
+            <HelpPage />
           </AuthGuard>
         }
       />

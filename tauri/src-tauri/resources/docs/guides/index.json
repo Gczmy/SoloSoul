@@ -1,31 +1,195 @@
 {
   "guides": [
     {
-      "id": "export-data",
-      "title": "如何导出数据",
-      "keywords": ["导出", "备份", "数据迁移", "export", "backup", "迁移"],
-      "files": {
-        "zh": "zh/export_data.md",
-        "en": "en/export_data.md"
-      }
+      "id": "getting-started",
+      "title": { "zh": "快速开始", "en": "Getting Started" },
+      "category": "basics",
+      "order": 1,
+      "keywords": ["入门", "新手", "开始", "start", "beginner", "guide", "first"],
+      "files": { "zh": "zh/getting_started.md", "en": "en/getting_started.md" }
     },
     {
-      "id": "import-data",
-      "title": "如何导入数据",
-      "keywords": ["导入", "恢复", "数据恢复", "import", "restore"],
-      "files": {
-        "zh": "zh/import_data.md",
-        "en": "en/import_data.md"
-      }
+      "id": "objects",
+      "title": { "zh": "对象管理", "en": "Object Management" },
+      "category": "objects",
+      "order": 1,
+      "keywords": ["对象", "创建", "编辑", "属性", "object", "create", "edit", "delete"],
+      "files": { "zh": "zh/objects.md", "en": "en/objects.md" }
+    },
+    {
+      "id": "templates",
+      "title": { "zh": "对象模板", "en": "Object Templates" },
+      "category": "objects",
+      "order": 2,
+      "keywords": ["模板", "护照", "签证", "银行", "template", "passport", "visa", "bank"],
+      "files": { "zh": "zh/templates.md", "en": "en/templates.md" }
+    },
+    {
+      "id": "workspace",
+      "title": { "zh": "工作区与自定义页面", "en": "Workspace & Custom Pages" },
+      "category": "objects",
+      "order": 3,
+      "keywords": ["工作区", "页面", "自定义", "workspace", "page", "custom"],
+      "files": { "zh": "zh/workspace.md", "en": "en/workspace.md" }
+    },
+    {
+      "id": "attachments",
+      "title": { "zh": "附件管理", "en": "Attachment Management" },
+      "category": "objects",
+      "order": 4,
+      "keywords": ["附件", "文件", "图片", "PDF", "attachment", "file", "image"],
+      "files": { "zh": "zh/attachments.md", "en": "en/attachments.md" }
+    },
+    {
+      "id": "snapshots",
+      "title": { "zh": "快照与历史", "en": "Snapshots & History" },
+      "category": "objects",
+      "order": 5,
+      "keywords": ["快照", "历史", "版本", "回滚", "snapshot", "history", "version", "rollback"],
+      "files": { "zh": "zh/snapshots.md", "en": "en/snapshots.md" }
+    },
+    {
+      "id": "collections",
+      "title": { "zh": "集合", "en": "Collections" },
+      "category": "objects",
+      "order": 6,
+      "keywords": ["集合", "智能集合", "筛选", "collection", "smart", "filter"],
+      "files": { "zh": "zh/collections.md", "en": "en/collections.md" }
+    },
+    {
+      "id": "sensitivity",
+      "title": { "zh": "敏感度与隐私", "en": "Sensitivity & Privacy" },
+      "category": "security",
+      "order": 1,
+      "keywords": ["敏感", "隐私", "分级", "遮罩", "sensitive", "privacy", "level", "mask"],
+      "files": { "zh": "zh/sensitivity.md", "en": "en/sensitivity.md" }
+    },
+    {
+      "id": "security",
+      "title": { "zh": "安全设置", "en": "Security Settings" },
+      "category": "security",
+      "order": 2,
+      "keywords": ["安全", "密码", "锁定", "security", "password", "lock"],
+      "files": { "zh": "zh/security.md", "en": "en/security.md" }
+    },
+    {
+      "id": "biometric",
+      "title": { "zh": "生物识别", "en": "Biometrics" },
+      "category": "security",
+      "order": 3,
+      "keywords": ["生物识别", "指纹", "Touch ID", "Face ID", "biometric", "fingerprint"],
+      "files": { "zh": "zh/biometric.md", "en": "en/biometric.md" }
+    },
+    {
+      "id": "trash",
+      "title": { "zh": "回收站", "en": "Trash" },
+      "category": "system",
+      "order": 1,
+      "keywords": ["回收站", "删除", "恢复", "trash", "delete", "restore"],
+      "files": { "zh": "zh/trash.md", "en": "en/trash.md" }
+    },
+    {
+      "id": "export-import",
+      "title": { "zh": "导出与导入", "en": "Export & Import" },
+      "category": "system",
+      "order": 2,
+      "keywords": ["导出", "导入", "迁移", "export", "import", "migrate", "backup"],
+      "files": { "zh": "zh/export_import.md", "en": "en/export_import.md" }
+    },
+    {
+      "id": "backup-restore",
+      "title": { "zh": "备份与恢复", "en": "Backup & Restore" },
+      "category": "system",
+      "order": 3,
+      "keywords": ["备份", "恢复", "快照", "backup", "restore", "snapshot"],
+      "files": { "zh": "zh/backup_restore.md", "en": "en/backup_restore.md" }
+    },
+    {
+      "id": "search",
+      "title": { "zh": "全局搜索", "en": "Global Search" },
+      "category": "system",
+      "order": 4,
+      "keywords": ["搜索", "查找", "search", "find", "query"],
+      "files": { "zh": "zh/search.md", "en": "en/search.md" }
+    },
+    {
+      "id": "sync",
+      "title": { "zh": "同步", "en": "Sync" },
+      "category": "system",
+      "order": 5,
+      "keywords": ["同步", "设备", "局域网", "sync", "device", "network"],
+      "files": { "zh": "zh/sync.md", "en": "en/sync.md" }
+    },
+    {
+      "id": "ocr-scan",
+      "title": { "zh": "OCR 与扫描", "en": "OCR & Scan" },
+      "category": "system",
+      "order": 6,
+      "keywords": ["OCR", "扫描", "识别", "图片", "ocr", "scan", "recognition", "image"],
+      "files": { "zh": "zh/ocr_scan.md", "en": "en/ocr_scan.md" }
+    },
+    {
+      "id": "appearance",
+      "title": { "zh": "主题与外观", "en": "Theme & Appearance" },
+      "category": "system",
+      "order": 7,
+      "keywords": ["主题", "外观", "颜色", "语言", "theme", "appearance", "color", "language"],
+      "files": { "zh": "zh/appearance.md", "en": "en/appearance.md" }
+    },
+    {
+      "id": "audit-log",
+      "title": { "zh": "操作日志", "en": "Operation Log" },
+      "category": "system",
+      "order": 8,
+      "keywords": ["日志", "审计", "记录", "log", "audit", "history"],
+      "files": { "zh": "zh/audit_log.md", "en": "en/audit_log.md" }
     },
     {
       "id": "ai-chat",
-      "title": "使用 AI 对话功能",
-      "keywords": ["AI", "对话", "聊天", "LLM", "chat", "智能助手"],
-      "files": {
-        "zh": "zh/ai_chat.md",
-        "en": "en/ai_chat.md"
-      }
+      "title": { "zh": "AI 对话", "en": "AI Chat" },
+      "category": "ai",
+      "order": 1,
+      "keywords": ["AI", "对话", "聊天", "LLM", "chat", "assistant"],
+      "files": { "zh": "zh/ai_chat.md", "en": "en/ai_chat.md" }
+    },
+    {
+      "id": "llm-config",
+      "title": { "zh": "LLM 配置与统计", "en": "LLM Config & Statistics" },
+      "category": "ai",
+      "order": 2,
+      "keywords": ["LLM", "配置", "Provider", "Token", "统计", "llm", "config", "provider", "statistics"],
+      "files": { "zh": "zh/llm_config.md", "en": "en/llm_config.md" }
+    },
+    {
+      "id": "plugins",
+      "title": { "zh": "插件", "en": "Plugins" },
+      "category": "ai",
+      "order": 3,
+      "keywords": ["插件", "扩展", "WASM", "plugin", "extension"],
+      "files": { "zh": "zh/plugins.md", "en": "en/plugins.md" }
+    },
+    {
+      "id": "privacy-policy",
+      "title": { "zh": "隐私政策", "en": "Privacy Policy" },
+      "category": "system",
+      "order": 9,
+      "keywords": ["隐私", "政策", "数据", "privacy", "policy", "data"],
+      "files": { "zh": "zh/PRIVACY_POLICY.md", "en": "en/PRIVACY_POLICY.md" }
+    },
+    {
+      "id": "terms-of-service",
+      "title": { "zh": "服务条款", "en": "Terms of Service" },
+      "category": "system",
+      "order": 10,
+      "keywords": ["条款", "服务", "许可", "terms", "service", "license"],
+      "files": { "zh": "zh/TERMS_OF_SERVICE.md", "en": "en/TERMS_OF_SERVICE.md" }
     }
+  ],
+  "categories": [
+    { "id": "basics",    "title": { "zh": "基础", "en": "Basics" },              "order": 1 },
+    { "id": "objects",   "title": { "zh": "对象管理", "en": "Objects" },          "order": 2 },
+    { "id": "security",  "title": { "zh": "安全与隐私", "en": "Security & Privacy" }, "order": 3 },
+    { "id": "ai",        "title": { "zh": "AI 功能", "en": "AI Features" },       "order": 4 },
+    { "id": "system",    "title": { "zh": "系统", "en": "System" },              "order": 5 }
   ]
 }

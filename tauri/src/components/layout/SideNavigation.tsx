@@ -52,6 +52,7 @@ const secondaryItems: NavItem[] = [
   { type: 'link', path: '/search', iconKey: 'search', labelKey: 'search' },
   { type: 'link', path: '/plugins', iconKey: 'plugins', labelKey: 'plugin' },
   { type: 'link', path: '/llm-chat', iconKey: 'ai_chat', labelKey: 'ai_chat' },
+  { type: 'link', path: '/help', iconKey: 'help', labelKey: 'help' },
   { type: 'link', path: '/settings', iconKey: 'settings', labelKey: 'settings' },
 ];
 

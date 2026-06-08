@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette } from 'lucide-react';
+import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette, BookOpen } from 'lucide-react';
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -51,6 +51,7 @@ export function SettingsPage() {
     {
       title: t('settings:groups.system'),
       items: [
+        { label: t('settings:items.help_docs'), icon: BookOpen, path: '/help', desc: t('settings:desc.help_docs') },
         { label: t('settings:items.debug_log'), icon: Bug, path: '/debug-log', desc: t('settings:desc.debug_log') },
         { label: t('settings:items.about'), icon: Info, path: '/about', desc: t('settings:desc.about') },
       ],

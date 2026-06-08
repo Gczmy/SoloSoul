@@ -1,0 +1,11816 @@
+{
+  "words": {
+    "12": [
+      "export-import",
+      "getting-started"
+    ],
+    "14": [
+      "llm-config"
+    ],
+    "30": [
+      "objects",
+      "trash"
+    ],
+    "80": [
+      "ocr-scan"
+    ],
+    "256": [
+      "export-import",
+      "privacy-policy"
+    ],
+    "2026": [
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "11434": [
+      "llm-config"
+    ],
+    "快速开始": [
+      "getting-started"
+    ],
+    "快": [
+      "backup-restore",
+      "biometric",
+      "getting-started",
+      "objects",
+      "search",
+      "snapshots",
+      "templates",
+      "trash"
+    ],
+    "速": [
+      "biometric",
+      "getting-started",
+      "objects",
+      "search",
+      "templates"
+    ],
+    "开": [
+      "ai-chat",
+      "attachments",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "始": [
+      "ai-chat",
+      "getting-started"
+    ],
+    "getting": [
+      "getting-started"
+    ],
+    "started": [
+      "getting-started"
+    ],
+    "入门": [
+      "getting-started"
+    ],
+    "新手": [
+      "getting-started"
+    ],
+    "开始": [
+      "getting-started"
+    ],
+    "start": [
+      "ai-chat",
+      "getting-started"
+    ],
+    "beginner": [
+      "getting-started"
+    ],
+    "guide": [
+      "getting-started"
+    ],
+    "first": [
+      "getting-started",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "欢迎使用": [
+      "getting-started"
+    ],
+    "欢": [
+      "getting-started",
+      "terms-of-service"
+    ],
+    "迎": [
+      "getting-started",
+      "terms-of-service"
+    ],
+    "使": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "用": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "trash"
+    ],
+    "solosoul": [
+      "ai-chat",
+      "appearance",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "您的本地优先个人数字孪生引擎": [
+      "getting-started"
+    ],
+    "您": [
+      "ai-chat",
+      "appearance",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "本": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "security",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "地": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "优": [
+      "appearance",
+      "getting-started",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "先": [
+      "getting-started",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "数": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "字": [
+      "audit-log",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "templates"
+    ],
+    "孪": [
+      "getting-started"
+    ],
+    "生": [
+      "appearance",
+      "audit-log",
+      "biometric",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "引": [
+      "getting-started",
+      "ocr-scan"
+    ],
+    "擎": [
+      "getting-started",
+      "ocr-scan"
+    ],
+    "第一步": [
+      "getting-started"
+    ],
+    "第": [
+      "getting-started",
+      "plugins",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "步": [
+      "getting-started",
+      "llm-config",
+      "security",
+      "sync",
+      "terms-of-service"
+    ],
+    "创建账户": [
+      "getting-started"
+    ],
+    "创": [
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "建": [
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "账": [
+      "getting-started",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "templates"
+    ],
+    "户": [
+      "audit-log",
+      "backup-restore",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "security",
+      "templates",
+      "terms-of-service"
+    ],
+    "首次启动": [
+      "getting-started"
+    ],
+    "首": [
+      "getting-started",
+      "ocr-scan",
+      "workspace"
+    ],
+    "次": [
+      "ai-chat",
+      "biometric",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "snapshots"
+    ],
+    "启": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "biometric",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "security",
+      "sensitivity",
+      "sync"
+    ],
+    "动": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "biometric",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "security",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "点击": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "security",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "点": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "击": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "设置": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "trash"
+    ],
+    "设": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "置": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "terms-of-service",
+      "trash"
+    ],
+    "主密码": [
+      "getting-started"
+    ],
+    "主": [
+      "ai-chat",
+      "appearance",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "terms-of-service",
+      "workspace"
+    ],
+    "密": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "terms-of-service"
+    ],
+    "码": [
+      "biometric",
+      "export-import",
+      "getting-started",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "terms-of-service"
+    ],
+    "建议至少": [
+      "getting-started"
+    ],
+    "议": [
+      "backup-restore",
+      "export-import",
+      "getting-started",
+      "sync",
+      "terms-of-service"
+    ],
+    "至": [
+      "export-import",
+      "getting-started",
+      "privacy-policy"
+    ],
+    "少": [
+      "export-import",
+      "getting-started"
+    ],
+    "包含大小写字母和数字": [
+      "getting-started"
+    ],
+    "包": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "search",
+      "security",
+      "snapshots"
+    ],
+    "含": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "search",
+      "security",
+      "snapshots"
+    ],
+    "大": [
+      "backup-restore",
+      "getting-started",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "小": [
+      "getting-started",
+      "snapshots"
+    ],
+    "写": [
+      "ai-chat",
+      "getting-started",
+      "objects",
+      "sensitivity",
+      "templates"
+    ],
+    "母": [
+      "getting-started"
+    ],
+    "可选": [
+      "getting-started",
+      "sync"
+    ],
+    "可": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "选": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "设置密码提示词": [
+      "getting-started"
+    ],
+    "提": [
+      "ai-chat",
+      "appearance",
+      "biometric",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "示": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "词": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity"
+    ],
+    "帮助记忆": [
+      "getting-started"
+    ],
+    "帮": [
+      "getting-started",
+      "plugins",
+      "sync",
+      "templates"
+    ],
+    "助": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "security",
+      "sync",
+      "templates"
+    ],
+    "记": [
+      "audit-log",
+      "export-import",
+      "getting-started",
+      "objects",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates"
+    ],
+    "忆": [
+      "getting-started",
+      "security"
+    ],
+    "创建保险库": [
+      "getting-started"
+    ],
+    "保": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "险": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "trash"
+    ],
+    "库": [
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "trash"
+    ],
+    "等待初始化完成": [
+      "getting-started"
+    ],
+    "待": [
+      "backup-restore",
+      "getting-started",
+      "ocr-scan"
+    ],
+    "初": [
+      "getting-started"
+    ],
+    "化": [
+      "getting-started",
+      "objects",
+      "plugins",
+      "sensitivity"
+    ],
+    "完": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "getting-started",
+      "ocr-scan",
+      "search",
+      "security",
+      "snapshots",
+      "sync"
+    ],
+    "成": [
+      "backup-restore",
+      "biometric",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "security",
+      "terms-of-service"
+    ],
+    "tip": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates"
+    ],
+    "主密码是加密保险库的唯一钥匙": [
+      "getting-started"
+    ],
+    "加": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "sync",
+      "terms-of-service",
+      "workspace"
+    ],
+    "唯": [
+      "export-import",
+      "getting-started"
+    ],
+    "钥": [
+      "ai-chat",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "privacy-policy"
+    ],
+    "匙": [
+      "export-import",
+      "getting-started"
+    ],
+    "无法重置": [
+      "getting-started"
+    ],
+    "无": [
+      "appearance",
+      "attachments",
+      "audit-log",
+      "collections",
+      "getting-started",
+      "objects",
+      "privacy-policy",
+      "sensitivity",
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "法": [
+      "attachments",
+      "audit-log",
+      "getting-started",
+      "objects",
+      "privacy-policy",
+      "sensitivity",
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "重": [
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "objects",
+      "security",
+      "terms-of-service",
+      "workspace"
+    ],
+    "请务必牢记或安全备份": [
+      "getting-started"
+    ],
+    "请": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "getting-started",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "terms-of-service",
+      "trash"
+    ],
+    "务": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "必": [
+      "export-import",
+      "getting-started",
+      "ocr-scan"
+    ],
+    "牢": [
+      "getting-started"
+    ],
+    "或": [
+      "ai-chat",
+      "audit-log",
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "security",
+      "snapshots",
+      "terms-of-service",
+      "workspace"
+    ],
+    "安": [
+      "attachments",
+      "audit-log",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "terms-of-service"
+    ],
+    "全": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "search",
+      "security",
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "备": [
+      "backup-restore",
+      "biometric",
+      "getting-started",
+      "privacy-policy",
+      "security",
+      "sync",
+      "terms-of-service"
+    ],
+    "份": [
+      "backup-restore",
+      "biometric",
+      "getting-started",
+      "objects",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "第二步": [
+      "getting-started"
+    ],
+    "二": [
+      "getting-started"
+    ],
+    "创建第一个对象": [
+      "getting-started"
+    ],
+    "对": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "象": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "在首页选择": [
+      "getting-started"
+    ],
+    "页": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "择": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "workspace"
+    ],
+    "身份": [
+      "getting-started",
+      "objects",
+      "templates",
+      "workspace"
+    ],
+    "身": [
+      "attachments",
+      "biometric",
+      "getting-started",
+      "objects",
+      "security",
+      "templates",
+      "workspace"
+    ],
+    "分区": [
+      "getting-started",
+      "ocr-scan"
+    ],
+    "分": [
+      "ai-chat",
+      "audit-log",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "sensitivity",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "区": [
+      "appearance",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "创建": [
+      "audit-log",
+      "getting-started",
+      "objects",
+      "templates",
+      "workspace"
+    ],
+    "按钮": [
+      "attachments",
+      "audit-log",
+      "getting-started",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "按": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "collections",
+      "getting-started",
+      "objects",
+      "search",
+      "security",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "钮": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "getting-started",
+      "objects",
+      "security",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "选择模板": [
+      "getting-started"
+    ],
+    "模": [
+      "appearance",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "templates"
+    ],
+    "板": [
+      "getting-started",
+      "objects",
+      "sensitivity",
+      "templates"
+    ],
+    "例如": [
+      "getting-started",
+      "sensitivity",
+      "workspace"
+    ],
+    "例": [
+      "audit-log",
+      "getting-started",
+      "sensitivity",
+      "workspace"
+    ],
+    "如": [
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "identity": [
+      "biometric",
+      "getting-started",
+      "objects",
+      "templates",
+      "workspace"
+    ],
+    "身份信息": [
+      "getting-started"
+    ],
+    "信": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "息": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "search",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "填写姓名": [
+      "getting-started"
+    ],
+    "填": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "sensitivity",
+      "templates"
+    ],
+    "姓": [
+      "getting-started",
+      "ocr-scan",
+      "sensitivity"
+    ],
+    "名": [
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "出生日期": [
+      "getting-started"
+    ],
+    "出": [
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "sensitivity",
+      "snapshots",
+      "terms-of-service",
+      "workspace"
+    ],
+    "日": [
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "sensitivity",
+      "templates",
+      "terms-of-service"
+    ],
+    "期": [
+      "audit-log",
+      "collections",
+      "getting-started",
+      "ocr-scan",
+      "privacy-policy",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "trash"
+    ],
+    "国籍等信息": [
+      "getting-started"
+    ],
+    "国": [
+      "getting-started",
+      "ocr-scan",
+      "templates"
+    ],
+    "籍": [
+      "getting-started",
+      "ocr-scan",
+      "templates"
+    ],
+    "保存": [
+      "collections",
+      "getting-started",
+      "objects",
+      "templates"
+    ],
+    "存": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "snapshots",
+      "templates",
+      "trash"
+    ],
+    "stepper": [
+      "ai-chat",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "ocr-scan",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "创建身份信息对象": [
+      "getting-started"
+    ],
+    "进入首页": [
+      "getting-started"
+    ],
+    "进": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "入": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "卡片": [
+      "getting-started"
+    ],
+    "卡": [
+      "getting-started",
+      "objects",
+      "search",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "片": [
+      "appearance",
+      "attachments",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "search",
+      "snapshots",
+      "workspace"
+    ],
+    "点击右上角": [
+      "getting-started",
+      "objects",
+      "workspace"
+    ],
+    "右": [
+      "getting-started",
+      "llm-config",
+      "objects",
+      "snapshots",
+      "workspace"
+    ],
+    "角": [
+      "getting-started",
+      "llm-config",
+      "objects",
+      "workspace"
+    ],
+    "选择": [
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "templates"
+    ],
+    "模板": [
+      "getting-started",
+      "templates"
+    ],
+    "填写字段信息": [
+      "getting-started"
+    ],
+    "段": [
+      "audit-log",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "第三步": [
+      "getting-started"
+    ],
+    "三": [
+      "appearance",
+      "getting-started",
+      "plugins",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "理解工作区": [
+      "getting-started"
+    ],
+    "理": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "snapshots",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "解": [
+      "ai-chat",
+      "biometric",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "security",
+      "sensitivity"
+    ],
+    "工": [
+      "appearance",
+      "attachments",
+      "getting-started",
+      "objects",
+      "plugins",
+      "search",
+      "snapshots",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "作": [
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "snapshots",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "将您的数据组织为": [
+      "getting-started"
+    ],
+    "将": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "据": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "组": [
+      "collections",
+      "getting-started",
+      "workspace"
+    ],
+    "织": [
+      "collections",
+      "getting-started",
+      "workspace"
+    ],
+    "对象": [
+      "audit-log",
+      "getting-started",
+      "objects",
+      "trash"
+    ],
+    "并按类型归入四个分区": [
+      "getting-started"
+    ],
+    "并": [
+      "ai-chat",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "trash"
+    ],
+    "类": [
+      "appearance",
+      "audit-log",
+      "biometric",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "型": [
+      "appearance",
+      "audit-log",
+      "biometric",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "归": [
+      "collections",
+      "getting-started",
+      "workspace"
+    ],
+    "四": [
+      "appearance",
+      "getting-started",
+      "workspace"
+    ],
+    "用途": [
+      "backup-restore",
+      "getting-started"
+    ],
+    "途": [
+      "backup-restore",
+      "getting-started"
+    ],
+    "个人基本信息": [
+      "getting-started"
+    ],
+    "基": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "templates"
+    ],
+    "证件": [
+      "getting-started"
+    ],
+    "证": [
+      "ai-chat",
+      "biometric",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates"
+    ],
+    "件": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "sync",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "旅行": [
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "templates",
+      "workspace"
+    ],
+    "旅": [
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "templates",
+      "workspace"
+    ],
+    "行": [
+      "attachments",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "护照": [
+      "getting-started",
+      "templates"
+    ],
+    "护": [
+      "attachments",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "sensitivity",
+      "templates",
+      "terms-of-service"
+    ],
+    "照": [
+      "attachments",
+      "backup-restore",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "trash"
+    ],
+    "签证": [
+      "getting-started",
+      "templates"
+    ],
+    "签": [
+      "attachments",
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "templates"
+    ],
+    "行程": [
+      "getting-started"
+    ],
+    "程": [
+      "ai-chat",
+      "getting-started"
+    ],
+    "财务": [
+      "getting-started",
+      "objects",
+      "templates",
+      "workspace"
+    ],
+    "财": [
+      "getting-started",
+      "objects",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "银行账户": [
+      "getting-started",
+      "templates"
+    ],
+    "银": [
+      "getting-started",
+      "objects",
+      "sensitivity",
+      "templates"
+    ],
+    "信用卡": [
+      "getting-started",
+      "templates"
+    ],
+    "职业": [
+      "getting-started",
+      "objects",
+      "templates",
+      "workspace"
+    ],
+    "职": [
+      "getting-started",
+      "objects",
+      "templates",
+      "workspace"
+    ],
+    "业": [
+      "appearance",
+      "getting-started",
+      "objects",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "教育背景": [
+      "getting-started"
+    ],
+    "教": [
+      "getting-started",
+      "objects",
+      "templates"
+    ],
+    "育": [
+      "getting-started",
+      "objects",
+      "templates"
+    ],
+    "背": [
+      "appearance",
+      "getting-started"
+    ],
+    "景": [
+      "appearance",
+      "biometric",
+      "getting-started",
+      "templates"
+    ],
+    "工作经历": [
+      "getting-started",
+      "templates"
+    ],
+    "经": [
+      "getting-started",
+      "objects",
+      "templates"
+    ],
+    "历": [
+      "ai-chat",
+      "audit-log",
+      "export-import",
+      "getting-started",
+      "objects",
+      "privacy-policy",
+      "snapshots",
+      "templates"
+    ],
+    "您还可以创建": [
+      "getting-started"
+    ],
+    "还": [
+      "getting-started",
+      "ocr-scan"
+    ],
+    "以": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "自定义页面": [
+      "getting-started",
+      "workspace"
+    ],
+    "自": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "biometric",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "security",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "定": [
+      "ai-chat",
+      "appearance",
+      "backup-restore",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "plugins",
+      "search",
+      "security",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "义": [
+      "ai-chat",
+      "appearance",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "面": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "security",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "将任意对象组织到自己的分类中": [
+      "getting-started"
+    ],
+    "任": [
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "privacy-policy",
+      "templates",
+      "terms-of-service"
+    ],
+    "意": [
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "terms-of-service"
+    ],
+    "己": [
+      "collections",
+      "getting-started",
+      "terms-of-service",
+      "workspace"
+    ],
+    "中": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "trash",
+      "workspace"
+    ],
+    "第四步": [
+      "getting-started"
+    ],
+    "保护您的数据": [
+      "getting-started"
+    ],
+    "敏感字段": [
+      "getting-started"
+    ],
+    "敏": [
+      "ai-chat",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "感": [
+      "ai-chat",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "如身份证号": [
+      "getting-started"
+    ],
+    "号": [
+      "getting-started",
+      "ocr-scan",
+      "sensitivity",
+      "templates"
+    ],
+    "银行卡号": [
+      "getting-started"
+    ],
+    "会自动": [
+      "getting-started"
+    ],
+    "模糊显示": [
+      "getting-started",
+      "search"
+    ],
+    "糊": [
+      "getting-started",
+      "search",
+      "sensitivity",
+      "snapshots"
+    ],
+    "显": [
+      "attachments",
+      "audit-log",
+      "biometric",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "trash",
+      "workspace"
+    ],
+    "点击模糊字段可临时查看": [
+      "getting-started"
+    ],
+    "临": [
+      "biometric",
+      "getting-started",
+      "plugins",
+      "sensitivity"
+    ],
+    "时": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "terms-of-service",
+      "trash"
+    ],
+    "查": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots"
+    ],
+    "部分高敏感度字段需要密码验证": [
+      "getting-started"
+    ],
+    "部": [
+      "ai-chat",
+      "backup-restore",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "sensitivity",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "高": [
+      "appearance",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config"
+    ],
+    "度": [
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "ocr-scan",
+      "search",
+      "sensitivity",
+      "snapshots"
+    ],
+    "需": [
+      "appearance",
+      "audit-log",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "trash"
+    ],
+    "验": [
+      "ai-chat",
+      "biometric",
+      "getting-started",
+      "llm-config",
+      "security",
+      "sensitivity",
+      "snapshots"
+    ],
+    "离开电脑时点击侧边栏": [
+      "getting-started"
+    ],
+    "离": [
+      "getting-started",
+      "sync"
+    ],
+    "电": [
+      "getting-started"
+    ],
+    "脑": [
+      "getting-started"
+    ],
+    "侧": [
+      "ai-chat",
+      "appearance",
+      "getting-started",
+      "ocr-scan",
+      "search",
+      "security",
+      "workspace"
+    ],
+    "边": [
+      "ai-chat",
+      "appearance",
+      "getting-started",
+      "ocr-scan",
+      "search",
+      "security",
+      "sensitivity",
+      "workspace"
+    ],
+    "栏": [
+      "ai-chat",
+      "appearance",
+      "getting-started",
+      "ocr-scan",
+      "search",
+      "security",
+      "workspace"
+    ],
+    "锁定保险库": [
+      "getting-started",
+      "security"
+    ],
+    "锁": [
+      "biometric",
+      "getting-started",
+      "privacy-policy",
+      "security",
+      "sensitivity"
+    ],
+    "warning": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "plugins",
+      "security",
+      "sensitivity",
+      "sync",
+      "trash",
+      "workspace"
+    ],
+    "采用零知识架构": [
+      "getting-started"
+    ],
+    "采": [
+      "attachments",
+      "getting-started",
+      "privacy-policy",
+      "sensitivity",
+      "terms-of-service"
+    ],
+    "零": [
+      "getting-started",
+      "privacy-policy"
+    ],
+    "知": [
+      "ai-chat",
+      "getting-started",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "识": [
+      "audit-log",
+      "biometric",
+      "getting-started",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "sensitivity"
+    ],
+    "架": [
+      "getting-started",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "构": [
+      "getting-started",
+      "objects",
+      "privacy-policy",
+      "templates",
+      "terms-of-service"
+    ],
+    "所有数据仅存储在本地": [
+      "getting-started"
+    ],
+    "所": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "getting-started",
+      "objects",
+      "privacy-policy",
+      "search",
+      "security",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "仅": [
+      "ai-chat",
+      "attachments",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "templates",
+      "terms-of-service",
+      "trash"
+    ],
+    "储": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "snapshots"
+    ],
+    "开发者和服务端": [
+      "getting-started"
+    ],
+    "发": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "privacy-policy",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "者": [
+      "getting-started",
+      "privacy-policy"
+    ],
+    "服": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "templates",
+      "terms-of-service"
+    ],
+    "端": [
+      "getting-started",
+      "privacy-policy"
+    ],
+    "无法访问": [
+      "getting-started"
+    ],
+    "访": [
+      "getting-started",
+      "plugins",
+      "privacy-policy"
+    ],
+    "问": [
+      "ai-chat",
+      "biometric",
+      "getting-started",
+      "plugins",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "您的任何信息": [
+      "getting-started"
+    ],
+    "何": [
+      "collections",
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "templates"
+    ],
+    "下一步": [
+      "getting-started"
+    ],
+    "下": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "search",
+      "security",
+      "snapshots",
+      "sync",
+      "terms-of-service",
+      "workspace"
+    ],
+    "探索": [
+      "getting-started"
+    ],
+    "探": [
+      "getting-started"
+    ],
+    "索": [
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "search",
+      "security",
+      "sync",
+      "workspace"
+    ],
+    "对象模板": [
+      "getting-started",
+      "templates"
+    ],
+    "templates": [
+      "getting-started",
+      "objects",
+      "templates"
+    ],
+    "md": [
+      "getting-started"
+    ],
+    "了解更多预设模板": [
+      "getting-started"
+    ],
+    "更": [
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "多": [
+      "biometric",
+      "getting-started",
+      "snapshots",
+      "sync",
+      "templates"
+    ],
+    "预": [
+      "appearance",
+      "attachments",
+      "collections",
+      "export-import",
+      "getting-started",
+      "sensitivity",
+      "templates"
+    ],
+    "了解": [
+      "getting-started"
+    ],
+    "敏感度分级": [
+      "getting-started"
+    ],
+    "级": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "biometric",
+      "getting-started",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "snapshots"
+    ],
+    "sensitivity": [
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "search",
+      "sensitivity",
+      "snapshots"
+    ],
+    "管理数据保护级别": [
+      "getting-started"
+    ],
+    "管": [
+      "ai-chat",
+      "attachments",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "security",
+      "snapshots",
+      "terms-of-service",
+      "workspace"
+    ],
+    "别": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "getting-started",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots"
+    ],
+    "配置": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "sensitivity"
+    ],
+    "配": [
+      "ai-chat",
+      "appearance",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "sync",
+      "terms-of-service"
+    ],
+    "ai": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "sensitivity",
+      "terms-of-service"
+    ],
+    "对话": [
+      "ai-chat",
+      "getting-started",
+      "llm-config"
+    ],
+    "话": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "privacy-policy",
+      "sensitivity",
+      "terms-of-service"
+    ],
+    "chat": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "开启智能助手功能": [
+      "getting-started"
+    ],
+    "智": [
+      "collections",
+      "getting-started",
+      "llm-config"
+    ],
+    "能": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sync",
+      "terms-of-service"
+    ],
+    "手": [
+      "ai-chat",
+      "biometric",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "security"
+    ],
+    "功": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sync",
+      "terms-of-service"
+    ],
+    "welcome": [
+      "getting-started",
+      "terms-of-service"
+    ],
+    "your": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "terms-of-service",
+      "workspace"
+    ],
+    "local": [
+      "appearance",
+      "backup-restore",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "sync",
+      "terms-of-service"
+    ],
+    "personal": [
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "templates",
+      "terms-of-service"
+    ],
+    "digital": [
+      "getting-started"
+    ],
+    "twin": [
+      "getting-started"
+    ],
+    "engine": [
+      "getting-started",
+      "ocr-scan"
+    ],
+    "step": [
+      "getting-started"
+    ],
+    "create": [
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "account": [
+      "getting-started",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "templates"
+    ],
+    "launch": [
+      "getting-started"
+    ],
+    "click": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "set": [
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "security"
+    ],
+    "master": [
+      "biometric",
+      "getting-started",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "terms-of-service"
+    ],
+    "password": [
+      "biometric",
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "least": [
+      "export-import",
+      "getting-started"
+    ],
+    "characters": [
+      "export-import",
+      "getting-started"
+    ],
+    "recommended": [
+      "getting-started"
+    ],
+    "mixed": [
+      "export-import",
+      "getting-started"
+    ],
+    "case": [
+      "getting-started",
+      "templates"
+    ],
+    "digits": [
+      "getting-started"
+    ],
+    "optional": [
+      "getting-started",
+      "sync"
+    ],
+    "hint": [
+      "getting-started",
+      "security"
+    ],
+    "aid": [
+      "getting-started"
+    ],
+    "memory": [
+      "getting-started",
+      "security"
+    ],
+    "vault": [
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "trash"
+    ],
+    "wait": [
+      "backup-restore",
+      "getting-started",
+      "ocr-scan"
+    ],
+    "initialization": [
+      "getting-started"
+    ],
+    "only": [
+      "ai-chat",
+      "audit-log",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "templates",
+      "terms-of-service",
+      "trash"
+    ],
+    "key": [
+      "ai-chat",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "privacy-policy"
+    ],
+    "encrypted": [
+      "attachments",
+      "backup-restore",
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "sync",
+      "terms-of-service"
+    ],
+    "cannot": [
+      "attachments",
+      "audit-log",
+      "getting-started",
+      "objects",
+      "privacy-policy",
+      "sensitivity",
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "reset": [
+      "getting-started",
+      "terms-of-service"
+    ],
+    "please": [
+      "getting-started",
+      "privacy-policy",
+      "trash"
+    ],
+    "memorize": [
+      "getting-started"
+    ],
+    "store": [
+      "getting-started",
+      "privacy-policy"
+    ],
+    "securely": [
+      "getting-started",
+      "privacy-policy"
+    ],
+    "object": [
+      "attachments",
+      "audit-log",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "home": [
+      "getting-started",
+      "ocr-scan",
+      "workspace"
+    ],
+    "page": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "select": [
+      "ai-chat",
+      "attachments",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates"
+    ],
+    "section": [
+      "audit-log",
+      "biometric",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "search",
+      "security",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "button": [
+      "attachments",
+      "getting-started",
+      "objects",
+      "workspace"
+    ],
+    "choose": [
+      "ai-chat",
+      "appearance",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "workspace"
+    ],
+    "template": [
+      "getting-started",
+      "objects",
+      "sensitivity",
+      "templates"
+    ],
+    "fill": [
+      "getting-started",
+      "llm-config",
+      "objects",
+      "templates"
+    ],
+    "fields": [
+      "biometric",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "sensitivity",
+      "snapshots"
+    ],
+    "such": [
+      "getting-started"
+    ],
+    "name": [
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "date": [
+      "getting-started",
+      "templates"
+    ],
+    "birth": [
+      "getting-started"
+    ],
+    "nationality": [
+      "getting-started",
+      "ocr-scan",
+      "templates"
+    ],
+    "save": [
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "templates"
+    ],
+    "go": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "card": [
+      "getting-started",
+      "objects",
+      "search",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "top": [
+      "getting-started",
+      "llm-config",
+      "objects",
+      "templates",
+      "workspace"
+    ],
+    "right": [
+      "getting-started",
+      "llm-config",
+      "objects",
+      "snapshots",
+      "terms-of-service",
+      "workspace"
+    ],
+    "understand": [
+      "ai-chat",
+      "getting-started"
+    ],
+    "workspace": [
+      "attachments",
+      "getting-started",
+      "objects",
+      "search",
+      "snapshots",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "organizes": [
+      "getting-started"
+    ],
+    "data": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "into": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "objects": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "search",
+      "trash",
+      "workspace"
+    ],
+    "grouped": [
+      "getting-started"
+    ],
+    "four": [
+      "appearance",
+      "getting-started",
+      "workspace"
+    ],
+    "sections": [
+      "getting-started",
+      "search",
+      "workspace"
+    ],
+    "purpose": [
+      "backup-restore",
+      "getting-started"
+    ],
+    "info": [
+      "ai-chat",
+      "getting-started",
+      "llm-config",
+      "ocr-scan"
+    ],
+    "documents": [
+      "collections",
+      "getting-started"
+    ],
+    "travel": [
+      "export-import",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "templates",
+      "workspace"
+    ],
+    "passports": [
+      "getting-started"
+    ],
+    "visas": [
+      "getting-started"
+    ],
+    "itineraries": [
+      "getting-started"
+    ],
+    "financial": [
+      "getting-started",
+      "objects",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "bank": [
+      "getting-started",
+      "objects",
+      "sensitivity",
+      "templates"
+    ],
+    "accounts": [
+      "getting-started"
+    ],
+    "cards": [
+      "getting-started"
+    ],
+    "professional": [
+      "appearance",
+      "getting-started",
+      "objects",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "education": [
+      "getting-started",
+      "objects",
+      "templates"
+    ],
+    "work": [
+      "getting-started",
+      "templates"
+    ],
+    "experience": [
+      "getting-started",
+      "templates"
+    ],
+    "you": [
+      "ai-chat",
+      "appearance",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "can": [
+      "ai-chat",
+      "appearance",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "getting-started",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "trash",
+      "workspace"
+    ],
+    "also": [
+      "export-import",
+      "getting-started",
+      "trash"
+    ],
+    "custom": [
+      "ai-chat",
+      "appearance",
+      "collections",
+      "getting-started",
+      "llm-config",
+      "plugins",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "pages": [
+      "export-import",
+      "getting-started",
+      "trash",
+      "workspace"
+    ],
+    "organize": [
+      "collections",
+      "getting-started",
+      "workspace"
+    ],
+    "own": [
+      "collections",
+      "getting-started",
+      "trash",
+      "workspace"
+    ],
+    "way": [
+      "getting-started"
+    ],
+    "protect": [
+      "getting-started",
+      "terms-of-service"
+    ],
+    "sensitive": [
+      "ai-chat",
+      "biometric",
+      "getting-started",
+      "privacy-policy",
+      "search",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "id": [
+      "biometric",
+      "getting-started",
+      "privacy-policy",
+      "security",
+      "sensitivity"
+    ],
+    "numbers": [
+      "getting-started"
+    ],
+    "automatically": [
+      "ai-chat",
+      "appearance",
+      "biometric",
+      "collections",
+      "getting-started",
+      "objects",
+      "ocr-scan",
+      "security",
+      "snapshots",
+      "templates"
+    ],
+    "blurred": [
+      "getting-started",
+      "search",
+      "sensitivity",
+      "snapshots"
+    ],
+    "field": [
+      "audit-log",
+      "getting-started",
+      "objects",
+      "plugins",
+      "search",
+      "sensitivity",
+      "templates"
+    ],
+    "reveal": [
+      "getting-started",
+      "sensitivity"
+    ],
+    "temporarily": [
+      "biometric",
+      "getting-started",
+      "sensitivity"
+    ],
+    "high": [
+      "collections",
+      "export-import",
+      "getting-started"
+    ],
+    "require": [
+      "getting-started",
+      "plugins"
+    ],
+    "verification": [
+      "biometric",
+      "getting-started",
+      "security",
+      "sensitivity",
+      "snapshots"
+    ],
+    "lock": [
+      "getting-started",
+      "security"
+    ],
+    "sidebar": [
+      "ai-chat",
+      "appearance",
+      "getting-started",
+      "ocr-scan",
+      "search",
+      "security",
+      "workspace"
+    ],
+    "when": [
+      "getting-started",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "terms-of-service"
+    ],
+    "stepping": [
+      "getting-started"
+    ],
+    "away": [
+      "getting-started"
+    ],
+    "uses": [
+      "getting-started",
+      "privacy-policy",
+      "sensitivity",
+      "sync",
+      "terms-of-service"
+    ],
+    "zero": [
+      "getting-started",
+      "privacy-policy"
+    ],
+    "knowledge": [
+      "getting-started",
+      "privacy-policy"
+    ],
+    "architecture": [
+      "getting-started",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "all": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "search",
+      "security",
+      "trash",
+      "workspace"
+    ],
+    "stored": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "export-import",
+      "getting-started",
+      "privacy-policy",
+      "templates"
+    ],
+    "locally": [
+      "ai-chat",
+      "audit-log",
+      "getting-started",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "templates"
+    ],
+    "developers": [
+      "getting-started",
+      "privacy-policy"
+    ],
+    "servers": [
+      "getting-started",
+      "privacy-policy"
+    ],
+    "access": [
+      "getting-started",
+      "plugins",
+      "privacy-policy"
+    ],
+    "any": [
+      "collections",
+      "export-import",
+      "getting-started",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "snapshots",
+      "templates"
+    ],
+    "information": [
+      "ai-chat",
+      "getting-started",
+      "objects",
+      "search",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "next": [
+      "collections",
+      "getting-started"
+    ],
+    "steps": [
+      "getting-started",
+      "llm-config"
+    ],
+    "explore": [
+      "getting-started"
+    ],
+    "more": [
+      "getting-started",
+      "llm-config"
+    ],
+    "presets": [
+      "getting-started"
+    ],
+    "learn": [
+      "getting-started"
+    ],
+    "about": [
+      "getting-started"
+    ],
+    "levels": [
+      "getting-started",
+      "sensitivity"
+    ],
+    "manage": [
+      "getting-started",
+      "security"
+    ],
+    "protection": [
+      "getting-started",
+      "sensitivity"
+    ],
+    "up": [
+      "audit-log",
+      "backup-restore",
+      "getting-started",
+      "security"
+    ],
+    "enable": [
+      "audit-log",
+      "biometric",
+      "getting-started",
+      "plugins",
+      "security",
+      "sync"
+    ],
+    "smart": [
+      "collections",
+      "getting-started",
+      "llm-config"
+    ],
+    "assistant": [
+      "ai-chat",
+      "getting-started",
+      "llm-config"
+    ],
+    "对象管理": [
+      "objects"
+    ],
+    "management": [
+      "ai-chat",
+      "attachments",
+      "collections",
+      "objects",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "编辑": [
+      "collections",
+      "objects"
+    ],
+    "属性": [
+      "objects",
+      "snapshots"
+    ],
+    "edit": [
+      "attachments",
+      "collections",
+      "objects",
+      "templates"
+    ],
+    "delete": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "collections",
+      "objects",
+      "privacy-policy",
+      "trash",
+      "workspace"
+    ],
+    "对象是": [
+      "objects"
+    ],
+    "的核心数据单元": [
+      "objects"
+    ],
+    "核": [
+      "objects",
+      "security"
+    ],
+    "心": [
+      "objects",
+      "security"
+    ],
+    "单": [
+      "appearance",
+      "backup-restore",
+      "llm-config",
+      "objects",
+      "templates"
+    ],
+    "元": [
+      "appearance",
+      "objects"
+    ],
+    "每个对象代表一条结构化记录": [
+      "objects"
+    ],
+    "每": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "llm-config",
+      "objects",
+      "plugins",
+      "sensitivity",
+      "snapshots",
+      "trash"
+    ],
+    "代": [
+      "biometric",
+      "objects",
+      "sensitivity",
+      "terms-of-service"
+    ],
+    "表": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "export-import",
+      "objects",
+      "plugins",
+      "search",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "trash"
+    ],
+    "条": [
+      "audit-log",
+      "collections",
+      "objects",
+      "terms-of-service",
+      "trash"
+    ],
+    "结": [
+      "objects",
+      "ocr-scan",
+      "search",
+      "templates"
+    ],
+    "录": [
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "objects",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates"
+    ],
+    "如一份护照": [
+      "objects"
+    ],
+    "一张银行卡或一段教育经历": [
+      "objects"
+    ],
+    "张": [
+      "objects"
+    ],
+    "对象结构": [
+      "objects"
+    ],
+    "每个对象包含": [
+      "objects"
+    ],
+    "名称": [
+      "objects",
+      "snapshots"
+    ],
+    "称": [
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "llm-config",
+      "objects",
+      "search",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "对象的显示标题": [
+      "objects"
+    ],
+    "标": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "题": [
+      "ai-chat",
+      "appearance",
+      "biometric",
+      "export-import",
+      "objects",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "类型": [
+      "llm-config",
+      "objects"
+    ],
+    "collection": [
+      "collections",
+      "objects",
+      "trash"
+    ],
+    "type": [
+      "ai-chat",
+      "audit-log",
+      "collections",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "search",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "决定对象所属分区": [
+      "objects"
+    ],
+    "决": [
+      "biometric",
+      "objects"
+    ],
+    "属": [
+      "audit-log",
+      "objects",
+      "search",
+      "snapshots",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "性": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "llm-config",
+      "objects",
+      "search",
+      "security",
+      "snapshots",
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "properties": [
+      "objects",
+      "snapshots",
+      "trash"
+    ],
+    "键值对形式的字段数据": [
+      "objects"
+    ],
+    "键": [
+      "ai-chat",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "sensitivity"
+    ],
+    "值": [
+      "objects",
+      "ocr-scan",
+      "search"
+    ],
+    "形": [
+      "attachments",
+      "objects",
+      "ocr-scan"
+    ],
+    "式": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "backup-restore",
+      "export-import",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "标签": [
+      "collections",
+      "export-import",
+      "objects",
+      "search",
+      "snapshots"
+    ],
+    "tags": [
+      "collections",
+      "objects",
+      "search",
+      "snapshots"
+    ],
+    "用于快速分类和检索": [
+      "objects"
+    ],
+    "于": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "检": [
+      "biometric",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "security"
+    ],
+    "附件": [
+      "attachments",
+      "objects",
+      "sync"
+    ],
+    "附": [
+      "attachments",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "objects",
+      "ocr-scan",
+      "search",
+      "sync",
+      "trash"
+    ],
+    "attachments": [
+      "attachments",
+      "collections",
+      "export-import",
+      "objects",
+      "search",
+      "sync",
+      "trash"
+    ],
+    "关联的文件": [
+      "objects"
+    ],
+    "关": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "export-import",
+      "llm-config",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "sync"
+    ],
+    "联": [
+      "attachments",
+      "export-import",
+      "objects",
+      "privacy-policy"
+    ],
+    "文": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "sensitivity",
+      "terms-of-service",
+      "workspace"
+    ],
+    "图片": [
+      "appearance",
+      "attachments",
+      "objects",
+      "ocr-scan"
+    ],
+    "图": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "collections",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "search",
+      "snapshots",
+      "workspace"
+    ],
+    "pdf": [
+      "attachments",
+      "objects"
+    ],
+    "创建对象": [
+      "audit-log",
+      "objects"
+    ],
+    "进入任意分区工作区": [
+      "objects"
+    ],
+    "选择模板或": [
+      "objects"
+    ],
+    "空白对象": [
+      "objects"
+    ],
+    "空": [
+      "backup-restore",
+      "objects",
+      "security",
+      "snapshots"
+    ],
+    "白": [
+      "objects"
+    ],
+    "填写属性字段": [
+      "objects"
+    ],
+    "使用模板可以自动填充常用字段": [
+      "objects"
+    ],
+    "充": [
+      "llm-config",
+      "objects"
+    ],
+    "常": [
+      "audit-log",
+      "collections",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "security",
+      "templates"
+    ],
+    "避免遗漏重要信息": [
+      "objects"
+    ],
+    "避": [
+      "export-import",
+      "objects"
+    ],
+    "免": [
+      "export-import",
+      "objects",
+      "terms-of-service"
+    ],
+    "遗": [
+      "objects"
+    ],
+    "漏": [
+      "objects"
+    ],
+    "编辑与删除": [
+      "objects"
+    ],
+    "编": [
+      "attachments",
+      "collections",
+      "objects",
+      "templates"
+    ],
+    "辑": [
+      "attachments",
+      "collections",
+      "objects",
+      "templates"
+    ],
+    "删": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "objects",
+      "privacy-policy",
+      "trash",
+      "workspace"
+    ],
+    "除": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "objects",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "trash",
+      "workspace"
+    ],
+    "在工作区点击对象卡片进入详情": [
+      "objects"
+    ],
+    "详": [
+      "audit-log",
+      "objects",
+      "snapshots"
+    ],
+    "情": [
+      "audit-log",
+      "objects",
+      "security",
+      "snapshots"
+    ],
+    "或点击编辑按钮进入编辑器": [
+      "objects"
+    ],
+    "器": [
+      "biometric",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "snapshots",
+      "templates"
+    ],
+    "删除": [
+      "audit-log",
+      "collections",
+      "objects",
+      "trash",
+      "workspace"
+    ],
+    "点击对象卡片上的垃圾桶图标": [
+      "objects"
+    ],
+    "垃": [
+      "objects"
+    ],
+    "圾": [
+      "objects"
+    ],
+    "桶": [
+      "objects"
+    ],
+    "对象将被移入": [
+      "objects"
+    ],
+    "被": [
+      "objects",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "trash"
+    ],
+    "移": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "objects",
+      "privacy-policy",
+      "trash"
+    ],
+    "回收站": [
+      "ai-chat",
+      "attachments",
+      "objects",
+      "trash"
+    ],
+    "回": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "llm-config",
+      "objects",
+      "snapshots",
+      "trash"
+    ],
+    "收": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "objects",
+      "trash"
+    ],
+    "站": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "objects",
+      "trash"
+    ],
+    "天内可恢复": [
+      "objects"
+    ],
+    "天": [
+      "ai-chat",
+      "llm-config",
+      "objects",
+      "trash"
+    ],
+    "内": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "export-import",
+      "llm-config",
+      "objects",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "trash"
+    ],
+    "恢": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "objects",
+      "snapshots",
+      "terms-of-service",
+      "trash"
+    ],
+    "复": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "objects",
+      "snapshots",
+      "terms-of-service",
+      "trash"
+    ],
+    "搜索对象": [
+      "objects"
+    ],
+    "搜": [
+      "export-import",
+      "llm-config",
+      "objects",
+      "search",
+      "sync",
+      "workspace"
+    ],
+    "在工作区顶部的搜索框输入关键词": [
+      "objects"
+    ],
+    "顶": [
+      "objects",
+      "templates",
+      "workspace"
+    ],
+    "框": [
+      "ai-chat",
+      "objects",
+      "search",
+      "sensitivity",
+      "workspace"
+    ],
+    "输": [
+      "ai-chat",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "llm-config",
+      "objects",
+      "search",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "支持按名称实时过滤": [
+      "objects"
+    ],
+    "支": [
+      "appearance",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "security",
+      "sync",
+      "trash",
+      "workspace"
+    ],
+    "持": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "security",
+      "sync",
+      "trash",
+      "workspace"
+    ],
+    "实": [
+      "appearance",
+      "audit-log",
+      "llm-config",
+      "objects",
+      "search"
+    ],
+    "过": [
+      "ai-chat",
+      "biometric",
+      "export-import",
+      "llm-config",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "snapshots",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "滤": [
+      "objects",
+      "trash",
+      "workspace"
+    ],
+    "删除的对象会进入回收站保留": [
+      "objects"
+    ],
+    "留": [
+      "attachments",
+      "audit-log",
+      "export-import",
+      "objects",
+      "security",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "之后将被": [
+      "objects"
+    ],
+    "后": [
+      "appearance",
+      "biometric",
+      "objects",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "templates",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "永久删除": [
+      "attachments",
+      "audit-log",
+      "objects",
+      "trash"
+    ],
+    "永": [
+      "attachments",
+      "audit-log",
+      "objects",
+      "privacy-policy",
+      "trash"
+    ],
+    "久": [
+      "attachments",
+      "audit-log",
+      "objects",
+      "privacy-policy",
+      "trash"
+    ],
+    "无法恢复": [
+      "objects"
+    ],
+    "core": [
+      "objects",
+      "security"
+    ],
+    "unit": [
+      "objects"
+    ],
+    "each": [
+      "audit-log",
+      "backup-restore",
+      "objects",
+      "plugins",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "trash"
+    ],
+    "represents": [
+      "objects"
+    ],
+    "structured": [
+      "objects"
+    ],
+    "record": [
+      "objects"
+    ],
+    "passport": [
+      "attachments",
+      "export-import",
+      "objects",
+      "ocr-scan",
+      "sensitivity",
+      "templates"
+    ],
+    "entry": [
+      "audit-log",
+      "objects",
+      "sensitivity"
+    ],
+    "structure": [
+      "objects",
+      "templates"
+    ],
+    "every": [
+      "ai-chat",
+      "objects",
+      "sensitivity",
+      "snapshots"
+    ],
+    "contains": [
+      "objects",
+      "snapshots"
+    ],
+    "display": [
+      "attachments",
+      "objects",
+      "search",
+      "security",
+      "sensitivity"
+    ],
+    "title": [
+      "objects"
+    ],
+    "determines": [
+      "objects"
+    ],
+    "value": [
+      "objects",
+      "ocr-scan",
+      "search"
+    ],
+    "quick": [
+      "biometric",
+      "objects"
+    ],
+    "categorization": [
+      "objects"
+    ],
+    "retrieval": [
+      "objects"
+    ],
+    "associated": [
+      "attachments",
+      "export-import",
+      "objects",
+      "workspace"
+    ],
+    "files": [
+      "attachments",
+      "backup-restore",
+      "export-import",
+      "objects",
+      "ocr-scan",
+      "terms-of-service"
+    ],
+    "images": [
+      "attachments",
+      "objects",
+      "ocr-scan"
+    ],
+    "pdfs": [
+      "attachments",
+      "objects"
+    ],
+    "etc": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "export-import",
+      "objects",
+      "ocr-scan"
+    ],
+    "creating": [
+      "backup-restore",
+      "objects",
+      "sync",
+      "templates"
+    ],
+    "enter": [
+      "ai-chat",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "llm-config",
+      "objects",
+      "ocr-scan",
+      "search",
+      "security",
+      "sensitivity",
+      "templates",
+      "workspace"
+    ],
+    "blank": [
+      "objects",
+      "security"
+    ],
+    "property": [
+      "objects",
+      "search"
+    ],
+    "populate": [
+      "objects"
+    ],
+    "common": [
+      "audit-log",
+      "objects",
+      "ocr-scan"
+    ],
+    "so": [
+      "appearance",
+      "objects"
+    ],
+    "don": [
+      "objects",
+      "snapshots"
+    ],
+    "miss": [
+      "objects"
+    ],
+    "important": [
+      "export-import",
+      "objects"
+    ],
+    "editing": [
+      "objects"
+    ],
+    "deleting": [
+      "backup-restore",
+      "collections",
+      "objects",
+      "workspace"
+    ],
+    "details": [
+      "audit-log",
+      "objects",
+      "snapshots",
+      "templates"
+    ],
+    "editor": [
+      "objects",
+      "templates"
+    ],
+    "trash": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "objects",
+      "trash"
+    ],
+    "icon": [
+      "ai-chat",
+      "attachments",
+      "collections",
+      "llm-config",
+      "objects",
+      "search",
+      "snapshots",
+      "workspace"
+    ],
+    "moves": [
+      "objects"
+    ],
+    "recoverable": [
+      "objects"
+    ],
+    "within": [
+      "ai-chat",
+      "collections",
+      "objects",
+      "workspace"
+    ],
+    "days": [
+      "llm-config",
+      "objects",
+      "trash"
+    ],
+    "searching": [
+      "objects"
+    ],
+    "keywords": [
+      "objects",
+      "search"
+    ],
+    "search": [
+      "export-import",
+      "llm-config",
+      "objects",
+      "search",
+      "workspace"
+    ],
+    "box": [
+      "ai-chat",
+      "objects",
+      "search",
+      "workspace"
+    ],
+    "results": [
+      "objects",
+      "ocr-scan",
+      "search"
+    ],
+    "filtered": [
+      "audit-log",
+      "objects"
+    ],
+    "real": [
+      "appearance",
+      "llm-config",
+      "objects",
+      "search"
+    ],
+    "time": [
+      "appearance",
+      "audit-log",
+      "collections",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "snapshots",
+      "trash"
+    ],
+    "deleted": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "objects",
+      "trash"
+    ],
+    "remain": [
+      "attachments",
+      "objects",
+      "workspace"
+    ],
+    "after": [
+      "biometric",
+      "objects",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "trash",
+      "workspace"
+    ],
+    "which": [
+      "objects"
+    ],
+    "they": [
+      "objects",
+      "templates"
+    ],
+    "permanently": [
+      "attachments",
+      "objects",
+      "privacy-policy",
+      "trash"
+    ],
+    "recovered": [
+      "attachments",
+      "objects",
+      "trash"
+    ],
+    "银行": [
+      "templates"
+    ],
+    "visa": [
+      "templates"
+    ],
+    "模板是预设的对象结构": [
+      "templates"
+    ],
+    "帮助您快速创建标准格式的记录": [
+      "templates"
+    ],
+    "准": [
+      "llm-config",
+      "templates",
+      "terms-of-service"
+    ],
+    "格": [
+      "appearance",
+      "attachments",
+      "backup-restore",
+      "export-import",
+      "ocr-scan",
+      "plugins",
+      "templates"
+    ],
+    "内置了多种常用模板": [
+      "templates"
+    ],
+    "种": [
+      "appearance",
+      "collections",
+      "templates",
+      "workspace"
+    ],
+    "内置模板一览": [
+      "templates"
+    ],
+    "览": [
+      "appearance",
+      "attachments",
+      "export-import",
+      "plugins",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "所属分区": [
+      "search",
+      "templates"
+    ],
+    "适用场景": [
+      "templates"
+    ],
+    "适": [
+      "collections",
+      "templates"
+    ],
+    "场": [
+      "biometric",
+      "plugins",
+      "templates"
+    ],
+    "个人基础身份信息": [
+      "templates"
+    ],
+    "础": [
+      "llm-config",
+      "templates"
+    ],
+    "护照信息": [
+      "templates"
+    ],
+    "签证信息": [
+      "templates"
+    ],
+    "借记卡": [
+      "templates"
+    ],
+    "借": [
+      "templates"
+    ],
+    "教育经历": [
+      "templates"
+    ],
+    "employment": [
+      "templates"
+    ],
+    "使用模板": [
+      "templates"
+    ],
+    "进入对象编辑器": [
+      "templates"
+    ],
+    "新建对象时": [
+      "templates"
+    ],
+    "新": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "在顶部选择模板类型": [
+      "templates"
+    ],
+    "系统自动展开对应的字段表单": [
+      "templates"
+    ],
+    "系": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "统": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "展": [
+      "llm-config",
+      "plugins",
+      "templates"
+    ],
+    "应": [
+      "appearance",
+      "search",
+      "security",
+      "templates",
+      "terms-of-service",
+      "workspace"
+    ],
+    "填写后保存": [
+      "templates"
+    ],
+    "使用护照模板": [
+      "templates"
+    ],
+    "进入": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "分区工作区": [
+      "templates",
+      "workspace"
+    ],
+    "填写护照号码": [
+      "templates"
+    ],
+    "国籍": [
+      "templates"
+    ],
+    "签发日期": [
+      "templates"
+    ],
+    "有效期": [
+      "templates"
+    ],
+    "效": [
+      "appearance",
+      "biometric",
+      "ocr-scan",
+      "security",
+      "templates"
+    ],
+    "保存自定义模板": [
+      "templates"
+    ],
+    "如果您创建了一个常用结构的对象": [
+      "templates"
+    ],
+    "果": [
+      "appearance",
+      "biometric",
+      "export-import",
+      "ocr-scan",
+      "search",
+      "security",
+      "templates"
+    ],
+    "可以将其保存为模板": [
+      "templates"
+    ],
+    "其": [
+      "ai-chat",
+      "llm-config",
+      "plugins",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "打开该对象的编辑页面": [
+      "templates"
+    ],
+    "打": [
+      "ai-chat",
+      "attachments",
+      "export-import",
+      "search",
+      "sync",
+      "templates"
+    ],
+    "该": [
+      "llm-config",
+      "search",
+      "templates",
+      "workspace"
+    ],
+    "保存为模板": [
+      "templates"
+    ],
+    "输入模板名称": [
+      "templates"
+    ],
+    "确认保存": [
+      "templates"
+    ],
+    "确": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "认": [
+      "ai-chat",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "自定义模板仅保存在本地": [
+      "templates"
+    ],
+    "不会上传到任何服务器": [
+      "templates"
+    ],
+    "传": [
+      "ai-chat",
+      "biometric",
+      "export-import",
+      "ocr-scan",
+      "privacy-policy",
+      "sync",
+      "templates",
+      "terms-of-service"
+    ],
+    "preset": [
+      "appearance",
+      "collections",
+      "sensitivity",
+      "templates"
+    ],
+    "structures": [
+      "templates"
+    ],
+    "that": [
+      "attachments",
+      "collections",
+      "search",
+      "templates",
+      "workspace"
+    ],
+    "help": [
+      "plugins",
+      "templates"
+    ],
+    "quickly": [
+      "search",
+      "templates"
+    ],
+    "records": [
+      "audit-log",
+      "templates"
+    ],
+    "standard": [
+      "templates",
+      "terms-of-service"
+    ],
+    "formats": [
+      "attachments",
+      "ocr-scan",
+      "templates"
+    ],
+    "includes": [
+      "ai-chat",
+      "audit-log",
+      "export-import",
+      "llm-config",
+      "plugins",
+      "templates"
+    ],
+    "several": [
+      "collections",
+      "templates"
+    ],
+    "built": [
+      "ai-chat",
+      "collections",
+      "llm-config",
+      "templates"
+    ],
+    "use": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "biometric",
+      "export-import",
+      "llm-config",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "security",
+      "snapshots",
+      "sync",
+      "templates",
+      "workspace"
+    ],
+    "basic": [
+      "ai-chat",
+      "templates"
+    ],
+    "credit": [
+      "templates"
+    ],
+    "debit": [
+      "templates"
+    ],
+    "history": [
+      "ai-chat",
+      "audit-log",
+      "export-import",
+      "privacy-policy",
+      "snapshots",
+      "templates"
+    ],
+    "using": [
+      "biometric",
+      "ocr-scan",
+      "search",
+      "templates",
+      "terms-of-service"
+    ],
+    "new": [
+      "ai-chat",
+      "security",
+      "sensitivity",
+      "templates",
+      "workspace"
+    ],
+    "system": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "biometric",
+      "llm-config",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates"
+    ],
+    "expands": [
+      "templates"
+    ],
+    "corresponding": [
+      "templates",
+      "workspace"
+    ],
+    "form": [
+      "templates"
+    ],
+    "number": [
+      "ocr-scan",
+      "sensitivity",
+      "templates"
+    ],
+    "issue": [
+      "biometric",
+      "privacy-policy",
+      "templates",
+      "terms-of-service"
+    ],
+    "expiry": [
+      "templates"
+    ],
+    "saving": [
+      "templates"
+    ],
+    "reuse": [
+      "templates"
+    ],
+    "often": [
+      "templates"
+    ],
+    "open": [
+      "ai-chat",
+      "attachments",
+      "export-import",
+      "privacy-policy",
+      "templates",
+      "terms-of-service"
+    ],
+    "confirm": [
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "never": [
+      "ai-chat",
+      "privacy-policy",
+      "sensitivity",
+      "templates"
+    ],
+    "uploaded": [
+      "ocr-scan",
+      "privacy-policy",
+      "templates"
+    ],
+    "server": [
+      "ai-chat",
+      "templates"
+    ],
+    "工作区与自定义页面": [
+      "workspace"
+    ],
+    "工作区": [
+      "workspace"
+    ],
+    "页面": [
+      "audit-log",
+      "export-import",
+      "ocr-scan",
+      "plugins",
+      "snapshots",
+      "sync",
+      "trash",
+      "workspace"
+    ],
+    "自定义": [
+      "workspace"
+    ],
+    "工作区是您管理和浏览对象的主要界面": [
+      "workspace"
+    ],
+    "浏": [
+      "plugins",
+      "snapshots",
+      "workspace"
+    ],
+    "界": [
+      "appearance",
+      "security",
+      "sensitivity",
+      "workspace"
+    ],
+    "提供分区工作区和自定义页面两种组织方式": [
+      "workspace"
+    ],
+    "供": [
+      "appearance",
+      "llm-config",
+      "sensitivity",
+      "terms-of-service",
+      "trash",
+      "workspace"
+    ],
+    "两": [
+      "collections",
+      "workspace"
+    ],
+    "方": [
+      "ai-chat",
+      "biometric",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "sensitivity",
+      "terms-of-service",
+      "workspace"
+    ],
+    "四个固定分区": [
+      "workspace"
+    ],
+    "固": [
+      "appearance",
+      "workspace"
+    ],
+    "点击侧边栏图标或首页卡片进入对应分区": [
+      "workspace"
+    ],
+    "分区工作区显示该类型下的所有对象": [
+      "workspace"
+    ],
+    "支持顶部搜索框按名称过滤": [
+      "workspace"
+    ],
+    "除了固定分区": [
+      "workspace"
+    ],
+    "您可以创建自己的页面来组织对象": [
+      "workspace"
+    ],
+    "来": [
+      "collections",
+      "plugins",
+      "trash",
+      "workspace"
+    ],
+    "点击侧边栏底部的": [
+      "workspace"
+    ],
+    "底": [
+      "ai-chat",
+      "trash",
+      "workspace"
+    ],
+    "输入页面名称": [
+      "workspace"
+    ],
+    "选择图标": [
+      "workspace"
+    ],
+    "创建后": [
+      "workspace"
+    ],
+    "该页面出现在侧边栏固定分区下方": [
+      "workspace"
+    ],
+    "现": [
+      "collections",
+      "export-import",
+      "ocr-scan",
+      "sync",
+      "workspace"
+    ],
+    "进入页面后创建的对象将归属此页面": [
+      "workspace"
+    ],
+    "此": [
+      "snapshots",
+      "sync",
+      "workspace"
+    ],
+    "我的项目": [
+      "workspace"
+    ],
+    "项": [
+      "appearance",
+      "collections",
+      "export-import",
+      "llm-config",
+      "trash",
+      "workspace"
+    ],
+    "目": [
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "ocr-scan",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "trash",
+      "workspace"
+    ],
+    "点击侧边栏底部": [
+      "workspace"
+    ],
+    "选择一个图标": [
+      "workspace"
+    ],
+    "如文件夹或星星": [
+      "workspace"
+    ],
+    "夹": [
+      "ocr-scan",
+      "workspace"
+    ],
+    "星": [
+      "workspace"
+    ],
+    "点击确认创建": [
+      "workspace"
+    ],
+    "新页面出现在侧边栏": [
+      "workspace"
+    ],
+    "点击进入即可添加对象": [
+      "workspace"
+    ],
+    "即": [
+      "appearance",
+      "attachments",
+      "collections",
+      "privacy-policy",
+      "search",
+      "sensitivity",
+      "terms-of-service",
+      "workspace"
+    ],
+    "添": [
+      "ai-chat",
+      "attachments",
+      "collections",
+      "llm-config",
+      "workspace"
+    ],
+    "管理自定义页面": [
+      "workspace"
+    ],
+    "重命名": [
+      "attachments",
+      "workspace"
+    ],
+    "命": [
+      "attachments",
+      "llm-config",
+      "workspace"
+    ],
+    "双击侧边栏中的自定义页面名称": [
+      "workspace"
+    ],
+    "双": [
+      "workspace"
+    ],
+    "进入该页面工作区": [
+      "workspace"
+    ],
+    "删除自定义页面不会删除页面中的对象": [
+      "workspace"
+    ],
+    "对象仍会保留在对应分区中": [
+      "workspace"
+    ],
+    "仍": [
+      "workspace"
+    ],
+    "primary": [
+      "workspace"
+    ],
+    "interface": [
+      "appearance",
+      "workspace"
+    ],
+    "managing": [
+      "collections",
+      "workspace"
+    ],
+    "browsing": [
+      "workspace"
+    ],
+    "offers": [
+      "workspace"
+    ],
+    "both": [
+      "llm-config",
+      "workspace"
+    ],
+    "workspaces": [
+      "workspace"
+    ],
+    "fixed": [
+      "appearance",
+      "workspace"
+    ],
+    "displays": [
+      "llm-config",
+      "ocr-scan",
+      "workspace"
+    ],
+    "filter": [
+      "audit-log",
+      "collections",
+      "trash",
+      "workspace"
+    ],
+    "addition": [
+      "ocr-scan",
+      "workspace"
+    ],
+    "bottom": [
+      "workspace"
+    ],
+    "creation": [
+      "collections",
+      "workspace"
+    ],
+    "appears": [
+      "workspace"
+    ],
+    "below": [
+      "ocr-scan",
+      "workspace"
+    ],
+    "created": [
+      "collections",
+      "snapshots",
+      "workspace"
+    ],
+    "my": [
+      "workspace"
+    ],
+    "projects": [
+      "collections",
+      "workspace"
+    ],
+    "folder": [
+      "workspace"
+    ],
+    "star": [
+      "workspace"
+    ],
+    "add": [
+      "ai-chat",
+      "attachments",
+      "collections",
+      "llm-config",
+      "workspace"
+    ],
+    "rename": [
+      "attachments",
+      "workspace"
+    ],
+    "double": [
+      "workspace"
+    ],
+    "not": [
+      "ai-chat",
+      "collections",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "security",
+      "sync",
+      "terms-of-service",
+      "workspace"
+    ],
+    "their": [
+      "ai-chat",
+      "attachments",
+      "plugins",
+      "terms-of-service",
+      "workspace"
+    ],
+    "respective": [
+      "workspace"
+    ],
+    "附件管理": [
+      "attachments"
+    ],
+    "attachment": [
+      "attachments",
+      "backup-restore",
+      "ocr-scan",
+      "search",
+      "trash"
+    ],
+    "文件": [
+      "attachments",
+      "backup-restore",
+      "export-import",
+      "privacy-policy"
+    ],
+    "file": [
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "ocr-scan",
+      "privacy-policy"
+    ],
+    "image": [
+      "appearance",
+      "attachments",
+      "ocr-scan"
+    ],
+    "附件是关联到对象的文件": [
+      "attachments"
+    ],
+    "如护照照片": [
+      "attachments"
+    ],
+    "合同": [
+      "attachments"
+    ],
+    "合": [
+      "attachments",
+      "collections",
+      "export-import",
+      "trash"
+    ],
+    "同": [
+      "ai-chat",
+      "attachments",
+      "export-import",
+      "search",
+      "security",
+      "snapshots",
+      "sync",
+      "terms-of-service"
+    ],
+    "扫描件等": [
+      "attachments"
+    ],
+    "扫": [
+      "attachments",
+      "ocr-scan",
+      "search",
+      "sync"
+    ],
+    "描": [
+      "attachments",
+      "llm-config",
+      "ocr-scan",
+      "search",
+      "sync"
+    ],
+    "添加附件": [
+      "attachments"
+    ],
+    "打开对象的编辑页面": [
+      "attachments"
+    ],
+    "从文件系统选择文件": [
+      "attachments"
+    ],
+    "从": [
+      "ai-chat",
+      "attachments",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "snapshots",
+      "trash"
+    ],
+    "文件将加密存储在保险库中": [
+      "attachments"
+    ],
+    "查看附件": [
+      "attachments"
+    ],
+    "在工作区中": [
+      "attachments"
+    ],
+    "带有附件的对象会显示回形针图标和数量徽章": [
+      "attachments"
+    ],
+    "带": [
+      "attachments",
+      "sensitivity"
+    ],
+    "针": [
+      "attachments"
+    ],
+    "量": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "llm-config",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "徽": [
+      "appearance",
+      "attachments",
+      "snapshots"
+    ],
+    "章": [
+      "appearance",
+      "attachments",
+      "snapshots"
+    ],
+    "点击回形针图标打开附件列表": [
+      "attachments"
+    ],
+    "列": [
+      "ai-chat",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "llm-config",
+      "plugins",
+      "search",
+      "sync",
+      "trash"
+    ],
+    "支持的预览格式": [
+      "attachments"
+    ],
+    "png": [
+      "attachments",
+      "ocr-scan"
+    ],
+    "jpg": [
+      "attachments",
+      "ocr-scan"
+    ],
+    "webp": [
+      "attachments",
+      "ocr-scan"
+    ],
+    "gif": [
+      "attachments"
+    ],
+    "bmp": [
+      "attachments",
+      "ocr-scan"
+    ],
+    "文本文件": [
+      "attachments"
+    ],
+    "附件采用与对象数据相同的加密级别存储": [
+      "attachments"
+    ],
+    "相": [
+      "attachments",
+      "audit-log",
+      "plugins",
+      "privacy-policy",
+      "search"
+    ],
+    "安全性等同于对象本身": [
+      "attachments"
+    ],
+    "附件操作": [
+      "attachments"
+    ],
+    "操": [
+      "appearance",
+      "attachments",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "llm-config",
+      "privacy-policy",
+      "trash"
+    ],
+    "操作": [
+      "attachments",
+      "audit-log"
+    ],
+    "说明": [
+      "appearance",
+      "attachments",
+      "llm-config",
+      "sensitivity",
+      "trash"
+    ],
+    "明": [
+      "ai-chat",
+      "appearance",
+      "attachments",
+      "audit-log",
+      "llm-config",
+      "ocr-scan",
+      "security",
+      "sensitivity",
+      "terms-of-service",
+      "trash"
+    ],
+    "点击附件名称即可编辑": [
+      "attachments"
+    ],
+    "软删除": [
+      "attachments"
+    ],
+    "软": [
+      "ai-chat",
+      "attachments",
+      "llm-config",
+      "terms-of-service",
+      "trash"
+    ],
+    "点击删除按钮": [
+      "attachments"
+    ],
+    "附件进入回收状态": [
+      "attachments"
+    ],
+    "状": [
+      "attachments",
+      "biometric",
+      "llm-config",
+      "security",
+      "snapshots"
+    ],
+    "态": [
+      "attachments",
+      "biometric",
+      "collections",
+      "llm-config",
+      "security",
+      "snapshots"
+    ],
+    "可恢复": [
+      "attachments"
+    ],
+    "在附件列表的": [
+      "attachments"
+    ],
+    "标签中执行永久删除": [
+      "attachments"
+    ],
+    "执": [
+      "attachments",
+      "biometric",
+      "plugins",
+      "search"
+    ],
+    "预览": [
+      "attachments",
+      "export-import"
+    ],
+    "点击图片": [
+      "attachments"
+    ],
+    "附件即可全屏预览": [
+      "attachments"
+    ],
+    "屏": [
+      "attachments",
+      "security"
+    ],
+    "永久删除的附件无法恢复": [
+      "attachments"
+    ],
+    "软删除的附件保留在对象中": [
+      "attachments"
+    ],
+    "仅在回收站标签下隐藏": [
+      "attachments"
+    ],
+    "隐": [
+      "ai-chat",
+      "attachments",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "sensitivity"
+    ],
+    "藏": [
+      "attachments"
+    ],
+    "photos": [
+      "attachments",
+      "export-import"
+    ],
+    "contract": [
+      "attachments"
+    ],
+    "scans": [
+      "attachments",
+      "ocr-scan",
+      "search"
+    ],
+    "adding": [
+      "attachments",
+      "collections"
+    ],
+    "viewing": [
+      "attachments",
+      "audit-log",
+      "biometric",
+      "sensitivity",
+      "snapshots"
+    ],
+    "paperclip": [
+      "attachments"
+    ],
+    "count": [
+      "ai-chat",
+      "attachments",
+      "snapshots"
+    ],
+    "badge": [
+      "attachments",
+      "snapshots"
+    ],
+    "list": [
+      "ai-chat",
+      "attachments",
+      "backup-restore",
+      "plugins",
+      "search",
+      "sync",
+      "trash"
+    ],
+    "supported": [
+      "appearance",
+      "attachments",
+      "biometric",
+      "ocr-scan"
+    ],
+    "preview": [
+      "appearance",
+      "attachments",
+      "export-import"
+    ],
+    "text": [
+      "attachments",
+      "audit-log",
+      "ocr-scan",
+      "sensitivity"
+    ],
+    "same": [
+      "attachments",
+      "search",
+      "snapshots",
+      "sync"
+    ],
+    "encryption": [
+      "attachments",
+      "terms-of-service"
+    ],
+    "level": [
+      "ai-chat",
+      "attachments",
+      "biometric",
+      "plugins",
+      "privacy-policy",
+      "search",
+      "sensitivity"
+    ],
+    "security": [
+      "attachments",
+      "audit-log",
+      "biometric",
+      "export-import",
+      "security",
+      "terms-of-service"
+    ],
+    "equals": [
+      "attachments"
+    ],
+    "themselves": [
+      "attachments"
+    ],
+    "actions": [
+      "attachments",
+      "audit-log"
+    ],
+    "action": [
+      "attachments",
+      "audit-log",
+      "trash"
+    ],
+    "description": [
+      "appearance",
+      "attachments",
+      "audit-log",
+      "llm-config",
+      "sensitivity",
+      "trash"
+    ],
+    "soft": [
+      "appearance",
+      "attachments",
+      "trash"
+    ],
+    "enters": [
+      "attachments",
+      "security"
+    ],
+    "recovery": [
+      "attachments",
+      "backup-restore",
+      "trash"
+    ],
+    "state": [
+      "attachments",
+      "llm-config",
+      "security",
+      "snapshots"
+    ],
+    "permanent": [
+      "attachments",
+      "audit-log",
+      "trash"
+    ],
+    "perform": [
+      "attachments"
+    ],
+    "tab": [
+      "attachments",
+      "export-import"
+    ],
+    "fullscreen": [
+      "attachments"
+    ],
+    "hidden": [
+      "attachments"
+    ],
+    "under": [
+      "attachments",
+      "plugins",
+      "terms-of-service"
+    ],
+    "快照与历史": [
+      "snapshots"
+    ],
+    "史": [
+      "ai-chat",
+      "audit-log",
+      "export-import",
+      "privacy-policy",
+      "snapshots"
+    ],
+    "snapshots": [
+      "snapshots",
+      "trash"
+    ],
+    "快照": [
+      "backup-restore",
+      "snapshots"
+    ],
+    "历史": [
+      "snapshots"
+    ],
+    "版本": [
+      "snapshots"
+    ],
+    "回滚": [
+      "snapshots"
+    ],
+    "snapshot": [
+      "backup-restore",
+      "snapshots"
+    ],
+    "version": [
+      "backup-restore",
+      "snapshots"
+    ],
+    "rollback": [
+      "audit-log",
+      "snapshots"
+    ],
+    "自动为对象的每次修改创建快照": [
+      "snapshots"
+    ],
+    "修": [
+      "audit-log",
+      "biometric",
+      "collections",
+      "ocr-scan",
+      "security",
+      "sensitivity",
+      "snapshots"
+    ],
+    "改": [
+      "appearance",
+      "audit-log",
+      "biometric",
+      "collections",
+      "security",
+      "sensitivity",
+      "snapshots"
+    ],
+    "让您可以随时回溯历史版本": [
+      "snapshots"
+    ],
+    "让": [
+      "ai-chat",
+      "appearance",
+      "export-import",
+      "ocr-scan",
+      "search",
+      "snapshots"
+    ],
+    "随": [
+      "appearance",
+      "collections",
+      "plugins",
+      "privacy-policy",
+      "snapshots"
+    ],
+    "溯": [
+      "audit-log",
+      "snapshots"
+    ],
+    "版": [
+      "backup-restore",
+      "snapshots"
+    ],
+    "自动快照": [
+      "snapshots"
+    ],
+    "系统会在以下情况自动创建快照": [
+      "snapshots"
+    ],
+    "况": [
+      "security",
+      "snapshots"
+    ],
+    "对象被修改并保存时": [
+      "snapshots"
+    ],
+    "对象字段发生变更时": [
+      "snapshots"
+    ],
+    "变": [
+      "appearance",
+      "audit-log",
+      "biometric",
+      "sensitivity",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "快照包含对象的完整状态": [
+      "snapshots"
+    ],
+    "整": [
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "sensitivity",
+      "snapshots",
+      "sync"
+    ],
+    "查看历史": [
+      "snapshots"
+    ],
+    "在工作区中找到目标对象": [
+      "snapshots"
+    ],
+    "找": [
+      "backup-restore",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "trash"
+    ],
+    "点击对象卡片上的时钟图标": [
+      "snapshots"
+    ],
+    "钟": [
+      "snapshots"
+    ],
+    "弹出翻页式历史浏览器": [
+      "snapshots"
+    ],
+    "弹": [
+      "sensitivity",
+      "snapshots"
+    ],
+    "翻": [
+      "snapshots"
+    ],
+    "使用左右箭头在不同版本间切换": [
+      "snapshots"
+    ],
+    "左": [
+      "snapshots"
+    ],
+    "箭": [
+      "snapshots"
+    ],
+    "头": [
+      "snapshots"
+    ],
+    "间": [
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "security",
+      "snapshots",
+      "sync",
+      "trash"
+    ],
+    "切": [
+      "appearance",
+      "export-import",
+      "snapshots"
+    ],
+    "换": [
+      "appearance",
+      "export-import",
+      "snapshots",
+      "sync"
+    ],
+    "查看对象历史版本": [
+      "snapshots"
+    ],
+    "在工作区找到对象": [
+      "snapshots"
+    ],
+    "点击时钟图标": [
+      "snapshots"
+    ],
+    "显示快照数量徽章": [
+      "snapshots"
+    ],
+    "在历史浏览器中浏览不同版本": [
+      "snapshots"
+    ],
+    "点击左箭头查看更早版本": [
+      "snapshots"
+    ],
+    "早": [
+      "snapshots",
+      "sync"
+    ],
+    "右箭头查看更新版本": [
+      "snapshots"
+    ],
+    "关闭": [
+      "llm-config",
+      "snapshots"
+    ],
+    "闭": [
+      "ai-chat",
+      "llm-config",
+      "sensitivity",
+      "snapshots"
+    ],
+    "退出历史浏览器": [
+      "snapshots"
+    ],
+    "退": [
+      "snapshots"
+    ],
+    "历史版本中的敏感数据": [
+      "snapshots"
+    ],
+    "历史浏览器中同样遵循敏感度规则": [
+      "snapshots"
+    ],
+    "样": [
+      "appearance",
+      "search",
+      "snapshots"
+    ],
+    "遵": [
+      "search",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "循": [
+      "search",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "规": [
+      "biometric",
+      "search",
+      "snapshots"
+    ],
+    "则": [
+      "search",
+      "security",
+      "snapshots"
+    ],
+    "critical": [
+      "ai-chat",
+      "biometric",
+      "privacy-policy",
+      "sensitivity",
+      "snapshots"
+    ],
+    "级别的字段会被模糊处理": [
+      "snapshots"
+    ],
+    "处": [
+      "ai-chat",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "snapshots",
+      "sync"
+    ],
+    "查看": [
+      "biometric",
+      "llm-config",
+      "snapshots"
+    ],
+    "字段需要密码验证": [
+      "snapshots"
+    ],
+    "从快照恢复": [
+      "snapshots"
+    ],
+    "如需将对象回滚到某个历史版本": [
+      "snapshots"
+    ],
+    "滚": [
+      "audit-log",
+      "snapshots"
+    ],
+    "某": [
+      "snapshots"
+    ],
+    "数据管理": [
+      "collections",
+      "snapshots"
+    ],
+    "或使用独立的": [
+      "snapshots"
+    ],
+    "独": [
+      "backup-restore",
+      "llm-config",
+      "plugins",
+      "snapshots",
+      "trash"
+    ],
+    "立": [
+      "appearance",
+      "plugins",
+      "snapshots",
+      "trash"
+    ],
+    "历史记录": [
+      "snapshots"
+    ],
+    "通过对象详情进入": [
+      "snapshots"
+    ],
+    "通": [
+      "ai-chat",
+      "export-import",
+      "llm-config",
+      "plugins",
+      "privacy-policy",
+      "snapshots",
+      "terms-of-service",
+      "trash"
+    ],
+    "选择目标快照": [
+      "snapshots"
+    ],
+    "恢复到此版本": [
+      "snapshots"
+    ],
+    "快照不会占用过多空间": [
+      "snapshots"
+    ],
+    "占": [
+      "llm-config",
+      "ocr-scan",
+      "snapshots"
+    ],
+    "系统会自动管理": [
+      "snapshots"
+    ],
+    "您可以在": [
+      "ai-chat",
+      "sensitivity",
+      "snapshots"
+    ],
+    "中查看快照占用的存储大小": [
+      "snapshots"
+    ],
+    "creates": [
+      "backup-restore",
+      "snapshots"
+    ],
+    "modified": [
+      "collections",
+      "snapshots"
+    ],
+    "letting": [
+      "snapshots"
+    ],
+    "roll": [
+      "snapshots"
+    ],
+    "back": [
+      "snapshots"
+    ],
+    "historical": [
+      "audit-log",
+      "snapshots"
+    ],
+    "automatic": [
+      "audit-log",
+      "snapshots",
+      "trash"
+    ],
+    "saved": [
+      "backup-restore",
+      "ocr-scan",
+      "snapshots"
+    ],
+    "change": [
+      "security",
+      "sensitivity",
+      "snapshots"
+    ],
+    "complete": [
+      "backup-restore",
+      "biometric",
+      "llm-config",
+      "ocr-scan",
+      "security",
+      "snapshots"
+    ],
+    "find": [
+      "backup-restore",
+      "search",
+      "sensitivity",
+      "snapshots",
+      "trash"
+    ],
+    "target": [
+      "backup-restore",
+      "ocr-scan",
+      "sensitivity",
+      "snapshots",
+      "trash"
+    ],
+    "clock": [
+      "snapshots"
+    ],
+    "flip": [
+      "snapshots"
+    ],
+    "book": [
+      "snapshots"
+    ],
+    "style": [
+      "appearance",
+      "snapshots"
+    ],
+    "browser": [
+      "snapshots"
+    ],
+    "opens": [
+      "sensitivity",
+      "snapshots"
+    ],
+    "left": [
+      "snapshots"
+    ],
+    "arrows": [
+      "snapshots"
+    ],
+    "navigate": [
+      "snapshots"
+    ],
+    "between": [
+      "appearance",
+      "snapshots"
+    ],
+    "versions": [
+      "snapshots"
+    ],
+    "view": [
+      "ai-chat",
+      "collections",
+      "llm-config",
+      "sensitivity",
+      "snapshots"
+    ],
+    "shows": [
+      "audit-log",
+      "biometric",
+      "snapshots"
+    ],
+    "browse": [
+      "plugins",
+      "snapshots"
+    ],
+    "viewer": [
+      "snapshots"
+    ],
+    "arrow": [
+      "snapshots"
+    ],
+    "older": [
+      "snapshots"
+    ],
+    "newer": [
+      "snapshots"
+    ],
+    "close": [
+      "snapshots"
+    ],
+    "exit": [
+      "snapshots"
+    ],
+    "follows": [
+      "snapshots"
+    ],
+    "rules": [
+      "search",
+      "snapshots"
+    ],
+    "requires": [
+      "plugins",
+      "sensitivity",
+      "snapshots",
+      "sync"
+    ],
+    "restoring": [
+      "backup-restore",
+      "snapshots",
+      "trash"
+    ],
+    "previous": [
+      "snapshots"
+    ],
+    "settings": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "collections",
+      "export-import",
+      "llm-config",
+      "plugins",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "trash"
+    ],
+    "standalone": [
+      "snapshots"
+    ],
+    "accessed": [
+      "snapshots"
+    ],
+    "restore": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "snapshots",
+      "terms-of-service",
+      "trash"
+    ],
+    "this": [
+      "audit-log",
+      "snapshots",
+      "terms-of-service"
+    ],
+    "consume": [
+      "snapshots"
+    ],
+    "much": [
+      "snapshots"
+    ],
+    "space": [
+      "backup-restore",
+      "snapshots"
+    ],
+    "manages": [
+      "llm-config",
+      "snapshots"
+    ],
+    "them": [
+      "snapshots",
+      "sync"
+    ],
+    "storage": [
+      "backup-restore",
+      "privacy-policy",
+      "snapshots"
+    ],
+    "usage": [
+      "ai-chat",
+      "llm-config",
+      "snapshots"
+    ],
+    "集合": [
+      "collections",
+      "trash"
+    ],
+    "集": [
+      "collections",
+      "plugins",
+      "trash"
+    ],
+    "collections": [
+      "collections",
+      "trash"
+    ],
+    "智能集合": [
+      "collections"
+    ],
+    "筛选": [
+      "collections"
+    ],
+    "集合是将对象按条件分组的功能": [
+      "collections"
+    ],
+    "分为内置集合和自定义集合两种": [
+      "collections"
+    ],
+    "内置集合": [
+      "collections"
+    ],
+    "预置了一些常用集合视图": [
+      "collections"
+    ],
+    "些": [
+      "collections"
+    ],
+    "视": [
+      "appearance",
+      "collections"
+    ],
+    "最近创建的对象": [
+      "collections"
+    ],
+    "最": [
+      "collections",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "近": [
+      "collections",
+      "llm-config"
+    ],
+    "最近修改的对象": [
+      "collections"
+    ],
+    "包含附件的对象": [
+      "collections"
+    ],
+    "高敏感度对象": [
+      "collections"
+    ],
+    "自定义集合": [
+      "collections"
+    ],
+    "您可以创建自己的集合来组织对象": [
+      "collections"
+    ],
+    "区域点击": [
+      "collections"
+    ],
+    "域": [
+      "appearance",
+      "biometric",
+      "collections",
+      "export-import",
+      "ocr-scan",
+      "security",
+      "sensitivity",
+      "sync"
+    ],
+    "添加": [
+      "collections"
+    ],
+    "输入集合名称": [
+      "collections"
+    ],
+    "配置筛选条件": [
+      "collections"
+    ],
+    "筛": [
+      "audit-log",
+      "collections",
+      "trash"
+    ],
+    "如对象类型": [
+      "collections"
+    ],
+    "创建时间等": [
+      "collections"
+    ],
+    "智能集合是动态视图": [
+      "collections"
+    ],
+    "会根据筛选条件自动更新内容": [
+      "collections"
+    ],
+    "根": [
+      "ai-chat",
+      "collections"
+    ],
+    "容": [
+      "ai-chat",
+      "audit-log",
+      "biometric",
+      "collections",
+      "export-import",
+      "llm-config",
+      "privacy-policy",
+      "search",
+      "sync",
+      "terms-of-service"
+    ],
+    "匹配条件的对象会自动出现在集合中": [
+      "collections"
+    ],
+    "匹": [
+      "appearance",
+      "collections",
+      "search"
+    ],
+    "无需手动添加或移除": [
+      "collections"
+    ],
+    "条件可以随时修改": [
+      "collections"
+    ],
+    "智能集合非常适合创建": [
+      "collections"
+    ],
+    "非": [
+      "collections",
+      "export-import"
+    ],
+    "即将到期的证件": [
+      "collections"
+    ],
+    "未归档的项目": [
+      "collections"
+    ],
+    "未": [
+      "collections",
+      "plugins"
+    ],
+    "档": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "plugins",
+      "sync"
+    ],
+    "等动态视图": [
+      "collections"
+    ],
+    "管理集合": [
+      "collections"
+    ],
+    "点击集合名称旁的编辑图标修改筛选条件": [
+      "collections"
+    ],
+    "旁": [
+      "collections"
+    ],
+    "点击删除图标移除集合": [
+      "collections"
+    ],
+    "不会删除集合中的对象": [
+      "collections"
+    ],
+    "删除集合仅移除视图配置": [
+      "collections"
+    ],
+    "不会影响集合中的任何对象数据": [
+      "collections"
+    ],
+    "影": [
+      "appearance",
+      "collections",
+      "sync"
+    ],
+    "响": [
+      "appearance",
+      "collections",
+      "sync",
+      "terms-of-service"
+    ],
+    "group": [
+      "collections"
+    ],
+    "conditions": [
+      "audit-log",
+      "collections"
+    ],
+    "there": [
+      "collections"
+    ],
+    "provides": [
+      "collections"
+    ],
+    "views": [
+      "collections"
+    ],
+    "recently": [
+      "collections"
+    ],
+    "area": [
+      "appearance",
+      "collections",
+      "export-import",
+      "ocr-scan",
+      "sensitivity"
+    ],
+    "configure": [
+      "ai-chat",
+      "collections",
+      "terms-of-service"
+    ],
+    "dynamic": [
+      "collections"
+    ],
+    "update": [
+      "audit-log",
+      "backup-restore",
+      "collections",
+      "security",
+      "terms-of-service"
+    ],
+    "based": [
+      "ai-chat",
+      "collections"
+    ],
+    "matching": [
+      "collections",
+      "search"
+    ],
+    "appear": [
+      "collections",
+      "sync"
+    ],
+    "no": [
+      "collections",
+      "privacy-policy",
+      "search"
+    ],
+    "manual": [
+      "collections"
+    ],
+    "removing": [
+      "collections"
+    ],
+    "needed": [
+      "backup-restore",
+      "collections"
+    ],
+    "great": [
+      "collections"
+    ],
+    "like": [
+      "collections"
+    ],
+    "expiring": [
+      "collections"
+    ],
+    "soon": [
+      "collections"
+    ],
+    "unfiled": [
+      "collections"
+    ],
+    "modify": [
+      "audit-log",
+      "collections"
+    ],
+    "filters": [
+      "collections",
+      "trash"
+    ],
+    "remove": [
+      "collections"
+    ],
+    "removes": [
+      "collections"
+    ],
+    "configuration": [
+      "collections"
+    ],
+    "affect": [
+      "appearance",
+      "collections",
+      "sync"
+    ],
+    "敏感度与隐私": [
+      "sensitivity"
+    ],
+    "私": [
+      "ai-chat",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "sensitivity"
+    ],
+    "privacy": [
+      "ai-chat",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "search",
+      "sensitivity"
+    ],
+    "敏感": [
+      "ai-chat",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "隐私": [
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "分级": [
+      "sensitivity"
+    ],
+    "遮罩": [
+      "sensitivity"
+    ],
+    "mask": [
+      "sensitivity"
+    ],
+    "采用六级敏感度分级系统": [
+      "sensitivity"
+    ],
+    "六": [
+      "sensitivity"
+    ],
+    "为每个字段提供精细化的数据保护": [
+      "sensitivity"
+    ],
+    "精": [
+      "appearance",
+      "llm-config",
+      "sensitivity"
+    ],
+    "细": [
+      "sensitivity"
+    ],
+    "敏感度级别": [
+      "sensitivity"
+    ],
+    "级别": [
+      "sensitivity"
+    ],
+    "显示行为": [
+      "sensitivity"
+    ],
+    "public": [
+      "ai-chat",
+      "llm-config",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "公开": [
+      "sensitivity"
+    ],
+    "公": [
+      "ai-chat",
+      "llm-config",
+      "sensitivity"
+    ],
+    "明文显示": [
+      "sensitivity"
+    ],
+    "internal": [
+      "backup-restore",
+      "sensitivity"
+    ],
+    "内部": [
+      "sensitivity"
+    ],
+    "带标签提示": [
+      "sensitivity"
+    ],
+    "private": [
+      "sensitivity"
+    ],
+    "私有": [
+      "sensitivity"
+    ],
+    "默认模糊": [
+      "sensitivity"
+    ],
+    "默": [
+      "sensitivity"
+    ],
+    "点击可查看": [
+      "sensitivity"
+    ],
+    "restricted": [
+      "ai-chat",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "受限": [
+      "ai-chat",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "受": [
+      "ai-chat",
+      "privacy-policy",
+      "sensitivity",
+      "terms-of-service"
+    ],
+    "限": [
+      "ai-chat",
+      "plugins",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "关键": [
+      "sensitivity"
+    ],
+    "查看需密码验证": [
+      "sensitivity"
+    ],
+    "字段级保护": [
+      "sensitivity"
+    ],
+    "每个对象模板的字段都有预设的敏感度级别": [
+      "sensitivity"
+    ],
+    "护照号码": [
+      "sensitivity"
+    ],
+    "姓名": [
+      "ocr-scan",
+      "sensitivity"
+    ],
+    "银行账号": [
+      "sensitivity"
+    ],
+    "查看敏感字段": [
+      "sensitivity"
+    ],
+    "点击模糊区域即可临时显示": [
+      "sensitivity"
+    ],
+    "点击后弹出密码验证对话框": [
+      "sensitivity"
+    ],
+    "输入主密码方可查看": [
+      "sensitivity"
+    ],
+    "生物识别解锁": [
+      "biometric",
+      "security",
+      "sensitivity"
+    ],
+    "物": [
+      "audit-log",
+      "biometric",
+      "privacy-policy",
+      "security",
+      "sensitivity"
+    ],
+    "touch": [
+      "biometric",
+      "privacy-policy",
+      "security",
+      "sensitivity"
+    ],
+    "可用于替代密码查看": [
+      "sensitivity"
+    ],
+    "替": [
+      "biometric",
+      "export-import",
+      "sensitivity"
+    ],
+    "字段": [
+      "sensitivity"
+    ],
+    "前提已在设置中启用": [
+      "sensitivity"
+    ],
+    "前": [
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "llm-config",
+      "plugins",
+      "security",
+      "sensitivity",
+      "sync",
+      "trash"
+    ],
+    "已": [
+      "ai-chat",
+      "backup-restore",
+      "biometric",
+      "export-import",
+      "sensitivity",
+      "trash"
+    ],
+    "调整敏感度": [
+      "sensitivity"
+    ],
+    "调": [
+      "appearance",
+      "audit-log",
+      "sensitivity"
+    ],
+    "如需修改字段的保护级别": [
+      "sensitivity"
+    ],
+    "敏感度设置": [
+      "sensitivity"
+    ],
+    "找到目标字段": [
+      "sensitivity"
+    ],
+    "选择新的敏感度级别": [
+      "sensitivity"
+    ],
+    "降级保护时": [
+      "sensitivity"
+    ],
+    "降": [
+      "biometric",
+      "sensitivity"
+    ],
+    "输入主密码并填写原因": [
+      "sensitivity"
+    ],
+    "原": [
+      "audit-log",
+      "sensitivity",
+      "trash"
+    ],
+    "因": [
+      "sensitivity"
+    ],
+    "确认修改": [
+      "sensitivity"
+    ],
+    "降低字段保护级别需要密码验证并记录审计日志": [
+      "sensitivity"
+    ],
+    "低": [
+      "ocr-scan",
+      "sensitivity"
+    ],
+    "审": [
+      "audit-log",
+      "plugins",
+      "sensitivity"
+    ],
+    "计": [
+      "ai-chat",
+      "audit-log",
+      "llm-config",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "志": [
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "sensitivity"
+    ],
+    "变更无法无痕撤销": [
+      "sensitivity"
+    ],
+    "痕": [
+      "sensitivity"
+    ],
+    "撤": [
+      "plugins",
+      "sensitivity"
+    ],
+    "销": [
+      "plugins",
+      "sensitivity"
+    ],
+    "的隐私边界": [
+      "sensitivity"
+    ],
+    "只有": [
+      "sensitivity"
+    ],
+    "只": [
+      "audit-log",
+      "plugins",
+      "sensitivity"
+    ],
+    "级别的字段信息会被注入": [
+      "sensitivity"
+    ],
+    "注": [
+      "ai-chat",
+      "biometric",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "sensitivity"
+    ],
+    "系统提示词": [
+      "ai-chat",
+      "llm-config",
+      "sensitivity"
+    ],
+    "数据": [
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "绝不会": [
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "绝": [
+      "ai-chat",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "发送给": [
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "送": [
+      "ai-chat",
+      "llm-config",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "给": [
+      "ai-chat",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "llm": [
+      "ai-chat",
+      "llm-config",
+      "sensitivity"
+    ],
+    "中关闭系统提示词注入": [
+      "sensitivity"
+    ],
+    "six": [
+      "sensitivity"
+    ],
+    "provide": [
+      "sensitivity"
+    ],
+    "fine": [
+      "sensitivity"
+    ],
+    "grained": [
+      "sensitivity"
+    ],
+    "behavior": [
+      "sensitivity"
+    ],
+    "plain": [
+      "sensitivity"
+    ],
+    "label": [
+      "sensitivity"
+    ],
+    "default": [
+      "sensitivity"
+    ],
+    "example": [
+      "sensitivity"
+    ],
+    "full": [
+      "ai-chat",
+      "sensitivity"
+    ],
+    "clicking": [
+      "sensitivity"
+    ],
+    "dialog": [
+      "sensitivity"
+    ],
+    "biometric": [
+      "audit-log",
+      "biometric",
+      "privacy-policy",
+      "security",
+      "sensitivity"
+    ],
+    "unlock": [
+      "biometric",
+      "security",
+      "sensitivity"
+    ],
+    "substitute": [
+      "sensitivity"
+    ],
+    "enabled": [
+      "biometric",
+      "security",
+      "sensitivity"
+    ],
+    "adjusting": [
+      "sensitivity"
+    ],
+    "downgrading": [
+      "sensitivity"
+    ],
+    "reason": [
+      "sensitivity"
+    ],
+    "recorded": [
+      "sensitivity"
+    ],
+    "audit": [
+      "audit-log",
+      "sensitivity"
+    ],
+    "log": [
+      "audit-log",
+      "sensitivity"
+    ],
+    "changes": [
+      "appearance",
+      "audit-log",
+      "sensitivity",
+      "terms-of-service"
+    ],
+    "reverted": [
+      "sensitivity"
+    ],
+    "without": [
+      "appearance",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "trace": [
+      "sensitivity"
+    ],
+    "boundary": [
+      "sensitivity"
+    ],
+    "injected": [
+      "ai-chat",
+      "llm-config",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "prompts": [
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "sent": [
+      "ai-chat",
+      "llm-config",
+      "privacy-policy",
+      "sensitivity"
+    ],
+    "disable": [
+      "ai-chat",
+      "biometric",
+      "sensitivity"
+    ],
+    "prompt": [
+      "ai-chat",
+      "biometric",
+      "llm-config",
+      "security",
+      "sensitivity"
+    ],
+    "injection": [
+      "ai-chat",
+      "sensitivity"
+    ],
+    "config": [
+      "ai-chat",
+      "llm-config",
+      "sensitivity"
+    ],
+    "安全设置": [
+      "biometric",
+      "security"
+    ],
+    "安全": [
+      "security"
+    ],
+    "密码": [
+      "security"
+    ],
+    "锁定": [
+      "security"
+    ],
+    "安全设置管理您账户的核心安全功能": [
+      "security"
+    ],
+    "包括密码": [
+      "security"
+    ],
+    "括": [
+      "ai-chat",
+      "security"
+    ],
+    "生物识别和自动锁定": [
+      "security"
+    ],
+    "修改密码": [
+      "security"
+    ],
+    "输入当前密码": [
+      "security"
+    ],
+    "当": [
+      "audit-log",
+      "backup-restore",
+      "llm-config",
+      "plugins",
+      "privacy-policy",
+      "security"
+    ],
+    "输入新密码并确认": [
+      "security"
+    ],
+    "修改密码后": [
+      "security"
+    ],
+    "所有生物识别凭证将失效": [
+      "security"
+    ],
+    "凭": [
+      "biometric",
+      "privacy-policy",
+      "security"
+    ],
+    "失": [
+      "biometric",
+      "privacy-policy",
+      "security"
+    ],
+    "需要重新启用": [
+      "biometric",
+      "security"
+    ],
+    "密码提示词": [
+      "security"
+    ],
+    "密码提示词是在登录界面显示的辅助记忆信息": [
+      "security"
+    ],
+    "登": [
+      "security"
+    ],
+    "辅": [
+      "security"
+    ],
+    "不应包含密码本身或过于明显的线索": [
+      "security"
+    ],
+    "线": [
+      "ai-chat",
+      "llm-config",
+      "ocr-scan",
+      "security",
+      "sync"
+    ],
+    "修改密码时可以同步更新提示词": [
+      "security"
+    ],
+    "留空则不在登录界面显示": [
+      "security"
+    ],
+    "如果您的设备支持生物识别": [
+      "security"
+    ],
+    "face": [
+      "biometric",
+      "security"
+    ],
+    "区域查看可用性": [
+      "security"
+    ],
+    "启用": [
+      "biometric",
+      "security"
+    ],
+    "输入主密码进行验证": [
+      "security"
+    ],
+    "按提示完成生物识别注册": [
+      "security"
+    ],
+    "册": [
+      "biometric",
+      "security"
+    ],
+    "生物识别凭证与主密码绑定": [
+      "security"
+    ],
+    "绑": [
+      "security"
+    ],
+    "修改主密码后": [
+      "biometric",
+      "security"
+    ],
+    "生物识别需要重新设置": [
+      "security"
+    ],
+    "测试生物识别": [
+      "security"
+    ],
+    "测": [
+      "ai-chat",
+      "llm-config",
+      "security"
+    ],
+    "试": [
+      "ai-chat",
+      "audit-log",
+      "llm-config",
+      "ocr-scan",
+      "security"
+    ],
+    "启用后": [
+      "biometric",
+      "security"
+    ],
+    "您可以点击": [
+      "security"
+    ],
+    "测试": [
+      "security"
+    ],
+    "按钮验证功能是否正常": [
+      "security"
+    ],
+    "否": [
+      "biometric",
+      "llm-config",
+      "security"
+    ],
+    "正": [
+      "ocr-scan",
+      "plugins",
+      "security"
+    ],
+    "自动锁定": [
+      "security"
+    ],
+    "会在以下情况自动锁定保险库": [
+      "security"
+    ],
+    "应用进入后台超过设定时间": [
+      "security"
+    ],
+    "台": [
+      "biometric",
+      "security",
+      "sync"
+    ],
+    "超": [
+      "security"
+    ],
+    "检测到系统屏幕锁定": [
+      "security"
+    ],
+    "幕": [
+      "security"
+    ],
+    "手动点击侧边栏": [
+      "security"
+    ],
+    "锁定后": [
+      "security"
+    ],
+    "所有敏感状态将被清除": [
+      "security"
+    ],
+    "清": [
+      "appearance",
+      "audit-log",
+      "ocr-scan",
+      "security",
+      "trash"
+    ],
+    "需要重新输入密码或生物识别解锁": [
+      "security"
+    ],
+    "features": [
+      "ai-chat",
+      "llm-config",
+      "security",
+      "terms-of-service"
+    ],
+    "biometrics": [
+      "biometric",
+      "privacy-policy",
+      "security"
+    ],
+    "auto": [
+      "llm-config",
+      "security",
+      "sync"
+    ],
+    "changing": [
+      "biometric",
+      "security"
+    ],
+    "current": [
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "security"
+    ],
+    "credentials": [
+      "biometric",
+      "privacy-policy",
+      "security"
+    ],
+    "become": [
+      "biometric",
+      "security"
+    ],
+    "invalid": [
+      "biometric",
+      "security"
+    ],
+    "re": [
+      "biometric",
+      "security"
+    ],
+    "auxiliary": [
+      "security"
+    ],
+    "shown": [
+      "security"
+    ],
+    "login": [
+      "security"
+    ],
+    "screen": [
+      "security"
+    ],
+    "contain": [
+      "security"
+    ],
+    "itself": [
+      "security"
+    ],
+    "overly": [
+      "security"
+    ],
+    "obvious": [
+      "security"
+    ],
+    "clues": [
+      "security"
+    ],
+    "leave": [
+      "security"
+    ],
+    "device": [
+      "backup-restore",
+      "biometric",
+      "privacy-policy",
+      "security",
+      "sync"
+    ],
+    "supports": [
+      "biometric",
+      "security",
+      "trash"
+    ],
+    "check": [
+      "ai-chat",
+      "biometric",
+      "export-import",
+      "ocr-scan",
+      "security",
+      "trash"
+    ],
+    "availability": [
+      "ai-chat",
+      "security",
+      "sync",
+      "terms-of-service"
+    ],
+    "follow": [
+      "biometric",
+      "search",
+      "security"
+    ],
+    "enrollment": [
+      "biometric",
+      "security"
+    ],
+    "bound": [
+      "security"
+    ],
+    "again": [
+      "security"
+    ],
+    "testing": [
+      "security"
+    ],
+    "enabling": [
+      "ai-chat",
+      "biometric",
+      "security",
+      "sync"
+    ],
+    "test": [
+      "ai-chat",
+      "llm-config",
+      "security"
+    ],
+    "verify": [
+      "ai-chat",
+      "biometric",
+      "llm-config",
+      "security"
+    ],
+    "feature": [
+      "ai-chat",
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "llm-config",
+      "ocr-scan",
+      "privacy-policy",
+      "security",
+      "sync",
+      "terms-of-service"
+    ],
+    "works": [
+      "security"
+    ],
+    "locks": [
+      "security"
+    ],
+    "app": [
+      "ai-chat",
+      "appearance",
+      "llm-config",
+      "security",
+      "terms-of-service"
+    ],
+    "background": [
+      "appearance",
+      "security"
+    ],
+    "longer": [
+      "security"
+    ],
+    "than": [
+      "security"
+    ],
+    "duration": [
+      "security"
+    ],
+    "detected": [
+      "security"
+    ],
+    "manually": [
+      "security"
+    ],
+    "locking": [
+      "security"
+    ],
+    "cleared": [
+      "security"
+    ],
+    "生物识别": [
+      "audit-log",
+      "biometric"
+    ],
+    "指纹": [
+      "biometric"
+    ],
+    "touch id": [
+      "biometric"
+    ],
+    "face id": [
+      "biometric"
+    ],
+    "fingerprint": [
+      "biometric"
+    ],
+    "支持使用设备生物识别": [
+      "biometric"
+    ],
+    "快速解锁保险库和验证敏感操作": [
+      "biometric"
+    ],
+    "支持的平台": [
+      "biometric"
+    ],
+    "平": [
+      "biometric"
+    ],
+    "平台": [
+      "biometric"
+    ],
+    "支持类型": [
+      "biometric"
+    ],
+    "macos": [
+      "biometric"
+    ],
+    "ios": [
+      "biometric"
+    ],
+    "windows": [
+      "biometric"
+    ],
+    "hello": [
+      "biometric"
+    ],
+    "规划中": [
+      "biometric"
+    ],
+    "划": [
+      "biometric"
+    ],
+    "android": [
+      "biometric"
+    ],
+    "指": [
+      "backup-restore",
+      "biometric"
+    ],
+    "纹": [
+      "biometric"
+    ],
+    "启用生物识别": [
+      "audit-log",
+      "biometric"
+    ],
+    "区域的状态": [
+      "biometric"
+    ],
+    "如果显示": [
+      "biometric"
+    ],
+    "可用": [
+      "biometric"
+    ],
+    "输入主密码验证身份": [
+      "biometric"
+    ],
+    "按系统提示完成生物识别注册": [
+      "biometric"
+    ],
+    "在生物识别区域点击": [
+      "biometric"
+    ],
+    "输入主密码": [
+      "biometric"
+    ],
+    "将手指放在": [
+      "biometric"
+    ],
+    "放": [
+      "backup-restore",
+      "biometric",
+      "trash"
+    ],
+    "传感器上": [
+      "biometric"
+    ],
+    "启用成功": [
+      "biometric"
+    ],
+    "返回设置页面": [
+      "biometric"
+    ],
+    "返": [
+      "biometric",
+      "llm-config"
+    ],
+    "使用场景": [
+      "biometric"
+    ],
+    "生物识别可用于": [
+      "biometric"
+    ],
+    "解锁保险库": [
+      "biometric"
+    ],
+    "替代输入密码": [
+      "biometric"
+    ],
+    "级别敏感字段": [
+      "biometric"
+    ],
+    "执行敏感度降级操作": [
+      "biometric"
+    ],
+    "禁用生物识别": [
+      "biometric"
+    ],
+    "禁": [
+      "biometric"
+    ],
+    "禁用": [
+      "biometric"
+    ],
+    "输入主密码确认": [
+      "biometric"
+    ],
+    "生物识别凭证会自动失效": [
+      "biometric"
+    ],
+    "故障排除": [
+      "biometric"
+    ],
+    "故": [
+      "biometric"
+    ],
+    "障": [
+      "biometric"
+    ],
+    "排": [
+      "audit-log",
+      "biometric",
+      "search"
+    ],
+    "问题": [
+      "biometric"
+    ],
+    "解决方案": [
+      "biometric"
+    ],
+    "案": [
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "sync"
+    ],
+    "生物识别不可用": [
+      "biometric"
+    ],
+    "检查系统偏好设置中是否已注册指纹": [
+      "biometric"
+    ],
+    "偏": [
+      "backup-restore",
+      "biometric",
+      "export-import"
+    ],
+    "面容": [
+      "biometric"
+    ],
+    "验证失败次数过多": [
+      "biometric"
+    ],
+    "败": [
+      "biometric"
+    ],
+    "系统会临时禁用生物识别": [
+      "biometric"
+    ],
+    "请使用密码解锁": [
+      "biometric"
+    ],
+    "密码已变更": [
+      "biometric"
+    ],
+    "重新进入安全设置启用生物识别": [
+      "biometric"
+    ],
+    "unlocking": [
+      "biometric",
+      "privacy-policy"
+    ],
+    "operation": [
+      "audit-log",
+      "backup-restore",
+      "biometric",
+      "export-import"
+    ],
+    "platforms": [
+      "biometric"
+    ],
+    "platform": [
+      "biometric"
+    ],
+    "types": [
+      "appearance",
+      "biometric",
+      "ocr-scan"
+    ],
+    "planned": [
+      "biometric"
+    ],
+    "status": [
+      "biometric",
+      "llm-config"
+    ],
+    "available": [
+      "appearance",
+      "biometric",
+      "plugins"
+    ],
+    "place": [
+      "biometric"
+    ],
+    "finger": [
+      "biometric"
+    ],
+    "sensor": [
+      "biometric"
+    ],
+    "success": [
+      "biometric"
+    ],
+    "return": [
+      "biometric",
+      "llm-config"
+    ],
+    "cases": [
+      "biometric"
+    ],
+    "once": [
+      "appearance",
+      "biometric"
+    ],
+    "used": [
+      "biometric",
+      "privacy-policy"
+    ],
+    "instead": [
+      "biometric"
+    ],
+    "typing": [
+      "biometric"
+    ],
+    "performing": [
+      "biometric"
+    ],
+    "downgrade": [
+      "biometric"
+    ],
+    "operations": [
+      "backup-restore",
+      "biometric"
+    ],
+    "disabling": [
+      "biometric"
+    ],
+    "troubleshooting": [
+      "biometric"
+    ],
+    "solution": [
+      "biometric"
+    ],
+    "unavailable": [
+      "biometric"
+    ],
+    "preferences": [
+      "backup-restore",
+      "biometric",
+      "export-import"
+    ],
+    "ensure": [
+      "appearance",
+      "biometric",
+      "ocr-scan",
+      "privacy-policy"
+    ],
+    "enrolled": [
+      "biometric"
+    ],
+    "too": [
+      "biometric"
+    ],
+    "many": [
+      "biometric"
+    ],
+    "failed": [
+      "biometric"
+    ],
+    "attempts": [
+      "biometric",
+      "ocr-scan"
+    ],
+    "disables": [
+      "biometric"
+    ],
+    "changed": [
+      "biometric"
+    ],
+    "恢复": [
+      "audit-log",
+      "backup-restore",
+      "trash"
+    ],
+    "回收站存放被删除的对象和附件": [
+      "trash"
+    ],
+    "提供": [
+      "trash"
+    ],
+    "天的缓冲期用于恢复": [
+      "trash"
+    ],
+    "缓": [
+      "trash"
+    ],
+    "冲": [
+      "export-import",
+      "sync",
+      "trash"
+    ],
+    "删除的对象": [
+      "trash"
+    ],
+    "从工作区删除的对象会进入回收站": [
+      "trash"
+    ],
+    "对象的所有属性": [
+      "trash"
+    ],
+    "附件和快照一并保留": [
+      "trash"
+    ],
+    "天后系统自动永久清理": [
+      "trash"
+    ],
+    "恢复对象": [
+      "audit-log",
+      "trash"
+    ],
+    "找到要恢复的对象": [
+      "trash"
+    ],
+    "勾选后点击": [
+      "trash"
+    ],
+    "勾": [
+      "ai-chat",
+      "export-import",
+      "ocr-scan",
+      "trash"
+    ],
+    "对象将回到原来的分区": [
+      "trash"
+    ],
+    "如需在": [
+      "trash"
+    ],
+    "天到期前彻底删除": [
+      "trash"
+    ],
+    "彻": [
+      "trash"
+    ],
+    "在回收站中勾选目标对象": [
+      "trash"
+    ],
+    "确认操作": [
+      "trash"
+    ],
+    "永久删除后数据无法恢复": [
+      "trash"
+    ],
+    "请谨慎操作": [
+      "trash"
+    ],
+    "谨": [
+      "trash"
+    ],
+    "慎": [
+      "trash"
+    ],
+    "回收站过滤": [
+      "trash"
+    ],
+    "回收站支持按类型和时间段筛选": [
+      "trash"
+    ],
+    "筛选条件": [
+      "trash"
+    ],
+    "全部": [
+      "trash"
+    ],
+    "显示所有已删除项目": [
+      "trash"
+    ],
+    "仅显示自定义页面": [
+      "trash"
+    ],
+    "仅显示集合": [
+      "trash"
+    ],
+    "仅显示普通对象": [
+      "trash"
+    ],
+    "普": [
+      "trash"
+    ],
+    "时间段筛选": [
+      "trash"
+    ],
+    "天内": [
+      "trash"
+    ],
+    "半年内": [
+      "trash"
+    ],
+    "半": [
+      "trash"
+    ],
+    "年": [
+      "trash"
+    ],
+    "附件回收站": [
+      "trash"
+    ],
+    "每个对象内部也有独立的附件回收站": [
+      "trash"
+    ],
+    "软删除的附件可在对象的附件列表中恢复": [
+      "trash"
+    ],
+    "永久删除的附件将从保险库中彻底移除": [
+      "trash"
+    ],
+    "holds": [
+      "trash"
+    ],
+    "providing": [
+      "trash"
+    ],
+    "day": [
+      "trash"
+    ],
+    "buffer": [
+      "trash"
+    ],
+    "move": [
+      "ai-chat",
+      "trash"
+    ],
+    "retained": [
+      "audit-log",
+      "trash"
+    ],
+    "cleanup": [
+      "trash"
+    ],
+    "occurs": [
+      "trash"
+    ],
+    "returns": [
+      "trash"
+    ],
+    "original": [
+      "audit-log",
+      "trash"
+    ],
+    "deletion": [
+      "privacy-policy",
+      "trash"
+    ],
+    "before": [
+      "backup-restore",
+      "export-import",
+      "plugins",
+      "sync",
+      "trash"
+    ],
+    "expiration": [
+      "trash"
+    ],
+    "proceed": [
+      "trash"
+    ],
+    "caution": [
+      "trash"
+    ],
+    "filtering": [
+      "audit-log",
+      "trash"
+    ],
+    "period": [
+      "trash"
+    ],
+    "show": [
+      "trash"
+    ],
+    "items": [
+      "export-import",
+      "trash"
+    ],
+    "regular": [
+      "trash"
+    ],
+    "months": [
+      "trash"
+    ],
+    "restored": [
+      "audit-log",
+      "trash"
+    ],
+    "fully": [
+      "sync",
+      "terms-of-service",
+      "trash"
+    ],
+    "removed": [
+      "privacy-policy",
+      "trash"
+    ],
+    "导出与导入": [
+      "export-import"
+    ],
+    "导": [
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "ocr-scan",
+      "plugins",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "export": [
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "privacy-policy"
+    ],
+    "import": [
+      "audit-log",
+      "export-import",
+      "ocr-scan"
+    ],
+    "导出": [
+      "audit-log",
+      "backup-restore",
+      "export-import"
+    ],
+    "导入": [
+      "export-import"
+    ],
+    "迁移": [
+      "export-import"
+    ],
+    "migrate": [
+      "export-import"
+    ],
+    "backup": [
+      "backup-restore",
+      "export-import",
+      "sync",
+      "terms-of-service"
+    ],
+    "导出与导入功能让您可以将保险库数据以": [
+      "export-import"
+    ],
+    "格式进行加密交换": [
+      "export-import"
+    ],
+    "交": [
+      "ai-chat",
+      "export-import",
+      "privacy-policy",
+      "sync",
+      "terms-of-service"
+    ],
+    "导出数据": [
+      "export-import"
+    ],
+    "选择要导出的页面和对象": [
+      "export-import"
+    ],
+    "选择导出选项": [
+      "export-import"
+    ],
+    "包含附件": [
+      "export-import"
+    ],
+    "同时导出关联的文件": [
+      "export-import"
+    ],
+    "包含偏好设置": [
+      "export-import"
+    ],
+    "导出主题": [
+      "export-import"
+    ],
+    "语言等个人设置": [
+      "export-import"
+    ],
+    "语": [
+      "appearance",
+      "export-import",
+      "llm-config"
+    ],
+    "言": [
+      "appearance",
+      "export-import",
+      "llm-config"
+    ],
+    "包含行为记录": [
+      "export-import"
+    ],
+    "导出操作日志和搜索历史": [
+      "export-import"
+    ],
+    "设置导出密码": [
+      "export-import"
+    ],
+    "至少": [
+      "export-import"
+    ],
+    "导出选中": [
+      "export-import"
+    ],
+    "导出旅行分区数据": [
+      "export-import"
+    ],
+    "在导出区域勾选": [
+      "export-import"
+    ],
+    "勾选": [
+      "export-import"
+    ],
+    "如需导出护照照片等": [
+      "export-import"
+    ],
+    "设置导出密码并确认": [
+      "export-import"
+    ],
+    "选择保存路径": [
+      "export-import"
+    ],
+    "路": [
+      "backup-restore",
+      "export-import"
+    ],
+    "径": [
+      "backup-restore",
+      "export-import"
+    ],
+    "导入数据": [
+      "export-import"
+    ],
+    "切换到": [
+      "export-import"
+    ],
+    "输入导出密码": [
+      "export-import"
+    ],
+    "预览导入内容": [
+      "export-import"
+    ],
+    "选择导入策略": [
+      "export-import"
+    ],
+    "策": [
+      "ai-chat",
+      "export-import",
+      "privacy-policy"
+    ],
+    "略": [
+      "export-import"
+    ],
+    "跳过已有": [
+      "export-import"
+    ],
+    "跳": [
+      "export-import"
+    ],
+    "保留现有数据": [
+      "export-import"
+    ],
+    "跳过重复项": [
+      "export-import"
+    ],
+    "覆盖": [
+      "backup-restore",
+      "export-import"
+    ],
+    "覆": [
+      "backup-restore",
+      "export-import"
+    ],
+    "盖": [
+      "backup-restore",
+      "export-import"
+    ],
+    "用导入数据替换所有现有数据": [
+      "export-import"
+    ],
+    "合并": [
+      "export-import"
+    ],
+    "覆盖冲突项": [
+      "export-import"
+    ],
+    "突": [
+      "export-import",
+      "sync"
+    ],
+    "保留非冲突项": [
+      "export-import"
+    ],
+    "确认导入": [
+      "export-import"
+    ],
+    "导入前使用": [
+      "export-import"
+    ],
+    "功能查看包内对象列表": [
+      "export-import"
+    ],
+    "避免意外覆盖重要数据": [
+      "export-import"
+    ],
+    "外": [
+      "ai-chat",
+      "appearance",
+      "backup-restore",
+      "export-import",
+      "ocr-scan",
+      "plugins"
+    ],
+    "导出文件安全": [
+      "export-import"
+    ],
+    "文件使用": [
+      "export-import"
+    ],
+    "aes": [
+      "export-import",
+      "privacy-policy"
+    ],
+    "gcm": [
+      "export-import",
+      "privacy-policy"
+    ],
+    "加密": [
+      "export-import",
+      "privacy-policy"
+    ],
+    "加密密码是打开文件的唯一钥匙": [
+      "export-import"
+    ],
+    "文件可以安全地通过任何渠道传输或存储": [
+      "export-import"
+    ],
+    "渠": [
+      "export-import"
+    ],
+    "道": [
+      "export-import"
+    ],
+    "如果包含高敏感度字段": [
+      "export-import"
+    ],
+    "导出密码必须足够强壮": [
+      "export-import"
+    ],
+    "须": [
+      "export-import"
+    ],
+    "足": [
+      "export-import"
+    ],
+    "够": [
+      "export-import"
+    ],
+    "强": [
+      "export-import"
+    ],
+    "壮": [
+      "export-import"
+    ],
+    "建议使用": [
+      "export-import"
+    ],
+    "位以上混合字符密码": [
+      "export-import"
+    ],
+    "位": [
+      "audit-log",
+      "backup-restore",
+      "export-import",
+      "search"
+    ],
+    "混": [
+      "export-import"
+    ],
+    "符": [
+      "export-import",
+      "ocr-scan"
+    ],
+    "lets": [
+      "ai-chat",
+      "export-import",
+      "ocr-scan",
+      "search"
+    ],
+    "exchange": [
+      "export-import",
+      "sync"
+    ],
+    "format": [
+      "backup-restore",
+      "export-import",
+      "plugins"
+    ],
+    "exporting": [
+      "audit-log",
+      "export-import"
+    ],
+    "options": [
+      "appearance",
+      "export-import"
+    ],
+    "include": [
+      "backup-restore",
+      "export-import",
+      "search"
+    ],
+    "theme": [
+      "appearance",
+      "export-import"
+    ],
+    "language": [
+      "appearance",
+      "export-import",
+      "llm-config"
+    ],
+    "behavioral": [
+      "export-import"
+    ],
+    "logs": [
+      "audit-log",
+      "backup-restore",
+      "export-import"
+    ],
+    "selected": [
+      "appearance",
+      "export-import"
+    ],
+    "need": [
+      "export-import"
+    ],
+    "path": [
+      "backup-restore",
+      "export-import"
+    ],
+    "importing": [
+      "export-import"
+    ],
+    "switch": [
+      "ai-chat",
+      "appearance",
+      "export-import",
+      "llm-config",
+      "sync"
+    ],
+    "content": [
+      "audit-log",
+      "export-import",
+      "privacy-policy",
+      "sync",
+      "terms-of-service"
+    ],
+    "strategy": [
+      "export-import"
+    ],
+    "skip": [
+      "export-import"
+    ],
+    "existing": [
+      "export-import"
+    ],
+    "keep": [
+      "export-import"
+    ],
+    "duplicates": [
+      "export-import"
+    ],
+    "overwrite": [
+      "backup-restore",
+      "export-import"
+    ],
+    "replace": [
+      "export-import"
+    ],
+    "imported": [
+      "export-import"
+    ],
+    "merge": [
+      "export-import"
+    ],
+    "conflicts": [
+      "export-import",
+      "sync"
+    ],
+    "non": [
+      "export-import"
+    ],
+    "conflicting": [
+      "export-import"
+    ],
+    "review": [
+      "export-import",
+      "ocr-scan",
+      "plugins"
+    ],
+    "package": [
+      "export-import"
+    ],
+    "contents": [
+      "export-import",
+      "privacy-policy",
+      "search"
+    ],
+    "avoid": [
+      "export-import"
+    ],
+    "accidentally": [
+      "export-import"
+    ],
+    "overwriting": [
+      "export-import"
+    ],
+    "safely": [
+      "export-import"
+    ],
+    "transmitted": [
+      "export-import"
+    ],
+    "through": [
+      "export-import",
+      "plugins",
+      "terms-of-service"
+    ],
+    "channel": [
+      "export-import"
+    ],
+    "sufficiently": [
+      "export-import"
+    ],
+    "strong": [
+      "export-import"
+    ],
+    "we": [
+      "backup-restore",
+      "export-import",
+      "sync",
+      "terms-of-service"
+    ],
+    "recommend": [
+      "backup-restore",
+      "export-import",
+      "sync",
+      "terms-of-service"
+    ],
+    "character": [
+      "export-import",
+      "ocr-scan"
+    ],
+    "passwords": [
+      "export-import",
+      "terms-of-service"
+    ],
+    "备份与恢复": [
+      "backup-restore",
+      "terms-of-service"
+    ],
+    "备份": [
+      "backup-restore"
+    ],
+    "备份功能创建保险库的完整加密快照": [
+      "backup-restore"
+    ],
+    "用于灾难恢复": [
+      "backup-restore"
+    ],
+    "灾": [
+      "backup-restore"
+    ],
+    "难": [
+      "backup-restore"
+    ],
+    "创建备份": [
+      "backup-restore"
+    ],
+    "输入备份名称": [
+      "backup-restore"
+    ],
+    "更新前备份": [
+      "backup-restore"
+    ],
+    "等待备份完成": [
+      "backup-restore"
+    ],
+    "备份文件存储在保险库目录中": [
+      "backup-restore"
+    ],
+    "包含": [
+      "backup-restore"
+    ],
+    "所有对象和档案数据": [
+      "backup-restore"
+    ],
+    "附件文件": [
+      "backup-restore"
+    ],
+    "偏好设置": [
+      "backup-restore"
+    ],
+    "操作日志": [
+      "audit-log",
+      "backup-restore"
+    ],
+    "建议在重大操作前": [
+      "backup-restore"
+    ],
+    "如批量导入": [
+      "backup-restore"
+    ],
+    "批": [
+      "backup-restore"
+    ],
+    "版本升级": [
+      "backup-restore"
+    ],
+    "升": [
+      "backup-restore"
+    ],
+    "恢复备份": [
+      "backup-restore"
+    ],
+    "在备份列表中找到目标备份": [
+      "backup-restore"
+    ],
+    "确认恢复操作": [
+      "backup-restore"
+    ],
+    "恢复备份将": [
+      "backup-restore"
+    ],
+    "当前保险库中的所有数据": [
+      "backup-restore"
+    ],
+    "请确保当前数据已另行保存": [
+      "backup-restore"
+    ],
+    "另": [
+      "backup-restore"
+    ],
+    "删除备份": [
+      "backup-restore"
+    ],
+    "备份列表中的每个备份都可以单独删除": [
+      "backup-restore"
+    ],
+    "释放存储空间": [
+      "backup-restore"
+    ],
+    "释": [
+      "backup-restore"
+    ],
+    "vs": [
+      "backup-restore"
+    ],
+    "功能": [
+      "backup-restore",
+      "llm-config"
+    ],
+    "范围": [
+      "backup-restore"
+    ],
+    "范": [
+      "audit-log",
+      "backup-restore",
+      "search"
+    ],
+    "围": [
+      "audit-log",
+      "backup-restore",
+      "search"
+    ],
+    "整个保险库": [
+      "backup-restore"
+    ],
+    "可选对象": [
+      "backup-restore"
+    ],
+    "格式": [
+      "backup-restore"
+    ],
+    "内部快照": [
+      "backup-restore"
+    ],
+    "本地灾难恢复": [
+      "backup-restore"
+    ],
+    "跨设备迁移": [
+      "backup-restore"
+    ],
+    "跨": [
+      "backup-restore",
+      "search"
+    ],
+    "迁": [
+      "backup-restore"
+    ],
+    "外部存档": [
+      "backup-restore"
+    ],
+    "位置": [
+      "backup-restore"
+    ],
+    "保险库目录": [
+      "backup-restore"
+    ],
+    "用户指定路径": [
+      "backup-restore"
+    ],
+    "disaster": [
+      "backup-restore"
+    ],
+    "pre": [
+      "backup-restore"
+    ],
+    "directory": [
+      "backup-restore"
+    ],
+    "profile": [
+      "audit-log",
+      "backup-restore",
+      "sync"
+    ],
+    "major": [
+      "backup-restore"
+    ],
+    "bulk": [
+      "backup-restore"
+    ],
+    "imports": [
+      "backup-restore"
+    ],
+    "upgrades": [
+      "backup-restore"
+    ],
+    "make": [
+      "backup-restore"
+    ],
+    "sure": [
+      "backup-restore"
+    ],
+    "elsewhere": [
+      "backup-restore"
+    ],
+    "backups": [
+      "backup-restore",
+      "terms-of-service"
+    ],
+    "individually": [
+      "backup-restore",
+      "llm-config"
+    ],
+    "free": [
+      "backup-restore"
+    ],
+    "scope": [
+      "backup-restore",
+      "search"
+    ],
+    "entire": [
+      "backup-restore"
+    ],
+    "selectable": [
+      "backup-restore"
+    ],
+    "cross": [
+      "backup-restore"
+    ],
+    "migration": [
+      "backup-restore"
+    ],
+    "external": [
+      "ai-chat",
+      "backup-restore",
+      "ocr-scan",
+      "plugins"
+    ],
+    "archiving": [
+      "backup-restore"
+    ],
+    "location": [
+      "audit-log",
+      "backup-restore"
+    ],
+    "user": [
+      "audit-log",
+      "backup-restore",
+      "llm-config",
+      "terms-of-service"
+    ],
+    "specified": [
+      "backup-restore"
+    ],
+    "全局搜索": [
+      "search"
+    ],
+    "局": [
+      "search",
+      "sync"
+    ],
+    "global": [
+      "search"
+    ],
+    "搜索": [
+      "search"
+    ],
+    "查找": [
+      "search"
+    ],
+    "query": [
+      "search"
+    ],
+    "全局搜索让您可以跨所有分区快速查找对象": [
+      "search"
+    ],
+    "使用搜索": [
+      "search"
+    ],
+    "点击侧边栏": [
+      "search"
+    ],
+    "图标或按快捷键": [
+      "search"
+    ],
+    "捷": [
+      "search"
+    ],
+    "在搜索框输入关键词": [
+      "search"
+    ],
+    "结果实时显示匹配的对象": [
+      "search"
+    ],
+    "搜索结果包含": [
+      "search"
+    ],
+    "对象名称": [
+      "search"
+    ],
+    "匹配的属性字段名和值": [
+      "search"
+    ],
+    "相关度排序": [
+      "search"
+    ],
+    "序": [
+      "audit-log",
+      "search"
+    ],
+    "搜索范围": [
+      "search"
+    ],
+    "搜索会扫描以下字段": [
+      "search"
+    ],
+    "所有属性值": [
+      "search"
+    ],
+    "搜索仅查找对象级别的信息": [
+      "search"
+    ],
+    "不搜索附件内容": [
+      "search"
+    ],
+    "如需查找附件": [
+      "search"
+    ],
+    "请进入对应对象的附件列表": [
+      "search"
+    ],
+    "从搜索结果打开": [
+      "search"
+    ],
+    "点击搜索结果中的对象卡片即可进入工作区并定位到该对象": [
+      "search"
+    ],
+    "搜索隐私": [
+      "search"
+    ],
+    "搜索完全在本地执行": [
+      "search"
+    ],
+    "不涉及网络请求": [
+      "search"
+    ],
+    "涉": [
+      "search"
+    ],
+    "网": [
+      "search",
+      "sync"
+    ],
+    "络": [
+      "search",
+      "sync"
+    ],
+    "求": [
+      "plugins",
+      "search"
+    ],
+    "敏感字段的匹配结果同样遵循敏感度规则": [
+      "search"
+    ],
+    "across": [
+      "search",
+      "sync"
+    ],
+    "keyboard": [
+      "search"
+    ],
+    "shortcut": [
+      "search"
+    ],
+    "belongs": [
+      "audit-log",
+      "search"
+    ],
+    "matched": [
+      "search"
+    ],
+    "relevance": [
+      "search"
+    ],
+    "ranking": [
+      "search"
+    ],
+    "following": [
+      "audit-log",
+      "llm-config",
+      "search",
+      "sync",
+      "terms-of-service"
+    ],
+    "values": [
+      "search"
+    ],
+    "looks": [
+      "search"
+    ],
+    "opening": [
+      "search"
+    ],
+    "locate": [
+      "search"
+    ],
+    "runs": [
+      "search"
+    ],
+    "entirely": [
+      "search"
+    ],
+    "network": [
+      "search",
+      "sync"
+    ],
+    "requests": [
+      "plugins",
+      "search"
+    ],
+    "matches": [
+      "search"
+    ],
+    "同步": [
+      "sync"
+    ],
+    "sync": [
+      "sync"
+    ],
+    "设备": [
+      "sync"
+    ],
+    "局域网": [
+      "sync"
+    ],
+    "同步功能帮助您在多台设备间发现彼此并交换数据": [
+      "sync"
+    ],
+    "彼": [
+      "sync"
+    ],
+    "设备发现": [
+      "sync"
+    ],
+    "使用": [
+      "ocr-scan",
+      "sync",
+      "terms-of-service"
+    ],
+    "mdns": [
+      "sync"
+    ],
+    "bonjour": [
+      "sync"
+    ],
+    "avahi": [
+      "sync"
+    ],
+    "在同一局域网内发现其他设备": [
+      "sync"
+    ],
+    "他": [
+      "llm-config",
+      "sync"
+    ],
+    "扫描设备": [
+      "sync"
+    ],
+    "系统将在局域网内搜索其他运行": [
+      "sync"
+    ],
+    "运": [
+      "plugins",
+      "sync"
+    ],
+    "的设备": [
+      "sync"
+    ],
+    "发现的设备将显示在列表中": [
+      "sync"
+    ],
+    "设备发现需要在同一局域网": [
+      "sync"
+    ],
+    "wi": [
+      "sync"
+    ],
+    "fi": [
+      "sync"
+    ],
+    "不同网络环境下的设备无法自动发现": [
+      "sync"
+    ],
+    "环": [
+      "plugins",
+      "sync"
+    ],
+    "境": [
+      "plugins",
+      "sync"
+    ],
+    "启用同步": [
+      "sync"
+    ],
+    "在同步页面打开": [
+      "sync"
+    ],
+    "开关": [
+      "ai-chat",
+      "sync"
+    ],
+    "选择要连接的设备": [
+      "sync"
+    ],
+    "连": [
+      "ai-chat",
+      "llm-config",
+      "sync"
+    ],
+    "接": [
+      "ai-chat",
+      "llm-config",
+      "ocr-scan",
+      "sync"
+    ],
+    "确认配对": [
+      "sync"
+    ],
+    "同步内容": [
+      "sync"
+    ],
+    "同步将交换以下数据": [
+      "sync"
+    ],
+    "对象数据": [
+      "sync"
+    ],
+    "加密传输": [
+      "sync"
+    ],
+    "档案信息": [
+      "sync"
+    ],
+    "同步功能目前处于早期阶段": [
+      "sync"
+    ],
+    "阶": [
+      "plugins",
+      "sync"
+    ],
+    "建议在同步前创建本地备份": [
+      "sync"
+    ],
+    "以防数据冲突": [
+      "sync"
+    ],
+    "防": [
+      "sync"
+    ],
+    "离线使用": [
+      "sync"
+    ],
+    "完全支持离线使用": [
+      "sync"
+    ],
+    "同步是可选功能": [
+      "sync"
+    ],
+    "不影响本地数据的完整性和可用性": [
+      "sync"
+    ],
+    "helps": [
+      "sync"
+    ],
+    "discover": [
+      "sync"
+    ],
+    "other": [
+      "appearance",
+      "sync"
+    ],
+    "devices": [
+      "sync"
+    ],
+    "discovery": [
+      "sync"
+    ],
+    "scan": [
+      "ocr-scan",
+      "sync"
+    ],
+    "searches": [
+      "sync"
+    ],
+    "instances": [
+      "sync"
+    ],
+    "lan": [
+      "sync"
+    ],
+    "discovered": [
+      "sync"
+    ],
+    "different": [
+      "sync"
+    ],
+    "networks": [
+      "sync"
+    ],
+    "turn": [
+      "ai-chat",
+      "sync"
+    ],
+    "connect": [
+      "sync"
+    ],
+    "pairing": [
+      "sync"
+    ],
+    "exchanges": [
+      "sync"
+    ],
+    "transmission": [
+      "sync"
+    ],
+    "currently": [
+      "plugins",
+      "sync"
+    ],
+    "early": [
+      "sync"
+    ],
+    "stages": [
+      "sync"
+    ],
+    "syncing": [
+      "sync"
+    ],
+    "prevent": [
+      "sync"
+    ],
+    "offline": [
+      "sync"
+    ],
+    "functional": [
+      "sync"
+    ],
+    "integrity": [
+      "audit-log",
+      "sync"
+    ],
+    "ocr": [
+      "ocr-scan"
+    ],
+    "与扫描": [
+      "ocr-scan"
+    ],
+    "扫描": [
+      "ocr-scan"
+    ],
+    "识别": [
+      "ocr-scan"
+    ],
+    "recognition": [
+      "ocr-scan"
+    ],
+    "光学字符识别": [
+      "ocr-scan"
+    ],
+    "光": [
+      "ocr-scan"
+    ],
+    "学": [
+      "ocr-scan"
+    ],
+    "功能让您可以从图片中提取文字并创建对象": [
+      "ocr-scan"
+    ],
+    "取": [
+      "ocr-scan",
+      "privacy-policy"
+    ],
+    "从侧边栏或首页进入": [
+      "ocr-scan"
+    ],
+    "选择图片": [
+      "ocr-scan"
+    ],
+    "上传包含文字的图片": [
+      "ocr-scan"
+    ],
+    "系统识别后显示提取的文本和置信度": [
+      "ocr-scan"
+    ],
+    "检查识别结果": [
+      "ocr-scan"
+    ],
+    "必要时手动修正": [
+      "ocr-scan"
+    ],
+    "导入为对象": [
+      "ocr-scan"
+    ],
+    "选择目标分区": [
+      "ocr-scan"
+    ],
+    "扫描护照信息页": [
+      "ocr-scan"
+    ],
+    "上传护照信息页照片": [
+      "ocr-scan"
+    ],
+    "等待识别完成": [
+      "ocr-scan"
+    ],
+    "检查识别字段": [
+      "ocr-scan"
+    ],
+    "护照号": [
+      "ocr-scan"
+    ],
+    "国籍等": [
+      "ocr-scan"
+    ],
+    "支持的图片格式": [
+      "ocr-scan"
+    ],
+    "jpeg": [
+      "ocr-scan"
+    ],
+    "tiff": [
+      "ocr-scan"
+    ],
+    "识别字段": [
+      "ocr-scan"
+    ],
+    "引擎会尝试自动识别常见字段": [
+      "ocr-scan"
+    ],
+    "尝": [
+      "ocr-scan"
+    ],
+    "见": [
+      "audit-log",
+      "ocr-scan"
+    ],
+    "日期": [
+      "ocr-scan"
+    ],
+    "号码类字段": [
+      "ocr-scan"
+    ],
+    "识别结果以键值对形式呈现": [
+      "ocr-scan"
+    ],
+    "呈": [
+      "ocr-scan"
+    ],
+    "置信度低于": [
+      "ocr-scan"
+    ],
+    "的字段会特别标注": [
+      "ocr-scan"
+    ],
+    "特": [
+      "ocr-scan",
+      "privacy-policy"
+    ],
+    "为获得最佳识别效果": [
+      "ocr-scan"
+    ],
+    "获": [
+      "llm-config",
+      "ocr-scan"
+    ],
+    "得": [
+      "llm-config",
+      "ocr-scan"
+    ],
+    "佳": [
+      "ocr-scan"
+    ],
+    "请确保图片清晰": [
+      "ocr-scan"
+    ],
+    "晰": [
+      "ocr-scan"
+    ],
+    "文字区域占画面主要部分": [
+      "ocr-scan"
+    ],
+    "画": [
+      "ocr-scan"
+    ],
+    "光线均匀": [
+      "ocr-scan"
+    ],
+    "均": [
+      "llm-config",
+      "ocr-scan"
+    ],
+    "匀": [
+      "ocr-scan"
+    ],
+    "本地文件导入": [
+      "ocr-scan"
+    ],
+    "除了": [
+      "ocr-scan"
+    ],
+    "您还可以直接将本地文件导入为对象": [
+      "ocr-scan"
+    ],
+    "直": [
+      "ai-chat",
+      "ocr-scan"
+    ],
+    "本地导入": [
+      "ocr-scan"
+    ],
+    "选择文件或文件夹": [
+      "ocr-scan"
+    ],
+    "系统扫描支持的文件类型": [
+      "ocr-scan"
+    ],
+    "勾选要导入的文件": [
+      "ocr-scan"
+    ],
+    "选择导入方式": [
+      "ocr-scan"
+    ],
+    "创建对象或附件": [
+      "ocr-scan"
+    ],
+    "隐私说明": [
+      "ai-chat",
+      "ocr-scan"
+    ],
+    "处理在本地完成": [
+      "ocr-scan"
+    ],
+    "图片不会上传到外部服务": [
+      "ocr-scan"
+    ],
+    "识别结果仅保存在您的保险库中": [
+      "ocr-scan"
+    ],
+    "optical": [
+      "ocr-scan"
+    ],
+    "extract": [
+      "ocr-scan"
+    ],
+    "upload": [
+      "ocr-scan"
+    ],
+    "containing": [
+      "ocr-scan"
+    ],
+    "extracted": [
+      "ocr-scan"
+    ],
+    "confidence": [
+      "ocr-scan"
+    ],
+    "scores": [
+      "ocr-scan"
+    ],
+    "correct": [
+      "ocr-scan"
+    ],
+    "necessary": [
+      "ocr-scan"
+    ],
+    "photo": [
+      "ocr-scan"
+    ],
+    "recognized": [
+      "ocr-scan"
+    ],
+    "recognize": [
+      "ocr-scan"
+    ],
+    "names": [
+      "ocr-scan"
+    ],
+    "dates": [
+      "ocr-scan"
+    ],
+    "presented": [
+      "ocr-scan"
+    ],
+    "pairs": [
+      "ocr-scan"
+    ],
+    "specially": [
+      "ocr-scan"
+    ],
+    "marked": [
+      "ai-chat",
+      "audit-log",
+      "ocr-scan"
+    ],
+    "best": [
+      "ocr-scan"
+    ],
+    "clear": [
+      "ocr-scan"
+    ],
+    "occupies": [
+      "ocr-scan"
+    ],
+    "main": [
+      "appearance",
+      "ocr-scan"
+    ],
+    "part": [
+      "ocr-scan"
+    ],
+    "frame": [
+      "ocr-scan"
+    ],
+    "lighting": [
+      "ocr-scan"
+    ],
+    "even": [
+      "ocr-scan",
+      "privacy-policy"
+    ],
+    "directly": [
+      "ai-chat",
+      "ocr-scan"
+    ],
+    "folders": [
+      "ocr-scan"
+    ],
+    "want": [
+      "ocr-scan"
+    ],
+    "method": [
+      "ocr-scan"
+    ],
+    "notes": [
+      "ai-chat",
+      "ocr-scan",
+      "terms-of-service"
+    ],
+    "processing": [
+      "ocr-scan",
+      "privacy-policy"
+    ],
+    "done": [
+      "ocr-scan"
+    ],
+    "services": [
+      "ocr-scan"
+    ],
+    "主题与外观": [
+      "appearance"
+    ],
+    "观": [
+      "appearance"
+    ],
+    "appearance": [
+      "appearance"
+    ],
+    "主题": [
+      "appearance"
+    ],
+    "外观": [
+      "appearance"
+    ],
+    "颜色": [
+      "appearance"
+    ],
+    "语言": [
+      "appearance"
+    ],
+    "color": [
+      "appearance"
+    ],
+    "外观设置让您可以自定义": [
+      "appearance"
+    ],
+    "的视觉风格": [
+      "appearance"
+    ],
+    "觉": [
+      "appearance"
+    ],
+    "风": [
+      "ai-chat",
+      "appearance"
+    ],
+    "主题模式": [
+      "appearance"
+    ],
+    "提供三种主题选项": [
+      "appearance"
+    ],
+    "选项": [
+      "appearance"
+    ],
+    "跟随系统": [
+      "appearance"
+    ],
+    "跟": [
+      "appearance"
+    ],
+    "自动匹配操作系统明暗模式": [
+      "appearance"
+    ],
+    "暗": [
+      "appearance"
+    ],
+    "浅色": [
+      "appearance"
+    ],
+    "浅": [
+      "appearance"
+    ],
+    "色": [
+      "appearance"
+    ],
+    "明亮色调界面": [
+      "appearance"
+    ],
+    "亮": [
+      "appearance"
+    ],
+    "深色": [
+      "appearance"
+    ],
+    "深": [
+      "appearance"
+    ],
+    "暗色调界面": [
+      "appearance"
+    ],
+    "主题色": [
+      "appearance"
+    ],
+    "提供四种预设主题色": [
+      "appearance"
+    ],
+    "海洋蓝": [
+      "appearance"
+    ],
+    "海": [
+      "appearance"
+    ],
+    "洋": [
+      "appearance"
+    ],
+    "蓝": [
+      "appearance"
+    ],
+    "沉稳专业": [
+      "appearance"
+    ],
+    "沉": [
+      "appearance"
+    ],
+    "稳": [
+      "appearance"
+    ],
+    "专": [
+      "appearance",
+      "terms-of-service"
+    ],
+    "琥珀金": [
+      "appearance"
+    ],
+    "琥": [
+      "appearance"
+    ],
+    "珀": [
+      "appearance"
+    ],
+    "金": [
+      "appearance"
+    ],
+    "温暖柔和": [
+      "appearance"
+    ],
+    "温": [
+      "appearance"
+    ],
+    "暖": [
+      "appearance"
+    ],
+    "柔": [
+      "appearance"
+    ],
+    "森林绿": [
+      "appearance"
+    ],
+    "森": [
+      "appearance"
+    ],
+    "林": [
+      "appearance"
+    ],
+    "绿": [
+      "appearance"
+    ],
+    "自然清新": [
+      "appearance"
+    ],
+    "然": [
+      "appearance",
+      "llm-config"
+    ],
+    "玫瑰红": [
+      "appearance"
+    ],
+    "玫": [
+      "appearance"
+    ],
+    "瑰": [
+      "appearance"
+    ],
+    "红": [
+      "appearance"
+    ],
+    "优雅精致": [
+      "appearance"
+    ],
+    "雅": [
+      "appearance"
+    ],
+    "致": [
+      "appearance"
+    ],
+    "选择后": [
+      "appearance"
+    ],
+    "主题色将应用于按钮": [
+      "appearance"
+    ],
+    "徽章": [
+      "appearance"
+    ],
+    "高亮等元素": [
+      "appearance"
+    ],
+    "素": [
+      "appearance"
+    ],
+    "背景": [
+      "appearance"
+    ],
+    "支持自定义背景类型": [
+      "appearance"
+    ],
+    "纯色": [
+      "appearance"
+    ],
+    "纯": [
+      "appearance"
+    ],
+    "选择单一颜色作为背景": [
+      "appearance"
+    ],
+    "颜": [
+      "appearance"
+    ],
+    "渐变": [
+      "appearance"
+    ],
+    "渐": [
+      "appearance"
+    ],
+    "使用渐变色背景": [
+      "appearance"
+    ],
+    "使用本地图片作为背景": [
+      "appearance"
+    ],
+    "背景设置会影响整个应用的主界面区域": [
+      "appearance"
+    ],
+    "侧边栏和工具栏保持固定样式以确保可读性": [
+      "appearance"
+    ],
+    "具": [
+      "appearance",
+      "plugins"
+    ],
+    "读": [
+      "ai-chat",
+      "appearance",
+      "audit-log",
+      "privacy-policy"
+    ],
+    "支持切换界面语言": [
+      "appearance"
+    ],
+    "中文": [
+      "appearance"
+    ],
+    "简体": [
+      "appearance"
+    ],
+    "简": [
+      "appearance"
+    ],
+    "体": [
+      "appearance",
+      "audit-log",
+      "plugins"
+    ],
+    "english": [
+      "appearance"
+    ],
+    "切换后立即生效": [
+      "appearance"
+    ],
+    "无需重启应用": [
+      "appearance"
+    ],
+    "实时预览": [
+      "appearance"
+    ],
+    "所有外观更改都是即时生效的": [
+      "appearance"
+    ],
+    "您可以实时看到效果": [
+      "appearance"
+    ],
+    "let": [
+      "appearance"
+    ],
+    "customize": [
+      "appearance"
+    ],
+    "visual": [
+      "appearance"
+    ],
+    "mode": [
+      "appearance"
+    ],
+    "three": [
+      "appearance"
+    ],
+    "option": [
+      "appearance"
+    ],
+    "match": [
+      "appearance"
+    ],
+    "os": [
+      "appearance"
+    ],
+    "light": [
+      "appearance"
+    ],
+    "dark": [
+      "appearance"
+    ],
+    "bright": [
+      "appearance"
+    ],
+    "tone": [
+      "appearance"
+    ],
+    "accent": [
+      "appearance"
+    ],
+    "colors": [
+      "appearance"
+    ],
+    "ocean": [
+      "appearance"
+    ],
+    "calm": [
+      "appearance"
+    ],
+    "amber": [
+      "appearance"
+    ],
+    "warm": [
+      "appearance"
+    ],
+    "forest": [
+      "appearance"
+    ],
+    "natural": [
+      "appearance",
+      "llm-config"
+    ],
+    "fresh": [
+      "ai-chat",
+      "appearance"
+    ],
+    "rose": [
+      "appearance"
+    ],
+    "elegant": [
+      "appearance"
+    ],
+    "refined": [
+      "appearance"
+    ],
+    "applies": [
+      "appearance"
+    ],
+    "buttons": [
+      "appearance"
+    ],
+    "badges": [
+      "appearance"
+    ],
+    "highlights": [
+      "appearance"
+    ],
+    "elements": [
+      "appearance"
+    ],
+    "solid": [
+      "appearance"
+    ],
+    "single": [
+      "appearance"
+    ],
+    "gradient": [
+      "appearance"
+    ],
+    "toolbar": [
+      "appearance"
+    ],
+    "maintain": [
+      "appearance"
+    ],
+    "styles": [
+      "appearance"
+    ],
+    "readability": [
+      "appearance"
+    ],
+    "take": [
+      "appearance"
+    ],
+    "effect": [
+      "appearance"
+    ],
+    "immediately": [
+      "appearance"
+    ],
+    "restarting": [
+      "appearance"
+    ],
+    "live": [
+      "appearance"
+    ],
+    "applied": [
+      "appearance"
+    ],
+    "instantly": [
+      "appearance"
+    ],
+    "see": [
+      "appearance"
+    ],
+    "日志": [
+      "audit-log"
+    ],
+    "审计": [
+      "audit-log"
+    ],
+    "记录": [
+      "audit-log"
+    ],
+    "操作日志记录了对保险库的所有重要操作": [
+      "audit-log"
+    ],
+    "用于审计和安全追溯": [
+      "audit-log"
+    ],
+    "追": [
+      "audit-log"
+    ],
+    "查看日志": [
+      "audit-log"
+    ],
+    "日志按时间倒序排列": [
+      "audit-log"
+    ],
+    "倒": [
+      "audit-log"
+    ],
+    "每条记录包含": [
+      "audit-log"
+    ],
+    "时间": [
+      "audit-log"
+    ],
+    "操作类型": [
+      "audit-log"
+    ],
+    "操作对象": [
+      "audit-log"
+    ],
+    "操作人": [
+      "audit-log"
+    ],
+    "详情": [
+      "audit-log"
+    ],
+    "筛选日志": [
+      "audit-log"
+    ],
+    "支持按以下条件筛选": [
+      "audit-log"
+    ],
+    "更新": [
+      "audit-log"
+    ],
+    "回滚等": [
+      "audit-log"
+    ],
+    "实体类型": [
+      "audit-log"
+    ],
+    "档案": [
+      "audit-log"
+    ],
+    "导入等": [
+      "audit-log"
+    ],
+    "用户操作": [
+      "audit-log"
+    ],
+    "系统自动": [
+      "audit-log"
+    ],
+    "日志内容": [
+      "audit-log"
+    ],
+    "常见操作记录示例": [
+      "audit-log"
+    ],
+    "详情说明": [
+      "audit-log"
+    ],
+    "显示所属分区": [
+      "audit-log"
+    ],
+    "更新对象": [
+      "audit-log"
+    ],
+    "记录字段变更摘要": [
+      "audit-log"
+    ],
+    "摘": [
+      "audit-log"
+    ],
+    "删除对象": [
+      "audit-log"
+    ],
+    "标记为移入回收站": [
+      "audit-log"
+    ],
+    "标记为恢复到原位置": [
+      "audit-log"
+    ],
+    "记录删除的对象名称": [
+      "audit-log"
+    ],
+    "记录启用位置": [
+      "audit-log"
+    ],
+    "导出日志": [
+      "audit-log"
+    ],
+    "可以将当前筛选范围内的日志导出为文本文件": [
+      "audit-log"
+    ],
+    "操作日志是只读的": [
+      "audit-log"
+    ],
+    "用户无法修改或删除日志条目": [
+      "audit-log"
+    ],
+    "这确保了审计的完整性": [
+      "audit-log"
+    ],
+    "日志保留": [
+      "audit-log"
+    ],
+    "操作日志长期保留在本地": [
+      "audit-log"
+    ],
+    "长": [
+      "audit-log"
+    ],
+    "如需清理历史日志": [
+      "audit-log"
+    ],
+    "请使用": [
+      "audit-log"
+    ],
+    "调试日志": [
+      "audit-log"
+    ],
+    "页面的相关功能": [
+      "audit-log"
+    ],
+    "significant": [
+      "audit-log",
+      "terms-of-service"
+    ],
+    "auditing": [
+      "audit-log"
+    ],
+    "tracing": [
+      "audit-log"
+    ],
+    "listed": [
+      "audit-log"
+    ],
+    "reverse": [
+      "audit-log"
+    ],
+    "chronological": [
+      "audit-log"
+    ],
+    "order": [
+      "audit-log"
+    ],
+    "entity": [
+      "audit-log"
+    ],
+    "performer": [
+      "audit-log"
+    ],
+    "examples": [
+      "audit-log"
+    ],
+    "detail": [
+      "audit-log"
+    ],
+    "summary": [
+      "audit-log"
+    ],
+    "moved": [
+      "audit-log"
+    ],
+    "enablement": [
+      "audit-log"
+    ],
+    "range": [
+      "audit-log"
+    ],
+    "read": [
+      "ai-chat",
+      "audit-log",
+      "privacy-policy"
+    ],
+    "users": [
+      "audit-log"
+    ],
+    "entries": [
+      "audit-log"
+    ],
+    "ensures": [
+      "audit-log"
+    ],
+    "retention": [
+      "audit-log"
+    ],
+    "long": [
+      "audit-log"
+    ],
+    "term": [
+      "audit-log"
+    ],
+    "clean": [
+      "audit-log"
+    ],
+    "relevant": [
+      "audit-log"
+    ],
+    "debug": [
+      "audit-log"
+    ],
+    "聊天": [
+      "ai-chat"
+    ],
+    "对话功能让您可以直接在软件中与": [
+      "ai-chat"
+    ],
+    "助手交流": [
+      "ai-chat"
+    ],
+    "流": [
+      "ai-chat",
+      "plugins"
+    ],
+    "同时保持对数据的完全控制": [
+      "ai-chat"
+    ],
+    "控": [
+      "ai-chat",
+      "llm-config",
+      "terms-of-service"
+    ],
+    "制": [
+      "ai-chat",
+      "llm-config",
+      "terms-of-service"
+    ],
+    "开启": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "打开": [
+      "ai-chat"
+    ],
+    "阅读风险告知并勾选": [
+      "ai-chat"
+    ],
+    "阅": [
+      "ai-chat"
+    ],
+    "告": [
+      "ai-chat",
+      "llm-config",
+      "terms-of-service"
+    ],
+    "我已了解风险": [
+      "ai-chat"
+    ],
+    "服务商": [
+      "ai-chat",
+      "privacy-policy"
+    ],
+    "商": [
+      "ai-chat",
+      "llm-config",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "选择内置": [
+      "ai-chat"
+    ],
+    "provider": [
+      "ai-chat",
+      "llm-config",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "openai": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "anthropic": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "deepseek": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "或添加自定义": [
+      "ai-chat"
+    ],
+    "填写": [
+      "ai-chat"
+    ],
+    "api": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "密钥": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "功能开关": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "阅读风险告知并确认": [
+      "ai-chat"
+    ],
+    "选择一个": [
+      "ai-chat"
+    ],
+    "测试连接": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "验证可用性": [
+      "ai-chat"
+    ],
+    "使用方式": [
+      "ai-chat"
+    ],
+    "从侧边栏点击": [
+      "ai-chat"
+    ],
+    "图标进入": [
+      "ai-chat"
+    ],
+    "在底部输入框中输入问题": [
+      "ai-chat"
+    ],
+    "发送": [
+      "ai-chat"
+    ],
+    "助手会基于您主动公开的信息和软件文档回答": [
+      "ai-chat"
+    ],
+    "答": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "是每次对话时自动注入的上下文信息": [
+      "ai-chat"
+    ],
+    "包括": [
+      "ai-chat"
+    ],
+    "软件基本信息": [
+      "ai-chat"
+    ],
+    "您设置为": [
+      "ai-chat"
+    ],
+    "级别的对象数据": [
+      "ai-chat"
+    ],
+    "软件使用统计": [
+      "ai-chat"
+    ],
+    "对话次数": [
+      "ai-chat"
+    ],
+    "token": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "使用量等": [
+      "ai-chat"
+    ],
+    "配置中关闭系统提示词注入": [
+      "ai-chat"
+    ],
+    "系统提示词仅包含您主动公开的信息": [
+      "ai-chat"
+    ],
+    "关键数据绝不会发送给": [
+      "ai-chat"
+    ],
+    "对话管理": [
+      "ai-chat"
+    ],
+    "新对话": [
+      "ai-chat"
+    ],
+    "按钮开始新的聊天线程": [
+      "ai-chat"
+    ],
+    "聊": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "删除对话": [
+      "ai-chat"
+    ],
+    "点击对话列表中的删除图标": [
+      "ai-chat"
+    ],
+    "对话将移入回收站": [
+      "ai-chat"
+    ],
+    "在对话页面点击": [
+      "ai-chat"
+    ],
+    "查看和恢复已删除的对话": [
+      "ai-chat"
+    ],
+    "对话内容通过": [
+      "ai-chat"
+    ],
+    "sse": [
+      "ai-chat"
+    ],
+    "events": [
+      "ai-chat"
+    ],
+    "流式传输": [
+      "ai-chat"
+    ],
+    "所有对话历史仅存储在本地": [
+      "ai-chat"
+    ],
+    "服务商可能根据其隐私政策处理您的数据": [
+      "ai-chat"
+    ],
+    "政": [
+      "ai-chat",
+      "privacy-policy"
+    ],
+    "功能会将数据发送到外部": [
+      "ai-chat"
+    ],
+    "请勿通过": [
+      "ai-chat",
+      "terms-of-service"
+    ],
+    "勿": [
+      "ai-chat",
+      "terms-of-service"
+    ],
+    "对话分享敏感或受限级别的数据": [
+      "ai-chat"
+    ],
+    "享": [
+      "ai-chat"
+    ],
+    "communicate": [
+      "ai-chat"
+    ],
+    "while": [
+      "ai-chat"
+    ],
+    "maintaining": [
+      "ai-chat"
+    ],
+    "control": [
+      "ai-chat",
+      "llm-config",
+      "terms-of-service"
+    ],
+    "over": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "risk": [
+      "ai-chat"
+    ],
+    "notice": [
+      "ai-chat"
+    ],
+    "risks": [
+      "ai-chat"
+    ],
+    "acknowledge": [
+      "ai-chat"
+    ],
+    "connection": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "how": [
+      "ai-chat"
+    ],
+    "question": [
+      "ai-chat"
+    ],
+    "input": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "press": [
+      "ai-chat"
+    ],
+    "responds": [
+      "ai-chat"
+    ],
+    "publicly": [
+      "ai-chat"
+    ],
+    "shared": [
+      "ai-chat"
+    ],
+    "software": [
+      "ai-chat",
+      "llm-config",
+      "terms-of-service"
+    ],
+    "docs": [
+      "ai-chat"
+    ],
+    "context": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "conversation": [
+      "ai-chat",
+      "privacy-policy"
+    ],
+    "including": [
+      "ai-chat"
+    ],
+    "statistics": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "actively": [
+      "ai-chat"
+    ],
+    "share": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "thread": [
+      "ai-chat"
+    ],
+    "conversations": [
+      "ai-chat",
+      "llm-config"
+    ],
+    "streamed": [
+      "ai-chat"
+    ],
+    "via": [
+      "ai-chat",
+      "terms-of-service"
+    ],
+    "providers": [
+      "ai-chat",
+      "llm-config",
+      "terms-of-service"
+    ],
+    "process": [
+      "ai-chat"
+    ],
+    "according": [
+      "ai-chat"
+    ],
+    "policies": [
+      "ai-chat"
+    ],
+    "send": [
+      "ai-chat"
+    ],
+    "配置与统计": [
+      "llm-config"
+    ],
+    "统计": [
+      "llm-config"
+    ],
+    "配置管理": [
+      "llm-config"
+    ],
+    "服务商和功能的开关": [
+      "llm-config"
+    ],
+    "统计页面展示您的": [
+      "llm-config"
+    ],
+    "使用数据": [
+      "llm-config"
+    ],
+    "配置服务商": [
+      "llm-config"
+    ],
+    "内置服务商": [
+      "llm-config"
+    ],
+    "内置以下": [
+      "llm-config"
+    ],
+    "gpt": [
+      "llm-config"
+    ],
+    "系列": [
+      "llm-config"
+    ],
+    "claude": [
+      "llm-config"
+    ],
+    "配置步骤": [
+      "llm-config"
+    ],
+    "骤": [
+      "llm-config"
+    ],
+    "选择一个内置": [
+      "llm-config"
+    ],
+    "输入您的": [
+      "llm-config"
+    ],
+    "验证": [
+      "llm-config"
+    ],
+    "选择该": [
+      "llm-config"
+    ],
+    "为当前激活服务商": [
+      "llm-config"
+    ],
+    "激": [
+      "llm-config"
+    ],
+    "活": [
+      "llm-config"
+    ],
+    "自定义服务商": [
+      "llm-config"
+    ],
+    "如需使用其他兼容": [
+      "llm-config"
+    ],
+    "兼": [
+      "llm-config"
+    ],
+    "的服务": [
+      "llm-config"
+    ],
+    "添加自定义提供商": [
+      "llm-config"
+    ],
+    "输入名称": [
+      "llm-config"
+    ],
+    "基础": [
+      "llm-config"
+    ],
+    "url": [
+      "llm-config"
+    ],
+    "模型名称": [
+      "llm-config"
+    ],
+    "输入": [
+      "llm-config"
+    ],
+    "保存并测试连接": [
+      "llm-config"
+    ],
+    "使用本地模型": [
+      "llm-config"
+    ],
+    "ollama": [
+      "llm-config"
+    ],
+    "通常为": [
+      "llm-config"
+    ],
+    "http": [
+      "llm-config"
+    ],
+    "localhost": [
+      "llm-config"
+    ],
+    "v1": [
+      "llm-config"
+    ],
+    "配置页面可以单独控制各项": [
+      "llm-config"
+    ],
+    "各": [
+      "llm-config"
+    ],
+    "助手聊天": [
+      "llm-config"
+    ],
+    "智能填充": [
+      "llm-config"
+    ],
+    "自动补全对象字段": [
+      "llm-config"
+    ],
+    "补": [
+      "llm-config"
+    ],
+    "开发中": [
+      "llm-config",
+      "plugins"
+    ],
+    "命令生成": [
+      "llm-config"
+    ],
+    "令": [
+      "llm-config"
+    ],
+    "自然语言生成操作命令": [
+      "llm-config"
+    ],
+    "自然语言搜索": [
+      "llm-config"
+    ],
+    "用自然语言描述搜索意图": [
+      "llm-config"
+    ],
+    "述": [
+      "llm-config"
+    ],
+    "系统提示词开关控制是否将软件信息注入": [
+      "llm-config"
+    ],
+    "上下文": [
+      "llm-config"
+    ],
+    "了解您的公开数据和软件状态": [
+      "llm-config"
+    ],
+    "回答更精准": [
+      "llm-config"
+    ],
+    "仅发送用户输入": [
+      "llm-config"
+    ],
+    "隐私性最高": [
+      "llm-config"
+    ],
+    "使用统计": [
+      "llm-config"
+    ],
+    "配置页面右上角的": [
+      "llm-config"
+    ],
+    "图标": [
+      "llm-config"
+    ],
+    "总对话次数和": [
+      "llm-config"
+    ],
+    "总": [
+      "llm-config"
+    ],
+    "使用量": [
+      "llm-config"
+    ],
+    "各模型的使用占比": [
+      "llm-config"
+    ],
+    "比": [
+      "llm-config"
+    ],
+    "completion": [
+      "llm-config"
+    ],
+    "分布": [
+      "llm-config"
+    ],
+    "布": [
+      "llm-config",
+      "plugins",
+      "terms-of-service"
+    ],
+    "最近": [
+      "llm-config"
+    ],
+    "天的每日使用趋势": [
+      "llm-config"
+    ],
+    "趋": [
+      "llm-config"
+    ],
+    "势": [
+      "llm-config"
+    ],
+    "在线状态检测": [
+      "llm-config"
+    ],
+    "统计通过解析": [
+      "llm-config"
+    ],
+    "析": [
+      "llm-config"
+    ],
+    "服务商的真实返回数据获得": [
+      "llm-config"
+    ],
+    "真": [
+      "llm-config"
+    ],
+    "均支持精确的用量报告": [
+      "llm-config"
+    ],
+    "报": [
+      "llm-config"
+    ],
+    "switches": [
+      "llm-config"
+    ],
+    "configuring": [
+      "llm-config"
+    ],
+    "series": [
+      "llm-config"
+    ],
+    "setup": [
+      "llm-config"
+    ],
+    "active": [
+      "llm-config"
+    ],
+    "another": [
+      "llm-config"
+    ],
+    "compatible": [
+      "llm-config"
+    ],
+    "service": [
+      "llm-config",
+      "plugins",
+      "terms-of-service"
+    ],
+    "base": [
+      "llm-config"
+    ],
+    "model": [
+      "llm-config"
+    ],
+    "models": [
+      "llm-config"
+    ],
+    "typically": [
+      "llm-config"
+    ],
+    "development": [
+      "llm-config",
+      "plugins"
+    ],
+    "command": [
+      "llm-config"
+    ],
+    "gen": [
+      "llm-config"
+    ],
+    "generation": [
+      "llm-config"
+    ],
+    "controls": [
+      "llm-config"
+    ],
+    "whether": [
+      "llm-config"
+    ],
+    "knows": [
+      "llm-config"
+    ],
+    "accurate": [
+      "llm-config"
+    ],
+    "answers": [
+      "llm-config"
+    ],
+    "off": [
+      "llm-config"
+    ],
+    "maximum": [
+      "llm-config"
+    ],
+    "total": [
+      "llm-config"
+    ],
+    "distribution": [
+      "llm-config"
+    ],
+    "daily": [
+      "llm-config"
+    ],
+    "trend": [
+      "llm-config"
+    ],
+    "last": [
+      "llm-config",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "online": [
+      "llm-config"
+    ],
+    "detection": [
+      "llm-config"
+    ],
+    "obtained": [
+      "llm-config"
+    ],
+    "parsing": [
+      "llm-config"
+    ],
+    "support": [
+      "llm-config",
+      "plugins"
+    ],
+    "precise": [
+      "llm-config"
+    ],
+    "reporting": [
+      "llm-config"
+    ],
+    "插件": [
+      "plugins"
+    ],
+    "插": [
+      "plugins"
+    ],
+    "plugins": [
+      "plugins"
+    ],
+    "扩展": [
+      "plugins"
+    ],
+    "wasm": [
+      "plugins"
+    ],
+    "plugin": [
+      "plugins"
+    ],
+    "extension": [
+      "plugins"
+    ],
+    "插件系统允许扩展": [
+      "plugins"
+    ],
+    "允": [
+      "plugins"
+    ],
+    "许": [
+      "plugins",
+      "terms-of-service"
+    ],
+    "扩": [
+      "plugins"
+    ],
+    "的功能": [
+      "plugins"
+    ],
+    "当前插件系统处于开发阶段": [
+      "plugins"
+    ],
+    "插件市场": [
+      "plugins"
+    ],
+    "市": [
+      "plugins"
+    ],
+    "的插件通过独立的插件市场分发": [
+      "plugins"
+    ],
+    "插件以": [
+      "plugins"
+    ],
+    "webassembly": [
+      "plugins"
+    ],
+    "格式运行": [
+      "plugins"
+    ],
+    "每个插件在沙盒环境中执行": [
+      "plugins"
+    ],
+    "沙": [
+      "plugins"
+    ],
+    "盒": [
+      "plugins"
+    ],
+    "插件需要显式授权才能访问数据字段": [
+      "plugins"
+    ],
+    "授": [
+      "plugins"
+    ],
+    "权": [
+      "plugins",
+      "terms-of-service"
+    ],
+    "才": [
+      "plugins"
+    ],
+    "安装插件": [
+      "plugins"
+    ],
+    "装": [
+      "plugins"
+    ],
+    "浏览可用插件列表": [
+      "plugins"
+    ],
+    "安装": [
+      "plugins"
+    ],
+    "下载插件": [
+      "plugins"
+    ],
+    "载": [
+      "plugins"
+    ],
+    "安装后启用插件": [
+      "plugins"
+    ],
+    "插件授权": [
+      "plugins"
+    ],
+    "每个插件在使用前需要您的授权": [
+      "plugins"
+    ],
+    "字段级授权": [
+      "plugins"
+    ],
+    "选择允许插件访问的具体字段": [
+      "plugins"
+    ],
+    "会话授权": [
+      "plugins"
+    ],
+    "每次使用时的临时许可": [
+      "plugins"
+    ],
+    "授权可随时在设置中撤销": [
+      "plugins"
+    ],
+    "插件由第三方开发": [
+      "plugins"
+    ],
+    "由": [
+      "plugins",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "安装前请审查其权限请求": [
+      "plugins"
+    ],
+    "只安装来自可信来源的插件": [
+      "plugins"
+    ],
+    "源": [
+      "plugins",
+      "terms-of-service"
+    ],
+    "插件系统功能正在持续开发中": [
+      "plugins"
+    ],
+    "续": [
+      "plugins"
+    ],
+    "未来将支持": [
+      "plugins"
+    ],
+    "自定义数据导入器": [
+      "plugins"
+    ],
+    "外部服务集成": [
+      "plugins"
+    ],
+    "自动化工作流": [
+      "plugins"
+    ],
+    "插件相关的帮助文档将在系统正式发布后更新": [
+      "plugins"
+    ],
+    "allows": [
+      "plugins"
+    ],
+    "extending": [
+      "plugins"
+    ],
+    "functionality": [
+      "plugins"
+    ],
+    "market": [
+      "plugins"
+    ],
+    "distributed": [
+      "plugins"
+    ],
+    "independent": [
+      "plugins"
+    ],
+    "run": [
+      "plugins"
+    ],
+    "executes": [
+      "plugins"
+    ],
+    "sandboxed": [
+      "plugins"
+    ],
+    "environment": [
+      "plugins"
+    ],
+    "explicit": [
+      "plugins"
+    ],
+    "authorization": [
+      "plugins"
+    ],
+    "installing": [
+      "plugins"
+    ],
+    "install": [
+      "plugins"
+    ],
+    "download": [
+      "plugins"
+    ],
+    "installation": [
+      "plugins"
+    ],
+    "specific": [
+      "plugins"
+    ],
+    "session": [
+      "plugins"
+    ],
+    "temporary": [
+      "plugins"
+    ],
+    "permission": [
+      "plugins"
+    ],
+    "granted": [
+      "plugins"
+    ],
+    "per": [
+      "plugins"
+    ],
+    "revoked": [
+      "plugins"
+    ],
+    "developed": [
+      "plugins"
+    ],
+    "third": [
+      "plugins",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "parties": [
+      "plugins"
+    ],
+    "trusted": [
+      "plugins"
+    ],
+    "sources": [
+      "plugins"
+    ],
+    "continuous": [
+      "plugins"
+    ],
+    "future": [
+      "plugins"
+    ],
+    "importers": [
+      "plugins"
+    ],
+    "integrations": [
+      "plugins"
+    ],
+    "automation": [
+      "plugins"
+    ],
+    "workflows": [
+      "plugins"
+    ],
+    "related": [
+      "plugins",
+      "privacy-policy"
+    ],
+    "documentation": [
+      "plugins"
+    ],
+    "updated": [
+      "plugins",
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "officially": [
+      "plugins"
+    ],
+    "released": [
+      "plugins",
+      "terms-of-service"
+    ],
+    "隐私政策": [
+      "privacy-policy"
+    ],
+    "policy": [
+      "privacy-policy"
+    ],
+    "政策": [
+      "privacy-policy"
+    ],
+    "最后更新日期": [
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "06": [
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "08": [
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "数据存储": [
+      "privacy-policy"
+    ],
+    "采用": [
+      "privacy-policy"
+    ],
+    "本地优先": [
+      "privacy-policy"
+    ],
+    "架构": [
+      "privacy-policy"
+    ],
+    "所有个人数据仅存储在您的本地设备上": [
+      "privacy-policy"
+    ],
+    "数据使用": [
+      "privacy-policy"
+    ],
+    "密钥由您的主密码派生": [
+      "privacy-policy"
+    ],
+    "派": [
+      "privacy-policy"
+    ],
+    "不将任何数据上传至": [
+      "privacy-policy"
+    ],
+    "的服务器或云端": [
+      "privacy-policy"
+    ],
+    "云": [
+      "privacy-policy"
+    ],
+    "零知识架构": [
+      "privacy-policy"
+    ],
+    "的设计确保": [
+      "privacy-policy"
+    ],
+    "开发者无法访问您的保险库内容": [
+      "privacy-policy"
+    ],
+    "服务端无法解密您的数据": [
+      "privacy-policy"
+    ],
+    "即使设备丢失": [
+      "privacy-policy"
+    ],
+    "丢": [
+      "privacy-policy"
+    ],
+    "没有主密码也无法读取保险库": [
+      "privacy-policy"
+    ],
+    "没": [
+      "privacy-policy"
+    ],
+    "功能的数据处理": [
+      "privacy-policy"
+    ],
+    "当您使用": [
+      "privacy-policy"
+    ],
+    "对话功能时": [
+      "privacy-policy"
+    ],
+    "对话内容和系统提示词会发送到您配置的第三方": [
+      "privacy-policy"
+    ],
+    "级别的对象数据会被注入系统提示词": [
+      "privacy-policy"
+    ],
+    "关键数据": [
+      "privacy-policy"
+    ],
+    "对话历史仅保存在本地": [
+      "privacy-policy"
+    ],
+    "生物识别数据": [
+      "privacy-policy"
+    ],
+    "生物识别凭证": [
+      "privacy-policy"
+    ],
+    "由操作系统安全存储": [
+      "privacy-policy"
+    ],
+    "不存储任何生物特征数据": [
+      "privacy-policy"
+    ],
+    "征": [
+      "privacy-policy"
+    ],
+    "生物识别仅用于解锁本地保险库": [
+      "privacy-policy"
+    ],
+    "数据导出与删除": [
+      "privacy-policy"
+    ],
+    "您可以随时导出全部数据为加密的": [
+      "privacy-policy"
+    ],
+    "您可以随时删除账户和保险库": [
+      "privacy-policy"
+    ],
+    "删除后所有数据将从本地永久移除": [
+      "privacy-policy"
+    ],
+    "联系我们": [
+      "privacy-policy"
+    ],
+    "们": [
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "如有隐私相关问题": [
+      "privacy-policy"
+    ],
+    "请通过": [
+      "privacy-policy"
+    ],
+    "github": [
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "仓库提交": [
+      "privacy-policy"
+    ],
+    "仓": [
+      "privacy-policy"
+    ],
+    "derived": [
+      "privacy-policy"
+    ],
+    "cloud": [
+      "privacy-policy"
+    ],
+    "designed": [
+      "privacy-policy"
+    ],
+    "decrypt": [
+      "privacy-policy"
+    ],
+    "lost": [
+      "privacy-policy"
+    ],
+    "configured": [
+      "privacy-policy"
+    ],
+    "party": [
+      "privacy-policy",
+      "terms-of-service"
+    ],
+    "operating": [
+      "privacy-policy"
+    ],
+    "contact": [
+      "privacy-policy"
+    ],
+    "questions": [
+      "privacy-policy"
+    ],
+    "our": [
+      "privacy-policy"
+    ],
+    "repository": [
+      "privacy-policy"
+    ],
+    "服务条款": [
+      "terms-of-service"
+    ],
+    "款": [
+      "terms-of-service"
+    ],
+    "terms": [
+      "terms-of-service"
+    ],
+    "条款": [
+      "terms-of-service"
+    ],
+    "服务": [
+      "terms-of-service"
+    ],
+    "许可": [
+      "terms-of-service"
+    ],
+    "license": [
+      "terms-of-service"
+    ],
+    "软件许可": [
+      "terms-of-service"
+    ],
+    "是一款开源的本地优先个人数据管理软件": [
+      "terms-of-service"
+    ],
+    "使用本软件即表示您同意以下条款": [
+      "terms-of-service"
+    ],
+    "用户责任": [
+      "terms-of-service"
+    ],
+    "责": [
+      "terms-of-service"
+    ],
+    "您对自己的主密码安全负全部责任": [
+      "terms-of-service"
+    ],
+    "负": [
+      "terms-of-service"
+    ],
+    "无法重置或恢复您的主密码": [
+      "terms-of-service"
+    ],
+    "您应妥善保管导出的": [
+      "terms-of-service"
+    ],
+    "妥": [
+      "terms-of-service"
+    ],
+    "善": [
+      "terms-of-service"
+    ],
+    "文件和密码": [
+      "terms-of-service"
+    ],
+    "功能时": [
+      "terms-of-service"
+    ],
+    "您应遵守所配置的第三方": [
+      "terms-of-service"
+    ],
+    "守": [
+      "terms-of-service"
+    ],
+    "服务商的服务条款": [
+      "terms-of-service"
+    ],
+    "数据安全": [
+      "terms-of-service"
+    ],
+    "采用行业标准的加密技术保护您的数据": [
+      "terms-of-service"
+    ],
+    "技": [
+      "terms-of-service"
+    ],
+    "术": [
+      "terms-of-service"
+    ],
+    "由于本地优先架构": [
+      "terms-of-service"
+    ],
+    "数据备份和同步由用户自行负责": [
+      "terms-of-service"
+    ],
+    "建议定期使用": [
+      "terms-of-service"
+    ],
+    "功能创建本地加密备份": [
+      "terms-of-service"
+    ],
+    "功能免责声明": [
+      "terms-of-service"
+    ],
+    "声": [
+      "terms-of-service"
+    ],
+    "对话功能依赖第三方服务商": [
+      "terms-of-service"
+    ],
+    "依": [
+      "terms-of-service"
+    ],
+    "赖": [
+      "terms-of-service"
+    ],
+    "其可用性和响应质量不受": [
+      "terms-of-service"
+    ],
+    "质": [
+      "terms-of-service"
+    ],
+    "控制": [
+      "terms-of-service"
+    ],
+    "生成的内容仅供参考": [
+      "terms-of-service"
+    ],
+    "参": [
+      "terms-of-service"
+    ],
+    "考": [
+      "terms-of-service"
+    ],
+    "不构成专业建议": [
+      "terms-of-service"
+    ],
+    "功能传输法律": [
+      "terms-of-service"
+    ],
+    "律": [
+      "terms-of-service"
+    ],
+    "医疗或财务敏感信息": [
+      "terms-of-service"
+    ],
+    "医": [
+      "terms-of-service"
+    ],
+    "疗": [
+      "terms-of-service"
+    ],
+    "开源与贡献": [
+      "terms-of-service"
+    ],
+    "贡": [
+      "terms-of-service"
+    ],
+    "献": [
+      "terms-of-service"
+    ],
+    "的源代码遵循开源许可协议发布": [
+      "terms-of-service"
+    ],
+    "协": [
+      "terms-of-service"
+    ],
+    "欢迎通过": [
+      "terms-of-service"
+    ],
+    "提交问题反馈和功能建议": [
+      "terms-of-service"
+    ],
+    "反": [
+      "terms-of-service"
+    ],
+    "馈": [
+      "terms-of-service"
+    ],
+    "条款变更": [
+      "terms-of-service"
+    ],
+    "我们保留更新本服务条款的权利": [
+      "terms-of-service"
+    ],
+    "利": [
+      "terms-of-service"
+    ],
+    "重大变更将通过软件内通知或": [
+      "terms-of-service"
+    ],
+    "发布说明告知用户": [
+      "terms-of-service"
+    ],
+    "source": [
+      "terms-of-service"
+    ],
+    "application": [
+      "terms-of-service"
+    ],
+    "means": [
+      "terms-of-service"
+    ],
+    "agree": [
+      "terms-of-service"
+    ],
+    "responsibilities": [
+      "terms-of-service"
+    ],
+    "responsible": [
+      "terms-of-service"
+    ],
+    "recover": [
+      "terms-of-service"
+    ],
+    "properly": [
+      "terms-of-service"
+    ],
+    "safeguard": [
+      "terms-of-service"
+    ],
+    "exported": [
+      "terms-of-service"
+    ],
+    "comply": [
+      "terms-of-service"
+    ],
+    "industry": [
+      "terms-of-service"
+    ],
+    "due": [
+      "terms-of-service"
+    ],
+    "synchronization": [
+      "terms-of-service"
+    ],
+    "responsibility": [
+      "terms-of-service"
+    ],
+    "regularly": [
+      "terms-of-service"
+    ],
+    "disclaimer": [
+      "terms-of-service"
+    ],
+    "rely": [
+      "terms-of-service"
+    ],
+    "response": [
+      "terms-of-service"
+    ],
+    "quality": [
+      "terms-of-service"
+    ],
+    "beyond": [
+      "terms-of-service"
+    ],
+    "generated": [
+      "terms-of-service"
+    ],
+    "reference": [
+      "terms-of-service"
+    ],
+    "constitute": [
+      "terms-of-service"
+    ],
+    "advice": [
+      "terms-of-service"
+    ],
+    "transmit": [
+      "terms-of-service"
+    ],
+    "legal": [
+      "terms-of-service"
+    ],
+    "medical": [
+      "terms-of-service"
+    ],
+    "contributions": [
+      "terms-of-service"
+    ],
+    "code": [
+      "terms-of-service"
+    ],
+    "reports": [
+      "terms-of-service"
+    ],
+    "suggestions": [
+      "terms-of-service"
+    ],
+    "reserve": [
+      "terms-of-service"
+    ],
+    "these": [
+      "terms-of-service"
+    ],
+    "communicated": [
+      "terms-of-service"
+    ],
+    "notices": [
+      "terms-of-service"
+    ],
+    "release": [
+      "terms-of-service"
+    ]
+  },
+  "titles": {
+    "getting-started": {
+      "zh": "快速开始",
+      "en": "Getting Started"
+    },
+    "objects": {
+      "zh": "对象管理",
+      "en": "Object Management"
+    },
+    "templates": {
+      "zh": "对象模板",
+      "en": "Object Templates"
+    },
+    "workspace": {
+      "zh": "工作区与自定义页面",
+      "en": "Workspace & Custom Pages"
+    },
+    "attachments": {
+      "zh": "附件管理",
+      "en": "Attachment Management"
+    },
+    "snapshots": {
+      "zh": "快照与历史",
+      "en": "Snapshots & History"
+    },
+    "collections": {
+      "zh": "集合",
+      "en": "Collections"
+    },
+    "sensitivity": {
+      "zh": "敏感度与隐私",
+      "en": "Sensitivity & Privacy"
+    },
+    "security": {
+      "zh": "安全设置",
+      "en": "Security Settings"
+    },
+    "biometric": {
+      "zh": "生物识别",
+      "en": "Biometrics"
+    },
+    "trash": {
+      "zh": "回收站",
+      "en": "Trash"
+    },
+    "export-import": {
+      "zh": "导出与导入",
+      "en": "Export & Import"
+    },
+    "backup-restore": {
+      "zh": "备份与恢复",
+      "en": "Backup & Restore"
+    },
+    "search": {
+      "zh": "全局搜索",
+      "en": "Global Search"
+    },
+    "sync": {
+      "zh": "同步",
+      "en": "Sync"
+    },
+    "ocr-scan": {
+      "zh": "OCR 与扫描",
+      "en": "OCR & Scan"
+    },
+    "appearance": {
+      "zh": "主题与外观",
+      "en": "Theme & Appearance"
+    },
+    "audit-log": {
+      "zh": "操作日志",
+      "en": "Operation Log"
+    },
+    "ai-chat": {
+      "zh": "AI 对话",
+      "en": "AI Chat"
+    },
+    "llm-config": {
+      "zh": "LLM 配置与统计",
+      "en": "LLM Config & Statistics"
+    },
+    "plugins": {
+      "zh": "插件",
+      "en": "Plugins"
+    },
+    "privacy-policy": {
+      "zh": "隐私政策",
+      "en": "Privacy Policy"
+    },
+    "terms-of-service": {
+      "zh": "服务条款",
+      "en": "Terms of Service"
+    }
+  }
+}

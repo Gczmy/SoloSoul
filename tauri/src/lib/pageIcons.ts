@@ -24,6 +24,7 @@ import {
   Calendar,
   Map,
   Flag,
+  BookOpen,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export const PAGE_ICON_MAP = {
   lock: Lock,
   plugins: Puzzle,
   ai_chat: MessageSquare,
+  help: BookOpen,
   custom: FileText,
 } as const satisfies Record<string, LucideIcon>;
 

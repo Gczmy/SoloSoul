@@ -554,16 +554,35 @@ use once_cell::sync::Lazy;
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct GuideIndexEntry {
-    id: String,
-    title: String,
-    keywords: Vec<String>,
-    files: HashMap<String, String>,
+pub struct GuideTitle {
+    pub zh: String,
+    pub en: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct GuideIndex {
-    guides: Vec<GuideIndexEntry>,
+pub struct GuideCategoryMeta {
+    pub id: String,
+    pub title: GuideTitle,
+    pub order: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuideIndexEntry {
+    pub id: String,
+    pub title: GuideTitle,
+    #[serde(default)]
+    pub category: String,
+    #[serde(default)]
+    pub order: u32,
+    pub keywords: Vec<String>,
+    pub files: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuideIndex {
+    pub guides: Vec<GuideIndexEntry>,
+    #[serde(default)]
+    pub categories: Vec<GuideCategoryMeta>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -594,6 +613,9 @@ fn resource_path(rel: &str) -> PathBuf {
 /// 缓存的指南索引
 static GUIDE_INDEX_CACHE: Lazy<Mutex<Option<GuideIndex>>> = Lazy::new(|| Mutex::new(None));
 
+/// 指南摘要缓存：guideId -> 前 200 字摘要（用于 AI 快速匹配）
+static GUIDE_SUMMARY_CACHE: Lazy<Mutex<HashMap<String, String>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+
 fn load_guide_index() -> Result<GuideIndex, String> {
     {
         let cache: std::sync::MutexGuard<Option<GuideIndex>> = GUIDE_INDEX_CACHE.lock().map_err(|e: std::sync::PoisonError<std::sync::MutexGuard<Option<GuideIndex>>>| e.to_string())?;
@@ -606,6 +628,31 @@ fn load_guide_index() -> Result<GuideIndex, String> {
         .map_err(|e| format!("Failed to read guide index at {:?}: {}", path, e))?;
     let index: GuideIndex = serde_json::from_str(&content)
         .map_err(|e| format!("Failed to parse guide index: {}", e))?;
+
+    // 预加载每篇指南的摘要到缓存
+    {
+        let mut summary_cache = GUIDE_SUMMARY_CACHE.lock().map_err(|e| e.to_string())?;
+        summary_cache.clear();
+        for guide in &index.guides {
+            let lang = guide.files.keys().next().cloned().unwrap_or_else(|| "en".to_string());
+            if let Some(file) = guide.files.get(&lang) {
+                let file_path = resource_path(&format!("docs/guides/{}", file));
+                if let Ok(text) = std::fs::read_to_string(&file_path) {
+                    let summary = if text.len() > 200 {
+                        let cut = &text[..200];
+                        match cut.rfind('\n') {
+                            Some(pos) => text[..pos].to_string(),
+                            None => cut.to_string(),
+                        }
+                    } else {
+                        text
+                    };
+                    summary_cache.insert(guide.id.clone(), summary);
+                }
+            }
+        }
+    }
+
     {
         let mut cache: std::sync::MutexGuard<Option<GuideIndex>> = GUIDE_INDEX_CACHE.lock().map_err(|e: std::sync::PoisonError<std::sync::MutexGuard<Option<GuideIndex>>>| e.to_string())?;
         *cache = Some(index.clone());
@@ -662,6 +709,14 @@ fn resolve_language(files: &HashMap<String, String>, requested: &str) -> String 
     files.keys().next().cloned().unwrap_or_else(|| "en".to_string())
 }
 
+fn resolve_title(title: &GuideTitle, language: &str) -> String {
+    if language.starts_with("zh") {
+        title.zh.clone()
+    } else {
+        title.en.clone()
+    }
+}
+
 fn load_guide_content(entry: &GuideIndexEntry, language: &str) -> Result<GuideContent, String> {
     let lang = resolve_language(&entry.files, language);
     let rel_path = format!("docs/guides/{}", entry.files.get(&lang).ok_or("No file")?);
@@ -684,7 +739,7 @@ fn load_guide_content(entry: &GuideIndexEntry, language: &str) -> Result<GuideCo
 
     Ok(GuideContent {
         id: entry.id.clone(),
-        title: entry.title.clone(),
+        title: resolve_title(&entry.title, language),
         content: truncated,
     })
 }
@@ -696,18 +751,40 @@ fn find_relevant_guides_internal(query: &str, language: &str) -> Result<Vec<Guid
         return Ok(vec![]);
     }
 
+    // 意图分类：简单规则加权
+    let is_howto = tokens.iter().any(|t|
+        ["怎么", "如何", "怎样", "how", "步骤", "step"].contains(&t.as_str())
+    );
+    let is_concept = tokens.iter().any(|t|
+        ["什么是", "为什么", "what", "why", "explain"].contains(&t.as_str())
+    );
+
     let threshold = if tokens.len() >= 2 { 2 } else { 1 };
+
+    let summary_cache = GUIDE_SUMMARY_CACHE.lock().map_err(|e| e.to_string())?;
 
     let mut scored: Vec<(GuideIndexEntry, i32)> = vec![];
     for guide in &index.guides {
         let mut score = 0;
+        let title_text = resolve_title(&guide.title, language).to_lowercase();
+        let summary_text = summary_cache.get(&guide.id).map(|s| s.to_lowercase()).unwrap_or_default();
         for token in &tokens {
             if guide.keywords.iter().any(|k| k.to_lowercase().contains(token)) {
                 score += 1;
             }
-            if guide.title.to_lowercase().contains(token) {
+            if title_text.contains(token) {
                 score += 3;
             }
+            if summary_text.contains(token) {
+                score += 2; // 摘要命中权重介于关键词和标题之间
+            }
+        }
+        // 意图加权
+        if is_howto && guide.category == "objects" {
+            score += 2;
+        }
+        if is_concept && guide.category == "security" {
+            score += 2;
         }
         if score >= threshold {
             scored.push((guide.clone(), score));
@@ -716,8 +793,9 @@ fn find_relevant_guides_internal(query: &str, language: &str) -> Result<Vec<Guid
 
     scored.sort_by(|a, b| b.1.cmp(&a.1));
 
+    // Top-3（v2.0 从 Top-1 扩展为 3 篇互补）
     let mut results = vec![];
-    for (entry, _) in scored.into_iter().take(1) {
+    for (entry, _) in scored.into_iter().take(3) {
         match load_guide_content(&entry, language) {
             Ok(g) => results.push(g),
             Err(e) => eprintln!("Guide load error: {}", e),
@@ -730,6 +808,89 @@ fn find_relevant_guides_internal(query: &str, language: &str) -> Result<Vec<Guid
 #[tauri::command]
 pub async fn llm_find_guides(query: String, language: String) -> Result<Vec<GuideContent>, String> {
     find_relevant_guides_internal(&query, &language)
+}
+
+// =============================================================================
+// Guide System Commands (§18)
+// =============================================================================
+
+#[tauri::command]
+pub async fn guide_load_index() -> Result<GuideIndex, String> {
+    load_guide_index()
+}
+
+#[tauri::command]
+pub async fn guide_load_content(guide_id: String, language: String) -> Result<GuideContent, String> {
+    let index = load_guide_index()?;
+    let entry = index.guides.into_iter().find(|g| g.id == guide_id)
+        .ok_or_else(|| format!("Guide not found: {}", guide_id))?;
+    let lang = resolve_language(&entry.files, &language);
+    let rel_path = format!("docs/guides/{}", entry.files.get(&lang).ok_or("No file")?);
+    let path = resource_path(&rel_path);
+    let content = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read guide {:?}: {}", path, e))?;
+    Ok(GuideContent {
+        id: entry.id,
+        title: resolve_title(&entry.title, &language),
+        content,
+    })
+}
+
+#[tauri::command]
+pub async fn guide_search(query: String, language: String) -> Result<Vec<GuideContent>, String> {
+    let index = load_guide_index()?;
+    let tokens: Vec<String> = query.to_lowercase()
+        .split(|c: char| c.is_whitespace() || c.is_ascii_punctuation())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .collect();
+    if tokens.is_empty() {
+        return Ok(vec![]);
+    }
+
+    let mut scored: Vec<(GuideIndexEntry, i32)> = vec![];
+    for guide in index.guides {
+        let mut score = 0;
+        let title_text = resolve_title(&guide.title, &language).to_lowercase();
+        for token in &tokens {
+            if guide.keywords.iter().any(|k| k.to_lowercase().contains(token)) {
+                score += 1;
+            }
+            if title_text.contains(token) {
+                score += 3;
+            }
+        }
+        if score >= 1 {
+            scored.push((guide, score));
+        }
+    }
+
+    scored.sort_by(|a, b| b.1.cmp(&a.1));
+
+    let mut results = vec![];
+    for (entry, _) in scored.into_iter().take(10) {
+        match guide_load_content(entry.id.clone(), language.clone()).await {
+            Ok(g) => results.push(g),
+            Err(e) => eprintln!("Guide load error: {}", e),
+        }
+    }
+    Ok(results)
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchIndex {
+    pub words: std::collections::HashMap<String, Vec<String>>,
+    pub titles: std::collections::HashMap<String, GuideTitle>,
+}
+
+#[tauri::command]
+pub async fn guide_load_search_index() -> Result<SearchIndex, String> {
+    let path = resource_path("docs/guides/search-index.json");
+    let content = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read search index at {:?}: {}", path, e))?;
+    let index: SearchIndex = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to parse search index: {}", e))?;
+    Ok(index)
 }
 
 // =============================================================================
@@ -1402,12 +1563,14 @@ pub async fn llm_chat(
     // 3b. 帮助文档（不需要 vault）
     if request.include_help_doc {
         let guides = find_relevant_guides_internal(&request.prompt, &request.language)?;
-        if let Some(guide) = guides.first() {
-            let doc_content = format!(
-                "---\n以下是与用户问题相关的功能使用文档，请参考这些信息回答用户问题。\n\n【文档：{}】\n{}\n【文档结束】\n---",
-                guide.title, guide.content
-            );
-            messages.push(serde_json::json!({"role": "system", "content": doc_content}));
+        if !guides.is_empty() {
+            let mut doc_parts = vec!["---".to_string()];
+            doc_parts.push("以下是与用户问题相关的功能使用文档，请参考这些信息回答用户问题。".to_string());
+            for (i, guide) in guides.iter().enumerate() {
+                doc_parts.push(format!("\n【文档 {}：{}】\n{}", i + 1, guide.title, guide.content));
+            }
+            doc_parts.push("\n【文档结束】\n---".to_string());
+            messages.push(serde_json::json!({"role": "system", "content": doc_parts.join("\n")}));
         }
     }
 
