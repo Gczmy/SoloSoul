@@ -556,12 +556,19 @@ export function ObjectWorkspacePage() {
   const [showPwDialog, setShowPwDialog] = useState(false);
   const pwResolveRef = useRef<((ok: boolean) => void) | null>(null);
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({ available: false });
+  const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
-  // Check biometric availability on mount
+  // Check biometric availability on mount + load password hint
   useEffect(() => {
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>('biometric_check_availability', { accountId: accountId || '' })
       .then((r) => setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }))
       .catch(() => {});
+    if (accountId) {
+      invoke<any[]>('list_accounts').then((accounts) => {
+        const acc = accounts.find((a: any) => a.id === accountId);
+        setPasswordHint(acc?.passwordHint || null);
+      }).catch(() => {});
+    }
   }, [accountId]);
 
   const passwordVerify = useCallback(async (): Promise<boolean> => {
@@ -1132,7 +1139,7 @@ export function ObjectWorkspacePage() {
         title={t('common:critical_access_title')}
         description={t('common:critical_access_desc')}
         confirmLabel={t('common:unlock')}
-        hint={null}
+        hint={passwordHint}
         biometricType={bioAvailable.available ? bioAvailable.biometryType : undefined}
         onBiometric={bioAvailable.available ? handleBiometricUnlock : undefined}
       />

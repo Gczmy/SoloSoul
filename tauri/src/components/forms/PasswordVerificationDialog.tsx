@@ -81,11 +81,10 @@ export function PasswordVerificationDialog({
       if (ok) {
         setPassword('');
         onClose();
-      } else {
-        setError(t('settings:biometric_auth_failed'));
       }
+      // User cancelled — silently close, no error
     } catch {
-      setError(t('settings:biometric_auth_failed'));
+      // User cancelled or failed — silently close
     } finally {
       setBioLoading(false);
     }
