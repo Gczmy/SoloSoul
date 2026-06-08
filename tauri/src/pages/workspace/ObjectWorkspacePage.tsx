@@ -54,7 +54,10 @@ interface SnapshotEntry {
   diffSummary: string;
 }
 
-function HistoryViewer({ objectId, onClose, collectionType }: { objectId: string; onClose: () => void; collectionType?: string }) {
+function HistoryViewer({ objectId, onClose, collectionType, passwordVerify }: {
+  objectId: string; onClose: () => void; collectionType?: string;
+  passwordVerify: () => Promise<boolean>;
+}) {
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -74,21 +77,6 @@ function HistoryViewer({ objectId, onClose, collectionType }: { objectId: string
     }
     return 'public';
   }, [collectionType, sensitivityMap]);
-
-  /** Password verification for critical field reveal. */
-  const verifyPassword = useCallback(async (): Promise<boolean> => {
-    const accounts = await invoke<any[]>('list_accounts').catch(() => []);
-    const pw = prompt(t('common:current_password'));
-    if (!pw) return false;
-    for (const acc of accounts) {
-      try {
-        const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password: pw });
-        if (ok) return true;
-      } catch {}
-    }
-    alert(t('common:current_password_incorrect'));
-    return false;
-  }, [t]);
 
   useEffect(() => {
     invoke<SnapshotEntry[]>('snapshot_get', { objectId })
@@ -147,7 +135,7 @@ function HistoryViewer({ objectId, onClose, collectionType }: { objectId: string
           ) : !snap ? (
             <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>{t('common:no_history')}</div>
           ) : (
-            <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} getFieldSensitivity={getSnapSensitivity} verifyPassword={verifyPassword} />
+            <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} getFieldSensitivity={getSnapSensitivity} verifyPassword={passwordVerify} />
           )}
         </div>
         {/* Footer */}
@@ -1117,7 +1105,7 @@ export function ObjectWorkspacePage() {
           </div>
         )}
       </div>
-      {historyObj && <HistoryViewer objectId={historyObj.id} collectionType={historyObj.collectionType} onClose={() => setHistoryObj(null)} />}
+      {historyObj && <HistoryViewer objectId={historyObj.id} collectionType={historyObj.collectionType} onClose={() => setHistoryObj(null)} passwordVerify={passwordVerify} />}
       {attachmentObjId && <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} onCountChange={refreshAttachmentCounts} />}
 
       {/* Password verification dialog for critical field reveal */}
