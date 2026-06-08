@@ -93,11 +93,13 @@ pub async fn log_get_recent(
     Ok(entries.into_iter().map(to_response).collect())
 }
 
-/// Export all audit log entries as a JSON file at the export path.
+/// Export all audit log entries as a JSON file at the given path.
+/// If no path is provided, writes to ~/.solosoul/logs/export_audit_log.json
 /// Returns the path to the exported file.
 #[tauri::command]
 pub async fn log_export(
     state: State<'_, AppState>,
+    export_path: Option<String>,
 ) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
@@ -106,9 +108,15 @@ pub async fn log_export(
     let entries = vault.list_audit_log(10000)?;
     let json = serde_json::to_string_pretty(&entries).map_err(|e| e.to_string())?;
 
-    let export_path = svc.base_path().join("logs").join("export_audit_log.json");
-    std::fs::create_dir_all(export_path.parent().unwrap()).map_err(|e| e.to_string())?;
-    std::fs::write(&export_path, &json).map_err(|e| e.to_string())?;
+    let path = if let Some(p) = export_path {
+        std::path::PathBuf::from(p)
+    } else {
+        svc.base_path().join("logs").join("export_audit_log.json")
+    };
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(&path, &json).map_err(|e| e.to_string())?;
 
-    Ok(export_path.to_string_lossy().to_string())
+    Ok(path.to_string_lossy().to_string())
 }

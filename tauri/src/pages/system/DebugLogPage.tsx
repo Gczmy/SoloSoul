@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { invoke } from '@tauri-apps/api/core';
+import { save } from '@tauri-apps/plugin-dialog';
 import { Bug, Download, RefreshCw } from 'lucide-react';
 
 interface AuditLogEntry {
@@ -44,11 +46,12 @@ export function DebugLogPage() {
 
   const handleExport = async () => {
     try {
-      const path = await invoke<string>('log_export');
-      // Fallback: copy to clipboard
-      await navigator.clipboard.writeText(
-        logs.map((l) => `[${l.timestamp}] ${l.actionType} ${l.entityType}${l.entityName ? ': ' + l.entityName : ''}`).join('\n')
-      );
+      const filePath = await save({
+        defaultPath: 'debug_log_export.json',
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+      });
+      if (!filePath) return;
+      await invoke<string>('log_export', { exportPath: filePath });
     } catch {
       // silent
     }

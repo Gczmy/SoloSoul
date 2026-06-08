@@ -774,12 +774,13 @@ export function ObjectWorkspacePage() {
                     </button>
                   </div>
                 </div>
-                {/* Property chips */}
+                {/* Property chips — label always visible, value blurred when masked */}
                 {fields.length > 0 && (
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {fields.map((f) => {
                       const sens = getFieldSensitivity(obj.collectionType, f.key);
                       const isMasked = sens !== 'public';
+                      const fieldLabel = t(`editor:fields.${f.key}`, f.key);
                       return (
                       <span
                         key={f.key}
@@ -787,16 +788,19 @@ export function ObjectWorkspacePage() {
                           padding: '3px 8px', borderRadius: 6, fontSize: 11,
                           background: 'var(--bg-toolbar)', color: 'var(--text-secondary)',
                           border: '1px solid var(--border-subtle)',
-                          maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <span style={{ fontWeight: 600 }}>{fieldLabel}:</span>{' '}
+                        <span style={{
                           ...(isMasked ? {
                             filter: 'blur(4px)',
                             cursor: 'default',
                             userSelect: 'none',
-                          } : {}),
-                        }}
-                        title={isMasked ? t('sensitive_label') : `${t(`editor:fields.${f.key}`, f.key)}: ${f.value}`}
-                      >
-                        {f.value}
+                          } : { color: 'var(--text-primary)' }),
+                        }}>
+                          {isMasked ? '••••' : f.value}
+                        </span>
                       </span>
                       );
                     })}

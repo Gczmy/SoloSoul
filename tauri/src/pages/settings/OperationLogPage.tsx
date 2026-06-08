@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
+import { save } from '@tauri-apps/plugin-dialog';
 import { Search, Download } from 'lucide-react';
 
 interface AuditLogEntry {
@@ -79,8 +80,13 @@ export function OperationLogPage() {
 
   const handleExport = async () => {
     try {
-      const path = await invoke<string>('log_export');
-      onSuccess(`${t('common:export')} → ${path}`);
+      const filePath = await save({
+        defaultPath: 'audit_log_export.json',
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+      });
+      if (!filePath) return; // User cancelled
+      const result = await invoke<string>('log_export', { exportPath: filePath });
+      onSuccess(`${t('common:export')} → ${result}`);
     } catch (e) {
       onError(e, t('common:logs_export_failed'));
     }

@@ -177,8 +177,15 @@ export function TrashPage() {
   return (
     <AppShell title={t('settings:trash')} onBack={() => navigate('/settings')}>
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {/* Search */}
+        <Input
+          placeholder={t('settings:search_logs')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+
+        {/* Row 1: Time filter */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {TIME_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -193,7 +200,10 @@ export function TrashPage() {
               {t(`settings:${opt.labelKey}`, opt.labelKey)}
             </button>
           ))}
-          <span style={{ width: 1, background: 'var(--border-subtle)', margin: '2px 4px' }} />
+        </div>
+
+        {/* Row 2: Type filter */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {TYPE_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -209,12 +219,6 @@ export function TrashPage() {
             </button>
           ))}
         </div>
-
-        <Input
-          placeholder={t('settings:search_logs')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
 
         {/* Select all bar */}
         {filtered.length > 0 && (
