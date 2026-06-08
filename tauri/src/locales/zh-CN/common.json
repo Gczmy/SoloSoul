@@ -83,6 +83,7 @@
   "travel_desc": "护照、签证、旅行记录",
   "financial_desc": "银行账户、卡片、税务信息",
   "professional_desc": "教育背景、工作经历、技能",
+  "help_desc": "快速了解功能、安全与使用指南",
   "object_type": "对象类型",
   "object_name": "对象名称",
   "object_name_placeholder": "输入名称",

@@ -13,6 +13,12 @@ const sections: { type: ProfileSection; labelKey: string; icon: typeof PAGE_ICON
   { type: 'professional', labelKey: 'professional', icon: PAGE_ICON_MAP.professional, descKey: 'professional_desc' },
 ];
 
+const helpCard = {
+  labelKey: 'help',
+  icon: PAGE_ICON_MAP.help,
+  descKey: 'help_desc',
+};
+
 export function HomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'navigation']);
@@ -51,6 +57,13 @@ export function HomePage() {
               <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t(`common:${s.descKey}`)}</p>
             </Card>
           ))}
+          <Card interactive onClick={() => navigate('/help')}>
+            <div style={{ marginBottom: 8 }}><helpCard.icon size={28} /></div>
+            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+              {t(`navigation:${helpCard.labelKey}`)}
+            </h3>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t(`common:${helpCard.descKey}`)}</p>
+          </Card>
         </div>
       </div>
     </AppShell>

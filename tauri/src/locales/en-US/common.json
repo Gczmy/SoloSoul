@@ -83,6 +83,7 @@
   "travel_desc": "Passports, visas, travel history",
   "financial_desc": "Bank accounts, cards, tax info",
   "professional_desc": "Education, employment, skills",
+  "help_desc": "Quick guide to features, security and usage",
   "object_type": "Object Type",
   "object_name": "Object Name",
   "object_name_placeholder": "Enter name",
