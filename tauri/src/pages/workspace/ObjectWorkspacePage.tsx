@@ -203,35 +203,31 @@ function SnapshotCard({ snap, index, total, t, getFieldSensitivity, verifyPasswo
                 <SensitivityBadge level={sens} />
               </div>
               <div style={{ flex: 1 }}>
-                {revealed ? (
-                  <span>{f.value}</span>
-                ) : (
-                  <span
-                    onClick={async () => {
-                      try {
-                        if (sens === 'critical') {
-                          const ok = await verifyPassword();
-                          if (ok) reveal(fieldId);
-                        } else if (needsReveal) {
-                          reveal(fieldId);
-                        }
-                      } catch {
-                        // silently ignore errors in reveal flow
+                <span
+                  onClick={needsReveal && !revealed ? async () => {
+                    try {
+                      if (sens === 'critical') {
+                        const ok = await verifyPassword();
+                        if (ok) reveal(fieldId);
+                      } else {
+                        reveal(fieldId);
                       }
-                    }}
-                    style={{
-                      cursor: needsReveal ? 'pointer' : 'default',
-                      filter: needsReveal ? 'blur(5px)' : 'none',
-                      userSelect: needsReveal ? 'none' : 'auto',
-                      background: needsReveal ? 'var(--bg-subtle, rgba(128,128,128,0.15))' : 'transparent',
-                      borderRadius: 2, padding: '0 2px',
-                      color: 'var(--text-primary)',
-                    }}
-                    title={needsReveal ? 'Click to reveal' : ''}
-                  >
-                    {f.value}
-                  </span>
-                )}
+                    } catch {}
+                  } : undefined}
+                  style={{
+                    cursor: (needsReveal && !revealed) ? 'pointer' : 'default',
+                    filter: (needsReveal && !revealed) ? 'blur(5px)' : 'blur(0px)',
+                    userSelect: (needsReveal && !revealed) ? 'none' : 'auto',
+                    background: (needsReveal && !revealed) ? 'var(--bg-subtle, rgba(128,128,128,0.15))' : 'transparent',
+                    borderRadius: 2, padding: '0 2px',
+                    color: 'var(--text-primary)',
+                    transition: 'filter 0.15s ease, background 0.15s ease',
+                    willChange: (needsReveal && !revealed) ? 'filter' : 'auto',
+                  }}
+                  title={needsReveal && !revealed ? 'Click to reveal' : ''}
+                >
+                  {f.value}
+                </span>
               </div>
             </div>
             );
