@@ -567,27 +567,39 @@ export function ObjectWorkspacePage() {
   // Load sensitivity map for field-level masking
   useEffect(() => { loadMap(); }, []);
 
-  /** Password verification for critical field reveal. Uses prompt dialog. */
+  /** Password verification for critical field reveal. */
+  const [showPwDialog, setShowPwDialog] = useState(false);
+  const [pwInput, setPwInput] = useState('');
+  const [pwError, setPwError] = useState('');
+  const pwResolveRef = useRef<((ok: boolean) => void) | null>(null);
+
   const passwordVerify = useCallback(async (): Promise<boolean> => {
-    const pw = prompt(t('common:current_password'));
-    if (!pw) return false;
+    return new Promise((resolve) => {
+      pwResolveRef.current = resolve;
+      setShowPwDialog(true);
+      setPwInput('');
+      setPwError('');
+    });
+  }, []);
+
+  const doVerifyPassword = useCallback(async () => {
+    if (!pwInput) { setPwError(t('common:password_length_requirement')); return; }
     if (accountId) {
       try {
-        const ok = await invoke<boolean>('verify_password', { accountId, password: pw });
-        if (ok) return true;
+        const ok = await invoke<boolean>('verify_password', { accountId, password: pwInput });
+        if (ok) { setShowPwDialog(false); pwResolveRef.current?.(true); return; }
       } catch (e) { console.error('verify_password failed:', e); }
     }
     // Fallback: try all accounts
     const accounts = await invoke<any[]>('list_accounts').catch(() => []);
     for (const acc of accounts) {
       try {
-        const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password: pw });
-        if (ok) return true;
+        const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password: pwInput });
+        if (ok) { setShowPwDialog(false); pwResolveRef.current?.(true); return; }
       } catch (e) { console.error('verify_password fallback failed:', e); }
     }
-    alert(t('common:current_password_incorrect'));
-    return false;
-  }, [accountId, t]);
+    setPwError(t('common:current_password_incorrect'));
+  }, [pwInput, accountId, t]);
 
   /** Stable reveal handler — receives explicit fieldId + sens, no closure ambiguity. */
   const handleRevealField = useCallback(async (fieldId: string, sens: SensitivityLevel) => {
@@ -1034,7 +1046,7 @@ export function ObjectWorkspacePage() {
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                         {needsReveal && !revealed && (
                           <button
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); alert('reveal clicked: '+sens); handleRevealField(fieldId, sens); }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRevealField(fieldId, sens); }}
                             title={sens === 'critical' ? t('common:password_required') : t('common:reveal')}
                             style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)', background: sens === 'critical' ? 'rgba(220,38,38,0.06)' : 'transparent', cursor: 'pointer', fontSize: 11, color: sens === 'critical' ? '#dc2626' : 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 4 }}
                           >
@@ -1107,6 +1119,30 @@ export function ObjectWorkspacePage() {
       </div>
       {historyObj && <HistoryViewer objectId={historyObj.id} collectionType={historyObj.collectionType} onClose={() => setHistoryObj(null)} />}
       {attachmentObjId && <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} onCountChange={refreshAttachmentCounts} />}
+
+      {/* Password verification dialog for critical field reveal */}
+      {showPwDialog && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}
+          onClick={() => { setShowPwDialog(false); pwResolveRef.current?.(false); }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg-elevated)', borderRadius: 12, padding: '24px 28px', maxWidth: 360, width: '90%', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-subtle)' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600 }}>{t('common:current_password')}</h3>
+            <input
+              type="password"
+              value={pwInput}
+              onChange={(e) => { setPwInput(e.target.value); setPwError(''); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') doVerifyPassword(); }}
+              placeholder={t('common:password_placeholder')}
+              autoFocus
+              style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: `1px solid ${pwError ? '#e74c3c' : 'var(--border-subtle)'}`, fontSize: 14, background: 'var(--bg-toolbar)', color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+            />
+            {pwError && <p style={{ margin: '6px 0 0', fontSize: 12, color: '#e74c3c' }}>{pwError}</p>}
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+              <Button variant="secondary" onClick={() => { setShowPwDialog(false); pwResolveRef.current?.(false); }}>{t('common:cancel')}</Button>
+              <Button onClick={doVerifyPassword}>{t('common:unlock')}</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }
