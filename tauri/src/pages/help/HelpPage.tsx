@@ -24,8 +24,10 @@ export function HelpPage() {
     try {
       const idx = await loadGuideIndex();
       setIndex(idx);
+      setError(null);
     } catch (e) {
-      setError('无法加载帮助索引');
+      setError(`无法加载帮助索引: ${e}`);
+      console.error('[HelpPage] loadGuideIndex failed:', e);
     }
   }, []);
 

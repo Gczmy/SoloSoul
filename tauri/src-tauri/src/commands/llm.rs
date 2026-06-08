@@ -596,7 +596,9 @@ pub struct GuideContent {
 /// 资源文件路径解析：开发模式从 src-tauri/resources/ 读取，生产模式从 app bundle 读取
 fn resource_path(rel: &str) -> PathBuf {
     if cfg!(debug_assertions) {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources").join(rel)
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources").join(rel);
+        eprintln!("[resource_path] debug mode: {:?}", path);
+        path
     } else {
         std::env::current_exe()
             .ok()
@@ -604,9 +606,13 @@ fn resource_path(rel: &str) -> PathBuf {
                 let parent = exe.parent()?;
                 // macOS app bundle: SoloSoul.app/Contents/MacOS/SoloSoul → ../Resources
                 let resources = parent.join("../Resources");
+                eprintln!("[resource_path] release mode: exe={:?}, resources={:?}", exe, resources);
                 Some(resources.join(rel))
             })
-            .unwrap_or_else(|| PathBuf::from(rel))
+            .unwrap_or_else(|| {
+                eprintln!("[resource_path] release mode fallback: {:?}", rel);
+                PathBuf::from(rel)
+            })
     }
 }
 
@@ -616,47 +622,61 @@ static GUIDE_INDEX_CACHE: Lazy<Mutex<Option<GuideIndex>>> = Lazy::new(|| Mutex::
 /// 指南摘要缓存：guideId -> 前 200 字摘要（用于 AI 快速匹配）
 static GUIDE_SUMMARY_CACHE: Lazy<Mutex<HashMap<String, String>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
+/// 获取缓存内容，容忍毒化锁（poisoned lock recovery）
+fn get_index_cache() -> Option<GuideIndex> {
+    let guard = GUIDE_INDEX_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    guard.clone()
+}
+
+fn set_index_cache(index: GuideIndex) {
+    let mut guard = GUIDE_INDEX_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    *guard = Some(index);
+}
+
+fn get_summary_cache() -> HashMap<String, String> {
+    let guard = GUIDE_SUMMARY_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    guard.clone()
+}
+
+fn set_summary_cache(summaries: HashMap<String, String>) {
+    let mut guard = GUIDE_SUMMARY_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    *guard = summaries;
+}
+
 fn load_guide_index() -> Result<GuideIndex, String> {
-    {
-        let cache: std::sync::MutexGuard<Option<GuideIndex>> = GUIDE_INDEX_CACHE.lock().map_err(|e: std::sync::PoisonError<std::sync::MutexGuard<Option<GuideIndex>>>| e.to_string())?;
-        if let Some(ref idx) = *cache {
-            return Ok(idx.clone());
-        }
+    if let Some(idx) = get_index_cache() {
+        return Ok(idx);
     }
+
     let path = resource_path("docs/guides/index.json");
+    eprintln!("[load_guide_index] reading from {:?}", path);
     let content = std::fs::read_to_string(&path)
         .map_err(|e| format!("Failed to read guide index at {:?}: {}", path, e))?;
     let index: GuideIndex = serde_json::from_str(&content)
         .map_err(|e| format!("Failed to parse guide index: {}", e))?;
 
     // 预加载每篇指南的摘要到缓存
-    {
-        let mut summary_cache = GUIDE_SUMMARY_CACHE.lock().map_err(|e| e.to_string())?;
-        summary_cache.clear();
-        for guide in &index.guides {
-            let lang = guide.files.keys().next().cloned().unwrap_or_else(|| "en".to_string());
-            if let Some(file) = guide.files.get(&lang) {
-                let file_path = resource_path(&format!("docs/guides/{}", file));
-                if let Ok(text) = std::fs::read_to_string(&file_path) {
-                    let summary = if text.len() > 200 {
-                        let cut = &text[..200];
-                        match cut.rfind('\n') {
-                            Some(pos) => text[..pos].to_string(),
-                            None => cut.to_string(),
-                        }
-                    } else {
-                        text
-                    };
-                    summary_cache.insert(guide.id.clone(), summary);
-                }
+    let mut summaries = HashMap::new();
+    for guide in &index.guides {
+        let lang = guide.files.keys().next().cloned().unwrap_or_else(|| "en".to_string());
+        if let Some(file) = guide.files.get(&lang) {
+            let file_path = resource_path(&format!("docs/guides/{}", file));
+            if let Ok(text) = std::fs::read_to_string(&file_path) {
+                let summary = if text.len() > 200 {
+                    let cut = &text[..200];
+                    match cut.rfind('\n') {
+                        Some(pos) => text[..pos].to_string(),
+                        None => cut.to_string(),
+                    }
+                } else {
+                    text
+                };
+                summaries.insert(guide.id.clone(), summary);
             }
         }
     }
-
-    {
-        let mut cache: std::sync::MutexGuard<Option<GuideIndex>> = GUIDE_INDEX_CACHE.lock().map_err(|e: std::sync::PoisonError<std::sync::MutexGuard<Option<GuideIndex>>>| e.to_string())?;
-        *cache = Some(index.clone());
-    }
+    set_summary_cache(summaries);
+    set_index_cache(index.clone());
     Ok(index)
 }
 
@@ -761,7 +781,7 @@ fn find_relevant_guides_internal(query: &str, language: &str) -> Result<Vec<Guid
 
     let threshold = if tokens.len() >= 2 { 2 } else { 1 };
 
-    let summary_cache = GUIDE_SUMMARY_CACHE.lock().map_err(|e| e.to_string())?;
+    let summary_cache = get_summary_cache();
 
     let mut scored: Vec<(GuideIndexEntry, i32)> = vec![];
     for guide in &index.guides {
