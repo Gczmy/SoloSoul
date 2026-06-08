@@ -30,8 +30,8 @@
   /* Accents */
   --accent-primary: var(--accent-cool);
   --accent-hover: var(--accent-cool-hover);
-  --accent-warm: var(--accent-warm);
-  --accent-warm-hover: var(--accent-warm-hover);
+  --accent-warm: var(--clay-400);
+  --accent-warm-hover: var(--clay-500);
 
   /* Borders */
   --border-subtle: var(--stone-200);
