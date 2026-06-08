@@ -75,6 +75,19 @@ function HistoryViewer({ objectId, onClose, collectionType }: { objectId: string
     return 'public';
   }, [collectionType, sensitivityMap]);
 
+  /** Password verification for critical field reveal. */
+  const verifyPassword = useCallback(async (): Promise<boolean> => {
+    const pw = prompt(t('common:current_password'));
+    if (!pw) return false;
+    try {
+      await invoke('login', { accountId: '', password: pw });
+      return true;
+    } catch {
+      alert(t('common:current_password_incorrect'));
+      return false;
+    }
+  }, [t]);
+
   useEffect(() => {
     invoke<SnapshotEntry[]>('snapshot_get', { objectId })
       .then(setSnapshots)
@@ -132,7 +145,7 @@ function HistoryViewer({ objectId, onClose, collectionType }: { objectId: string
           ) : !snap ? (
             <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>{t('common:no_history')}</div>
           ) : (
-            <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} getFieldSensitivity={getSnapSensitivity} />
+            <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} getFieldSensitivity={getSnapSensitivity} verifyPassword={verifyPassword} />
           )}
         </div>
         {/* Footer */}
@@ -144,10 +157,11 @@ function HistoryViewer({ objectId, onClose, collectionType }: { objectId: string
   );
 }
 
-function SnapshotCard({ snap, index, total, t, getFieldSensitivity }: {
+function SnapshotCard({ snap, index, total, t, getFieldSensitivity, verifyPassword }: {
   snap: SnapshotEntry; index: number; total: number;
   t: (k: string) => string;
   getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
+  verifyPassword: () => Promise<boolean>;
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
   const { maskValue, isRevealed, reveal } = useRevealState();
@@ -200,15 +214,28 @@ function SnapshotCard({ snap, index, total, t, getFieldSensitivity }: {
               </div>
               <div style={{ flex: 1 }}>
                 {revealed ? (
-                  <span style={{ color: 'var(--text-primary)' }}>{f.value}</span>
+                  <span style={{
+                    color: 'var(--text-primary)',
+                    background: 'transparent',
+                    padding: 0,
+                    filter: 'none',
+                    borderRadius: 0,
+                  }}>{f.value}</span>
                 ) : (
                   <span
-                    onClick={needsReveal ? () => reveal(fieldId) : undefined}
+                    onClick={async () => {
+                      if (sens === 'critical') {
+                        const ok = await verifyPassword();
+                        if (ok) reveal(fieldId);
+                      } else {
+                        reveal(fieldId);
+                      }
+                    }}
                     style={{
                       cursor: needsReveal ? 'pointer' : 'default',
                       filter: needsReveal ? 'blur(5px)' : 'none',
                       userSelect: needsReveal ? 'none' : 'auto',
-                      background: needsReveal ? 'var(--bg-subtle, rgba(128,128,128,0.12))' : 'transparent',
+                      background: needsReveal ? 'var(--bg-subtle, rgba(128,128,128,0.15))' : 'transparent',
                       borderRadius: 2, padding: '0 2px',
                       color: 'var(--text-primary)',
                     }}

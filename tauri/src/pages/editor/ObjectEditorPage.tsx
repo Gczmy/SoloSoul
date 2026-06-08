@@ -98,16 +98,18 @@ export function ObjectEditorPage() {
 
   /** Resolve sensitivity level for a property field. */
   const getSensitivity = (fieldKey: string): SensitivityLevel => {
-    // Build field ID like "travel.passport_number" or "identity.full_name"
-    const fieldId = `${collectionType || sectionParam || 'collection'}.${fieldKey}`;
-    if (sensitivityMap?.entries?.[fieldId]) {
-      return sensitivityMap.entries[fieldId];
-    }
-    // Fallback: check if the field key alone matches
+    const ct = collectionType || sectionParam || '';
+    const fieldId = `${ct}.${fieldKey}`;
+    if (sensitivityMap?.entries?.[fieldId]) return sensitivityMap.entries[fieldId];
+    // Try snake_case normalization (map entries use snake_case, fields use camelCase)
+    const snakeKey = fieldKey.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
+    const snakeFieldId = `${ct}.${snakeKey}`;
+    if (snakeFieldId !== fieldId && sensitivityMap?.entries?.[snakeFieldId]) return sensitivityMap.entries[snakeFieldId];
+    // Fallback: match any entry ending with .{key}
     for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
-      if (id.endsWith(`.${fieldKey}`)) return level;
+      if (id.endsWith(`.${fieldKey}`) || id.endsWith(`.${snakeKey}`)) return level;
     }
-    return 'internal'; // default level
+    return 'public'; // default level
   };
 
   // Filter templates to only show those belonging to the current section
