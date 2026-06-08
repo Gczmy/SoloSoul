@@ -74,6 +74,7 @@ pub fn run() {
             // Export/Import commands (P0+P1)
             commands::export_import::export_get_scope_tree,
             commands::export_import::export_estimate_size,
+            commands::export_import::export_get_attachments,
             commands::export_import::export_execute,
             commands::export_import::import_parse_package,
             commands::export_import::import_get_password_hint,

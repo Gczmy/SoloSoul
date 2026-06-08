@@ -331,6 +331,43 @@ impl VaultService {
         key.map(|k| k.is_some()).unwrap_or(false) && ua.map(|u| u.is_some()).unwrap_or(false)
     }
 
+    /// Verify whether the given password matches the account's master password.
+    /// Does NOT modify any state (no unlocking, no session key storage).
+    pub fn verify_password(&self, account_id: &str, password: &str) -> Result<bool, String> {
+        let config_path = self.config_path(account_id);
+        let content =
+            fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
+        let config: AccountConfig =
+            serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
+
+        let salt_bytes =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &config.salt)
+                .map_err(|_| "Invalid salt".to_string())?;
+        let salt_arr: [u8; 16] = salt_bytes
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Invalid salt length".to_string())?;
+
+        let kdf_config = KdfConfig::balanced();
+        let master_key = derive_key(password, &salt_arr, &kdf_config)
+            .map_err(|_| "Key derivation failed".to_string())?;
+
+        let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
+        let verify_key = derive_key(
+            &hex::encode(master_key.as_slice()),
+            verify_data,
+            &KdfConfig {
+                memory_kb: 8192,
+                iterations: 1,
+                parallelism: 1,
+            },
+        )
+        .map_err(|_| "Verify failed".to_string())?;
+        let computed_hash = hex::encode(verify_key.as_slice());
+
+        Ok(computed_hash == config.verify_hash)
+    }
+
     /// Unlock vault with a pre-derived session key (used by biometric unlock).
     /// The session key must match the account's encryption key.
     pub fn unlock_with_session_key(

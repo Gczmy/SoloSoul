@@ -8,6 +8,7 @@
 
 pub mod aes;
 pub mod cipher;
+pub mod hkdf_ext;
 pub mod kdf;
 pub mod secure;
 

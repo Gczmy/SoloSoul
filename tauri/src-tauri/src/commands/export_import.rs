@@ -13,9 +13,16 @@ use std::collections::{BTreeSet, HashMap};
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use tauri::State;
+use uuid::Uuid;
 use zip::write::SimpleFileOptions;
 use zip::ZipArchive;
 use zip::ZipWriter;
+
+use super::attachment::AttachmentMeta;
+
+fn generate_id() -> String {
+    Uuid::new_v4().to_string()
+}
 
 // ── Public types (↔ frontend) ──────────────────────────────────
 
@@ -34,9 +41,11 @@ pub struct PageGroup {
 pub struct ExportScope {
     pub selected_page_ids: Vec<String>,    // section_types to export fully
     pub selected_object_ids: Vec<String>,  // specific object IDs
-    pub selected_tags: Vec<String>,        // P2: tag filter (intersection with selectedObjectIds)
-    pub include_attachments: bool,         // P2: include attachment files
+    pub selected_tags: Vec<String>,        // P1: tag filter (intersection with selectedObjectIds)
+    pub include_attachments: bool,         // P1: include attachment files
+    pub selected_attachment_ids: Vec<String>, // P1: fine-grained attachment selection (empty = all)
     pub include_preferences: bool,         // P2: include user preferences
+    pub include_behavioral: bool,          // future: include behavioral data
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -53,12 +62,13 @@ pub struct ExportRequest {
 pub struct ExportEstimate {
     pub object_count: usize,
     pub attachment_count: usize,
+    pub attachment_selected_count: usize,
     pub estimated_bytes: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ImportPreviewResponse {
+pub struct ImportPreview {
     pub file_path: String,
     pub version: String,
     pub object_count: usize,
@@ -70,11 +80,20 @@ pub struct ImportPreviewResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct AttachmentImportInfo {
+    pub object_id: String,
+    pub file_name: String,
+    pub size_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DecryptedImportPreview {
     pub objects: Vec<ObjectSummary>,
     pub conflicts: Vec<ConflictInfo>,
     pub has_preferences: bool,
     pub has_audit_log: bool,
+    pub attachments: Vec<AttachmentImportInfo>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -190,7 +209,7 @@ pub async fn export_get_scope_tree(
     for obj in objects {
         let st = if obj.section_type.is_empty() {
             if obj.collection_type.is_empty() {
-                "identity".to_string()
+                "uncategorized".to_string()
             } else {
                 obj.collection_type.clone()
             }
@@ -253,13 +272,24 @@ pub async fn export_estimate_size(
         })
         .sum();
 
-    // Estimate attachments
+    // Estimate attachments (respect selected_attachment_ids filter)
     let mut attachment_count = 0usize;
+    let mut attachment_selected_count = 0usize;
     if scope.include_attachments {
+        let selected: std::collections::HashSet<String> = scope.selected_attachment_ids.iter().cloned().collect();
+        let has_selection = !selected.is_empty();
         for rec in &records {
             let atts = load_attachments(&rec.properties);
-            attachment_count += atts.len();
-            estimated_bytes += atts.iter().map(|a| a.size_bytes).sum::<u64>();
+            for att in &atts {
+                if att.deleted_at.is_some() {
+                    continue;
+                }
+                attachment_count += 1;
+                if !has_selection || selected.contains(&att.id) {
+                    attachment_selected_count += 1;
+                    estimated_bytes += att.size_bytes;
+                }
+            }
         }
     }
 
@@ -268,9 +298,18 @@ pub async fn export_estimate_size(
         estimated_bytes += 4096; // rough guess
     }
 
+    // Estimate behavioral data (audit log)
+    if scope.include_behavioral {
+        if let Ok(logs) = vault.list_audit_log(100000) {
+            let log_json = serde_json::to_vec(&logs).unwrap_or_default();
+            estimated_bytes += log_json.len() as u64;
+        }
+    }
+
     Ok(ExportEstimate {
         object_count: count,
         attachment_count,
+        attachment_selected_count,
         estimated_bytes,
     })
 }
@@ -293,6 +332,31 @@ pub async fn export_execute(
     let has_digit = req.password.chars().any(|c| c.is_ascii_digit());
     if !has_letter || !has_digit {
         return Err("Password must contain at least one letter and one digit".to_string());
+    }
+
+    // ── Verify export password is NOT the master password ──────
+    match svc.verify_password(&account_id, &req.password) {
+        Ok(true) => {
+            return Err("Export password must be different from your master password".to_string());
+        }
+        Ok(false) => { /* export password is different from master password — OK */ }
+        Err(e) => {
+            return Err(format!("Failed to verify master password: {}", e));
+        }
+    }
+
+    // ── Verify password hint does not contain the password ─────
+    if let Some(ref hint) = req.password_hint {
+        if !hint.is_empty() && req.password.len() >= 3 {
+            let pw_lower = req.password.to_lowercase();
+            let hint_lower = hint.to_lowercase();
+            for window in pw_lower.as_bytes().windows(3) {
+                let substr = std::str::from_utf8(window).unwrap_or("");
+                if !substr.is_empty() && hint_lower.contains(substr) {
+                    return Err("Password hint must not contain parts of the password".to_string());
+                }
+            }
+        }
     }
 
     // ── Collect objects ────────────────────────────────────────
@@ -349,8 +413,16 @@ pub async fn export_execute(
     let mut zip = ZipWriter::new(file);
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
-    // ── P2: Attachments ────────────────────────────────────────
+    // ── P1: Attachments ────────────────────────────────────────
+    const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB
+    const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
+    const STREAMING_THRESHOLD: u64 = 10 * 1024 * 1024; // 10 MB
+
     let mut has_attachments = false;
+    let selected_attachment_ids: std::collections::HashSet<String> = req.scope.selected_attachment_ids.iter().cloned().collect();
+    let mut attachment_entries: Vec<(String, String, String, std::path::PathBuf)> = Vec::new();
+    let mut total_attachment_bytes: u64 = 0;
+
     if req.scope.include_attachments {
         for rec in &records {
             let atts = load_attachments(&rec.properties);
@@ -362,39 +434,72 @@ pub async fn export_execute(
                 if att.deleted_at.is_some() {
                     continue;
                 }
-                // Try vault_path first, then src_path
+                // Fine-grained selection
+                if !selected_attachment_ids.is_empty() && !selected_attachment_ids.contains(&att.id) {
+                    continue;
+                }
+                // Single attachment size limit
+                if att.size_bytes > MAX_ATTACHMENT_BYTES {
+                    return Err(format!("Attachment '{}' exceeds 100 MB limit", att.file_name));
+                }
+
                 let src = att
                     .vault_path
                     .as_ref()
                     .or(att.src_path.as_ref())
-                    .map(|p| std::path::Path::new(p))
-                    .filter(|p| p.exists());
+                    .map(|p| std::path::Path::new(p).to_path_buf())
+                    .filter(|p| p.exists())
+                    .or_else(|| {
+                        let fallback = base_dir.join(&att.id).join(&att.file_name);
+                        if fallback.exists() { Some(fallback) } else { None }
+                    });
+
                 if let Some(src) = src {
-                    let zip_name = format!("attachments/{}/{}", rec.id, att.file_name);
-                    if let Ok(mut f) = File::open(src) {
-                        let mut buf = Vec::new();
-                        if f.read_to_end(&mut buf).is_ok() {
-                            let _ = zip.start_file(&zip_name, options);
-                            let _ = zip.write_all(&buf);
-                            has_attachments = true;
-                        }
-                    }
-                } else {
-                    // Fallback: look in vault structure by attachment id
-                    let fallback = base_dir.join(&att.id).join(&att.file_name);
-                    if fallback.exists() {
-                        let zip_name = format!("attachments/{}/{}", rec.id, att.file_name);
-                        if let Ok(mut f) = File::open(&fallback) {
-                            let mut buf = Vec::new();
-                            if f.read_to_end(&mut buf).is_ok() {
-                                let _ = zip.start_file(&zip_name, options);
-                                let _ = zip.write_all(&buf);
-                                has_attachments = true;
-                            }
-                        }
-                    }
+                    total_attachment_bytes += att.size_bytes;
+                    attachment_entries.push((rec.id.clone(), att.id.clone(), att.file_name.clone(), src));
                 }
             }
+        }
+    }
+
+    // Total export size limit (payload + attachments + ~28 bytes overhead per attachment for nonce/chunk_count)
+    let payload_estimate = payload_bytes.len() as u64;
+    let total_export_estimate = payload_estimate + total_attachment_bytes + (attachment_entries.len() as u64 * 28);
+    if total_export_estimate > MAX_EXPORT_TOTAL_BYTES {
+        return Err("Total export size exceeds 1 GB limit".to_string());
+    }
+
+    // Derive attachment key via HKDF
+    let att_key = if !attachment_entries.is_empty() {
+        Some(solosoul_crypto::hkdf_ext::derive_hkdf_key(
+            &key,
+            &salt,
+            b"solosoul:attachments:v1",
+        ).map_err(|e| format!("derive att key: {}", e))?)
+    } else {
+        None
+    };
+
+    // Encrypt and write attachments
+    if let Some(ref ak) = att_key {
+        for (obj_id, att_id, _file_name, src_path) in &attachment_entries {
+            let file_size = std::fs::metadata(src_path).map(|m| m.len()).unwrap_or(0);
+            let zip_name = format!("attachments/{}/{}.enc", obj_id, att_id);
+            let mut buf = Vec::new();
+            let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
+            f.read_to_end(&mut buf).map_err(|e| format!("read attachment: {}", e))?;
+
+            let enc = if file_size <= STREAMING_THRESHOLD {
+                solosoul_crypto::cipher::encrypt_to_bytes(ak, &buf, None)
+                    .map_err(|e| format!("encrypt attachment: {}", e))?
+            } else {
+                solosoul_crypto::cipher::encrypt_chunked_to_bytes(ak, &buf)
+                    .map_err(|e| format!("encrypt attachment chunked: {}", e))?
+            };
+
+            zip.start_file(&zip_name, options).map_err(|e| e.to_string())?;
+            zip.write_all(&enc).map_err(|e| e.to_string())?;
+            has_attachments = true;
         }
     }
 
@@ -403,7 +508,12 @@ pub async fn export_execute(
     let mut preferences_encrypted = false;
     if req.scope.include_preferences {
         if let Ok(Some(profile)) = vault.load_profile(&account_id) {
-            let prefs_key = derive_export_key(&format!("{}_prefs_salt", req.password), &salt)?;
+            let prefs_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
+                &key,
+                &salt,
+                b"solosoul:preferences:v1",
+            )
+            .map_err(|e| format!("derive prefs key: {}", e))?;
             let prefs_enc = solosoul_crypto::cipher::encrypt_to_bytes(&prefs_key, &profile.data, None)
                 .map_err(|e| format!("encrypt prefs: {}", e))?;
             zip.start_file("preferences.enc", options)
@@ -414,10 +524,33 @@ pub async fn export_execute(
         }
     }
 
+    // ── P2: Behavioral data (audit log) ────────────────────────
+    let mut behavioral_encrypted = false;
+    if req.scope.include_behavioral {
+        if let Ok(logs) = vault.list_audit_log(100000) {
+            let logs_json = serde_json::to_vec(&logs).unwrap_or_default();
+            if !logs_json.is_empty() {
+                let behav_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
+                    &key,
+                    &salt,
+                    b"solosoul:behavioral:v1",
+                )
+                .map_err(|e| format!("derive behavioral key: {}", e))?;
+                let behav_enc = solosoul_crypto::cipher::encrypt_to_bytes(&behav_key, &logs_json, None)
+                    .map_err(|e| format!("encrypt behavioral: {}", e))?;
+                zip.start_file("behavioral.enc", options)
+                    .map_err(|e| e.to_string())?;
+                zip.write_all(&behav_enc).map_err(|e| e.to_string())?;
+                extra_files.push("behavioral.enc".to_string());
+                behavioral_encrypted = true;
+            }
+        }
+    }
+
     // manifest.json (plaintext)
     let manifest = serde_json::json!({
         "version": "2.0",
-        "export_scope": if req.scope.selected_page_ids.is_empty() && req.scope.selected_object_ids.is_empty() { "none" } else { "partial" },
+        "export_scope": "partial",
         "selected_pages": req.scope.selected_page_ids,
         "selected_objects": req.scope.selected_object_ids,
         "selected_tags": req.scope.selected_tags,
@@ -427,6 +560,7 @@ pub async fn export_execute(
         "export_app_version": env!("CARGO_PKG_VERSION"),
         "has_attachments": has_attachments,
         "has_preferences": preferences_encrypted,
+        "has_behavioral": behavioral_encrypted,
         "extra_files": extra_files,
         "password_hint": req.password_hint.unwrap_or_default(),
         "salt_hex": hex::encode(salt),
@@ -455,10 +589,47 @@ pub async fn export_execute(
     Ok(zip_path)
 }
 
+// ── Attachment info for export UI ──────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AttachmentInfo {
+    pub id: String,
+    pub file_name: String,
+    pub size_bytes: u64,
+}
+
+#[tauri::command]
+pub async fn export_get_attachments(
+    state: State<'_, AppState>,
+    _account_id: String,
+    object_id: String,
+) -> Result<Vec<AttachmentInfo>, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    let obj = vault.load_object(&object_id).map_err(|e| e.to_string())?
+        .ok_or_else(|| format!("Object {} not found", object_id))?;
+
+    let atts = load_attachments(&obj.properties);
+    let result: Vec<AttachmentInfo> = atts
+        .into_iter()
+        .filter(|a| a.deleted_at.is_none())
+        .map(|a| AttachmentInfo {
+            id: a.id,
+            file_name: a.file_name,
+            size_bytes: a.size_bytes,
+        })
+        .collect();
+
+    Ok(result)
+}
+
 // ── Import commands ────────────────────────────────────────────
 
 #[tauri::command]
-pub async fn import_parse_package(file_path: String) -> Result<ImportPreviewResponse, String> {
+pub async fn import_parse_package(file_path: String) -> Result<ImportPreview, String> {
     let fp = file_path.clone();
     let result = tokio::task::spawn_blocking(move || {
         let path = std::path::Path::new(&fp);
@@ -483,7 +654,7 @@ pub async fn import_parse_package(file_path: String) -> Result<ImportPreviewResp
             .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
             .unwrap_or_default();
 
-        Ok(ImportPreviewResponse {
+        Ok(ImportPreview {
             file_path: fp,
             version: v.get("version").and_then(|x| x.as_str()).unwrap_or("1.0").to_string(),
             object_count: v.get("object_count").and_then(|x| x.as_u64()).unwrap_or(0) as usize,
@@ -561,11 +732,30 @@ pub async fn import_decrypt_preview(
 
     let has_preferences = manifest.extra_files.contains(&"preferences.enc".to_string());
 
+    // Build attachment preview list from payload
+    let mut attachments = Vec::new();
+    if manifest.has_attachments {
+        for obj in &objects {
+            let atts = load_attachments(&obj.properties);
+            for att in &atts {
+                if att.deleted_at.is_some() {
+                    continue;
+                }
+                attachments.push(AttachmentImportInfo {
+                    object_id: obj.id.clone(),
+                    file_name: att.file_name.clone(),
+                    size_bytes: att.size_bytes,
+                });
+            }
+        }
+    }
+
     Ok(DecryptedImportPreview {
         objects,
         conflicts,
         has_preferences,
         has_audit_log: false,
+        attachments,
     })
 }
 
@@ -625,7 +815,9 @@ async fn import_execute_internal(
     });
 
     let objects = payload["objects"].as_array().ok_or("No objects array in payload")?;
+    let package_ids = build_package_ids(&payload);
     let mut imported = 0usize;
+    let mut imported_object_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
     let now = chrono::Utc::now().to_rfc3339();
 
     for obj_val in objects {
@@ -653,6 +845,10 @@ async fn import_execute_internal(
             ImportStrategy::Merge => { /* overwrite always — fall through */ }
         }
 
+        // Resolve cross-scope RelationProperty references
+        let mut properties = obj_val["properties"].clone();
+        resolve_cross_scope_references(&mut properties, &package_ids);
+
         let record = solosoul_vault::ObjectRecord {
             id: id.to_string(),
             account_id: account_id.clone(),
@@ -665,7 +861,7 @@ async fn import_execute_internal(
                 .as_array()
                 .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
                 .unwrap_or_default(),
-            properties: obj_val["properties"].clone(),
+            properties,
             property_labels: if obj_val["property_labels"].is_null() {
                 None
             } else {
@@ -685,27 +881,125 @@ async fn import_execute_internal(
 
         vault.save_object(&record).map_err(|e| format!("save: {}", e))?;
         imported += 1;
+        imported_object_ids.insert(id.to_string());
+    }
 
-        // P2: Import attachments if present
-        if manifest.has_attachments {
-            let atts = load_attachments(&record.properties);
+    // ── P1: Import attachments (encrypted) ─────────────────────
+    if manifest.has_attachments {
+        // Derive attachment key via HKDF
+        let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
+            &key,
+            &salt,
+            b"solosoul:attachments:v1",
+        ).map_err(|e| format!("derive att key: {}", e))?;
+
+        // Build old att_id -> meta map from payload objects
+        let mut att_meta_map: std::collections::HashMap<(String, String), AttachmentMeta> = std::collections::HashMap::new();
+        for obj_val in objects {
+            let obj_id = obj_val["id"].as_str().unwrap_or("");
+            if obj_id.is_empty() { continue; }
+            let empty_props = serde_json::Map::new();
+            let props = obj_val["properties"].as_object().unwrap_or(&empty_props);
+            let atts = load_attachments(&serde_json::Value::Object(props.clone()));
             for att in &atts {
-                let zip_name = format!("attachments/{}/{}", id, att.file_name);
-                if let Ok(att_data) = read_file_from_zip(&file_path, &zip_name) {
-                    // Write attachment to vault storage
-                    let base_dir = svc.base_path().join("attachments").join(id);
-                    let _ = std::fs::create_dir_all(&base_dir);
-                    let dest = base_dir.join(&att.file_name);
-                    let _ = std::fs::write(&dest, &att_data);
+                att_meta_map.insert((obj_id.to_string(), att.id.clone()), att.clone());
+            }
+        }
+
+        // Open ZIP and iterate attachments
+        let zip_file = File::open(&file_path).map_err(|e| format!("open zip: {}", e))?;
+        let mut archive = ZipArchive::new(zip_file).map_err(|e| format!("invalid zip: {}", e))?;
+        let att_prefix = "attachments/";
+        for i in 0..archive.len() {
+            let mut f = archive.by_index(i).map_err(|e| e.to_string())?;
+            let name = f.name().to_string();
+            if !name.starts_with(att_prefix) || name.ends_with('/') {
+                continue;
+            }
+            let rel = &name[att_prefix.len()..]; // "objId/attId.enc"
+            let parts: Vec<&str> = rel.split('/').collect();
+            if parts.len() != 2 {
+                continue;
+            }
+            let obj_id = parts[0];
+            let enc_name = parts[1];
+            let old_att_id = match enc_name.strip_suffix(".enc") {
+                Some(id) => id,
+                None => continue,
+            };
+
+            // Skip if object was not imported (e.g. SkipExisting)
+            if !imported_object_ids.contains(obj_id) {
+                continue;
+            }
+
+            let old_meta = match att_meta_map.get(&(obj_id.to_string(), old_att_id.to_string())) {
+                Some(m) => m,
+                None => continue,
+            };
+
+            let mut enc_data = Vec::new();
+            f.read_to_end(&mut enc_data).map_err(|e| e.to_string())?;
+
+            // Decrypt (try chunked first for larger files)
+            const STREAMING_THRESHOLD: usize = 10 * 1024 * 1024; // 10 MB
+            let att_data = if enc_data.len() > (STREAMING_THRESHOLD + 28) {
+                solosoul_crypto::cipher::decrypt_chunked_from_bytes(&att_key, &enc_data)
+                    .map_err(|e| format!("decrypt attachment chunked: {}", e))?
+            } else {
+                match solosoul_crypto::cipher::decrypt_from_bytes(&att_key, &enc_data, None) {
+                    Ok(d) => d,
+                    Err(_) => solosoul_crypto::cipher::decrypt_chunked_from_bytes(&att_key, &enc_data)
+                        .map_err(|e| format!("decrypt attachment fallback: {}", e))?,
+                }
+            };
+
+            // Save to vault storage
+            let new_att_id = generate_id();
+            let dest = svc.base_path().join("attachments").join(obj_id).join(&new_att_id);
+            std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+            let file_path_dest = dest.join(&old_meta.file_name);
+            std::fs::write(&file_path_dest, &att_data).map_err(|e| e.to_string())?;
+
+            // Update object's __attachments property
+            let mut obj = vault.load_object(obj_id).map_err(|e| format!("get object: {}", e))?
+                .ok_or_else(|| format!("object {} not found", obj_id))?;
+            let mut atts = load_attachments(&obj.properties);
+            atts.push(AttachmentMeta {
+                id: new_att_id,
+                object_id: obj_id.to_string(),
+                file_name: old_meta.file_name.clone(),
+                mime_type: old_meta.mime_type.clone(),
+                size_bytes: att_data.len() as u64,
+                created_at: now.clone(),
+                deleted_at: None,
+                src_path: Some(file_path_dest.to_string_lossy().to_string()),
+                vault_path: Some(file_path_dest.to_string_lossy().to_string()),
+            });
+            let att_json = serde_json::to_value(&atts).map_err(|e| e.to_string())?;
+            match &mut obj.properties {
+                serde_json::Value::Object(map) => {
+                    map.insert("__attachments".to_string(), att_json);
+                }
+                _ => {
+                    let mut map = serde_json::Map::new();
+                    map.insert("__attachments".to_string(), att_json);
+                    obj.properties = serde_json::Value::Object(map);
                 }
             }
+            vault.save_object(&obj).map_err(|e| e.to_string())?;
         }
     }
 
     // ── P2: Import preferences if present ──────────────────────
     if manifest.extra_files.contains(&"preferences.enc".to_string()) {
         let prefs_salt = hex::decode(&manifest.salt_hex).unwrap_or_default();
-        let prefs_key = derive_export_key(&format!("{}_prefs_salt", password), &prefs_salt)?;
+        let prefs_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
+            &key,
+            &prefs_salt,
+            b"solosoul:preferences:v1",
+        )
+        .map_err(|e| format!("derive prefs key: {}", e))?;
         if let Ok(prefs_enc) = read_file_from_zip(&file_path, "preferences.enc") {
             if let Ok(prefs_dec) = solosoul_crypto::cipher::decrypt_from_bytes(&prefs_key, &prefs_enc, None) {
                 let profile = solosoul_vault::Profile::new_with_id(&account_id, &account_id, prefs_dec.to_vec());
@@ -732,6 +1026,75 @@ struct ManifestData {
     salt_hex: String,
     has_attachments: bool,
     extra_files: Vec<String>,
+}
+
+// ── Cross-scope reference resolution ─────────────────────────
+
+/// Build a set of all object IDs present in the imported package.
+fn build_package_ids(payload: &serde_json::Value) -> std::collections::HashSet<String> {
+    payload["objects"]
+        .as_array()
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|o| o["id"].as_str().map(String::from))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Recursively scan a JSON value for RelationProperty references.
+/// If a relation targets an object not in `package_ids`, downgrade it to a text remark.
+fn resolve_value_references(
+    value: &mut serde_json::Value,
+    package_ids: &std::collections::HashSet<String>,
+) {
+    match value {
+        serde_json::Value::Object(obj) => {
+            // Check if this object looks like a RelationProperty
+            let is_relation = obj
+                .get("type")
+                .or_else(|| obj.get("__type"))
+                .or_else(|| obj.get("kind"))
+                .and_then(|v| v.as_str())
+                == Some("relation");
+            if is_relation {
+                let target_id = obj
+                    .get("targetId")
+                    .or_else(|| obj.get("id"))
+                    .or_else(|| obj.get("objectId"))
+                    .and_then(|v| v.as_str());
+                if let Some(tid) = target_id {
+                    if !package_ids.contains(tid) {
+                        // Downgrade to text remark as per §4 cross-scope reference handling
+                        *value = serde_json::Value::String(format!("[引用对象未导出: {}]", tid));
+                        return;
+                    }
+                }
+            }
+            // Recurse into nested objects
+            for (_k, v) in obj.iter_mut() {
+                resolve_value_references(v, package_ids);
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for item in arr.iter_mut() {
+                resolve_value_references(item, package_ids);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Scan object properties and downgrade any cross-scope relation references.
+fn resolve_cross_scope_references(
+    properties: &mut serde_json::Value,
+    package_ids: &std::collections::HashSet<String>,
+) {
+    if let Some(map) = properties.as_object_mut() {
+        for (_key, value) in map.iter_mut() {
+            resolve_value_references(value, package_ids);
+        }
+    }
 }
 
 fn read_manifest(file_path: &str) -> Result<ManifestData, String> {

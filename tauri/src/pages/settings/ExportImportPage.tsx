@@ -4,11 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import { save, open } from '@tauri-apps/plugin-dialog';
 import { useAuthStore } from '@/stores/authStore';
+import type { SensitivityLevel } from '@/stores/sensitivityStore';
+import { Paperclip } from 'lucide-react';
 
 // ── Types matching Rust backend ─────────────────────────────
 
@@ -27,7 +30,13 @@ interface ObjectSummary {
   sensitivityLevel: string;
   createdAt: string;
   updatedAt: string;
-  tags?: string[];
+  tags: string[];
+}
+
+interface AttachmentInfo {
+  id: string;
+  fileName: string;
+  sizeBytes: number;
 }
 
 interface ExportScope {
@@ -35,16 +44,19 @@ interface ExportScope {
   selectedObjectIds: string[];
   selectedTags: string[];
   includeAttachments: boolean;
+  selectedAttachmentIds: string[];
   includePreferences: boolean;
+  includeBehavioral: boolean;
 }
 
 interface ExportEstimate {
   objectCount: number;
   attachmentCount: number;
+  attachmentSelectedCount: number;
   estimatedBytes: number;
 }
 
-interface ImportPreviewResponse {
+interface ImportPreview {
   filePath: string;
   version: string;
   objectCount: number;
@@ -116,13 +128,20 @@ export function ExportImportPage() {
   const [exportEstimate, setExportEstimate] = useState<ExportEstimate | null>(null);
   const [estimating, setEstimating] = useState(false);
 
-  // ── P2: Export extras ────────────────────────────────────────
+  // ── P1: Tag filter ──────────────────────────────────────────
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+
+  // ── P1/P2: Export extras ─────────────────────────────────────
   const [includeAttachments, setIncludeAttachments] = useState(false);
+  const [selectedAttachmentIds, setSelectedAttachmentIds] = useState<Set<string>>(new Set());
+  const [objectAttachments, setObjectAttachments] = useState<Map<string, AttachmentInfo[]>>(new Map());
+  const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
   const [includePreferences, setIncludePreferences] = useState(false);
+  const [includeBehavioral, setIncludeBehavioral] = useState(false);
 
   // ── Import state ────────────────────────────────────────────
   const [importPath, setImportPath] = useState('');
-  const [importPreview, setImportPreview] = useState<ImportPreviewResponse | null>(null);
+  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [importPw, setImportPw] = useState('');
   const [decryptedPreview, setDecryptedPreview] = useState<DecryptedImportPreview | null>(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
@@ -150,21 +169,64 @@ export function ExportImportPage() {
   const togglePage = (sectionType: string, objectIds: string[]) => {
     setSelectedPageIds((prev) => {
       const next = new Set(prev);
-      if (next.has(sectionType)) {
-        next.delete(sectionType);
-        setSelectedObjectIds((oPrev) => {
-          const oNext = new Set(oPrev);
-          for (const id of objectIds) oNext.delete(id);
-          return oNext;
-        });
-      } else {
+      const isAdding = !next.has(sectionType);
+      if (isAdding) {
         next.add(sectionType);
-        setSelectedObjectIds((oPrev) => {
-          const oNext = new Set(oPrev);
-          for (const id of objectIds) oNext.add(id);
-          return oNext;
-        });
+      } else {
+        next.delete(sectionType);
       }
+
+      setSelectedObjectIds((oPrev) => {
+        const oNext = new Set(oPrev);
+        for (const id of objectIds) {
+          if (isAdding) oNext.add(id);
+          else oNext.delete(id);
+        }
+        return oNext;
+      });
+
+      // Cascade: add/remove attachments for already-loaded objects
+      setSelectedAttachmentIds((attPrev) => {
+        const attNext = new Set(attPrev);
+        for (const id of objectIds) {
+          const atts = objectAttachments.get(id) || [];
+          for (const att of atts) {
+            if (isAdding) attNext.add(att.id);
+            else attNext.delete(att.id);
+          }
+        }
+        return attNext;
+      });
+
+      // Async load attachments for unloaded objects when adding
+      if (isAdding && includeAttachments) {
+        const unloadedIds = objectIds.filter((id) => !objectAttachments.has(id));
+        if (unloadedIds.length > 0) {
+          Promise.all(
+            unloadedIds.map((id) =>
+              invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
+                .then((atts) => ({ id, atts }))
+                .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
+            ),
+          ).then((results) => {
+            setObjectAttachments((prev) => {
+              const n = new Map(prev);
+              for (const { id, atts } of results) {
+                n.set(id, atts);
+              }
+              return n;
+            });
+            setSelectedAttachmentIds((prev) => {
+              const n = new Set(prev);
+              for (const { atts } of results) {
+                for (const att of atts) n.add(att.id);
+              }
+              return n;
+            });
+          });
+        }
+      }
+
       return next;
     });
   };
@@ -172,12 +234,13 @@ export function ExportImportPage() {
   const toggleObject = (id: string, sectionType: string, allIdsInGroup: string[]) => {
     setSelectedObjectIds((prev) => {
       const next = new Set(prev);
-      const wasSelected = next.has(id);
-      if (wasSelected) {
-        next.delete(id);
-      } else {
+      const isAdding = !next.has(id);
+      if (isAdding) {
         next.add(id);
+      } else {
+        next.delete(id);
       }
+
       setSelectedPageIds((pPrev) => {
         const pNext = new Set(pPrev);
         const allSelectedNow = allIdsInGroup.every((oid) => next.has(oid));
@@ -188,11 +251,90 @@ export function ExportImportPage() {
         }
         return pNext;
       });
+
+      // Cascade attachments for already-loaded object
+      setSelectedAttachmentIds((attPrev) => {
+        const attNext = new Set(attPrev);
+        const atts = objectAttachments.get(id) || [];
+        for (const att of atts) {
+          if (isAdding) attNext.add(att.id);
+          else attNext.delete(att.id);
+        }
+        return attNext;
+      });
+
+      // Async load attachments if adding and not yet loaded
+      if (isAdding && includeAttachments && !objectAttachments.has(id)) {
+        invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
+          .then((atts) => {
+            setObjectAttachments((prev) => {
+              const n = new Map(prev);
+              n.set(id, atts);
+              return n;
+            });
+            setSelectedAttachmentIds((prev) => {
+              const n = new Set(prev);
+              for (const att of atts) n.add(att.id);
+              return n;
+            });
+          })
+          .catch(() => {});
+      }
+
       return next;
     });
   };
 
   const totalSelected = selectedObjectIds.size;
+
+  // ── Attachment helpers ──────────────────────────────────────
+  const toggleObjectExpanded = async (objectId: string) => {
+    setExpandedObjects((prev) => {
+      const next = new Set(prev);
+      if (next.has(objectId)) {
+        next.delete(objectId);
+        return next;
+      }
+      next.add(objectId);
+      if (!objectAttachments.has(objectId)) {
+        invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId })
+          .then((atts) => {
+            setObjectAttachments((p) => {
+              const n = new Map(p);
+              n.set(objectId, atts);
+              return n;
+            });
+          })
+          .catch(() => {});
+      }
+      return next;
+    });
+  };
+
+  const toggleAttachment = (attId: string, objectId: string, sectionType: string, allIdsInGroup: string[]) => {
+    setSelectedAttachmentIds((prev) => {
+      const next = new Set(prev);
+      const isAdding = !next.has(attId);
+      if (isAdding) next.add(attId);
+      else next.delete(attId);
+      return next;
+    });
+
+    // Cascade: if adding and parent object not selected, select it (and page if all objects selected)
+    setSelectedObjectIds((prev) => {
+      const next = new Set(prev);
+      if (!next.has(objectId)) {
+        next.add(objectId);
+        setSelectedPageIds((pagePrev) => {
+          const pageNext = new Set(pagePrev);
+          const allSelectedNow = allIdsInGroup.every((oid) => next.has(oid));
+          if (allSelectedNow) pageNext.add(sectionType);
+          return pageNext;
+        });
+      }
+      return next;
+    });
+  };
 
   // ── Estimate export size when selection changes ──────────────
   useEffect(() => {
@@ -207,9 +349,11 @@ export function ExportImportPage() {
         scope: {
           selectedPageIds: Array.from(selectedPageIds),
           selectedObjectIds: Array.from(selectedObjectIds),
-          selectedTags: [],
+          selectedTags: Array.from(selectedTags),
           includeAttachments,
+          selectedAttachmentIds: Array.from(selectedAttachmentIds),
           includePreferences,
+          includeBehavioral,
         },
       })
         .then(setExportEstimate)
@@ -217,7 +361,7 @@ export function ExportImportPage() {
         .finally(() => setEstimating(false));
     }, 300);
     return () => clearTimeout(debounce);
-  }, [totalSelected, selectedPageIds, selectedObjectIds, includeAttachments, includePreferences, accountId]);
+  }, [totalSelected, selectedPageIds, selectedObjectIds, selectedTags, includeAttachments, selectedAttachmentIds, includePreferences, includeBehavioral, accountId]);
 
   // ── Password strength ───────────────────────────────────────
   const pwStrength = assessPasswordStrength(exportPassword);
@@ -245,8 +389,10 @@ export function ExportImportPage() {
     const tagSet = new Set<string>();
     for (const group of pageGroups) {
       for (const obj of group.objects) {
-        if (selectedObjectIds.has(obj.id)) {
-          // tags are on the ObjectSummary type but we don't have them in frontend type yet
+        if (selectedObjectIds.has(obj.id) && obj.tags) {
+          for (const tag of obj.tags) {
+            if (tag) tagSet.add(tag);
+          }
         }
       }
     }
@@ -262,6 +408,18 @@ export function ExportImportPage() {
       return;
     }
 
+    // Verify password hint does not contain parts of the password
+    if (exportHint && exportPassword.length >= 3) {
+      const pwLower = exportPassword.toLowerCase();
+      const hintLower = exportHint.toLowerCase();
+      for (let i = 0; i <= pwLower.length - 3; i++) {
+        if (hintLower.includes(pwLower.slice(i, i + 3))) {
+          onError(new Error(t('settings:hint_contains_password')), '');
+          return;
+        }
+      }
+    }
+
     if (pwStrength === 'weak' && !showWeakWarning) {
       setShowWeakWarning(true);
       return;
@@ -275,9 +433,11 @@ export function ExportImportPage() {
           scope: {
             selectedPageIds: Array.from(selectedPageIds),
             selectedObjectIds: Array.from(selectedObjectIds),
-            selectedTags: [],
+            selectedTags: Array.from(selectedTags),
             includeAttachments,
+            selectedAttachmentIds: Array.from(selectedAttachmentIds),
             includePreferences,
+            includeBehavioral,
           },
           password: exportPassword,
           passwordHint: exportHint || null,
@@ -297,7 +457,7 @@ export function ExportImportPage() {
     if (!importPath || isPreviewing) return;
     setIsPreviewing(true);
     try {
-      const preview = await invoke<ImportPreviewResponse>('import_parse_package', {
+      const preview = await invoke<ImportPreview>('import_parse_package', {
         filePath: importPath,
       });
       setImportPreview(preview);
@@ -380,30 +540,6 @@ export function ExportImportPage() {
   };
 
   // ── Helpers ─────────────────────────────────────────────────
-  const sensitivityBadge = (level: string) => {
-    const colors: Record<string, string> = {
-      public: 'var(--text-tertiary)',
-      internal: 'var(--accent-primary)',
-      sensitive: '#e68a00',
-      critical: '#d32f2f',
-    };
-    return (
-      <span
-        style={{
-          fontSize: 10,
-          color: colors[level] || 'var(--text-tertiary)',
-          border: '1px solid currentColor',
-          borderRadius: 3,
-          padding: '0 4px',
-          lineHeight: '16px',
-          textTransform: 'uppercase',
-        }}
-      >
-        {level}
-      </span>
-    );
-  };
-
   const formatBytes = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -530,25 +666,106 @@ export function ExportImportPage() {
                         {/* Object rows (collapsible) */}
                         {expanded &&
                           group.objects.map((obj) => (
-                            <label
-                              key={obj.id}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 8,
-                                padding: '4px 0 4px 28px',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedObjectIds.has(obj.id)}
-                                onChange={() => toggleObject(obj.id, group.sectionType, allIds)}
-                                style={{ accentColor: 'var(--accent-primary)' }}
-                              />
-                              <span style={{ fontSize: 13, flex: 1 }}>{obj.name}</span>
-                              {sensitivityBadge(obj.sensitivityLevel)}
-                            </label>
+                            <div key={obj.id}>
+                              <label
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 8,
+                                  padding: '4px 0 4px 28px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedObjectIds.has(obj.id)}
+                                  onChange={() => toggleObject(obj.id, group.sectionType, allIds)}
+                                  style={{ accentColor: 'var(--accent-primary)' }}
+                                />
+                                <span style={{ fontSize: 13, flex: 1 }}>{obj.name}</span>
+                                <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
+                                {includeAttachments && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      toggleObjectExpanded(obj.id);
+                                    }}
+                                    style={{
+                                      fontSize: 10,
+                                      background: 'none',
+                                      border: 'none',
+                                      cursor: 'pointer',
+                                      padding: '0 4px',
+                                      transform: expandedObjects.has(obj.id) ? 'rotate(90deg)' : 'none',
+                                      transition: 'transform 0.15s',
+                                      color: 'var(--text-tertiary)',
+                                    }}
+                                  >
+                                    ▶
+                                  </button>
+                                )}
+                              </label>
+                              {includeAttachments && expandedObjects.has(obj.id) && (
+                                <div style={{ paddingLeft: 52, paddingBottom: 4 }}>
+                                  {(objectAttachments.get(obj.id) || []).length === 0 ? (
+                                    <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                                      {t('settings:no_attachments', 'No attachments')}
+                                    </span>
+                                  ) : (
+                                    <>
+                                      {/* Attachment list header */}
+                                      <div
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: 4,
+                                          padding: '2px 0',
+                                          fontSize: 11,
+                                          color: 'var(--text-tertiary)',
+                                          borderBottom: '1px solid var(--border-subtle)',
+                                          marginBottom: 2,
+                                        }}
+                                      >
+                                        <Paperclip size={10} />
+                                        <span>
+                                          {t('settings:attachments_label', 'Attachments')} (
+                                          {(objectAttachments.get(obj.id) || []).length})
+                                        </span>
+                                      </div>
+                                      {(objectAttachments.get(obj.id) || []).map((att) => (
+                                        <label
+                                          key={att.id}
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 6,
+                                            padding: '2px 0 2px 16px',
+                                            cursor: 'pointer',
+                                          }}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={selectedAttachmentIds.has(att.id)}
+                                            onChange={() => toggleAttachment(att.id, obj.id, group.sectionType, allIds)}
+                                            style={{ accentColor: 'var(--accent-primary)' }}
+                                          />
+                                          <Paperclip
+                                            size={10}
+                                            style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+                                          />
+                                          <span style={{ fontSize: 12, flex: 1 }}>{att.fileName}</span>
+                                          <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                                            {formatBytes(att.sizeBytes)}
+                                          </span>
+                                        </label>
+                                      ))}
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           ))}
                       </div>
                     );
@@ -557,19 +774,70 @@ export function ExportImportPage() {
               )}
             </Card>
 
-            {/* ── P2: Export extras (attachments + preferences) ── */}
+            {/* ── P1: Tag filter ───────────────────────────────── */}
+            {allTags.length > 0 && (
+              <Card>
+                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+                  {t('settings:filter_by_tags')}
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {allTags.map((tag) => {
+                    const isSelected = selectedTags.has(tag);
+                    return (
+                      <button
+                        key={tag}
+                        onClick={() => {
+                          setSelectedTags((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(tag)) next.delete(tag);
+                            else next.add(tag);
+                            return next;
+                          });
+                        }}
+                        style={{
+                          fontSize: 12,
+                          padding: '4px 10px',
+                          borderRadius: 12,
+                          border: '1px solid var(--border-subtle)',
+                          background: isSelected ? 'var(--accent-primary)' : 'var(--bg-elevated)',
+                          color: isSelected ? 'white' : 'var(--text-primary)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
+
+            {/* ── Export size estimate ── */}
             {totalSelected > 0 && (
               <Card>
-                <div style={{ fontSize: 13, color: 'var(--text-secondary)', padding: '4px 0' }}>
-                  {estimating
-                    ? t('settings:estimating')
-                    : exportEstimate
-                      ? `${exportEstimate.objectCount} ${t('settings:objects_count')}` +
-                        (exportEstimate.attachmentCount > 0
-                          ? ` + ${exportEstimate.attachmentCount} ${t('settings:attachments_count')}`
-                          : '') +
-                        ` · ${formatBytes(exportEstimate.estimatedBytes)}`
-                      : ''}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: 13,
+                    padding: '4px 0',
+                  }}
+                >
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {t('settings:export_estimate_label', 'Export file estimated size')}
+                  </span>
+                  <span style={{ color: 'var(--text-secondary)' }}>
+                    {estimating
+                      ? t('settings:estimating')
+                      : exportEstimate
+                        ? `${exportEstimate.objectCount} ${t('settings:objects_count')}` +
+                          (exportEstimate.attachmentSelectedCount > 0
+                            ? ` + ${exportEstimate.attachmentSelectedCount} ${t('settings:attachments_count')}`
+                            : '') +
+                          ` · ${formatBytes(exportEstimate.estimatedBytes)}`
+                        : ''}
+                  </span>
                 </div>
               </Card>
             )}
@@ -577,24 +845,48 @@ export function ExportImportPage() {
               <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
                 {t('settings:export_options')}
               </h3>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer', fontSize: 13 }}>
-                <input
-                  type="checkbox"
-                  checked={includeAttachments}
-                  onChange={() => setIncludeAttachments(!includeAttachments)}
-                  style={{ accentColor: 'var(--accent-primary)' }}
-                />
-                {t('settings:include_attachments')}
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer', fontSize: 13 }}>
-                <input
-                  type="checkbox"
-                  checked={includePreferences}
-                  onChange={() => setIncludePreferences(!includePreferences)}
-                  style={{ accentColor: 'var(--accent-primary)' }}
-                />
-                {t('settings:include_preferences')}
-              </label>
+              <div style={{ padding: '4px 0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                  <input
+                    type="checkbox"
+                    checked={includeAttachments}
+                    onChange={() => setIncludeAttachments(!includeAttachments)}
+                    style={{ accentColor: 'var(--accent-primary)' }}
+                  />
+                  {t('settings:include_attachments')}
+                </label>
+                <div style={{ paddingLeft: 24, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                  {t('settings:include_attachments_desc')}
+                </div>
+              </div>
+              <div style={{ padding: '4px 0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                  <input
+                    type="checkbox"
+                    checked={includePreferences}
+                    onChange={() => setIncludePreferences(!includePreferences)}
+                    style={{ accentColor: 'var(--accent-primary)' }}
+                  />
+                  {t('settings:include_preferences')}
+                </label>
+                <div style={{ paddingLeft: 24, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                  {t('settings:include_preferences_desc')}
+                </div>
+              </div>
+              <div style={{ padding: '4px 0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                  <input
+                    type="checkbox"
+                    checked={includeBehavioral}
+                    onChange={() => setIncludeBehavioral(!includeBehavioral)}
+                    style={{ accentColor: 'var(--accent-primary)' }}
+                  />
+                  {t('settings:include_behavioral')}
+                </label>
+                <div style={{ paddingLeft: 24, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                  {t('settings:include_behavioral_desc')}
+                </div>
+              </div>
             </Card>
 
             {/* ── Save path ─────────────────────────────────── */}
@@ -885,7 +1177,7 @@ export function ExportImportPage() {
                                 style={{ accentColor: 'var(--accent-primary)' }}
                               />
                               <span style={{ flex: 1 }}>{obj.name}</span>
-                              {sensitivityBadge(obj.sensitivityLevel)}
+                              <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
                               {isConflict && (
                                 <span
                                   style={{

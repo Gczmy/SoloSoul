@@ -111,6 +111,94 @@ pub fn decrypt_from_bytes(
     decrypt(key, &encrypted, aad)
 }
 
+// ── Chunked encryption for large files (>10MB attachments) ──────────
+
+const CHUNK_SIZE: usize = 64 * 1024; // 64 KB
+
+/// Encrypt a large file in chunks.
+/// Format: nonce(12) || chunk_count(8, big-endian u64) || chunk1_ct+tag || chunk2_ct+tag || ...
+pub fn encrypt_chunked_to_bytes(
+    key: &[u8; 32],
+    plaintext: &[u8],
+) -> Result<Vec<u8>, CipherError> {
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CipherError::InvalidKeyLength)?;
+    let base_nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+    let base_nonce_bytes: [u8; 12] = base_nonce.as_slice().try_into().map_err(|_| CipherError::NonceGenerationFailed)?;
+
+    let total_chunks = (plaintext.len() + CHUNK_SIZE - 1) / CHUNK_SIZE;
+    if total_chunks > u64::MAX as usize {
+        return Err(CipherError::EncryptionFailed);
+    }
+
+    let mut result = Vec::with_capacity(12 + 8 + plaintext.len() + total_chunks * 16);
+    result.extend_from_slice(&base_nonce_bytes);
+    result.extend_from_slice(&(total_chunks as u64).to_be_bytes());
+
+    for i in 0..total_chunks {
+        let start = i * CHUNK_SIZE;
+        let end = ((i + 1) * CHUNK_SIZE).min(plaintext.len());
+        let chunk = &plaintext[start..end];
+
+        let mut nonce_bytes = base_nonce_bytes;
+        let idx_bytes = (i as u64).to_be_bytes();
+        for j in 0..8 {
+            nonce_bytes[4 + j] ^= idx_bytes[j];
+        }
+        let nonce = Nonce::from_slice(&nonce_bytes);
+
+        let ct = cipher.encrypt(nonce, chunk).map_err(|_| CipherError::EncryptionFailed)?;
+        result.extend_from_slice(&ct);
+    }
+
+    Ok(result)
+}
+
+/// Decrypt a chunked file.
+/// Expects format: nonce(12) || chunk_count(8) || chunk_ct+tag ...
+pub fn decrypt_chunked_from_bytes(
+    key: &[u8; 32],
+    ciphertext: &[u8],
+) -> Result<Zeroizing<Vec<u8>>, CipherError> {
+    if ciphertext.len() < 20 {
+        return Err(CipherError::InvalidCiphertext);
+    }
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CipherError::InvalidKeyLength)?;
+
+    let mut base_nonce = [0u8; 12];
+    base_nonce.copy_from_slice(&ciphertext[..12]);
+    let chunk_count = u64::from_be_bytes(ciphertext[12..20].try_into().unwrap()) as usize;
+
+    let mut result = Vec::new();
+    let mut offset = 20;
+
+    for i in 0..chunk_count {
+        let mut nonce_bytes = base_nonce;
+        let idx_bytes = (i as u64).to_be_bytes();
+        for j in 0..8 {
+            nonce_bytes[4 + j] ^= idx_bytes[j];
+        }
+        let nonce = Nonce::from_slice(&nonce_bytes);
+
+        // Each chunk is at least 16 bytes (auth tag). For all but the last,
+        // plaintext was exactly CHUNK_SIZE, so ciphertext is CHUNK_SIZE + 16.
+        let expected_chunk_ct_len = if i == chunk_count - 1 {
+            ciphertext.len() - offset
+        } else {
+            CHUNK_SIZE + 16
+        };
+
+        if offset + expected_chunk_ct_len > ciphertext.len() {
+            return Err(CipherError::InvalidCiphertext);
+        }
+        let chunk_ct = &ciphertext[offset..offset + expected_chunk_ct_len];
+        let pt = cipher.decrypt(nonce, chunk_ct).map_err(|_| CipherError::DecryptionFailed)?;
+        result.extend_from_slice(&pt);
+        offset += expected_chunk_ct_len;
+    }
+
+    Ok(Zeroizing::new(result))
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum CipherError {
     #[error("无效的密钥长度（需要 32 字节）")]

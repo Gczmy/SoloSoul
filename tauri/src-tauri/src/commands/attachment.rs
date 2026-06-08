@@ -118,6 +118,11 @@ pub async fn attachment_save(
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
+    // §10.4.4: maximum 50 active attachments per object
+    let active_count = atts.iter().filter(|a| a.deleted_at.is_none()).count();
+    if active_count >= 50 {
+        return Err("Maximum 50 active attachments per object reached".to_string());
+    }
     atts.push(meta);
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
