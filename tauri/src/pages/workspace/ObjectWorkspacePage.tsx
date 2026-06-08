@@ -84,7 +84,6 @@ function HistoryViewer({ objectId, onClose, collectionType }: { objectId: string
       try {
         const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password: pw });
         if (ok) return true;
-        return true;
       } catch {}
     }
     alert(t('common:current_password_incorrect'));
@@ -221,11 +220,15 @@ function SnapshotCard({ snap, index, total, t, getFieldSensitivity, verifyPasswo
                 ) : (
                   <span
                     onClick={async () => {
-                      if (sens === 'critical') {
-                        const ok = await verifyPassword();
-                        if (ok) reveal(fieldId);
-                      } else {
-                        reveal(fieldId);
+                      try {
+                        if (sens === 'critical') {
+                          const ok = await verifyPassword();
+                          if (ok) reveal(fieldId);
+                        } else if (needsReveal) {
+                          reveal(fieldId);
+                        }
+                      } catch {
+                        // silently ignore errors in reveal flow
                       }
                     }}
                     style={{
@@ -1002,16 +1005,20 @@ export function ObjectWorkspacePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {dFields.map((f) => {
                   const sens = getFieldSensitivity(detailObj.collectionType, f.key);
-                  const fieldId = sensitivityMap?.entries ? `${detailObj.collectionType}.${f.key}` : '';
-                  const revealed = fieldId ? isRevealed(fieldId) : true;
+                  // Always compute fieldId — consistent key for reveal state
+                  const fieldId = `${detailObj.collectionType}.${f.key}`;
+                  const revealed = isRevealed(fieldId);
                   const needsReveal = sens === 'sensitive' || sens === 'critical';
                   const handleReveal = async () => {
-                    if (sens === 'critical') {
-                      // Critical requires password verification
-                      const verified = await passwordVerify();
-                      if (verified) reveal(fieldId);
-                    } else {
-                      reveal(fieldId);
+                    try {
+                      if (sens === 'critical') {
+                        const verified = await passwordVerify();
+                        if (verified) reveal(fieldId);
+                      } else {
+                        reveal(fieldId);
+                      }
+                    } catch (e) {
+                      // Error already handled by passwordVerify
                     }
                   };
                   return (
