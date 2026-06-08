@@ -33,6 +33,7 @@
   "password_hint_tooltip": "查看密码提示",
   "no_hint_available": "无可用提示词",
   "unlock": "解锁",
+  "reveal": "显示",
   "vault_locked": "保险库已锁定",
   "vault_unlocked": "保险库已解锁",
   "overwrite": "覆盖",

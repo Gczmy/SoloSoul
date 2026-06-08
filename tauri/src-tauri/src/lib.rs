@@ -34,6 +34,7 @@ pub fn run() {
             commands::auth::login,
             commands::auth::logout,
             commands::auth::get_current_account,
+            commands::auth::verify_password,
             // Vault commands
             commands::vault::unlock,
             commands::discovery::mdns_advertise,

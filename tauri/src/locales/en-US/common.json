@@ -33,6 +33,7 @@
   "password_hint_tooltip": "Password hint",
   "no_hint_available": "No hint available",
   "unlock": "Unlock",
+  "reveal": "Show",
   "vault_locked": "Vault locked",
   "vault_unlocked": "Vault unlocked",
   "overwrite": "Overwrite",

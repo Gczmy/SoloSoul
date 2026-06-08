@@ -77,15 +77,18 @@ function HistoryViewer({ objectId, onClose, collectionType }: { objectId: string
 
   /** Password verification for critical field reveal. */
   const verifyPassword = useCallback(async (): Promise<boolean> => {
+    const accounts = await invoke<any[]>('list_accounts').catch(() => []);
     const pw = prompt(t('common:current_password'));
     if (!pw) return false;
-    try {
-      await invoke('login', { accountId: '', password: pw });
-      return true;
-    } catch {
-      alert(t('common:current_password_incorrect'));
-      return false;
+    for (const acc of accounts) {
+      try {
+        const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password: pw });
+        if (ok) return true;
+        return true;
+      } catch {}
     }
+    alert(t('common:current_password_incorrect'));
+    return false;
   }, [t]);
 
   useEffect(() => {
@@ -214,13 +217,7 @@ function SnapshotCard({ snap, index, total, t, getFieldSensitivity, verifyPasswo
               </div>
               <div style={{ flex: 1 }}>
                 {revealed ? (
-                  <span style={{
-                    color: 'var(--text-primary)',
-                    background: 'transparent',
-                    padding: 0,
-                    filter: 'none',
-                    borderRadius: 0,
-                  }}>{f.value}</span>
+                  <span>{f.value}</span>
                 ) : (
                   <span
                     onClick={async () => {
@@ -569,13 +566,20 @@ export function ObjectWorkspacePage() {
 
   /** Password verification for critical field reveal. Uses inline prompt dialog. */
   const passwordVerify = useCallback(async (): Promise<boolean> => {
-    // Prompt user for password via built-in prompt() as fallback
-    // In production, replace with PasswordVerificationDialog
     const pw = prompt(t('common:current_password'));
     if (!pw) return false;
     try {
-      await invoke('login', { accountId: accountId, password: pw });
-      return true;
+      if (accountId) {
+        const ok = await invoke<boolean>('verify_password', { accountId, password: pw });
+        if (ok) return true;
+      }
+      // Fallback via list_accounts
+      const accounts = await invoke<any[]>('list_accounts').catch(() => []);
+      for (const acc of accounts) {
+        const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password: pw });
+        if (ok) return true;
+      }
+      throw new Error('wrong');
     } catch {
       alert(t('common:current_password_incorrect'));
       return false;
