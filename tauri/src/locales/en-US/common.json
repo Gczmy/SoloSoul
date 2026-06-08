@@ -34,6 +34,8 @@
   "no_hint_available": "No hint available",
   "unlock": "Unlock",
   "reveal": "Show",
+  "critical_access_title": "Critical Data Access",
+  "critical_access_desc": "Accessing critical-level data. Authentication required.",
   "vault_locked": "Vault locked",
   "vault_unlocked": "Vault unlocked",
   "overwrite": "Overwrite",

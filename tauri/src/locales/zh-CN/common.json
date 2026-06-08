@@ -34,6 +34,8 @@
   "no_hint_available": "无可用提示词",
   "unlock": "解锁",
   "reveal": "显示",
+  "critical_access_title": "关键数据访问",
+  "critical_access_desc": "当前正在访问关键级别数据，需要登录权限",
   "vault_locked": "保险库已锁定",
   "vault_unlocked": "保险库已解锁",
   "overwrite": "覆盖",

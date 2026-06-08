@@ -555,6 +555,14 @@ export function ObjectWorkspacePage() {
   /** Password dialog state — shared between detail panel and history viewer. */
   const [showPwDialog, setShowPwDialog] = useState(false);
   const pwResolveRef = useRef<((ok: boolean) => void) | null>(null);
+  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({ available: false });
+
+  // Check biometric availability on mount
+  useEffect(() => {
+    invoke<{ available: boolean; configured: boolean; biometryType?: string }>('biometric_check_availability', { accountId: accountId || '' })
+      .then((r) => setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }))
+      .catch(() => {});
+  }, [accountId]);
 
   const passwordVerify = useCallback(async (): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -579,6 +587,18 @@ export function ObjectWorkspacePage() {
       } catch (e) { console.error('verify_password fallback failed:', e); }
     }
     return false;
+  }, [accountId]);
+
+  /** Biometric unlock handler — used by PasswordVerificationDialog. */
+  const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
+    if (!accountId) return false;
+    try {
+      await invoke('biometric_unlock', { accountId, location: 'critical_data_access', action: 'unlock' });
+      pwResolveRef.current?.(true);
+      return true;
+    } catch {
+      return false;
+    }
   }, [accountId]);
 
   /** Stable reveal handler — receives explicit fieldId + sens, no closure ambiguity. */
@@ -1109,9 +1129,12 @@ export function ObjectWorkspacePage() {
           if (ok) pwResolveRef.current?.(true);
           return ok;
         }}
-        title={t('common:current_password')}
+        title={t('common:critical_access_title')}
+        description={t('common:critical_access_desc')}
         confirmLabel={t('common:unlock')}
         hint={null}
+        biometricType={bioAvailable.available ? bioAvailable.biometryType : undefined}
+        onBiometric={bioAvailable.available ? handleBiometricUnlock : undefined}
       />
     </AppShell>
   );
