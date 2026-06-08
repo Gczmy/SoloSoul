@@ -1,7 +1,7 @@
 {
   "guides": [
     {
-      "id": "getting-started",
+      "id": "getting_started",
       "title": { "zh": "快速开始", "en": "Getting Started" },
       "category": "basics",
       "order": 1,
@@ -89,7 +89,7 @@
       "files": { "zh": "zh/trash.md", "en": "en/trash.md" }
     },
     {
-      "id": "export-import",
+      "id": "export_import",
       "title": { "zh": "导出与导入", "en": "Export & Import" },
       "category": "system",
       "order": 2,
@@ -97,7 +97,7 @@
       "files": { "zh": "zh/export_import.md", "en": "en/export_import.md" }
     },
     {
-      "id": "backup-restore",
+      "id": "backup_restore",
       "title": { "zh": "备份与恢复", "en": "Backup & Restore" },
       "category": "system",
       "order": 3,
@@ -121,7 +121,7 @@
       "files": { "zh": "zh/sync.md", "en": "en/sync.md" }
     },
     {
-      "id": "ocr-scan",
+      "id": "ocr_scan",
       "title": { "zh": "OCR 与扫描", "en": "OCR & Scan" },
       "category": "system",
       "order": 6,
@@ -137,7 +137,7 @@
       "files": { "zh": "zh/appearance.md", "en": "en/appearance.md" }
     },
     {
-      "id": "audit-log",
+      "id": "audit_log",
       "title": { "zh": "操作日志", "en": "Operation Log" },
       "category": "system",
       "order": 8,
@@ -145,7 +145,7 @@
       "files": { "zh": "zh/audit_log.md", "en": "en/audit_log.md" }
     },
     {
-      "id": "ai-chat",
+      "id": "ai_chat",
       "title": { "zh": "AI 对话", "en": "AI Chat" },
       "category": "ai",
       "order": 1,
@@ -153,7 +153,7 @@
       "files": { "zh": "zh/ai_chat.md", "en": "en/ai_chat.md" }
     },
     {
-      "id": "llm-config",
+      "id": "llm_config",
       "title": { "zh": "LLM 配置与统计", "en": "LLM Config & Statistics" },
       "category": "ai",
       "order": 2,
@@ -169,7 +169,7 @@
       "files": { "zh": "zh/plugins.md", "en": "en/plugins.md" }
     },
     {
-      "id": "privacy-policy",
+      "id": "PRIVACY_POLICY",
       "title": { "zh": "隐私政策", "en": "Privacy Policy" },
       "category": "system",
       "order": 9,
@@ -177,7 +177,7 @@
       "files": { "zh": "zh/PRIVACY_POLICY.md", "en": "en/PRIVACY_POLICY.md" }
     },
     {
-      "id": "terms-of-service",
+      "id": "TERMS_OF_SERVICE",
       "title": { "zh": "服务条款", "en": "Terms of Service" },
       "category": "system",
       "order": 10,

@@ -32,3 +32,12 @@ SoloSoul is an open-source, local-first personal data management application. Us
 ## Terms Changes
 
 We reserve the right to update these terms. Significant changes will be communicated through in-app notices or GitHub release notes.
+
+## Related Docs
+
+<!--CARDS-->
+- [Privacy Policy](PRIVACY_POLICY.md) — User data rights
+- [Security Settings](security.md) — Account security responsibilities
+- [Getting Started](getting_started.md) — Getting started with the service
+<!--/CARDS-->
+

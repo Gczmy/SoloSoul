@@ -1,5 +1,7 @@
 import { useState, useRef } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import type { SensitivityLevel } from '@/stores/sensitivityStore';
 
 interface GuideCodeBlockProps {
   children: React.ReactNode;
@@ -28,7 +30,28 @@ export function GuideCodeBlock({ children, className }: GuideCodeBlockProps) {
     }
   };
 
+  const text = String(children).trim();
   const isInline = !className;
+
+  const sensitivityLevels = ['public', 'internal', 'sensitive', 'critical'] as const;
+  const isSensitivity = isInline && sensitivityLevels.includes(text as any);
+
+  if (isSensitivity) {
+    const level = text as typeof sensitivityLevels[number];
+    return (
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          verticalAlign: 'middle',
+          transform: 'translateY(-1px)',
+        }}
+      >
+        <SensitivityBadge level={level as SensitivityLevel} />
+      </span>
+    );
+  }
+
   if (isInline) {
     return (
       <code

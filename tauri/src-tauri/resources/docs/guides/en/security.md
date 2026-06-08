@@ -48,3 +48,12 @@ SoloSoul automatically locks the vault when:
 - You manually click **Lock Vault** in the sidebar
 
 After locking, all sensitive state is cleared. You must re-enter your password or use biometrics to unlock.
+
+## Related Docs
+
+<!--CARDS-->
+- [Sensitivity & Privacy](sensitivity.md) — Field-level protection
+- [Biometrics](biometric.md) — Convenient unlock methods
+- [Backup & Restore](backup_restore.md) — Protect your data
+<!--/CARDS-->
+

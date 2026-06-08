@@ -59,7 +59,7 @@ export function SettingsPage() {
   ];
 
   return (
-    <AppShell title={t('settings:title')}>
+    <AppShell title={t('settings:title')} onBack={() => navigate('/home')}>
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
         {settingGroups.map((group) => (
           <div key={group.title}>
@@ -71,7 +71,7 @@ export function SettingsPage() {
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {group.items.map((item) => (
-                <Card key={item.label} interactive onClick={() => navigate(item.path)}>
+                <Card key={item.label} interactive onClick={() => navigate(item.path, { state: { from: '/settings' } })}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <item.icon size={20} />

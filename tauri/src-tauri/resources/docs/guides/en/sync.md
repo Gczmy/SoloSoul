@@ -36,3 +36,12 @@ Sync is currently in early stages. We recommend creating a local backup before s
 ## Offline Use
 
 SoloSoul is fully functional offline. Sync is an optional feature and does not affect the integrity or availability of local data.
+
+## Related Docs
+
+<!--CARDS-->
+- [Backup & Restore](backup_restore.md) — Local data security
+- [Export & Import](export_import.md) — Offline migration solution
+- [Global Search](search.md) — Find synced objects
+<!--/CARDS-->
+

@@ -3,7 +3,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 2px 8px var(--shadow-sm);
+  box-shadow: 0 2px 8px var(--shadow-color-sm);
   transition: all 0.2s ease;
 }
 .interactive {
@@ -11,7 +11,7 @@
 }
 .interactive:hover {
   border-color: var(--accent-primary);
-  box-shadow: 0 4px 12px var(--shadow-md);
+  box-shadow: 0 4px 12px var(--shadow-color-md);
   transform: translateY(-1px);
 }
 .interactive:active {

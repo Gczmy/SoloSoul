@@ -65,3 +65,12 @@ SoloSoul 内置以下 Provider：
 <!--TIP-->
 Token 统计通过解析 AI 服务商的真实返回数据获得，OpenAI 和 Anthropic 均支持精确的用量报告。
 <!--/TIP-->
+
+## 相关文档
+
+<!--CARDS-->
+- [AI 对话](ai_chat.md) — 使用 AI 助手
+- [插件](plugins.md) — 插件与 LLM
+- [隐私政策](PRIVACY_POLICY.md) — 数据隐私说明
+<!--/CARDS-->
+

@@ -65,3 +65,12 @@ Click the **Statistics** icon in the top-right of the LLM Config page to view:
 <!--TIP-->
 Token statistics are obtained by parsing real return data from AI providers. Both OpenAI and Anthropic support precise usage reporting.
 <!--/TIP-->
+
+## Related Docs
+
+<!--CARDS-->
+- [AI Chat](ai_chat.md) — Use the AI assistant
+- [Plugins](plugins.md) — Plugins and LLM
+- [Privacy Policy](PRIVACY_POLICY.md) — Data privacy statement
+<!--/CARDS-->
+

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
@@ -20,6 +21,7 @@ interface SyncStatus {
 }
 
 export function SyncPage() {
+  const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
   const [status, setStatus] = useState<SyncStatus>({
     isDiscovering: false,
@@ -61,7 +63,7 @@ export function SyncPage() {
   };
 
   return (
-    <AppShell title={t('settings:items.sync', { defaultValue: 'Device Sync' })}>
+    <AppShell title={t('settings:items.sync', { defaultValue: 'Device Sync' })} onBack={() => navigate('/home')}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Sync status card */}
         <Card>

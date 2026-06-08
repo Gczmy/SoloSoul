@@ -689,6 +689,7 @@ export function ObjectWorkspacePage() {
   return (
     <AppShell
       title={customPage?.name || activeCategoryLabel || t('objects')}
+      onBack={() => navigate('/home')}
       actions={
         <div style={{ display: 'flex', gap: 8 }}>
           <button

@@ -35,3 +35,12 @@ Click an object card in the search results to enter the workspace and locate tha
 
 - Search runs entirely locally with no network requests
 - Sensitive field matches follow the same sensitivity rules (blurred display)
+
+## Related Docs
+
+<!--CARDS-->
+- [Object Management](objects.md) — Search object basics
+- [Collections](collections.md) — Save common filters
+- [Workspace](workspace.md) — Find in workspace
+<!--/CARDS-->
+

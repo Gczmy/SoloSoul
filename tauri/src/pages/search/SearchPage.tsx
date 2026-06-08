@@ -56,7 +56,7 @@ export function SearchPage() {
   };
 
   return (
-    <AppShell title={t('navigation:search')}>
+    <AppShell title={t('navigation:search')} onBack={() => navigate('/home')}>
       <div style={{ maxWidth: 600, margin: '0 auto' }}>
         <Input
           placeholder={t('common:search_placeholder')}

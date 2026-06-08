@@ -43,3 +43,12 @@ Each backup in the list can be deleted individually to free up storage space.
 | Format | Internal snapshot | `.solosoul` file |
 | Purpose | Local disaster recovery | Cross-device migration, external archiving |
 | Location | Vault directory | User-specified path |
+
+## Related Docs
+
+<!--CARDS-->
+- [Export & Import](export_import.md) — Data migration solution
+- [Sync](sync.md) — Multi-device backup
+- [Trash](trash.md) — Temporarily protect data
+<!--/CARDS-->
+

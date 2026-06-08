@@ -16,7 +16,7 @@
   border-radius: 10px;
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
-  box-shadow: 0 4px 16px var(--shadow-md);
+  box-shadow: 0 4px 16px var(--shadow-color-md);
   pointer-events: auto;
   animation: slideIn 0.25s ease;
   min-width: 200px;

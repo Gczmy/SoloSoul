@@ -52,3 +52,12 @@ After changing your master password, biometric credentials automatically become 
 | Biometrics unavailable | Check system preferences to ensure fingerprint/face is enrolled |
 | Too many failed attempts | The system temporarily disables biometrics. Use your password to unlock |
 | Password changed | Re-enable biometrics in Security Settings |
+
+## Related Docs
+
+<!--CARDS-->
+- [Security Settings](security.md) — Master password and vault
+- [Sensitivity & Privacy](sensitivity.md) — View critical fields
+- [AI Chat](ai_chat.md) — AI feature security
+<!--/CARDS-->
+

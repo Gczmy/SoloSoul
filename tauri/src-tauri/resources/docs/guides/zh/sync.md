@@ -36,3 +36,12 @@ SoloSoul 使用 mDNS（Bonjour/Avahi）在同一局域网内发现其他设备�
 ## 离线使用
 
 SoloSoul 完全支持离线使用。同步是可选功能，不影响本地数据的完整性和可用性。
+
+## 相关文档
+
+<!--CARDS-->
+- [备份与恢复](backup_restore.md) — 本地数据安全
+- [导出与导入](export_import.md) — 离线迁移方案
+- [全局搜索](search.md) — 查找同步对象
+<!--/CARDS-->
+

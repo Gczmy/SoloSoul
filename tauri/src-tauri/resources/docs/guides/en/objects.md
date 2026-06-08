@@ -36,3 +36,12 @@ Type keywords in the search box at the top of the workspace. Results are filtere
 <!--WARNING-->
 Deleted objects remain in the Trash for 30 days, after which they are **permanently deleted** and cannot be recovered.
 <!--/WARNING-->
+
+## Related Docs
+
+<!--CARDS-->
+- [Object Templates](templates.md) — Explore more presets
+- [Workspace](workspace.md) — Custom pages and sections
+- [Snapshots & History](snapshots.md) — View and rollback versions
+<!--/CARDS-->
+

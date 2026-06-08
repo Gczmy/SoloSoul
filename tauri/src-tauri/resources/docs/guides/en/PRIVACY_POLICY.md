@@ -24,7 +24,7 @@ When you use the AI Chat feature:
 
 - Conversation content and system prompts are sent to your configured third-party AI provider
 - Only `public`-level object data is injected into system prompts
-- Sensitive / restricted / critical data is **never** sent to AI
+- Sensitive / critical data is **never** sent to AI
 - Conversation history is stored locally only
 
 ## Biometric Data
@@ -42,3 +42,12 @@ When you use the AI Chat feature:
 ## Contact
 
 For privacy-related questions, please open an Issue on our GitHub repository.
+
+## Related Docs
+
+<!--CARDS-->
+- [AI Chat](ai_chat.md) — AI feature privacy
+- [LLM Config & Statistics](llm_config.md) — LLM data processing
+- [Security Settings](security.md) — Data security policy
+<!--/CARDS-->
+

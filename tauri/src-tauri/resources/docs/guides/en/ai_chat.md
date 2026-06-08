@@ -37,7 +37,7 @@ The system prompt is context information automatically injected into every conve
 You can disable system prompt injection in LLM Config.
 
 <!--TIP-->
-The system prompt only includes info you actively share. Sensitive / restricted / critical data is never sent to AI.
+The system prompt only includes info you actively share. Sensitive / critical data is never sent to AI.
 <!--/TIP-->
 
 ## Conversation Management
@@ -53,5 +53,14 @@ The system prompt only includes info you actively share. Sensitive / restricted 
 - AI providers may process your data according to their privacy policies
 
 <!--WARNING-->
-AI features send data to external LLM providers. Do not share sensitive or restricted data via AI chat.
+AI features send data to external LLM providers. Do not share sensitive or critical data via AI chat.
 <!--/WARNING-->
+
+## Related Docs
+
+<!--CARDS-->
+- [LLM Config & Statistics](llm_config.md) — Configure AI providers
+- [Plugins](plugins.md) — Extend AI capabilities
+- [Privacy Policy](PRIVACY_POLICY.md) — AI data processing policy
+<!--/CARDS-->
+

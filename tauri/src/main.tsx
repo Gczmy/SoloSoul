@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './styles/tokens.css';
 import './styles/global.css';
+import './styles/themes.css';
 import './lib/i18n'; // Initialize i18next
 
 // Block initial render until UI prefs loaded — by the time login page shows,

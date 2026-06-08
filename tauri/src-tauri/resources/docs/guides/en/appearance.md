@@ -47,3 +47,12 @@ Changes take effect immediately without restarting the app.
 ## Live Preview
 
 All appearance changes are applied instantly so you can see the effect in real time.
+
+## Related Docs
+
+<!--CARDS-->
+- [Getting Started](getting_started.md) — Beginner guide
+- [Global Search](search.md) — Personalized search experience
+- [AI Chat](ai_chat.md) — AI interface settings
+<!--/CARDS-->
+

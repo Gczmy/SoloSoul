@@ -663,7 +663,12 @@ fn load_guide_index() -> Result<GuideIndex, String> {
             let file_path = resource_path(&format!("docs/guides/{}", file));
             if let Ok(text) = std::fs::read_to_string(&file_path) {
                 let summary = if text.len() > 200 {
-                    let cut = &text[..200];
+                    // 找到不超过 200 字节的最近合法字符边界（避免在中文字符中间切片 panic）
+                    let mut end = 200;
+                    while !text.is_char_boundary(end) {
+                        end -= 1;
+                    }
+                    let cut = &text[..end];
                     match cut.rfind('\n') {
                         Some(pos) => text[..pos].to_string(),
                         None => cut.to_string(),
@@ -744,9 +749,13 @@ fn load_guide_content(entry: &GuideIndexEntry, language: &str) -> Result<GuideCo
     let content = std::fs::read_to_string(&path)
         .map_err(|e| format!("Failed to read guide {:?}: {}", path, e))?;
 
-    // 截断至 800 字符，按段落边界
+    // 截断至 800 字节附近，按段落边界（使用字符边界避免中文切片 panic）
     let truncated = if content.len() > 800 {
-        let mut cut = &content[..800];
+        let mut end = 800;
+        while !content.is_char_boundary(end) {
+            end -= 1;
+        }
+        let mut cut = &content[..end];
         if let Some(pos) = cut.rfind("\n\n") {
             cut = &content[..pos];
         } else if let Some(pos) = cut.rfind('\n') {

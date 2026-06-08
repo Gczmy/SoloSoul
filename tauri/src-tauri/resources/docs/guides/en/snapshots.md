@@ -44,3 +44,12 @@ To roll back an object to a previous version:
 <!--TIP-->
 Snapshots don't consume much space; the system manages them automatically. You can view snapshot storage usage in **Data Management**.
 <!--/TIP-->
+
+## Related Docs
+
+<!--CARDS-->
+- [Object Management](objects.md) — Snapshots work on objects
+- [Workspace](workspace.md) — View object changes
+- [Trash](trash.md) — Recover accidentally deleted items
+<!--/CARDS-->
+

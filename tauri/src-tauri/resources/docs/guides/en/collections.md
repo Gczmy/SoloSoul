@@ -41,3 +41,12 @@ Smart Collections are great for dynamic views like "Documents Expiring Soon" or 
 <!--WARNING-->
 Deleting a collection only removes the view configuration. It does not affect any object data within it.
 <!--/WARNING-->
+
+## Related Docs
+
+<!--CARDS-->
+- [Workspace](workspace.md) — Collections work with workspace
+- [Global Search](search.md) — Quickly find objects
+- [Object Management](objects.md) — Collections are based on objects
+<!--/CARDS-->
+

@@ -9,9 +9,9 @@ Welcome to SoloSoul — your local-first personal digital twin engine.
 3. (Optional) Set a password hint to aid your memory
 4. Click **Create Vault** and wait for initialization
 
-<!--TIP-->
+<!--WARNING-->
 Your master password is the only key to your encrypted vault. It **cannot be reset**. Please memorize it or store it securely.
-<!--/TIP-->
+<!--/WARNING-->
 
 ## Step 2: Create Your First Object
 
@@ -48,12 +48,14 @@ You can also create **custom pages** to organize objects your own way.
 - Click a blurred field to reveal it temporarily (high-sensitivity fields may require password verification)
 - Click **Lock Vault** in the sidebar when stepping away
 
-<!--WARNING-->
+<!--INFO-->
 SoloSoul uses a zero-knowledge architecture: all data is stored locally. Developers and servers **cannot access** any of your information.
-<!--/WARNING-->
+<!--/INFO-->
 
 ## Next Steps
 
-- Explore [Object Templates](templates.md) for more presets
-- Learn about [Sensitivity Levels](sensitivity.md) to manage data protection
-- Set up [AI Chat](ai_chat.md) to enable the smart assistant
+<!--CARDS-->
+- [Object Templates](templates.md) — Explore more presets
+- [Sensitivity Levels](sensitivity.md) — Manage data protection levels
+- [AI Chat](ai_chat.md) — Enable the smart assistant
+<!--/CARDS-->

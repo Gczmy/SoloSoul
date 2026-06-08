@@ -35,3 +35,12 @@ In addition to fixed sections, you can create your own pages to organize objects
 <!--WARNING-->
 Deleting a custom page does **not** delete the objects within it. The objects remain in their respective sections.
 <!--/WARNING-->
+
+## Related Docs
+
+<!--CARDS-->
+- [Object Management](objects.md) — Manage your data objects
+- [Object Templates](templates.md) — Create objects quickly
+- [Collections](collections.md) — Group objects by conditions
+<!--/CARDS-->
+

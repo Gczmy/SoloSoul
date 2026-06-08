@@ -13,7 +13,6 @@ export function GuideStepper({ title, children }: GuideStepperProps) {
         borderRadius: 12,
         background: 'var(--bg-elevated)',
         margin: '16px 0',
-        overflow: 'hidden',
       }}
     >
       {title && (

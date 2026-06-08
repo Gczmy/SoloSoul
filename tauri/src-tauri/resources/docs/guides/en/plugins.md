@@ -40,3 +40,12 @@ The plugin system is under continuous development. Future support includes:
 <!--TIP-->
 Plugin-related help documentation will be updated when the system is officially released.
 <!--/TIP-->
+
+## Related Docs
+
+<!--CARDS-->
+- [AI Chat](ai_chat.md) — AI plugin ecosystem
+- [LLM Config & Statistics](llm_config.md) — Configure models
+- [Object Management](objects.md) — Plugins operate on objects
+<!--/CARDS-->
+

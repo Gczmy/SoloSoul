@@ -41,7 +41,11 @@ fn search_properties_for_matches(
                     if s.to_lowercase().contains(query) {
                         let score = if s.len() == query.len() { 5.0 } else { 3.0 };
                         let truncated = if s.len() > 100 {
-                            format!("{}...", &s[..100])
+                            let mut end = 100;
+                            while !s.is_char_boundary(end) {
+                                end -= 1;
+                            }
+                            format!("{}...", &s[..end])
                         } else {
                             s.clone()
                         };

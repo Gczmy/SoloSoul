@@ -46,3 +46,12 @@ Use the **Preview** feature before importing to review the package contents and 
 <!--WARNING-->
 If the export includes high-sensitivity fields, the password must be sufficiently strong. We recommend 12+ mixed-character passwords.
 <!--/WARNING-->
+
+## Related Docs
+
+<!--CARDS-->
+- [Backup & Restore](backup_restore.md) — Complete data protection
+- [Sync](sync.md) — Cross-device transfer
+- [Trash](trash.md) — Accidental deletion recovery
+<!--/CARDS-->
+

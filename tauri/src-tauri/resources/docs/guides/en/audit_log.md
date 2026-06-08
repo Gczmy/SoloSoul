@@ -40,3 +40,12 @@ Operation logs are read-only. Users cannot modify or delete log entries. This en
 ## Log Retention
 
 Operation logs are retained long-term locally. To clean up historical logs, use the relevant feature on the **Debug Log** page.
+
+## Related Docs
+
+<!--CARDS-->
+- [Security Settings](security.md) — Audit security events
+- [Sensitivity & Privacy](sensitivity.md) — Protection level change records
+- [Trash](trash.md) — Deletion operation audit
+<!--/CARDS-->
+

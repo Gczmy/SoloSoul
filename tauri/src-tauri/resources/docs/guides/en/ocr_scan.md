@@ -48,3 +48,12 @@ In addition to OCR, you can directly import local files as objects:
 
 - OCR processing is done locally; images are not uploaded to external services
 - Recognition results are saved only in your vault
+
+## Related Docs
+
+<!--CARDS-->
+- [Object Management](objects.md) — Save scan results as objects
+- [Object Templates](templates.md) — Passport and ID templates
+- [Attachment Management](attachments.md) — Scanned image attachments
+<!--/CARDS-->
+

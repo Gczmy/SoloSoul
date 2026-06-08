@@ -392,7 +392,12 @@ fn trim_to_limit(text: &str, max_chars: usize) -> String {
     if text.len() <= max_chars {
         return text.to_string();
     }
-    let mut cut = &text[..max_chars];
+    // 找到不超过 max_chars 的最近合法字符边界（避免在中文字符中间切片 panic）
+    let mut end = max_chars;
+    while !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    let mut cut = &text[..end];
     if let Some(pos) = cut.rfind("\n\n") {
         cut = &text[..pos];
     } else if let Some(pos) = cut.rfind('\n') {

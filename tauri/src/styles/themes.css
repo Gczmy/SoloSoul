@@ -43,6 +43,9 @@
   --shadow-sm: 0 1px 2px rgba(31, 28, 24, 0.04);
   --shadow-md: 0 2px 4px rgba(31, 28, 24, 0.04), 0 4px 8px rgba(31, 28, 24, 0.04);
   --shadow-lg: 0 4px 8px rgba(31, 28, 24, 0.04), 0 8px 16px rgba(31, 28, 24, 0.05);
+  --shadow-color-sm: rgba(31, 28, 24, 0.04);
+  --shadow-color-md: rgba(31, 28, 24, 0.08);
+  --shadow-color-lg: rgba(31, 28, 24, 0.12);
 
   /* Interactive states */
   --state-hover: rgba(31, 28, 24, 0.04);
@@ -70,63 +73,129 @@
   --color-info-text: #2c5f8a;
 }
 
-/* ── Dark Theme ─────────────────────────────────────────── */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Backgrounds */
-    --bg-base: var(--stone-950);
-    --bg-elevated: var(--stone-900);
-    --bg-toolbar: rgba(18, 17, 16, 0.9);    /* stone-950 at 90% */
-    --bg-inset: rgba(31, 28, 24, 0.4);       /* stone-900 at 40% */
-    --bg-hover: var(--stone-800);
-    --bg-active: var(--stone-700);
-    --bg-overlay: rgba(18, 17, 16, 0.6);     /* stone-950 at 60% */
+/* ── Dark Theme — Warm & Low-Contrast (inspired by Warp) ─── */
+[data-theme="dark"] {
+  /* Backgrounds — warm deep brown instead of harsh black */
+    --bg-base: #1f1c18;                      /* warm deep brown */
+    --bg-elevated: #2a2620;                  /* slightly lighter warm brown */
+    --bg-toolbar: rgba(42, 38, 32, 0.92);    /* warm brown at 92% */
+    --bg-inset: rgba(26, 23, 20, 0.5);       /* deeper warm brown at 50% */
+    --bg-hover: #353029;
+    --bg-active: #423b33;
+    --bg-overlay: rgba(18, 16, 14, 0.65);    /* soft dark overlay */
 
-    /* Text */
-    --text-primary: var(--stone-100);
-    --text-secondary: var(--stone-400);
-    --text-tertiary: var(--stone-500);
+    /* Text — warm off-white, muted for comfort */
+    --text-primary: #ddd8c8;                 /* warm off-white */
+    --text-secondary: #a69d8a;               /* warm muted gray */
+    --text-tertiary: #7a7265;                /* soft brown-gray */
     --text-inverse: var(--stone-900);
-    --text-accent: var(--slate-accent-300);
-    --text-warm: var(--clay-300);
-    --text-error: #e74c3c;
-    --text-success: #2ecc71;
-    --text-warning: #f1c40f;
+    --text-accent: #a8bfd4;                  /* softened slate accent */
+    --text-warm: #d4b88a;                    /* warm clay */
+    --text-error: #e07a6e;
+    --text-success: #7ec49a;
+    --text-warning: #e6c780;
 
-    /* Accents — brightened for dark backgrounds */
-    --accent-primary: var(--slate-accent-300);
-    --accent-hover: var(--slate-accent-200);
-    --accent-warm: var(--clay-300);
-    --accent-warm-hover: var(--clay-200);
+    /* Accents — desaturated and warm for dark backgrounds */
+    --accent-primary: #7a9ab5;
+    --accent-hover: #8eafc8;
+    --accent-warm: #c4a574;
+    --accent-warm-hover: #d4b88a;
 
-    /* Borders */
-    --border-subtle: var(--stone-800);
-    --border-default: var(--stone-700);
-    --border-strong: var(--stone-600);
-    --border-focus: var(--slate-accent-300);
+    /* Borders — low contrast warm borders */
+    --border-subtle: #3d3831;
+    --border-default: #4a433b;
+    --border-strong: #5c5549;
+    --border-focus: #7a9ab5;
 
-    /* Shadows — deeper and darker for dark theme */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.25), 0 4px 8px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.25);
+    /* Shadows — warm-tinted, softer */
+    --shadow-sm: 0 1px 2px rgba(10, 9, 8, 0.25);
+    --shadow-md: 0 2px 4px rgba(10, 9, 8, 0.3), 0 4px 8px rgba(10, 9, 8, 0.25);
+    --shadow-lg: 0 4px 8px rgba(10, 9, 8, 0.35), 0 8px 16px rgba(10, 9, 8, 0.3);
+    --shadow-color-sm: rgba(10, 9, 8, 0.25);
+    --shadow-color-md: rgba(10, 9, 8, 0.35);
+    --shadow-color-lg: rgba(10, 9, 8, 0.45);
 
-    /* Interactive states */
-    --state-hover: rgba(242, 240, 233, 0.06);  /* stone-100 at 6% */
-    --state-pressed: rgba(242, 240, 233, 0.12);
-    --state-selected: rgba(142, 175, 200, 0.15); /* slate-accent-300 at 15% */
-    --state-disabled: rgba(242, 240, 233, 0.1);
-    --state-focus-ring: 0 0 0 2px var(--slate-accent-300);
+    /* Interactive states — warm-tinted overlays */
+    --state-hover: rgba(230, 223, 206, 0.06);
+    --state-pressed: rgba(230, 223, 206, 0.12);
+    --state-selected: rgba(122, 154, 181, 0.18);
+    --state-disabled: rgba(230, 223, 206, 0.1);
+    --state-focus-ring: 0 0 0 2px var(--accent-primary);
 
-    /* Status colors — darkened backgrounds */
-    --color-error-bg: rgba(231, 76, 60, 0.12);
-    --color-error-border: rgba(231, 76, 60, 0.3);
-    --color-error-text: #e74c3c;
-    --color-success-bg: rgba(46, 204, 113, 0.12);
-    --color-success-border: rgba(46, 204, 113, 0.3);
-    --color-success-text: #2ecc71;
-    --color-warning-bg: rgba(241, 196, 15, 0.12);
-    --color-warning-border: rgba(241, 196, 15, 0.3);
-    --color-warning-text: #f1c40f;
+    /* Status colors — muted for dark warm theme */
+    --color-error-bg: rgba(224, 122, 110, 0.12);
+    --color-error-border: rgba(224, 122, 110, 0.3);
+    --color-error-text: #e07a6e;
+    --color-success-bg: rgba(126, 196, 154, 0.12);
+    --color-success-border: rgba(126, 196, 154, 0.3);
+    --color-success-text: #7ec49a;
+    --color-warning-bg: rgba(230, 199, 128, 0.12);
+    --color-warning-border: rgba(230, 199, 128, 0.3);
+    --color-warning-text: #e6c780;
+    --color-info-bg: rgba(142, 175, 200, 0.12);
+    --color-info-border: rgba(142, 175, 200, 0.3);
+    --color-info-text: #8eafc8;
+  }
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    /* Backgrounds — warm deep brown instead of harsh black */
+    --bg-base: #1f1c18;
+    --bg-elevated: #2a2620;
+    --bg-toolbar: rgba(42, 38, 32, 0.92);
+    --bg-inset: rgba(26, 23, 20, 0.5);
+    --bg-hover: #353029;
+    --bg-active: #423b33;
+    --bg-overlay: rgba(18, 16, 14, 0.65);
+
+    /* Text — warm off-white, muted for comfort */
+    --text-primary: #ddd8c8;
+    --text-secondary: #a69d8a;
+    --text-tertiary: #7a7265;
+    --text-inverse: var(--stone-900);
+    --text-accent: #a8bfd4;
+    --text-warm: #d4b88a;
+    --text-error: #e07a6e;
+    --text-success: #7ec49a;
+    --text-warning: #e6c780;
+
+    /* Accents — desaturated and warm for dark backgrounds */
+    --accent-primary: #7a9ab5;
+    --accent-hover: #8eafc8;
+    --accent-warm: #c4a574;
+    --accent-warm-hover: #d4b88a;
+
+    /* Borders — low contrast warm borders */
+    --border-subtle: #3d3831;
+    --border-default: #4a433b;
+    --border-strong: #5c5549;
+    --border-focus: #7a9ab5;
+
+    /* Shadows — warm-tinted, softer */
+    --shadow-sm: 0 1px 2px rgba(10, 9, 8, 0.25);
+    --shadow-md: 0 2px 4px rgba(10, 9, 8, 0.3), 0 4px 8px rgba(10, 9, 8, 0.25);
+    --shadow-lg: 0 4px 8px rgba(10, 9, 8, 0.35), 0 8px 16px rgba(10, 9, 8, 0.3);
+    --shadow-color-sm: rgba(10, 9, 8, 0.25);
+    --shadow-color-md: rgba(10, 9, 8, 0.35);
+    --shadow-color-lg: rgba(10, 9, 8, 0.45);
+
+    /* Interactive states — warm-tinted overlays */
+    --state-hover: rgba(230, 223, 206, 0.06);
+    --state-pressed: rgba(230, 223, 206, 0.12);
+    --state-selected: rgba(122, 154, 181, 0.18);
+    --state-disabled: rgba(230, 223, 206, 0.1);
+    --state-focus-ring: 0 0 0 2px var(--accent-primary);
+
+    /* Status colors — muted for dark warm theme */
+    --color-error-bg: rgba(224, 122, 110, 0.12);
+    --color-error-border: rgba(224, 122, 110, 0.3);
+    --color-error-text: #e07a6e;
+    --color-success-bg: rgba(126, 196, 154, 0.12);
+    --color-success-border: rgba(126, 196, 154, 0.3);
+    --color-success-text: #7ec49a;
+    --color-warning-bg: rgba(230, 199, 128, 0.12);
+    --color-warning-border: rgba(230, 199, 128, 0.3);
+    --color-warning-text: #e6c780;
     --color-info-bg: rgba(142, 175, 200, 0.12);
     --color-info-border: rgba(142, 175, 200, 0.3);
     --color-info-text: #8eafc8;
@@ -143,11 +212,11 @@
   --state-focus-ring: 0 0 0 2px #5B7C99;
 }
 [data-theme="dark"][data-accent="ocean"] {
-  --accent-primary: #7BA3C4;
-  --accent-hover: #8EB5D4;
-  --border-focus: #7BA3C4;
-  --state-selected: rgba(123, 163, 196, 0.15);
-  --state-focus-ring: 0 0 0 2px #7BA3C4;
+  --accent-primary: #7a9ab5;
+  --accent-hover: #8eafc8;
+  --border-focus: #7a9ab5;
+  --state-selected: rgba(122, 154, 181, 0.18);
+  --state-focus-ring: 0 0 0 2px #7a9ab5;
 }
 
 /* Amber — warmth, energy */
