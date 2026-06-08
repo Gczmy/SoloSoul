@@ -567,27 +567,37 @@ export function ObjectWorkspacePage() {
   // Load sensitivity map for field-level masking
   useEffect(() => { loadMap(); }, []);
 
-  /** Password verification for critical field reveal. Uses inline prompt dialog. */
+  /** Password verification for critical field reveal. Uses prompt dialog. */
   const passwordVerify = useCallback(async (): Promise<boolean> => {
     const pw = prompt(t('common:current_password'));
     if (!pw) return false;
-    try {
-      if (accountId) {
+    if (accountId) {
+      try {
         const ok = await invoke<boolean>('verify_password', { accountId, password: pw });
         if (ok) return true;
-      }
-      // Fallback via list_accounts
-      const accounts = await invoke<any[]>('list_accounts').catch(() => []);
-      for (const acc of accounts) {
+      } catch (e) { console.error('verify_password failed:', e); }
+    }
+    // Fallback: try all accounts
+    const accounts = await invoke<any[]>('list_accounts').catch(() => []);
+    for (const acc of accounts) {
+      try {
         const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password: pw });
         if (ok) return true;
-      }
-      throw new Error('wrong');
-    } catch {
-      alert(t('common:current_password_incorrect'));
-      return false;
+      } catch (e) { console.error('verify_password fallback failed:', e); }
     }
+    alert(t('common:current_password_incorrect'));
+    return false;
   }, [accountId, t]);
+
+  /** Stable reveal handler — receives explicit fieldId + sens, no closure ambiguity. */
+  const handleRevealField = useCallback(async (fieldId: string, sens: SensitivityLevel) => {
+    if (sens === 'critical') {
+      const verified = await passwordVerify();
+      if (verified) reveal(fieldId);
+    } else {
+      reveal(fieldId);
+    }
+  }, [passwordVerify, reveal]);
 
   /** Resolve sensitivity level for a property key within an object's collection. */
   const getFieldSensitivity = (collectionType: string, fieldKey: string): SensitivityLevel => {
@@ -1005,22 +1015,9 @@ export function ObjectWorkspacePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {dFields.map((f) => {
                   const sens = getFieldSensitivity(detailObj.collectionType, f.key);
-                  // Always compute fieldId — consistent key for reveal state
                   const fieldId = `${detailObj.collectionType}.${f.key}`;
                   const revealed = isRevealed(fieldId);
                   const needsReveal = sens === 'sensitive' || sens === 'critical';
-                  const handleReveal = async () => {
-                    try {
-                      if (sens === 'critical') {
-                        const verified = await passwordVerify();
-                        if (verified) reveal(fieldId);
-                      } else {
-                        reveal(fieldId);
-                      }
-                    } catch (e) {
-                      // Error already handled by passwordVerify
-                    }
-                  };
                   return (
                     <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--bg-toolbar)', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -1037,7 +1034,7 @@ export function ObjectWorkspacePage() {
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                         {needsReveal && !revealed && (
                           <button
-                            onClick={handleReveal}
+                            onClick={(e) => { e.preventDefault(); handleRevealField(fieldId, sens); }}
                             title={sens === 'critical' ? t('common:password_required') : t('common:reveal')}
                             style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)', background: sens === 'critical' ? 'rgba(220,38,38,0.06)' : 'transparent', cursor: 'pointer', fontSize: 11, color: sens === 'critical' ? '#dc2626' : 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 4 }}
                           >
