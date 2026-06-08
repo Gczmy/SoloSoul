@@ -731,7 +731,7 @@ export function ObjectWorkspacePage() {
                   fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
                 }}
               >
-                <span>{React.createElement(CATEGORY_ICONS[catType], { size: 16 })}</span>
+                {React.createElement(CATEGORY_ICONS[catType], { size: 16 })}
                 {t(`navigation:${catType}`, catType)}
               </button>
             ))}
