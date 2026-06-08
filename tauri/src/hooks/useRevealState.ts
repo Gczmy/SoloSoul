@@ -78,9 +78,9 @@ export function useRevealState() {
   const maskValue = useCallback(
     (value: string, fieldId: string, sensitivity: SensitivityLevel): string => {
       if (!shouldMask(fieldId, sensitivity)) return value;
-      // critical: full mask, sensitive: partial mask
-      if (sensitivity === 'critical') return '••••••••';
-      return '••••' + value.slice(-2);
+      // Full mask for all non-public levels. TODO: support field-type-aware
+      // partial masking (e.g. bank card: show last 4 digits, date: show year only).
+      return '••••••••';
     },
     [shouldMask]
   );
