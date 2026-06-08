@@ -13,7 +13,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
 import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw, Eye, EyeOff, Lock, Image, FileText, Copy, Check } from 'lucide-react';
-import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { SensitivityBadge, getSensitivityStyle } from '@/components/ui/SensitivityBadge';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
 // Labels resolved at render time via t() so they support i18n
@@ -59,13 +59,32 @@ function HistoryViewer({ objectId, onClose }: { objectId: string; onClose: () =>
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
+  const [objCollectionType, setObjCollectionType] = useState('');
   const { t } = useTranslation(['common', 'editor']);
+  const { map: sensitivityMap } = useSensitivityStore();
 
   useEffect(() => {
     invoke<SnapshotEntry[]>('snapshot_get', { objectId })
       .then(setSnapshots)
       .finally(() => setLoading(false));
+    // Load object to get collectionType for sensitivity
+    invoke<any>('object_get', { accountId: '', objectId }).then((obj) => {
+      if (obj?.collectionType) setObjCollectionType(obj.collectionType);
+    }).catch(() => {});
   }, [objectId]);
+
+  const getSnapSensitivity = useCallback((fieldKey: string): SensitivityLevel => {
+    if (!objCollectionType) return 'public';
+    const fieldId = `${objCollectionType}.${fieldKey}`;
+    if (sensitivityMap?.entries?.[fieldId]) return sensitivityMap.entries[fieldId];
+    const snakeKey = fieldKey.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
+    const snakeFieldId = `${objCollectionType}.${snakeKey}`;
+    if (snakeFieldId !== fieldId && sensitivityMap?.entries?.[snakeFieldId]) return sensitivityMap.entries[snakeFieldId];
+    for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
+      if (id.endsWith(`.${fieldKey}`) || id.endsWith(`.${snakeKey}`)) return level;
+    }
+    return 'public';
+  }, [objCollectionType, sensitivityMap]);
 
   const goPrev = () => {
     if (currentIdx < snapshots.length - 1) { setAnimDir('right'); setTimeout(() => { setCurrentIdx(i => i + 1); setAnimDir(null); }, 150); }
@@ -118,7 +137,7 @@ function HistoryViewer({ objectId, onClose }: { objectId: string; onClose: () =>
           ) : !snap ? (
             <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>{t('common:no_history')}</div>
           ) : (
-            <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} />
+            <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} getFieldSensitivity={getSnapSensitivity} />
           )}
         </div>
         {/* Footer */}
@@ -130,8 +149,13 @@ function HistoryViewer({ objectId, onClose }: { objectId: string; onClose: () =>
   );
 }
 
-function SnapshotCard({ snap, index, total, t }: { snap: SnapshotEntry; index: number; total: number; t: (k: string) => string }) {
+function SnapshotCard({ snap, index, total, t, getFieldSensitivity }: {
+  snap: SnapshotEntry; index: number; total: number;
+  t: (k: string) => string;
+  getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
+}) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
+  const { maskValue, isRevealed, reveal } = useRevealState();
 
   useEffect(() => {
     invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id })
@@ -161,15 +185,47 @@ function SnapshotCard({ snap, index, total, t }: { snap: SnapshotEntry; index: n
           {snapName}
         </div>
       </div>
-      {/* Properties */}
+      {/* Properties — like detail panel, with sensitivity */}
       {fields.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-          {fields.map((f) => (
-            <div key={f.key} style={{ display: 'flex', gap: 8, fontSize: 12, padding: '4px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-              <span style={{ fontWeight: 500, color: 'var(--text-secondary)', minWidth: 90 }}>{t(`editor:fields.${f.key}`)}</span>
-              <span style={{ color: 'var(--text-primary)' }}>{f.value}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+          {fields.map((f) => {
+            const sens = getFieldSensitivity(f.key);
+            const fieldId = f.key;
+            const revealed = isRevealed(fieldId);
+            const needsReveal = sens === 'sensitive' || sens === 'critical';
+            return (
+            <div key={f.key} style={{
+              display: 'flex', alignItems: 'center', gap: 8, fontSize: 12,
+              padding: '6px 8px', borderRadius: 6,
+              background: 'var(--bg-toolbar)', border: '1px solid var(--border-subtle)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 90 }}>
+                <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{t(`editor:fields.${f.key}`)}</span>
+                <SensitivityBadge level={sens} />
+              </div>
+              <div style={{ flex: 1 }}>
+                {revealed ? (
+                  <span style={{ color: 'var(--text-primary)' }}>{f.value}</span>
+                ) : (
+                  <span
+                    onClick={needsReveal ? () => reveal(fieldId) : undefined}
+                    style={{
+                      cursor: needsReveal ? 'pointer' : 'default',
+                      filter: needsReveal ? 'blur(5px)' : 'none',
+                      userSelect: needsReveal ? 'none' : 'auto',
+                      background: needsReveal ? 'var(--bg-subtle, rgba(128,128,128,0.12))' : 'transparent',
+                      borderRadius: 2, padding: '0 2px',
+                      color: 'var(--text-primary)',
+                    }}
+                    title={needsReveal ? 'Click to reveal' : ''}
+                  >
+                    {f.value}
+                  </span>
+                )}
+              </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
       {/* Tags */}
@@ -781,22 +837,29 @@ export function ObjectWorkspacePage() {
                       const sens = getFieldSensitivity(obj.collectionType, f.key);
                       const isMasked = sens !== 'public';
                       const fieldLabel = t(`editor:fields.${f.key}`, f.key);
+                      const s = getSensitivityStyle(sens);
                       return (
                       <span
                         key={f.key}
                         style={{
                           padding: '3px 8px', borderRadius: 6, fontSize: 11,
                           background: 'var(--bg-toolbar)', color: 'var(--text-secondary)',
-                          border: '1px solid var(--border-subtle)',
+                          border: `1px solid ${isMasked ? s.fg : 'var(--border-subtle)'}`,
                           maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          ...(isMasked ? {
+                            boxShadow: `0 0 3px ${s.fg}44`,
+                          } : {}),
                         }}
                       >
                         <span style={{ fontWeight: 600 }}>{fieldLabel}:</span>{' '}
                         <span style={{
                           ...(isMasked ? {
-                            filter: 'blur(4px)',
+                            filter: 'blur(5px)',
                             cursor: 'default',
                             userSelect: 'none',
+                            background: 'var(--bg-subtle, rgba(128,128,128,0.12))',
+                            borderRadius: 2,
+                            padding: '0 2px',
                           } : { color: 'var(--text-primary)' }),
                         }}>
                           {isMasked ? '••••' : f.value}
