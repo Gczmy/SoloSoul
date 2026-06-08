@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
@@ -15,6 +15,8 @@ interface AiFeatures { chat: boolean; smartFill: boolean; commandGen: boolean; n
 
 export function LlmConfigPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const backPath = (location.state as { from?: string } | null)?.from || '/settings';
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { onError, onSuccess } = useToastError();
@@ -22,6 +24,7 @@ export function LlmConfigPage() {
   const [providers, setProviders] = useState<ProviderConfig[]>([]);
   const [activeId, setActiveId] = useState<string>('');
   const [features, setFeatures] = useState<AiFeatures>({ chat: false, smartFill: false, commandGen: false, naturalLanguageSearch: false });
+  const [includeSystemPrompt, setIncludeSystemPrompt] = useState(true);
   const [hasAcceptedRisk, setHasAcceptedRisk] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showRiskDialog, setShowRiskDialog] = useState(false);
@@ -35,11 +38,12 @@ export function LlmConfigPage() {
     if (!accountId) return;
     Promise.all([
       invoke<ProviderConfig[]>('llm_get_providers', { accountId }),
-      invoke<{ activeProviderId?: string; aiFeaturesEnabled?: AiFeatures; hasAcceptedRisk?: boolean }>('llm_get_config', { accountId }),
+      invoke<{ activeProviderId?: string; aiFeaturesEnabled?: AiFeatures; includeSystemPrompt?: boolean; hasAcceptedRisk?: boolean }>('llm_get_config', { accountId }),
     ]).then(([provs, cfg]) => {
       setProviders(provs);
       if (cfg.activeProviderId) setActiveId(cfg.activeProviderId);
       if (cfg.aiFeaturesEnabled) setFeatures(cfg.aiFeaturesEnabled);
+      if (cfg.includeSystemPrompt !== undefined) setIncludeSystemPrompt(cfg.includeSystemPrompt);
       if (cfg.hasAcceptedRisk) setHasAcceptedRisk(true);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [accountId]);
@@ -65,6 +69,12 @@ export function LlmConfigPage() {
     const next = { ...features, chat: true };
     setFeatures(next);
     await invoke('llm_set_ai_features', { accountId, features: next }).catch(() => {});
+  };
+
+  const handleSystemPromptToggle = async () => {
+    const next = !includeSystemPrompt;
+    setIncludeSystemPrompt(next);
+    if (accountId) await invoke('llm_set_system_prompt_switch', { accountId, enabled: next }).catch(() => {});
   };
 
   const handleSaveProvider = async () => {
@@ -108,10 +118,10 @@ export function LlmConfigPage() {
     setEditingProvider({ id: 'custom_' + Date.now(), name: '', baseUrl: '', model: '', isEnabled: false, isBuiltIn: false, apiKey: '', apiType: 'openAI' });
   };
 
-  if (loading) return <AppShell title={t('settings:llm_config')} onBack={() => navigate('/settings')}><p>{t('common:loading')}</p></AppShell>;
+  if (loading) return <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}><p>{t('common:loading')}</p></AppShell>;
 
   return (
-    <AppShell title={t('settings:llm_config')} onBack={() => navigate('/settings')}>
+    <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {!hasAcceptedRisk && (
           <Card>
@@ -130,6 +140,17 @@ export function LlmConfigPage() {
               {key !== 'chat' && <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 4 }}>({t('settings:ai_in_development')})</span>}
             </label>
           ))}
+        </Card>
+
+        <Card>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:ai_system_prompt_title')}</h3>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', cursor: 'pointer', fontSize: 13 }}>
+            <input type="checkbox" checked={includeSystemPrompt} onChange={handleSystemPromptToggle} style={{ accentColor: 'var(--accent-primary)' }} />
+            {t('settings:ai_system_prompt_software')}
+          </label>
+          <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4, paddingLeft: 26 }}>
+            {t('settings:ai_system_prompt_desc')}
+          </p>
         </Card>
 
         <Card>

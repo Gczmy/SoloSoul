@@ -1,8 +1,8 @@
-# 26 — LLM 配置与 AI 对话规范
+# 20 — LLM 配置与 AI 对话规范
 
-> **前置阅读**：`15_用户数据边界与加密存储方案.md`、`26_矛盾冲突与待审批事项.md`、`11_跨平台材质系统与视觉规范.md`（侧边栏规范）
+> **前置阅读**：`15_用户数据边界与加密存储方案.md`、`26_矛盾冲突与待审批事项.md`、`11_跨平台材质系统与视觉规范.md`（侧边栏规范）、`23_Flutter_LLM_实现分析与Tauri借鉴建议.md`
 > **Manifesto 对齐**：用户主权 | 隐私优先 | 安全默认
-> **文档定位**：定义 SoloSoul LLM（大语言模型）集成的全部规范，包括 Provider 管理、API 配置、模型选择，以及 AI 对话页面的功能规格与 UI 设计。AI 功能是软件的附加扩展，不影响核心离线本地功能。
+> **文档定位**：定义 SoloSoul LLM（大语言模型）集成的全部规范，包括 Provider 管理、API 配置、模型选择，AI 对话页面的功能规格与 UI 设计，以及系统提示词、上下文注入、帮助文档嵌入等 AI 智能能力。AI 功能是软件的附加扩展，不影响核心离线本地功能。
 
 ---
 
@@ -15,6 +15,8 @@
 | **不绑定厂商** | 不限制任何特定厂商，支持所有 OpenAI 兼容 API |
 | **密钥安全** | API 密钥 `critical` 级别加密存储，使用后内存擦除 |
 | **透明可控** | 每次 AI 调用前用户确认发送内容，审计日志记录调用元数据 |
+| **隐私优先** | 系统提示词仅包含用户主动公开的信息，绝不暴露敏感数据 |
+| **本地优先** | 帮助文档检索、上下文构建均在本地完成，不上传用户数据到外部服务 |
 
 ---
 
@@ -52,6 +54,7 @@ interface LlmProvider {
 > - 预置 Provider 的 `apiKey` 字段为空，用户首次启用时填写
 > - 预置 Provider 的 `baseUrl` 和 `model` 可修改（如切换到 OpenAI 的 `gpt-4o-mini`）
 > - 预置 Provider 不可删除，但可禁用
+> - **默认值兜底 + 用户修改覆盖**：预置 Provider 的默认 baseUrl/model 作为兜底配置加载，用户修改后的值持久化覆盖。软件升级新增预置 Provider 时，已保存的自定义配置不会丢失。
 
 ### 2.3 自定义 Provider
 
@@ -78,8 +81,8 @@ interface LlmProvider {
 
 | 字段 | 必填 | 验证 | 说明 |
 |------|------|------|------|
-| 名称 | 是 | 1-30 字符 | 用户自定义，支持国际化 |
-| Base URL | 是 | 有效 HTTP(S) URL | 必须以 `/v1` 结尾（OpenAI 兼容格式） |
+| 名称 | 是 | 1-30 字符 | 用户自定义，支持国际化；超出 30 字符截断或禁止输入 |
+| Base URL | 是 | 有效 HTTP(S) URL | 通常为 `/v1` 结尾（OpenAI 兼容），但允许特殊路径（如 Azure OpenAI）；后端拼接路径时自动处理尾部斜杠 |
 | API 密钥 | 是 | 非空 | `SecurePasswordInput` 组件，始终遮蔽 |
 | 模型名称 | 是 | 非空 | 服务商提供的模型 ID |
 
@@ -100,6 +103,8 @@ interface LlmProvider {
 | API 密钥 | 独立加密存储 + 内存安全 | `critical` 级别，等同密码 |
 | 当前活跃 Provider ID | `preferences.enc`（Vault 加密） | 用户偏好的一部分 |
 | AI 功能开关状态 | `preferences.enc`（Vault 加密） | 用户偏好的一部分 |
+| 系统提示词缓存 | 内存（主缓存）+ Vault（元数据跨会话恢复） | 静态部分缓存在内存，缓存键持久化到 Vault 避免冷启动 |
+| 使用统计 | Vault 加密（按账户隔离） | 跨会话持久化 |
 
 ### 3.2 API 密钥安全存储
 
@@ -124,6 +129,11 @@ async fn get_api_key(provider_id: &str, vault: &Vault) -> Result<SecureString, E
 - 密钥绝不写入日志、审计记录或任何持久化存储
 - 前端代码**绝不接触**原始 API 密钥——所有 API 调用由 Rust 后端代理
 
+**返回掩码规范**：
+- `llm_get_providers` 返回 Provider 列表时，必须将所有非空 `apiKey` 替换为掩码字符串 `••••••••`
+- 保存 Provider 时，如果 `apiKey == "••••••••"`，表示用户未修改密钥，跳过保存避免用掩码覆盖真实密钥
+- 此机制确保前端开发者即使在控制台打印返回值，也不会意外泄露原始 API Key
+
 ### 3.3 Provider 列表数据结构
 
 ```typescript
@@ -137,6 +147,7 @@ interface LlmConfig {
     commandGen: boolean;
     naturalLanguageSearch: boolean;
   };
+  includeSystemPrompt: boolean;    // 是否注入系统提示词（默认 true，高级用户可关闭）
 }
 
 // Provider 配置（存储版本，不含密钥）
@@ -171,6 +182,11 @@ interface ProviderConfig {
 │  ├─ [ ] 智能填充                          │
 │  ├─ [ ] 命令生成                          │
 │  └─ [ ] 自然语言搜索                       │
+│                                          │
+│  系统提示词（上下文注入）                    │
+│  ├─ [√] 注入软件信息和使用统计              │
+│  ├─ [√] 注入用户公开档案                    │
+│  └─ [√] 注入相关帮助文档                    │
 │                                          │
 │ ──────────────────────────────────────  │
 │                                          │
@@ -214,6 +230,7 @@ interface ProviderConfig {
 │  • 每次发送前会请您确认内容                │
 │  • API 密钥仅存储在您的本地设备            │
 │  • 可随时关闭此功能                        │
+│  • 系统提示词仅包含您主动公开的信息        │
 │                                          │
 │  [IconCheck] 我已了解风险并同意开启               │
 │                                          │
@@ -230,27 +247,47 @@ interface ProviderConfig {
 
 ### 5.1 后端代理架构
 
-前端**不直接调用**任何外部 LLM API，所有请求由 Rust 后端代理：
+前端**不直接调用**任何外部 LLM API，所有请求由 Rust 后端代理。
+
+**模式 B（后端构建，唯一用户-facing 路径）**：
+前端只发送用户 prompt 和历史对话，后端在 Rust 端查询 Vault 数据、构建系统提示词、检索帮助文档、组装 messages 并发送请求。
+- 隐私过滤在 Rust 端强制完成，不可被绕过
+- 前端无需关心系统提示词构建细节，用户完全无感
+- 所有用户-facing 的 AI 对话统一走此路径
+
+**模式 A（前端构建，已废弃）**：
+原前端利用 Zustand Store 缓存数据构建系统提示词的方案。现仅作为 Provider 不支持 SSE 时的**内部降级保留**，不暴露给用户，不在任何 UI 中出现。
 
 ```
+模式 B（后端构建，唯一用户-facing 路径）
+─────────────────────────────────────────────
 前端（React）
-    ↓ IPC 命令
+    ↓ IPC: invoke('llm_chat', { accountId, conversationId, prompt, history })
+    ↓ （用户无感，只传 prompt + history）
 Rust 后端（Tauri）
-    ↓ 读取 Provider 配置 + 解密 API 密钥
+    ↓ 1. 读取 Provider 配置 + 解密 API Key
+    ↓ 2. LlmContextService::build_context(accountId)
+    │     查询 Vault public 对象 → 偏好 → 插件 → 统计 → 组装 7 Section
+    ↓ 3. GuideService::find_relevant_guides(prompt, language)
+    ↓ 4. 组装 messages（system + help doc + history + user prompt）
 HTTP Client（reqwest）
-    ↓ 发送请求
-外部 LLM API（OpenAI / Anthropic / 自定义 / Ollama）
-    ↓ 流式响应
+    ↓ SSE 流式发送请求（stream: true）
+外部 LLM API
+    ↓ 逐 token 响应
 Rust 后端
-    ↓ IPC 事件（流式）
-前端（逐字显示）
+    ↓ app.emit("llm-stream-chunk", ...) 逐段推送
+前端（Store 层监听 Event，累积渲染）
 ```
 
-**优势**：
+**内部降级路径**（用户不可见）：
+当 Provider 不支持 SSE 或 SSE 解析失败时，后端内部回退到完整获取后打字机效果。此降级封装在 Rust 内部，前端调用方式不变，用户无感知。
+
+**设计原则**：
 - API 密钥从不离开 Rust 后端
 - 前端代码不依赖任何特定 LLM SDK
 - 统一错误处理和重试逻辑
 - 便于审计日志记录
+- 用户不需要选择模式，不需要调试，只需要一致的 AI 对话体验
 
 ### 5.2 OpenAI 兼容格式
 
@@ -266,39 +303,509 @@ struct ChatCompletionRequest {
     max_tokens: Option<u32>,
 }
 
+// Message 结构体 — role 使用 String 而非枚举，保持扩展性
+struct Message {
+    role: String,      // "system" | "user" | "assistant"，未来可扩展 "tool" 等
+    content: String,
+}
+```
+
+> **为什么 role 用 String 而不是枚举？**
+> - 保持扩展性：未来可能支持 `tool`、`function` 等新角色，无需修改数据结构
+> - Anthropic 适配层需要在 messages 中识别 `system` 并分离到顶层 `system` 字段，String 让过滤更直接
+> - 前端可以灵活地在消息历史中保留 `system` 消息（如用户之前手动添加的系统提示）
+
 // Anthropic 适配层：在 Rust 后端将 OpenAI 格式转换为 Anthropic 格式
 // Ollama 适配层：Ollama 已原生支持 OpenAI 兼容 API
 // 自定义 Provider：直接使用用户提供的 baseUrl，发送标准 OpenAI 格式
-```
 
 > **Anthropic 特殊处理**：Anthropic API 不是原生 OpenAI 兼容格式，Rust 后端需要提供适配层，将 OpenAI 格式的请求转换为 Anthropic 格式（Messages API）。
+>
+> **Anthropic thinking 模型处理**：Claude 3.7 Sonnet 等 thinking 模型返回 `content` 为数组（content blocks），格式如 `[{"type":"thinking",...}, {"type":"text","text":"..."}]`。适配层必须过滤出 `type: "text"` 或 `type` 缺失的块来提取实际回复文本，不能直接取 `content` 字符串。
+
+### 5.3 流式响应策略
+
+**Tauri v2 技术限制**：`invoke` 命令不支持原生返回 Stream，必须通过 Tauri Event 实现流式推送。
+
+| Provider 类型 | 流式实现 | 技术方案 |
+|--------------|---------|---------|
+| **本地 Ollama** | SSE → Tauri Event | 后端用 reqwest 解析 SSE，通过 `app.emit("llm-stream-chunk", ...)` 逐段推送 |
+| **云端 OpenAI 兼容** | SSE → Tauri Event | 后端用 reqwest 解析 SSE（`stream: true`），逐 token 推送 |
+| **云端 Anthropic** | SSE → Tauri Event | 同上，适配层转换后解析 SSE 逐 token 推送 |
+| **降级 fallback** | 打字机效果 | 当 Provider 不支持 SSE 或解析失败时，内部回退到完整获取后打字机 emit |
+
+> **设计决策**：所有 Provider 统一走 SSE 流式。打字机效果仅作为内部降级，不暴露 `streamMode` 设置选项给用户。
+
+#### 5.3.1 流式 IPC 技术实现（Tauri Event）
+
+**SSE 流式路径（默认）**：
+
+```
+前端调用: invoke('llm_chat', { accountId, conversationId, prompt, history })
+    ↓
+Rust 后端: 启动异步任务，发送 HTTP 请求（stream: true）
+    ↓
+Rust 后端: 解析 SSE 数据流
+    for each SSE chunk:
+        app.emit("llm-stream-chunk", Payload { conversation_id, chunk: "..." })
+    ↓
+前端监听: listen("llm-stream-chunk", handler)
+    ↓
+前端: 累积 chunk 到当前 AI 消息
+    ↓
+Rust 后端: SSE 流结束（或收到 [DONE]）
+    app.emit("llm-stream-chunk", Payload { conversation_id, chunk: "", is_done: true })
+    或出错时: app.emit("llm-stream-chunk", Payload { conversation_id, error: "..." })
+```
+
+**打字机降级路径（内部，用户不可见）**：
+
+```
+Rust 后端: 检测到 Provider 不支持 SSE 或 SSE 解析失败
+    ↓
+Rust 后端: 完整获取响应文本
+    ↓
+Rust 后端: 按 grapheme cluster 逐字 emit（避免切断 emoji / 中文）
+    for each grapheme:
+        app.emit("llm-stream-chunk", Payload { conversation_id, chunk: "..." })
+        sleep(2ms / 4ms)
+```
+
+**前端状态管理要求**：
+- Stream 订阅必须提升到 **Zustand Store 层**（而非组件 `useEffect`）
+- 组件 unmount 时订阅保持，切换页面后仍能接收 chunk
+- Store 提供 `startStream()` / `stopStream()` / `onChunk()` / `onDone()` / `onError()` 方法
+
+#### 5.3.2 打字机效果参数（内部降级用）
+
+```rust
+// 仅当 SSE 不可用时内部使用
+let graphemes = full_response.graphemes(true).collect::<Vec<_>>();
+let total = graphemes.len();
+let max_typing_ms = 3000; // 最多打字 3 秒
+let delay_ms = if total <= 50 { 2 } else { 4 }; // 前 50 字 2ms，后续 4ms
+
+for (i, g) in graphemes.iter().enumerate() {
+    let elapsed = i * delay_ms;
+    if elapsed >= max_typing_ms {
+        emit_to_frontend(&graphemes[i..].concat());
+        break;
+    }
+    emit_to_frontend(g);
+    tokio::time::sleep(Duration::from_millis(delay_ms as u64)).await;
+}
+```
+
+**参数说明**：
+- 默认延迟：4ms/字符
+- 变速：前 50 个字符 2ms（快速呈现开头），后续 4ms
+- 上限：最多打字 3 秒，超出直接显示剩余内容
+- **不暴露给用户**：此降级路径完全封装在 Rust 后端，用户设置中无 `streamMode` 或 `instantDisplay` 选项
 
 ---
 
-## 6. 与现有文档的关联
+## 6. 系统提示词与上下文注入
+
+### 6.1 设计目标
+
+系统提示词（System Prompt）是 AI 对话的"底层指令"，定义了 AI 助手的身份、能力边界和行为规范。SoloSoul 的系统提示词设计遵循以下原则：
+
+1. **隐私优先**：仅包含用户主动公开的信息，绝不暴露敏感数据
+2. **动态注入**：每次发送消息前重新构建，确保数据始终最新
+3. **长度可控**：总提示词上限 2000 字符，超出时智能截断
+4. **缓存优化**：静态部分（用户资料、偏好）缓存，实时统计动态追加
+
+### 6.2 系统提示词结构
+
+系统提示词由 **7 个 Section** 组成，按以下顺序拼接：
+
+```
+【Section 1: AI 身份定义】
+你是 SoloSoul（独灵）的 AI 助手 Solon，由 SoloSoul 团队开发。
+你是用户的个人智能助手，了解用户的个人信息（仅限用户主动分享的部分）。
+你的回答应当简洁、准确、有帮助。
+
+【Section 2: 软件信息】
+当前 SoloSoul 版本：{appVersion}
+平台：{platform}
+界面语言：{language}
+
+【Section 3: 用户公开对象数据】
+用户主动公开的信息（从所有对象中提取 SensitivityLevel.public 级别的属性）：
+{userPublicObjectData}
+
+> **数据收集方式**：遍历所有对象 → 筛选 `sensitivity_level == "public"` 的属性 → 按对象类型分组 → 最多每类型 3 个对象、每对象 8 个属性 → 属性值截断至 100 字符。
+> 示例：联系人（姓名：张三、职业：工程师）、旅行记录（目的地：东京、日期：2026-05-01）
+
+【Section 4: 偏好设置】
+{preferences}
+
+【Section 5: 已安装插件】
+{installedPlugins}
+
+【Section 6: 使用统计】
+{usageStats}
+
+【Section 7: 行为规范】
+1. 使用与用户提问相同的语言回答
+2. 区分"插件"（功能扩展）和"对象"（用户数据）
+3. 敏感/受限/关键数据需要重新验证密码，无法直接访问
+4. 无法访问用户本地数据时，建议用户手动查找而非编造
+5. 不泄露用户数据给插件或外部服务
+6. 用户询问功能使用方法时，基于软件信息回答
+```
+
+### 6.3 各 Section 数据来源
+
+| Section | 数据来源 | 敏感级别过滤 | 说明 |
+|---------|---------|-------------|------|
+| 1. AI 身份 | 硬编码 | — | 固定文本，不可修改 |
+| 2. 软件信息 | 运行时获取 | — | appVersion、platform、language |
+| 3. 用户公开对象数据 | 对象服务 | **仅 public** | 遍历所有对象，提取 `SensitivityLevel.public` 级别的属性 |
+| 4. 偏好设置 | Preferences 服务 | **仅 public** | 主题、默认对象类型等 |
+| 5. 已安装插件 | Plugin 服务 | — | 插件名称列表（**当前留空预留，TODO：等插件系统上线后接入**） |
+| 6. 使用统计 | LLM 统计服务 | — | 累计使用次数、Token 消耗（实时） |
+| 7. 行为规范 | 硬编码 | — | 固定文本，不可修改 |
+
+### 6.4 上下文注入服务（LlmContextService）
+
+Rust 后端提供 `LlmContextService`，负责在每次发送消息前构建系统提示词。
+
+#### 6.4.1 构建流程
+
+```rust
+async fn build_context(account_id: &str, model_manager: &LlmModelManager) -> Result<ContextResult, Error> {
+    // 1. 构建缓存键
+    let cache_key = build_cache_key(account_id).await?;
+    
+    // 2. 检查缓存
+    if let Some(cached) = PROMPT_CACHE.get(&cache_key) {
+        // 缓存命中：复用静态部分，追加实时统计
+        let stats = model_manager.build_stats_snapshot();
+        let system_prompt = inject_realtime_stats(&cached.system_prompt, &stats);
+        return Ok(ContextResult { system_prompt, was_cached: true, ... });
+    }
+    
+    // 3. 缓存未命中：重新构建
+    let profile_data = collect_public_profile_data(account_id).await?;
+    let preferences = collect_preferences(account_id).await?;
+    let plugins = collect_installed_plugins().await?;
+    let stats = model_manager.build_stats_snapshot();
+    
+    // 4. 组装系统提示词
+    let system_prompt = PromptTemplate::chat_system_prompt(
+        app_version: ..., platform: ..., language: ...,
+        user_public_info: &profile_data,
+        preferences: &preferences,
+        installed_plugins: &plugins,
+        usage_stats: &stats,
+    );
+    
+    // 5. 缓存静态部分
+    PROMPT_CACHE.insert(cache_key, CachedPrompt { ... });
+    
+    Ok(ContextResult { system_prompt, was_cached: false, ... })
+}
+```
+
+#### 6.4.2 缓存策略
+
+| 缓存维度 | 实现方式 |
+|---------|---------|
+| **缓存键** | `account_id + 公开对象数量 + public_data_version` |
+| **缓存内容** | 静态部分（Section 1-5：AI 身份、软件信息、用户公开对象数据、偏好、插件列表） |
+| **不缓存内容** | 实时统计（Section 6：使用次数、Token 数）——每次注入时动态追加 |
+| **缓存位置** | Rust 内存 `HashMap`（主缓存）+ Vault 持久化（缓存元数据，跨会话恢复） |
+| **失效条件** | `public_data_version` 变化（任何 public 级别数据变更时 +1）或切换账户 |
+
+> **`public_data_version` 实现**：在 Vault Profile JSON `preferences.llmPublicDataVersion` 中维护计数器。Rust 端在 `object_create` / `object_update` 命令中检测 `sensitivityLevel == "public"` 的变更时自动 +1。避免遍历所有对象计算 `updated_at` 总和的性能开销，且与 Vault 数据一致性更好。
+
+> **跨会话持久化**：缓存元数据（缓存键 + 时间戳）持久化到 Vault，App 重启后恢复，避免每次启动后的冷启动构建。缓存的实际内容（系统提示词文本）不持久化（因长度较大），仅恢复元数据以判断缓存是否仍有效。
+
+#### 6.4.3 长度限制与截断策略
+
+长度限制分层（避免单一层级限制导致过度截断）：
+
+```rust
+const MAX_OBJECTS_PER_TYPE: usize = 3;       // 每类型最多 3 个对象
+const MAX_PROPERTIES_PER_OBJECT: usize = 8;  // 每对象最多 8 个属性
+const MAX_VALUE_LENGTH: usize = 100;         // 每个值最多 100 字符
+const MAX_SYSTEM_PROMPT_CHARS: usize = 1500; // 系统提示词（Section 1-7）上限
+const MAX_DOC_CONTENT_CHARS: usize = 800;    // 单篇帮助文档内容上限
+const MAX_HISTORY_MSG_CHARS: usize = 2000;   // 单条历史消息上限（超出时截断旧消息）
+const MAX_TOTAL_CONTEXT_CHARS: usize = 8000; // 总上下文上限（system + docs + 最近 N 条历史 + prompt）
+```
+
+**Token 估算规则**（⚠️ 近似估算，非精确值）：
+
+> 由于不同 LLM 使用不同的 tokenizer（GPT-4 用 cl100k_base，Claude 用自有方案，Llama/Qwen 用 SentencePiece），本软件的 Token 估算仅用于**长度控制和粗略统计**，不作为计费依据。
+
+保守估算策略（确保不会因估算错误而超限）：
+- 所有字符统一按 **1 token / 字符** 估算（向上取整）
+- 实际 Token 数通常低于估算值，这确保了不会因估算错误而截断过多内容
+- 未来可提供模型特定系数表（P2）
+
+**截断策略**：
+1. 优先截断用户数据部分（Section 3 用户公开对象数据）
+2. 其次截断历史消息（从最早的消息开始）
+3. 保留系统提示词核心部分（Section 1 AI 身份、Section 7 行为规范）
+4. 在接近限制时按**段落边界**截断（不切断句子）
+5. 截断后追加提示：`（上下文过长，部分内容已省略）`
+
+### 6.5 注入流程（时序图）
+
+**模式 B（后端构建，唯一用户-facing 路径）**：
+
+```
+用户发送消息
+    │
+    ▼
+前端: invoke('llm_chat', { account_id, conversation_id, prompt, history, include_system_prompt })
+    │
+    ▼
+Rust 后端: LlmContextService::build_context(account_id)
+    │   1. 检查缓存（内存 + Vault 元数据）
+    │   2. 缓存命中：复用静态部分；缓存未命中：查询 Vault 重新构建
+    │   3. 查询 Vault 中的 public 级别对象数据
+    │   4. 查询偏好设置
+    │   5. 查询已安装插件（当前留空，TODO）
+    │   6. 获取使用统计（STATS_MAP 实时）
+    │   7. 组装 system_prompt（7 Section）
+    │
+    ▼
+Rust 后端: UserGuideService::find_relevant_guides(prompt, language)
+    │
+    ▼
+Rust 后端: 组装 messages 并发送 SSE 流式请求
+    │
+    ▼
+SSE 流式响应 → IPC Event 推送 → 前端逐 token 渲染
+```
+
+**模式 A（前端构建，已废弃，仅内部参考）**：
+
+> 原前端利用 Zustand Store 缓存数据构建系统提示词的方案。当前代码中保留的 `systemPromptBuilder.ts` 和 `llm_send_message_stream` 命令仅作为 Provider 不支持 SSE 时的**内部降级**，不暴露给用户。
+>
+> ```
+> 前端: 遍历 Zustand Store → 组装 system prompt → IPC 发送完整 messages
+> Rust 后端: 直接转发 → HTTP 请求
+> ```
+
+### 6.6 隐私分级暴露规则
+
+系统提示词严格遵循 SoloSoul 的敏感数据分级系统：
+
+| 敏感度级别 | 是否进入系统提示词 | 说明 |
+|-----------|------------------|------|
+| `public` | ✅ 是 | 用户主动公开的信息 |
+| `internal` | ❌ 否 | 内部使用数据，不暴露给 AI |
+| `private` | ❌ 否 | 私人数据，需要显式授权 |
+| `sensitive` | ❌ 否 | 敏感数据，需重新验证密码 |
+| `restricted` | ❌ 否 | 受限数据，需重新验证密码 |
+| `critical` | ❌ 否 | 关键数据，需重新验证密码 |
+
+**AI 行为约束**（硬编码在系统提示词 Section 7）：
+1. **语言匹配**：使用与用户提问相同的语言回答
+2. **概念区分**：区分"插件"（功能扩展）和"对象"（用户数据）
+3. **敏感数据拒绝**：当被问及敏感/受限/关键数据时，告知用户需要重新验证密码
+4. **不编造**：无法访问用户本地数据时，建议用户手动查找，绝不编造
+5. **数据保护**：不泄露用户数据给插件或外部服务
+
+### 6.7 持久化规则
+
+| 数据 | 持久化位置 | 说明 |
+|------|-----------|------|
+| 系统提示词 | **不持久化** | 每次发送前动态生成，不进入消息历史 |
+| 系统提示词缓存元数据 | Vault 加密 | 缓存键 + 时间戳，App 重启后恢复，避免冷启动 |
+| 对话消息（user/assistant） | Vault 加密 | 每 2 秒 debounce 保存 |
+| 使用统计 | Vault 加密（按账户隔离） | **每次推理后 30 秒 debounce 保存**（主要机制）+ 对话切换 / 账户切换 / Vault 锁定前立即保存 |
+
+---
+
+## 7. 帮助文档检索与嵌入
+
+### 7.1 设计目标
+
+当用户询问软件功能使用方法时，AI 助手应能参考官方帮助文档给出准确回答。设计遵循以下原则：
+
+1. **本地优先**：所有检索在本地完成，不上传用户查询到外部服务
+2. **轻量高效**：关键词匹配方案，无需向量数据库或外部 embedding 服务
+3. **多语言支持**：自动匹配用户当前语言，支持回退
+4. **按需注入**：仅在用户问题与帮助文档相关时才注入，避免污染上下文
+
+### 7.2 文档结构
+
+帮助文档存储在应用资源目录下：
+
+```
+resources/
+├── docs/
+│   └── guides/
+│       ├── index.json          # 文档索引（id, title, keywords, file）
+│       ├── zh/
+│       │   ├── export_data.md
+│       │   ├── import_data.md
+│       │   └── ...
+│       ├── en/
+│       │   ├── export_data.md
+│       │   └── ...
+│       └── [其他语言]/
+```
+
+`index.json` 格式：
+
+```json
+{
+  "guides": [
+    {
+      "id": "export-data",
+      "title": "如何导出数据",
+      "keywords": ["导出", "备份", "数据迁移", "export", "backup"],
+      "files": {
+        "zh": "zh/export_data.md",
+        "en": "en/export_data.md"
+      }
+    }
+  ]
+}
+```
+
+### 7.3 检索算法
+
+```rust
+async fn find_relevant_guides(query: &str, language: &str) -> Vec<GuideContent> {
+    // 1. 加载索引
+    let index = load_guide_index().await?;
+    
+    // 2. 分词 + 停用词过滤
+    let tokens = tokenize(query);
+    let filtered = remove_stop_words(tokens);  // 中英文停用词表
+    
+    // 3. 遍历所有指南，计算匹配分数
+    let mut scored: Vec<(Guide, i32)> = vec![];
+    for guide in &index.guides {
+        let mut score = 0;
+        for token in &filtered {
+            // 关键词匹配 +1
+            if guide.keywords.iter().any(|k| k.to_lowercase().contains(token)) {
+                score += 1;
+            }
+            // 标题匹配 +3
+            if guide.title.to_lowercase().contains(token) {
+                score += 3;
+            }
+        }
+        if score >= 2 {  // 分数阈值
+            scored.push((guide.clone(), score));
+        }
+    }
+    
+    // 4. 按分数排序，取 Top-1
+    scored.sort_by(|a, b| b.1.cmp(&a.1));
+    scored.into_iter().take(1).map(|(g, _)| load_guide_content(&g, language)).collect()
+}
+```
+
+**评分规则**：
+- 关键词匹配：+1 分/匹配词
+- 标题匹配：+3 分/匹配词
+- 返回数量：仅 Top-1（避免注入过多文档内容）
+
+**动态分数阈值**（避免短查询 miss）：
+
+```rust
+let threshold = if filtered_tokens.len() >= 2 { 2 } else { 1 };
+if score >= threshold {
+    scored.push((guide.clone(), score));
+}
+```
+
+| 查询分词数 | 阈值 | 说明 |
+|-----------|------|------|
+| ≥ 2 | 2 | 多关键词查询要求至少匹配 2 分 |
+| 1 | 1 | 单关键词查询（如"导出""备份"）允许 1 分命中 |
+| 0（全是停用词） | — | 不返回任何文档 |
+
+### 7.4 多语言回退
+
+```rust
+fn resolve_language(content: &HashMap<String, String>, requested: &str) -> &str {
+    if content.contains_key(requested) { return requested; }
+    if content.contains_key("en") { return "en"; }
+    content.keys().next().unwrap_or("en")  // 第一个可用语言
+}
+```
+
+回退链：`请求语言 → 英文 → 第一个可用语言`
+
+### 7.5 注入格式
+
+匹配到的指南内容被包装为 `system` 角色的消息，插入到系统提示词之后、历史消息之前：
+
+```
+---
+以下是与用户问题相关的功能使用文档，请参考这些信息回答用户问题。
+
+【文档：如何导出数据】
+1. 打开设置页面
+2. 选择"导入导出"选项
+3. ...
+【文档结束】
+---
+```
+
+**注入位置**：
+```
+messages[0] = system: 系统提示词（Section 1-7）
+messages[1] = system: 帮助文档（如有匹配）
+messages[2..n] = user/assistant: 历史对话
+messages[n+1] = user: 当前用户输入
+```
+
+### 7.6 内容截断
+
+- 单篇指南内容截断至 **800 字符**
+- **截断策略**：按段落边界（`\n\n`）截断，不切断句子；优先在列表项、代码块边界处截断
+- **Markdown 完整性保护**：
+  - 如果在代码块（```）中间截断，自动补全闭合标记
+  - 如果在列表中间截断，截断到上一个完整列表项
+  - 如果标题后紧跟内容，截断时保留标题 + 至少一段内容
+- 截断后追加：`（文档内容过长，已截断）`
+
+### 7.7 未来扩展（P2）
+
+| 阶段 | 方案 | 说明 |
+|------|------|------|
+| **阶段一（当前）** | 关键词匹配 | 轻量、无外部依赖、保护隐私 |
+| **阶段二（未来）** | 本地向量检索 | 使用本地 embedding 模型（如 `all-MiniLM-L6-v2`），向量数据库存储于本地 Vault 目录 |
+
+---
+
+## 8. 与现有文档的关联
 
 | 文档 | 关联内容 |
 |------|---------|
-| 15_用户数据边界 | API 密钥 `critical` 级别加密存储；AI 功能开关状态存储位置 |
+| 15_用户数据边界 | API 密钥 `critical` 级别加密存储；AI 功能开关状态存储位置；敏感数据分级规则 |
 | 26_矛盾冲突 | AI 功能默认禁用；风险告知；本地模型（Ollama）推荐 |
-| 08_IPC 接口 | `llm_send_message`（流式）、`llm_get_config`、`llm_set_config`、`llm_test_provider` |
+| 08_IPC 接口 | `llm_chat`（模式B统一命令）、`llm_send_message_stream`（内部降级保留）、`llm_get_config`、`llm_set_config`、`llm_test_provider`、`llm_get_stats`、`llm_reset_stats`、`llm_find_guides` |
 | 11_视觉规范 | 设置页 LLM 配置区域 UI 风格；侧边栏 AI 对话入口 |
 | 09_对象规范 | AI 智能填充功能调用的对象属性接口 |
+| 23_Flutter_LLM_实现分析 | 系统提示词模板、上下文注入机制、帮助文档检索的 Flutter 参考实现 |
 
 ---
 
-## 7. AI 对话页面规范（LlmChatPage）
+## 9. AI 对话页面规范（LlmChatPage）
 
-> **前置文档**：本章节需先后阅读 §4（设置页入口与风险告知）、§2（Provider 模型）再阅读本节。
+> **前置文档**：本章节需先后阅读 §4（设置页入口与风险告知）、§2（Provider 模型）、§6（系统提示词）、§7（帮助文档）再阅读本节。
 > **功能定位**：AI 对话是 SoloSoul 的附加扩展功能，**不影响核心功能使用**。核心功能完全离线本地优先，AI 功能仅为用户提供便利。
 
 AI 对话页面的主要能力：
 1. **AI 问答**：通过配置 LLM Provider，直接在软件中与 AI 对话
-2. **软件信息提供**：回答关于 SoloSoul 的功能、理念、定位等问题
-3. **帮助与指南**：提供软件的使用文档，回答用户关于各种功能的使用问题
-4. **用户数据查询（需授权）**：在用户授权后，有限度查询对话统计、Token 用量等信息，以及授权范围内的对象数据
+2. **软件信息提供**：回答关于 SoloSoul 的功能、理念、定位等问题（通过系统提示词 Section 2）
+3. **帮助与指南**：提供软件的使用文档，回答用户关于各种功能的使用问题（通过帮助文档检索注入）
+4. **用户数据查询（需授权）**：在用户授权后，有限度查询对话统计、Token 用量等信息（通过系统提示词 Section 6），以及授权范围内的对象数据
 
-### 7.1 页面布局
+### 9.1 页面布局
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -329,7 +836,7 @@ AI 对话页面的主要能力：
 └──────────────────────────────────────────────────────────┘
 ```
 
-#### 7.1.1 整体结构
+#### 9.1.1 整体结构
 
 | 区域 | 说明 |
 |------|------|
@@ -337,7 +844,7 @@ AI 对话页面的主要能力：
 | **对话侧边栏** | 左侧窄列，显示对话列表 + 新建对话按钮；可通过拖拽或折叠按钮调整宽度 |
 | **消息区** | 右侧主区域，展示当前对话的消息列表；底部固定输入栏 |
 
-#### 7.1.2 对话侧边栏
+#### 9.1.2 对话侧边栏
 
 ```
 ┌──────────────────────┐
@@ -371,9 +878,9 @@ AI 对话页面的主要能力：
 | **回收站入口** | 侧边栏最底部，显示 `[IconTrash]`（垃圾桶图标），点击展开回收站面板，展示已软删除的对话列表 |
 | **回收站开关** | 点击回收站入口切换展开/收起；展开时侧边栏下方显示回收站对话列表，不影响上方正常对话列表 |
 
-### 7.2 消息区规范
+### 9.2 消息区规范
 
-#### 7.2.1 消息气泡
+#### 9.2.1 消息气泡
 
 | 属性 | 用户消息 | AI 回复 |
 |------|---------|--------|
@@ -388,7 +895,7 @@ AI 对话页面的主要能力：
 
 > **参考 UI**：具体消息气泡、输入框、侧边栏的视觉风格可参考 Claude Code Desktop、ChatGPT Web、Codex 等主流 AI 对话软件，保持一致的用户预期。
 
-#### 7.2.2 时间戳与复制
+#### 9.2.2 时间戳与复制
 
 | 功能 | 规范 |
 |------|------|
@@ -396,7 +903,7 @@ AI 对话页面的主要能力：
 | **复制按钮** | 每条消息气泡下方/右侧有 `[IconCopy]` 文字按钮（透明背景，hover 显示）；点击后复制该条消息的**全部文本内容**到剪贴板；复制成功后短暂显示"已复制"反馈（1.5 秒后自动恢复） |
 | **复制范围** | 用户消息：复制用户输入的纯文本；AI 回复：复制渲染后的纯文本（去除 Markdown 标记） |
 
-#### 7.2.3 输入区域
+#### 9.2.3 输入区域
 
 输入区域固定于消息区底部，不随消息滚动：
 
@@ -416,9 +923,9 @@ AI 对话页面的主要能力：
 | **加载态** | 等待 AI 回复期间，输入框锁定（`disabled`），发送按钮显示旋转加载指示器 |
 | **流式提示** | AI 回复过程中输入框下方显示"正在生成..."或打字动画 |
 
-### 7.3 对话与命名
+### 9.3 对话与命名
 
-#### 7.3.1 对话生命周期
+#### 9.3.1 对话生命周期
 
 ```
 用户点击 [+ 新建对话] → 创建临时对话（ID 已生成，但不可见）
@@ -455,15 +962,15 @@ AI 输出结束（成功或报错） → 最终对话记录持久化存档
 | **发送后（AI 已完成）** | 对话已完整持久化；用户可随时查看最终结果 |
 | **发送后（AI 报错）** | 报错信息作为 AI 回复写入对话并持久化；用户可查看完整错误内容 |
 | **重命名** | 双击对话名称，进入编辑模式；或右键菜单 → "重命名" |
-| **删除对话** | 软删除：对话移至 AI 对话回收站，可从回收站恢复或永久删除（详见 §7.3.3） |
+| **删除对话** | 软删除：对话移至 AI 对话回收站，可从回收站恢复或永久删除（详见 §9.3.3） |
 
-#### 7.3.2 自动命名规范
+#### 9.3.2 自动命名规范
 
 - 用户发送首条消息后，取消息内容前 30 个字符作为默认对话名称
 - 若有 LLM 可用（且用户同意），可由 LLM 总结成简短标题（不超过 20 字）
 - 自动命名后，对话名称后缀 `(自动)` 标记，用户手动重命名后移除标记
 
-### 7.3.3 对话回收站
+### 9.3.3 对话回收站
 
 AI 对话拥有独立的回收站系统，专用于对话的软删除和永久删除，与全局回收站（文档 16）隔离。
 
@@ -555,7 +1062,7 @@ AI 对话拥有独立的回收站系统，专用于对话的软删除和永久�
 | 永久删除 | 数据从本地存储彻底清除 | 从回收站消失 |
 | 查看 | 无数据影响 | 悬浮卡片只读展示 |
 
-### 7.4 功能边界与非核心定位
+### 9.4 功能边界与非核心定位
 
 > **关键设计决策**：AI 对话是 SoloSoul 的附加扩展，不是核心功能。
 
@@ -568,22 +1075,84 @@ AI 对话拥有独立的回收站系统，专用于对话的软删除和永久�
 | **API 调用失败** | 消息中显示错误提示，不阻塞页面其他操作 |
 | **用户关闭 AI 功能** | 对话页面不可访问（路由跳转到设置页）；已有对话数据保留不变，再次开启后可继续使用 |
 
-### 7.5 授权与数据边界
+### 9.5 授权与数据边界
 
-| 数据类别 | 授权要求 | 说明 |
-|---------|---------|------|
-| **对话内容** | 始终由用户触发发送，不自动发送任何数据 | 每条消息由用户手动输入/确认后发送 |
-| **Token 用量/对话统计** | 默认可直接查询 | 无用户敏感信息 |
-| **对象数据（用户存储的信息）** | 需用户显式授权 | AI 只能查询用户明确授权的对象范围；授权在对话页内以对话框形式确认；授权记录写入审计日志 |
-| **用户身份信息** | 不允许 | AI 默认不知道用户是谁，也不主动询问 |
+| 数据类别 | 授权要求 | 敏感级别 | 说明 |
+|---------|---------|---------|------|
+| **对话内容** | 始终由用户触发发送，不自动发送任何数据 | — | 每条消息由用户手动输入/确认后发送 |
+| **Token 用量/对话统计** | 默认可直接查询 | — | 无用户敏感信息，通过系统提示词 Section 6 注入 |
+| **软件信息** | 默认可直接查询 | — | 版本、平台等，通过系统提示词 Section 2 注入 |
+| **用户公开对象数据** | 默认可直接查询 | `public` | 遍历所有对象提取 `public` 级别属性，通过系统提示词 Section 3 注入 |
+| **偏好设置** | 默认可直接查询 | `public` | 主题、默认对象类型等，通过系统提示词 Section 4 注入 |
+| **对象数据（用户存储的信息）** | 需用户显式授权 | `internal`+ | AI 只能查询用户明确授权的对象范围；授权在对话页内以对话框形式确认；授权记录写入审计日志 |
+| **用户身份信息** | 不允许 | `private`+ | AI 默认不知道用户是谁，也不主动询问 |
+| **敏感/受限/关键数据** | 不允许 | `sensitive`+ | 系统提示词绝不包含此类数据；AI 被明确告知无法直接访问 |
 
-### 7.6 设置页入口
+### 9.6 设置页入口
 
 从对话页右上角齿轮图标点击进入 LLM 配置页（§4），或从设置 → AI 与智能助手 → AI 对话开关 + Provider 选择进入。
 
 ---
 
-## 8. 完成标准
+## 10. 使用统计
+
+### 10.1 统计维度
+
+| 统计项 | 粒度 | 持久化 | 说明 |
+|-------|------|--------|------|
+| 推理调用次数 | 会话 + 账户 | ✅ | 每次推理 +1 |
+| Prompt Token | 会话 + 账户 | ✅ | 估算值（基于字符数） |
+| Completion Token | 会话 + 账户 | ✅ | 估算值（基于字符数） |
+| 总 Token | 会话 + 账户 | ✅ | Prompt + Completion |
+| 按模型统计 | 账户 | ✅ | 各模型使用占比 |
+| 每日统计 | 账户 | ✅ | 按天聚合 |
+
+### 10.2 统计生命周期
+
+| 级别 | 生命周期 | 持久化时机 |
+|------|---------|-----------|
+| **会话级** | 当前 App 生命周期内累计 | 不独立持久化，作为内存统计 |
+| **账户级** | 跨会话持久化 | 见下表 |
+
+**账户级统计持久化策略（防丢失）**：
+
+| 时机 | 行为 | 原因 |
+|------|------|------|
+| **每次推理完成后** | 内存累计，**延迟 30 秒 debounce 保存**到 Vault | 确保即使崩溃也只丢失最近 30 秒数据 |
+| **对话切换时** | 立即保存当前会话统计 | 会话粒度切换 |
+| **账户切换时** | 立即保存旧账户，加载新账户 | 账户隔离 |
+| **Vault 锁定前** | 立即保存 | 安全退出 |
+| **App 正常退出时** | 尝试保存（best effort） | 额外保险 |
+
+> **注意**："App 退出时"不可靠（用户可能强制关闭、系统崩溃），因此**每次推理后的 debounce 保存是主要持久化机制**。
+
+**账户切换流程**：
+1. 保存旧账户统计到 Vault
+2. 重置内存统计
+3. 加载新账户统计到内存
+
+### 10.3 Token 估算
+
+无精确 tokenizer 时的近似方案：
+
+```rust
+fn estimate_tokens(text: &str) -> u64 {
+    // 保守估算：所有字符统一按 1 token / 字符计算
+    // 实际 Token 数通常低于估算值，确保不会因估算错误而截断过多内容
+    text.chars().count() as u64
+}
+```
+
+### 10.4 UI 展示
+
+| 位置 | 展示内容 |
+|------|---------|
+| 设置页 → AI 与智能助手 | 累计使用次数、总 Token 消耗、当前会话统计 |
+| 对话页 → 模型信息栏 hover | 当前会话的调用次数和 Token 数 |
+
+---
+
+## 11. 完成标准
 
 ### P0（必须 — LLM 配置与 AI 对话基础）
 - [ ] AI 功能默认全部禁用
@@ -595,9 +1164,15 @@ AI 对话拥有独立的回收站系统，专用于对话的软删除和永久�
 - [ ] API 密钥使用 `SecurePasswordInput` 组件，始终遮蔽
 - [ ] API 密钥 `critical` 级别加密存储，使用后内存擦除
 - [ ] 前端不直接调用外部 API，所有请求由 Rust 后端代理
-- [ ] 支持流式响应（逐字显示）
+- [ ] 支持 SSE 流式响应（所有 Provider），Stream 订阅在 Zustand Store 层；打字机效果仅作为 Provider 不支持 SSE 时的内部降级
 - [ ] 当前活跃 Provider 通过单选按钮切换
 - [ ] 每个 AI 功能可独立开关
+- [ ] 系统提示词 7 Section 模板实现（AI 身份 / 软件信息 / 用户公开对象数据 / 偏好 / 插件 / 统计 / 行为规范）
+- [ ] 上下文注入统一走模式 B（后端构建），模式 A 已废弃（仅作为内部降级保留，不暴露给用户）
+- [ ] 隐私分级过滤（仅 `public` 级别数据进入系统提示词）
+- [ ] 缓存机制：`public_data_version` 作为缓存键，避免遍历所有对象
+- [ ] 长度限制分层：系统提示词 1500 / 帮助文档 800 / 单条历史 2000 / 总上下文 8000
+- [ ] 帮助文档检索实现：关键词匹配、中英文停用词过滤、评分（标题+3/关键词+1）、动态阈值、Top-1、多语言回退
 - [ ] AI 对话页面左右布局：左侧对话侧边栏 + 右侧消息区 + 底部固定输入栏
 - [ ] 新建对话按钮创建临时对话，首条消息发送后正式持久化
 - [ ] 用户消息右侧对齐、AI 回复左侧对齐，均附带具体时间戳
@@ -621,14 +1196,21 @@ AI 对话拥有独立的回收站系统，专用于对话的软删除和永久�
 - [ ] 回收站中对话可点击以悬浮卡片形式查看只读内容
 - [ ] 回收站中每条对话有恢复按钮（恢复到删除前时间位置）和永久删除按钮（二次确认后清除）
 - [ ] 回收站为空时显示"回收站为空"
+- [ ] 使用统计追踪（会话级 + 账户级）及持久化
+- [ ] Token 用量估算与展示
+- [ ] 系统提示词注入开关（高级用户可关闭上下文注入）
 
 ### P2（增强）
 - [ ] 审计日志记录每次 AI 调用（provider/model/timestamp，不记录用户输入）
+- [ ] 帮助文档向量检索（本地 embedding 模型 + 向量数据库）
+- [ ] 上下文压缩（长对话时自动压缩历史消息）
+- [ ] 智能截断（基于语义重要性而非简单按行截断）
+- [ ] 模型特定 Token 估算系数表（GPT-4 / Claude / Llama 分别配置）
 
 ---
 
-*文档版本：v2.3 (priority-refactored)*
+*文档版本：v3.2*
 *创建日期：2026-06-05*
-*最后更新：2026-06-07*
+*最后更新：2026-06-08（模式B定稿：废弃模式A用户暴露层、SSE全量同步、Rust端public_data_version、缓存Vault持久化、统计debounce、插件Section留空预留）*
 *对应开发阶段：Phase 5（插件与扩展系统）*
-*前置依赖：07、13、21*
+*前置依赖：07、13、21、23*

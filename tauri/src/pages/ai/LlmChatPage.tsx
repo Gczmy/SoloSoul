@@ -5,6 +5,10 @@ import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
+import { useLlmStore } from '@/stores/llmStore';
+import i18n from '@/lib/i18n';
+import { buildSystemPrompt, buildMessagesWithSystemPrompt } from '@/lib/llm/systemPromptBuilder';
+import { findRelevantGuides, formatGuideAsSystemMessage } from '@/lib/llm/guideService';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import { MessageSquare, Settings, Send, Plus, Copy, Check, Trash2, Pencil, RotateCw, RefreshCw, X, Undo2, Delete } from 'lucide-react';
@@ -81,6 +85,7 @@ export function LlmChatPage() {
   const [activeProvider, setActiveProvider] = useState<{ id: string; name: string; model: string; baseUrl: string; apiType: string } | null>(null);
   const [isConfigured, setIsConfigured] = useState(false);
   const [isAiEnabled, setIsAiEnabled] = useState(false);
+  const [includeSystemPrompt, setIncludeSystemPrompt] = useState(true);
   const [loading, setLoading] = useState(true);
 
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -116,8 +121,9 @@ export function LlmChatPage() {
     if (!accountId) return;
     (async () => {
       try {
-        const cfg = await invoke<{ activeProviderId?: string; aiFeaturesEnabled?: { chat: boolean } }>('llm_get_config', { accountId });
+        const cfg = await invoke<{ activeProviderId?: string; aiFeaturesEnabled?: { chat: boolean }; includeSystemPrompt?: boolean }>('llm_get_config', { accountId });
         setIsAiEnabled(cfg.aiFeaturesEnabled?.chat ?? false);
+        setIncludeSystemPrompt(cfg.includeSystemPrompt ?? true);
         if (!cfg.activeProviderId) { setIsConfigured(false); setLoading(false); return; }
         const providers = await invoke<any[]>('llm_get_providers', { accountId });
         const active = providers.find((p) => p.id === cfg.activeProviderId);
@@ -206,6 +212,63 @@ export function LlmChatPage() {
     setMessages([]);
   };
 
+  const llmStore = useLlmStore();
+
+  // Listen to LLM stream state: update messages when stream buffer changes
+  useEffect(() => {
+    if (!llmStore.isStreaming || !llmStore.streamingConvId) return;
+    // Update the last assistant message with current stream buffer
+    setMessages((prev) => {
+      if (prev.length === 0) return prev;
+      const lastIdx = prev.length - 1;
+      if (prev[lastIdx].role !== 'assistant') return prev;
+      const updated = [...prev];
+      updated[lastIdx] = { ...updated[lastIdx], content: llmStore.streamBuffer };
+      return updated;
+    });
+  }, [llmStore.streamBuffer, llmStore.isStreaming, llmStore.streamingConvId]);
+
+  // Listen to LLM stream done: save conversation when stream ends
+  useEffect(() => {
+    if (!llmStore.isStreaming && llmStore.streamingConvId && llmStore.streamBuffer) {
+      // Stream finished, save final conversation
+      const convId = llmStore.streamingConvId;
+      const currentMsgs = messages;
+      if (currentMsgs.length > 0 && currentMsgs[currentMsgs.length - 1].role === 'assistant') {
+        const finalConv: Conversation = {
+          id: convId,
+          name: currentConv?.name || '',
+          isTemporary: false,
+          messages: currentMsgs,
+          updatedAt: nowISO(),
+        };
+        invoke('llm_save_conversation', { accountId, conversation: finalConv }).catch(() => {});
+        setCurrentConv(finalConv);
+        loadAllLists();
+      }
+      llmStore.reset();
+      setIsSending(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [llmStore.isStreaming, llmStore.streamingConvId]);
+
+  // Listen to LLM stream error
+  useEffect(() => {
+    if (llmStore.streamError) {
+      const errMsg = llmStore.streamError;
+      setMessages((prev) => {
+        if (prev.length === 0) return prev;
+        const lastIdx = prev.length - 1;
+        if (prev[lastIdx].role !== 'assistant') return prev;
+        const updated = [...prev];
+        updated[lastIdx] = { ...updated[lastIdx], content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}` };
+        return updated;
+      });
+      llmStore.reset();
+      setIsSending(false);
+    }
+  }, [llmStore.streamError, llmStore, t]);
+
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || !activeProvider || !accountId) return;
@@ -234,24 +297,53 @@ export function LlmChatPage() {
       } catch { /* continue */ }
     }
 
+    // Add empty assistant message for streaming
+    const assistantMsg: ChatMsg = { role: 'assistant', content: '', createdAt: nowISO() };
+    const streamingMessages = [...updatedMessages, assistantMsg];
+    setMessages(streamingMessages);
+
     try {
       const apiKey = await invoke<string>('llm_get_api_key', { accountId, providerId: activeProvider.id });
-      const allMessages = updatedMessages.map((m) => ({ role: m.role, content: m.content }));
-      const response = await invoke<string>('llm_send_message', {
-        baseUrl: activeProvider.baseUrl, apiKey, model: activeProvider.model,
-        apiType: activeProvider.apiType, messages: allMessages,
+
+      // Build system prompt and help doc (Mode A — frontend build)
+      let allMessages: Array<{ role: string; content: string }> = [];
+      if (includeSystemPrompt) {
+        const systemPrompt = buildSystemPrompt();
+        const guide = await findRelevantGuides(text, i18n.language || 'zh-CN');
+        const docPrompt = formatGuideAsSystemMessage(guide);
+        allMessages = buildMessagesWithSystemPrompt(text, updatedMessages, systemPrompt);
+        if (docPrompt) {
+          // Insert help doc as second system message
+          allMessages.splice(1, 0, { role: 'system', content: docPrompt });
+        }
+      } else {
+        allMessages = updatedMessages.map((m) => ({ role: m.role, content: m.content }));
+        allMessages.push({ role: 'user', content: text });
+      }
+
+      // Convert to serde_json::Value compatible format
+      const messagesPayload = allMessages.map((m) => ({ role: m.role, content: m.content }));
+
+      // Start stream
+      llmStore.startStream(convId);
+
+      // Call streaming command (fire-and-forget)
+      invoke('llm_send_message_stream', {
+        accountId,
+        conversationId: convId,
+        baseUrl: activeProvider.baseUrl,
+        apiKey,
+        model: activeProvider.model,
+        apiType: activeProvider.apiType,
+        messages: messagesPayload,
+      }).catch((err) => {
+        llmStore.onChunk({
+          conversationId: convId,
+          chunk: '',
+          isDone: false,
+          error: String(err),
+        });
       });
-
-      const assistantMsg: ChatMsg = { role: 'assistant', content: response, createdAt: nowISO() };
-      const finalMessages = [...updatedMessages, assistantMsg];
-      setMessages(finalMessages);
-
-      const conv: Conversation = {
-        id: convId, name: convName, isTemporary: false, messages: finalMessages, updatedAt: nowISO(),
-      };
-      await invoke('llm_save_conversation', { accountId, conversation: conv });
-      setCurrentConv(conv);
-      loadAllLists();
     } catch (e) {
       const errMsg = typeof e === 'string' ? e : e instanceof Error ? e.message : String(e);
       const errorAssistantMsg: ChatMsg = { role: 'assistant', content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}`, createdAt: nowISO() };
@@ -266,7 +358,6 @@ export function LlmChatPage() {
         setCurrentConv(errorConv);
         loadAllLists();
       } catch { /* best effort */ }
-    } finally {
       setIsSending(false);
     }
   };
@@ -343,7 +434,7 @@ export function LlmChatPage() {
     return (
       <AppShell title={t('settings:ai_chat')} onBack={() => navigate('/home')}
         actions={
-          <Button variant="secondary" size="sm" onClick={() => navigate('/settings/llm')}>
+          <Button variant="secondary" size="sm" onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}>
             <Settings size={14} style={{ marginRight: 4 }} /> {t('settings:ai_chat_configure')}
           </Button>
         }
@@ -352,7 +443,7 @@ export function LlmChatPage() {
           <MessageSquare size={48} style={{ marginBottom: 16, opacity: 0.3, color: 'var(--text-tertiary)' }} />
           <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px' }}>{t('settings:ai_chat')}</h2>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>{t('settings:ai_chat_disabled')}</p>
-          <Button onClick={() => navigate('/settings/llm')}>{t('settings:ai_chat_configure')}</Button>
+          <Button onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}>{t('settings:ai_chat_configure')}</Button>
         </div>
       </AppShell>
     );
@@ -363,7 +454,7 @@ export function LlmChatPage() {
   return (
     <AppShell title={t('settings:ai_chat')} onBack={() => navigate('/home')}
       actions={
-        <button onClick={() => navigate('/settings/llm')} title={t('settings:llm_config')}
+        <button onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })} title={t('settings:llm_config')}
           style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}>
           <Settings size={16} />
         </button>

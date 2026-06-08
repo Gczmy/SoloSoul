@@ -189,6 +189,7 @@ pub async fn object_update(
         .load_object(&object_id)?
         .ok_or("Object not found".to_string())?;
 
+    let old_sensitivity = record.sensitivity_level.clone();
     record.name = input.name;
     record.properties = input.properties;
     if let Some(sl) = input.sensitivity_level {
@@ -198,6 +199,13 @@ pub async fn object_update(
     record.version += 1;
 
     vault.save_object(&record)?;
+
+    // §28: bump public_data_version when sensitivity changes to/from public
+    let new_sensitivity = &record.sensitivity_level;
+    if old_sensitivity != *new_sensitivity && (old_sensitivity == "public" || new_sensitivity == "public") {
+        let account_id = record.account_id.clone();
+        let _ = crate::services::llm_context::bump_public_data_version(vault, &account_id);
+    }
 
     // §25.5 — Save snapshot for history
     let snapshot_data = serde_json::to_vec(&serde_json::json!({

@@ -1,0 +1,31 @@
+{
+  "guides": [
+    {
+      "id": "export-data",
+      "title": "如何导出数据",
+      "keywords": ["导出", "备份", "数据迁移", "export", "backup", "迁移"],
+      "files": {
+        "zh": "zh/export_data.md",
+        "en": "en/export_data.md"
+      }
+    },
+    {
+      "id": "import-data",
+      "title": "如何导入数据",
+      "keywords": ["导入", "恢复", "数据恢复", "import", "restore"],
+      "files": {
+        "zh": "zh/import_data.md",
+        "en": "en/import_data.md"
+      }
+    },
+    {
+      "id": "ai-chat",
+      "title": "使用 AI 对话功能",
+      "keywords": ["AI", "对话", "聊天", "LLM", "chat", "智能助手"],
+      "files": {
+        "zh": "zh/ai_chat.md",
+        "en": "en/ai_chat.md"
+      }
+    }
+  ]
+}
