@@ -273,7 +273,22 @@ export function ObjectEditorPage() {
                 {t('common:properties')}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {fields.map((field) => {
+                {fields.length === 0 ? (
+                  // Fallback: render raw properties as generic text inputs when no template matches
+                  Object.entries(values).filter(([k]) => !k.startsWith('__')).map(([key, val]) => (
+                    <div key={key}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <label style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t(`editor:fields.${key}`, key)}</label>
+                      </div>
+                      <Input
+                        value={val}
+                        onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
+                        placeholder={key}
+                      />
+                    </div>
+                  ))
+                ) : (
+                fields.map((field) => {
                     const sensitivity = getSensitivity(field.key);
                     const fieldLabel = t(`editor:fields.${field.key}`, field.label);
                     return (
@@ -290,7 +305,8 @@ export function ObjectEditorPage() {
                     />
                   </div>
                     );
-                  })}
+                  })
+                )}
               </div>
             </Card>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

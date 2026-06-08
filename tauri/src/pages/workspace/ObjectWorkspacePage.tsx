@@ -54,37 +54,32 @@ interface SnapshotEntry {
   diffSummary: string;
 }
 
-function HistoryViewer({ objectId, onClose }: { objectId: string; onClose: () => void }) {
+function HistoryViewer({ objectId, onClose, collectionType }: { objectId: string; onClose: () => void; collectionType?: string }) {
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
-  const [objCollectionType, setObjCollectionType] = useState('');
   const { t } = useTranslation(['common', 'editor']);
   const { map: sensitivityMap } = useSensitivityStore();
 
-  useEffect(() => {
-    invoke<SnapshotEntry[]>('snapshot_get', { objectId })
-      .then(setSnapshots)
-      .finally(() => setLoading(false));
-    // Load object to get collectionType for sensitivity
-    invoke<any>('object_get', { accountId: '', objectId }).then((obj) => {
-      if (obj?.collectionType) setObjCollectionType(obj.collectionType);
-    }).catch(() => {});
-  }, [objectId]);
-
   const getSnapSensitivity = useCallback((fieldKey: string): SensitivityLevel => {
-    if (!objCollectionType) return 'public';
-    const fieldId = `${objCollectionType}.${fieldKey}`;
+    if (!collectionType) return 'public';
+    const fieldId = `${collectionType}.${fieldKey}`;
     if (sensitivityMap?.entries?.[fieldId]) return sensitivityMap.entries[fieldId];
     const snakeKey = fieldKey.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
-    const snakeFieldId = `${objCollectionType}.${snakeKey}`;
+    const snakeFieldId = `${collectionType}.${snakeKey}`;
     if (snakeFieldId !== fieldId && sensitivityMap?.entries?.[snakeFieldId]) return sensitivityMap.entries[snakeFieldId];
     for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
       if (id.endsWith(`.${fieldKey}`) || id.endsWith(`.${snakeKey}`)) return level;
     }
     return 'public';
-  }, [objCollectionType, sensitivityMap]);
+  }, [collectionType, sensitivityMap]);
+
+  useEffect(() => {
+    invoke<SnapshotEntry[]>('snapshot_get', { objectId })
+      .then(setSnapshots)
+      .finally(() => setLoading(false));
+  }, [objectId]);
 
   const goPrev = () => {
     if (currentIdx < snapshots.length - 1) { setAnimDir('right'); setTimeout(() => { setCurrentIdx(i => i + 1); setAnimDir(null); }, 150); }
@@ -524,7 +519,7 @@ export function ObjectWorkspacePage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
-  const [historyObjId, setHistoryObjId] = useState<string | null>(null);
+  const [historyObj, setHistoryObj] = useState<{ id: string; collectionType: string } | null>(null);
   const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
   const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
@@ -740,7 +735,7 @@ export function ObjectWorkspacePage() {
                   <div style={{ display: 'flex', gap: 2 }} onClick={(e) => e.stopPropagation()}>
                     <div style={{ position: 'relative' }}>
                       <button
-                        onClick={() => setHistoryObjId(obj.id)}
+                        onClick={() => setHistoryObj({ id: obj.id, collectionType: obj.collectionType })}
                         title="History"
                         style={{
                           width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -844,11 +839,13 @@ export function ObjectWorkspacePage() {
                         style={{
                           padding: '3px 8px', borderRadius: 6, fontSize: 11,
                           background: 'var(--bg-toolbar)', color: 'var(--text-secondary)',
-                          border: `1px solid ${isMasked ? s.fg : 'var(--border-subtle)'}`,
+                          border: `1px solid ${isMasked ? s.fg : s.fg}`,
                           maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           ...(isMasked ? {
                             boxShadow: `0 0 3px ${s.fg}44`,
-                          } : {}),
+                          } : {
+                            boxShadow: `0 0 2px ${s.fg}33`,
+                          }),
                         }}
                       >
                         <span style={{ fontWeight: 600 }}>{fieldLabel}:</span>{' '}
@@ -1073,7 +1070,7 @@ export function ObjectWorkspacePage() {
           </div>
         )}
       </div>
-      {historyObjId && <HistoryViewer objectId={historyObjId} onClose={() => setHistoryObjId(null)} />}
+      {historyObj && <HistoryViewer objectId={historyObj.id} collectionType={historyObj.collectionType} onClose={() => setHistoryObj(null)} />}
       {attachmentObjId && <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} onCountChange={refreshAttachmentCounts} />}
     </AppShell>
   );

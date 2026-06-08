@@ -432,9 +432,12 @@ pub async fn page_delete(
     let retention_ms = retention_ms(&period);
     let mut count = 0usize;
 
+    let mut page_name = String::new();
+
     // Delete the custom page object itself if provided
     if let Some(pid) = &page_object_id {
         if let Ok(Some(rec)) = vault.load_object(pid) {
+            page_name = rec.name.clone();
             let trash = solosoul_vault::TrashItem {
                 id: format!("trash_{}", uuid::Uuid::new_v4()),
                 item_type: "page".to_string(),
@@ -464,6 +467,9 @@ pub async fn page_delete(
         .map_err(|e| format!("list: {}", e))?;
     for obj in &objects {
         if obj.section_type == section_type || obj.collection_type == section_type {
+            if page_name.is_empty() {
+                page_name = section_type.clone();
+            }
             if let Ok(Some(rec)) = vault.load_object(&obj.id) {
                 let full_record = serde_json::json!({
                     "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
@@ -491,7 +497,7 @@ pub async fn page_delete(
         }
     }
 
-    let _ = vault.log_structured("page_delete", "page", Some(&section_type), None, "user", Some(&format!("count={}", count)));
+    let _ = vault.log_structured("page_delete", "page", Some(&section_type), if page_name.is_empty() { None } else { Some(&page_name) }, "user", Some(&format!("count={}", count)));
     Ok(count)
 }
 
