@@ -1034,7 +1034,7 @@ export function ObjectWorkspacePage() {
                       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                         {needsReveal && !revealed && (
                           <button
-                            onClick={(e) => { e.preventDefault(); handleRevealField(fieldId, sens); }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); alert('reveal clicked: '+sens); handleRevealField(fieldId, sens); }}
                             title={sens === 'critical' ? t('common:password_required') : t('common:reveal')}
                             style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)', background: sens === 'critical' ? 'rgba(220,38,38,0.06)' : 'transparent', cursor: 'pointer', fontSize: 11, color: sens === 'critical' ? '#dc2626' : 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 4 }}
                           >
