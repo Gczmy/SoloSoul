@@ -247,13 +247,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     return newPage;
   },
 
-  removeCustomPage: async (_accountId, pageId) => {
+  removeCustomPage: async (accountId, pageId) => {
     const prevPages = get().settings.customPages;
     const pages = prevPages.filter((p) => p.id !== pageId);
     set((s) => ({ settings: { ...s.settings, customPages: pages } }));
     try {
-      // P0-1: Soft-delete from objects table (moves to trash)
-      await invoke('object_delete', { objectId: pageId });
+      // P0-1: Use page_delete to create a "page" type trash item
+      await invoke('page_delete', { accountId, sectionType: 'custom', pageObjectId: pageId });
     } catch {
       set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
     }

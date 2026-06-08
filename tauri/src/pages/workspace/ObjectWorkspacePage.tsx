@@ -12,7 +12,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw, Eye, Image, FileText, Copy, Check } from 'lucide-react';
+import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw, Eye, EyeOff, Lock, Image, FileText, Copy, Check } from 'lucide-react';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 
@@ -489,14 +489,35 @@ export function ObjectWorkspacePage() {
   // Load sensitivity map for field-level masking
   useEffect(() => { loadMap(); }, []);
 
+  /** Password verification for critical field reveal. Uses inline prompt dialog. */
+  const passwordVerify = useCallback(async (): Promise<boolean> => {
+    // Prompt user for password via built-in prompt() as fallback
+    // In production, replace with PasswordVerificationDialog
+    const pw = prompt(t('common:current_password'));
+    if (!pw) return false;
+    try {
+      await invoke('login', { accountId: accountId, password: pw });
+      return true;
+    } catch {
+      alert(t('common:current_password_incorrect'));
+      return false;
+    }
+  }, [accountId, t]);
+
   /** Resolve sensitivity level for a property key within an object's collection. */
   const getFieldSensitivity = (collectionType: string, fieldKey: string): SensitivityLevel => {
     const fieldId = `${collectionType}.${fieldKey}`;
     if (sensitivityMap?.entries?.[fieldId]) return sensitivityMap.entries[fieldId];
+    // Also try snake_case normalized version (map entries use snake_case, fields may be camelCase)
+    const snakeKey = fieldKey.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
+    const snakeFieldId = `${collectionType}.${snakeKey}`;
+    if (snakeFieldId !== fieldId && sensitivityMap?.entries?.[snakeFieldId]) return sensitivityMap.entries[snakeFieldId];
+    // Fallback: match any entry ending with .{fieldKey} (regardless of case)
     for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
       if (id.endsWith(`.${fieldKey}`)) return level;
+      if (id.endsWith(`.${snakeKey}`)) return level;
     }
-    return 'internal';
+    return 'public'; // default level: public (only sensitive fields are explicitly protected)
   };
 
   useEffect(() => {
@@ -756,7 +777,10 @@ export function ObjectWorkspacePage() {
                 {/* Property chips */}
                 {fields.length > 0 && (
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {fields.map((f) => (
+                    {fields.map((f) => {
+                      const sens = getFieldSensitivity(obj.collectionType, f.key);
+                      const isMasked = sens !== 'public';
+                      return (
                       <span
                         key={f.key}
                         style={{
@@ -764,29 +788,18 @@ export function ObjectWorkspacePage() {
                           background: 'var(--bg-toolbar)', color: 'var(--text-secondary)',
                           border: '1px solid var(--border-subtle)',
                           maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          ...(isMasked ? {
+                            filter: 'blur(4px)',
+                            cursor: 'default',
+                            userSelect: 'none',
+                          } : {}),
                         }}
-                        title={`${t(`editor:fields.${f.key}`, f.key)}: ${f.value}`}
+                        title={isMasked ? t('sensitive_label') : `${t(`editor:fields.${f.key}`, f.key)}: ${f.value}`}
                       >
-                        <span style={{ fontWeight: 500, color: 'var(--text-tertiary)', marginRight: 4 }}>
-                          {t(`editor:fields.${f.key}`, f.key)}:
-                        </span>
-                        {(() => {
-                          const sens = getFieldSensitivity(obj.collectionType, f.key);
-                          if (sens === 'sensitive' || sens === 'critical') {
-                            const fieldId = `${obj.collectionType}.${f.key}`;
-                            const masked = maskValue(f.value, fieldId, sens);
-                            const revealed = isRevealed(fieldId);
-                            return (
-                              <span onClick={(e) => { e.stopPropagation(); if (!revealed) reveal(fieldId); }} style={{ cursor: revealed ? 'default' : 'pointer' }}>
-                                {masked}
-                                {!revealed && <span style={{ fontSize: 9, marginLeft: 2, opacity: 0.5 }}>🔒</span>}
-                              </span>
-                            );
-                          }
-                          return <>{f.value}</>;
-                        })()}
+                        {f.value}
                       </span>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
                 {/* Tag pills */}
@@ -856,9 +869,6 @@ export function ObjectWorkspacePage() {
         {/* Object detail modal */}
         {detailObj && (() => {
           const dFields = flattenProperties(detailObj.properties as Record<string, unknown> | undefined);
-          const dSensitivity = detailObj.collectionType && sensitivityMap?.entries
-            ? Object.entries(sensitivityMap.entries).filter(([k]) => k.startsWith(detailObj.collectionType + '.'))
-            : [];
           const handleCopyField = async (value: string, key: string) => {
             try { await navigator.clipboard.writeText(value); setCopiedField(key); setTimeout(() => setCopiedField(null), 1500); } catch {}
           };
@@ -898,8 +908,17 @@ export function ObjectWorkspacePage() {
                 {dFields.map((f) => {
                   const sens = getFieldSensitivity(detailObj.collectionType, f.key);
                   const fieldId = sensitivityMap?.entries ? `${detailObj.collectionType}.${f.key}` : '';
-                  const masked = sens === 'critical' || sens === 'sensitive' ? maskValue(f.value, fieldId, sens) : f.value;
                   const revealed = fieldId ? isRevealed(fieldId) : true;
+                  const needsReveal = sens === 'sensitive' || sens === 'critical';
+                  const handleReveal = async () => {
+                    if (sens === 'critical') {
+                      // Critical requires password verification
+                      const verified = await passwordVerify();
+                      if (verified) reveal(fieldId);
+                    } else {
+                      reveal(fieldId);
+                    }
+                  };
                   return (
                     <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--bg-toolbar)', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -909,16 +928,27 @@ export function ObjectWorkspacePage() {
                           </span>
                           <SensitivityBadge level={sens} />
                         </div>
-                        <div style={{ fontSize: 14, color: (sens === 'critical' && !revealed) || (sens === 'sensitive' && !revealed) ? 'var(--text-tertiary)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {revealed ? f.value : masked}
+                        <div style={{ fontSize: 14, color: (needsReveal && !revealed) ? 'var(--text-tertiary)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {revealed ? f.value : maskValue(f.value, fieldId, sens)}
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleCopyField(f.value, f.key)}
-                        style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', fontSize: 11, color: copiedField === f.key ? '#27ae60' : 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, transition: 'all 0.15s' }}
-                      >
-                        {copiedField === f.key ? <><Check size={12} /> {t('common:copied') || 'Copied'}</> : <><Copy size={12} /> {t('common:copy') || 'Copy'}</>}
-                      </button>
+                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                        {needsReveal && !revealed && (
+                          <button
+                            onClick={handleReveal}
+                            title={sens === 'critical' ? t('common:password_required') : t('common:reveal')}
+                            style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)', background: sens === 'critical' ? 'rgba(220,38,38,0.06)' : 'transparent', cursor: 'pointer', fontSize: 11, color: sens === 'critical' ? '#dc2626' : 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 4 }}
+                          >
+                            {sens === 'critical' ? <Lock size={12} /> : <Eye size={12} />} {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleCopyField(revealed ? f.value : maskValue(f.value, fieldId, sens), f.key)}
+                          style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', fontSize: 11, color: copiedField === f.key ? '#27ae60' : 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.15s' }}
+                        >
+                          {copiedField === f.key ? <><Check size={12} /> {t('common:copied') || 'Copied'}</> : <><Copy size={12} /> {t('common:copy') || 'Copy'}</>}
+                        </button>
+                      </div>
                     </div>
                   );
                 })}

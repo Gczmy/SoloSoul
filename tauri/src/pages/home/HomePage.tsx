@@ -7,7 +7,7 @@ import type { ProfileSection } from '@/types';
 
 // Icons sourced from PAGE_ICON_MAP — §7.4 Single Source of Truth
 const sections: { type: ProfileSection; labelKey: string; icon: typeof PAGE_ICON_MAP.profile; descKey: string }[] = [
-  { type: 'identity', labelKey: 'profile', icon: PAGE_ICON_MAP.profile, descKey: 'identity_desc' },
+  { type: 'identity', labelKey: 'identity', icon: PAGE_ICON_MAP.profile, descKey: 'identity_desc' },
   { type: 'travel', labelKey: 'travel', icon: PAGE_ICON_MAP.travel, descKey: 'travel_desc' },
   { type: 'financial', labelKey: 'financial', icon: PAGE_ICON_MAP.financial, descKey: 'financial_desc' },
   { type: 'professional', labelKey: 'professional', icon: PAGE_ICON_MAP.professional, descKey: 'professional_desc' },

@@ -44,7 +44,11 @@ export function DebugLogPage() {
 
   const handleExport = async () => {
     try {
-      await navigate('/settings/operation-log');
+      const path = await invoke<string>('log_export');
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(
+        logs.map((l) => `[${l.timestamp}] ${l.actionType} ${l.entityType}${l.entityName ? ': ' + l.entityName : ''}`).join('\n')
+      );
     } catch {
       // silent
     }

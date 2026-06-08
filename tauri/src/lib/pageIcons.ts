@@ -38,6 +38,7 @@ import {
 export const PAGE_ICON_MAP = {
   home: Home,
   profile: IdCard,
+  identity: IdCard,
   travel: Plane,
   financial: Banknote,
   professional: Briefcase,

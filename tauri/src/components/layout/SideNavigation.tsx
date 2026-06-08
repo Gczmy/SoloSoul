@@ -41,7 +41,7 @@ type NavItem = NavLink | NavAction;
 
 const primaryItems: NavLink[] = [
   { type: 'link', path: '/', iconKey: 'home', labelKey: 'home' },
-  { type: 'link', path: '/workspace?section=identity', iconKey: 'profile', labelKey: 'profile' },
+  { type: 'link', path: '/workspace?section=identity', iconKey: 'identity', labelKey: 'identity' },
   { type: 'link', path: '/workspace?section=travel', iconKey: 'travel', labelKey: 'travel' },
   { type: 'link', path: '/workspace?section=financial', iconKey: 'financial', labelKey: 'financial' },
   { type: 'link', path: '/workspace?section=professional', iconKey: 'professional', labelKey: 'professional' },

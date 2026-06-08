@@ -85,7 +85,7 @@ export function SearchPage() {
               <Card
                 key={item.objectId}
                 interactive
-                onClick={() => navigate(`/editor/${item.objectId}`)}
+                onClick={() => navigate(`/editor/${item.objectId}?section=${item.collectionType}`)}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <PAGE_ICON_MAP.custom size={18} />
