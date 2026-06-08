@@ -18,9 +18,11 @@ export function HelpPage() {
   const [index, setIndex] = useState<GuideIndexType | null>(null);
   const [content, setContent] = useState<GuideContent | null>(null);
   const [loading, setLoading] = useState(true);
+  const [indexLoading, setIndexLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadIndex = useCallback(async () => {
+    setIndexLoading(true);
     try {
       const idx = await loadGuideIndex();
       setIndex(idx);
@@ -28,6 +30,8 @@ export function HelpPage() {
     } catch (e) {
       setError(`无法加载帮助索引: ${e}`);
       console.error('[HelpPage] loadGuideIndex failed:', e);
+    } finally {
+      setIndexLoading(false);
     }
   }, []);
 
@@ -96,7 +100,13 @@ export function HelpPage() {
           </div>
         )}
 
-        {!guideId && index && (
+        {!guideId && indexLoading && (
+          <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 48 }}>
+            加载帮助文档...
+          </p>
+        )}
+
+        {!guideId && !indexLoading && index && (
           <>
             <GuideSearch onSearch={handleSearch} onSelect={handleSelect} />
             <GuideIndex
