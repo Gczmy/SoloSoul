@@ -134,6 +134,17 @@ impl VaultStore {
             );
             CREATE INDEX IF NOT EXISTS idx_snapshots_object ON object_snapshots(object_id, timestamp DESC);
             CREATE INDEX IF NOT EXISTS idx_snapshots_timestamp ON object_snapshots(timestamp);
+
+            CREATE TABLE IF NOT EXISTS guide_embeddings (
+                id TEXT PRIMARY KEY,
+                guide_id TEXT NOT NULL,
+                chunk_index INTEGER NOT NULL,
+                chunk_text TEXT NOT NULL,
+                embedding BLOB NOT NULL,
+                model TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_guide_embeddings_guide ON guide_embeddings(guide_id);
             "#,
         )
         .map_err(|e| format!("Failed to init schema: {}", e))?;
@@ -815,6 +826,116 @@ impl VaultStore {
         let full_key = format!("{}_{}", prefix, key);
         conn.execute("DELETE FROM metadata WHERE key = ?1", params![full_key])
             .map_err(|e| format!("Failed to delete metadata: {}", e))?;
+        Ok(())
+    }
+
+    // ── Guide embeddings for RAG (§RAG-1) ────────────────────────
+
+    /// Save a guide embedding chunk. Overwrites if id already exists.
+    pub fn save_guide_embedding(&self, chunk: &crate::GuideEmbeddingChunk) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let embedding_bytes: Vec<u8> = chunk.embedding.iter()
+            .flat_map(|f| f.to_ne_bytes())
+            .collect();
+        conn.execute(
+            "INSERT OR REPLACE INTO guide_embeddings (id, guide_id, chunk_index, chunk_text, embedding, model, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            params![
+                chunk.id, chunk.guide_id, chunk.chunk_index,
+                chunk.chunk_text, embedding_bytes, chunk.model, chunk.created_at
+            ],
+        ).map_err(|e| format!("save_guide_embedding: {}", e))?;
+        Ok(())
+    }
+
+    /// Load all guide embedding chunks.
+    pub fn list_guide_embeddings(&self) -> Result<Vec<crate::GuideEmbeddingChunk>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn.prepare(
+            "SELECT id, guide_id, chunk_index, chunk_text, embedding, model, created_at
+             FROM guide_embeddings ORDER BY guide_id, chunk_index"
+        ).map_err(|e| format!("list_guide_embeddings prepare: {}", e))?;
+        let rows = stmt.query_map([], |row| {
+            let embedding_bytes: Vec<u8> = row.get(4)?;
+            let embedding: Vec<f32> = embedding_bytes.chunks_exact(4)
+                .map(|b| f32::from_ne_bytes([b[0], b[1], b[2], b[3]]))
+                .collect();
+            Ok(crate::GuideEmbeddingChunk {
+                id: row.get(0)?,
+                guide_id: row.get(1)?,
+                chunk_index: row.get(2)?,
+                chunk_text: row.get(3)?,
+                embedding,
+                model: row.get(5)?,
+                created_at: row.get(6)?,
+            })
+        }).map_err(|e| format!("list_guide_embeddings query: {}", e))?;
+        let mut result = Vec::new();
+        for row in rows {
+            result.push(row.map_err(|e| format!("list_guide_embeddings row: {}", e))?);
+        }
+        Ok(result)
+    }
+
+    /// Delete all embeddings for a specific guide.
+    pub fn delete_guide_embeddings(&self, guide_id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "DELETE FROM guide_embeddings WHERE guide_id = ?1",
+            params![guide_id],
+        ).map_err(|e| format!("delete_guide_embeddings: {}", e))?;
+        Ok(())
+    }
+
+    /// Clear all guide embeddings (used for rebuild).
+    pub fn clear_guide_embeddings(&self) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute("DELETE FROM guide_embeddings", [])
+            .map_err(|e| format!("clear_guide_embeddings: {}", e))?;
+        Ok(())
+    }
+
+    /// Get the count of guide embeddings.
+    pub fn count_guide_embeddings(&self) -> Result<usize, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let count: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM guide_embeddings",
+            [],
+            |r| r.get(0),
+        ).map_err(|e| format!("count_guide_embeddings: {}", e))?;
+        Ok(count as usize)
+    }
+
+    // ── sys_config helpers ────────────────────────────────────────
+
+    /// Read a value from sys_config by key.
+    pub fn get_sys_config(&self, key: &str) -> Result<Option<String>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let result: Option<String> = conn
+            .query_row(
+                "SELECT value FROM sys_config WHERE key = ?1",
+                params![key],
+                |r| r.get(0),
+            )
+            .ok();
+        Ok(result)
+    }
+
+    /// Write or update a value in sys_config.
+    pub fn set_sys_config(&self, key: &str, value: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let now = chrono::Utc::now().to_rfc3339();
+        conn.execute(
+            "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES (?1, ?2, ?3)",
+            params![key, value, now],
+        ).map_err(|e| format!("set_sys_config: {}", e))?;
         Ok(())
     }
 }

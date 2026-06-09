@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
 import i18n from '@/lib/i18n';
-import { buildSystemPrompt, buildMessagesWithSystemPrompt } from '@/lib/llm/systemPromptBuilder';
-import { findRelevantGuides, formatGuideAsSystemMessage } from '@/lib/llm/guideService';
+import { buildSystemPrompt, buildMessagesWithSystemPromptAndChunks } from '@/lib/llm/systemPromptBuilder';
+import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import { MessageSquare, Settings, Send, Plus, Copy, Check, Trash2, Pencil, RotateCw, RefreshCw, X, Undo2, Delete, BarChart3 } from 'lucide-react';
+import { markConversationPending } from '@/lib/notification';
 
 interface ChatMsg {
   role: string;
@@ -41,13 +42,7 @@ function isOllama(baseUrl: string): boolean {
 }
 
 function nowISO(): string {
-  const d = new Date();
-  return d.getFullYear() + '-' +
-    String(d.getMonth() + 1).padStart(2, '0') + '-' +
-    String(d.getDate()).padStart(2, '0') + 'T' +
-    String(d.getHours()).padStart(2, '0') + ':' +
-    String(d.getMinutes()).padStart(2, '0') + ':' +
-    String(d.getSeconds()).padStart(2, '0') + 'Z';
+  return new Date().toISOString();
 }
 
 function formatTimestamp(iso: string): string {
@@ -305,17 +300,13 @@ export function LlmChatPage() {
     try {
       const apiKey = await invoke<string>('llm_get_api_key', { accountId, providerId: activeProvider.id });
 
-      // Build system prompt and help doc (Mode A — frontend build)
+      // Build system prompt and help doc (merged into single system message)
       let allMessages: Array<{ role: string; content: string }> = [];
       if (includeSystemPrompt) {
         const systemPrompt = buildSystemPrompt();
-        const guide = await findRelevantGuides(text, i18n.language || 'zh-CN');
-        const docPrompt = formatGuideAsSystemMessage(guide);
-        allMessages = buildMessagesWithSystemPrompt(text, updatedMessages, systemPrompt);
-        if (docPrompt) {
-          // Insert help doc as second system message
-          allMessages.splice(1, 0, { role: 'system', content: docPrompt });
-        }
+        const chunks = await searchGuideChunks(text, i18n.language || 'zh-CN');
+        const docPrompt = formatChunksAsSystemMessage(chunks);
+        allMessages = buildMessagesWithSystemPromptAndChunks(text, updatedMessages, systemPrompt, docPrompt);
       } else {
         allMessages = updatedMessages.map((m) => ({ role: m.role, content: m.content }));
         allMessages.push({ role: 'user', content: text });
@@ -325,6 +316,7 @@ export function LlmChatPage() {
       const messagesPayload = allMessages.map((m) => ({ role: m.role, content: m.content }));
 
       // Start stream
+      markConversationPending(convId);
       llmStore.startStream(convId);
 
       // Call streaming command (fire-and-forget)

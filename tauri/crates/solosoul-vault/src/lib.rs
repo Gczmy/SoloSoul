@@ -102,6 +102,18 @@ pub struct AuditLogEntry {
     pub details: Option<String>,
 }
 
+/// A single guide document chunk with its embedding vector for RAG retrieval.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct GuideEmbeddingChunk {
+    pub id: String,
+    pub guide_id: String,
+    pub chunk_index: i32,
+    pub chunk_text: String,
+    pub embedding: Vec<f32>,
+    pub model: String,
+    pub created_at: String,
+}
+
 pub use storage::VaultStore;
 
 // =============================================================================

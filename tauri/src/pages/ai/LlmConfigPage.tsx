@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
-import { Settings, Plus, BarChart3 } from 'lucide-react';
+import { Settings, Plus, BarChart3, Download, Trash2, Cpu } from 'lucide-react';
 
 interface ProviderConfig { id: string; name: string; baseUrl: string; model: string; isEnabled: boolean; isBuiltIn: boolean; apiKey: string; apiType: 'openAI' | 'anthropic'; }
 interface AiFeatures { chat: boolean; smartFill: boolean; commandGen: boolean; naturalLanguageSearch: boolean; }
+interface EmbedModelInfo { id: string; name: string; description: string; diskSize: string; dimensions: number; downloadUrl: string; checksum: string; }
+interface EmbedModelWithStatus { info: EmbedModelInfo; installed: boolean; }
 
 export function LlmConfigPage() {
   const navigate = useNavigate();
@@ -33,20 +37,139 @@ export function LlmConfigPage() {
   const [testResult, setTestResult] = useState<string | null>(null);
   const [testing, setTesting] = useState(false);
   const [savingProvider, setSavingProvider] = useState(false);
+  const [rebuilding, setRebuilding] = useState(false);
+  const [embeddingAvailable, setEmbeddingAvailable] = useState<boolean | null>(null);
+  const [embedModels, setEmbedModels] = useState<EmbedModelWithStatus[]>([]);
+  const [useLocalEmbedding, setUseLocalEmbedding] = useState(false);
+  const [localModelId, setLocalModelId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
+  const [modelsLoading, setModelsLoading] = useState(false);
 
   useEffect(() => {
     if (!accountId) return;
     Promise.all([
       invoke<ProviderConfig[]>('llm_get_providers', { accountId }),
-      invoke<{ activeProviderId?: string; aiFeaturesEnabled?: AiFeatures; includeSystemPrompt?: boolean; hasAcceptedRisk?: boolean }>('llm_get_config', { accountId }),
+      invoke<{ activeProviderId?: string; aiFeaturesEnabled?: AiFeatures; includeSystemPrompt?: boolean; hasAcceptedRisk?: boolean; useLocalEmbedding?: boolean; localEmbedModelId?: string | null }>('llm_get_config', { accountId }),
     ]).then(([provs, cfg]) => {
       setProviders(provs);
       if (cfg.activeProviderId) setActiveId(cfg.activeProviderId);
       if (cfg.aiFeaturesEnabled) setFeatures(cfg.aiFeaturesEnabled);
       if (cfg.includeSystemPrompt !== undefined) setIncludeSystemPrompt(cfg.includeSystemPrompt);
       if (cfg.hasAcceptedRisk) setHasAcceptedRisk(true);
+      if (cfg.useLocalEmbedding !== undefined) setUseLocalEmbedding(cfg.useLocalEmbedding);
+      if (cfg.localEmbedModelId !== undefined) setLocalModelId(cfg.localEmbedModelId);
     }).catch(() => {}).finally(() => setLoading(false));
-  }, [accountId]);
+
+    // Check embedding availability
+    invoke<boolean>('llm_check_embedding_available', { accountId })
+      .then((avail) => setEmbeddingAvailable(avail))
+      .catch(() => setEmbeddingAvailable(false));
+
+    // Load embedding models
+    loadEmbedModels();
+
+    // Listen for download progress
+    let unlisten: (() => void) | undefined;
+    listen<{ modelId: string; progress: number }>('embed-download-progress', (event) => {
+      if (event.payload.modelId === downloadingId) {
+        setDownloadProgress(event.payload.progress);
+      }
+    }).then((fn) => { unlisten = fn; });
+
+    return () => { if (unlisten) unlisten(); };
+  }, [accountId, downloadingId]);
+
+  const loadEmbedModels = async () => {
+    setModelsLoading(true);
+    try {
+      const models = await invoke<EmbedModelWithStatus[]>('llm_get_embed_models');
+      setEmbedModels(models);
+    } catch (e) {
+      console.error('Failed to load embed models:', e);
+    } finally {
+      setModelsLoading(false);
+    }
+  };
+
+  const handleDownloadModel = async (modelId: string) => {
+    setDownloadingId(modelId);
+    setDownloadProgress(0);
+    try {
+      await invoke('llm_download_embed_model', { modelId });
+      onSuccess('模型下载完成');
+      await loadEmbedModels();
+      // Auto-select if none selected
+      if (!localModelId) {
+        setLocalModelId(modelId);
+        if (accountId) {
+          await invoke('llm_set_local_embedding', { accountId, enabled: true, modelId });
+          setUseLocalEmbedding(true);
+        }
+      }
+    } catch (e) {
+      onError(e, '模型下载失败');
+    } finally {
+      setDownloadingId(null);
+      setDownloadProgress(0);
+    }
+  };
+
+  const handleDeleteModel = async (modelId: string) => {
+    if (!confirm('确定要删除此模型吗？')) return;
+    try {
+      await invoke('llm_delete_embed_model', { modelId });
+      onSuccess('模型已删除');
+      await loadEmbedModels();
+      if (localModelId === modelId) {
+        setLocalModelId(null);
+        setUseLocalEmbedding(false);
+        if (accountId) {
+          await invoke('llm_set_local_embedding', { accountId, enabled: false, modelId: null });
+        }
+      }
+    } catch (e) {
+      onError(e, '删除模型失败');
+    }
+  };
+
+  const handleToggleLocalEmbedding = async (enabled: boolean) => {
+    if (!accountId) return;
+    if (enabled && !localModelId && embedModels.length > 0) {
+      const firstInstalled = embedModels.find((m) => m.installed);
+      if (firstInstalled) {
+        setLocalModelId(firstInstalled.info.id);
+        await invoke('llm_set_local_embedding', { accountId, enabled: true, modelId: firstInstalled.info.id });
+      } else {
+        onError(new Error('请先下载一个本地模型'), '无法启用本地 Embedding');
+        return;
+      }
+    } else {
+      await invoke('llm_set_local_embedding', { accountId, enabled, modelId: localModelId });
+    }
+    setUseLocalEmbedding(enabled);
+  };
+
+  const handleSelectLocalModel = async (modelId: string) => {
+    if (!accountId) return;
+    setLocalModelId(modelId);
+    if (useLocalEmbedding) {
+      await invoke('llm_set_local_embedding', { accountId, enabled: true, modelId });
+    }
+  };
+
+  const handleRebuildEmbeddings = async () => {
+    if (!accountId) return;
+    setRebuilding(true);
+    try {
+      const count = await invoke<number>('llm_rebuild_guide_embeddings', { accountId, language: i18n.language || 'zh-CN' });
+      onSuccess(`知识库索引已重建，共 ${count} 个片段`);
+    } catch (e) {
+      onError(e, '重建知识库索引失败');
+    } finally {
+      setRebuilding(false);
+    }
+  };
 
   const handleSetActive = async (id: string) => {
     if (!accountId) return;
@@ -172,6 +295,102 @@ export function LlmConfigPage() {
           </div>
           <Button variant="secondary" size="sm" onClick={handleAddCustom} style={{ marginTop: 10 }}>
             <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:llm_add_custom')}
+          </Button>
+        </Card>
+
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <Cpu size={18} color="var(--accent-primary)" />
+            <h3 style={{ fontSize: 14, fontWeight: 600 }}>本地 Embedding 模型</h3>
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 12, lineHeight: 1.5 }}>
+            下载本地模型后，即使 LLM 提供商不支持 Embedding API，也能使用向量检索。模型仅在本地运行，数据不会上传。
+          </p>
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', cursor: 'pointer', fontSize: 13, marginBottom: 12 }}>
+            <input type="checkbox" checked={useLocalEmbedding} onChange={(e) => handleToggleLocalEmbedding(e.target.checked)} style={{ accentColor: 'var(--accent-primary)' }} />
+            <span>优先使用本地 Embedding（离线可用）</span>
+          </label>
+
+          {modelsLoading ? (
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>加载模型列表...</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {embedModels.map((m) => (
+                <div key={m.info.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 12px', borderRadius: 8,
+                  background: localModelId === m.info.id && useLocalEmbedding ? 'rgba(91,124,153,0.08)' : 'var(--bg-toolbar)',
+                  border: localModelId === m.info.id && useLocalEmbedding ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                  fontSize: 13
+                }}>
+                  <input
+                    type="radio"
+                    checked={localModelId === m.info.id}
+                    onChange={() => handleSelectLocalModel(m.info.id)}
+                    disabled={!m.installed}
+                    style={{ accentColor: 'var(--accent-primary)' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500 }}>{m.info.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                      {m.info.description} · {m.info.dimensions}维 · {m.info.diskSize}
+                    </div>
+                    {downloadingId === m.info.id && (
+                      <div style={{ marginTop: 6 }}>
+                        <div style={{ height: 4, background: 'var(--bg-elevated)', borderRadius: 2, overflow: 'hidden' }}>
+                          <div style={{ width: `${downloadProgress}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.3s' }} />
+                        </div>
+                        <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 2 }}>{downloadProgress}%</div>
+                      </div>
+                    )}
+                  </div>
+                  {m.installed ? (
+                    <button
+                      onClick={() => handleDeleteModel(m.info.id)}
+                      style={{ padding: 6, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e74c3c' }}
+                      title="删除模型"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleDownloadModel(m.info.id)}
+                      loading={downloadingId === m.info.id}
+                      disabled={downloadingId !== null && downloadingId !== m.info.id}
+                    >
+                      <Download size={14} style={{ marginRight: 4 }} />
+                      下载
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {embedModels.length === 0 && (
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>暂无可用的本地模型</p>
+              )}
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>知识库索引</h3>
+          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 12, lineHeight: 1.5 }}>
+            {embeddingAvailable === true
+              ? '当前 LLM 服务支持向量检索，知识库索引用于提升 AI 回答的准确性。'
+              : embeddingAvailable === false
+                ? '当前 LLM 服务不支持向量检索，将使用基础关键词匹配。'
+                : '正在检测 embedding 支持...'}
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleRebuildEmbeddings}
+            loading={rebuilding}
+            disabled={embeddingAvailable === false}
+          >
+            {rebuilding ? '重建中...' : '重建知识库索引'}
           </Button>
         </Card>
 

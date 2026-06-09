@@ -6,7 +6,7 @@ use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use solosoul_vault::VaultStore;
-use tauri::State;
+use tauri::{Manager, State};
 
 // ── Data models ─────────────────────────────────────────────
 
@@ -29,6 +29,8 @@ pub struct ProviderConfig {
     pub is_enabled: bool, pub is_built_in: bool,
     #[serde(default)]
     pub api_type: ApiType,
+    #[serde(default)]
+    pub embedding_model: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,6 +40,8 @@ pub struct ProviderWithKey {
     pub is_enabled: bool, pub is_built_in: bool, pub api_key: String,
     #[serde(default)]
     pub api_type: ApiType,
+    #[serde(default)]
+    pub embedding_model: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,6 +62,10 @@ pub struct LlmConfig {
     pub has_accepted_risk: bool,
     #[serde(default = "default_true")]
     pub include_system_prompt: bool,
+    #[serde(default)]
+    pub use_local_embedding: bool,
+    #[serde(default)]
+    pub local_embed_model_id: Option<String>,
 }
 
 fn default_true() -> bool { true }
@@ -97,11 +105,11 @@ pub struct ConversationSummary {
 
 fn default_providers() -> Vec<ProviderWithKey> {
     vec![
-        ProviderWithKey { id: "builtin_openai".into(), name: "OpenAI".into(), base_url: "https://api.openai.com/v1".into(), model: "gpt-4o".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::OpenAI },
-        ProviderWithKey { id: "builtin_anthropic".into(), name: "Anthropic".into(), base_url: "https://api.anthropic.com/v1".into(), model: "claude-sonnet-4-20250514".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::Anthropic },
-        ProviderWithKey { id: "builtin_ollama".into(), name: "Ollama (Local)".into(), base_url: "http://localhost:11434/v1".into(), model: "llama3.1".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::OpenAI },
-        ProviderWithKey { id: "builtin_deepseek".into(), name: "DeepSeek".into(), base_url: "https://api.deepseek.com/v1".into(), model: "deepseek-chat".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::OpenAI },
-        ProviderWithKey { id: "builtin_alibaba".into(), name: "Alibaba Cloud".into(), base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1".into(), model: "qwen-max".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::OpenAI },
+        ProviderWithKey { id: "builtin_openai".into(), name: "OpenAI".into(), base_url: "https://api.openai.com/v1".into(), model: "gpt-4o".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::OpenAI, embedding_model: Some("text-embedding-3-small".into()) },
+        ProviderWithKey { id: "builtin_anthropic".into(), name: "Anthropic".into(), base_url: "https://api.anthropic.com/v1".into(), model: "claude-sonnet-4-20250514".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::Anthropic, embedding_model: None },
+        ProviderWithKey { id: "builtin_ollama".into(), name: "Ollama (Local)".into(), base_url: "http://localhost:11434/v1".into(), model: "llama3.1".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::OpenAI, embedding_model: Some("nomic-embed-text".into()) },
+        ProviderWithKey { id: "builtin_deepseek".into(), name: "DeepSeek".into(), base_url: "https://api.deepseek.com/v1".into(), model: "deepseek-chat".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::OpenAI, embedding_model: Some("text-embedding".into()) },
+        ProviderWithKey { id: "builtin_alibaba".into(), name: "Alibaba Cloud".into(), base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1".into(), model: "qwen-max".into(), is_enabled: false, is_built_in: true, api_key: String::new(), api_type: ApiType::OpenAI, embedding_model: Some("text-embedding-v3".into()) },
     ]
 }
 
@@ -112,10 +120,10 @@ fn load_config(vault: &VaultStore, account_id: &str) -> Result<LlmConfig, String
             if let Some(llm) = data.get("preferences").and_then(|p| p.get("llmConfig")) {
                 serde_json::from_value(llm.clone()).map_err(|e| format!("Parse: {}", e))
             } else {
-                Ok(LlmConfig { providers: vec![], active_provider_id: None, ai_features_enabled: AiFeatures::default(), has_accepted_risk: false, include_system_prompt: true })
+                Ok(LlmConfig { providers: vec![], active_provider_id: None, ai_features_enabled: AiFeatures::default(), has_accepted_risk: false, include_system_prompt: true, use_local_embedding: false, local_embed_model_id: None })
             }
         }
-        _ => Ok(LlmConfig { providers: vec![], active_provider_id: None, ai_features_enabled: AiFeatures::default(), has_accepted_risk: false, include_system_prompt: true }),
+        _ => Ok(LlmConfig { providers: vec![], active_provider_id: None, ai_features_enabled: AiFeatures::default(), has_accepted_risk: false, include_system_prompt: true, use_local_embedding: false, local_embed_model_id: None }),
     }
 }
 
@@ -187,6 +195,7 @@ pub async fn llm_get_providers(state: State<'_, AppState>, account_id: String) -
                 model: saved.model.clone(), is_enabled: saved.is_enabled, is_built_in: false,
                 api_key: keys.get(&saved.id).cloned().unwrap_or_default(),
                 api_type: saved.api_type.clone(),
+                embedding_model: saved.embedding_model.clone(),
             });
         }
     }
@@ -202,7 +211,7 @@ pub async fn llm_save_provider(state: State<'_, AppState>, account_id: String, p
     let mut config = load_config(vault, &account_id)?;
     let api_key = if provider.is_built_in && provider.api_key == "••••••••" { String::new() } else { provider.api_key.clone() };
     if !api_key.is_empty() { save_api_key(vault, &account_id, &provider.id, &api_key)?; }
-    let pc = ProviderConfig { id: provider.id.clone(), name: provider.name, base_url: provider.base_url, model: provider.model, is_enabled: provider.is_enabled, is_built_in: provider.is_built_in, api_type: provider.api_type };
+    let pc = ProviderConfig { id: provider.id.clone(), name: provider.name, base_url: provider.base_url, model: provider.model, is_enabled: provider.is_enabled, is_built_in: provider.is_built_in, api_type: provider.api_type, embedding_model: provider.embedding_model };
     if let Some(e) = config.providers.iter_mut().find(|p| p.id == pc.id) { *e = pc; } else { config.providers.push(pc); }
     save_config(vault, &account_id, &config)
 }
@@ -235,6 +244,25 @@ pub async fn llm_set_system_prompt_switch(state: State<'_, AppState>, account_id
     let mut config = load_config(vault, &account_id)?;
     config.include_system_prompt = enabled;
     save_config(vault, &account_id, &config)
+}
+
+/// Toggle local embedding and set the active model ID.
+#[tauri::command]
+pub async fn llm_set_local_embedding(
+    state: State<'_, AppState>,
+    account_id: String,
+    enabled: bool,
+    model_id: Option<String>,
+) -> Result<(), String> {
+    let svc = state.vault_service.read().await;
+    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vg.as_ref().ok_or("Vault not unlocked")?;
+    let mut config = load_config(vault, &account_id)?;
+    config.use_local_embedding = enabled;
+    config.local_embed_model_id = model_id;
+    save_config(vault, &account_id, &config)?;
+    crate::local_embed::clear_embedder_cache();
+    Ok(())
 }
 
 #[tauri::command]
@@ -594,7 +622,7 @@ pub struct GuideContent {
 }
 
 /// 资源文件路径解析：开发模式从 src-tauri/resources/ 读取，生产模式从 app bundle 读取
-fn resource_path(rel: &str) -> PathBuf {
+pub fn resource_path(rel: &str) -> PathBuf {
     if cfg!(debug_assertions) {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources").join(rel);
         eprintln!("[resource_path] debug mode: {:?}", path);
@@ -643,7 +671,7 @@ fn set_summary_cache(summaries: HashMap<String, String>) {
     *guard = summaries;
 }
 
-fn load_guide_index() -> Result<GuideIndex, String> {
+pub fn load_guide_index() -> Result<GuideIndex, String> {
     if let Some(idx) = get_index_cache() {
         return Ok(idx);
     }
@@ -719,7 +747,7 @@ fn is_stop_word(word: &str) -> bool {
     stops.contains(&word)
 }
 
-fn resolve_language(files: &HashMap<String, String>, requested: &str) -> String {
+pub fn resolve_language(files: &HashMap<String, String>, requested: &str) -> String {
     if files.contains_key(requested) {
         return requested.to_string();
     }
@@ -734,7 +762,7 @@ fn resolve_language(files: &HashMap<String, String>, requested: &str) -> String 
     files.keys().next().cloned().unwrap_or_else(|| "en".to_string())
 }
 
-fn resolve_title(title: &GuideTitle, language: &str) -> String {
+pub fn resolve_title(title: &GuideTitle, language: &str) -> String {
     if language.starts_with("zh") {
         title.zh.clone()
     } else {
@@ -749,9 +777,10 @@ fn load_guide_content(entry: &GuideIndexEntry, language: &str) -> Result<GuideCo
     let content = std::fs::read_to_string(&path)
         .map_err(|e| format!("Failed to read guide {:?}: {}", path, e))?;
 
-    // 截断至 800 字节附近，按段落边界（使用字符边界避免中文切片 panic）
-    let truncated = if content.len() > 800 {
-        let mut end = 800;
+    // 文档较短时不截断；超长时截断至 4000 字节（覆盖所有现有帮助文档）
+    const MAX_GUIDE_LEN: usize = 4000;
+    let truncated = if content.len() > MAX_GUIDE_LEN {
+        let mut end = MAX_GUIDE_LEN;
         while !content.is_char_boundary(end) {
             end -= 1;
         }
@@ -1480,7 +1509,7 @@ async fn send_chat_stream(
 #[tauri::command]
 pub async fn llm_send_message_stream(
     app: tauri::AppHandle,
-    _state: State<'_, AppState>,
+    state: State<'_, AppState>,
     account_id: String,
     conversation_id: String,
     base_url: String,
@@ -1495,8 +1524,46 @@ pub async fn llm_send_message_stream(
         .join("\n");
 
     let (full_text, token_usage) = send_chat_stream(
-        app, conversation_id.clone(), base_url, api_key, model.clone(), api_type.clone(), messages,
+        app, conversation_id.clone(), base_url, api_key, model.clone(), api_type.clone(), messages.clone(),
     ).await?;
+
+    // Auto-save conversation with AI reply after stream completes
+    // (ensures data persists even if frontend component is unmounted)
+    {
+        let svc = state.vault_service.read().await;
+        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        let vault = vg.as_ref().ok_or("Vault not unlocked")?;
+        let mut convs = load_conversations(vault, &account_id)?;
+        if let Some(conv) = convs.iter_mut().find(|c| c.id == conversation_id) {
+            conv.messages.push(ChatMessage {
+                role: "assistant".to_string(),
+                content: full_text.clone(),
+                created_at: now_iso(),
+            });
+            conv.updated_at = now_iso();
+        } else {
+            // Fallback: create new conversation if not found
+            let name = messages.iter()
+                .filter_map(|m| m.get("role").and_then(|r| r.as_str()))
+                .zip(messages.iter().filter_map(|m| m.get("content").and_then(|c| c.as_str())))
+                .find(|(role, _)| *role == "user")
+                .map(|(_, content)| content.chars().take(30).collect::<String>())
+                .unwrap_or_default();
+            convs.push(Conversation {
+                id: conversation_id,
+                name,
+                is_temporary: false,
+                messages: vec![ChatMessage {
+                    role: "assistant".to_string(),
+                    content: full_text.clone(),
+                    created_at: now_iso(),
+                }],
+                updated_at: now_iso(),
+                deleted_at: None,
+            });
+        }
+        let _ = save_conversations(vault, &account_id, &convs);
+    }
 
     let provider_name = format!("{:?}", api_type);
     if let Some(usage) = token_usage {
@@ -1654,6 +1721,7 @@ fn load_providers_with_keys(vault: &VaultStore, account_id: &str) -> Result<Vec<
             d.model = saved.model.clone();
             d.is_enabled = saved.is_enabled;
             d.api_type = saved.api_type.clone();
+            d.embedding_model = saved.embedding_model.clone();
             d.api_key = keys.get(&saved.id).cloned().unwrap_or_default();
         } else {
             defaults.push(ProviderWithKey {
@@ -1665,8 +1733,463 @@ fn load_providers_with_keys(vault: &VaultStore, account_id: &str) -> Result<Vec<
                 is_built_in: false,
                 api_key: keys.get(&saved.id).cloned().unwrap_or_default(),
                 api_type: saved.api_type.clone(),
+                embedding_model: saved.embedding_model.clone(),
             });
         }
     }
     Ok(defaults)
+}
+
+// =============================================================================
+// RAG Embedding API (§RAG-3)
+// =============================================================================
+
+/// Normalize a vector to unit length.
+fn normalize_vector(vec: &mut [f32]) {
+    let norm: f32 = vec.iter().map(|v| v * v).sum::<f32>().sqrt();
+    if norm > 0.0 {
+        for v in vec.iter_mut() {
+            *v /= norm;
+        }
+    }
+}
+
+/// Compute dot product of two vectors (assumes both are normalized).
+fn dot_product(a: &[f32], b: &[f32]) -> f32 {
+    a.iter().zip(b.iter()).map(|(x, y)| x * y).sum()
+}
+
+/// Source for embedding: cloud API or local ONNX model.
+#[derive(Clone)]
+enum EmbeddingSource {
+    Cloud { base_url: String, api_key: String, model: String },
+    Local { model_id: String },
+}
+
+/// Get the embedding source for the active account.
+/// Checks local embedding preference first, then falls back to cloud provider.
+fn get_embedding_source(
+    vault: &VaultStore,
+    account_id: &str,
+    models_dir: &std::path::Path,
+) -> Result<EmbeddingSource, String> {
+    let config = load_config(vault, account_id)?;
+
+    // 1. Check if local embedding is preferred and model is installed
+    if config.use_local_embedding {
+        if let Some(ref model_id) = config.local_embed_model_id {
+            if crate::local_embed::is_model_installed(models_dir, model_id) {
+                return Ok(EmbeddingSource::Local { model_id: model_id.clone() });
+            }
+        }
+    }
+
+    // 2. Fall back to cloud provider
+    let active_id = config.active_provider_id.ok_or("No active provider")?;
+    let providers = load_providers_with_keys(vault, account_id)?;
+    let active = providers.into_iter()
+        .find(|p| p.id == active_id)
+        .ok_or("Active provider not found")?;
+
+    if !active.is_enabled {
+        return Err("Provider is disabled".to_string());
+    }
+
+    if matches!(active.api_type, ApiType::Anthropic) {
+        return Err("Anthropic does not support embedding API".to_string());
+    }
+
+    let api_key = if active.api_key == "••••••••" {
+        load_api_keys(vault, account_id)?
+            .get(&active.id)
+            .cloned()
+            .unwrap_or_default()
+    } else {
+        active.api_key
+    };
+
+    let embedding_model = active.embedding_model
+        .or_else(|| {
+            match active.name.to_lowercase().as_str() {
+                n if n.contains("openai") => Some("text-embedding-3-small".into()),
+                n if n.contains("ollama") => Some("nomic-embed-text".into()),
+                n if n.contains("deepseek") => Some("text-embedding".into()),
+                n if n.contains("alibaba") => Some("text-embedding-v3".into()),
+                _ => None,
+            }
+        })
+        .ok_or("No embedding model configured for this provider")?;
+
+    Ok(EmbeddingSource::Cloud { base_url: active.base_url, api_key, model: embedding_model })
+}
+
+/// Call the embedding API (cloud or local) for a single text.
+/// Returns normalized embedding vector.
+async fn embed_text(
+    source: EmbeddingSource,
+    models_dir: std::path::PathBuf,
+    text: String,
+) -> Result<Vec<f32>, String> {
+    match source {
+        EmbeddingSource::Cloud { base_url, api_key, model } => {
+            let client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(30))
+                .build()
+                .map_err(|e| format!("Client: {}", e))?;
+
+            let url = format!("{}/embeddings", base_url.trim_end_matches('/'));
+            let body = serde_json::json!({
+                "input": text,
+                "model": model,
+                "encoding_format": "float"
+            });
+
+            let resp = client.post(&url)
+                .header("Authorization", format!("Bearer {}", api_key))
+                .header("Content-Type", "application/json")
+                .json(&body)
+                .send()
+                .await
+                .map_err(|e| format!("Request to {} failed: {}", url, e))?;
+
+            if !resp.status().is_success() {
+                let status = resp.status();
+                let body_text = resp.text().await.unwrap_or_default();
+                return Err(format!("Embedding API HTTP {}: {}", status, body_text.chars().take(300).collect::<String>()));
+            }
+
+            let result: serde_json::Value = resp.json().await
+                .map_err(|e| format!("Parse embedding response: {}", e))?;
+
+            let embedding = result["data"].as_array()
+                .and_then(|arr| arr.first())
+                .and_then(|obj| obj["embedding"].as_array())
+                .ok_or("Invalid embedding response format")?;
+
+            let mut vec: Vec<f32> = embedding.iter()
+                .filter_map(|v| v.as_f64().map(|f| f as f32))
+                .collect();
+
+            if vec.is_empty() {
+                return Err("Empty embedding vector".to_string());
+            }
+
+            normalize_vector(&mut vec);
+            Ok(vec)
+        }
+        EmbeddingSource::Local { model_id } => {
+            let embedder = crate::local_embed::get_embedder(&models_dir, &model_id)?;
+            tokio::task::spawn_blocking(move || {
+                embedder.embed(&text)
+            }).await.map_err(|e| format!("Embedding task: {}", e))?
+        }
+    }
+}
+
+/// Batch embed multiple texts. Stops on first error.
+async fn embed_texts(
+    source: EmbeddingSource,
+    models_dir: std::path::PathBuf,
+    texts: Vec<String>,
+) -> Result<Vec<Vec<f32>>, String> {
+    match &source {
+        EmbeddingSource::Local { model_id } => {
+            let model_id = model_id.clone();
+            let embedder = crate::local_embed::get_embedder(&models_dir, &model_id)?;
+            tokio::task::spawn_blocking(move || {
+                embedder.embed_batch(&texts)
+            }).await.map_err(|e| format!("Embedding batch task: {}", e))?
+        }
+        EmbeddingSource::Cloud { .. } => {
+            let mut results = Vec::with_capacity(texts.len());
+            for text in texts {
+                let vec = embed_text(source.clone(), models_dir.clone(), text).await?;
+                results.push(vec);
+            }
+            Ok(results)
+        }
+    }
+}
+
+/// Search guide chunks by vector similarity.
+/// Falls back to keyword search if embedding is unavailable.
+#[tauri::command]
+pub async fn llm_search_guide_chunks(
+    state: State<'_, AppState>,
+    account_id: String,
+    query: String,
+    language: String,
+    top_k: Option<usize>,
+) -> Result<Vec<super::rag::GuideChunk>, String> {
+    let top_k = top_k.unwrap_or(3);
+
+    // 1. Load embedding source and existing chunks (sync block)
+    let models_dir = state.handle.path()
+        .resolve("models", tauri::path::BaseDirectory::LocalData)
+        .map_err(|e| format!("Resolve models dir: {}", e))?;
+
+    let (source, chunks) = {
+        let svc = state.vault_service.read().await;
+        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        let vault = vg.as_ref().ok_or("Vault not unlocked")?;
+
+        let source = match get_embedding_source(vault, &account_id, &models_dir) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("[RAG] Embedding source error: {}, falling back to keyword search", e);
+                return fallback_keyword_search(&query, &language, top_k);
+            }
+        };
+
+        let chunks = match vault.list_guide_embeddings() {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!("[RAG] Load embeddings failed: {}, falling back to keyword search", e);
+                return fallback_keyword_search(&query, &language, top_k);
+            }
+        };
+
+        if chunks.is_empty() {
+            eprintln!("[RAG] No embeddings found, falling back to keyword search");
+            return fallback_keyword_search(&query, &language, top_k);
+        }
+
+        (source, chunks)
+    };
+
+    // 2. Embed query (async)
+    let mut query_vec = match embed_text(source, models_dir, query.clone()).await {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("[RAG] Embed query failed: {}, falling back to keyword search", e);
+            return fallback_keyword_search(&query, &language, top_k);
+        }
+    };
+    normalize_vector(&mut query_vec);
+
+    // 3. Compute similarities and return top-k
+    let mut scored: Vec<(f32, solosoul_vault::GuideEmbeddingChunk)> = chunks.into_iter()
+        .map(|chunk| {
+            let sim = dot_product(&query_vec, &chunk.embedding);
+            (sim, chunk)
+        })
+        .collect();
+
+    scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+
+    let mut results = Vec::new();
+    for (sim, chunk) in scored.into_iter().take(top_k) {
+        let guide_title = super::rag::chunk_all_guides(&language)
+            .ok()
+            .and_then(|raws| raws.into_iter().find(|r| r.guide_id == chunk.guide_id))
+            .map(|r| r.guide_title)
+            .unwrap_or_else(|| chunk.guide_id.clone());
+
+        results.push(super::rag::GuideChunk {
+            guide_id: chunk.guide_id,
+            guide_title,
+            chunk_text: chunk.chunk_text,
+            similarity: sim,
+        });
+    }
+
+    if results.is_empty() {
+        fallback_keyword_search(&query, &language, top_k)
+    } else {
+        Ok(results)
+    }
+}
+
+/// Fallback to keyword-based guide search.
+fn fallback_keyword_search(query: &str, language: &str, top_k: usize) -> Result<Vec<super::rag::GuideChunk>, String> {
+    let guides = find_relevant_guides_internal(query, language)?;
+    let mut results = Vec::new();
+    for guide in guides.into_iter().take(top_k) {
+        results.push(super::rag::GuideChunk {
+            guide_id: guide.id.clone(),
+            guide_title: guide.title.clone(),
+            chunk_text: guide.content,
+            similarity: 0.5, // placeholder similarity for fallback
+        });
+    }
+    Ok(results)
+}
+
+/// Rebuild all guide embeddings. Clears existing and re-creates.
+#[tauri::command]
+pub async fn llm_rebuild_guide_embeddings(
+    state: State<'_, AppState>,
+    account_id: String,
+    language: String,
+) -> Result<usize, String> {
+    let models_dir = state.handle.path()
+        .resolve("models", tauri::path::BaseDirectory::LocalData)
+        .map_err(|e| format!("Resolve models dir: {}", e))?;
+
+    // 1. Extract embedding source and chunk guides (sync, vault guard released after this block)
+    let (source, raw_chunks) = {
+        let svc = state.vault_service.read().await;
+        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        let vault = vg.as_ref().ok_or("Vault not unlocked")?;
+
+        let source = get_embedding_source(vault, &account_id, &models_dir)?;
+        let raw_chunks = super::rag::chunk_all_guides(&language)?;
+        if raw_chunks.is_empty() {
+            return Ok(0);
+        }
+        vault.clear_guide_embeddings().map_err(|e| format!("Clear embeddings: {}", e))?;
+        (source, raw_chunks)
+    };
+
+    let model_name = match &source {
+        EmbeddingSource::Cloud { model, .. } => model.clone(),
+        EmbeddingSource::Local { model_id } => model_id.clone(),
+    };
+
+    // 2. Batch embed all chunks (async)
+    let texts: Vec<String> = raw_chunks.iter().map(|c| c.text.clone()).collect();
+    let embeddings = embed_texts(source, models_dir, texts).await?;
+
+    // 3. Store in vault (sync)
+    let count = {
+        let svc = state.vault_service.read().await;
+        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        let vault = vg.as_ref().ok_or("Vault not unlocked")?;
+
+        let now = chrono::Utc::now().to_rfc3339();
+        for (i, (raw, mut vec)) in raw_chunks.into_iter().zip(embeddings.into_iter()).enumerate() {
+            normalize_vector(&mut vec);
+            let chunk = solosoul_vault::GuideEmbeddingChunk {
+                id: format!("{}_{}", raw.guide_id, raw.chunk_index),
+                guide_id: raw.guide_id,
+                chunk_index: raw.chunk_index as i32,
+                chunk_text: raw.text,
+                embedding: vec,
+                model: model_name.clone(),
+                created_at: now.clone(),
+            };
+            vault.save_guide_embedding(&chunk).map_err(|e| format!("Save embedding {}: {}", i, e))?;
+        }
+
+        super::rag::mark_rebuilt(vault, &language)?;
+        vault.count_guide_embeddings()?
+    };
+
+    Ok(count)
+}
+
+/// Check if embedding is available (cloud or local).
+#[tauri::command]
+pub async fn llm_check_embedding_available(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<bool, String> {
+    let models_dir = state.handle.path()
+        .resolve("models", tauri::path::BaseDirectory::LocalData)
+        .map_err(|e| format!("Resolve models dir: {}", e))?;
+
+    let source = {
+        let svc = state.vault_service.read().await;
+        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        let vault = vg.as_ref().ok_or("Vault not unlocked")?;
+        get_embedding_source(vault, &account_id, &models_dir)
+    };
+
+    match source {
+        Ok(EmbeddingSource::Local { model_id }) => {
+            // Local model: just check if it's installed and can load
+            match crate::local_embed::get_embedder(&models_dir, &model_id) {
+                Ok(_) => Ok(true),
+                Err(e) => {
+                    eprintln!("[RAG] Local embedding not available: {}", e);
+                    Ok(false)
+                }
+            }
+        }
+        Ok(EmbeddingSource::Cloud { base_url, api_key, model }) => {
+            // Try a test embedding call with a dummy text
+            match embed_text(EmbeddingSource::Cloud { base_url, api_key, model }, models_dir, "test".into()).await {
+                Ok(_) => Ok(true),
+                Err(e) => {
+                    eprintln!("[RAG] Embedding availability check failed: {}", e);
+                    Ok(false)
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("[RAG] No embedding source: {}", e);
+            Ok(false)
+        }
+    }
+}
+
+/// Ensure guide embeddings are built on app startup.
+/// Called from app setup. Non-blocking, errors are logged only.
+pub async fn ensure_guide_embeddings_built(state: &AppState, account_id: &str, language: &str) {
+    let result = async {
+        let models_dir = state.handle.path()
+            .resolve("models", tauri::path::BaseDirectory::LocalData)
+            .map_err(|e| format!("Resolve models dir: {}", e))?;
+
+        let svc = state.vault_service.read().await;
+        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        let vault = vg.as_ref().ok_or("Vault not unlocked")?;
+
+        if !super::rag::needs_rebuild(vault, language)? {
+            return Ok::<(), String>(());
+        }
+
+        let source = match get_embedding_source(vault, account_id, &models_dir) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("[RAG] Cannot build embeddings: {}", e);
+                return Ok(());
+            }
+        };
+
+        let model_name = match &source {
+            EmbeddingSource::Cloud { model, .. } => model.clone(),
+            EmbeddingSource::Local { model_id } => model_id.clone(),
+        };
+
+        let raw_chunks = super::rag::chunk_all_guides(language)?;
+        if raw_chunks.is_empty() {
+            return Ok(());
+        }
+
+        vault.clear_guide_embeddings().map_err(|e| e.to_string())?;
+        drop(vg);
+        drop(svc);
+
+        let texts: Vec<String> = raw_chunks.iter().map(|c| c.text.clone()).collect();
+        let embeddings = embed_texts(source, models_dir, texts).await?;
+
+        let svc = state.vault_service.read().await;
+        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        let vault = vg.as_ref().ok_or("Vault not unlocked")?;
+
+        let now = chrono::Utc::now().to_rfc3339();
+        for (raw, mut vec) in raw_chunks.into_iter().zip(embeddings.into_iter()) {
+            normalize_vector(&mut vec);
+            let chunk = solosoul_vault::GuideEmbeddingChunk {
+                id: format!("{}_{}", raw.guide_id, raw.chunk_index),
+                guide_id: raw.guide_id,
+                chunk_index: raw.chunk_index as i32,
+                chunk_text: raw.text,
+                embedding: vec,
+                model: model_name.clone(),
+                created_at: now.clone(),
+            };
+            vault.save_guide_embedding(&chunk).map_err(|e| e.to_string())?;
+        }
+
+        super::rag::mark_rebuilt(vault, language)?;
+        let count = vault.count_guide_embeddings()?;
+        eprintln!("[RAG] Built {} guide embeddings", count);
+        Ok(())
+    }.await;
+
+    if let Err(e) = result {
+        eprintln!("[RAG] Failed to build embeddings: {}", e);
+    }
 }

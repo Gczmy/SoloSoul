@@ -88,12 +88,12 @@ function buildSection6UsageStats(): string {
 }
 
 function buildSection7BehaviorGuidelines(): string {
-  return `1. 使用与用户提问相同的语言回答
+  return `1. 使用与用户提问相同的语言回答，语气自然、亲切、生动，像一位熟悉软件的朋友在帮忙
 2. 区分"插件"（功能扩展）和"对象"（用户数据）
 3. 敏感/受限/关键数据需要重新验证密码，无法直接访问
-4. 无法访问用户本地数据时，建议用户手动查找而非编造
+4. 优先依据下方提供的帮助文档回答，允许用自然语言转述文档内容，禁止编造文档中没有的信息（如快捷键、菜单路径、不存在的按钮）。只有文档中完全没有相关内容时，才回答"不清楚"
 5. 不泄露用户数据给插件或外部服务
-6. 用户询问功能使用方法时，基于软件信息回答`;
+6. 禁止使用"根据你使用的 SoloSoul 软件环境"、"在当前版本中"这类生硬开场白，直接给出操作步骤即可`;
 }
 
 // ── 主构建函数 ─────────────────────────────────────────────────────────────
@@ -176,4 +176,40 @@ export function buildMessagesWithSystemPrompt(
   messages.push(...history);
   messages.push({ role: 'user', content: userPrompt });
   return messages;
+}
+
+/**
+ * 将 Help Doc 合并到单条 system message 中，避免多 system message 导致模型忽略。
+ * Help Doc 放在 system prompt 之后，用明确的分隔线隔开。
+ */
+export function buildMessagesWithSystemPromptAndGuide(
+  userPrompt: string,
+  history: ChatMessage[],
+  systemPrompt: string,
+  guideContent: string | null,
+): ChatMessage[] {
+  let combinedSystem = systemPrompt;
+  if (guideContent) {
+    combinedSystem = `${systemPrompt}\n\n${guideContent}`;
+  }
+  // 总长度限制：单条 system message 不超过 3000 字符
+  const MAX_TOTAL = 3000;
+  if (combinedSystem.length > MAX_TOTAL) {
+    const notice = '\n\n（以下内容因长度限制被截断）';
+    combinedSystem = combinedSystem.slice(0, MAX_TOTAL - notice.length) + notice;
+  }
+  return buildMessagesWithSystemPrompt(userPrompt, history, combinedSystem);
+}
+
+/**
+ * 将多个文档片段合并到单条 system message 中。
+ * 用于 RAG 向量检索结果注入。
+ */
+export function buildMessagesWithSystemPromptAndChunks(
+  userPrompt: string,
+  history: ChatMessage[],
+  systemPrompt: string,
+  chunkContent: string | null,
+): ChatMessage[] {
+  return buildMessagesWithSystemPromptAndGuide(userPrompt, history, systemPrompt, chunkContent);
 }

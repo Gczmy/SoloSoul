@@ -2,6 +2,7 @@ use tauri::Manager;
 
 pub mod commands;
 pub mod core;
+pub mod local_embed;
 pub mod db;
 pub mod ipc;
 pub mod services;
@@ -20,6 +21,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             let app_state = AppState::new(app.handle().clone())?;
             app.manage(app_state);
@@ -162,6 +164,13 @@ pub fn run() {
             commands::llm::guide_load_content,
             commands::llm::guide_search,
             commands::llm::guide_load_search_index,
+            commands::llm::llm_search_guide_chunks,
+            commands::llm::llm_rebuild_guide_embeddings,
+            commands::llm::llm_check_embedding_available,
+            commands::llm::llm_set_local_embedding,
+            commands::embed_model::llm_get_embed_models,
+            commands::embed_model::llm_download_embed_model,
+            commands::embed_model::llm_delete_embed_model,
             // Biometric commands
             commands::biometric::biometric_check_availability,
             commands::biometric::biometric_save_credential,

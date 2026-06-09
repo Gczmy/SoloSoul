@@ -9,6 +9,8 @@ pub mod export_import;
 pub mod fs;
 pub mod log;
 pub mod llm;
+pub mod rag;
+pub mod embed_model;
 pub mod ocr;
 pub mod object;
 pub mod profile;

@@ -410,5 +410,10 @@
     "help_docs": "浏览帮助文档和使用指南",
     "debug_log": "查看系统诊断日志",
     "about": "版本信息和许可证"
-  }
+  },
+  "ai_quick_chat_title": "快速对话",
+  "ai_quick_chat_configure_hint": "请先配置 LLM 以使用 AI 对话功能",
+  "ai_quick_chat_go_full": "进入完整对话页面",
+  "ai_history": "历史对话",
+  "ai_messages": "条消息"
 }

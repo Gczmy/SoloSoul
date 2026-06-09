@@ -410,5 +410,10 @@
     "help_docs": "Browse help docs and user guides",
     "debug_log": "View system diagnostic logs",
     "about": "Version info and licenses"
-  }
+  },
+  "ai_quick_chat_title": "Quick Chat",
+  "ai_quick_chat_configure_hint": "Please configure an LLM to use AI chat",
+  "ai_quick_chat_go_full": "Open Full Chat",
+  "ai_history": "History",
+  "ai_messages": "messages"
 }

@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 5;
+pub const CURRENT_SCHEMA_VERSION: u32 = 6;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -110,6 +110,23 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         }
         set_schema_version(conn, 5)?;
     }
+    if current < 6 {
+        apply_migration(
+            conn,
+            6,
+            "CREATE TABLE IF NOT EXISTS guide_embeddings (
+                id TEXT PRIMARY KEY,
+                guide_id TEXT NOT NULL,
+                chunk_index INTEGER NOT NULL,
+                chunk_text TEXT NOT NULL,
+                embedding BLOB NOT NULL,
+                model TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_guide_embeddings_guide ON guide_embeddings(guide_id);",
+            "Add guide_embeddings table for RAG vector search",
+        )?;
+    }
     Ok(())
 }
 
@@ -148,7 +165,8 @@ mod tests {
              CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL, description TEXT);
              CREATE TABLE IF NOT EXISTS profiles (id TEXT PRIMARY KEY, name TEXT NOT NULL, data BLOB NOT NULL);
              CREATE TABLE IF NOT EXISTS trash_items (id TEXT PRIMARY KEY, item_type TEXT NOT NULL, original_id TEXT NOT NULL, data BLOB NOT NULL, deleted_at INTEGER NOT NULL, expires_at INTEGER, deleted_by TEXT DEFAULT 'user', name_snapshot TEXT NOT NULL);
-             CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, action TEXT NOT NULL, details TEXT);"
+             CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, action TEXT NOT NULL, details TEXT);
+             CREATE TABLE IF NOT EXISTS guide_embeddings (id TEXT PRIMARY KEY, guide_id TEXT NOT NULL, chunk_index INTEGER NOT NULL, chunk_text TEXT NOT NULL, embedding BLOB NOT NULL, model TEXT NOT NULL, created_at TEXT NOT NULL);"
         ).unwrap();
         set_schema_version(&conn, 1).unwrap();
         (conn, dir)

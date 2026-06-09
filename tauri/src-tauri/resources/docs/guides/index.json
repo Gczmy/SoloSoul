@@ -13,7 +13,7 @@
       "title": { "zh": "对象管理", "en": "Object Management" },
       "category": "objects",
       "order": 1,
-      "keywords": ["对象", "创建", "编辑", "属性", "object", "create", "edit", "delete"],
+      "keywords": ["对象", "创建", "新建", "编辑", "修改", "属性", "删除", "移除", "object", "create", "edit", "modify", "delete", "remove"],
       "files": { "zh": "zh/objects.md", "en": "en/objects.md" }
     },
     {

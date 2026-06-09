@@ -1,0 +1,4 @@
+# Model files - downloaded at runtime or built separately
+*.onnx
+*.zip
+models/

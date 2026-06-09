@@ -5,6 +5,10 @@ import './styles/tokens.css';
 import './styles/global.css';
 import './styles/themes.css';
 import './lib/i18n'; // Initialize i18next
+import { initLlmNotificationListener } from '@/lib/notification';
+
+// Start global LLM notification listener (non-blocking)
+initLlmNotificationListener().catch(() => {});
 
 // Block initial render until UI prefs loaded — by the time login page shows,
 // the correct theme and accent are already applied (~1ms IPC read).

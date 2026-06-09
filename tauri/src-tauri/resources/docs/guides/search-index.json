@@ -3738,19 +3738,40 @@
       "templates",
       "workspace"
     ],
+    "新建": [
+      "objects"
+    ],
     "编辑": [
       "collections",
+      "objects"
+    ],
+    "修改": [
       "objects"
     ],
     "属性": [
       "objects",
       "snapshots"
     ],
+    "删除": [
+      "audit_log",
+      "collections",
+      "objects",
+      "trash",
+      "workspace"
+    ],
+    "移除": [
+      "objects"
+    ],
     "edit": [
       "attachments",
       "collections",
       "objects",
       "templates"
+    ],
+    "modify": [
+      "audit_log",
+      "collections",
+      "objects"
     ],
     "delete": [
       "PRIVACY_POLICY",
@@ -3762,6 +3783,10 @@
       "templates",
       "trash",
       "workspace"
+    ],
+    "remove": [
+      "collections",
+      "objects"
     ],
     "对象是": [
       "objects"
@@ -4305,13 +4330,6 @@
       "plugins",
       "snapshots",
       "templates"
-    ],
-    "删除": [
-      "audit_log",
-      "collections",
-      "objects",
-      "trash",
-      "workspace"
     ],
     "点击对象卡片上的垃圾桶图标": [
       "objects"
@@ -7315,17 +7333,10 @@
     "unfiled": [
       "collections"
     ],
-    "modify": [
-      "audit_log",
-      "collections"
-    ],
     "filters": [
       "collections",
       "search",
       "trash"
-    ],
-    "remove": [
-      "collections"
     ],
     "removes": [
       "collections"
