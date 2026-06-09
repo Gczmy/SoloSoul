@@ -104,6 +104,7 @@ export function ThemeSchemePanel({
           padding: '0 12px 12px',
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
+          alignItems: 'start',
           gap: 8,
         }}
       >
@@ -172,8 +173,8 @@ function SchemeThumbnail({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 4,
-        padding: '4px 4px 6px',
+        gap: 2,
+        padding: '3px 3px 4px',
         borderRadius: 8,
         border: '1.5px solid',
         borderColor: isActive ? 'var(--accent-primary)' : 'transparent',
