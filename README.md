@@ -12,40 +12,39 @@ Your Local Digital Twin & Universal Identity Engine.
 
 ```
 SoloSoul/
-├── flutter/           # 主项目：跨平台客户端 (macOS/iOS/Android/Windows)
-│   ├── lib/
-│   │   ├── core/
-│   │   │   └── services/   # 加密、存储、日志服务
-│   │   └── presentation/
-│   │       ├── pages/       # 页面
-│   │       ├── providers/    # Riverpod 状态管理
-│   │       ├── widgets/     # UI 组件
-│   │       └── theme/       # 主题
-│   ├── native/              # Rust 原生库
-│   └── macos/              # macOS Runner
+├── tauri/            # 主项目：Tauri + React 跨平台客户端 (macOS/Windows/Linux)
+│   ├── src/          # React 前端源码
+│   ├── src-tauri/    # Rust 后端 (Tauri)
+│   │   ├── src/
+│   │   │   ├── commands/   # IPC 命令
+│   │   │   ├── core/       # 核心逻辑
+│   │   │   ├── db/         # SQLite 数据库
+│   │   │   ├── services/   # 业务服务
+│   │   │   └── ...
+│   │   └── crates/         # Workspace crates (crypto, vault, sync)
+│   └── package.json
 ├── web/              # 遗留项目：Next.js Web UI (维护模式)
 ├── cmd/              # Go 后端服务
-│   ├── solosould/   # HTTP API 服务器
-│   └── solosoul/    # CLI 工具
-└── docs/            # 文档
+│   ├── solosould/    # HTTP API 服务器
+│   └── solosoul/     # CLI 工具
+└── docs/             # 文档
 ```
 
 ---
 
 ## 已完成
 
-### Flutter 客户端 (主项目) ✅
+### Tauri 客户端 (主项目) ✅
 
 **核心加密** ✅
-- Rust Argon2id FFI (64MB, 3 iterations) - Apple Silicon SIMD 加速
-- Dart FFI 绑定
+- Rust Argon2id (64MB, 3 iterations)
 - AES-256-GCM 加密/解密
 - Secure memory 处理
 
 **账户与安全** ✅
 | 功能 | 状态 |
 |------|------|
-| 账户创建/解锁 | ✅ 绕过 Keychain 秒进 |
+| 账户创建/解锁 | ✅ |
 | 密码提示词 | ✅ |
 | 账户列表折叠/展开 | ✅ |
 | 账户删除 | ✅ |
@@ -55,18 +54,18 @@ SoloSoul/
 | 回收站 (30天自动清理) | ✅ |
 
 **Profile 页面** ✅
-| 页面 | 路由 | 功能 |
-|------|------|------|
-| SplashPage | / | 启动页 |
-| LoginPage | /login | 账户选择 + 密码登录 |
-| HomePage | /home | 主页面 |
-| ProfilePage | /profile | Contact Info, Identity, Addresses |
-| TravelPage | /travel | Passports, Visas, Travel History |
-| FinancialPage | /financial | Bank Accounts, Cards, Tax IDs |
-| ProfessionalPage | /professional | Education, Employment, Skills |
-| SettingsPage | /settings | Account, Security, Sync, App Info |
-| OperationLogPage | /operation-log | 操作记录 |
-| SensitivitySettingsPage | /sensitivity-settings | 敏感级别设置 |
+| 页面 | 功能 |
+|------|------|
+| 启动页 | ✅ |
+| 登录页 | 账户选择 + 密码登录 |
+| 主页 | 主页面 |
+| 档案页 | Contact Info, Identity, Addresses |
+| 旅行页 | Passports, Visas, Travel History |
+| 财务页 | Bank Accounts, Cards, Tax IDs |
+| 职业页 | Education, Employment, Skills |
+| 设置页 | Account, Security, Sync, App Info |
+| 操作记录 | 操作日志 |
+| 敏感级别设置 | 敏感级别设置 |
 
 **UI 组件** ✅
 - SectionCard / CollapsibleSectionCard
@@ -76,11 +75,12 @@ SoloSoul/
 
 **OCR 本地识别** ✅
 - 护照 MRZ 扫描 → 自动创建 Travel Passport
-- 通用文档/名片 OCR（Apple Vision on iOS/macOS, Rust ONNX on Android/Windows）
+- 通用文档/名片 OCR
 - 完全本地处理，零网络依赖
 
 **跨平台构建** ✅
-- macOS Release: ~63.8MB（含 ONNX 模型）
+- macOS Release
+- Windows Release
 
 ### Go 后端 (solosould) ✅
 
@@ -107,14 +107,14 @@ SoloSoul/
 
 ### P0: 关键问题
 
-1. **Flutter Keychain Entitlements**
-   - macOS/iOS Keychain 权限配置
-   - Release 前恢复 `flutter_secure_storage` 正常使用
+1. **Tauri 平台适配**
+   - macOS 代码签名与公证
+   - Windows 签名
 
 ### P1: 安全
 
 2. **物理安全**
-   - 防截屏 (Android FLAG_SECURE, iOS snapshot blur)
+   - 防截屏
    - 多任务视图模糊
 
 ### P2: 云同步
@@ -127,41 +127,36 @@ SoloSoul/
 
 ### P3: 跨平台构建
 
-| 平台 | Touch ID | Keychain | App Store |
-|------|----------|----------|-----------|
-| macOS | 待做 | 待恢复 | - |
-| iOS | 待做 | 待配置 | 待发布 |
-| Android | 待做 | 待配置 | 待发布 |
-| Windows | 待做 | Credential Manager | 待发布 |
+| 平台 | 状态 |
+|------|------|
+| macOS | ✅ 可用 |
+| Windows | ✅ 可用 |
+| Linux | 待测试 |
 
 ### P4: Web 迁移/移除
 
-- Web UI 功能考虑迁移到 Flutter 或移除
+- Web UI 功能考虑迁移到 Tauri 或移除
 
 ---
 
 ## 开发命令
 
-### Flutter
+### Tauri 客户端
 
 ```bash
-cd flutter
+cd tauri
 
 # 安装依赖
-flutter pub get
-
-# 下载 OCR 模型（首次构建必需）
-# 模型文件通过 GitHub Release Assets 分发，不在仓库中
-# 详见 docs/OCR_INTEGRATION_DESIGN.md 获取下载脚本
+npm install
 
 # 开发模式
-flutter run
+npm run dev
 
-# Release 构建 (macOS)
-flutter build macos --release
+# 代码检查
+npm run check-all
 
-# 代码分析
-dart analyze
+# Release 构建
+npm run tauri build
 ```
 
 ### Go 后端
@@ -194,12 +189,12 @@ npm run dev
 
 | 组件 | 技术 |
 |------|------|
-| Flutter 客户端 | Dart, Riverpod, flutter_riverpod |
+| Tauri 客户端 | React 19, TypeScript, Vite, Zustand |
 | Rust 核心 | Rust, Argon2id, AES-256-GCM, rusqlite, ONNX Runtime |
-| Go 后端 | Go, Gin |
+| Go 后端 | Go, 标准库 net/http |
 | Web UI | Next.js 15, React, Zustand |
 | 加密 | Argon2id (64MB, 3 iterations), AES-256-GCM |
-| OCR | PP-OCRv4 (ONNX) / Apple Vision (iOS/macOS)
+| OCR | PP-OCRv4 (ONNX) / Apple Vision (iOS/macOS) |
 
 ---
 
@@ -224,7 +219,7 @@ OCR 功能依赖三个 ONNX 模型文件（共 ~15MB），已加入 `.gitignore`
 | `ppocrv4_cls.onnx` | ~571KB | 方向分类 | Release Assets / paddle2onnx 转换 |
 | `ppocrv4_rec.onnx` | ~10MB | 文本识别 | Release Assets |
 
-首次构建前，将模型文件放置到 `flutter/assets/models/v1/` 目录下。
+首次构建前，将模型文件放置到 `tauri/src-tauri/resources/models/` 目录下。
 
 详细下载脚本和转换指南见 [`docs/OCR_INTEGRATION_DESIGN.md`](docs/OCR_INTEGRATION_DESIGN.md)。
 

@@ -7,13 +7,44 @@ on:
     branches: [ master, main ]
 
 env:
-  # Flutter version - update as needed
-  FLUTTER_VERSION: '3.41.6'
   RUST_VERSION: 'stable'
+  NODE_VERSION: '22'
 
 jobs:
   # ============================================================
-  # Job 1: Rust Tests (fast, runs on Linux)
+  # Job 1: Frontend Checks (TypeScript, Lint, Unit Tests)
+  # ============================================================
+  frontend-check:
+    name: Frontend Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tauri/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+  # ============================================================
+  # Job 2: Rust Checks & Tests
   # ============================================================
   rust-test:
     name: Rust Unit Tests
@@ -30,245 +61,121 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: flutter/native
+          workspaces: tauri/src-tauri
+
+      - name: Check formatting
+        run: |
+          cd tauri
+          cargo fmt --check
+
+      - name: Run Clippy
+        run: |
+          cd tauri
+          cargo clippy -- -D warnings
 
       - name: Run Rust Tests
         run: |
-          cd flutter/native
+          cd tauri
           cargo test --verbose
 
   # ============================================================
-  # Job 2: Dart Unit Tests
-  # ============================================================
-  dart-unit-test:
-    name: Dart Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            flutter/.dart_tool
-          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
-      - name: Install dependencies
-        run: |
-          cd flutter
-          flutter pub get
-
-      - name: Run Dart Unit Tests
-        run: |
-          cd flutter
-          flutter test test/unit/
-
-  # ============================================================
-  # Job 3: Widget Tests
-  # ============================================================
-  widget-test:
-    name: Widget Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            flutter/.dart_tool
-          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
-      - name: Install dependencies
-        run: |
-          cd flutter
-          flutter pub get
-
-      - name: Run Widget Tests
-        run: |
-          cd flutter
-          flutter test test/widget/
-
-  # ============================================================
-  # Integration Tests Note:
-  # Integration tests are skipped in CI because they require macOS code signing
-  # which is not available on GitHub Actions runners.
-  # Run locally with: cd flutter && flutter test integration_test/
-  # ============================================================
-
-  # ============================================================
-  # Job 5: macOS Release Build
+  # Job 3: macOS Release Build
   # Only runs on master/main push, not PRs
   # ============================================================
   build-macos:
-    name: Build macOS DMG
+    name: Build macOS App
     runs-on: macos-latest
-    needs: [rust-test, dart-unit-test, widget-test]
+    needs: [frontend-check, rust-test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tauri/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd tauri
+          npm ci
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ env.RUST_VERSION }}
 
-      - name: Build Rust library
-        run: |
-          cd flutter/native
-          cargo build --release
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
+          workspaces: tauri/src-tauri
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            flutter/.dart_tool
-          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
-      - name: Install dependencies
+      - name: Build Tauri App (macOS)
         run: |
-          cd flutter
-          flutter pub get
+          cd tauri
+          npm run tauri build -- --target aarch64-apple-darwin
 
-      - name: Copy Rust dylib to Frameworks
-        run: |
-          mkdir -p flutter/macos/Runner/Frameworks
-          cp flutter/native/target/release/libsolosoul_core.dylib flutter/macos/Runner/Frameworks/
-
-      - name: Build macOS Release (Obfuscated)
-        env:
-          FLUTTER_BUILD_ARGS: "--obfuscate --split-debug-info=./debug_info/macos"
-          CODE_SIGN_IDENTITY: "-"
-          CODE_SIGNING_REQUIRED: "0"
-        run: |
-          cd flutter
-          flutter build macos --release $FLUTTER_BUILD_ARGS
-
-      - name: Install create-dmg
-        run: |
-          which create-dmg || brew install create-dmg
-
-      - name: Build DMG (Self-Signed)
-        run: |
-          cd flutter
-          chmod +x ./build_dmg.sh
-          ./build_dmg.sh
-
-      - name: Upload DMG artifact
+      - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-dmg
-          path: flutter/build/macos/*.dmg
+          name: macos-app
+          path: tauri/src-tauri/target/release/bundle/dmg/*.dmg
           if-no-files-found: error
 
-      - name: Upload debug info (macOS)
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-info-macos
-          path: flutter/debug_info/macos/
-          if-no-files-found: warn
-
   # ============================================================
-  # Job 6: Windows Release Build
+  # Job 4: Windows Release Build
   # Only runs on master/main push, not PRs
   # ============================================================
   build-windows:
-    name: Build Windows ZIP
+    name: Build Windows App
     runs-on: windows-latest
-    needs: [rust-test, dart-unit-test, widget-test]
+    needs: [frontend-check, rust-test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tauri/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd tauri
+          npm ci
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ env.RUST_VERSION }}
-          target: wasm32-wasip1
 
-      - name: Build Rust library
-        run: |
-          cd flutter/native
-          cargo build --release
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
+          workspaces: tauri/src-tauri
 
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            flutter/.dart_tool
-          key: ${{ runner.os }}-flutter-${{ hashFiles('flutter/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-
-      - name: Install dependencies
+      - name: Build Tauri App (Windows)
         run: |
-          cd flutter
-          flutter pub get
+          cd tauri
+          npm run tauri build
 
-      - name: Build Windows ZIP
-        shell: bash
-        run: |
-          cd flutter
-          chmod +x ./build_windows_zip.sh
-          ./build_windows_zip.sh
-
-      - name: Upload ZIP artifact
+      - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-zip
-          path: flutter/build/windows/*.zip
+          name: windows-app
+          path: tauri/src-tauri/target/release/bundle/msi/*.msi
           if-no-files-found: error
 
-      - name: Upload debug info (Windows)
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-info-windows
-          path: flutter/debug_info/windows/
-          if-no-files-found: warn
-
   # ============================================================
-  # Job 7: Create GitHub Release & Push to Public Repo
-  # Downloads artifacts from both platforms and releases together
+  # Job 5: Create GitHub Release
   # ============================================================
   release:
     name: Release
@@ -283,16 +190,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download macOS DMG
+      - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
-          name: macos-dmg
+          name: macos-app
           path: artifacts/macos/
 
-      - name: Download Windows ZIP
+      - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
-          name: windows-zip
+          name: windows-app
           path: artifacts/windows/
 
       - name: Create Release Draft
@@ -302,7 +209,7 @@ jobs:
           prerelease: true
           files: |
             artifacts/macos/*.dmg
-            artifacts/windows/*.zip
+            artifacts/windows/*.msi
           body: |
             ## SoloSoul v${{ github.run_number }}
 
@@ -310,51 +217,20 @@ jobs:
 
             ### Downloads
             - 🍎 macOS: `SoloSoul-*.dmg`
-            - 🪟 Windows: `SoloSoul-*-windows-x64.zip`
+            - 🪟 Windows: `SoloSoul-*.msi`
 
             ### Security Features
-            - 🔒 Rust Symbol Stripping (obfuscated function names)
-            - 🔒 Dart Code Obfuscation
+            - 🔒 Rust Symbol Stripping
+            - 🔒 Source Code Obfuscation
             - 🔒 Self-Signed (no Apple notarization required)
 
             ### Test Results
             - ✅ Rust Unit Tests
-            - ✅ Dart Unit Tests
-            - ✅ Widget Tests
+            - ✅ Frontend TypeScript & Unit Tests
 
             ### What's New
             See [CHANGELOG](../blob/master/CHANGELOG.md) for details.
 
             Built from: `${{ github.sha }}`
-            Debug symbols: Available as workflow artifacts (not published)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push to Public Repo
-        env:
-          RELEASE_PAT: ${{ secrets.SOLOSOUL_RELEASE_PAT }}
-        run: |
-          # Only push if RELEASE_PAT is configured
-          if [ -z "$RELEASE_PAT" ]; then
-            echo "SOLOSOUL_RELEASE_PAT not configured, skipping push to public repo"
-            exit 0
-          fi
-          # Clone the public repo
-          git clone https://x-access-token:$RELEASE_PAT@github.com/Gczmy/SoloSoul.git ../SoloSoul-push
-
-          # Copy release artifacts
-          cp artifacts/macos/*.dmg ../SoloSoul-push/ 2>/dev/null || true
-          cp artifacts/windows/*.zip ../SoloSoul-push/ 2>/dev/null || true
-
-          # Copy updated changelog if exists
-          if [ -f "CHANGELOG.md" ]; then
-            cp CHANGELOG.md ../SoloSoul-push/
-          fi
-
-          # Commit and push
-          cd ../SoloSoul-push
-          git config user.name "GitHub Actions Bot"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Release v${{ github.run_number }} from CI build ${{ github.run_id }}" || true
-          git push

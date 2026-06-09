@@ -12,11 +12,17 @@ SoloSoul (独灵) is a **Local Digital Twin & Universal Identity Engine** - a de
 
 ```
 SoloSoul/
-├── flutter/           # 主项目：跨平台客户端
-│   ├── lib/
-│   │   ├── core/services/    # 核心服务
-│   │   └── presentation/     # UI 层
-│   └── native/              # Rust 原生库
+├── tauri/            # 主项目：Tauri + React 跨平台客户端
+│   ├── src/          # React 前端源码
+│   ├── src-tauri/    # Rust 后端 (Tauri)
+│   │   ├── src/
+│   │   │   ├── commands/   # IPC 命令
+│   │   │   ├── core/       # 核心逻辑
+│   │   │   ├── db/         # SQLite 数据库
+│   │   │   ├── services/   # 业务服务
+│   │   │   └── ...
+│   │   └── crates/         # Workspace crates (crypto, vault, sync)
+│   └── package.json
 ├── web/              # 遗留项目：Next.js Web UI (维护模式)
 ├── cmd/              # Go 后端服务
 │   ├── solosould/    # HTTP API 服务器
@@ -36,23 +42,19 @@ SoloSoul/
 
 ## 开发命令
 
-### Flutter
+### Tauri 客户端
 
 ```bash
-cd flutter
+cd tauri
 
-# 分析代码
-dart analyze
+# 开发模式
+npm run dev
 
-# 运行
-flutter run
+# 代码检查
+npm run check-all
 
 # Release 构建
-flutter build macos --release
-
-# DMG 安装包构建 (需要先运行 Release 构建)
-./build_dmg.sh
-# 输出: flutter/build/macos/SoloSoul-v1.0.dmg
+npm run tauri build
 ```
 
 ### Go 后端
@@ -80,93 +82,43 @@ npm run dev
 
 | 组件 | 技术 |
 |------|------|
-| Flutter 客户端 | Dart, Riverpod, flutter_riverpod |
+| Tauri 客户端 | React 19, TypeScript, Vite, Zustand |
 | Rust 核心 | Rust, Argon2id, AES-256-GCM |
-| Go 后端 | Go, Gin |
+| Go 后端 | Go, 标准库 net/http |
 | Web UI | Next.js 15, React, Zustand |
 
-## Flutter 项目结构
+## Tauri 项目结构
 
 ```
-flutter/lib/
-├── core/
-│   └── services/
-│       ├── native_crypto_service.dart      # Rust FFI 加密
-│       ├── profile_storage_service.dart    # Profile 存储
-│       ├── secure_storage_service.dart     # 安全存储 (临时)
-│       ├── rust_vault_service.dart         # Rust Vault
-│       ├── biometric_service.dart          # 生物识别
-│       ├── operation_logger.dart           # 操作日志
-│       └── ...
-├── presentation/
-│   ├── pages/              # 页面
-│   ├── providers/           # Riverpod providers
-│   ├── widgets/            # UI 组件
-│   └── theme/              # 主题
-└── main.dart
+tauri/src/
+├── App.tsx, main.tsx
+├── lib/              # 工具库 (ipc, i18n, theme, api)
+├── stores/           # Zustand 状态管理
+├── hooks/            # React Hooks
+├── components/       # UI 组件
+└── types/            # TypeScript 类型
+
+tauri/src-tauri/src/
+├── main.rs, lib.rs   # 入口
+├── commands/         # IPC 命令 (25+)
+├── core/             # 核心逻辑 (SensitivityManager)
+├── db/               # SQLite 连接与迁移
+├── ipc/              # IPC 通信
+├── services/         # 业务服务 (vault, llm_context)
+└── state/            # 应用状态
 ```
 
-### Flutter 页面路由
+## 代码规范
 
-| 页面 | 路由 |
-|------|------|
-| LoginPage | /login |
-| HomePage | /home |
-| ProfilePage | /profile |
-| TravelPage | /travel |
-| FinancialPage | /financial |
-| ProfessionalPage | /professional |
-| SettingsPage | /settings |
+- 使用 TypeScript 严格模式
+- 状态管理使用 Zustand
+- UI 组件使用纯 CSS Modules + 全局 CSS（不使用 Tailwind）
+- 所有受保护页面为 Client Component，权限检查通过 Zustand sessionToken 手动重定向
+- 错误处理使用预定义错误变量，跨包传递
+- Vault 操作使用 `sync.Mutex` 保护
 
-## 关键约定
+## 注意事项
 
-### 密码验证
-- 使用共享组件 `lib/presentation/widgets/password_verification_dialog.dart`
-- 不要在多个地方复制密码对话框代码
-
-### 敏感数据
-- `SensitivityLevel`: public / private / restricted
-- `SensitiveValueWidget`: 自动掩码组件
-- 验证后有 1 分钟缓存
-
-## 项目状态
-
-### Flutter 客户端 (主项目) ✅
-- 核心加密 (Argon2id + AES-256-GCM) ✅
-- Profile 页面 (Profile/Travel/Financial/Professional) ✅
-- 数据敏感级别 ✅
-- 操作记录与回收站 ✅
-- macOS Release Build ✅ (with DMG installer)
-- macOS DMG installer at `flutter/build/macos/SoloSoul-v1.0.dmg`
-
-### Go 后端 ✅
-- Vault/Profile/Plugin API ✅
-- CLI 工具 ✅
-
-### Web (遗留) ✅
-- Next.js Web UI (维护模式)
-
-### 待完成
-- Flutter Keychain 恢复 (P0)
-- 云同步开发
-- iOS/Android/Windows 平台
-
-## DMG 分发
-
-macOS DMG 安装包构建:
-```bash
-./build_dmg.sh
-```
-
-输出文件: `flutter/build/macos/SoloSoul-v1.0.dmg`
-
-使用 `create-dmg` 工具打包，包含:
-- 应用图标
-- 应用程序拖放链接
-- 安装窗口 (600x400)
-
-## 文档
-
-- [TODO](docs/TODO.md) - 开发任务清单
-- [USER_GUIDE](docs/USER_GUIDE.md) - 用户指南
-- [CLIENT_ROADMAP](docs/CLIENT_ROADMAP.md) - 客户端路线图
+1. Go 后端编译必须带 tags: `go build -tags "rust cgo" ./...`
+2. Rust 密码学库有两套实现，注意修改时确认目标平台
+3. Web UI 部分 API Routes 为存根，客户端通常直接调用 Go 后端

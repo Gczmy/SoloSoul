@@ -6,12 +6,40 @@ on:
     branches: [ master, main ]
 
 env:
-  FLUTTER_VERSION: '3.41.6'
   RUST_VERSION: 'stable'
+  NODE_VERSION: '22'
 
 jobs:
+  frontend-check:
+    name: Frontend TypeScript & Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tauri/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
   rust-check:
-    name: Rust Format & Lint
+    name: Rust Format, Clippy & Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,71 +49,22 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
 
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tauri/src-tauri
+
       - name: Check formatting
         run: |
-          cd flutter/native
+          cd tauri
           cargo fmt --check
 
       - name: Run Clippy
         run: |
-          cd flutter/native
+          cd tauri
           cargo clippy -- -D warnings
 
-  dart-check:
-    name: Dart Analyze
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-
-      - name: Install dependencies
+      - name: Run Rust Tests
         run: |
-          cd flutter
-          flutter pub get
-
-      - name: Dart Analyze
-        run: |
-          cd flutter
-          dart analyze --fatal-infos --fatal-warnings
-
-  test:
-    name: All Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
-
-      - name: Install dependencies
-        run: |
-          cd flutter
-          flutter pub get
-
-      - name: Rust Tests
-        run: |
-          cd flutter/native
+          cd tauri
           cargo test --verbose
-
-      - name: Dart Unit Tests
-        run: |
-          cd flutter
-          flutter test test/unit/
-
-      - name: Widget Tests
-        run: |
-          cd flutter
-          flutter test test/widget/

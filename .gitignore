@@ -7,29 +7,12 @@ out/
 dist/
 build/
 
-# Flutter/Dart
-flutter/.dart_tool/
-flutter/.pub-cache/
-flutter/.pub/
-flutter/build/
-flutter/coverage/
-flutter/debug_info/
-flutter/*.symbols
-flutter/*.map.json
-flutter/.fvm/
-flutter/.fvmrc
-**/.flutter-plugins
-**/.flutter-plugins-dependencies
-
-# Flutter platform ephemeral/build artifacts
-flutter/android/app/build/
-flutter/linux/flutter/ephemeral/
-flutter/windows/flutter/ephemeral/
-flutter/web/ephemeral/
+# Tauri / Vite
+tauri/dist/
+tauri/src-tauri/target/
 
 # Rust
 crypto-argon2/target/
-flutter/native/target/
 .cargo/registry/
 vendor/
 
@@ -67,7 +50,7 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
-yarn-error.log
+yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
