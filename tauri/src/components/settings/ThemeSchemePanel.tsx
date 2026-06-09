@@ -83,7 +83,7 @@ export function ThemeSchemePanel({
       </div>
 
       {/* Mode tabs */}
-      <div style={{ padding: '12px 16px', display: 'flex', gap: 8 }}>
+      <div style={{ padding: '8px 16px', display: 'flex', gap: 8 }}>
         <ModePill
           active={panelMode === 'light'}
           onClick={() => setPanelMode('light')}
@@ -101,11 +101,11 @@ export function ThemeSchemePanel({
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '0 12px 12px',
+          padding: '0 12px 8px',
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
           alignItems: 'start',
-          gap: '4px 8px',
+          gap: '2px 8px',
         }}
       >
         {schemes.map((scheme) => (
