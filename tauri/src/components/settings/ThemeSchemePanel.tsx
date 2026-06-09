@@ -101,7 +101,7 @@ export function ThemeSchemePanel({
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '0 12px 8px',
+          padding: '4px 12px 8px',
           display: 'flex',
           flexWrap: 'wrap',
           alignContent: 'flex-start',
