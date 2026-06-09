@@ -23,10 +23,10 @@ SoloSoul/
 │   │   │   └── ...
 │   │   └── crates/         # Workspace crates (crypto, vault, sync)
 │   └── package.json
-├── web/              # 遗留项目：Next.js Web UI (维护模式)
-├── cmd/              # Go 后端服务
-│   ├── solosould/    # HTTP API 服务器
-│   └── solosoul/     # CLI 工具
+├── SoloSoul_plugin_market/  # 插件市场（Git Submodule）
+├── sdk/              # SDK 占位目录（未实现）
+│   ├── js/
+│   └── python/
 └── docs/             # 文档
 ```
 
@@ -57,35 +57,12 @@ npm run check-all
 npm run tauri build
 ```
 
-### Go 后端
-
-```bash
-# 构建 (需要 Rust)
-go build -tags "rust,cgo" ./...
-
-# 构建 (纯 Go)
-go build ./...
-
-# 运行
-./solosould
-```
-
-### Web
-
-```bash
-cd web
-npm install
-npm run dev
-```
-
 ## 技术栈
 
 | 组件 | 技术 |
 |------|------|
 | Tauri 客户端 | React 19, TypeScript, Vite, Zustand |
-| Rust 核心 | Rust, Argon2id, AES-256-GCM |
-| Go 后端 | Go, 标准库 net/http |
-| Web UI | Next.js 15, React, Zustand |
+| Rust 核心 | Rust, Argon2id, AES-256-GCM, rusqlite |
 
 ## Tauri 项目结构
 
@@ -114,11 +91,11 @@ tauri/src-tauri/src/
 - 状态管理使用 Zustand
 - UI 组件使用纯 CSS Modules + 全局 CSS（不使用 Tailwind）
 - 所有受保护页面为 Client Component，权限检查通过 Zustand sessionToken 手动重定向
-- 错误处理使用预定义错误变量，跨包传递
-- Vault 操作使用 `sync.Mutex` 保护
+- Rust 代码遵循标准 fmt + clippy
+- 错误处理使用预定义错误变量
 
 ## 注意事项
 
-1. Go 后端编译必须带 tags: `go build -tags "rust cgo" ./...`
-2. Rust 密码学库有两套实现，注意修改时确认目标平台
-3. Web UI 部分 API Routes 为存根，客户端通常直接调用 Go 后端
+1. SDK 占位：`sdk/js/` 和 `sdk/python/` 为空目录，任何 SDK 相关需求需从零开始实现。
+2. 插件市场子模块：`SoloSoul_plugin_market/` 是独立 Git 仓库，修改时需遵循其 Git Hooks 流程。
+3. Apple Silicon Argon2 性能：开发环境默认 8MiB / 2 iterations，生产环境通过环境变量切换至 64MiB / 3 iterations。

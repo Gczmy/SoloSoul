@@ -4,8 +4,6 @@ Your Local Digital Twin & Universal Identity Engine.
 
 「独奏生命数据，重塑数字原点」—— 一个去中心化、本地加密的个人超级档案与自动化执行引擎。
 
-它是 SlotGo 等自动化抢票/预约工具的"数字大脑"和"安全弹药库"。
-
 ---
 
 ## 项目架构
@@ -23,10 +21,13 @@ SoloSoul/
 │   │   │   └── ...
 │   │   └── crates/         # Workspace crates (crypto, vault, sync)
 │   └── package.json
-├── web/              # 遗留项目：Next.js Web UI (维护模式)
-├── cmd/              # Go 后端服务
-│   ├── solosould/    # HTTP API 服务器
-│   └── solosoul/     # CLI 工具
+├── SoloSoul_plugin_market/  # 插件市场（Git Submodule）
+│   ├── plugins/
+│   ├── SDK/
+│   └── ...
+├── sdk/              # SDK 占位目录（未实现）
+│   ├── js/
+│   └── python/
 └── docs/             # 文档
 ```
 
@@ -82,25 +83,6 @@ SoloSoul/
 - macOS Release
 - Windows Release
 
-### Go 后端 (solosould) ✅
-
-**API 服务** ✅
-- Vault 服务 (Unlock/Lock/ChangePassword)
-- Profile 服务 (Get/Update/Validate/List/Delete)
-- Field 服务 (GetFields/SetFields)
-- Plugin 管理系统
-- OCR API 端点
-- Session Token 管理
-
-**CLI 工具** ✅
-- `init`, `unlock`, `lock`, `status`, `profile`
-
-### Web UI (遗留，维护模式) ✅
-
-- Next.js 15 + App Router
-- 登录与设置、仪表盘、档案编辑器
-- Plugin 管理、OCR 扫描页
-
 ---
 
 ## 待完成
@@ -133,10 +115,6 @@ SoloSoul/
 | Windows | ✅ 可用 |
 | Linux | 待测试 |
 
-### P4: Web 迁移/移除
-
-- Web UI 功能考虑迁移到 Tauri 或移除
-
 ---
 
 ## 开发命令
@@ -159,30 +137,6 @@ npm run check-all
 npm run tauri build
 ```
 
-### Go 后端
-
-```bash
-# 构建 (需要 Rust)
-go build -tags "rust,cgo" ./...
-
-# 构建 (纯 Go)
-go build ./...
-
-# 运行 API 服务器
-./solosould
-
-# CLI
-./solosoul status
-```
-
-### Web
-
-```bash
-cd web
-npm install
-npm run dev
-```
-
 ---
 
 ## 技术栈
@@ -191,8 +145,6 @@ npm run dev
 |------|------|
 | Tauri 客户端 | React 19, TypeScript, Vite, Zustand |
 | Rust 核心 | Rust, Argon2id, AES-256-GCM, rusqlite, ONNX Runtime |
-| Go 后端 | Go, 标准库 net/http |
-| Web UI | Next.js 15, React, Zustand |
 | 加密 | Argon2id (64MB, 3 iterations), AES-256-GCM |
 | OCR | PP-OCRv4 (ONNX) / Apple Vision (iOS/macOS) |
 
