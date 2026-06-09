@@ -147,7 +147,7 @@ export function AppearanceSettingsPage() {
 
               {/* More appearances button */}
               <button
-                onClick={() => setIsPanelOpen(true)}
+                onClick={() => setIsPanelOpen((open) => !open)}
                 style={{
                   marginTop: 16,
                   display: 'flex',
