@@ -102,9 +102,9 @@ export function ThemeSchemePanel({
           flex: 1,
           overflowY: 'auto',
           padding: '0 12px 8px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          alignItems: 'start',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignContent: 'flex-start',
           gap: '2px 8px',
         }}
       >
@@ -175,6 +175,7 @@ function SchemeThumbnail({
         alignItems: 'center',
         gap: 2,
         padding: '3px 3px 4px',
+        width: 'calc(50% - 4px)',
         borderRadius: 8,
         border: '1.5px solid',
         borderColor: isActive ? 'var(--accent-primary)' : 'transparent',
