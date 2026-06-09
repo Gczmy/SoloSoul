@@ -105,7 +105,7 @@ export function ThemeSchemePanel({
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
           alignItems: 'start',
-          gap: 8,
+          gap: '4px 8px',
         }}
       >
         {schemes.map((scheme) => (
