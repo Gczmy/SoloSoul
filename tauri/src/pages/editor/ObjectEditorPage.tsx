@@ -142,12 +142,13 @@ export function ObjectEditorPage() {
   // Load existing object and populate form
   useEffect(() => {
     if (!isNew && objectId && accountId) {
+      // Reset form state before fetching so stale store data doesn't get locked in
+      setDataLoaded(false);
+      setName('');
+      setValues({});
       getObject(accountId, objectId).catch((e) => onError(e, t('common:object_load_failed')));
     }
   }, [objectId, accountId]);
-
-  // Reset dataLoaded when navigating to a different object
-  useEffect(() => { setDataLoaded(false); setName(''); setValues({}); }, [objectId]);
 
   // When currentObject loads (for editing), populate the form
   useEffect(() => {

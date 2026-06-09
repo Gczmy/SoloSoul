@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import i18next from '@/lib/i18n';
 
 export type TrashRetentionPeriod = '30d' | '60d' | 'half_year' | 'one_year' | 'never';
 
@@ -76,7 +77,7 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   setSearchQuery: (q) => set({ searchQuery: q }),
 
   restoreItem: async (trashId) => {
-    await invoke('trash_restore', { trashId });
+    await invoke('trash_restore', { trashId, lang: i18next.language });
     set((s) => ({ items: s.items.filter((i) => i.id !== trashId) }));
   },
 

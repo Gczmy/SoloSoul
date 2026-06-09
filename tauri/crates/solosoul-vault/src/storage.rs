@@ -681,6 +681,20 @@ impl VaultStore {
         Ok(())
     }
 
+    /// Copy all snapshots from one object to another (used when restoring a trashed object
+    /// under a new ID to preserve its history).
+    pub fn copy_snapshots(&self, from_object_id: &str, to_object_id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "INSERT INTO object_snapshots (id, object_id, timestamp, triggered_by, data, diff_summary)
+             SELECT lower(hex(randomblob(16))), ?1, timestamp, triggered_by, data, diff_summary
+             FROM object_snapshots WHERE object_id = ?2",
+            rusqlite::params![to_object_id, from_object_id],
+        ).map_err(|e| format!("copy_snapshots: {}", e))?;
+        Ok(())
+    }
+
     /// Write an audit log entry with structured fields.
     /// Backward-compatible: old entries log_action(action, details) will have entity_type/entity_id/entity_name/performed_by as NULL.
     pub fn log_action(&self, action: &str, details: &str) -> Result<(), String> {

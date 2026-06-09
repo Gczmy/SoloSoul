@@ -566,7 +566,7 @@ export function TrashPage() {
                 </Button>
                 <Button
                   size="sm"
-                  variant={confirmAction.type === 'delete' ? 'secondary' : 'primary'}
+                  variant={confirmAction.type === 'delete' ? 'danger' : 'primary'}
                   onClick={async () => {
                     await confirmAction.callback();
                     setConfirmAction(null);

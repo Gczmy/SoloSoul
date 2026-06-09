@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import i18next from '@/lib/i18n';
 
 export interface ObjectSummary {
   id: string;
@@ -64,7 +65,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
   },
 
   getObject: async (accountId, objectId) => {
-    set({ isLoading: true, error: null });
+    set({ currentObject: null, isLoading: true, error: null });
     try {
       const obj = await invoke<ObjectData | null>('object_get', { accountId, objectId });
       set({ currentObject: obj, isLoading: false });
@@ -92,8 +93,8 @@ export const useObjectStore = create<ObjectState>((set) => ({
   updateObject: async (objectId, input) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke('object_update', { objectId, input });
-      set({ isLoading: false });
+      const obj = await invoke<ObjectData>('object_update', { objectId, input });
+      set({ currentObject: obj, isLoading: false });
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }
@@ -124,7 +125,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
   restoreObject: async (objectId) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke('object_restore', { objectId });
+      await invoke('object_restore', { objectId, lang: i18next.language });
       set((s) => ({
         trashObjects: s.trashObjects.filter((o) => o.id !== objectId),
         isLoading: false,

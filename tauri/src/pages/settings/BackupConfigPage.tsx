@@ -148,7 +148,7 @@ export function BackupConfigPage() {
                     <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-tertiary)' }}>
                       {new Date(backup.created_at).toLocaleString()} &middot;{' '}
                       {formatSize(backup.size_bytes)} &middot;{' '}
-                      {backup.object_count} {t('settings:objects_count')}
+                      {t('settings:objects_count', { n: backup.object_count })}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 4 }}>

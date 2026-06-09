@@ -24,6 +24,26 @@ fn generate_id() -> String {
     Uuid::new_v4().to_string()
 }
 
+// Prefixes used by the frontend to map backend errors to i18n keys.
+const EXPORT_ERR_PREFIX: &str = "__EXPORT_ERR__:";
+const IMPORT_ERR_PREFIX: &str = "__IMPORT_ERR__:";
+
+fn export_err(code: &str) -> String {
+    format!("{}{}", EXPORT_ERR_PREFIX, code)
+}
+
+fn import_err(code: &str) -> String {
+    format!("{}{}", IMPORT_ERR_PREFIX, code)
+}
+
+fn export_err_with_detail(code: &str, detail: &str) -> String {
+    format!("{}{}:{}", EXPORT_ERR_PREFIX, code, detail)
+}
+
+fn import_err_with_detail(code: &str, detail: &str) -> String {
+    format!("{}{}:{}", IMPORT_ERR_PREFIX, code, detail)
+}
+
 // ── Public types (↔ frontend) ──────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,7 +63,7 @@ pub struct ExportScope {
     pub selected_object_ids: Vec<String>,  // specific object IDs
     pub selected_tags: Vec<String>,        // P1: tag filter (intersection with selectedObjectIds)
     pub include_attachments: bool,         // P1: include attachment files
-    pub selected_attachment_ids: Vec<String>, // P1: fine-grained attachment selection (empty = all)
+    pub selected_attachment_ids: Vec<String>, // P1: fine-grained attachment selection (empty = none)
     pub include_preferences: bool,         // P2: include user preferences
     pub include_behavioral: bool,          // future: include behavioral data
 }
@@ -272,12 +292,11 @@ pub async fn export_estimate_size(
         })
         .sum();
 
-    // Estimate attachments (respect selected_attachment_ids filter)
+    // Estimate attachments (only explicitly selected attachment IDs are counted)
     let mut attachment_count = 0usize;
     let mut attachment_selected_count = 0usize;
     if scope.include_attachments {
         let selected: std::collections::HashSet<String> = scope.selected_attachment_ids.iter().cloned().collect();
-        let has_selection = !selected.is_empty();
         for rec in &records {
             let atts = load_attachments(&rec.properties);
             for att in &atts {
@@ -285,7 +304,7 @@ pub async fn export_estimate_size(
                     continue;
                 }
                 attachment_count += 1;
-                if !has_selection || selected.contains(&att.id) {
+                if selected.contains(&att.id) {
                     attachment_selected_count += 1;
                     estimated_bytes += att.size_bytes;
                 }
@@ -326,43 +345,29 @@ pub async fn export_execute(
 
     // ── Validate password ──────────────────────────────────────
     if req.password.len() < 8 {
-        return Err("Password must be at least 8 characters".to_string());
+        return Err(export_err("PASSWORD_TOO_SHORT"));
     }
     let has_letter = req.password.chars().any(|c| c.is_ascii_alphabetic());
     let has_digit = req.password.chars().any(|c| c.is_ascii_digit());
     if !has_letter || !has_digit {
-        return Err("Password must contain at least one letter and one digit".to_string());
+        return Err(export_err("PASSWORD_REQUIRE_LETTER_DIGIT"));
     }
 
     // ── Verify export password is NOT the master password ──────
     match svc.verify_password(&account_id, &req.password) {
         Ok(true) => {
-            return Err("Export password must be different from your master password".to_string());
+            return Err(export_err("SAME_AS_MASTER_PASSWORD"));
         }
         Ok(false) => { /* export password is different from master password — OK */ }
         Err(e) => {
-            return Err(format!("Failed to verify master password: {}", e));
-        }
-    }
-
-    // ── Verify password hint does not contain the password ─────
-    if let Some(ref hint) = req.password_hint {
-        if !hint.is_empty() && req.password.len() >= 3 {
-            let pw_lower = req.password.to_lowercase();
-            let hint_lower = hint.to_lowercase();
-            for window in pw_lower.as_bytes().windows(3) {
-                let substr = std::str::from_utf8(window).unwrap_or("");
-                if !substr.is_empty() && hint_lower.contains(substr) {
-                    return Err("Password hint must not contain parts of the password".to_string());
-                }
-            }
+            return Err(export_err_with_detail("MASTER_VERIFY_FAILED", &e.to_string()));
         }
     }
 
     // ── Collect objects ────────────────────────────────────────
     let records = collect_scope_objects(vault, &account_id, &req.scope)?;
     if records.is_empty() {
-        return Err("No objects selected for export".to_string());
+        return Err(export_err("NO_OBJECTS_SELECTED"));
     }
 
     // ── Serialise payload ──────────────────────────────────────
@@ -434,13 +439,13 @@ pub async fn export_execute(
                 if att.deleted_at.is_some() {
                     continue;
                 }
-                // Fine-grained selection
-                if !selected_attachment_ids.is_empty() && !selected_attachment_ids.contains(&att.id) {
+                // Fine-grained selection: only export explicitly selected attachments
+                if !selected_attachment_ids.contains(&att.id) {
                     continue;
                 }
                 // Single attachment size limit
                 if att.size_bytes > MAX_ATTACHMENT_BYTES {
-                    return Err(format!("Attachment '{}' exceeds 100 MB limit", att.file_name));
+                    return Err(export_err_with_detail("ATTACHMENT_TOO_LARGE", &att.file_name));
                 }
 
                 let src = att
@@ -466,7 +471,7 @@ pub async fn export_execute(
     let payload_estimate = payload_bytes.len() as u64;
     let total_export_estimate = payload_estimate + total_attachment_bytes + (attachment_entries.len() as u64 * 28);
     if total_export_estimate > MAX_EXPORT_TOTAL_BYTES {
-        return Err("Total export size exceeds 1 GB limit".to_string());
+        return Err(export_err("TOTAL_SIZE_EXCEEDED"));
     }
 
     // Derive attachment key via HKDF
@@ -634,14 +639,14 @@ pub async fn import_parse_package(file_path: String) -> Result<ImportPreview, St
     let result = tokio::task::spawn_blocking(move || {
         let path = std::path::Path::new(&fp);
         if !path.exists() {
-            return Err(format!("File not found: {}", fp));
+            return Err(import_err_with_detail("FILE_NOT_FOUND", &fp));
         }
         let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;
-        let mut archive = ZipArchive::new(file).map_err(|_| "Not a valid .solosoul file".to_string())?;
+        let mut archive = ZipArchive::new(file).map_err(|_| import_err("INVALID_PACKAGE"))?;
 
         let mut entry = archive
             .by_name("manifest.json")
-            .map_err(|_| "No manifest.json found".to_string())?;
+            .map_err(|_| import_err("MISSING_MANIFEST"))?;
         let mut buf = Vec::new();
         entry.read_to_end(&mut buf).map_err(|e| format!("Read: {}", e))?;
         let s = String::from_utf8_lossy(&buf).to_string();
@@ -693,7 +698,7 @@ pub async fn import_decrypt_preview(
     let key = derive_export_key(&password, &salt)?;
     let enc_bytes = read_file_from_zip(&file_path, "payload.enc")?;
     let decrypted = solosoul_crypto::cipher::decrypt_from_bytes(&key, &enc_bytes, None)
-        .map_err(|_| "Decryption failed — wrong password or corrupted file".to_string())?;
+        .map_err(|_| import_err("DECRYPT_FAILED"))?;
 
     let payload: serde_json::Value = serde_json::from_slice(&decrypted)
         .map_err(|e| format!("Invalid payload: {}", e))?;
@@ -722,11 +727,14 @@ pub async fn import_decrypt_preview(
 
     let mut conflicts = Vec::new();
     for obj in &objects {
-        if let Ok(Some(_)) = vault.load_object(&obj.id) {
-            conflicts.push(ConflictInfo {
-                object_id: obj.id.clone(),
-                name: obj.name.clone(),
-            });
+        if let Ok(Some(existing)) = vault.load_object(&obj.id) {
+            // Soft-deleted objects are in trash and should not be treated as conflicts.
+            if !existing.is_deleted {
+                conflicts.push(ConflictInfo {
+                    object_id: obj.id.clone(),
+                    name: obj.name.clone(),
+                });
+            }
         }
     }
 
@@ -793,7 +801,7 @@ async fn import_execute_internal(
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
     if password.is_empty() {
-        return Err("Password is required".to_string());
+        return Err(import_err("PASSWORD_REQUIRED"));
     }
 
     let manifest = read_manifest(&file_path)?;
@@ -801,7 +809,7 @@ async fn import_execute_internal(
     let key = derive_export_key(&password, &salt)?;
     let enc_bytes = read_file_from_zip(&file_path, "payload.enc")?;
     let decrypted = solosoul_crypto::cipher::decrypt_from_bytes(&key, &enc_bytes, None)
-        .map_err(|_| "Decryption failed — wrong password or corrupted file".to_string())?;
+        .map_err(|_| import_err("DECRYPT_FAILED"))?;
 
     let payload: serde_json::Value = serde_json::from_slice(&decrypted)
         .map_err(|e| format!("Invalid payload: {}", e))?;
@@ -837,7 +845,8 @@ async fn import_execute_internal(
         let existing = vault.load_object(id).ok().flatten();
         match &strategy {
             ImportStrategy::SkipExisting => {
-                if existing.is_some() {
+                // Soft-deleted objects are not considered existing; import will restore them.
+                if existing.map_or(false, |e| !e.is_deleted) {
                     continue;
                 }
             }
@@ -910,6 +919,7 @@ async fn import_execute_internal(
         let zip_file = File::open(&file_path).map_err(|e| format!("open zip: {}", e))?;
         let mut archive = ZipArchive::new(zip_file).map_err(|e| format!("invalid zip: {}", e))?;
         let att_prefix = "attachments/";
+        let mut imported_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> = std::collections::HashMap::new();
         for i in 0..archive.len() {
             let mut f = archive.by_index(i).map_err(|e| e.to_string())?;
             let name = f.name().to_string();
@@ -961,11 +971,7 @@ async fn import_execute_internal(
             let file_path_dest = dest.join(&old_meta.file_name);
             std::fs::write(&file_path_dest, &att_data).map_err(|e| e.to_string())?;
 
-            // Update object's __attachments property
-            let mut obj = vault.load_object(obj_id).map_err(|e| format!("get object: {}", e))?
-                .ok_or_else(|| format!("object {} not found", obj_id))?;
-            let mut atts = load_attachments(&obj.properties);
-            atts.push(AttachmentMeta {
+            imported_atts.entry(obj_id.to_string()).or_default().push(AttachmentMeta {
                 id: new_att_id,
                 object_id: obj_id.to_string(),
                 file_name: old_meta.file_name.clone(),
@@ -976,6 +982,12 @@ async fn import_execute_internal(
                 src_path: Some(file_path_dest.to_string_lossy().to_string()),
                 vault_path: Some(file_path_dest.to_string_lossy().to_string()),
             });
+        }
+
+        // Replace each imported object's __attachments with the newly imported list
+        for (obj_id, atts) in imported_atts {
+            let mut obj = vault.load_object(&obj_id).map_err(|e| format!("get object: {}", e))?
+                .ok_or_else(|| format!("object {} not found", obj_id))?;
             let att_json = serde_json::to_value(&atts).map_err(|e| e.to_string())?;
             match &mut obj.properties {
                 serde_json::Value::Object(map) => {
@@ -1100,14 +1112,14 @@ fn resolve_cross_scope_references(
 fn read_manifest(file_path: &str) -> Result<ManifestData, String> {
     let path = std::path::Path::new(file_path);
     if !path.exists() {
-        return Err(format!("File not found: {}", file_path));
+        return Err(import_err_with_detail("FILE_NOT_FOUND", file_path));
     }
     let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;
-    let mut archive = ZipArchive::new(file).map_err(|_| "Not a valid .solosoul file".to_string())?;
+    let mut archive = ZipArchive::new(file).map_err(|_| import_err("INVALID_PACKAGE"))?;
 
     let mut entry = archive
         .by_name("manifest.json")
-        .map_err(|_| "No manifest.json".to_string())?;
+        .map_err(|_| import_err("MISSING_MANIFEST"))?;
     let mut buf = Vec::new();
     entry.read_to_end(&mut buf).map_err(|e| format!("Read manifest: {}", e))?;
     let s = String::from_utf8_lossy(&buf);
@@ -1120,7 +1132,7 @@ fn read_manifest(file_path: &str) -> Result<ManifestData, String> {
         .unwrap_or_default();
 
     Ok(ManifestData {
-        salt_hex: v["salt_hex"].as_str().ok_or("Missing salt_hex")?.to_string(),
+        salt_hex: v["salt_hex"].as_str().ok_or(import_err("MISSING_SALT"))?.to_string(),
         has_attachments: v["has_attachments"].as_bool().unwrap_or(false),
         extra_files,
     })

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
@@ -7,11 +8,12 @@ import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useToastError } from '@/hooks/useToastError';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { invoke } from '@tauri-apps/api/core';
 import { save, open } from '@tauri-apps/plugin-dialog';
 import { useAuthStore } from '@/stores/authStore';
 import type { SensitivityLevel } from '@/stores/sensitivityStore';
-import { Paperclip } from 'lucide-react';
+import { Paperclip, Info } from 'lucide-react';
 
 // ── Types matching Rust backend ─────────────────────────────
 
@@ -78,7 +80,7 @@ interface ConflictInfo {
   name: string;
 }
 
-type ImportStrategy = 'SkipExisting' | 'Overwrite' | 'Merge';
+type ImportStrategy = 'skipExisting' | 'overwrite' | 'merge';
 
 interface ImportSelection {
   objectId: string;
@@ -102,6 +104,135 @@ function assessPasswordStrength(pw: string): PasswordStrength {
   return 'strong';
 }
 
+/** Hover info card explaining attachment export limits. */
+function AttachmentLimitsInfo() {
+  const { t } = useTranslation('settings');
+  const [show, setShow] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    if (show && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 6, left: rect.left });
+    }
+  }, [show]);
+
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+      <button
+        ref={btnRef}
+        type="button"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        aria-label={t('attachment_limits_title')}
+        style={{
+          background: 'none',
+          border: 'none',
+          padding: 2,
+          display: 'flex',
+          alignItems: 'center',
+          color: 'var(--text-tertiary)',
+          cursor: 'pointer',
+        }}
+      >
+        <Info size={14} />
+      </button>
+      {show &&
+        pos &&
+        createPortal(
+          <div
+            style={{
+              position: 'fixed',
+              top: pos.top,
+              left: pos.left,
+              zIndex: 5000,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 8,
+              padding: 12,
+              boxShadow: 'var(--shadow-md)',
+              fontSize: 12,
+              color: 'var(--text-secondary)',
+              maxWidth: 520,
+              lineHeight: 1.5,
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 600,
+                marginBottom: 8,
+                color: 'var(--text-primary)',
+              }}
+            >
+              {t('attachment_limits_title')}
+            </div>
+            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <th style={{ textAlign: 'left', padding: '4px 8px', fontWeight: 600 }}>
+                    {t('attachment_limits_type')}
+                  </th>
+                  <th style={{ textAlign: 'left', padding: '4px 8px', fontWeight: 600 }}>
+                    {t('attachment_limits_threshold')}
+                  </th>
+                  <th style={{ textAlign: 'left', padding: '4px 8px', fontWeight: 600 }}>
+                    {t('attachment_limits_behavior')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <td style={{ padding: '4px 8px' }}>{t('attachment_limit_single_size')}</td>
+                  <td style={{ padding: '4px 8px' }}>100 MB</td>
+                  <td style={{ padding: '4px 8px' }}>{t('attachment_limit_single_size_behavior')}</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <td style={{ padding: '4px 8px' }}>{t('attachment_limit_single_count')}</td>
+                  <td style={{ padding: '4px 8px' }}>50</td>
+                  <td style={{ padding: '4px 8px' }}>{t('attachment_limit_single_count_behavior')}</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '4px 8px' }}>{t('attachment_limit_total_size')}</td>
+                  <td style={{ padding: '4px 8px' }}>1 GB</td>
+                  <td style={{ padding: '4px 8px' }}>{t('attachment_limit_total_size_behavior')}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+}
+
+/** Cancel button styled for the hard-coded warning panel background (#fff3e0). */
+function WarningCancelButton({ onClick, children }: { onClick: () => void; children: string }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: '6px 12px',
+        fontSize: 13,
+        borderRadius: 6,
+        border: '1px solid #ffcc80',
+        background: hovered ? '#ffffff' : 'rgba(255, 255, 255, 0.85)',
+        color: '#663c00',
+        cursor: 'pointer',
+        fontWeight: 500,
+        transition: 'background 0.15s',
+        fontFamily: 'inherit',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 // ── Component ───────────────────────────────────────────────
 
 export function ExportImportPage() {
@@ -123,6 +254,8 @@ export function ExportImportPage() {
   const [savePath, setSavePath] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [showWeakWarning, setShowWeakWarning] = useState(false);
+  const [showHintWarning, setShowHintWarning] = useState(false);
+  const skipHintCheckRef = useRef(false);
 
   // ── Export estimate ──────────────────────────────────────────
   const [exportEstimate, setExportEstimate] = useState<ExportEstimate | null>(null);
@@ -149,7 +282,7 @@ export function ExportImportPage() {
   const [isImporting, setIsImporting] = useState(false);
 
   // ── P2: Import strategy ─────────────────────────────────────
-  const [importStrategy, setImportStrategy] = useState<ImportStrategy>('SkipExisting');
+  const [importStrategy, setImportStrategy] = useState<ImportStrategy>('skipExisting');
   const [importSelections, setImportSelections] = useState<Map<string, boolean>>(new Map());
   const [showStrategySelector, setShowStrategySelector] = useState(false);
 
@@ -408,17 +541,23 @@ export function ExportImportPage() {
       return;
     }
 
-    // Verify password hint does not contain parts of the password
-    if (exportHint && exportPassword.length >= 3) {
+    // Warn if the password hint contains parts of the password
+    if (!skipHintCheckRef.current && exportHint && exportPassword.length >= 3) {
       const pwLower = exportPassword.toLowerCase();
       const hintLower = exportHint.toLowerCase();
+      let hintContainsPassword = false;
       for (let i = 0; i <= pwLower.length - 3; i++) {
         if (hintLower.includes(pwLower.slice(i, i + 3))) {
-          onError(new Error(t('settings:hint_contains_password')), '');
-          return;
+          hintContainsPassword = true;
+          break;
         }
       }
+      if (hintContainsPassword) {
+        setShowHintWarning(true);
+        return;
+      }
     }
+    skipHintCheckRef.current = false;
 
     if (pwStrength === 'weak' && !showWeakWarning) {
       setShowWeakWarning(true);
@@ -446,7 +585,7 @@ export function ExportImportPage() {
       });
       onSuccess(t('settings:export_success'));
     } catch (e) {
-      onError(e, t('common:export_failed'));
+      onError(new Error(resolveBackendErrorMessage(e)), t('common:export_failed'));
     } finally {
       setIsExporting(false);
     }
@@ -463,7 +602,7 @@ export function ExportImportPage() {
       setImportPreview(preview);
       setDecryptedPreview(null);
     } catch (e) {
-      onError(e, t('common:preview_failed'));
+      onError(new Error(resolveBackendErrorMessage(e)), t('common:preview_failed'));
     } finally {
       setIsPreviewing(false);
     }
@@ -485,7 +624,7 @@ export function ExportImportPage() {
       }
       setImportSelections(selMap);
     } catch (e) {
-      onError(e, t('common:decrypt_failed'));
+      onError(new Error(resolveBackendErrorMessage(e)), t('common:decrypt_failed'));
     } finally {
       setIsDecrypting(false);
     }
@@ -525,7 +664,7 @@ export function ExportImportPage() {
       setShowStrategySelector(false);
       loadScope();
     } catch (e) {
-      onError(e, t('common:import_failed'));
+      onError(new Error(resolveBackendErrorMessage(e)), t('common:import_failed'));
     } finally {
       setIsImporting(false);
     }
@@ -831,9 +970,9 @@ export function ExportImportPage() {
                     {estimating
                       ? t('settings:estimating')
                       : exportEstimate
-                        ? `${exportEstimate.objectCount} ${t('settings:objects_count')}` +
+                        ? `${t('settings:objects_count', { n: exportEstimate.objectCount })}` +
                           (exportEstimate.attachmentSelectedCount > 0
-                            ? ` + ${exportEstimate.attachmentSelectedCount} ${t('settings:attachments_count')}`
+                            ? ` + ${t('settings:attachments_count', { n: exportEstimate.attachmentSelectedCount })}`
                             : '') +
                           ` · ${formatBytes(exportEstimate.estimatedBytes)}`
                         : ''}
@@ -846,15 +985,18 @@ export function ExportImportPage() {
                 {t('settings:export_options')}
               </h3>
               <div style={{ padding: '4px 0' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
-                  <input
-                    type="checkbox"
-                    checked={includeAttachments}
-                    onChange={() => setIncludeAttachments(!includeAttachments)}
-                    style={{ accentColor: 'var(--accent-primary)' }}
-                  />
-                  {t('settings:include_attachments')}
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                    <input
+                      type="checkbox"
+                      checked={includeAttachments}
+                      onChange={() => setIncludeAttachments(!includeAttachments)}
+                      style={{ accentColor: 'var(--accent-primary)' }}
+                    />
+                    {t('settings:include_attachments')}
+                  </label>
+                  <AttachmentLimitsInfo />
+                </div>
                 <div style={{ paddingLeft: 24, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
                   {t('settings:include_attachments_desc')}
                 </div>
@@ -942,12 +1084,14 @@ export function ExportImportPage() {
                   setShowWeakWarning(false);
                 }}
                 placeholder={t('common:password_placeholder')}
+                showHintButton={false}
               />
               <div style={{ marginTop: 8 }}>
                 <SecurePasswordInput
                   value={exportPasswordConfirm}
                   onChange={(v) => setExportPasswordConfirm(v)}
                   placeholder={t('settings:confirm_password')}
+                  showHintButton={false}
                 />
               </div>
               {exportPassword && exportPasswordConfirm && exportPassword !== exportPasswordConfirm && (
@@ -994,6 +1138,35 @@ export function ExportImportPage() {
               </div>
             </Card>
 
+            {/* Password hint risk confirmation dialog */}
+            {showHintWarning && (
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  background: '#fff3e0',
+                  border: '1px solid #ffcc80',
+                  fontSize: 13,
+                  color: '#663c00',
+                }}
+              >
+                <p style={{ marginBottom: 8, fontWeight: 600 }}>{t('settings:hint_contains_password_title')}</p>
+                <p style={{ marginBottom: 10 }}>{t('settings:hint_contains_password_confirm')}</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <WarningCancelButton onClick={() => setShowHintWarning(false)}>
+                    {t('common:cancel')}
+                  </WarningCancelButton>
+                  <Button size="sm" onClick={async () => {
+                    skipHintCheckRef.current = true;
+                    setShowHintWarning(false);
+                    await handleExport();
+                  }}>
+                    {t('settings:export_anyway')}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Weak password confirmation dialog (P1) */}
             {showWeakWarning && (
               <div
@@ -1009,9 +1182,9 @@ export function ExportImportPage() {
                 <p style={{ marginBottom: 8, fontWeight: 600 }}>{t('settings:weak_password_title')}</p>
                 <p style={{ marginBottom: 10 }}>{t('settings:weak_password_confirm')}</p>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <Button size="sm" variant="secondary" onClick={() => setShowWeakWarning(false)}>
+                  <WarningCancelButton onClick={() => setShowWeakWarning(false)}>
                     {t('common:cancel')}
-                  </Button>
+                  </WarningCancelButton>
                   <Button size="sm" onClick={async () => {
                     setShowWeakWarning(false);
                     await handleExport();
@@ -1090,7 +1263,7 @@ export function ExportImportPage() {
                 <div style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <p>{t('settings:version')}: {importPreview.version}</p>
                   <p>{t('settings:export_time')}: {importPreview.exportTime || t('settings:unknown')}</p>
-                  <p>{t('settings:objects_count')}: {importPreview.objectCount}</p>
+                  <p>{t('settings:objects_count', { n: importPreview.objectCount })}</p>
                   {importPreview.hasAttachments && (
                     <p style={{ color: 'var(--accent-primary)' }}>
                       {t('settings:includes_attachments')}
@@ -1125,6 +1298,7 @@ export function ExportImportPage() {
                     value={importPw}
                     onChange={(v) => setImportPw(v)}
                     placeholder={t('common:password_placeholder')}
+                    showHintButton={false}
                   />
                 </div>
                 {!decryptedPreview && (
@@ -1235,7 +1409,7 @@ export function ExportImportPage() {
                         <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
                           {t('settings:import_strategy_title')}
                         </h4>
-                        {(['SkipExisting', 'Overwrite', 'Merge'] as ImportStrategy[]).map((s) => (
+                        {(['skipExisting', 'overwrite', 'merge'] as ImportStrategy[]).map((s) => (
                           <label
                             key={s}
                             style={{

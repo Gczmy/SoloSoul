@@ -304,7 +304,11 @@ fn restored_suffix(language: &str) -> &'static str {
 /// Restore an object from trash. Handles conflict: if an object with the same ID
 /// already exists, restore as a new copy with name appended " (restored)".
 #[tauri::command]
-pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Result<String, String> {
+pub async fn object_restore(
+    state: State<'_, AppState>,
+    trash_id: String,
+    lang: Option<String>,
+) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
@@ -326,7 +330,8 @@ pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Res
     let objects = vault.list_objects(account_id, None, None, Some(&trash.name_snapshot), false, false).unwrap_or_default();
     let exists = objects.iter().any(|o| o.name == trash.name_snapshot && o.section_type == target_section);
 
-    let lang = get_ui_language(&svc);
+    let fallback_lang = get_ui_language(&svc);
+    let lang = lang.as_deref().unwrap_or(&fallback_lang);
     let suffix = restored_suffix(&lang);
 
     let new_id = if exists {
@@ -373,6 +378,10 @@ pub async fn object_restore(state: State<'_, AppState>, trash_id: String) -> Res
     };
 
     vault.save_object(&record)?;
+    // If restored under a new ID (conflict), copy history snapshots so they aren't lost.
+    if new_id != trash.original_id {
+        let _ = vault.copy_snapshots(&trash.original_id, &new_id);
+    }
     vault.delete_trash_item(&trash_id)?;
     let _ = vault.log_structured("object_restore", "object", Some(&trash.original_id), Some(&trash.name_snapshot), "user",
         Some(&format!("section={} was_conflict={}", target_section, exists)));
@@ -396,8 +405,12 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
 }
 
 #[tauri::command]
-pub async fn trash_restore(state: State<'_, AppState>, trash_id: String) -> Result<String, String> {
-    object_restore(state, trash_id).await
+pub async fn trash_restore(
+    state: State<'_, AppState>,
+    trash_id: String,
+    lang: Option<String>,
+) -> Result<String, String> {
+    object_restore(state, trash_id, lang).await
 }
 
 /// Permanently delete a trash item (by trash_id → looks up original_id).
@@ -514,11 +527,13 @@ pub async fn page_delete(
 pub async fn page_restore(
     state: State<'_, AppState>,
     section_type: String,
+    lang: Option<String>,
 ) -> Result<usize, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    let lang = get_ui_language(&svc);
+    let fallback_lang = get_ui_language(&svc);
+    let lang = lang.as_deref().unwrap_or(&fallback_lang);
     let suffix = restored_suffix(&lang);
 
     // Fetch all trash items and filter by original_section_type
@@ -545,7 +560,7 @@ pub async fn page_restore(
                 if let Ok(record_data) = serde_json::from_slice::<serde_json::Value>(&trash.data) {
                     let now = chrono::Utc::now().to_rfc3339();
                     let record = solosoul_vault::ObjectRecord {
-                        id: new_id,
+                        id: new_id.clone(),
                         account_id: record_data["account_id"].as_str().unwrap_or("imported").to_string(),
                         type_id: record_data["type_id"].as_str().unwrap_or("note").to_string(),
                         section_type: section_type.clone(),
@@ -563,6 +578,10 @@ pub async fn page_restore(
                         version: record_data["version"].as_u64().unwrap_or(1) as u32,
                     };
                     if vault.save_object(&record).is_ok() {
+                        // Copy snapshots when restoring under a new ID (conflict) so history isn't lost.
+                        if new_id != trash.original_id {
+                            let _ = vault.copy_snapshots(&trash.original_id, &new_id);
+                        }
                         vault.delete_trash_item(&item.id).ok();
                         count += 1;
                     }

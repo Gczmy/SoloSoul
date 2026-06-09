@@ -53,6 +53,17 @@
   color: var(--text-primary);
 }
 
+.danger {
+  background: #dc2626;
+  color: white;
+}
+.danger:hover:not(:disabled) {
+  background: #b91d1d;
+}
+.danger:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
 /* Sizes */
 .sm {
   padding: 6px 12px;

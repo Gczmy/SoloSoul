@@ -91,7 +91,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         });
         set({ settings: p });
       }
-    } catch {}
+    } catch { /* ignore */ }
 
     // Step 2: fetch fresh prefs from IPC (slow, async)
     try {
@@ -125,7 +125,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           defaultLightTheme: parsed.defaultLightTheme,
           defaultDarkTheme: parsed.defaultDarkTheme,
         }));
-      } catch {}
+      } catch { /* ignore */ }
       if (prefs.language) {
         import('@/lib/i18n').then((mod) => { mod.default.changeLanguage(prefs.language!); });
       }
@@ -241,6 +241,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       });
       if (key === 'language' && typeof value === 'string') {
         await i18next.changeLanguage(value);
+        // Sync to plaintext UI prefs so backend can read the current language immediately
+        invoke('ui_update_preference', { key: 'language', value }).catch(() => {});
       }
     } catch {
       set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));

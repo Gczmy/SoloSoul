@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, forwardRef } from 'react';
 import styles from './Button.module.css';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'glass';
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'glass' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
 }
