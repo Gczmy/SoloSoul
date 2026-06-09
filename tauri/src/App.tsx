@@ -62,6 +62,8 @@ function AppRoutes() {
           accentColor: s.accentColor,
           backgroundType: s.backgroundType,
           backgroundValue: s.backgroundValue,
+          defaultLightTheme: s.defaultLightTheme,
+          defaultDarkTheme: s.defaultDarkTheme,
         });
         if (s.language) {
           import('@/lib/i18n').then((mod) => {
@@ -83,6 +85,8 @@ function AppRoutes() {
       accentColor: settings.accentColor,
       backgroundType: settings.backgroundType,
       backgroundValue: settings.backgroundValue,
+      defaultLightTheme: settings.defaultLightTheme,
+      defaultDarkTheme: settings.defaultDarkTheme,
     });
 
     // Apply saved language on startup
@@ -93,8 +97,15 @@ function AppRoutes() {
     }
 
     // Listen for system theme changes
-    const config = { preset: settings.theme as 'system', accentColor: settings.accentColor as
-      'ocean' | 'amber' | 'forest' | 'rose' | 'custom', backgroundType: settings.backgroundType as 'solid' | 'gradient' | 'image', backgroundValue: settings.backgroundValue };
+    const config = {
+      preset: (settings.theme === 'dark' ? 'warm-stone-dark' :
+              settings.theme === 'light' ? 'warm-stone-light' : 'system') as import('@/types').ThemePreset,
+      accentColor: settings.accentColor as 'ocean' | 'amber' | 'forest' | 'rose' | 'custom',
+      backgroundType: settings.backgroundType as 'solid' | 'gradient' | 'image',
+      backgroundValue: settings.backgroundValue,
+      defaultLightTheme: settings.defaultLightTheme,
+      defaultDarkTheme: settings.defaultDarkTheme,
+    };
     listenForSystemTheme(config, () => {
       const s = useSettingsStore.getState().settings;
       applyTheme({
@@ -103,6 +114,8 @@ function AppRoutes() {
         accentColor: s.accentColor,
         backgroundType: s.backgroundType,
         backgroundValue: s.backgroundValue,
+        defaultLightTheme: s.defaultLightTheme,
+        defaultDarkTheme: s.defaultDarkTheme,
       });
     });
   }, []);

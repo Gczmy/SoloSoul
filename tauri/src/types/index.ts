@@ -198,6 +198,8 @@ export interface ThemeConfig {
   customAccentHex?: string;
   backgroundType: BackgroundType;
   backgroundValue: string;
+  defaultLightTheme?: string;
+  defaultDarkTheme?: string;
 }
 
 export const ACCENT_COLORS: Record<AccentPreset, { light: string; dark: string }> = {

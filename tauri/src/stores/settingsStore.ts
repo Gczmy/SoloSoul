@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
+import type { ThemePreset } from '@/types';
 
 // 9.8.3 — Custom page data structure
 // Custom pages are now stored in the objects table (P0-1), not in preferences.
@@ -27,6 +28,8 @@ interface AppSettings {
   biometricEnabled: boolean;
   confirmDelete: boolean;
   customPages: CustomPage[];
+  defaultLightTheme: string;
+  defaultDarkTheme: string;
 }
 
 interface SettingsState {
@@ -56,6 +59,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   biometricEnabled: false,
   confirmDelete: true,
   customPages: [],
+  defaultLightTheme: 'warm-stone',
+  defaultDarkTheme: 'warm-stone-dark',
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -73,12 +78,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         const p = { ...get().settings };
         if (cached.theme) p.theme = cached.theme;
         if (cached.accentColor) p.accentColor = cached.accentColor;
+        if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
+        if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
         applyTheme({
           preset: p.theme === 'dark' ? 'warm-stone-dark' :
                   p.theme === 'light' ? 'warm-stone-light' : 'system',
           accentColor: p.accentColor,
           backgroundType: 'solid',
           backgroundValue: '',
+          defaultLightTheme: p.defaultLightTheme,
+          defaultDarkTheme: p.defaultDarkTheme,
         });
         set({ settings: p });
       }
@@ -86,20 +95,37 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
     // Step 2: fetch fresh prefs from IPC (slow, async)
     try {
-      const prefs = await invoke<{ theme?: string; accentColor?: string; language?: string }>('ui_get_preferences');
+      const prefs = await invoke<{
+        theme?: string;
+        accentColor?: string;
+        language?: string;
+        defaultLightTheme?: string;
+        defaultDarkTheme?: string;
+      }>('ui_get_preferences');
       const parsed = { ...get().settings };
       if (prefs.theme) parsed.theme = prefs.theme as AppSettings['theme'];
       if (prefs.accentColor) parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
       if (prefs.language) parsed.language = prefs.language;
+      if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
+      if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
       applyTheme({
         preset: parsed.theme === 'dark' ? 'warm-stone-dark' :
                 parsed.theme === 'light' ? 'warm-stone-light' : 'system',
         accentColor: parsed.accentColor,
         backgroundType: 'solid',
         backgroundValue: '',
+        defaultLightTheme: parsed.defaultLightTheme,
+        defaultDarkTheme: parsed.defaultDarkTheme,
       });
       set({ settings: parsed });
-      try { localStorage.setItem('solosoul_ui_prefs', JSON.stringify({ theme: parsed.theme, accentColor: parsed.accentColor })); } catch {}
+      try {
+        localStorage.setItem('solosoul_ui_prefs', JSON.stringify({
+          theme: parsed.theme,
+          accentColor: parsed.accentColor,
+          defaultLightTheme: parsed.defaultLightTheme,
+          defaultDarkTheme: parsed.defaultDarkTheme,
+        }));
+      } catch {}
       if (prefs.language) {
         import('@/lib/i18n').then((mod) => { mod.default.changeLanguage(prefs.language!); });
       }
@@ -117,6 +143,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.accentColor && ['ocean', 'amber', 'forest', 'rose', 'custom'].includes(prefs.accentColor as string)) {
         parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
       }
+      if (typeof prefs.defaultLightTheme === 'string') parsed.defaultLightTheme = prefs.defaultLightTheme;
+      if (typeof prefs.defaultDarkTheme === 'string') parsed.defaultDarkTheme = prefs.defaultDarkTheme;
       if (typeof prefs.customAccentHex === 'string') parsed.customAccentHex = prefs.customAccentHex;
       if (prefs.backgroundType && ['solid', 'gradient', 'image'].includes(prefs.backgroundType as string)) {
         parsed.backgroundType = prefs.backgroundType as AppSettings['backgroundType'];
@@ -139,6 +167,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (parsed.theme) invoke('ui_update_preference', { key: 'theme', value: parsed.theme }).catch(() => {});
       if (parsed.accentColor) invoke('ui_update_preference', { key: 'accentColor', value: parsed.accentColor }).catch(() => {});
       if (parsed.language) invoke('ui_update_preference', { key: 'language', value: parsed.language }).catch(() => {});
+      if (parsed.defaultLightTheme) invoke('ui_update_preference', { key: 'defaultLightTheme', value: parsed.defaultLightTheme }).catch(() => {});
+      if (parsed.defaultDarkTheme) invoke('ui_update_preference', { key: 'defaultDarkTheme', value: parsed.defaultDarkTheme }).catch(() => {});
     } catch {
       set({ isLoading: false });
     }

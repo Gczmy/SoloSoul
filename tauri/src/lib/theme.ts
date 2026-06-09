@@ -3,6 +3,7 @@
 // on <html>, driving light/dark via [data-theme] selectors.
 
 import type { AccentPreset, ThemeConfig } from '@/types';
+import { applyScheme, resolveActiveScheme } from './themeSchemes';
 
 const ACCENT_COLORS: Record<AccentPreset, string> = {
   ocean: '#5B7C99',
@@ -35,7 +36,7 @@ export function applyAccentColor(accent: AccentPreset, customHex?: string) {
   }
 }
 
-/** Full theme application: mode (data-theme attr) + accent color (4.3.5 — instant) */
+/** Full theme application: mode (data-theme attr) + accent color + active scheme */
 export function applyTheme(config: ThemeConfig) {
   const root = document.documentElement;
   // Set theme data attribute for CSS selectors
@@ -51,6 +52,13 @@ export function applyTheme(config: ThemeConfig) {
     config.accentColor as AccentPreset,
     (config as { customAccentHex?: string }).customAccentHex,
   );
+  // Apply active scheme variables
+  const activeScheme = resolveActiveScheme(
+    config.preset,
+    config.defaultLightTheme || 'warm-stone',
+    config.defaultDarkTheme || 'warm-stone-dark',
+  );
+  applyScheme(activeScheme);
 }
 
 /** Listen for system theme changes (4.3.5) */
@@ -65,6 +73,13 @@ export function listenForSystemTheme(
   systemListener = (e: MediaQueryListEvent) => {
     if (config.preset === 'system') {
       onThemeChange(e.matches ? 'dark' : 'light');
+      // Re-apply the default scheme for the new system mode
+      const activeScheme = resolveActiveScheme(
+        config.preset,
+        config.defaultLightTheme || 'warm-stone',
+        config.defaultDarkTheme || 'warm-stone-dark',
+      );
+      applyScheme(activeScheme);
     }
   };
   systemMediaQuery.addEventListener('change', systemListener);
