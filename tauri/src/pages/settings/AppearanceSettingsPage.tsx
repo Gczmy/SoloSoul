@@ -6,7 +6,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { applyTheme } from '@/lib/theme';
-import { applyScheme } from '@/lib/themeSchemes';
+import { applyScheme, getSchemeById } from '@/lib/themeSchemes';
 import { useTranslation } from 'react-i18next';
 import { ThemeSchemePanel } from '@/components/settings/ThemeSchemePanel';
 import type { AccentPreset } from '@/types';
@@ -33,6 +33,9 @@ export function AppearanceSettingsPage() {
   const accountId = currentAccount?.id || '';
   const { t } = useTranslation(['settings', 'common']);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  const lightSchemeName = t(getSchemeById(settings.defaultLightTheme)?.nameKey.replace('settings:', '') as any);
+  const darkSchemeName = t(getSchemeById(settings.defaultDarkTheme)?.nameKey.replace('settings:', '') as any);
 
   const syncUiCache = () => {
     const s = useSettingsStore.getState().settings;
@@ -133,7 +136,11 @@ export function AppearanceSettingsPage() {
                       onChange={() => handlePresetChange(preset)}
                       style={{ accentColor: 'var(--accent-primary)' }}
                     />
-                    {t(`common:theme.${preset}`)}
+                    {preset === 'light'
+                      ? `${t('common:theme.light')} · ${lightSchemeName}`
+                      : preset === 'dark'
+                        ? `${t('common:theme.dark')} · ${darkSchemeName}`
+                        : t('common:theme.system')}
                   </label>
                 ))}
               </div>

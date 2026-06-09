@@ -66,8 +66,8 @@
     "en-US": "English"
   },
   "theme": {
-    "light": "Light (Warm Stone)",
-    "dark": "Dark (Warm Stone)",
+    "light": "Light",
+    "dark": "Dark",
     "system": "System"
   },
   "never": "Never",
@@ -119,7 +119,6 @@
   "previous_version": "Previous version",
   "history": "History",
   "no_history": "No history snapshots yet.",
-  "version": "Version",
   "trigger_user_edit": "User edit",
   "trigger_rollback": "Rollback",
   "diff_Created": "Initial snapshot",
@@ -138,7 +137,6 @@
   "attachments_trash_empty": "No attachments in this object's trash.",
   "rename": "Rename",
   "rename_prompt": "Rename:",
-  "cancel": "Cancel",
   "undo": "Undo",
   "clear_hint": "Clear hint",
   "clear_hint_warning": "The password hint will be cleared when you save. Click Undo to cancel.",

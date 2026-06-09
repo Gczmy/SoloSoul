@@ -39,7 +39,7 @@ export function ThemeSchemePanel({
   return (
     <div
       style={{
-        width: 280,
+        width: 240,
         flexShrink: 0,
         height: '100%',
         background: 'var(--bg-elevated)',
@@ -101,10 +101,10 @@ export function ThemeSchemePanel({
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '0 16px 16px',
+          padding: '0 12px 12px',
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: 12,
+          gap: 8,
         }}
       >
         {schemes.map((scheme) => (
@@ -172,9 +172,9 @@ function SchemeThumbnail({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 8,
-        padding: 10,
-        borderRadius: 12,
+        gap: 6,
+        padding: 6,
+        borderRadius: 10,
         border: '2px solid',
         borderColor: isActive ? 'var(--accent-primary)' : 'transparent',
         background: 'var(--bg-base)',
@@ -192,9 +192,9 @@ function SchemeThumbnail({
       {/* Thumbnail preview */}
       <div
         style={{
-          width: 64,
-          height: 80,
-          borderRadius: 8,
+          width: 48,
+          height: 60,
+          borderRadius: 6,
           background: scheme.preview.bg,
           border: '1px solid var(--border-subtle)',
           overflow: 'hidden',
@@ -206,11 +206,11 @@ function SchemeThumbnail({
         <div
           style={{
             position: 'absolute',
-            top: 8,
-            left: 8,
-            right: 8,
-            height: 36,
-            borderRadius: 4,
+            top: 6,
+            left: 6,
+            right: 6,
+            height: 26,
+            borderRadius: 3,
             background: scheme.preview.elevated,
             boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
           }}
@@ -219,10 +219,10 @@ function SchemeThumbnail({
         <div
           style={{
             position: 'absolute',
-            bottom: 10,
-            left: 8,
-            width: 20,
-            height: 4,
+            bottom: 8,
+            left: 6,
+            width: 16,
+            height: 3,
             borderRadius: 2,
             background: scheme.preview.accent,
           }}
@@ -231,10 +231,10 @@ function SchemeThumbnail({
         <div
           style={{
             position: 'absolute',
-            bottom: 10,
-            right: 8,
-            width: 12,
-            height: 4,
+            bottom: 8,
+            right: 6,
+            width: 10,
+            height: 3,
             borderRadius: 2,
             background: scheme.preview.text,
             opacity: 0.6,
@@ -245,7 +245,7 @@ function SchemeThumbnail({
       {/* Name */}
       <span
         style={{
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: 500,
           color: 'var(--text-primary)',
           textAlign: 'center',
@@ -260,12 +260,12 @@ function SchemeThumbnail({
         <span
           style={{
             position: 'absolute',
-            top: 6,
-            right: 6,
-            fontSize: 10,
+            top: 4,
+            right: 4,
+            fontSize: 9,
             fontWeight: 600,
-            padding: '2px 6px',
-            borderRadius: 4,
+            padding: '1px 5px',
+            borderRadius: 3,
             background: 'var(--accent-primary)',
             color: '#fff',
           }}

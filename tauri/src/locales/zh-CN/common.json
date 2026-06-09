@@ -66,8 +66,8 @@
     "en-US": "English"
   },
   "theme": {
-    "light": "浅色（Warm Stone）",
-    "dark": "深色（Warm Stone）",
+    "light": "浅色",
+    "dark": "深色",
     "system": "跟随系统"
   },
   "never": "永不",
@@ -118,7 +118,6 @@
   "previous_version": "前一版本",
   "history": "历史记录",
   "no_history": "暂无历史记录",
-  "version": "版本",
   "trigger_user_edit": "用户编辑",
   "trigger_rollback": "回滚",
   "diff_Created": "初始版本",
@@ -137,7 +136,6 @@
   "attachments_trash_empty": "目前没有附件在该对象回收站中",
   "rename": "重命名",
   "rename_prompt": "重命名：",
-  "cancel": "取消",
   "undo": "撤销",
   "clear_hint": "清除提示词",
   "clear_hint_warning": "提示词将在保存时清除。点击「撤销」取消。",
