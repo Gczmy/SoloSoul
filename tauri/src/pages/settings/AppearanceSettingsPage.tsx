@@ -80,8 +80,27 @@ export function AppearanceSettingsPage() {
   };
 
   const handleSelectScheme = (scheme: ThemeScheme) => {
-    // Apply scheme immediately
-    applyScheme(scheme.id);
+    // If currently in "system" mode and user selects a scheme whose mode differs
+    // from the current system mode, automatically switch the global theme setting
+    // to that scheme's mode so the UI state matches the selected option.
+    const systemIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const systemMode = systemIsDark ? 'dark' : 'light';
+    if (settings.theme === 'system' && scheme.mode !== systemMode) {
+      const newTheme = scheme.mode;
+      updateSetting(accountId, 'theme', newTheme);
+      invoke('ui_update_preference', { key: 'theme', value: newTheme }).catch(() => {});
+      applyTheme({
+        preset: newTheme === 'dark' ? 'warm-stone-dark' : 'warm-stone-light',
+        accentColor: settings.accentColor as AccentPreset,
+        backgroundType: 'solid',
+        backgroundValue: '',
+        defaultLightTheme: scheme.mode === 'light' ? scheme.id : settings.defaultLightTheme,
+        defaultDarkTheme: scheme.mode === 'dark' ? scheme.id : settings.defaultDarkTheme,
+      });
+    } else {
+      // Apply scheme immediately
+      applyScheme(scheme.id);
+    }
     // Persist as default for the scheme's mode
     const key = scheme.mode === 'light' ? 'defaultLightTheme' : 'defaultDarkTheme';
     updateSetting(accountId, key, scheme.id);
