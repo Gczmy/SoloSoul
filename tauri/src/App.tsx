@@ -100,7 +100,7 @@ function AppRoutes() {
     const config = {
       preset: (settings.theme === 'dark' ? 'warm-stone-dark' :
               settings.theme === 'light' ? 'warm-stone-light' : 'system') as import('@/types').ThemePreset,
-      accentColor: settings.accentColor as 'ocean' | 'amber' | 'forest' | 'rose' | 'custom',
+      accentColor: settings.accentColor as 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'custom',
       backgroundType: settings.backgroundType as 'solid' | 'gradient' | 'image',
       backgroundValue: settings.backgroundValue,
       defaultLightTheme: settings.defaultLightTheme,

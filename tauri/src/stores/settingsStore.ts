@@ -140,7 +140,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.theme && ['light', 'dark', 'system'].includes(prefs.theme as string)) {
         parsed.theme = prefs.theme as AppSettings['theme'];
       }
-      if (prefs.accentColor && ['ocean', 'amber', 'forest', 'rose', 'custom'].includes(prefs.accentColor as string)) {
+      if (prefs.accentColor && ['ocean', 'amber', 'forest', 'rose', 'purple', 'custom'].includes(prefs.accentColor as string)) {
         parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
       }
       if (typeof prefs.defaultLightTheme === 'string') parsed.defaultLightTheme = prefs.defaultLightTheme;

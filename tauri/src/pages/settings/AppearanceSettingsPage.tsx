@@ -19,6 +19,7 @@ const ACCENT_OPTIONS: { value: AccentPreset; label: string; color: string }[] = 
   { value: 'amber', label: 'Amber', color: '#C4925C' },
   { value: 'forest', label: 'Forest', color: '#5B8C6F' },
   { value: 'rose', label: 'Rose', color: '#B06B7A' },
+  { value: 'purple', label: 'Purple', color: '#8B7AA8' },
 ];
 
 const LANG_OPTIONS: { value: SupportedLang; label: string }[] = [

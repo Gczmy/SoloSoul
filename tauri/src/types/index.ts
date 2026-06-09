@@ -189,7 +189,7 @@ export type PageStatus = 'idle' | 'loading' | 'success' | 'error';
 // ---- Theme System (per 09_ 4.3) ----
 
 export type ThemePreset = 'warm-stone-light' | 'warm-stone-dark' | 'system';
-export type AccentPreset = 'ocean' | 'amber' | 'forest' | 'rose' | 'custom';
+export type AccentPreset = 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'custom';
 export type BackgroundType = 'solid' | 'gradient' | 'image';
 
 export interface ThemeConfig {
@@ -207,5 +207,6 @@ export const ACCENT_COLORS: Record<AccentPreset, { light: string; dark: string }
   amber: { light: '#C4925C', dark: '#D4A76A' },
   forest: { light: '#5B8C6F', dark: '#7AAF8F' },
   rose: { light: '#B06B7A', dark: '#D48A9A' },
+  purple: { light: '#8B7AA8', dark: '#A899C4' },
   custom: { light: '#5B7C99', dark: '#7BA3C4' },
 };

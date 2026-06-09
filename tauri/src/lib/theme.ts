@@ -10,6 +10,7 @@ const ACCENT_COLORS: Record<AccentPreset, string> = {
   amber: '#C4925C',
   forest: '#5B8C6F',
   rose: '#B06B7A',
+  purple: '#8B7AA8',
   custom: '', // filled by customAccentHex
 };
 

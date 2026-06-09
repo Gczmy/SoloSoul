@@ -266,3 +266,19 @@
   --state-selected: rgba(212, 138, 154, 0.15);
   --state-focus-ring: 0 0 0 2px #D48A9A;
 }
+
+/* Purple — soft, muted */
+[data-accent="purple"] {
+  --accent-primary: #8B7AA8;
+  --accent-hover: #7A6A95;
+  --border-focus: #8B7AA8;
+  --state-selected: rgba(139, 122, 168, 0.1);
+  --state-focus-ring: 0 0 0 2px #8B7AA8;
+}
+[data-theme="dark"][data-accent="purple"] {
+  --accent-primary: #A899C4;
+  --accent-hover: #B8A9D4;
+  --border-focus: #A899C4;
+  --state-selected: rgba(168, 153, 196, 0.15);
+  --state-focus-ring: 0 0 0 2px #A899C4;
+}
