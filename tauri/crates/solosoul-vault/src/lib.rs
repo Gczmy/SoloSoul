@@ -208,19 +208,30 @@ impl ObjectSummary {
 /// Property type for template fields.
 /// Serialized as snake_case strings for forward compatibility.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
 pub enum PropertyType {
+    #[serde(rename = "text")]
     Text,
+    #[serde(rename = "multiline")]
     MultilineText,
+    #[serde(rename = "number")]
     Number,
+    #[serde(rename = "date")]
     Date,
+    #[serde(rename = "datetime")]
     DateTime,
+    #[serde(rename = "boolean")]
     Boolean,
+    #[serde(rename = "select")]
     Select,
+    #[serde(rename = "multiselect")]
     MultiSelect,
+    #[serde(rename = "url")]
     Url,
+    #[serde(rename = "email")]
     Email,
+    #[serde(rename = "phone")]
     Phone,
+    #[serde(rename = "file")]
     FileReference,
 }
 
