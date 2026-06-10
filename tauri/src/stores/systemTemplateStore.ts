@@ -12,8 +12,8 @@ export interface SystemTemplateSummary {
 
 export interface SystemTemplateProperty {
   id: string;
-  name_i18n_key: string;
-  name_fallback: string;
+  nameI18nKey: string;
+  nameFallback: string;
   type: string;
   sensitive?: boolean;
   required?: boolean;
@@ -24,8 +24,8 @@ export interface SystemTemplate {
   key: string;
   category: string;
   icon: string;
-  name_i18n_key: string;
-  name_fallback: string;
+  nameI18nKey: string;
+  nameFallback: string;
   properties: SystemTemplateProperty[];
 }
 

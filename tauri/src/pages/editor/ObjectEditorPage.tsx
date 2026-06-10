@@ -49,7 +49,7 @@ export function ObjectEditorPage() {
     for (const tpl of sysTemplates) {
       meta[tpl.key] = {
         category: tpl.category as TemplateCategory,
-        label: tpl.name_fallback,
+        label: tpl.nameFallback,
       };
     }
     return meta;
@@ -60,7 +60,7 @@ export function ObjectEditorPage() {
     for (const tpl of sysTemplates) {
       map[tpl.key] = tpl.properties.map((p) => ({
         key: p.id,
-        label: p.name_fallback,
+        label: p.nameFallback,
         type: p.type,
         sensitive: p.sensitive,
         required: p.required,
@@ -282,7 +282,7 @@ export function ObjectEditorPage() {
             category={templateMeta[selectedType]?.category || sectionParam || ''}
             fields={(objectTemplates[selectedType] || []).map((f) => ({
               id: f.key,
-              name_fallback: f.label,
+              nameFallback: f.label,
               type: f.type,
               sensitive: f.sensitive,
               required: false,

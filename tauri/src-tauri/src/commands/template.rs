@@ -391,23 +391,12 @@ pub struct SystemTemplateSummary {
 #[tauri::command]
 pub async fn system_template_list(
     category: Option<String>,
-) -> Result<Vec<SystemTemplateSummary>, String> {
+) -> Result<Vec<crate::services::template_service::SystemTemplate>, String> {
     let templates = match category {
         Some(cat) => crate::services::template_service::SystemTemplateRegistry::list_by_category(&cat),
         None => crate::services::template_service::SystemTemplateRegistry::list_all(),
     };
-
-    Ok(templates
-        .into_iter()
-        .map(|t| SystemTemplateSummary {
-            key: t.key.clone(),
-            category: t.category,
-            icon: t.icon,
-            name: t.name_fallback,
-            field_count: t.properties.len(),
-            sensitive_field_count: t.properties.iter().filter(|p| p.sensitive.unwrap_or(false)).count(),
-        })
-        .collect())
+    Ok(templates)
 }
 
 #[tauri::command]
