@@ -7,18 +7,30 @@ import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { useTemplateStore } from '@/stores/templateStore';
-import { TemplateFieldInput } from '@/components/TemplateFieldInput';
-import { LayoutTemplate, Trash2, Pencil, X, Save } from 'lucide-react';
-import type { UserTemplate, TemplateProperty } from '@/types/template';
+import { LayoutTemplate, Trash2, Pencil, X, Save, Plus } from 'lucide-react';
+import type { UserTemplate, TemplateProperty, PropertyType } from '@/types/template';
+
+const PROPERTY_TYPES: PropertyType[] = [
+  'text', 'multiline', 'number', 'date', 'datetime',
+  'boolean', 'select', 'multiselect', 'url', 'email', 'phone', 'file',
+];
 
 export function TemplateManagerPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'settings']);
-  const { templates, isLoading, error, loadTemplates, deleteTemplate, updateTemplate } = useTemplateStore();
+  const {
+    templates, isLoading, error, loadTemplates,
+    deleteTemplate, updateTemplate, createTemplate, getTemplate,
+  } = useTemplateStore();
 
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const [editName, setEditName] = useState('');
   const [editProperties, setEditProperties] = useState<TemplateProperty[]>([]);
+
+  const [isCreating, setIsCreating] = useState(false);
+  const [createName, setCreateName] = useState('');
+
+  const [newFieldType, setNewFieldType] = useState<PropertyType>('text');
 
   useEffect(() => {
     loadTemplates().catch(() => {});
@@ -66,8 +78,61 @@ export function TemplateManagerPage() {
     );
   };
 
+  const updatePropertyType = (index: number, newType: PropertyType) => {
+    setEditProperties((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, type: newType } : p))
+    );
+  };
+
+  const togglePropertySensitive = (index: number) => {
+    setEditProperties((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, sensitive: !p.sensitive } : p))
+    );
+  };
+
+  const removeProperty = (index: number) => {
+    setEditProperties((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addProperty = () => {
+    const newProp: TemplateProperty = {
+      id: crypto.randomUUID(),
+      name: t('settings:new_field_name') || '新字段',
+      type: newFieldType,
+      sensitive: false,
+    };
+    setEditProperties((prev) => [...prev, newProp]);
+  };
+
+  const closeCreate = () => {
+    setIsCreating(false);
+    setCreateName('');
+  };
+
+  const handleCreate = async () => {
+    const name = createName.trim();
+    if (!name) return;
+    try {
+      const newId = await createTemplate(name, undefined, []);
+      closeCreate();
+      const tpl = await getTemplate(newId);
+      if (tpl) openEdit(tpl);
+    } catch (e) {
+      alert(t('common:create_failed') + ': ' + e);
+    }
+  };
+
   return (
-    <AppShell title={t('settings:template_manager_title') || '模板管理'} onBack={() => navigate('/settings')}>
+    <AppShell
+      title={t('settings:template_manager_title') || '模板管理'}
+      onBack={() => navigate('/settings')}
+      actions={
+        <Button onClick={() => setIsCreating(true)}>
+          <Plus size={16} style={{ marginRight: 4 }} />
+          {t('settings:new_template') || '新建模板'}
+        </Button>
+      }
+    >
       <div style={{ maxWidth: 700, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {isLoading && <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{t('common:loading')}</div>}
         {error && <div style={{ color: 'var(--error)' }}>{error}</div>}
@@ -76,7 +141,7 @@ export function TemplateManagerPage() {
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>
             <LayoutTemplate size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
             <div>{t('settings:no_templates') || '暂无自定义模板'}</div>
-            <div style={{ fontSize: 12, marginTop: 4 }}>{t('settings:no_templates_hint') || '在对象编辑页点击"保存为模板"即可创建'}</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>{t('settings:no_templates_hint') || '点击右上角"新建模板"创建'}</div>
           </div>
         )}
 
@@ -106,9 +171,32 @@ export function TemplateManagerPage() {
         ))}
       </div>
 
+      {/* Create Dialog */}
+      <Dialog isOpen={isCreating} onClose={closeCreate} title={t('settings:new_template') || '新建模板'}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 360 }}>
+          <Input
+            label={t('common:name') || '名称'}
+            value={createName}
+            onChange={(e) => setCreateName(e.target.value)}
+            placeholder={t('settings:template_name_placeholder') || '请输入模板名称'}
+            autoFocus
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <Button variant="secondary" onClick={closeCreate}>
+              <X size={16} style={{ marginRight: 4 }} />
+              {t('common:cancel') || '取消'}
+            </Button>
+            <Button onClick={handleCreate} disabled={!createName.trim()}>
+              <Plus size={16} style={{ marginRight: 4 }} />
+              {t('common:create') || '创建'}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
       {/* Edit Dialog */}
       <Dialog isOpen={!!editingTemplate} onClose={closeEdit} title={t('settings:edit_template') || '编辑模板'}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 400 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 480, maxHeight: '70vh', overflow: 'auto' }}>
           <Input
             label={t('common:name') || '名称'}
             value={editName}
@@ -119,21 +207,97 @@ export function TemplateManagerPage() {
             <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 8, color: 'var(--text-secondary)' }}>
               {t('settings:template_fields') || '字段'}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+            {editProperties.length === 0 && (
+              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', padding: '12px 0' }}>
+                {t('settings:empty_template_hint') || '此模板暂无字段，点击下方添加'}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {editProperties.map((prop, idx) => (
-                <div key={prop.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <TemplateFieldInput
-                    propertyId={prop.id}
-                    label={prop.name}
-                    type={prop.type}
+                <div
+                  key={prop.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 10px',
+                    borderRadius: 6,
+                    background: 'var(--bg-subtle)',
+                  }}
+                >
+                  <Input
                     value={prop.name}
-                    onChange={(val) => updatePropertyName(idx, String(val))}
+                    onChange={(e) => updatePropertyName(idx, e.target.value)}
+                    placeholder={t('settings:field_name') || '字段名称'}
+                    style={{ flex: 1, minWidth: 0 }}
                   />
-                  <span style={{ fontSize: 11, color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
-                    {prop.type}
-                  </span>
+                  <select
+                    value={prop.type}
+                    onChange={(e) => updatePropertyType(idx, e.target.value as PropertyType)}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-elevated)',
+                      color: 'var(--text-primary)',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {PROPERTY_TYPES.map((pt) => (
+                      <option key={pt} value={pt}>{pt}</option>
+                    ))}
+                  </select>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 12,
+                      color: 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title={t('editor:sensitive') || '敏感'}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!!prop.sensitive}
+                      onChange={() => togglePropertySensitive(idx)}
+                    />
+                    {t('editor:sensitive') || '敏感'}
+                  </label>
+                  <Button variant="tertiary" size="sm" onClick={() => removeProperty(idx)} title={t('settings:remove_field') || '删除'}>
+                    <Trash2 size={14} />
+                  </Button>
                 </div>
               ))}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+              <select
+                value={newFieldType}
+                onChange={(e) => setNewFieldType(e.target.value as PropertyType)}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-primary)',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+              >
+                {PROPERTY_TYPES.map((pt) => (
+                  <option key={pt} value={pt}>{pt}</option>
+                ))}
+              </select>
+              <Button variant="secondary" size="sm" onClick={addProperty}>
+                <Plus size={14} style={{ marginRight: 4 }} />
+                {t('settings:add_field') || '添加字段'}
+              </Button>
             </div>
           </div>
 

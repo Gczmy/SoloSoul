@@ -398,6 +398,19 @@
       "attachment_cleanup": "{{count}} orphan(s) freed {{bytes}}"
     }
   },
+  "template_manager_title": "Template Manager",
+  "new_template": "New Template",
+  "template_name_placeholder": "Enter template name",
+  "add_field": "Add Field",
+  "field_name": "Field Name",
+  "remove_field": "Remove",
+  "empty_template_hint": "No fields yet. Add one below.",
+  "new_field_name": "New Field",
+  "no_templates": "No custom templates",
+  "no_templates_hint": "Click the New Template button to create one",
+  "template_fields": "fields",
+  "has_sensitive": "contains sensitive",
+  "edit_template": "Edit Template",
   "desc": {
     "theme_appearance": "Customize theme, accent color, language and background",
     "security_settings": "Password management, biometric unlock, auto-lock",
@@ -409,7 +422,8 @@
     "operation_log": "View account operation history",
     "help_docs": "Browse help docs and user guides",
     "debug_log": "View system diagnostic logs",
-    "about": "Version info and licenses"
+    "about": "Version info and licenses",
+    "templates": "Manage custom object templates"
   },
   "ai_quick_chat_title": "Quick Chat",
   "ai_quick_chat_configure_hint": "Please configure an LLM to use AI chat",
