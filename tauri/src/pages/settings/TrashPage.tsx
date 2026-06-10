@@ -382,13 +382,14 @@ export function TrashPage() {
                     {detailItem.previewProperties.map((p, i) => {
                       const propType = (p as Record<string, unknown>).type as PropertyType | undefined;
                       const sensitivity = (p as Record<string, unknown>).sensitivityLevel as SensitivityLevel | undefined;
+                      const typeLabel = propType ? t(`editor:field_types.${propType}`, propType) : String(p.value);
                       return (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           {propType && <FieldTypeIcon type={propType} size={14} />}
                           <span style={{ fontWeight: 500, flexShrink: 0 }}>{p.key}</span>
                           {sensitivity && <SensitivityBadge level={sensitivity} />}
                           <span style={{ color: 'var(--text-tertiary)', marginLeft: 'auto', flexShrink: 0 }}>
-                            {typeof p.value === 'string' ? p.value : JSON.stringify(p.value)}
+                            {typeLabel}
                           </span>
                         </div>
                       );

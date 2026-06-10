@@ -1022,7 +1022,6 @@ pub async fn trash_get_detail(
             Some(
                 props
                     .iter()
-                    .take(5)
                     .filter_map(|p| {
                         let name = p.get("name")?.as_str()?;
                         let prop_type = p.get("type")?.as_str()?;
