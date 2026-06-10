@@ -11,6 +11,10 @@ build/
 tauri/dist/
 tauri/src-tauri/target/
 
+# Coverage reports
+tauri/coverage/
+tauri/lcov.info
+
 # Rust
 crypto-argon2/target/
 .cargo/registry/
