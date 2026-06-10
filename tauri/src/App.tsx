@@ -27,6 +27,7 @@ import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
 import { PluginDashboardPage } from '@/pages/ai/PluginDashboardPage';
 import { LlmChatPage } from '@/pages/ai/LlmChatPage';
 import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
+import { TemplateManagerPage } from '@/pages/settings/TemplateManagerPage';
 import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
@@ -254,6 +255,14 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <PluginDashboardPage />
+          </AuthGuard>
+        }
+      />
+      <Route
+        path="/settings/templates"
+        element={
+          <AuthGuard>
+            <TemplateManagerPage />
           </AuthGuard>
         }
       />

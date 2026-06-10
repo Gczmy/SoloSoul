@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette, BookOpen } from 'lucide-react';
+import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette, BookOpen, LayoutTemplate } from 'lucide-react';
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -46,6 +46,7 @@ export function SettingsPage() {
         { label: t('settings:items.trash'), icon: Trash2, path: '/settings/trash', desc: t('settings:desc.trash') },
         { label: t('settings:items.backup_restore'), icon: Disc, path: '/settings/backup', desc: t('settings:desc.backup_restore') },
         { label: t('settings:items.operation_log'), icon: ClipboardList, path: '/settings/operation-log', desc: t('settings:desc.operation_log') },
+        { label: t('settings:items.templates') || '模板管理', icon: LayoutTemplate, path: '/settings/templates', desc: t('settings:desc.templates') || '管理自定义对象模板' },
       ],
     },
     {
