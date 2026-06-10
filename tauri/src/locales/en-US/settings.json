@@ -20,7 +20,8 @@
     "debug_log": "Debug Log",
     "about": "About",
     "language": "Language",
-    "appearance": "Appearance"
+    "appearance": "Appearance",
+    "templates": "Template Manager"
   },
   "auto_lock": "Auto Lock",
   "change_password": "Change Password",

@@ -20,7 +20,8 @@
     "debug_log": "调试日志",
     "about": "关于",
     "language": "语言",
-    "appearance": "外观"
+    "appearance": "外观",
+    "templates": "模板管理"
   },
   "auto_lock": "自动锁定",
   "change_password": "修改密码",

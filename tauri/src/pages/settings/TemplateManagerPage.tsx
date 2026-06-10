@@ -17,7 +17,7 @@ const PROPERTY_TYPES: PropertyType[] = [
 
 export function TemplateManagerPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation(['common', 'settings']);
+  const { t } = useTranslation(['common', 'settings', 'editor']);
   const {
     templates, isLoading, error, loadTemplates,
     deleteTemplate, updateTemplate, createTemplate, getTemplate,
@@ -122,6 +122,26 @@ export function TemplateManagerPage() {
     }
   };
 
+  const renderTypeSelect = (value: PropertyType, onChange: (v: PropertyType) => void) => (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as PropertyType)}
+      style={{
+        padding: '8px 10px',
+        borderRadius: 6,
+        border: '1px solid var(--border-subtle)',
+        background: 'var(--bg-elevated)',
+        color: 'var(--text-primary)',
+        fontSize: 13,
+        cursor: 'pointer',
+      }}
+    >
+      {PROPERTY_TYPES.map((pt) => (
+        <option key={pt} value={pt}>{t(`editor:field_types.${pt}`, pt)}</option>
+      ))}
+    </select>
+  );
+
   return (
     <AppShell
       title={t('settings:template_manager_title') || '模板管理'}
@@ -173,7 +193,7 @@ export function TemplateManagerPage() {
 
       {/* Create Dialog */}
       <Dialog isOpen={isCreating} onClose={closeCreate} title={t('settings:new_template') || '新建模板'}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 360 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input
             label={t('common:name') || '名称'}
             value={createName}
@@ -196,7 +216,7 @@ export function TemplateManagerPage() {
 
       {/* Edit Dialog */}
       <Dialog isOpen={!!editingTemplate} onClose={closeEdit} title={t('settings:edit_template') || '编辑模板'}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 480, maxHeight: '70vh', overflow: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
           <Input
             label={t('common:name') || '名称'}
             value={editName}
@@ -214,42 +234,40 @@ export function TemplateManagerPage() {
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '45vh', overflow: 'auto', paddingRight: 4 }}>
               {editProperties.map((prop, idx) => (
                 <div
                   key={prop.id}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 8,
+                    gap: 6,
                     padding: '8px 10px',
                     borderRadius: 6,
                     background: 'var(--bg-subtle)',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  <Input
-                    value={prop.name}
-                    onChange={(e) => updatePropertyName(idx, e.target.value)}
-                    placeholder={t('settings:field_name') || '字段名称'}
-                    style={{ flex: 1, minWidth: 0 }}
-                  />
-                  <select
-                    value={prop.type}
-                    onChange={(e) => updatePropertyType(idx, e.target.value as PropertyType)}
-                    style={{
-                      padding: '8px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      background: 'var(--bg-elevated)',
-                      color: 'var(--text-primary)',
-                      fontSize: 13,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {PROPERTY_TYPES.map((pt) => (
-                      <option key={pt} value={pt}>{pt}</option>
-                    ))}
-                  </select>
+                  <div style={{ flex: 1, minWidth: 120 }}>
+                    <input
+                      value={prop.name}
+                      onChange={(e) => updatePropertyName(idx, e.target.value)}
+                      placeholder={t('settings:field_name') || '字段名称'}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-elevated)',
+                        color: 'var(--text-primary)',
+                        fontSize: 14,
+                        fontFamily: 'inherit',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                  {renderTypeSelect(prop.type, (v) => updatePropertyType(idx, v))}
                   <label
                     style={{
                       display: 'flex',
@@ -276,24 +294,8 @@ export function TemplateManagerPage() {
               ))}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-              <select
-                value={newFieldType}
-                onChange={(e) => setNewFieldType(e.target.value as PropertyType)}
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                  fontSize: 13,
-                  cursor: 'pointer',
-                }}
-              >
-                {PROPERTY_TYPES.map((pt) => (
-                  <option key={pt} value={pt}>{pt}</option>
-                ))}
-              </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+              {renderTypeSelect(newFieldType, setNewFieldType)}
               <Button variant="secondary" size="sm" onClick={addProperty}>
                 <Plus size={14} style={{ marginRight: 4 }} />
                 {t('settings:add_field') || '添加字段'}
@@ -301,7 +303,7 @@ export function TemplateManagerPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
             <Button variant="secondary" onClick={closeEdit}>
               <X size={16} style={{ marginRight: 4 }} />
               {t('common:cancel') || '取消'}

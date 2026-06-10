@@ -36,5 +36,19 @@
     "company": "Company",
     "position": "Position"
   },
-  "in_section": "in {{section}}"
+  "in_section": "in {{section}}",
+  "field_types": {
+    "text": "Text",
+    "multiline": "Multiline",
+    "number": "Number",
+    "date": "Date",
+    "datetime": "DateTime",
+    "boolean": "Boolean",
+    "select": "Select",
+    "multiselect": "Multi-select",
+    "url": "URL",
+    "email": "Email",
+    "phone": "Phone",
+    "file": "File"
+  }
 }
