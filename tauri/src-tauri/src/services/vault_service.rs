@@ -535,3 +535,178 @@ impl Default for VaultService {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    fn setup_service() -> (VaultService, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let base = dir.path().join(".solosoul");
+        fs::create_dir_all(&base).unwrap();
+        let svc = VaultService {
+            base_path: base,
+            accounts_cache: RwLock::new(HashMap::new()),
+            session_key: RwLock::new(None),
+            unlocked_account: RwLock::new(None),
+            vault_store: RwLock::new(None),
+        };
+        (svc, dir)
+    }
+
+    #[test]
+    fn test_create_account_success() {
+        let (svc, _dir) = setup_service();
+        let result = svc.create_account("Alice", "password123");
+        assert!(result.is_ok());
+        let account = result.unwrap();
+        assert_eq!(account["name"], "Alice");
+        assert!(svc.has_any_account());
+    }
+
+    #[test]
+    fn test_create_account_empty_name_fails() {
+        let (svc, _dir) = setup_service();
+        let result = svc.create_account("", "password123");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("required"));
+    }
+
+    #[test]
+    fn test_create_account_short_password_fails() {
+        let (svc, _dir) = setup_service();
+        let result = svc.create_account("Alice", "short");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("8 characters"));
+    }
+
+    #[test]
+    fn test_create_account_duplicate_name_fails() {
+        let (svc, _dir) = setup_service();
+        svc.create_account("Alice", "password123").unwrap();
+        let result = svc.create_account("alice", "password456");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("already taken"));
+    }
+
+    #[test]
+    fn test_unlock_and_lock() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Bob", "password123").unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        // create_account leaves vault unlocked
+        assert_eq!(svc.get_vault_state(), "unlocked");
+        svc.lock();
+        assert_eq!(svc.get_vault_state(), "locked");
+        assert!(!svc.is_unlocked());
+
+        svc.unlock(account_id, "password123").unwrap();
+        assert_eq!(svc.get_vault_state(), "unlocked");
+
+        svc.lock();
+        assert_eq!(svc.get_vault_state(), "locked");
+        assert!(!svc.is_unlocked());
+    }
+
+    #[test]
+    fn test_unlock_wrong_password_fails() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Carol", "password123").unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        let result = svc.unlock(account_id, "wrongpassword");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid password"));
+    }
+
+    #[test]
+    fn test_list_accounts() {
+        let (svc, _dir) = setup_service();
+        svc.create_account("Alice", "password123").unwrap();
+        svc.create_account("Bob", "password123").unwrap();
+        let accounts = svc.list_accounts();
+        assert_eq!(accounts.len(), 2);
+    }
+
+    #[test]
+    fn test_verify_password() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Dave", "password123").unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        assert!(svc.verify_password(account_id, "password123").unwrap());
+        assert!(!svc.verify_password(account_id, "wrong").unwrap());
+    }
+
+    #[test]
+    fn test_change_password() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Eve", "oldpassword").unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        svc.unlock(account_id, "oldpassword").unwrap();
+        svc.change_password(account_id, "oldpassword", "newpassword").unwrap();
+
+        // Old password should fail
+        assert!(!svc.verify_password(account_id, "oldpassword").unwrap());
+        // New password should succeed
+        assert!(svc.verify_password(account_id, "newpassword").unwrap());
+    }
+
+    #[test]
+    fn test_update_password_hint() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Frank", "password123").unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        svc.update_password_hint(account_id, "My favorite color").unwrap();
+
+        let config_path = svc.config_path(account_id);
+        let content = fs::read_to_string(&config_path).unwrap();
+        let config: AccountConfig = serde_json::from_str(&content).unwrap();
+        assert_eq!(config.password_hint, Some("My favorite color".to_string()));
+    }
+
+    #[test]
+    fn test_delete_account() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Grace", "password123").unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        svc.delete_account(account_id).unwrap();
+        assert!(!svc.has_any_account());
+        assert!(!svc.account_dir(account_id).exists());
+    }
+
+    #[test]
+    fn test_unlock_with_session_key() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Hank", "password123").unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        let session_key = [0u8; 32];
+        svc.unlock_with_session_key(account_id, &session_key).unwrap();
+        assert_eq!(svc.get_vault_state(), "unlocked");
+        assert!(svc.get_session_key().is_some());
+    }
+
+    #[test]
+    fn test_get_vault_store_when_locked() {
+        let (svc, _dir) = setup_service();
+        svc.create_account("Ivy", "password123").unwrap();
+        // create_account leaves vault unlocked; lock first
+        svc.lock();
+        assert!(svc.get_vault_store().is_none());
+    }
+
+    #[test]
+    fn test_get_vault_store_when_unlocked() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Jack", "password123").unwrap();
+        let account_id = account["id"].as_str().unwrap();
+        svc.unlock(account_id, "password123").unwrap();
+        assert!(svc.get_vault_store().is_some());
+    }
+}

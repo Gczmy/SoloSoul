@@ -1089,3 +1089,169 @@ fn retention_ms(period: &str) -> i64 {
         _ => 30 * 24 * 3600 * 1000i64,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use solosoul_vault::{ObjectRecord, VaultConfig, VaultStore};
+    use tempfile::TempDir;
+
+    fn setup_vault() -> (VaultStore, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let config = VaultConfig::new("test_account", dir.path().to_path_buf());
+        let vault = VaultStore::open(config).unwrap();
+        (vault, dir)
+    }
+
+    #[test]
+    fn test_record_to_data_conversion() {
+        let record = ObjectRecord {
+            id: "obj-1".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Test Object".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: Some("parent-1".to_string()),
+            children_ids: vec!["child-1".to_string()],
+            properties: serde_json::json!({"key": "value"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec!["tag1".to_string()],
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            updated_at: "2024-01-02T00:00:00Z".to_string(),
+            version: 1,
+        };
+        let data = record_to_data(&record);
+        assert_eq!(data.id, "obj-1");
+        assert_eq!(data.account_id, "acc-1");
+        assert_eq!(data.collection_type, "note");
+        assert_eq!(data.name, "Test Object");
+        assert_eq!(data.sensitivity_level, "internal");
+        assert_eq!(data.deleted_at, None);
+    }
+
+    #[test]
+    fn test_object_data_serde_roundtrip() {
+        let original = ObjectData {
+            id: "obj-1".to_string(),
+            account_id: "acc-1".to_string(),
+            name: "Test".to_string(),
+            collection_type: "note".to_string(),
+            properties: serde_json::json!({"foo": "bar"}),
+            sensitivity_level: "public".to_string(),
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            updated_at: "2024-01-01T00:00:00Z".to_string(),
+            deleted_at: Some("2024-02-01T00:00:00Z".to_string()),
+        };
+        let json = serde_json::to_string(&original).unwrap();
+        assert!(json.contains("accountId"));
+        assert!(json.contains("collectionType"));
+        let restored: ObjectData = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.id, original.id);
+        assert_eq!(restored.name, original.name);
+    }
+
+    #[test]
+    fn test_restored_suffix_localization() {
+        assert_eq!(restored_suffix("zh-CN"), "（已恢复）");
+        assert_eq!(restored_suffix("en-US"), " (restored)");
+        assert_eq!(restored_suffix("ja-JP"), " (restored)");
+        assert_eq!(restored_suffix(""), " (restored)");
+    }
+
+    #[test]
+    fn test_retention_ms_parsing() {
+        assert_eq!(retention_ms("30d"), 30 * 24 * 3600 * 1000i64);
+        assert_eq!(retention_ms("60d"), 60 * 24 * 3600 * 1000i64);
+        assert_eq!(retention_ms("half_year"), 180 * 24 * 3600 * 1000i64);
+        assert_eq!(retention_ms("one_year"), 365 * 24 * 3600 * 1000i64);
+        assert_eq!(retention_ms("never"), i64::MAX);
+        assert_eq!(retention_ms("unknown"), 30 * 24 * 3600 * 1000i64);
+    }
+
+    #[test]
+    fn test_object_filter_deserialization() {
+        let json = r#"{"collectionType":"note","keyword":"test"}"#;
+        let filter: ObjectFilter = serde_json::from_str(json).unwrap();
+        assert_eq!(filter.collection_type, Some("note".to_string()));
+        assert_eq!(filter.keyword, Some("test".to_string()));
+        assert_eq!(filter.sensitivity_level, None);
+        assert_eq!(filter.parent_id, None);
+    }
+
+    #[test]
+    fn test_create_object_input_deserialization() {
+        let json = r#"{"accountId":"acc-1","name":"My Note","collectionType":"note","properties":{},"parentId":"parent-1","iconName":"star"}"#;
+        let input: CreateObjectInput = serde_json::from_str(json).unwrap();
+        assert_eq!(input.account_id, "acc-1");
+        assert_eq!(input.icon_name, Some("star".to_string()));
+        assert_eq!(input.parent_id, Some("parent-1".to_string()));
+    }
+
+    #[test]
+    fn test_vault_object_save_and_load() {
+        let (vault, _dir) = setup_vault();
+        let record = ObjectRecord {
+            id: "obj-1".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Test Note".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"content": "hello"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&record).unwrap();
+        let loaded = vault.load_object("obj-1").unwrap().unwrap();
+        assert_eq!(loaded.name, "Test Note");
+        assert_eq!(loaded.properties, serde_json::json!({"content": "hello"}));
+    }
+
+    #[test]
+    fn test_vault_object_list_and_soft_delete() {
+        let (vault, _dir) = setup_vault();
+        for i in 0..3 {
+            let record = ObjectRecord {
+                id: format!("obj-{}", i),
+                account_id: "acc-1".to_string(),
+                type_id: "note".to_string(),
+                section_type: "identity".to_string(),
+                name: format!("Note {}", i),
+                icon_name: "document".to_string(),
+                parent_id: None,
+                children_ids: vec![],
+                properties: serde_json::Value::Object(serde_json::Map::new()),
+                property_labels: None,
+                sensitivity_level: "internal".to_string(),
+                is_deleted: false,
+                deleted_at: None,
+                tags_json: vec![],
+                created_at: chrono::Utc::now().to_rfc3339(),
+                updated_at: chrono::Utc::now().to_rfc3339(),
+                version: 1,
+            };
+            vault.save_object(&record).unwrap();
+        }
+        let all = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        assert_eq!(all.len(), 3);
+
+        vault.delete_object("obj-1", true).unwrap();
+        let remaining = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        assert_eq!(remaining.len(), 2);
+
+        let deleted = vault.list_objects("acc-1", None, None, None, false, true).unwrap();
+        assert_eq!(deleted.len(), 1);
+    }
+}
