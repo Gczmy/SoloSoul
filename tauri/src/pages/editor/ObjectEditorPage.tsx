@@ -14,71 +14,11 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useToastError } from '@/hooks/useToastError';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import type { PropertyType } from '@/types/template';
+import { useSystemTemplateStore } from '@/stores/systemTemplateStore';
 
 // Each template belongs to a workspace section.
 // collectionType is the section (for filtering), not the template name.
 type TemplateCategory = 'identity' | 'travel' | 'financial' | 'professional';
-
-const templateMeta: Record<string, { category: TemplateCategory; label: string }> = {
-  identity:    { category: 'identity',     label: 'Identity' },
-  passport:    { category: 'travel',       label: 'Passport' },
-  visa:        { category: 'travel',       label: 'Visa' },
-  bank:        { category: 'financial',    label: 'Bank Account' },
-  card:        { category: 'financial',    label: 'Card' },
-  education:   { category: 'professional', label: 'Education' },
-  employment:  { category: 'professional', label: 'Employment' },
-};
-
-const objectTemplates: Record<string, { key: string; label: string; type: string; sensitive?: boolean }[]> = {
-  identity: [
-    { key: 'fullName', label: 'Full Name', type: 'text' },
-    { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
-    { key: 'nationality', label: 'Nationality', type: 'text' },
-    { key: 'idNumber', label: 'ID Number', type: 'text', sensitive: true },
-    { key: 'email', label: 'Email', type: 'email' },
-    { key: 'phone', label: 'Phone', type: 'tel' },
-  ],
-  passport: [
-    { key: 'fullName', label: 'Full Name', type: 'text' },
-    { key: 'passportNumber', label: 'Passport Number', type: 'text', sensitive: true },
-    { key: 'nationality', label: 'Nationality', type: 'text' },
-    { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
-    { key: 'issueDate', label: 'Issue Date', type: 'date' },
-    { key: 'expiryDate', label: 'Expiry Date', type: 'date' },
-  ],
-  visa: [
-    { key: 'country', label: 'Country', type: 'text' },
-    { key: 'visaType', label: 'Visa Type', type: 'text' },
-    { key: 'number', label: 'Visa Number', type: 'text', sensitive: true },
-    { key: 'issueDate', label: 'Issue Date', type: 'date' },
-    { key: 'expiryDate', label: 'Expiry Date', type: 'date' },
-  ],
-  bank: [
-    { key: 'bankName', label: 'Bank Name', type: 'text' },
-    { key: 'accountNumber', label: 'Account Number', type: 'text', sensitive: true },
-    { key: 'accountType', label: 'Account Type', type: 'text' },
-    { key: 'currency', label: 'Currency', type: 'text' },
-  ],
-  card: [
-    { key: 'cardNumber', label: 'Card Number', type: 'text', sensitive: true },
-    { key: 'cardType', label: 'Card Type', type: 'text' },
-    { key: 'holderName', label: 'Holder Name', type: 'text' },
-    { key: 'expiryDate', label: 'Expiry Date', type: 'date' },
-  ],
-  education: [
-    { key: 'institution', label: 'Institution', type: 'text' },
-    { key: 'degree', label: 'Degree', type: 'text' },
-    { key: 'field', label: 'Field', type: 'text' },
-    { key: 'startDate', label: 'Start Date', type: 'date' },
-    { key: 'endDate', label: 'End Date', type: 'date' },
-  ],
-  employment: [
-    { key: 'company', label: 'Company', type: 'text' },
-    { key: 'position', label: 'Position', type: 'text' },
-    { key: 'startDate', label: 'Start Date', type: 'date' },
-    { key: 'endDate', label: 'End Date', type: 'date' },
-  ],
-};
 
 export function ObjectEditorPage() {
   const { objectId } = useParams();
@@ -94,9 +34,38 @@ export function ObjectEditorPage() {
   const { getObject, createObject, updateObject, currentObject } = useObjectStore();
   const { map: sensitivityMap, loadMap } = useSensitivityStore();
   const { onError, onSuccess } = useToastError();
+  const { templates: sysTemplates, loaded: sysLoaded, load: loadSysTemplates } = useSystemTemplateStore();
 
-  // Load sensitivity map for field-level indicators
+  // Load system templates and sensitivity map on mount
   useEffect(() => { loadMap(); }, []);
+  useEffect(() => {
+    if (!sysLoaded) loadSysTemplates().catch(() => {});
+  }, [sysLoaded, loadSysTemplates]);
+
+  // Build templateMeta and objectTemplates from loaded system templates
+  const templateMeta = useMemo(() => {
+    const meta: Record<string, { category: TemplateCategory; label: string }> = {};
+    for (const tpl of sysTemplates) {
+      meta[tpl.key] = {
+        category: tpl.category as TemplateCategory,
+        label: tpl.name_fallback,
+      };
+    }
+    return meta;
+  }, [sysTemplates]);
+
+  const objectTemplates = useMemo(() => {
+    const map: Record<string, { key: string; label: string; type: string; sensitive?: boolean }[]> = {};
+    for (const tpl of sysTemplates) {
+      map[tpl.key] = tpl.properties.map((p) => ({
+        key: p.id,
+        label: p.name_fallback,
+        type: p.type,
+        sensitive: p.sensitive,
+      }));
+    }
+    return map;
+  }, [sysTemplates]);
 
   /** Resolve sensitivity level for a property field. */
   const getSensitivity = (fieldKey: string): SensitivityLevel => {

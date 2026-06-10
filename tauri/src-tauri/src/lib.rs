@@ -27,6 +27,10 @@ pub fn run() {
             app.manage(app_state);
             app.manage(commands::discovery::SharedDaemon::new());
             app.manage(core::sensitivity::SensitivityManager::new());
+            // Load system templates from embedded resource
+            if let Err(e) = services::template_service::SystemTemplateRegistry::init() {
+                tracing::error!("Failed to load system templates: {}", e);
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -69,6 +73,8 @@ pub fn run() {
             commands::template::template_get,
             commands::template::template_list,
             commands::template::template_save_from_object,
+            commands::template::system_template_list,
+            commands::template::system_template_get,
             // Sensitivity commands
             commands::sensitivity::sensitivity_get_field,
             commands::sensitivity::sensitivity_get_map,

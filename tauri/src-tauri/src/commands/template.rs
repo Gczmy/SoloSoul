@@ -373,3 +373,47 @@ pub async fn template_save_from_object(
 
     Ok(template.id)
 }
+
+// ---------------------------------------------------------------------------
+// System template commands (P2)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct SystemTemplateSummary {
+    pub key: String,
+    pub category: String,
+    pub icon: String,
+    pub name: String,
+    pub field_count: usize,
+    pub sensitive_field_count: usize,
+}
+
+#[tauri::command]
+pub async fn system_template_list(
+    category: Option<String>,
+) -> Result<Vec<SystemTemplateSummary>, String> {
+    let templates = match category {
+        Some(cat) => crate::services::template_service::SystemTemplateRegistry::list_by_category(&cat),
+        None => crate::services::template_service::SystemTemplateRegistry::list_all(),
+    };
+
+    Ok(templates
+        .into_iter()
+        .map(|t| SystemTemplateSummary {
+            key: t.key.clone(),
+            category: t.category,
+            icon: t.icon,
+            name: t.name_fallback,
+            field_count: t.properties.len(),
+            sensitive_field_count: t.properties.iter().filter(|p| p.sensitive.unwrap_or(false)).count(),
+        })
+        .collect())
+}
+
+#[tauri::command]
+pub async fn system_template_get(
+    template_key: String,
+) -> Result<crate::services::template_service::SystemTemplate, String> {
+    crate::services::template_service::SystemTemplateRegistry::get(&template_key)
+        .ok_or_else(|| "系统模板不存在".to_string())
+}
