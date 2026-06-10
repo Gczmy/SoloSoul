@@ -312,3 +312,255 @@ pub async fn attachment_cleanup_orphans(
     );
     Ok(removed)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use solosoul_vault::{ObjectRecord, VaultConfig, VaultStore};
+    use tempfile::TempDir;
+
+    fn setup_vault() -> (VaultStore, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let config = VaultConfig::new("test_account", dir.path().to_path_buf());
+        let vault = VaultStore::open(config).unwrap();
+        (vault, dir)
+    }
+
+    #[test]
+    fn test_attachment_meta_serde_roundtrip() {
+        let original = AttachmentMeta {
+            id: "att-1".to_string(),
+            object_id: "obj-1".to_string(),
+            file_name: "test.pdf".to_string(),
+            mime_type: "application/pdf".to_string(),
+            size_bytes: 1024,
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            deleted_at: Some("2024-02-01T00:00:00Z".to_string()),
+            src_path: Some("/tmp/test.pdf".to_string()),
+            vault_path: Some("/vault/test.pdf".to_string()),
+        };
+        let json = serde_json::to_string(&original).unwrap();
+        let restored: AttachmentMeta = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.id, original.id);
+        assert_eq!(restored.object_id, original.object_id);
+        assert_eq!(restored.file_name, original.file_name);
+        assert_eq!(restored.mime_type, original.mime_type);
+        assert_eq!(restored.size_bytes, original.size_bytes);
+        assert_eq!(restored.created_at, original.created_at);
+        assert_eq!(restored.deleted_at, original.deleted_at);
+        assert_eq!(restored.src_path, original.src_path);
+        assert_eq!(restored.vault_path, original.vault_path);
+    }
+
+    #[test]
+    fn test_load_attachments_empty() {
+        let props = serde_json::json!({"title": "hello"});
+        let atts = load_attachments(&props);
+        assert!(atts.is_empty());
+    }
+
+    #[test]
+    fn test_load_attachments_some() {
+        let atts = vec![AttachmentMeta {
+            id: "att-1".to_string(),
+            object_id: "obj-1".to_string(),
+            file_name: "a.pdf".to_string(),
+            mime_type: "application/pdf".to_string(),
+            size_bytes: 100,
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            deleted_at: None,
+            src_path: None,
+            vault_path: None,
+        }];
+        let props = serde_json::json!({"title": "hello", "__attachments": atts});
+        let loaded = load_attachments(&props);
+        assert_eq!(loaded.len(), 1);
+        assert_eq!(loaded[0].id, "att-1");
+    }
+
+    #[test]
+    fn test_save_and_load_attachments() {
+        let mut props = serde_json::json!({"title": "hello"});
+        let atts = vec![AttachmentMeta {
+            id: "att-1".to_string(),
+            object_id: "obj-1".to_string(),
+            file_name: "a.pdf".to_string(),
+            mime_type: "application/pdf".to_string(),
+            size_bytes: 100,
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            deleted_at: None,
+            src_path: None,
+            vault_path: None,
+        }];
+        save_attachments(&mut props, &atts);
+        let loaded = load_attachments(&props);
+        assert_eq!(loaded.len(), 1);
+        assert_eq!(loaded[0].id, "att-1");
+        assert_eq!(loaded[0].file_name, "a.pdf");
+    }
+
+    #[test]
+    fn test_load_all_referenced_attachment_ids() {
+        let (vault, _dir) = setup_vault();
+        let account_id = "acc-1";
+
+        let record1 = ObjectRecord {
+            id: "obj-1".to_string(),
+            account_id: account_id.to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Note 1".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({
+                "__attachments": [
+                    AttachmentMeta {
+                        id: "att-1".to_string(),
+                        object_id: "obj-1".to_string(),
+                        file_name: "a.pdf".to_string(),
+                        mime_type: "application/pdf".to_string(),
+                        size_bytes: 100,
+                        created_at: "2024-01-01T00:00:00Z".to_string(),
+                        deleted_at: None,
+                        src_path: None,
+                        vault_path: None,
+                    },
+                    AttachmentMeta {
+                        id: "att-2".to_string(),
+                        object_id: "obj-1".to_string(),
+                        file_name: "b.pdf".to_string(),
+                        mime_type: "application/pdf".to_string(),
+                        size_bytes: 200,
+                        created_at: "2024-01-01T00:00:00Z".to_string(),
+                        deleted_at: Some("2024-02-01T00:00:00Z".to_string()),
+                        src_path: None,
+                        vault_path: None,
+                    },
+                ]
+            }),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&record1).unwrap();
+
+        let record2 = ObjectRecord {
+            id: "obj-2".to_string(),
+            account_id: account_id.to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Note 2".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({
+                "__attachments": [
+                    AttachmentMeta {
+                        id: "att-3".to_string(),
+                        object_id: "obj-2".to_string(),
+                        file_name: "c.pdf".to_string(),
+                        mime_type: "application/pdf".to_string(),
+                        size_bytes: 300,
+                        created_at: "2024-01-01T00:00:00Z".to_string(),
+                        deleted_at: None,
+                        src_path: None,
+                        vault_path: None,
+                    },
+                ]
+            }),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&record2).unwrap();
+
+        let ids = load_all_referenced_attachment_ids(&vault, account_id).unwrap();
+        assert_eq!(ids.len(), 3);
+        assert!(ids.contains("att-1"));
+        assert!(ids.contains("att-2"));
+        assert!(ids.contains("att-3"));
+    }
+
+    #[test]
+    fn test_vault_attachment_filtering() {
+        let (vault, _dir) = setup_vault();
+        let mut record = ObjectRecord {
+            id: "obj-1".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Note".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({
+                "__attachments": [
+                    AttachmentMeta {
+                        id: "att-1".to_string(),
+                        object_id: "obj-1".to_string(),
+                        file_name: "active.pdf".to_string(),
+                        mime_type: "application/pdf".to_string(),
+                        size_bytes: 100,
+                        created_at: "2024-01-01T00:00:00Z".to_string(),
+                        deleted_at: None,
+                        src_path: None,
+                        vault_path: None,
+                    },
+                    AttachmentMeta {
+                        id: "att-2".to_string(),
+                        object_id: "obj-1".to_string(),
+                        file_name: "deleted.pdf".to_string(),
+                        mime_type: "application/pdf".to_string(),
+                        size_bytes: 200,
+                        created_at: "2024-01-01T00:00:00Z".to_string(),
+                        deleted_at: Some("2024-02-01T00:00:00Z".to_string()),
+                        src_path: None,
+                        vault_path: None,
+                    },
+                ]
+            }),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&record).unwrap();
+
+        let rec = vault.load_object("obj-1").unwrap().unwrap();
+        let atts = load_attachments(&rec.properties);
+        let active: Vec<_> = atts.iter().filter(|a| a.deleted_at.is_none()).collect();
+        let deleted: Vec<_> = atts.iter().filter(|a| a.deleted_at.is_some()).collect();
+        assert_eq!(active.len(), 1);
+        assert_eq!(active[0].id, "att-1");
+        assert_eq!(deleted.len(), 1);
+        assert_eq!(deleted[0].id, "att-2");
+
+        // Test soft-delete helper logic inline
+        let mut atts_mut = load_attachments(&rec.properties);
+        if let Some(a) = atts_mut.iter_mut().find(|a| a.id == "att-1") {
+            a.deleted_at = Some("2024-03-01T00:00:00Z".to_string());
+        }
+        save_attachments(&mut record.properties, &atts_mut);
+        vault.save_object(&record).unwrap();
+
+        let rec2 = vault.load_object("obj-1").unwrap().unwrap();
+        let atts2 = load_attachments(&rec2.properties);
+        assert_eq!(atts2.iter().filter(|a| a.deleted_at.is_none()).count(), 0);
+        assert_eq!(atts2.iter().filter(|a| a.deleted_at.is_some()).count(), 2);
+    }
+}

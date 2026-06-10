@@ -198,4 +198,157 @@ mod tests {
             .join("resources/models/all-MiniLM-L6-v2");
         assert!(is_model_installed(&model_dir, ""));
     }
+
+    #[test]
+    fn test_is_model_installed_false() {
+        let tmp = tempfile::tempdir().unwrap();
+        assert!(!is_model_installed(tmp.path(), "nonexistent-model"));
+    }
+
+    #[test]
+    fn test_load_missing_model() {
+        let tmp = tempfile::tempdir().unwrap();
+        let result = LocalEmbedder::load(tmp.path(), "test");
+        assert!(result.is_err());
+        let err = result.err().unwrap();
+        assert!(err.contains("Model not found"), "Expected 'Model not found' error, got: {}", err);
+    }
+
+    #[test]
+    fn test_load_missing_tokenizer() {
+        let tmp = tempfile::tempdir().unwrap();
+        std::fs::write(tmp.path().join("model.onnx"), b"dummy onnx bytes").unwrap();
+        let result = LocalEmbedder::load(tmp.path(), "test");
+        assert!(result.is_err());
+        let err = result.err().unwrap();
+        assert!(err.contains("Tokenizer not found"), "Expected 'Tokenizer not found' error, got: {}", err);
+    }
+
+    #[test]
+    fn test_clear_embedder_cache() {
+        // Should not panic even when cache is empty
+        clear_embedder_cache();
+        // Verify lock can be acquired after clearing
+        let cache = EMBEDDER_CACHE.lock().unwrap();
+        assert!(cache.is_none());
+    }
+
+    #[test]
+    fn test_get_embedder_missing_model() {
+        clear_embedder_cache();
+        let tmp = tempfile::tempdir().unwrap();
+        let result = get_embedder(tmp.path(), "missing-model");
+        assert!(result.is_err());
+        let err = result.err().unwrap();
+        assert!(err.contains("Model not found") || err.contains("Tokenizer not found"), "Got: {}", err);
+    }
+
+    #[test]
+    fn test_get_embedder_cache_hit() {
+        // This test requires the dev model to be present.
+        let model_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("resources/models/all-MiniLM-L6-v2");
+        if !is_model_installed(&model_dir, "") {
+            eprintln!("Skipping cache hit test: dev model not installed");
+            return;
+        }
+
+        clear_embedder_cache();
+        let embedder1 = get_embedder(&model_dir, "").unwrap();
+        let embedder2 = get_embedder(&model_dir, "").unwrap();
+        // Both should point to the same Arc instance (same model_id match)
+        assert_eq!(embedder1.model_id, embedder2.model_id);
+    }
+
+    #[test]
+    fn test_embed_batch_with_real_model() {
+        let model_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("resources/models/all-MiniLM-L6-v2");
+        if !is_model_installed(&model_dir, "") {
+            eprintln!("Skipping embed batch test: dev model not installed");
+            return;
+        }
+
+        clear_embedder_cache();
+        let embedder = get_embedder(&model_dir, "").unwrap();
+
+        // Empty batch returns empty immediately
+        let empty = embedder.embed_batch(&[]).unwrap();
+        assert!(empty.is_empty());
+
+        // Single text
+        let single = embedder.embed_batch(&["Hello world".to_string()]).unwrap();
+        assert_eq!(single.len(), 1);
+        let vec = &single[0];
+        assert!(!vec.is_empty());
+
+        // L2 normalization check: norm should be ~1.0
+        let norm: f32 = vec.iter().map(|v| v * v).sum::<f32>().sqrt();
+        assert!((norm - 1.0).abs() < 1e-4, "Expected normalized vector, norm = {}", norm);
+
+        // Batch of multiple texts
+        let batch = embedder
+            .embed_batch(&[
+                "First sentence".to_string(),
+                "Second sentence".to_string(),
+                "Third sentence".to_string(),
+            ])
+            .unwrap();
+        assert_eq!(batch.len(), 3);
+        for v in &batch {
+            assert!(!v.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_embed_single_text() {
+        let model_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("resources/models/all-MiniLM-L6-v2");
+        if !is_model_installed(&model_dir, "") {
+            eprintln!("Skipping embed single test: dev model not installed");
+            return;
+        }
+
+        clear_embedder_cache();
+        let embedder = get_embedder(&model_dir, "").unwrap();
+        let vec = embedder.embed("A test sentence").unwrap();
+        assert!(!vec.is_empty());
+        let norm: f32 = vec.iter().map(|v| v * v).sum::<f32>().sqrt();
+        assert!((norm - 1.0).abs() < 1e-4, "Expected normalized vector, norm = {}", norm);
+    }
+
+    #[test]
+    fn test_embed_unicode_text() {
+        let model_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("resources/models/all-MiniLM-L6-v2");
+        if !is_model_installed(&model_dir, "") {
+            eprintln!("Skipping embed unicode test: dev model not installed");
+            return;
+        }
+
+        clear_embedder_cache();
+        let embedder = get_embedder(&model_dir, "").unwrap();
+        let vec = embedder.embed("你好世界 🌍 ñoël 日本語").unwrap();
+        assert!(!vec.is_empty());
+        let norm: f32 = vec.iter().map(|v| v * v).sum::<f32>().sqrt();
+        assert!((norm - 1.0).abs() < 1e-4);
+    }
+
+    #[test]
+    fn test_embed_very_long_text() {
+        let model_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("resources/models/all-MiniLM-L6-v2");
+        if !is_model_installed(&model_dir, "") {
+            eprintln!("Skipping embed long text test: dev model not installed");
+            return;
+        }
+
+        clear_embedder_cache();
+        let embedder = get_embedder(&model_dir, "").unwrap();
+        let long_text = "word ".repeat(1000);
+        let vec = embedder.embed(&long_text).unwrap();
+        assert!(!vec.is_empty());
+        let norm: f32 = vec.iter().map(|v| v * v).sum::<f32>().sqrt();
+        assert!((norm - 1.0).abs() < 1e-4);
+    }
 }

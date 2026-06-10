@@ -1375,4 +1375,789 @@ mod tests {
         let result = VaultStore::open(config);
         assert!(result.is_err());
     }
+
+    // ── Object CRUD edge cases ────────────────────────────────
+
+    #[test]
+    fn test_save_load_delete_object() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-1".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Test Object".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"key": "value"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec!["tag1".to_string()],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        let loaded = vault.load_object("obj-1").unwrap().unwrap();
+        assert_eq!(loaded.name, "Test Object");
+        assert_eq!(loaded.properties, serde_json::json!({"key": "value"}));
+        assert_eq!(loaded.tags_json, vec!["tag1".to_string()]);
+
+        vault.delete_object("obj-1", false).unwrap();
+        assert!(vault.load_object("obj-1").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_save_object_upsert() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-upsert".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Original".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        let mut updated = obj.clone();
+        updated.name = "Updated".to_string();
+        updated.version = 2;
+        vault.save_object(&updated).unwrap();
+
+        let loaded = vault.load_object("obj-upsert").unwrap().unwrap();
+        assert_eq!(loaded.name, "Updated");
+        assert_eq!(loaded.version, 2);
+    }
+
+    #[test]
+    fn test_list_objects_empty_collection() {
+        let (vault, _dir) = setup();
+        let list = vault.list_objects("acc-empty", None, None, None, false, false).unwrap();
+        assert!(list.is_empty());
+    }
+
+    #[test]
+    fn test_list_objects_include_deleted() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-del-1".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Deleted Item".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        vault.delete_object("obj-del-1", true).unwrap();
+
+        let active = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        assert_eq!(active.len(), 0);
+
+        let include_del = vault.list_objects("acc-1", None, None, None, true, false).unwrap();
+        assert_eq!(include_del.len(), 1);
+
+        let only_del = vault.list_objects("acc-1", None, None, None, false, true).unwrap();
+        assert_eq!(only_del.len(), 1);
+    }
+
+    #[test]
+    fn test_list_objects_keyword_unicode() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-unicode".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "日本語テスト".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"content": "你好世界"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        let by_name = vault.list_objects("acc-1", None, None, Some("日本語"), false, false).unwrap();
+        assert_eq!(by_name.len(), 1);
+
+        let by_prop = vault.list_objects("acc-1", None, None, Some("你好"), false, false).unwrap();
+        assert_eq!(by_prop.len(), 1);
+    }
+
+    #[test]
+    fn test_search_objects_basic() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-search".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Searchable Name".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"content": "find me"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        let results = vault.search_objects("acc-1", "Searchable").unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].id, "obj-search");
+
+        let by_prop = vault.search_objects("acc-1", "find me").unwrap();
+        assert_eq!(by_prop.len(), 1);
+    }
+
+    #[test]
+    fn test_search_objects_no_results() {
+        let (vault, _dir) = setup();
+        let results = vault.search_objects("acc-1", "nonexistent-keyword-12345").unwrap();
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn test_search_objects_excludes_deleted() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-s-del".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Will be deleted".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        vault.delete_object("obj-s-del", true).unwrap();
+
+        let results = vault.search_objects("acc-1", "Will be deleted").unwrap();
+        assert!(results.is_empty());
+    }
+
+    #[test]
+    fn test_restore_object_nonexistent() {
+        let (vault, _dir) = setup();
+        // Should not error even if object doesn't exist (SQLite UPDATE with no match is OK)
+        vault.restore_object("ghost-object").unwrap();
+    }
+
+    #[test]
+    fn test_restore_object_already_active() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-active".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Active".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        vault.restore_object("obj-active").unwrap();
+        let loaded = vault.load_object("obj-active").unwrap().unwrap();
+        assert!(!loaded.is_deleted);
+        assert!(loaded.deleted_at.is_none());
+    }
+
+    #[test]
+    fn test_object_with_unicode_name() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-uni".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "🚀 日本語 ñoël 中文".to_string(),
+            icon_name: "🌍".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec!["タグ".to_string()],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        let loaded = vault.load_object("obj-uni").unwrap().unwrap();
+        assert_eq!(loaded.name, "🚀 日本語 ñoël 中文");
+        assert_eq!(loaded.icon_name, "🌍");
+        assert_eq!(loaded.tags_json, vec!["タグ".to_string()]);
+    }
+
+    #[test]
+    fn test_object_with_long_name_and_properties() {
+        let (vault, _dir) = setup();
+        let long_name = "a".repeat(5000);
+        let big_props = serde_json::json!({
+            "content": "x".repeat(10000),
+            "nested": {
+                "array": (0..100).collect::<Vec<i32>>(),
+            }
+        });
+        let obj = ObjectRecord {
+            id: "obj-long".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: long_name.clone(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: big_props.clone(),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        let loaded = vault.load_object("obj-long").unwrap().unwrap();
+        assert_eq!(loaded.name.len(), 5000);
+        assert_eq!(loaded.properties, big_props);
+    }
+
+    #[test]
+    fn test_object_with_empty_name() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-empty-name".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        let loaded = vault.load_object("obj-empty-name").unwrap().unwrap();
+        assert_eq!(loaded.name, "");
+    }
+
+    // ── Profile edge cases ────────────────────────────────────
+
+    #[test]
+    fn test_save_profile_empty_data() {
+        let (vault, _dir) = setup();
+        let profile = Profile::new_with_id("empty", "Empty Profile", vec![]);
+        vault.save_profile(&profile).unwrap();
+        let loaded = vault.load_profile("empty").unwrap().unwrap();
+        assert!(loaded.data.is_empty());
+    }
+
+    #[test]
+    fn test_save_profile_unicode_name() {
+        let (vault, _dir) = setup();
+        let profile = Profile::new_with_id("uni", "プロフィール 🎌", vec![1, 2, 3]);
+        vault.save_profile(&profile).unwrap();
+        let loaded = vault.load_profile("uni").unwrap().unwrap();
+        assert_eq!(loaded.name, "プロフィール 🎌");
+    }
+
+    #[test]
+    fn test_profile_version_increment_on_update() {
+        let (vault, _dir) = setup();
+        let mut profile = Profile::new_with_id("ver", "Version Test", vec![1]);
+        vault.save_profile(&profile).unwrap();
+        profile.update_data(vec![2]);
+        vault.save_profile(&profile).unwrap();
+        profile.update_data(vec![3]);
+        vault.save_profile(&profile).unwrap();
+        let loaded = vault.load_profile("ver").unwrap().unwrap();
+        assert_eq!(loaded.version, 3);
+    }
+
+    // ── Trash CRUD ────────────────────────────────────────────
+
+    #[test]
+    fn test_trash_crud() {
+        let (vault, _dir) = setup();
+        let item = TrashItem {
+            id: "trash-1".to_string(),
+            item_type: "object".to_string(),
+            original_id: "orig-1".to_string(),
+            original_parent_id: Some("parent-1".to_string()),
+            original_section_type: Some("identity".to_string()),
+            original_sort_order: Some(42),
+            data: vec![1, 2, 3, 4, 5],
+            deleted_at: chrono::Utc::now().timestamp(),
+            expires_at: Some(chrono::Utc::now().timestamp() + 86400),
+            deleted_by: "user".to_string(),
+            name_snapshot: "Deleted Object".to_string(),
+            icon_snapshot: Some("icon-1".to_string()),
+        };
+        vault.save_trash_item(&item).unwrap();
+
+        let loaded = vault.get_trash_item("trash-1").unwrap().unwrap();
+        assert_eq!(loaded.original_id, "orig-1");
+        assert_eq!(loaded.data, vec![1, 2, 3, 4, 5]);
+
+        let list = vault.list_trash_items(None, None).unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].name, "Deleted Object");
+
+        vault.delete_trash_item("trash-1").unwrap();
+        assert!(vault.get_trash_item("trash-1").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_list_trash_items_filter_by_type() {
+        let (vault, _dir) = setup();
+        for t in &["page", "collection", "object"] {
+            let item = TrashItem {
+                id: format!("trash-{}", t),
+                item_type: t.to_string(),
+                original_id: format!("orig-{}", t),
+                original_parent_id: None,
+                original_section_type: None,
+                original_sort_order: None,
+                data: vec![],
+                deleted_at: chrono::Utc::now().timestamp(),
+                expires_at: None,
+                deleted_by: "user".to_string(),
+                name_snapshot: format!("{} item", t),
+                icon_snapshot: None,
+            };
+            vault.save_trash_item(&item).unwrap();
+        }
+
+        let pages = vault.list_trash_items(Some("page"), None).unwrap();
+        assert_eq!(pages.len(), 1);
+        assert_eq!(pages[0].item_type, "page");
+
+        let all = vault.list_trash_items(None, None).unwrap();
+        assert_eq!(all.len(), 3);
+    }
+
+    #[test]
+    fn test_list_trash_items_filter_by_since() {
+        let (vault, _dir) = setup();
+        let now = chrono::Utc::now().timestamp();
+        let old_item = TrashItem {
+            id: "trash-old".to_string(),
+            item_type: "object".to_string(),
+            original_id: "orig-old".to_string(),
+            original_parent_id: None,
+            original_section_type: None,
+            original_sort_order: None,
+            data: vec![],
+            deleted_at: now - 10000,
+            expires_at: None,
+            deleted_by: "user".to_string(),
+            name_snapshot: "Old".to_string(),
+            icon_snapshot: None,
+        };
+        let new_item = TrashItem {
+            id: "trash-new".to_string(),
+            item_type: "object".to_string(),
+            original_id: "orig-new".to_string(),
+            original_parent_id: None,
+            original_section_type: None,
+            original_sort_order: None,
+            data: vec![],
+            deleted_at: now,
+            expires_at: None,
+            deleted_by: "user".to_string(),
+            name_snapshot: "New".to_string(),
+            icon_snapshot: None,
+        };
+        vault.save_trash_item(&old_item).unwrap();
+        vault.save_trash_item(&new_item).unwrap();
+
+        let recent = vault.list_trash_items(None, Some(now - 5000)).unwrap();
+        assert_eq!(recent.len(), 1);
+        assert_eq!(recent[0].id, "trash-new");
+    }
+
+    #[test]
+    fn test_get_trash_item_nonexistent() {
+        let (vault, _dir) = setup();
+        assert!(vault.get_trash_item("does-not-exist").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_delete_trash_item_nonexistent() {
+        let (vault, _dir) = setup();
+        // DELETE on non-existing row should succeed (no affected rows check)
+        vault.delete_trash_item("does-not-exist").unwrap();
+    }
+
+    // ── Snapshot CRUD ─────────────────────────────────────────
+
+    #[test]
+    fn test_snapshot_save_and_get() {
+        let (vault, _dir) = setup();
+        let data = b"snapshot data";
+        vault.save_snapshot("obj-1", "user_edit", data, "added field").unwrap();
+
+        let snapshots = vault.list_snapshots("obj-1").unwrap();
+        assert_eq!(snapshots.len(), 1);
+        assert_eq!(snapshots[0]["triggeredBy"], "user_edit");
+
+        let snapshot_id = snapshots[0]["id"].as_str().unwrap();
+        let loaded = vault.get_snapshot(snapshot_id).unwrap().unwrap();
+        assert_eq!(loaded, data);
+    }
+
+    #[test]
+    fn test_get_snapshot_nonexistent() {
+        let (vault, _dir) = setup();
+        assert!(vault.get_snapshot("nonexistent-id").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_count_snapshots_batch() {
+        let (vault, _dir) = setup();
+        vault.save_snapshot("obj-a", "user_edit", b"a1", "").unwrap();
+        vault.save_snapshot("obj-a", "user_edit", b"a2", "").unwrap();
+        vault.save_snapshot("obj-b", "user_edit", b"b1", "").unwrap();
+
+        let counts = vault.count_snapshots_batch(&["obj-a".to_string(), "obj-b".to_string(), "obj-c".to_string()]).unwrap();
+        assert_eq!(counts.get("obj-a"), Some(&2));
+        assert_eq!(counts.get("obj-b"), Some(&1));
+        assert_eq!(counts.get("obj-c"), None);
+    }
+
+    #[test]
+    fn test_count_snapshots_batch_empty() {
+        let (vault, _dir) = setup();
+        let counts = vault.count_snapshots_batch(&[]).unwrap();
+        assert!(counts.is_empty());
+    }
+
+    #[test]
+    fn test_copy_snapshots() {
+        let (vault, _dir) = setup();
+        vault.save_snapshot("src-obj", "user_edit", b"data1", "summary1").unwrap();
+        vault.save_snapshot("src-obj", "auto_save", b"data2", "summary2").unwrap();
+
+        vault.copy_snapshots("src-obj", "dst-obj").unwrap();
+
+        let src_list = vault.list_snapshots("src-obj").unwrap();
+        let dst_list = vault.list_snapshots("dst-obj").unwrap();
+        assert_eq!(dst_list.len(), 2);
+        assert_eq!(src_list.len(), 2);
+
+        // IDs should differ because copy uses randomblob
+        let src_ids: std::collections::HashSet<String> = src_list.iter().map(|s| s["id"].as_str().unwrap().to_string()).collect();
+        let dst_ids: std::collections::HashSet<String> = dst_list.iter().map(|s| s["id"].as_str().unwrap().to_string()).collect();
+        assert!(src_ids.is_disjoint(&dst_ids));
+    }
+
+    #[test]
+    fn test_copy_snapshots_empty_source() {
+        let (vault, _dir) = setup();
+        vault.copy_snapshots("no-snapshots", "dst-obj").unwrap();
+        let dst_list = vault.list_snapshots("dst-obj").unwrap();
+        assert!(dst_list.is_empty());
+    }
+
+    // ── Audit log ─────────────────────────────────────────────
+
+    #[test]
+    fn test_log_action_and_list() {
+        let (vault, _dir) = setup();
+        vault.log_action("create", "created profile").unwrap();
+        vault.log_action("update", "updated profile").unwrap();
+
+        let logs = vault.list_audit_log(10).unwrap();
+        assert!(logs.len() >= 2);
+        assert_eq!(logs[0].action_type, "update");
+        assert_eq!(logs[1].action_type, "create");
+    }
+
+    #[test]
+    fn test_log_structured_and_list() {
+        let (vault, _dir) = setup();
+        vault.log_structured(
+            "delete",
+            "profile",
+            Some("prof-1"),
+            Some("My Profile"),
+            "user",
+            Some("soft delete"),
+        ).unwrap();
+
+        let logs = vault.list_audit_log(10).unwrap();
+        assert!(!logs.is_empty());
+        let entry = &logs[0];
+        assert_eq!(entry.action_type, "delete");
+        assert_eq!(entry.entity_type, "profile");
+        assert_eq!(entry.entity_id, Some("prof-1".to_string()));
+        assert_eq!(entry.entity_name, Some("My Profile".to_string()));
+        assert_eq!(entry.performed_by, "user");
+        assert_eq!(entry.details, Some("soft delete".to_string()));
+    }
+
+    // ── Guide embeddings ──────────────────────────────────────
+
+    #[test]
+    fn test_guide_embedding_roundtrip() {
+        let (vault, _dir) = setup();
+        let chunk = crate::GuideEmbeddingChunk {
+            id: "chunk-1".to_string(),
+            guide_id: "guide-1".to_string(),
+            chunk_index: 0,
+            chunk_text: "Hello world".to_string(),
+            embedding: vec![0.1f32, 0.2, 0.3, 0.4],
+            model: "test-model".to_string(),
+            created_at: chrono::Utc::now().to_rfc3339(),
+        };
+        vault.save_guide_embedding(&chunk).unwrap();
+
+        let list = vault.list_guide_embeddings().unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].chunk_text, "Hello world");
+        assert_eq!(list[0].embedding, vec![0.1f32, 0.2, 0.3, 0.4]);
+    }
+
+    #[test]
+    fn test_delete_guide_embeddings() {
+        let (vault, _dir) = setup();
+        for i in 0..3 {
+            let chunk = crate::GuideEmbeddingChunk {
+                id: format!("chunk-{}", i),
+                guide_id: "guide-a".to_string(),
+                chunk_index: i,
+                chunk_text: format!("text {}", i),
+                embedding: vec![i as f32],
+                model: "model".to_string(),
+                created_at: chrono::Utc::now().to_rfc3339(),
+            };
+            vault.save_guide_embedding(&chunk).unwrap();
+        }
+        let chunk_other = crate::GuideEmbeddingChunk {
+            id: "chunk-other".to_string(),
+            guide_id: "guide-b".to_string(),
+            chunk_index: 0,
+            chunk_text: "other".to_string(),
+            embedding: vec![99.0],
+            model: "model".to_string(),
+            created_at: chrono::Utc::now().to_rfc3339(),
+        };
+        vault.save_guide_embedding(&chunk_other).unwrap();
+
+        vault.delete_guide_embeddings("guide-a").unwrap();
+        let remaining = vault.list_guide_embeddings().unwrap();
+        assert_eq!(remaining.len(), 1);
+        assert_eq!(remaining[0].guide_id, "guide-b");
+    }
+
+    #[test]
+    fn test_clear_guide_embeddings() {
+        let (vault, _dir) = setup();
+        let chunk = crate::GuideEmbeddingChunk {
+            id: "chunk-x".to_string(),
+            guide_id: "guide-x".to_string(),
+            chunk_index: 0,
+            chunk_text: "x".to_string(),
+            embedding: vec![1.0],
+            model: "model".to_string(),
+            created_at: chrono::Utc::now().to_rfc3339(),
+        };
+        vault.save_guide_embedding(&chunk).unwrap();
+        assert_eq!(vault.count_guide_embeddings().unwrap(), 1);
+
+        vault.clear_guide_embeddings().unwrap();
+        assert_eq!(vault.count_guide_embeddings().unwrap(), 0);
+        assert!(vault.list_guide_embeddings().unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_count_guide_embeddings() {
+        let (vault, _dir) = setup();
+        assert_eq!(vault.count_guide_embeddings().unwrap(), 0);
+        for i in 0..5 {
+            let chunk = crate::GuideEmbeddingChunk {
+                id: format!("chunk-{}", i),
+                guide_id: format!("guide-{}", i),
+                chunk_index: 0,
+                chunk_text: "t".to_string(),
+                embedding: vec![1.0],
+                model: "m".to_string(),
+                created_at: chrono::Utc::now().to_rfc3339(),
+            };
+            vault.save_guide_embedding(&chunk).unwrap();
+        }
+        assert_eq!(vault.count_guide_embeddings().unwrap(), 5);
+    }
+
+    // ── sys_config ────────────────────────────────────────────
+
+    #[test]
+    fn test_sys_config_roundtrip() {
+        let (vault, _dir) = setup();
+        assert!(vault.get_sys_config("my_key").unwrap().is_none());
+
+        vault.set_sys_config("my_key", "my_value").unwrap();
+        assert_eq!(vault.get_sys_config("my_key").unwrap(), Some("my_value".to_string()));
+
+        vault.set_sys_config("my_key", "updated_value").unwrap();
+        assert_eq!(vault.get_sys_config("my_key").unwrap(), Some("updated_value".to_string()));
+    }
+
+    // ── Private metadata helpers ──────────────────────────────
+
+    #[test]
+    fn test_metadata_read_write_delete() {
+        let (vault, _dir) = setup();
+        assert!(vault.read_metadata("k1", "pfx").unwrap().is_none());
+
+        vault.write_metadata("k1", "pfx", b"hello bytes").unwrap();
+        let loaded = vault.read_metadata("k1", "pfx").unwrap().unwrap();
+        assert_eq!(loaded, b"hello bytes");
+
+        vault.delete_metadata("k1", "pfx").unwrap();
+        assert!(vault.read_metadata("k1", "pfx").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_metadata_overwrite() {
+        let (vault, _dir) = setup();
+        vault.write_metadata("k", "pfx", b"first").unwrap();
+        vault.write_metadata("k", "pfx", b"second").unwrap();
+        let loaded = vault.read_metadata("k", "pfx").unwrap().unwrap();
+        assert_eq!(loaded, b"second");
+    }
+
+    // ── Additional stats / state tests ────────────────────────
+
+    #[test]
+    fn test_stats_empty_vault() {
+        let (vault, _dir) = setup();
+        let stats = vault.stats().unwrap();
+        assert_eq!(stats.profile_count, 0);
+        assert_eq!(stats.total_size_bytes, 0);
+        assert!(stats.last_modified.is_none());
+    }
+
+    #[test]
+    fn test_stats_with_objects_and_trash() {
+        let (vault, _dir) = setup();
+        let profile = Profile::new("test", vec![1, 2, 3]);
+        vault.save_profile(&profile).unwrap();
+
+        let obj = ObjectRecord {
+            id: "obj-stats".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Stats Object".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"content": "some data"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        let item = TrashItem {
+            id: "trash-stats".to_string(),
+            item_type: "object".to_string(),
+            original_id: "orig-stats".to_string(),
+            original_parent_id: None,
+            original_section_type: None,
+            original_sort_order: None,
+            data: vec![1, 2, 3],
+            deleted_at: chrono::Utc::now().timestamp(),
+            expires_at: None,
+            deleted_by: "user".to_string(),
+            name_snapshot: "Trashed".to_string(),
+            icon_snapshot: None,
+        };
+        vault.save_trash_item(&item).unwrap();
+
+        let stats = vault.stats().unwrap();
+        assert_eq!(stats.profile_count, 1);
+        assert!(stats.profiles_size > 0);
+        assert!(stats.objects_size > 0);
+        assert!(stats.trash_size > 0);
+        assert!(stats.total_size_bytes > 0);
+    }
 }

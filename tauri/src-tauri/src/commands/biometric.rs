@@ -306,3 +306,198 @@ pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
     trigger_system_biometric("test biometric authentication for SoloSoul")?;
     Ok(true)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    static HOME_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    fn with_temp_home<F>(f: F)
+    where
+        F: FnOnce(&std::path::Path),
+    {
+        let _guard = HOME_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let dir = TempDir::new().unwrap();
+        let solosoul = dir.path().join(".solosoul");
+        std::fs::create_dir_all(&solosoul).unwrap();
+        let original = std::env::var("HOME").ok();
+        std::env::set_var("HOME", dir.path());
+        f(dir.path());
+        match original {
+            Some(h) => std::env::set_var("HOME", h),
+            None => std::env::remove_var("HOME"),
+        }
+    }
+
+    fn create_test_account_config(
+        password: &str,
+    ) -> (crate::services::vault_service::AccountConfig, String) {
+        let salt = solosoul_crypto::kdf::generate_salt();
+        let salt_b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &salt);
+        let config = solosoul_crypto::kdf::KdfConfig::balanced();
+        let master_key = solosoul_crypto::kdf::derive_key(password, &salt, &config).unwrap();
+        let master_key_hex = hex::encode(master_key.as_slice());
+
+        let verify_config = solosoul_crypto::kdf::KdfConfig {
+            memory_kb: 8192,
+            iterations: 1,
+            parallelism: 1,
+        };
+        let verify_key =
+            solosoul_crypto::kdf::derive_key(&master_key_hex, b"SOLOSOUL_VAULT_VERIFY_v1", &verify_config)
+                .unwrap();
+        let verify_hash = hex::encode(verify_key.as_slice());
+
+        let cfg = crate::services::vault_service::AccountConfig {
+            account_id: "test_acc".to_string(),
+            name: "Test".to_string(),
+            salt: salt_b64,
+            verify_hash,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            crypto_version: 2,
+            password_hint: None,
+            last_login_at: None,
+            last_operation_at: None,
+            last_operation_desc: None,
+            biometric_enabled: false,
+        };
+        (cfg, master_key_hex)
+    }
+
+    #[test]
+    fn test_biometric_availability_serde_roundtrip() {
+        let original = BiometricAvailability {
+            available: true,
+            configured: false,
+            biometry_type: Some("touchId".to_string()),
+            error: None,
+        };
+        let json = serde_json::to_string(&original).unwrap();
+        assert!(json.contains("touchId"));
+        let restored: BiometricAvailability = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.available, original.available);
+        assert_eq!(restored.configured, original.configured);
+        assert_eq!(restored.biometry_type, original.biometry_type);
+    }
+
+    #[test]
+    fn test_is_macos() {
+        let expected = std::env::consts::OS == "macos";
+        assert_eq!(is_macos(), expected);
+    }
+
+    #[test]
+    fn test_master_key_obfuscation_roundtrip() {
+        with_temp_home(|_path| {
+            let account_id = "acc-1";
+            std::fs::create_dir_all(acct_dir(account_id)).unwrap();
+            let key_hex = "deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678";
+            save_master_key(account_id, key_hex).unwrap();
+            let read_back = read_master_key(account_id).unwrap();
+            assert_eq!(read_back, key_hex);
+
+            delete_master_key(account_id);
+            assert!(read_master_key(account_id).is_err());
+        });
+    }
+
+    #[test]
+    fn test_is_configured_and_set_config_flag() {
+        with_temp_home(|_path| {
+            let account_id = "acc-2";
+            let acct_path = acct_dir(account_id);
+            std::fs::create_dir_all(&acct_path).unwrap();
+            let config = serde_json::json!({
+                "accountId": account_id,
+                "name": "Test",
+                "salt": "c2FsdDEyMzQ1Njc=",
+                "verifyHash": "abcd",
+                "createdAt": "2024-01-01T00:00:00Z",
+                "cryptoVersion": 2,
+                "biometricEnabled": false,
+            });
+            std::fs::write(
+                acct_path.join("config.json"),
+                serde_json::to_string_pretty(&config).unwrap(),
+            )
+            .unwrap();
+
+            assert!(!is_configured(account_id));
+
+            // Enable flag and create key file
+            set_config_flag(account_id, true).unwrap();
+            save_master_key(account_id, "aabbccdd").unwrap();
+
+            assert!(is_configured(account_id));
+
+            // Disable flag
+            set_config_flag(account_id, false).unwrap();
+            assert!(!is_configured(account_id));
+        });
+    }
+
+    #[test]
+    fn test_set_config_flag_missing_account() {
+        with_temp_home(|_path| {
+            let result = set_config_flag("nonexistent", true);
+            assert!(result.is_err());
+        });
+    }
+
+    #[test]
+    fn test_derive_master_key() {
+        with_temp_home(|_path| {
+            let password = "testpassword123";
+            let (cfg, expected_hex) = create_test_account_config(password);
+            let account_id = "acc-derive";
+            let acct_path = acct_dir(account_id);
+            std::fs::create_dir_all(&acct_path).unwrap();
+            std::fs::write(
+                acct_path.join("config.json"),
+                serde_json::to_string_pretty(&cfg).unwrap(),
+            )
+            .unwrap();
+
+            let derived = derive_master_key(password, account_id).unwrap();
+            assert_eq!(derived, expected_hex);
+        });
+    }
+
+    #[test]
+    fn test_verify_password_success() {
+        with_temp_home(|_path| {
+            let password = "mypassword456";
+            let (cfg, _expected_hex) = create_test_account_config(password);
+            let account_id = "acc-verify";
+            let acct_path = acct_dir(account_id);
+            std::fs::create_dir_all(&acct_path).unwrap();
+            std::fs::write(
+                acct_path.join("config.json"),
+                serde_json::to_string_pretty(&cfg).unwrap(),
+            )
+            .unwrap();
+
+            assert!(verify_password(password, account_id).is_ok());
+        });
+    }
+
+    #[test]
+    fn test_verify_password_failure() {
+        with_temp_home(|_path| {
+            let password = "correctpassword";
+            let (cfg, _expected_hex) = create_test_account_config(password);
+            let account_id = "acc-verify-fail";
+            let acct_path = acct_dir(account_id);
+            std::fs::create_dir_all(&acct_path).unwrap();
+            std::fs::write(
+                acct_path.join("config.json"),
+                serde_json::to_string_pretty(&cfg).unwrap(),
+            )
+            .unwrap();
+
+            assert!(verify_password("wrongpassword", account_id).is_err());
+        });
+    }
+}

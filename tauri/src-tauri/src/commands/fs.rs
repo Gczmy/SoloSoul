@@ -260,3 +260,107 @@ pub async fn fs_read_file_as_data_url(path: String) -> Result<String, String> {
     let b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &buf);
     Ok(format!("data:{};base64,{}", mime, b64))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_scanned_file_serde() {
+        let file = ScannedFile {
+            path: "/tmp/test.txt".to_string(),
+            name: "test.txt".to_string(),
+            size: 42,
+            ext: "txt".to_string(),
+        };
+        let json = serde_json::to_string(&file).unwrap();
+        assert!(json.contains("test.txt"));
+        assert!(json.contains("42"));
+    }
+
+    #[test]
+    fn test_scan_dir_recursive() {
+        let dir = TempDir::new().unwrap();
+        let sub = dir.path().join("sub");
+        fs::create_dir(&sub).unwrap();
+        fs::write(dir.path().join("a.txt"), "hello").unwrap();
+        fs::write(sub.join("b.txt"), "world").unwrap();
+
+        let mut files = Vec::new();
+        scan_dir_recursive(dir.path(), &mut files, 3).unwrap();
+        assert_eq!(files.len(), 2);
+        let names: Vec<_> = files.iter().map(|f| f.name.clone()).collect();
+        assert!(names.contains(&"a.txt".to_string()));
+        assert!(names.contains(&"b.txt".to_string()));
+    }
+
+    #[test]
+    fn test_scan_dir_recursive_max_depth() {
+        let dir = TempDir::new().unwrap();
+        let level1 = dir.path().join("level1");
+        fs::create_dir(&level1).unwrap();
+        let level2 = level1.join("level2");
+        fs::create_dir(&level2).unwrap();
+        fs::write(level2.join("deep.txt"), "deep").unwrap();
+
+        let mut files = Vec::new();
+        scan_dir_recursive(dir.path(), &mut files, 1).unwrap();
+        assert_eq!(files.len(), 0); // level2 is beyond max_depth 1
+
+        let mut files2 = Vec::new();
+        scan_dir_recursive(dir.path(), &mut files2, 2).unwrap();
+        assert_eq!(files2.len(), 0); // level2 is beyond max_depth 2
+
+        let mut files3 = Vec::new();
+        scan_dir_recursive(dir.path(), &mut files3, 3).unwrap();
+        assert_eq!(files3.len(), 1);
+        assert_eq!(files3[0].name, "deep.txt");
+    }
+
+    #[test]
+    fn test_scan_dir_recursive_not_directory() {
+        let dir = TempDir::new().unwrap();
+        let file_path = dir.path().join("not_a_dir.txt");
+        fs::write(&file_path, "data").unwrap();
+        let mut files = Vec::new();
+        let result = scan_dir_recursive(&file_path, &mut files, 3);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_fs_get_file_size() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("test.bin");
+        fs::write(&path, vec![0u8; 1234]).unwrap();
+        let size =
+            futures::executor::block_on(fs_get_file_size(path.to_string_lossy().to_string()))
+                .unwrap();
+        assert_eq!(size, 1234);
+    }
+
+    #[test]
+    fn test_fs_read_file_as_data_url() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("test.png");
+        fs::write(&path, vec![0u8; 100]).unwrap();
+        let url = futures::executor::block_on(fs_read_file_as_data_url(
+            path.to_string_lossy().to_string(),
+        ))
+        .unwrap();
+        assert!(url.starts_with("data:image/png;base64,"));
+    }
+
+    #[test]
+    fn test_fs_read_file_as_data_url_unknown_ext() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("test.xyz");
+        fs::write(&path, "hello").unwrap();
+        let url = futures::executor::block_on(fs_read_file_as_data_url(
+            path.to_string_lossy().to_string(),
+        ))
+        .unwrap();
+        assert!(url.starts_with("data:application/octet-stream;base64,"));
+    }
+}
