@@ -69,8 +69,10 @@ export function ObjectEditorPage() {
     return map;
   }, [userTemplates]);
 
-  /** Resolve sensitivity level for a property field. */
-  const getSensitivity = (fieldKey: string): SensitivityLevel => {
+  /** Resolve sensitivity level for a property field.
+   *  Priority: sensitivityMap (user override) > template default > 'public' fallback.
+   */
+  const getSensitivity = (fieldKey: string, templateDefault?: string): SensitivityLevel => {
     const ct = collectionType || sectionParam || '';
     const fieldId = `${ct}.${fieldKey}`;
     if (sensitivityMap?.entries?.[fieldId]) return sensitivityMap.entries[fieldId];
@@ -82,7 +84,7 @@ export function ObjectEditorPage() {
     for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
       if (id.endsWith(`.${fieldKey}`) || id.endsWith(`.${snakeKey}`)) return level;
     }
-    return 'public'; // default level
+    return (templateDefault as SensitivityLevel) || 'public';
   };
 
   // Filter templates to only show those belonging to the current section
@@ -342,7 +344,7 @@ export function ObjectEditorPage() {
                   ))
                 ) : (
                 fields.map((field) => {
-                    const sensitivity = getSensitivity(field.key);
+                    const sensitivity = getSensitivity(field.key, field.sensitivityLevel);
                     const fieldLabel = t(`editor:fields.${field.key}`, field.label);
                     // Map legacy frontend type names to PropertyType
                     const propType: PropertyType =
