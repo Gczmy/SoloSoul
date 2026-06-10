@@ -122,3 +122,130 @@ impl SyncListener {
             .map_err(|e| e.to_string())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::thread;
+
+    #[test]
+    fn test_sync_transport_new() {
+        let transport = SyncTransport::new("127.0.0.1:9999".to_string());
+        assert_eq!(transport.peer_addr, "127.0.0.1:9999");
+        assert!(transport.stream.is_none());
+    }
+
+    #[test]
+    fn test_sync_listener_bind_and_local_addr() {
+        let listener = SyncListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+        assert!(addr.starts_with("127.0.0.1:"));
+    }
+
+    #[test]
+    fn test_send_receive_message() {
+        // Use blocking std listener to avoid nonblocking accept issues in tests
+        let std_listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = std_listener.local_addr().unwrap().to_string();
+
+        let server_addr = addr.clone();
+        let server = thread::spawn(move || {
+            let (stream, _) = std_listener.accept().unwrap();
+            SyncTransport {
+                peer_addr: server_addr,
+                stream: Some(stream),
+            }
+        });
+
+        let mut client = SyncTransport::new(addr);
+        client.connect().unwrap();
+
+        let mut server_transport = server.join().unwrap();
+
+        // Client sends
+        let payload = b"hello world";
+        client.send_message(payload).unwrap();
+
+        // Server receives
+        let received = server_transport.receive_message().unwrap();
+        assert_eq!(received, payload.to_vec());
+
+        // Server echoes back
+        server_transport.send_message(b"echo").unwrap();
+        let echo = client.receive_message().unwrap();
+        assert_eq!(echo, b"echo".to_vec());
+    }
+
+    #[test]
+    fn test_send_without_connection_fails() {
+        let mut transport = SyncTransport::new("127.0.0.1:9999".to_string());
+        let result = transport.send_message(b"test");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Not connected"));
+    }
+
+    #[test]
+    fn test_receive_without_connection_fails() {
+        let mut transport = SyncTransport::new("127.0.0.1:9999".to_string());
+        let result = transport.receive_message();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Not connected"));
+    }
+
+    #[test]
+    fn test_connect_invalid_address_fails() {
+        let mut transport = SyncTransport::new("not_an_address".to_string());
+        let result = transport.connect();
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid addr"));
+    }
+
+    #[test]
+    fn test_close_drops_stream() {
+        let std_listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = std_listener.local_addr().unwrap().to_string();
+
+        let server = thread::spawn(move || {
+            let _ = std_listener.accept();
+        });
+
+        let mut client = SyncTransport::new(addr);
+        client.connect().unwrap();
+        assert!(client.stream.is_some());
+
+        client.close();
+        assert!(client.stream.is_none());
+
+        server.join().unwrap();
+    }
+
+    #[test]
+    fn test_message_framing() {
+        // Verify that a message is framed as: MAGIC_PREFIX + 4-byte length + payload
+        let mut transport = SyncTransport::new("127.0.0.1:0".to_string());
+        let std_listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = std_listener.local_addr().unwrap().to_string();
+
+        let server = thread::spawn(move || {
+            let (mut stream, _) = std_listener.accept().unwrap();
+            let mut prefix = vec![0u8; MAGIC_PREFIX.len()];
+            stream.read_exact(&mut prefix).unwrap();
+            assert_eq!(prefix, MAGIC_PREFIX);
+
+            let mut len_buf = [0u8; 4];
+            stream.read_exact(&mut len_buf).unwrap();
+            let len = u32::from_be_bytes(len_buf) as usize;
+            assert_eq!(len, 5);
+
+            let mut payload = vec![0u8; len];
+            stream.read_exact(&mut payload).unwrap();
+            assert_eq!(payload, b"hello".to_vec());
+        });
+
+        transport.peer_addr = addr;
+        transport.connect().unwrap();
+        transport.send_message(b"hello").unwrap();
+
+        server.join().unwrap();
+    }
+}
