@@ -190,3 +190,118 @@ impl ObjectSummary {
         }
     }
 }
+
+// =============================================================================
+// Template system types (P1: 模板系统重构)
+// =============================================================================
+
+/// Property type for template fields.
+/// Serialized as snake_case strings for forward compatibility.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PropertyType {
+    Text,
+    MultilineText,
+    Number,
+    Date,
+    DateTime,
+    Boolean,
+    Select,
+    MultiSelect,
+    Url,
+    Email,
+    Phone,
+    FileReference,
+}
+
+impl PropertyType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PropertyType::Text => "text",
+            PropertyType::MultilineText => "multiline",
+            PropertyType::Number => "number",
+            PropertyType::Date => "date",
+            PropertyType::DateTime => "datetime",
+            PropertyType::Boolean => "boolean",
+            PropertyType::Select => "select",
+            PropertyType::MultiSelect => "multiselect",
+            PropertyType::Url => "url",
+            PropertyType::Email => "email",
+            PropertyType::Phone => "phone",
+            PropertyType::FileReference => "file",
+        }
+    }
+
+    /// Infer property type from a JSON value and key name heuristic.
+    pub fn infer_from_value(value: &serde_json::Value, key: &str) -> Self {
+        match value {
+            serde_json::Value::Bool(_) => PropertyType::Boolean,
+            serde_json::Value::Number(n) => {
+                if n.is_i64() || n.is_u64() || n.is_f64() {
+                    PropertyType::Number
+                } else {
+                    PropertyType::Text
+                }
+            }
+            serde_json::Value::Array(arr) if arr.len() > 1 => PropertyType::MultiSelect,
+            serde_json::Value::String(s) => {
+                let lower = key.to_lowercase();
+                let s_lower = s.to_lowercase();
+                // Date heuristics: key contains date-related words
+                if lower.contains("date")
+                    || lower.contains("birth")
+                    || lower.contains("issue")
+                    || lower.contains("expir")
+                    || lower.contains("deadline")
+                {
+                    // Try to parse as ISO date
+                    if chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d").is_ok() {
+                        return PropertyType::Date;
+                    }
+                }
+                if lower.contains("email") || s.contains('@') {
+                    return PropertyType::Email;
+                }
+                if lower.contains("phone") || lower.contains("tel") || lower.contains("mobile") {
+                    return PropertyType::Phone;
+                }
+                if lower.contains("url") || lower.contains("link") || lower.contains("website") {
+                    return PropertyType::Url;
+                }
+                if s_lower == "true" || s_lower == "false" {
+                    return PropertyType::Boolean;
+                }
+                PropertyType::Text
+            }
+            _ => PropertyType::Text,
+        }
+    }
+}
+
+/// A single property definition within a user template.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct TemplateProperty {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub prop_type: PropertyType,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sensitive: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub options: Option<Vec<String>>,
+}
+
+/// A user-defined object template stored in the vault.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserTemplate {
+    pub id: String,
+    pub account_id: String,
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon_id: Option<String>,
+    pub properties: Vec<TemplateProperty>,
+    pub created_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
+}

@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 6;
+pub const CURRENT_SCHEMA_VERSION: u32 = 7;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -129,6 +129,23 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add guide_embeddings table for RAG vector search",
         )?;
     }
+    if current < 7 {
+        apply_migration(
+            conn,
+            7,
+            "CREATE TABLE IF NOT EXISTS user_templates (
+                id TEXT PRIMARY KEY,
+                account_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                icon_id TEXT,
+                properties_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_user_templates_account ON user_templates(account_id);",
+            "Add user_templates table for custom object templates",
+        )?;
+    }
     Ok(())
 }
 
@@ -185,5 +202,43 @@ mod tests {
         let (mut conn, _dir) = setup_conn();
         run_migrations(&mut conn).unwrap();
         assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn test_migration_v7_creates_user_templates_table() {
+        let (mut conn, _dir) = setup_conn();
+        run_migrations(&mut conn).unwrap();
+
+        // Verify user_templates table exists
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='user_templates'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 1);
+
+        // Verify index exists
+        let idx_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='idx_user_templates_account'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(idx_count, 1);
+
+        // Verify we can insert and query
+        conn.execute(
+            "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, created_at)
+             VALUES ('t1', 'acc1', 'Test', 'doc', '[]', '2024-01-01T00:00:00Z')",
+            [],
+        ).unwrap();
+
+        let name: String = conn
+            .query_row("SELECT name FROM user_templates WHERE id = 't1'", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(name, "Test");
     }
 }

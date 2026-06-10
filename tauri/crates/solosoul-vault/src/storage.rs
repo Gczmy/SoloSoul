@@ -1043,6 +1043,124 @@ impl VaultStore {
         .map_err(|e| format!("set_sys_config: {}", e))?;
         Ok(())
     }
+
+    // ── User template helpers (§29 模板系统重构 P1) ──────────────
+
+    /// Save or update a user template (UPSERT).
+    pub fn save_user_template(&self, template: &crate::UserTemplate) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let props_json = serde_json::to_string(&template.properties)
+            .map_err(|e| format!("serialize properties: {}", e))?;
+        conn.execute(
+            "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+             ON CONFLICT(id) DO UPDATE SET
+                 name = excluded.name,
+                 icon_id = excluded.icon_id,
+                 properties_json = excluded.properties_json,
+                 updated_at = excluded.updated_at",
+            params![
+                &template.id,
+                &template.account_id,
+                &template.name,
+                &template.icon_id,
+                props_json,
+                &template.created_at,
+                &template.updated_at,
+            ],
+        )
+        .map_err(|e| format!("save_user_template: {}", e))?;
+        Ok(())
+    }
+
+    /// Load a single user template by ID.
+    pub fn load_user_template(&self, template_id: &str) -> Result<Option<crate::UserTemplate>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn.prepare(
+            "SELECT id, account_id, name, icon_id, properties_json, created_at, updated_at
+             FROM user_templates WHERE id = ?1"
+        ).map_err(|e| format!("prepare load_user_template: {}", e))?;
+
+        let result = stmt.query_row(params![template_id], |row| {
+            let props_json: String = row.get(4)?;
+            let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&props_json)
+                .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+            Ok(crate::UserTemplate {
+                id: row.get(0)?,
+                account_id: row.get(1)?,
+                name: row.get(2)?,
+                icon_id: row.get(3)?,
+                properties,
+                created_at: row.get(5)?,
+                updated_at: row.get(6)?,
+            })
+        });
+
+        match result {
+            Ok(tpl) => Ok(Some(tpl)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(format!("load_user_template: {}", e)),
+        }
+    }
+
+    /// List all user templates for a given account, ordered by created_at DESC.
+    pub fn list_user_templates(&self, account_id: &str) -> Result<Vec<crate::UserTemplate>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn.prepare(
+            "SELECT id, account_id, name, icon_id, properties_json, created_at, updated_at
+             FROM user_templates WHERE account_id = ?1 ORDER BY created_at DESC"
+        ).map_err(|e| format!("prepare list_user_templates: {}", e))?;
+
+        let rows = stmt.query_map(params![account_id], |row| {
+            let props_json: String = row.get(4)?;
+            let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&props_json)
+                .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+            Ok(crate::UserTemplate {
+                id: row.get(0)?,
+                account_id: row.get(1)?,
+                name: row.get(2)?,
+                icon_id: row.get(3)?,
+                properties,
+                created_at: row.get(5)?,
+                updated_at: row.get(6)?,
+            })
+        }).map_err(|e| format!("list_user_templates query: {}", e))?;
+
+        let mut result = Vec::new();
+        for row in rows {
+            result.push(row.map_err(|e| format!("list_user_templates row: {}", e))?);
+        }
+        Ok(result)
+    }
+
+    /// Delete a user template by ID.
+    pub fn delete_user_template(&self, template_id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "DELETE FROM user_templates WHERE id = ?1",
+            params![template_id],
+        )
+        .map_err(|e| format!("delete_user_template: {}", e))?;
+        Ok(())
+    }
+
+    /// Count user templates for an account.
+    pub fn count_user_templates(&self, account_id: &str) -> Result<usize, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM user_templates WHERE account_id = ?1",
+                params![account_id],
+                |r| r.get(0),
+            )
+            .map_err(|e| format!("count_user_templates: {}", e))?;
+        Ok(count as usize)
+    }
 }
 
 #[cfg(test)]
@@ -2159,5 +2277,132 @@ mod tests {
         assert!(stats.objects_size > 0);
         assert!(stats.trash_size > 0);
         assert!(stats.total_size_bytes > 0);
+    }
+
+    // ── User template tests (§29 P1) ──────────────────────────
+
+    fn make_test_template(account_id: &str, name: &str) -> crate::UserTemplate {
+        crate::UserTemplate {
+            id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
+            account_id: account_id.to_string(),
+            name: name.to_string(),
+            icon_id: Some("document".to_string()),
+            properties: vec![
+                crate::TemplateProperty {
+                    id: "full_name".to_string(),
+                    name: "姓名".to_string(),
+                    prop_type: crate::PropertyType::Text,
+                    sensitive: Some(false),
+                    options: None,
+                },
+                crate::TemplateProperty {
+                    id: "passport_number".to_string(),
+                    name: "护照号码".to_string(),
+                    prop_type: crate::PropertyType::Text,
+                    sensitive: Some(true),
+                    options: None,
+                },
+                crate::TemplateProperty {
+                    id: "expiry_date".to_string(),
+                    name: "过期日期".to_string(),
+                    prop_type: crate::PropertyType::Date,
+                    sensitive: Some(false),
+                    options: None,
+                },
+            ],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: None,
+        }
+    }
+
+    #[test]
+    fn test_user_template_save_and_load() {
+        let (vault, _dir) = setup();
+        let tpl = make_test_template("acc-1", "护照模板");
+        vault.save_user_template(&tpl).unwrap();
+
+        let loaded = vault.load_user_template(&tpl.id).unwrap().unwrap();
+        assert_eq!(loaded.name, "护照模板");
+        assert_eq!(loaded.properties.len(), 3);
+        assert_eq!(loaded.properties[2].prop_type, crate::PropertyType::Date);
+    }
+
+    #[test]
+    fn test_user_template_list_and_count() {
+        let (vault, _dir) = setup();
+        let a1 = make_test_template("acc-1", "模板A");
+        let a2 = make_test_template("acc-1", "模板B");
+        let b1 = make_test_template("acc-2", "模板C");
+
+        vault.save_user_template(&a1).unwrap();
+        vault.save_user_template(&a2).unwrap();
+        vault.save_user_template(&b1).unwrap();
+
+        assert_eq!(vault.count_user_templates("acc-1").unwrap(), 2);
+        assert_eq!(vault.count_user_templates("acc-2").unwrap(), 1);
+
+        let list = vault.list_user_templates("acc-1").unwrap();
+        assert_eq!(list.len(), 2);
+        // DESC order: a2 should be first (created later)
+        assert_eq!(list[0].name, "模板B");
+    }
+
+    #[test]
+    fn test_user_template_update() {
+        let (vault, _dir) = setup();
+        let mut tpl = make_test_template("acc-1", "旧名称");
+        vault.save_user_template(&tpl).unwrap();
+
+        tpl.name = "新名称".to_string();
+        tpl.icon_id = Some("passport".to_string());
+        tpl.properties.push(crate::TemplateProperty {
+            id: "new_field".to_string(),
+            name: "新字段".to_string(),
+            prop_type: crate::PropertyType::Boolean,
+            sensitive: Some(false),
+            options: None,
+        });
+        tpl.updated_at = Some(chrono::Utc::now().to_rfc3339());
+        vault.save_user_template(&tpl).unwrap();
+
+        let loaded = vault.load_user_template(&tpl.id).unwrap().unwrap();
+        assert_eq!(loaded.name, "新名称");
+        assert_eq!(loaded.icon_id, Some("passport".to_string()));
+        assert_eq!(loaded.properties.len(), 4);
+        assert!(loaded.updated_at.is_some());
+    }
+
+    #[test]
+    fn test_user_template_delete() {
+        let (vault, _dir) = setup();
+        let tpl = make_test_template("acc-1", "待删除");
+        vault.save_user_template(&tpl).unwrap();
+        assert!(vault.load_user_template(&tpl.id).unwrap().is_some());
+
+        vault.delete_user_template(&tpl.id).unwrap();
+        assert!(vault.load_user_template(&tpl.id).unwrap().is_none());
+        assert_eq!(vault.count_user_templates("acc-1").unwrap(), 0);
+    }
+
+    #[test]
+    fn test_user_template_load_not_found() {
+        let (vault, _dir) = setup();
+        assert!(vault.load_user_template("nonexistent").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_property_type_infer_from_value() {
+        use crate::PropertyType;
+
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!(true), "any"), PropertyType::Boolean);
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!(42), "any"), PropertyType::Number);
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!(3.14), "any"), PropertyType::Number);
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("hello"), "any"), PropertyType::Text);
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("hello"), "expiry_date"), PropertyType::Text);
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("user@example.com"), "email_addr"), PropertyType::Email);
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("+86-138-0000-0000"), "phone_number"), PropertyType::Phone);
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("https://example.com"), "website_url"), PropertyType::Url);
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!(["a","b"]), "any"), PropertyType::MultiSelect);
+        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("2024-01-15"), "issue_date"), PropertyType::Date);
     }
 }

@@ -63,8 +63,12 @@ pub fn run() {
             commands::object::snapshot_count_batch,
             commands::object::snapshot_get_data,
             commands::object::snapshot_rollback,
-            commands::template::template_save_from_object,
+            commands::template::template_create,
+            commands::template::template_update,
+            commands::template::template_delete,
+            commands::template::template_get,
             commands::template::template_list,
+            commands::template::template_save_from_object,
             // Sensitivity commands
             commands::sensitivity::sensitivity_get_field,
             commands::sensitivity::sensitivity_get_map,
