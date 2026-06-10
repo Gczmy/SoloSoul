@@ -56,7 +56,7 @@ git push origin master
 
 ```bash
 cd /Users/zzc/PycharmProjects/SoloSoul_code
-./build_release.sh
+./build_macos_release.sh
 ```
 
 脚本自动从 `tauri/package.json` 读取版本号（如 `2.1.0`），产物：
@@ -67,7 +67,7 @@ tauri/src-tauri/target/release/bundle/
 └── dmg/SoloSoul_2.1.0_arm64.dmg
 ```
 
-> 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./build_release.sh`
+> 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./build_macos_release.sh`
 > （注意：传入参数不会修改源文件中的版本号，仅影响产物命名）
 
 #### 签名说明
@@ -76,13 +76,36 @@ tauri/src-tauri/target/release/bundle/
 - 首次在另一台 Mac 上运行时，需在 系统设置 > 隐私与安全性 中手动允许
 - 如需使用 Apple Development 证书：
   ```bash
-  APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name" ./build_release.sh
+  APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name" ./build_macos_release.sh
   ```
 - **对外公开分发**前，需获取 Apple Developer ID 账户并添加公证（Notarization）步骤
 
 ### 4b. Windows 构建（在 Windows 上执行）
 
-在 Windows PC（或 Parallels/VMware 虚拟机）的 **PowerShell** 中：
+#### 方式一：使用一键脚本（推荐）
+
+在 Windows PC（或 Parallels/VMware 虚拟机）的 **Git Bash**（或 MSYS2 / WSL）中：
+
+```bash
+# 1. 先拉取最新代码（确保版本号已更新）
+cd /d/PycharmProject/SoloSoul_code
+git pull origin master
+
+# 2. 运行一键构建脚本
+./docs/build_windows_release.sh
+```
+
+脚本会自动安装依赖并构建，产物：
+
+```
+tauri/src-tauri/target/release/bundle/
+├── msi/SoloSoul_2.1.0_x64_en-US.msi
+└── nsis/SoloSoul_2.1.0_x64-setup.exe
+```
+
+> 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./docs/build_windows_release.sh`
+
+#### 方式二：手动 PowerShell 构建
 
 ```powershell
 # 1. 先拉取最新代码（确保版本号已更新）
@@ -95,13 +118,7 @@ npm ci
 npm run tauri build
 ```
 
-产物：
-
-```
-tauri\src-tauri\target\release\bundle\
-├── msi\SoloSoul_2.1.0_x64_en-US.msi
-└── nsis\SoloSoul_2.1.0_x64-setup.exe
-```
+产物同上。
 
 > Windows 代码签名需另行购买证书并使用 `signtool` 签名，当前未在脚本中实现。
 
