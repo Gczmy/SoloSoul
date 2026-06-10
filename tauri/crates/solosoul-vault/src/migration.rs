@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 7;
+pub const CURRENT_SCHEMA_VERSION: u32 = 8;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -146,6 +146,15 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add user_templates table for custom object templates",
         )?;
     }
+    if current < 8 {
+        apply_migration(
+            conn,
+            8,
+            "ALTER TABLE objects ADD COLUMN template_id TEXT;
+             ALTER TABLE objects ADD COLUMN template_type TEXT CHECK(template_type IN ('system', 'user'));",
+            "Add template_id and template_type to objects table",
+        )?;
+    }
     Ok(())
 }
 
@@ -185,7 +194,27 @@ mod tests {
              CREATE TABLE IF NOT EXISTS profiles (id TEXT PRIMARY KEY, name TEXT NOT NULL, data BLOB NOT NULL);
              CREATE TABLE IF NOT EXISTS trash_items (id TEXT PRIMARY KEY, item_type TEXT NOT NULL, original_id TEXT NOT NULL, data BLOB NOT NULL, deleted_at INTEGER NOT NULL, expires_at INTEGER, deleted_by TEXT DEFAULT 'user', name_snapshot TEXT NOT NULL);
              CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, action TEXT NOT NULL, details TEXT);
-             CREATE TABLE IF NOT EXISTS guide_embeddings (id TEXT PRIMARY KEY, guide_id TEXT NOT NULL, chunk_index INTEGER NOT NULL, chunk_text TEXT NOT NULL, embedding BLOB NOT NULL, model TEXT NOT NULL, created_at TEXT NOT NULL);"
+             CREATE TABLE IF NOT EXISTS guide_embeddings (id TEXT PRIMARY KEY, guide_id TEXT NOT NULL, chunk_index INTEGER NOT NULL, chunk_text TEXT NOT NULL, embedding BLOB NOT NULL, model TEXT NOT NULL, created_at TEXT NOT NULL);
+             CREATE TABLE IF NOT EXISTS objects (
+                id TEXT PRIMARY KEY,
+                account_id TEXT NOT NULL,
+                type_id TEXT NOT NULL DEFAULT 'note',
+                section_type TEXT NOT NULL DEFAULT 'identity',
+                name TEXT NOT NULL,
+                icon_name TEXT NOT NULL DEFAULT 'document',
+                parent_id TEXT,
+                children_ids TEXT NOT NULL DEFAULT '[]',
+                properties TEXT NOT NULL DEFAULT '{}',
+                property_labels TEXT DEFAULT '{}',
+                sensitivity_level TEXT NOT NULL DEFAULT 'internal',
+                is_deleted INTEGER NOT NULL DEFAULT 0,
+                deleted_at TEXT,
+                tags_json TEXT NOT NULL DEFAULT '[]',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                version INTEGER DEFAULT 1
+            );
+            CREATE INDEX IF NOT EXISTS idx_objects_account ON objects(account_id);"
         ).unwrap();
         set_schema_version(&conn, 1).unwrap();
         (conn, dir)

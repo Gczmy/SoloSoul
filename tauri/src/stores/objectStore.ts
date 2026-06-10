@@ -35,7 +35,7 @@ interface ObjectState {
 
   loadObjects: (accountId: string, filter?: { collectionType?: string; parentId?: string }) => Promise<void>;
   getObject: (accountId: string, objectId: string) => Promise<void>;
-  createObject: (input: { accountId: string; name: string; collectionType: string; properties: Record<string, unknown>; parentId?: string; iconName?: string }) => Promise<ObjectData>;
+  createObject: (input: { accountId: string; name: string; collectionType: string; properties: Record<string, unknown>; parentId?: string; iconName?: string; templateId?: string; templateType?: 'system' | 'user' }) => Promise<ObjectData>;
   updateObject: (objectId: string, input: { name: string; properties: Record<string, unknown> }) => Promise<void>;
   deleteObject: (objectId: string) => Promise<void>;
   loadTrashObjects: (accountId: string) => Promise<void>;

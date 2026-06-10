@@ -13,6 +13,7 @@ use std::sync::OnceLock;
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SystemTemplateProperty {
     pub id: String,
     pub name_i18n_key: String,
@@ -25,6 +26,7 @@ pub struct SystemTemplateProperty {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SystemTemplate {
     pub key: String,
     pub category: String,
@@ -150,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_get_template() {
-        let _ = SystemTemplateRegistry::load(); // Ensure init not required for direct load
+        let _ = SystemTemplateRegistry::init();
         let tpl = SystemTemplateRegistry::get("passport");
         assert!(tpl.is_some());
         let tpl = tpl.unwrap();
@@ -161,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_list_by_category() {
-        let _ = SystemTemplateRegistry::load();
+        let _ = SystemTemplateRegistry::init();
         let travel = SystemTemplateRegistry::list_by_category("travel");
         assert!(!travel.is_empty());
         assert!(travel.iter().any(|t| t.key == "passport"));
@@ -170,7 +172,7 @@ mod tests {
 
     #[test]
     fn test_detect_for_object() {
-        let _ = SystemTemplateRegistry::load();
+        let _ = SystemTemplateRegistry::init();
         let mut props = serde_json::Map::new();
         props.insert("fullName".to_string(), serde_json::json!("张三"));
         props.insert("passportNumber".to_string(), serde_json::json!("E12345678"));
@@ -183,7 +185,7 @@ mod tests {
 
     #[test]
     fn test_detect_no_match() {
-        let _ = SystemTemplateRegistry::load();
+        let _ = SystemTemplateRegistry::init();
         let mut props = serde_json::Map::new();
         props.insert("foo".to_string(), serde_json::json!("bar"));
         props.insert("baz".to_string(), serde_json::json!("qux"));

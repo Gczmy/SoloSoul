@@ -147,6 +147,10 @@ pub struct ObjectRecord {
     #[serde(rename = "deletedAt")]
     pub deleted_at: Option<String>,
     pub tags_json: Vec<String>,
+    #[serde(rename = "templateId")]
+    pub template_id: Option<String>,
+    #[serde(rename = "templateType")]
+    pub template_type: Option<String>,
     pub created_at: String,
     pub updated_at: String,
     pub version: u32,
@@ -169,6 +173,10 @@ pub struct ObjectSummary {
     pub updated_at: String,
     #[serde(rename = "isDeleted")]
     pub is_deleted: bool,
+    #[serde(rename = "templateId")]
+    pub template_id: Option<String>,
+    #[serde(rename = "templateType")]
+    pub template_type: Option<String>,
     /// First few property key-value pairs for card previews
     pub properties: serde_json::Value,
     pub tags: Vec<String>,
@@ -185,6 +193,8 @@ impl ObjectSummary {
             created_at: r.created_at.clone(),
             updated_at: r.updated_at.clone(),
             is_deleted: r.is_deleted,
+            template_id: r.template_id.clone(),
+            template_type: r.template_type.clone(),
             properties: r.properties.clone(),
             tags: r.tags_json.clone(),
         }

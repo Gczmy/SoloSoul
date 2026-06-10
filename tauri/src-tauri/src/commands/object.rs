@@ -24,6 +24,10 @@ pub struct ObjectData {
     pub properties: serde_json::Value,
     #[serde(rename = "sensitivityLevel")]
     pub sensitivity_level: String,
+    #[serde(rename = "templateId")]
+    pub template_id: Option<String>,
+    #[serde(rename = "templateType")]
+    pub template_type: Option<String>,
     #[serde(rename = "createdAt")]
     pub created_at: String,
     #[serde(rename = "updatedAt")]
@@ -44,6 +48,10 @@ pub struct CreateObjectInput {
     pub parent_id: Option<String>,
     #[serde(rename = "iconName")]
     pub icon_name: Option<String>,
+    #[serde(rename = "templateId")]
+    pub template_id: Option<String>,
+    #[serde(rename = "templateType")]
+    pub template_type: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -73,6 +81,8 @@ fn record_to_data(record: &ObjectRecord) -> ObjectData {
         collection_type: record.type_id.clone(),
         properties: record.properties.clone(),
         sensitivity_level: record.sensitivity_level.clone(),
+        template_id: record.template_id.clone(),
+        template_type: record.template_type.clone(),
         created_at: record.created_at.clone(),
         updated_at: record.updated_at.clone(),
         deleted_at: record.deleted_at.clone(),
@@ -148,6 +158,8 @@ pub async fn object_create(
         is_deleted: false,
         deleted_at: None,
         tags_json: vec![],
+        template_id: input.template_id.clone(),
+        template_type: input.template_type.clone(),
         created_at: now.clone(),
         updated_at: now,
         version: 1,
@@ -439,6 +451,8 @@ pub async fn object_restore(
                     .collect()
             })
             .unwrap_or_default(),
+        template_id: record_data["template_id"].as_str().map(String::from),
+        template_type: record_data["template_type"].as_str().map(String::from),
         created_at: record_data["created_at"]
             .as_str()
             .unwrap_or(&now)
@@ -730,6 +744,8 @@ pub async fn page_restore(
                         is_deleted: false,
                         deleted_at: None,
                         tags_json: Vec::new(),
+                        template_id: record_data["template_id"].as_str().map(String::from),
+                        template_type: record_data["template_type"].as_str().map(String::from),
                         created_at: record_data["created_at"]
                             .as_str()
                             .unwrap_or(&now)
@@ -1120,6 +1136,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec!["tag1".to_string()],
+            template_id: None,
+            template_type: None,
             created_at: "2024-01-01T00:00:00Z".to_string(),
             updated_at: "2024-01-02T00:00:00Z".to_string(),
             version: 1,
@@ -1145,6 +1163,8 @@ mod tests {
             created_at: "2024-01-01T00:00:00Z".to_string(),
             updated_at: "2024-01-01T00:00:00Z".to_string(),
             deleted_at: Some("2024-02-01T00:00:00Z".to_string()),
+            template_id: None,
+            template_type: None,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("accountId"));
@@ -1209,6 +1229,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1238,6 +1260,8 @@ mod tests {
                 is_deleted: false,
                 deleted_at: None,
                 tags_json: vec![],
+                template_id: None,
+                template_type: None,
                 created_at: chrono::Utc::now().to_rfc3339(),
                 updated_at: chrono::Utc::now().to_rfc3339(),
                 version: 1,
@@ -1281,6 +1305,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1302,6 +1328,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1367,6 +1395,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1429,6 +1459,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1477,6 +1509,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1528,6 +1562,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1574,6 +1610,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1611,6 +1649,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec!["tag1".to_string()],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1687,6 +1727,8 @@ mod tests {
                 is_deleted: false,
                 deleted_at: None,
                 tags_json: vec![],
+                template_id: None,
+                template_type: None,
                 created_at: chrono::Utc::now().to_rfc3339(),
                 updated_at: chrono::Utc::now().to_rfc3339(),
                 version: 1,
@@ -1762,6 +1804,8 @@ mod tests {
                 is_deleted: false,
                 deleted_at: None,
                 tags_json: vec![],
+                template_id: None,
+                template_type: None,
                 created_at: chrono::Utc::now().to_rfc3339(),
                 updated_at: chrono::Utc::now().to_rfc3339(),
                 version: 1,
@@ -1837,6 +1881,8 @@ mod tests {
                             is_deleted: false,
                             deleted_at: None,
                             tags_json: Vec::new(),
+                            template_id: None,
+                            template_type: None,
                             created_at: record_data["created_at"].as_str().unwrap_or(&now).to_string(),
                             updated_at: now,
                             version: record_data["version"].as_u64().unwrap_or(1) as u32,

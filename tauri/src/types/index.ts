@@ -88,6 +88,8 @@ export interface ObjectData {
   collectionType: string;
   properties: Record<string, unknown>;
   sensitivityLevel: string;
+  templateId?: string;
+  templateType?: 'system' | 'user';
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;

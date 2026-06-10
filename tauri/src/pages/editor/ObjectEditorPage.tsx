@@ -13,6 +13,7 @@ import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useToastError } from '@/hooks/useToastError';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
+import { TemplatePreview } from '@/components/TemplatePreview';
 import type { PropertyType } from '@/types/template';
 import { useSystemTemplateStore } from '@/stores/systemTemplateStore';
 
@@ -55,13 +56,14 @@ export function ObjectEditorPage() {
   }, [sysTemplates]);
 
   const objectTemplates = useMemo(() => {
-    const map: Record<string, { key: string; label: string; type: string; sensitive?: boolean }[]> = {};
+    const map: Record<string, { key: string; label: string; type: string; sensitive?: boolean; required?: boolean }[]> = {};
     for (const tpl of sysTemplates) {
       map[tpl.key] = tpl.properties.map((p) => ({
         key: p.id,
         label: p.name_fallback,
         type: p.type,
         sensitive: p.sensitive,
+        required: p.required,
       }));
     }
     return map;
@@ -102,6 +104,7 @@ export function ObjectEditorPage() {
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const fields = objectTemplates[selectedType] || [];
 
@@ -153,8 +156,66 @@ export function ObjectEditorPage() {
     setDataLoaded(true);
   }, [currentObject, isNew, dataLoaded]);
 
+  const validateFields = (): boolean => {
+    const errors: Record<string, string> = {};
+    for (const field of fields) {
+      const val = values[field.key];
+      const strVal = typeof val === 'string' ? val.trim() : String(val ?? '').trim();
+
+      if (field.required && !strVal) {
+        errors[field.key] = t('editor:validation_required', { field: field.label });
+        continue;
+      }
+      if (!strVal) continue;
+
+      switch (field.type) {
+        case 'email': {
+          const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRe.test(strVal)) {
+            errors[field.key] = t('editor:validation_email');
+          }
+          break;
+        }
+        case 'url': {
+          try {
+            new URL(strVal);
+          } catch {
+            errors[field.key] = t('editor:validation_url');
+          }
+          break;
+        }
+        case 'phone': {
+          const phoneRe = /^[\d\s\-+()]{3,20}$/;
+          if (!phoneRe.test(strVal)) {
+            errors[field.key] = t('editor:validation_phone');
+          }
+          break;
+        }
+        case 'date': {
+          const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+          if (!dateRe.test(strVal)) {
+            errors[field.key] = t('editor:validation_date');
+          }
+          break;
+        }
+        case 'number': {
+          if (Number.isNaN(Number(strVal))) {
+            errors[field.key] = t('editor:validation_number');
+          }
+          break;
+        }
+      }
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSave = async () => {
     if (!accountId) return;
+    if (!validateFields()) {
+      onError(t('editor:validation_failed'), t('editor:validation_failed'));
+      return;
+    }
     setIsSaving(true);
     try {
       if (isNew) {
@@ -164,6 +225,8 @@ export function ObjectEditorPage() {
           collectionType,
           properties: values as unknown as Record<string, unknown>,
           parentId,
+          templateId: selectedType || undefined,
+          templateType: selectedType ? 'system' : undefined,
         });
         onSuccess(t('common:object_created'));
       } else {
@@ -211,6 +274,20 @@ export function ObjectEditorPage() {
               ))}
             </div>
           </Card>
+        )}
+
+        {isNew && selectedType && (
+          <TemplatePreview
+            templateName={t(`editor:templates.${selectedType}`, templateMeta[selectedType]?.label || selectedType)}
+            category={templateMeta[selectedType]?.category || sectionParam || ''}
+            fields={(objectTemplates[selectedType] || []).map((f) => ({
+              id: f.key,
+              name_fallback: f.label,
+              type: f.type,
+              sensitive: f.sensitive,
+              required: false,
+            }))}
+          />
         )}
 
         {!isNew && collectionType && (
@@ -281,8 +358,22 @@ export function ObjectEditorPage() {
                       label={fieldLabel}
                       type={propType}
                       value={values[field.key]}
-                      onChange={(val) => setValues((v) => ({ ...v, [field.key]: val }))}
+                      onChange={(val) => {
+                        setValues((v) => ({ ...v, [field.key]: val }));
+                        if (validationErrors[field.key]) {
+                          setValidationErrors((err) => {
+                            const next = { ...err };
+                            delete next[field.key];
+                            return next;
+                          });
+                        }
+                      }}
                     />
+                    {validationErrors[field.key] && (
+                      <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>
+                        {validationErrors[field.key]}
+                      </div>
+                    )}
                   </div>
                     );
                   })

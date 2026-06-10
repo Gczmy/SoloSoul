@@ -358,8 +358,8 @@ impl VaultStore {
         conn.execute(
             "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name, parent_id,
              children_ids, properties, property_labels, sensitivity_level,
-             is_deleted, deleted_at, tags_json, created_at, updated_at, version)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17)
+             is_deleted, deleted_at, tags_json, template_id, template_type, created_at, updated_at, version)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19)
              ON CONFLICT(id) DO UPDATE SET
                type_id=excluded.type_id, section_type=excluded.section_type, name=excluded.name, icon_name=excluded.icon_name,
                parent_id=excluded.parent_id, children_ids=excluded.children_ids,
@@ -367,12 +367,14 @@ impl VaultStore {
                sensitivity_level=excluded.sensitivity_level,
                is_deleted=excluded.is_deleted, deleted_at=excluded.deleted_at,
                tags_json=excluded.tags_json,
+               template_id=excluded.template_id, template_type=excluded.template_type,
                updated_at=excluded.updated_at, version=excluded.version",
             params![
                 obj.id, obj.account_id, obj.type_id, obj.section_type, obj.name, obj.icon_name,
                 obj.parent_id, children_json, props_json, labels_json,
                 obj.sensitivity_level, obj.is_deleted as i32, obj.deleted_at,
-                tags_str, obj.created_at, obj.updated_at, obj.version,
+                tags_str, obj.template_id, obj.template_type,
+                obj.created_at, obj.updated_at, obj.version,
             ],
         )
         .map_err(|e| format!("save_object: {}", e))?;
@@ -386,7 +388,7 @@ impl VaultStore {
             .prepare(
                 "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
-                 is_deleted, deleted_at, tags_json, created_at, updated_at, version
+                 is_deleted, deleted_at, tags_json, template_id, template_type, created_at, updated_at, version
                  FROM objects WHERE id = ?1",
             )
             .map_err(|e| format!("load_object: {}", e))?;
@@ -416,9 +418,11 @@ impl VaultStore {
                     is_deleted: deleted != 0,
                     deleted_at: row.get(12)?,
                     tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
-                    created_at: row.get(14)?,
-                    updated_at: row.get(15)?,
-                    version: row.get(16)?,
+                    template_id: row.get(14)?,
+                    template_type: row.get(15)?,
+                    created_at: row.get(16)?,
+                    updated_at: row.get(17)?,
+                    version: row.get(18)?,
                 })
             })
             .ok();
@@ -438,7 +442,7 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
 
         let mut sql = String::from(
-            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
@@ -497,6 +501,8 @@ impl VaultStore {
                     created_at: row.get(5)?,
                     updated_at: row.get(6)?,
                     is_deleted: deleted_int != 0,
+                    template_id: row.get(10)?,
+                    template_type: row.get(11)?,
                     properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
                     tags: serde_json::from_str(&tags_str).unwrap_or_default(),
                 })
@@ -550,7 +556,7 @@ impl VaultStore {
             .prepare(
                 "SELECT id, account_id, type_id, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
-                 is_deleted, deleted_at, tags_json, created_at, updated_at, version
+                 is_deleted, deleted_at, tags_json, template_id, template_type, created_at, updated_at, version
                  FROM objects
                  WHERE account_id = ?1 AND is_deleted = 0
                    AND (name LIKE ?2 OR properties LIKE ?2)
@@ -582,9 +588,11 @@ impl VaultStore {
                     is_deleted: deleted != 0,
                     deleted_at: row.get(11)?,
                     tags_json: serde_json::from_str(&row.get::<_, String>(12)?).unwrap_or_default(),
-                    created_at: row.get(13)?,
-                    updated_at: row.get(14)?,
-                    version: row.get(15)?,
+                    template_id: row.get(13)?,
+                    template_type: row.get(14)?,
+                    created_at: row.get(15)?,
+                    updated_at: row.get(16)?,
+                    version: row.get(17)?,
                 })
             })
             .map_err(|e| format!("search_objects query: {}", e))?
@@ -1302,6 +1310,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1351,6 +1361,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec!["tag-with-dash".to_string()],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1379,6 +1391,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1417,6 +1431,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1445,6 +1461,8 @@ mod tests {
                 is_deleted: false,
                 deleted_at: None,
                 tags_json: vec![],
+                template_id: None,
+                template_type: None,
                 created_at: chrono::Utc::now().to_rfc3339(),
                 updated_at: chrono::Utc::now().to_rfc3339(),
                 version: 1,
@@ -1514,6 +1532,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec!["tag1".to_string()],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1547,6 +1567,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1588,6 +1610,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1623,6 +1647,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1654,6 +1680,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1693,6 +1721,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1729,6 +1759,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1758,6 +1790,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec!["タグ".to_string()],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1767,6 +1801,45 @@ mod tests {
         assert_eq!(loaded.name, "🚀 日本語 ñoël 中文");
         assert_eq!(loaded.icon_name, "🌍");
         assert_eq!(loaded.tags_json, vec!["タグ".to_string()]);
+    }
+
+    #[test]
+    fn test_object_template_fields_roundtrip() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-tpl".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "passport".to_string(),
+            section_type: "identity".to_string(),
+            name: "My Passport".to_string(),
+            icon_name: "passport".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"fullName": "Alice"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: Some("passport".to_string()),
+            template_type: Some("system".to_string()),
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        let loaded = vault.load_object("obj-tpl").unwrap().unwrap();
+        assert_eq!(loaded.template_id, Some("passport".to_string()));
+        assert_eq!(loaded.template_type, Some("system".to_string()));
+
+        // Update to remove template association
+        let mut updated = loaded;
+        updated.template_id = None;
+        updated.template_type = None;
+        vault.save_object(&updated).unwrap();
+        let reloaded = vault.load_object("obj-tpl").unwrap().unwrap();
+        assert_eq!(reloaded.template_id, None);
+        assert_eq!(reloaded.template_type, None);
     }
 
     #[test]
@@ -1794,6 +1867,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1822,6 +1897,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -2249,6 +2326,8 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
+            template_id: None,
+            template_type: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,

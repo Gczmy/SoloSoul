@@ -762,6 +762,8 @@ pub async fn import_decrypt_preview(
                         created_at: o["created_at"].as_str().unwrap_or("").to_string(),
                         updated_at: o["updated_at"].as_str().unwrap_or("").to_string(),
                         is_deleted: false,
+                        template_id: o["template_id"].as_str().map(String::from),
+                        template_type: o["template_type"].as_str().map(String::from),
                         properties: o["properties"].clone(),
                         tags: o["tags"]
                             .as_array()
@@ -973,6 +975,8 @@ async fn import_execute_internal(
                         .collect()
                 })
                 .unwrap_or_default(),
+            template_id: obj_val["template_id"].as_str().map(String::from),
+            template_type: obj_val["template_type"].as_str().map(String::from),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
             updated_at: now.clone(),
             version: obj_val["version"].as_u64().unwrap_or(1) as u32,
