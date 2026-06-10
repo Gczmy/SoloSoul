@@ -12,6 +12,8 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useToastError } from '@/hooks/useToastError';
+import { TemplateFieldInput } from '@/components/TemplateFieldInput';
+import type { PropertyType } from '@/types/template';
 
 // Each template belongs to a workspace section.
 // collectionType is the section (for filtering), not the template name.
@@ -128,7 +130,7 @@ export function ObjectEditorPage() {
     return '';
   });
   const [name, setName] = useState('');
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, unknown>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -284,7 +286,7 @@ export function ObjectEditorPage() {
                         <label style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t(`editor:fields.${key}`, key)}</label>
                       </div>
                       <Input
-                        value={val}
+                        value={String(val ?? '')}
                         onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
                         placeholder={key}
                       />
@@ -294,17 +296,23 @@ export function ObjectEditorPage() {
                 fields.map((field) => {
                     const sensitivity = getSensitivity(field.key);
                     const fieldLabel = t(`editor:fields.${field.key}`, field.label);
+                    // Map legacy frontend type names to PropertyType
+                    const propType: PropertyType =
+                      field.type === 'tel' ? 'phone' :
+                      field.type === 'datetime-local' ? 'datetime' :
+                      (field.type as PropertyType) || 'text';
                     return (
                   <div key={field.key}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <label style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{fieldLabel}</label>
                       <SensitivityBadge level={sensitivity} />
                     </div>
-                    <Input
-                      type={field.type}
-                      value={values[field.key] || ''}
-                      onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
-                      placeholder={fieldLabel}
+                    <TemplateFieldInput
+                      propertyId={field.key}
+                      label={fieldLabel}
+                      type={propType}
+                      value={values[field.key]}
+                      onChange={(val) => setValues((v) => ({ ...v, [field.key]: val }))}
                     />
                   </div>
                     );

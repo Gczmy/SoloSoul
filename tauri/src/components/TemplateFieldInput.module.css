@@ -1,0 +1,60 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #666);
+}
+
+.input,
+.textarea,
+.select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--input-bg, #fff);
+  color: var(--text-primary, #333);
+  transition: border-color 0.15s ease;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--accent-color, #5B7C99);
+}
+
+.textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.select {
+  cursor: pointer;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.multiSelect {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
