@@ -308,6 +308,7 @@ impl PropertyType {
 
 /// A single property definition within a user template.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TemplateProperty {
     pub id: String,
     pub name: String,

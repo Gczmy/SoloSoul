@@ -1026,7 +1026,13 @@ pub async fn trash_get_detail(
                     .filter_map(|p| {
                         let name = p.get("name")?.as_str()?;
                         let prop_type = p.get("type")?.as_str()?;
-                        Some(serde_json::json!({"key": name, "value": prop_type}))
+                        let sensitivity = p.get("sensitivityLevel").and_then(|v| v.as_str()).unwrap_or("internal");
+                        Some(serde_json::json!({
+                            "key": name,
+                            "value": prop_type,
+                            "type": prop_type,
+                            "sensitivityLevel": sensitivity
+                        }))
                     })
                     .collect(),
             )

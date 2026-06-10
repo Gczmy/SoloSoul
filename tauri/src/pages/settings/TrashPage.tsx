@@ -5,10 +5,13 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { useAuthStore } from '@/stores/authStore';
 import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashStore';
 import { invoke } from '@tauri-apps/api/core';
 import { Trash2, RotateCcw, FileText, X, Info } from 'lucide-react';
+import type { PropertyType, SensitivityLevel } from '@/types/template';
 
 // ── Detail panel types ──────────────────────────────────────────
 
@@ -375,15 +378,21 @@ export function TrashPage() {
               {detailItem.previewProperties.length > 0 && (
                 <div style={{ marginTop: 16, borderTop: '1px solid var(--border-subtle)', paddingTop: 12 }}>
                   <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{t('settings:content_preview')}</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text-secondary)' }}>
-                    {detailItem.previewProperties.map((p, i) => (
-                      <div key={i} style={{ display: 'flex', gap: 8 }}>
-                        <span style={{ fontWeight: 500, flexShrink: 0 }}>{t(`editor:fields.${p.key}`, p.key)}:</span>
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {typeof p.value === 'string' ? p.value : JSON.stringify(p.value)}
-                        </span>
-                      </div>
-                    ))}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+                    {detailItem.previewProperties.map((p, i) => {
+                      const propType = (p as Record<string, unknown>).type as PropertyType | undefined;
+                      const sensitivity = (p as Record<string, unknown>).sensitivityLevel as SensitivityLevel | undefined;
+                      return (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {propType && <FieldTypeIcon type={propType} size={14} />}
+                          <span style={{ fontWeight: 500, flexShrink: 0 }}>{p.key}</span>
+                          {sensitivity && <SensitivityBadge level={sensitivity} />}
+                          <span style={{ color: 'var(--text-tertiary)', marginLeft: 'auto', flexShrink: 0 }}>
+                            {typeof p.value === 'string' ? p.value : JSON.stringify(p.value)}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

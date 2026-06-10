@@ -15,34 +15,11 @@ import { useToastError } from '@/hooks/useToastError';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import type { PropertyType } from '@/types/template';
 import { useTemplateStore } from '@/stores/templateStore';
-import {
-  Type, AlignLeft, Hash, Calendar, Clock, CheckSquare,
-  List, ListChecks, Link, Mail, Phone, File,
-} from 'lucide-react';
+import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 
 // Each template belongs to a workspace section.
 // collectionType is the section (for filtering), not the template name.
 type TemplateCategory = 'identity' | 'travel' | 'financial' | 'professional';
-
-/** Map field type to a Lucide icon for visual indication. */
-function FieldTypeIcon({ type, size = 14 }: { type: PropertyType; size?: number }) {
-  const style = { color: 'var(--text-tertiary)', flexShrink: 0 } as React.CSSProperties;
-  switch (type) {
-    case 'text': return <Type size={size} style={style} />;
-    case 'multiline': return <AlignLeft size={size} style={style} />;
-    case 'number': return <Hash size={size} style={style} />;
-    case 'date': return <Calendar size={size} style={style} />;
-    case 'datetime': return <Clock size={size} style={style} />;
-    case 'boolean': return <CheckSquare size={size} style={style} />;
-    case 'select': return <List size={size} style={style} />;
-    case 'multiselect': return <ListChecks size={size} style={style} />;
-    case 'url': return <Link size={size} style={style} />;
-    case 'email': return <Mail size={size} style={style} />;
-    case 'phone': return <Phone size={size} style={style} />;
-    case 'file': return <File size={size} style={style} />;
-    default: return <Type size={size} style={style} />;
-  }
-}
 
 export function ObjectEditorPage() {
   const { objectId } = useParams();
