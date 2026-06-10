@@ -46,20 +46,11 @@ pub async fn login(
     svc.unlock(&account_id, &password)
 }
 
-#[tauri::command]
-pub async fn verify_password(
-    state: State<'_, AppState>,
-    account_id: String,
-    password: String,
+fn verify_password_core(
+    password: &str,
+    config: &crate::services::vault_service::AccountConfig,
 ) -> Result<bool, String> {
     use solosoul_crypto::kdf::{derive_key, KdfConfig};
-    let svc = state.vault_service.read().await;
-    let config_path = svc.base_path().join(&account_id).join("config.json");
-    let content =
-        std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
-    let config: crate::services::vault_service::AccountConfig =
-        serde_json::from_str(&content).map_err(|_| "Parse error".to_string())?;
-
     let salt_bytes =
         base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &config.salt)
             .map_err(|_| "Invalid salt".to_string())?;
@@ -70,7 +61,7 @@ pub async fn verify_password(
 
     let kdf_config = KdfConfig::balanced();
     let master_key =
-        derive_key(&password, &salt_arr, &kdf_config).map_err(|_| "KDF failed".to_string())?;
+        derive_key(password, &salt_arr, &kdf_config).map_err(|_| "KDF failed".to_string())?;
 
     let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
     let verify_key = derive_key(
@@ -88,6 +79,22 @@ pub async fn verify_password(
 }
 
 #[tauri::command]
+pub async fn verify_password(
+    state: State<'_, AppState>,
+    account_id: String,
+    password: String,
+) -> Result<bool, String> {
+    let svc = state.vault_service.read().await;
+    let config_path = svc.base_path().join(&account_id).join("config.json");
+    let content =
+        std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
+    let config: crate::services::vault_service::AccountConfig =
+        serde_json::from_str(&content).map_err(|_| "Parse error".to_string())?;
+
+    verify_password_core(&password, &config)
+}
+
+#[tauri::command]
 pub async fn logout(state: State<'_, AppState>) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     svc.lock();
@@ -98,4 +105,108 @@ pub async fn logout(state: State<'_, AppState>) -> Result<(), String> {
 pub async fn get_current_account(state: State<'_, AppState>) -> Result<Option<String>, String> {
     let svc = state.vault_service.read().await;
     Ok(svc.get_current_account())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::services::vault_service::AccountConfig;
+    use base64::Engine;
+    use solosoul_crypto::kdf::{derive_key, KdfConfig};
+
+    fn sample_account_config() -> AccountConfig {
+        AccountConfig {
+            account_id: "acc-1".to_string(),
+            name: "Test".to_string(),
+            salt: base64::engine::general_purpose::STANDARD.encode(b"1234567890123456"),
+            verify_hash: String::new(),
+            created_at: chrono::Utc::now().to_rfc3339(),
+            crypto_version: 1,
+            password_hint: None,
+            last_login_at: None,
+            last_operation_at: None,
+            last_operation_desc: None,
+            biometric_enabled: false,
+        }
+    }
+
+    fn compute_verify_hash(password: &str, salt: &[u8; 16]) -> String {
+        let kdf_config = KdfConfig::balanced();
+        let master_key = derive_key(password, salt, &kdf_config).unwrap();
+        let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
+        let verify_key = derive_key(
+            &hex::encode(master_key.as_slice()),
+            verify_data,
+            &KdfConfig {
+                memory_kb: 8192,
+                iterations: 1,
+                parallelism: 1,
+            },
+        )
+        .unwrap();
+        hex::encode(verify_key.as_slice())
+    }
+
+    #[test]
+    fn test_account_info_serialization() {
+        let info = AccountInfo {
+            id: "acc-1".to_string(),
+            name: "Alice".to_string(),
+            salt: "salty".to_string(),
+            verify_hash: "hashy".to_string(),
+            password_hint: Some("hint".to_string()),
+            created_at: Some("2024-01-01T00:00:00Z".to_string()),
+        };
+        let json = serde_json::to_string(&info).unwrap();
+        assert!(json.contains("\"id\":\"acc-1\""));
+        assert!(json.contains("\"name\":\"Alice\""));
+        assert!(json.contains("\"password_hint\":\"hint\""));
+        assert!(json.contains("\"created_at\":\"2024-01-01T00:00:00Z\""));
+    }
+
+    #[test]
+    fn test_account_config_serde_roundtrip() {
+        let original = sample_account_config();
+        let json = serde_json::to_string(&original).unwrap();
+        let restored: AccountConfig = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.account_id, original.account_id);
+        assert_eq!(restored.name, original.name);
+        assert_eq!(restored.salt, original.salt);
+        assert_eq!(restored.verify_hash, original.verify_hash);
+        assert_eq!(restored.crypto_version, original.crypto_version);
+    }
+
+    #[test]
+    fn test_verify_password_core_correct_password() {
+        let salt = b"1234567890123456";
+        let mut config = sample_account_config();
+        config.salt = base64::engine::general_purpose::STANDARD.encode(salt);
+        config.verify_hash = compute_verify_hash("secret123", salt);
+
+        assert!(verify_password_core("secret123", &config).unwrap());
+    }
+
+    #[test]
+    fn test_verify_password_core_wrong_password() {
+        let salt = b"1234567890123456";
+        let mut config = sample_account_config();
+        config.salt = base64::engine::general_purpose::STANDARD.encode(salt);
+        config.verify_hash = compute_verify_hash("secret123", salt);
+
+        assert!(!verify_password_core("wrongpassword", &config).unwrap());
+    }
+
+    #[test]
+    fn test_verify_password_core_invalid_salt() {
+        let mut config = sample_account_config();
+        config.salt = "not-valid-base64!!!".to_string();
+        assert!(verify_password_core("secret123", &config).is_err());
+    }
+
+    #[test]
+    fn test_verify_password_core_bad_salt_length() {
+        let mut config = sample_account_config();
+        config.salt = base64::engine::general_purpose::STANDARD.encode(b"short");
+        assert!(verify_password_core("secret123", &config).is_err());
+    }
 }

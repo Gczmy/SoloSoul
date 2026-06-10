@@ -244,4 +244,76 @@ describe('settingsStore', () => {
       expect(useSettingsStore.getState().isLoading).toBe(false);
     });
   });
+
+  describe('default state', () => {
+    it('should have correct default values', () => {
+      const state = useSettingsStore.getState();
+      expect(state.settings.theme).toBe('system');
+      expect(state.settings.accentColor).toBe('ocean');
+      expect(state.settings.language).toBe('en-US');
+      expect(state.settings.locale).toBe('en');
+      expect(state.settings.autoLockTimeoutMinutes).toBe(5);
+      expect(state.settings.biometricEnabled).toBe(false);
+      expect(state.settings.confirmDelete).toBe(true);
+      expect(state.settings.customPages).toEqual([]);
+      expect(state.settings.defaultLightTheme).toBe('warm-stone');
+      expect(state.settings.defaultDarkTheme).toBe('warm-stone-dark');
+      expect(state.isLoading).toBe(false);
+    });
+  });
+
+  describe('loadCustomPages', () => {
+    it('should load pages from objects table when new-format pages exist', async () => {
+      vi.mocked(invoke).mockResolvedValue([
+        { id: 'obj-1', name: 'Page A', collectionType: 'page', createdAt: '2024-06-01T00:00:00Z', updatedAt: '2024-06-01T00:00:00Z' },
+        { id: 'obj-2', name: 'Page B', collectionType: 'page', createdAt: '2024-06-02T00:00:00Z', updatedAt: '2024-06-02T00:00:00Z' },
+      ]);
+      await useSettingsStore.getState().loadCustomPages('acc-1');
+      const pages = useSettingsStore.getState().settings.customPages;
+      expect(pages).toHaveLength(2);
+      expect(pages[0].id).toBe('obj-1');
+      expect(pages[0].name).toBe('Page A');
+      expect(pages[1].sortOrder).toBe(1);
+      expect(invoke).toHaveBeenCalledWith('object_list', {
+        accountId: 'acc-1',
+        filter: { collectionType: 'page' },
+      });
+    });
+
+    it('should migrate old-format pages when objects table is empty', async () => {
+      useSettingsStore.setState({
+        settings: {
+          ...useSettingsStore.getState().settings,
+          customPages: [
+            { id: 'old-1', name: 'Old Page', iconId: 'star', createdAt: '2024-01-01', sortOrder: 0 },
+          ],
+        },
+      });
+      vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+        if (cmd === 'object_list') return [];
+        if (cmd === 'object_create') return undefined;
+        if (cmd === 'user_data_update_preference') return undefined;
+        return undefined;
+      });
+      await useSettingsStore.getState().loadCustomPages('acc-1');
+      const pages = useSettingsStore.getState().settings.customPages;
+      expect(pages).toHaveLength(1);
+      expect(pages[0].id).toBe('old-1');
+      expect(invoke).toHaveBeenCalledWith('object_create', expect.objectContaining({
+        input: expect.objectContaining({ name: 'Old Page', collectionType: 'page' }),
+      }));
+    });
+
+    it('should silently fail when objects table is empty and no old pages exist', async () => {
+      vi.mocked(invoke).mockResolvedValue([]);
+      await useSettingsStore.getState().loadCustomPages('acc-1');
+      expect(useSettingsStore.getState().settings.customPages).toHaveLength(0);
+    });
+
+    it('should handle object_list failure gracefully', async () => {
+      vi.mocked(invoke).mockRejectedValue(new Error('db locked'));
+      await useSettingsStore.getState().loadCustomPages('acc-1');
+      expect(useSettingsStore.getState().settings.customPages).toHaveLength(0);
+    });
+  });
 });
