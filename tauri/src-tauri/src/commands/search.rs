@@ -206,7 +206,9 @@ mod tests {
         });
         let mut matches = Vec::new();
         search_properties_for_matches(&data, "email", "", &mut matches);
-        let has_field_match = matches.iter().any(|(_, val, _)| val == "field:emailAddress");
+        let has_field_match = matches
+            .iter()
+            .any(|(_, val, _)| val == "field:emailAddress");
         assert!(has_field_match);
     }
 

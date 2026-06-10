@@ -79,7 +79,7 @@ describe('BootstrapPage', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(bootstrapMock).toHaveBeenCalledWith('Alice', 'password123');
+      expect(bootstrapMock).toHaveBeenCalledWith('Alice', 'password123', expect.any(String));
     });
     expect(navigate).toHaveBeenCalledWith('/');
   });

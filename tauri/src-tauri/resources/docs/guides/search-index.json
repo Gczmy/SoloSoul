@@ -270,6 +270,7 @@
       "sensitivity",
       "snapshots",
       "sync",
+      "templates",
       "trash",
       "workspace"
     ],
@@ -734,6 +735,7 @@
       "sensitivity",
       "snapshots",
       "sync",
+      "templates",
       "trash",
       "workspace"
     ],
@@ -934,6 +936,7 @@
       "objects",
       "sensitivity",
       "sync",
+      "templates",
       "trash"
     ],
     "法": [
@@ -945,6 +948,7 @@
       "objects",
       "sensitivity",
       "sync",
+      "templates",
       "trash"
     ],
     "重": [
@@ -991,7 +995,8 @@
     "必": [
       "export_import",
       "getting_started",
-      "ocr_scan"
+      "ocr_scan",
+      "templates"
     ],
     "牢": [
       "getting_started"
@@ -1009,6 +1014,7 @@
       "search",
       "security",
       "snapshots",
+      "templates",
       "workspace"
     ],
     "安": [
@@ -1628,7 +1634,8 @@
       "llm_config",
       "objects",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "templates"
     ],
     "工": [
       "appearance",
@@ -1704,6 +1711,7 @@
       "sensitivity",
       "snapshots",
       "sync",
+      "templates",
       "trash",
       "workspace"
     ],
@@ -1739,6 +1747,7 @@
       "sensitivity",
       "snapshots",
       "sync",
+      "templates",
       "trash"
     ],
     "类": [
@@ -2127,7 +2136,8 @@
       "export_import",
       "getting_started",
       "llm_config",
-      "objects"
+      "objects",
+      "templates"
     ],
     "己": [
       "TERMS_OF_SERVICE",
@@ -2151,6 +2161,7 @@
       "sensitivity",
       "snapshots",
       "sync",
+      "templates",
       "trash",
       "workspace"
     ],
@@ -2175,7 +2186,8 @@
       "search",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "templates"
     ],
     "感": [
       "PRIVACY_POLICY",
@@ -2189,7 +2201,8 @@
       "search",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "templates"
     ],
     "如身份证号": [
       "getting_started"
@@ -2229,6 +2242,7 @@
       "sensitivity",
       "snapshots",
       "sync",
+      "templates",
       "trash",
       "workspace"
     ],
@@ -2331,6 +2345,7 @@
       "sensitivity",
       "snapshots",
       "sync",
+      "templates",
       "trash"
     ],
     "验": [
@@ -2482,7 +2497,8 @@
       "backup_restore",
       "export_import",
       "getting_started",
-      "snapshots"
+      "snapshots",
+      "templates"
     ],
     "开发者和服务端": [
       "getting_started"
@@ -2558,6 +2574,7 @@
       "security",
       "snapshots",
       "sync",
+      "templates",
       "workspace"
     ],
     "cards": [
@@ -2644,7 +2661,8 @@
       "plugins",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "templates"
     ],
     "多": [
       "backup_restore",
@@ -3160,7 +3178,8 @@
       "plugins",
       "search",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "templates"
     ],
     "such": [
       "getting_started"
@@ -3278,6 +3297,7 @@
       "sensitivity",
       "snapshots",
       "sync",
+      "templates",
       "trash",
       "workspace"
     ],
@@ -3419,6 +3439,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "templates",
       "trash",
       "workspace"
     ],
@@ -3477,7 +3498,8 @@
       "search",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "templates"
     ],
     "id": [
       "PRIVACY_POLICY",
@@ -3825,6 +3847,7 @@
       "plugins",
       "sensitivity",
       "snapshots",
+      "templates",
       "trash"
     ],
     "代": [
@@ -4055,6 +4078,7 @@
       "sensitivity",
       "snapshots",
       "sync",
+      "templates",
       "trash"
     ],
     "检": [
@@ -4134,7 +4158,8 @@
       "PRIVACY_POLICY",
       "attachments",
       "export_import",
-      "objects"
+      "objects",
+      "templates"
     ],
     "文": [
       "PRIVACY_POLICY",
@@ -4515,6 +4540,7 @@
       "plugins",
       "security",
       "sync",
+      "templates",
       "trash",
       "workspace"
     ],
@@ -4530,6 +4556,7 @@
       "plugins",
       "security",
       "sync",
+      "templates",
       "trash",
       "workspace"
     ],
@@ -4731,6 +4758,7 @@
       "backup_restore",
       "objects",
       "snapshots",
+      "templates",
       "trash"
     ],
     "core": [
@@ -5013,6 +5041,7 @@
       "collections",
       "objects",
       "snapshots",
+      "templates",
       "trash"
     ],
     "remain": [
@@ -5030,7 +5059,8 @@
       "workspace"
     ],
     "which": [
-      "objects"
+      "objects",
+      "templates"
     ],
     "they": [
       "objects",
@@ -5160,6 +5190,184 @@
       "templates",
       "workspace"
     ],
+    "同时支持将任意对象保存为自定义模板": [
+      "templates"
+    ],
+    "同": [
+      "TERMS_OF_SERVICE",
+      "ai_chat",
+      "attachments",
+      "backup_restore",
+      "export_import",
+      "search",
+      "security",
+      "snapshots",
+      "sync",
+      "templates"
+    ],
+    "模板来源": [
+      "templates"
+    ],
+    "来": [
+      "collections",
+      "plugins",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "源": [
+      "TERMS_OF_SERVICE",
+      "plugins",
+      "templates"
+    ],
+    "系统模板": [
+      "templates"
+    ],
+    "系": [
+      "PRIVACY_POLICY",
+      "ai_chat",
+      "appearance",
+      "attachments",
+      "audit_log",
+      "biometric",
+      "llm_config",
+      "ocr_scan",
+      "plugins",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "统": [
+      "PRIVACY_POLICY",
+      "ai_chat",
+      "appearance",
+      "attachments",
+      "audit_log",
+      "biometric",
+      "llm_config",
+      "ocr_scan",
+      "plugins",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates",
+      "trash"
+    ],
+    "内置在应用中的标准模板": [
+      "templates"
+    ],
+    "应": [
+      "TERMS_OF_SERVICE",
+      "appearance",
+      "search",
+      "security",
+      "templates",
+      "workspace"
+    ],
+    "随版本更新而扩展": [
+      "templates"
+    ],
+    "随": [
+      "PRIVACY_POLICY",
+      "appearance",
+      "collections",
+      "plugins",
+      "snapshots",
+      "templates"
+    ],
+    "新": [
+      "PRIVACY_POLICY",
+      "TERMS_OF_SERVICE",
+      "ai_chat",
+      "appearance",
+      "audit_log",
+      "backup_restore",
+      "biometric",
+      "collections",
+      "plugins",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "而": [
+      "templates"
+    ],
+    "扩": [
+      "ai_chat",
+      "plugins",
+      "templates"
+    ],
+    "展": [
+      "ai_chat",
+      "llm_config",
+      "plugins",
+      "templates"
+    ],
+    "无法修改": [
+      "templates"
+    ],
+    "修": [
+      "audit_log",
+      "biometric",
+      "collections",
+      "ocr_scan",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates"
+    ],
+    "改": [
+      "appearance",
+      "audit_log",
+      "biometric",
+      "collections",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "templates"
+    ],
+    "用户模板": [
+      "templates"
+    ],
+    "由您从现有对象保存而来的自定义模板": [
+      "templates"
+    ],
+    "由": [
+      "PRIVACY_POLICY",
+      "TERMS_OF_SERVICE",
+      "plugins",
+      "templates"
+    ],
+    "从": [
+      "PRIVACY_POLICY",
+      "ai_chat",
+      "attachments",
+      "ocr_scan",
+      "search",
+      "snapshots",
+      "templates",
+      "trash"
+    ],
+    "现": [
+      "collections",
+      "export_import",
+      "ocr_scan",
+      "sync",
+      "templates",
+      "workspace"
+    ],
+    "仅存储在本地": [
+      "templates"
+    ],
+    "可随时删除": [
+      "templates"
+    ],
     "内置模板一览": [
       "templates"
     ],
@@ -5223,75 +5431,43 @@
     "新建对象时": [
       "templates"
     ],
-    "新": [
-      "PRIVACY_POLICY",
-      "TERMS_OF_SERVICE",
-      "ai_chat",
-      "appearance",
-      "audit_log",
-      "backup_restore",
-      "biometric",
-      "collections",
-      "plugins",
-      "security",
-      "sensitivity",
-      "snapshots",
-      "templates",
-      "workspace"
-    ],
     "在顶部选择模板类型": [
       "templates"
     ],
     "系统自动展开对应的字段表单": [
       "templates"
     ],
-    "系": [
-      "PRIVACY_POLICY",
-      "ai_chat",
-      "appearance",
-      "attachments",
-      "audit_log",
-      "biometric",
-      "llm_config",
-      "ocr_scan",
-      "plugins",
-      "security",
-      "sensitivity",
-      "snapshots",
-      "sync",
-      "templates",
-      "trash"
-    ],
-    "统": [
-      "PRIVACY_POLICY",
-      "ai_chat",
-      "appearance",
-      "attachments",
-      "audit_log",
-      "biometric",
-      "llm_config",
-      "ocr_scan",
-      "plugins",
-      "security",
-      "sensitivity",
-      "snapshots",
-      "sync",
-      "templates",
-      "trash"
-    ],
-    "展": [
-      "ai_chat",
-      "llm_config",
-      "plugins",
+    "并在下方显示模板预览": [
       "templates"
     ],
-    "应": [
+    "方": [
+      "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
-      "appearance",
-      "search",
+      "ai_chat",
+      "backup_restore",
+      "biometric",
+      "ocr_scan",
+      "plugins",
       "security",
+      "sensitivity",
+      "sync",
       "templates",
       "workspace"
+    ],
+    "字段类型": [
+      "templates"
+    ],
+    "是否必填": [
+      "templates"
+    ],
+    "否": [
+      "biometric",
+      "llm_config",
+      "security",
+      "templates"
+    ],
+    "是否敏感": [
+      "templates"
     ],
     "填写后保存": [
       "templates"
@@ -5318,6 +5494,38 @@
     ],
     "分区工作区": [
       "templates",
+      "workspace"
+    ],
+    "在模板预览中确认所需字段": [
+      "templates"
+    ],
+    "确": [
+      "PRIVACY_POLICY",
+      "ai_chat",
+      "appearance",
+      "audit_log",
+      "backup_restore",
+      "biometric",
+      "export_import",
+      "llm_config",
+      "ocr_scan",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "trash",
+      "workspace"
+    ],
+    "认": [
+      "ai_chat",
+      "backup_restore",
+      "biometric",
+      "export_import",
+      "security",
+      "sensitivity",
+      "sync",
+      "templates",
+      "trash",
       "workspace"
     ],
     "填写护照号码": [
@@ -5391,35 +5599,6 @@
     "确认保存": [
       "templates"
     ],
-    "确": [
-      "PRIVACY_POLICY",
-      "ai_chat",
-      "appearance",
-      "audit_log",
-      "backup_restore",
-      "biometric",
-      "export_import",
-      "llm_config",
-      "ocr_scan",
-      "security",
-      "sensitivity",
-      "sync",
-      "templates",
-      "trash",
-      "workspace"
-    ],
-    "认": [
-      "ai_chat",
-      "backup_restore",
-      "biometric",
-      "export_import",
-      "security",
-      "sensitivity",
-      "sync",
-      "templates",
-      "trash",
-      "workspace"
-    ],
     "自定义模板仅保存在本地": [
       "templates"
     ],
@@ -5433,6 +5612,57 @@
       "biometric",
       "export_import",
       "ocr_scan",
+      "sync",
+      "templates"
+    ],
+    "模板与对象的关联": [
+      "templates"
+    ],
+    "每个对象在创建时可以选择关联一个模板": [
+      "templates"
+    ],
+    "系统模板或用户模板": [
+      "templates"
+    ],
+    "关联信息会记录在对象数据中": [
+      "templates"
+    ],
+    "方便后续追溯该对象基于哪个模板创建": [
+      "templates"
+    ],
+    "便": [
+      "security",
+      "templates"
+    ],
+    "续": [
+      "plugins",
+      "templates"
+    ],
+    "追": [
+      "audit_log",
+      "templates"
+    ],
+    "溯": [
+      "audit_log",
+      "snapshots",
+      "templates"
+    ],
+    "哪": [
+      "templates"
+    ],
+    "解除关联不会影响对象本身的数据": [
+      "templates"
+    ],
+    "影": [
+      "appearance",
+      "collections",
+      "sync",
+      "templates"
+    ],
+    "响": [
+      "TERMS_OF_SERVICE",
+      "appearance",
+      "collections",
       "sync",
       "templates"
     ],
@@ -5507,6 +5737,75 @@
       "llm_config",
       "templates"
     ],
+    "supports": [
+      "biometric",
+      "security",
+      "templates",
+      "trash"
+    ],
+    "saving": [
+      "templates"
+    ],
+    "sources": [
+      "plugins",
+      "templates"
+    ],
+    "system": [
+      "PRIVACY_POLICY",
+      "ai_chat",
+      "appearance",
+      "attachments",
+      "audit_log",
+      "biometric",
+      "llm_config",
+      "ocr_scan",
+      "plugins",
+      "security",
+      "sensitivity",
+      "snapshots",
+      "sync",
+      "templates"
+    ],
+    "expand": [
+      "templates"
+    ],
+    "app": [
+      "TERMS_OF_SERVICE",
+      "ai_chat",
+      "appearance",
+      "llm_config",
+      "security",
+      "templates"
+    ],
+    "updates": [
+      "templates"
+    ],
+    "read": [
+      "PRIVACY_POLICY",
+      "ai_chat",
+      "audit_log",
+      "templates"
+    ],
+    "user": [
+      "TERMS_OF_SERVICE",
+      "audit_log",
+      "backup_restore",
+      "llm_config",
+      "templates"
+    ],
+    "saved": [
+      "backup_restore",
+      "ocr_scan",
+      "snapshots",
+      "templates"
+    ],
+    "existing": [
+      "export_import",
+      "templates"
+    ],
+    "anytime": [
+      "templates"
+    ],
     "use": [
       "PRIVACY_POLICY",
       "ai_chat",
@@ -5547,22 +5846,6 @@
       "templates",
       "workspace"
     ],
-    "system": [
-      "PRIVACY_POLICY",
-      "ai_chat",
-      "appearance",
-      "attachments",
-      "audit_log",
-      "biometric",
-      "llm_config",
-      "ocr_scan",
-      "plugins",
-      "security",
-      "sensitivity",
-      "snapshots",
-      "sync",
-      "templates"
-    ],
     "expands": [
       "templates"
     ],
@@ -5571,6 +5854,46 @@
       "workspace"
     ],
     "form": [
+      "templates"
+    ],
+    "shows": [
+      "audit_log",
+      "biometric",
+      "snapshots",
+      "templates"
+    ],
+    "preview": [
+      "appearance",
+      "attachments",
+      "export_import",
+      "templates"
+    ],
+    "below": [
+      "ocr_scan",
+      "templates",
+      "workspace"
+    ],
+    "types": [
+      "appearance",
+      "biometric",
+      "ocr_scan",
+      "templates"
+    ],
+    "required": [
+      "sensitivity",
+      "templates"
+    ],
+    "indicators": [
+      "templates"
+    ],
+    "review": [
+      "export_import",
+      "ocr_scan",
+      "plugins",
+      "templates"
+    ],
+    "see": [
+      "appearance",
       "templates"
     ],
     "number": [
@@ -5585,9 +5908,6 @@
       "templates"
     ],
     "expiry": [
-      "templates"
-    ],
-    "saving": [
       "templates"
     ],
     "reuse": [
@@ -5628,6 +5948,60 @@
     ],
     "server": [
       "ai_chat",
+      "templates"
+    ],
+    "association": [
+      "templates"
+    ],
+    "associate": [
+      "templates"
+    ],
+    "this": [
+      "TERMS_OF_SERVICE",
+      "audit_log",
+      "snapshots",
+      "templates"
+    ],
+    "recorded": [
+      "sensitivity",
+      "templates"
+    ],
+    "making": [
+      "templates"
+    ],
+    "easy": [
+      "templates"
+    ],
+    "trace": [
+      "sensitivity",
+      "templates"
+    ],
+    "created": [
+      "collections",
+      "snapshots",
+      "templates",
+      "workspace"
+    ],
+    "removing": [
+      "collections",
+      "templates"
+    ],
+    "not": [
+      "PRIVACY_POLICY",
+      "TERMS_OF_SERVICE",
+      "ai_chat",
+      "collections",
+      "ocr_scan",
+      "search",
+      "security",
+      "sync",
+      "templates",
+      "workspace"
+    ],
+    "affect": [
+      "appearance",
+      "collections",
+      "sync",
       "templates"
     ],
     "attachment": [
@@ -5684,19 +6058,6 @@
       "collections",
       "workspace"
     ],
-    "方": [
-      "PRIVACY_POLICY",
-      "TERMS_OF_SERVICE",
-      "ai_chat",
-      "backup_restore",
-      "biometric",
-      "ocr_scan",
-      "plugins",
-      "security",
-      "sensitivity",
-      "sync",
-      "workspace"
-    ],
     "四个固定分区": [
       "workspace"
     ],
@@ -5719,12 +6080,6 @@
     "您可以创建自己的页面来组织对象": [
       "workspace"
     ],
-    "来": [
-      "collections",
-      "plugins",
-      "trash",
-      "workspace"
-    ],
     "点击侧边栏底部的": [
       "workspace"
     ],
@@ -5743,13 +6098,6 @@
       "workspace"
     ],
     "该页面出现在侧边栏固定分区下方": [
-      "workspace"
-    ],
-    "现": [
-      "collections",
-      "export_import",
-      "ocr_scan",
-      "sync",
       "workspace"
     ],
     "进入页面后创建的对象将归属此页面": [
@@ -5943,15 +6291,6 @@
     "appears": [
       "workspace"
     ],
-    "below": [
-      "ocr_scan",
-      "workspace"
-    ],
-    "created": [
-      "collections",
-      "snapshots",
-      "workspace"
-    ],
     "my": [
       "workspace"
     ],
@@ -5977,17 +6316,6 @@
       "workspace"
     ],
     "double": [
-      "workspace"
-    ],
-    "not": [
-      "PRIVACY_POLICY",
-      "TERMS_OF_SERVICE",
-      "ai_chat",
-      "collections",
-      "ocr_scan",
-      "search",
-      "security",
-      "sync",
       "workspace"
     ],
     "their": [
@@ -6037,17 +6365,6 @@
     "合同": [
       "attachments"
     ],
-    "同": [
-      "TERMS_OF_SERVICE",
-      "ai_chat",
-      "attachments",
-      "backup_restore",
-      "export_import",
-      "search",
-      "security",
-      "snapshots",
-      "sync"
-    ],
     "扫描件等": [
       "attachments"
     ],
@@ -6072,15 +6389,6 @@
     ],
     "从文件系统选择文件": [
       "attachments"
-    ],
-    "从": [
-      "PRIVACY_POLICY",
-      "ai_chat",
-      "attachments",
-      "ocr_scan",
-      "search",
-      "snapshots",
-      "trash"
     ],
     "文件将加密存储在保险库中": [
       "attachments"
@@ -6351,11 +6659,6 @@
       "biometric",
       "ocr_scan"
     ],
-    "preview": [
-      "appearance",
-      "attachments",
-      "export_import"
-    ],
     "text": [
       "attachments",
       "audit_log",
@@ -6493,24 +6796,6 @@
     "自动为对象的每次修改创建快照": [
       "snapshots"
     ],
-    "修": [
-      "audit_log",
-      "biometric",
-      "collections",
-      "ocr_scan",
-      "security",
-      "sensitivity",
-      "snapshots"
-    ],
-    "改": [
-      "appearance",
-      "audit_log",
-      "biometric",
-      "collections",
-      "security",
-      "sensitivity",
-      "snapshots"
-    ],
     "让您可以随时回溯历史版本": [
       "snapshots"
     ],
@@ -6520,17 +6805,6 @@
       "export_import",
       "ocr_scan",
       "search",
-      "snapshots"
-    ],
-    "随": [
-      "PRIVACY_POLICY",
-      "appearance",
-      "collections",
-      "plugins",
-      "snapshots"
-    ],
-    "溯": [
-      "audit_log",
       "snapshots"
     ],
     "自动快照": [
@@ -6842,11 +7116,6 @@
       "snapshots",
       "trash"
     ],
-    "saved": [
-      "backup_restore",
-      "ocr_scan",
-      "snapshots"
-    ],
     "change": [
       "audit_log",
       "security",
@@ -6909,11 +7178,6 @@
     ],
     "between": [
       "appearance",
-      "snapshots"
-    ],
-    "shows": [
-      "audit_log",
-      "biometric",
       "snapshots"
     ],
     "browse": [
@@ -6992,11 +7256,6 @@
       "snapshots",
       "sync",
       "trash"
-    ],
-    "this": [
-      "TERMS_OF_SERVICE",
-      "audit_log",
-      "snapshots"
     ],
     "consume": [
       "snapshots"
@@ -7224,17 +7483,6 @@
     "不会影响集合中的任何对象数据": [
       "collections"
     ],
-    "影": [
-      "appearance",
-      "collections",
-      "sync"
-    ],
-    "响": [
-      "TERMS_OF_SERVICE",
-      "appearance",
-      "collections",
-      "sync"
-    ],
     "集合与工作区配合": [
       "collections"
     ],
@@ -7311,9 +7559,6 @@
     "manual": [
       "collections"
     ],
-    "removing": [
-      "collections"
-    ],
     "needed": [
       "backup_restore",
       "collections"
@@ -7343,11 +7588,6 @@
     ],
     "configuration": [
       "collections"
-    ],
-    "affect": [
-      "appearance",
-      "collections",
-      "sync"
     ],
     "global": [
       "appearance",
@@ -7794,13 +8034,7 @@
     "reason": [
       "sensitivity"
     ],
-    "required": [
-      "sensitivity"
-    ],
     "downgrading": [
-      "sensitivity"
-    ],
-    "recorded": [
       "sensitivity"
     ],
     "audit": [
@@ -7817,9 +8051,6 @@
     "without": [
       "PRIVACY_POLICY",
       "appearance",
-      "sensitivity"
-    ],
-    "trace": [
       "sensitivity"
     ],
     "boundary": [
@@ -8030,11 +8261,6 @@
     "按钮验证功能是否正常": [
       "security"
     ],
-    "否": [
-      "biometric",
-      "llm_config",
-      "security"
-    ],
     "正": [
       "ocr_scan",
       "plugins",
@@ -8083,9 +8309,6 @@
       "security"
     ],
     "便捷解锁方式": [
-      "security"
-    ],
-    "便": [
       "security"
     ],
     "捷": [
@@ -8187,11 +8410,6 @@
       "security",
       "sync"
     ],
-    "supports": [
-      "biometric",
-      "security",
-      "trash"
-    ],
     "check": [
       "ai_chat",
       "biometric",
@@ -8263,13 +8481,6 @@
       "security"
     ],
     "locks": [
-      "security"
-    ],
-    "app": [
-      "TERMS_OF_SERVICE",
-      "ai_chat",
-      "appearance",
-      "llm_config",
       "security"
     ],
     "background": [
@@ -8509,11 +8720,6 @@
     ],
     "platform": [
       "biometric"
-    ],
-    "types": [
-      "appearance",
-      "biometric",
-      "ocr_scan"
     ],
     "planned": [
       "biometric"
@@ -9251,9 +9457,6 @@
     "skip": [
       "export_import"
     ],
-    "existing": [
-      "export_import"
-    ],
     "keep": [
       "export_import"
     ],
@@ -9282,11 +9485,6 @@
     ],
     "conflicting": [
       "export_import"
-    ],
-    "review": [
-      "export_import",
-      "ocr_scan",
-      "plugins"
     ],
     "package": [
       "export_import"
@@ -9573,12 +9771,6 @@
     "location": [
       "audit_log",
       "backup_restore"
-    ],
-    "user": [
-      "TERMS_OF_SERVICE",
-      "audit_log",
-      "backup_restore",
-      "llm_config"
     ],
     "specified": [
       "backup_restore"
@@ -10729,9 +10921,6 @@
     "instantly": [
       "appearance"
     ],
-    "see": [
-      "appearance"
-    ],
     "personalized": [
       "appearance"
     ],
@@ -10748,9 +10937,6 @@
       "audit_log"
     ],
     "用于审计和安全追溯": [
-      "audit_log"
-    ],
-    "追": [
       "audit_log"
     ],
     "查看日志": [
@@ -10935,11 +11121,6 @@
       "audit_log"
     ],
     "range": [
-      "audit_log"
-    ],
-    "read": [
-      "PRIVACY_POLICY",
-      "ai_chat",
       "audit_log"
     ],
     "users": [
@@ -11232,10 +11413,6 @@
       "plugins"
     ],
     "扩展": [
-      "ai_chat",
-      "plugins"
-    ],
-    "扩": [
       "ai_chat",
       "plugins"
     ],
@@ -11853,11 +12030,6 @@
     "插件由第三方开发": [
       "plugins"
     ],
-    "由": [
-      "PRIVACY_POLICY",
-      "TERMS_OF_SERVICE",
-      "plugins"
-    ],
     "安装前请审查其权限请求": [
       "plugins"
     ],
@@ -11867,14 +12039,7 @@
     "只安装来自可信来源的插件": [
       "plugins"
     ],
-    "源": [
-      "TERMS_OF_SERVICE",
-      "plugins"
-    ],
     "插件系统功能正在持续开发中": [
-      "plugins"
-    ],
-    "续": [
       "plugins"
     ],
     "未来将支持": [
@@ -11982,9 +12147,6 @@
       "plugins"
     ],
     "trusted": [
-      "plugins"
-    ],
-    "sources": [
       "plugins"
     ],
     "continuous": [

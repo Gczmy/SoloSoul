@@ -11,6 +11,18 @@
   color: var(--text-secondary, #666);
 }
 
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.labelText {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #666);
+}
+
 .input,
 .textarea,
 .select {

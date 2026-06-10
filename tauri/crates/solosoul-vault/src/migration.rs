@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 8;
+pub const CURRENT_SCHEMA_VERSION: u32 = 12;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -69,12 +69,29 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         set_schema_version(conn, 3)?;
     }
     if current < 4 {
-        apply_migration(
-            conn,
-            4,
-            "ALTER TABLE trash_items ADD COLUMN original_section_type TEXT;",
-            "Add original_section_type to trash_items",
-        )?;
+        let has_section_type: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('trash_items') WHERE name = 'original_section_type'",
+                [],
+                |r| r.get::<_, i32>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_section_type {
+            apply_migration(
+                conn,
+                4,
+                "ALTER TABLE trash_items ADD COLUMN original_section_type TEXT;",
+                "Add original_section_type to trash_items",
+            )?;
+        } else {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![4, now, "Add original_section_type to trash_items (already present)"],
+            ).ok();
+            set_schema_version(conn, 4)?;
+        }
     }
     if current < 5 {
         // Add structured audit log columns (may already exist from init_schema)
@@ -155,6 +172,88 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add template_id and template_type to objects table",
         )?;
     }
+    if current < 9 {
+        apply_migration(
+            conn,
+            9,
+            "ALTER TABLE user_templates ADD COLUMN category TEXT DEFAULT 'identity';",
+            "Add category to user_templates table",
+        )?;
+    }
+    if current < 10 {
+        apply_migration(
+            conn,
+            10,
+            "CREATE TABLE IF NOT EXISTS sensitivity_map (
+                field_id       TEXT PRIMARY KEY,
+                level          TEXT NOT NULL,
+                template_id    TEXT,
+                last_modified  TEXT NOT NULL
+            );",
+            "Add sensitivity_map table for field-level sensitivity persistence",
+        )?;
+    }
+    if current < 11 {
+        apply_migration(
+            conn,
+            11,
+            "CREATE TABLE trash_items_new (
+                id TEXT PRIMARY KEY,
+                item_type TEXT NOT NULL,
+                original_id TEXT NOT NULL,
+                original_parent_id TEXT,
+                original_section_type TEXT,
+                original_sort_order INTEGER,
+                data BLOB NOT NULL,
+                deleted_at INTEGER NOT NULL,
+                expires_at INTEGER,
+                deleted_by TEXT NOT NULL DEFAULT 'user',
+                name_snapshot TEXT NOT NULL,
+                icon_snapshot TEXT
+             );
+             INSERT INTO trash_items_new (
+                id, item_type, original_id, original_parent_id, original_section_type,
+                original_sort_order, data, deleted_at, expires_at, deleted_by,
+                name_snapshot, icon_snapshot
+             ) SELECT
+                id, item_type, original_id, original_parent_id, original_section_type,
+                original_sort_order, data, deleted_at, expires_at, deleted_by,
+                name_snapshot, icon_snapshot
+             FROM trash_items;
+             DROP TABLE trash_items;
+             ALTER TABLE trash_items_new RENAME TO trash_items;
+             CREATE INDEX idx_trash_expires ON trash_items(expires_at);
+             CREATE INDEX idx_trash_deleted_at ON trash_items(deleted_at);
+             CREATE INDEX idx_trash_type ON trash_items(item_type);",
+            "Recreate trash_items without restrictive CHECK constraint",
+        )?;
+    }
+    if current < 12 {
+        // §12 — 彻底重建 trash_items，丢弃全部旧数据（软件尚未分发，旧数据无保留价值）
+        apply_migration(
+            conn,
+            12,
+            "DROP TABLE IF EXISTS trash_items;
+             CREATE TABLE trash_items (
+                id TEXT PRIMARY KEY,
+                item_type TEXT NOT NULL,
+                original_id TEXT NOT NULL,
+                original_parent_id TEXT,
+                original_section_type TEXT,
+                original_sort_order INTEGER,
+                data BLOB NOT NULL,
+                deleted_at INTEGER NOT NULL,
+                expires_at INTEGER,
+                deleted_by TEXT NOT NULL DEFAULT 'user',
+                name_snapshot TEXT NOT NULL,
+                icon_snapshot TEXT
+             );
+             CREATE INDEX idx_trash_expires ON trash_items(expires_at);
+             CREATE INDEX idx_trash_deleted_at ON trash_items(deleted_at);
+             CREATE INDEX idx_trash_type ON trash_items(item_type);",
+            "Rebuild trash_items from scratch — discard all legacy trash data",
+        )?;
+    }
     Ok(())
 }
 
@@ -192,7 +291,19 @@ mod tests {
             "CREATE TABLE IF NOT EXISTS sys_config (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL);
              CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL, description TEXT);
              CREATE TABLE IF NOT EXISTS profiles (id TEXT PRIMARY KEY, name TEXT NOT NULL, data BLOB NOT NULL);
-             CREATE TABLE IF NOT EXISTS trash_items (id TEXT PRIMARY KEY, item_type TEXT NOT NULL, original_id TEXT NOT NULL, data BLOB NOT NULL, deleted_at INTEGER NOT NULL, expires_at INTEGER, deleted_by TEXT DEFAULT 'user', name_snapshot TEXT NOT NULL);
+             CREATE TABLE IF NOT EXISTS trash_items (
+                id TEXT PRIMARY KEY,
+                item_type TEXT NOT NULL,
+                original_id TEXT NOT NULL,
+                original_parent_id TEXT,
+                original_sort_order INTEGER,
+                data BLOB NOT NULL,
+                deleted_at INTEGER NOT NULL,
+                expires_at INTEGER,
+                deleted_by TEXT DEFAULT 'user',
+                name_snapshot TEXT NOT NULL,
+                icon_snapshot TEXT
+             );
              CREATE TABLE IF NOT EXISTS audit_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, action TEXT NOT NULL, details TEXT);
              CREATE TABLE IF NOT EXISTS guide_embeddings (id TEXT PRIMARY KEY, guide_id TEXT NOT NULL, chunk_index INTEGER NOT NULL, chunk_text TEXT NOT NULL, embedding BLOB NOT NULL, model TEXT NOT NULL, created_at TEXT NOT NULL);
              CREATE TABLE IF NOT EXISTS objects (
@@ -266,8 +377,50 @@ mod tests {
         ).unwrap();
 
         let name: String = conn
-            .query_row("SELECT name FROM user_templates WHERE id = 't1'", [], |r| r.get(0))
+            .query_row("SELECT name FROM user_templates WHERE id = 't1'", [], |r| {
+                r.get(0)
+            })
             .unwrap();
         assert_eq!(name, "Test");
+    }
+
+    #[test]
+    fn test_migration_v11_and_v12_rebuild_trash_items() {
+        let (mut conn, _dir) = setup_conn();
+        // Insert old-format trash items (v1 schema, no original_section_type yet)
+        conn.execute(
+            "INSERT INTO trash_items (id, item_type, original_id, original_parent_id, original_sort_order, data, deleted_at, expires_at, deleted_by, name_snapshot, icon_snapshot)
+             VALUES ('t1', 'page', 'orig1', 'parent1', 1, X'0102', 1000, 2000, 'user', 'Page A', NULL)",
+            [],
+        ).unwrap();
+        conn.execute(
+            "INSERT INTO trash_items (id, item_type, original_id, original_parent_id, original_sort_order, data, deleted_at, expires_at, deleted_by, name_snapshot, icon_snapshot)
+             VALUES ('t2', 'object', 'orig2', NULL, NULL, X'0304', 3000, 4000, 'user', 'Obj B', 'icon2')",
+            [],
+        ).unwrap();
+
+        run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
+
+        // v12 discards all legacy trash data — clean slate
+        let count_after_v12: i64 = conn
+            .query_row("SELECT COUNT(*) FROM trash_items", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(count_after_v12, 0);
+
+        // Verify new table accepts 'template' without CHECK constraint
+        conn.execute(
+            "INSERT INTO trash_items (id, item_type, original_id, data, deleted_at, deleted_by, name_snapshot)
+             VALUES ('t3', 'template', 'tpl1', X'00', 5000, 'user', 'Template C')",
+            [],
+        ).unwrap();
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM trash_items WHERE item_type = 'template'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 1);
     }
 }

@@ -51,14 +51,26 @@ export function SensitivitySettingsPage() {
 
         {/* Field list */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {sortedEntries.map(([fieldId, level]) => (
+          {sortedEntries.map(([fieldId, level]) => {
+            const sourceStatus = map?.template_source_statuses?.[fieldId];
+            const statusColor = sourceStatus === 'soft_deleted' || sourceStatus === 'permanently_deleted'
+              ? 'var(--danger)'
+              : 'var(--text-secondary)';
+            return (
             <Card key={fieldId}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 500, fontFamily: 'var(--font-mono, monospace)' }}>
                     {fieldId}
                   </div>
-                  <SensitivityBadge level={level} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                    <SensitivityBadge level={level} />
+                    {sourceStatus && (
+                      <span style={{ fontSize: 11, color: statusColor }}>
+                        {t(`sensitivity:source_${sourceStatus}` as string)}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {editingField === fieldId ? (
@@ -105,7 +117,7 @@ export function SensitivitySettingsPage() {
                 )}
               </div>
             </Card>
-          ))}
+          )})}
         </div>
 
         {/* Change history */}

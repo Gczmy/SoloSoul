@@ -117,26 +117,47 @@ pub async fn profile_delete(state: State<'_, AppState>, profile_id: String) -> R
 }
 
 /// Parse a section from profile JSON data.
-fn parse_section_from_profile_data(data: &serde_json::Value, section_type: &str) -> Option<SectionData> {
+fn parse_section_from_profile_data(
+    data: &serde_json::Value,
+    section_type: &str,
+) -> Option<SectionData> {
     let sections = data.get("sections").and_then(|s| s.as_array())?;
     for sec in sections {
         if sec.get("type").and_then(|t| t.as_str()) == Some(section_type) {
-            let st = sec.get("type").and_then(|t| t.as_str()).unwrap_or("").to_string();
+            let st = sec
+                .get("type")
+                .and_then(|t| t.as_str())
+                .unwrap_or("")
+                .to_string();
             let fields: Vec<FieldValue> = sec
                 .get("fields")
                 .and_then(|f| f.as_array())
                 .map(|arr| {
                     arr.iter()
                         .map(|f| FieldValue {
-                            key: f.get("key").and_then(|k| k.as_str()).unwrap_or("").to_string(),
-                            label: f.get("label").and_then(|l| l.as_str()).unwrap_or("").to_string(),
+                            key: f
+                                .get("key")
+                                .and_then(|k| k.as_str())
+                                .unwrap_or("")
+                                .to_string(),
+                            label: f
+                                .get("label")
+                                .and_then(|l| l.as_str())
+                                .unwrap_or("")
+                                .to_string(),
                             value: f.get("value").cloned().unwrap_or(serde_json::Value::Null),
-                            sensitivity_level: f.get("sensitivityLevel").and_then(|s| s.as_str()).map(|s| s.to_string()),
+                            sensitivity_level: f
+                                .get("sensitivityLevel")
+                                .and_then(|s| s.as_str())
+                                .map(|s| s.to_string()),
                         })
                         .collect()
                 })
                 .unwrap_or_default();
-            return Some(SectionData { section_type: st, fields });
+            return Some(SectionData {
+                section_type: st,
+                fields,
+            });
         }
     }
     None
@@ -245,7 +266,10 @@ mod tests {
         assert_eq!(section.fields.len(), 2);
         assert_eq!(section.fields[0].key, "name");
         assert_eq!(section.fields[0].value, "Alice");
-        assert_eq!(section.fields[0].sensitivity_level, Some("public".to_string()));
+        assert_eq!(
+            section.fields[0].sensitivity_level,
+            Some("public".to_string())
+        );
     }
 
     #[test]

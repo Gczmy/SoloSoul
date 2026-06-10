@@ -1,3 +1,4 @@
+import React from 'react';
 import type { PropertyType } from '@/types/template';
 import styles from './TemplateFieldInput.module.css';
 
@@ -9,6 +10,8 @@ interface TemplateFieldInputProps {
   options?: string[];
   onChange: (value: unknown) => void;
   disabled?: boolean;
+  icon?: React.ReactNode;
+  badge?: React.ReactNode;
 }
 
 export function TemplateFieldInput({
@@ -19,7 +22,16 @@ export function TemplateFieldInput({
   options,
   onChange,
   disabled,
+  icon,
+  badge,
 }: TemplateFieldInputProps) {
+  const labelRow = (
+    <span className={styles.labelRow}>
+      {icon}
+      <span className={styles.labelText}>{label}</span>
+      {badge}
+    </span>
+  );
   const inputTypeMap: Record<string, string> = {
     text: 'text',
     number: 'number',
@@ -35,7 +47,7 @@ export function TemplateFieldInput({
     case 'multiline':
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>{label}</label>
+          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
           <textarea
             id={propertyId}
             className={styles.textarea}
@@ -58,7 +70,7 @@ export function TemplateFieldInput({
               onChange={(e) => onChange(e.target.checked)}
               disabled={disabled}
             />
-            <span>{label}</span>
+            {labelRow}
           </label>
         </div>
       );
@@ -66,7 +78,7 @@ export function TemplateFieldInput({
     case 'select':
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>{label}</label>
+          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
           <select
             id={propertyId}
             className={styles.select}
@@ -86,7 +98,7 @@ export function TemplateFieldInput({
       const selected = Array.isArray(value) ? value : [];
       return (
         <div className={styles.field}>
-          <label className={styles.label}>{label}</label>
+          <label className={styles.label}>{labelRow}</label>
           <div className={styles.multiSelect}>
             {(options || []).map((opt) => (
               <label key={opt} className={styles.checkboxLabel}>
@@ -115,7 +127,7 @@ export function TemplateFieldInput({
       const inputType = inputTypeMap[type] || 'text';
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>{label}</label>
+          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
           <input
             id={propertyId}
             type={inputType}

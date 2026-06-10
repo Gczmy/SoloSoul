@@ -13,13 +13,36 @@ import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useToastError } from '@/hooks/useToastError';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
-import { TemplatePreview } from '@/components/TemplatePreview';
 import type { PropertyType } from '@/types/template';
-import { useSystemTemplateStore } from '@/stores/systemTemplateStore';
+import { useTemplateStore } from '@/stores/templateStore';
+import {
+  Type, AlignLeft, Hash, Calendar, Clock, CheckSquare,
+  List, ListChecks, Link, Mail, Phone, File,
+} from 'lucide-react';
 
 // Each template belongs to a workspace section.
 // collectionType is the section (for filtering), not the template name.
 type TemplateCategory = 'identity' | 'travel' | 'financial' | 'professional';
+
+/** Map field type to a Lucide icon for visual indication. */
+function FieldTypeIcon({ type, size = 14 }: { type: PropertyType; size?: number }) {
+  const style = { color: 'var(--text-tertiary)', flexShrink: 0 } as React.CSSProperties;
+  switch (type) {
+    case 'text': return <Type size={size} style={style} />;
+    case 'multiline': return <AlignLeft size={size} style={style} />;
+    case 'number': return <Hash size={size} style={style} />;
+    case 'date': return <Calendar size={size} style={style} />;
+    case 'datetime': return <Clock size={size} style={style} />;
+    case 'boolean': return <CheckSquare size={size} style={style} />;
+    case 'select': return <List size={size} style={style} />;
+    case 'multiselect': return <ListChecks size={size} style={style} />;
+    case 'url': return <Link size={size} style={style} />;
+    case 'email': return <Mail size={size} style={style} />;
+    case 'phone': return <Phone size={size} style={style} />;
+    case 'file': return <File size={size} style={style} />;
+    default: return <Type size={size} style={style} />;
+  }
+}
 
 export function ObjectEditorPage() {
   const { objectId } = useParams();
@@ -35,39 +58,39 @@ export function ObjectEditorPage() {
   const { getObject, createObject, updateObject, currentObject } = useObjectStore();
   const { map: sensitivityMap, loadMap } = useSensitivityStore();
   const { onError, onSuccess } = useToastError();
-  const { templates: sysTemplates, loaded: sysLoaded, load: loadSysTemplates } = useSystemTemplateStore();
+  const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
 
-  // Load system templates and sensitivity map on mount
+  // Load user templates and sensitivity map on mount
   useEffect(() => { loadMap(); }, []);
   useEffect(() => {
-    if (!sysLoaded) loadSysTemplates().catch(() => {});
-  }, [sysLoaded, loadSysTemplates]);
+    loadUserTemplates().catch(() => {});
+  }, [loadUserTemplates]);
 
-  // Build templateMeta and objectTemplates from loaded system templates
+  // Build templateMeta and objectTemplates from loaded user templates
   const templateMeta = useMemo(() => {
     const meta: Record<string, { category: TemplateCategory; label: string }> = {};
-    for (const tpl of sysTemplates) {
-      meta[tpl.key] = {
-        category: tpl.category as TemplateCategory,
-        label: tpl.nameFallback,
+    for (const tpl of userTemplates) {
+      meta[tpl.id] = {
+        category: (tpl.category || 'identity') as TemplateCategory,
+        label: tpl.name,
       };
     }
     return meta;
-  }, [sysTemplates]);
+  }, [userTemplates]);
 
   const objectTemplates = useMemo(() => {
     const map: Record<string, { key: string; label: string; type: string; sensitivityLevel?: string; required?: boolean }[]> = {};
-    for (const tpl of sysTemplates) {
-      map[tpl.key] = tpl.properties.map((p) => ({
+    for (const tpl of userTemplates) {
+      map[tpl.id] = tpl.properties.map((p) => ({
         key: p.id,
-        label: p.nameFallback,
+        label: p.name,
         type: p.type,
-        sensitivityLevel: p.sensitivityLevel || (p.sensitive ? 'sensitive' : 'internal'),
-        required: p.required,
+        sensitivityLevel: p.sensitivityLevel || 'internal',
+        required: false,
       }));
     }
     return map;
-  }, [sysTemplates]);
+  }, [userTemplates]);
 
   /** Resolve sensitivity level for a property field. */
   const getSensitivity = (fieldKey: string): SensitivityLevel => {
@@ -138,20 +161,34 @@ export function ObjectEditorPage() {
       }
     }
     setValues(vals);
-    // Try to detect template from property keys
-    const propKeys = Object.keys(vals);
-    let bestMatch = '';
-    let bestScore = 0;
-    for (const [tplName, tplFields] of Object.entries(objectTemplates)) {
-      const tplKeys = tplFields.map((f) => f.key);
-      const matchCount = tplKeys.filter((k) => propKeys.includes(k)).length;
-      if (matchCount > bestScore && matchCount >= tplKeys.length * 0.5) {
-        bestScore = matchCount;
-        bestMatch = tplName;
+    // Detect template from stored templateId first, then fall back to property keys
+    let matchedType = '';
+    if (currentObject.templateId) {
+      if (objectTemplates[currentObject.templateId]) {
+        matchedType = currentObject.templateId;
+      }
+      // Backward compat: old user-template objects used utpl_ prefix
+      if (!matchedType) {
+        const legacyKey = `utpl_${currentObject.templateId}`;
+        if (objectTemplates[legacyKey]) {
+          matchedType = legacyKey;
+        }
       }
     }
-    if (bestMatch) {
-      setSelectedType(bestMatch);
+    if (!matchedType) {
+      const propKeys = Object.keys(vals);
+      let bestScore = 0;
+      for (const [tplName, tplFields] of Object.entries(objectTemplates)) {
+        const tplKeys = tplFields.map((f) => f.key);
+        const matchCount = tplKeys.filter((k) => propKeys.includes(k)).length;
+        if (matchCount > bestScore && matchCount >= tplKeys.length * 0.5) {
+          bestScore = matchCount;
+          matchedType = tplName;
+        }
+      }
+    }
+    if (matchedType) {
+      setSelectedType(matchedType);
     }
     setDataLoaded(true);
   }, [currentObject, isNew, dataLoaded]);
@@ -226,7 +263,7 @@ export function ObjectEditorPage() {
           properties: values as unknown as Record<string, unknown>,
           parentId,
           templateId: selectedType || undefined,
-          templateType: selectedType ? 'system' : undefined,
+          templateType: selectedType ? 'user' : undefined,
         });
         onSuccess(t('common:object_created'));
       } else {
@@ -258,36 +295,25 @@ export function ObjectEditorPage() {
               )}
             </h3>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {visibleTemplates.map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedType(type)}
-                  style={{
-                    padding: '10px 16px', borderRadius: 8, border: '1px solid var(--border-subtle)',
-                    background: selectedType === type ? 'var(--accent-primary)' : 'var(--bg-elevated)',
-                    color: selectedType === type ? 'white' : 'var(--text-primary)',
-                    fontSize: 13, cursor: 'pointer',
-                  }}
-                >
-                  {t(`editor:templates.${type}`, type)}
-                </button>
-              ))}
+              {visibleTemplates.map((type) => {
+                const label = templateMeta[type]?.label || type;
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setSelectedType(type)}
+                    style={{
+                      padding: '10px 16px', borderRadius: 8, border: '1px solid var(--border-subtle)',
+                      background: selectedType === type ? 'var(--accent-primary)' : 'var(--bg-elevated)',
+                      color: selectedType === type ? 'white' : 'var(--text-primary)',
+                      fontSize: 13, cursor: 'pointer',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </Card>
-        )}
-
-        {isNew && selectedType && (
-          <TemplatePreview
-            templateName={t(`editor:templates.${selectedType}`, templateMeta[selectedType]?.label || selectedType)}
-            category={templateMeta[selectedType]?.category || sectionParam || ''}
-            fields={(objectTemplates[selectedType] || []).map((f) => ({
-              id: f.key,
-              nameFallback: f.label,
-              type: f.type,
-              sensitivityLevel: f.sensitivityLevel,
-              required: false,
-            }))}
-          />
         )}
 
         {!isNew && collectionType && (
@@ -302,7 +328,7 @@ export function ObjectEditorPage() {
               </span>
               {selectedType && (
                 <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                  · {t('editor:templates.' + selectedType, t('editor:templates.' + selectedType.toLowerCase(), selectedType))}
+                  · {templateMeta[selectedType]?.label || selectedType}
                 </span>
               )}
             </div>
@@ -328,10 +354,9 @@ export function ObjectEditorPage() {
                   // Fallback: render raw properties as generic text inputs when no template matches
                   Object.entries(values).filter(([k]) => !k.startsWith('__')).map(([key, val]) => (
                     <div key={key}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <label style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t(`editor:fields.${key}`, key)}</label>
-                      </div>
                       <Input
+                        label={t(`editor:fields.${key}`, key)}
+                        icon={<FieldTypeIcon type="text" />}
                         value={String(val ?? '')}
                         onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
                         placeholder={key}
@@ -349,15 +374,13 @@ export function ObjectEditorPage() {
                       (field.type as PropertyType) || 'text';
                     return (
                   <div key={field.key}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <label style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{fieldLabel}</label>
-                      <SensitivityBadge level={sensitivity} />
-                    </div>
                     <TemplateFieldInput
                       propertyId={field.key}
                       label={fieldLabel}
                       type={propType}
                       value={values[field.key]}
+                      icon={<FieldTypeIcon type={propType} />}
+                      badge={<SensitivityBadge level={sensitivity} />}
                       onChange={(val) => {
                         setValues((v) => ({ ...v, [field.key]: val }));
                         if (validationErrors[field.key]) {

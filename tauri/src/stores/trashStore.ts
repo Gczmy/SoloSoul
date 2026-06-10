@@ -17,7 +17,7 @@ export interface TrashItemSummary {
 }
 
 export type TrashTimeFilter = 'all' | '1d' | '3d' | '7d' | '30d' | 'half_year';
-export type TrashTypeFilter = 'all' | 'page' | 'object';
+export type TrashTypeFilter = 'all' | 'page' | 'object' | 'template';
 
 interface TrashState {
   items: TrashItemSummary[];
@@ -77,7 +77,12 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   setSearchQuery: (q) => set({ searchQuery: q }),
 
   restoreItem: async (trashId) => {
-    await invoke('trash_restore', { trashId, lang: i18next.language });
+    const item = get().items.find((i) => i.id === trashId);
+    if (item?.itemType === 'template') {
+      await invoke('template_restore', { trashId });
+    } else {
+      await invoke('trash_restore', { trashId, lang: i18next.language });
+    }
     set((s) => ({ items: s.items.filter((i) => i.id !== trashId) }));
   },
 

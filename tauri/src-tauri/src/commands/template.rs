@@ -91,6 +91,7 @@ fn migrate_legacy_templates_if_needed(
             name,
             icon_id,
             properties,
+            category: Some("identity".to_string()),
             created_at,
             updated_at: None,
         };
@@ -105,10 +106,7 @@ fn migrate_legacy_templates_if_needed(
 }
 
 /// Remove the legacy `preferences.userTemplates` key from Profile data.
-fn cleanup_legacy_json(
-    vault: &solosoul_vault::VaultStore,
-    account_id: &str,
-) -> Result<(), String> {
+fn cleanup_legacy_json(vault: &solosoul_vault::VaultStore, account_id: &str) -> Result<(), String> {
     let mut profile = match vault.load_profile(account_id)? {
         Some(p) => p,
         None => return Ok(()),
@@ -142,15 +140,14 @@ pub async fn template_create(
     state: State<'_, AppState>,
     name: String,
     icon_id: Option<String>,
+    category: Option<String>,
     properties: Vec<TemplateProperty>,
 ) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let account_id = svc
-        .get_current_account()
-        .ok_or("No unlocked account")?;
+    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
     migrate_legacy_templates_if_needed(vault, &account_id)?;
 
@@ -160,11 +157,22 @@ pub async fn template_create(
         name,
         icon_id,
         properties,
+        category,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: None,
     };
 
     vault.save_user_template(&template)?;
+
+    // Sync field sensitivities to sensitivity_map
+    let cat = template.category.as_deref().unwrap_or("identity");
+    for prop in &template.properties {
+        let field_id = format!("{}.{}", cat, prop.id);
+        let level = prop
+            .effective_sensitivity_level()
+            .unwrap_or_else(|| "internal".to_string());
+        let _ = vault.save_sensitivity_entry(&field_id, &level, Some(&template.id));
+    }
 
     let _ = vault.log_structured(
         "template_create",
@@ -184,15 +192,14 @@ pub async fn template_update(
     template_id: String,
     name: Option<String>,
     icon_id: Option<String>,
+    category: Option<String>,
     properties: Option<Vec<TemplateProperty>>,
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let account_id = svc
-        .get_current_account()
-        .ok_or("No unlocked account")?;
+    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
     migrate_legacy_templates_if_needed(vault, &account_id)?;
 
@@ -210,12 +217,25 @@ pub async fn template_update(
     if let Some(i) = icon_id {
         template.icon_id = Some(i);
     }
+    if let Some(c) = category {
+        template.category = Some(c);
+    }
     if let Some(p) = properties {
         template.properties = p;
     }
     template.updated_at = Some(chrono::Utc::now().to_rfc3339());
 
     vault.save_user_template(&template)?;
+
+    // Sync updated field sensitivities to sensitivity_map
+    let cat = template.category.as_deref().unwrap_or("identity");
+    for prop in &template.properties {
+        let field_id = format!("{}.{}", cat, prop.id);
+        let level = prop
+            .effective_sensitivity_level()
+            .unwrap_or_else(|| "internal".to_string());
+        let _ = vault.save_sensitivity_entry(&field_id, &level, Some(&template.id));
+    }
 
     let _ = vault.log_structured(
         "template_update",
@@ -238,31 +258,91 @@ pub async fn template_delete(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let account_id = svc
-        .get_current_account()
-        .ok_or("No unlocked account")?;
+    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
     migrate_legacy_templates_if_needed(vault, &account_id)?;
 
-    // Verify ownership before deleting
-    if let Some(template) = vault.load_user_template(&template_id)? {
-        if template.account_id != account_id {
-            return Err("无权删除此模板".to_string());
-        }
+    let template = vault
+        .load_user_template(&template_id)?
+        .ok_or_else(|| "模板不存在".to_string())?;
+
+    if template.account_id != account_id {
+        return Err("无权删除此模板".to_string());
     }
 
+    // Load retention period and build TrashItem
+    let period = load_trash_retention(vault, &account_id);
+    let retention_ms = retention_ms(&period);
+    let now_ms = chrono::Utc::now().timestamp_millis();
+
+    let template_data =
+        serde_json::to_vec(&template).map_err(|e| format!("序列化模板失败: {}", e))?;
+
+    let trash = solosoul_vault::TrashItem {
+        id: format!("trash_{}", uuid::Uuid::new_v4()),
+        item_type: "template".to_string(),
+        original_id: template_id.clone(),
+        original_parent_id: None,
+        original_section_type: template.category.clone(),
+        original_sort_order: None,
+        data: template_data,
+        deleted_at: now_ms,
+        expires_at: Some(now_ms + retention_ms),
+        deleted_by: "user".to_string(),
+        name_snapshot: template.name.clone(),
+        icon_snapshot: template.icon_id.clone(),
+    };
+
+    vault.save_trash_item(&trash)?;
     vault.delete_user_template(&template_id)?;
 
     let _ = vault.log_structured(
         "template_delete",
         "template",
         Some(&template_id),
-        None,
+        Some(&template.name),
         "user",
         None,
     );
 
     Ok(())
+}
+
+#[tauri::command]
+pub async fn template_restore(
+    state: State<'_, AppState>,
+    trash_id: String,
+) -> Result<String, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    let trash = vault.get_trash_item(&trash_id)?.ok_or("回收站项目不存在")?;
+
+    if trash.item_type != "template" {
+        return Err("该回收站项目不是模板".to_string());
+    }
+
+    let template: solosoul_vault::UserTemplate =
+        serde_json::from_slice(&trash.data).map_err(|e| format!("反序列化模板失败: {}", e))?;
+
+    if vault.load_user_template(&template.id)?.is_some() {
+        return Err("该模板已存在，无需恢复".to_string());
+    }
+
+    vault.save_user_template(&template)?;
+    vault.delete_trash_item(&trash_id)?;
+
+    let _ = vault.log_structured(
+        "template_restore",
+        "template",
+        Some(&template.id),
+        Some(&template.name),
+        "user",
+        None,
+    );
+
+    Ok(template.id)
 }
 
 #[tauri::command]
@@ -274,9 +354,7 @@ pub async fn template_get(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let account_id = svc
-        .get_current_account()
-        .ok_or("No unlocked account")?;
+    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
     migrate_legacy_templates_if_needed(vault, &account_id)?;
 
@@ -292,16 +370,12 @@ pub async fn template_get(
 }
 
 #[tauri::command]
-pub async fn template_list(
-    state: State<'_, AppState>,
-) -> Result<Vec<UserTemplate>, String> {
+pub async fn template_list(state: State<'_, AppState>) -> Result<Vec<UserTemplate>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let account_id = svc
-        .get_current_account()
-        .ok_or("No unlocked account")?;
+    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
     // Lazy migration: if this is the first template call after unlock,
     // migrate legacy Profile-JSON templates into the new table.
@@ -322,15 +396,11 @@ pub async fn template_save_from_object(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let account_id = svc
-        .get_current_account()
-        .ok_or("No unlocked account")?;
+    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
     migrate_legacy_templates_if_needed(vault, &account_id)?;
 
-    let record = vault
-        .load_object(&object_id)?
-        .ok_or("Object not found")?;
+    let record = vault.load_object(&object_id)?.ok_or("Object not found")?;
 
     let properties: Vec<TemplateProperty> =
         if let serde_json::Value::Object(ref props) = record.properties {
@@ -358,6 +428,7 @@ pub async fn template_save_from_object(
         name: template_name,
         icon_id: icon_id.or(Some(record.icon_name)),
         properties,
+        category: Some(record.section_type.clone()),
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: None,
     };
@@ -376,35 +447,30 @@ pub async fn template_save_from_object(
     Ok(template.id)
 }
 
-// ---------------------------------------------------------------------------
-// System template commands (P2)
-// ---------------------------------------------------------------------------
+// ── Trash retention helpers (mirrored from object.rs) ────────
 
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct SystemTemplateSummary {
-    pub key: String,
-    pub category: String,
-    pub icon: String,
-    pub name: String,
-    pub field_count: usize,
-    pub sensitive_field_count: usize,
+fn load_trash_retention(vault: &solosoul_vault::VaultStore, account_id: &str) -> String {
+    if let Ok(Some(profile)) = vault.load_profile(account_id) {
+        if !profile.data.is_empty() {
+            if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
+                if let Some(ret) = data
+                    .pointer("/preferences/trashRetention")
+                    .and_then(|v| v.as_str())
+                {
+                    return ret.to_string();
+                }
+            }
+        }
+    }
+    "30d".to_string()
 }
 
-#[tauri::command]
-pub async fn system_template_list(
-    category: Option<String>,
-) -> Result<Vec<crate::services::template_service::SystemTemplate>, String> {
-    let templates = match category {
-        Some(cat) => crate::services::template_service::SystemTemplateRegistry::list_by_category(&cat),
-        None => crate::services::template_service::SystemTemplateRegistry::list_all(),
-    };
-    Ok(templates)
-}
-
-#[tauri::command]
-pub async fn system_template_get(
-    template_key: String,
-) -> Result<crate::services::template_service::SystemTemplate, String> {
-    crate::services::template_service::SystemTemplateRegistry::get(&template_key)
-        .ok_or_else(|| "系统模板不存在".to_string())
+fn retention_ms(period: &str) -> i64 {
+    match period {
+        "60d" => 60 * 24 * 3600 * 1000i64,
+        "half_year" => 180 * 24 * 3600 * 1000i64,
+        "one_year" => 365 * 24 * 3600 * 1000i64,
+        "never" => i64::MAX,
+        _ => 30 * 24 * 3600 * 1000i64,
+    }
 }

@@ -71,9 +71,11 @@ function AppRoutes() {
             mod.default.changeLanguage(s.language);
           });
         }
+        // P0-1: Load custom pages from objects table (separate from profile preferences)
+        // Must run AFTER loadSettings finishes to avoid race condition where
+        // loadSettings overwrites customPages with DEFAULT_SETTINGS.
+        useSettingsStore.getState().loadCustomPages(account.id);
       });
-      // P0-1: Load custom pages from objects table (separate from profile preferences)
-      useSettingsStore.getState().loadCustomPages(account.id);
     }
   }, [isAuthenticated]);
 

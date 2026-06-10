@@ -647,7 +647,8 @@ mod tests {
         let account_id = account["id"].as_str().unwrap();
 
         svc.unlock(account_id, "oldpassword").unwrap();
-        svc.change_password(account_id, "oldpassword", "newpassword").unwrap();
+        svc.change_password(account_id, "oldpassword", "newpassword")
+            .unwrap();
 
         // Old password should fail
         assert!(!svc.verify_password(account_id, "oldpassword").unwrap());
@@ -661,7 +662,8 @@ mod tests {
         let account = svc.create_account("Frank", "password123").unwrap();
         let account_id = account["id"].as_str().unwrap();
 
-        svc.update_password_hint(account_id, "My favorite color").unwrap();
+        svc.update_password_hint(account_id, "My favorite color")
+            .unwrap();
 
         let config_path = svc.config_path(account_id);
         let content = fs::read_to_string(&config_path).unwrap();
@@ -687,7 +689,8 @@ mod tests {
         let account_id = account["id"].as_str().unwrap();
 
         let session_key = [0u8; 32];
-        svc.unlock_with_session_key(account_id, &session_key).unwrap();
+        svc.unlock_with_session_key(account_id, &session_key)
+            .unwrap();
         assert_eq!(svc.get_vault_state(), "unlocked");
         assert!(svc.get_session_key().is_some());
     }

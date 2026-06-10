@@ -11,11 +11,12 @@ interface TemplateState {
   createTemplate: (
     name: string,
     iconId: string | undefined,
+    category: string | undefined,
     properties: TemplateProperty[]
   ) => Promise<string>;
   updateTemplate: (
     id: string,
-    updates: Partial<Pick<UserTemplate, 'name' | 'iconId' | 'properties'>>
+    updates: Partial<Pick<UserTemplate, 'name' | 'iconId' | 'category' | 'properties'>>
   ) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
   getTemplate: (id: string) => Promise<UserTemplate | null>;
@@ -38,8 +39,8 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
     }
   },
 
-  async createTemplate(name, iconId, properties) {
-    const id = await invoke<string>('template_create', { name, iconId, properties });
+  async createTemplate(name, iconId, category, properties) {
+    const id = await invoke<string>('template_create', { name, iconId, category, properties });
     await get().loadTemplates();
     return id;
   },
@@ -49,6 +50,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
       templateId: id,
       name: updates.name,
       iconId: updates.iconId,
+      category: updates.category,
       properties: updates.properties,
     });
     await get().loadTemplates();

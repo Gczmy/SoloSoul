@@ -33,8 +33,8 @@ export const commands = {
   async checkHasAccount(): Promise<boolean> {
     return invoke('check_has_account');
   },
-  async bootstrap(accountName: string, password: string): Promise<AccountInfo> {
-    return invoke('bootstrap', { accountName, password });
+  async bootstrap(accountName: string, password: string, locale: string): Promise<AccountInfo> {
+    return invoke('bootstrap', { accountName, password, locale });
   },
   async login(accountId: string, password: string): Promise<void> {
     return invoke('login', { accountId, password });

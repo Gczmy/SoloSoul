@@ -1,3 +1,4 @@
+use crate::core::sensitivity::SensitivityManager;
 use crate::services::vault_service::VaultService;
 use crate::state::AppState;
 use tauri::{Emitter, State};
@@ -5,17 +6,36 @@ use tauri::{Emitter, State};
 #[tauri::command]
 pub async fn unlock(
     state: State<'_, AppState>,
+    manager: State<'_, SensitivityManager>,
     account_id: String,
     password: String,
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
-    svc.unlock(&account_id, &password)
+    svc.unlock(&account_id, &password)?;
+
+    // Load sensitivity map from vault DB after successful unlock (sync block, no await)
+    {
+        if let Some(vault_guard) = svc.get_vault_store() {
+            if let Some(vault) = vault_guard.as_ref() {
+                let _ = manager.load_from_vault(vault);
+            }
+        }
+    }
+    Ok(())
 }
 
 #[tauri::command]
-pub async fn lock(state: State<'_, AppState>) -> Result<(), String> {
+pub async fn lock(
+    state: State<'_, AppState>,
+    manager: State<'_, SensitivityManager>,
+) -> Result<(), String> {
     let app_handle = state.app_handle().clone();
     let svc = state.vault_service.read().await;
+
+    // All sensitivity changes are persisted to vault DB immediately on update,
+    // so no additional save is needed here. Just clear the in-memory cache.
+    manager.clear();
+
     svc.lock();
     // Emit event so frontend can clear sensitive stores and redirect to login
     let _ = app_handle.emit("vault-locked", ());

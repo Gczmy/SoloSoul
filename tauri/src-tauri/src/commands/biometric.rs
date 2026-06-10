@@ -345,9 +345,12 @@ mod tests {
             iterations: 1,
             parallelism: 1,
         };
-        let verify_key =
-            solosoul_crypto::kdf::derive_key(&master_key_hex, b"SOLOSOUL_VAULT_VERIFY_v1", &verify_config)
-                .unwrap();
+        let verify_key = solosoul_crypto::kdf::derive_key(
+            &master_key_hex,
+            b"SOLOSOUL_VAULT_VERIFY_v1",
+            &verify_config,
+        )
+        .unwrap();
         let verify_hash = hex::encode(verify_key.as_slice());
 
         let cfg = crate::services::vault_service::AccountConfig {

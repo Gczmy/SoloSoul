@@ -12,7 +12,7 @@ interface AuthState {
 
   checkHasAccount: () => Promise<void>;
   listAccounts: () => Promise<void>;
-  bootstrap: (name: string, password: string) => Promise<void>;
+  bootstrap: (name: string, password: string, locale: string) => Promise<void>;
   login: (accountId: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -49,10 +49,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  bootstrap: async (name, password) => {
+  bootstrap: async (name, password, locale) => {
     set({ isLoading: true, error: null });
     try {
-      const account = await commands.bootstrap(name, password);
+      const account = await commands.bootstrap(name, password, locale);
       set({
         isAuthenticated: true,
         currentAccount: account,

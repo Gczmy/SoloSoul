@@ -104,6 +104,7 @@
   "import": "Import",
   "trash": "Trash",
   "trash_empty": "Trash is empty. Deleted items appear here and are automatically cleaned after 30 days.",
+  "trash_empty_filtered": "No results for current filter. Try switching the type filter.",
   "operation_log": "Operation Log",
   "search_logs": "Search logs...",
   "all": "All",
@@ -252,6 +253,7 @@
   "trash_type_page": "Pages",
   "trash_type_collection": "Collections",
   "trash_type_object": "Objects",
+  "trash_type_template": "Templates",
   "trash_expires_in": "expires in {{days}}d",
   "time_minutes_ago": "{n}m ago",
   "time_hours_ago": "{n}h ago",
@@ -401,6 +403,7 @@
   },
   "template_manager_title": "Template Manager",
   "new_template": "New Template",
+  "template_category": "Category",
   "template_name_placeholder": "Enter template name",
   "add_field": "Add Field",
   "field_name": "Field Name",
@@ -413,6 +416,8 @@
   "template_fields": "fields",
   "has_sensitive": "contains sensitive",
   "edit_template": "Edit Template",
+  "filter_all": "All",
+  "filter_user": "Custom Templates",
   "desc": {
     "theme_appearance": "Customize theme, accent color, language and background",
     "security_settings": "Password management, biometric unlock, auto-lock",
@@ -431,5 +436,7 @@
   "ai_quick_chat_configure_hint": "Please configure an LLM to use AI chat",
   "ai_quick_chat_go_full": "Open Full Chat",
   "ai_history": "History",
-  "ai_messages": "messages"
+  "ai_messages": "messages",
+  "template_delete_confirm_title": "Delete Template",
+  "template_delete_confirm_body": "Delete template \"{{name}}\"? This action cannot be undone."
 }

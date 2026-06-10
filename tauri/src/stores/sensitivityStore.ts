@@ -3,9 +3,13 @@ import { invoke } from '@tauri-apps/api/core';
 
 export type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
 
+export type TemplateSourceStatus = 'system' | 'active' | 'soft_deleted' | 'permanently_deleted' | 'manual';
+
 export interface SensitivityMapData {
   version: number;
   entries: Record<string, SensitivityLevel>;
+  template_sources: Record<string, string | null>;
+  template_source_statuses: Record<string, TemplateSourceStatus>;
   last_modified_at: string;
 }
 

@@ -1528,7 +1528,10 @@ mod tests {
             original.selected_attachment_ids,
             deserialized.selected_attachment_ids
         );
-        assert_eq!(original.include_preferences, deserialized.include_preferences);
+        assert_eq!(
+            original.include_preferences,
+            deserialized.include_preferences
+        );
         assert_eq!(original.include_behavioral, deserialized.include_behavioral);
     }
 

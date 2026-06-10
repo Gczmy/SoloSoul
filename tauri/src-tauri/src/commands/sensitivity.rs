@@ -10,16 +10,34 @@ pub async fn sensitivity_get_field(
     manager: State<'_, SensitivityManager>,
     field_id: String,
 ) -> Result<String, String> {
-    let map = manager.map.read().await;
-    Ok(map.get(&field_id).as_str().to_string())
+    let result = {
+        let map = manager.map.read().map_err(|e| e.to_string())?;
+        map.get(&field_id).as_str().to_string()
+    };
+    Ok(result)
 }
 
 #[tauri::command]
 pub async fn sensitivity_get_map(
+    app: State<'_, AppState>,
     manager: State<'_, SensitivityManager>,
 ) -> Result<SensitivityMap, String> {
-    let map = manager.map.read().await;
-    Ok(map.clone())
+    let mut result = {
+        let map = manager.map.read().map_err(|e| e.to_string())?;
+        map.clone()
+    };
+
+    // Compute template-source statuses from vault
+    let svc = app.vault_service.read().await;
+    if let Some(vault_guard) = svc.get_vault_store() {
+        if let Some(vault) = vault_guard.as_ref() {
+            if let Ok(statuses) = manager.compute_template_source_statuses(vault) {
+                result.template_source_statuses = statuses;
+            }
+        }
+    }
+
+    Ok(result)
 }
 
 #[tauri::command]
@@ -38,40 +56,58 @@ pub async fn sensitivity_update_field(
     let level = SensitivityLevel::parse_level(&new_level)
         .ok_or_else(|| format!("Invalid level: {}", new_level))?;
 
-    let mut map = manager.map.write().await;
-    let old = map.get(&field_id);
+    // Step 1: Check downgrade and update in-memory map (all sync, no await)
+    let (old_level, template_id) = {
+        let mut map = manager.map.write().map_err(|e| e.to_string())?;
+        let old = map.get(&field_id);
 
-    // Downgrade protection: downgrading requires vault password verification
-    if (level as i32) < (old as i32) {
-        verify_vault_password(&app, &password)?;
+        // Downgrade protection: downgrading requires vault password verification
+        if (level as i32) < (old as i32) {
+            verify_vault_password(&app, &password)?;
 
-        // Cooldown check (§5): same field cannot be downgraded again within 5 min
-        const DOWNGRADE_COOLDOWN_SECS: i64 = 300;
-        let log = manager.log.read().await;
-        if let Some(last_downgrade) = log
-            .entries
-            .iter()
-            .rev()
-            .find(|e| e.field_id == field_id && (e.old_level as i32) > (e.new_level as i32))
-        {
-            if let Ok(last_ts) = chrono::DateTime::parse_from_rfc3339(&last_downgrade.timestamp) {
-                let elapsed = chrono::Utc::now()
-                    .signed_duration_since(last_ts.with_timezone(&chrono::Utc))
-                    .num_seconds();
-                if elapsed < DOWNGRADE_COOLDOWN_SECS {
-                    let remaining = DOWNGRADE_COOLDOWN_SECS - elapsed;
-                    return Err(format!(
-                        "Downgrade cooldown active. Please wait {} more seconds before downgrading this field again.",
-                        remaining
-                    ));
+            // Cooldown check (§5): same field cannot be downgraded again within 5 min
+            const DOWNGRADE_COOLDOWN_SECS: i64 = 300;
+            let log = manager.log.read().map_err(|e| e.to_string())?;
+            if let Some(last_downgrade) = log
+                .entries
+                .iter()
+                .rev()
+                .find(|e| e.field_id == field_id && (e.old_level as i32) > (e.new_level as i32))
+            {
+                if let Ok(last_ts) = chrono::DateTime::parse_from_rfc3339(&last_downgrade.timestamp)
+                {
+                    let elapsed = chrono::Utc::now()
+                        .signed_duration_since(last_ts.with_timezone(&chrono::Utc))
+                        .num_seconds();
+                    if elapsed < DOWNGRADE_COOLDOWN_SECS {
+                        let remaining = DOWNGRADE_COOLDOWN_SECS - elapsed;
+                        return Err(format!(
+                            "Downgrade cooldown active. Please wait {} more seconds before downgrading this field again.",
+                            remaining
+                        ));
+                    }
                 }
             }
         }
+
+        let template_id = map.template_sources.get(&field_id).cloned().flatten();
+        map.set(&field_id, level);
+        (old, template_id)
+    };
+
+    // Step 2: Append to log (sync)
+    {
+        let mut log = manager.log.write().map_err(|e| e.to_string())?;
+        log.push(&field_id, old_level, level, reason.unwrap_or_default());
     }
 
-    map.set(&field_id, level);
-    let mut log = manager.log.write().await;
-    log.push(&field_id, old, level, reason.unwrap_or_default());
+    // Step 3: Persist to vault DB (async, all sync locks released)
+    let svc = app.vault_service.read().await;
+    if let Some(vault_guard) = svc.get_vault_store() {
+        if let Some(vault) = vault_guard.as_ref() {
+            let _ = vault.save_sensitivity_entry(&field_id, level.as_str(), template_id.as_deref());
+        }
+    }
     Ok(())
 }
 
@@ -133,13 +169,14 @@ pub async fn sensitivity_get_log(
     manager: State<'_, SensitivityManager>,
     limit: Option<usize>,
 ) -> Result<Vec<SensitivityLogEntry>, String> {
-    let log = manager.log.read().await;
-    let entries: Vec<_> = log
-        .entries
-        .iter()
-        .rev()
-        .take(limit.unwrap_or(100))
-        .cloned()
-        .collect();
+    let entries = {
+        let log = manager.log.read().map_err(|e| e.to_string())?;
+        log.entries
+            .iter()
+            .rev()
+            .take(limit.unwrap_or(100))
+            .cloned()
+            .collect()
+    };
     Ok(entries)
 }

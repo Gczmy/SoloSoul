@@ -23,11 +23,30 @@ pub async fn bootstrap(
     state: State<'_, AppState>,
     account_name: String,
     password: String,
+    locale: String,
 ) -> Result<AccountInfo, String> {
     let svc = state.vault_service.read().await;
     let result = svc.create_account(&account_name, &password)?;
+    let account_id = result["id"].as_str().unwrap_or("").to_string();
+
+    // Seed default templates from embedded resources (one-time import)
+    {
+        let vault_guard = svc
+            .get_vault_store()
+            .ok_or("Vault not available after creation")?;
+        if let Some(vault) = vault_guard.as_ref() {
+            if let Err(e) = crate::services::template_service::seed_default_templates(
+                vault,
+                &account_id,
+                &locale,
+            ) {
+                tracing::warn!("Failed to seed default templates: {}", e);
+            }
+        }
+    }
+
     Ok(AccountInfo {
-        id: result["id"].as_str().unwrap_or("").to_string(),
+        id: account_id,
         name: result["name"].as_str().unwrap_or("").to_string(),
         salt: result["salt"].as_str().unwrap_or("").to_string(),
         verify_hash: result["verifyHash"].as_str().unwrap_or("").to_string(),

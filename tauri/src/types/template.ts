@@ -36,6 +36,7 @@ export interface UserTemplate {
   name: string;
   iconId?: string;
   properties: TemplateProperty[];
+  category?: string;
   createdAt: string;
   updatedAt?: string;
 }
@@ -47,6 +48,7 @@ export interface UserTemplateRaw {
   name: string;
   icon_id?: string;
   properties: TemplateProperty[];
+  category?: string;
   created_at: string;
   updated_at?: string;
 }

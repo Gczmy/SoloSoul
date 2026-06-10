@@ -474,7 +474,10 @@ mod tests {
     fn test_type_display_name() {
         assert_eq!(type_display_name("note"), "Note");
         assert_eq!(type_display_name("travelDocument"), "Travel Document");
-        assert_eq!(type_display_name("__preset_financialRecord"), "Financial Record");
+        assert_eq!(
+            type_display_name("__preset_financialRecord"),
+            "Financial Record"
+        );
         assert_eq!(type_display_name("identity_card"), "Identity Card");
     }
 

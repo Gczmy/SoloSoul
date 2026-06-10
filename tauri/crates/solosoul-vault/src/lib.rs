@@ -225,6 +225,24 @@ pub enum PropertyType {
 }
 
 impl PropertyType {
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "text" => Some(Self::Text),
+            "multiline" => Some(Self::MultilineText),
+            "number" => Some(Self::Number),
+            "date" => Some(Self::Date),
+            "datetime" => Some(Self::DateTime),
+            "boolean" => Some(Self::Boolean),
+            "select" => Some(Self::Select),
+            "multiselect" => Some(Self::MultiSelect),
+            "url" => Some(Self::Url),
+            "email" => Some(Self::Email),
+            "phone" => Some(Self::Phone),
+            "file" => Some(Self::FileReference),
+            _ => None,
+        }
+    }
+
     pub fn as_str(&self) -> &'static str {
         match self {
             PropertyType::Text => "text",
@@ -331,6 +349,8 @@ pub struct UserTemplate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon_id: Option<String>,
     pub properties: Vec<TemplateProperty>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
     pub created_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<String>,

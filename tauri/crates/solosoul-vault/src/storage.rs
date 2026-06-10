@@ -1,6 +1,6 @@
 //! Vault store - SQLite storage with app-layer AES-256-GCM encryption
 
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use std::sync::Mutex;
 
 use crate::migration::run_migrations;
@@ -112,9 +112,10 @@ impl VaultStore {
 
             CREATE TABLE IF NOT EXISTS trash_items (
                 id TEXT PRIMARY KEY,
-                item_type TEXT NOT NULL CHECK(item_type IN ('page','collection','object')),
+                item_type TEXT NOT NULL,
                 original_id TEXT NOT NULL,
                 original_parent_id TEXT,
+                original_section_type TEXT,
                 original_sort_order INTEGER,
                 data BLOB NOT NULL,
                 deleted_at INTEGER NOT NULL,
@@ -1061,12 +1062,13 @@ impl VaultStore {
         let props_json = serde_json::to_string(&template.properties)
             .map_err(|e| format!("serialize properties: {}", e))?;
         conn.execute(
-            "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+            "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, category, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
              ON CONFLICT(id) DO UPDATE SET
                  name = excluded.name,
                  icon_id = excluded.icon_id,
                  properties_json = excluded.properties_json,
+                 category = excluded.category,
                  updated_at = excluded.updated_at",
             params![
                 &template.id,
@@ -1074,6 +1076,7 @@ impl VaultStore {
                 &template.name,
                 &template.icon_id,
                 props_json,
+                &template.category,
                 &template.created_at,
                 &template.updated_at,
             ],
@@ -1083,11 +1086,14 @@ impl VaultStore {
     }
 
     /// Load a single user template by ID.
-    pub fn load_user_template(&self, template_id: &str) -> Result<Option<crate::UserTemplate>, String> {
+    pub fn load_user_template(
+        &self,
+        template_id: &str,
+    ) -> Result<Option<crate::UserTemplate>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
-            "SELECT id, account_id, name, icon_id, properties_json, created_at, updated_at
+            "SELECT id, account_id, name, icon_id, properties_json, category, created_at, updated_at
              FROM user_templates WHERE id = ?1"
         ).map_err(|e| format!("prepare load_user_template: {}", e))?;
 
@@ -1101,8 +1107,9 @@ impl VaultStore {
                 name: row.get(2)?,
                 icon_id: row.get(3)?,
                 properties,
-                created_at: row.get(5)?,
-                updated_at: row.get(6)?,
+                category: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
             })
         });
 
@@ -1114,34 +1121,70 @@ impl VaultStore {
     }
 
     /// List all user templates for a given account, ordered by created_at DESC.
-    pub fn list_user_templates(&self, account_id: &str) -> Result<Vec<crate::UserTemplate>, String> {
+    pub fn list_user_templates(
+        &self,
+        account_id: &str,
+    ) -> Result<Vec<crate::UserTemplate>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
-            "SELECT id, account_id, name, icon_id, properties_json, created_at, updated_at
+            "SELECT id, account_id, name, icon_id, properties_json, category, created_at, updated_at
              FROM user_templates WHERE account_id = ?1 ORDER BY created_at DESC"
         ).map_err(|e| format!("prepare list_user_templates: {}", e))?;
 
-        let rows = stmt.query_map(params![account_id], |row| {
-            let props_json: String = row.get(4)?;
-            let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&props_json)
-                .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
-            Ok(crate::UserTemplate {
-                id: row.get(0)?,
-                account_id: row.get(1)?,
-                name: row.get(2)?,
-                icon_id: row.get(3)?,
-                properties,
-                created_at: row.get(5)?,
-                updated_at: row.get(6)?,
+        let rows = stmt
+            .query_map(params![account_id], |row| {
+                let props_json: String = row.get(4)?;
+                let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&props_json)
+                    .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+                Ok(crate::UserTemplate {
+                    id: row.get(0)?,
+                    account_id: row.get(1)?,
+                    name: row.get(2)?,
+                    icon_id: row.get(3)?,
+                    properties,
+                    category: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
             })
-        }).map_err(|e| format!("list_user_templates query: {}", e))?;
+            .map_err(|e| format!("list_user_templates query: {}", e))?;
 
         let mut result = Vec::new();
         for row in rows {
             result.push(row.map_err(|e| format!("list_user_templates row: {}", e))?);
         }
         Ok(result)
+    }
+
+    /// Check if a user template exists (any account).
+    pub fn user_template_exists(&self, template_id: &str) -> Result<bool, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn
+            .prepare("SELECT 1 FROM user_templates WHERE id = ?1 LIMIT 1")
+            .map_err(|e| format!("prepare user_template_exists: {}", e))?;
+        let exists: Option<i32> = stmt
+            .query_row(params![template_id], |row| row.get(0))
+            .optional()
+            .map_err(|e| format!("user_template_exists query: {}", e))?;
+        Ok(exists.is_some())
+    }
+
+    /// Check if a template is in trash (soft-deleted).
+    pub fn is_template_in_trash(&self, template_id: &str) -> Result<bool, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT 1 FROM trash WHERE item_type = 'template' AND original_id = ?1 LIMIT 1",
+            )
+            .map_err(|e| format!("prepare is_template_in_trash: {}", e))?;
+        let exists: Option<i32> = stmt
+            .query_row(params![template_id], |row| row.get(0))
+            .optional()
+            .map_err(|e| format!("is_template_in_trash query: {}", e))?;
+        Ok(exists.is_some())
     }
 
     /// Delete a user template by ID.
@@ -1168,6 +1211,86 @@ impl VaultStore {
             )
             .map_err(|e| format!("count_user_templates: {}", e))?;
         Ok(count as usize)
+    }
+
+    // ── Sensitivity map (§12 field-level sensitivity persistence) ────
+
+    /// Save or update a sensitivity map entry.
+    pub fn save_sensitivity_entry(
+        &self,
+        field_id: &str,
+        level: &str,
+        template_id: Option<&str>,
+    ) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let now = chrono::Utc::now().to_rfc3339();
+        conn.execute(
+            "INSERT INTO sensitivity_map (field_id, level, template_id, last_modified)
+             VALUES (?1, ?2, ?3, ?4)
+             ON CONFLICT(field_id) DO UPDATE SET
+                 level = excluded.level,
+                 template_id = excluded.template_id,
+                 last_modified = excluded.last_modified",
+            params![field_id, level, template_id, now],
+        )
+        .map_err(|e| format!("save_sensitivity_entry: {}", e))?;
+        Ok(())
+    }
+
+    /// Load a single sensitivity map entry.
+    pub fn load_sensitivity_entry(
+        &self,
+        field_id: &str,
+    ) -> Result<Option<(String, Option<String>)>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let result = conn
+            .query_row(
+                "SELECT level, template_id FROM sensitivity_map WHERE field_id = ?1",
+                params![field_id],
+                |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
+            )
+            .optional()
+            .map_err(|e| format!("load_sensitivity_entry: {}", e))?;
+        Ok(result)
+    }
+
+    /// List all sensitivity map entries.
+    pub fn list_sensitivity_entries(
+        &self,
+    ) -> Result<Vec<(String, String, Option<String>)>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn
+            .prepare("SELECT field_id, level, template_id FROM sensitivity_map ORDER BY field_id")
+            .map_err(|e| format!("prepare list_sensitivity_entries: {}", e))?;
+        let rows = stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, Option<String>>(2)?,
+                ))
+            })
+            .map_err(|e| format!("list_sensitivity_entries query: {}", e))?;
+        let mut result = Vec::new();
+        for row in rows {
+            result.push(row.map_err(|e| format!("list_sensitivity_entries row: {}", e))?);
+        }
+        Ok(result)
+    }
+
+    /// Delete a sensitivity map entry by field_id.
+    pub fn delete_sensitivity_entry(&self, field_id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "DELETE FROM sensitivity_map WHERE field_id = ?1",
+            params![field_id],
+        )
+        .map_err(|e| format!("delete_sensitivity_entry: {}", e))?;
+        Ok(())
     }
 }
 
@@ -1318,7 +1441,9 @@ mod tests {
         };
         assert!(vault.save_object(&obj).is_err());
         assert!(vault.load_object("obj-1").is_err());
-        assert!(vault.list_objects("acc-1", None, None, None, false, false).is_err());
+        assert!(vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .is_err());
     }
 
     #[test]
@@ -1370,7 +1495,10 @@ mod tests {
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-special").unwrap().unwrap();
         assert_eq!(loaded.name, "Test \"quotes\" and 'apostrophes'");
-        assert_eq!(loaded.properties, serde_json::json!({"content": "Line1\nLine2\tTab"}));
+        assert_eq!(
+            loaded.properties,
+            serde_json::json!({"content": "Line1\nLine2\tTab"})
+        );
     }
 
     #[test]
@@ -1401,14 +1529,20 @@ mod tests {
 
         // Soft delete
         vault.delete_object("obj-del", true).unwrap();
-        let active = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let active = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(active.len(), 0);
-        let deleted = vault.list_objects("acc-1", None, None, None, false, true).unwrap();
+        let deleted = vault
+            .list_objects("acc-1", None, None, None, false, true)
+            .unwrap();
         assert_eq!(deleted.len(), 1);
 
         // Restore
         vault.restore_object("obj-del").unwrap();
-        let restored = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let restored = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(restored.len(), 1);
         assert!(!restored[0].is_deleted);
     }
@@ -1453,7 +1587,11 @@ mod tests {
                 section_type: "identity".to_string(),
                 name: format!("Item {}", i),
                 icon_name: "document".to_string(),
-                parent_id: if i == 0 { None } else { Some("obj-0".to_string()) },
+                parent_id: if i == 0 {
+                    None
+                } else {
+                    Some("obj-0".to_string())
+                },
                 children_ids: vec![],
                 properties: serde_json::json!({"idx": i}),
                 property_labels: None,
@@ -1470,16 +1608,24 @@ mod tests {
             vault.save_object(&obj).unwrap();
         }
 
-        let all = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let all = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(all.len(), 5);
 
-        let notes = vault.list_objects("acc-1", Some("note"), None, None, false, false).unwrap();
+        let notes = vault
+            .list_objects("acc-1", Some("note"), None, None, false, false)
+            .unwrap();
         assert_eq!(notes.len(), 3); // obj-0, obj-2, obj-4
 
-        let children = vault.list_objects("acc-1", None, Some("obj-0"), None, false, false).unwrap();
+        let children = vault
+            .list_objects("acc-1", None, Some("obj-0"), None, false, false)
+            .unwrap();
         assert_eq!(children.len(), 4); // obj-1..4
 
-        let keyword = vault.list_objects("acc-1", None, None, Some("Item 2"), false, false).unwrap();
+        let keyword = vault
+            .list_objects("acc-1", None, None, Some("Item 2"), false, false)
+            .unwrap();
         assert_eq!(keyword.len(), 1);
         assert_eq!(keyword[0].id, "obj-2");
     }
@@ -1588,7 +1734,9 @@ mod tests {
     #[test]
     fn test_list_objects_empty_collection() {
         let (vault, _dir) = setup();
-        let list = vault.list_objects("acc-empty", None, None, None, false, false).unwrap();
+        let list = vault
+            .list_objects("acc-empty", None, None, None, false, false)
+            .unwrap();
         assert!(list.is_empty());
     }
 
@@ -1619,13 +1767,19 @@ mod tests {
         vault.save_object(&obj).unwrap();
         vault.delete_object("obj-del-1", true).unwrap();
 
-        let active = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let active = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(active.len(), 0);
 
-        let include_del = vault.list_objects("acc-1", None, None, None, true, false).unwrap();
+        let include_del = vault
+            .list_objects("acc-1", None, None, None, true, false)
+            .unwrap();
         assert_eq!(include_del.len(), 1);
 
-        let only_del = vault.list_objects("acc-1", None, None, None, false, true).unwrap();
+        let only_del = vault
+            .list_objects("acc-1", None, None, None, false, true)
+            .unwrap();
         assert_eq!(only_del.len(), 1);
     }
 
@@ -1655,10 +1809,14 @@ mod tests {
         };
         vault.save_object(&obj).unwrap();
 
-        let by_name = vault.list_objects("acc-1", None, None, Some("日本語"), false, false).unwrap();
+        let by_name = vault
+            .list_objects("acc-1", None, None, Some("日本語"), false, false)
+            .unwrap();
         assert_eq!(by_name.len(), 1);
 
-        let by_prop = vault.list_objects("acc-1", None, None, Some("你好"), false, false).unwrap();
+        let by_prop = vault
+            .list_objects("acc-1", None, None, Some("你好"), false, false)
+            .unwrap();
         assert_eq!(by_prop.len(), 1);
     }
 
@@ -1699,7 +1857,9 @@ mod tests {
     #[test]
     fn test_search_objects_no_results() {
         let (vault, _dir) = setup();
-        let results = vault.search_objects("acc-1", "nonexistent-keyword-12345").unwrap();
+        let results = vault
+            .search_objects("acc-1", "nonexistent-keyword-12345")
+            .unwrap();
         assert!(results.is_empty());
     }
 
@@ -2062,7 +2222,9 @@ mod tests {
     fn test_snapshot_save_and_get() {
         let (vault, _dir) = setup();
         let data = b"snapshot data";
-        vault.save_snapshot("obj-1", "user_edit", data, "added field").unwrap();
+        vault
+            .save_snapshot("obj-1", "user_edit", data, "added field")
+            .unwrap();
 
         let snapshots = vault.list_snapshots("obj-1").unwrap();
         assert_eq!(snapshots.len(), 1);
@@ -2082,11 +2244,23 @@ mod tests {
     #[test]
     fn test_count_snapshots_batch() {
         let (vault, _dir) = setup();
-        vault.save_snapshot("obj-a", "user_edit", b"a1", "").unwrap();
-        vault.save_snapshot("obj-a", "user_edit", b"a2", "").unwrap();
-        vault.save_snapshot("obj-b", "user_edit", b"b1", "").unwrap();
+        vault
+            .save_snapshot("obj-a", "user_edit", b"a1", "")
+            .unwrap();
+        vault
+            .save_snapshot("obj-a", "user_edit", b"a2", "")
+            .unwrap();
+        vault
+            .save_snapshot("obj-b", "user_edit", b"b1", "")
+            .unwrap();
 
-        let counts = vault.count_snapshots_batch(&["obj-a".to_string(), "obj-b".to_string(), "obj-c".to_string()]).unwrap();
+        let counts = vault
+            .count_snapshots_batch(&[
+                "obj-a".to_string(),
+                "obj-b".to_string(),
+                "obj-c".to_string(),
+            ])
+            .unwrap();
         assert_eq!(counts.get("obj-a"), Some(&2));
         assert_eq!(counts.get("obj-b"), Some(&1));
         assert_eq!(counts.get("obj-c"), None);
@@ -2102,8 +2276,12 @@ mod tests {
     #[test]
     fn test_copy_snapshots() {
         let (vault, _dir) = setup();
-        vault.save_snapshot("src-obj", "user_edit", b"data1", "summary1").unwrap();
-        vault.save_snapshot("src-obj", "auto_save", b"data2", "summary2").unwrap();
+        vault
+            .save_snapshot("src-obj", "user_edit", b"data1", "summary1")
+            .unwrap();
+        vault
+            .save_snapshot("src-obj", "auto_save", b"data2", "summary2")
+            .unwrap();
 
         vault.copy_snapshots("src-obj", "dst-obj").unwrap();
 
@@ -2113,8 +2291,14 @@ mod tests {
         assert_eq!(src_list.len(), 2);
 
         // IDs should differ because copy uses randomblob
-        let src_ids: std::collections::HashSet<String> = src_list.iter().map(|s| s["id"].as_str().unwrap().to_string()).collect();
-        let dst_ids: std::collections::HashSet<String> = dst_list.iter().map(|s| s["id"].as_str().unwrap().to_string()).collect();
+        let src_ids: std::collections::HashSet<String> = src_list
+            .iter()
+            .map(|s| s["id"].as_str().unwrap().to_string())
+            .collect();
+        let dst_ids: std::collections::HashSet<String> = dst_list
+            .iter()
+            .map(|s| s["id"].as_str().unwrap().to_string())
+            .collect();
         assert!(src_ids.is_disjoint(&dst_ids));
     }
 
@@ -2143,14 +2327,16 @@ mod tests {
     #[test]
     fn test_log_structured_and_list() {
         let (vault, _dir) = setup();
-        vault.log_structured(
-            "delete",
-            "profile",
-            Some("prof-1"),
-            Some("My Profile"),
-            "user",
-            Some("soft delete"),
-        ).unwrap();
+        vault
+            .log_structured(
+                "delete",
+                "profile",
+                Some("prof-1"),
+                Some("My Profile"),
+                "user",
+                Some("soft delete"),
+            )
+            .unwrap();
 
         let logs = vault.list_audit_log(10).unwrap();
         assert!(!logs.is_empty());
@@ -2264,10 +2450,16 @@ mod tests {
         assert!(vault.get_sys_config("my_key").unwrap().is_none());
 
         vault.set_sys_config("my_key", "my_value").unwrap();
-        assert_eq!(vault.get_sys_config("my_key").unwrap(), Some("my_value".to_string()));
+        assert_eq!(
+            vault.get_sys_config("my_key").unwrap(),
+            Some("my_value".to_string())
+        );
 
         vault.set_sys_config("my_key", "updated_value").unwrap();
-        assert_eq!(vault.get_sys_config("my_key").unwrap(), Some("updated_value".to_string()));
+        assert_eq!(
+            vault.get_sys_config("my_key").unwrap(),
+            Some("updated_value".to_string())
+        );
     }
 
     // ── Private metadata helpers ──────────────────────────────
@@ -2392,6 +2584,7 @@ mod tests {
                     options: None,
                 },
             ],
+            category: Some("identity".to_string()),
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: None,
         }
@@ -2477,15 +2670,111 @@ mod tests {
     fn test_property_type_infer_from_value() {
         use crate::PropertyType;
 
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!(true), "any"), PropertyType::Boolean);
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!(42), "any"), PropertyType::Number);
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!(3.14), "any"), PropertyType::Number);
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("hello"), "any"), PropertyType::Text);
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("hello"), "expiry_date"), PropertyType::Text);
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("user@example.com"), "email_addr"), PropertyType::Email);
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("+86-138-0000-0000"), "phone_number"), PropertyType::Phone);
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("https://example.com"), "website_url"), PropertyType::Url);
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!(["a","b"]), "any"), PropertyType::MultiSelect);
-        assert_eq!(PropertyType::infer_from_value(&serde_json::json!("2024-01-15"), "issue_date"), PropertyType::Date);
+        assert_eq!(
+            PropertyType::infer_from_value(&serde_json::json!(true), "any"),
+            PropertyType::Boolean
+        );
+        assert_eq!(
+            PropertyType::infer_from_value(&serde_json::json!(42), "any"),
+            PropertyType::Number
+        );
+        assert_eq!(
+            PropertyType::infer_from_value(&serde_json::json!(3.14), "any"),
+            PropertyType::Number
+        );
+        assert_eq!(
+            PropertyType::infer_from_value(&serde_json::json!("hello"), "any"),
+            PropertyType::Text
+        );
+        assert_eq!(
+            PropertyType::infer_from_value(&serde_json::json!("hello"), "expiry_date"),
+            PropertyType::Text
+        );
+        assert_eq!(
+            PropertyType::infer_from_value(&serde_json::json!("user@example.com"), "email_addr"),
+            PropertyType::Email
+        );
+        assert_eq!(
+            PropertyType::infer_from_value(&serde_json::json!("+86-138-0000-0000"), "phone_number"),
+            PropertyType::Phone
+        );
+        assert_eq!(
+            PropertyType::infer_from_value(
+                &serde_json::json!("https://example.com"),
+                "website_url"
+            ),
+            PropertyType::Url
+        );
+        assert_eq!(
+            PropertyType::infer_from_value(&serde_json::json!(["a", "b"]), "any"),
+            PropertyType::MultiSelect
+        );
+        assert_eq!(
+            PropertyType::infer_from_value(&serde_json::json!("2024-01-15"), "issue_date"),
+            PropertyType::Date
+        );
+    }
+
+    #[test]
+    fn test_template_soft_delete_appears_in_trash() {
+        let (vault, _dir) = setup();
+
+        // 1. Create a user template
+        let template = crate::UserTemplate {
+            id: "tpl_test_001".to_string(),
+            account_id: "test_account".to_string(),
+            name: "Test Template".to_string(),
+            icon_id: Some("document".to_string()),
+            properties: vec![crate::TemplateProperty {
+                id: "field1".to_string(),
+                name: "field1".to_string(),
+                prop_type: crate::PropertyType::Text,
+                sensitivity_level: None,
+                sensitive: None,
+                options: None,
+            }],
+            category: Some("identity".to_string()),
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            updated_at: None,
+        };
+        vault.save_user_template(&template).unwrap();
+
+        // 2. Simulate template_delete: build TrashItem and save
+        let template_data = serde_json::to_vec(&template).unwrap();
+        let trash = TrashItem {
+            id: "trash_tpl_001".to_string(),
+            item_type: "template".to_string(),
+            original_id: template.id.clone(),
+            original_parent_id: None,
+            original_section_type: template.category.clone(),
+            original_sort_order: None,
+            data: template_data,
+            deleted_at: 1704067200000i64,
+            expires_at: Some(1706659200000i64),
+            deleted_by: "user".to_string(),
+            name_snapshot: template.name.clone(),
+            icon_snapshot: template.icon_id.clone(),
+        };
+        vault.save_trash_item(&trash).unwrap();
+
+        // 3. Delete the template from user_templates table
+        vault.delete_user_template(&template.id).unwrap();
+
+        // 4. List trash items and verify template appears
+        let items = vault.list_trash_items(None, None).unwrap();
+        assert_eq!(items.len(), 1);
+        let item = &items[0];
+        assert_eq!(item.id, "trash_tpl_001");
+        assert_eq!(item.item_type, "template");
+        assert_eq!(item.name, "Test Template");
+        assert_eq!(item.icon_id, Some("document".to_string()));
+        assert_eq!(item.deleted_at, 1704067200000i64);
+        assert_eq!(item.expires_at, Some(1706659200000i64));
+        assert_eq!(item.original_section_type, Some("identity".to_string()));
+
+        // 5. Verify filtering by item_type works
+        let template_items = vault.list_trash_items(Some("template"), None).unwrap();
+        assert_eq!(template_items.len(), 1);
+        assert_eq!(template_items[0].name, "Test Template");
     }
 }

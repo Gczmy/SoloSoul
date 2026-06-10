@@ -2980,7 +2980,10 @@ mod tests {
             assert_eq!(original, restored);
         }
         // Verify camelCase serialization
-        assert_eq!(serde_json::to_string(&ApiType::OpenAI).unwrap(), "\"openAI\"");
+        assert_eq!(
+            serde_json::to_string(&ApiType::OpenAI).unwrap(),
+            "\"openAI\""
+        );
         assert_eq!(
             serde_json::to_string(&ApiType::Anthropic).unwrap(),
             "\"anthropic\""
@@ -3067,7 +3070,10 @@ mod tests {
         assert_eq!(restored.providers.len(), original.providers.len());
         assert_eq!(restored.active_provider_id, original.active_provider_id);
         assert_eq!(restored.has_accepted_risk, original.has_accepted_risk);
-        assert_eq!(restored.include_system_prompt, original.include_system_prompt);
+        assert_eq!(
+            restored.include_system_prompt,
+            original.include_system_prompt
+        );
         assert_eq!(restored.use_local_embedding, original.use_local_embedding);
         assert_eq!(restored.local_embed_model_id, original.local_embed_model_id);
         assert_eq!(
@@ -3269,9 +3275,6 @@ mod tests {
         assert_eq!(loaded[0].id, "conv-1");
         assert_eq!(loaded[0].deleted_at, None);
         assert_eq!(loaded[1].id, "conv-2");
-        assert_eq!(
-            loaded[1].deleted_at,
-            Some("2024-03-01T00:00:00Z".into())
-        );
+        assert_eq!(loaded[1].deleted_at, Some("2024-03-01T00:00:00Z".into()));
     }
 }

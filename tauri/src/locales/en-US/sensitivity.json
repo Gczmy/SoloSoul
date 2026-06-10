@@ -12,5 +12,9 @@
   "sensitive_label": "Sensitive",
   "unlock_to_view": "Unlock to view",
   "critical_label": "Critical",
-  "hide": "Hide"
+  "hide": "Hide",
+  "source_active": "Custom Template",
+  "source_soft_deleted": "Source template soft-deleted",
+  "source_permanently_deleted": "Source template permanently deleted",
+  "source_manual": "Manual"
 }

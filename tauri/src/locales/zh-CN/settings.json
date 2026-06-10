@@ -104,6 +104,7 @@
   "import": "导入",
   "trash": "回收站",
   "trash_empty": "回收站为空。被删除的项目会出现在这里，30 天后自动清理。",
+  "trash_empty_filtered": "当前筛选条件下没有结果，请尝试切换筛选类型。",
   "operation_log": "操作日志",
   "search_logs": "搜索日志...",
   "all": "全部",
@@ -252,6 +253,7 @@
   "trash_type_page": "页面",
   "trash_type_collection": "集合",
   "trash_type_object": "对象",
+  "trash_type_template": "模板",
   "trash_expires_in": "{{days}} 天后过期",
   "time_minutes_ago": "{n} 分钟前",
   "time_hours_ago": "{n} 小时前",
@@ -401,6 +403,7 @@
   },
   "template_manager_title": "模板管理",
   "new_template": "新建模板",
+  "template_category": "所属分类",
   "template_name_placeholder": "请输入模板名称",
   "add_field": "添加字段",
   "field_name": "字段名称",
@@ -413,6 +416,8 @@
   "template_fields": "个字段",
   "has_sensitive": "含敏感字段",
   "edit_template": "编辑模板",
+  "filter_all": "全部",
+  "filter_user": "自定义模板",
   "desc": {
     "theme_appearance": "自定义主题、主题色、语言和背景",
     "security_settings": "密码管理、生物识别解锁、自动锁定",
@@ -431,5 +436,7 @@
   "ai_quick_chat_configure_hint": "请先配置 LLM 以使用 AI 对话功能",
   "ai_quick_chat_go_full": "进入完整对话页面",
   "ai_history": "历史对话",
-  "ai_messages": "条消息"
+  "ai_messages": "条消息",
+  "template_delete_confirm_title": "删除模板",
+  "template_delete_confirm_body": "确定要删除模板「{{name}}」吗？此操作不可撤销。"
 }

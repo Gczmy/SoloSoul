@@ -17,7 +17,8 @@ export function BootstrapPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirm) return;
-    await bootstrap(accountName, password);
+    const locale = navigator.language || 'en-US';
+    await bootstrap(accountName, password, locale);
     navigate('/');
   };
 

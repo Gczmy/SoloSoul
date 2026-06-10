@@ -211,7 +211,11 @@ mod tests {
         let result = LocalEmbedder::load(tmp.path(), "test");
         assert!(result.is_err());
         let err = result.err().unwrap();
-        assert!(err.contains("Model not found"), "Expected 'Model not found' error, got: {}", err);
+        assert!(
+            err.contains("Model not found"),
+            "Expected 'Model not found' error, got: {}",
+            err
+        );
     }
 
     #[test]
@@ -221,7 +225,11 @@ mod tests {
         let result = LocalEmbedder::load(tmp.path(), "test");
         assert!(result.is_err());
         let err = result.err().unwrap();
-        assert!(err.contains("Tokenizer not found"), "Expected 'Tokenizer not found' error, got: {}", err);
+        assert!(
+            err.contains("Tokenizer not found"),
+            "Expected 'Tokenizer not found' error, got: {}",
+            err
+        );
     }
 
     #[test]
@@ -240,7 +248,11 @@ mod tests {
         let result = get_embedder(tmp.path(), "missing-model");
         assert!(result.is_err());
         let err = result.err().unwrap();
-        assert!(err.contains("Model not found") || err.contains("Tokenizer not found"), "Got: {}", err);
+        assert!(
+            err.contains("Model not found") || err.contains("Tokenizer not found"),
+            "Got: {}",
+            err
+        );
     }
 
     #[test]
@@ -284,7 +296,11 @@ mod tests {
 
         // L2 normalization check: norm should be ~1.0
         let norm: f32 = vec.iter().map(|v| v * v).sum::<f32>().sqrt();
-        assert!((norm - 1.0).abs() < 1e-4, "Expected normalized vector, norm = {}", norm);
+        assert!(
+            (norm - 1.0).abs() < 1e-4,
+            "Expected normalized vector, norm = {}",
+            norm
+        );
 
         // Batch of multiple texts
         let batch = embedder
@@ -314,7 +330,11 @@ mod tests {
         let vec = embedder.embed("A test sentence").unwrap();
         assert!(!vec.is_empty());
         let norm: f32 = vec.iter().map(|v| v * v).sum::<f32>().sqrt();
-        assert!((norm - 1.0).abs() < 1e-4, "Expected normalized vector, norm = {}", norm);
+        assert!(
+            (norm - 1.0).abs() < 1e-4,
+            "Expected normalized vector, norm = {}",
+            norm
+        );
     }
 
     #[test]

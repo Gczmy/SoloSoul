@@ -1,16 +1,26 @@
-import { InputHTMLAttributes, forwardRef } from 'react';
+import React, { InputHTMLAttributes, forwardRef } from 'react';
 import styles from './Input.module.css';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  icon?: React.ReactNode;
+  badge?: React.ReactNode;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, className, ...props }, ref) => {
+  ({ label, error, icon, badge, className, ...props }, ref) => {
     return (
       <div className={styles.wrapper}>
-        {label && <label className={styles.label}>{label}</label>}
+        {label && (
+          <label className={styles.label}>
+            <span className={styles.labelRow}>
+              {icon}
+              <span className={styles.labelText}>{label}</span>
+              {badge}
+            </span>
+          </label>
+        )}
         <input
           ref={ref}
           className={`${styles.input} ${error ? styles.hasError : ''} ${className || ''}`}

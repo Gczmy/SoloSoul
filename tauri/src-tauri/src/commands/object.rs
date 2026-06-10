@@ -305,12 +305,14 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
 #[tauri::command]
 pub async fn object_trash_list(
     state: State<'_, AppState>,
-    _account_id: String,
+    account_id: String,
+    since: Option<i64>,
 ) -> Result<Vec<solosoul_vault::TrashItemSummary>, String> {
+    let _ = account_id;
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    vault.list_trash_items(None, None)
+    vault.list_trash_items(None, since)
 }
 
 /// Read the user's language setting from plaintext UI preferences.
@@ -527,7 +529,9 @@ pub async fn trash_permanent_delete(
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
     if let Ok(Some(trash)) = vault.get_trash_item(&trash_id) {
-        vault.delete_object(&trash.original_id, false)?;
+        if trash.item_type != "template" {
+            vault.delete_object(&trash.original_id, false)?;
+        }
         let _ = vault.log_structured(
             "trash_permanent_delete",
             "trash_item",
@@ -1007,22 +1011,42 @@ pub async fn trash_get_detail(
             .as_deref()
             .map(|st| format!("From page: {}", st))
             .unwrap_or_else(|| "From unknown page".to_string()),
+        "template" => format!("Template: {}", trash.name_snapshot),
         _ => "Unknown".to_string(),
     };
 
-    let preview_properties: Vec<serde_json::Value> = (|| -> Option<Vec<serde_json::Value>> {
-        let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
-        let props = data.get("properties")?;
-        let obj = props.as_object()?;
-        Some(
-            obj.iter()
-                .filter(|(k, _)| !k.starts_with("__"))
-                .take(5)
-                .map(|(k, v)| serde_json::json!({"key": k, "value": v}))
-                .collect(),
-        )
-    })()
-    .unwrap_or_default();
+    let preview_properties: Vec<serde_json::Value> = if trash.item_type == "template" {
+        (|| -> Option<Vec<serde_json::Value>> {
+            let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
+            let props = data.get("properties")?.as_array()?;
+            Some(
+                props
+                    .iter()
+                    .take(5)
+                    .filter_map(|p| {
+                        let name = p.get("name")?.as_str()?;
+                        let prop_type = p.get("type")?.as_str()?;
+                        Some(serde_json::json!({"key": name, "value": prop_type}))
+                    })
+                    .collect(),
+            )
+        })()
+        .unwrap_or_default()
+    } else {
+        (|| -> Option<Vec<serde_json::Value>> {
+            let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
+            let props = data.get("properties")?;
+            let obj = props.as_object()?;
+            Some(
+                obj.iter()
+                    .filter(|(k, _)| !k.starts_with("__"))
+                    .take(5)
+                    .map(|(k, v)| serde_json::json!({"key": k, "value": v}))
+                    .collect(),
+            )
+        })()
+        .unwrap_or_default()
+    };
 
     // Parse attachments from stored data
     let parsed = (|| -> Option<(Vec<TrashAttachmentInfo>, Vec<TrashAttachmentInfo>)> {
@@ -1268,20 +1292,27 @@ mod tests {
             };
             vault.save_object(&record).unwrap();
         }
-        let all = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let all = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(all.len(), 3);
 
         vault.delete_object("obj-1", true).unwrap();
-        let remaining = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let remaining = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(remaining.len(), 2);
 
-        let deleted = vault.list_objects("acc-1", None, None, None, false, true).unwrap();
+        let deleted = vault
+            .list_objects("acc-1", None, None, None, false, true)
+            .unwrap();
         assert_eq!(deleted.len(), 1);
     }
 
     #[test]
     fn test_update_object_input_deserialization() {
-        let json = r#"{"name":"Updated Name","properties":{"key":"val"},"sensitivityLevel":"private"}"#;
+        let json =
+            r#"{"name":"Updated Name","properties":{"key":"val"},"sensitivityLevel":"private"}"#;
         let input: UpdateObjectInput = serde_json::from_str(json).unwrap();
         assert_eq!(input.name, "Updated Name");
         assert_eq!(input.sensitivity_level, Some("private".to_string()));
@@ -1437,7 +1468,9 @@ mod tests {
         let loaded_trash = vault.get_trash_item(&trash_id).unwrap().unwrap();
         assert_eq!(loaded_trash.original_id, record.id);
 
-        let active = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let active = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(active.len(), 0);
     }
 
@@ -1524,7 +1557,8 @@ mod tests {
             original_parent_id: None,
             original_section_type: Some(record.section_type.clone()),
             original_sort_order: None,
-            data: serde_json::to_vec(&serde_json::json!({"name": "Perm Delete"})).unwrap_or_default(),
+            data: serde_json::to_vec(&serde_json::json!({"name": "Perm Delete"}))
+                .unwrap_or_default(),
             deleted_at: chrono::Utc::now().timestamp_millis(),
             expires_at: None,
             deleted_by: "user".to_string(),
@@ -1572,13 +1606,19 @@ mod tests {
 
         let snap1 = serde_json::to_vec(&serde_json::json!({
             "name": "Snapshot Test", "tags": [], "properties": {"content": "v1"}
-        })).unwrap();
-        vault.save_snapshot(&record.id, "user_edit", &snap1, "Created").unwrap();
+        }))
+        .unwrap();
+        vault
+            .save_snapshot(&record.id, "user_edit", &snap1, "Created")
+            .unwrap();
 
         let snap2 = serde_json::to_vec(&serde_json::json!({
             "name": "Snapshot Test Updated", "tags": [], "properties": {"content": "v2"}
-        })).unwrap();
-        vault.save_snapshot(&record.id, "user_edit", &snap2, "").unwrap();
+        }))
+        .unwrap();
+        vault
+            .save_snapshot(&record.id, "user_edit", &snap2, "")
+            .unwrap();
 
         let snapshots = vault.list_snapshots(&record.id).unwrap();
         assert_eq!(snapshots.len(), 2);
@@ -1619,8 +1659,12 @@ mod tests {
         vault.save_object(&record).unwrap();
 
         let snap = serde_json::to_vec(&serde_json::json!({"name": "v1"})).unwrap();
-        vault.save_snapshot(&record.id, "user_edit", &snap, "").unwrap();
-        vault.save_snapshot(&record.id, "user_edit", &snap, "").unwrap();
+        vault
+            .save_snapshot(&record.id, "user_edit", &snap, "")
+            .unwrap();
+        vault
+            .save_snapshot(&record.id, "user_edit", &snap, "")
+            .unwrap();
 
         let new_id = "obj-copy-2";
         vault.copy_snapshots(&record.id, new_id).unwrap();
@@ -1660,8 +1704,11 @@ mod tests {
         // Save snapshot
         let snap = serde_json::to_vec(&serde_json::json!({
             "name": "Original", "tags": ["tag1"], "properties": {"content": "v1"}
-        })).unwrap();
-        vault.save_snapshot(&record.id, "user_edit", &snap, "").unwrap();
+        }))
+        .unwrap();
+        vault
+            .save_snapshot(&record.id, "user_edit", &snap, "")
+            .unwrap();
 
         // Update object
         let mut updated = vault.load_object(&record.id).unwrap().unwrap();
@@ -1682,7 +1729,10 @@ mod tests {
             rec.name = name.to_string();
         }
         if let Some(tags) = snapshot["tags"].as_array() {
-            rec.tags_json = tags.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+            rec.tags_json = tags
+                .iter()
+                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                .collect();
         }
         if !snapshot["properties"].is_null() {
             rec.properties = snapshot["properties"].clone();
@@ -1694,8 +1744,14 @@ mod tests {
         // Save rollback snapshot
         let rollback_data = serde_json::to_vec(&serde_json::json!({
             "name": rec.name, "tags": rec.tags_json, "properties": rec.properties,
-        })).unwrap_or_default();
-        let _ = vault.save_snapshot(&record.id, "rollback", &rollback_data, "Rolled back to previous version");
+        }))
+        .unwrap_or_default();
+        let _ = vault.save_snapshot(
+            &record.id,
+            "rollback",
+            &rollback_data,
+            "Rolled back to previous version",
+        );
 
         // Verify rollback
         let rolled = vault.load_object(&record.id).unwrap().unwrap();
@@ -1765,7 +1821,9 @@ mod tests {
         }
 
         // Verify active list is empty
-        let active = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let active = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(active.len(), 0);
 
         // Verify trash items exist
@@ -1780,7 +1838,9 @@ mod tests {
         }
 
         // Verify restored
-        let restored_active = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let restored_active = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(restored_active.len(), 3);
     }
 
@@ -1850,12 +1910,30 @@ mod tests {
         for item in &all_trash {
             if item.original_section_type.as_deref() == Some(section) {
                 if let Ok(Some(trash)) = vault.get_trash_item(&item.id) {
-                    let record_data: serde_json::Value = serde_json::from_slice(&trash.data).unwrap_or_default();
+                    let record_data: serde_json::Value =
+                        serde_json::from_slice(&trash.data).unwrap_or_default();
                     let account_id = record_data["account_id"].as_str().unwrap_or("");
-                    let active = vault.list_objects(account_id, None, None, Some(&trash.name_snapshot), false, false).unwrap_or_default();
+                    let active = vault
+                        .list_objects(
+                            account_id,
+                            None,
+                            None,
+                            Some(&trash.name_snapshot),
+                            false,
+                            false,
+                        )
+                        .unwrap_or_default();
                     let exists = active.iter().any(|o| o.name == trash.name_snapshot);
                     let new_id = if exists {
-                        format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
+                        format!(
+                            "{}_{}",
+                            trash.original_id,
+                            uuid::Uuid::new_v4()
+                                .to_string()
+                                .split('-')
+                                .next()
+                                .unwrap_or("restored")
+                        )
                     } else {
                         trash.original_id.clone()
                     };
@@ -1864,26 +1942,54 @@ mod tests {
                     } else {
                         trash.name_snapshot.clone()
                     };
-                    if let Ok(record_data) = serde_json::from_slice::<serde_json::Value>(&trash.data) {
+                    if let Ok(record_data) =
+                        serde_json::from_slice::<serde_json::Value>(&trash.data)
+                    {
                         let now = chrono::Utc::now().to_rfc3339();
                         let record = ObjectRecord {
                             id: new_id.clone(),
-                            account_id: record_data["account_id"].as_str().unwrap_or("imported").to_string(),
-                            type_id: record_data["type_id"].as_str().unwrap_or("note").to_string(),
+                            account_id: record_data["account_id"]
+                                .as_str()
+                                .unwrap_or("imported")
+                                .to_string(),
+                            type_id: record_data["type_id"]
+                                .as_str()
+                                .unwrap_or("note")
+                                .to_string(),
                             section_type: section.to_string(),
                             name: new_name,
-                            icon_name: record_data["icon_name"].as_str().unwrap_or("document").to_string(),
+                            icon_name: record_data["icon_name"]
+                                .as_str()
+                                .unwrap_or("document")
+                                .to_string(),
                             parent_id: record_data["parent_id"].as_str().map(String::from),
-                            children_ids: record_data["children_ids"].as_array().map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect()).unwrap_or_default(),
+                            children_ids: record_data["children_ids"]
+                                .as_array()
+                                .map(|a| {
+                                    a.iter()
+                                        .filter_map(|v| v.as_str().map(String::from))
+                                        .collect()
+                                })
+                                .unwrap_or_default(),
                             properties: record_data["properties"].clone(),
-                            property_labels: if record_data["property_labels"].is_null() { None } else { Some(record_data["property_labels"].clone()) },
-                            sensitivity_level: record_data["sensitivity_level"].as_str().unwrap_or("internal").to_string(),
+                            property_labels: if record_data["property_labels"].is_null() {
+                                None
+                            } else {
+                                Some(record_data["property_labels"].clone())
+                            },
+                            sensitivity_level: record_data["sensitivity_level"]
+                                .as_str()
+                                .unwrap_or("internal")
+                                .to_string(),
                             is_deleted: false,
                             deleted_at: None,
                             tags_json: Vec::new(),
                             template_id: None,
                             template_type: None,
-                            created_at: record_data["created_at"].as_str().unwrap_or(&now).to_string(),
+                            created_at: record_data["created_at"]
+                                .as_str()
+                                .unwrap_or(&now)
+                                .to_string(),
                             updated_at: now,
                             version: record_data["version"].as_u64().unwrap_or(1) as u32,
                         };
@@ -1900,7 +2006,9 @@ mod tests {
         }
 
         assert_eq!(count, 2);
-        let restored = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        let restored = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
         assert_eq!(restored.len(), 2);
     }
 
@@ -1960,11 +2068,7 @@ mod tests {
                 "trashRetention": "60d"
             }
         });
-        let profile = Profile::new_with_id(
-            account_id,
-            "Test",
-            serde_json::to_vec(&prefs).unwrap(),
-        );
+        let profile = Profile::new_with_id(account_id, "Test", serde_json::to_vec(&prefs).unwrap());
         vault.save_profile(&profile).unwrap();
         let period = load_trash_retention(&vault, account_id);
         assert_eq!(period, "60d");

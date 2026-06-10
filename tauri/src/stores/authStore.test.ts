@@ -82,7 +82,7 @@ describe('authStore', () => {
     it('should create account and set authenticated state', async () => {
       const account = { id: 'new-acc', name: 'Charlie' };
       vi.mocked(commands.bootstrap).mockResolvedValue(account);
-      await useAuthStore.getState().bootstrap('Charlie', 'password123');
+      await useAuthStore.getState().bootstrap('Charlie', 'password123', 'en-US');
       expect(useAuthStore.getState().isAuthenticated).toBe(true);
       expect(useAuthStore.getState().currentAccount).toEqual(account);
       expect(useAuthStore.getState().accounts).toEqual([account]);
@@ -92,7 +92,7 @@ describe('authStore', () => {
 
     it('should set error on bootstrap failure', async () => {
       vi.mocked(commands.bootstrap).mockRejectedValue(new Error('name taken'));
-      await useAuthStore.getState().bootstrap('Charlie', 'password123');
+      await useAuthStore.getState().bootstrap('Charlie', 'password123', 'en-US');
       expect(useAuthStore.getState().isAuthenticated).toBe(false);
       expect(useAuthStore.getState().error).toBe('Error: name taken');
       expect(useAuthStore.getState().isLoading).toBe(false);
