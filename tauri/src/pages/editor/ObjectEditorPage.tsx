@@ -56,13 +56,13 @@ export function ObjectEditorPage() {
   }, [sysTemplates]);
 
   const objectTemplates = useMemo(() => {
-    const map: Record<string, { key: string; label: string; type: string; sensitive?: boolean; required?: boolean }[]> = {};
+    const map: Record<string, { key: string; label: string; type: string; sensitivityLevel?: string; required?: boolean }[]> = {};
     for (const tpl of sysTemplates) {
       map[tpl.key] = tpl.properties.map((p) => ({
         key: p.id,
         label: p.nameFallback,
         type: p.type,
-        sensitive: p.sensitive,
+        sensitivityLevel: p.sensitivityLevel || (p.sensitive ? 'sensitive' : 'internal'),
         required: p.required,
       }));
     }
@@ -284,7 +284,7 @@ export function ObjectEditorPage() {
               id: f.key,
               nameFallback: f.label,
               type: f.type,
-              sensitive: f.sensitive,
+              sensitivityLevel: f.sensitivityLevel,
               required: false,
             }))}
           />

@@ -70,6 +70,7 @@ fn migrate_legacy_templates_if_needed(
                             id,
                             name,
                             prop_type: PropertyType::Text,
+                            sensitivity_level: None,
                             sensitive: None,
                             options: None,
                         })
@@ -341,6 +342,7 @@ pub async fn template_save_from_object(
                         id: key.clone(),
                         name: key.clone(),
                         prop_type,
+                        sensitivity_level: None,
                         sensitive: None,
                         options: None,
                     }

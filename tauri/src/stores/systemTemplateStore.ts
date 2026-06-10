@@ -15,6 +15,9 @@ export interface SystemTemplateProperty {
   nameI18nKey: string;
   nameFallback: string;
   type: string;
+  /** 4-tier sensitivity level. Replaces legacy `sensitive` boolean. */
+  sensitivityLevel?: string;
+  /** Legacy boolean — kept for backward compat. */
   sensitive?: boolean;
   required?: boolean;
   options?: string[];

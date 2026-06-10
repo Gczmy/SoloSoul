@@ -50,5 +50,11 @@
     "email": "邮箱",
     "phone": "电话",
     "file": "文件"
+  },
+"sensitivity_levels": {
+    "public": "公开",
+    "internal": "内部",
+    "sensitive": "敏感",
+    "critical": "关键"
   }
 }

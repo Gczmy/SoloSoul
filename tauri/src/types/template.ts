@@ -17,10 +17,15 @@ export type PropertyType =
   | 'phone'
   | 'file';
 
+export type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
+
 export interface TemplateProperty {
   id: string;
   name: string;
   type: PropertyType;
+  /** Sensitivity level (4-tier). Replaces legacy `sensitive` boolean. */
+  sensitivityLevel?: SensitivityLevel;
+  /** Legacy boolean — kept for backward compat. */
   sensitive?: boolean;
   options?: string[]; // for select / multiselect
 }

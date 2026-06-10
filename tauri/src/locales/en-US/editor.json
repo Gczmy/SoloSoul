@@ -50,5 +50,11 @@
     "email": "Email",
     "phone": "Phone",
     "file": "File"
+  },
+"sensitivity_levels": {
+    "public": "Public",
+    "internal": "Internal",
+    "sensitive": "Sensitive",
+    "critical": "Critical"
   }
 }

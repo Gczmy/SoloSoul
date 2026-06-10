@@ -407,6 +407,7 @@
   "remove_field": "Remove",
   "empty_template_hint": "No fields yet. Add one below.",
   "new_field_name": "New Field",
+  "fields_section_title": "Fields",
   "no_templates": "No custom templates",
   "no_templates_hint": "Click the New Template button to create one",
   "template_fields": "fields",

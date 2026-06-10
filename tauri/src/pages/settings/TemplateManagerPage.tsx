@@ -8,12 +8,14 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { useTemplateStore } from '@/stores/templateStore';
 import { LayoutTemplate, Trash2, Pencil, X, Save, Plus } from 'lucide-react';
-import type { UserTemplate, TemplateProperty, PropertyType } from '@/types/template';
+import type { UserTemplate, TemplateProperty, PropertyType, SensitivityLevel } from '@/types/template';
 
 const PROPERTY_TYPES: PropertyType[] = [
   'text', 'multiline', 'number', 'date', 'datetime',
   'boolean', 'select', 'multiselect', 'url', 'email', 'phone', 'file',
 ];
+
+const SENSITIVITY_LEVELS: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 
 export function TemplateManagerPage() {
   const navigate = useNavigate();
@@ -84,9 +86,9 @@ export function TemplateManagerPage() {
     );
   };
 
-  const togglePropertySensitive = (index: number) => {
+  const updatePropertySensitivity = (index: number, level: SensitivityLevel) => {
     setEditProperties((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, sensitive: !p.sensitive } : p))
+      prev.map((p, i) => (i === index ? { ...p, sensitivityLevel: level } : p))
     );
   };
 
@@ -99,7 +101,7 @@ export function TemplateManagerPage() {
       id: crypto.randomUUID(),
       name: t('settings:new_field_name') || '新字段',
       type: newFieldType,
-      sensitive: false,
+      sensitivityLevel: 'internal',
     };
     setEditProperties((prev) => [...prev, newProp]);
   };
@@ -174,7 +176,7 @@ export function TemplateManagerPage() {
                   <div style={{ fontSize: 14, fontWeight: 500 }}>{tpl.name}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                     {tpl.properties.length} {t('settings:template_fields') || '个字段'}
-                    {tpl.properties.some((p) => p.sensitive) && ` · ${t('settings:has_sensitive') || '含敏感字段'}`}
+                    {tpl.properties.some((p) => (p.sensitivityLevel || 'internal') !== 'public') && ` · ${t('settings:has_sensitive') || '含敏感字段'}`}
                   </div>
                 </div>
               </div>
@@ -225,7 +227,7 @@ export function TemplateManagerPage() {
 
           <div>
             <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 8, color: 'var(--text-secondary)' }}>
-              {t('settings:template_fields') || '字段'}
+              {t('settings:fields_section_title') || '字段列表'}
             </div>
 
             {editProperties.length === 0 && (
@@ -268,25 +270,23 @@ export function TemplateManagerPage() {
                     />
                   </div>
                   {renderTypeSelect(prop.type, (v) => updatePropertyType(idx, v))}
-                  <label
+                  <select
+                    value={prop.sensitivityLevel || 'internal'}
+                    onChange={(e) => updatePropertySensitivity(idx, e.target.value as SensitivityLevel)}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      fontSize: 12,
-                      color: 'var(--text-secondary)',
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-elevated)',
+                      color: 'var(--text-primary)',
+                      fontSize: 13,
                       cursor: 'pointer',
-                      whiteSpace: 'nowrap',
                     }}
-                    title={t('editor:sensitive') || '敏感'}
                   >
-                    <input
-                      type="checkbox"
-                      checked={!!prop.sensitive}
-                      onChange={() => togglePropertySensitive(idx)}
-                    />
-                    {t('editor:sensitive') || '敏感'}
-                  </label>
+                    {SENSITIVITY_LEVELS.map((sl) => (
+                      <option key={sl} value={sl}>{t(`editor:sensitivity_levels.${sl}`, sl)}</option>
+                    ))}
+                  </select>
                   <Button variant="tertiary" size="sm" onClick={() => removeProperty(idx)} title={t('settings:remove_field') || '删除'}>
                     <Trash2 size={14} />
                   </Button>

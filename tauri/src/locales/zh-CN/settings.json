@@ -407,6 +407,7 @@
   "remove_field": "删除",
   "empty_template_hint": "此模板暂无字段，点击下方添加",
   "new_field_name": "新字段",
+  "fields_section_title": "字段列表",
   "no_templates": "暂无自定义模板",
   "no_templates_hint": "点击右上角「新建模板」创建",
   "template_fields": "个字段",

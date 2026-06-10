@@ -295,10 +295,30 @@ pub struct TemplateProperty {
     pub name: String,
     #[serde(rename = "type")]
     pub prop_type: PropertyType,
+    /// Sensitivity level: "public" | "internal" | "sensitive" | "critical".
+    /// Replaces the legacy `sensitive` boolean.
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub sensitivity_level: Option<String>,
+    /// Legacy boolean flag — kept for backward-compat during deserialization only.
+    #[serde(default, skip_serializing)]
     pub sensitive: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<Vec<String>>,
+}
+
+impl TemplateProperty {
+    /// Return the effective sensitivity level, migrating legacy `sensitive` boolean.
+    pub fn effective_sensitivity_level(&self) -> Option<String> {
+        self.sensitivity_level.clone().or_else(|| {
+            self.sensitive.map(|s| {
+                if s {
+                    "sensitive".to_string()
+                } else {
+                    "internal".to_string()
+                }
+            })
+        })
+    }
 }
 
 /// A user-defined object template stored in the vault.

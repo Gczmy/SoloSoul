@@ -19,7 +19,7 @@ interface PreviewField {
   id: string;
   nameFallback: string;
   type: string;
-  sensitive?: boolean;
+  sensitivityLevel?: string;
   required?: boolean;
 }
 
@@ -111,17 +111,27 @@ export function TemplatePreview({ templateName, category, fields }: TemplatePrev
                     {t('editor:required')}
                   </span>
                 )}
-                {field.sensitive && (
+                {field.sensitivityLevel && field.sensitivityLevel !== 'public' && (
                   <span
                     style={{
                       fontSize: 9,
                       padding: '1px 4px',
                       borderRadius: 3,
-                      background: 'rgba(234,179,8,0.1)',
-                      color: '#eab308',
+                      background:
+                        field.sensitivityLevel === 'critical'
+                          ? 'rgba(239,68,68,0.1)'
+                          : field.sensitivityLevel === 'sensitive'
+                            ? 'rgba(234,179,8,0.1)'
+                            : 'rgba(107,114,128,0.1)',
+                      color:
+                        field.sensitivityLevel === 'critical'
+                          ? '#ef4444'
+                          : field.sensitivityLevel === 'sensitive'
+                            ? '#eab308'
+                            : '#6b7280',
                     }}
                   >
-                    {t('editor:sensitive')}
+                    {t(`editor:sensitivity_levels.${field.sensitivityLevel}`, field.sensitivityLevel)}
                   </span>
                 )}
               </div>
