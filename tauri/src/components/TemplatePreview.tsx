@@ -1,4 +1,18 @@
 import { useTranslation } from 'react-i18next';
+import {
+  Type,
+  AlignLeft,
+  Hash,
+  Calendar,
+  Clock,
+  Link,
+  Mail,
+  Phone,
+  Paperclip,
+  CheckSquare,
+  ChevronDown,
+  List,
+} from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 
 interface PreviewField {
@@ -15,19 +29,19 @@ interface TemplatePreviewProps {
   fields: PreviewField[];
 }
 
-const typeIconMap: Record<string, string> = {
-  text: 'Aa',
-  multiline: '¶',
-  number: '#',
-  date: '📅',
-  datetime: '⏰',
-  url: '🔗',
-  email: '@',
-  phone: '📞',
-  file: '📎',
-  boolean: '☑',
-  select: '▼',
-  multiselect: '☰',
+const typeIconMap: Record<string, React.ElementType> = {
+  text: Type,
+  multiline: AlignLeft,
+  number: Hash,
+  date: Calendar,
+  datetime: Clock,
+  url: Link,
+  email: Mail,
+  phone: Phone,
+  file: Paperclip,
+  boolean: CheckSquare,
+  select: ChevronDown,
+  multiselect: List,
 };
 
 export function TemplatePreview({ templateName, category, fields }: TemplatePreviewProps) {
@@ -51,67 +65,69 @@ export function TemplatePreview({ templateName, category, fields }: TemplatePrev
         </span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {fields.map((field) => (
-          <div
-            key={field.id}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 8px',
-              borderRadius: 6,
-              background: 'var(--bg-subtle)',
-            }}
-          >
-            <span
+        {fields.map((field) => {
+          const Icon = typeIconMap[field.type];
+          return (
+            <div
+              key={field.id}
               style={{
-                fontSize: 11,
-                width: 20,
-                height: 20,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 4,
-                background: 'var(--bg-elevated)',
-                color: 'var(--text-secondary)',
+                gap: 8,
+                padding: '6px 8px',
+                borderRadius: 6,
+                background: 'var(--bg-subtle)',
               }}
-              title={field.type}
             >
-              {typeIconMap[field.type] || '?'}
-            </span>
-            <span style={{ fontSize: 12, flex: 1, color: 'var(--text-primary)' }}>
-              {t(`editor:fields.${field.id}`, field.nameFallback)}
-            </span>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {field.required && (
-                <span
-                  style={{
-                    fontSize: 9,
-                    padding: '1px 4px',
-                    borderRadius: 3,
-                    background: 'rgba(239,68,68,0.1)',
-                    color: '#ef4444',
-                  }}
-                >
-                  {t('editor:required')}
-                </span>
-              )}
-              {field.sensitive && (
-                <span
-                  style={{
-                    fontSize: 9,
-                    padding: '1px 4px',
-                    borderRadius: 3,
-                    background: 'rgba(234,179,8,0.1)',
-                    color: '#eab308',
-                  }}
-                >
-                  {t('editor:sensitive')}
-                </span>
-              )}
+              <span
+                style={{
+                  width: 20,
+                  height: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 4,
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-secondary)',
+                }}
+                title={field.type}
+              >
+                {Icon ? <Icon size={12} strokeWidth={2} /> : <span style={{ fontSize: 10 }}>?</span>}
+              </span>
+              <span style={{ fontSize: 12, flex: 1, color: 'var(--text-primary)' }}>
+                {t(`editor:fields.${field.id}`, field.nameFallback)}
+              </span>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {field.required && (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      padding: '1px 4px',
+                      borderRadius: 3,
+                      background: 'rgba(239,68,68,0.1)',
+                      color: '#ef4444',
+                    }}
+                  >
+                    {t('editor:required')}
+                  </span>
+                )}
+                {field.sensitive && (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      padding: '1px 4px',
+                      borderRadius: 3,
+                      background: 'rgba(234,179,8,0.1)',
+                      color: '#eab308',
+                    }}
+                  >
+                    {t('editor:sensitive')}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </Card>
   );

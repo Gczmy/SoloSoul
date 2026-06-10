@@ -15,11 +15,11 @@
 .textarea,
 .select {
   padding: 8px 12px;
-  border: 1px solid var(--border-color, #ddd);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   font-size: 14px;
-  background: var(--input-bg, #fff);
-  color: var(--text-primary, #333);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   transition: border-color 0.15s ease;
 }
 
