@@ -14,7 +14,11 @@ use sha2::Sha256;
 ///
 /// # 返回
 /// 32 字节子密钥
-pub fn derive_hkdf_key(master_key: &[u8; 32], salt: &[u8], info: &[u8]) -> Result<[u8; 32], String> {
+pub fn derive_hkdf_key(
+    master_key: &[u8; 32],
+    salt: &[u8],
+    info: &[u8],
+) -> Result<[u8; 32], String> {
     let hk = Hkdf::<Sha256>::new(Some(salt), master_key);
     let mut okm = [0u8; 32];
     hk.expand(info, &mut okm)

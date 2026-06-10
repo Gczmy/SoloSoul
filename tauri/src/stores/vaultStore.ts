@@ -17,7 +17,7 @@ interface VaultStoreState {
   lock: () => Promise<void>;
 }
 
-export const useVaultStore = create<VaultStoreState>((set, get) => ({
+export const useVaultStore = create<VaultStoreState>((set, _get) => ({
   vaultState: 'locked',
   accounts: [],
   isLoading: false,

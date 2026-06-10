@@ -16,7 +16,7 @@ interface OcrResult { text: string; confidence: number; fields: OcrField[]; }
 
 export function OcrPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation(['settings', 'common']);
+  useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { createObject } = useObjectStore();
   const { onError, onSuccess } = useToastError();

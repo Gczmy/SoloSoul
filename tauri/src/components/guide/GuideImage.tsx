@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 
-interface GuideImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {}
+type GuideImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
 
 export function GuideImage(props: GuideImageProps) {
   const [open, setOpen] = useState(false);

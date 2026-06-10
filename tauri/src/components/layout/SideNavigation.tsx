@@ -245,7 +245,7 @@ function AiQuickChatPopover({
         const cfg = await invoke<{ activeProviderId?: string; aiFeaturesEnabled?: { chat: boolean } }>('llm_get_config', { accountId });
         setIsAiEnabled(cfg.aiFeaturesEnabled?.chat ?? false);
         if (!cfg.activeProviderId) { setIsConfigured(false); setLoading(false); return; }
-        const providers = await invoke<any[]>('llm_get_providers', { accountId });
+        const providers = await invoke<Array<{ id: string; name: string; model: string; baseUrl: string; apiType: string }>>('llm_get_providers', { accountId });
         const active = providers.find((p) => p.id === cfg.activeProviderId);
         if (active) {
           setActiveProvider({ id: active.id, name: active.name, model: active.model, baseUrl: active.baseUrl, apiType: active.apiType });
@@ -273,7 +273,6 @@ function AiQuickChatPopover({
         setLoading(false);
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId]);
 
   // Check online
@@ -283,7 +282,7 @@ function AiQuickChatPopover({
       setCheckingOnline(true);
       try {
         let key = '';
-        try { key = await invoke<string>('llm_get_api_key', { accountId, providerId: activeProvider.id }); } catch {}
+        try { key = await invoke<string>('llm_get_api_key', { accountId, providerId: activeProvider.id }); } catch { /* ignore */ }
         const online = await invoke<boolean>('llm_check_connection', {
           baseUrl: activeProvider.baseUrl, apiKey: key, model: activeProvider.model, apiType: activeProvider.apiType,
         });
@@ -354,7 +353,6 @@ function AiQuickChatPopover({
       });
     }).then((fn) => { unlistenRef.current = fn; }).catch(() => {});
     return () => { unlistenRef.current?.(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConfigured, t]);
 
   // Scroll to bottom: instant on first mount/load, smooth on subsequent updates
@@ -486,14 +484,6 @@ function AiQuickChatPopover({
       setCurrentConvId(conv.id);
       setMessages(conv.messages);
       if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, conv.id);
-    } catch { /* ignore */ }
-  };
-
-  const refreshConversations = async () => {
-    if (!accountId || !isAiEnabled || !isConfigured) return;
-    try {
-      const list = await invoke<ConversationSummary[]>('llm_list_conversations', { accountId });
-      setConversations(list);
     } catch { /* ignore */ }
   };
 
@@ -837,7 +827,7 @@ function RenameableNavButton({
       store.updateSetting('', 'customPages',
         store.settings.customPages.map((p) =>
           p.id === page.id ? { ...p, name: trimmed } : p
-        ) as any
+        )
       );
     }
     setIsRenaming(false);

@@ -169,9 +169,17 @@ pub async fn object_create(
     // §25.5 — Initial snapshot on create
     let snapshot_data = serde_json::to_vec(&serde_json::json!({
         "name": record.name, "tags": record.tags_json, "properties": record.properties,
-    })).unwrap_or_default();
+    }))
+    .unwrap_or_default();
     let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "Created");
-    let _ = vault.log_structured("object_create", "object", Some(&id), Some(&input.name), "user", Some(&format!("section={}", input.collection_type)));
+    let _ = vault.log_structured(
+        "object_create",
+        "object",
+        Some(&id),
+        Some(&input.name),
+        "user",
+        Some(&format!("section={}", input.collection_type)),
+    );
     Ok(record_to_data(&record))
 }
 
@@ -202,7 +210,9 @@ pub async fn object_update(
 
     // §28: bump public_data_version when sensitivity changes to/from public
     let new_sensitivity = &record.sensitivity_level;
-    if old_sensitivity != *new_sensitivity && (old_sensitivity == "public" || new_sensitivity == "public") {
+    if old_sensitivity != *new_sensitivity
+        && (old_sensitivity == "public" || new_sensitivity == "public")
+    {
         let account_id = record.account_id.clone();
         let _ = crate::services::llm_context::bump_public_data_version(vault, &account_id);
     }
@@ -212,10 +222,18 @@ pub async fn object_update(
         "name": record.name,
         "tags": record.tags_json,
         "properties": record.properties,
-    })).unwrap_or_default();
+    }))
+    .unwrap_or_default();
     let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "");
 
-    let _ = vault.log_structured("object_update", "object", Some(&object_id), Some(&record.name), "user", Some(&format!("section={}", record.section_type)));
+    let _ = vault.log_structured(
+        "object_update",
+        "object",
+        Some(&object_id),
+        Some(&record.name),
+        "user",
+        Some(&format!("section={}", record.section_type)),
+    );
     Ok(record_to_data(&record))
 }
 
@@ -259,7 +277,14 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
         };
         let _ = vault.save_trash_item(&trash);
         vault.delete_object(&object_id, true)?;
-        let _ = vault.log_structured("object_delete", "object", Some(&object_id), Some(&obj_name), "user", Some(&format!("section={}", obj_section)));
+        let _ = vault.log_structured(
+            "object_delete",
+            "object",
+            Some(&object_id),
+            Some(&obj_name),
+            "user",
+            Some(&format!("section={}", obj_section)),
+        );
         return Ok(());
     }
     Err("Object not found".to_string())
@@ -313,29 +338,51 @@ pub async fn object_restore(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let trash = vault.get_trash_item(&trash_id)?.ok_or("Trash item not found")?;
+    let trash = vault
+        .get_trash_item(&trash_id)?
+        .ok_or("Trash item not found")?;
 
     // Deserialize the full record from stored data
-    let record_data: serde_json::Value = serde_json::from_slice(&trash.data)
-        .map_err(|e| format!("Invalid trash data: {}", e))?;
+    let record_data: serde_json::Value =
+        serde_json::from_slice(&trash.data).map_err(|e| format!("Invalid trash data: {}", e))?;
 
     // Use original_section_type if present, fall back to stored data
-    let target_section = trash.original_section_type
+    let target_section = trash
+        .original_section_type
         .as_deref()
         .or(record_data["section_type"].as_str())
         .unwrap_or("identity");
 
     // Check if a non-deleted object with the same name exists in the target section (conflict)
     let account_id = record_data["account_id"].as_str().unwrap_or("imported");
-    let objects = vault.list_objects(account_id, None, None, Some(&trash.name_snapshot), false, false).unwrap_or_default();
-    let exists = objects.iter().any(|o| o.name == trash.name_snapshot && o.section_type == target_section);
+    let objects = vault
+        .list_objects(
+            account_id,
+            None,
+            None,
+            Some(&trash.name_snapshot),
+            false,
+            false,
+        )
+        .unwrap_or_default();
+    let exists = objects
+        .iter()
+        .any(|o| o.name == trash.name_snapshot && o.section_type == target_section);
 
     let fallback_lang = get_ui_language(&svc);
     let lang = lang.as_deref().unwrap_or(&fallback_lang);
-    let suffix = restored_suffix(&lang);
+    let suffix = restored_suffix(lang);
 
     let new_id = if exists {
-        format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
+        format!(
+            "{}_{}",
+            trash.original_id,
+            uuid::Uuid::new_v4()
+                .to_string()
+                .split('-')
+                .next()
+                .unwrap_or("restored")
+        )
     } else {
         trash.original_id.clone()
     };
@@ -349,15 +396,28 @@ pub async fn object_restore(
     let now = chrono::Utc::now().to_rfc3339();
     let record = solosoul_vault::ObjectRecord {
         id: new_id.clone(),
-        account_id: record_data["account_id"].as_str().unwrap_or("imported").to_string(),
-        type_id: record_data["type_id"].as_str().unwrap_or("note").to_string(),
+        account_id: record_data["account_id"]
+            .as_str()
+            .unwrap_or("imported")
+            .to_string(),
+        type_id: record_data["type_id"]
+            .as_str()
+            .unwrap_or("note")
+            .to_string(),
         section_type: target_section.to_string(),
         name: new_name,
-        icon_name: record_data["icon_name"].as_str().unwrap_or("document").to_string(),
+        icon_name: record_data["icon_name"]
+            .as_str()
+            .unwrap_or("document")
+            .to_string(),
         parent_id: record_data["parent_id"].as_str().map(String::from),
         children_ids: record_data["children_ids"]
             .as_array()
-            .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_default(),
         properties: record_data["properties"].clone(),
         property_labels: if record_data["property_labels"].is_null() {
@@ -365,14 +425,24 @@ pub async fn object_restore(
         } else {
             Some(record_data["property_labels"].clone())
         },
-        sensitivity_level: record_data["sensitivity_level"].as_str().unwrap_or("internal").to_string(),
+        sensitivity_level: record_data["sensitivity_level"]
+            .as_str()
+            .unwrap_or("internal")
+            .to_string(),
         is_deleted: false,
         deleted_at: None,
         tags_json: record_data["tags"]
             .as_array()
-            .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_default(),
-        created_at: record_data["created_at"].as_str().unwrap_or(&now).to_string(),
+        created_at: record_data["created_at"]
+            .as_str()
+            .unwrap_or(&now)
+            .to_string(),
         updated_at: now,
         version: record_data["version"].as_u64().unwrap_or(1) as u32,
     };
@@ -383,8 +453,17 @@ pub async fn object_restore(
         let _ = vault.copy_snapshots(&trash.original_id, &new_id);
     }
     vault.delete_trash_item(&trash_id)?;
-    let _ = vault.log_structured("object_restore", "object", Some(&trash.original_id), Some(&trash.name_snapshot), "user",
-        Some(&format!("section={} was_conflict={}", target_section, exists)));
+    let _ = vault.log_structured(
+        "object_restore",
+        "object",
+        Some(&trash.original_id),
+        Some(&trash.name_snapshot),
+        "user",
+        Some(&format!(
+            "section={} was_conflict={}",
+            target_section, exists
+        )),
+    );
 
     Ok(new_id)
 }
@@ -395,12 +474,22 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let (obj_name, obj_section) = vault.load_object(&object_id).ok().flatten()
+    let (obj_name, obj_section) = vault
+        .load_object(&object_id)
+        .ok()
+        .flatten()
         .map(|r| (r.name, r.section_type))
         .unwrap_or_default();
     vault.delete_object(&object_id, false)?;
     vault.delete_trash_item(&object_id).ok();
-    let _ = vault.log_structured("object_purge", "object", Some(&object_id), Some(&obj_name), "user", Some(&format!("section={}", obj_section)));
+    let _ = vault.log_structured(
+        "object_purge",
+        "object",
+        Some(&object_id),
+        Some(&obj_name),
+        "user",
+        Some(&format!("section={}", obj_section)),
+    );
     Ok(())
 }
 
@@ -425,13 +514,26 @@ pub async fn trash_permanent_delete(
 
     if let Ok(Some(trash)) = vault.get_trash_item(&trash_id) {
         vault.delete_object(&trash.original_id, false)?;
-        let _ = vault.log_structured("trash_permanent_delete", "trash_item", Some(&trash_id), Some(&trash.name_snapshot), "user",
-            Some(&format!("original_id={}", trash.original_id)));
+        let _ = vault.log_structured(
+            "trash_permanent_delete",
+            "trash_item",
+            Some(&trash_id),
+            Some(&trash.name_snapshot),
+            "user",
+            Some(&format!("original_id={}", trash.original_id)),
+        );
         vault.delete_trash_item(&trash_id).ok();
         return Ok(());
     }
     vault.delete_trash_item(&trash_id).ok();
-    let _ = vault.log_structured("trash_permanent_delete", "trash_item", Some(&trash_id), None, "user", None);
+    let _ = vault.log_structured(
+        "trash_permanent_delete",
+        "trash_item",
+        Some(&trash_id),
+        None,
+        "user",
+        None,
+    );
     Ok(())
 }
 
@@ -470,7 +572,8 @@ pub async fn page_delete(
                     "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
                     "section_type": rec.section_type, "name": rec.name, "icon_name": rec.icon_name,
                     "properties": rec.properties,
-                })).unwrap_or_default(),
+                }))
+                .unwrap_or_default(),
                 deleted_at: now_ms,
                 expires_at: Some(now_ms + retention_ms),
                 deleted_by: "user".to_string(),
@@ -484,7 +587,8 @@ pub async fn page_delete(
     }
 
     // Delete all objects in this section_type
-    let objects = vault.list_objects(&account_id, None, None, None, false, false)
+    let objects = vault
+        .list_objects(&account_id, None, None, None, false, false)
         .map_err(|e| format!("list: {}", e))?;
     for obj in &objects {
         if obj.section_type == section_type || obj.collection_type == section_type {
@@ -518,7 +622,18 @@ pub async fn page_delete(
         }
     }
 
-    let _ = vault.log_structured("page_delete", "page", Some(&section_type), if page_name.is_empty() { None } else { Some(&page_name) }, "user", Some(&format!("count={}", count)));
+    let _ = vault.log_structured(
+        "page_delete",
+        "page",
+        Some(&section_type),
+        if page_name.is_empty() {
+            None
+        } else {
+            Some(&page_name)
+        },
+        "user",
+        Some(&format!("count={}", count)),
+    );
     Ok(count)
 }
 
@@ -534,7 +649,7 @@ pub async fn page_restore(
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     let fallback_lang = get_ui_language(&svc);
     let lang = lang.as_deref().unwrap_or(&fallback_lang);
-    let suffix = restored_suffix(&lang);
+    let suffix = restored_suffix(lang);
 
     // Fetch all trash items and filter by original_section_type
     let all = vault.list_trash_items(None, None)?;
@@ -543,12 +658,30 @@ pub async fn page_restore(
         if item.original_section_type.as_deref() == Some(&section_type) {
             // Use object_restore logic inline
             if let Ok(Some(trash)) = vault.get_trash_item(&item.id) {
-                let record_data: serde_json::Value = serde_json::from_slice(&trash.data).unwrap_or_default();
+                let record_data: serde_json::Value =
+                    serde_json::from_slice(&trash.data).unwrap_or_default();
                 let account_id = record_data["account_id"].as_str().unwrap_or("");
-                let active = vault.list_objects(account_id, None, None, Some(&trash.name_snapshot), false, false).unwrap_or_default();
+                let active = vault
+                    .list_objects(
+                        account_id,
+                        None,
+                        None,
+                        Some(&trash.name_snapshot),
+                        false,
+                        false,
+                    )
+                    .unwrap_or_default();
                 let exists = active.iter().any(|o| o.name == trash.name_snapshot);
                 let new_id = if exists {
-                    format!("{}_{}", trash.original_id, uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored"))
+                    format!(
+                        "{}_{}",
+                        trash.original_id,
+                        uuid::Uuid::new_v4()
+                            .to_string()
+                            .split('-')
+                            .next()
+                            .unwrap_or("restored")
+                    )
                 } else {
                     trash.original_id.clone()
                 };
@@ -561,19 +694,46 @@ pub async fn page_restore(
                     let now = chrono::Utc::now().to_rfc3339();
                     let record = solosoul_vault::ObjectRecord {
                         id: new_id.clone(),
-                        account_id: record_data["account_id"].as_str().unwrap_or("imported").to_string(),
-                        type_id: record_data["type_id"].as_str().unwrap_or("note").to_string(),
+                        account_id: record_data["account_id"]
+                            .as_str()
+                            .unwrap_or("imported")
+                            .to_string(),
+                        type_id: record_data["type_id"]
+                            .as_str()
+                            .unwrap_or("note")
+                            .to_string(),
                         section_type: section_type.clone(),
                         name: new_name,
-                        icon_name: record_data["icon_name"].as_str().unwrap_or("document").to_string(),
+                        icon_name: record_data["icon_name"]
+                            .as_str()
+                            .unwrap_or("document")
+                            .to_string(),
                         parent_id: record_data["parent_id"].as_str().map(String::from),
-                        children_ids: record_data["children_ids"].as_array().map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect()).unwrap_or_default(),
+                        children_ids: record_data["children_ids"]
+                            .as_array()
+                            .map(|a| {
+                                a.iter()
+                                    .filter_map(|v| v.as_str().map(String::from))
+                                    .collect()
+                            })
+                            .unwrap_or_default(),
                         properties: record_data["properties"].clone(),
-                        property_labels: if record_data["property_labels"].is_null() { None } else { Some(record_data["property_labels"].clone()) },
-                        sensitivity_level: record_data["sensitivity_level"].as_str().unwrap_or("internal").to_string(),
-                        is_deleted: false, deleted_at: None,
+                        property_labels: if record_data["property_labels"].is_null() {
+                            None
+                        } else {
+                            Some(record_data["property_labels"].clone())
+                        },
+                        sensitivity_level: record_data["sensitivity_level"]
+                            .as_str()
+                            .unwrap_or("internal")
+                            .to_string(),
+                        is_deleted: false,
+                        deleted_at: None,
                         tags_json: Vec::new(),
-                        created_at: record_data["created_at"].as_str().unwrap_or(&now).to_string(),
+                        created_at: record_data["created_at"]
+                            .as_str()
+                            .unwrap_or(&now)
+                            .to_string(),
                         updated_at: now,
                         version: record_data["version"].as_u64().unwrap_or(1) as u32,
                     };
@@ -590,7 +750,14 @@ pub async fn page_restore(
         }
     }
 
-    let _ = vault.log_structured("page_restore", "page", Some(&section_type), None, "user", Some(&format!("count={}", count)));
+    let _ = vault.log_structured(
+        "page_restore",
+        "page",
+        Some(&section_type),
+        None,
+        "user",
+        Some(&format!("count={}", count)),
+    );
     Ok(count)
 }
 
@@ -629,7 +796,9 @@ pub async fn snapshot_get_data(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
     match vault.get_snapshot(&snapshot_id)? {
-        Some(data) => serde_json::from_slice(&data).map(Some).map_err(|e| e.to_string()),
+        Some(data) => serde_json::from_slice(&data)
+            .map(Some)
+            .map_err(|e| e.to_string()),
         None => Ok(None),
     }
 }
@@ -656,16 +825,26 @@ pub async fn snapshot_rollback(
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
     // Get snapshot data
-    let data = vault.get_snapshot(&snapshot_id)?.ok_or("Snapshot not found")?;
-    let snapshot: serde_json::Value = serde_json::from_slice(&data).map_err(|e| format!("Parse: {}", e))?;
+    let data = vault
+        .get_snapshot(&snapshot_id)?
+        .ok_or("Snapshot not found")?;
+    let snapshot: serde_json::Value =
+        serde_json::from_slice(&data).map_err(|e| format!("Parse: {}", e))?;
 
     // Load current object and restore from snapshot
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    if let Some(name) = snapshot["name"].as_str() { record.name = name.to_string(); }
-    if let Some(tags) = snapshot["tags"].as_array() {
-        record.tags_json = tags.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+    if let Some(name) = snapshot["name"].as_str() {
+        record.name = name.to_string();
     }
-    if !snapshot["properties"].is_null() { record.properties = snapshot["properties"].clone(); }
+    if let Some(tags) = snapshot["tags"].as_array() {
+        record.tags_json = tags
+            .iter()
+            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+            .collect();
+    }
+    if !snapshot["properties"].is_null() {
+        record.properties = snapshot["properties"].clone();
+    }
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
     vault.save_object(&record)?;
@@ -673,18 +852,31 @@ pub async fn snapshot_rollback(
     // Save rollback snapshot
     let rollback_data = serde_json::to_vec(&serde_json::json!({
         "name": record.name, "tags": record.tags_json, "properties": record.properties,
-    })).unwrap_or_default();
-    let _ = vault.save_snapshot(&object_id, "rollback", &rollback_data, "Rolled back to previous version");
-    let _ = vault.log_structured("object_rollback", "object", Some(&object_id), Some(&record.name), "user",
-        Some(&format!("section={} snapshot={}", record.section_type, snapshot_id)));
+    }))
+    .unwrap_or_default();
+    let _ = vault.save_snapshot(
+        &object_id,
+        "rollback",
+        &rollback_data,
+        "Rolled back to previous version",
+    );
+    let _ = vault.log_structured(
+        "object_rollback",
+        "object",
+        Some(&object_id),
+        Some(&record.name),
+        "user",
+        Some(&format!(
+            "section={} snapshot={}",
+            record.section_type, snapshot_id
+        )),
+    );
     Ok(())
 }
 
 /// Get trash retention preferences for the current account.
 #[tauri::command]
-pub async fn trash_get_retention(
-    state: State<'_, AppState>,
-) -> Result<String, String> {
+pub async fn trash_get_retention(state: State<'_, AppState>) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
@@ -692,7 +884,10 @@ pub async fn trash_get_retention(
     if let Ok(Some(profile)) = vault.load_profile(&account_id) {
         if !profile.data.is_empty() {
             if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
-                if let Some(ret) = data.pointer("/preferences/trashRetention").and_then(|v| v.as_str()) {
+                if let Some(ret) = data
+                    .pointer("/preferences/trashRetention")
+                    .and_then(|v| v.as_str())
+                {
                     return Ok(ret.to_string());
                 }
             }
@@ -703,10 +898,7 @@ pub async fn trash_get_retention(
 
 /// Set trash retention period.
 #[tauri::command]
-pub async fn trash_set_retention(
-    state: State<'_, AppState>,
-    period: String,
-) -> Result<(), String> {
+pub async fn trash_set_retention(state: State<'_, AppState>, period: String) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
@@ -721,7 +913,9 @@ pub async fn trash_set_retention(
     } else {
         serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
     };
-    let prefs = data.as_object_mut().ok_or("Invalid")?
+    let prefs = data
+        .as_object_mut()
+        .ok_or("Invalid")?
         .entry("preferences".to_string())
         .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
     prefs["trashRetention"] = serde_json::Value::String(period.clone());
@@ -729,7 +923,14 @@ pub async fn trash_set_retention(
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;
     vault.save_profile(&profile)?;
-    let _ = vault.log_structured("trash_set_retention", "preference", None, None, "user", Some(&format!("period={}", period)));
+    let _ = vault.log_structured(
+        "trash_set_retention",
+        "preference",
+        None,
+        None,
+        "user",
+        Some(&format!("period={}", period)),
+    );
     Ok(())
 }
 
@@ -774,7 +975,9 @@ pub async fn trash_get_detail(
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-    let trash = vault.get_trash_item(&trash_id)?.ok_or("Trash item not found")?;
+    let trash = vault
+        .get_trash_item(&trash_id)?
+        .ok_or("Trash item not found")?;
 
     let remaining_days = trash.expires_at.map(|exp| {
         let diff_ms = exp - chrono::Utc::now().timestamp_millis();
@@ -783,7 +986,8 @@ pub async fn trash_get_detail(
 
     let original_location = match trash.item_type.as_str() {
         "page" => format!("Page: {}", trash.name_snapshot),
-        "object" => trash.original_section_type
+        "object" => trash
+            .original_section_type
             .as_deref()
             .map(|st| format!("From page: {}", st))
             .unwrap_or_else(|| "From unknown page".to_string()),
@@ -794,18 +998,22 @@ pub async fn trash_get_detail(
         let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
         let props = data.get("properties")?;
         let obj = props.as_object()?;
-        Some(obj.iter()
-            .filter(|(k, _)| !k.starts_with("__"))
-            .take(5)
-            .map(|(k, v)| serde_json::json!({"key": k, "value": v}))
-            .collect())
-    })().unwrap_or_default();
+        Some(
+            obj.iter()
+                .filter(|(k, _)| !k.starts_with("__"))
+                .take(5)
+                .map(|(k, v)| serde_json::json!({"key": k, "value": v}))
+                .collect(),
+        )
+    })()
+    .unwrap_or_default();
 
     // Parse attachments from stored data
     let parsed = (|| -> Option<(Vec<TrashAttachmentInfo>, Vec<TrashAttachmentInfo>)> {
         let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
         let props = data.get("properties")?;
-        let atts: Vec<serde_json::Value> = props.get("__attachments")
+        let atts: Vec<serde_json::Value> = props
+            .get("__attachments")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
         let mut active = Vec::new();
@@ -817,9 +1025,17 @@ pub async fn trash_get_detail(
                 mime_type: a["mimeType"].as_str().unwrap_or("").to_string(),
                 size_bytes: a["sizeBytes"].as_u64().unwrap_or(0),
                 created_at: a["createdAt"].as_str().unwrap_or("").to_string(),
-                deleted_at: if a["deletedAt"].is_null() { None } else { a["deletedAt"].as_str().map(String::from) },
+                deleted_at: if a["deletedAt"].is_null() {
+                    None
+                } else {
+                    a["deletedAt"].as_str().map(String::from)
+                },
             };
-            if info.deleted_at.is_some() { deleted.push(info); } else { active.push(info); }
+            if info.deleted_at.is_some() {
+                deleted.push(info);
+            } else {
+                active.push(info);
+            }
         }
         Some((active, deleted))
     })();
@@ -851,7 +1067,10 @@ fn load_trash_retention(vault: &solosoul_vault::VaultStore, account_id: &str) ->
     if let Ok(Some(profile)) = vault.load_profile(account_id) {
         if !profile.data.is_empty() {
             if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
-                if let Some(ret) = data.pointer("/preferences/trashRetention").and_then(|v| v.as_str()) {
+                if let Some(ret) = data
+                    .pointer("/preferences/trashRetention")
+                    .and_then(|v| v.as_str())
+                {
                     return ret.to_string();
                 }
             }

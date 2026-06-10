@@ -26,7 +26,7 @@ function genId(): string {
   return `att_${Date.now()}_${++counter}`;
 }
 
-export const useAttachmentStore = create<AttachmentState>((set, get) => ({
+export const useAttachmentStore = create<AttachmentState>((set, _get) => ({
   attachments: {},
   isLoading: false,
   error: null,

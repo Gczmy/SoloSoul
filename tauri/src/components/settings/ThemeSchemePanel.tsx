@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
-import { getSchemesByMode, applyScheme, THEME_SCHEMES, type ThemeScheme } from '@/lib/themeSchemes';
+import { getSchemesByMode, type ThemeScheme } from '@/lib/themeSchemes';
 
 interface ThemeSchemePanelProps {
   isOpen: boolean;
@@ -254,7 +254,7 @@ function SchemeThumbnail({
           lineHeight: 1.2,
         }}
       >
-        {t(scheme.nameKey.replace('settings:', '') as any)}
+        {t(scheme.nameKey.replace('settings:', '') as string)}
       </span>
 
       {/* Default badge */}

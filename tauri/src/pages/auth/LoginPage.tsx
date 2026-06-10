@@ -76,9 +76,9 @@ export function LoginPage() {
     try {
       await invoke('biometric_unlock', { accountId: selectedAccountId, location: 'login_page', action: 'unlock' });
       // Vault already unlocked — set auth state directly
-      const result = await invoke<any[]>('list_accounts');
+      const result = await invoke<Array<{ id: string; name: string }>>('list_accounts');
       const accs = result || [];
-      const acc = accs.find((a: any) => a.id === selectedAccountId) || { id: selectedAccountId, name: selectedAccountId };
+      const acc = accs.find((a) => a.id === selectedAccountId) || { id: selectedAccountId, name: selectedAccountId };
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
     } catch (e) {
       const msg = String(e);

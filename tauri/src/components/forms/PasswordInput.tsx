@@ -20,8 +20,6 @@ interface SecurePasswordInputProps {
   showHintButton?: boolean;
 }
 
-const TOOLTIP_CLOSE_DELAY = 300;
-
 export function SecurePasswordInput({
   value,
   onChange,

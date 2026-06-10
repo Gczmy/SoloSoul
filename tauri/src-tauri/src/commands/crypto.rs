@@ -99,7 +99,8 @@ pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::V
         if let Ok(objects) = vault.list_objects(account_id, None, None, None, false, false) {
             for summary in &objects {
                 if let Ok(Some(rec)) = vault.load_object(&summary.id) {
-                    let atts: Vec<serde_json::Value> = rec.properties
+                    let atts: Vec<serde_json::Value> = rec
+                        .properties
                         .get("__attachments")
                         .and_then(|v| serde_json::from_value(v.clone()).ok())
                         .unwrap_or_default();

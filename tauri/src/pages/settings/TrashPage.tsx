@@ -90,7 +90,7 @@ export function TrashPage() {
   } = useTrashStore();
 
   const [detailItem, setDetailItem] = useState<TrashDetail | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [, setLoadingDetail] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [showTrashAttachments, setShowTrashAttachments] = useState(false);
   const [historySnapIndex, setHistorySnapIndex] = useState<Record<string, number>>({});

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { Bug, Download, RefreshCw } from 'lucide-react';
@@ -19,12 +19,10 @@ interface AuditLogEntry {
   details: string | null;
 }
 
-const LEVELS = ['all'] as const;
-
 export function DebugLogPage() {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [levelFilter, setLevelFilter] = useState<string>('all');
+  const [levelFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation(['settings', 'common']);
 

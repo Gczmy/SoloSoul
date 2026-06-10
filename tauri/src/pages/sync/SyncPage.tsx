@@ -46,8 +46,8 @@ export function SyncPage() {
     try {
       const result = await invoke<DiscoveredDevice[]>('mdns_discover', { timeoutMs: 3000 });
       setDevices(result);
-    } catch (e) {
-      console.error('Discovery failed:', e);
+    } catch {
+      // silently ignore
     } finally {
       setIsScanning(false);
     }

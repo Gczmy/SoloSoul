@@ -77,7 +77,7 @@ export function SettingsPage() {
                       <item.icon size={20} />
                       <div>
                         <span style={{ fontSize: 14, fontWeight: 500 }}>{item.label}</span>
-                        {'desc' in item && (item as any).desc && <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>{(item as any).desc}</div>}
+                        {'desc' in item && item.desc && <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>{item.desc}</div>}
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

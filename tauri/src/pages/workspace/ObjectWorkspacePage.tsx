@@ -12,10 +12,10 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw, Eye, EyeOff, Lock, Image, FileText, Copy, Check } from 'lucide-react';
+import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw, Eye, Lock, Image, FileText, Copy, Check } from 'lucide-react';
 import { SensitivityBadge, getSensitivityStyle } from '@/components/ui/SensitivityBadge';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
-import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
 // Labels resolved at render time via t() so they support i18n
 const CATEGORY_TYPES = ['identity', 'travel', 'financial', 'professional'] as const;
@@ -148,14 +148,14 @@ function HistoryViewer({ objectId, onClose, collectionType, passwordVerify }: {
   );
 }
 
-function SnapshotCard({ snap, index, total, t, getFieldSensitivity, verifyPassword }: {
+function SnapshotCard({ snap, index, total: _total, t, getFieldSensitivity, verifyPassword }: {
   snap: SnapshotEntry; index: number; total: number;
   t: (k: string) => string;
   getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
   verifyPassword: () => Promise<boolean>;
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
-  const { maskValue, isRevealed, reveal } = useRevealState();
+  const { isRevealed, reveal } = useRevealState();
 
   useEffect(() => {
     invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id })
@@ -213,7 +213,7 @@ function SnapshotCard({ snap, index, total, t, getFieldSensitivity, verifyPasswo
                       } else {
                         reveal(fieldId);
                       }
-                    } catch {}
+                    } catch { /* ignore */ }
                   } : undefined}
                   style={{
                     cursor: (needsReveal && !revealed) ? 'pointer' : 'default',
@@ -528,7 +528,7 @@ export function ObjectWorkspacePage() {
   const { pageId } = useParams();
   const sectionFilter = searchParams.get('section') || '';
   const [searchQuery, setSearchQuery] = useState('');
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
   const [historyObj, setHistoryObj] = useState<{ id: string; collectionType: string } | null>(null);
@@ -564,10 +564,10 @@ export function ObjectWorkspacePage() {
       .then((r) => setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }))
       .catch(() => {});
     if (accountId) {
-      invoke<any[]>('list_accounts').then((accounts) => {
-        const acc = accounts.find((a: any) => a.id === accountId);
+      invoke<Array<{ id: string; passwordHint?: string }>>('list_accounts').then((accounts) => {
+        const acc = accounts.find((a) => a.id === accountId);
         setPasswordHint(acc?.passwordHint || null);
-      }).catch(() => {});
+      }).catch(() => { /* ignore */ });
     }
   }, [accountId]);
 
@@ -584,14 +584,14 @@ export function ObjectWorkspacePage() {
       try {
         const ok = await invoke<boolean>('verify_password', { accountId, password });
         if (ok) return true;
-      } catch (e) { console.error('verify_password failed:', e); }
+      } catch { /* ignore */ }
     }
-    const accounts = await invoke<any[]>('list_accounts').catch(() => []);
+    const accounts = await invoke<Array<{ id: string; passwordHint?: string }>>('list_accounts').catch(() => []);
     for (const acc of accounts) {
       try {
         const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password });
         if (ok) return true;
-      } catch (e) { console.error('verify_password fallback failed:', e); }
+      } catch { /* ignore */ }
     }
     return false;
   }, [accountId]);
@@ -998,7 +998,7 @@ export function ObjectWorkspacePage() {
         {detailObj && (() => {
           const dFields = flattenProperties(detailObj.properties as Record<string, unknown> | undefined);
           const handleCopyField = async (value: string, key: string) => {
-            try { await navigator.clipboard.writeText(value); setCopiedField(key); setTimeout(() => setCopiedField(null), 1500); } catch {}
+            try { await navigator.clipboard.writeText(value); setCopiedField(key); setTimeout(() => setCopiedField(null), 1500); } catch { /* ignore */ }
           };
           return (
         <div
@@ -1016,7 +1016,7 @@ export function ObjectWorkspacePage() {
                 <div>
                   <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{detailObj.name}</h2>
                   <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                    {t('navigation:' + detailObj.collectionType, detailObj.collectionType)} · {t('common:created')}: {(detailObj as any).createdAt?.slice(0, 10) || '—'} · {t('common:updated')}: {(detailObj as any).updatedAt?.slice(0, 10) || '—'}
+                    {t('navigation:' + detailObj.collectionType, detailObj.collectionType)} · {t('common:created')}: {detailObj.createdAt?.slice(0, 10) || '—'} · {t('common:updated')}: {detailObj.updatedAt?.slice(0, 10) || '—'}
                   </span>
                 </div>
               </div>

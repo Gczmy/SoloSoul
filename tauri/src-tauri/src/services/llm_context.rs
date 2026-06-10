@@ -13,6 +13,7 @@ use std::time::Instant;
 
 struct CachedPrompt {
     static_prompt: String, // Section 1-5（不含实时统计）
+    #[allow(dead_code)]
     created_at: Instant,
 }
 
@@ -47,8 +48,14 @@ pub fn build_context(
     {
         let cache = PROMPT_CACHE.lock().map_err(|e| e.to_string())?;
         if let Some(cached) = cache.get(&cache_key) {
-            let stats_section = build_section6_stats(usage_count, prompt_tokens, completion_tokens, total_tokens);
-            let full = format!("{}\n\n{}\n\n{}", cached.static_prompt, stats_section, build_section7_guidelines());
+            let stats_section =
+                build_section6_stats(usage_count, prompt_tokens, completion_tokens, total_tokens);
+            let full = format!(
+                "{}\n\n{}\n\n{}",
+                cached.static_prompt,
+                stats_section,
+                build_section7_guidelines()
+            );
             return Ok(trim_to_limit(&full, MAX_SYSTEM_PROMPT_CHARS));
         }
     }
@@ -69,7 +76,8 @@ pub fn build_context(
     }
 
     // 6. 追加实时统计（Section 6）+ 行为规范（Section 7），并截断
-    let stats_section = build_section6_stats(usage_count, prompt_tokens, completion_tokens, total_tokens);
+    let stats_section =
+        build_section6_stats(usage_count, prompt_tokens, completion_tokens, total_tokens);
     let guidelines = build_section7_guidelines();
     let full = format!("{}\n\n{}\n\n{}", static_prompt, stats_section, guidelines);
     Ok(trim_to_limit(&full, MAX_SYSTEM_PROMPT_CHARS))
@@ -141,10 +149,7 @@ fn build_section2_software_info(language: &str) -> String {
     )
 }
 
-fn build_section3_public_objects(
-    vault: &VaultStore,
-    account_id: &str,
-) -> Result<String, String> {
+fn build_section3_public_objects(vault: &VaultStore, account_id: &str) -> Result<String, String> {
     let objects = vault
         .list_objects(account_id, None, None, None, false, false)
         .map_err(|e| format!("List objects: {}", e))?;
@@ -213,10 +218,7 @@ fn extract_properties(properties: &serde_json::Value) -> Vec<String> {
     entries
 }
 
-fn build_section4_preferences(
-    vault: &VaultStore,
-    account_id: &str,
-) -> Result<String, String> {
+fn build_section4_preferences(vault: &VaultStore, account_id: &str) -> Result<String, String> {
     let profile = match vault.load_profile(account_id) {
         Ok(Some(p)) => p,
         _ => return Ok("（无特殊偏好设置）".to_string()),
@@ -312,7 +314,11 @@ pub fn bump_public_data_version(vault: &VaultStore, account_id: &str) -> Result<
     Ok(next)
 }
 
-fn save_public_data_version(vault: &VaultStore, account_id: &str, version: u64) -> Result<(), String> {
+fn save_public_data_version(
+    vault: &VaultStore,
+    account_id: &str,
+    version: u64,
+) -> Result<(), String> {
     let mut profile = match vault.load_profile(account_id) {
         Ok(Some(p)) => p,
         Ok(None) => solosoul_vault::Profile::new_with_id(account_id, account_id, Vec::new()),
@@ -358,7 +364,10 @@ fn type_display_name(type_id: &str) -> String {
         .split_whitespace()
         .map(|w| {
             let mut chars = w.chars();
-            let first = chars.next().unwrap().to_uppercase().to_string();
+            let first = chars
+                .next()
+                .map(|c| c.to_uppercase().to_string())
+                .unwrap_or_default();
             first + &chars.as_str().to_lowercase()
         })
         .collect::<Vec<_>>()
@@ -381,7 +390,10 @@ fn property_key_to_label(key: &str) -> String {
         .split_whitespace()
         .map(|w| {
             let mut chars = w.chars();
-            let first = chars.next().unwrap().to_uppercase().to_string();
+            let first = chars
+                .next()
+                .map(|c| c.to_uppercase().to_string())
+                .unwrap_or_default();
             first + &chars.as_str().to_lowercase()
         })
         .collect::<Vec<_>>()

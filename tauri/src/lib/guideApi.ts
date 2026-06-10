@@ -52,13 +52,8 @@ function invokeWithTimeout<T>(cmd: string, args?: Record<string, unknown>, timeo
       new Error('当前不在 Tauri 环境中。帮助文档需要本地 Tauri 后端，请使用 npm run tauri dev 启动。')
     );
   }
-  console.log(`[guideApi] invoking ${cmd}`, args);
-  const start = performance.now();
   return Promise.race([
-    invoke<T>(cmd, args).then((res) => {
-      console.log(`[guideApi] ${cmd} succeeded in ${(performance.now() - start).toFixed(0)}ms`);
-      return res;
-    }),
+    invoke<T>(cmd, args),
     new Promise<T>((_, reject) => {
       setTimeout(() => {
         reject(new Error(`IPC 调用超时（${timeoutMs}ms）。请确认 Tauri 后端已启动（npm run tauri dev）。`));

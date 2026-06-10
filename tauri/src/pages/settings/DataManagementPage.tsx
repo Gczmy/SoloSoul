@@ -29,15 +29,6 @@ const PIE_COLORS = [
   '#d32f2f', // AI conversations
 ];
 
-const PIE_LABELS = [
-  'profiles',
-  'objects',
-  'trash',
-  'snapshots',
-  'attachments',
-  'ai_conversations',
-] as const;
-
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -218,7 +209,7 @@ export function DataManagementPage() {
 
             {/* Legend */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {pieSlices.map((slice, idx) => {
+              {pieSlices.map((slice, _idx) => {
                 const pct = ((slice.value / stats.totalSizeBytes) * 100).toFixed(1);
                 return (
                   <div key={slice.key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>

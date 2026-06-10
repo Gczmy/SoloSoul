@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
-import type { ThemePreset } from '@/types';
+
 
 // 9.8.3 — Custom page data structure
 // Custom pages are now stored in the objects table (P0-1), not in preferences.
@@ -18,7 +18,7 @@ export interface CustomPage {
 
 interface AppSettings {
   theme: 'light' | 'dark' | 'system';
-  accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'custom';
+  accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'custom';
   customAccentHex: string;
   backgroundType: 'solid' | 'gradient' | 'image';
   backgroundValue: string;
@@ -41,7 +41,7 @@ interface SettingsState {
   loadUiPreferences: () => Promise<void>;
   loadSettings: (accountId: string) => Promise<void>;
   loadCustomPages: (accountId: string) => Promise<void>;
-  updateSetting: (accountId: string, key: keyof AppSettings, value: string | number | boolean) => Promise<void>;
+  updateSetting: <K extends keyof AppSettings>(accountId: string, key: K, value: AppSettings[K]) => Promise<void>;
   clearOnVaultLock: () => void;
   addCustomPage: (accountId: string, name: string, iconId?: string) => Promise<CustomPage>;
   removeCustomPage: (accountId: string, pageId: string) => Promise<void>;

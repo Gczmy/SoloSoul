@@ -232,7 +232,12 @@ impl VaultService {
             *store = Some(vault);
         }
         if let Ok(mut key) = self.session_key.write() {
-            *key = Some(Zeroizing::new(master_key.as_slice().try_into().unwrap()));
+            *key = Some(Zeroizing::new(
+                master_key
+                    .as_slice()
+                    .try_into()
+                    .expect("HKDF output must be 32 bytes"),
+            ));
         }
         if let Ok(mut ua) = self.unlocked_account.write() {
             *ua = Some(account_id.clone());
@@ -291,7 +296,12 @@ impl VaultService {
 
         // Store session key
         if let Ok(mut key) = self.session_key.write() {
-            *key = Some(Zeroizing::new(master_key.as_slice().try_into().unwrap()));
+            *key = Some(Zeroizing::new(
+                master_key
+                    .as_slice()
+                    .try_into()
+                    .expect("Argon2id output must be 32 bytes"),
+            ));
         }
         if let Ok(mut ua) = self.unlocked_account.write() {
             *ua = Some(account_id.to_string());
@@ -435,7 +445,10 @@ impl VaultService {
         fs::write(&config_path, config_json).map_err(|e| e.to_string())?;
 
         // Update session key
-        let new_key_arr: [u8; 32] = new_key.as_slice().try_into().unwrap();
+        let new_key_arr: [u8; 32] = new_key
+            .as_slice()
+            .try_into()
+            .expect("Key derivation output must be 32 bytes");
         {
             if let Ok(mut key) = self.session_key.write() {
                 *key = Some(Zeroizing::new(new_key_arr));
@@ -506,7 +519,8 @@ impl VaultService {
 
     pub fn update_password_hint(&self, account_id: &str, hint: &str) -> Result<(), String> {
         let config_path = self.config_path(account_id);
-        let content = std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
+        let content =
+            std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
         let mut config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
         config.password_hint = Some(hint.to_string());

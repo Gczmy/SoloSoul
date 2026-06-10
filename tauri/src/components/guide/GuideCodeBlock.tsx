@@ -4,7 +4,7 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import type { SensitivityLevel } from '@/stores/sensitivityStore';
 
 interface GuideCodeBlockProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
 }
 
@@ -34,7 +34,7 @@ export function GuideCodeBlock({ children, className }: GuideCodeBlockProps) {
   const isInline = !className;
 
   const sensitivityLevels = ['public', 'internal', 'sensitive', 'critical'] as const;
-  const isSensitivity = isInline && sensitivityLevels.includes(text as any);
+  const isSensitivity = isInline && sensitivityLevels.includes(text as typeof sensitivityLevels[number]);
 
   if (isSensitivity) {
     const level = text as typeof sensitivityLevels[number];

@@ -120,7 +120,7 @@ export function LlmChatPage() {
         setIsAiEnabled(cfg.aiFeaturesEnabled?.chat ?? false);
         setIncludeSystemPrompt(cfg.includeSystemPrompt ?? true);
         if (!cfg.activeProviderId) { setIsConfigured(false); setLoading(false); return; }
-        const providers = await invoke<any[]>('llm_get_providers', { accountId });
+        const providers = await invoke<Array<{ id: string; name: string; model: string; baseUrl: string; apiType: string }>>('llm_get_providers', { accountId });
         const active = providers.find((p) => p.id === cfg.activeProviderId);
         if (active) {
           setActiveProvider({ id: active.id, name: active.name, model: active.model, baseUrl: active.baseUrl, apiType: active.apiType });
@@ -244,7 +244,6 @@ export function LlmChatPage() {
       llmStore.reset();
       setIsSending(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [llmStore.isStreaming, llmStore.streamingConvId]);
 
   // Listen to LLM stream error

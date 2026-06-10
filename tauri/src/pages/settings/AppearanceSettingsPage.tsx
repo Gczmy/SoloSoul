@@ -35,8 +35,8 @@ export function AppearanceSettingsPage() {
   const { t } = useTranslation(['settings', 'common']);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  const lightSchemeName = t(getSchemeById(settings.defaultLightTheme)?.nameKey.replace('settings:', '') as any);
-  const darkSchemeName = t(getSchemeById(settings.defaultDarkTheme)?.nameKey.replace('settings:', '') as any);
+  const lightSchemeName = t(getSchemeById(settings.defaultLightTheme)?.nameKey.replace('settings:', '') as string);
+  const darkSchemeName = t(getSchemeById(settings.defaultDarkTheme)?.nameKey.replace('settings:', '') as string);
 
   const syncUiCache = () => {
     const s = useSettingsStore.getState().settings;
@@ -47,7 +47,7 @@ export function AppearanceSettingsPage() {
         defaultLightTheme: s.defaultLightTheme,
         defaultDarkTheme: s.defaultDarkTheme,
       }));
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const handlePresetChange = (preset: 'light' | 'dark' | 'system') => {

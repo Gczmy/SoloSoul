@@ -37,8 +37,8 @@ impl LocalEmbedder {
                 .map_err(|e| format!("Load ONNX model: {}", e))?,
         );
 
-        let tokenizer = Tokenizer::from_file(&tokenizer_path)
-            .map_err(|e| format!("Load tokenizer: {}", e))?;
+        let tokenizer =
+            Tokenizer::from_file(&tokenizer_path).map_err(|e| format!("Load tokenizer: {}", e))?;
 
         Ok(Self {
             session,
@@ -69,7 +69,9 @@ impl LocalEmbedder {
         let mut max_len = 0;
 
         for text in texts {
-            let encoding = self.tokenizer.encode(text.as_str(), true)
+            let encoding = self
+                .tokenizer
+                .encode(text.as_str(), true)
                 .map_err(|e| format!("Tokenize error: {}", e))?;
             max_len = max_len.max(encoding.len());
             encodings.push(encoding);
@@ -96,20 +98,22 @@ impl LocalEmbedder {
         }
 
         // Create ONNX tensors from ndarray
-        let input_ids_tensor = Tensor::from_array(input_ids)
-            .map_err(|e| format!("Create input_ids tensor: {}", e))?;
+        let input_ids_tensor =
+            Tensor::from_array(input_ids).map_err(|e| format!("Create input_ids tensor: {}", e))?;
         let attention_mask_tensor = Tensor::from_array(attention_mask.clone())
             .map_err(|e| format!("Create attention_mask tensor: {}", e))?;
         let token_type_ids_tensor = Tensor::from_array(token_type_ids)
             .map_err(|e| format!("Create token_type_ids tensor: {}", e))?;
 
         // Run inference with named inputs
-        let mut session_guard = self.session.lock().unwrap();
-        let outputs = session_guard.run(ort::inputs! {
-            "input_ids" => input_ids_tensor,
-            "attention_mask" => attention_mask_tensor,
-            "token_type_ids" => token_type_ids_tensor
-        }).map_err(|e| format!("ONNX inference: {}", e))?;
+        let mut session_guard = self.session.lock().map_err(|e| e.to_string())?;
+        let outputs = session_guard
+            .run(ort::inputs! {
+                "input_ids" => input_ids_tensor,
+                "attention_mask" => attention_mask_tensor,
+                "token_type_ids" => token_type_ids_tensor
+            })
+            .map_err(|e| format!("ONNX inference: {}", e))?;
 
         // Extract last_hidden_state: shape [batch, seq_len, hidden_dim]
         let (shape, data) = outputs["last_hidden_state"]
@@ -117,11 +121,9 @@ impl LocalEmbedder {
             .map_err(|e| format!("Extract tensor: {}", e))?;
 
         let hidden_dim = shape[2] as usize;
-        let data_vec: Vec<f32> = data.iter().copied().collect();
-        let last_hidden = Array3::from_shape_vec(
-            (batch_size, max_len, hidden_dim),
-            data_vec,
-        ).map_err(|e| format!("Reshape hidden state: {}", e))?;
+        let data_vec: Vec<f32> = data.to_vec();
+        let last_hidden = Array3::from_shape_vec((batch_size, max_len, hidden_dim), data_vec)
+            .map_err(|e| format!("Reshape hidden state: {}", e))?;
 
         // Mean pooling: sum(token_emb * mask) / sum(mask)
         let mask_f32 = attention_mask.mapv(|v| v as f32);
@@ -150,7 +152,10 @@ impl LocalEmbedder {
 
 /// Get or create a cached embedder for the given model.
 /// Returns an Arc so the caller can hold onto it without locking the cache.
-pub fn get_embedder(models_dir: &std::path::Path, model_id: &str) -> Result<Arc<LocalEmbedder>, String> {
+pub fn get_embedder(
+    models_dir: &std::path::Path,
+    model_id: &str,
+) -> Result<Arc<LocalEmbedder>, String> {
     {
         let cache = EMBEDDER_CACHE.lock().map_err(|e| e.to_string())?;
         if let Some(ref embedder) = *cache {

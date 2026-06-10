@@ -55,7 +55,13 @@ pub async fn attachment_list(
     match vault.load_object(&object_id) {
         Ok(Some(rec)) => Ok(load_attachments(&rec.properties)
             .into_iter()
-            .filter(|a| if show { a.deleted_at.is_some() } else { a.deleted_at.is_none() })
+            .filter(|a| {
+                if show {
+                    a.deleted_at.is_some()
+                } else {
+                    a.deleted_at.is_none()
+                }
+            })
             .collect()),
         _ => Ok(vec![]),
     }
@@ -78,7 +84,11 @@ pub async fn attachment_delete(
         .collect();
 
     // Also delete the physical file from disk
-    let attachments_dir = svc.base_path().join("attachments").join(&object_id).join(&attachment_id);
+    let attachments_dir = svc
+        .base_path()
+        .join("attachments")
+        .join(&object_id)
+        .join(&attachment_id);
     let _ = std::fs::remove_dir_all(&attachments_dir);
 
     save_attachments(&mut record.properties, &atts);
@@ -205,7 +215,10 @@ pub async fn attachment_copy_to_vault(
 ) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let base = svc.base_path().clone();
-    let dest_dir = base.join("attachments").join(&object_id).join(&attachment_id);
+    let dest_dir = base
+        .join("attachments")
+        .join(&object_id)
+        .join(&attachment_id);
     std::fs::create_dir_all(&dest_dir).map_err(|e| format!("Mkdir: {}", e))?;
     let dest_path = dest_dir.join(&file_name);
     std::fs::copy(&src_path, &dest_path).map_err(|e| format!("Copy: {}", e))?;
@@ -213,12 +226,16 @@ pub async fn attachment_copy_to_vault(
 }
 
 /// Collect all attachment IDs that are currently referenced in any object's __attachments.
-fn load_all_referenced_attachment_ids(vault: &solosoul_vault::VaultStore, account_id: &str) -> Result<std::collections::HashSet<String>, String> {
+fn load_all_referenced_attachment_ids(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+) -> Result<std::collections::HashSet<String>, String> {
     let objects = vault.list_objects(account_id, None, None, None, false, false)?;
     let mut active_ids = std::collections::HashSet::new();
     for summary in &objects {
         if let Ok(Some(rec)) = vault.load_object(&summary.id) {
-            let atts: Vec<AttachmentMeta> = rec.properties
+            let atts: Vec<AttachmentMeta> = rec
+                .properties
                 .get("__attachments")
                 .and_then(|v| serde_json::from_value::<Vec<AttachmentMeta>>(v.clone()).ok())
                 .unwrap_or_default();
@@ -255,7 +272,9 @@ pub async fn attachment_cleanup_orphans(
     if let Ok(object_entries) = std::fs::read_dir(&base_dir) {
         for obj_entry in object_entries.flatten() {
             let obj_path = obj_entry.path();
-            if !obj_path.is_dir() { continue; }
+            if !obj_path.is_dir() {
+                continue;
+            }
             if let Ok(att_entries) = std::fs::read_dir(&obj_path) {
                 for att_entry in att_entries.flatten() {
                     let att_path = att_entry.path();
@@ -271,13 +290,25 @@ pub async fn attachment_cleanup_orphans(
                 }
             }
             // Remove empty object directories too
-            if std::fs::read_dir(&obj_path).map(|mut d| d.next().is_none()).unwrap_or(false) {
+            if std::fs::read_dir(&obj_path)
+                .map(|mut d| d.next().is_none())
+                .unwrap_or(false)
+            {
                 let _ = std::fs::remove_dir(&obj_path);
             }
         }
     }
 
-    let _ = vault.log_structured("attachment_cleanup", "attachment", None, None, "system",
-        Some(&format!("removed {} orphaned attachments, freed {} bytes", removed, total_freed)));
+    let _ = vault.log_structured(
+        "attachment_cleanup",
+        "attachment",
+        None,
+        None,
+        "system",
+        Some(&format!(
+            "removed {} orphaned attachments, freed {} bytes",
+            removed, total_freed
+        )),
+    );
     Ok(removed)
 }

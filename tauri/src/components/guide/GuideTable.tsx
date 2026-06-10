@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 interface GuideTableProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export function GuideTable({ children }: GuideTableProps) {

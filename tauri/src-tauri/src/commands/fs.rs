@@ -193,8 +193,14 @@ pub async fn fs_scan_directory(path: String) -> Result<Vec<ScannedFile>, String>
     Ok(files)
 }
 
-fn scan_dir_recursive(dir: &Path, files: &mut Vec<ScannedFile>, max_depth: u32) -> Result<(), String> {
-    if max_depth == 0 { return Ok(()); }
+fn scan_dir_recursive(
+    dir: &Path,
+    files: &mut Vec<ScannedFile>,
+    max_depth: u32,
+) -> Result<(), String> {
+    if max_depth == 0 {
+        return Ok(());
+    }
     let entries = fs_std::read_dir(dir).map_err(|e| e.to_string())?;
     for entry in entries {
         let entry = entry.map_err(|e| e.to_string())?;
@@ -205,9 +211,15 @@ fn scan_dir_recursive(dir: &Path, files: &mut Vec<ScannedFile>, max_depth: u32) 
             let metadata = fs_std::metadata(&path).map_err(|e| e.to_string())?;
             files.push(ScannedFile {
                 path: path.to_string_lossy().to_string(),
-                name: path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default(),
+                name: path
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_default(),
                 size: metadata.len(),
-                ext: path.extension().map(|e| e.to_string_lossy().to_string()).unwrap_or_default(),
+                ext: path
+                    .extension()
+                    .map(|e| e.to_string_lossy().to_string())
+                    .unwrap_or_default(),
             });
         }
     }
@@ -225,13 +237,25 @@ pub async fn fs_read_file_as_data_url(path: String) -> Result<String, String> {
     use std::io::Read;
     let mut file = std::fs::File::open(&path).map_err(|e| format!("Open: {}", e))?;
     let mut buf = Vec::new();
-    file.read_to_end(&mut buf).map_err(|e| format!("Read: {}", e))?;
-    let ext = std::path::Path::new(&path).extension().and_then(|e| e.to_str()).unwrap_or("");
+    file.read_to_end(&mut buf)
+        .map_err(|e| format!("Read: {}", e))?;
+    let ext = std::path::Path::new(&path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("");
     let mime = match ext.to_lowercase().as_str() {
-        "png" => "image/png", "jpg"|"jpeg" => "image/jpeg", "gif" => "image/gif",
-        "webp" => "image/webp", "svg" => "image/svg+xml", "pdf" => "application/pdf",
-        "txt" => "text/plain", "md" => "text/markdown", "json" => "application/json",
-        "xml" => "application/xml", "csv" => "text/csv", _ => "application/octet-stream",
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "gif" => "image/gif",
+        "webp" => "image/webp",
+        "svg" => "image/svg+xml",
+        "pdf" => "application/pdf",
+        "txt" => "text/plain",
+        "md" => "text/markdown",
+        "json" => "application/json",
+        "xml" => "application/xml",
+        "csv" => "text/csv",
+        _ => "application/octet-stream",
     };
     let b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &buf);
     Ok(format!("data:{};base64,{}", mime, b64))

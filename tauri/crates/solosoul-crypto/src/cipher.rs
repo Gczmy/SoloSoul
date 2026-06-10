@@ -117,15 +117,15 @@ const CHUNK_SIZE: usize = 64 * 1024; // 64 KB
 
 /// Encrypt a large file in chunks.
 /// Format: nonce(12) || chunk_count(8, big-endian u64) || chunk1_ct+tag || chunk2_ct+tag || ...
-pub fn encrypt_chunked_to_bytes(
-    key: &[u8; 32],
-    plaintext: &[u8],
-) -> Result<Vec<u8>, CipherError> {
+pub fn encrypt_chunked_to_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<Vec<u8>, CipherError> {
     let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CipherError::InvalidKeyLength)?;
     let base_nonce = Aes256Gcm::generate_nonce(&mut OsRng);
-    let base_nonce_bytes: [u8; 12] = base_nonce.as_slice().try_into().map_err(|_| CipherError::NonceGenerationFailed)?;
+    let base_nonce_bytes: [u8; 12] = base_nonce
+        .as_slice()
+        .try_into()
+        .map_err(|_| CipherError::NonceGenerationFailed)?;
 
-    let total_chunks = (plaintext.len() + CHUNK_SIZE - 1) / CHUNK_SIZE;
+    let total_chunks = plaintext.len().div_ceil(CHUNK_SIZE);
     if total_chunks > u64::MAX as usize {
         return Err(CipherError::EncryptionFailed);
     }
@@ -146,7 +146,9 @@ pub fn encrypt_chunked_to_bytes(
         }
         let nonce = Nonce::from_slice(&nonce_bytes);
 
-        let ct = cipher.encrypt(nonce, chunk).map_err(|_| CipherError::EncryptionFailed)?;
+        let ct = cipher
+            .encrypt(nonce, chunk)
+            .map_err(|_| CipherError::EncryptionFailed)?;
         result.extend_from_slice(&ct);
     }
 
@@ -191,7 +193,9 @@ pub fn decrypt_chunked_from_bytes(
             return Err(CipherError::InvalidCiphertext);
         }
         let chunk_ct = &ciphertext[offset..offset + expected_chunk_ct_len];
-        let pt = cipher.decrypt(nonce, chunk_ct).map_err(|_| CipherError::DecryptionFailed)?;
+        let pt = cipher
+            .decrypt(nonce, chunk_ct)
+            .map_err(|_| CipherError::DecryptionFailed)?;
         result.extend_from_slice(&pt);
         offset += expected_chunk_ct_len;
     }

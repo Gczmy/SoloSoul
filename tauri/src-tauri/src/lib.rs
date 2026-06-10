@@ -2,9 +2,9 @@ use tauri::Manager;
 
 pub mod commands;
 pub mod core;
-pub mod local_embed;
 pub mod db;
 pub mod ipc;
+pub mod local_embed;
 pub mod services;
 pub mod state;
 

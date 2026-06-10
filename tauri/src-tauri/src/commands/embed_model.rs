@@ -1,10 +1,10 @@
 //! Embedding model management — download, install, list local models.
 
+use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
-use crate::state::AppState;
 
 // ── Registry ─────────────────────────────────────────────────
 
@@ -33,7 +33,8 @@ pub async fn fetch_registry() -> Result<EmbedRegistry, String> {
         .build()
         .map_err(|e| format!("Client: {}", e))?;
 
-    let resp = client.get(REGISTRY_URL)
+    let resp = client
+        .get(REGISTRY_URL)
         .send()
         .await
         .map_err(|e| format!("Fetch registry: {}", e))?;
@@ -42,7 +43,9 @@ pub async fn fetch_registry() -> Result<EmbedRegistry, String> {
         return Err(format!("Registry HTTP {}", resp.status()));
     }
 
-    let registry: EmbedRegistry = resp.json().await
+    let registry: EmbedRegistry = resp
+        .json()
+        .await
         .map_err(|e| format!("Parse registry: {}", e))?;
 
     Ok(registry)
@@ -53,7 +56,8 @@ pub async fn fetch_registry() -> Result<EmbedRegistry, String> {
 /// Get the base directory where models are stored.
 /// `app_local_data_dir/models/`
 pub fn models_base_dir(app: &AppHandle) -> Result<PathBuf, String> {
-    let dir = app.path()
+    let dir = app
+        .path()
         .resolve("models", BaseDirectory::LocalData)
         .map_err(|e| format!("Cannot resolve app_local_data_dir: {}", e))?;
     Ok(dir)
@@ -77,7 +81,11 @@ pub fn list_installed_models(app: &AppHandle) -> Result<Vec<String>, String> {
         let entry = entry.map_err(|e| format!("Dir entry: {}", e))?;
         let path = entry.path();
         if path.is_dir() {
-            let id = path.file_name().and_then(|s| s.to_str()).unwrap_or("").to_string();
+            let id = path
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("")
+                .to_string();
             if !id.is_empty() && path.join("model.onnx").exists() {
                 models.push(id);
             }
@@ -98,10 +106,7 @@ pub fn delete_model(app: &AppHandle, model_id: &str) -> Result<(), String> {
 // ── Download ─────────────────────────────────────────────────
 
 /// Download a model zip, verify checksum, and extract.
-pub async fn download_model(
-    app: &AppHandle,
-    model: &EmbedModelInfo,
-) -> Result<(), String> {
+pub async fn download_model(app: &AppHandle, model: &EmbedModelInfo) -> Result<(), String> {
     let base_dir = models_base_dir(app)?;
     std::fs::create_dir_all(&base_dir).map_err(|e| format!("Create models dir: {}", e))?;
 
@@ -118,7 +123,8 @@ pub async fn download_model(
         .build()
         .map_err(|e| format!("Client: {}", e))?;
 
-    let mut resp = client.get(&model.download_url)
+    let mut resp = client
+        .get(&model.download_url)
         .send()
         .await
         .map_err(|e| format!("Download request: {}", e))?;
@@ -129,33 +135,47 @@ pub async fn download_model(
 
     let total = resp.content_length().unwrap_or(0);
     let mut downloaded: u64 = 0;
-    let mut file = std::fs::File::create(&zip_path)
-        .map_err(|e| format!("Create zip file: {}", e))?;
+    let mut file =
+        std::fs::File::create(&zip_path).map_err(|e| format!("Create zip file: {}", e))?;
 
-    while let Some(chunk) = resp.chunk().await.map_err(|e| format!("Download chunk: {}", e))? {
+    while let Some(chunk) = resp
+        .chunk()
+        .await
+        .map_err(|e| format!("Download chunk: {}", e))?
+    {
         use std::io::Write;
-        file.write_all(&chunk).map_err(|e| format!("Write chunk: {}", e))?;
+        file.write_all(&chunk)
+            .map_err(|e| format!("Write chunk: {}", e))?;
         downloaded += chunk.len() as u64;
 
         // Emit progress event
         if total > 0 {
             let pct = (downloaded as f64 / total as f64 * 100.0) as u32;
-            let _ = app.emit("embed-download-progress", serde_json::json!({
-                "modelId": model.id,
-                "progress": pct,
-                "downloaded": downloaded,
-                "total": total
-            }));
+            let _ = app.emit(
+                "embed-download-progress",
+                serde_json::json!({
+                    "modelId": model.id,
+                    "progress": pct,
+                    "downloaded": downloaded,
+                    "total": total
+                }),
+            );
         }
     }
 
     // Verify checksum (SHA256)
     let file_data = std::fs::read(&zip_path).map_err(|e| format!("Read zip: {}", e))?;
     let hash = format!("{:x}", sha2::Sha256::digest(&file_data));
-    let expected = model.checksum.strip_prefix("sha256:").unwrap_or(&model.checksum);
+    let expected = model
+        .checksum
+        .strip_prefix("sha256:")
+        .unwrap_or(&model.checksum);
     if hash != expected {
         let _ = std::fs::remove_file(&zip_path);
-        return Err(format!("Checksum mismatch: expected {}, got {}", expected, hash));
+        return Err(format!(
+            "Checksum mismatch: expected {}, got {}",
+            expected, hash
+        ));
     }
 
     // Extract
@@ -166,20 +186,25 @@ pub async fn download_model(
     let _ = std::fs::remove_file(&zip_path);
 
     // Emit completion event
-    let _ = app.emit("embed-download-complete", serde_json::json!({
-        "modelId": model.id,
-        "success": true
-    }));
+    let _ = app.emit(
+        "embed-download-complete",
+        serde_json::json!({
+            "modelId": model.id,
+            "success": true
+        }),
+    );
 
     Ok(())
 }
 
-fn extract_zip(zip_path: &PathBuf, dest: &PathBuf) -> Result<(), String> {
+fn extract_zip(zip_path: &PathBuf, dest: &Path) -> Result<(), String> {
     let file = std::fs::File::open(zip_path).map_err(|e| format!("Open zip: {}", e))?;
     let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Read zip: {}", e))?;
 
     for i in 0..archive.len() {
-        let mut file = archive.by_index(i).map_err(|e| format!("Zip entry: {}", e))?;
+        let mut file = archive
+            .by_index(i)
+            .map_err(|e| format!("Zip entry: {}", e))?;
         let outpath = dest.join(file.mangled_name());
 
         if file.name().ends_with('/') {
@@ -190,7 +215,8 @@ fn extract_zip(zip_path: &PathBuf, dest: &PathBuf) -> Result<(), String> {
                     std::fs::create_dir_all(p).map_err(|e| format!("Create parent dir: {}", e))?;
                 }
             }
-            let mut outfile = std::fs::File::create(&outpath).map_err(|e| format!("Create file: {}", e))?;
+            let mut outfile =
+                std::fs::File::create(&outpath).map_err(|e| format!("Create file: {}", e))?;
             std::io::copy(&mut file, &mut outfile).map_err(|e| format!("Extract file: {}", e))?;
         }
     }
@@ -209,9 +235,7 @@ pub struct EmbedModelWithStatus {
 
 /// Fetch the remote registry and mark which models are locally installed.
 #[tauri::command]
-pub async fn llm_get_embed_models(
-    app: AppHandle,
-) -> Result<Vec<EmbedModelWithStatus>, String> {
+pub async fn llm_get_embed_models(app: AppHandle) -> Result<Vec<EmbedModelWithStatus>, String> {
     let registry = fetch_registry().await?;
     let installed = list_installed_models(&app)?;
     let mut result = Vec::with_capacity(registry.models.len());
@@ -227,12 +251,10 @@ pub async fn llm_get_embed_models(
 
 /// Download and install an embedding model by ID.
 #[tauri::command]
-pub async fn llm_download_embed_model(
-    app: AppHandle,
-    model_id: String,
-) -> Result<(), String> {
+pub async fn llm_download_embed_model(app: AppHandle, model_id: String) -> Result<(), String> {
     let registry = fetch_registry().await?;
-    let model = registry.models
+    let model = registry
+        .models
         .into_iter()
         .find(|m| m.id == model_id)
         .ok_or_else(|| format!("Model {} not found in registry", model_id))?;
@@ -241,9 +263,6 @@ pub async fn llm_download_embed_model(
 
 /// Delete an installed embedding model.
 #[tauri::command]
-pub fn llm_delete_embed_model(
-    app: AppHandle,
-    model_id: String,
-) -> Result<(), String> {
+pub fn llm_delete_embed_model(app: AppHandle, model_id: String) -> Result<(), String> {
     delete_model(&app, &model_id)
 }

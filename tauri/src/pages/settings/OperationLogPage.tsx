@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
@@ -23,7 +24,7 @@ interface AuditLogEntry {
 /** All known entity types — used for filter buttons */
 const ALL_ENTITY_TYPES = ['object', 'page', 'preference', 'profile', 'biometric', 'template', 'export', 'import', 'attachment', 'trash_item', 'llm'];
 
-function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => string): string {
+function formatDetail(entry: AuditLogEntry, t: TFunction): string {
   const key = `settings:log.detail.${entry.actionType}`;
   const raw = entry.details || '';
   const translated = t(key, { defaultValue: raw });
@@ -44,10 +45,10 @@ function formatDetail(entry: AuditLogEntry, t: (key: string, opts?: any) => stri
     if (vars.was_conflict === 'true') vars.was_conflict = t('settings:log.conflict_renamed');
     else if (vars.was_conflict === 'false') vars.was_conflict = t('settings:log.conflict_none');
     // Translate location and action codes to human-readable i18n
-    if (vars.location) vars.location = t(`settings:log.location.${vars.location}`, vars.location);
-    if (vars.action) vars.action = t(`settings:log.action_name.${vars.action}`, vars.action);
+    if (vars.location) vars.location = t(`settings:log.location.${vars.location}`, { defaultValue: String(vars.location) });
+    if (vars.action) vars.action = t(`settings:log.action_name.${vars.action}`, { defaultValue: String(vars.action) });
     // Translate section codes (identity/travel/financial/professional)
-    if (vars.section) vars.section = t(`common:${vars.section}`, vars.section);
+    if (vars.section) vars.section = t(`common:${vars.section}`, { defaultValue: String(vars.section) });
     return t(key, { defaultValue: raw, ...vars });
   }
   return t(key, { defaultValue: raw, reason: raw });

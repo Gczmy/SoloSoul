@@ -59,13 +59,13 @@ pub struct PageGroup {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportScope {
-    pub selected_page_ids: Vec<String>,    // section_types to export fully
-    pub selected_object_ids: Vec<String>,  // specific object IDs
-    pub selected_tags: Vec<String>,        // P1: tag filter (intersection with selectedObjectIds)
-    pub include_attachments: bool,         // P1: include attachment files
+    pub selected_page_ids: Vec<String>, // section_types to export fully
+    pub selected_object_ids: Vec<String>, // specific object IDs
+    pub selected_tags: Vec<String>,     // P1: tag filter (intersection with selectedObjectIds)
+    pub include_attachments: bool,      // P1: include attachment files
     pub selected_attachment_ids: Vec<String>, // P1: fine-grained attachment selection (empty = none)
-    pub include_preferences: bool,         // P2: include user preferences
-    pub include_behavioral: bool,          // future: include behavioral data
+    pub include_preferences: bool,            // P2: include user preferences
+    pub include_behavioral: bool,             // future: include behavioral data
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -165,7 +165,9 @@ fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32], String> {
 fn load_attachments(props: &serde_json::Value) -> Vec<super::attachment::AttachmentMeta> {
     props
         .get("__attachments")
-        .and_then(|v| serde_json::from_value::<Vec<super::attachment::AttachmentMeta>>(v.clone()).ok())
+        .and_then(|v| {
+            serde_json::from_value::<Vec<super::attachment::AttachmentMeta>>(v.clone()).ok()
+        })
         .unwrap_or_default()
 }
 
@@ -190,13 +192,8 @@ fn collect_scope_objects(
     // Filter by tags (P2): if selected_tags is non-empty, keep only objects with ANY matching tag
     if !scope.selected_tags.is_empty() {
         selected_ids.retain(|id| {
-            all.iter().any(|s| {
-                s.id == *id
-                    && s
-                        .tags
-                        .iter()
-                        .any(|t| scope.selected_tags.contains(t))
-            })
+            all.iter()
+                .any(|s| s.id == *id && s.tags.iter().any(|t| scope.selected_tags.contains(t)))
         });
     }
 
@@ -296,7 +293,8 @@ pub async fn export_estimate_size(
     let mut attachment_count = 0usize;
     let mut attachment_selected_count = 0usize;
     if scope.include_attachments {
-        let selected: std::collections::HashSet<String> = scope.selected_attachment_ids.iter().cloned().collect();
+        let selected: std::collections::HashSet<String> =
+            scope.selected_attachment_ids.iter().cloned().collect();
         for rec in &records {
             let atts = load_attachments(&rec.properties);
             for att in &atts {
@@ -360,7 +358,10 @@ pub async fn export_execute(
         }
         Ok(false) => { /* export password is different from master password — OK */ }
         Err(e) => {
-            return Err(export_err_with_detail("MASTER_VERIFY_FAILED", &e.to_string()));
+            return Err(export_err_with_detail(
+                "MASTER_VERIFY_FAILED",
+                &e.to_string(),
+            ));
         }
     }
 
@@ -424,7 +425,8 @@ pub async fn export_execute(
     const STREAMING_THRESHOLD: u64 = 10 * 1024 * 1024; // 10 MB
 
     let mut has_attachments = false;
-    let selected_attachment_ids: std::collections::HashSet<String> = req.scope.selected_attachment_ids.iter().cloned().collect();
+    let selected_attachment_ids: std::collections::HashSet<String> =
+        req.scope.selected_attachment_ids.iter().cloned().collect();
     let mut attachment_entries: Vec<(String, String, String, std::path::PathBuf)> = Vec::new();
     let mut total_attachment_bytes: u64 = 0;
 
@@ -445,7 +447,10 @@ pub async fn export_execute(
                 }
                 // Single attachment size limit
                 if att.size_bytes > MAX_ATTACHMENT_BYTES {
-                    return Err(export_err_with_detail("ATTACHMENT_TOO_LARGE", &att.file_name));
+                    return Err(export_err_with_detail(
+                        "ATTACHMENT_TOO_LARGE",
+                        &att.file_name,
+                    ));
                 }
 
                 let src = att
@@ -456,12 +461,21 @@ pub async fn export_execute(
                     .filter(|p| p.exists())
                     .or_else(|| {
                         let fallback = base_dir.join(&att.id).join(&att.file_name);
-                        if fallback.exists() { Some(fallback) } else { None }
+                        if fallback.exists() {
+                            Some(fallback)
+                        } else {
+                            None
+                        }
                     });
 
                 if let Some(src) = src {
                     total_attachment_bytes += att.size_bytes;
-                    attachment_entries.push((rec.id.clone(), att.id.clone(), att.file_name.clone(), src));
+                    attachment_entries.push((
+                        rec.id.clone(),
+                        att.id.clone(),
+                        att.file_name.clone(),
+                        src,
+                    ));
                 }
             }
         }
@@ -469,18 +483,18 @@ pub async fn export_execute(
 
     // Total export size limit (payload + attachments + ~28 bytes overhead per attachment for nonce/chunk_count)
     let payload_estimate = payload_bytes.len() as u64;
-    let total_export_estimate = payload_estimate + total_attachment_bytes + (attachment_entries.len() as u64 * 28);
+    let total_export_estimate =
+        payload_estimate + total_attachment_bytes + (attachment_entries.len() as u64 * 28);
     if total_export_estimate > MAX_EXPORT_TOTAL_BYTES {
         return Err(export_err("TOTAL_SIZE_EXCEEDED"));
     }
 
     // Derive attachment key via HKDF
     let att_key = if !attachment_entries.is_empty() {
-        Some(solosoul_crypto::hkdf_ext::derive_hkdf_key(
-            &key,
-            &salt,
-            b"solosoul:attachments:v1",
-        ).map_err(|e| format!("derive att key: {}", e))?)
+        Some(
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&key, &salt, b"solosoul:attachments:v1")
+                .map_err(|e| format!("derive att key: {}", e))?,
+        )
     } else {
         None
     };
@@ -492,7 +506,8 @@ pub async fn export_execute(
             let zip_name = format!("attachments/{}/{}.enc", obj_id, att_id);
             let mut buf = Vec::new();
             let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
-            f.read_to_end(&mut buf).map_err(|e| format!("read attachment: {}", e))?;
+            f.read_to_end(&mut buf)
+                .map_err(|e| format!("read attachment: {}", e))?;
 
             let enc = if file_size <= STREAMING_THRESHOLD {
                 solosoul_crypto::cipher::encrypt_to_bytes(ak, &buf, None)
@@ -502,7 +517,8 @@ pub async fn export_execute(
                     .map_err(|e| format!("encrypt attachment chunked: {}", e))?
             };
 
-            zip.start_file(&zip_name, options).map_err(|e| e.to_string())?;
+            zip.start_file(&zip_name, options)
+                .map_err(|e| e.to_string())?;
             zip.write_all(&enc).map_err(|e| e.to_string())?;
             has_attachments = true;
         }
@@ -513,14 +529,12 @@ pub async fn export_execute(
     let mut preferences_encrypted = false;
     if req.scope.include_preferences {
         if let Ok(Some(profile)) = vault.load_profile(&account_id) {
-            let prefs_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
-                &key,
-                &salt,
-                b"solosoul:preferences:v1",
-            )
-            .map_err(|e| format!("derive prefs key: {}", e))?;
-            let prefs_enc = solosoul_crypto::cipher::encrypt_to_bytes(&prefs_key, &profile.data, None)
-                .map_err(|e| format!("encrypt prefs: {}", e))?;
+            let prefs_key =
+                solosoul_crypto::hkdf_ext::derive_hkdf_key(&key, &salt, b"solosoul:preferences:v1")
+                    .map_err(|e| format!("derive prefs key: {}", e))?;
+            let prefs_enc =
+                solosoul_crypto::cipher::encrypt_to_bytes(&prefs_key, &profile.data, None)
+                    .map_err(|e| format!("encrypt prefs: {}", e))?;
             zip.start_file("preferences.enc", options)
                 .map_err(|e| e.to_string())?;
             zip.write_all(&prefs_enc).map_err(|e| e.to_string())?;
@@ -541,8 +555,9 @@ pub async fn export_execute(
                     b"solosoul:behavioral:v1",
                 )
                 .map_err(|e| format!("derive behavioral key: {}", e))?;
-                let behav_enc = solosoul_crypto::cipher::encrypt_to_bytes(&behav_key, &logs_json, None)
-                    .map_err(|e| format!("encrypt behavioral: {}", e))?;
+                let behav_enc =
+                    solosoul_crypto::cipher::encrypt_to_bytes(&behav_key, &logs_json, None)
+                        .map_err(|e| format!("encrypt behavioral: {}", e))?;
                 zip.start_file("behavioral.enc", options)
                     .map_err(|e| e.to_string())?;
                 zip.write_all(&behav_enc).map_err(|e| e.to_string())?;
@@ -588,7 +603,11 @@ pub async fn export_execute(
         None,
         None,
         "user",
-        Some(&format!("exported {} objects to {}", records.len(), zip_path)),
+        Some(&format!(
+            "exported {} objects to {}",
+            records.len(),
+            zip_path
+        )),
     );
 
     Ok(zip_path)
@@ -614,7 +633,9 @@ pub async fn export_get_attachments(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
-    let obj = vault.load_object(&object_id).map_err(|e| e.to_string())?
+    let obj = vault
+        .load_object(&object_id)
+        .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Object {} not found", object_id))?;
 
     let atts = load_attachments(&obj.properties);
@@ -648,27 +669,48 @@ pub async fn import_parse_package(file_path: String) -> Result<ImportPreview, St
             .by_name("manifest.json")
             .map_err(|_| import_err("MISSING_MANIFEST"))?;
         let mut buf = Vec::new();
-        entry.read_to_end(&mut buf).map_err(|e| format!("Read: {}", e))?;
+        entry
+            .read_to_end(&mut buf)
+            .map_err(|e| format!("Read: {}", e))?;
         let s = String::from_utf8_lossy(&buf).to_string();
-        let v: serde_json::Value = serde_json::from_str(&s)
-            .map_err(|e| format!("Invalid manifest JSON: {}", e))?;
+        let v: serde_json::Value =
+            serde_json::from_str(&s).map_err(|e| format!("Invalid manifest JSON: {}", e))?;
 
         let extra_files: Vec<String> = v
             .get("extra_files")
             .and_then(|x| x.as_array())
-            .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_default();
 
         Ok(ImportPreview {
             file_path: fp,
-            version: v.get("version").and_then(|x| x.as_str()).unwrap_or("1.0").to_string(),
+            version: v
+                .get("version")
+                .and_then(|x| x.as_str())
+                .unwrap_or("1.0")
+                .to_string(),
             object_count: v.get("object_count").and_then(|x| x.as_u64()).unwrap_or(0) as usize,
-            has_attachments: v.get("has_attachments").and_then(|x| x.as_bool()).unwrap_or(false),
+            has_attachments: v
+                .get("has_attachments")
+                .and_then(|x| x.as_bool())
+                .unwrap_or(false),
             extra_files,
-            export_time: v.get("export_time").and_then(|x| x.as_str()).map(|x| x.to_string()),
-            password_hint: v.get("password_hint").and_then(|x| x.as_str()).filter(|s| !s.is_empty()).map(|x| x.to_string()),
+            export_time: v
+                .get("export_time")
+                .and_then(|x| x.as_str())
+                .map(|x| x.to_string()),
+            password_hint: v
+                .get("password_hint")
+                .and_then(|x| x.as_str())
+                .filter(|s| !s.is_empty())
+                .map(|x| x.to_string()),
         })
-    }).await;
+    })
+    .await;
 
     match result {
         Ok(Ok(preview)) => Ok(preview),
@@ -700,8 +742,8 @@ pub async fn import_decrypt_preview(
     let decrypted = solosoul_crypto::cipher::decrypt_from_bytes(&key, &enc_bytes, None)
         .map_err(|_| import_err("DECRYPT_FAILED"))?;
 
-    let payload: serde_json::Value = serde_json::from_slice(&decrypted)
-        .map_err(|e| format!("Invalid payload: {}", e))?;
+    let payload: serde_json::Value =
+        serde_json::from_slice(&decrypted).map_err(|e| format!("Invalid payload: {}", e))?;
 
     let objects: Vec<ObjectSummary> = payload["objects"]
         .as_array()
@@ -713,12 +755,22 @@ pub async fn import_decrypt_preview(
                         name: o["name"].as_str()?.to_string(),
                         collection_type: o["type_id"].as_str()?.to_string(),
                         section_type: o["section_type"].as_str().unwrap_or("").to_string(),
-                        sensitivity_level: o["sensitivity_level"].as_str().unwrap_or("internal").to_string(),
+                        sensitivity_level: o["sensitivity_level"]
+                            .as_str()
+                            .unwrap_or("internal")
+                            .to_string(),
                         created_at: o["created_at"].as_str().unwrap_or("").to_string(),
                         updated_at: o["updated_at"].as_str().unwrap_or("").to_string(),
                         is_deleted: false,
                         properties: o["properties"].clone(),
-                        tags: o["tags"].as_array().map(|t| t.iter().filter_map(|v| v.as_str().map(String::from)).collect()).unwrap_or_default(),
+                        tags: o["tags"]
+                            .as_array()
+                            .map(|t| {
+                                t.iter()
+                                    .filter_map(|v| v.as_str().map(String::from))
+                                    .collect()
+                            })
+                            .unwrap_or_default(),
                     })
                 })
                 .collect()
@@ -738,7 +790,9 @@ pub async fn import_decrypt_preview(
         }
     }
 
-    let has_preferences = manifest.extra_files.contains(&"preferences.enc".to_string());
+    let has_preferences = manifest
+        .extra_files
+        .contains(&"preferences.enc".to_string());
 
     // Build attachment preview list from payload
     let mut attachments = Vec::new();
@@ -775,7 +829,15 @@ pub async fn import_execute(
     file_path: String,
     password: String,
 ) -> Result<usize, String> {
-    import_execute_internal(state, account_id, file_path, password, ImportStrategy::SkipExisting, None).await
+    import_execute_internal(
+        state,
+        account_id,
+        file_path,
+        password,
+        ImportStrategy::SkipExisting,
+        None,
+    )
+    .await
 }
 
 /// P2: Advanced import with object selection and strategy
@@ -785,7 +847,15 @@ pub async fn import_execute_advanced(
     account_id: String,
     req: AdvancedImportRequest,
 ) -> Result<usize, String> {
-    import_execute_internal(state, account_id, req.source_path, req.password, req.strategy, Some(req.selections)).await
+    import_execute_internal(
+        state,
+        account_id,
+        req.source_path,
+        req.password,
+        req.strategy,
+        Some(req.selections),
+    )
+    .await
 }
 
 async fn import_execute_internal(
@@ -811,8 +881,8 @@ async fn import_execute_internal(
     let decrypted = solosoul_crypto::cipher::decrypt_from_bytes(&key, &enc_bytes, None)
         .map_err(|_| import_err("DECRYPT_FAILED"))?;
 
-    let payload: serde_json::Value = serde_json::from_slice(&decrypted)
-        .map_err(|e| format!("Invalid payload: {}", e))?;
+    let payload: serde_json::Value =
+        serde_json::from_slice(&decrypted).map_err(|e| format!("Invalid payload: {}", e))?;
 
     // Build selection set if provided
     let selected_ids: Option<BTreeSet<String>> = selections.map(|sels| {
@@ -822,10 +892,13 @@ async fn import_execute_internal(
             .collect()
     });
 
-    let objects = payload["objects"].as_array().ok_or("No objects array in payload")?;
+    let objects = payload["objects"]
+        .as_array()
+        .ok_or("No objects array in payload")?;
     let package_ids = build_package_ids(&payload);
     let mut imported = 0usize;
-    let mut imported_object_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut imported_object_ids: std::collections::HashSet<String> =
+        std::collections::HashSet::new();
     let now = chrono::Utc::now().to_rfc3339();
 
     for obj_val in objects {
@@ -846,7 +919,7 @@ async fn import_execute_internal(
         match &strategy {
             ImportStrategy::SkipExisting => {
                 // Soft-deleted objects are not considered existing; import will restore them.
-                if existing.map_or(false, |e| !e.is_deleted) {
+                if existing.is_some_and(|e| !e.is_deleted) {
                     continue;
                 }
             }
@@ -862,13 +935,23 @@ async fn import_execute_internal(
             id: id.to_string(),
             account_id: account_id.clone(),
             type_id: obj_val["type_id"].as_str().unwrap_or("note").to_string(),
-            section_type: obj_val["section_type"].as_str().unwrap_or("identity").to_string(),
+            section_type: obj_val["section_type"]
+                .as_str()
+                .unwrap_or("identity")
+                .to_string(),
             name: obj_val["name"].as_str().unwrap_or("Imported").to_string(),
-            icon_name: obj_val["icon_name"].as_str().unwrap_or("document").to_string(),
+            icon_name: obj_val["icon_name"]
+                .as_str()
+                .unwrap_or("document")
+                .to_string(),
             parent_id: obj_val["parent_id"].as_str().map(String::from),
             children_ids: obj_val["children_ids"]
                 .as_array()
-                .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|v| v.as_str().map(String::from))
+                        .collect()
+                })
                 .unwrap_or_default(),
             properties,
             property_labels: if obj_val["property_labels"].is_null() {
@@ -876,19 +959,28 @@ async fn import_execute_internal(
             } else {
                 Some(obj_val["property_labels"].clone())
             },
-            sensitivity_level: obj_val["sensitivity_level"].as_str().unwrap_or("internal").to_string(),
+            sensitivity_level: obj_val["sensitivity_level"]
+                .as_str()
+                .unwrap_or("internal")
+                .to_string(),
             is_deleted: false,
             deleted_at: None,
             tags_json: obj_val["tags"]
                 .as_array()
-                .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|v| v.as_str().map(String::from))
+                        .collect()
+                })
                 .unwrap_or_default(),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
             updated_at: now.clone(),
             version: obj_val["version"].as_u64().unwrap_or(1) as u32,
         };
 
-        vault.save_object(&record).map_err(|e| format!("save: {}", e))?;
+        vault
+            .save_object(&record)
+            .map_err(|e| format!("save: {}", e))?;
         imported += 1;
         imported_object_ids.insert(id.to_string());
     }
@@ -896,17 +988,18 @@ async fn import_execute_internal(
     // ── P1: Import attachments (encrypted) ─────────────────────
     if manifest.has_attachments {
         // Derive attachment key via HKDF
-        let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
-            &key,
-            &salt,
-            b"solosoul:attachments:v1",
-        ).map_err(|e| format!("derive att key: {}", e))?;
+        let att_key =
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&key, &salt, b"solosoul:attachments:v1")
+                .map_err(|e| format!("derive att key: {}", e))?;
 
         // Build old att_id -> meta map from payload objects
-        let mut att_meta_map: std::collections::HashMap<(String, String), AttachmentMeta> = std::collections::HashMap::new();
+        let mut att_meta_map: std::collections::HashMap<(String, String), AttachmentMeta> =
+            std::collections::HashMap::new();
         for obj_val in objects {
             let obj_id = obj_val["id"].as_str().unwrap_or("");
-            if obj_id.is_empty() { continue; }
+            if obj_id.is_empty() {
+                continue;
+            }
             let empty_props = serde_json::Map::new();
             let props = obj_val["properties"].as_object().unwrap_or(&empty_props);
             let atts = load_attachments(&serde_json::Value::Object(props.clone()));
@@ -919,7 +1012,8 @@ async fn import_execute_internal(
         let zip_file = File::open(&file_path).map_err(|e| format!("open zip: {}", e))?;
         let mut archive = ZipArchive::new(zip_file).map_err(|e| format!("invalid zip: {}", e))?;
         let att_prefix = "attachments/";
-        let mut imported_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> = std::collections::HashMap::new();
+        let mut imported_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> =
+            std::collections::HashMap::new();
         for i in 0..archive.len() {
             let mut f = archive.by_index(i).map_err(|e| e.to_string())?;
             let name = f.name().to_string();
@@ -959,34 +1053,45 @@ async fn import_execute_internal(
             } else {
                 match solosoul_crypto::cipher::decrypt_from_bytes(&att_key, &enc_data, None) {
                     Ok(d) => d,
-                    Err(_) => solosoul_crypto::cipher::decrypt_chunked_from_bytes(&att_key, &enc_data)
-                        .map_err(|e| format!("decrypt attachment fallback: {}", e))?,
+                    Err(_) => {
+                        solosoul_crypto::cipher::decrypt_chunked_from_bytes(&att_key, &enc_data)
+                            .map_err(|e| format!("decrypt attachment fallback: {}", e))?
+                    }
                 }
             };
 
             // Save to vault storage
             let new_att_id = generate_id();
-            let dest = svc.base_path().join("attachments").join(obj_id).join(&new_att_id);
+            let dest = svc
+                .base_path()
+                .join("attachments")
+                .join(obj_id)
+                .join(&new_att_id);
             std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
             let file_path_dest = dest.join(&old_meta.file_name);
             std::fs::write(&file_path_dest, &att_data).map_err(|e| e.to_string())?;
 
-            imported_atts.entry(obj_id.to_string()).or_default().push(AttachmentMeta {
-                id: new_att_id,
-                object_id: obj_id.to_string(),
-                file_name: old_meta.file_name.clone(),
-                mime_type: old_meta.mime_type.clone(),
-                size_bytes: att_data.len() as u64,
-                created_at: now.clone(),
-                deleted_at: None,
-                src_path: Some(file_path_dest.to_string_lossy().to_string()),
-                vault_path: Some(file_path_dest.to_string_lossy().to_string()),
-            });
+            imported_atts
+                .entry(obj_id.to_string())
+                .or_default()
+                .push(AttachmentMeta {
+                    id: new_att_id,
+                    object_id: obj_id.to_string(),
+                    file_name: old_meta.file_name.clone(),
+                    mime_type: old_meta.mime_type.clone(),
+                    size_bytes: att_data.len() as u64,
+                    created_at: now.clone(),
+                    deleted_at: None,
+                    src_path: Some(file_path_dest.to_string_lossy().to_string()),
+                    vault_path: Some(file_path_dest.to_string_lossy().to_string()),
+                });
         }
 
         // Replace each imported object's __attachments with the newly imported list
         for (obj_id, atts) in imported_atts {
-            let mut obj = vault.load_object(&obj_id).map_err(|e| format!("get object: {}", e))?
+            let mut obj = vault
+                .load_object(&obj_id)
+                .map_err(|e| format!("get object: {}", e))?
                 .ok_or_else(|| format!("object {} not found", obj_id))?;
             let att_json = serde_json::to_value(&atts).map_err(|e| e.to_string())?;
             match &mut obj.properties {
@@ -1004,7 +1109,10 @@ async fn import_execute_internal(
     }
 
     // ── P2: Import preferences if present ──────────────────────
-    if manifest.extra_files.contains(&"preferences.enc".to_string()) {
+    if manifest
+        .extra_files
+        .contains(&"preferences.enc".to_string())
+    {
         let prefs_salt = hex::decode(&manifest.salt_hex).unwrap_or_default();
         let prefs_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
             &key,
@@ -1013,8 +1121,14 @@ async fn import_execute_internal(
         )
         .map_err(|e| format!("derive prefs key: {}", e))?;
         if let Ok(prefs_enc) = read_file_from_zip(&file_path, "preferences.enc") {
-            if let Ok(prefs_dec) = solosoul_crypto::cipher::decrypt_from_bytes(&prefs_key, &prefs_enc, None) {
-                let profile = solosoul_vault::Profile::new_with_id(&account_id, &account_id, prefs_dec.to_vec());
+            if let Ok(prefs_dec) =
+                solosoul_crypto::cipher::decrypt_from_bytes(&prefs_key, &prefs_enc, None)
+            {
+                let profile = solosoul_vault::Profile::new_with_id(
+                    &account_id,
+                    &account_id,
+                    prefs_dec.to_vec(),
+                );
                 let _ = vault.save_profile(&profile);
             }
         }
@@ -1026,7 +1140,10 @@ async fn import_execute_internal(
         None,
         None,
         "user",
-        Some(&format!("imported {} objects from {} (strategy: {:?})", imported, file_path, strategy)),
+        Some(&format!(
+            "imported {} objects from {} (strategy: {:?})",
+            imported, file_path, strategy
+        )),
     );
 
     Ok(imported)
@@ -1121,18 +1238,28 @@ fn read_manifest(file_path: &str) -> Result<ManifestData, String> {
         .by_name("manifest.json")
         .map_err(|_| import_err("MISSING_MANIFEST"))?;
     let mut buf = Vec::new();
-    entry.read_to_end(&mut buf).map_err(|e| format!("Read manifest: {}", e))?;
+    entry
+        .read_to_end(&mut buf)
+        .map_err(|e| format!("Read manifest: {}", e))?;
     let s = String::from_utf8_lossy(&buf);
-    let v: serde_json::Value = serde_json::from_str(&s).map_err(|e| format!("Invalid manifest: {}", e))?;
+    let v: serde_json::Value =
+        serde_json::from_str(&s).map_err(|e| format!("Invalid manifest: {}", e))?;
 
     let extra_files: Vec<String> = v
         .get("extra_files")
         .and_then(|x| x.as_array())
-        .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        .map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
         .unwrap_or_default();
 
     Ok(ManifestData {
-        salt_hex: v["salt_hex"].as_str().ok_or(import_err("MISSING_SALT"))?.to_string(),
+        salt_hex: v["salt_hex"]
+            .as_str()
+            .ok_or(import_err("MISSING_SALT"))?
+            .to_string(),
         has_attachments: v["has_attachments"].as_bool().unwrap_or(false),
         extra_files,
     })
@@ -1142,8 +1269,12 @@ fn read_file_from_zip(file_path: &str, name: &str) -> Result<Vec<u8>, String> {
     let path = std::path::Path::new(file_path);
     let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;
     let mut archive = ZipArchive::new(file).map_err(|_| "Invalid ZIP".to_string())?;
-    let mut entry = archive.by_name(name).map_err(|_| format!("File not found: {}", name))?;
+    let mut entry = archive
+        .by_name(name)
+        .map_err(|_| format!("File not found: {}", name))?;
     let mut buf = Vec::new();
-    entry.read_to_end(&mut buf).map_err(|e| format!("Read {}: {}", name, e))?;
+    entry
+        .read_to_end(&mut buf)
+        .map_err(|e| format!("Read {}: {}", name, e))?;
     Ok(buf)
 }

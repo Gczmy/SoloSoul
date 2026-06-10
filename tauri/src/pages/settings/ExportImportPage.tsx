@@ -41,16 +41,6 @@ interface AttachmentInfo {
   sizeBytes: number;
 }
 
-interface ExportScope {
-  selectedPageIds: string[];
-  selectedObjectIds: string[];
-  selectedTags: string[];
-  includeAttachments: boolean;
-  selectedAttachmentIds: string[];
-  includePreferences: boolean;
-  includeBehavioral: boolean;
-}
-
 interface ExportEstimate {
   objectCount: number;
   attachmentCount: number;
@@ -566,7 +556,7 @@ export function ExportImportPage() {
 
     setIsExporting(true);
     try {
-      const path = await invoke<string>('export_execute', {
+      await invoke<string>('export_execute', {
         accountId,
         req: {
           scope: {

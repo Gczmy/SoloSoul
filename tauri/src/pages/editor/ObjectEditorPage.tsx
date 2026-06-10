@@ -8,7 +8,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
-import { useObjectStore, ObjectData } from '@/stores/objectStore';
+import { useObjectStore } from '@/stores/objectStore';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useToastError } from '@/hooks/useToastError';

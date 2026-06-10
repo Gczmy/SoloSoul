@@ -23,7 +23,7 @@ function parseCardItems(content: string): GuideCardItem[] {
     const trimmed = line.trim();
     if (!trimmed.startsWith('- ')) continue;
     // 匹配 - [标题](href) — 描述  或 - [标题](href): 描述
-    const match = trimmed.match(/^- \[([^\]]+)\]\(([^)]+)\)\s*[—:\-]\s*(.+)$/);
+    const match = trimmed.match(/^- \[([^\]]+)\]\(([^)]+)\)\s*[—:-]\s*(.+)$/);
     if (match) {
       items.push({ title: match[1], href: match[2], desc: match[3] });
     }
@@ -68,10 +68,10 @@ function parseSegments(markdown: string): Segment[] {
 
 function createMarkdownComponents(onLinkClick?: (href: string) => void) {
   return {
-    code: GuideCodeBlock as any,
-    img: GuideImage as any,
-    table: GuideTable as any,
-    a: ({ href, children }: any) => {
+    code: GuideCodeBlock,
+    img: GuideImage,
+    table: GuideTable,
+    a: ({ href, children }: { href?: string; children?: React.ReactNode }) => {
       if (!href) return <span>{children}</span>;
       // 内部 Markdown 链接（如 templates.md）由调用方处理为应用内导航
       if (href.endsWith('.md')) {
@@ -104,12 +104,12 @@ function createMarkdownComponents(onLinkClick?: (href: string) => void) {
         </a>
       );
     },
-    thead: ({ children }: any) => (
+    thead: ({ children }: { children?: React.ReactNode }) => (
       <thead style={{ background: 'var(--bg-toolbar)', borderBottom: '2px solid var(--border-subtle)' }}>
         {children}
       </thead>
     ),
-    th: ({ children }: any) => (
+    th: ({ children }: { children?: React.ReactNode }) => (
       <th
         style={{
           padding: '10px 14px',
@@ -123,7 +123,7 @@ function createMarkdownComponents(onLinkClick?: (href: string) => void) {
         {children}
       </th>
     ),
-    td: ({ children }: any) => (
+    td: ({ children }: { children?: React.ReactNode }) => (
       <td
         style={{
           padding: '10px 14px',
@@ -135,17 +135,17 @@ function createMarkdownComponents(onLinkClick?: (href: string) => void) {
         {children}
       </td>
     ),
-    tr: ({ children }: any) => (
+    tr: ({ children }: { children?: React.ReactNode }) => (
       <tr style={{ transition: 'background 0.15s ease' }}>{children}</tr>
     ),
-    tbody: ({ children }: any) => <tbody>{children}</tbody>,
-    ol: ({ children }: any) => (
+    tbody: ({ children }: { children?: React.ReactNode }) => <tbody>{children}</tbody>,
+    ol: ({ children }: { children?: React.ReactNode }) => (
       <ol style={{ paddingLeft: 24, margin: '8px 0', listStylePosition: 'outside' }}>{children}</ol>
     ),
-    ul: ({ children }: any) => (
+    ul: ({ children }: { children?: React.ReactNode }) => (
       <ul style={{ paddingLeft: 24, margin: '8px 0', listStylePosition: 'outside' }}>{children}</ul>
     ),
-    li: ({ children }: any) => (
+    li: ({ children }: { children?: React.ReactNode }) => (
       <li style={{ margin: '4px 0', paddingLeft: 4 }}>{children}</li>
     ),
   };

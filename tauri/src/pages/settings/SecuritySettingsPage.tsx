@@ -155,7 +155,6 @@ export function SecuritySettingsPage() {
     }
   };
 
-  const allEmpty = !newPw && !confirmPw && !hint;
   const shouldDisableSave = !oldPw || loading;
 
   return (

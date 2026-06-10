@@ -54,9 +54,7 @@ pub async fn sensitivity_update_field(
             .rev()
             .find(|e| e.field_id == field_id && (e.old_level as i32) > (e.new_level as i32))
         {
-            if let Ok(last_ts) =
-                chrono::DateTime::parse_from_rfc3339(&last_downgrade.timestamp)
-            {
+            if let Ok(last_ts) = chrono::DateTime::parse_from_rfc3339(&last_downgrade.timestamp) {
                 let elapsed = chrono::Utc::now()
                     .signed_duration_since(last_ts.with_timezone(&chrono::Utc))
                     .num_seconds();
@@ -94,11 +92,9 @@ fn verify_vault_password(app: &AppState, password: &str) -> Result<(), String> {
         let stored_hash = account["verifyHash"].as_str().unwrap_or("");
 
         // Decode salt from base64
-        let salt_bytes = base64::Engine::decode(
-            &base64::engine::general_purpose::STANDARD,
-            stored_salt,
-        )
-        .map_err(|_| "Invalid salt encoding".to_string())?;
+        let salt_bytes =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, stored_salt)
+                .map_err(|_| "Invalid salt encoding".to_string())?;
 
         let salt_arr: [u8; 16] = salt_bytes
             .as_slice()

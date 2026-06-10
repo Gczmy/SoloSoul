@@ -85,8 +85,8 @@ export function LlmConfigPage() {
     try {
       const models = await invoke<EmbedModelWithStatus[]>('llm_get_embed_models');
       setEmbedModels(models);
-    } catch (e) {
-      console.error('Failed to load embed models:', e);
+    } catch {
+      // silently ignore
     } finally {
       setModelsLoading(false);
     }

@@ -57,7 +57,12 @@ fn search_properties_for_matches(
         }
         serde_json::Value::Array(arr) => {
             for (i, item) in arr.iter().enumerate() {
-                search_properties_for_matches(item, query, &format!("{}[{}]", current_path, i), matches);
+                search_properties_for_matches(
+                    item,
+                    query,
+                    &format!("{}[{}]", current_path, i),
+                    matches,
+                );
             }
         }
         _ => {}
@@ -74,7 +79,11 @@ pub async fn search_advanced(
     limit: Option<usize>,
 ) -> Result<SearchResult, String> {
     if query.trim().is_empty() {
-        return Ok(SearchResult { items: vec![], total: 0, has_more: false });
+        return Ok(SearchResult {
+            items: vec![],
+            total: 0,
+            has_more: false,
+        });
     }
 
     let svc = state.vault_service.read().await;
@@ -105,7 +114,11 @@ pub async fn search_advanced(
         search_properties_for_matches(&rec.properties, &q, "", &mut field_matches);
 
         // Name match bonus
-        let name_score = if rec.name.to_lowercase().contains(&q) { 2.0 } else { 0.0 };
+        let name_score = if rec.name.to_lowercase().contains(&q) {
+            2.0
+        } else {
+            0.0
+        };
 
         if !field_matches.is_empty() || name_score > 0.0 {
             if field_matches.is_empty() {
@@ -118,7 +131,8 @@ pub async fn search_advanced(
                     relevance: name_score,
                 });
             } else {
-                field_matches.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap());
+                field_matches
+                    .sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
                 let best = &field_matches[0];
                 items.push(SearchResultItem {
                     object_id: rec.id.clone(),
@@ -142,12 +156,20 @@ pub async fn search_advanced(
         }
     }
 
-    items.sort_by(|a, b| b.relevance.partial_cmp(&a.relevance).unwrap());
+    items.sort_by(|a, b| {
+        b.relevance
+            .partial_cmp(&a.relevance)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     let limit = limit.unwrap_or(50);
     let has_more = items.len() > limit;
     items.truncate(limit);
     let total = items.len();
-    Ok(SearchResult { items, total, has_more })
+    Ok(SearchResult {
+        items,
+        total,
+        has_more,
+    })
 }
 
 #[tauri::command]

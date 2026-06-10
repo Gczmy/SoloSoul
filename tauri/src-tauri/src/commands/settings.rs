@@ -30,9 +30,7 @@ impl Default for UiPreferences {
 }
 
 #[tauri::command]
-pub async fn ui_get_preferences(
-    state: State<'_, AppState>,
-) -> Result<UiPreferences, String> {
+pub async fn ui_get_preferences(state: State<'_, AppState>) -> Result<UiPreferences, String> {
     let svc = state.vault_service.read().await;
     let path = ui_prefs_path(&svc);
     if !path.exists() {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Maximize2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface AttachmentPreviewProps {
   fileName: string;

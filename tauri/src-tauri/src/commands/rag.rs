@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 // Re-export resource_path from llm module for guide file access
-use super::llm::{resource_path, GuideIndexEntry, resolve_language, resolve_title};
+use super::llm::{resolve_language, resolve_title, resource_path, GuideIndexEntry};
 
 /// A single chunk returned to the frontend for context injection.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -107,16 +107,22 @@ fn chunk_markdown(content: &str, doc_title: &str, guide_id: &str) -> Vec<RawChun
     let mut current_section_lines: Vec<&str> = Vec::new();
 
     for line in &lines {
-        if line.starts_with("## ") {
+        if let Some(title) = line.strip_prefix("## ") {
             // Flush previous section
             if !current_section_lines.is_empty() {
                 let section_text = current_section_lines.join("\n").trim().to_string();
                 if !section_text.is_empty() {
-                    let mut section_chunks = split_section(&section_text, doc_title, &current_section_title, guide_id, chunks.len());
+                    let mut section_chunks = split_section(
+                        &section_text,
+                        doc_title,
+                        &current_section_title,
+                        guide_id,
+                        chunks.len(),
+                    );
                     chunks.append(&mut section_chunks);
                 }
             }
-            current_section_title = line[3..].trim().to_string();
+            current_section_title = title.trim().to_string();
             current_section_lines.clear();
         } else {
             current_section_lines.push(line);
@@ -127,7 +133,13 @@ fn chunk_markdown(content: &str, doc_title: &str, guide_id: &str) -> Vec<RawChun
     if !current_section_lines.is_empty() {
         let section_text = current_section_lines.join("\n").trim().to_string();
         if !section_text.is_empty() {
-            let mut section_chunks = split_section(&section_text, doc_title, &current_section_title, guide_id, chunks.len());
+            let mut section_chunks = split_section(
+                &section_text,
+                doc_title,
+                &current_section_title,
+                guide_id,
+                chunks.len(),
+            );
             chunks.append(&mut section_chunks);
         }
     }
@@ -187,7 +199,13 @@ fn clean_special_blocks(content: &str) -> String {
 const MAX_CHUNK_LEN: usize = 800;
 const OVERLAP_LEN: usize = 50;
 
-fn split_section(text: &str, doc_title: &str, section_title: &str, guide_id: &str, start_index: usize) -> Vec<RawChunk> {
+fn split_section(
+    text: &str,
+    doc_title: &str,
+    section_title: &str,
+    guide_id: &str,
+    start_index: usize,
+) -> Vec<RawChunk> {
     let prefix = if section_title.is_empty() {
         format!("[{}]", doc_title)
     } else {
@@ -225,7 +243,9 @@ fn split_section(text: &str, doc_title: &str, section_title: &str, guide_id: &st
         }
 
         // Detect table (lines starting with |)
-        let is_table_line = para.lines().all(|l| l.trim().starts_with('|') || l.trim().is_empty());
+        let is_table_line = para
+            .lines()
+            .all(|l| l.trim().starts_with('|') || l.trim().is_empty());
         if is_table_line && !para.lines().next().unwrap_or("").trim().starts_with("```") {
             in_table = true;
         } else if in_table && !is_table_line {
@@ -240,7 +260,8 @@ fn split_section(text: &str, doc_title: &str, section_title: &str, guide_id: &st
 
         // If adding this paragraph would exceed limit, and we're not inside a code block/table,
         // flush current chunk and start new one with overlap
-        if current_chunk.len() + para_with_sep.len() > MAX_CHUNK_LEN && !in_code_block && !in_table {
+        if current_chunk.len() + para_with_sep.len() > MAX_CHUNK_LEN && !in_code_block && !in_table
+        {
             let idx = start_index + chunks.len();
             chunks.push(RawChunk {
                 guide_id: guide_id.to_string(),
@@ -292,7 +313,11 @@ fn get_sys_config(vault: &solosoul_vault::VaultStore, key: &str) -> Result<Optio
     vault.get_sys_config(key)
 }
 
-fn set_sys_config(vault: &solosoul_vault::VaultStore, key: &str, value: &str) -> Result<(), String> {
+fn set_sys_config(
+    vault: &solosoul_vault::VaultStore,
+    key: &str,
+    value: &str,
+) -> Result<(), String> {
     vault.set_sys_config(key, value)
 }
 
@@ -302,7 +327,8 @@ mod tests {
 
     #[test]
     fn test_chunk_markdown_simple() {
-        let md = "# Title\n\nIntro text.\n\n## Section A\n\nContent A.\n\n## Section B\n\nContent B.\n";
+        let md =
+            "# Title\n\nIntro text.\n\n## Section A\n\nContent A.\n\n## Section B\n\nContent B.\n";
         let chunks = chunk_markdown(md, "Doc Title", "guide_1");
         // Intro text before any ## becomes a chunk too
         assert_eq!(chunks.len(), 3);
@@ -322,7 +348,8 @@ mod tests {
 
     #[test]
     fn test_clean_special_blocks() {
-        let md = "Before\n\n<!--TIP-->\nTip content line 1\nTip content line 2\n<!--/TIP-->\n\nAfter\n";
+        let md =
+            "Before\n\n<!--TIP-->\nTip content line 1\nTip content line 2\n<!--/TIP-->\n\nAfter\n";
         let cleaned = clean_special_blocks(md);
         assert!(cleaned.contains("Before"));
         assert!(cleaned.contains("After"));
@@ -335,14 +362,24 @@ mod tests {
         // Create many short paragraphs separated by blank lines
         let mut long_content = String::new();
         for i in 0..30 {
-            long_content.push_str(&format!("Paragraph {} with enough text to make it long.\n\n", i));
+            long_content.push_str(&format!(
+                "Paragraph {} with enough text to make it long.\n\n",
+                i
+            ));
         }
         let md = format!("# Title\n\n## Section\n\n{}\n", long_content);
         let chunks = chunk_markdown(&md, "Doc", "g1");
-        assert!(chunks.len() >= 2, "Long section should be split into multiple chunks, got {}", chunks.len());
+        assert!(
+            chunks.len() >= 2,
+            "Long section should be split into multiple chunks, got {}",
+            chunks.len()
+        );
         for chunk in &chunks {
-            assert!(chunk.text.len() <= MAX_CHUNK_LEN + 200,
-                "Chunk should respect max length: got {} chars", chunk.text.len());
+            assert!(
+                chunk.text.len() <= MAX_CHUNK_LEN + 200,
+                "Chunk should respect max length: got {} chars",
+                chunk.text.len()
+            );
         }
     }
 }

@@ -1,16 +1,19 @@
 //! Vault store - SQLite storage with app-layer AES-256-GCM encryption
 
 use rusqlite::{params, Connection};
-use std::path::PathBuf;
 use std::sync::Mutex;
 
 use crate::migration::run_migrations;
-use crate::{ObjectRecord, ObjectSummary, Profile, ProfileSummary, TrashItem, TrashItemSummary, VaultConfig, VaultState, VaultStats};
+use crate::{
+    ObjectRecord, ObjectSummary, Profile, ProfileSummary, TrashItem, TrashItemSummary, VaultConfig,
+    VaultState, VaultStats,
+};
 
 /// Vault store with SQLite backing
 pub struct VaultStore {
     conn: Mutex<Option<Connection>>,
-    config: VaultConfig,
+    #[allow(dead_code)]
+    config: VaultConfig, // reserved for future path-based vault operations
     state: VaultState,
 }
 
@@ -150,9 +153,15 @@ impl VaultStore {
         .map_err(|e| format!("Failed to init schema: {}", e))?;
 
         // Migration: add tags_json column if missing (added in schema v2, §24)
-        let _ = conn.execute("ALTER TABLE objects ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]'", []);
+        let _ = conn.execute(
+            "ALTER TABLE objects ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]'",
+            [],
+        );
         // Migration: add section_type column if missing (§25.1.3)
-        let _ = conn.execute("ALTER TABLE objects ADD COLUMN section_type TEXT NOT NULL DEFAULT 'identity'", []);
+        let _ = conn.execute(
+            "ALTER TABLE objects ADD COLUMN section_type TEXT NOT NULL DEFAULT 'identity'",
+            [],
+        );
 
         let version_exists: bool = conn
             .query_row(
@@ -186,19 +195,35 @@ impl VaultStore {
 
         // Profiles data
         let profiles_size: u64 = conn
-            .query_row("SELECT COALESCE(SUM(LENGTH(data)), 0) FROM profiles", [], |r| r.get(0))
+            .query_row(
+                "SELECT COALESCE(SUM(LENGTH(data)), 0) FROM profiles",
+                [],
+                |r| r.get(0),
+            )
             .map_err(|e| e.to_string())?;
         // Objects properties
         let objects_size: u64 = conn
-            .query_row("SELECT COALESCE(SUM(LENGTH(properties)), 0) FROM objects", [], |r| r.get(0))
+            .query_row(
+                "SELECT COALESCE(SUM(LENGTH(properties)), 0) FROM objects",
+                [],
+                |r| r.get(0),
+            )
             .map_err(|e| e.to_string())?;
         // Trash data
         let trash_size: u64 = conn
-            .query_row("SELECT COALESCE(SUM(LENGTH(data)), 0) FROM trash_items", [], |r| r.get(0))
+            .query_row(
+                "SELECT COALESCE(SUM(LENGTH(data)), 0) FROM trash_items",
+                [],
+                |r| r.get(0),
+            )
             .map_err(|e| e.to_string())?;
         // Snapshots data
         let snapshots_size: u64 = conn
-            .query_row("SELECT COALESCE(SUM(LENGTH(data)), 0) FROM object_snapshots", [], |r| r.get(0))
+            .query_row(
+                "SELECT COALESCE(SUM(LENGTH(data)), 0) FROM object_snapshots",
+                [],
+                |r| r.get(0),
+            )
             .map_err(|e| e.to_string())?;
 
         let last_modified: Option<String> = conn
@@ -365,36 +390,38 @@ impl VaultStore {
                  FROM objects WHERE id = ?1",
             )
             .map_err(|e| format!("load_object: {}", e))?;
-        let result = stmt.query_row(params![id], |row| {
-            let children_str: String = row.get(7)?;
-            let props_str: String = row.get(8)?;
-            let labels_str: String = row.get(9)?;
-            let tags_str: String = row.get(13)?;
-            let deleted: i32 = row.get(11)?;
-            Ok(ObjectRecord {
-                id: row.get(0)?,
-                account_id: row.get(1)?,
-                type_id: row.get(2)?,
-                section_type: row.get(3)?,
-                name: row.get(4)?,
-                icon_name: row.get(5)?,
-                parent_id: row.get(6)?,
-                children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
-                properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
-                property_labels: if labels_str.is_empty() {
-                    None
-                } else {
-                    serde_json::from_str(&labels_str).ok()
-                },
-                sensitivity_level: row.get(10)?,
-                is_deleted: deleted != 0,
-                deleted_at: row.get(12)?,
-                tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
-                created_at: row.get(14)?,
-                updated_at: row.get(15)?,
-                version: row.get(16)?,
+        let result = stmt
+            .query_row(params![id], |row| {
+                let children_str: String = row.get(7)?;
+                let props_str: String = row.get(8)?;
+                let labels_str: String = row.get(9)?;
+                let tags_str: String = row.get(13)?;
+                let deleted: i32 = row.get(11)?;
+                Ok(ObjectRecord {
+                    id: row.get(0)?,
+                    account_id: row.get(1)?,
+                    type_id: row.get(2)?,
+                    section_type: row.get(3)?,
+                    name: row.get(4)?,
+                    icon_name: row.get(5)?,
+                    parent_id: row.get(6)?,
+                    children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
+                    properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
+                    property_labels: if labels_str.is_empty() {
+                        None
+                    } else {
+                        serde_json::from_str(&labels_str).ok()
+                    },
+                    sensitivity_level: row.get(10)?,
+                    is_deleted: deleted != 0,
+                    deleted_at: row.get(12)?,
+                    tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
+                    created_at: row.get(14)?,
+                    updated_at: row.get(15)?,
+                    version: row.get(16)?,
+                })
             })
-        }).ok();
+            .ok();
         Ok(result)
     }
 
@@ -415,7 +442,8 @@ impl VaultStore {
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
-        let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> = vec![Box::new(account_id.to_string())];
+        let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> =
+            vec![Box::new(account_id.to_string())];
 
         if only_deleted {
             sql.push_str(" AND is_deleted = 1");
@@ -448,9 +476,12 @@ impl VaultStore {
 
         sql.push_str(" ORDER BY updated_at DESC");
 
-        let mut stmt = conn.prepare(&sql).map_err(|e| format!("list_objects: {}", e))?;
+        let mut stmt = conn
+            .prepare(&sql)
+            .map_err(|e| format!("list_objects: {}", e))?;
 
-        let params_refs: Vec<&dyn rusqlite::types::ToSql> = param_values.iter().map(|p| p.as_ref()).collect();
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> =
+            param_values.iter().map(|p| p.as_ref()).collect();
 
         let objects = stmt
             .query_map(params_refs.as_slice(), |row| {
@@ -507,7 +538,11 @@ impl VaultStore {
         Ok(())
     }
 
-    pub fn search_objects(&self, account_id: &str, query: &str) -> Result<Vec<ObjectRecord>, String> {
+    pub fn search_objects(
+        &self,
+        account_id: &str,
+        query: &str,
+    ) -> Result<Vec<ObjectRecord>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let like = format!("%{}%", query);
@@ -532,7 +567,7 @@ impl VaultStore {
                     id: row.get(0)?,
                     account_id: row.get(1)?,
                     type_id: row.get(2)?,
-                section_type: String::new(),
+                    section_type: String::new(),
                     name: row.get(3)?,
                     icon_name: row.get(4)?,
                     parent_id: row.get(5)?,
@@ -569,17 +604,28 @@ impl VaultStore {
              name_snapshot, icon_snapshot)
              VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)",
             rusqlite::params![
-                item.id, item.item_type, item.original_id, item.original_parent_id,
-                item.original_section_type, item.original_sort_order, item.data,
-                item.deleted_at, item.expires_at,
-                item.deleted_by, item.name_snapshot, item.icon_snapshot,
+                item.id,
+                item.item_type,
+                item.original_id,
+                item.original_parent_id,
+                item.original_section_type,
+                item.original_sort_order,
+                item.data,
+                item.deleted_at,
+                item.expires_at,
+                item.deleted_by,
+                item.name_snapshot,
+                item.icon_snapshot,
             ],
-        ).map_err(|e| format!("save_trash_item: {}", e))?;
+        )
+        .map_err(|e| format!("save_trash_item: {}", e))?;
         Ok(())
     }
 
     pub fn list_trash_items(
-        &self, item_type: Option<&str>, since: Option<i64>,
+        &self,
+        item_type: Option<&str>,
+        since: Option<i64>,
     ) -> Result<Vec<TrashItemSummary>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
@@ -599,13 +645,22 @@ impl VaultStore {
         sql.push_str(" ORDER BY deleted_at DESC LIMIT 500");
         let p: Vec<&dyn rusqlite::types::ToSql> = params.iter().map(|b| b.as_ref()).collect();
         let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
-        let items = stmt.query_map(p.as_slice(), |row| {
-            Ok(TrashItemSummary {
-                id: row.get(0)?, item_type: row.get(1)?, name: row.get(2)?,
-                icon_id: row.get(3)?, deleted_at: row.get(4)?, expires_at: row.get(5)?,
-                original_parent_name: row.get(6)?, original_section_type: row.get(7)?,
+        let items = stmt
+            .query_map(p.as_slice(), |row| {
+                Ok(TrashItemSummary {
+                    id: row.get(0)?,
+                    item_type: row.get(1)?,
+                    name: row.get(2)?,
+                    icon_id: row.get(3)?,
+                    deleted_at: row.get(4)?,
+                    expires_at: row.get(5)?,
+                    original_parent_name: row.get(6)?,
+                    original_section_type: row.get(7)?,
+                })
             })
-        }).map_err(|e| e.to_string())?.collect::<Result<Vec<_>,_>>().map_err(|e| e.to_string())?;
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
         Ok(items)
     }
 
@@ -617,23 +672,35 @@ impl VaultStore {
              original_sort_order, data, deleted_at, expires_at, deleted_by, name_snapshot, icon_snapshot
              FROM trash_items WHERE id = ?1"
         ).map_err(|e| e.to_string())?;
-        let result = stmt.query_row(rusqlite::params![id], |row| {
-            Ok(TrashItem {
-                id: row.get(0)?, item_type: row.get(1)?, original_id: row.get(2)?,
-                original_parent_id: row.get(3)?, original_section_type: row.get(4)?,
-                original_sort_order: row.get(5)?,
-                data: row.get(6)?, deleted_at: row.get(7)?, expires_at: row.get(8)?,
-                deleted_by: row.get(9)?, name_snapshot: row.get(10)?, icon_snapshot: row.get(11)?,
+        let result = stmt
+            .query_row(rusqlite::params![id], |row| {
+                Ok(TrashItem {
+                    id: row.get(0)?,
+                    item_type: row.get(1)?,
+                    original_id: row.get(2)?,
+                    original_parent_id: row.get(3)?,
+                    original_section_type: row.get(4)?,
+                    original_sort_order: row.get(5)?,
+                    data: row.get(6)?,
+                    deleted_at: row.get(7)?,
+                    expires_at: row.get(8)?,
+                    deleted_by: row.get(9)?,
+                    name_snapshot: row.get(10)?,
+                    icon_snapshot: row.get(11)?,
+                })
             })
-        }).ok();
+            .ok();
         Ok(result)
     }
 
     pub fn delete_trash_item(&self, id: &str) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        conn.execute("DELETE FROM trash_items WHERE id = ?1", rusqlite::params![id])
-            .map_err(|e| e.to_string())?;
+        conn.execute(
+            "DELETE FROM trash_items WHERE id = ?1",
+            rusqlite::params![id],
+        )
+        .map_err(|e| e.to_string())?;
         Ok(())
     }
 
@@ -643,43 +710,69 @@ impl VaultStore {
         let mut stmt = conn.prepare(
             "SELECT id, timestamp, triggered_by, diff_summary FROM object_snapshots WHERE object_id=?1 ORDER BY timestamp DESC LIMIT 50"
         ).map_err(|e| e.to_string())?;
-        let snapshots = stmt.query_map(rusqlite::params![object_id], |row| {
-            Ok(serde_json::json!({
-                "id": row.get::<_,String>(0)?,
-                "timestamp": row.get::<_,i64>(1)?,
-                "triggeredBy": row.get::<_,String>(2)?,
-                "diffSummary": row.get::<_,String>(3)?,
-            }))
-        }).map_err(|e| e.to_string())?.collect::<Result<Vec<_>,_>>().map_err(|e| e.to_string())?;
+        let snapshots = stmt
+            .query_map(rusqlite::params![object_id], |row| {
+                Ok(serde_json::json!({
+                    "id": row.get::<_,String>(0)?,
+                    "timestamp": row.get::<_,i64>(1)?,
+                    "triggeredBy": row.get::<_,String>(2)?,
+                    "diffSummary": row.get::<_,String>(3)?,
+                }))
+            })
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
         Ok(snapshots)
     }
 
     pub fn get_snapshot(&self, snapshot_id: &str) -> Result<Option<Vec<u8>>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let result: Option<Vec<u8>> = conn.query_row(
-            "SELECT data FROM object_snapshots WHERE id=?1", rusqlite::params![snapshot_id], |r| r.get(0)
-        ).ok();
+        let result: Option<Vec<u8>> = conn
+            .query_row(
+                "SELECT data FROM object_snapshots WHERE id=?1",
+                rusqlite::params![snapshot_id],
+                |r| r.get(0),
+            )
+            .ok();
         Ok(result)
     }
 
-    pub fn count_snapshots_batch(&self, object_ids: &[String]) -> Result<std::collections::HashMap<String, usize>, String> {
+    pub fn count_snapshots_batch(
+        &self,
+        object_ids: &[String],
+    ) -> Result<std::collections::HashMap<String, usize>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let placeholders: Vec<String> = object_ids.iter().enumerate().map(|(i, _)| format!("?{}", i + 1)).collect();
+        let placeholders: Vec<String> = object_ids
+            .iter()
+            .enumerate()
+            .map(|(i, _)| format!("?{}", i + 1))
+            .collect();
         let sql = format!("SELECT object_id, COUNT(*) FROM object_snapshots WHERE object_id IN ({}) GROUP BY object_id", placeholders.join(","));
-        let params: Vec<&dyn rusqlite::types::ToSql> = object_ids.iter().map(|s| s as &dyn rusqlite::types::ToSql).collect();
+        let params: Vec<&dyn rusqlite::types::ToSql> = object_ids
+            .iter()
+            .map(|s| s as &dyn rusqlite::types::ToSql)
+            .collect();
         let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
-        let map = stmt.query_map(params.as_slice(), |row| {
-            Ok((row.get::<_,String>(0)?, row.get::<_,i64>(1)? as usize))
-        }).map_err(|e| e.to_string())?
-        .collect::<Result<std::collections::HashMap<String, usize>, _>>()
-        .map_err(|e| e.to_string())?;
+        let map = stmt
+            .query_map(params.as_slice(), |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)? as usize))
+            })
+            .map_err(|e| e.to_string())?
+            .collect::<Result<std::collections::HashMap<String, usize>, _>>()
+            .map_err(|e| e.to_string())?;
         Ok(map)
     }
 
     /// §25.5 — Save an object snapshot for history
-    pub fn save_snapshot(&self, object_id: &str, triggered_by: &str, data: &[u8], diff_summary: &str) -> Result<(), String> {
+    pub fn save_snapshot(
+        &self,
+        object_id: &str,
+        triggered_by: &str,
+        data: &[u8],
+        diff_summary: &str,
+    ) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let id = uuid::Uuid::new_v4().to_string();
@@ -767,7 +860,9 @@ impl VaultStore {
                     entity_type: row.get::<_, Option<String>>(3)?.unwrap_or_default(),
                     entity_id: row.get::<_, Option<String>>(4)?,
                     entity_name: row.get::<_, Option<String>>(5)?,
-                    performed_by: row.get::<_, Option<String>>(6)?.unwrap_or_else(|| "system".to_string()),
+                    performed_by: row
+                        .get::<_, Option<String>>(6)?
+                        .unwrap_or_else(|| "system".to_string()),
                     details: row.get::<_, Option<String>>(7)?,
                 })
             })
@@ -779,7 +874,8 @@ impl VaultStore {
         Ok(result)
     }
 
-    // Metadata helpers for encrypted blob storage
+    // Metadata helpers for encrypted blob storage (reserved)
+    #[allow(dead_code)]
     fn read_metadata(&self, key: &str, prefix: &str) -> Result<Option<Vec<u8>>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
@@ -804,6 +900,7 @@ impl VaultStore {
         }
     }
 
+    #[allow(dead_code)]
     fn write_metadata(&self, key: &str, prefix: &str, data: &[u8]) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
@@ -820,6 +917,7 @@ impl VaultStore {
         Ok(())
     }
 
+    #[allow(dead_code)]
     fn delete_metadata(&self, key: &str, prefix: &str) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
@@ -835,7 +933,9 @@ impl VaultStore {
     pub fn save_guide_embedding(&self, chunk: &crate::GuideEmbeddingChunk) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let embedding_bytes: Vec<u8> = chunk.embedding.iter()
+        let embedding_bytes: Vec<u8> = chunk
+            .embedding
+            .iter()
             .flat_map(|f| f.to_ne_bytes())
             .collect();
         conn.execute(
@@ -853,25 +953,30 @@ impl VaultStore {
     pub fn list_guide_embeddings(&self) -> Result<Vec<crate::GuideEmbeddingChunk>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let mut stmt = conn.prepare(
-            "SELECT id, guide_id, chunk_index, chunk_text, embedding, model, created_at
-             FROM guide_embeddings ORDER BY guide_id, chunk_index"
-        ).map_err(|e| format!("list_guide_embeddings prepare: {}", e))?;
-        let rows = stmt.query_map([], |row| {
-            let embedding_bytes: Vec<u8> = row.get(4)?;
-            let embedding: Vec<f32> = embedding_bytes.chunks_exact(4)
-                .map(|b| f32::from_ne_bytes([b[0], b[1], b[2], b[3]]))
-                .collect();
-            Ok(crate::GuideEmbeddingChunk {
-                id: row.get(0)?,
-                guide_id: row.get(1)?,
-                chunk_index: row.get(2)?,
-                chunk_text: row.get(3)?,
-                embedding,
-                model: row.get(5)?,
-                created_at: row.get(6)?,
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, guide_id, chunk_index, chunk_text, embedding, model, created_at
+             FROM guide_embeddings ORDER BY guide_id, chunk_index",
+            )
+            .map_err(|e| format!("list_guide_embeddings prepare: {}", e))?;
+        let rows = stmt
+            .query_map([], |row| {
+                let embedding_bytes: Vec<u8> = row.get(4)?;
+                let embedding: Vec<f32> = embedding_bytes
+                    .chunks_exact(4)
+                    .map(|b| f32::from_ne_bytes([b[0], b[1], b[2], b[3]]))
+                    .collect();
+                Ok(crate::GuideEmbeddingChunk {
+                    id: row.get(0)?,
+                    guide_id: row.get(1)?,
+                    chunk_index: row.get(2)?,
+                    chunk_text: row.get(3)?,
+                    embedding,
+                    model: row.get(5)?,
+                    created_at: row.get(6)?,
+                })
             })
-        }).map_err(|e| format!("list_guide_embeddings query: {}", e))?;
+            .map_err(|e| format!("list_guide_embeddings query: {}", e))?;
         let mut result = Vec::new();
         for row in rows {
             result.push(row.map_err(|e| format!("list_guide_embeddings row: {}", e))?);
@@ -886,7 +991,8 @@ impl VaultStore {
         conn.execute(
             "DELETE FROM guide_embeddings WHERE guide_id = ?1",
             params![guide_id],
-        ).map_err(|e| format!("delete_guide_embeddings: {}", e))?;
+        )
+        .map_err(|e| format!("delete_guide_embeddings: {}", e))?;
         Ok(())
     }
 
@@ -903,11 +1009,9 @@ impl VaultStore {
     pub fn count_guide_embeddings(&self) -> Result<usize, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let count: i64 = conn.query_row(
-            "SELECT COUNT(*) FROM guide_embeddings",
-            [],
-            |r| r.get(0),
-        ).map_err(|e| format!("count_guide_embeddings: {}", e))?;
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM guide_embeddings", [], |r| r.get(0))
+            .map_err(|e| format!("count_guide_embeddings: {}", e))?;
         Ok(count as usize)
     }
 
@@ -935,7 +1039,8 @@ impl VaultStore {
         conn.execute(
             "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES (?1, ?2, ?3)",
             params![key, value, now],
-        ).map_err(|e| format!("set_sys_config: {}", e))?;
+        )
+        .map_err(|e| format!("set_sys_config: {}", e))?;
         Ok(())
     }
 }

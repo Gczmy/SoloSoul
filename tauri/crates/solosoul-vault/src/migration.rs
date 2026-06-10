@@ -92,14 +92,16 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
                 "ALTER TABLE audit_log ADD COLUMN entity_type TEXT;
                  ALTER TABLE audit_log ADD COLUMN entity_id TEXT;
                  ALTER TABLE audit_log ADD COLUMN entity_name TEXT;
-                 ALTER TABLE audit_log ADD COLUMN performed_by TEXT DEFAULT 'user';"
-            ).map_err(|e| format!("Migration 5 failed: {}", e))?;
+                 ALTER TABLE audit_log ADD COLUMN performed_by TEXT DEFAULT 'user';",
+            )
+            .map_err(|e| format!("Migration 5 failed: {}", e))?;
             let now = Utc::now().timestamp();
             tx.execute(
                 "INSERT INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
                 params![5, now, "Add structured columns to audit_log"],
             ).map_err(|e| format!("Record migration 5: {}", e))?;
-            tx.commit().map_err(|e| format!("Commit migration 5: {}", e))?;
+            tx.commit()
+                .map_err(|e| format!("Commit migration 5: {}", e))?;
         } else {
             // Fresh DB: init_schema already has the columns, just mark version 5
             let now = Utc::now().timestamp();

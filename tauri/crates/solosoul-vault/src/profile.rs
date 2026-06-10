@@ -2,7 +2,6 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
-use std::collections::HashMap;
 use uuid::Uuid;
 
 pub const PROFILE_SCHEMA_VERSION: u32 = 2;

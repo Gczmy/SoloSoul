@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
-import { SensitivityBadge, getSensitivityStyle } from '@/components/ui/SensitivityBadge';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 
 export function SensitivitySettingsPage() {
   const navigate = useNavigate();
@@ -16,8 +16,6 @@ export function SensitivitySettingsPage() {
   const [password, setPassword] = useState('');
   const [reason, setReason] = useState('');
   const { t } = useTranslation(['sensitivity', 'settings', 'common']);
-  const accountId = '';
-
   useEffect(() => {
     loadMap();
     loadLog(50);

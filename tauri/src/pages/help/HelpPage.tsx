@@ -62,7 +62,7 @@ export function HelpPage() {
       setIndex(idx);
     } catch (e) {
       setError(formatIndexError(e));
-      console.error('[HelpPage] loadGuideIndex failed:', e);
+      // error already surfaced in state
     } finally {
       clearInterval(timer);
       setIndexLoading(false);

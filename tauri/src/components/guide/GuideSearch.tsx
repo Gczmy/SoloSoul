@@ -146,7 +146,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
       {!loading && results && results.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {results.map((r) => {
-            const excerpt = r.content.slice(0, 260).replace(/[#*`\[\]!]/g, '').replace(/\n+/g, ' ');
+            const excerpt = r.content.slice(0, 260).replace(/[#*`[\]!]/g, '').replace(/\n+/g, ' ');
             return (
               <Card key={r.id} interactive onClick={() => onSelect(r.id)}>
                 <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>
