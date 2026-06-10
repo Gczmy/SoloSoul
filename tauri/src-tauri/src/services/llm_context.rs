@@ -419,3 +419,190 @@ fn trim_to_limit(text: &str, max_chars: usize) -> String {
     }
     format!("{}\n\n（上下文过长，部分内容已省略）", cut)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use solosoul_vault::{Profile, VaultConfig, VaultStore};
+    use tempfile::TempDir;
+
+    fn setup_vault() -> (VaultStore, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let config = VaultConfig::new("test_account", dir.path().to_path_buf());
+        let vault = VaultStore::open(config).unwrap();
+        (vault, dir)
+    }
+
+    #[test]
+    fn test_build_section1_identity() {
+        let identity = build_section1_identity();
+        assert!(identity.contains("SoloSoul"));
+        assert!(identity.contains("Solon"));
+    }
+
+    #[test]
+    fn test_build_section2_software_info() {
+        let info = build_section2_software_info("zh-CN");
+        assert!(info.contains("SoloSoul"));
+        assert!(info.contains("zh-CN"));
+        assert!(info.contains("版本"));
+    }
+
+    #[test]
+    fn test_build_section5_plugins() {
+        let plugins = build_section5_plugins();
+        assert!(plugins.contains("暂无已安装插件"));
+    }
+
+    #[test]
+    fn test_build_section6_stats() {
+        let stats = build_section6_stats(42, 1000, 2000, 3000);
+        assert!(stats.contains("42"));
+        assert!(stats.contains("1000"));
+        assert!(stats.contains("2000"));
+        assert!(stats.contains("3000"));
+    }
+
+    #[test]
+    fn test_build_section7_guidelines() {
+        let guidelines = build_section7_guidelines();
+        assert!(guidelines.contains("Section 7"));
+        assert!(guidelines.contains("敏感"));
+    }
+
+    #[test]
+    fn test_type_display_name() {
+        assert_eq!(type_display_name("note"), "Note");
+        assert_eq!(type_display_name("travelDocument"), "Travel Document");
+        assert_eq!(type_display_name("__preset_financialRecord"), "Financial Record");
+        assert_eq!(type_display_name("identity_card"), "Identity Card");
+    }
+
+    #[test]
+    fn test_property_key_to_label() {
+        assert_eq!(property_key_to_label("fullName"), "Full Name");
+        assert_eq!(property_key_to_label("date_of_birth"), "Date Of Birth");
+        assert_eq!(property_key_to_label("key"), "Key");
+    }
+
+    #[test]
+    fn test_trim_to_limit_no_trim_needed() {
+        let text = "short text";
+        assert_eq!(trim_to_limit(text, 100), text);
+    }
+
+    #[test]
+    fn test_trim_to_limit_trims_at_char_boundary() {
+        let text = "这是一个很长的中文字符串，需要被截断。这里还有更多内容来确保总长度超过限制。";
+        let result = trim_to_limit(text, 30);
+        assert!(result.len() < text.len());
+        assert!(result.contains("省略"));
+    }
+
+    #[test]
+    fn test_trim_to_limit_trims_at_double_newline() {
+        let text = "line1\n\nline2\n\nline3";
+        let result = trim_to_limit(text, 15);
+        assert!(result.contains("line1"));
+        assert!(!result.contains("line3"));
+    }
+
+    #[test]
+    fn test_extract_properties() {
+        let props = serde_json::json!({
+            "name": "Alice",
+            "age": 30,
+            "active": true,
+            "nested": {"ignored": true}
+        });
+        let entries = extract_properties(&props);
+        assert_eq!(entries.len(), 3);
+        assert!(entries.iter().any(|e| e.contains("Alice")));
+        assert!(entries.iter().any(|e| e.contains("30")));
+    }
+
+    #[test]
+    fn test_extract_properties_truncates_long_values() {
+        let long_value = "a".repeat(200);
+        let props = serde_json::json!({"content": long_value});
+        let entries = extract_properties(&props);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0].ends_with('…'));
+    }
+
+    #[test]
+    fn test_load_public_data_version_no_profile() {
+        let (vault, _dir) = setup_vault();
+        let version = load_public_data_version(&vault, "test_account").unwrap();
+        assert_eq!(version, 0);
+    }
+
+    #[test]
+    fn test_save_and_load_public_data_version() {
+        let (vault, _dir) = setup_vault();
+        let profile = Profile::new_with_id("test_account", "Test", Vec::new());
+        vault.save_profile(&profile).unwrap();
+
+        save_public_data_version(&vault, "test_account", 5).unwrap();
+        let version = load_public_data_version(&vault, "test_account").unwrap();
+        assert_eq!(version, 5);
+    }
+
+    #[test]
+    fn test_bump_public_data_version() {
+        let (vault, _dir) = setup_vault();
+        let profile = Profile::new_with_id("test_account", "Test", Vec::new());
+        vault.save_profile(&profile).unwrap();
+
+        let v1 = bump_public_data_version(&vault, "test_account").unwrap();
+        assert_eq!(v1, 1);
+
+        let v2 = bump_public_data_version(&vault, "test_account").unwrap();
+        assert_eq!(v2, 2);
+    }
+
+    #[test]
+    fn test_build_static_prompt_with_empty_data() {
+        let (vault, _dir) = setup_vault();
+        let prompt = build_static_prompt("test_account", &vault, "zh-CN").unwrap();
+        assert!(prompt.contains("Section 1"));
+        assert!(prompt.contains("Section 2"));
+        assert!(prompt.contains("Section 5"));
+        // No public objects, Section 3 may be omitted
+    }
+
+    #[test]
+    fn test_build_static_prompt_with_public_object() {
+        let (vault, _dir) = setup_vault();
+        let obj = solosoul_vault::ObjectRecord {
+            id: "obj-1".to_string(),
+            account_id: "test_account".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "My Note".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"content": "hello"}),
+            property_labels: None,
+            sensitivity_level: "public".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        let prompt = build_static_prompt("test_account", &vault, "zh-CN").unwrap();
+        assert!(prompt.contains("Section 3"));
+        assert!(prompt.contains("My Note"));
+    }
+
+    #[test]
+    fn test_clear_cache() {
+        // Just verify it doesn't panic
+        clear_cache();
+    }
+}
