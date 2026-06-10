@@ -1140,4 +1140,239 @@ mod tests {
         let all = vault.list_profiles().unwrap();
         assert!(all.iter().any(|p| p.name.contains("Alpha")));
     }
+
+    // ── Error boundary tests ──────────────────────────────────
+
+    #[test]
+    fn test_load_nonexistent_profile_returns_none() {
+        let (vault, _dir) = setup();
+        assert!(vault.load_profile("does-not-exist").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_delete_nonexistent_profile_fails() {
+        let (vault, _dir) = setup();
+        let result = vault.delete_profile("does-not-exist");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("not found"));
+    }
+
+    #[test]
+    fn test_locked_vault_rejects_operations() {
+        let (mut vault, _dir) = setup();
+        vault.lock();
+        assert_eq!(vault.state(), VaultState::Locked);
+
+        let profile = Profile::new("test", vec![1, 2, 3]);
+        assert!(vault.save_profile(&profile).is_err());
+        assert!(vault.load_profile("test").is_err());
+        assert!(vault.list_profiles().is_err());
+        assert!(vault.stats().is_err());
+
+        let obj = ObjectRecord {
+            id: "obj-1".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Test".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        assert!(vault.save_object(&obj).is_err());
+        assert!(vault.load_object("obj-1").is_err());
+        assert!(vault.list_objects("acc-1", None, None, None, false, false).is_err());
+    }
+
+    #[test]
+    fn test_concurrent_profile_writes() {
+        let (vault, _dir) = setup();
+        use std::sync::Arc;
+        use std::thread;
+
+        let vault_arc = Arc::new(vault);
+        let mut handles = vec![];
+        for i in 0..10 {
+            let v = Arc::clone(&vault_arc);
+            handles.push(thread::spawn(move || {
+                let profile = Profile::new(&format!("concurrent-{}", i), vec![i as u8]);
+                v.save_profile(&profile).unwrap();
+            }));
+        }
+        for h in handles {
+            h.join().unwrap();
+        }
+        let all = vault_arc.list_profiles().unwrap();
+        assert_eq!(all.len(), 10);
+    }
+
+    #[test]
+    fn test_object_crud_with_special_characters() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-special".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Test \"quotes\" and 'apostrophes'".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"content": "Line1\nLine2\tTab"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec!["tag-with-dash".to_string()],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        let loaded = vault.load_object("obj-special").unwrap().unwrap();
+        assert_eq!(loaded.name, "Test \"quotes\" and 'apostrophes'");
+        assert_eq!(loaded.properties, serde_json::json!({"content": "Line1\nLine2\tTab"}));
+    }
+
+    #[test]
+    fn test_object_soft_delete_and_restore() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-del".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "To Delete".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        // Soft delete
+        vault.delete_object("obj-del", true).unwrap();
+        let active = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        assert_eq!(active.len(), 0);
+        let deleted = vault.list_objects("acc-1", None, None, None, false, true).unwrap();
+        assert_eq!(deleted.len(), 1);
+
+        // Restore
+        vault.restore_object("obj-del").unwrap();
+        let restored = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        assert_eq!(restored.len(), 1);
+        assert!(!restored[0].is_deleted);
+    }
+
+    #[test]
+    fn test_object_hard_delete() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-hard".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "To Purge".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        vault.delete_object("obj-hard", false).unwrap();
+        assert!(vault.load_object("obj-hard").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_list_objects_with_filters() {
+        let (vault, _dir) = setup();
+        for i in 0..5 {
+            let obj = ObjectRecord {
+                id: format!("obj-{}", i),
+                account_id: "acc-1".to_string(),
+                type_id: if i % 2 == 0 { "note" } else { "task" }.to_string(),
+                section_type: "identity".to_string(),
+                name: format!("Item {}", i),
+                icon_name: "document".to_string(),
+                parent_id: if i == 0 { None } else { Some("obj-0".to_string()) },
+                children_ids: vec![],
+                properties: serde_json::json!({"idx": i}),
+                property_labels: None,
+                sensitivity_level: if i == 0 { "public" } else { "internal" }.to_string(),
+                is_deleted: false,
+                deleted_at: None,
+                tags_json: vec![],
+                created_at: chrono::Utc::now().to_rfc3339(),
+                updated_at: chrono::Utc::now().to_rfc3339(),
+                version: 1,
+            };
+            vault.save_object(&obj).unwrap();
+        }
+
+        let all = vault.list_objects("acc-1", None, None, None, false, false).unwrap();
+        assert_eq!(all.len(), 5);
+
+        let notes = vault.list_objects("acc-1", Some("note"), None, None, false, false).unwrap();
+        assert_eq!(notes.len(), 3); // obj-0, obj-2, obj-4
+
+        let children = vault.list_objects("acc-1", None, Some("obj-0"), None, false, false).unwrap();
+        assert_eq!(children.len(), 4); // obj-1..4
+
+        let keyword = vault.list_objects("acc-1", None, None, Some("Item 2"), false, false).unwrap();
+        assert_eq!(keyword.len(), 1);
+        assert_eq!(keyword[0].id, "obj-2");
+    }
+
+    #[test]
+    fn test_load_nonexistent_object_returns_none() {
+        let (vault, _dir) = setup();
+        assert!(vault.load_object("ghost").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_profile_save_with_large_data() {
+        let (vault, _dir) = setup();
+        let big_data = vec![0u8; 1024 * 1024]; // 1MB
+        let profile = Profile::new_with_id("big", "big", big_data.clone());
+        vault.save_profile(&profile).unwrap();
+        let loaded = vault.load_profile("big").unwrap().unwrap();
+        assert_eq!(loaded.data.len(), 1024 * 1024);
+        assert_eq!(loaded.data, big_data);
+    }
+
+    #[test]
+    fn test_corrupted_db_file_fails_to_open() {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("vault.db");
+        // Write non-SQLite garbage
+        std::fs::write(&db_path, b"this is not a sqlite database").unwrap();
+        let config = VaultConfig::new("test", dir.path().to_path_buf());
+        let result = VaultStore::open(config);
+        assert!(result.is_err());
+    }
 }
