@@ -319,8 +319,12 @@ export function ObjectEditorPage() {
                   const name = prompt(t('common:template_name_prompt'), currentObject?.name || '');
                   if (name && objectId) {
                     try {
-                      await invoke('template_save_from_object', { objectId, templateName: name });
-                      alert(t('common:template_saved'));
+                      const newTemplateId = await invoke<string>('template_save_from_object', {
+                        objectId,
+                        templateName: name,
+                        iconId: undefined,
+                      });
+                      alert(t('common:template_saved') + ' (ID: ' + newTemplateId.slice(0, 12) + '...)');
                     } catch (e) { alert(t('common:template_save_failed') + ': ' + e); }
                   }
                 }}>

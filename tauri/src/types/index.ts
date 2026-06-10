@@ -210,3 +210,6 @@ export const ACCENT_COLORS: Record<AccentPreset, { light: string; dark: string }
   purple: { light: '#8B7AA8', dark: '#A899C4' },
   custom: { light: '#5B7C99', dark: '#7BA3C4' },
 };
+
+// Re-export template types (§29)
+export type { PropertyType, TemplateProperty, UserTemplate } from './template';
