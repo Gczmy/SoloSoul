@@ -25,6 +25,7 @@ export function NavButton({
 }: NavButtonProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [cardStyle, setCardStyle] = useState<React.CSSProperties | null>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState<CSSProperties | null>(null);
   const [isHovered, setIsHovered] = useState(false);
 
   const isHorizontal = position === 'top' || position === 'bottom';
@@ -88,6 +89,56 @@ export function NavButton({
     };
   }, [isHovered, updatePosition]);
 
+  const updateIndicator = useCallback(() => {
+    if (!wrapperRef.current || !isActive) return;
+    const rect = wrapperRef.current.getBoundingClientRect();
+    if (position === 'top') {
+      setIndicatorStyle({
+        top: rect.bottom + 4,
+        left: rect.left + rect.width / 2,
+        transform: 'translateX(-50%)',
+        width: 20,
+        height: 3,
+      });
+    } else if (position === 'bottom') {
+      setIndicatorStyle({
+        bottom: window.innerHeight - rect.top + 4,
+        left: rect.left + rect.width / 2,
+        transform: 'translateX(-50%)',
+        width: 20,
+        height: 3,
+      });
+    } else if (position === 'left') {
+      setIndicatorStyle({
+        top: rect.top + rect.height / 2,
+        left: rect.right + 4,
+        transform: 'translateY(-50%)',
+        width: 3,
+        height: 20,
+      });
+    } else {
+      // right
+      setIndicatorStyle({
+        top: rect.top + rect.height / 2,
+        right: window.innerWidth - rect.left + 4,
+        transform: 'translateY(-50%)',
+        width: 3,
+        height: 20,
+      });
+    }
+  }, [isActive, position]);
+
+  useEffect(() => {
+    if (!isActive) return;
+    updateIndicator();
+    window.addEventListener('scroll', updateIndicator, true);
+    window.addEventListener('resize', updateIndicator);
+    return () => {
+      window.removeEventListener('scroll', updateIndicator, true);
+      window.removeEventListener('resize', updateIndicator);
+    };
+  }, [isActive, updateIndicator]);
+
   const nameCard = isHovered ? (
     <div
       className={isHorizontal ? styles.nameCardPortalHorizontal : styles.nameCardPortal}
@@ -103,6 +154,18 @@ export function NavButton({
     </div>
   ) : null;
 
+  const activeIndicator = path && isActive ? (
+    <div
+      className={styles.activeIndicatorPortal}
+      style={{
+        position: 'fixed',
+        ...indicatorStyle,
+        zIndex: 199,
+      }}
+      aria-hidden="true"
+    />
+  ) : null;
+
   return (
     <div
       ref={wrapperRef}
@@ -111,16 +174,6 @@ export function NavButton({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {path && (
-        <div
-          className={`${styles.activeIndicator} ${isActive ? styles.activeIndicatorVisible : ''}`}
-          style={isHorizontal
-            ? { left: '50%', top: 'auto', bottom: -4, transform: 'translateX(-50%)', width: 20, height: 3, borderRadius: '2px 2px 0 0' }
-            : isRight
-              ? { left: 'auto', right: -8, top: '50%', transform: 'translateY(-50%)', width: 3, height: 20, borderRadius: '2px 0 0 2px' }
-              : {}}
-        />
-      )}
       <button
         className={`${styles.navButton} ${isActive ? styles.activeButton : ''}`}
         onClick={onClick}
@@ -132,6 +185,7 @@ export function NavButton({
         <Icon size={20} />
       </button>
       {createPortal(nameCard, document.body)}
+      {createPortal(activeIndicator, document.body)}
     </div>
   );
 }

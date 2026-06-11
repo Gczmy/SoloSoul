@@ -8,22 +8,13 @@
   justify-content: center;
 }
 
-/* 9.4 — 左侧 3px 竖条指示器 */
-.activeIndicator {
-  position: absolute;
-  left: -8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 20px;
-  border-radius: 0 2px 2px 0;
+/* 9.4 — 选中状态指示器（Portal 到 body，避免被父容器裁剪） */
+.activeIndicatorPortal {
   background: var(--accent-primary);
-  opacity: 0;
+  border-radius: 2px;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
   transition: opacity 0.2s var(--ease-smooth, ease);
-}
-
-.activeIndicatorVisible {
-  opacity: 1;
 }
 
 .navButton {
