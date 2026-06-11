@@ -15,22 +15,25 @@
         if (p.accentColor) d.style.setProperty('--accent-primary', cs[p.accentColor] || '#5B7C99');
       }
     } catch(e){}
-    /* Detect system locale.
-       Priority: 1) window.__SOLOSOUL_LOCALE__ (set by Rust eval before page load)
-                 2) localStorage (may have been set by Rust eval or previous sessions)
-                 3) navigator.language fallback */
+    /* Debug: log locale detection to console. */
     try {
-      if (!localStorage.getItem('i18nextLng')) {
+      console.log('[i18n] html-inline: __SOLOSOUL_LOCALE__=', window.__SOLOSOUL_LOCALE__, 'navigator.language=', navigator.language, 'navigator.userLanguage=', navigator.userLanguage);
+      var lsVal = localStorage.getItem('i18nextLng');
+      console.log('[i18n] html-inline: localStorage i18nextLng=', lsVal);
+      if (!lsVal) {
         var detected = 'en-US';
         if (window.__SOLOSOUL_LOCALE__ && (window.__SOLOSOUL_LOCALE__ === 'zh-CN' || window.__SOLOSOUL_LOCALE__ === 'en-US')) {
           detected = window.__SOLOSOUL_LOCALE__;
+          console.log('[i18n] html-inline: using __SOLOSOUL_LOCALE__:', detected);
         } else {
           var nl = (navigator.language || navigator.userLanguage || 'en-US').toLowerCase();
           if (nl.startsWith('zh') || nl.startsWith('cmn')) { detected = 'zh-CN'; }
+          console.log('[i18n] html-inline: using navigator fallback:', detected, '(from', nl, ')');
         }
         localStorage.setItem('i18nextLng', detected);
+        console.log('[i18n] html-inline: set localStorage i18nextLng=', detected);
       }
-    } catch(e){}
+    } catch(e){ console.error('[i18n] html-inline error:', e); }
     </script>
     <style>
       /* Fallback to dark if no cache — prevents white flash. */

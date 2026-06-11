@@ -47,17 +47,14 @@ export function detectSystemLanguage(): SupportedLang {
   return lang.startsWith('zh') ? 'zh-CN' : 'en-US';
 }
 
-/**
- * Try to get the system locale from Rust backend, with retries.
- * Retries up to `retries` times with `delay` ms between attempts.
- */
 async function fetchLocaleFromRust(retries = 5, delay = 50): Promise<string | null> {
   for (let i = 0; i < retries; i++) {
     try {
       const locale = await invoke<string>('get_system_locale');
+      console.log(`[i18n] IPC get_system_locale attempt ${i + 1}:`, locale);
       if (locale) return locale;
-    } catch {
-      // IPC not ready yet — wait and retry
+    } catch (e) {
+      console.warn(`[i18n] IPC attempt ${i + 1} failed:`, e);
     }
     if (i < retries - 1) await new Promise((r) => setTimeout(r, delay));
   }
@@ -65,9 +62,16 @@ async function fetchLocaleFromRust(retries = 5, delay = 50): Promise<string | nu
 }
 
 export async function initI18n(): Promise<typeof i18next> {
-  // 1. Fast init from localStorage (set by index.html inline script or Rust setup eval)
+  // 1. Check window.__SOLOSOUL_LOCALE__ (set by Rust eval before page load)
+  const winLocale = (window as unknown as Record<string, string>).__SOLOSOUL_LOCALE__;
+  console.log('[i18n] window.__SOLOSOUL_LOCALE__:', winLocale);
+
+  // 2. Check localStorage
   const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LANG_KEY) : null;
+  console.log('[i18n] localStorage i18nextLng:', stored, 'navigator.language:', navigator.language, 'navigator.userLanguage:', (navigator as unknown as Record<string, string>).userLanguage);
+
   const lng: SupportedLang = stored === 'zh-CN' || stored === 'en-US' ? stored : detectSystemLanguage();
+  console.log('[i18n] initial lng:', lng);
 
   await i18next.use(initReactI18next).init({
     resources,
@@ -77,13 +81,16 @@ export async function initI18n(): Promise<typeof i18next> {
     ns: ['common', 'navigation', 'settings', 'auth', 'sensitivity', 'editor'],
     interpolation: { escapeValue: false },
   });
+  console.log('[i18n] i18next initialized with:', i18next.language);
 
-  // 2. Authoritative source: Rust backend via IPC (with retries)
+  // 3. IPC authoritative source (with retries)
   const locale = await fetchLocaleFromRust();
   if (locale) {
     const realLang: SupportedLang = locale.startsWith('zh') ? 'zh-CN' : 'en-US';
+    console.log('[i18n] IPC realLang:', realLang, 'current:', i18next.language);
     if (realLang !== i18next.language) {
       await i18next.changeLanguage(realLang);
+      console.log('[i18n] changed to:', realLang);
     }
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(LANG_KEY, realLang);
@@ -91,13 +98,14 @@ export async function initI18n(): Promise<typeof i18next> {
     return i18next;
   }
 
-  // 3. Fallback: use window.__SOLOSOUL_LOCALE__ (set by Rust eval before page load)
-  const winLocale = (window as unknown as Record<string, string>).__SOLOSOUL_LOCALE__;
+  // 4. Fallback to injected window var
   if (winLocale === 'zh-CN' && i18next.language !== 'zh-CN') {
+    console.log('[i18n] using window.__SOLOSOUL_LOCALE__ fallback:', winLocale);
     await i18next.changeLanguage('zh-CN');
     if (typeof localStorage !== 'undefined') localStorage.setItem(LANG_KEY, 'zh-CN');
   }
 
+  console.log('[i18n] final language:', i18next.language);
   return i18next;
 }
 

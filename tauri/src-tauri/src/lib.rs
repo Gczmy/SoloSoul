@@ -12,7 +12,11 @@ use state::AppState;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::builder()
+                .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
+                .from_env_lossy(),
+        )
         .init();
 
     tauri::Builder::default()
@@ -27,12 +31,16 @@ pub fn run() {
             app.manage(commands::discovery::SharedDaemon::new());
 
             // Detect system locale and inject into webview before page loads
-            let locale = sys_locale::get_locale().unwrap_or_default();
+            let locale = commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
             let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") { "zh-CN" } else { "en-US" };
+            tracing::info!("[i18n] Rust setup: get_ui_language()={}, resolved={}", locale, locale_flag);
             // Set a global on the window BEFORE any page scripts run
             if let Some(window) = app.get_webview_window("main") {
-                let _ = window.eval(&format!("window.__SOLOSOUL_LOCALE__='{}'", locale_flag));
-                let _ = window.eval(&format!("try{{localStorage.setItem('i18nextLng','{}')}}catch(e){{}}", locale_flag));
+                let r1 = window.eval(&format!("window.__SOLOSOUL_LOCALE__='{}'", locale_flag));
+                let r2 = window.eval(&format!("try{{localStorage.setItem('i18nextLng','{}')}}catch(e){{console.error('[i18n] localStorage write failed',e)}}", locale_flag));
+                tracing::debug!("[i18n] Rust setup: eval __SOLOSOUL_LOCALE__={:?}, eval localStorage={:?}", r1, r2);
+            } else {
+                tracing::warn!("[i18n] Rust setup: main window not found, cannot inject locale");
             }
 
             // System templates are no longer loaded at startup.

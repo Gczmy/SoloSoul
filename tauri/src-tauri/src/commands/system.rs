@@ -26,11 +26,13 @@ pub async fn check_version() -> Result<serde_json::Value, String> {
 /// not the regional format — those can differ. Falls back to sys-locale on other platforms.
 #[tauri::command]
 pub fn get_system_locale() -> Result<String, String> {
-    get_ui_language().ok_or_else(|| "Failed to detect UI language".to_string())
+    let result = get_ui_language();
+    tracing::info!("[i18n] get_system_locale command: {:?}", result);
+    result.ok_or_else(|| "Failed to detect UI language".to_string())
 }
 
 #[cfg(target_os = "windows")]
-fn get_ui_language() -> Option<String> {
+pub fn get_ui_language() -> Option<String> {
     use windows::Win32::Globalization::GetUserDefaultUILanguage;
     // GetUserDefaultUILanguage returns the UI display language LANGID
     // Low 10 bits = primary language ID. 0x04 = Chinese (all variants)
@@ -44,7 +46,7 @@ fn get_ui_language() -> Option<String> {
 }
 
 #[cfg(not(target_os = "windows"))]
-fn get_ui_language() -> Option<String> {
+pub fn get_ui_language() -> Option<String> {
     // macOS/Linux: sys_locale is reliable here
     sys_locale::get_locale()
 }
