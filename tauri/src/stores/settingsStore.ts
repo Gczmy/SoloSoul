@@ -266,6 +266,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set((s) => ({ settings: { ...s.settings, customPages: [...prevPages, newPage] } }));
     try {
       // P0-1: Store in objects table (not preferences JSON)
+      // Pass the client-generated id so frontend state stays in sync with the database record.
       await invoke('object_create', {
         input: {
           accountId,
@@ -273,6 +274,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           collectionType: 'page',
           iconName: iconId ?? DEFAULT_CUSTOM_ICON,
           properties: {},
+          id,
         },
       });
     } catch {

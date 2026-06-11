@@ -52,6 +52,9 @@ pub struct CreateObjectInput {
     pub template_id: Option<String>,
     #[serde(rename = "templateType")]
     pub template_type: Option<String>,
+    /// Optional client-provided ID. If given, the backend uses it instead of generating a new UUID.
+    /// This ensures the client's optimistic state stays in sync with the database record.
+    pub id: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -145,7 +148,7 @@ pub async fn object_create(
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
     let now = chrono::Utc::now().to_rfc3339();
-    let id = Uuid::new_v4().to_string();
+    let id = input.id.clone().unwrap_or_else(|| Uuid::new_v4().to_string());
 
     let record = ObjectRecord {
         id: id.clone(),
