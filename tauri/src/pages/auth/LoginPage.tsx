@@ -25,6 +25,7 @@ export function LoginPage() {
   const [bioLoading, setBioLoading] = useState(false);
   const [bioError, setBioError] = useState<string | null>(null);
   const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [bioChecked, setBioChecked] = useState(false);
 
   useEffect(() => {
     checkHasAccount().then(() => listAccounts());
@@ -54,7 +55,10 @@ export function LoginPage() {
 
   // Check biometric availability for selected account (only if account exists)
   useEffect(() => {
-    if (!selectedAccountId) return;
+    if (!selectedAccountId) {
+      setBioChecked(true);
+      return;
+    }
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>('biometric_check_availability', { accountId: selectedAccountId })
       .then((r) => {
         if (r.available && r.configured) {
@@ -66,7 +70,8 @@ export function LoginPage() {
           setShowPasswordInput(true);
         }
       })
-      .catch(() => { setBioAvailable(false); setShowPasswordInput(true); });
+      .catch(() => { setBioAvailable(false); setShowPasswordInput(true); })
+      .finally(() => setBioChecked(true));
   }, [selectedAccountId]);
 
   const handleBiometricUnlock = useCallback(async () => {
@@ -80,6 +85,8 @@ export function LoginPage() {
       const accs = result || [];
       const acc = accs.find((a) => a.id === selectedAccountId) || { id: selectedAccountId, name: selectedAccountId };
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
+      // Navigate immediately to avoid showing the biometric UI after success
+      navigate('/');
     } catch (e) {
       const msg = String(e);
       if (msg.includes('cancelled') || msg.includes('cancel')) {
@@ -91,7 +98,7 @@ export function LoginPage() {
     } finally {
       setBioLoading(false);
     }
-  }, [selectedAccountId, bioLoading, biometryType, t]);
+  }, [selectedAccountId, bioLoading, biometryType, t, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +107,11 @@ export function LoginPage() {
     setBioError(null);
     await login(selectedAccountId, password);
   };
+
+  // Prevent password→biometric flash: show nothing until bio check completes
+  if (!bioChecked) {
+    return <div style={{ height: '100vh', background: 'var(--bg-base)' }} />;
+  }
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
