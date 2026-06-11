@@ -14,6 +14,7 @@ export interface CustomPage {
   iconId: string;
   createdAt: string;
   sortOrder: number;
+  deletedAt?: string;
 }
 
 interface AppSettings {
@@ -179,18 +180,20 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
    *  If empty but old-format pages exist in preferences, migrate them automatically. */
   loadCustomPages: async (accountId) => {
     try {
-      const objects = await invoke<Array<{ id: string; name: string; collectionType: string; createdAt: string; updatedAt: string }>>(
+      const objects = await invoke<Array<{ id: string; name: string; collectionType: string; createdAt: string; updatedAt: string; isDeleted?: boolean }>>(
         'object_list',
-        { accountId, filter: { collectionType: 'page' } }
+        { accountId, filter: { collectionType: 'page', includeDeleted: true } }
       );
       if (objects.length > 0) {
-        // New-format pages exist in objects table — use them
+        // New-format pages exist in objects table — use them (including deleted pages so
+        // templates referencing deleted pages can still show the original page name)
         const pages: CustomPage[] = objects.map((o, i) => ({
           id: o.id,
           name: o.name,
           iconId: DEFAULT_CUSTOM_ICON,
           createdAt: o.createdAt,
           sortOrder: i,
+          deletedAt: o.isDeleted ? o.updatedAt : undefined,
         }));
         set((s) => ({ settings: { ...s.settings, customPages: pages } }));
         return;
@@ -281,7 +284,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   removeCustomPage: async (accountId, pageId) => {
     const prevPages = get().settings.customPages;
-    const pages = prevPages.filter((p) => p.id !== pageId);
+    const now = new Date().toISOString();
+    // Mark as deleted locally (keep in array so templates can still reference the name)
+    const pages = prevPages.map((p) =>
+      p.id === pageId ? { ...p, deletedAt: now } : p
+    );
     set((s) => ({ settings: { ...s.settings, customPages: pages } }));
     try {
       // P0-1: Use page_delete to create a "page" type trash item

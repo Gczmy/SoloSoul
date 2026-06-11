@@ -837,7 +837,7 @@ function RenameableNavButton({
       const store = useSettingsStore.getState();
       const existingNames = [
         ...SYSTEM_PAGE_KEYS.map((k) => t(k)),
-        ...store.settings.customPages.filter((p) => p.id !== page.id).map((p) => p.name),
+        ...store.settings.customPages.filter((p) => p.id !== page.id && !p.deletedAt).map((p) => p.name),
       ];
       if (existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
         setRenameError(true);
@@ -1059,7 +1059,7 @@ function AddPageButton({
     const store = useSettingsStore.getState();
     const existingNames = [
       ...SYSTEM_PAGE_KEYS.map((k) => t(k)),
-      ...store.settings.customPages.map((p) => p.name),
+      ...store.settings.customPages.filter((p) => !p.deletedAt).map((p) => p.name),
     ];
     if (existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
       setNameError(true);
@@ -1324,6 +1324,7 @@ export function SideNavigation() {
   const location = useLocation();
   const vaultLock = useVaultStore((s) => s.lock);
   const customPages = useSettingsStore((s) => s.settings.customPages);
+  const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const { t } = useTranslation('navigation');
 
   const [showQuickChat, setShowQuickChat] = useState(false);
@@ -1396,7 +1397,7 @@ export function SideNavigation() {
         })}
 
         {/* Custom pages — icons from CUSTOM_ICON_MAP via iconId (§9.8) */}
-        {customPages.map((page) => (
+        {activeCustomPages.map((page) => (
           <RenameableNavButton
             key={page.id}
             page={page}

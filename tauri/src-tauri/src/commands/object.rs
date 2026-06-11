@@ -71,6 +71,8 @@ pub struct ObjectFilter {
     pub keyword: Option<String>,
     #[serde(rename = "parentId")]
     pub parent_id: Option<String>,
+    #[serde(rename = "includeDeleted")]
+    pub include_deleted: Option<bool>,
 }
 
 fn record_to_data(record: &ObjectRecord) -> ObjectData {
@@ -105,8 +107,10 @@ pub async fn object_list(
     let parent_id = filter.as_ref().and_then(|f| f.parent_id.as_deref());
     let keyword = filter.as_ref().and_then(|f| f.keyword.as_deref());
 
+    let include_deleted = filter.as_ref().and_then(|f| f.include_deleted).unwrap_or(false);
+
     // Keyword search is done at SQL level — no N+1 queries
-    vault.list_objects(&account_id, type_id, parent_id, keyword, false, false)
+    vault.list_objects(&account_id, type_id, parent_id, keyword, include_deleted, false)
 }
 
 #[tauri::command]

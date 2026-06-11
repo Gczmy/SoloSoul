@@ -115,6 +115,17 @@ export function TemplateManagerPage() {
     }));
   }, [templates]);
 
+  const resolvePageLabel = (category: string): { name: string; deleted: boolean } => {
+    if (SYSTEM_PAGES.includes(category as typeof SYSTEM_PAGES[number])) {
+      return { name: t(`navigation:${category}`), deleted: false };
+    }
+    const cp = settings.customPages.find((p) => p.id === category);
+    if (cp) {
+      return { name: cp.name, deleted: !!cp.deletedAt };
+    }
+    return { name: category, deleted: false };
+  };
+
   const handleDelete = async (id: string, name: string) => {
     setConfirmDelete({ id, name });
   };
@@ -344,6 +355,15 @@ export function TemplateManagerPage() {
                     {tpl.name}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    {(() => {
+                      const page = resolvePageLabel(tpl.category);
+                      return (
+                        <span style={page.deleted ? { textDecoration: 'line-through', opacity: 0.6 } : undefined}>
+                          {page.name}
+                        </span>
+                      );
+                    })()}
+                    <span>·</span>
                     <span>{tpl.properties.length} {t('settings:template_fields') || '个字段'}</span>
                     <SensitivityBadges properties={tpl.properties} />
                   </div>
@@ -613,7 +633,16 @@ export function TemplateManagerPage() {
                 <div>
                   <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{detailTemplate.name}</h2>
                   <span style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span>{t(`navigation:${detailTemplate.category || 'identity'}`, detailTemplate.category || 'identity')} · {detailTemplate.properties.length} {t('settings:template_fields') || '个字段'}</span>
+                    {(() => {
+                      const page = resolvePageLabel(detailTemplate.category || 'identity');
+                      return (
+                        <span style={page.deleted ? { textDecoration: 'line-through', opacity: 0.6 } : undefined}>
+                          {page.name}
+                        </span>
+                      );
+                    })()}
+                    <span>·</span>
+                    <span>{detailTemplate.properties.length} {t('settings:template_fields') || '个字段'}</span>
                     <SensitivityBadges properties={detailTemplate.properties} />
                   </span>
                 </div>

@@ -548,6 +548,7 @@ export function ObjectWorkspacePage() {
   const { t } = useTranslation(['common', 'navigation', 'editor']);
   const { objects, loadObjects, deleteObject, isLoading, error } = useObjectStore();
   const customPages = useSettingsStore((s) => s.settings.customPages);
+  const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const removeCustomPage = useSettingsStore((s) => s.removeCustomPage);
   const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
   const { maskValue, isRevealed, reveal } = useRevealState();
@@ -750,7 +751,7 @@ export function ObjectWorkspacePage() {
               {t(`navigation:${catType}`, catType)}
             </button>
           ))}
-          {customPages.map((page) => (
+          {activeCustomPages.map((page) => (
             <button
               key={page.id}
               onClick={() => navigate(`/workspace/page/${page.id}`)}
