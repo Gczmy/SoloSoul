@@ -35,7 +35,7 @@ pub fn run() {
                         unsafe {
                             use objc2_app_kit::NSWindow;
                             let ns_window: &NSWindow = &*(ns_window_ptr as *const NSWindow);
-                            ns_window.setMovableByWindowBackground(true);
+                            ns_window.setMovableByWindowBackground(false);
                         }
                     }
                 }
