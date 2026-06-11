@@ -251,6 +251,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         await i18next.changeLanguage(value);
         // Sync to plaintext UI prefs so backend can read the current language immediately
         invoke('ui_update_preference', { key: 'language', value }).catch(() => {});
+        // Persist to localStorage for next cold launch
+        try { localStorage.setItem('i18nextLng', value); } catch { /* ignore */ }
       }
     } catch {
       set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));

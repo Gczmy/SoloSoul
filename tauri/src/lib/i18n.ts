@@ -1,6 +1,5 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
 
 import enCommon from '@/locales/en-US/common.json';
 import enNav from '@/locales/en-US/navigation.json';
@@ -47,11 +46,13 @@ export function detectSystemLanguage(): SupportedLang {
   return lang.startsWith('zh') ? 'zh-CN' : 'en-US';
 }
 
-const storedLng = typeof localStorage !== 'undefined' ? localStorage.getItem('i18nextLng') : null;
-const initialLng = storedLng || detectSystemLanguage();
+const LANG_KEY = 'i18nextLng';
+const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LANG_KEY) : null;
+const initialLng: SupportedLang = stored === 'zh-CN' || stored === 'en-US'
+  ? stored
+  : detectSystemLanguage();
 
 void i18next
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
@@ -60,11 +61,11 @@ void i18next
     defaultNS: 'common',
     ns: ['common', 'navigation', 'settings', 'auth', 'sensitivity', 'editor'],
     interpolation: { escapeValue: false },
-    detection: {
-      order: ['localStorage'],
-      caches: ['localStorage'],
-      lookupLocalStorage: 'i18nextLng',
-    },
   });
+
+// Persist to localStorage so the setting survives across launches
+if (typeof localStorage !== 'undefined') {
+  localStorage.setItem(LANG_KEY, initialLng);
+}
 
 export default i18next;
