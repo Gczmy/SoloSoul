@@ -25,6 +25,16 @@ pub fn run() {
             let app_state = AppState::new(app.handle().clone())?;
             app.manage(app_state);
             app.manage(commands::discovery::SharedDaemon::new());
+
+            // Detect system locale and inject into webview before page loads
+            let locale = sys_locale::get_locale().unwrap_or_default();
+            let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") { "zh-CN" } else { "en-US" };
+            // Set a global on the window BEFORE any page scripts run
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.eval(&format!("window.__SOLOSOUL_LOCALE__='{}'", locale_flag));
+                let _ = window.eval(&format!("try{{localStorage.setItem('i18nextLng','{}')}}catch(e){{}}", locale_flag));
+            }
+
             // System templates are no longer loaded at startup.
             // Default templates are seeded once during account creation instead.
             Ok(())

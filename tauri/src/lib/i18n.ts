@@ -38,31 +38,36 @@ const resources: Record<string, Record<string, object>> = {
   },
 };
 
-// zh → zh-CN alias
 resources['zh'] = resources['zh-CN'];
 
 const LANG_KEY = 'i18nextLng';
 
-/**
- * Synchronous navigator-based detection.
- */
 export function detectSystemLanguage(): SupportedLang {
   const lang = typeof navigator !== 'undefined' ? navigator.language : 'en';
   return lang.startsWith('zh') ? 'zh-CN' : 'en-US';
 }
 
 /**
- * Initialize i18next.
- * 1. Reads from localStorage (set by index.html inline script)
- * 2. Initializes i18next synchronously for fast render
- * 3. Queries Rust backend via IPC for the real system locale (most reliable on Windows)
- * 4. If IPC returns a different locale, corrects it BEFORE render completes
+ * Try to get the system locale from Rust backend, with retries.
+ * Retries up to `retries` times with `delay` ms between attempts.
  */
+async function fetchLocaleFromRust(retries = 5, delay = 50): Promise<string | null> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const locale = await invoke<string>('get_system_locale');
+      if (locale) return locale;
+    } catch {
+      // IPC not ready yet — wait and retry
+    }
+    if (i < retries - 1) await new Promise((r) => setTimeout(r, delay));
+  }
+  return null;
+}
+
 export async function initI18n(): Promise<typeof i18next> {
+  // 1. Fast init from localStorage (set by index.html inline script or Rust setup eval)
   const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LANG_KEY) : null;
-  const lng: SupportedLang = stored === 'zh-CN' || stored === 'en-US'
-    ? stored
-    : detectSystemLanguage();
+  const lng: SupportedLang = stored === 'zh-CN' || stored === 'en-US' ? stored : detectSystemLanguage();
 
   await i18next.use(initReactI18next).init({
     resources,
@@ -73,19 +78,24 @@ export async function initI18n(): Promise<typeof i18next> {
     interpolation: { escapeValue: false },
   });
 
-  // Query Rust backend for the real system locale (most reliable on Windows).
-  // This IPC call runs AFTER i18next init but BEFORE ReactDOM.render (main.tsx awaits us).
-  try {
-    const locale = await invoke<string>('get_system_locale');
+  // 2. Authoritative source: Rust backend via IPC (with retries)
+  const locale = await fetchLocaleFromRust();
+  if (locale) {
     const realLang: SupportedLang = locale.startsWith('zh') ? 'zh-CN' : 'en-US';
     if (realLang !== i18next.language) {
       await i18next.changeLanguage(realLang);
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(LANG_KEY, realLang);
-      }
     }
-  } catch {
-    // IPC not available — the initial navigator-based detection is the best we can do
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(LANG_KEY, realLang);
+    }
+    return i18next;
+  }
+
+  // 3. Fallback: use window.__SOLOSOUL_LOCALE__ (set by Rust eval before page load)
+  const winLocale = (window as unknown as Record<string, string>).__SOLOSOUL_LOCALE__;
+  if (winLocale === 'zh-CN' && i18next.language !== 'zh-CN') {
+    await i18next.changeLanguage('zh-CN');
+    if (typeof localStorage !== 'undefined') localStorage.setItem(LANG_KEY, 'zh-CN');
   }
 
   return i18next;
