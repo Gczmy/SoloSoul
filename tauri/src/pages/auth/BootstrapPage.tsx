@@ -24,7 +24,7 @@ export function BootstrapPage() {
 
   return (
     <div
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', WebkitAppRegion: 'no-drag' } as any}
     >
       <div
         style={{

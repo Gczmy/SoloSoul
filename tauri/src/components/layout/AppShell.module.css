@@ -3,6 +3,7 @@
   height: 100vh;
   overflow: hidden;
   background: var(--bg-base);
+  -webkit-app-region: no-drag;
 }
 .main {
   flex: 1;

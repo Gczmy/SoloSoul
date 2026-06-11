@@ -110,11 +110,11 @@ export function LoginPage() {
 
   // Prevent password→biometric flash: show nothing until bio check completes
   if (!bioChecked) {
-    return <div style={{ height: '100vh', background: 'var(--bg-base)' }} />;
+    return <div style={{ height: '100vh', background: 'var(--bg-base)', WebkitAppRegion: 'no-drag' } as any} />;
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', WebkitAppRegion: 'no-drag' } as any}>
       <div style={{
         background: 'var(--bg-elevated)', borderRadius: 16, padding: 32,
         width: 360, boxShadow: '0 8px 32px rgba(0,0,0,0.08)', textAlign: 'center',
