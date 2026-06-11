@@ -557,6 +557,14 @@ export function ObjectWorkspacePage() {
   }, [loadUserTemplates]);
   const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
 
+  const resolveCollectionLabel = (collectionType: string) => {
+    if (['identity', 'travel', 'financial', 'professional'].includes(collectionType)) {
+      return t(`navigation:${collectionType}`);
+    }
+    const cp = customPages.find((p) => p.id === collectionType);
+    return cp?.name || collectionType;
+  };
+
   const activeCategoryLabel = sectionFilter ? t(`navigation:${sectionFilter}`, sectionFilter) : null;
 
   /** Password dialog state — shared between detail panel and history viewer. */
@@ -813,7 +821,7 @@ export function ObjectWorkspacePage() {
                         fontSize: 10, color: 'var(--text-tertiary)', marginLeft: 8,
                         padding: '1px 5px', borderRadius: 4, background: 'var(--bg-elevated)',
                       }}>
-                        {t(`navigation:${obj.collectionType}`, obj.collectionType)}
+                        {resolveCollectionLabel(obj.collectionType)}
                       </span>
                     </div>
                   </div>
@@ -1043,7 +1051,7 @@ export function ObjectWorkspacePage() {
                 <div>
                   <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{detailObj.name}</h2>
                   <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                    {t('navigation:' + detailObj.collectionType, detailObj.collectionType)} · {t('common:created')}: {detailObj.createdAt?.slice(0, 10) || '—'} · {t('common:updated')}: {detailObj.updatedAt?.slice(0, 10) || '—'}
+                    {resolveCollectionLabel(detailObj.collectionType)} · {t('common:created')}: {detailObj.createdAt?.slice(0, 10) || '—'} · {t('common:updated')}: {detailObj.updatedAt?.slice(0, 10) || '—'}
                   </span>
                 </div>
               </div>
