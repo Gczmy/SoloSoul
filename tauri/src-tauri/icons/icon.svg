@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Diagonal gradient: cool slate to warm clay (matches sidebar logo) -->
+    <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5B7C99"/>
+      <stop offset="100%" stop-color="#C4925C"/>
+    </linearGradient>
+    <!-- Subtle inner highlight -->
+    <linearGradient id="innerHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background: rounded rectangle (border-radius 25%) -->
+  <rect x="0" y="0" width="1024" height="1024" rx="256" ry="256"
+        fill="url(#brandGradient)"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="256" ry="256"
+        fill="url(#innerHighlight)"/>
+
+  <!-- S letter — exact Arial Bold glyph outline, no font dependency -->
+  <path d="M226 389
+           Q365 403, 377 333
+           Q415 301, 453 268
+           Q518 268, 587 297
+           Q621 326, 656 365
+           Q656 390, 641 407
+           Q627 425, 590 438
+           Q565 446, 476 469
+           Q362 497, 316 538
+           Q251 596, 251 680
+           Q251 734, 282 780
+           Q312 827, 370 852
+           Q427 876, 508 876
+           Q641 876, 708 818
+           Q775 760, 778 663
+           L636 657
+           Q627 711, 597 735
+           Q567 758, 507 758
+           Q445 758, 410 733
+           Q387 717, 387 689
+           Q387 664, 408 647
+           Q435 624, 539 600
+           Q643 575, 692 549
+           Q742 523, 770 477
+           Q798 432, 798 365
+           Q798 305, 764 252
+           Q731 199, 669 174
+           Q608 148, 516 148
+           Q383 148, 311 210
+           Q240 271, 226 389Z"
+        fill="white" fill-opacity="0.95"/>
+</svg>
