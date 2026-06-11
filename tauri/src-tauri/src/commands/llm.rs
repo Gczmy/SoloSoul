@@ -961,22 +961,22 @@ pub fn resource_path(rel: &str) -> PathBuf {
         eprintln!("[resource_path] debug mode: {:?}", path);
         path
     } else {
-        std::env::current_exe()
-            .ok()
-            .and_then(|exe| {
-                let parent = exe.parent()?;
-                // macOS app bundle: SoloSoul.app/Contents/MacOS/SoloSoul → ../Resources
-                let resources = parent.join("../Resources");
-                eprintln!(
-                    "[resource_path] release mode: exe={:?}, resources={:?}",
-                    exe, resources
-                );
-                Some(resources.join(rel))
-            })
-            .unwrap_or_else(|| {
-                eprintln!("[resource_path] release mode fallback: {:?}", rel);
-                PathBuf::from(rel)
-            })
+        let exe = std::env::current_exe().unwrap_or_default();
+        let exe_dir = exe.parent().unwrap_or(&exe).to_path_buf();
+        #[cfg(target_os = "macos")]
+        {
+            // macOS app bundle: SoloSoul.app/Contents/MacOS/SoloSoul → ../Resources
+            let path = exe_dir.join("../Resources").join(rel);
+            eprintln!("[resource_path] release mode macOS: {:?}", path);
+            path
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            // Windows / Linux: resources are bundled alongside the executable
+            let path = exe_dir.join(rel);
+            eprintln!("[resource_path] release mode: {:?}", path);
+            path
+        }
     }
 }
 
