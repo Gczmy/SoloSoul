@@ -4,6 +4,114 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-12
+
+### Changed (Major)
+
+- **Complete Rewrite: Flutter → Tauri v2** — SoloSoul now uses a Rust/Tauri backend with React/TypeScript frontend, providing better performance, smaller binary size (~50MB vs ~200MB), and more native feel. The Flutter codebase in the `flutter/` directory is no longer maintained.
+- **Crate Name** — `solosoul-app` → `solo_soul` (Rust snake_case convention).
+- **Bundle Identifier** — Updated to `com.solosoul.app`.
+- **Package Manager** — Flutter → npm (Node.js ≥ 22, React 19, Vite, TypeScript strict mode).
+- **State Management** — Riverpod → Zustand.
+- **UI Framework** — Flutter Widgets → React + CSS Modules (no Tailwind).
+- **Layout** — Removed custom title bar, search changed to popover, support top/bottom function bars.
+- **Theme System** — Full CSS custom properties theme engine with 20+ preset themes, accent color customization, and light/dark modes.
+
+### Added
+
+- **App Icon** — Custom shield icon with embedded S letter rendered via SVG path, not relying on system fonts.
+- **Object CRUD** — Complete object workspace with card-based display, property editing, inline add/remove.
+- **Template System** — User-defined object templates with 8+ field types (text, number, date, checkbox, select, multi-select, URL, email, phone).
+- **Select/Multi-Select Field Options** — Template editor now supports defining options for select-type fields with an options editor overlay.
+- **Field Format Hints** — Show format examples (e.g. `https://example.com`, `name@example.com`) below field names in the object editor.
+- **URL Validation Relaxation** — Auto-prepend `https://` before validation to reduce user friction.
+- **History System** — Object snapshot-based history with rollback, diff summary, and version browser.
+- **Trash/Recycle Bin** — Soft-delete, restore, permanent delete, conflict detection on restore, batch operations.
+- **Search** — Full-text search across objects with category/tag/type filtering.
+- **AI Chat** — Multi-provider LLM support (OpenAI, Anthropic, Ollama, etc.) with streaming chat, conversation management, and AI-powered object creation.
+- **Attachment System** — Upload/download/preview (images, PDF, text), rename, soft-delete, restore, permanent delete, vault encryption.
+- **OCR Scanning** — Image-based OCR with MRZ parsing for passports/IDs.
+- **Local Scan** — Filesystem scanning and indexing for local file search.
+- **Template Manager** — Full template CRUD with field options editing and property reordering.
+- **Export/Import** — Object export with encryption, tag filtering, attachment inclusion.
+- **Password Hint** — Welcome page now includes a password hint input field with clear/undo support.
+- **Biometric Unlock** — Touch ID / Face ID support.
+- **Privacy Policy & Terms of Service** — Bilingual (EN/ZH) documents with language-based auto-routing.
+- **Search Index** — Built-in user guide search with 2685 indexed words across 23 guides.
+- **Operation Log** — Structured audit logging with full i18n support, all CRUD actions tracked.
+- **Orphaned Attachment Cleanup** — One-click cleanup of unreferenced attachment disk files.
+- **Vault Stats Dashboard** — Pie chart visualization of storage breakdown (objects, attachments, metadata).
+
+### Fixed
+
+- **Windows Language Detection** — Use `GetUserDefaultUILanguage` Win32 API to correctly detect display language (was always showing English on first launch). Final 5-layer detection chain: Rust eval → localStorage → IPC get_system_locale → navigator.language → eval override.
+- **Windows Resource Paths** — Fixed `resource_path()` resolution for docs on Windows (was incorrectly using macOS `../Resources` path).
+- **Windows User Data Path** — Use `%USERPROFILE%` instead of `$HOME` for data storage.
+- **Windows Password Reveal Overlap** — Hidden native WebView2 password reveal button via CSS (`::-ms-reveal`) that overlapped the custom eye icon.
+- **Multi-Select Order** — Field values now display in template option order, not selection order.
+- **Multi-Select Display** — Fixed multi-select values not showing in cards, detail modals, and history panels.
+- **Page Restore** — Restoring a deleted page from trash now immediately refreshes the sidebar via `loadCustomPages()`.
+- **Theme Sync** — Selecting a card theme now automatically syncs the light/dark appearance option.
+- **Password Validation** — Proper error message for short passwords (was incorrectly showing "incorrect password").
+- **Password Error Matching** — Added detection for backend "8 characters" message to show localized `password_too_short`.
+- **Validation i18n** — URL/email/phone/date/number validation errors no longer display raw localization keys.
+- **Toast Messages** — Improved error toast from redundant "验证失败: 验证失败" to descriptive messages.
+- **About Page** — Platform shows OS name only (no architecture); logo uses consistent brand gradient.
+- **Privacy Policy & Terms Links** — Fixed 404 links to correct docs path, added bilingual documents.
+- **Login Theme Flash** — Inline script + CSS dark color fallback prevents white flash on dark-themed first load.
+- **Object Editor Data Pollution** — Switching objects no longer shows stale previous object data.
+- **Object Editor Jump Flash** — Loading placeholder prevents blank form flash during data fetch.
+- **Attachment Preview CSP** — Added `frame-src 'self' data:` for PDF iframe preview.
+- **Attachment Double-Save Prevention** — StopPropagation on preview close to prevent accidental card dismissal.
+- **Attachment Preview on Windows** — File path + data URI dual-path fallback for preview across platforms.
+- **Vault Stats Field Names** — Fixed camelCase/snake_case mismatch between Rust backend and TypeScript frontend.
+- **Orphaned Attachment Stats** — `get_vault_stats` now only counts referenced attachments.
+- **Restore Conflict Detection** — Fixed to check same-name + same-page instead of ID existence.
+- **Restored Suffix i18n** — Now generated in Rust backend per user's language.
+- **Trash Detail Display** — All property keys use i18n, internal fields like `__attachments` filtered out.
+- **History Snapshot Layout** — Fixed layout jumps during page transitions, unified badge styling.
+- **Diff Summary** — 'Created' now shows i18n "初始版本" instead of raw text.
+- **Crate `--bundles app` only** — Avoids generating unnecessary AppImage on macOS.
+- **Sidebar Rename** — Double-click to rename custom pages.
+- **Theme Persistence** — IPC-driven theme loading before React render prevents theme flicker.
+- **FAB → Inline Add Button** — Replaced floating "+" with dashed-border placeholder cards.
+- **Attachment Preview** — Data URI + file path dual-path strategy bypasses CSP limitations.
+- **Auth Page Redirects** — Fixed closure capture bug using `getState()` pattern.
+- **Set Vault Path Index Loading** — Fixed missing `loadIndex()` call on account switch.
+- **Account Deletion Lock** — Delete now properly locks and redirects to login.
+- **Change Password Flow** — Wrong current password returns proper error instead of hanging.
+
+### Architecture
+
+- **§4 Layered Encryption** — `ui_preferences.json` stored in plaintext; theme/language loaded before React render to prevent flash.
+- **§5 Snapshot System** — `object_snapshots` table with auto-save on modify, version browser, rollback.
+- **§24 Flat Model** — Removed collection layer; tags replace hierarchical grouping.
+- **§25 Section/Type Separation** — `section_type` column separates UI grouping from `type_id` semantics.
+- **§26 Multi-Provider LLM** — 5 preset providers + custom endpoint, API key separation, connection test, risk disclosure.
+- **§6 Attachment System** — Full spec: create/rename/soft-delete/permanent-delete/preview/restore with dedicated trash tab.
+
+### i18n
+
+- **Complete i18n Foundation** — i18next + react-i18next with en-US/zh-CN locales across all pages (editor, auth, settings, navigation, layout, object workspace, AI chat, etc.).
+- **Object field keys** — All template field keys and validation messages localized.
+- **Operation log** — Actions, entities, performed-by, conflict status, section names all localized.
+- **Trash page** — Time labels, type labels, expiration text, relative times all localized.
+- **History** — Version labels, triggers, loading/no-history states all localized.
+- **Attachment cards** — All buttons, confirmations, empty states, preview errors localized.
+- **Template editor** — Field types, option editor, delete confirmations all localized.
+- **User guides** — 23 system guides in both languages.
+- **Bootstrap page** — Password hints, validation rules, account names all localized.
+- **Settings** — All tabs, descriptions, backup labels, security settings fully localized.
+- **Layout** — Sidebar, search popover, app shell, theme selector all localized.
+- **About page** — Version info, platform, legal links all localized.
+
+### Chores
+
+- MSI bundle removed from build targets; Windows generates only NSIS (.exe).
+- Cleaned up all language detection debug logging, retained production-ready 5-layer detection.
+- iOS, Android, tvOS build targets removed from Cargo workspace (Tauri desktop-only).
+- Removed `create-dmg` AppleScript dependency documentation (fallback to `hdiutil` fine).
+
 ## [1.8.0] - 2026-06-03
 
 ### Fixed
