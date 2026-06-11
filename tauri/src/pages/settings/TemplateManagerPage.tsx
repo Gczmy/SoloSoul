@@ -309,12 +309,17 @@ export function TemplateManagerPage() {
               <option key={cat} value={cat}>{t(`navigation:${cat}`, cat)}</option>
             ))}
           </optgroup>
-          {customPages.length > 0 && (
+          {customPages.filter((p) => !p.deletedAt).length > 0 && (
             <optgroup label={t('settings:custom_pages') || '自定义页面'}>
-              {customPages.map((page) => (
-                <option key={page.id} value={page.id} disabled={!!page.deletedAt}>
-                  {page.deletedAt ? `${page.name}（${t('settings:deleted_page_suffix') || '已删除'}）` : page.name}
-                </option>
+              {customPages.filter((p) => !p.deletedAt).map((page) => (
+                <option key={page.id} value={page.id}>{page.name}</option>
+              ))}
+            </optgroup>
+          )}
+          {customPages.filter((p) => p.deletedAt).length > 0 && (
+            <optgroup label={`${t('settings:custom_pages') || '自定义页面'}（${t('common:trash') || '回收站'}）`}>
+              {customPages.filter((p) => p.deletedAt).map((page) => (
+                <option key={page.id} value={page.id} disabled>{page.name}</option>
               ))}
             </optgroup>
           )}
