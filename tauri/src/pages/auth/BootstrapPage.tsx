@@ -27,12 +27,8 @@ export function BootstrapPage() {
 
   return (
     <div
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' } as any}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' } as any}
     >
-      {/* DEBUG: visible language indicator */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '4px 12px', fontSize: 12, color: 'white', background: '#e74c3c', textAlign: 'center', zIndex: 99999 }}>
-        DEBUG: i18next.language = {i18next.language} | title = {t('auth:bootstrap_title')}
-      </div>
       <div
         style={{
           background: 'var(--bg-elevated)',
