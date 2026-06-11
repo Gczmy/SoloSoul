@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SensitivityBadge, getSensitivityStyle } from './SensitivityBadge';
-import type { SensitivityLevel } from '@/stores/sensitivityStore';
+import { SensitivityBadge, getSensitivityStyle, type SensitivityLevel } from './SensitivityBadge';
 
 describe('SensitivityBadge', () => {
   const levels: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];

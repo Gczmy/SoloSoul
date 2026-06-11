@@ -15,7 +15,6 @@ import { DataManagementPage } from '@/pages/settings/DataManagementPage';
 import { TrashPage } from '@/pages/settings/TrashPage';
 import { ObjectWorkspacePage } from '@/pages/workspace/ObjectWorkspacePage';
 import { ObjectEditorPage } from '@/pages/editor/ObjectEditorPage';
-import { SensitivitySettingsPage } from '@/pages/settings/SensitivitySettingsPage';
 import { ExportImportPage } from '@/pages/settings/ExportImportPage';
 import { SearchPage } from '@/pages/search/SearchPage';
 import { ToastContainer } from '@/components/ui/ToastContainer';
@@ -185,14 +184,6 @@ function AppRoutes() {
         element={
           <AuthGuard>
             <SecuritySettingsPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/sensitivity"
-        element={
-          <AuthGuard>
-            <SensitivitySettingsPage />
           </AuthGuard>
         }
       />

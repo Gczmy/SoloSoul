@@ -272,6 +272,7 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
             "properties": rec.properties, "property_labels": rec.property_labels,
             "sensitivity_level": rec.sensitivity_level, "tags": rec.tags_json,
             "created_at": rec.created_at, "updated_at": rec.updated_at, "version": rec.version,
+            "template_id": rec.template_id, "template_type": rec.template_type,
         });
         let trash = solosoul_vault::TrashItem {
             id: format!("trash_{}", uuid::Uuid::new_v4()),
@@ -968,6 +969,7 @@ pub struct TrashDetail {
     pub deleted_by: String,
     pub remaining_days: Option<i64>,
     pub original_location: String,
+    pub template_id: Option<String>,
     pub preview_properties: Vec<serde_json::Value>,
     /// Attachments parsed from stored data (active + soft-deleted)
     pub attachments: Vec<TrashAttachmentInfo>,
@@ -1040,15 +1042,46 @@ pub async fn trash_get_detail(
     } else {
         (|| -> Option<Vec<serde_json::Value>> {
             let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
-            let props = data.get("properties")?;
-            let obj = props.as_object()?;
-            Some(
-                obj.iter()
-                    .filter(|(k, _)| !k.starts_with("__"))
-                    .take(5)
-                    .map(|(k, v)| serde_json::json!({"key": k, "value": v}))
-                    .collect(),
-            )
+            let props = data.get("properties")?.as_object()?;
+            // Load template to get field metadata and ordering
+            let tpl_fields: Vec<(String, String, String, String)> =
+                if let Some(tpl_id) = data.get("template_id").and_then(|v| v.as_str()) {
+                    vault.load_user_template(tpl_id).ok().flatten()
+                        .map(|tpl| {
+                            tpl.properties.into_iter()
+                                .map(|p| {
+                                    let sens = p.sensitivity_level.unwrap_or_else(|| "internal".to_string());
+                                    let ptype = serde_json::to_string(&p.prop_type).ok()
+                                        .and_then(|s| serde_json::from_str::<String>(&s).ok())
+                                        .unwrap_or_else(|| "text".to_string());
+                                    (p.id, p.name, ptype, sens)
+                                })
+                                .collect()
+                        })
+                        .unwrap_or_default()
+                } else {
+                    Vec::new()
+                };
+            let mut result = Vec::new();
+            // Follow template order
+            for (field_id, field_name, field_type, sensitivity) in &tpl_fields {
+                if let Some(v) = props.get(field_id) {
+                    result.push(serde_json::json!({
+                        "key": field_name,
+                        "value": v,
+                        "type": field_type,
+                        "sensitivityLevel": sensitivity
+                    }));
+                }
+            }
+            // Fallback: any properties not in template (orphaned fields)
+            let known: std::collections::HashSet<String> = tpl_fields.iter().map(|(id, _, _, _)| id.clone()).collect();
+            for (k, v) in props.iter() {
+                if !k.starts_with("__") && !known.contains(k) {
+                    result.push(serde_json::json!({"key": k, "value": v}));
+                }
+            }
+            Some(result.into_iter().take(5).collect())
         })()
         .unwrap_or_default()
     };
@@ -1089,6 +1122,12 @@ pub async fn trash_get_detail(
     // Fetch snapshots
     let snapshots = vault.list_snapshots(&trash.original_id).unwrap_or_default();
 
+    // Extract template_id from stored data
+    let template_id = (|| -> Option<String> {
+        let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
+        data.get("template_id").and_then(|v| v.as_str()).map(String::from)
+    })();
+
     Ok(TrashDetail {
         id: trash.id,
         item_type: trash.item_type,
@@ -1100,6 +1139,7 @@ pub async fn trash_get_detail(
         deleted_by: trash.deleted_by,
         remaining_days,
         original_location,
+        template_id,
         preview_properties,
         attachments,
         deleted_attachments,

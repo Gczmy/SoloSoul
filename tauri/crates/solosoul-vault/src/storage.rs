@@ -1213,85 +1213,33 @@ impl VaultStore {
         Ok(count as usize)
     }
 
-    // ── Sensitivity map (§12 field-level sensitivity persistence) ────
-
-    /// Save or update a sensitivity map entry.
-    pub fn save_sensitivity_entry(
+    /// Check whether a template field is used by any object (active or soft-deleted).
+    /// Returns (active_count, soft_deleted_count).
+    pub fn check_field_usage(
         &self,
-        field_id: &str,
-        level: &str,
-        template_id: Option<&str>,
-    ) -> Result<(), String> {
+        account_id: &str,
+        field_key: &str,
+    ) -> Result<(usize, usize), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let now = chrono::Utc::now().to_rfc3339();
-        conn.execute(
-            "INSERT INTO sensitivity_map (field_id, level, template_id, last_modified)
-             VALUES (?1, ?2, ?3, ?4)
-             ON CONFLICT(field_id) DO UPDATE SET
-                 level = excluded.level,
-                 template_id = excluded.template_id,
-                 last_modified = excluded.last_modified",
-            params![field_id, level, template_id, now],
-        )
-        .map_err(|e| format!("save_sensitivity_entry: {}", e))?;
-        Ok(())
-    }
-
-    /// Load a single sensitivity map entry.
-    pub fn load_sensitivity_entry(
-        &self,
-        field_id: &str,
-    ) -> Result<Option<(String, Option<String>)>, String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let result = conn
+        let like = format!("%\"{}\":%", field_key);
+        let active: i64 = conn
             .query_row(
-                "SELECT level, template_id FROM sensitivity_map WHERE field_id = ?1",
-                params![field_id],
-                |row| Ok((row.get::<_, String>(0)?, row.get::<_, Option<String>>(1)?)),
+                "SELECT COUNT(*) FROM objects WHERE account_id = ?1 AND properties LIKE ?2 AND is_deleted = 0",
+                params![account_id, &like],
+                |r| r.get(0),
             )
-            .optional()
-            .map_err(|e| format!("load_sensitivity_entry: {}", e))?;
-        Ok(result)
+            .map_err(|e| format!("check_field_usage active: {}", e))?;
+        let soft_deleted: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM objects WHERE account_id = ?1 AND properties LIKE ?2 AND is_deleted = 1",
+                params![account_id, &like],
+                |r| r.get(0),
+            )
+            .map_err(|e| format!("check_field_usage soft_deleted: {}", e))?;
+        Ok((active as usize, soft_deleted as usize))
     }
 
-    /// List all sensitivity map entries.
-    pub fn list_sensitivity_entries(
-        &self,
-    ) -> Result<Vec<(String, String, Option<String>)>, String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let mut stmt = conn
-            .prepare("SELECT field_id, level, template_id FROM sensitivity_map ORDER BY field_id")
-            .map_err(|e| format!("prepare list_sensitivity_entries: {}", e))?;
-        let rows = stmt
-            .query_map([], |row| {
-                Ok((
-                    row.get::<_, String>(0)?,
-                    row.get::<_, String>(1)?,
-                    row.get::<_, Option<String>>(2)?,
-                ))
-            })
-            .map_err(|e| format!("list_sensitivity_entries query: {}", e))?;
-        let mut result = Vec::new();
-        for row in rows {
-            result.push(row.map_err(|e| format!("list_sensitivity_entries row: {}", e))?);
-        }
-        Ok(result)
-    }
-
-    /// Delete a sensitivity map entry by field_id.
-    pub fn delete_sensitivity_entry(&self, field_id: &str) -> Result<(), String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        conn.execute(
-            "DELETE FROM sensitivity_map WHERE field_id = ?1",
-            params![field_id],
-        )
-        .map_err(|e| format!("delete_sensitivity_entry: {}", e))?;
-        Ok(())
-    }
 }
 
 #[cfg(test)]

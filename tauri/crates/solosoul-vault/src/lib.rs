@@ -334,21 +334,9 @@ pub struct TemplateProperty {
     pub sensitive: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<Vec<String>>,
-}
-
-impl TemplateProperty {
-    /// Return the effective sensitivity level, migrating legacy `sensitive` boolean.
-    pub fn effective_sensitivity_level(&self) -> Option<String> {
-        self.sensitivity_level.clone().or_else(|| {
-            self.sensitive.map(|s| {
-                if s {
-                    "sensitive".to_string()
-                } else {
-                    "internal".to_string()
-                }
-            })
-        })
-    }
+    /// Deprecated timestamp — if set, the field is soft-deleted but retained for old objects.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deprecated_at: Option<String>,
 }
 
 /// A user-defined object template stored in the vault.

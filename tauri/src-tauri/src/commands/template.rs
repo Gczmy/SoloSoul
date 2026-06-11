@@ -73,6 +73,7 @@ fn migrate_legacy_templates_if_needed(
                             sensitivity_level: None,
                             sensitive: None,
                             options: None,
+                            deprecated_at: None,
                         })
                     })
                     .collect()
@@ -164,16 +165,6 @@ pub async fn template_create(
 
     vault.save_user_template(&template)?;
 
-    // Sync field sensitivities to sensitivity_map
-    let cat = template.category.as_deref().unwrap_or("identity");
-    for prop in &template.properties {
-        let field_id = format!("{}.{}", cat, prop.id);
-        let level = prop
-            .effective_sensitivity_level()
-            .unwrap_or_else(|| "internal".to_string());
-        let _ = vault.save_sensitivity_entry(&field_id, &level, Some(&template.id));
-    }
-
     let _ = vault.log_structured(
         "template_create",
         "template",
@@ -227,16 +218,6 @@ pub async fn template_update(
 
     vault.save_user_template(&template)?;
 
-    // Sync updated field sensitivities to sensitivity_map
-    let cat = template.category.as_deref().unwrap_or("identity");
-    for prop in &template.properties {
-        let field_id = format!("{}.{}", cat, prop.id);
-        let level = prop
-            .effective_sensitivity_level()
-            .unwrap_or_else(|| "internal".to_string());
-        let _ = vault.save_sensitivity_entry(&field_id, &level, Some(&template.id));
-    }
-
     let _ = vault.log_structured(
         "template_update",
         "template",
@@ -247,6 +228,35 @@ pub async fn template_update(
     );
 
     Ok(())
+}
+
+#[tauri::command]
+pub async fn template_check_field_usage(
+    state: State<'_, AppState>,
+    template_id: String,
+    field_key: String,
+) -> Result<serde_json::Value, String> {
+    let svc = state.vault_service.read().await;
+    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+
+    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
+
+    migrate_legacy_templates_if_needed(vault, &account_id)?;
+
+    // Verify template ownership
+    let template = vault
+        .load_user_template(&template_id)?
+        .ok_or_else(|| "模板不存在".to_string())?;
+    if template.account_id != account_id {
+        return Err("无权查看此模板".to_string());
+    }
+
+    let (active, soft_deleted) = vault.check_field_usage(&account_id, &field_key)?;
+    Ok(serde_json::json!({
+        "active": active,
+        "softDeleted": soft_deleted,
+    }))
 }
 
 #[tauri::command]
@@ -415,6 +425,7 @@ pub async fn template_save_from_object(
                         sensitivity_level: None,
                         sensitive: None,
                         options: None,
+                        deprecated_at: None,
                     }
                 })
                 .collect()

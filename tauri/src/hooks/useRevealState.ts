@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
-import type { SensitivityLevel } from '@/stores/sensitivityStore';
+
+type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
 
 interface RevealEntry {
   expiresAt: number; // Date.now() + TTL

@@ -140,6 +140,7 @@ pub fn seed_default_templates(
                 sensitivity_level: Some(p.effective_sensitivity_level()),
                 options: p.options.clone(),
                 sensitive: None,
+                deprecated_at: None,
             })
             .collect();
 
@@ -156,13 +157,6 @@ pub fn seed_default_templates(
         };
 
         vault.save_user_template(&user_template)?;
-
-        // Also sync field sensitivities into sensitivity_map
-        for p in &st.properties {
-            let field_id = format!("{}.{}", st.category, p.id);
-            let level = p.effective_sensitivity_level();
-            let _ = vault.save_sensitivity_entry(&field_id, &level, Some(&st.key));
-        }
     }
 
     Ok(())
@@ -248,6 +242,7 @@ mod tests {
                     sensitivity_level: None,
                     options: None,
                     sensitive: None,
+                    deprecated_at: None,
                 },
                 solosoul_vault::TemplateProperty {
                     id: "passportNumber".to_string(),
@@ -256,6 +251,7 @@ mod tests {
                     sensitivity_level: None,
                     options: None,
                     sensitive: None,
+                    deprecated_at: None,
                 },
                 solosoul_vault::TemplateProperty {
                     id: "nationality".to_string(),
@@ -264,6 +260,7 @@ mod tests {
                     sensitivity_level: None,
                     options: None,
                     sensitive: None,
+                    deprecated_at: None,
                 },
                 solosoul_vault::TemplateProperty {
                     id: "dateOfBirth".to_string(),
@@ -272,6 +269,7 @@ mod tests {
                     sensitivity_level: None,
                     options: None,
                     sensitive: None,
+                    deprecated_at: None,
                 },
             ],
             category: Some("travel".to_string()),

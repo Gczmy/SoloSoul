@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { Copy, Check } from 'lucide-react';
-import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
-import type { SensitivityLevel } from '@/stores/sensitivityStore';
+import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 
 interface GuideCodeBlockProps {
   children?: React.ReactNode;

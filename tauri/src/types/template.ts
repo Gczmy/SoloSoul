@@ -28,6 +28,8 @@ export interface TemplateProperty {
   /** Legacy boolean — kept for backward compat. */
   sensitive?: boolean;
   options?: string[]; // for select / multiselect
+  /** ISO 8601 timestamp; if set, the field is soft-deleted but retained for old objects. */
+  deprecatedAt?: string;
 }
 
 export interface UserTemplate {

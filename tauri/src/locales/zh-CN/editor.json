@@ -51,10 +51,12 @@
     "phone": "电话",
     "file": "文件"
   },
-"sensitivity_levels": {
+  "sensitivity_levels": {
     "public": "公开",
     "internal": "内部",
     "sensitive": "敏感",
     "critical": "关键"
-  }
+  },
+  "no_template_for_section": "此页面暂无模板，",
+  "go_create_template": "前往模板管理新建"
 }

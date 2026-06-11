@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Shield, Eye, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette, BookOpen, LayoutTemplate } from 'lucide-react';
+import { Shield, HardDrive, Upload, Trash2, Disc, ClipboardList, Bug, Info, Palette, BookOpen, LayoutTemplate } from 'lucide-react';
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -35,7 +35,6 @@ export function SettingsPage() {
       title: t('settings:groups.security'),
       items: [
         { label: t('settings:items.security_settings'), icon: Shield, path: '/settings/security', desc: t('settings:desc.security_settings') },
-        { label: t('settings:items.sensitivity_settings'), icon: Eye, path: '/settings/sensitivity', desc: t('settings:desc.sensitivity_settings') },
       ],
     },
     {

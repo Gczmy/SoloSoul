@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 12;
+pub const CURRENT_SCHEMA_VERSION: u32 = 13;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -253,6 +253,24 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
              CREATE INDEX idx_trash_type ON trash_items(item_type);",
             "Rebuild trash_items from scratch — discard all legacy trash data",
         )?;
+    }
+    if current < 13 {
+        // §13 — 废弃 SensitivityMap，字段敏感度完全由模板定义
+        apply_migration(
+            conn,
+            13,
+            "DROP TABLE IF EXISTS sensitivity_map;",
+            "Drop sensitivity_map — sensitivity now defined per-template",
+        )?;
+    }
+    if current < 14 {
+        // §14 — TemplateProperty 支持 deprecated_at 字段（properties_json 是自由 JSON，无需表结构变更）
+        let now = Utc::now().timestamp();
+        conn.execute(
+            "INSERT INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+            params![14, now, "Add deprecatedAt support to TemplateProperty (properties_json is free-form JSON)"],
+        ).ok();
+        set_schema_version(conn, 14)?;
     }
     Ok(())
 }

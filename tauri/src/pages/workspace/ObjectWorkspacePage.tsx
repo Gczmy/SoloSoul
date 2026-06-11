@@ -10,10 +10,12 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
+import { useTemplateStore } from '@/stores/templateStore';
+import { SensitivityBadge, getSensitivityStyle, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
+import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { useRevealState } from '@/hooks/useRevealState';
 import { Pencil, Trash2, Trash, Clock, ChevronLeft, ChevronRight, X, Paperclip, Edit2, RotateCw, Eye, Lock, Image, FileText, Copy, Check } from 'lucide-react';
-import { SensitivityBadge, getSensitivityStyle } from '@/components/ui/SensitivityBadge';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
@@ -26,22 +28,36 @@ const CATEGORY_ICONS: Record<string, typeof PAGE_ICON_MAP.profile> = {
   professional: PAGE_ICON_MAP.professional,
 };
 
-/** Extract displayable key-value pairs from object properties (filters internal __ fields). */
+/** Extract displayable key-value pairs from object properties (filters internal __ fields).
+ *  When `fieldOrder` is provided, fields are sorted to match the template definition order.
+ */
 function flattenProperties(
-  props: Record<string, unknown> | undefined
+  props: Record<string, unknown> | undefined,
+  fieldOrder?: string[]
 ): { key: string; value: string }[] {
   if (!props) return [];
-  const result: { key: string; value: string }[] = [];
+  const entries: { key: string; value: string }[] = [];
   for (const [k, v] of Object.entries(props)) {
     if (k.startsWith('__')) continue; // skip internal fields like __attachments
     if (v === null || v === undefined || v === '') continue;
     if (typeof v === 'string') {
-      result.push({ key: k, value: v });
+      entries.push({ key: k, value: v });
     } else if (typeof v === 'number' || typeof v === 'boolean') {
-      result.push({ key: k, value: String(v) });
+      entries.push({ key: k, value: String(v) });
     }
   }
-  return result;
+  if (fieldOrder && fieldOrder.length > 0) {
+    const orderMap = new Map(fieldOrder.map((id, i) => [id, i]));
+    entries.sort((a, b) => {
+      const ia = orderMap.get(a.key);
+      const ib = orderMap.get(b.key);
+      if (ia !== undefined && ib !== undefined) return ia - ib;
+      if (ia !== undefined) return -1;
+      if (ib !== undefined) return 1;
+      return a.key.localeCompare(b.key);
+    });
+  }
+  return entries;
 }
 
 // =============================================================================
@@ -55,29 +71,19 @@ interface SnapshotEntry {
   diffSummary: string;
 }
 
-function HistoryViewer({ objectId, onClose, collectionType, passwordVerify }: {
-  objectId: string; onClose: () => void; collectionType?: string;
+function HistoryViewer({ objectId, onClose, passwordVerify, getFieldSensitivity, isFieldDeprecated, getFieldName, fieldOrder }: {
+  objectId: string; onClose: () => void;
   passwordVerify: () => Promise<boolean>;
+  getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
+  isFieldDeprecated: (fieldKey: string) => boolean;
+  getFieldName: (fieldKey: string) => string;
+  fieldOrder?: string[];
 }) {
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
   const { t } = useTranslation(['common', 'editor']);
-  const { map: sensitivityMap } = useSensitivityStore();
-
-  const getSnapSensitivity = useCallback((fieldKey: string): SensitivityLevel => {
-    if (!collectionType) return 'public';
-    const fieldId = `${collectionType}.${fieldKey}`;
-    if (sensitivityMap?.entries?.[fieldId]) return sensitivityMap.entries[fieldId];
-    const snakeKey = fieldKey.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
-    const snakeFieldId = `${collectionType}.${snakeKey}`;
-    if (snakeFieldId !== fieldId && sensitivityMap?.entries?.[snakeFieldId]) return sensitivityMap.entries[snakeFieldId];
-    for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
-      if (id.endsWith(`.${fieldKey}`) || id.endsWith(`.${snakeKey}`)) return level;
-    }
-    return 'public';
-  }, [collectionType, sensitivityMap]);
 
   useEffect(() => {
     invoke<SnapshotEntry[]>('snapshot_get', { objectId })
@@ -136,7 +142,7 @@ function HistoryViewer({ objectId, onClose, collectionType, passwordVerify }: {
           ) : !snap ? (
             <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>{t('common:no_history')}</div>
           ) : (
-            <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} getFieldSensitivity={getSnapSensitivity} verifyPassword={passwordVerify} />
+            <SnapshotCard snap={snap} index={currentIdx} total={total} t={t} getFieldSensitivity={getFieldSensitivity} isFieldDeprecated={isFieldDeprecated} getFieldName={getFieldName} fieldOrder={fieldOrder} verifyPassword={passwordVerify} />
           )}
         </div>
         {/* Footer */}
@@ -148,10 +154,13 @@ function HistoryViewer({ objectId, onClose, collectionType, passwordVerify }: {
   );
 }
 
-function SnapshotCard({ snap, index, total: _total, t, getFieldSensitivity, verifyPassword }: {
+function SnapshotCard({ snap, index, total, t, getFieldSensitivity, isFieldDeprecated, getFieldName, fieldOrder, verifyPassword }: {
   snap: SnapshotEntry; index: number; total: number;
   t: (k: string) => string;
   getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
+  isFieldDeprecated: (fieldKey: string) => boolean;
+  getFieldName: (fieldKey: string) => string;
+  fieldOrder?: string[];
   verifyPassword: () => Promise<boolean>;
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
@@ -165,7 +174,7 @@ function SnapshotCard({ snap, index, total: _total, t, getFieldSensitivity, veri
   const rawProps = snapData && typeof snapData === 'object' && 'properties' in snapData
     ? (snapData.properties as Record<string, unknown> | undefined)
     : undefined;
-  const fields = flattenProperties(rawProps);
+  const fields = flattenProperties(rawProps, fieldOrder);
   const snapName = snapData && typeof snapData === 'object' && 'name' in snapData ? String(snapData.name) : '';
   const tags: string[] = snapData && typeof snapData === 'object' && 'tags' in snapData && Array.isArray(snapData.tags)
     ? snapData.tags as string[] : [];
@@ -174,13 +183,7 @@ function SnapshotCard({ snap, index, total: _total, t, getFieldSensitivity, veri
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {/* Version badge */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          {index <= 1 && (
-            <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600, background: index === 0 ? 'rgba(39,174,96,0.12)' : 'rgba(91,124,153,0.08)', color: index === 0 ? '#27ae60' : 'var(--accent-primary)' }}>
-              {index === 0 ? t('common:current_version') : t('common:previous_version')}
-            </span>
-          )}
-        </div>
+        <SnapshotVersionBadge index={index} total={total} />
         <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
           {snapName}
         </div>
@@ -190,6 +193,7 @@ function SnapshotCard({ snap, index, total: _total, t, getFieldSensitivity, veri
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
           {fields.map((f) => {
             const sens = getFieldSensitivity(f.key);
+            const deprecated = isFieldDeprecated(f.key);
             const fieldId = f.key;
             const revealed = isRevealed(fieldId);
             const needsReveal = sens === 'sensitive' || sens === 'critical';
@@ -198,10 +202,12 @@ function SnapshotCard({ snap, index, total: _total, t, getFieldSensitivity, veri
               display: 'flex', alignItems: 'center', gap: 8, fontSize: 12,
               padding: '6px 8px', borderRadius: 6,
               background: 'var(--bg-toolbar)', border: '1px solid var(--border-subtle)',
+              opacity: deprecated ? 0.7 : 1,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 90 }}>
-                <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{t(`editor:fields.${f.key}`)}</span>
+                <span style={{ fontWeight: 500, color: 'var(--text-secondary)', textDecoration: deprecated ? 'line-through' : 'none' }}>{getFieldName(f.key)}</span>
                 <SensitivityBadge level={sens} />
+                {deprecated && <DeprecatedBadge />}
               </div>
               <div style={{ flex: 1 }}>
                 <span
@@ -531,7 +537,7 @@ export function ObjectWorkspacePage() {
   const [, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
-  const [historyObj, setHistoryObj] = useState<{ id: string; collectionType: string } | null>(null);
+  const [historyObj, setHistoryObj] = useState<{ id: string; collectionType: string; templateId?: string } | null>(null);
   const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
   const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
@@ -543,14 +549,15 @@ export function ObjectWorkspacePage() {
   const { objects, loadObjects, deleteObject, isLoading, error } = useObjectStore();
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const removeCustomPage = useSettingsStore((s) => s.removeCustomPage);
-  const { map: sensitivityMap, loadMap } = useSensitivityStore();
+  const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
   const { maskValue, isRevealed, reveal } = useRevealState();
+
+  useEffect(() => {
+    loadUserTemplates().catch(() => {});
+  }, [loadUserTemplates]);
   const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
 
   const activeCategoryLabel = sectionFilter ? t(`navigation:${sectionFilter}`, sectionFilter) : null;
-
-  // Load sensitivity map for field-level masking
-  useEffect(() => { loadMap(); }, []);
 
   /** Password dialog state — shared between detail panel and history viewer. */
   const [showPwDialog, setShowPwDialog] = useState(false);
@@ -618,20 +625,20 @@ export function ObjectWorkspacePage() {
     }
   }, [passwordVerify, reveal]);
 
-  /** Resolve sensitivity level for a property key within an object's collection. */
-  const getFieldSensitivity = (collectionType: string, fieldKey: string): SensitivityLevel => {
-    const fieldId = `${collectionType}.${fieldKey}`;
-    if (sensitivityMap?.entries?.[fieldId]) return sensitivityMap.entries[fieldId];
-    // Also try snake_case normalized version (map entries use snake_case, fields may be camelCase)
-    const snakeKey = fieldKey.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
-    const snakeFieldId = `${collectionType}.${snakeKey}`;
-    if (snakeFieldId !== fieldId && sensitivityMap?.entries?.[snakeFieldId]) return sensitivityMap.entries[snakeFieldId];
-    // Fallback: match any entry ending with .{fieldKey} (regardless of case)
-    for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
-      if (id.endsWith(`.${fieldKey}`)) return level;
-      if (id.endsWith(`.${snakeKey}`)) return level;
-    }
-    return 'public'; // default level: public (only sensitive fields are explicitly protected)
+  /** Resolve sensitivity level for a property key via its template definition. */
+  const getFieldSensitivity = (templateId: string | undefined, fieldKey: string): SensitivityLevel => {
+    const prop = userTemplates.find((t) => t.id === templateId)?.properties.find((p) => p.id === fieldKey);
+    return (prop?.sensitivityLevel as SensitivityLevel) || 'public';
+  };
+
+  const isFieldDeprecated = (templateId: string | undefined, fieldKey: string): boolean => {
+    const prop = userTemplates.find((t) => t.id === templateId)?.properties.find((p) => p.id === fieldKey);
+    return !!prop?.deprecatedAt;
+  };
+
+  const getFieldName = (templateId: string | undefined, fieldKey: string): string => {
+    const prop = userTemplates.find((t) => t.id === templateId)?.properties.find((p) => p.id === fieldKey);
+    return prop?.name || fieldKey;
   };
 
   useEffect(() => {
@@ -719,37 +726,50 @@ export function ObjectWorkspacePage() {
       }
     >
       <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }} onMouseDown={(e) => { if (e.detail > 1) e.preventDefault(); }}>
-        {!pageId && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {CATEGORY_TYPES.map((catType) => (
-              <button
-                key={catType}
-                onClick={() => navigate(`/workspace?section=${catType}`)}
-                style={{
-                  padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
-                  background: sectionFilter === catType ? 'var(--accent-primary)' : 'transparent',
-                  color: sectionFilter === catType ? 'white' : 'var(--text-primary)',
-                  fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-                }}
-              >
-                {React.createElement(CATEGORY_ICONS[catType], { size: 16 })}
-                {t(`navigation:${catType}`, catType)}
-              </button>
-            ))}
-            {sectionFilter && (
-              <button
-                onClick={() => navigate('/workspace')}
-                style={{
-                  padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
-                  background: 'transparent', color: 'var(--text-tertiary)',
-                  fontSize: 13, cursor: 'pointer',
-                }}
-              >
-                {t('clear')}
-              </button>
-            )}
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {CATEGORY_TYPES.map((catType) => (
+            <button
+              key={catType}
+              onClick={() => navigate(`/workspace?section=${catType}`)}
+              style={{
+                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
+                background: !pageId && sectionFilter === catType ? 'var(--accent-primary)' : 'transparent',
+                color: !pageId && sectionFilter === catType ? 'white' : 'var(--text-primary)',
+                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+              }}
+            >
+              {React.createElement(CATEGORY_ICONS[catType], { size: 16 })}
+              {t(`navigation:${catType}`, catType)}
+            </button>
+          ))}
+          {customPages.map((page) => (
+            <button
+              key={page.id}
+              onClick={() => navigate(`/workspace/page/${page.id}`)}
+              style={{
+                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
+                background: pageId === page.id ? 'var(--accent-primary)' : 'transparent',
+                color: pageId === page.id ? 'white' : 'var(--text-primary)',
+                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+              }}
+            >
+              <FileText size={16} />
+              {page.name}
+            </button>
+          ))}
+          {(sectionFilter || pageId) && (
+            <button
+              onClick={() => navigate('/workspace')}
+              style={{
+                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
+                background: 'transparent', color: 'var(--text-tertiary)',
+                fontSize: 13, cursor: 'pointer',
+              }}
+            >
+              {t('clear')}
+            </button>
+          )}
+        </div>
 
         <Input
           placeholder={t('search_objects_placeholder')}
@@ -778,7 +798,9 @@ export function ObjectWorkspacePage() {
         )}
         {!isLoading &&
           visibleObjects.map((obj) => {
-            const fields = flattenProperties(obj.properties as Record<string, unknown> | undefined);
+            const tpl = userTemplates.find((t) => t.id === obj.templateId);
+            const fieldOrder = tpl?.properties.map((p) => p.id);
+            const fields = flattenProperties(obj.properties as Record<string, unknown> | undefined, fieldOrder);
             return (
               <Card key={obj.id} interactive onClick={() => setDetailObj(obj)}>
                 {/* Header row */}
@@ -799,7 +821,7 @@ export function ObjectWorkspacePage() {
                   <div style={{ display: 'flex', gap: 2 }} onClick={(e) => e.stopPropagation()}>
                     <div style={{ position: 'relative' }}>
                       <button
-                        onClick={() => setHistoryObj({ id: obj.id, collectionType: obj.collectionType })}
+                        onClick={() => setHistoryObj({ id: obj.id, collectionType: obj.collectionType, templateId: obj.templateId || undefined })}
                         title="History"
                         style={{
                           width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -893,9 +915,10 @@ export function ObjectWorkspacePage() {
                 {fields.length > 0 && (
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {fields.map((f) => {
-                      const sens = getFieldSensitivity(obj.collectionType, f.key);
+                      const sens = getFieldSensitivity(obj.templateId, f.key);
+                      const deprecated = isFieldDeprecated(obj.templateId, f.key);
                       const isMasked = sens !== 'public';
-                      const fieldLabel = t(`editor:fields.${f.key}`, f.key);
+                      const fieldLabel = getFieldName(obj.templateId, f.key);
                       const s = getSensitivityStyle(sens);
                       return (
                       <span
@@ -905,6 +928,7 @@ export function ObjectWorkspacePage() {
                           background: 'var(--bg-toolbar)', color: 'var(--text-secondary)',
                           border: `1px solid ${isMasked ? s.fg : s.fg}`,
                           maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          opacity: deprecated ? 0.6 : 1,
                           ...(isMasked ? {
                             boxShadow: `0 0 3px ${s.fg}44`,
                           } : {
@@ -912,7 +936,8 @@ export function ObjectWorkspacePage() {
                           }),
                         }}
                       >
-                        <span style={{ fontWeight: 600 }}>{fieldLabel}:</span>{' '}
+                        <span style={{ fontWeight: 600, textDecoration: deprecated ? 'line-through' : 'none' }}>{fieldLabel}</span>
+                        <span style={{ margin: '0 3px' }}>:</span>
                         <span style={{
                           ...(isMasked ? {
                             filter: 'blur(5px)',
@@ -996,7 +1021,9 @@ export function ObjectWorkspacePage() {
         {/* Delete confirmation dialog */}
         {/* Object detail modal */}
         {detailObj && (() => {
-          const dFields = flattenProperties(detailObj.properties as Record<string, unknown> | undefined);
+          const detailTpl = userTemplates.find((t) => t.id === detailObj.templateId);
+          const detailFieldOrder = detailTpl?.properties.map((p) => p.id);
+          const dFields = flattenProperties(detailObj.properties as Record<string, unknown> | undefined, detailFieldOrder);
           const handleCopyField = async (value: string, key: string) => {
             try { await navigator.clipboard.writeText(value); setCopiedField(key); setTimeout(() => setCopiedField(null), 1500); } catch { /* ignore */ }
           };
@@ -1034,18 +1061,20 @@ export function ObjectWorkspacePage() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {dFields.map((f) => {
-                  const sens = getFieldSensitivity(detailObj.collectionType, f.key);
+                  const sens = getFieldSensitivity(detailObj.templateId, f.key);
+                  const deprecated = isFieldDeprecated(detailObj.templateId, f.key);
                   const fieldId = `${detailObj.collectionType}.${f.key}`;
                   const revealed = isRevealed(fieldId);
                   const needsReveal = sens === 'sensitive' || sens === 'critical';
                   return (
-                    <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--bg-toolbar)', border: '1px solid var(--border-subtle)' }}>
+                    <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 12px', borderRadius: 8, background: 'var(--bg-toolbar)', border: '1px solid var(--border-subtle)', opacity: deprecated ? 0.7 : 1 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
-                            {t('editor:fields.' + f.key, f.key)}
+                          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', textDecoration: deprecated ? 'line-through' : 'none' }}>
+                            {getFieldName(detailObj.templateId, f.key)}
                           </span>
                           <SensitivityBadge level={sens} />
+                          {deprecated && <DeprecatedBadge />}
                         </div>
                         <div style={{ fontSize: 14, color: (needsReveal && !revealed) ? 'var(--text-tertiary)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {revealed ? f.value : maskValue(f.value, fieldId, sens)}
@@ -1125,7 +1154,17 @@ export function ObjectWorkspacePage() {
           </div>
         )}
       </div>
-      {historyObj && <HistoryViewer objectId={historyObj.id} collectionType={historyObj.collectionType} onClose={() => setHistoryObj(null)} passwordVerify={passwordVerify} />}
+      {historyObj && (
+        <HistoryViewer
+          objectId={historyObj.id}
+          onClose={() => setHistoryObj(null)}
+          passwordVerify={passwordVerify}
+          getFieldSensitivity={(fieldKey) => getFieldSensitivity(historyObj.templateId, fieldKey)}
+          isFieldDeprecated={(fieldKey) => isFieldDeprecated(historyObj.templateId, fieldKey)}
+          getFieldName={(fieldKey) => getFieldName(historyObj.templateId, fieldKey)}
+          fieldOrder={userTemplates.find((t) => t.id === historyObj.templateId)?.properties.map((p) => p.id)}
+        />
+      )}
       {attachmentObjId && <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} onCountChange={refreshAttachmentCounts} />}
 
       {/* Unified password verification dialog (detail panel + history cards) */}

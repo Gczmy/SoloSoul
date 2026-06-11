@@ -9,8 +9,8 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
-import { useSensitivityStore, SensitivityLevel } from '@/stores/sensitivityStore';
-import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { useToastError } from '@/hooks/useToastError';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import type { PropertyType } from '@/types/template';
@@ -33,12 +33,9 @@ export function ObjectEditorPage() {
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const { getObject, createObject, updateObject, currentObject } = useObjectStore();
-  const { map: sensitivityMap, loadMap } = useSensitivityStore();
   const { onError, onSuccess } = useToastError();
   const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
 
-  // Load user templates and sensitivity map on mount
-  useEffect(() => { loadMap(); }, []);
   useEffect(() => {
     loadUserTemplates().catch(() => {});
   }, [loadUserTemplates]);
@@ -56,7 +53,7 @@ export function ObjectEditorPage() {
   }, [userTemplates]);
 
   const objectTemplates = useMemo(() => {
-    const map: Record<string, { key: string; label: string; type: string; sensitivityLevel?: string; required?: boolean }[]> = {};
+    const map: Record<string, { key: string; label: string; type: string; sensitivityLevel?: string; required?: boolean; deprecatedAt?: string }[]> = {};
     for (const tpl of userTemplates) {
       map[tpl.id] = tpl.properties.map((p) => ({
         key: p.id,
@@ -64,26 +61,16 @@ export function ObjectEditorPage() {
         type: p.type,
         sensitivityLevel: p.sensitivityLevel || 'internal',
         required: false,
+        deprecatedAt: p.deprecatedAt,
       }));
     }
     return map;
   }, [userTemplates]);
 
   /** Resolve sensitivity level for a property field.
-   *  Priority: sensitivityMap (user override) > template default > 'public' fallback.
+   *  Template default is the single source of truth.
    */
-  const getSensitivity = (fieldKey: string, templateDefault?: string): SensitivityLevel => {
-    const ct = collectionType || sectionParam || '';
-    const fieldId = `${ct}.${fieldKey}`;
-    if (sensitivityMap?.entries?.[fieldId]) return sensitivityMap.entries[fieldId];
-    // Try snake_case normalization (map entries use snake_case, fields use camelCase)
-    const snakeKey = fieldKey.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
-    const snakeFieldId = `${ct}.${snakeKey}`;
-    if (snakeFieldId !== fieldId && sensitivityMap?.entries?.[snakeFieldId]) return sensitivityMap.entries[snakeFieldId];
-    // Fallback: match any entry ending with .{key}
-    for (const [id, level] of Object.entries(sensitivityMap?.entries || {})) {
-      if (id.endsWith(`.${fieldKey}`) || id.endsWith(`.${snakeKey}`)) return level;
-    }
+  const getSensitivity = (_fieldKey: string, templateDefault?: string): SensitivityLevel => {
     return (templateDefault as SensitivityLevel) || 'public';
   };
 
@@ -109,6 +96,12 @@ export function ObjectEditorPage() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const fields = objectTemplates[selectedType] || [];
+
+  const activeFields = fields.filter((f) => !f.deprecatedAt);
+  const deprecatedFields = isNew
+    ? []
+    : fields.filter((f) => f.deprecatedAt && values[f.key] !== undefined && values[f.key] !== '' && values[f.key] !== null);
+  const displayFields = [...activeFields, ...deprecatedFields];
 
   // Determine collectionType
   const collectionType = isNew
@@ -291,6 +284,17 @@ export function ObjectEditorPage() {
                   </button>
                 );
               })}
+              {visibleTemplates.length === 0 && (
+                <div style={{ fontSize: 13, color: 'var(--text-tertiary)', padding: '8px 0' }}>
+                  {t('editor:no_template_for_section') || '此页面暂无模板，'}
+                  <span
+                    onClick={() => navigate('/settings/templates')}
+                    style={{ color: 'var(--accent-primary)', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    {t('editor:go_create_template') || '前往模板管理新建'}
+                  </span>
+                </div>
+              )}
             </div>
           </Card>
         )}
@@ -331,19 +335,24 @@ export function ObjectEditorPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {fields.length === 0 ? (
                   // Fallback: render raw properties as generic text inputs when no template matches
-                  Object.entries(values).filter(([k]) => !k.startsWith('__')).map(([key, val]) => (
-                    <div key={key}>
-                      <Input
-                        label={t(`editor:fields.${key}`, key)}
-                        icon={<FieldTypeIcon type="text" />}
-                        value={String(val ?? '')}
-                        onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-                        placeholder={key}
-                      />
-                    </div>
-                  ))
+                  Object.entries(values).filter(([k]) => !k.startsWith('__')).map(([key, val]) => {
+                    const tplField = userTemplates.find((t) => t.id === selectedType)?.properties.find((p) => p.id === key);
+                    const isDeprecated = !!tplField?.deprecatedAt;
+                    return (
+                      <div key={key}>
+                        <Input
+                          label={t(`editor:fields.${key}`, key)}
+                          icon={<FieldTypeIcon type="text" />}
+                          value={String(val ?? '')}
+                          onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
+                          placeholder={key}
+                          badge={isDeprecated ? <DeprecatedBadge /> : undefined}
+                        />
+                      </div>
+                    );
+                  })
                 ) : (
-                fields.map((field) => {
+                displayFields.map((field) => {
                     const sensitivity = getSensitivity(field.key, field.sensitivityLevel);
                     const fieldLabel = t(`editor:fields.${field.key}`, field.label);
                     // Map legacy frontend type names to PropertyType
@@ -351,6 +360,7 @@ export function ObjectEditorPage() {
                       field.type === 'tel' ? 'phone' :
                       field.type === 'datetime-local' ? 'datetime' :
                       (field.type as PropertyType) || 'text';
+                    const isDeprecated = !!field.deprecatedAt;
                     return (
                   <div key={field.key}>
                     <TemplateFieldInput
@@ -359,7 +369,12 @@ export function ObjectEditorPage() {
                       type={propType}
                       value={values[field.key]}
                       icon={<FieldTypeIcon type={propType} />}
-                      badge={<SensitivityBadge level={sensitivity} />}
+                      badge={
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <SensitivityBadge level={sensitivity} />
+                          {isDeprecated && <DeprecatedBadge />}
+                        </div>
+                      }
                       onChange={(val) => {
                         setValues((v) => ({ ...v, [field.key]: val }));
                         if (validationErrors[field.key]) {
@@ -383,40 +398,6 @@ export function ObjectEditorPage() {
               </div>
             </Card>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              {!isNew && objectId && (
-                <>
-                <Button variant="secondary" onClick={async () => {
-                  const name = prompt(t('common:template_name_prompt'), currentObject?.name || '');
-                  if (name && objectId) {
-                    try {
-                      const newTemplateId = await invoke<string>('template_save_from_object', {
-                        objectId,
-                        templateName: name,
-                        iconId: undefined,
-                      });
-                      alert(t('common:template_saved') + ' (ID: ' + newTemplateId.slice(0, 12) + '...)');
-                    } catch (e) { alert(t('common:template_save_failed') + ': ' + e); }
-                  }
-                }}>
-                  {t('common:save_as_template')}
-                </Button>
-                <Button variant="secondary" onClick={async () => {
-                  const path = await open({ multiple: false, title: t('common:select_file_attach') });
-                  if (path && typeof path === 'string' && objectId) {
-                    try {
-                      await invoke('attachment_save', { objectId, meta: {
-                        id: crypto.randomUUID(), objectId,
-                        fileName: path.split('/').pop() || 'file',
-                        mimeType: 'application/octet-stream', sizeBytes: 0, createdAt: new Date().toISOString(),
-                      }});
-                      alert(t('common:attachment_added'));
-                    } catch (e) { alert(t('common:attachment_failed') + ': ' + e); }
-                  }
-                }}>
-                  {t('common:add_attachment')}
-                </Button>
-                </>
-              )}
               <Button variant="secondary" onClick={() => navigate(-1)}>{t('common:cancel')}</Button>
               <Button onClick={handleSave} loading={isSaving}>{t('common:save')}</Button>
             </div>

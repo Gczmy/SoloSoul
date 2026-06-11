@@ -78,6 +78,8 @@ export interface ObjectSummary {
   sensitivityLevel: string;
   createdAt: string;
   updatedAt: string;
+  templateId?: string;
+  templateType?: 'system' | 'user';
 }
 
 /** Full object payload (includes properties and optional soft-delete) */

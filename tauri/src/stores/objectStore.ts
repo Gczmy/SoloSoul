@@ -13,6 +13,8 @@ export interface ObjectSummary {
   isDeleted?: boolean;
   properties?: Record<string, unknown>;
   tags?: string[];
+  templateId?: string;
+  templateType?: 'system' | 'user';
 }
 
 export interface ObjectData {

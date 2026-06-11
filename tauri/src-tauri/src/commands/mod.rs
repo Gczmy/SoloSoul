@@ -15,7 +15,6 @@ pub mod ocr;
 pub mod profile;
 pub mod rag;
 pub mod search;
-pub mod sensitivity;
 pub mod settings;
 pub mod sync;
 pub mod system;

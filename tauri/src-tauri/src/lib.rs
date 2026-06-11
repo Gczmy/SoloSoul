@@ -1,7 +1,6 @@
 use tauri::Manager;
 
 pub mod commands;
-pub mod core;
 pub mod db;
 pub mod ipc;
 pub mod local_embed;
@@ -26,7 +25,6 @@ pub fn run() {
             let app_state = AppState::new(app.handle().clone())?;
             app.manage(app_state);
             app.manage(commands::discovery::SharedDaemon::new());
-            app.manage(core::sensitivity::SensitivityManager::new());
             // System templates are no longer loaded at startup.
             // Default templates are seeded once during account creation instead.
             Ok(())
@@ -72,11 +70,7 @@ pub fn run() {
             commands::template::template_get,
             commands::template::template_list,
             commands::template::template_save_from_object,
-            // Sensitivity commands
-            commands::sensitivity::sensitivity_get_field,
-            commands::sensitivity::sensitivity_get_map,
-            commands::sensitivity::sensitivity_update_field,
-            commands::sensitivity::sensitivity_get_log,
+            commands::template::template_check_field_usage,
             // Search commands
             commands::search::search_unified,
             commands::search::search_advanced,

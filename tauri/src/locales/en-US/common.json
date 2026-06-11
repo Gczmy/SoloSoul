@@ -118,6 +118,7 @@
   "choose_icon": "Choose icon",
   "current_version": "Current version",
   "previous_version": "Previous version",
+  "initial_version": "Initial version",
   "history": "History",
   "no_history": "No history snapshots yet.",
   "trigger_user_edit": "User edit",
@@ -152,5 +153,11 @@
   "active": "Active",
   "previous": "Previous",
   "next": "Next",
-  "slogan": "Your Personal Data Vault"
+  "slogan": "Your Personal Data Vault",
+  "deprecated": "Deprecated",
+  "deprecated_field_warning": "This field is used by {{activeCount}} active object(s) and {{softDeletedCount}} trash object(s). It will be marked as deprecated — existing data will not be lost. Deprecated fields cannot be permanently deleted by you. A cleanup option will only appear after all related objects are permanently removed.",
+  "deprecated_field_safe_delete": "No objects use this field. It has been safely removed.",
+  "clean_up": "Clean up",
+  "cannot_clean_up": "This field is still in use and cannot be cleaned up yet",
+  "go_to_trash": "Go to Trash"
 }

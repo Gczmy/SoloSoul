@@ -21,6 +21,7 @@ interface TemplateState {
   deleteTemplate: (id: string) => Promise<void>;
   getTemplate: (id: string) => Promise<UserTemplate | null>;
   saveFromObject: (objectId: string, name: string) => Promise<string>;
+  checkFieldUsage: (templateId: string, fieldKey: string) => Promise<{ active: number; softDeleted: number }>;
 }
 
 export const useTemplateStore = create<TemplateState>((set, get) => ({
@@ -79,5 +80,12 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
     });
     await get().loadTemplates();
     return id;
+  },
+
+  async checkFieldUsage(templateId, fieldKey) {
+    return await invoke<{ active: number; softDeleted: number }>('template_check_field_usage', {
+      templateId,
+      fieldKey,
+    });
   },
 }));

@@ -45,16 +45,18 @@
     "datetime": "DateTime",
     "boolean": "Boolean",
     "select": "Select",
-    "multiselect": "Multi-select",
+    "multiselect": "MultiSelect",
     "url": "URL",
     "email": "Email",
     "phone": "Phone",
     "file": "File"
   },
-"sensitivity_levels": {
+  "sensitivity_levels": {
     "public": "Public",
     "internal": "Internal",
     "sensitive": "Sensitive",
     "critical": "Critical"
-  }
+  },
+  "no_template_for_section": "No templates for this page. ",
+  "go_create_template": "Go to Template Manager to create one"
 }

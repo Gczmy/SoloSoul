@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
+import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { useAuthStore } from '@/stores/authStore';
 import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashStore';
+import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
 import { Trash2, RotateCcw, FileText, X, Info } from 'lucide-react';
-import type { PropertyType, SensitivityLevel } from '@/types/template';
+import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 
 // ── Detail panel types ──────────────────────────────────────────
 
@@ -26,7 +28,8 @@ interface TrashDetail {
   deletedBy: string;
   remainingDays?: number;
   originalLocation: string;
-  previewProperties: { key: string; value: unknown }[];
+  templateId?: string;
+  previewProperties: { key: string; value: unknown; type?: PropertyType; sensitivityLevel?: SensitivityLevel }[];
   attachments: TrashAttachment[];
   deletedAttachments: TrashAttachment[];
   snapshots: SnapshotEntry[];
@@ -94,12 +97,14 @@ export function TrashPage() {
   } = useTrashStore();
 
   const [detailItem, setDetailItem] = useState<TrashDetail | null>(null);
+  const [detailTemplate, setDetailTemplate] = useState<UserTemplate | null>(null);
   const [, setLoadingDetail] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [showTrashAttachments, setShowTrashAttachments] = useState(false);
   const [historySnapIndex, setHistorySnapIndex] = useState<Record<string, number>>({});
   const [historySnapData, setHistorySnapData] = useState<Record<string, Record<string, unknown> | null>>({});
   const [historySnapLoading, setHistorySnapLoading] = useState<Record<string, boolean>>({});
+  const { getTemplate } = useTemplateStore();
 
   // ── Confirmation dialog state ──────────────────────────────────
   const [confirmAction, setConfirmAction] = useState<{
@@ -153,12 +158,19 @@ export function TrashPage() {
     try {
       const d = await invoke<TrashDetail>('trash_get_detail', { trashId });
       setDetailItem(d);
+      // Load template for field name / type / sensitivity resolution
+      if (d.templateId) {
+        getTemplate(d.templateId).then((tpl) => setDetailTemplate(tpl));
+      } else {
+        setDetailTemplate(null);
+      }
       // Load first snapshot data
       if (d.snapshots.length > 0) {
         loadSnapshotData(d.id, d.snapshots[0].id);
       }
     } catch {
       setDetailItem(null);
+      setDetailTemplate(null);
     } finally {
       setLoadingDetail(false);
     }
@@ -473,7 +485,7 @@ export function TrashPage() {
                                 onClick={() => changeSnapshot(detailItem.id, detailItem.snapshots, snapIdx + 1)}
                                 style={{
                                   padding: '3px 8px', border: '1px solid var(--border-subtle)', borderRadius: 4,
-                                  cursor: 'pointer', fontSize: 11, background: 'transparent',
+                                  cursor: 'pointer', fontSize: 11, background: 'var(--bg-subtle)', color: 'var(--text-secondary)',
                                   opacity: snapIdx >= detailItem.snapshots.length - 1 ? 0.4 : 1,
                                 }}
                               >‹ {t('common:previous')}</button>
@@ -483,7 +495,7 @@ export function TrashPage() {
                                 onClick={() => changeSnapshot(detailItem.id, detailItem.snapshots, Math.max(0, snapIdx - 1))}
                                 style={{
                                   padding: '3px 8px', border: '1px solid var(--border-subtle)', borderRadius: 4,
-                                  cursor: 'pointer', fontSize: 11, background: 'transparent',
+                                  cursor: 'pointer', fontSize: 11, background: 'var(--bg-subtle)', color: 'var(--text-secondary)',
                                   opacity: snapIdx <= 0 ? 0.4 : 1,
                                 }}
                               >{t('common:next')} ›</button>
@@ -494,24 +506,17 @@ export function TrashPage() {
                               {/* Header */}
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', background: 'var(--bg-elevated-hover)', borderRadius: 6, marginBottom: 6, minHeight: 32 }}>
                                 <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                                  {currentSnap.diffSummary && (
+                                  {currentSnap.diffSummary && !(detailItem.snapshots.length > 2 && snapIdx === detailItem.snapshots.length - 1 && currentSnap.diffSummary === 'Created') && (
                                     <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 500, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)' }}>
                                       {t(`common:diff_${currentSnap.diffSummary}`, currentSnap.diffSummary)}
                                     </span>
                                   )}
-                                  {snapIdx <= 1 && (
-                                    <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 500,
-                                      background: snapIdx === 0 ? 'rgba(39,174,96,0.12)' : 'rgba(91,124,153,0.08)',
-                                      color: snapIdx === 0 ? '#27ae60' : 'var(--accent-primary)',
-                                    }}>
-                                      {snapIdx === 0 ? t('common:current_version') : t('common:previous_version')}
-                                    </span>
-                                  )}
+                                  <SnapshotVersionBadge index={snapIdx} total={detailItem.snapshots.length} />
                                   <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 500, background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)' }}>
                                     {t(`common:trigger_${currentSnap.triggeredBy}`, currentSnap.triggeredBy)}
                                   </span>
                                 </div>
-                                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                                <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
                                   {new Date(currentSnap.timestamp).toLocaleString()}
                                 </span>
                               </div>
@@ -521,22 +526,49 @@ export function TrashPage() {
                                 {data && (() => {
                                   const d = data as Record<string, unknown>;
                                   const rawProps = d.properties as Record<string, unknown> | undefined;
-                                  const fields = rawProps && typeof rawProps === 'object'
-                                    ? Object.entries(rawProps)
-                                        .filter(([k, v]) => !k.startsWith('__') && v !== null && v !== undefined && v !== '')
-                                        .map(([k, v]) => ({ key: k, value: typeof v === 'string' ? v : JSON.stringify(v) }))
-                                    : [];
                                   const tags: string[] = Array.isArray(d.tags) ? d.tags as string[] : [];
                                   const snapName = typeof d.name === 'string' ? d.name : '';
+                                  // Build ordered fields with template metadata
+                                  const orderedFields: { key: string; value: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }[] = [];
+                                  if (rawProps && typeof rawProps === 'object' && detailTemplate) {
+                                    for (const p of detailTemplate.properties) {
+                                      const v = rawProps[p.id];
+                                      if (v !== null && v !== undefined && v !== '' && !String(p.id).startsWith('__')) {
+                                        orderedFields.push({
+                                          key: p.name,
+                                          value: typeof v === 'string' ? v : JSON.stringify(v),
+                                          type: p.type,
+                                          sensitivityLevel: (p.sensitivityLevel || 'internal') as SensitivityLevel,
+                                        });
+                                      }
+                                    }
+                                    // Orphaned fields not in template
+                                    const known = new Set(detailTemplate.properties.map((p) => p.id));
+                                    for (const [k, v] of Object.entries(rawProps)) {
+                                      if (!k.startsWith('__') && !known.has(k) && v !== null && v !== undefined && v !== '') {
+                                        orderedFields.push({ key: k, value: typeof v === 'string' ? v : JSON.stringify(v) });
+                                      }
+                                    }
+                                  } else if (rawProps && typeof rawProps === 'object') {
+                                    for (const [k, v] of Object.entries(rawProps)) {
+                                      if (!k.startsWith('__') && v !== null && v !== undefined && v !== '') {
+                                        orderedFields.push({ key: k, value: typeof v === 'string' ? v : JSON.stringify(v) });
+                                      }
+                                    }
+                                  }
                                   return (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                                       {snapName && (
                                         <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'right' }}>{snapName}</div>
                                       )}
-                                      {fields.slice(0, 8).map((f) => (
-                                        <div key={f.key} style={{ display: 'flex', gap: 8, fontSize: 12, padding: '3px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-                                          <span style={{ fontWeight: 500, color: 'var(--text-secondary)', minWidth: 80 }}>{t(`editor:fields.${f.key}`, f.key)}:</span>
-                                          <span style={{ color: 'var(--text-primary)' }}>{f.value}</span>
+                                      {orderedFields.slice(0, 8).map((f) => (
+                                        <div key={f.key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, padding: '3px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            {f.type && <FieldTypeIcon type={f.type} size={14} />}
+                                            <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{f.key}</span>
+                                            {f.sensitivityLevel && <SensitivityBadge level={f.sensitivityLevel} />}
+                                          </div>
+                                          <span style={{ color: 'var(--text-primary)', marginLeft: 'auto', textAlign: 'right' }}>{f.value}</span>
                                         </div>
                                       ))}
                                       {tags.length > 0 && (

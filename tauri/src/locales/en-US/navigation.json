@@ -13,5 +13,6 @@
   "help": "Help",
   "add_page": "Add Page",
   "add_page_placeholder": "Page name",
-  "custom_page": "My Projects"
+  "custom_page": "My Projects",
+  "page_name_exists": "Page name already exists"
 }

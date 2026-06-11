@@ -117,6 +117,7 @@
   "choose_icon": "选择图标",
   "current_version": "当前版本",
   "previous_version": "前一版本",
+  "initial_version": "初始版本",
   "history": "历史记录",
   "no_history": "暂无历史记录",
   "trigger_user_edit": "用户编辑",
@@ -151,5 +152,11 @@
   "active": "活跃",
   "previous": "上一个",
   "next": "下一个",
-  "slogan": "您的个人数据保险库"
+  "slogan": "您的个人数据保险库",
+  "deprecated": "已废弃",
+  "deprecated_field_warning": "该字段被 {{activeCount}} 个活跃对象和 {{softDeletedCount}} 个回收站对象使用。删除后将标记为废弃，已有数据不会丢失。已废弃的字段无法被您主动彻底删除，只有当所有相关对象被永久删除后，系统才会提供清理选项。",
+  "deprecated_field_safe_delete": "没有对象使用此字段，已安全删除。",
+  "clean_up": "清理",
+  "cannot_clean_up": "仍有对象使用此字段，暂无法清理",
+  "go_to_trash": "前往回收站"
 }

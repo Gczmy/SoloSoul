@@ -12,7 +12,7 @@ import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { invoke } from '@tauri-apps/api/core';
 import { save, open } from '@tauri-apps/plugin-dialog';
 import { useAuthStore } from '@/stores/authStore';
-import type { SensitivityLevel } from '@/stores/sensitivityStore';
+import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { Paperclip, Info } from 'lucide-react';
 
 // ── Types matching Rust backend ─────────────────────────────
