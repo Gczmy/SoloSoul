@@ -1,5 +1,5 @@
 [package]
-name = "solosoul-app"
+name = "solo_soul"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

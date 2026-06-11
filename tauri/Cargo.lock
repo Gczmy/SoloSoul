@@ -4537,7 +4537,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "solosoul-app"
+name = "solo_soul"
 version = "2.0.0"
 dependencies = [
  "anyhow",
