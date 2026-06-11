@@ -21,7 +21,7 @@
   padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid var(--border-default);
-  background: var(--border-default);
+  background: var(--bg-hover);
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
