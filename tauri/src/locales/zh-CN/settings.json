@@ -507,5 +507,10 @@
   "llm_total_label": "总计",
   "llm_model_count": "共 {{count}} 个模型 · 累计 {{tokens}} token",
   "llm_calls": "次调用",
-  "llm_all_models": "全部模型"
+  "llm_all_models": "全部模型",
+  "sidebar_position": "侧边栏位置",
+  "sidebar_left": "左侧",
+  "sidebar_right": "右侧",
+  "sidebar_top": "上方",
+  "sidebar_bottom": "下方"
 }

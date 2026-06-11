@@ -110,12 +110,14 @@ function NavButton({
   label,
   isActive,
   onClick,
+  isHorizontal,
 }: {
   path?: string;
   Icon: LucideIcon;
   label: string;
   isActive?: boolean;
   onClick: () => void;
+  isHorizontal?: boolean;
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(null);
@@ -124,12 +126,19 @@ function NavButton({
   const updatePosition = useCallback(() => {
     if (wrapperRef.current) {
       const rect = wrapperRef.current.getBoundingClientRect();
-      setCardPos({
-        top: rect.top + rect.height / 2,
-        left: rect.right + 8,
-      });
+      if (isHorizontal) {
+        setCardPos({
+          top: rect.bottom + 8,
+          left: rect.left + rect.width / 2,
+        });
+      } else {
+        setCardPos({
+          top: rect.top + rect.height / 2,
+          left: rect.right + 8,
+        });
+      }
     }
-  }, []);
+  }, [isHorizontal]);
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
@@ -158,7 +167,7 @@ function NavButton({
         position: 'fixed',
         top: cardPos?.top ?? 0,
         left: cardPos?.left ?? 0,
-        transform: 'translateY(-50%)',
+        transform: isHorizontal ? 'translateX(-50%)' : 'translateY(-50%)',
         zIndex: 200,
       }}
       role="tooltip"
@@ -172,17 +181,24 @@ function NavButton({
     <div
       ref={wrapperRef}
       className={styles.navItemWrapper}
+      style={isHorizontal ? { width: 40, height: 40 } : {}}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {path && (
-        <div className={`${styles.activeIndicator} ${isActive ? styles.activeIndicatorVisible : ''}`} />
+        <div
+          className={`${styles.activeIndicator} ${isActive ? styles.activeIndicatorVisible : ''}`}
+          style={isHorizontal
+            ? { left: '50%', top: 'auto', bottom: -4, transform: 'translateX(-50%)', width: 20, height: 3, borderRadius: '2px 2px 0 0' }
+            : {}}
+        />
       )}
       <button
         className={`${styles.navButton} ${isActive ? styles.activeButton : ''}`}
         onClick={onClick}
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
+        style={isHorizontal ? { width: 40, height: 40, borderRadius: 10 } : {}}
       >
         <Icon size={20} />
       </button>
@@ -797,10 +813,12 @@ function RenameableNavButton({
   page,
   isActive,
   onClick,
+  isHorizontal,
 }: {
   page: CustomPage;
   isActive: boolean;
   onClick: () => void;
+  isHorizontal?: boolean;
 }) {
   const { t } = useTranslation(['navigation', 'common']);
   const [isRenaming, setIsRenaming] = useState(false);
@@ -893,16 +911,21 @@ function RenameableNavButton({
         label={page.name}
         isActive={isActive}
         onClick={onClick}
+        isHorizontal={isHorizontal}
       />
       {isRenaming && (
         <div
           style={{
             position: 'fixed',
             left: wrapperRef.current
-              ? wrapperRef.current.getBoundingClientRect().right + 8
+              ? (isHorizontal
+                  ? wrapperRef.current.getBoundingClientRect().left
+                  : wrapperRef.current.getBoundingClientRect().right + 8)
               : 56,
             top: wrapperRef.current
-              ? wrapperRef.current.getBoundingClientRect().top
+              ? (isHorizontal
+                  ? wrapperRef.current.getBoundingClientRect().bottom + 8
+                  : wrapperRef.current.getBoundingClientRect().top)
               : '50%',
             display: 'flex',
             flexDirection: 'column',
@@ -1026,8 +1049,10 @@ function RenameableNavButton({
 
 function AddPageButton({
   onCreate,
+  isHorizontal,
 }: {
   onCreate: (page: CustomPage) => void;
+  isHorizontal?: boolean;
 }) {
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState('');
@@ -1100,9 +1125,13 @@ function AddPageButton({
   const updateCardPosition = useCallback(() => {
     if (wrapperRef.current) {
       const rect = wrapperRef.current.getBoundingClientRect();
-      setCardPos({ top: rect.top + rect.height / 2, left: rect.right + 8 });
+      if (isHorizontal) {
+        setCardPos({ top: rect.bottom + 8, left: rect.left + rect.width / 2 });
+      } else {
+        setCardPos({ top: rect.top + rect.height / 2, left: rect.right + 8 });
+      }
     }
-  }, []);
+  }, [isHorizontal]);
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
@@ -1130,7 +1159,7 @@ function AddPageButton({
         position: 'fixed',
         top: cardPos?.top ?? 0,
         left: cardPos?.left ?? 0,
-        transform: 'translateY(-50%)',
+        transform: isHorizontal ? 'translateX(-50%)' : 'translateY(-50%)',
         zIndex: 200,
       }}
       role="tooltip"
@@ -1141,7 +1170,7 @@ function AddPageButton({
   ) : null;
 
   return (
-    <div className={styles.addPageRow}>
+    <div className={styles.addPageRow} style={isHorizontal ? { flexDirection: 'row' } : {}}>
       {/* + button */}
       <div
         ref={wrapperRef}
@@ -1151,6 +1180,7 @@ function AddPageButton({
         <button
           ref={buttonRef}
           className={styles.addPageButton}
+          style={isHorizontal ? { width: 40, height: 40, borderRadius: 10 } : {}}
           onClick={() => {
             setIsCreating(true);
             setSelectedIconId(DEFAULT_CUSTOM_ICON);
@@ -1171,10 +1201,14 @@ function AddPageButton({
           style={{
             position: 'fixed',
             left: buttonRef.current
-              ? buttonRef.current.getBoundingClientRect().right + 8
+              ? (isHorizontal
+                  ? buttonRef.current.getBoundingClientRect().left
+                  : buttonRef.current.getBoundingClientRect().right + 8)
               : 56,
             top: buttonRef.current
-              ? buttonRef.current.getBoundingClientRect().top
+              ? (isHorizontal
+                  ? buttonRef.current.getBoundingClientRect().bottom + 8
+                  : buttonRef.current.getBoundingClientRect().top)
               : '50%',
             display: 'flex',
             flexDirection: 'column',
@@ -1325,6 +1359,8 @@ export function SideNavigation() {
   const vaultLock = useVaultStore((s) => s.lock);
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
+  const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
+  const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('navigation');
 
   const [showQuickChat, setShowQuickChat] = useState(false);
@@ -1373,11 +1409,38 @@ export function SideNavigation() {
     navigate(`/workspace/custom/${page.id}`);
   };
 
-  return (
-    <nav className={styles.sideNav} aria-label={t('home')}>
-      <div className={styles.logo}>S</div>
+  const navStyle: React.CSSProperties = isHorizontal
+    ? {
+        width: '100%',
+        height: 48,
+        flexDirection: 'row',
+        borderRight: 'none',
+        borderLeft: 'none',
+        borderBottom: sidebarPosition === 'top' ? '1px solid var(--border-subtle)' : 'none',
+        borderTop: sidebarPosition === 'bottom' ? '1px solid var(--border-subtle)' : 'none',
+        padding: '0 12px',
+        overflow: 'visible',
+      }
+    : {
+        width: 48,
+        height: '100vh',
+        flexDirection: 'column',
+        borderRight: sidebarPosition === 'left' ? '1px solid var(--border-subtle)' : 'none',
+        borderLeft: sidebarPosition === 'right' ? '1px solid var(--border-subtle)' : 'none',
+        borderBottom: 'none',
+        borderTop: 'none',
+        padding: '12px 0',
+      };
 
-      <div className={styles.navPrimary}>
+  const zoneStyle: React.CSSProperties = isHorizontal
+    ? { flexDirection: 'row', width: 'auto', height: '100%', overflow: 'visible' }
+    : { flexDirection: 'column', width: '100%', height: 'auto', overflow: 'visible' };
+
+  return (
+    <nav className={styles.sideNav} aria-label={t('home')} style={navStyle}>
+      <div className={styles.logo} style={isHorizontal ? { marginBottom: 0, marginRight: 12 } : {}}>S</div>
+
+      <div className={styles.navPrimary} style={{ ...zoneStyle, flex: 1, overflow: isHorizontal ? 'hidden' : 'auto' }}>
         {/* Default pages — icons from PAGE_ICON_MAP (§7.4 SSOT) */}
         {primaryItems.map((item) => {
           const isActive =
@@ -1392,6 +1455,7 @@ export function SideNavigation() {
               label={t(item.labelKey)}
               isActive={isActive}
               onClick={() => navigate(item.path)}
+              isHorizontal={isHorizontal}
             />
           );
         })}
@@ -1403,16 +1467,17 @@ export function SideNavigation() {
             page={page}
             isActive={isCustomPageActive(page.id)}
             onClick={() => handleCustomPageNavigate(page)}
+            isHorizontal={isHorizontal}
           />
         ))}
 
         {/* Add page button */}
         <AddPageButton onCreate={(page) => {
           navigate(`/workspace/custom/${page.id}`);
-        }} />
+        }} isHorizontal={isHorizontal} />
       </div>
 
-      <div className={styles.navSecondary}>
+      <div className={styles.navSecondary} style={{ ...zoneStyle, flexShrink: 0 }}>
         {items.map((item, i) => {
           if (item.type === 'action') {
             return (
@@ -1421,6 +1486,7 @@ export function SideNavigation() {
                 Icon={PAGE_ICON_MAP[item.iconKey]}
                 label={t(item.labelKey)}
                 onClick={item.action}
+                isHorizontal={isHorizontal}
               />
             );
           }
@@ -1436,6 +1502,7 @@ export function SideNavigation() {
                     if (location.pathname.startsWith('/llm-chat')) return;
                     setShowQuickChat((prev) => !prev);
                   }}
+                  isHorizontal={isHorizontal}
                 />
                 {showQuickChat && createPortal(
                   <AiQuickChatPopover
@@ -1458,6 +1525,7 @@ export function SideNavigation() {
               label={t(item.labelKey)}
               isActive={isActive}
               onClick={() => navigate(item.path)}
+              isHorizontal={isHorizontal}
             />
           );
         })}

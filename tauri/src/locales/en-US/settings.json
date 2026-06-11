@@ -507,5 +507,10 @@
   "llm_total_label": "Total",
   "llm_model_count": "{{count}} models · {{tokens}} tokens total",
   "llm_calls": "calls",
-  "llm_all_models": "All Models"
+  "llm_all_models": "All Models",
+  "sidebar_position": "Sidebar Position",
+  "sidebar_left": "Left",
+  "sidebar_right": "Right",
+  "sidebar_top": "Top",
+  "sidebar_bottom": "Bottom"
 }

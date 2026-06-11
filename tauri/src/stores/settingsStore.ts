@@ -17,7 +17,7 @@ export interface CustomPage {
   deletedAt?: string;
 }
 
-interface AppSettings {
+export interface AppSettings {
   theme: 'light' | 'dark' | 'system';
   accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'custom';
   customAccentHex: string;
@@ -31,6 +31,7 @@ interface AppSettings {
   customPages: CustomPage[];
   defaultLightTheme: string;
   defaultDarkTheme: string;
+  sidebarPosition: 'left' | 'right' | 'top' | 'bottom';
 }
 
 interface SettingsState {
@@ -62,6 +63,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   customPages: [],
   defaultLightTheme: 'warm-stone',
   defaultDarkTheme: 'warm-stone-dark',
+  sidebarPosition: 'left',
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -158,6 +160,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (typeof prefs.autoLockTimeoutMinutes === 'number') parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
       if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
+      if (prefs.sidebarPosition && ['left', 'right', 'top', 'bottom'].includes(prefs.sidebarPosition as string)) {
+        parsed.sidebarPosition = prefs.sidebarPosition as AppSettings['sidebarPosition'];
+      }
       // Load old-format customPages from preferences for migration.
       // Once loaded, also try the new objects-table source via loadCustomPages().
       if (Array.isArray(prefs.customPages)) {

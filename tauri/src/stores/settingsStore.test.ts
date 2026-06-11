@@ -40,6 +40,7 @@ describe('settingsStore', () => {
         customPages: [],
         defaultLightTheme: 'warm-stone',
         defaultDarkTheme: 'warm-stone-dark',
+        sidebarPosition: 'left',
       },
       isLoading: false,
     });
