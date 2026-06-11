@@ -12,41 +12,26 @@ import { buildSystemPrompt, buildMessagesWithSystemPromptAndChunks } from '@/lib
 import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
 import i18n from '@/lib/i18n';
 import styles from './SideNavigation.module.css';
-import { useVaultStore } from '@/stores/vaultStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
 import type { CustomPage } from '@/stores/settingsStore';
+import { SearchPopover } from './SearchPopover';
+import { NavButton } from './NavButton';
+import {
+  useActiveCustomPages,
+  useBoundNavActions,
+  useAiQuickChat,
+  SYSTEM_PAGE_KEYS,
+  primaryItems,
+} from './useNavigationItems';
 import {
   PAGE_ICON_MAP,
   CUSTOM_ICON_MAP,
   resolveCustomIcon,
   DEFAULT_CUSTOM_ICON,
-  type PageIconKey,
   type CustomIconId,
 } from '@/lib/pageIcons';
-
-const SYSTEM_PAGE_KEYS = ['identity', 'travel', 'financial', 'professional'] as const;
-
-// =============================================================================
-// Nav item type definitions (icons sourced from PAGE_ICON_MAP — §7.4 SSOT)
-// =============================================================================
-
-interface NavLink {
-  type: 'link';
-  path: string;
-  iconKey: PageIconKey;
-  labelKey: string;
-}
-
-interface NavAction {
-  type: 'action';
-  iconKey: PageIconKey;
-  labelKey: string;
-  action: () => void;
-}
-
-type NavItem = NavLink | NavAction;
 
 // ── AI Quick Chat types & helpers ───────────────────────────────────────────
 interface ChatMsg { role: string; content: string; createdAt: string; }
@@ -84,139 +69,18 @@ function generateId(): string {
   return 'conv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 }
 
-const primaryItems: NavLink[] = [
-  { type: 'link', path: '/', iconKey: 'home', labelKey: 'home' },
-  { type: 'link', path: '/workspace?section=identity', iconKey: 'identity', labelKey: 'identity' },
-  { type: 'link', path: '/workspace?section=travel', iconKey: 'travel', labelKey: 'travel' },
-  { type: 'link', path: '/workspace?section=financial', iconKey: 'financial', labelKey: 'financial' },
-  { type: 'link', path: '/workspace?section=professional', iconKey: 'professional', labelKey: 'professional' },
-];
-
-const secondaryItems: NavItem[] = [
-  { type: 'action', iconKey: 'lock', labelKey: 'lock_vault', action: () => {} },
-  { type: 'link', path: '/search', iconKey: 'search', labelKey: 'search' },
-  { type: 'link', path: '/plugins', iconKey: 'plugins', labelKey: 'plugin' },
-  { type: 'link', path: '/llm-chat', iconKey: 'ai_chat', labelKey: 'ai_chat' },
-  { type: 'link', path: '/settings', iconKey: 'settings', labelKey: 'settings' },
-];
-
-// =============================================================================
-// NavButton — renders a single sidebar button with portal-based name card
-// =============================================================================
-
-function NavButton({
-  path,
-  Icon,
-  label,
-  isActive,
-  onClick,
-  isHorizontal,
-}: {
-  path?: string;
-  Icon: LucideIcon;
-  label: string;
-  isActive?: boolean;
-  onClick: () => void;
-  isHorizontal?: boolean;
-}) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const updatePosition = useCallback(() => {
-    if (wrapperRef.current) {
-      const rect = wrapperRef.current.getBoundingClientRect();
-      if (isHorizontal) {
-        setCardPos({
-          top: rect.bottom + 8,
-          left: rect.left + rect.width / 2,
-        });
-      } else {
-        setCardPos({
-          top: rect.top + rect.height / 2,
-          left: rect.right + 8,
-        });
-      }
-    }
-  }, [isHorizontal]);
-
-  const handleMouseEnter = useCallback(() => {
-    setIsHovered(true);
-    updatePosition();
-  }, [updatePosition]);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovered(false);
-  }, []);
-
-  // Update position on scroll/resize while hovered
-  useEffect(() => {
-    if (!isHovered) return;
-    window.addEventListener('scroll', updatePosition, true);
-    window.addEventListener('resize', updatePosition);
-    return () => {
-      window.removeEventListener('scroll', updatePosition, true);
-      window.removeEventListener('resize', updatePosition);
-    };
-  }, [isHovered, updatePosition]);
-
-  const nameCard = isHovered ? (
-    <div
-      className={styles.nameCardPortal}
-      style={{
-        position: 'fixed',
-        top: cardPos?.top ?? 0,
-        left: cardPos?.left ?? 0,
-        transform: isHorizontal ? 'translateX(-50%)' : 'translateY(-50%)',
-        zIndex: 200,
-      }}
-      role="tooltip"
-      aria-hidden="true"
-    >
-      {label}
-    </div>
-  ) : null;
-
-  return (
-    <div
-      ref={wrapperRef}
-      className={styles.navItemWrapper}
-      style={isHorizontal ? { width: 40, height: 40 } : {}}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {path && (
-        <div
-          className={`${styles.activeIndicator} ${isActive ? styles.activeIndicatorVisible : ''}`}
-          style={isHorizontal
-            ? { left: '50%', top: 'auto', bottom: -4, transform: 'translateX(-50%)', width: 20, height: 3, borderRadius: '2px 2px 0 0' }
-            : {}}
-        />
-      )}
-      <button
-        className={`${styles.navButton} ${isActive ? styles.activeButton : ''}`}
-        onClick={onClick}
-        aria-label={label}
-        aria-current={isActive ? 'page' : undefined}
-        style={isHorizontal ? { width: 40, height: 40, borderRadius: 10 } : {}}
-      >
-        <Icon size={20} />
-      </button>
-      {createPortal(nameCard, document.body)}
-    </div>
-  );
-}
-
 // =============================================================================
 // AiQuickChatPopover — quick AI chat floating card beside sidebar
 // =============================================================================
 
-function AiQuickChatPopover({
+export function AiQuickChatPopover({
   position,
   onClose,
+  placement = 'left',
 }: {
   position: { top: number } | null;
   onClose: () => void;
+  placement?: 'left' | 'bottom' | 'top';
 }) {
   const { t } = useTranslation(['settings', 'common']);
   const navigate = useNavigate();
@@ -671,13 +535,17 @@ function AiQuickChatPopover({
     );
   })();
 
+  const isFloating = placement === 'bottom' || placement === 'top';
+
   return (
     <div
       ref={cardRef}
       data-ai-quick-chat="open"
       style={{
         position: 'fixed',
-        left: 52,
+        ...(isFloating
+          ? { right: 12, left: 'auto' }
+          : { left: 52, right: 'auto' }),
         top: position?.top ?? 100,
         width: 380,
         height: 520,
@@ -809,17 +677,19 @@ function AiQuickChatPopover({
 // RenameableNavButton — custom page button with double-click rename
 // =============================================================================
 
-function RenameableNavButton({
+export function RenameableNavButton({
   page,
   isActive,
   onClick,
-  isHorizontal,
+  position = 'left',
 }: {
   page: CustomPage;
   isActive: boolean;
   onClick: () => void;
-  isHorizontal?: boolean;
+  position?: import('./NavButton').NavPosition;
 }) {
+  const isHorizontal = position === 'top' || position === 'bottom';
+  const isBottom = position === 'bottom';
   const { t } = useTranslation(['navigation', 'common']);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(page.name);
@@ -911,7 +781,7 @@ function RenameableNavButton({
         label={page.name}
         isActive={isActive}
         onClick={onClick}
-        isHorizontal={isHorizontal}
+        position={position}
       />
       {isRenaming && (
         <div
@@ -922,11 +792,18 @@ function RenameableNavButton({
                   ? wrapperRef.current.getBoundingClientRect().left
                   : wrapperRef.current.getBoundingClientRect().right + 8)
               : 56,
-            top: wrapperRef.current
-              ? (isHorizontal
-                  ? wrapperRef.current.getBoundingClientRect().bottom + 8
-                  : wrapperRef.current.getBoundingClientRect().top)
-              : '50%',
+            ...(wrapperRef.current && isBottom
+              ? {
+                  bottom: window.innerHeight - wrapperRef.current.getBoundingClientRect().top + 8,
+                  top: 'auto',
+                }
+              : {
+                  top: wrapperRef.current
+                    ? (isHorizontal
+                        ? wrapperRef.current.getBoundingClientRect().bottom + 8
+                        : wrapperRef.current.getBoundingClientRect().top)
+                    : '50%',
+                }),
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
@@ -1047,13 +924,15 @@ function RenameableNavButton({
 // AddPageButton — "+" button with popover for name + icon selection
 // =============================================================================
 
-function AddPageButton({
+export function AddPageButton({
   onCreate,
-  isHorizontal,
+  position = 'left',
 }: {
   onCreate: (page: CustomPage) => void;
-  isHorizontal?: boolean;
+  position?: import('./NavButton').NavPosition;
 }) {
+  const isHorizontal = position === 'top' || position === 'bottom';
+  const isBottom = position === 'bottom';
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState(false);
@@ -1119,19 +998,38 @@ function AddPageButton({
 
   // Hover name card (same portal pattern as NavButton)
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [cardPos, setCardPos] = useState<{ top: number; left: number } | null>(null);
+  const [cardStyle, setCardStyle] = useState<React.CSSProperties | null>(null);
   const [isHovered, setIsHovered] = useState(false);
 
   const updateCardPosition = useCallback(() => {
     if (wrapperRef.current) {
       const rect = wrapperRef.current.getBoundingClientRect();
       if (isHorizontal) {
-        setCardPos({ top: rect.bottom + 8, left: rect.left + rect.width / 2 });
+        if (isBottom) {
+          setCardStyle({
+            top: 'auto',
+            bottom: window.innerHeight - rect.top + 8,
+            left: rect.left + rect.width / 2,
+            transform: 'translateX(-50%)',
+          });
+        } else {
+          setCardStyle({
+            top: rect.bottom + 8,
+            bottom: 'auto',
+            left: rect.left + rect.width / 2,
+            transform: 'translateX(-50%)',
+          });
+        }
       } else {
-        setCardPos({ top: rect.top + rect.height / 2, left: rect.right + 8 });
+        setCardStyle({
+          top: rect.top + rect.height / 2,
+          bottom: 'auto',
+          left: rect.right + 8,
+          transform: 'translateY(-50%)',
+        });
       }
     }
-  }, [isHorizontal]);
+  }, [isHorizontal, isBottom]);
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
@@ -1154,12 +1052,10 @@ function AddPageButton({
 
   const nameCard = isHovered && !isCreating ? (
     <div
-      className={styles.nameCardPortal}
+      className={isHorizontal ? styles.nameCardPortalHorizontal : styles.nameCardPortal}
       style={{
         position: 'fixed',
-        top: cardPos?.top ?? 0,
-        left: cardPos?.left ?? 0,
-        transform: isHorizontal ? 'translateX(-50%)' : 'translateY(-50%)',
+        ...cardStyle,
         zIndex: 200,
       }}
       role="tooltip"
@@ -1176,6 +1072,7 @@ function AddPageButton({
         ref={wrapperRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        style={isHorizontal ? { width: 40, height: 40 } : undefined}
       >
         <button
           ref={buttonRef}
@@ -1188,6 +1085,7 @@ function AddPageButton({
             setTimeout(() => inputRef.current?.focus(), 100);
           }}
           aria-label={t('add_page')}
+          data-tauri-drag-region="false"
         >
           <Plus size={20} />
         </button>
@@ -1205,11 +1103,18 @@ function AddPageButton({
                   ? buttonRef.current.getBoundingClientRect().left
                   : buttonRef.current.getBoundingClientRect().right + 8)
               : 56,
-            top: buttonRef.current
-              ? (isHorizontal
-                  ? buttonRef.current.getBoundingClientRect().bottom + 8
-                  : buttonRef.current.getBoundingClientRect().top)
-              : '50%',
+            ...(buttonRef.current && isBottom
+              ? {
+                  bottom: window.innerHeight - buttonRef.current.getBoundingClientRect().top + 8,
+                  top: 'auto',
+                }
+              : {
+                  top: buttonRef.current
+                    ? (isHorizontal
+                        ? buttonRef.current.getBoundingClientRect().bottom + 8
+                        : buttonRef.current.getBoundingClientRect().top)
+                    : '50%',
+                }),
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
@@ -1353,44 +1258,18 @@ function AddPageButton({
 // SideNavigation — main sidebar component
 // =============================================================================
 
-export function SideNavigation({ titleBarOffset = 0 }: { titleBarOffset?: number }) {
+export function SideNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
-  const vaultLock = useVaultStore((s) => s.lock);
-  const customPages = useSettingsStore((s) => s.settings.customPages);
-  const activeCustomPages = customPages.filter((p) => !p.deletedAt);
+  const activeCustomPages = useActiveCustomPages();
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('navigation');
 
-  const [showQuickChat, setShowQuickChat] = useState(false);
-  const aiButtonRef = useRef<HTMLDivElement>(null);
-  const [quickChatPos, setQuickChatPos] = useState<{ top: number } | null>(null);
-
-  const updateQuickChatPos = useCallback(() => {
-    if (aiButtonRef.current) {
-      const rect = aiButtonRef.current.getBoundingClientRect();
-      const cardHeight = 520;
-      const top = Math.min(Math.max(rect.top + rect.height / 2 - cardHeight / 2, 8), window.innerHeight - cardHeight - 8);
-      setQuickChatPos({ top });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!showQuickChat) return;
-    updateQuickChatPos();
-    window.addEventListener('scroll', updateQuickChatPos, true);
-    window.addEventListener('resize', updateQuickChatPos);
-    return () => {
-      window.removeEventListener('scroll', updateQuickChatPos, true);
-      window.removeEventListener('resize', updateQuickChatPos);
-    };
-  }, [showQuickChat, updateQuickChatPos]);
-
-  // Bind lock action
-  const items = secondaryItems.map((item) =>
-    item.type === 'action' ? { ...item, action: vaultLock } as NavAction : item
-  );
+  const { items, showSearch, setShowSearch } = useBoundNavActions();
+  const aiQuickChatPlacement: import('./useNavigationItems').AiQuickChatPlacement =
+    sidebarPosition === 'bottom' ? 'top' : 'left';
+  const { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos } = useAiQuickChat(520, aiQuickChatPlacement);
 
   const isWorkspaceSectionActive = (sectionPath: string): boolean => {
     // Custom pages are at /workspace/custom/:id — they never match section-based routes
@@ -1423,13 +1302,13 @@ export function SideNavigation({ titleBarOffset = 0 }: { titleBarOffset?: number
       }
     : {
         width: 48,
-        height: `calc(100vh - ${titleBarOffset}px)`,
+        height: '100vh',
         flexDirection: 'column',
         borderRight: sidebarPosition === 'left' ? '1px solid var(--border-subtle)' : 'none',
         borderLeft: sidebarPosition === 'right' ? '1px solid var(--border-subtle)' : 'none',
         borderBottom: 'none',
         borderTop: 'none',
-        padding: `${12 + titleBarOffset}px 0 12px 0`,
+        padding: '12px 0',
       };
 
   const zoneStyle: React.CSSProperties = isHorizontal
@@ -1455,7 +1334,7 @@ export function SideNavigation({ titleBarOffset = 0 }: { titleBarOffset?: number
               label={t(item.labelKey)}
               isActive={isActive}
               onClick={() => navigate(item.path)}
-              isHorizontal={isHorizontal}
+              position={sidebarPosition}
             />
           );
         })}
@@ -1467,27 +1346,33 @@ export function SideNavigation({ titleBarOffset = 0 }: { titleBarOffset?: number
             page={page}
             isActive={isCustomPageActive(page.id)}
             onClick={() => handleCustomPageNavigate(page)}
-            isHorizontal={isHorizontal}
+            position={sidebarPosition}
           />
         ))}
 
         {/* Add page button */}
         <AddPageButton onCreate={(page) => {
           navigate(`/workspace/custom/${page.id}`);
-        }} isHorizontal={isHorizontal} />
+        }} position={sidebarPosition} />
       </div>
 
       <div className={styles.navSecondary} style={{ ...zoneStyle, flexShrink: 0 }}>
         {items.map((item, i) => {
           if (item.type === 'action') {
+            const isSearch = item.iconKey === 'search';
             return (
-              <NavButton
-                key={`action-${i}`}
-                Icon={PAGE_ICON_MAP[item.iconKey]}
-                label={t(item.labelKey)}
-                onClick={item.action}
-                isHorizontal={isHorizontal}
-              />
+              <div key={`action-${i}`} style={{ position: 'relative' }}>
+                <NavButton
+                  Icon={PAGE_ICON_MAP[item.iconKey]}
+                  label={t(item.labelKey)}
+                  onClick={item.action}
+                  position={sidebarPosition}
+                />
+                {isSearch && showSearch && createPortal(
+                  <SearchPopover onClose={() => setShowSearch(false)} />,
+                  document.body
+                )}
+              </div>
             );
           }
           if (item.path === '/llm-chat') {
@@ -1502,12 +1387,13 @@ export function SideNavigation({ titleBarOffset = 0 }: { titleBarOffset?: number
                     if (location.pathname.startsWith('/llm-chat')) return;
                     setShowQuickChat((prev) => !prev);
                   }}
-                  isHorizontal={isHorizontal}
+                  position={sidebarPosition}
                 />
                 {showQuickChat && createPortal(
                   <AiQuickChatPopover
                     position={quickChatPos}
                     onClose={() => setShowQuickChat(false)}
+                    placement={sidebarPosition === 'bottom' ? 'top' : 'left'}
                   />,
                   document.body
                 )}
@@ -1525,7 +1411,7 @@ export function SideNavigation({ titleBarOffset = 0 }: { titleBarOffset?: number
               label={t(item.labelKey)}
               isActive={isActive}
               onClick={() => navigate(item.path)}
-              isHorizontal={isHorizontal}
+              position={sidebarPosition}
             />
           );
         })}

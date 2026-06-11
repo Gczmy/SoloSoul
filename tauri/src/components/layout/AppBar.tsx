@@ -7,15 +7,21 @@ interface AppBarProps {
   actions?: React.ReactNode;
   onBack?: () => void;
   titleBarOffset?: number;
+  topBarHeight?: number;
 }
 
-export function AppBar({ title, actions, onBack, titleBarOffset = 0 }: AppBarProps) {
+export function AppBar({ title, actions, onBack, titleBarOffset = 0, topBarHeight = 0 }: AppBarProps) {
   const { t } = useTranslation('common');
 
   return (
     <header
       className={styles.appBar}
-      style={{ paddingLeft: 20, top: titleBarOffset }}
+      style={{
+        paddingLeft: 20,
+        top: titleBarOffset + topBarHeight,
+        left: topBarHeight > 0 ? 0 : undefined,
+        right: topBarHeight > 0 ? 0 : undefined,
+      }}
     >
       <div className={styles.left}>
         {onBack && (

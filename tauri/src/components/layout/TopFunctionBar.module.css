@@ -1,0 +1,75 @@
+:root {
+  --function-bar-height: 48px;
+}
+
+.functionBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--function-bar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 101;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+.leftZone,
+.rightZone {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.leftZone {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rightZone {
+  flex-shrink: 0;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-warm));
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.primaryZone {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.customPages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.customPages::-webkit-scrollbar {
+  display: none;
+}

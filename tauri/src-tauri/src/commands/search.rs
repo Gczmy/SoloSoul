@@ -177,9 +177,51 @@ pub async fn search_unified(
     state: State<'_, AppState>,
     account_id: String,
     query: String,
+    collection_type: Option<String>,
+    parent_id: Option<String>,
     limit: Option<usize>,
 ) -> Result<SearchResult, String> {
-    search_advanced(state, account_id, query, None, None, limit).await
+    let limit = limit.unwrap_or(50);
+    let trimmed = query.trim();
+
+    // 仅按页面筛选时（无搜索关键词），列出该页面下全部对象
+    if trimmed.is_empty() && (collection_type.is_some() || parent_id.is_some()) {
+        let summaries = {
+            let svc = state.vault_service.read().await;
+            let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+            let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+            if let Some(ref ct) = collection_type {
+                vault.list_objects(&account_id, Some(ct), None, None, false, false)?
+            } else if let Some(ref pid) = parent_id {
+                vault.list_objects(&account_id, None, Some(pid), None, false, false)?
+            } else {
+                vec![]
+            }
+        };
+
+        let items: Vec<SearchResultItem> = summaries
+            .into_iter()
+            .map(|s| SearchResultItem {
+                object_id: s.id,
+                name: s.name,
+                collection_type: s.collection_type,
+                matched_field: None,
+                matched_value: None,
+                relevance: 0.0,
+            })
+            .collect();
+
+        let total = items.len();
+        let has_more = items.len() > limit;
+        return Ok(SearchResult {
+            items: items.into_iter().take(limit).collect(),
+            total,
+            has_more,
+        });
+    }
+
+    // 有关键词时走高级搜索，同时应用页面筛选
+    search_advanced(state, account_id, query, collection_type, None, Some(limit)).await
 }
 
 #[cfg(test)]

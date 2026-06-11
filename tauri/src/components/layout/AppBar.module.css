@@ -14,8 +14,6 @@
   user-select: none;
   -webkit-user-select: none;
   cursor: default;
-  -webkit-app-region: drag;
-  app-region: drag;
 }
 .left {
   display: flex;

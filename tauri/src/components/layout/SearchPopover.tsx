@@ -75,7 +75,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   }, [onClose]);
 
   const doSearch = useCallback(async (q: string, filter: string | null) => {
-    if (!accountId || !q.trim()) {
+    if (!accountId || (!q.trim() && !filter)) {
       setResults([]);
       setHasSearched(false);
       return;
@@ -83,9 +83,18 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     setIsSearching(true);
     setHasSearched(true);
     try {
+      const isCustom = activeCustomPages.some((p) => p.id === filter);
+      const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
+      if (filter) {
+        if (isCustom) {
+          payload.parentId = filter;
+        } else {
+          payload.collectionType = filter;
+        }
+      }
       const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
         'search_unified',
-        { accountId, query: q, limit: 50, collectionType: filter || undefined }
+        payload
       );
       setResults(res.items);
     } catch (e) {
@@ -93,7 +102,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     } finally {
       setIsSearching(false);
     }
-  }, [accountId, onError, t]);
+  }, [accountId, activeCustomPages, onError, t]);
 
   const handleChange = (val: string) => {
     setQuery(val);
@@ -129,7 +138,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const showDefaultView = !hasSearched || (!isSearching && query.trim() === '');
+  const showDefaultView = !hasSearched || (!isSearching && query.trim() === '' && !selectedFilter);
 
   return createPortal(
     <div className={styles.backdrop} onClick={handleBackdropClick}>
@@ -190,7 +199,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
         {/* Content area */}
         <div className={styles.content}>
           {/* Search results */}
-          {hasSearched && query.trim() !== '' && (
+          {hasSearched && (
             <>
               {!isSearching && results.length === 0 && (
                 <div className={styles.empty}>{t('common:no_results')}</div>

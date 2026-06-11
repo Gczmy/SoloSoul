@@ -147,6 +147,12 @@
   }
 }
 
+/* 水平功能条悬停名称卡片：仅水平居中，不需要垂直居中 */
+.nameCardPortalHorizontal {
+  composes: nameCardPortal;
+  animation: none;
+}
+
 /* ── 9.8 — 自定义页面创建行 ────────────────────────── */
 .addPageRow {
   display: flex;

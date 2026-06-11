@@ -1,10 +1,10 @@
 import styles from './AppShell.module.css';
 import { SideNavigation } from './SideNavigation';
+import { TopFunctionBar } from './TopFunctionBar';
 import { AppBar } from './AppBar';
-import { TitleBar } from './TitleBar';
 import { useSettingsStore } from '@/stores/settingsStore';
 
-const IS_MAC = /Mac/i.test(navigator.platform);
+const FUNCTION_BAR_HEIGHT = 48;
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -15,27 +15,26 @@ interface AppShellProps {
 
 export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
-  const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
-  const titleBarOffset = IS_MAC ? 38 : 0;
+  const isTop = sidebarPosition === 'top';
+  const isHorizontal = isTop || sidebarPosition === 'bottom';
 
   return (
-    <>
-      {IS_MAC && <TitleBar />}
+    <div
+      className={styles.appShell}
+      style={{
+        flexDirection: isHorizontal
+          ? (sidebarPosition === 'top' ? 'column' : 'column-reverse')
+          : (sidebarPosition === 'right' ? 'row-reverse' : 'row'),
+      }}
+    >
+      {isTop ? <TopFunctionBar /> : <SideNavigation />}
       <div
-        className={styles.appShell}
-        style={{
-          flexDirection: isHorizontal
-            ? (sidebarPosition === 'top' ? 'column' : 'column-reverse')
-            : (sidebarPosition === 'right' ? 'row-reverse' : 'row'),
-          paddingTop: titleBarOffset,
-        }}
+        className={styles.main}
+        style={isTop ? { paddingTop: FUNCTION_BAR_HEIGHT } : undefined}
       >
-        <SideNavigation titleBarOffset={titleBarOffset} />
-        <div className={styles.main}>
-          <AppBar title={title} actions={actions} onBack={onBack} titleBarOffset={titleBarOffset} />
-          <main className={styles.content}>{children}</main>
-        </div>
+        <AppBar title={title} actions={actions} onBack={onBack} topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0} />
+        <main className={styles.content}>{children}</main>
       </div>
-    </>
+    </div>
   );
 }
