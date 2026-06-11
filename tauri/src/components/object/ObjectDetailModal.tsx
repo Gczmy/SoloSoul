@@ -39,6 +39,8 @@ function flattenProperties(
       entries.push({ key: k, value: v });
     } else if (typeof v === 'number' || typeof v === 'boolean') {
       entries.push({ key: k, value: String(v) });
+    } else if (Array.isArray(v) && v.length > 0) {
+      entries.push({ key: k, value: v.join(', ') });
     }
   }
   if (fieldOrder && fieldOrder.length > 0) {

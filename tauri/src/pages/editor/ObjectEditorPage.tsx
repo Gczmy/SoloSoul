@@ -132,12 +132,13 @@ export function ObjectEditorPage() {
     if (isNew || !currentObject || dataLoaded || currentObject.id !== objectId) return;
     setName(currentObject.name || '');
     // Populate property values
-    const vals: Record<string, string> = {};
+    const vals: Record<string, unknown> = {};
     if (currentObject.properties && typeof currentObject.properties === 'object') {
       for (const [k, v] of Object.entries(currentObject.properties)) {
         if (typeof v === 'string') vals[k] = v;
         else if (typeof v === 'number' || typeof v === 'boolean') vals[k] = String(v);
-        else if (v !== null && v !== undefined) vals[k] = JSON.stringify(v);
+        else if (Array.isArray(v)) vals[k] = v;
+        else if (v !== null && v !== undefined) vals[k] = String(v);
       }
     }
     setValues(vals);

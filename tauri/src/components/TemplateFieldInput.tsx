@@ -98,7 +98,9 @@ export function TemplateFieldInput({
       );
 
     case 'multiselect': {
-      const selected = Array.isArray(value) ? value : [];
+      const rawSelected = Array.isArray(value) ? value : [];
+      // Always display in template-defined order, regardless of selection order
+      const selected = (options || []).filter((o) => rawSelected.includes(o));
       return (
         <div className={styles.field}>
           <label className={styles.label}>{labelRow}</label>
@@ -110,11 +112,10 @@ export function TemplateFieldInput({
                   className={styles.checkbox}
                   checked={selected.includes(opt)}
                   onChange={(e) => {
-                    if (e.target.checked) {
-                      onChange([...selected, opt]);
-                    } else {
-                      onChange(selected.filter((v) => v !== opt));
-                    }
+                    const next = e.target.checked
+                      ? (options || []).filter((o) => selected.includes(o) || o === opt)
+                      : selected.filter((v) => v !== opt);
+                    onChange(next);
                   }}
                   disabled={disabled}
                 />
