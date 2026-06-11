@@ -23,18 +23,19 @@
 }
 
 .trafficLight {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  border: none;
+  border: 1px solid rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: opacity 0.15s ease;
-  opacity: 0.9;
+  opacity: 0.95;
   padding: 0;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.2);
 }
 
 .trafficLight:hover {
