@@ -36,6 +36,116 @@ interface ListTemplate {
 
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 
+/** Overlay editor for select/multiselect field options */
+function OptionsEditor({ options, onChange, fieldName, fieldType }: { options: string[]; onChange: (opts: string[]) => void; fieldName: string; fieldType: 'select' | 'multiselect' }) {
+  const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState('');
+
+  const handleOpen = () => {
+    setEditing(options.join('\n'));
+    setOpen(true);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={handleOpen}
+        title="编辑选项"
+        style={{
+          height: 36,
+          padding: '0 10px',
+          borderRadius: 6,
+          border: '1px solid var(--border-subtle)',
+          background: 'var(--bg-elevated)',
+          color: 'var(--text-secondary)',
+          fontSize: 13,
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+          lineHeight: '36px',
+        }}
+      >
+        {options.length > 0 ? `${options.length} 个选项` : '添加选项'}
+      </button>
+      {open && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.35)',
+            backdropFilter: 'blur(4px)',
+          }}
+          onClick={() => setOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--bg-elevated)',
+              borderRadius: 16,
+              padding: '28px 32px',
+              maxWidth: 420,
+              width: '90%',
+              boxShadow: 'var(--shadow-lg)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 600 }}>
+              {fieldType === 'multiselect' ? '编辑多选选项' : '编辑单选选项'}
+              <span style={{ fontWeight: 400, color: 'var(--text-secondary)', marginLeft: 8, fontSize: 14 }}>{fieldName}</span>
+            </h3>
+            <p style={{ margin: '0 0 16px', fontSize: 12, color: 'var(--text-tertiary)' }}>
+              {fieldType === 'multiselect' ? '每行输入一个选项，可多选' : '每行输入一个选项，只能选一项'}
+            </p>
+            <textarea
+              value={editing}
+              onChange={(e) => setEditing(e.target.value)}
+              rows={8}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                fontSize: 14,
+                fontFamily: 'inherit',
+                resize: 'vertical',
+                boxSizing: 'border-box',
+                outline: 'none',
+              }}
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', fontSize: 14, color: 'var(--text-secondary)' }}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const opts = editing.split('\n').map((s) => s.trim()).filter(Boolean);
+                  onChange(opts);
+                  setOpen(false);
+                }}
+                style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--accent-primary)', cursor: 'pointer', fontSize: 14, color: 'white' }}
+              >
+                确定
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function SensitivityBadges({ properties }: { properties: ListTemplate['properties'] }) {
   const present = new Set(properties.map((p) => (p.sensitivityLevel || 'internal') as SensitivityLevel));
   const ordered = SENSITIVITY_ORDER.filter((level) => present.has(level));
@@ -215,6 +325,12 @@ export function TemplateManagerPage() {
     );
   };
 
+  const updatePropertyOptions = (index: number, options: string[]) => {
+    setEditProperties((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, options: options.length > 0 ? options : undefined } : p))
+    );
+  };
+
   const removeProperty = async (index: number) => {
     const prop = editProperties[index];
     if (!prop || !editingTemplate) return;
@@ -271,13 +387,15 @@ export function TemplateManagerPage() {
       value={value}
       onChange={(e) => onChange(e.target.value as PropertyType)}
       style={{
-        padding: '8px 10px',
+        height: 36,
+        padding: '0 10px',
         borderRadius: 6,
         border: '1px solid var(--border-subtle)',
         background: 'var(--bg-elevated)',
         color: 'var(--text-primary)',
         fontSize: 13,
         cursor: 'pointer',
+        boxSizing: 'border-box',
       }}
     >
       {PROPERTY_TYPES.map((pt) => (
@@ -415,13 +533,14 @@ export function TemplateManagerPage() {
               {t('settings:fields_section_title') || '字段列表'}
             </div>
 
+            <div style={{ background: 'var(--bg-toolbar)', borderRadius: 8, padding: '8px 4px', border: '1px solid var(--border-subtle)' }}>
             {editProperties.filter((p) => !p.deprecatedAt).length === 0 && editProperties.filter((p) => p.deprecatedAt).length === 0 && (
               <div style={{ fontSize: 12, color: 'var(--text-tertiary)', padding: '12px 0' }}>
                 {t('settings:empty_template_hint') || '此模板暂无字段，点击下方添加'}
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '35vh', overflow: 'auto', paddingRight: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '35vh', overflowY: 'auto', overflowX: 'hidden', paddingRight: 4 }}>
               {editProperties.filter((p) => !p.deprecatedAt).map((prop) => {
                 const idx = editProperties.findIndex((p) => p.id === prop.id);
                 return (
@@ -430,21 +549,21 @@ export function TemplateManagerPage() {
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 6,
+                      gap: 8,
                       padding: '8px 10px',
                       borderRadius: 6,
                       background: 'var(--bg-subtle)',
-                      flexWrap: 'wrap',
                     }}
                   >
-                    <div style={{ flex: 1, minWidth: 120 }}>
+                    <div style={{ flex: 1, minWidth: 80 }}>
                       <input
                         value={prop.name}
                         onChange={(e) => updatePropertyName(idx, e.target.value)}
                         placeholder={t('settings:field_name') || '字段名称'}
                         style={{
                           width: '100%',
-                          padding: '8px 10px',
+                          height: 36,
+                          padding: '0 10px',
                           borderRadius: 6,
                           border: '1px solid var(--border-subtle)',
                           background: 'var(--bg-elevated)',
@@ -456,27 +575,77 @@ export function TemplateManagerPage() {
                         }}
                       />
                     </div>
-                    {renderTypeSelect(prop.type, (v) => updatePropertyType(idx, v))}
-                    <select
-                      value={prop.sensitivityLevel || 'internal'}
-                      onChange={(e) => updatePropertySensitivity(idx, e.target.value as SensitivityLevel)}
-                      style={{
-                        padding: '8px 10px',
+                    {(() => {
+                      const sharedSelectStyle: React.CSSProperties = {
+                        height: 36,
+                        padding: '0 10px',
                         borderRadius: 6,
                         border: '1px solid var(--border-subtle)',
                         background: 'var(--bg-elevated)',
                         color: 'var(--text-primary)',
                         fontSize: 13,
                         cursor: 'pointer',
+                        boxSizing: 'border-box',
+                      };
+                      return (
+                        <select
+                          value={prop.type}
+                          onChange={(e) => updatePropertyType(idx, e.target.value as PropertyType)}
+                          style={{ ...sharedSelectStyle, minWidth: 90 }}
+                        >
+                          {PROPERTY_TYPES.map((pt) => (
+                            <option key={pt} value={pt}>{t(`editor:field_types.${pt}`, pt)}</option>
+                          ))}
+                        </select>
+                      );
+                    })()}
+                    {(prop.type === 'select' || prop.type === 'multiselect') && (
+                      <OptionsEditor
+                        options={prop.options || []}
+                        onChange={(opts) => updatePropertyOptions(idx, opts)}
+                        fieldName={prop.name}
+                        fieldType={prop.type === 'multiselect' ? 'multiselect' : 'select'}
+                      />
+                    )}
+                    <select
+                      value={prop.sensitivityLevel || 'internal'}
+                      onChange={(e) => updatePropertySensitivity(idx, e.target.value as SensitivityLevel)}
+                      style={{
+                        height: 36,
+                        padding: '0 10px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-elevated)',
+                        color: 'var(--text-primary)',
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        boxSizing: 'border-box',
                       }}
                     >
                       {SENSITIVITY_LEVELS.map((sl) => (
                         <option key={sl} value={sl}>{t(`editor:sensitivity_levels.${sl}`, sl)}</option>
                       ))}
                     </select>
-                    <Button variant="tertiary" size="sm" onClick={() => removeProperty(idx)} title={t('settings:remove_field') || '删除'}>
+                    <button
+                      type="button"
+                      onClick={() => removeProperty(idx)}
+                      title={t('settings:remove_field') || '删除'}
+                      style={{
+                        height: 36,
+                        width: 36,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'transparent',
+                        color: '#e74c3c',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
                       <Trash2 size={14} />
-                    </Button>
+                    </button>
                   </div>
                 );
               })}
@@ -504,7 +673,7 @@ export function TemplateManagerPage() {
                   {t('settings:deprecated_fields_count', { count: editProperties.filter((p) => p.deprecatedAt).length })}
                 </button>
                 {showDeprecated && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8, maxHeight: '20vh', overflow: 'auto', paddingRight: 4 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8, maxHeight: '20vh', overflowY: 'auto', overflowX: 'hidden', paddingRight: 4 }}>
                     {editProperties.filter((p) => p.deprecatedAt).map((prop) => {
                       const idx = editProperties.findIndex((p) => p.id === prop.id);
                       const usage = fieldUsageMap[prop.id];
@@ -583,13 +752,31 @@ export function TemplateManagerPage() {
                 )}
               </div>
             )}
+            </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
               {renderTypeSelect(newFieldType, setNewFieldType)}
-              <Button variant="secondary" size="sm" onClick={addProperty}>
-                <Plus size={14} style={{ marginRight: 4 }} />
+              <button
+                type="button"
+                onClick={addProperty}
+                style={{
+                  height: 36,
+                  padding: '0 14px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: 'var(--accent-primary)',
+                  color: 'white',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <Plus size={14} />
                 {t('settings:add_field') || '添加字段'}
-              </Button>
+              </button>
             </div>
           </div>
 

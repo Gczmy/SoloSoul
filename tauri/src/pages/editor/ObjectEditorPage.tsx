@@ -53,12 +53,13 @@ export function ObjectEditorPage() {
   }, [userTemplates]);
 
   const objectTemplates = useMemo(() => {
-    const map: Record<string, { key: string; label: string; type: string; sensitivityLevel?: string; required?: boolean; deprecatedAt?: string }[]> = {};
+    const map: Record<string, { key: string; label: string; type: string; options?: string[]; sensitivityLevel?: string; required?: boolean; deprecatedAt?: string }[]> = {};
     for (const tpl of userTemplates) {
       map[tpl.id] = tpl.properties.map((p) => ({
         key: p.id,
         label: p.name,
         type: p.type,
+        options: p.options,
         sensitivityLevel: p.sensitivityLevel || 'internal',
         required: false,
         deprecatedAt: p.deprecatedAt,
@@ -193,8 +194,10 @@ export function ObjectEditorPage() {
           break;
         }
         case 'url': {
+          // Accept URLs with or without protocol; prepend https:// if missing
+          const urlStr = /^https?:\/\//i.test(strVal) ? strVal : `https://${strVal}`;
           try {
-            new URL(strVal);
+            new URL(urlStr);
           } catch {
             errors[field.key] = t('editor:validation_url');
           }
@@ -229,7 +232,7 @@ export function ObjectEditorPage() {
   const handleSave = async () => {
     if (!accountId) return;
     if (!validateFields()) {
-      onError(t('editor:validation_failed'), t('editor:validation_failed'));
+      onError(t('editor:validation_failed'), t('common:save'));
       return;
     }
     setIsSaving(true);
@@ -374,6 +377,7 @@ export function ObjectEditorPage() {
                       propertyId={field.key}
                       label={fieldLabel}
                       type={propType}
+                      options={field.options}
                       value={values[field.key]}
                       icon={<FieldTypeIcon type={propType} />}
                       badge={
@@ -382,6 +386,7 @@ export function ObjectEditorPage() {
                           {isDeprecated && <DeprecatedBadge />}
                         </div>
                       }
+                      hint={['email', 'url', 'phone', 'date', 'number'].includes(propType) ? t(`editor:validation_hint_${propType}`) : undefined}
                       onChange={(val) => {
                         setValues((v) => ({ ...v, [field.key]: val }));
                         if (validationErrors[field.key]) {

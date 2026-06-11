@@ -57,6 +57,18 @@
     "sensitive": "敏感",
     "critical": "关键"
   },
+  "validation_required": "{{field}}不能为空",
+  "validation_email": "请输入有效的邮箱地址",
+  "validation_url": "请输入有效的链接地址",
+  "validation_phone": "请输入有效的电话号码",
+  "validation_date": "请输入有效日期（YYYY-MM-DD）",
+  "validation_number": "请输入有效数字",
+  "validation_hint_email": "格式示例：name@example.com",
+  "validation_hint_url": "格式示例：example.com 或 https://example.com",
+  "validation_hint_phone": "格式示例：+86 1234567890",
+  "validation_hint_date": "格式示例：YYYY-MM-DD",
+  "validation_hint_number": "仅支持数字",
+  "validation_failed": "字段类型填写错误，请检查后重试",
   "no_template_for_section": "此页面暂无模板，",
   "go_create_template": "前往模板管理新建"
 }

@@ -12,6 +12,7 @@ interface TemplateFieldInputProps {
   disabled?: boolean;
   icon?: React.ReactNode;
   badge?: React.ReactNode;
+  hint?: string;
 }
 
 export function TemplateFieldInput({
@@ -24,6 +25,7 @@ export function TemplateFieldInput({
   disabled,
   icon,
   badge,
+  hint,
 }: TemplateFieldInputProps) {
   const labelRow = (
     <span className={styles.labelRow}>
@@ -48,6 +50,7 @@ export function TemplateFieldInput({
       return (
         <div className={styles.field}>
           <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
+          {hint && <div className={styles.hint}>{hint}</div>}
           <textarea
             id={propertyId}
             className={styles.textarea}
@@ -128,6 +131,7 @@ export function TemplateFieldInput({
       return (
         <div className={styles.field}>
           <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
+          {hint && <div className={styles.hint}>{hint}</div>}
           <input
             id={propertyId}
             type={inputType}

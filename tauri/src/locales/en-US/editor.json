@@ -57,6 +57,18 @@
     "sensitive": "Sensitive",
     "critical": "Critical"
   },
+  "validation_required": "{{field}} is required",
+  "validation_email": "Please enter a valid email address",
+  "validation_url": "Please enter a valid URL",
+  "validation_phone": "Please enter a valid phone number",
+  "validation_date": "Please enter a valid date (YYYY-MM-DD)",
+  "validation_number": "Please enter a valid number",
+  "validation_hint_email": "e.g. name@example.com",
+  "validation_hint_url": "e.g. example.com or https://example.com",
+  "validation_hint_phone": "e.g. +86 1234567890",
+  "validation_hint_date": "e.g. YYYY-MM-DD",
+  "validation_hint_number": "Numbers only",
+  "validation_failed": "Some fields contain invalid values, please check and retry",
   "no_template_for_section": "No templates for this page. ",
   "go_create_template": "Go to Template Manager to create one"
 }

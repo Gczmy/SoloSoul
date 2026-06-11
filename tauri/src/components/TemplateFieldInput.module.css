@@ -70,3 +70,9 @@
   flex-wrap: wrap;
   gap: 8px 16px;
 }
+
+.hint {
+  font-size: 11px;
+  color: var(--text-tertiary, #999);
+  line-height: 1.4;
+}
