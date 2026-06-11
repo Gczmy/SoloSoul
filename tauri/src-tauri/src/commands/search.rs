@@ -1,18 +1,31 @@
 use crate::state::AppState;
 use serde::Serialize;
+use solosoul_vault::{ObjectRecord, VaultStore};
+use std::collections::HashSet;
 use tauri::State;
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchResultItem {
     pub object_id: String,
     pub name: String,
     pub collection_type: String,
+    /// "object" or "page"
+    pub item_type: String,
+    pub parent_id: Option<String>,
+    /// Number of populated fields in the object (object results only)
+    pub field_count: Option<usize>,
+    /// Sensitivity levels present in the object (object results only)
+    pub sensitivity_levels: Option<Vec<String>>,
+    /// Number of objects inside this page (page results only)
+    pub object_count: Option<usize>,
     pub matched_field: Option<String>,
     pub matched_value: Option<String>,
     pub relevance: f64,
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchResult {
     pub items: Vec<SearchResultItem>,
     pub total: usize,
@@ -69,11 +82,127 @@ fn search_properties_for_matches(
     }
 }
 
-#[tauri::command]
-pub async fn search_advanced(
-    state: State<'_, AppState>,
-    account_id: String,
-    query: String,
+/// Count meaningful top-level fields in an object's properties payload.
+fn count_object_fields(properties: &serde_json::Value) -> usize {
+    match properties {
+        serde_json::Value::Object(map) => map
+            .iter()
+            .filter(|(k, v)| {
+                !k.starts_with("__")
+                    && !v.is_null()
+                    && *v != &serde_json::Value::String(String::new())
+            })
+            .count(),
+        _ => 0,
+    }
+}
+
+/// Recursively collect string values whose key looks like a sensitivity marker.
+fn collect_sensitivity_values(data: &serde_json::Value, out: &mut HashSet<String>) {
+    match data {
+        serde_json::Value::Object(obj) => {
+            for (key, value) in obj {
+                if key.to_lowercase().contains("sensitivity") {
+                    if let serde_json::Value::String(s) = value {
+                        out.insert(s.clone());
+                    }
+                }
+                collect_sensitivity_values(value, out);
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for item in arr {
+                collect_sensitivity_values(item, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Build the set of sensitivity levels for an object result.
+fn object_sensitivity_levels(rec: &ObjectRecord) -> Vec<String> {
+    let mut levels = HashSet::new();
+    levels.insert(rec.sensitivity_level.clone());
+    collect_sensitivity_values(&rec.properties, &mut levels);
+    levels.into_iter().collect()
+}
+
+/// Count non-deleted child objects for a page.
+fn count_page_objects(vault: &VaultStore, account_id: &str, page_id: &str) -> usize {
+    vault
+        .list_objects(account_id, None, Some(page_id), None, false, false)
+        .map(|v| v.len())
+        .unwrap_or(0)
+}
+
+/// Count non-deleted objects that belong to a system section (identity/travel/etc.).
+fn count_section_objects(vault: &VaultStore, account_id: &str, section: &str) -> usize {
+    vault
+        .list_objects(account_id, Some(section), None, None, false, false)
+        .map(|v| v.len())
+        .unwrap_or(0)
+}
+
+/// Search pages (system sections + custom pages) matching the query.
+fn search_pages(
+    vault: &VaultStore,
+    account_id: &str,
+    query: &str,
+) -> Result<Vec<SearchResultItem>, String> {
+    let q = query.to_lowercase();
+    let mut items: Vec<SearchResultItem> = Vec::new();
+
+    // Custom pages are stored as objects with type_id = "page"
+    let custom_pages = vault.list_objects(account_id, Some("page"), None, Some(&q), false, false)?;
+    for page in custom_pages {
+        let score = if page.name.to_lowercase() == q {
+            5.0
+        } else {
+            3.0
+        };
+        items.push(SearchResultItem {
+            object_id: page.id.clone(),
+            name: page.name,
+            collection_type: "page".to_string(),
+            item_type: "page".to_string(),
+            parent_id: None,
+            field_count: None,
+            sensitivity_levels: None,
+            object_count: Some(count_page_objects(vault, account_id, &page.id)),
+            matched_field: None,
+            matched_value: None,
+            relevance: score,
+        });
+    }
+
+    // System sections
+    const SYSTEM_PAGES: &[&str] = &["identity", "travel", "financial", "professional"];
+    for section in SYSTEM_PAGES {
+        let section_lower = section.to_lowercase();
+        if section_lower.contains(&q) || q.contains(&section_lower) {
+            items.push(SearchResultItem {
+                object_id: section.to_string(),
+                name: section.to_string(),
+                collection_type: section.to_string(),
+                item_type: "page".to_string(),
+                parent_id: None,
+                field_count: None,
+                sensitivity_levels: None,
+                object_count: Some(count_section_objects(vault, account_id, section)),
+                matched_field: None,
+                matched_value: None,
+                relevance: 3.0,
+            });
+        }
+    }
+
+    Ok(items)
+}
+
+async fn search_advanced_impl(
+    state: &AppState,
+    account_id: &str,
+    query: &str,
     collection_type: Option<String>,
     sensitivity_level: Option<String>,
     limit: Option<usize>,
@@ -91,7 +220,7 @@ pub async fn search_advanced(
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
     let q = query.to_lowercase();
-    let records = vault.search_objects(&account_id, &q)?;
+    let records = vault.search_objects(account_id, &q)?;
     let mut items: Vec<SearchResultItem> = Vec::new();
 
     for rec in &records {
@@ -109,6 +238,12 @@ pub async fn search_advanced(
             }
         }
 
+        // Custom pages are stored as objects with type_id = "page".
+        // They are surfaced as page results by search_pages, not as object results here.
+        if rec.type_id == "page" {
+            continue;
+        }
+
         // Collect field-level matches from properties
         let mut field_matches: Vec<(String, String, f64)> = Vec::new();
         search_properties_for_matches(&rec.properties, &q, "", &mut field_matches);
@@ -121,38 +256,38 @@ pub async fn search_advanced(
         };
 
         if !field_matches.is_empty() || name_score > 0.0 {
-            if field_matches.is_empty() {
-                items.push(SearchResultItem {
-                    object_id: rec.id.clone(),
-                    name: rec.name.clone(),
-                    collection_type: rec.type_id.clone(),
-                    matched_field: Some("name".to_string()),
-                    matched_value: Some(rec.name.clone()),
-                    relevance: name_score,
-                });
+            let field_count = count_object_fields(&rec.properties);
+            let sensitivity_levels = object_sensitivity_levels(rec);
+            // 每个对象只返回一条最佳结果，避免同一对象因多个字段匹配而重复出现
+            let (matched_field, matched_value, relevance) = if field_matches.is_empty() {
+                (
+                    Some("name".to_string()),
+                    Some(rec.name.clone()),
+                    name_score,
+                )
             } else {
                 field_matches
                     .sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
                 let best = &field_matches[0];
-                items.push(SearchResultItem {
-                    object_id: rec.id.clone(),
-                    name: rec.name.clone(),
-                    collection_type: rec.type_id.clone(),
-                    matched_field: Some(best.0.clone()),
-                    matched_value: Some(best.1.clone()),
-                    relevance: best.2 + name_score,
-                });
-                for m in field_matches.iter().skip(1).take(3) {
-                    items.push(SearchResultItem {
-                        object_id: rec.id.clone(),
-                        name: rec.name.clone(),
-                        collection_type: rec.type_id.clone(),
-                        matched_field: Some(m.0.clone()),
-                        matched_value: Some(m.1.clone()),
-                        relevance: m.2 + name_score,
-                    });
-                }
-            }
+                (
+                    Some(best.0.clone()),
+                    Some(best.1.clone()),
+                    best.2 + name_score,
+                )
+            };
+            items.push(SearchResultItem {
+                object_id: rec.id.clone(),
+                name: rec.name.clone(),
+                collection_type: rec.type_id.clone(),
+                item_type: "object".to_string(),
+                parent_id: rec.parent_id.clone(),
+                field_count: Some(field_count),
+                sensitivity_levels: Some(sensitivity_levels),
+                object_count: None,
+                matched_field,
+                matched_value,
+                relevance,
+            });
         }
     }
 
@@ -170,6 +305,18 @@ pub async fn search_advanced(
         total,
         has_more,
     })
+}
+
+#[tauri::command]
+pub async fn search_advanced(
+    state: State<'_, AppState>,
+    account_id: String,
+    query: String,
+    collection_type: Option<String>,
+    sensitivity_level: Option<String>,
+    limit: Option<usize>,
+) -> Result<SearchResult, String> {
+    search_advanced_impl(&state, &account_id, &query, collection_type, sensitivity_level, limit).await
 }
 
 #[tauri::command]
@@ -205,6 +352,11 @@ pub async fn search_unified(
                 object_id: s.id,
                 name: s.name,
                 collection_type: s.collection_type,
+                item_type: "object".to_string(),
+                parent_id: parent_id.clone(),
+                field_count: Some(count_object_fields(&s.properties)),
+                sensitivity_levels: Some(vec![s.sensitivity_level]),
+                object_count: None,
                 matched_field: None,
                 matched_value: None,
                 relevance: 0.0,
@@ -220,8 +372,38 @@ pub async fn search_unified(
         });
     }
 
-    // 有关键词时走高级搜索，同时应用页面筛选
-    search_advanced(state, account_id, query, collection_type, None, Some(limit)).await
+    // 有关键词时走高级搜索（返回对象），再合并页面结果
+    let mut object_result = search_advanced_impl(
+        &state,
+        &account_id,
+        &query,
+        collection_type.clone(),
+        None,
+        Some(limit),
+    )
+    .await?;
+
+    // 未按具体页面筛选时，额外搜索页面（系统分区 + 自定义页面）
+    if collection_type.is_none() && parent_id.is_none() {
+        let svc = state.vault_service.read().await;
+        let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+        match search_pages(vault, &account_id, &query) {
+            Ok(pages) => object_result.items.extend(pages),
+            Err(_) => {}
+        }
+        object_result.items.sort_by(|a, b| {
+            b.relevance
+                .partial_cmp(&a.relevance)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        let has_more = object_result.items.len() > limit;
+        object_result.items.truncate(limit);
+        object_result.has_more = has_more;
+        object_result.total = object_result.items.len();
+    }
+
+    Ok(object_result)
 }
 
 #[cfg(test)]
@@ -350,6 +532,11 @@ mod tests {
             object_id: "obj-1".to_string(),
             name: "Test".to_string(),
             collection_type: "note".to_string(),
+            item_type: "object".to_string(),
+            parent_id: None,
+            field_count: Some(2),
+            sensitivity_levels: Some(vec!["internal".to_string()]),
+            object_count: None,
             matched_field: Some("name".to_string()),
             matched_value: Some("Test".to_string()),
             relevance: 3.5,
@@ -360,9 +547,9 @@ mod tests {
             has_more: false,
         };
         let json = serde_json::to_string(&result).unwrap();
-        assert!(json.contains("\"object_id\":\"obj-1\""));
+        assert!(json.contains("\"objectId\":\"obj-1\""));
         assert!(json.contains("\"relevance\":3.5"));
-        assert!(json.contains("\"has_more\":false"));
+        assert!(json.contains("\"hasMore\":false"));
         assert!(json.contains("\"total\":1"));
     }
 
@@ -372,13 +559,18 @@ mod tests {
             object_id: "obj-2".to_string(),
             name: "Minimal".to_string(),
             collection_type: "task".to_string(),
+            item_type: "object".to_string(),
+            parent_id: None,
+            field_count: Some(0),
+            sensitivity_levels: Some(vec![]),
+            object_count: None,
             matched_field: None,
             matched_value: None,
             relevance: 0.0,
         };
         let json = serde_json::to_string(&item).unwrap();
-        assert!(json.contains("\"object_id\":\"obj-2\""));
-        assert!(json.contains("\"matched_field\":null"));
-        assert!(json.contains("\"matched_value\":null"));
+        assert!(json.contains("\"objectId\":\"obj-2\""));
+        assert!(json.contains("\"matchedField\":null"));
+        assert!(json.contains("\"matchedValue\":null"));
     }
 }

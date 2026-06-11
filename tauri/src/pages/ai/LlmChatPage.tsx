@@ -446,14 +446,18 @@ export function LlmChatPage() {
     <AppShell title={t('settings:ai_chat')} onBack={() => navigate('/home')}
       actions={
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => navigate('/settings/llm/stats', { state: { from: '/llm-chat' } })} title="使用统计"
-            style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-            <BarChart3 size={16} />
-          </button>
-          <button onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })} title={t('settings:llm_config')}
-            style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-            <Settings size={16} />
-          </button>
+          <span className="tooltip-btn" data-tooltip={t('settings:llm_stats_title')}>
+            <button onClick={() => navigate('/settings/llm/stats', { state: { from: '/llm-chat' } })}
+              style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+              <BarChart3 size={16} />
+            </button>
+          </span>
+          <span className="tooltip-btn" data-tooltip={t('settings:llm_config')}>
+            <button onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
+              style={{ padding: 8, borderRadius: 8, border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+              <Settings size={16} />
+            </button>
+          </span>
         </div>
       }
     >
@@ -472,7 +476,7 @@ export function LlmChatPage() {
               </p>
             )}
             {conversations.map((conv) => (
-              <div key={conv.id} onClick={() => loadConversation(conv.id)} style={{
+              <div key={conv.id} className="conv-item" onClick={() => loadConversation(conv.id)} style={{
                 display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', cursor: 'pointer', fontSize: 13,
                 background: currentConvId === conv.id ? 'rgba(91,124,153,0.08)' : 'transparent',
                 borderLeft: currentConvId === conv.id ? '2px solid var(--accent-primary)' : '2px solid transparent',
@@ -493,10 +497,12 @@ export function LlmChatPage() {
                   )}
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); handleRenameStart(conv.id, conv.name); }}
+                  title={t('common:rename')}
                   style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)', opacity: 0 }} className="sidebar-action-btn">
                   <Pencil size={12} />
                 </button>
                 <button onClick={(e) => { e.stopPropagation(); handleSoftDelete(conv.id); }}
+                  title={t('common:delete')}
                   style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e74c3c', opacity: 0 }} className="sidebar-action-btn">
                   <Trash2 size={12} />
                 </button>
@@ -717,6 +723,38 @@ export function LlmChatPage() {
         .typing-animation .dot:nth-child(1) { animation: blink 1.4s infinite 0s; }
         .typing-animation .dot:nth-child(2) { animation: blink 1.4s infinite 0.2s; }
         .typing-animation .dot:nth-child(3) { animation: blink 1.4s infinite 0.4s; }
+        .tooltip-btn { position: relative; display: inline-flex; }
+        .tooltip-btn::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          top: calc(100% + 6px);
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 4px 8px;
+          border-radius: 6px;
+          background: var(--bg-elevated);
+          color: var(--text-secondary);
+          border: 1px solid var(--border-subtle);
+          font-size: 11px;
+          white-space: nowrap;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.12s ease;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+          z-index: 10;
+        }
+        .tooltip-btn:hover::after { opacity: 1; }
+        .conv-item {
+          border: 1px solid transparent;
+          border-radius: 8px;
+          margin: 2px 8px;
+          transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .conv-item:hover {
+          transform: translateY(-2px);
+          border-color: var(--accent-primary);
+          box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
         @keyframes blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
       `}</style>
     </AppShell>

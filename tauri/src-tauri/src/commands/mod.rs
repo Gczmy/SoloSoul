@@ -20,3 +20,4 @@ pub mod sync;
 pub mod system;
 pub mod template;
 pub mod vault;
+pub mod window;

@@ -3,7 +3,8 @@
 // on <html>, driving light/dark via [data-theme] selectors.
 
 import type { AccentPreset, ThemeConfig } from '@/types';
-import { applyScheme, resolveActiveScheme } from './themeSchemes';
+import { applyScheme, resolveActiveScheme, getSchemeById } from './themeSchemes';
+import { invoke } from '@tauri-apps/api/core';
 
 const ACCENT_COLORS: Record<AccentPreset, string> = {
   ocean: '#5B7C99',
@@ -24,6 +25,37 @@ export function resolveEffectiveTheme(preset: ThemeConfig['preset']): 'light' | 
     return window.matchMedia(SYSTEM_DARK_MQ).matches ? 'dark' : 'light';
   }
   return preset === 'warm-stone-dark' ? 'dark' : 'light';
+}
+
+function hexToRgb(hex: string): [number, number, number] | null {
+  const cleaned = hex.replace('#', '');
+  if (cleaned.length !== 3 && cleaned.length !== 6) return null;
+  const full = cleaned.length === 3
+    ? cleaned.split('').map((c) => c + c).join('')
+    : cleaned;
+  const num = parseInt(full, 16);
+  if (Number.isNaN(num)) return null;
+  return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+}
+
+/** Sync the native window background color with the active scheme so the
+ *  system title bar (traffic lights area) matches the app theme. */
+async function syncTitleBarColor(config: ThemeConfig) {
+  try {
+    const schemeId = resolveActiveScheme(
+      config.preset,
+      config.defaultLightTheme || 'warm-stone',
+      config.defaultDarkTheme || 'warm-stone-dark',
+    );
+    const scheme = getSchemeById(schemeId);
+    const bg = scheme?.variables['--bg-base'] || '#1c1c1e';
+    const rgb = hexToRgb(bg) || [28, 28, 30];
+    await invoke('set_titlebar_color', {
+      color: { red: rgb[0], green: rgb[1], blue: rgb[2] },
+    });
+  } catch {
+    // ignore when running in browser or API unavailable
+  }
 }
 
 /** Apply accent color as a CSS custom property on <html> */
@@ -60,6 +92,9 @@ export function applyTheme(config: ThemeConfig) {
     config.defaultDarkTheme || 'warm-stone-dark',
   );
   applyScheme(activeScheme);
+
+  // Sync native title bar background with the active theme
+  void syncTitleBarColor(config);
 }
 
 /** Listen for system theme changes (4.3.5) */
@@ -81,6 +116,7 @@ export function listenForSystemTheme(
         config.defaultDarkTheme || 'warm-stone-dark',
       );
       applyScheme(activeScheme);
+      void syncTitleBarColor(config);
     }
   };
   systemMediaQuery.addEventListener('change', systemListener);

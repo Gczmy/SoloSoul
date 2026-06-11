@@ -69,14 +69,29 @@
 /* Filter bar */
 .filterBar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+.filterBar::-webkit-scrollbar {
+  display: none;
+}
+.leftControl,
+.rightControl {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 .filterBtn {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: 4px;
   padding: 4px 10px;
   border-radius: 6px;
@@ -85,7 +100,7 @@
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 .filterBtn:hover {
   background: var(--state-hover);
@@ -99,14 +114,40 @@
 
 /* Content area */
 .content {
-  overflow-y: auto;
+  position: relative;
+  overflow-y: scroll;
   padding: 4px;
+  /* 固定高度 + 始终保留滚动条槽位，避免切换筛选时卡片宽高抖动 */
+  height: 320px;
+  max-height: 45vh;
 }
 .empty {
   text-align: center;
   color: var(--text-tertiary);
   padding: 32px 16px;
   font-size: 13px;
+}
+.searching {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+.searchingOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg-elevated);
+  opacity: 0.92;
+  font-size: 13px;
+  color: var(--text-tertiary);
 }
 .resultItem {
   display: flex;
@@ -144,6 +185,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.typeTag {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(91, 124, 153, 0.12);
+  color: var(--accent-primary);
+  font-size: 10px;
+  font-weight: 500;
 }
 
 /* Section */

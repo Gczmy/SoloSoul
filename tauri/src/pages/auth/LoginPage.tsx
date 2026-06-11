@@ -78,6 +78,7 @@ export function LoginPage() {
     if (!selectedAccountId || bioLoading) return;
     setBioLoading(true);
     setBioError(null);
+    let success = false;
     try {
       await invoke('biometric_unlock', { accountId: selectedAccountId, location: 'login_page', action: 'unlock' });
       // Vault already unlocked — set auth state directly
@@ -85,6 +86,7 @@ export function LoginPage() {
       const accs = result || [];
       const acc = accs.find((a) => a.id === selectedAccountId) || { id: selectedAccountId, name: selectedAccountId };
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
+      success = true;
       // Navigate immediately to avoid showing the biometric UI after success
       navigate('/');
     } catch (e) {
@@ -96,7 +98,7 @@ export function LoginPage() {
         setShowPasswordInput(true);
       }
     } finally {
-      setBioLoading(false);
+      if (!success) setBioLoading(false);
     }
   }, [selectedAccountId, bioLoading, biometryType, t, navigate]);
 

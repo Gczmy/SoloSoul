@@ -6,8 +6,10 @@ import { invoke } from '@tauri-apps/api/core';
 import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import styles from './SearchPopover.module.css';
 
 const FILTER_PAGES = [
@@ -21,6 +23,11 @@ interface SearchItem {
   objectId: string;
   name: string;
   collectionType: string;
+  itemType: 'object' | 'page';
+  parentId?: string;
+  fieldCount?: number;
+  sensitivityLevels?: string[];
+  objectCount?: number;
   matchedField?: string;
   matchedValue?: string;
   relevance: number;
@@ -52,13 +59,14 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const { onError } = useToastError();
-  const { t } = useTranslation(['common', 'navigation']);
+  const { t } = useTranslation(['common', 'navigation', 'settings', 'sensitivity']);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [recent, setRecent] = useState<string[]>(loadRecent);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -123,10 +131,36 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     }
   };
 
+  const resolvePageName = (item: SearchItem): string => {
+    if (item.itemType === 'page') {
+      const system = FILTER_PAGES.find((f) => f.key === item.objectId);
+      if (system) return t(system.labelKey);
+      const cp = customPages.find((p) => p.id === item.objectId);
+      return cp?.name || item.name;
+    }
+    // Object result: show its page
+    if (item.parentId) {
+      const cp = customPages.find((p) => p.id === item.parentId);
+      if (cp) return cp.name;
+    }
+    const system = FILTER_PAGES.find((f) => f.key === item.collectionType);
+    if (system) return t(system.labelKey);
+    return item.collectionType;
+  };
+
   const handleClickResult = (item: SearchItem) => {
     if (query.trim()) saveRecent(query.trim());
-    onClose();
-    navigate(`/editor/${item.objectId}?section=${item.collectionType}`);
+    if (item.itemType === 'page') {
+      onClose();
+      if (item.collectionType === 'page') {
+        navigate(`/workspace/custom/${item.objectId}`);
+      } else {
+        navigate(`/workspace?section=${item.objectId}`);
+      }
+    } else {
+      // Open object detail modal directly without leaving the current page
+      setDetailObjectId(item.objectId);
+    }
   };
 
   const handleRecentClick = (q: string) => {
@@ -138,14 +172,21 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const showDefaultView = !hasSearched || (!isSearching && query.trim() === '' && !selectedFilter);
+  const showDefaultView = !hasSearched || (query.trim() === '' && !selectedFilter);
 
   return createPortal(
-    <div className={styles.backdrop} onClick={handleBackdropClick}>
-      <div className={styles.card}>
+    <>
+      <div className={styles.backdrop} onClick={handleBackdropClick}>
+        <div className={styles.card}>
         {/* 1. Search input */}
         <div className={styles.inputRow}>
-          <Search size={16} className={styles.inputIcon} />
+          <div className={styles.leftControl}>
+            {isSearching ? (
+              <Loader2 size={16} className={styles.spinner} />
+            ) : (
+              <Search size={16} className={styles.inputIcon} />
+            )}
+          </div>
           <input
             ref={inputRef}
             className={styles.input}
@@ -156,13 +197,11 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
               if (e.key === 'Enter') handleSubmit();
             }}
           />
-          {isSearching ? (
-            <Loader2 size={16} className={styles.spinner} />
-          ) : (
+          <div className={styles.rightControl}>
             <button className={styles.closeBtn} onClick={onClose} aria-label={t('common:cancel')}>
               <X size={16} />
             </button>
-          )}
+          </div>
         </div>
 
         {/* 2. Filter bar */}
@@ -201,12 +240,12 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
           {/* Search results */}
           {hasSearched && (
             <>
-              {!isSearching && results.length === 0 && (
+              {results.length === 0 && !isSearching && (
                 <div className={styles.empty}>{t('common:no_results')}</div>
               )}
               {results.map((item) => (
                 <button
-                  key={item.objectId}
+                  key={`${item.itemType}-${item.objectId}`}
                   className={styles.resultItem}
                   onClick={() => handleClickResult(item)}
                 >
@@ -214,8 +253,34 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                   <div className={styles.resultText}>
                     <div className={styles.resultName}>{item.name}</div>
                     <div className={styles.resultMeta}>
-                      {item.collectionType}
-                      {item.matchedField && ` · ${item.matchedField}`}
+                      {item.itemType === 'page' ? (
+                        <>
+                          <span className={styles.typeTag}>{t('settings:search_type_page')}</span>
+                          <span> · {resolvePageName(item)}</span>
+                          {item.objectCount !== undefined && (
+                            <span> · {item.objectCount} {t('settings:search_objects_count')}</span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <span className={styles.typeTag}>{t('settings:search_type_object')}</span>
+                          <span> · {resolvePageName(item)}</span>
+                          {item.fieldCount !== undefined && (
+                            <span> · {item.fieldCount} {t('settings:search_fields_count')}</span>
+                          )}
+                          {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
+                            <span>
+                              {' · '}
+                              {t('settings:search_sensitivity')}
+                              {': '}
+                              {item.sensitivityLevels
+                                .map((lvl) => t(`sensitivity:${lvl}`, lvl))
+                                .join(', ')}
+                            </span>
+                          )}
+                        </>
+                      )}
+                      {item.matchedField && item.itemType !== 'page' && ` · ${item.matchedField}`}
                     </div>
                   </div>
                 </button>
@@ -260,7 +325,20 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
           )}
         </div>
       </div>
-    </div>,
+    </div>
+
+    {detailObjectId && (
+      <ObjectDetailModal
+        objectId={detailObjectId}
+        onClose={() => setDetailObjectId(null)}
+        onEdit={() => {
+          setDetailObjectId(null);
+          onClose();
+          navigate(`/editor/${detailObjectId}`);
+        }}
+      />
+    )}
+    </>,
     document.body
   );
 }

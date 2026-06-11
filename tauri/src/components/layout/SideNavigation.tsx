@@ -600,6 +600,7 @@ export function AiQuickChatPopover({
           </button>
           <button
             onClick={onClose}
+            title={t('common:close')}
             style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}
           >
             <X size={14} />

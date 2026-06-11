@@ -2077,6 +2077,7 @@ mod tests {
             deleted_by: "user".to_string(),
             remaining_days: Some(29),
             original_location: "From page: identity".to_string(),
+            template_id: None,
             preview_properties: vec![serde_json::json!({"key": "title", "value": "Hello"})],
             attachments: vec![TrashAttachmentInfo {
                 id: "att-1".to_string(),

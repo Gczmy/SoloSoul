@@ -284,11 +284,11 @@ export function TrashPage() {
             <Card
               key={item.id}
               interactive
+              onClick={() => openDetail(item.id)}
               style={{
                 cursor: 'pointer',
                 transition: 'transform 0.15s ease, box-shadow 0.15s ease',
               }}
-              onClick={() => openDetail(item.id)}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input

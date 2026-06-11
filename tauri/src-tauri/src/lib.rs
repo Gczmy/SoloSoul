@@ -196,6 +196,8 @@ pub fn run() {
             commands::sync::sync_get_status,
             commands::sync::sync_enable,
             commands::sync::sync_with_device,
+            // Window chrome commands
+            commands::window::set_titlebar_color,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

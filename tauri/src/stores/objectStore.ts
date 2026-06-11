@@ -29,6 +29,7 @@ export interface ObjectData {
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
+  tags?: string[];
 }
 
 interface ObjectState {
