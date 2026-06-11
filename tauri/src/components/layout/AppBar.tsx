@@ -1,7 +1,6 @@
 import { ArrowLeft, Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import styles from './AppBar.module.css';
 
 interface AppBarProps {
@@ -30,16 +29,18 @@ export function AppBar({ title, actions, onBack, titleBarOffset = 0 }: AppBarPro
         )}
         <h1 className={styles.title}>{title}</h1>
       </div>
+
+      {/* Warp-style search bar in the title bar */}
+      <button
+        className={styles.searchBar}
+        onClick={() => navigate('/search')}
+        aria-label={t('search')}
+      >
+        <Search size={14} />
+        <span>{t('search')}</span>
+      </button>
+
       <div className={styles.actions}>
-        <button
-          className={styles.backButton}
-          onClick={() => navigate('/search')}
-          aria-label={t('search')}
-          title={t('search')}
-          style={{ marginRight: 4 }}
-        >
-          <Search size={18} />
-        </button>
         {actions}
       </div>
     </header>
