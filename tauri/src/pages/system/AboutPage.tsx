@@ -28,7 +28,8 @@ export function AboutPage() {
   const [info, setInfo] = useState<AppInfo | null>(null);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const { t } = useTranslation(['settings', 'common']);
+  const { t, i18n } = useTranslation(['settings', 'common']);
+  const docLang = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
 
   useEffect(() => {
     Promise.all([
@@ -45,8 +46,8 @@ export function AboutPage() {
 
   const links = [
     { labelKey: 'github_repo', url: 'https://github.com/Gczmy/SoloSoul', icon: <Code size={14} /> },
-    { labelKey: 'privacy_policy', url: 'https://github.com/Gczmy/SoloSoul/blob/master/PRIVACY_POLICY.md', icon: <Shield size={14} /> },
-    { labelKey: 'terms_of_service', url: 'https://github.com/Gczmy/SoloSoul/blob/master/TERMS_OF_SERVICE.md', icon: <Info size={14} /> },
+    { labelKey: 'privacy_policy', url: `https://github.com/Gczmy/SoloSoul/blob/master/docs/${docLang}/PRIVACY_POLICY.md`, icon: <Shield size={14} /> },
+    { labelKey: 'terms_of_service', url: `https://github.com/Gczmy/SoloSoul/blob/master/docs/${docLang}/TERMS_OF_SERVICE.md`, icon: <Info size={14} /> },
   ];
 
   return (
