@@ -80,7 +80,7 @@ export function AiQuickChatPopover({
 }: {
   position: { top: number } | null;
   onClose: () => void;
-  placement?: 'left' | 'bottom' | 'top';
+  placement?: 'left' | 'right' | 'bottom' | 'top';
 }) {
   const { t } = useTranslation(['settings', 'common']);
   const navigate = useNavigate();
@@ -536,6 +536,7 @@ export function AiQuickChatPopover({
   })();
 
   const isFloating = placement === 'bottom' || placement === 'top';
+  const isRight = placement === 'right';
 
   return (
     <div
@@ -545,7 +546,9 @@ export function AiQuickChatPopover({
         position: 'fixed',
         ...(isFloating
           ? { right: 12, left: 'auto' }
-          : { left: 52, right: 'auto' }),
+          : isRight
+            ? { right: 52, left: 'auto' }
+            : { left: 52, right: 'auto' }),
         top: position?.top ?? 100,
         width: 380,
         height: 520,
@@ -690,6 +693,7 @@ export function RenameableNavButton({
 }) {
   const isHorizontal = position === 'top' || position === 'bottom';
   const isBottom = position === 'bottom';
+  const isRight = position === 'right';
   const { t } = useTranslation(['navigation', 'common']);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(page.name);
@@ -787,23 +791,24 @@ export function RenameableNavButton({
         <div
           style={{
             position: 'fixed',
-            left: wrapperRef.current
-              ? (isHorizontal
-                  ? wrapperRef.current.getBoundingClientRect().left
-                  : wrapperRef.current.getBoundingClientRect().right + 8)
-              : 56,
-            ...(wrapperRef.current && isBottom
-              ? {
-                  bottom: window.innerHeight - wrapperRef.current.getBoundingClientRect().top + 8,
-                  top: 'auto',
-                }
-              : {
-                  top: wrapperRef.current
-                    ? (isHorizontal
-                        ? wrapperRef.current.getBoundingClientRect().bottom + 8
-                        : wrapperRef.current.getBoundingClientRect().top)
-                    : '50%',
-                }),
+            left: isHorizontal
+              ? (wrapperRef.current ? wrapperRef.current.getBoundingClientRect().left : 56)
+              : isRight
+                ? 'auto'
+                : (wrapperRef.current ? wrapperRef.current.getBoundingClientRect().right + 8 : 56),
+            right: isRight
+              ? (wrapperRef.current ? window.innerWidth - wrapperRef.current.getBoundingClientRect().left + 8 : 56)
+              : 'auto',
+            top: isBottom
+              ? 'auto'
+              : (wrapperRef.current
+                  ? (isHorizontal
+                      ? wrapperRef.current.getBoundingClientRect().bottom + 8
+                      : wrapperRef.current.getBoundingClientRect().top)
+                  : '50%'),
+            bottom: isBottom
+              ? (wrapperRef.current ? window.innerHeight - wrapperRef.current.getBoundingClientRect().top + 8 : 56)
+              : 'auto',
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
@@ -933,6 +938,7 @@ export function AddPageButton({
 }) {
   const isHorizontal = position === 'top' || position === 'bottom';
   const isBottom = position === 'bottom';
+  const isRight = position === 'right';
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState(false);
@@ -1020,6 +1026,14 @@ export function AddPageButton({
             transform: 'translateX(-50%)',
           });
         }
+      } else if (isRight) {
+        setCardStyle({
+          top: rect.top + rect.height / 2,
+          bottom: 'auto',
+          left: 'auto',
+          right: window.innerWidth - rect.left + 8,
+          transform: 'translateY(-50%)',
+        });
       } else {
         setCardStyle({
           top: rect.top + rect.height / 2,
@@ -1029,7 +1043,7 @@ export function AddPageButton({
         });
       }
     }
-  }, [isHorizontal, isBottom]);
+  }, [isHorizontal, isBottom, isRight]);
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
@@ -1098,23 +1112,24 @@ export function AddPageButton({
           ref={popoverRef}
           style={{
             position: 'fixed',
-            left: buttonRef.current
-              ? (isHorizontal
-                  ? buttonRef.current.getBoundingClientRect().left
-                  : buttonRef.current.getBoundingClientRect().right + 8)
-              : 56,
-            ...(buttonRef.current && isBottom
-              ? {
-                  bottom: window.innerHeight - buttonRef.current.getBoundingClientRect().top + 8,
-                  top: 'auto',
-                }
-              : {
-                  top: buttonRef.current
-                    ? (isHorizontal
-                        ? buttonRef.current.getBoundingClientRect().bottom + 8
-                        : buttonRef.current.getBoundingClientRect().top)
-                    : '50%',
-                }),
+            left: isHorizontal
+              ? (buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 56)
+              : isRight
+                ? 'auto'
+                : (buttonRef.current ? buttonRef.current.getBoundingClientRect().right + 8 : 56),
+            right: isRight
+              ? (buttonRef.current ? window.innerWidth - buttonRef.current.getBoundingClientRect().left + 8 : 56)
+              : 'auto',
+            top: isBottom
+              ? 'auto'
+              : (buttonRef.current
+                  ? (isHorizontal
+                      ? buttonRef.current.getBoundingClientRect().bottom + 8
+                      : buttonRef.current.getBoundingClientRect().top)
+                  : '50%'),
+            bottom: isBottom
+              ? (buttonRef.current ? window.innerHeight - buttonRef.current.getBoundingClientRect().top + 8 : 56)
+              : 'auto',
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
@@ -1268,7 +1283,7 @@ export function SideNavigation() {
 
   const { items, showSearch, setShowSearch } = useBoundNavActions();
   const aiQuickChatPlacement: import('./useNavigationItems').AiQuickChatPlacement =
-    sidebarPosition === 'bottom' ? 'top' : 'left';
+    sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
   const { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos } = useAiQuickChat(520, aiQuickChatPlacement);
 
   const isWorkspaceSectionActive = (sectionPath: string): boolean => {
@@ -1393,7 +1408,7 @@ export function SideNavigation() {
                   <AiQuickChatPopover
                     position={quickChatPos}
                     onClose={() => setShowQuickChat(false)}
-                    placement={sidebarPosition === 'bottom' ? 'top' : 'left'}
+                    placement={aiQuickChatPlacement}
                   />,
                   document.body
                 )}

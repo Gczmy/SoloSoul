@@ -8,9 +8,11 @@ interface AppBarProps {
   onBack?: () => void;
   titleBarOffset?: number;
   topBarHeight?: number;
+  sidebarPosition?: 'left' | 'right' | 'top' | 'bottom';
 }
 
-export function AppBar({ title, actions, onBack, titleBarOffset = 0, topBarHeight = 0 }: AppBarProps) {
+export function AppBar({ title, actions, onBack, titleBarOffset = 0, topBarHeight = 0, sidebarPosition = 'left' }: AppBarProps) {
+  const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
 
   return (
@@ -19,8 +21,8 @@ export function AppBar({ title, actions, onBack, titleBarOffset = 0, topBarHeigh
       style={{
         paddingLeft: 20,
         top: titleBarOffset + topBarHeight,
-        left: topBarHeight > 0 ? 0 : undefined,
-        right: topBarHeight > 0 ? 0 : undefined,
+        left: isHorizontal ? 0 : (sidebarPosition === 'right' ? 0 : 48),
+        right: isHorizontal ? 0 : (sidebarPosition === 'right' ? 48 : 0),
       }}
     >
       <div className={styles.left}>

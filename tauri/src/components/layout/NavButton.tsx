@@ -29,6 +29,7 @@ export function NavButton({
 
   const isHorizontal = position === 'top' || position === 'bottom';
   const isBottom = position === 'bottom';
+  const isRight = position === 'right';
 
   const updatePosition = useCallback(() => {
     if (wrapperRef.current) {
@@ -49,6 +50,14 @@ export function NavButton({
             transform: 'translateX(-50%)',
           });
         }
+      } else if (isRight) {
+        setCardStyle({
+          top: rect.top + rect.height / 2,
+          bottom: 'auto',
+          left: 'auto',
+          right: window.innerWidth - rect.left + 8,
+          transform: 'translateY(-50%)',
+        });
       } else {
         setCardStyle({
           top: rect.top + rect.height / 2,
@@ -58,7 +67,7 @@ export function NavButton({
         });
       }
     }
-  }, [isHorizontal, isBottom]);
+  }, [isHorizontal, isBottom, isRight]);
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
@@ -107,7 +116,9 @@ export function NavButton({
           className={`${styles.activeIndicator} ${isActive ? styles.activeIndicatorVisible : ''}`}
           style={isHorizontal
             ? { left: '50%', top: 'auto', bottom: -4, transform: 'translateX(-50%)', width: 20, height: 3, borderRadius: '2px 2px 0 0' }
-            : {}}
+            : isRight
+              ? { left: 'auto', right: -8, top: '50%', transform: 'translateY(-50%)', width: 3, height: 20, borderRadius: '2px 0 0 2px' }
+              : {}}
         />
       )}
       <button

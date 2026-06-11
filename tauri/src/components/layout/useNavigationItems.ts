@@ -67,7 +67,7 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
   return { items, showSearch, setShowSearch };
 }
 
-export type AiQuickChatPlacement = 'left' | 'bottom' | 'top';
+export type AiQuickChatPlacement = 'left' | 'right' | 'bottom' | 'top';
 
 interface UseAiQuickChatResult {
   showQuickChat: boolean;

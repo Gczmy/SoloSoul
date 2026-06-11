@@ -32,7 +32,7 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
         className={styles.main}
         style={isTop ? { paddingTop: FUNCTION_BAR_HEIGHT } : undefined}
       >
-        <AppBar title={title} actions={actions} onBack={onBack} topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0} />
+        <AppBar title={title} actions={actions} onBack={onBack} topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0} sidebarPosition={sidebarPosition} />
         <main className={styles.content}>{children}</main>
       </div>
     </div>
