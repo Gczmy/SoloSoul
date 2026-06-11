@@ -30,11 +30,14 @@ pub fn run() {
             app.manage(app_state);
             app.manage(commands::discovery::SharedDaemon::new());
 
-            // Detect system locale for debug logging
+            // Detect system locale and inject before any JS runs
             let locale = commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
-            tracing::info!("[i18n] Rust setup: get_ui_language()={}, resolved={}",
-                locale,
-                if locale.starts_with("zh") || locale.starts_with("cmn") { "zh-CN" } else { "en-US" });
+            let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") { "zh-CN" } else { "en-US" };
+            tracing::info!("[i18n] Rust setup: get_ui_language()={}, resolved={}", locale, locale_flag);
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.eval(&format!("window.__SOLOSOUL_LOCALE__='{}'", locale_flag));
+                let _ = window.eval(&format!("try{{localStorage.setItem('i18nextLng','{}')}}catch(e){{}}", locale_flag));
+            }
 
             // System templates are no longer loaded at startup.
             // Default templates are seeded once during account creation instead.
