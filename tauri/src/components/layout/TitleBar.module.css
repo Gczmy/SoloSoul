@@ -6,17 +6,62 @@
   height: 38px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 20px;
-  padding-left: 80px; /* macOS traffic light buttons */
+  gap: 12px;
+  padding: 0 16px;
   z-index: 101;
   background: transparent;
   user-select: none;
   -webkit-user-select: none;
   cursor: default;
-  -webkit-app-region: drag;
-  app-region: drag;
 }
+
+.trafficLights {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.trafficLight {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  opacity: 0.9;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.trafficLight:hover {
+  opacity: 1;
+}
+
+.trafficLight svg {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.trafficLight:hover svg {
+  opacity: 1;
+}
+
+.close {
+  background: #ff5f57;
+}
+
+.minimize {
+  background: #febc2e;
+}
+
+.maximize {
+  background: #28c840;
+}
+
 .searchBar {
   display: flex;
   align-items: center;
@@ -31,9 +76,8 @@
   white-space: nowrap;
   transition: all 0.15s ease;
   min-width: 300px;
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
 }
+
 .searchBar:hover {
   background: var(--state-hover);
   color: var(--text-primary);

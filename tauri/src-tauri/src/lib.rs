@@ -27,20 +27,6 @@ pub fn run() {
             app.manage(commands::discovery::SharedDaemon::new());
             // System templates are no longer loaded at startup.
             // Default templates are seeded once during account creation instead.
-
-            #[cfg(target_os = "macos")]
-            {
-                if let Some(window) = app.get_webview_window("main") {
-                    if let Ok(ns_window_ptr) = window.ns_window() {
-                        unsafe {
-                            use objc2_app_kit::NSWindow;
-                            let ns_window: &NSWindow = &*(ns_window_ptr as *const NSWindow);
-                            ns_window.setMovableByWindowBackground(true);
-                        }
-                    }
-                }
-            }
-
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
