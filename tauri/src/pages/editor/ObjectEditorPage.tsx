@@ -74,13 +74,20 @@ export function ObjectEditorPage() {
     return (templateDefault as SensitivityLevel) || 'public';
   };
 
-  // Filter templates to only show those belonging to the current section
+  // Filter templates to only show those belonging to the current section/page
   const visibleTemplates = useMemo(() => {
-    if (!sectionParam) return Object.keys(objectTemplates);
-    return Object.keys(objectTemplates).filter(
-      (t) => templateMeta[t]?.category === sectionParam
-    );
-  }, [sectionParam]);
+    if (sectionParam) {
+      return Object.keys(objectTemplates).filter(
+        (t) => templateMeta[t]?.category === sectionParam
+      );
+    }
+    if (parentId) {
+      return Object.keys(objectTemplates).filter(
+        (t) => templateMeta[t]?.category === parentId
+      );
+    }
+    return Object.keys(objectTemplates);
+  }, [sectionParam, parentId, objectTemplates, templateMeta]);
 
   // Auto-select template if section provides a clear default
   const [selectedType, setSelectedType] = useState(() => {
