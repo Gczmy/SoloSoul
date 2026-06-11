@@ -10,6 +10,7 @@ import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { useAuthStore } from '@/stores/authStore';
 import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
 import { Trash2, RotateCcw, FileText, X, Info } from 'lucide-react';
@@ -138,6 +139,8 @@ export function TrashPage() {
       callback: async () => {
         for (const id of ids) await restoreItem(id);
         clearSelection();
+        // Refresh custom pages so restored pages appear immediately in sidebar & filters
+        if (accountId) useSettingsStore.getState().loadCustomPages(accountId).catch(() => {});
       },
     });
   };
