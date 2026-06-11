@@ -150,7 +150,7 @@ impl VaultService {
         result
     }
 
-    pub fn create_account(&self, name: &str, password: &str) -> Result<serde_json::Value, String> {
+    pub fn create_account(&self, name: &str, password: &str, password_hint: Option<&str>) -> Result<serde_json::Value, String> {
         if name.trim().is_empty() {
             return Err("Account name is required".to_string());
         }
@@ -204,7 +204,7 @@ impl VaultService {
             created_at: now.clone(),
             crypto_version: 2,
             biometric_enabled: false,
-            password_hint: None,
+            password_hint: password_hint.map(|s| s.to_string()),
             last_login_at: Some(now.clone()),
             last_operation_at: None,
             last_operation_desc: None,
@@ -558,7 +558,7 @@ mod tests {
     #[test]
     fn test_create_account_success() {
         let (svc, _dir) = setup_service();
-        let result = svc.create_account("Alice", "password123");
+        let result = svc.create_account("Alice", "password123", None);
         assert!(result.is_ok());
         let account = result.unwrap();
         assert_eq!(account["name"], "Alice");
@@ -568,7 +568,7 @@ mod tests {
     #[test]
     fn test_create_account_empty_name_fails() {
         let (svc, _dir) = setup_service();
-        let result = svc.create_account("", "password123");
+        let result = svc.create_account("", "password123", None);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("required"));
     }
@@ -576,7 +576,7 @@ mod tests {
     #[test]
     fn test_create_account_short_password_fails() {
         let (svc, _dir) = setup_service();
-        let result = svc.create_account("Alice", "short");
+        let result = svc.create_account("Alice", "short", None);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("8 characters"));
     }
@@ -585,7 +585,7 @@ mod tests {
     fn test_create_account_duplicate_name_fails() {
         let (svc, _dir) = setup_service();
         svc.create_account("Alice", "password123").unwrap();
-        let result = svc.create_account("alice", "password456");
+        let result = svc.create_account("alice", "password456", None);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("already taken"));
     }

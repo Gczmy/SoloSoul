@@ -27,7 +27,7 @@ pub async fn bootstrap(
     password_hint: Option<String>,
 ) -> Result<AccountInfo, String> {
     let svc = state.vault_service.read().await;
-    let result = svc.create_account(&account_name, &password)?;
+    let result = svc.create_account(&account_name, &password, password_hint.as_deref())?;
     let account_id = result["id"].as_str().unwrap_or("").to_string();
 
     // Seed default templates from embedded resources (one-time import)
@@ -51,7 +51,7 @@ pub async fn bootstrap(
         name: result["name"].as_str().unwrap_or("").to_string(),
         salt: result["salt"].as_str().unwrap_or("").to_string(),
         verify_hash: result["verifyHash"].as_str().unwrap_or("").to_string(),
-        password_hint: None,
+        password_hint: result["passwordHint"].as_str().map(|s| s.to_string()),
         created_at: Some(chrono::Utc::now().to_rfc3339()),
     })
 }
