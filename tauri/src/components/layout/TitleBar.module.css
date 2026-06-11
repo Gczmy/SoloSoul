@@ -11,6 +11,11 @@
   padding-left: 80px; /* macOS traffic light buttons */
   z-index: 101;
   background: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  -webkit-app-region: drag;
+  app-region: drag;
 }
 .searchBar {
   display: flex;
@@ -26,6 +31,8 @@
   white-space: nowrap;
   transition: all 0.15s ease;
   min-width: 300px;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
 }
 .searchBar:hover {
   background: var(--state-hover);

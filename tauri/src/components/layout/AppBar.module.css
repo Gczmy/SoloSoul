@@ -11,6 +11,11 @@
   z-index: 100;
   background: var(--bg-toolbar);
   border-bottom: 1px solid var(--border-subtle);
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  -webkit-app-region: drag;
+  app-region: drag;
 }
 .left {
   display: flex;
