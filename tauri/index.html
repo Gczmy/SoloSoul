@@ -15,6 +15,27 @@
         if (p.accentColor) d.style.setProperty('--accent-primary', cs[p.accentColor] || '#5B7C99');
       }
     } catch(e){}
+    /* Detect system locale BEFORE any module code loads. Runs synchronously. */
+    try {
+      if (!localStorage.getItem('i18nextLng')) {
+        /* 1) Synchronous fallback: navigator.language (always works) */
+        var navL = (navigator.language || navigator.userLanguage || 'en-US').toLowerCase();
+        var detected = 'en-US';
+        /* Broad matching for all Chinese variants (including zh-CN, zh-TW, zh-HK, zh-SG, cmn-Hans, etc.) */
+        if (navL.startsWith('zh') || navL.startsWith('cmn')) { detected = 'zh-CN'; }
+        localStorage.setItem('i18nextLng', detected);
+        /* 2) Async override: use Tauri IPC if available (more reliable on Windows).
+           If IPC returns a different result, it overwrites the sync fallback. */
+        if (window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke) {
+          window.__TAURI_INTERNALS__.invoke('get_system_locale', {}).then(function(l) {
+            if (l) {
+              var ipcLang = (l.startsWith('zh') || l.startsWith('cmn')) ? 'zh-CN' : 'en-US';
+              if (ipcLang !== detected) localStorage.setItem('i18nextLng', ipcLang);
+            }
+          }).catch(function(){});
+        }
+      }
+    } catch(e){}
     </script>
     <style>
       /* Fallback to dark if no cache — prevents white flash. */

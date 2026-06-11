@@ -38,14 +38,13 @@ const resources: Record<string, Record<string, object>> = {
   },
 };
 
-// zh → zh-CN alias (some environments may report just 'zh')
+// zh → zh-CN alias
 resources['zh'] = resources['zh-CN'];
 
 const LANG_KEY = 'i18nextLng';
 
 /**
- * Synchronous system language detection using navigator.language.
- * Used for default values in settings — not as authoritative as the async version.
+ * Synchronous navigator-based detection.
  */
 export function detectSystemLanguage(): SupportedLang {
   const lang = typeof navigator !== 'undefined' ? navigator.language : 'en';
@@ -53,26 +52,17 @@ export function detectSystemLanguage(): SupportedLang {
 }
 
 /**
- * Detect system language via Rust backend (sys-locale), fallback to navigator.language.
- * This is more reliable than navigator.language in Tauri WebView2 on Windows.
+ * Initialize i18next.
+ * 1. Reads from localStorage (set by index.html inline script)
+ * 2. Initializes i18next synchronously for fast render
+ * 3. Queries Rust backend via IPC for the real system locale (most reliable on Windows)
+ * 4. If IPC returns a different locale, corrects it BEFORE render completes
  */
-async function detectSystemLanguageAsync(): Promise<SupportedLang> {
-  try {
-    const locale = await invoke<string>('get_system_locale');
-    if (locale.startsWith('zh')) return 'zh-CN';
-    if (locale.startsWith('en')) return 'en-US';
-  } catch {
-    // ignore, fall through to navigator fallback
-  }
-  return detectSystemLanguage();
-}
-
-/** Initialize i18next with the detected language. Exported for async init. */
 export async function initI18n(): Promise<typeof i18next> {
   const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LANG_KEY) : null;
   const lng: SupportedLang = stored === 'zh-CN' || stored === 'en-US'
     ? stored
-    : await detectSystemLanguageAsync();
+    : detectSystemLanguage();
 
   await i18next.use(initReactI18next).init({
     resources,
@@ -83,9 +73,19 @@ export async function initI18n(): Promise<typeof i18next> {
     interpolation: { escapeValue: false },
   });
 
-  // Persist to localStorage so next cold launch skips the async detection call
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(LANG_KEY, lng);
+  // Query Rust backend for the real system locale (most reliable on Windows).
+  // This IPC call runs AFTER i18next init but BEFORE ReactDOM.render (main.tsx awaits us).
+  try {
+    const locale = await invoke<string>('get_system_locale');
+    const realLang: SupportedLang = locale.startsWith('zh') ? 'zh-CN' : 'en-US';
+    if (realLang !== i18next.language) {
+      await i18next.changeLanguage(realLang);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(LANG_KEY, realLang);
+      }
+    }
+  } catch {
+    // IPC not available — the initial navigator-based detection is the best we can do
   }
 
   return i18next;
