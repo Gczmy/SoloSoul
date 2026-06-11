@@ -1335,44 +1335,90 @@ export function SideNavigation() {
     <nav className={styles.sideNav} aria-label={t('home')} style={navStyle}>
       <div className={styles.logo} style={isHorizontal ? { marginBottom: 0, marginRight: 12 } : {}}>S</div>
 
-      <div className={styles.navPrimary} style={{ ...zoneStyle, flex: 1, overflow: isHorizontal ? 'hidden' : 'auto' }}>
-        {/* Default pages — icons from PAGE_ICON_MAP (§7.4 SSOT) */}
-        {primaryItems.map((item) => {
-          const isActive =
-            item.path === '/'
-              ? location.pathname === '/'
-              : isWorkspaceSectionActive(item.path);
-          return (
-            <NavButton
-              key={item.path}
-              path={item.path}
-              Icon={PAGE_ICON_MAP[item.iconKey]}
-              label={t(item.labelKey)}
-              isActive={isActive}
-              onClick={() => navigate(item.path)}
-              position={sidebarPosition}
-            />
-          );
-        })}
+      {isHorizontal ? (
+        <>
+          {/* ══ Horizontal mode (top/bottom sidebar) ══ */}
 
-        {/* Custom pages — icons from CUSTOM_ICON_MAP via iconId (§9.8) */}
-        {activeCustomPages.map((page) => (
-          <RenameableNavButton
-            key={page.id}
-            page={page}
-            isActive={isCustomPageActive(page.id)}
-            onClick={() => handleCustomPageNavigate(page)}
+          {/* HOME — always visible (static left) */}
+          <NavButton
+            path={primaryItems[0].path}
+            Icon={PAGE_ICON_MAP[primaryItems[0].iconKey]}
+            label={t(primaryItems[0].labelKey)}
+            isActive={location.pathname === '/'}
+            onClick={() => navigate(primaryItems[0].path)}
             position={sidebarPosition}
           />
-        ))}
 
-        {/* Add page button */}
-        <AddPageButton onCreate={(page) => {
-          navigate(`/workspace/custom/${page.id}`);
-        }} position={sidebarPosition} />
-      </div>
+          {/* Scrollable zone: identity / travel / financial / professional + custom pages (excludes AddPageButton) */}
+          <div className={`${styles.navPrimary} ${styles.navPrimaryHorizontal}`}
+            style={{ flexDirection: 'row', height: '100%', flex: 1, overflowX: 'auto', overflowY: 'hidden' }}
+          >
+            {primaryItems.slice(1).map((item) => (
+              <NavButton
+                key={item.path}
+                path={item.path}
+                Icon={PAGE_ICON_MAP[item.iconKey]}
+                label={t(item.labelKey)}
+                isActive={isWorkspaceSectionActive(item.path)}
+                onClick={() => navigate(item.path)}
+                position={sidebarPosition}
+              />
+            ))}
+            {activeCustomPages.map((page) => (
+              <RenameableNavButton
+                key={page.id}
+                page={page}
+                isActive={isCustomPageActive(page.id)}
+                onClick={() => handleCustomPageNavigate(page)}
+                position={sidebarPosition}
+              />
+            ))}
+          </div>
+        </>
+      ) : (
+        /* ══ Vertical mode (left/right sidebar) — all in one scrollable column ══ */
+        <div className={styles.navPrimary} style={{ ...zoneStyle, flex: 1, overflow: 'auto' }}>
+          {primaryItems.map((item) => {
+            const isActive =
+              item.path === '/'
+                ? location.pathname === '/'
+                : isWorkspaceSectionActive(item.path);
+            return (
+              <NavButton
+                key={item.path}
+                path={item.path}
+                Icon={PAGE_ICON_MAP[item.iconKey]}
+                label={t(item.labelKey)}
+                isActive={isActive}
+                onClick={() => navigate(item.path)}
+                position={sidebarPosition}
+              />
+            );
+          })}
+
+          {activeCustomPages.map((page) => (
+            <RenameableNavButton
+              key={page.id}
+              page={page}
+              isActive={isCustomPageActive(page.id)}
+              onClick={() => handleCustomPageNavigate(page)}
+              position={sidebarPosition}
+            />
+          ))}
+
+          <AddPageButton
+            onCreate={(page) => { navigate(`/workspace/custom/${page.id}`); }}
+            position={sidebarPosition}
+          />
+        </div>
+      )}
 
       <div className={styles.navSecondary} style={{ ...zoneStyle, flexShrink: 0 }}>
+        {/* AddPageButton — in the secondary zone, before other function buttons */}
+        {isHorizontal && <AddPageButton
+          onCreate={(page) => { navigate(`/workspace/custom/${page.id}`); }}
+          position={sidebarPosition}
+        />}
         {items.map((item, i) => {
           if (item.type === 'action') {
             const isSearch = item.iconKey === 'search';

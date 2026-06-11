@@ -49,6 +49,36 @@
   scrollbar-color: var(--border-subtle) transparent;
 }
 
+/* Horizontal mode — the scrollable zone inside the sidebar strip */
+.navPrimaryHorizontal {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 3px;
+}
+.navPrimaryHorizontal::-webkit-scrollbar {
+  height: 0;
+}
+.navPrimaryHorizontal:hover {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+.navPrimaryHorizontal:hover::-webkit-scrollbar {
+  height: 4px;
+}
+.navPrimaryHorizontal:hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+.navPrimaryHorizontal:hover::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
+}
+
 .navSecondary {
   display: flex;
   flex-direction: column;

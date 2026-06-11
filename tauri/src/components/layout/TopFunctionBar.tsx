@@ -56,25 +56,29 @@ export function TopFunctionBar() {
         <div className={styles.logo}>S</div>
 
         <nav className={styles.primaryZone} aria-label={t('home')}>
-          {primaryItems.map((item) => {
-            const isActive =
-              item.path === '/'
-                ? location.pathname === '/'
-                : isWorkspaceSectionActive(item.path);
-            return (
+          {/* HOME — always visible (static left) */}
+          <NavButton
+            path={primaryItems[0].path}
+            Icon={PAGE_ICON_MAP[primaryItems[0].iconKey]}
+            label={t(primaryItems[0].labelKey)}
+            isActive={location.pathname === '/'}
+            onClick={() => navigate(primaryItems[0].path)}
+            position={POSITION}
+          />
+
+          {/* Scrollable zone: identity / travel / financial / professional + custom pages (excludes AddPageButton) */}
+          <div className={styles.scrollablePages}>
+            {primaryItems.slice(1).map((item) => (
               <NavButton
                 key={item.path}
                 path={item.path}
                 Icon={PAGE_ICON_MAP[item.iconKey]}
                 label={t(item.labelKey)}
-                isActive={isActive}
+                isActive={isWorkspaceSectionActive(item.path)}
                 onClick={() => navigate(item.path)}
                 position={POSITION}
               />
-            );
-          })}
-
-          <div className={styles.customPages}>
+            ))}
             {activeCustomPages.map((page) => (
               <RenameableNavButton
                 key={page.id}
@@ -85,16 +89,15 @@ export function TopFunctionBar() {
               />
             ))}
           </div>
-
-          <AddPageButton
-            onCreate={(page) => navigate(`/workspace/custom/${page.id}`)}
-            position={POSITION}
-          />
         </nav>
       </div>
 
-      {/* Right zone: secondary actions */}
+      {/* Right zone: add page + secondary actions */}
       <div className={styles.rightZone} data-tauri-drag-region="false">
+        <AddPageButton
+          onCreate={(page) => navigate(`/workspace/custom/${page.id}`)}
+          position={POSITION}
+        />
         {items.map((item, i) => {
           if (item.type === 'action') {
             const isSearch = item.iconKey === 'search';

@@ -60,16 +60,35 @@
   flex: 1;
 }
 
-.customPages {
+/* Scrollable page zone — identity / travel / financial / professional + custom pages */
+.scrollablePages {
   display: flex;
   align-items: center;
   gap: 4px;
   min-width: 0;
+  flex: 1;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  padding-bottom: 3px;
 }
 
-.customPages::-webkit-scrollbar {
-  display: none;
+.scrollablePages::-webkit-scrollbar {
+  height: 0;
+}
+
+.scrollablePages:hover {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+.scrollablePages:hover::-webkit-scrollbar {
+  height: 4px;
+}
+.scrollablePages:hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollablePages:hover::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
 }
