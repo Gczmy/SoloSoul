@@ -24,7 +24,7 @@ impl Default for UiPreferences {
         Self {
             theme: "system".to_string(),
             accent_color: "ocean".to_string(),
-            language: "en-US".to_string(),
+            language: String::new(),
         }
     }
 }
@@ -165,7 +165,7 @@ mod tests {
         let prefs = UiPreferences::default();
         assert_eq!(prefs.theme, "system");
         assert_eq!(prefs.accent_color, "ocean");
-        assert_eq!(prefs.language, "en-US");
+        assert_eq!(prefs.language, "");
     }
 
     #[test]

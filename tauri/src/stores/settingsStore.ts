@@ -129,9 +129,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           defaultDarkTheme: parsed.defaultDarkTheme,
         }));
       } catch { /* ignore */ }
-      if (prefs.language) {
-        import('@/lib/i18n').then((mod) => { mod.default.changeLanguage(prefs.language!); });
-      }
+      // Language is set by initI18n() via Rust IPC (confirmed working = zh-CN).
+      // User changes via settings are applied in updateSetting() — skip here to avoid
+      // overwriting correct IPC detection with stale/stored values from vault.
+      // Theme/accent/bg are safe to apply immediately.
     } catch { /* no ui_preferences file yet */ }
   },
 
