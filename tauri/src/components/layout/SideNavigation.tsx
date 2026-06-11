@@ -1353,7 +1353,7 @@ function AddPageButton({
 // SideNavigation — main sidebar component
 // =============================================================================
 
-export function SideNavigation() {
+export function SideNavigation({ titleBarOffset = 0 }: { titleBarOffset?: number }) {
   const navigate = useNavigate();
   const location = useLocation();
   const vaultLock = useVaultStore((s) => s.lock);
@@ -1423,13 +1423,13 @@ export function SideNavigation() {
       }
     : {
         width: 48,
-        height: '100vh',
+        height: `calc(100vh - ${titleBarOffset}px)`,
         flexDirection: 'column',
         borderRight: sidebarPosition === 'left' ? '1px solid var(--border-subtle)' : 'none',
         borderLeft: sidebarPosition === 'right' ? '1px solid var(--border-subtle)' : 'none',
         borderBottom: 'none',
         borderTop: 'none',
-        padding: '12px 0',
+        padding: `${12 + titleBarOffset}px 0 12px 0`,
       };
 
   const zoneStyle: React.CSSProperties = isHorizontal

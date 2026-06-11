@@ -21,8 +21,9 @@
         "fullscreen": false,
         "center": true,
         "decorations": true,
-        "transparent": false,
-        "backgroundColor": "#1c1c1e"
+        "transparent": true,
+        "backgroundColor": "#1c1c1e",
+        "titleBarStyle": "Transparent"
       }
     ],
     "security": {
