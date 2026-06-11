@@ -1,6 +1,40 @@
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-12
+
+### Changed
+
+- **Complete rewrite from Flutter to Tauri v2** — SoloSoul now uses a Rust/Tauri backend with React/TypeScript frontend, providing better performance, smaller binary size, and more native feel.
+- **Windows Installer** — Switched from ZIP portable to NSIS (.exe) installer for better user experience.
+- **Crate renamed** — `solosoul-app` → `solo_soul` (Rust naming convention).
+
+### Added
+
+- **App Icon** — Custom shield icon with embedded S letter, not relying on system fonts.
+- **Multi-Select / Single-Select Field Options** — Template editor now supports defining options for select-type fields.
+- **Field Format Hints** — Show format examples (e.g. `https://example.com`, `name@example.com`) below field names in the object editor.
+- **URL Validation Relaxation** — Auto-prepend `https://` before validation to reduce user friction.
+- **Password Hint** — Welcome page now includes a password hint input field.
+- **Privacy Policy & Terms of Service** — Bilingual (EN/ZH) documents with language-based auto-routing.
+
+### Fixed
+
+- **Windows Language Detection** — Use `GetUserDefaultUILanguage` Win32 API to correctly detect display language (was always showing English on first launch).
+- **Windows Resource Paths** — Fixed resource path resolution for docs on Windows (was incorrectly using macOS `../Resources` path).
+- **Windows User Data Path** — Use `%USERPROFILE%` instead of `$HOME` for data storage.
+- **Windows Password Reveal Overlap** — Hidden native WebView2 password reveal button that overlapped the custom eye icon.
+- **Multi-Select Order** — Field values now display in template option order, not selection order.
+- **Multi-Select Display** — Fixed multi-select values not showing in cards, detail modals, and history panels.
+- **Page Restore** — Restoring a deleted page from trash now immediately refreshes the sidebar.
+- **Theme Sync** — Selecting a card theme now automatically syncs the light/dark appearance option.
+- **Password Validation** — Proper error message for short passwords (was incorrectly showing "incorrect password").
+- **Validation i18n** — URL/email/phone/date/number validation errors no longer display raw localization keys.
+- **Toast Messages** — Improved error toast from redundant "验证失败: 验证失败" to descriptive messages.
+- **About Page** — Platform shows OS name only (no architecture); logo uses consistent brand gradient.
+- **Privacy Policy & Terms Links** — Fixed 404 links, added bilingual documents.
+
 ## [1.8.0] - 2026-06-03
+
 
 ### Fixed
 
