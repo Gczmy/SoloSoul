@@ -200,7 +200,7 @@ export function TrashPage() {
       <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Search */}
         <Input
-          placeholder={t('settings:search_logs')}
+          placeholder={t('settings:search_trash')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />

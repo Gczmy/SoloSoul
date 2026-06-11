@@ -107,6 +107,7 @@
   "trash_empty_filtered": "No results for current filter. Try switching the type filter.",
   "operation_log": "Operation Log",
   "search_logs": "Search logs...",
+  "search_trash": "Search items...",
   "all": "All",
   "export_logs": "Export logs",
   "loading_logs": "Loading logs...",
