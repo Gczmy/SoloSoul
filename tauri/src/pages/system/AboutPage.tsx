@@ -45,8 +45,8 @@ export function AboutPage() {
 
   const links = [
     { labelKey: 'github_repo', url: 'https://github.com/Gczmy/SoloSoul', icon: <Code size={14} /> },
-    { labelKey: 'privacy_policy', url: 'https://github.com/Gczmy/SoloSoul/PRIVACY_POLICY.md', icon: <Shield size={14} /> },
-    { labelKey: 'terms_of_service', url: 'https://github.com/Gczmy/SoloSoul/TERMS_OF_SERVICE.md', icon: <Info size={14} /> },
+    { labelKey: 'privacy_policy', url: 'https://github.com/Gczmy/SoloSoul/blob/master/PRIVACY_POLICY.md', icon: <Shield size={14} /> },
+    { labelKey: 'terms_of_service', url: 'https://github.com/Gczmy/SoloSoul/blob/master/TERMS_OF_SERVICE.md', icon: <Info size={14} /> },
   ];
 
   return (
