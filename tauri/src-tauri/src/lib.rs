@@ -30,18 +30,11 @@ pub fn run() {
             app.manage(app_state);
             app.manage(commands::discovery::SharedDaemon::new());
 
-            // Detect system locale and inject into webview before page loads
+            // Detect system locale for debug logging
             let locale = commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
-            let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") { "zh-CN" } else { "en-US" };
-            tracing::info!("[i18n] Rust setup: get_ui_language()={}, resolved={}", locale, locale_flag);
-            // Set a global on the window BEFORE any page scripts run
-            if let Some(window) = app.get_webview_window("main") {
-                let r1 = window.eval(&format!("window.__SOLOSOUL_LOCALE__='{}'", locale_flag));
-                let r2 = window.eval(&format!("try{{localStorage.setItem('i18nextLng','{}')}}catch(e){{console.error('[i18n] localStorage write failed',e)}}", locale_flag));
-                tracing::debug!("[i18n] Rust setup: eval __SOLOSOUL_LOCALE__={:?}, eval localStorage={:?}", r1, r2);
-            } else {
-                tracing::warn!("[i18n] Rust setup: main window not found, cannot inject locale");
-            }
+            tracing::info!("[i18n] Rust setup: get_ui_language()={}, resolved={}",
+                locale,
+                if locale.starts_with("zh") || locale.starts_with("cmn") { "zh-CN" } else { "en-US" });
 
             // System templates are no longer loaded at startup.
             // Default templates are seeded once during account creation instead.

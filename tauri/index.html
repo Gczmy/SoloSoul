@@ -15,25 +15,14 @@
         if (p.accentColor) d.style.setProperty('--accent-primary', cs[p.accentColor] || '#5B7C99');
       }
     } catch(e){}
-    /* Debug: log locale detection to console. */
+    /* Simple fallback: detect locale in case IPC isn't ready yet.
+       The authoritative source is initI18n() via get_system_locale IPC. */
     try {
-      console.log('[i18n] html-inline: __SOLOSOUL_LOCALE__=', window.__SOLOSOUL_LOCALE__, 'navigator.language=', navigator.language, 'navigator.userLanguage=', navigator.userLanguage);
-      var lsVal = localStorage.getItem('i18nextLng');
-      console.log('[i18n] html-inline: localStorage i18nextLng=', lsVal);
-      if (!lsVal) {
-        var detected = 'en-US';
-        if (window.__SOLOSOUL_LOCALE__ && (window.__SOLOSOUL_LOCALE__ === 'zh-CN' || window.__SOLOSOUL_LOCALE__ === 'en-US')) {
-          detected = window.__SOLOSOUL_LOCALE__;
-          console.log('[i18n] html-inline: using __SOLOSOUL_LOCALE__:', detected);
-        } else {
-          var nl = (navigator.language || navigator.userLanguage || 'en-US').toLowerCase();
-          if (nl.startsWith('zh') || nl.startsWith('cmn')) { detected = 'zh-CN'; }
-          console.log('[i18n] html-inline: using navigator fallback:', detected, '(from', nl, ')');
-        }
-        localStorage.setItem('i18nextLng', detected);
-        console.log('[i18n] html-inline: set localStorage i18nextLng=', detected);
+      if (!localStorage.getItem('i18nextLng')) {
+        var nl = (navigator.language || 'en-US').toLowerCase();
+        localStorage.setItem('i18nextLng', nl.startsWith('zh') ? 'zh-CN' : 'en-US');
       }
-    } catch(e){ console.error('[i18n] html-inline error:', e); }
+    } catch(e){}
     </script>
     <style>
       /* Fallback to dark if no cache — prevents white flash. */

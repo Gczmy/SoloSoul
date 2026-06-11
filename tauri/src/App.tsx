@@ -97,12 +97,9 @@ function AppRoutes() {
       defaultDarkTheme: settings.defaultDarkTheme,
     });
 
-    // Apply saved language on startup
-    if (settings.language) {
-      import('@/lib/i18n').then((mod) => {
-        mod.default.changeLanguage(settings.language);
-      });
-    }
+    // Language is already set by initI18n() via IPC (authoritative).
+    // User-saved preferences are applied in the isAuthenticated effect (line 69-72).
+    // Skip here to avoid overriding correct detection with DEFAULT_SETTINGS on first launch.
 
     // Listen for system theme changes
     const config = {
