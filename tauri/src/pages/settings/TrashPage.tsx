@@ -281,17 +281,25 @@ export function TrashPage() {
           </Card>
         ) : (
           filtered.map((item) => (
-            <Card key={item.id}>
+            <Card
+              key={item.id}
+              interactive
+              style={{
+                cursor: 'pointer',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+              }}
+              onClick={() => openDetail(item.id)}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input
                   type="checkbox"
                   checked={selectedIds.has(item.id)}
                   onChange={() => toggleSelection(item.id)}
+                  onClick={(e) => e.stopPropagation()}
                   style={{ accentColor: 'var(--accent-primary)', flexShrink: 0 }}
                 />
                 <div
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, cursor: 'pointer', minWidth: 0 }}
-                  onClick={() => openDetail(item.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}
                 >
                   <FileText size={18} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
                   <div style={{ minWidth: 0 }}>
@@ -302,14 +310,14 @@ export function TrashPage() {
                     </div>
                   </div>
                 </div>
-                <Button size="sm" onClick={() => doRestore([item.id])} title={t('common:restore')}>
+                <Button size="sm" onClick={(e) => { e.stopPropagation(); doRestore([item.id]); }} title={t('common:restore')}>
                   <RotateCcw size={13} />
                 </Button>
-                <Button size="sm" variant="secondary" onClick={() => doDelete([item.id])} title={t('common:delete_permanently')}>
+                <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); doDelete([item.id]); }} title={t('common:delete_permanently')}>
                   <Trash2 size={13} />
                 </Button>
                 <button
-                  onClick={() => openDetail(item.id)}
+                  onClick={(e) => { e.stopPropagation(); openDetail(item.id); }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-tertiary)' }}
                   title={t('common:details')}
                 >
