@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoloSoul 深色模式配色参考</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1f1c18;
+      color: #e6dfce;
+      padding: 40px;
+      min-height: 100vh;
+    }
+    h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+    .subtitle { color: #8a8278; font-size: 14px; margin-bottom: 32px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      max-width: 1200px;
+    }
+    .card {
+      border-radius: 12px;
+      border: 1px solid #3d3831;
+      overflow: hidden;
+      transition: transform 0.15s ease;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .swatch {
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .info {
+      padding: 14px 16px;
+      background: #2a2620;
+    }
+    .var-name {
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 13px;
+      color: #7a9ab5;
+      margin-bottom: 4px;
+    }
+    .var-value {
+      font-size: 12px;
+      color: #8a8278;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .badge-current {
+      background: rgba(122, 154, 181, 0.2);
+      color: #7a9ab5;
+    }
+    .badge-recommended {
+      background: rgba(39, 174, 96, 0.2);
+      color: #27ae60;
+    }
+    .preview-section {
+      margin-top: 40px;
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid #3d3831;
+      background: #2a2620;
+    }
+    .preview-section h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .preview-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 38px;
+      background: transparent;
+      position: relative;
+    }
+    .preview-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid #4a433b;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      min-width: 300px;
+      color: #b5ada3;
+    }
+    .preview-btn svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+    .preview-btn span {
+      flex: 1;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .color-label {
+      font-size: 11px;
+      color: #8a8278;
+      margin-top: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 SoloSoul 深色模式配色参考</h1>
+  <p class="subtitle">点击色块可复制的 CSS 变量，用于 TitleBar 搜索按钮背景色选择</p>
+
+  <div class="grid">
+    <!-- 1 -->
+    <div class="card">
+      <div class="swatch" style="background: #1f1c18;">--bg-base</div>
+      <div class="info">
+        <div class="var-name">var(--bg-base)</div>
+        <div class="var-value">#1f1c18</div>
+        <span class="badge" style="background: rgba(255,255,255,0.06); color: #8a8278;">最深 · 应用主背景</span>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="card">
+      <div class="swatch" style="background: #2a2620;">--bg-elevated</div>
+      <div class="info">
+        <div class="var-name">var(--bg-elevated)</div>
+        <div class="var-value">#2a2620</div>
+        <span class="badge" style="background: rgba(255,255,255,0.06); color: #8a8278;">深 · 卡片/弹窗背景</span>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="card">
+      <div class="swatch" style="background: #353029;">--bg-hover</div>
+      <div class="info">
+        <div class="var-name">var(--bg-hover)</div>
+        <div class="var-value">#353029</div>
+        <span class="badge badge-recommended">★ 推荐</span>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="card">
+      <div class="swatch" style="background: #3d3831;">--border-subtle</div>
+      <div class="info">
+        <div class="var-name">var(--border-subtle)</div>
+        <div class="var-value">#3d3831</div>
+        <span class="badge" style="background: rgba(255,255,255,0.06); color: #8a8278;">中等 · 淡边框</span>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="card">
+      <div class="swatch" style="background: rgba(42,38,32,0.92);">--bg-toolbar</div>
+      <div class="info">
+        <div class="var-name">var(--bg-toolbar)</div>
+        <div class="var-value">rgba(42,38,32,0.92)</div>
+        <span class="badge" style="background: rgba(255,255,255,0.06); color: #8a8278;">中等偏浅 · 工具栏</span>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="card">
+      <div class="swatch" style="background: #4a433b;">--border-default</div>
+      <div class="info">
+        <div class="var-name">var(--border-default)</div>
+        <div class="var-value">#4a433b</div>
+        <span class="badge badge-current">当前使用</span>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="card">
+      <div class="swatch" style="background: #5c5549;">--border-strong</div>
+      <div class="info">
+        <div class="var-name">var(--border-strong)</div>
+        <div class="var-value">#5c5549</div>
+        <span class="badge" style="background: rgba(255,255,255,0.06); color: #8a8278;">最浅 · 深边框</span>
+      </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="card">
+      <div class="swatch" style="background: #423b33;">--bg-active</div>
+      <div class="info">
+        <div class="var-name">var(--bg-active)</div>
+        <div class="var-value">#423b33</div>
+        <span class="badge" style="background: rgba(255,255,255,0.06); color: #8a8278;">激活状态背景</span>
+      </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="card">
+      <div class="swatch" style="background: rgba(26,23,20,0.5);">--bg-inset</div>
+      <div class="info">
+        <div class="var-name">var(--bg-inset)</div>
+        <div class="var-value">rgba(26,23,20,0.5)</div>
+        <span class="badge" style="background: rgba(255,255,255,0.06); color: #8a8278;">半透明 · 内嵌区域</span>
+      </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="card">
+      <div class="swatch" style="background: rgba(230,223,206,0.06);">--state-hover</div>
+      <div class="info">
+        <div class="var-name">var(--state-hover)</div>
+        <div class="var-value">rgba(230,223,206,0.06)</div>
+        <span class="badge" style="background: rgba(255,255,255,0.06); color: #8a8278;">浅色叠加 · 悬停态</span>
+      </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="card">
+      <div class="swatch" style="background: rgba(122,154,181,0.18);">--state-selected</div>
+      <div class="info">
+        <div class="var-name">var(--state-selected)</div>
+        <div class="var-value">rgba(122,154,181,0.18)</div>
+        <span class="badge" style="background: rgba(255,255,255,0.06); color: #8a8278;">强调色叠加 · 选中态</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 实际预览 -->
+  <div class="preview-section">
+    <h2>🔍 搜索按钮实际预览</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
+
+      <div>
+        <div class="preview-bar">
+          <button class="preview-btn" style="background: #1f1c18;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>搜索对象、模板、帮助等内容...</span>
+          </button>
+        </div>
+        <div class="color-label">var(--bg-base) #1f1c18</div>
+      </div>
+
+      <div>
+        <div class="preview-bar">
+          <button class="preview-btn" style="background: #2a2620;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>搜索对象、模板、帮助等内容...</span>
+          </button>
+        </div>
+        <div class="color-label">var(--bg-elevated) #2a2620</div>
+      </div>
+
+      <div>
+        <div class="preview-bar">
+          <button class="preview-btn" style="background: #353029;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>搜索对象、模板、帮助等内容...</span>
+          </button>
+        </div>
+        <div class="color-label">var(--bg-hover) #353029 ★ 推荐</div>
+      </div>
+
+      <div>
+        <div class="preview-bar">
+          <button class="preview-btn" style="background: #3d3831;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>搜索对象、模板、帮助等内容...</span>
+          </button>
+        </div>
+        <div class="color-label">var(--border-subtle) #3d3831</div>
+      </div>
+
+      <div>
+        <div class="preview-bar">
+          <button class="preview-btn" style="background: rgba(42,38,32,0.92);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>搜索对象、模板、帮助等内容...</span>
+          </button>
+        </div>
+        <div class="color-label">var(--bg-toolbar) rgba(42,38,32,0.92)</div>
+      </div>
+
+      <div>
+        <div class="preview-bar">
+          <button class="preview-btn" style="background: #4a433b;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>搜索对象、模板、帮助等内容...</span>
+          </button>
+        </div>
+        <div class="color-label">var(--border-default) #4a433b ← 当前使用</div>
+      </div>
+
+      <div>
+        <div class="preview-bar">
+          <button class="preview-btn" style="background: #5c5549;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>搜索对象、模板、帮助等内容...</span>
+          </button>
+        </div>
+        <div class="color-label">var(--border-strong) #5c5549</div>
+      </div>
+
+      <div>
+        <div class="preview-bar">
+          <button class="preview-btn" style="background: #423b33;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>搜索对象、模板、帮助等内容...</span>
+          </button>
+        </div>
+        <div class="color-label">var(--bg-active) #423b33</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.swatch').forEach(el => {
+      el.style.cursor = 'pointer';
+      el.title = '点击复制颜色值';
+      el.addEventListener('click', () => {
+        const value = el.nextElementSibling.querySelector('.var-value').textContent;
+        navigator.clipboard.writeText(value).then(() => {
+          const original = el.textContent;
+          el.textContent = '✓ 已复制';
+          setTimeout(() => el.textContent = original, 800);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
