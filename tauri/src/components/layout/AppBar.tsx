@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import styles from './AppBar.module.css';
 
 interface AppBarProps {
@@ -13,10 +14,17 @@ export function AppBar({ title, actions, onBack, titleBarOffset = 0 }: AppBarPro
   const { t } = useTranslation('common');
   const isMac = /Mac/i.test(navigator.platform);
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Only drag if clicking on the header itself, not on buttons/actions
+    if (e.target === e.currentTarget) {
+      getCurrentWebviewWindow().startDragging().catch(() => {});
+    }
+  };
+
   return (
     <header
       className={styles.appBar}
-      data-tauri-drag-region
+      onMouseDown={handleMouseDown}
       style={{ paddingLeft: isMac ? 80 : 20, top: titleBarOffset }}
     >
       <div className={styles.left}>
