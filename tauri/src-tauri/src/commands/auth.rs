@@ -24,6 +24,7 @@ pub async fn bootstrap(
     account_name: String,
     password: String,
     locale: String,
+    password_hint: Option<String>,
 ) -> Result<AccountInfo, String> {
     let svc = state.vault_service.read().await;
     let result = svc.create_account(&account_name, &password)?;

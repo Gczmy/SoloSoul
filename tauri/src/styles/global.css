@@ -158,3 +158,12 @@ html, body {
   background: var(--text-tertiary);
   border-radius: 3px;
 }
+
+/* Hide native WebView2/Chromium password reveal button (overlaps custom Eye icon) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-textfield-decoration-container,
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-contacts-auto-fill-button {
+  display: none !important;
+}

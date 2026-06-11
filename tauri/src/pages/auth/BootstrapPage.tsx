@@ -13,6 +13,7 @@ export function BootstrapPage() {
   const [accountName, setAccountName] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [passwordHint, setPasswordHint] = useState('');
   const { t } = useTranslation(['auth', 'common']);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,7 +22,7 @@ export function BootstrapPage() {
     // Use the language currently active in i18next (detected via Rust IPC),
     // NOT navigator.language (which is unreliable on Windows WebView2)
     const locale = i18next.language?.startsWith('zh') ? 'zh' : 'en';
-    await bootstrap(accountName, password, locale);
+    await bootstrap(accountName, password, locale, passwordHint || undefined);
     navigate('/');
   };
 
@@ -60,6 +61,12 @@ export function BootstrapPage() {
             value={confirm}
             onChange={(v) => setConfirm(v)}
             placeholder={t('common:password_placeholder')}
+          />
+          <Input
+            label={t('auth:password_hint')}
+            value={passwordHint}
+            onChange={(e) => setPasswordHint(e.target.value)}
+            placeholder={t('auth:password_hint_placeholder')}
           />
           {error && (
             <div style={{ color: '#e74c3c', fontSize: 13 }}>
