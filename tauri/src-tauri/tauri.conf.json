@@ -20,10 +20,10 @@
         "resizable": true,
         "fullscreen": false,
         "center": true,
-        "decorations": false,
+        "decorations": true,
         "transparent": true,
         "backgroundColor": "#1c1c1e",
-        "shadow": true
+        "titleBarStyle": "Transparent"
       }
     ],
     "security": {
