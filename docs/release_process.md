@@ -99,7 +99,6 @@ git pull origin master
 
 ```
 tauri/src-tauri/target/release/bundle/
-├── msi/SoloSoul_2.1.0_x64_en-US.msi
 └── nsis/SoloSoul_2.1.0_x64-setup.exe
 ```
 
@@ -133,8 +132,7 @@ npm run tauri build
 ```
 ~/SoloSoul-Releases/
 ├── SoloSoul_2.1.0_arm64.dmg          # macOS (Apple Silicon)
-├── SoloSoul_2.1.0_x64_en-US.msi      # Windows (MSI 安装包)
-└── SoloSoul_2.1.0_x64-setup.exe      # Windows (NSIS 安装包，可选)
+└── SoloSoul_2.1.0_x64-setup.exe      # Windows (NSIS 安装包)
 ```
 
 ### 6. 本地验证
@@ -145,7 +143,7 @@ npm run tauri build
 - 验证 Vault 解锁、对象 CRUD、设置页面等基础功能
 
 #### Windows
-- 双击 `.msi` 安装包完成安装
+- 双击 `.exe` 安装包完成安装
 - 从开始菜单或桌面快捷方式启动 SoloSoul
 - 验证 Vault 解锁、对象 CRUD、设置页面等基础功能
 
@@ -158,8 +156,7 @@ npm run tauri build
 3. 填写 Release 标题和说明
 4. **上传附件**：
    - `SoloSoul_2.1.0_arm64.dmg`
-   - `SoloSoul_2.1.0_x64_en-US.msi`
-   - （可选）`SoloSoul_2.1.0_x64-setup.exe`
+   - `SoloSoul_2.1.0_x64-setup.exe`
 5. 勾选 "Set as a pre-release"（如为预览版）或 "Publish release"
 
 > 通过 GitHub Releases 上传，而不是通过 git 提交。GitHub Releases 允许上传附件，这些附件不存储在 git 仓库中。
