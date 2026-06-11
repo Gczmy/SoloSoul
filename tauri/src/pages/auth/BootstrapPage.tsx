@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import i18next from 'i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,7 +18,9 @@ export function BootstrapPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirm) return;
-    const locale = navigator.language || 'en-US';
+    // Use the language currently active in i18next (detected via Rust IPC),
+    // NOT navigator.language (which is unreliable on Windows WebView2)
+    const locale = i18next.language?.startsWith('zh') ? 'zh' : 'en';
     await bootstrap(accountName, password, locale);
     navigate('/');
   };
