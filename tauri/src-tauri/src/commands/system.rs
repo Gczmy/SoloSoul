@@ -19,3 +19,10 @@ pub async fn check_version() -> Result<serde_json::Value, String> {
         "hasUpdate": false,
     }))
 }
+
+/// Get the system locale (e.g. "zh-CN", "en-US").
+/// Uses the OS locale API directly — more reliable than navigator.language in WebView2.
+#[tauri::command]
+pub fn get_system_locale() -> Result<String, String> {
+    sys_locale::get_locale().ok_or_else(|| "Failed to detect system locale".to_string())
+}
