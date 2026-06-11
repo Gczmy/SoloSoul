@@ -19,10 +19,8 @@ interface VersionInfo {
   hasUpdate: boolean;
 }
 
-function friendlyPlatform(os: string, arch: string): string {
-  const osName = os === 'macos' ? 'macOS' : os === 'windows' ? 'Windows' : os === 'linux' ? 'Linux' : os;
-  const archName = arch === 'aarch64' ? 'Apple Silicon' : arch === 'x86_64' ? 'Intel' : arch;
-  return osName + ' (' + archName + ')';
+function friendlyPlatform(os: string, _arch: string): string {
+  return os === 'macos' ? 'macOS' : os === 'windows' ? 'Windows' : os === 'linux' ? 'Linux' : os;
 }
 
 export function AboutPage() {
@@ -56,10 +54,10 @@ export function AboutPage() {
       <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16, padding: '12px 0' }}>
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <div style={{
-            width: 72, height: 72, borderRadius: 20,
-            background: 'linear-gradient(135deg, var(--accent-primary) 0%, #8b5cf6 100%)',
+            width: 72, height: 72, borderRadius: 16,
+            background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-warm))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 14px', fontSize: 32, fontWeight: 700, color: 'white',
+            margin: '0 auto 14px', fontSize: 34, fontWeight: 700, color: 'white',
             boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
           }}>
             S
