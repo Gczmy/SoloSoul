@@ -121,9 +121,11 @@ export function TemplateManagerPage() {
     }
     const cp = settings.customPages.find((p) => p.id === category);
     if (cp) {
+      // Page exists (may be soft-deleted) → show name with strikethrough
       return { name: cp.name, deleted: !!cp.deletedAt };
     }
-    return { name: category, deleted: false };
+    // Page has been permanently purged → show generic "deleted" label
+    return { name: t('settings:deleted_page') || '（页面已删除）', deleted: true };
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -310,7 +312,9 @@ export function TemplateManagerPage() {
           {customPages.length > 0 && (
             <optgroup label={t('settings:custom_pages') || '自定义页面'}>
               {customPages.map((page) => (
-                <option key={page.id} value={page.id}>{page.name}</option>
+                <option key={page.id} value={page.id} disabled={!!page.deletedAt}>
+                  {page.deletedAt ? `${page.name}（${t('settings:deleted_page_suffix') || '已删除'}）` : page.name}
+                </option>
               ))}
             </optgroup>
           )}
