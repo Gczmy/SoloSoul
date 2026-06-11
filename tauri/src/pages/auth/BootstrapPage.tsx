@@ -56,6 +56,9 @@ export function BootstrapPage() {
             onChange={(v) => setPassword(v)}
             placeholder={t('common:password_placeholder')}
           />
+          <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: -12 }}>
+            {t('auth:password_rule_hint')}
+          </div>
           <SecurePasswordInput
             label={t('auth:confirm_password')}
             value={confirm}
@@ -74,7 +77,9 @@ export function BootstrapPage() {
                 ? t('auth:incorrect_password')
                 : error.toLowerCase().includes('required')
                   ? t('auth:password_required')
-                  : error}
+                  : error.toLowerCase().includes('8 characters')
+                    ? t('auth:password_too_short')
+                    : error}
             </div>
           )}
           <Button type="submit" loading={isLoading} style={{ width: '100%', marginTop: 8 }}>
