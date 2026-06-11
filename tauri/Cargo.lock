@@ -4547,6 +4547,8 @@ dependencies = [
  "hex",
  "mdns-sd",
  "ndarray",
+ "objc2",
+ "objc2-app-kit",
  "once_cell",
  "ort",
  "rand 0.8.6",

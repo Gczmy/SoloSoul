@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "SoloSoul",
+        "title": "",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
@@ -23,7 +23,8 @@
         "decorations": true,
         "transparent": true,
         "backgroundColor": "#1c1c1e",
-        "titleBarStyle": "Overlay"
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
       }
     ],
     "security": {
