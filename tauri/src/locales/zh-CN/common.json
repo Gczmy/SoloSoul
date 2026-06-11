@@ -8,6 +8,7 @@
   "create": "新建",
   "confirm": "确认",
   "search": "搜索",
+  "search_bar_hint": "搜索对象、模板、帮助等内容...",
   "back": "返回",
   "loading": "加载中...",
   "no_data": "暂无数据",

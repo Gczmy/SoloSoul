@@ -17,7 +17,7 @@ export function TitleBar() {
           aria-label={t('search')}
         >
           <Search size={12} />
-          <span>{t('search')}</span>
+          <span style={{ flex: 1, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('search_bar_hint')}</span>
         </button>
       </div>
       {showPopover && <SearchPopover onClose={() => setShowPopover(false)} />}

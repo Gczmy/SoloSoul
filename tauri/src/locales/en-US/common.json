@@ -8,6 +8,7 @@
   "create": "New",
   "confirm": "Confirm",
   "search": "Search",
+  "search_bar_hint": "Search objects, templates, help...",
   "back": "Back",
   "loading": "Loading...",
   "no_data": "No data",

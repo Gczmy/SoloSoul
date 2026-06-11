@@ -30,7 +30,6 @@
   -webkit-app-region: no-drag;
   app-region: no-drag;
   min-width: 240px;
-  justify-content: center;
 }
 .searchBar:hover {
   background: var(--bg-elevated);
