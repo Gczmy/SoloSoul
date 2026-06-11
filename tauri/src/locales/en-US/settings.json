@@ -406,6 +406,7 @@
   "template_category": "Page",
   "system_pages": "System Pages",
   "custom_pages": "Custom Pages",
+  "custom_pages_trash": "Custom Pages (Trash)",
   "deleted_page": "(Deleted page)",
   "template_name_placeholder": "Enter template name",
   "add_field": "Add Field",

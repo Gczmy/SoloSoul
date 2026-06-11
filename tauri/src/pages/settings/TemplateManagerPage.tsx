@@ -317,7 +317,7 @@ export function TemplateManagerPage() {
             </optgroup>
           )}
           {customPages.filter((p) => p.deletedAt).length > 0 && (
-            <optgroup label={`${t('settings:custom_pages') || '自定义页面'}（${t('common:trash') || '回收站'}）`}>
+            <optgroup label={t('settings:custom_pages_trash') || '自定义页面（回收站）'}>
               {customPages.filter((p) => p.deletedAt).map((page) => (
                 <option key={page.id} value={page.id} disabled>{page.name}</option>
               ))}

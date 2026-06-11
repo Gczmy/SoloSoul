@@ -406,6 +406,7 @@
   "template_category": "所属页面",
   "system_pages": "系统页面",
   "custom_pages": "自定义页面",
+  "custom_pages_trash": "自定义页面（回收站）",
   "deleted_page": "（页面已删除）",
   "template_name_placeholder": "请输入模板名称",
   "add_field": "添加字段",
