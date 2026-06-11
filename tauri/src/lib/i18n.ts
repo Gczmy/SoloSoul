@@ -36,7 +36,10 @@ const resources = {
     sensitivity: zhSensitivity,
     editor: zhEditor,
   },
-};
+} as Record<string, Record<string, object>>;
+
+// zh → zh-CN alias (Windows WebView2 may report just 'zh')
+resources['zh'] = resources['zh-CN'];
 
 /** Detect system language: zh-* → zh-CN, other → en-US */
 export function detectSystemLanguage(): SupportedLang {
@@ -44,17 +47,21 @@ export function detectSystemLanguage(): SupportedLang {
   return lang.startsWith('zh') ? 'zh-CN' : 'en-US';
 }
 
+const storedLng = typeof localStorage !== 'undefined' ? localStorage.getItem('i18nextLng') : null;
+const initialLng = storedLng || detectSystemLanguage();
+
 void i18next
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
+    lng: initialLng,
     fallbackLng: 'en-US',
     defaultNS: 'common',
     ns: ['common', 'navigation', 'settings', 'auth', 'sensitivity', 'editor'],
     interpolation: { escapeValue: false },
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['localStorage'],
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng',
     },
