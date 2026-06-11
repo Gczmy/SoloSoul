@@ -1,17 +1,19 @@
 import { Card } from '@/components/ui/Card';
 import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
+import type { TFunction } from 'i18next';
 
 interface ModelUsageCardProps {
   perModel: ModelUsage[];
+  t: TFunction;
 }
 
-export function ModelUsageCard({ perModel }: ModelUsageCardProps) {
+export function ModelUsageCard({ perModel, t }: ModelUsageCardProps) {
   const totalTokens = perModel.reduce((sum, m) => sum + m.tokens, 0);
 
   return (
     <Card>
       <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 12 }}>
-        共 {perModel.length} 个模型 · 累计 {formatTokens(totalTokens)} token
+        {t('settings:llm_model_count', { count: perModel.length, tokens: formatTokens(totalTokens) })}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {perModel.map((m) => {
@@ -38,7 +40,7 @@ export function ModelUsageCard({ perModel }: ModelUsageCardProps) {
                 />
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                {m.provider} · {formatTokens(m.tokens)} · {m.count} 次调用
+                {m.provider} · {formatTokens(m.tokens)} · {m.count} {t('settings:llm_calls')}
               </div>
             </div>
           );

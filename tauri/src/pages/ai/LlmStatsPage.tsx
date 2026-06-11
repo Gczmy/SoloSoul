@@ -66,7 +66,7 @@ export function LlmStatsPage() {
 
   if (loading && !stats) {
     return (
-      <AppShell title="LLM 使用统计" onBack={() => navigate(backPath)}>
+      <AppShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
         <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center', padding: '48px 24px' }}>
           <BarChart3 size={48} style={{ marginBottom: 16, opacity: 0.3 }} />
           <p style={{ color: 'var(--text-secondary)' }}>{t('common:loading')}</p>
@@ -78,58 +78,62 @@ export function LlmStatsPage() {
   const hasData = stats && (stats.usageCount > 0 || stats.totalTokens > 0);
 
   return (
-    <AppShell title="LLM 使用统计" onBack={() => navigate(backPath)}>
+    <AppShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
       <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20, padding: '0 16px 32px' }}>
         {/* Model Info */}
         <section>
-          <SectionTitle>当前模型</SectionTitle>
+          <SectionTitle>{t('settings:llm_current_model')}</SectionTitle>
           <ModelInfoCard
             providerName={activeProvider?.name || '—'}
             modelName={activeProvider?.model || '—'}
             providerType={activeProvider?.apiType || '—'}
             isOnline={isOnline}
+            t={t}
           />
         </section>
 
         {!hasData ? (
           <div style={{ textAlign: 'center', padding: '48px 24px' }}>
             <BarChart3 size={48} style={{ marginBottom: 16, opacity: 0.25, color: 'var(--text-tertiary)' }} />
-            <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>暂无使用数据</p>
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>开始 AI 对话后将自动统计</p>
+            <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>{t('settings:llm_no_data')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>{t('settings:llm_no_data_hint')}</p>
           </div>
         ) : (
           <>
             {/* Session Stats */}
             <section>
-              <SectionTitle>会话统计</SectionTitle>
+              <SectionTitle>{t('settings:llm_session_stats')}</SectionTitle>
               <StatsGrid
                 usageCount={stats?.usageCount || 0}
                 totalTokens={stats?.totalTokens || 0}
                 promptTokens={stats?.promptTokens || 0}
                 completionTokens={stats?.completionTokens || 0}
                 modelUsages={stats?.perModelStats || []}
+                t={t}
               />
             </section>
 
             {/* Account Stats */}
             <section>
-              <SectionTitle>账户累计</SectionTitle>
+              <SectionTitle>{t('settings:llm_account_stats')}</SectionTitle>
               <AccountStatsCard
                 usageCount={stats?.usageCount || 0}
                 totalTokens={stats?.totalTokens || 0}
                 modelUsages={stats?.perModelStats || []}
+                t={t}
               />
             </section>
 
             {/* Token Breakdown */}
             {(stats?.promptTokens || 0) > 0 || (stats?.completionTokens || 0) > 0 ? (
               <section>
-                <SectionTitle>Token 分解</SectionTitle>
+                <SectionTitle>{t('settings:llm_token_breakdown')}</SectionTitle>
                 <TokenBreakdownCard
                   sessionPrompt={stats?.promptTokens || 0}
                   sessionCompletion={stats?.completionTokens || 0}
                   accountPrompt={stats?.promptTokens || 0}
                   accountCompletion={stats?.completionTokens || 0}
+                  t={t}
                 />
               </section>
             ) : null}
@@ -137,16 +141,16 @@ export function LlmStatsPage() {
             {/* Daily Sparkline */}
             {(stats?.dailyStats?.length || 0) > 0 ? (
               <section>
-                <SectionTitle>每日趋势（近14天）</SectionTitle>
-                <DailySparklineCard daily={stats?.dailyStats || []} />
+                <SectionTitle>{t('settings:llm_daily_trend')}</SectionTitle>
+                <DailySparklineCard daily={stats?.dailyStats || []} t={t} />
               </section>
             ) : null}
 
             {/* Model Usage */}
             {(stats?.perModelStats?.length || 0) > 0 ? (
               <section>
-                <SectionTitle>模型使用排行</SectionTitle>
-                <ModelUsageCard perModel={stats?.perModelStats || []} />
+                <SectionTitle>{t('settings:llm_model_ranking')}</SectionTitle>
+                <ModelUsageCard perModel={stats?.perModelStats || []} t={t} />
               </section>
             ) : null}
 
@@ -157,7 +161,7 @@ export function LlmStatsPage() {
                 onClick={() => setShowResetDialog(true)}
                 style={{ width: '100%', color: '#e74c3c', borderColor: '#e74c3c' }}
               >
-                <RotateCcw size={14} style={{ marginRight: 4 }} /> 重置统计
+                <RotateCcw size={14} style={{ marginRight: 4 }} /> {t('settings:llm_reset_stats')}
               </Button>
             </section>
           </>
@@ -168,17 +172,17 @@ export function LlmStatsPage() {
       <Dialog
         isOpen={showResetDialog}
         onClose={() => setShowResetDialog(false)}
-        title="重置统计"
+        title={t('settings:llm_reset_confirm_title')}
       >
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
-          确定要重置所有 LLM 使用统计吗？此操作不可恢复。
+          {t('settings:llm_reset_confirm_desc')}
         </p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <Button variant="secondary" onClick={() => setShowResetDialog(false)}>
             {t('common:cancel')}
           </Button>
           <Button onClick={handleReset} style={{ background: '#e74c3c' }}>
-            重置
+            {t('settings:llm_reset_btn')}
           </Button>
         </div>
       </Dialog>

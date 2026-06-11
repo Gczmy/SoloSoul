@@ -1,20 +1,22 @@
 import { Card } from '@/components/ui/Card';
 import { MessageSquare, Hash } from 'lucide-react';
 import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
+import type { TFunction } from 'i18next';
 
 interface AccountStatsCardProps {
   usageCount: number;
   totalTokens: number;
   modelUsages: ModelUsage[];
+  t: TFunction;
 }
 
-export function AccountStatsCard({ usageCount, totalTokens, modelUsages }: AccountStatsCardProps) {
+export function AccountStatsCard({ usageCount, totalTokens, modelUsages, t }: AccountStatsCardProps) {
   return (
     <Card>
       <div style={{ display: 'flex' }}>
         <StatColumn
           icon={<MessageSquare size={20} color="var(--accent-primary)" />}
-          label="总对话数"
+          label={t('settings:llm_total_conversations')}
           value={usageCount.toString()}
           modelUsages={modelUsages}
           modelValue={(m) => m.count.toString()}
@@ -22,7 +24,7 @@ export function AccountStatsCard({ usageCount, totalTokens, modelUsages }: Accou
         <div style={{ width: 1, background: 'var(--border-subtle)', margin: '0 12px', flexShrink: 0 }} />
         <StatColumn
           icon={<Hash size={20} color="var(--accent-primary)" />}
-          label="总 Token 数"
+          label={t('settings:llm_total_tokens')}
           value={formatTokens(totalTokens)}
           modelUsages={modelUsages}
           modelValue={(m) => formatTokens(m.tokens)}

@@ -97,7 +97,7 @@ export function LlmConfigPage() {
     setDownloadProgress(0);
     try {
       await invoke('llm_download_embed_model', { modelId });
-      onSuccess('模型下载完成');
+      onSuccess(t('settings:llm_model_downloaded'));
       await loadEmbedModels();
       // Auto-select if none selected
       if (!localModelId) {
@@ -108,7 +108,7 @@ export function LlmConfigPage() {
         }
       }
     } catch (e) {
-      onError(e, '模型下载失败');
+      onError(e, t('settings:llm_model_download_failed'));
     } finally {
       setDownloadingId(null);
       setDownloadProgress(0);
@@ -116,10 +116,10 @@ export function LlmConfigPage() {
   };
 
   const handleDeleteModel = async (modelId: string) => {
-    if (!confirm('确定要删除此模型吗？')) return;
+    if (!confirm(t('settings:llm_confirm_delete_model'))) return;
     try {
       await invoke('llm_delete_embed_model', { modelId });
-      onSuccess('模型已删除');
+      onSuccess(t('settings:llm_model_deleted'));
       await loadEmbedModels();
       if (localModelId === modelId) {
         setLocalModelId(null);
@@ -129,7 +129,7 @@ export function LlmConfigPage() {
         }
       }
     } catch (e) {
-      onError(e, '删除模型失败');
+      onError(e, t('settings:llm_delete_model_failed'));
     }
   };
 
@@ -141,7 +141,7 @@ export function LlmConfigPage() {
         setLocalModelId(firstInstalled.info.id);
         await invoke('llm_set_local_embedding', { accountId, enabled: true, modelId: firstInstalled.info.id });
       } else {
-        onError(new Error('请先下载一个本地模型'), '无法启用本地 Embedding');
+        onError(new Error(t('settings:llm_enable_local_first')), t('settings:llm_enable_local_failed'));
         return;
       }
     } else {
@@ -163,9 +163,9 @@ export function LlmConfigPage() {
     setRebuilding(true);
     try {
       const count = await invoke<number>('llm_rebuild_guide_embeddings', { accountId, language: i18n.language || 'zh-CN' });
-      onSuccess(`知识库索引已重建，共 ${count} 个片段`);
+      onSuccess(t('settings:llm_kb_rebuilt', { count: String(count) }));
     } catch (e) {
-      onError(e, '重建知识库索引失败');
+      onError(e, t('settings:llm_rebuild_kb'));
     } finally {
       setRebuilding(false);
     }
@@ -301,19 +301,19 @@ export function LlmConfigPage() {
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <Cpu size={18} color="var(--accent-primary)" />
-            <h3 style={{ fontSize: 14, fontWeight: 600 }}>本地 Embedding 模型</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 600 }}>{t('settings:llm_embed_models_title')}</h3>
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 12, lineHeight: 1.5 }}>
-            下载本地模型后，即使 LLM 提供商不支持 Embedding API，也能使用向量检索。模型仅在本地运行，数据不会上传。
+            {t('settings:llm_embed_models_desc')}
           </p>
 
           <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', cursor: 'pointer', fontSize: 13, marginBottom: 12 }}>
             <input type="checkbox" checked={useLocalEmbedding} onChange={(e) => handleToggleLocalEmbedding(e.target.checked)} style={{ accentColor: 'var(--accent-primary)' }} />
-            <span>优先使用本地 Embedding（离线可用）</span>
+            <span>{t('settings:llm_use_local_embedding')}</span>
           </label>
 
           {modelsLoading ? (
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>加载模型列表...</p>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{t('settings:llm_loading_models')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {embedModels.map((m) => (
@@ -334,7 +334,7 @@ export function LlmConfigPage() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 500 }}>{m.info.name}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                      {m.info.description} · {m.info.dimensions}维 · {m.info.diskSize}
+                      {m.info.description} · {m.info.dimensions}{t('settings:llm_dimensions')} · {m.info.diskSize}
                     </div>
                     {downloadingId === m.info.id && (
                       <div style={{ marginTop: 6 }}>
@@ -349,7 +349,7 @@ export function LlmConfigPage() {
                     <button
                       onClick={() => handleDeleteModel(m.info.id)}
                       style={{ padding: 6, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#e74c3c' }}
-                      title="删除模型"
+                      title={t('settings:llm_delete_model')}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -362,26 +362,26 @@ export function LlmConfigPage() {
                       disabled={downloadingId !== null && downloadingId !== m.info.id}
                     >
                       <Download size={14} style={{ marginRight: 4 }} />
-                      下载
+                      {t('settings:llm_download')}
                     </Button>
                   )}
                 </div>
               ))}
               {embedModels.length === 0 && (
-                <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>暂无可用的本地模型</p>
+                <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{t('settings:llm_no_models')}</p>
               )}
             </div>
           )}
         </Card>
 
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>知识库索引</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:llm_knowledge_base_title')}</h3>
           <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 12, lineHeight: 1.5 }}>
             {embeddingAvailable === true
-              ? '当前 LLM 服务支持向量检索，知识库索引用于提升 AI 回答的准确性。'
+              ? t('settings:llm_kb_embedding_supported')
               : embeddingAvailable === false
-                ? '当前 LLM 服务不支持向量检索，将使用基础关键词匹配。'
-                : '正在检测 embedding 支持...'}
+                ? t('settings:llm_kb_embedding_unsupported')
+                : t('settings:llm_kb_embedding_checking')}
           </p>
           <Button
             variant="secondary"
@@ -390,7 +390,7 @@ export function LlmConfigPage() {
             loading={rebuilding}
             disabled={embeddingAvailable === false}
           >
-            {rebuilding ? '重建中...' : '重建知识库索引'}
+            {rebuilding ? t('settings:llm_rebuilding') : t('settings:llm_rebuild_kb')}
           </Button>
         </Card>
 
@@ -399,8 +399,8 @@ export function LlmConfigPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <BarChart3 size={20} color="var(--accent-primary)" />
               <div>
-                <span style={{ fontSize: 14, fontWeight: 500 }}>使用统计</span>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>查看 LLM Token 消耗和对话统计</div>
+                <span style={{ fontSize: 14, fontWeight: 500 }}>{t('settings:llm_stats_title')}</span>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>{t('settings:llm_stats_desc')}</div>
               </div>
             </div>
             <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>›</span>

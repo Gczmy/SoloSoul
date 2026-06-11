@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/Card';
 import { MessageSquare, Hash, Download, Clock } from 'lucide-react';
 import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
+import type { TFunction } from 'i18next';
 
 interface StatsGridProps {
   usageCount: number;
@@ -10,6 +11,7 @@ interface StatsGridProps {
   modelUsages: ModelUsage[];
   lastLoadTime?: string;
   lastUsedTime?: string;
+  t: TFunction;
 }
 
 export function StatsGrid({
@@ -18,29 +20,30 @@ export function StatsGrid({
   modelUsages,
   lastLoadTime,
   lastUsedTime,
+  t,
 }: StatsGridProps) {
   const tiles = [
     {
       icon: <MessageSquare size={16} color="var(--accent-primary)" />,
-      label: '对话数',
+      label: t('settings:llm_conversations'),
       value: usageCount.toString(),
       modelValue: (m: ModelUsage) => m.count.toString(),
     },
     {
       icon: <Hash size={16} color="var(--accent-primary)" />,
-      label: 'Token 消耗',
+      label: t('settings:llm_token_usage'),
       value: formatTokens(totalTokens),
       modelValue: (m: ModelUsage) => formatTokens(m.tokens),
     },
     {
       icon: <Download size={16} color="var(--accent-primary)" />,
-      label: '最后加载',
+      label: t('settings:llm_last_load'),
       value: formatDate(lastLoadTime),
       modelValue: (m: ModelUsage) => formatDate(m.lastUsedTime),
     },
     {
       icon: <Clock size={16} color="var(--accent-primary)" />,
-      label: '最后使用',
+      label: t('settings:llm_last_use'),
       value: formatDate(lastUsedTime),
       modelValue: (m: ModelUsage) => formatDate(m.lastUsedTime),
     },

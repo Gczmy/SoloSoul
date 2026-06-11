@@ -1,8 +1,10 @@
 import { Card } from '@/components/ui/Card';
 import { type DailyUsage } from '@/lib/llm/statsApi';
+import type { TFunction } from 'i18next';
 
 interface DailySparklineCardProps {
   daily: DailyUsage[];
+  t: TFunction;
 }
 
 const CHART_COLORS = [
@@ -34,7 +36,7 @@ function formatY(value: number): string {
   return value.toFixed(0);
 }
 
-export function DailySparklineCard({ daily }: DailySparklineCardProps) {
+export function DailySparklineCard({ daily, t }: DailySparklineCardProps) {
   const sorted = [...daily].sort((a, b) => a.date.localeCompare(b.date));
   const last14 = sorted.length > 14 ? sorted.slice(sorted.length - 14) : sorted;
   if (last14.length === 0) return null;
@@ -51,7 +53,7 @@ export function DailySparklineCard({ daily }: DailySparklineCardProps) {
     }
   } else {
     series.push({
-      name: '全部模型',
+      name: t('settings:llm_all_models'),
       values: last14.map((d) => d.tokens),
     });
   }

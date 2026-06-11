@@ -1,11 +1,13 @@
 import { Card } from '@/components/ui/Card';
 import { formatTokens } from '@/lib/llm/statsApi';
+import type { TFunction } from 'i18next';
 
 interface TokenBreakdownCardProps {
   sessionPrompt: number;
   sessionCompletion: number;
   accountPrompt: number;
   accountCompletion: number;
+  t: TFunction;
 }
 
 export function TokenBreakdownCard({
@@ -13,6 +15,7 @@ export function TokenBreakdownCard({
   sessionCompletion,
   accountPrompt,
   accountCompletion,
+  t,
 }: TokenBreakdownCardProps) {
   const sessionTotal = sessionPrompt + sessionCompletion;
   const accountTotal = accountPrompt + accountCompletion;
@@ -23,23 +26,23 @@ export function TokenBreakdownCard({
         {/* Session */}
         <div>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
-            本次会话
+            {t('settings:llm_this_session')}
           </div>
-          <TokenBar prompt={sessionPrompt} completion={sessionCompletion} total={sessionTotal} />
+          <TokenBar prompt={sessionPrompt} completion={sessionCompletion} total={sessionTotal} t={t} />
         </div>
         {/* Account */}
         <div>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
-            账户累计
+            {t('settings:llm_account_total')}
           </div>
-          <TokenBar prompt={accountPrompt} completion={accountCompletion} total={accountTotal} />
+          <TokenBar prompt={accountPrompt} completion={accountCompletion} total={accountTotal} t={t} />
         </div>
       </div>
     </Card>
   );
 }
 
-function TokenBar({ prompt, completion, total }: { prompt: number; completion: number; total: number }) {
+function TokenBar({ prompt, completion, total, t }: { prompt: number; completion: number; total: number; t: TFunction }) {
   const promptRatio = total === 0 ? 0 : prompt / total;
   const completionRatio = total === 0 ? 0 : completion / total;
 
@@ -71,7 +74,7 @@ function TokenBar({ prompt, completion, total }: { prompt: number; completion: n
           <span>Completion {formatTokens(completion)}</span>
         </div>
         <span style={{ marginLeft: 'auto', color: 'var(--text-tertiary)' }}>
-          总计 {formatTokens(total)}
+          {t('settings:llm_total_label')} {formatTokens(total)}
         </span>
       </div>
     </div>

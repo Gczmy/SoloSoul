@@ -1,28 +1,30 @@
 import { Card } from '@/components/ui/Card';
 import { Cpu } from 'lucide-react';
+import type { TFunction } from 'i18next';
 
 interface ModelInfoCardProps {
   providerName: string;
   modelName: string;
   providerType: string;
   isOnline?: boolean | null;
+  t: TFunction;
 }
 
-export function ModelInfoCard({ providerName, modelName, providerType, isOnline }: ModelInfoCardProps) {
-  let statusLabel = '未加载';
+export function ModelInfoCard({ providerName, modelName, providerType, isOnline, t }: ModelInfoCardProps) {
+  let statusLabel = t('settings:llm_status_not_loaded');
   let statusColor = 'var(--text-tertiary)';
   let bgColor = 'rgba(128,128,128,0.08)';
 
   if (isOnline === true) {
-    statusLabel = '就绪';
+    statusLabel = t('settings:llm_status_ready');
     statusColor = '#27ae60';
     bgColor = 'rgba(39,174,96,0.12)';
   } else if (isOnline === false) {
-    statusLabel = '离线';
+    statusLabel = t('settings:llm_status_offline');
     statusColor = '#e74c3c';
     bgColor = 'rgba(231,76,60,0.12)';
   } else if (isOnline === null) {
-    statusLabel = '检测中';
+    statusLabel = t('settings:llm_status_checking');
     statusColor = 'var(--text-tertiary)';
     bgColor = 'rgba(128,128,128,0.08)';
   }
@@ -48,7 +50,7 @@ export function ModelInfoCard({ providerName, modelName, providerType, isOnline 
         </span>
       </div>
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <InfoRow label="模型" value={modelName} />
+        <InfoRow label={t('settings:llm_info_model')} value={modelName} />
         <InfoRow label="Provider" value={providerType} />
       </div>
     </Card>

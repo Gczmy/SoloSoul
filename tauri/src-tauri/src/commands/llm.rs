@@ -2192,6 +2192,19 @@ pub async fn llm_send_message_stream(
         )
         .await;
     }
+    // Persist usage stats to vault immediately after recording
+    {
+        let stats = {
+            let map = STATS_MAP.read().await;
+            map.get(&account_id).cloned().unwrap_or_default()
+        };
+        let svc = state.vault_service.read().await;
+        if let Some(vg) = svc.get_vault_store() {
+            if let Some(vault) = vg.as_ref() {
+                let _ = save_stats_to_vault(vault, &account_id, &stats);
+            }
+        };
+    }
     Ok(())
 }
 
@@ -2353,6 +2366,19 @@ pub async fn llm_chat(
             &full_text,
         )
         .await;
+    }
+    // Persist usage stats to vault immediately after recording
+    {
+        let stats = {
+            let map = STATS_MAP.read().await;
+            map.get(&request.account_id).cloned().unwrap_or_default()
+        };
+        let svc = state.vault_service.read().await;
+        if let Some(vg) = svc.get_vault_store() {
+            if let Some(vault) = vg.as_ref() {
+                let _ = save_stats_to_vault(vault, &request.account_id, &stats);
+            }
+        };
     }
 
     Ok(())
