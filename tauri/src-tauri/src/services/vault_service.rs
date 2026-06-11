@@ -57,6 +57,12 @@ impl VaultService {
     }
 
     fn default_base_path() -> PathBuf {
+        #[cfg(target_os = "windows")]
+        {
+            if let Ok(profile) = std::env::var("USERPROFILE") {
+                return PathBuf::from(profile).join(".solosoul");
+            }
+        }
         if let Ok(home) = std::env::var("HOME") {
             PathBuf::from(home).join(".solosoul")
         } else {
