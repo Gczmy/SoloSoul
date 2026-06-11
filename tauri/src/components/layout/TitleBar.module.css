@@ -21,7 +21,7 @@
   padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid var(--border-default);
-  background: var(--bg-toolbar);
+  background: var(--border-default);
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
@@ -32,7 +32,7 @@
   min-width: 240px;
 }
 .searchBar:hover {
-  background: var(--bg-elevated);
+  background: var(--state-hover);
   color: var(--text-primary);
   border-color: var(--accent-primary);
 }
