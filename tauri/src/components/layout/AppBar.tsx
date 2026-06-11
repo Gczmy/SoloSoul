@@ -15,8 +15,9 @@ export function AppBar({ title, actions, onBack, titleBarOffset = 0 }: AppBarPro
   const isMac = /Mac/i.test(navigator.platform);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only drag if clicking on the header itself, not on buttons/actions
-    if (e.target === e.currentTarget) {
+    const target = e.target as HTMLElement;
+    const isInteractive = target.closest('button, input, a, [role="button"], textarea');
+    if (!isInteractive) {
       getCurrentWebviewWindow().startDragging().catch(() => {});
     }
   };

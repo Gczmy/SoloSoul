@@ -10,8 +10,9 @@ export function TitleBar() {
   const [showPopover, setShowPopover] = useState(false);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only drag if clicking on the title bar itself, not on interactive elements
-    if (e.target === e.currentTarget) {
+    const target = e.target as HTMLElement;
+    const isInteractive = target.closest('button, input, a, [role="button"], textarea');
+    if (!isInteractive) {
       getCurrentWebviewWindow().startDragging().catch(() => {});
     }
   };
