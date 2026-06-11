@@ -8,7 +8,6 @@ import { useProfileStore } from '@/stores/profileStore';
 import { applyTheme, listenForSystemTheme } from '@/lib/theme';
 import { restoreWindowSize, useWindowSize } from '@/hooks/useWindowSize';
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
-import { detectSystemLanguage } from '@/lib/i18n';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { HomePage } from '@/pages/home/HomePage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
@@ -67,16 +66,9 @@ function AppRoutes() {
           defaultLightTheme: s.defaultLightTheme,
           defaultDarkTheme: s.defaultDarkTheme,
         });
-        if (s.language) {
-          // Only override if user explicitly changed language in settings.
-          // Skip on first launch — initI18n via Rust IPC already detected correct language.
-          const sysLang = detectSystemLanguage();
-          if (s.language !== sysLang) {
-            import('@/lib/i18n').then((mod) => {
-              mod.default.changeLanguage(s.language);
-            });
-          }
-        }
+        // Language is correctly set by initI18n() via Rust IPC.
+        // User changes via settings are handled in settingsStore.
+        // Skip here — vault-stored locale may be stale (navigator.language fallback).
         // P0-1: Load custom pages from objects table (separate from profile preferences)
         // Must run AFTER loadSettings finishes to avoid race condition where
         // loadSettings overwrites customPages with DEFAULT_SETTINGS.
