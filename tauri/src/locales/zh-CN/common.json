@@ -160,5 +160,10 @@
   "deprecated_field_safe_delete": "没有对象使用此字段，已安全删除。",
   "clean_up": "清理",
   "cannot_clean_up": "仍有对象使用此字段，暂无法清理",
-  "go_to_trash": "前往回收站"
+  "go_to_trash": "前往回收站",
+  "update_available": "发现新版本 {{version}}",
+  "update_now": "立即更新",
+  "skip_version": "跳过此版本",
+  "update_later": "稍后提醒",
+  "update_check_failed": "检查更新失败"
 }

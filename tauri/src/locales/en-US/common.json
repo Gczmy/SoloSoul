@@ -161,5 +161,10 @@
   "deprecated_field_safe_delete": "No objects use this field. It has been safely removed.",
   "clean_up": "Clean up",
   "cannot_clean_up": "This field is still in use and cannot be cleaned up yet",
-  "go_to_trash": "Go to Trash"
+  "go_to_trash": "Go to Trash",
+  "update_available": "Update available: {{version}}",
+  "update_now": "Update Now",
+  "skip_version": "Skip This Version",
+  "update_later": "Remind Me Later",
+  "update_check_failed": "Update check failed"
 }
