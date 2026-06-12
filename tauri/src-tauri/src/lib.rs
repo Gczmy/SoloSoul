@@ -133,6 +133,7 @@ pub fn run() {
             // System commands
             commands::system::get_app_info,
             commands::system::check_version,
+            commands::system::download_update,
             commands::system::get_system_locale,
             // Log commands
             commands::log::log_write,

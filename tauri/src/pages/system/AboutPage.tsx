@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { invoke } from '@tauri-apps/api/core';
-import { ExternalLink, Code, Shield, Info } from 'lucide-react';
+import { listen } from '@tauri-apps/api/event';
+import { ExternalLink, Code, Shield, Info, Download } from 'lucide-react';
 
 interface AppInfo {
   appName: string;
@@ -13,14 +14,32 @@ interface AppInfo {
   arch: string;
 }
 
+interface UpdateAsset {
+  name: string;
+  downloadUrl: string;
+  size: number;
+}
+
 interface VersionInfo {
   currentVersion: string;
   latestVersion: string | null;
   hasUpdate: boolean;
+  assets: UpdateAsset[];
+}
+
+interface DownloadProgress {
+  downloaded: number;
+  total: number;
 }
 
 function friendlyPlatform(os: string, _arch: string): string {
   return os === 'macos' ? 'macOS' : os === 'windows' ? 'Windows' : os === 'linux' ? 'Linux' : os;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function AboutPage() {
@@ -30,6 +49,11 @@ export function AboutPage() {
   const [loading, setLoading] = useState(true);
   const { t, i18n } = useTranslation(['settings', 'common']);
   const docLang = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
+
+  // Download state
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
+  const [downloadComplete, setDownloadComplete] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -44,11 +68,50 @@ export function AboutPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Listen for download progress events
+  useEffect(() => {
+    const unlisten = listen<DownloadProgress>('update-download-progress', (event) => {
+      setDownloadProgress(event.payload);
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, []);
+
+  const handleUpdate = useCallback(async () => {
+    if (!versionInfo || versionInfo.assets.length === 0) return;
+    const asset = versionInfo.assets[0];
+    setDownloading(true);
+    setDownloadProgress(null);
+    setDownloadComplete(false);
+    try {
+      const path = await invoke<string>('download_update', {
+        assetName: asset.name,
+        assetUrl: asset.downloadUrl,
+      });
+      setDownloadComplete(true);
+      // Open the downloaded file
+      const { open } = await import('@tauri-apps/plugin-shell');
+      await open(path);
+      // Reset after a short delay
+      setTimeout(() => {
+        setDownloading(false);
+        setDownloadProgress(null);
+      }, 2000);
+    } catch {
+      setDownloading(false);
+      setDownloadProgress(null);
+    }
+  }, [versionInfo]);
+
   const links = [
     { labelKey: 'github_repo', url: 'https://github.com/Gczmy/SoloSoul', icon: <Code size={14} /> },
     { labelKey: 'privacy_policy', url: `https://github.com/Gczmy/SoloSoul/blob/master/docs/${docLang}/PRIVACY_POLICY.md`, icon: <Shield size={14} /> },
     { labelKey: 'terms_of_service', url: `https://github.com/Gczmy/SoloSoul/blob/master/docs/${docLang}/TERMS_OF_SERVICE.md`, icon: <Info size={14} /> },
   ];
+
+  const updateAsset = versionInfo?.assets?.[0];
+  const progressPercent = downloadProgress && downloadProgress.total > 0
+    ? Math.round((downloadProgress.downloaded / downloadProgress.total) * 100)
+    : 0;
 
   return (
     <AppShell title={t('settings:about')} onBack={() => navigate('/settings')}>
@@ -92,6 +155,60 @@ export function AboutPage() {
                     ) : null}
                   </div>
                 </div>
+
+                {/* Update card — shown when an update is available */}
+                {versionInfo?.hasUpdate && updateAsset && (
+                  <>
+                    <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+                    <div style={{ padding: '14px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Download size={14} />
+                        v{info.version} → v{versionInfo.latestVersion}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                        {updateAsset.name} ({formatBytes(updateAsset.size)})
+                      </div>
+
+                      {/* Download button or progress */}
+                      {downloading ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <div style={{
+                            width: '100%', height: 6, borderRadius: 3,
+                            background: 'var(--bg-toolbar)', overflow: 'hidden',
+                          }}>
+                            <div style={{
+                              width: `${progressPercent}%`, height: '100%',
+                              background: 'var(--accent-primary)', borderRadius: 3,
+                              transition: 'width 0.2s ease',
+                            }} />
+                          </div>
+                          <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                            {downloadComplete
+                              ? t('settings:download_complete') || 'Download complete'
+                              : downloadProgress
+                                ? `${formatBytes(downloadProgress.downloaded)} / ${formatBytes(downloadProgress.total)} (${progressPercent}%)`
+                                : t('settings:downloading') || 'Downloading...'}
+                          </span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleUpdate}
+                          style={{
+                            padding: '8px 16px', borderRadius: 8, border: 'none',
+                            background: 'var(--accent-primary)', color: 'white',
+                            fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            alignSelf: 'flex-start',
+                          }}
+                        >
+                          <Download size={14} />
+                          {t('settings:update_now') || 'Update Now'}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+
                 <div style={{ height: 1, background: 'var(--border-subtle)' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0' }}>
                   <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('settings:platform')}</span>
