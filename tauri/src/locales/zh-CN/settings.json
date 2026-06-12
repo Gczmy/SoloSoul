@@ -25,6 +25,7 @@
   },
   "auto_lock": "自动锁定",
   "change_password": "修改密码",
+  "master_password_warning": "请妥善保管您的主密码，如果遗失将无法解锁保险库，所有数据将无法找回！",
   "password_updated": "密码已修改，请使用新密码重新登录",
   "hint_updated": "密码提示已更新",
   "current_password_incorrect": "当前密码不正确，请重新输入",

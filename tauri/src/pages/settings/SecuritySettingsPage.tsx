@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
-import { Info, Fingerprint, ShieldCheck } from 'lucide-react';
+import { Info, Fingerprint, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 export function SecuritySettingsPage() {
   const navigate = useNavigate();
@@ -235,6 +235,15 @@ export function SecuritySettingsPage() {
           <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
             {t('settings:change_password')}
           </h3>
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+            padding: 10, borderRadius: 8, marginBottom: 16,
+            background: 'rgba(212, 133, 10, 0.10)', border: '1px solid rgba(212, 133, 10, 0.25)',
+            color: '#D4850A', fontSize: 12, lineHeight: 1.4,
+          }}>
+            <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+            {t('settings:master_password_warning')}
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* 10.1 — 当前密码 */}
             <SecurePasswordInput

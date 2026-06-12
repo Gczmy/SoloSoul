@@ -25,6 +25,7 @@
   },
   "auto_lock": "Auto Lock",
   "change_password": "Change Password",
+  "master_password_warning": "Please keep your master password safe. If lost, you will be unable to unlock the vault and all data will be unrecoverable!",
   "password_updated": "Password updated. Please re-login with your new password.",
   "hint_updated": "Password hint updated",
   "current_password_incorrect": "Current password is incorrect. Please try again.",

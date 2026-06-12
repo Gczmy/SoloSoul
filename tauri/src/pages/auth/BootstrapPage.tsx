@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
+import { AlertTriangle } from 'lucide-react';
 
 export function BootstrapPage() {
   const navigate = useNavigate();
@@ -84,6 +85,15 @@ export function BootstrapPage() {
                     : error}
             </div>
           )}
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+            padding: 10, borderRadius: 8,
+            background: 'rgba(212, 133, 10, 0.10)', border: '1px solid rgba(212, 133, 10, 0.25)',
+            color: '#D4850A', fontSize: 12, lineHeight: 1.4, textAlign: 'left',
+          }}>
+            <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+            {t('auth:master_password_warning')}
+          </div>
           <Button type="submit" loading={isLoading} style={{ width: '100%', marginTop: 8 }}>
             {t('auth:create_account')}
           </Button>
