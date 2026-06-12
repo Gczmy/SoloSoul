@@ -41,6 +41,7 @@ describe('settingsStore', () => {
         defaultLightTheme: 'warm-stone',
         defaultDarkTheme: 'warm-stone-dark',
         sidebarPosition: 'left',
+        sidebarBottomActions: ['search', 'plugins', 'ai_chat'],
       },
       isLoading: false,
     });

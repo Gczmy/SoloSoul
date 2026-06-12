@@ -14,6 +14,8 @@ import type { SupportedLang } from '@/lib/i18n';
 import { Palette, Layout, LayoutTemplate, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
 import type { AppSettings } from '@/stores/settingsStore';
+import { CUSTOMIZABLE_ACTION_IDS } from '@/components/layout/useNavigationItems';
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
 const ACCENT_OPTIONS: { value: AccentPreset; label: string; color: string }[] = [
   { value: 'ocean', label: 'Ocean', color: '#5B7C99' },
@@ -27,6 +29,12 @@ const LANG_OPTIONS: { value: SupportedLang; label: string }[] = [
   { value: 'zh-CN', label: '中文（简体）' },
   { value: 'en-US', label: 'English' },
 ];
+
+const ACTION_OPTIONS = CUSTOMIZABLE_ACTION_IDS.map((id) => ({
+  id,
+  labelKey: `navigation:${id}`,
+  Icon: PAGE_ICON_MAP[id],
+}));
 
 const SIDEBAR_OPTIONS: { value: AppSettings['sidebarPosition']; labelKey: string; icon: React.ElementType }[] = [
   { value: 'left', labelKey: 'settings:sidebar_left', icon: PanelLeft },
@@ -285,6 +293,59 @@ export function AppearanceSettingsPage() {
                       <Icon size={22} />
                       <span style={{ fontSize: 12, fontWeight: isActive ? 500 : 400 }}>{t(opt.labelKey)}</span>
                     </button>
+                  );
+                })}
+              </div>
+            </Card>
+
+            {/* Sidebar bottom actions customization */}
+            <Card>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{t('settings:sidebar_bottom_actions')}</h3>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                {t('settings:sidebar_bottom_actions_desc')}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {settings.sidebarBottomActions.map((selectedId, index) => {
+                  const otherSelected = settings.sidebarBottomActions.filter((_, i) => i !== index);
+                  return (
+                    <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 12, color: 'var(--text-tertiary)', width: 48, flexShrink: 0 }}>
+                        {t('settings:position')} {index + 1}
+                      </span>
+                      <select
+                        value={selectedId}
+                        onChange={(e) => {
+                          const newId = e.target.value as typeof CUSTOMIZABLE_ACTION_IDS[number];
+                          const current = [...settings.sidebarBottomActions] as [string, string, string];
+                          const existingIndex = current.indexOf(newId);
+                          if (existingIndex !== -1 && existingIndex !== index) {
+                            // 交换位置，避免重复
+                            current[existingIndex] = current[index];
+                          }
+                          current[index] = newId;
+                          updateSetting(accountId, 'sidebarBottomActions', current);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '8px 10px',
+                          fontSize: 13,
+                          borderRadius: 8,
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-elevated)',
+                          color: 'var(--text-primary)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {ACTION_OPTIONS.map((opt) => {
+                          const disabled = otherSelected.includes(opt.id);
+                          return (
+                            <option key={opt.id} value={opt.id} disabled={disabled}>
+                              {t(opt.labelKey)}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
                   );
                 })}
               </div>

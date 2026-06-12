@@ -530,5 +530,8 @@
   "sidebar_left": "Left",
   "sidebar_right": "Right",
   "sidebar_top": "Top",
-  "sidebar_bottom": "Bottom"
+  "sidebar_bottom": "Bottom",
+  "sidebar_bottom_actions": "Sidebar Bottom Buttons",
+  "sidebar_bottom_actions_desc": "Customize the 3 shortcut buttons at the bottom of the sidebar. Lock and Settings are always fixed at the end.",
+  "position": "Position"
 }

@@ -32,6 +32,7 @@ export interface AppSettings {
   defaultLightTheme: string;
   defaultDarkTheme: string;
   sidebarPosition: 'left' | 'right' | 'top' | 'bottom';
+  sidebarBottomActions: [string, string, string];
 }
 
 interface SettingsState {
@@ -64,6 +65,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultLightTheme: 'warm-stone',
   defaultDarkTheme: 'warm-stone-dark',
   sidebarPosition: 'left',
+  sidebarBottomActions: ['search', 'plugins', 'ai_chat'],
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -163,6 +165,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
       if (prefs.sidebarPosition && ['left', 'right', 'top', 'bottom'].includes(prefs.sidebarPosition as string)) {
         parsed.sidebarPosition = prefs.sidebarPosition as AppSettings['sidebarPosition'];
+      }
+      if (Array.isArray(prefs.sidebarBottomActions) && prefs.sidebarBottomActions.length === 3) {
+        parsed.sidebarBottomActions = prefs.sidebarBottomActions as [string, string, string];
       }
       // Load old-format customPages from preferences for migration.
       // Once loaded, also try the new objects-table source via loadCustomPages().

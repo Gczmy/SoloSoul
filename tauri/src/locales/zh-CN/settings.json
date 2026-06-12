@@ -530,5 +530,8 @@
   "sidebar_left": "左侧",
   "sidebar_right": "右侧",
   "sidebar_top": "上方",
-  "sidebar_bottom": "下方"
+  "sidebar_bottom": "下方",
+  "sidebar_bottom_actions": "侧边栏下方按钮",
+  "sidebar_bottom_actions_desc": "自定义侧边栏底部的 3 个快捷按钮，锁定和设置始终固定在末尾。",
+  "position": "位置"
 }

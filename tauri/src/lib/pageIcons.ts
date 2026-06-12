@@ -25,6 +25,9 @@ import {
   Map,
   Flag,
   BookOpen,
+  Trash2,
+  LayoutTemplate,
+  ArrowLeftRight,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -50,6 +53,9 @@ export const PAGE_ICON_MAP = {
   ai_chat: MessageSquare,
   help: BookOpen,
   custom: FileText,
+  trash: Trash2,
+  templates: LayoutTemplate,
+  import_export: ArrowLeftRight,
 } as const satisfies Record<string, LucideIcon>;
 
 export type PageIconKey = keyof typeof PAGE_ICON_MAP;

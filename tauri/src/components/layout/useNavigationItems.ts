@@ -30,13 +30,30 @@ export const primaryItems: NavLink[] = [
   { type: 'link', path: '/workspace?section=professional', iconKey: 'professional', labelKey: 'professional' },
 ];
 
-export const secondaryItems: NavItem[] = [
-  { type: 'action', iconKey: 'lock', labelKey: 'lock_vault', action: () => {} },
-  { type: 'action', iconKey: 'search', labelKey: 'search', action: () => {} },
-  { type: 'link', path: '/plugins', iconKey: 'plugins', labelKey: 'plugin' },
-  { type: 'link', path: '/llm-chat', iconKey: 'ai_chat', labelKey: 'ai_chat' },
-  { type: 'link', path: '/settings', iconKey: 'settings', labelKey: 'settings' },
-];
+/** 下方功能按钮的可选 ID（侧边栏 3 个可变位置 + 固定的锁定/设置）。
+ *  ID 同时也是 PAGE_ICON_MAP 的 key 和 i18n navigation 命名空间的 key。 */
+export const CUSTOMIZABLE_ACTION_IDS = [
+  'plugins',
+  'ai_chat',
+  'search',
+  'trash',
+  'help',
+  'templates',
+  'import_export',
+] as const;
+
+export type CustomizableActionId = typeof CUSTOMIZABLE_ACTION_IDS[number];
+
+/** 每个可变按钮的路由或动作工厂。
+ *  lock / settings 永远固定，不在这里定义。 */
+const CUSTOMIZABLE_LINKS: Record<Exclude<CustomizableActionId, 'search'>, { path: string; iconKey: PageIconKey; labelKey: string }> = {
+  plugins: { path: '/plugins', iconKey: 'plugins', labelKey: 'plugin' },
+  ai_chat: { path: '/llm-chat', iconKey: 'ai_chat', labelKey: 'ai_chat' },
+  trash: { path: '/settings/trash', iconKey: 'trash', labelKey: 'trash' },
+  help: { path: '/help', iconKey: 'help', labelKey: 'help' },
+  templates: { path: '/settings/templates', iconKey: 'templates', labelKey: 'templates' },
+  import_export: { path: '/settings/export-import', iconKey: 'import_export', labelKey: 'import_export' },
+};
 
 export function useActiveCustomPages() {
   const customPages = useSettingsStore((s) => s.settings.customPages);
@@ -52,17 +69,45 @@ interface UseBoundNavActionsResult {
 export function useBoundNavActions(): UseBoundNavActionsResult {
   const vaultLock = useVaultStore((s) => s.lock);
   const [showSearch, setShowSearch] = useState(false);
+  const sidebarBottomActions = useSettingsStore((s) => s.settings.sidebarBottomActions);
 
-  const items = secondaryItems.map((item) => {
-    if (item.type !== 'action') return item;
-    if (item.iconKey === 'lock') {
-      return { ...item, action: vaultLock } as NavAction;
+  const items: NavItem[] = sidebarBottomActions.map((id) => {
+    if (id === 'search') {
+      return {
+        type: 'action',
+        iconKey: 'search',
+        labelKey: 'search',
+        action: () => setShowSearch(true),
+      } as NavAction;
     }
-    if (item.iconKey === 'search') {
-      return { ...item, action: () => setShowSearch(true) } as NavAction;
+    const link = CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search'>];
+    if (!link) {
+      // 未知 ID 回退为搜索，避免渲染错误
+      return {
+        type: 'action',
+        iconKey: 'search',
+        labelKey: 'search',
+        action: () => setShowSearch(true),
+      } as NavAction;
     }
-    return item;
+    return { type: 'link', ...link } as NavLink;
   });
+
+  // 锁定按钮永远倒数第二
+  items.push({
+    type: 'action',
+    iconKey: 'lock',
+    labelKey: 'lock_vault',
+    action: vaultLock,
+  } as NavAction);
+
+  // 设置按钮永远在最底部
+  items.push({
+    type: 'link',
+    path: '/settings',
+    iconKey: 'settings',
+    labelKey: 'settings',
+  } as NavLink);
 
   return { items, showSearch, setShowSearch };
 }
