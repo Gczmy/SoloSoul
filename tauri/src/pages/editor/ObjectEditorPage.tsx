@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -25,6 +25,7 @@ type TemplateCategory = 'identity' | 'travel' | 'financial' | 'professional';
 export function ObjectEditorPage() {
   const { objectId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   // Read section and parentId from URL params
   const sectionParam = searchParams.get('section') || '';
@@ -297,7 +298,7 @@ export function ObjectEditorPage() {
                 );
               })}
               <button
-                onClick={() => navigate('/settings/templates')}
+                onClick={() => navigate('/settings/templates', { state: { from: location.pathname + location.search } })}
                 style={{
                   marginLeft: 'auto',
                   display: 'flex', alignItems: 'center', gap: 6,
@@ -315,7 +316,7 @@ export function ObjectEditorPage() {
                 <div style={{ fontSize: 13, color: 'var(--text-tertiary)', padding: '8px 0' }}>
                   {t('editor:no_template_for_section') || '此页面暂无模板，'}
                   <span
-                    onClick={() => navigate('/settings/templates')}
+                    onClick={() => navigate('/settings/templates', { state: { from: location.pathname + location.search } })}
                     style={{ color: 'var(--accent-primary)', cursor: 'pointer', textDecoration: 'underline' }}
                   >
                     {t('editor:go_create_template') || '前往模板管理新建'}

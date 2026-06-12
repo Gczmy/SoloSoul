@@ -25,8 +25,16 @@ interface AuditLogEntry {
 const ALL_ENTITY_TYPES = ['object', 'page', 'preference', 'profile', 'biometric', 'template', 'export', 'import', 'attachment', 'trash_item', 'llm', 'auth'];
 
 function formatDetail(entry: AuditLogEntry, t: TFunction): string {
-  const key = `settings:log.detail.${entry.actionType}`;
   const raw = entry.details || '';
+
+  // Normalize touch_id_unlock / face_id_unlock to biometric_unlock with explicit type
+  const bioTypeFromAction =
+    entry.actionType === 'touch_id_unlock' ? 'touchId' :
+    entry.actionType === 'face_id_unlock' ? 'faceId' : null;
+  const key = bioTypeFromAction
+    ? 'settings:log.detail.biometric_unlock'
+    : `settings:log.detail.${entry.actionType}`;
+
   const translated = t(key, { defaultValue: raw });
   if (translated === key || translated === raw) {
     return raw;
@@ -40,6 +48,11 @@ function formatDetail(entry: AuditLogEntry, t: TFunction): string {
   }
   if (entry.entityName) {
     vars.name = entry.entityName;
+  }
+  if (bioTypeFromAction) {
+    vars.type = t(`settings:log.biometric_type.${bioTypeFromAction}`);
+  } else if (vars.type) {
+    vars.type = t(`settings:log.biometric_type.${vars.type}`, { defaultValue: String(vars.type) });
   }
   if (Object.keys(vars).length > 0) {
     if (vars.was_conflict === 'true') vars.was_conflict = t('settings:log.conflict_renamed');

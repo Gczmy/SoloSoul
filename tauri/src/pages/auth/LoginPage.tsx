@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
@@ -129,11 +129,11 @@ export function LoginPage() {
 
   // Prevent password→biometric flash: show nothing until bio check completes
   if (!bioChecked) {
-    return <div style={{ height: '100vh', background: 'var(--bg-base)' } as any} />;
+    return <div style={{ height: '100vh', background: 'var(--bg-base)' } as CSSProperties} />;
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' } as any}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' } as CSSProperties}>
       <div style={{
         background: 'var(--bg-elevated)', borderRadius: 16, padding: 32,
         width: 360, boxShadow: '0 8px 32px rgba(0,0,0,0.08)', textAlign: 'center',
@@ -200,11 +200,10 @@ export function LoginPage() {
               </select>
             )}
             <SecurePasswordInput
-              key={selectedAccountId + ((selectedAccount as { passwordHint?: string })?.passwordHint || '')}
               value={password}
               onChange={(v) => setPassword(v)}
               placeholder={t('common:password_placeholder')}
-              hint={(selectedAccount as { passwordHint?: string })?.passwordHint || null}
+              hint={selectedAccount?.passwordHint || null}
               autoComplete="current-password"
             />
             {(error || bioError) && (

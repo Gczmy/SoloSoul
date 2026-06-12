@@ -6,6 +6,17 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }));
 
+vi.mock('@tauri-apps/api/webviewWindow', () => ({
+  getCurrentWebviewWindow: () => ({
+    innerSize: vi.fn(() => Promise.resolve({ width: 1280, height: 800 })),
+    setSize: vi.fn(() => Promise.resolve()),
+  }),
+}));
+
+vi.mock('@tauri-apps/api/dpi', () => ({
+  PhysicalSize: vi.fn(({ width, height }) => ({ width, height })),
+}));
+
 vi.mock('@/lib/theme', () => ({
   applyTheme: vi.fn(),
 }));

@@ -12,6 +12,7 @@ interface AuthState {
 
   checkHasAccount: () => Promise<void>;
   listAccounts: () => Promise<void>;
+  refreshCurrentAccount: () => Promise<void>;
   bootstrap: (name: string, password: string, locale: string, passwordHint?: string) => Promise<void>;
   login: (accountId: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -46,6 +47,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ accounts, currentAccount: refreshed || get().currentAccount, hasAccount: accounts.length > 0, backendError: false });
     } catch {
       // silent — vault may be locked
+    }
+  },
+
+  refreshCurrentAccount: async () => {
+    try {
+      const accounts = await commands.vaultListAccounts();
+      const currentId = get().currentAccount?.id;
+      const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
+      if (refreshed) {
+        set({ currentAccount: refreshed, accounts });
+      }
+    } catch {
+      // silent
     }
   },
 

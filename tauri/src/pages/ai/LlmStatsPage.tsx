@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
@@ -26,8 +26,15 @@ export function LlmStatsPage() {
   const [activeProvider, setActiveProvider] = useState<{ name: string; model: string; apiType: string } | null>(null);
   const [isOnline, setIsOnline] = useState<boolean | null>(null);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [lastLoadTime, setLastLoadTime] = useState<string | undefined>();
 
   const backPath = (location.state as { from?: string } | null)?.from || '/settings';
+
+  const lastUsedTime = useMemo(() => {
+    const times = stats?.perModelStats?.map((m) => m.lastUsedTime).filter((t): t is string => !!t);
+    if (!times || times.length === 0) return undefined;
+    return times.reduce((max, cur) => (cur > max ? cur : max));
+  }, [stats]);
 
   useEffect(() => {
     if (!accountId) return;
@@ -51,7 +58,7 @@ export function LlmStatsPage() {
 
   useEffect(() => {
     if (accountId) {
-      loadStats(accountId);
+      loadStats(accountId).then(() => setLastLoadTime(new Date().toISOString()));
     }
   }, [accountId, loadStats]);
 
@@ -61,6 +68,7 @@ export function LlmStatsPage() {
     setShowResetDialog(false);
     if (accountId) {
       await loadStats(accountId);
+      setLastLoadTime(new Date().toISOString());
     }
   };
 
@@ -86,7 +94,7 @@ export function LlmStatsPage() {
           <ModelInfoCard
             providerName={activeProvider?.name || '—'}
             modelName={activeProvider?.model || '—'}
-            providerType={activeProvider?.apiType || '—'}
+            apiType={activeProvider?.apiType || '—'}
             isOnline={isOnline}
             t={t}
           />
@@ -109,6 +117,8 @@ export function LlmStatsPage() {
                 promptTokens={stats?.promptTokens || 0}
                 completionTokens={stats?.completionTokens || 0}
                 modelUsages={stats?.perModelStats || []}
+                lastLoadTime={lastLoadTime}
+                lastUsedTime={lastUsedTime}
                 t={t}
               />
             </section>

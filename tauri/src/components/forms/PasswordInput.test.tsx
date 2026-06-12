@@ -96,4 +96,16 @@ describe('SecurePasswordInput', () => {
     fireEvent.mouseEnter(hintBtn);
     expect(screen.getByText('My hint')).toBeInTheDocument();
   });
+
+  it('uses unique input ids for each instance', () => {
+    const { container: container1 } = render(<SecurePasswordInput value="" onChange={vi.fn()} label="First" />);
+    const input1 = container1.querySelector('input');
+    const id1 = input1?.getAttribute('id');
+    const { container: container2 } = render(<SecurePasswordInput value="" onChange={vi.fn()} label="Second" />);
+    const input2 = container2.querySelector('input');
+    const id2 = input2?.getAttribute('id');
+    expect(id1).toBeTruthy();
+    expect(id2).toBeTruthy();
+    expect(id1).not.toBe(id2);
+  });
 });

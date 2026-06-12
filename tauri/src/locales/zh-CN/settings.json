@@ -396,11 +396,16 @@
       "enable": "开启",
       "disable": "关闭"
     },
+    "biometric_type": {
+      "touchId": "Touch ID",
+      "faceId": "Face ID",
+      "unknown": "未知生物识别"
+    },
     "conflict_renamed": "名称已调整",
     "conflict_none": "无冲突",
     "detail": {
       "object_create": "{{section}}",
-      "page_create": "{{section}}",
+      "page_create": "页面: {{name}}",
       "object_update": "",
       "object_delete": "{{section}} — 已移入回收站",
       "object_restore": "{{section}} — {{was_conflict}}",
@@ -410,9 +415,9 @@
       "page_restore": "恢复了 {{count}} 项到页面",
       "trash_permanent_delete": "{{name}}",
       "trash_set_retention": "设置为 {{period}}",
-      "biometric_unlock": "{{location}} — {{action}}",
-      "biometric_saved": "{{location}} — {{action}}",
-      "biometric_deleted": "{{location}} — {{action}}",
+      "biometric_unlock": "{{location}} — {{action}}（{{type}}）",
+      "biometric_saved": "{{location}} — {{action}}（{{type}}）",
+      "biometric_deleted": "{{location}} — {{action}}（{{type}}）",
       "login": "{{location}} — {{action}}（{{method}}）",
       "export_execute": "导出了 {{count}} 个对象",
       "import_execute": "导入了 {{count}} 个对象（策略：{{strategy}}）",

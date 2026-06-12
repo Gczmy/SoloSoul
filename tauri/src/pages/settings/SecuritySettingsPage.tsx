@@ -55,12 +55,13 @@ export function SecuritySettingsPage() {
     if (!bioPw || !currentAccount) return;
     setBioLoading(true);
     try {
+      const rawType = bioAvailable?.biometryType || 'unknown';
       if (bioAction === 'enable') {
-        await invoke('biometric_save_credential', { accountId: currentAccount.id, password: bioPw, silent: false, location: 'settings_page', action: 'enable' });
+        await invoke('biometric_save_credential', { accountId: currentAccount.id, password: bioPw, silent: false, location: 'settings_page', action: 'enable', biometryType: rawType });
         await useSettingsStore.getState().updateSetting(currentAccount.id, 'biometricEnabled', true);
         onSuccess(t('settings:biometric_enabled_toast', { type: biometryType }));
       } else {
-        await invoke('biometric_delete_credential', { accountId: currentAccount.id, password: bioPw, location: 'settings_page', action: 'disable' });
+        await invoke('biometric_delete_credential', { accountId: currentAccount.id, password: bioPw, location: 'settings_page', action: 'disable', biometryType: rawType });
         await useSettingsStore.getState().updateSetting(currentAccount.id, 'biometricEnabled', false);
         onSuccess(t('settings:biometric_disabled_toast', { type: biometryType }));
       }
@@ -137,8 +138,8 @@ export function SecuritySettingsPage() {
         onSuccess(t('settings:hint_updated'));
       }
 
-      // Refresh accounts to sync updated hint to LoginPage
-      await useAuthStore.getState().listAccounts();
+      // Refresh current account to sync updated hint to LoginPage
+      await useAuthStore.getState().refreshCurrentAccount();
 
       setOldPw('');
       setNewPw('');
@@ -263,7 +264,7 @@ export function SecuritySettingsPage() {
               onChange={(v) => { setOldPw(v); setError(null); }}
               placeholder={t('common:password_placeholder')}
               autoComplete="current-password"
-              hint={(currentAccount as { passwordHint?: string } | null)?.passwordHint || null}
+              hint={currentAccount?.passwordHint || null}
             />
 
             {/* 10.1 — 新密码 + 10.2 密码要求提示 */}
@@ -388,7 +389,7 @@ export function SecuritySettingsPage() {
               placeholder={t('common:password_placeholder')}
               autoComplete="current-password"
               showHintButton={true}
-              hint={(currentAccount as { passwordHint?: string } | null)?.passwordHint || null}
+              hint={currentAccount?.passwordHint || null}
             />
             {error && (
               <div style={{ color: '#dc2626', fontSize: 13, padding: '4px 0', marginTop: 8 }}>{error}</div>

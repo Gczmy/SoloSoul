@@ -396,11 +396,16 @@
       "enable": "Enable",
       "disable": "Disable"
     },
+    "biometric_type": {
+      "touchId": "Touch ID",
+      "faceId": "Face ID",
+      "unknown": "Unknown Biometric"
+    },
     "conflict_renamed": "with name conflict",
     "conflict_none": "no conflict",
     "detail": {
       "object_create": "{{section}}",
-      "page_create": "{{section}}",
+      "page_create": "Page: {{name}}",
       "object_update": "",
       "object_delete": "{{section}} — moved to trash",
       "object_restore": "{{section}} — {{was_conflict}}",
@@ -410,9 +415,9 @@
       "page_restore": "{{count}} item(s) restored to page",
       "trash_permanent_delete": "{{name}}",
       "trash_set_retention": "Set to {{period}}",
-      "biometric_unlock": "{{location}} — {{action}}",
-      "biometric_saved": "{{location}} — {{action}}",
-      "biometric_deleted": "{{location}} — {{action}}",
+      "biometric_unlock": "{{location}} — {{action}} ({{type}})",
+      "biometric_saved": "{{location}} — {{action}} ({{type}})",
+      "biometric_deleted": "{{location}} — {{action}} ({{type}})",
       "login": "{{location}} — {{action}} ({{method}})",
       "export_execute": "{{count}} object(s) exported",
       "import_execute": "{{count}} object(s) imported ({{strategy}})",

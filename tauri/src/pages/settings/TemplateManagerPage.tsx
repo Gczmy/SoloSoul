@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
@@ -164,6 +164,7 @@ function SensitivityBadges({ properties }: { properties: ListTemplate['propertie
 
 export function TemplateManagerPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation(['common', 'settings', 'editor']);
   const {
     templates, isLoading, error, loadTemplates,
@@ -454,10 +455,19 @@ export function TemplateManagerPage() {
     );
   };
 
+  const from = (location.state as { from?: string } | null)?.from;
+  const handleBack = () => {
+    if (from && from.startsWith('/editor')) {
+      navigate(from);
+    } else {
+      navigate('/settings');
+    }
+  };
+
   return (
     <AppShell
       title={t('settings:template_manager_title') || '模板管理'}
-      onBack={() => navigate('/settings')}
+      onBack={handleBack}
       actions={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Button variant="secondary" onClick={() => setShowSampleGallery(true)}>
@@ -939,7 +949,7 @@ export function TemplateManagerPage() {
       <SampleTemplateGallery
         isOpen={showSampleGallery}
         onClose={() => setShowSampleGallery(false)}
-        onSelect={(tpl) => { setShowSampleGallery(false); setSelectedSample(tpl); }}
+        onSelect={(tpl) => { setSelectedSample(tpl); }}
       />
 
       {/* Sample template detail */}
@@ -963,6 +973,7 @@ export function TemplateManagerPage() {
                 }))
               );
               setSelectedSample(null);
+              setShowSampleGallery(false);
             } catch (e) {
               alert(t('common:save_failed') + ': ' + e);
             }

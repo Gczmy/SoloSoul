@@ -5,12 +5,12 @@ import type { TFunction } from 'i18next';
 interface ModelInfoCardProps {
   providerName: string;
   modelName: string;
-  providerType: string;
+  apiType: string;
   isOnline?: boolean | null;
   t: TFunction;
 }
 
-export function ModelInfoCard({ providerName, modelName, providerType, isOnline, t }: ModelInfoCardProps) {
+export function ModelInfoCard({ providerName, modelName, apiType, isOnline, t }: ModelInfoCardProps) {
   let statusLabel = t('settings:llm_status_not_loaded');
   let statusColor = 'var(--text-tertiary)';
   let bgColor = 'rgba(128,128,128,0.08)';
@@ -51,7 +51,8 @@ export function ModelInfoCard({ providerName, modelName, providerType, isOnline,
       </div>
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
         <InfoRow label={t('settings:llm_info_model')} value={modelName} />
-        <InfoRow label="Provider" value={providerType} />
+        <InfoRow label={t('settings:llm_provider_name')} value={providerName} />
+        <InfoRow label={t('settings:llm_api_type')} value={apiType} />
       </div>
     </Card>
   );

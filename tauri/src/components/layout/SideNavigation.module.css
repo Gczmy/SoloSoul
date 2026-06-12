@@ -77,7 +77,6 @@
   overflow-y: hidden !important;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding-bottom: 3px;
 }
 .navPrimaryHorizontal::-webkit-scrollbar {
   height: 0;

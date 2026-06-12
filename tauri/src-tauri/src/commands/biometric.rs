@@ -235,6 +235,7 @@ pub async fn biometric_save_credential(
     silent: Option<bool>,
     location: Option<String>,
     action: Option<String>,
+    biometry_type: Option<String>,
 ) -> Result<(), String> {
     if !is_macos() {
         return Err("platform not supported".into());
@@ -251,13 +252,17 @@ pub async fn biometric_save_credential(
         if let Some(vault) = vg.as_ref() {
             let loc = location.unwrap_or_else(|| "unknown".to_string());
             let act = action.unwrap_or_else(|| "enable".to_string());
+            let bio_type = biometry_type.as_deref().unwrap_or("unknown");
             let _ = vault.log_structured(
                 "biometric_saved",
                 "biometric",
                 Some(&account_id),
                 None,
                 "user",
-                Some(&format!("location={} action={}", loc, act)),
+                Some(&format!(
+                    "location={} action={} type={}",
+                    loc, act, bio_type
+                )),
             );
         }
     }
@@ -314,6 +319,7 @@ pub async fn biometric_delete_credential(
     password: String,
     location: Option<String>,
     action: Option<String>,
+    biometry_type: Option<String>,
 ) -> Result<(), String> {
     if !is_macos() {
         return Err("platform not supported".into());
@@ -326,13 +332,17 @@ pub async fn biometric_delete_credential(
         if let Some(vault) = vg.as_ref() {
             let loc = location.unwrap_or_else(|| "unknown".to_string());
             let act = action.unwrap_or_else(|| "disable".to_string());
+            let bio_type = biometry_type.as_deref().unwrap_or("unknown");
             let _ = vault.log_structured(
                 "biometric_deleted",
                 "biometric",
                 Some(&account_id),
                 None,
                 "user",
-                Some(&format!("location={} action={}", loc, act)),
+                Some(&format!(
+                    "location={} action={} type={}",
+                    loc, act, bio_type
+                )),
             );
         }
     }

@@ -54,11 +54,11 @@
 }
 
 .danger {
-  background: #dc2626;
-  color: white;
+  background: var(--accent-danger);
+  color: var(--accent-danger-text);
 }
 .danger:hover:not(:disabled) {
-  background: #b91d1d;
+  background: var(--accent-danger-hover);
 }
 .danger:active:not(:disabled) {
   transform: scale(0.97);

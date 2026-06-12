@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Lock, Eye, EyeOff, HelpCircle } from 'lucide-react';
@@ -32,6 +32,7 @@ export function SecurePasswordInput({
   hint,
   showHintButton = true,
 }: SecurePasswordInputProps) {
+  const inputId = useId();
   const [visible, setVisible] = useState(false);
   const [isHintHovered, setIsHintHovered] = useState(false);
   const [hintCardPos, setHintCardPos] = useState<{ top: number; left: number } | null>(null);
@@ -76,7 +77,7 @@ export function SecurePasswordInput({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {label && (
         <label
-          htmlFor="secure-password-input"
+          htmlFor={inputId}
           style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}
         >
           {label}
@@ -100,7 +101,7 @@ export function SecurePasswordInput({
           color: 'var(--text-tertiary)', pointerEvents: 'none',
         }} />
         <input
-          id="secure-password-input"
+          id={inputId}
           ref={inputRef}
           type="text"
           value={value}
@@ -124,7 +125,7 @@ export function SecurePasswordInput({
             color: 'var(--text-primary)',
             fontFamily: 'inherit',
             // Replace type="password" masking with CSS text-security
-            ...(visible ? {} : { WebkitTextSecurity: 'disc' as any }),
+            ...(visible ? {} : { WebkitTextSecurity: 'disc' as unknown as string }),
           }}
         />
 
@@ -180,7 +181,7 @@ export function SecurePasswordInput({
 
               {/* Card via Portal (not clipped by overflow) */}
               {isHintHovered && createPortal(
-                <div style={{
+                <div data-testid="password-hint-tooltip" style={{
                   position: 'fixed',
                   top: hintCardPos?.top ?? 0,
                   left: hintCardPos?.left ?? 0,

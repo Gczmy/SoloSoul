@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/lib/i18n';
@@ -241,7 +241,22 @@ export function LlmConfigPage() {
     setEditingProvider({ id: 'custom_' + Date.now(), name: '', baseUrl: '', model: '', isEnabled: false, isBuiltIn: false, apiKey: '', apiType: 'openAI' });
   };
 
-  if (loading) return <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}><p>{t('common:loading')}</p></AppShell>;
+  const providerFormRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (editingProvider && providerFormRef.current) {
+      providerFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [editingProvider]);
+
+  if (loading) {
+    return (
+      <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+          <div style={{ width: 28, height: 28, border: '3px solid var(--border-subtle)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
@@ -297,6 +312,35 @@ export function LlmConfigPage() {
             <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:llm_add_custom')}
           </Button>
         </Card>
+
+        {editingProvider && (
+          <div ref={providerFormRef}>
+            <Card>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{editingProvider.isBuiltIn ? t('settings:llm_configure') + ' ' + editingProvider.name : t('settings:llm_custom_provider')}</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <Input label={t('settings:llm_provider_name')} value={editingProvider.name} onChange={(e) => setEditingProvider((p) => p ? { ...p, name: e.target.value } : null)} disabled={editingProvider.isBuiltIn} />
+                <Input label={t('settings:llm_base_url')} value={editingProvider.baseUrl} onChange={(e) => setEditingProvider((p) => p ? { ...p, baseUrl: e.target.value } : null)} />
+                <Input label={t('settings:llm_model')} value={editingProvider.model} onChange={(e) => setEditingProvider((p) => p ? { ...p, model: e.target.value } : null)} />
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>{t('settings:llm_api_type')}</label>
+                  <select value={editingProvider.apiType} onChange={(e) => setEditingProvider((p) => p ? { ...p, apiType: e.target.value as 'openAI' | 'anthropic' } : null)}
+                    style={{ width: '100%', padding: '10px 14px', fontSize: 14, border: '1px solid var(--border-subtle)', borderRadius: 8, background: 'var(--bg-elevated)', color: 'var(--text-primary)', fontFamily: 'inherit', outline: 'none' }}>
+                    <option value="openAI">OpenAI Compatible</option>
+                    <option value="anthropic">Anthropic</option>
+                  </select>
+                </div>
+                <Input label={t('settings:llm_api_key')} type="password" value={editingProvider.apiKey} onChange={(e) => setEditingProvider((p) => p ? { ...p, apiKey: e.target.value } : null)}
+                  placeholder={editingProvider.apiKey === '••••••••' ? t('settings:llm_api_key_unchanged') : t('settings:llm_api_key_enter')} />
+                {testResult && <div style={{ fontSize: 12, padding: '6px 10px', borderRadius: 6, background: 'rgba(128,128,128,0.08)', color: testResult.startsWith(t('settings:llm_test_ok')) ? '#27ae60' : '#e74c3c' }}>{testResult}</div>}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Button variant="secondary" onClick={handleTestConnection} loading={testing}>{t('settings:llm_test_connection')}</Button>
+                  <Button onClick={handleSaveProvider} loading={savingProvider}>{t('common:save')}</Button>
+                  <Button variant="secondary" onClick={() => { setEditingProvider(null); setTestResult(null); }}>{t('common:cancel')}</Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
 
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
@@ -406,33 +450,6 @@ export function LlmConfigPage() {
             <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>›</span>
           </div>
         </Card>
-
-        {editingProvider && (
-          <Card>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{editingProvider.isBuiltIn ? t('settings:llm_configure') + ' ' + editingProvider.name : t('settings:llm_custom_provider')}</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Input label={t('settings:llm_provider_name')} value={editingProvider.name} onChange={(e) => setEditingProvider((p) => p ? { ...p, name: e.target.value } : null)} disabled={editingProvider.isBuiltIn} />
-              <Input label={t('settings:llm_base_url')} value={editingProvider.baseUrl} onChange={(e) => setEditingProvider((p) => p ? { ...p, baseUrl: e.target.value } : null)} />
-              <Input label={t('settings:llm_model')} value={editingProvider.model} onChange={(e) => setEditingProvider((p) => p ? { ...p, model: e.target.value } : null)} />
-              <div>
-                <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>{t('settings:llm_api_type')}</label>
-                <select value={editingProvider.apiType} onChange={(e) => setEditingProvider((p) => p ? { ...p, apiType: e.target.value as 'openAI' | 'anthropic' } : null)}
-                  style={{ width: '100%', padding: '10px 14px', fontSize: 14, border: '1px solid var(--border-subtle)', borderRadius: 8, background: 'var(--bg-elevated)', color: 'var(--text-primary)', fontFamily: 'inherit', outline: 'none' }}>
-                  <option value="openAI">OpenAI Compatible</option>
-                  <option value="anthropic">Anthropic</option>
-                </select>
-              </div>
-              <Input label={t('settings:llm_api_key')} type="password" value={editingProvider.apiKey} onChange={(e) => setEditingProvider((p) => p ? { ...p, apiKey: e.target.value } : null)}
-                placeholder={editingProvider.apiKey === '••••••••' ? t('settings:llm_api_key_unchanged') : t('settings:llm_api_key_enter')} />
-              {testResult && <div style={{ fontSize: 12, padding: '6px 10px', borderRadius: 6, background: 'rgba(128,128,128,0.08)', color: testResult.startsWith(t('settings:llm_test_ok')) ? '#27ae60' : '#e74c3c' }}>{testResult}</div>}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Button variant="secondary" onClick={handleTestConnection} loading={testing}>{t('settings:llm_test_connection')}</Button>
-                <Button onClick={handleSaveProvider} loading={savingProvider}>{t('common:save')}</Button>
-                <Button variant="secondary" onClick={() => { setEditingProvider(null); setTestResult(null); }}>{t('common:cancel')}</Button>
-              </div>
-            </div>
-          </Card>
-        )}
 
         {showRiskDialog && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>

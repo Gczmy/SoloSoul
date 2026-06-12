@@ -34,14 +34,14 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        zIndex: 10000,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'rgba(0,0,0,0.35)',
         backdropFilter: 'blur(4px)',
       }}
-      onClick={onBack}
+      onClick={(e) => { e.stopPropagation(); onBack(); }}
     >
       <div
         onClick={(e) => e.stopPropagation()}

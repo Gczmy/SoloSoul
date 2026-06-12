@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
@@ -29,7 +29,7 @@ export function BootstrapPage() {
 
   return (
     <div
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' } as any}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' } as CSSProperties}
     >
       <div
         style={{

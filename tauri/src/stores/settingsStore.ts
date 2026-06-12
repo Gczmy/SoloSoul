@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { PhysicalSize } from '@tauri-apps/api/dpi';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
@@ -15,6 +17,11 @@ export interface CustomPage {
   createdAt: string;
   sortOrder: number;
   deletedAt?: string;
+}
+
+export interface WindowSize {
+  width: number;
+  height: number;
 }
 
 export interface AppSettings {
@@ -33,6 +40,7 @@ export interface AppSettings {
   defaultDarkTheme: string;
   sidebarPosition: 'left' | 'right' | 'top' | 'bottom';
   sidebarBottomActions: [string, string, string];
+  windowSize?: WindowSize;
 }
 
 interface SettingsState {
@@ -85,6 +93,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         if (cached.accentColor) p.accentColor = cached.accentColor;
         if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
         if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
+        if (cached.windowSize) {
+          p.windowSize = cached.windowSize;
+          try {
+            localStorage.setItem('solosoul_window_size', JSON.stringify(cached.windowSize));
+          } catch { /* ignore */ }
+        }
         applyTheme({
           preset: p.theme === 'dark' ? 'warm-stone-dark' :
                   p.theme === 'light' ? 'warm-stone-light' : 'system',
@@ -106,6 +120,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         language?: string;
         defaultLightTheme?: string;
         defaultDarkTheme?: string;
+        windowSize?: WindowSize;
       }>('ui_get_preferences');
       const parsed = { ...get().settings };
       if (prefs.theme) parsed.theme = prefs.theme as AppSettings['theme'];
@@ -129,6 +144,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           accentColor: parsed.accentColor,
           defaultLightTheme: parsed.defaultLightTheme,
           defaultDarkTheme: parsed.defaultDarkTheme,
+          windowSize: parsed.windowSize,
         }));
       } catch { /* ignore */ }
       // Language is set by initI18n() via Rust IPC (confirmed working = zh-CN).
@@ -174,6 +190,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (Array.isArray(prefs.customPages)) {
         parsed.customPages = prefs.customPages as CustomPage[];
       }
+      const encryptedWindowSize = prefs.windowSize as WindowSize | undefined;
+      if (encryptedWindowSize && typeof encryptedWindowSize.width === 'number' && typeof encryptedWindowSize.height === 'number') {
+        parsed.windowSize = encryptedWindowSize;
+        try {
+          const window = getCurrentWebviewWindow();
+          const current = await window.innerSize();
+          if (Math.abs(current.width - parsed.windowSize.width) > 1 || Math.abs(current.height - parsed.windowSize.height) > 1) {
+            await window.setSize(new PhysicalSize(parsed.windowSize));
+          }
+        } catch { /* ignore */ }
+      }
       set({ settings: parsed, isLoading: false });
       // Sync UI prefs to plaintext file so next startup shows correct theme
       if (parsed.theme) invoke('ui_update_preference', { key: 'theme', value: parsed.theme }).catch(() => {});
@@ -181,6 +208,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (parsed.language) invoke('ui_update_preference', { key: 'language', value: parsed.language }).catch(() => {});
       if (parsed.defaultLightTheme) invoke('ui_update_preference', { key: 'defaultLightTheme', value: parsed.defaultLightTheme }).catch(() => {});
       if (parsed.defaultDarkTheme) invoke('ui_update_preference', { key: 'defaultDarkTheme', value: parsed.defaultDarkTheme }).catch(() => {});
+      if (parsed.windowSize) invoke('ui_update_preference', { key: 'windowSize', value: JSON.stringify(parsed.windowSize) }).catch(() => {});
     } catch {
       set({ isLoading: false });
     }

@@ -30,6 +30,9 @@
   /* Accents */
   --accent-primary: var(--accent-cool);
   --accent-hover: var(--accent-cool-hover);
+  --accent-danger: #dc2626;
+  --accent-danger-hover: #b91d1d;
+  --accent-danger-text: #ffffff;
   --accent-warm: var(--clay-400);
   --accent-warm-hover: var(--clay-500);
 
@@ -98,6 +101,9 @@
     /* Accents — desaturated and warm for dark backgrounds */
     --accent-primary: #7a9ab5;
     --accent-hover: #8eafc8;
+    --accent-danger: #c0392b;
+    --accent-danger-hover: #a93226;
+    --accent-danger-text: #ffffff;
     --accent-warm: #c4a574;
     --accent-warm-hover: #d4b88a;
 
@@ -162,6 +168,9 @@
     /* Accents — desaturated and warm for dark backgrounds */
     --accent-primary: #7a9ab5;
     --accent-hover: #8eafc8;
+    --accent-danger: #c0392b;
+    --accent-danger-hover: #a93226;
+    --accent-danger-text: #ffffff;
     --accent-warm: #c4a574;
     --accent-warm-hover: #d4b88a;
 

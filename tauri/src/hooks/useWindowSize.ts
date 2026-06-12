@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { PhysicalSize } from '@tauri-apps/api/dpi';
 import { invoke } from '@tauri-apps/api/core';
+import { useAuthStore } from '@/stores/authStore';
 
 const WINDOW_SIZE_KEY = 'windowSize';
 const WINDOW_SIZE_CACHE_KEY = 'solosoul_window_size';
@@ -59,19 +60,30 @@ export async function restoreWindowSize() {
  */
 export function useWindowSize() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const lastSizeRef = useRef<WindowSize | null>(null);
 
   useEffect(() => {
     const window = getCurrentWebviewWindow();
 
     const unlistenPromise = window.onResized(({ payload: size }) => {
+      const payload = { width: size.width, height: size.height };
+      const last = lastSizeRef.current;
+      if (last && last.width === payload.width && last.height === payload.height) return;
+      lastSizeRef.current = payload;
+
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
-        const payload = { width: size.width, height: size.height };
         writeCachedSize(payload);
         invoke('ui_update_preference', {
           key: WINDOW_SIZE_KEY,
           value: JSON.stringify(payload),
         }).catch(() => {});
+        const accountId = useAuthStore.getState().currentAccount?.id;
+        if (accountId) {
+          invoke('user_data_update_preference', {
+            payload: { accountId, preferences: { windowSize: payload } },
+          }).catch(() => {});
+        }
       }, DEBOUNCE_MS);
     });
 

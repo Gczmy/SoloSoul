@@ -27,7 +27,7 @@ Object.defineProperty(window, 'matchMedia', {
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
-    i18n: { changeLanguage: vi.fn(() => Promise.resolve()) },
+    i18n: { language: 'en', changeLanguage: vi.fn(() => Promise.resolve()) },
   }),
   I18nextProvider: ({ children }: { children: React.ReactNode }) => children,
 }));

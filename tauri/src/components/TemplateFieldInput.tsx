@@ -1,5 +1,6 @@
 import React from 'react';
 import type { PropertyType } from '@/types/template';
+import { DatePicker } from '@/components/forms/DatePicker';
 import styles from './TemplateFieldInput.module.css';
 
 interface TemplateFieldInputProps {
@@ -37,8 +38,6 @@ export function TemplateFieldInput({
   const inputTypeMap: Record<string, string> = {
     text: 'text',
     number: 'number',
-    date: 'date',
-    datetime: 'datetime-local',
     url: 'url',
     email: 'email',
     phone: 'tel',
@@ -46,6 +45,33 @@ export function TemplateFieldInput({
   };
 
   switch (type) {
+    case 'date':
+      return (
+        <div className={styles.field}>
+          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
+          {hint && <div className={styles.hint}>{hint}</div>}
+          <DatePicker
+            value={String(value ?? '')}
+            onChange={(v) => onChange(v ?? '')}
+            disabled={disabled}
+          />
+        </div>
+      );
+
+    case 'datetime':
+      return (
+        <div className={styles.field}>
+          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
+          {hint && <div className={styles.hint}>{hint}</div>}
+          <DatePicker
+            value={String(value ?? '')}
+            onChange={(v) => onChange(v ?? '')}
+            includeTime
+            disabled={disabled}
+          />
+        </div>
+      );
+
     case 'multiline':
       return (
         <div className={styles.field}>

@@ -54,4 +54,13 @@ describe('SampleTemplateDetail', () => {
     expect(screen.getByText(emptyTemplate.nameI18nKey)).toBeInTheDocument();
     expect(screen.queryByText(template.properties[0].nameI18nKey)).not.toBeInTheDocument();
   });
+
+  it('calls onBack when clicking the overlay backdrop', () => {
+    const onBack = vi.fn();
+    const { container } = render(<SampleTemplateDetail template={template} onBack={onBack} onUse={vi.fn()} />);
+
+    const overlay = container.firstChild as HTMLElement;
+    fireEvent.click(overlay);
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
 });
