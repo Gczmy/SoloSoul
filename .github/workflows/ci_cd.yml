@@ -5,6 +5,7 @@ on:
     branches: [ master, main ]
   pull_request:
     branches: [ master, main ]
+  workflow_dispatch:
 
 env:
   RUST_VERSION: 'stable'
@@ -171,7 +172,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-app
-          path: tauri/src-tauri/target/release/bundle/msi/*.msi
+          path: tauri/src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
 
   # ============================================================
@@ -209,7 +210,7 @@ jobs:
           prerelease: true
           files: |
             artifacts/macos/*.dmg
-            artifacts/windows/*.msi
+            artifacts/windows/*.exe
           body: |
             ## SoloSoul v${{ github.run_number }}
 
@@ -217,7 +218,7 @@ jobs:
 
             ### Downloads
             - 🍎 macOS: `SoloSoul-*.dmg`
-            - 🪟 Windows: `SoloSoul-*.msi`
+            - 🪟 Windows: `SoloSoul-*.exe` (NSIS installer)
 
             ### Security Features
             - 🔒 Rust Symbol Stripping
