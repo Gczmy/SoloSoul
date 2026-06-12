@@ -17,6 +17,7 @@ export function SecuritySettingsPage() {
   const { onError, onSuccess } = useToastError();
   const { t } = useTranslation(['settings', 'common']);
 
+  const { settings, updateSetting } = useSettingsStore();
   const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -170,12 +171,22 @@ export function SecuritySettingsPage() {
         }}
       >
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
             {t('settings:auto_lock')}
           </h3>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+            {t('settings:auto_lock_description')}
+          </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 14 }}>{t('settings:auto_lock')}</span>
             <select
+              value={settings.autoLockTimeoutMinutes}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                if (currentAccount?.id) {
+                  updateSetting(currentAccount.id, 'autoLockTimeoutMinutes', value);
+                }
+              }}
               style={{
                 padding: '6px 10px',
                 borderRadius: 6,
