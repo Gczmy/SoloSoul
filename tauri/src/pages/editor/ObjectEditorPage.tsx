@@ -266,8 +266,17 @@ export function ObjectEditorPage() {
     }
   };
 
+  const handleBack = () => {
+    // When returning from TemplateManager, don't rely on history stack; go home directly
+    if ((location.state as { from?: string } | null)?.from === '/settings/templates') {
+      navigate('/home');
+      return;
+    }
+    navigate(-1);
+  };
+
   return (
-    <AppShell title={isNew ? t('common:new_object') : t('common:edit_object')} onBack={() => navigate(-1)}>
+    <AppShell title={isNew ? t('common:new_object') : t('common:edit_object')} onBack={handleBack}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {isNew && (
           <Card>

@@ -80,6 +80,8 @@ export function ObjectDetailModal({
 
   const [showPwDialog, setShowPwDialog] = useState(false);
   const pwResolveRef = useRef<((ok: boolean) => void) | null>(null);
+  const pendingRevealRef = useRef<{ fieldId: string; fieldName: string } | null>(null);
+  const pendingMethodRef = useRef<'password' | 'touchId' | 'faceId'>('password');
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
     available: false,
   });
@@ -141,20 +143,41 @@ export function ObjectDetailModal({
     });
   }, []);
 
+  const writeCriticalAccessLog = useCallback(async () => {
+    if (!accountId || !obj || !pendingRevealRef.current) return;
+    const method = pendingMethodRef.current;
+    const details = `objectName=${obj.name} page=${resolveCollectionLabel(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName} method=${method}`;
+    try {
+      await invoke('log_write', {
+        actionType: 'critical_field_access',
+        entityType: 'object',
+        entityId: obj.id,
+        entityName: obj.name,
+        details,
+      });
+    } catch {
+      // best effort
+    }
+  }, [accountId, obj]);
+
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
     if (!accountId) return false;
     try {
       await invoke('biometric_unlock', { accountId, location: 'critical_data_access', action: 'unlock' });
+      pendingMethodRef.current = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
       pwResolveRef.current?.(true);
+      await writeCriticalAccessLog();
       return true;
     } catch {
       return false;
     }
-  }, [accountId]);
+  }, [accountId, bioAvailable.biometryType, writeCriticalAccessLog]);
 
   const handleRevealField = useCallback(
-    async (fieldId: string, sens: SensitivityLevel) => {
+    async (fieldId: string, sens: SensitivityLevel, fieldName: string) => {
       if (sens === 'critical') {
+        pendingRevealRef.current = { fieldId, fieldName };
+        pendingMethodRef.current = 'password';
         const ok = await passwordVerify();
         if (ok) reveal(fieldId);
       } else {
@@ -363,7 +386,7 @@ export function ObjectDetailModal({
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                handleRevealField(fieldId, sens);
+                                handleRevealField(fieldId, sens, getFieldName(f.key));
                               }}
                               style={{
                                 padding: '4px 10px',
@@ -548,6 +571,8 @@ export function ObjectDetailModal({
       {showHistory && obj && (
         <HistoryViewer
           objectId={obj.id}
+          objectName={obj.name}
+          collectionType={obj.collectionType}
           onClose={() => setShowHistory(false)}
           passwordVerify={passwordVerify}
           getFieldSensitivity={getFieldSensitivity}
@@ -573,7 +598,11 @@ export function ObjectDetailModal({
         }}
         onVerify={async (password) => {
           const ok = await verifyVaultPassword(password);
-          if (ok) pwResolveRef.current?.(true);
+          if (ok) {
+            pwResolveRef.current?.(true);
+            pendingMethodRef.current = 'password';
+            await writeCriticalAccessLog();
+          }
           return ok;
         }}
         title={t('common:critical_access_title')}

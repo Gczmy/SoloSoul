@@ -69,6 +69,7 @@ function SnapshotCard({
   getFieldName,
   fieldOrder,
   verifyPassword,
+  onCriticalAccess,
 }: {
   snap: SnapshotEntry;
   index: number;
@@ -79,6 +80,7 @@ function SnapshotCard({
   getFieldName: (fieldKey: string) => string;
   fieldOrder?: string[];
   verifyPassword: () => Promise<boolean>;
+  onCriticalAccess?: (fieldName: string) => void;
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
   const { isRevealed, reveal } = useRevealState();
@@ -155,7 +157,10 @@ function SnapshotCard({
                             try {
                               if (sens === 'critical') {
                                 const ok = await verifyPassword();
-                                if (ok) reveal(fieldId);
+                                if (ok) {
+                                  reveal(fieldId);
+                                  onCriticalAccess?.(getFieldName(f.key));
+                                }
                               } else {
                                 reveal(fieldId);
                               }
@@ -215,6 +220,8 @@ function SnapshotCard({
 
 export interface HistoryViewerProps {
   objectId: string;
+  objectName?: string;
+  collectionType?: string;
   onClose: () => void;
   passwordVerify: () => Promise<boolean>;
   getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
@@ -226,6 +233,8 @@ export interface HistoryViewerProps {
 
 export function HistoryViewer({
   objectId,
+  objectName,
+  collectionType,
   onClose,
   passwordVerify,
   getFieldSensitivity,
@@ -239,6 +248,22 @@ export function HistoryViewer({
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
   const { t } = useTranslation(['common', 'editor']);
+
+  const writeCriticalAccessLog = async (fieldName: string) => {
+    if (!objectName) return;
+    const details = `objectName=${objectName} page=${collectionType || ''} fieldName=${fieldName} method=password`;
+    try {
+      await invoke('log_write', {
+        actionType: 'critical_field_access',
+        entityType: 'object',
+        entityId: objectId,
+        entityName: objectName,
+        details,
+      });
+    } catch {
+      // best effort
+    }
+  };
 
   useEffect(() => {
     invoke<SnapshotEntry[]>('snapshot_get', { objectId })
@@ -368,6 +393,7 @@ export function HistoryViewer({
               getFieldName={getFieldName}
               fieldOrder={fieldOrder}
               verifyPassword={passwordVerify}
+              onCriticalAccess={writeCriticalAccessLog}
             />
           )}
         </div>

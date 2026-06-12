@@ -1,6 +1,7 @@
 import { Card } from '@/components/ui/Card';
 import { Cpu } from 'lucide-react';
 import type { TFunction } from 'i18next';
+import styles from './ModelInfoCard.module.css';
 
 interface ModelInfoCardProps {
   providerName: string;
@@ -60,9 +61,9 @@ export function ModelInfoCard({ providerName, modelName, apiType, isOnline, t }:
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: 'flex', fontSize: 13 }}>
-      <span style={{ color: 'var(--text-tertiary)', minWidth: 60 }}>{label}</span>
-      <span style={{ color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+    <div className={styles.infoRow}>
+      <span className={styles.infoLabel}>{label}</span>
+      <span className={styles.infoValue} title={value}>
         {value}
       </span>
     </div>

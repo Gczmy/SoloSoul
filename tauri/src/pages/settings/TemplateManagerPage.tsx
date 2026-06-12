@@ -457,8 +457,10 @@ export function TemplateManagerPage() {
 
   const from = (location.state as { from?: string } | null)?.from;
   const handleBack = () => {
-    if (from && from.startsWith('/editor')) {
-      navigate(from);
+    if (from && from.startsWith('/')) {
+      // Use replace when returning from ObjectEditor so TemplateManager is not left in history stack
+      const replace = from.startsWith('/editor');
+      navigate(from, { replace });
     } else {
       navigate('/settings');
     }

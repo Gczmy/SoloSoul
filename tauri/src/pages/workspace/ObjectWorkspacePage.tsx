@@ -73,7 +73,7 @@ export function ObjectWorkspacePage() {
   const [, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
-  const [historyObj, setHistoryObj] = useState<{ id: string; collectionType: string; templateId?: string } | null>(null);
+  const [historyObj, setHistoryObj] = useState<{ id: string; name: string; collectionType: string; templateId?: string } | null>(null);
   const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
   const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
@@ -363,7 +363,7 @@ export function ObjectWorkspacePage() {
                   <div style={{ display: 'flex', gap: 2 }} onClick={(e) => e.stopPropagation()}>
                     <div style={{ position: 'relative' }}>
                       <button
-                        onClick={() => setHistoryObj({ id: obj.id, collectionType: obj.collectionType, templateId: obj.templateId || undefined })}
+                        onClick={() => setHistoryObj({ id: obj.id, name: obj.name, collectionType: obj.collectionType, templateId: obj.templateId || undefined })}
                         title="History"
                         style={{
                           width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -567,7 +567,7 @@ export function ObjectWorkspacePage() {
             object={detailObj}
             onClose={() => setDetailObj(null)}
             onHistory={() => {
-              setHistoryObj({ id: detailObj.id, collectionType: detailObj.collectionType, templateId: detailObj.templateId || undefined });
+              setHistoryObj({ id: detailObj.id, name: detailObj.name, collectionType: detailObj.collectionType, templateId: detailObj.templateId || undefined });
               setDetailObj(null);
             }}
             onAttachments={() => {
@@ -626,6 +626,8 @@ export function ObjectWorkspacePage() {
       {historyObj && (
         <HistoryViewer
           objectId={historyObj.id}
+          objectName={historyObj.name}
+          collectionType={historyObj.collectionType}
           onClose={() => setHistoryObj(null)}
           passwordVerify={passwordVerify}
           getFieldSensitivity={(fieldKey) => getFieldSensitivity(historyObj.templateId, fieldKey)}

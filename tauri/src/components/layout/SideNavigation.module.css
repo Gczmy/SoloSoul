@@ -42,7 +42,9 @@
   /* Hidden scrollbar by default, show on hover — consistent with horizontal mode */
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding-bottom: 4px;
+  padding-bottom: 0;
+  /* Reserve space for scrollbar so icons don't shift when it appears */
+  scrollbar-gutter: stable;
 }
 
 .navPrimary::-webkit-scrollbar {
@@ -77,6 +79,8 @@
   overflow-y: hidden !important;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  padding-bottom: 0;
+  scrollbar-gutter: auto;
 }
 .navPrimaryHorizontal::-webkit-scrollbar {
   height: 0;

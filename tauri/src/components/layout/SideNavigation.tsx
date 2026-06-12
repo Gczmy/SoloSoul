@@ -1202,6 +1202,7 @@ export function AddPageButton({
               {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(([id, IconComp]) => (
                 <button
                   key={id}
+                  onMouseDown={(e) => e.preventDefault()} // prevent input blur so selectedIconId updates before confirm
                   onClick={() => setSelectedIconId(id)}
                   style={{
                     width: 32,
@@ -1345,45 +1346,53 @@ export function SideNavigation() {
           </div>
         </>
       ) : (
-        /* ══ Vertical mode (left/right sidebar) — all in one scrollable column ══ */
-        <div className={styles.navPrimary} style={{ ...zoneStyle, flex: 1, overflow: 'auto' }}>
-          {primaryItems.map((item) => {
-            const isActive =
-              item.path === '/'
-                ? location.pathname === '/'
-                : isWorkspaceSectionActive(item.path);
-            return (
+        /* ══ Vertical mode (left/right sidebar) — Home fixed top, Add fixed bottom, middle scrolls ══ */
+        <>
+          {/* HOME — fixed at top, outside scrollable zone */}
+          <NavButton
+            path={primaryItems[0].path}
+            Icon={PAGE_ICON_MAP[primaryItems[0].iconKey]}
+            label={t(primaryItems[0].labelKey)}
+            isActive={location.pathname === '/'}
+            onClick={() => navigate(primaryItems[0].path)}
+            position={sidebarPosition}
+          />
+
+          {/* Scrollable zone: other primary pages + custom pages */}
+          <div className={styles.navPrimary} style={{ ...zoneStyle, flex: 1, overflow: 'auto' }}>
+            {primaryItems.slice(1).map((item) => (
               <NavButton
                 key={item.path}
                 path={item.path}
                 Icon={PAGE_ICON_MAP[item.iconKey]}
                 label={t(item.labelKey)}
-                isActive={isActive}
+                isActive={isWorkspaceSectionActive(item.path)}
                 onClick={() => navigate(item.path)}
                 position={sidebarPosition}
               />
-            );
-          })}
+            ))}
 
-          {activeCustomPages.map((page) => (
-            <RenameableNavButton
-              key={page.id}
-              page={page}
-              isActive={isCustomPageActive(page.id)}
-              onClick={() => handleCustomPageNavigate(page)}
-              position={sidebarPosition}
-            />
-          ))}
+            {activeCustomPages.map((page) => (
+              <RenameableNavButton
+                key={page.id}
+                page={page}
+                isActive={isCustomPageActive(page.id)}
+                onClick={() => handleCustomPageNavigate(page)}
+                position={sidebarPosition}
+              />
+            ))}
+          </div>
 
+          {/* ADD PAGE — fixed at bottom, outside scrollable zone */}
           <AddPageButton
             onCreate={(page) => { navigate(`/workspace/custom/${page.id}`); }}
             position={sidebarPosition}
           />
-        </div>
+        </>
       )}
 
-      <div className={styles.navSecondary} style={{ ...zoneStyle, flexShrink: 0 }}>
-        {/* AddPageButton — in the secondary zone, before other function buttons */}
+      <div className={styles.navSecondary} style={{ ...zoneStyle, flexShrink: 0, marginTop: isHorizontal ? 0 : 4 }}>
+        {/* AddPageButton — in the secondary zone for horizontal mode only */}
         {isHorizontal && <AddPageButton
           onCreate={(page) => { navigate(`/workspace/custom/${page.id}`); }}
           position={sidebarPosition}

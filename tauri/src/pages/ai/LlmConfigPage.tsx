@@ -248,16 +248,6 @@ export function LlmConfigPage() {
     }
   }, [editingProvider]);
 
-  if (loading) {
-    return (
-      <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
-          <div style={{ width: 28, height: 28, border: '3px solid var(--border-subtle)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        </div>
-      </AppShell>
-    );
-  }
-
   return (
     <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -294,7 +284,12 @@ export function LlmConfigPage() {
         <Card>
           <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:ai_service_providers')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {providers.map((p) => (
+            {loading ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0', color: 'var(--text-tertiary)', fontSize: 13 }}>
+                <span style={{ width: 16, height: 16, border: '2px solid var(--border-subtle)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                {t('common:loading')}
+              </div>
+            ) : providers.map((p) => (
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: activeId === p.id ? 'rgba(91,124,153,0.08)' : 'var(--bg-toolbar)', border: activeId === p.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)', cursor: 'pointer', fontSize: 13 }}
                 onClick={() => handleSetActive(p.id)}>
                 <input type="radio" checked={activeId === p.id} onChange={() => handleSetActive(p.id)} style={{ accentColor: 'var(--accent-primary)' }} />

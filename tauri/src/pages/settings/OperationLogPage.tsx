@@ -39,11 +39,12 @@ function formatDetail(entry: AuditLogEntry, t: TFunction): string {
   if (translated === key || translated === raw) {
     return raw;
   }
-  const re = /(\w+)=([^\s]+)/g;
+  // Parse key=value pairs where values may contain spaces (e.g. objectName=My Passport)
+  const re = /(\w+)=([^]*?)(?=(?:\s+\w+=|$))/g;
   const vars: Record<string, string | number> = {};
   let match;
   while ((match = re.exec(raw)) !== null) {
-    const val = match[2];
+    const val = match[2].trim();
     vars[match[1]] = /^\d+$/.test(val) ? parseInt(val, 10) : val;
   }
   if (entry.entityName) {
@@ -62,6 +63,8 @@ function formatDetail(entry: AuditLogEntry, t: TFunction): string {
     if (vars.action) vars.action = t(`settings:log.action_name.${vars.action}`, { defaultValue: String(vars.action) });
     // Translate section codes (identity/travel/financial/professional)
     if (vars.section) vars.section = t(`common:${vars.section}`, { defaultValue: String(vars.section) });
+    // Translate unlock method for critical field access logs
+    if (vars.method) vars.method = t(`settings:log.method.${vars.method}`, { defaultValue: String(vars.method) });
     return t(key, { defaultValue: raw, ...vars });
   }
   return t(key, { defaultValue: raw, reason: raw });
@@ -227,7 +230,8 @@ export function OperationLogPage() {
                         entry.entityType === 'object' ? '#22c55e' :
                         'var(--text-secondary)',
                     }}>
-                      {t(`settings:log.entity.${entry.entityType}`, entry.entityType)}{entry.entityName ? `: ${entry.entityName}` : ''}
+                      {t(`settings:log.entity.${entry.entityType}`, entry.entityType)}
+                      {entry.entityName && entry.entityType !== 'template' ? `: ${entry.entityName}` : ''}
                     </span>
                     {entry.performedBy === 'system' && (
                       <span style={{
@@ -238,19 +242,26 @@ export function OperationLogPage() {
                         {t('settings:log.performed_by_system')}
                       </span>
                     )}
-                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
-                      {new Date(entry.timestamp).toLocaleString(i18n.language)}
-                    </span>
+                    {entry.entityType !== 'template' && (
+                      <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
+                        {new Date(entry.timestamp).toLocaleString(i18n.language)}
+                      </span>
+                    )}
                   </div>
-                  {entry.details && formatDetail(entry, t) && (
-                    <p style={{
+                  {(entry.details || entry.entityType === 'template') && formatDetail(entry, t) && (
+                    <div style={{
                       margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)',
                       fontFamily: 'monospace', whiteSpace: 'pre-wrap',
                       backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.04))',
                       padding: '6px 8px', borderRadius: 4,
                     }}>
                       {formatDetail(entry, t)}
-                    </p>
+                      {entry.entityType === 'template' && (
+                        <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-tertiary)', fontFamily: 'inherit' }}>
+                          {new Date(entry.timestamp).toLocaleString(i18n.language)}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

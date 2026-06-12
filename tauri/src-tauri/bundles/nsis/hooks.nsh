@@ -14,6 +14,12 @@
   DetailPrint "SoloSoul uninstallation complete."
 !macroend
 
+; Ensure the uninstaller exits after the user clicks Finish on the final page.
+; This prevents the installer from being launched again when uninstallation completes.
+Function un.onFinishLeave
+  Quit
+FunctionEnd
+
 ; Custom localized messages for the welcome/finish pages
 LangString WELCOME_TITLE ${LANG_ENGLISH} "Welcome to SoloSoul"
 LangString WELCOME_TEXT ${LANG_ENGLISH} "SoloSoul is a local-first, privacy-first personal digital twin. All data is encrypted and stored locally."

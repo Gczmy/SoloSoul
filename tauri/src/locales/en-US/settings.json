@@ -364,6 +364,7 @@
       "biometric_deleted": "Disable Biometric",
       "touch_id_unlock": "Touch ID Unlock",
       "face_id_unlock": "Face ID Unlock",
+      "critical_field_access": "View Critical Info",
       "login": "Password Login",
       "llm_risk_accepted": "Accept AI Risk",
       "template_save": "Save Template",
@@ -401,6 +402,11 @@
       "faceId": "Face ID",
       "unknown": "Unknown Biometric"
     },
+    "method": {
+      "password": "Password",
+      "touchId": "Touch ID",
+      "faceId": "Face ID"
+    },
     "conflict_renamed": "with name conflict",
     "conflict_none": "no conflict",
     "detail": {
@@ -418,6 +424,9 @@
       "biometric_unlock": "{{location}} — {{action}} ({{type}})",
       "biometric_saved": "{{location}} — {{action}} ({{type}})",
       "biometric_deleted": "{{location}} — {{action}} ({{type}})",
+      "template_create": "Template: {{name}}",
+      "template_delete": "Template: {{name}}",
+      "critical_field_access": "Object: {{objectName}}, Page: {{page}}, Field: {{fieldName}}",
       "login": "{{location}} — {{action}} ({{method}})",
       "export_execute": "{{count}} object(s) exported",
       "import_execute": "{{count}} object(s) imported ({{strategy}})",

@@ -171,7 +171,7 @@ pub async fn template_create(
         Some(&template.id),
         Some(&template.name),
         "user",
-        None,
+        Some(&format!("name={}", template.name)),
     );
 
     Ok(template.id)
@@ -312,7 +312,7 @@ pub async fn template_delete(
         Some(&template_id),
         Some(&template.name),
         "user",
-        None,
+        Some(&format!("name={}", template.name)),
     );
 
     Ok(())

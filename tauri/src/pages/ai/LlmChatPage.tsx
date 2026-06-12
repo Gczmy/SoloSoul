@@ -413,9 +413,16 @@ export function LlmChatPage() {
   if (loading) {
     return (
       <AppShell title={t('settings:ai_chat')} onBack={() => navigate('/home')}>
-        <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '48px 24px' }}>
-          <MessageSquare size={48} style={{ marginBottom: 16, opacity: 0.3 }} />
-          <p style={{ color: 'var(--text-secondary)' }}>{t('common:loading')}</p>
+        <div style={{ position: 'fixed', top: 56, left: 48, right: 0, bottom: 0, display: 'flex', overflow: 'hidden' }}>
+          {/* Sidebar placeholder — same width as the real conversation sidebar */}
+          <div style={{ width: 220, minWidth: 180, maxWidth: 360, borderRight: '1px solid var(--border-subtle)', background: 'var(--bg-toolbar)' }} />
+          {/* Message area placeholder — keeps the icon in the same final position */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
+            <div style={{ textAlign: 'center' }}>
+              <MessageSquare size={40} style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }} />
+              <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>{t('common:loading')}</p>
+            </div>
+          </div>
         </div>
       </AppShell>
     );
