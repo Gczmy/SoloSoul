@@ -24,7 +24,7 @@
 
 ### Fixed
 
-- **macOS Bootstrap Page Input** — Password fields on first-run wizard no longer blocked by WebKit password manager; added explicit `autoComplete` attributes to all secure inputs.
+- **macOS Bootstrap Page Input** — Password fields on first-run wizard no longer blocked by WKWebView password manager. Replaced `<input type="password">` with `type="text"` + CSS `-webkit-text-security: disc` to bypass WebKit keyboard interception on forms with multiple password fields.
 
 ---
 ## [1.8.0] - 2026-06-03
