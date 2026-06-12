@@ -66,41 +66,76 @@ fn trigger_system_biometric(reason: &str) -> Result<(), String> {
     if !is_macos() {
         return Ok(());
     }
-    let escaped = reason.replace('\\', "\\\\").replace('"', "\\\"");
-    let helper_dir = std::env::temp_dir().join("solosoul-biometric");
-    std::fs::create_dir_all(&helper_dir).ok();
-    let src = helper_dir.join("biometric.swift");
-    let bin = helper_dir.join("biometric");
-    if !bin.exists() || !src.exists() {
-        let code = format!(
-            r#"import LocalAuthentication
-import Foundation
-let ctx = LAContext()
-let sem = DispatchSemaphore(value: 0)
-var ok = false
-ctx.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "{}") {{ s, e in ok = s; sem.signal() }}
-sem.wait()
-print(ok ? "1" : "0", terminator: "")
-"#,
-            escaped
-        );
-        std::fs::write(&src, &code).map_err(|e| e.to_string())?;
-        let s = std::process::Command::new("swiftc")
-            .args([
-                "-o",
-                bin.to_str().unwrap_or("/tmp/bio"),
-                src.to_str().unwrap_or(""),
-            ])
-            .status()
-            .map_err(|e| format!("swiftc: {}", e))?;
-        if !s.success() {
-            return Err("swiftc compile failed".into());
-        }
+    #[cfg(target_os = "macos")]
+    return trigger_macos_biometric(reason);
+    #[cfg(not(target_os = "macos"))]
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn trigger_macos_biometric(reason: &str) -> Result<(), String> {
+    use std::ffi::CString;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use objc2::{msg_send, sel};
+    use objc2::runtime::{AnyClass, NSObject};
+
+    let la_cls =
+        AnyClass::get("LAContext").ok_or_else(|| "Touch ID not available on this system")?;
+
+    let ctx: *mut NSObject = unsafe {
+        let alloc: *mut NSObject = msg_send![la_cls, alloc];
+        msg_send![alloc, init]
+    };
+    if ctx.is_null() {
+        return Err("Failed to initialize Touch ID".into());
     }
-    let out = std::process::Command::new(&bin)
-        .output()
-        .map_err(|e| format!("helper: {}", e))?;
-    if String::from_utf8_lossy(&out.stdout).trim() == "1" {
+
+    // Build NSString from &str without depending on objc2-foundation API details
+    let c_reason = CString::new(reason).map_err(|_| "Invalid reason string".to_string())?;
+    let ns_cls =
+        AnyClass::get("NSString").ok_or_else(|| "NSString class not found".to_string())?;
+    let ns_reason: *mut NSObject = unsafe {
+        let alloc: *mut NSObject = msg_send![ns_cls, alloc];
+        msg_send![alloc, initWithUTF8String: c_reason.as_ptr()]
+    };
+    if ns_reason.is_null() {
+        return Err("Failed to create reason string".to_string());
+    }
+
+    let done = Arc::new(AtomicBool::new(false));
+    let sem = Arc::new(std::sync::Semaphore::new(0));
+    let (d, s) = (done.clone(), sem.clone());
+
+    // SAFETY: e`evaluatePolicy:localizedReason:reply:` calls the block once on a
+    // background GCD queue, then discards it.  The closure only captures `d` and `s`
+    // which are both Send/Sync, and the semaphore ensures correct ordering.
+    let block = block2::Block::new(move |success: i8, _error: *mut std::ffi::c_void| {
+        d.store(success != 0, Ordering::SeqCst);
+        s.add_permits(1);
+    });
+
+    // LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1 (NSInteger)
+    unsafe {
+        let _: () = msg_send![
+            ctx,
+            evaluatePolicy: 1i64,
+            localizedReason: ns_reason,
+            reply: &*block,
+        ];
+    }
+
+    // Wait for the biometric dialog result
+    sem.acquire()
+        .map_err(|_| "Interrupted while waiting for biometric".to_string())?;
+
+    // Release ObjC objects
+    unsafe {
+        let _: () = msg_send![ctx, release];
+        let _: () = msg_send![ns_reason, release];
+    }
+
+    if done.load(Ordering::SeqCst) {
         Ok(())
     } else {
         Err("User cancelled or biometric not available".into())

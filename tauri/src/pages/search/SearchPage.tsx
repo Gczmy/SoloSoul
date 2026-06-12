@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/Input';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
+import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
+import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
 interface SearchItem {
@@ -28,6 +30,10 @@ export function SearchPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Object detail + attachment state
+  const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
+  const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
 
   const doSearch = useCallback(async (q: string) => {
     if (!accountId || !q.trim()) {
@@ -85,7 +91,7 @@ export function SearchPage() {
               <Card
                 key={item.objectId}
                 interactive
-                onClick={() => navigate(`/editor/${item.objectId}?section=${item.collectionType}`)}
+                onClick={() => setDetailObjectId(item.objectId)}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <PAGE_ICON_MAP.custom size={18} />
@@ -102,6 +108,30 @@ export function SearchPage() {
           </div>
         </div>
       </div>
+
+      {/* Object detail modal */}
+      {detailObjectId && (
+        <ObjectDetailModal
+          objectId={detailObjectId}
+          onClose={() => setDetailObjectId(null)}
+          onEdit={() => {
+            setDetailObjectId(null);
+            navigate(`/editor/${detailObjectId}`);
+          }}
+          onAttachments={() => {
+            setAttachmentObjId(detailObjectId);
+            setDetailObjectId(null);
+          }}
+        />
+      )}
+
+      {/* Attachment viewer — opened via detail modal's onAttachments */}
+      {attachmentObjId && (
+        <AttachmentViewer
+          objectId={attachmentObjId}
+          onClose={() => setAttachmentObjId(null)}
+        />
+      )}
     </AppShell>
   );
 }
