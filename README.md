@@ -3,8 +3,7 @@
 **SoloSoul** is a local-first, zero-knowledge personal identity engine. Your data stays encrypted on your device — only you can access it.
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Platform: macOS](https://img.shields.io/badge/Platform-macOS-green.svg)](https://flutter.dev)
-![Tests](https://img.shields.io/github/actions/workflow/status/Gczmy/SoloSoul_code/ci_cd.yml?label=Security%20Tests&logo=rust)
+[![Platform: macOS | Windows](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-green.svg)]()
 ![Version](https://img.shields.io/github/v/release/Gczmy/SoloSoul?label=Build&color=blue)
 
 ---
@@ -24,35 +23,45 @@ SoloSoul is a **Local Digital Twin & Universal Identity Engine** — a decentral
 - **Zero-Knowledge Architecture** — Master password never stored, only derived key in memory
 - **Argon2id Key Derivation** — Memory-hard KDF resistant to brute-force attacks
 - **AES-256-GCM Encryption** — Military-grade encryption for all data
-- **Rust Core** — High-performance cryptographic operations via native FFI
+- **Rust Core** — High-performance cryptographic operations
 
-### Data Management
+### Object Management
 
-- **Profile Editor** — Manage identity, travel, financial, and professional information
+- **Template Engine** — Define custom object templates with 8+ field types (text, number, date, URL, email, select, multi-select)
+- **Card-Based Workspace** — Interactive cards with inline editing, sensitivity-aware masking, and collapsible sections
+- **History & Snapshots** — Automatic version snapshots on every modification. Browse and roll back to any previous version.
+- **Recycle Bin** — Soft-delete with time/type filters, batch operations, conflict detection on restore
+- **Full-Text Search** — Search across all objects with category, tag, and type filters
+
+### AI & Tools
+
+- **AI Chat** — Multi-provider LLM support (OpenAI, Anthropic, Ollama, and custom endpoints) with streaming responses
+- **Attachment System** — Upload, preview (images/PDF/text), rename, download, soft-delete, all files encrypted with vault key
 - **OCR Scanning** — Auto-extract data from passports, IDs, and visas
-- **Sensitive Fields** — Four-tier sensitivity system (Public / Private / Sensitive / Critical)
-- **Operation History** — Full audit trail of all changes
+- **Export/Import** — Encrypted export with tag filtering and attachment support
 
 ### Local-First
 
 - **100% Offline** — All data stored locally in `~/.solosoul/`
 - **No Cloud Sync** — Your data never leaves your device
 - **Multi-Account** — Each account has independently encrypted storage
+- **Biometric Unlock** — Touch ID / Face ID for quick vault access
 
 ---
 
 ## Installation
 
-### Requirements
+### macOS
 
-- **macOS** 10.15 (Catalina) or later
-- **Apple Silicon** or Intel processor
+<p>
+<a href="https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul.dmg" target="_self">
+  <img width="200" src="https://img.shields.io/badge/Download-macOS-blue?style=for-the-badge" alt="Download for macOS" />
+</a>
+</p>
 
-### Download and Install Manually
+**Requirements**: macOS 10.15 (Catalina) or later, Apple Silicon or Intel processor
 
-<a href="https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul.dmg" target="_self"><img width="200" src="https://img.shields.io/badge/Download-macOS-blue?style=for-the-badge" alt="Download for macOS" /></a>
-
-Once downloaded, open the `.dmg` and move **SoloSoul** to your `/Applications` folder.
+Once downloaded, open the `.dmg` and drag **SoloSoul** to your `/Applications` folder.
 
 > [!IMPORTANT]
 > We don't have an Apple Developer account (yet), so macOS will warn you that SoloSoul is from an unidentified developer on first launch. This is expected behavior.
@@ -60,8 +69,6 @@ Once downloaded, open the `.dmg` and move **SoloSoul** to your `/Applications` f
 > You'll need to bypass this before the app will open. You only need to do this once.
 
 #### Recommended: Terminal (Always Works)
-
-This is the quickest and easiest method. It only requires a single command and works consistently for all users. System Settings can sometimes fail and won't work for non-admin users.
 
 After moving SoloSoul to your Applications folder, run:
 
@@ -82,41 +89,36 @@ Then open the app normally.
 4. Scroll to the bottom and click **Open Anyway** next to the SoloSoul warning.
 5. Confirm if prompted.
 
+### Windows
+
+<p>
+<a href="https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul_x64-setup.exe" target="_self">
+  <img width="200" src="https://img.shields.io/badge/Download-Windows-blue?style=for-the-badge" alt="Download for Windows" />
+</a>
+</p>
+
+**Requirements**: Windows 10 or later, 64-bit processor
+
+Once downloaded, double-click the `.exe` installer and follow the setup wizard. SoloSoul will be installed to your Start Menu and Desktop.
+
+> [!NOTE]
+> Windows may show a SmartScreen warning because the installer is not yet code-signed. Click **More info** > **Run anyway** to proceed.
+
 ---
 
 ## Quick Start
 
 ### 1. Create Your Vault
 
-```
-┌─────────────────────────────────────┐
-│           SoloSoul                  │
-│                                     │
-│  ┌─────────────────────────────┐    │
-│  │     Create New Vault        │    │
-│  └─────────────────────────────┘    │
-│                                     │
-│  Master Password: ●●●●●●●●●●        │
-│  Confirm:        ●●●●●●●●●●         │
-│                                     │
-│        [ Create Vault ]             │
-└─────────────────────────────────────┘
-```
+On first launch, you'll be prompted to create a master password. This password is derived into an encryption key using Argon2id — it's **never stored**.
 
-### 2. Unlock with Password
+### 2. Define Templates
 
-Enter your master password to unlock your vault. The password is derived into an encryption key using Argon2id — it's never stored.
+Create object templates that match your data: contacts, documents, credentials, or anything else. Each template supports text, number, date, URL, email, phone, select, and multi-select fields.
 
-### 3. Manage Your Profile
+### 3. Add Objects
 
-Navigate through tabs to manage different aspects of your identity:
-
-| Tab | Contents |
-|-----|----------|
-| **Profile** | Name, birthdate, contact info, addresses |
-| **Travel** | Passports, visas, travel history |
-| **Financial** | Bank accounts, card information |
-| **Professional** | Education, employment, skills |
+Start adding objects using your templates. Each object is encrypted with AES-256-GCM and stored locally in `~/.solosoul/`.
 
 ---
 
@@ -124,49 +126,29 @@ Navigate through tabs to manage different aspects of your identity:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      SoloSoul App                           │
+│                      SoloSoul (Tauri v2)                     │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌──────────┐    ┌──────────┐    ┌──────────────────┐       │
-│  │  UI      │───►│ Flutter  │───►│  Rust FFI        │       │
-│  │  Layer   │    │  Layer   │    │  (Crypto Core)   │       │
-│  └──────────┘    └──────────┘    └──────────────────┘       │
-│                                              │              │
-│                                              ▼              │
-│  ┌──────────┐    ┌──────────┐    ┌──────────────────┐       │
-│  │  Plugin  │◄───│ Consent  │◄───│  ~/.solosoul/    │       │
-│  │  API     │    │ Manager  │    │  (Encrypted)     │       │
-│  └──────────┘    └──────────┘    └──────────────────┘       │
-│                                                             │
+│  ┌──────────────────┐    ┌──────────────────────────────┐   │
+│  │  React Frontend  │◄──►│  Rust Backend (Tauri)        │   │
+│  │  (TypeScript)    │IPC │  ┌────────────────────────┐  │   │
+│  │                  │    │  │  Commands / Services   │  │   │
+│  │  • Zustand       │    │  │  SQLite / Vault        │  │   │
+│  │  • CSS Modules   │    │  │  Argon2id / AES-256    │  │   │
+│  │  • i18next       │    │  └────────────────────────┘  │   │
+│  └──────────────────┘    └──────────────────────────────┘   │
+│                              │                              │
+│                              ▼                              │
+│              ┌──────────────────────────────┐               │
+│              │  ~/.solosoul/ (Encrypted)     │               │
+│              │  ├── config.json              │               │
+│              │  ├── index.db (SQLite)        │               │
+│              │  └── acc_{id}/                │               │
+│              │      ├── vault.enc            │               │
+│              │      └── attachments/         │               │
+│              └──────────────────────────────┘               │
 └─────────────────────────────────────────────────────────────┘
 ```
-
-### Data Storage
-
-```
-~/.solosoul/
-├── config.json           # Config (salt, version)
-├── index.db              # Encrypted index
-├── accounts/
-│   └── acc_{id}/
-│       └── *.enc         # Encrypted profile data
-└── plugins/              # Plugin configurations
-```
-
----
-
-## Sensitivity Levels
-
-SoloSoul uses a four-tier sensitivity system for field-level access control:
-
-| Level | Label | Description |
-|-------|-------|-------------|
-| **Public** | 公开 | Visible without authentication |
-| **Private** | 私有 | Requires unlock to view |
-| **Sensitive** | 敏感 | Requires password re-verification |
-| **Critical** | 机密 | Extra protection, access logged |
-
-All sensitivity changes are recorded in the operation history for security auditing.
 
 ---
 
@@ -174,18 +156,18 @@ All sensitivity changes are recorded in the operation history for security audit
 
 | Feature | Implementation |
 |---------|----------------|
-| Key Derivation | Argon2id (64MB, 3 iterations) |
+| Key Derivation | Argon2id (64MB, 3 iterations production) |
 | Encryption | AES-256-GCM |
 | Session Token | 24-hour expiry |
-| Plugin Consent | Per-field authorization |
-| Sensitive Data | Auto-zero after use |
+| Sensitivity Levels | Public / Private / Restricted |
+| Master Password | **Never stored**, memory-only key derivation |
 
 ### Zero-Knowledge Guarantee
 
 - Master password is **never stored**
-- Salt stored in `~/.solosoul/{account_id}/config.json` for key verification only
+- Salt stored in config for key verification only
 - Encryption/decryption happens in memory, then sensitive values are securely zeroed
-- External plugins require **explicit user consent** via Consent Manager
+- Data only stored locally in `~/.solosoul/`, **never uploaded to cloud**
 
 ---
 
@@ -193,18 +175,18 @@ All sensitivity changes are recorded in the operation history for security audit
 
 | Component | Technology |
 |-----------|------------|
-| Frontend | Flutter, Riverpod |
-| Crypto Core | Rust, Argon2id, AES-256-GCM |
-| Backend | Go, Gin |
-| Storage | Local encrypted files |
+| Frontend | React 19, TypeScript, Vite, Zustand |
+| Backend | Tauri v2 (Rust) |
+| Database | SQLite (rusqlite) |
+| Crypto | Argon2id, AES-256-GCM |
+| OCR | PP-OCRv4 (ONNX Runtime) |
 
 ---
 
 ## Documentation
 
-- [User Guide](./docs/USER_GUIDE.md) — Detailed usage instructions
-- [Privacy Policy](./docs/PRIVACY_POLICY.md)
-- [Terms of Service](./docs/TERMS_OF_SERVICE.md)
+- [Privacy Policy](./docs/en-US/PRIVACY_POLICY.md) — [中文](./docs/zh-CN/PRIVACY_POLICY.md)
+- [Terms of Service](./docs/en-US/TERMS_OF_SERVICE.md) — [中文](./docs/zh-CN/TERMS_OF_SERVICE.md)
 
 ---
 
@@ -214,8 +196,6 @@ Apache License 2.0
 
 Copyright (c) 2026 SoloSoul
 
-See [LICENSE](./LICENSE) for full license terms.
-
 ---
 
-**SoloSoul - Be the only master of your digital self.**
+**SoloSoul — Be the only master of your digital self.**
