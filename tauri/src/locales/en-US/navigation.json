@@ -17,5 +17,6 @@
   "add_page": "Add Page",
   "add_page_placeholder": "Page name",
   "custom_page": "My Projects",
-  "page_name_exists": "Page name already exists"
+  "page_name_exists": "Page name already exists",
+  "select_icon": "Choose Icon"
 }

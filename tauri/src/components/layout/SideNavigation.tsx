@@ -944,7 +944,6 @@ export function AddPageButton({
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<CustomIconId>(DEFAULT_CUSTOM_ICON);
-  const [showIconPicker, setShowIconPicker] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -957,7 +956,6 @@ export function AddPageButton({
     setName('');
     setNameError(false);
     setSelectedIconId(DEFAULT_CUSTOM_ICON);
-    setShowIconPicker(false);
   }, []);
 
   const handleConfirm = useCallback(() => {
@@ -1000,8 +998,6 @@ export function AddPageButton({
     setTimeout(() => document.addEventListener('mousedown', handler), 0);
     return () => document.removeEventListener('mousedown', handler);
   }, [isCreating, handleConfirm]);
-
-  const SelectedIcon = CUSTOM_ICON_MAP[selectedIconId];
 
   // Hover name card (same portal pattern as NavButton)
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -1096,7 +1092,6 @@ export function AddPageButton({
           onClick={() => {
             setIsCreating(true);
             setSelectedIconId(DEFAULT_CUSTOM_ICON);
-            setShowIconPicker(false);
             setTimeout(() => inputRef.current?.focus(), 100);
           }}
           aria-label={t('add_page')}
@@ -1142,98 +1137,72 @@ export function AddPageButton({
             border: '1px solid var(--border-subtle)',
           }}
         >
-          {/* Name input row */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-            {/* Icon picker trigger */}
-            <button
-              onClick={() => setShowIconPicker(!showIconPicker)}
-              style={{
-                width: 32,
-                height: 32,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-              title={t('add_page_placeholder') ?? 'Choose icon'}
-              aria-label={t("navigation:add_page")}
-            >
-              <SelectedIcon size={18} style={{ color: 'var(--accent-primary)' }} />
-            </button>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <input
-                ref={inputRef}
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value.slice(0, 20));
-                  setNameError(false);
-                }}
-                onBlur={(e) => {
-                  // Only confirm if the blur is not caused by clicking inside the popover
-                  if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
-                    handleConfirm();
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleConfirm();
-                  if (e.key === 'Escape') handleCancel();
-                }}
-                placeholder={t('add_page_placeholder')}
-                maxLength={20}
-                autoFocus
-                aria-label={t('add_page_placeholder')}
-                style={{
-                  padding: '6px 10px',
-                  fontSize: 14,
-                  border: nameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
-                  borderRadius: 6,
-                  background: 'transparent',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'inherit',
-                  outline: 'none',
-                  width: 160,
-                  animation: nameError ? 'shake 0.4s ease' : 'none',
-                }}
-              />
-              {nameError && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                  <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
-                    {t('page_name_exists')}
-                  </span>
-                  <button
-                    onClick={handleCancel}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-                    style={{ fontSize: 11, color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s ease' }}
-                  >
-                    {t('common:cancel')}
-                  </button>
-                </div>
-              )}
+          {/* Name input */}
+          <input
+            ref={inputRef}
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value.slice(0, 20));
+              setNameError(false);
+            }}
+            onBlur={(e) => {
+              // Only confirm if the blur is not caused by clicking inside the popover
+              if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
+                handleConfirm();
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleConfirm();
+              if (e.key === 'Escape') handleCancel();
+            }}
+            placeholder={t('add_page_placeholder')}
+            maxLength={20}
+            autoFocus
+            aria-label={t('add_page_placeholder')}
+            style={{
+              padding: '6px 10px',
+              fontSize: 14,
+              border: nameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
+              borderRadius: 6,
+              background: 'transparent',
+              color: 'var(--text-primary)',
+              fontFamily: 'inherit',
+              outline: 'none',
+              width: '100%',
+              boxSizing: 'border-box',
+              animation: nameError ? 'shake 0.4s ease' : 'none',
+            }}
+          />
+          {nameError && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
+                {t('page_name_exists')}
+              </span>
+              <button
+                onClick={handleCancel}
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+                style={{ fontSize: 11, color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s ease' }}
+              >
+                {t('common:cancel')}
+              </button>
             </div>
-          </div>
+          )}
 
-          {/* Icon picker grid */}
-          {showIconPicker && (
+          {/* Icon picker grid — always visible for quick selection */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{t('select_icon')}</span>
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(6, 1fr)',
                 gap: 4,
-                padding: '4px 0',
               }}
             >
               {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(([id, IconComp]) => (
                 <button
                   key={id}
-                  onClick={() => {
-                    setSelectedIconId(id);
-                    setShowIconPicker(false);
-                  }}
+                  onClick={() => setSelectedIconId(id)}
                   style={{
                     width: 32,
                     height: 32,
@@ -1263,7 +1232,7 @@ export function AddPageButton({
                 </button>
               ))}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
