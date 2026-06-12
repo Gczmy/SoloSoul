@@ -64,6 +64,7 @@ fn delete_master_key(account_id: &str) {
 }
 
 fn trigger_system_biometric(reason: &str) -> Result<(), String> {
+    let _ = reason;
     if !is_macos() {
         return Ok(());
     }

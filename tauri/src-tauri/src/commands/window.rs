@@ -41,7 +41,7 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
 
         unsafe {
             DwmSetWindowAttribute(
-                HWND(hwnd as isize),
+                HWND(hwnd as *mut std::ffi::c_void),
                 DWMWA_CAPTION_COLOR,
                 &caption_color as *const u32 as *const std::ffi::c_void,
                 std::mem::size_of::<u32>() as u32,
