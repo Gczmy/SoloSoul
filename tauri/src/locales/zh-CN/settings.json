@@ -352,6 +352,7 @@
       "object_restore": "恢复对象",
       "object_purge": "永久删除对象",
       "object_rollback": "回滚对象",
+      "page_create": "创建页面",
       "page_delete": "删除页面",
       "page_restore": "恢复页面",
       "trash_permanent_delete": "清空回收站",
@@ -399,6 +400,7 @@
     "conflict_none": "无冲突",
     "detail": {
       "object_create": "{{section}}",
+      "page_create": "{{section}}",
       "object_update": "",
       "object_delete": "{{section}} — 已移入回收站",
       "object_restore": "{{section}} — {{was_conflict}}",

@@ -191,9 +191,10 @@ pub async fn object_create(
     }))
     .unwrap_or_default();
     let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "Created");
+    let is_page = input.collection_type == "page";
     let _ = vault.log_structured(
-        "object_create",
-        "object",
+        if is_page { "page_create" } else { "object_create" },
+        if is_page { "page" } else { "object" },
         Some(&id),
         Some(&input.name),
         "user",

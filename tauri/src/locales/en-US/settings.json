@@ -352,6 +352,7 @@
       "object_restore": "Restore Object",
       "object_purge": "Purge Object",
       "object_rollback": "Rollback Object",
+      "page_create": "Create Page",
       "page_delete": "Delete Page",
       "page_restore": "Restore Page",
       "trash_permanent_delete": "Purge Trash",
@@ -399,6 +400,7 @@
     "conflict_none": "no conflict",
     "detail": {
       "object_create": "{{section}}",
+      "page_create": "{{section}}",
       "object_update": "",
       "object_delete": "{{section}} — moved to trash",
       "object_restore": "{{section}} — {{was_conflict}}",
