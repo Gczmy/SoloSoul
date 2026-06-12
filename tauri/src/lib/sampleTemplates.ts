@@ -30,7 +30,7 @@ export const SAMPLE_TEMPLATES: SampleTemplate[] = [
       { id: 'fullName', nameI18nKey: 'editor:fields.fullName', nameFallback: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
       { id: 'dateOfBirth', nameI18nKey: 'editor:fields.dateOfBirth', nameFallback: '出生日期', type: 'date', sensitivityLevel: 'internal' },
       { id: 'nationality', nameI18nKey: 'editor:fields.nationality', nameFallback: '国籍', type: 'text', sensitivityLevel: 'public' },
-      { id: 'idNumber', nameI18nKey: 'editor:fields.idNumber', nameFallback: '证件号码', type: 'text', sensitivityLevel: 'sensitive' },
+      { id: 'idNumber', nameI18nKey: 'editor:fields.idNumber', nameFallback: '证件号码', type: 'text', sensitivityLevel: 'critical' },
       { id: 'email', nameI18nKey: 'editor:fields.email', nameFallback: '电子邮箱', type: 'email', sensitivityLevel: 'internal' },
       { id: 'phone', nameI18nKey: 'editor:fields.phone', nameFallback: '电话', type: 'phone', sensitivityLevel: 'internal' },
     ],
@@ -43,7 +43,7 @@ export const SAMPLE_TEMPLATES: SampleTemplate[] = [
     nameFallback: '身份证',
     properties: [
       { id: 'fullName', nameI18nKey: 'editor:fields.fullName', nameFallback: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
-      { id: 'idNumber', nameI18nKey: 'editor:fields.idNumber', nameFallback: '身份证号', type: 'text', sensitivityLevel: 'sensitive' },
+      { id: 'idNumber', nameI18nKey: 'editor:fields.idNumber', nameFallback: '身份证号', type: 'text', sensitivityLevel: 'critical' },
       { id: 'dateOfBirth', nameI18nKey: 'editor:fields.dateOfBirth', nameFallback: '出生日期', type: 'date', sensitivityLevel: 'internal' },
       { id: 'nationality', nameI18nKey: 'editor:fields.nationality', nameFallback: '国籍', type: 'text', sensitivityLevel: 'public' },
       { id: 'issueDate', nameI18nKey: 'editor:fields.issueDate', nameFallback: '签发日期', type: 'date', sensitivityLevel: 'internal' },
@@ -57,7 +57,7 @@ export const SAMPLE_TEMPLATES: SampleTemplate[] = [
     nameFallback: '护照',
     properties: [
       { id: 'fullName', nameI18nKey: 'editor:fields.fullName', nameFallback: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
-      { id: 'passportNumber', nameI18nKey: 'editor:fields.passportNumber', nameFallback: '护照号码', type: 'text', sensitivityLevel: 'sensitive', required: true },
+      { id: 'passportNumber', nameI18nKey: 'editor:fields.passportNumber', nameFallback: '护照号码', type: 'text', sensitivityLevel: 'critical', required: true },
       { id: 'nationality', nameI18nKey: 'editor:fields.nationality', nameFallback: '国籍', type: 'text', sensitivityLevel: 'public' },
       { id: 'dateOfBirth', nameI18nKey: 'editor:fields.dateOfBirth', nameFallback: '出生日期', type: 'date', sensitivityLevel: 'internal' },
       { id: 'issueDate', nameI18nKey: 'editor:fields.issueDate', nameFallback: '签发日期', type: 'date', sensitivityLevel: 'internal' },
@@ -73,7 +73,7 @@ export const SAMPLE_TEMPLATES: SampleTemplate[] = [
     properties: [
       { id: 'country', nameI18nKey: 'editor:fields.country', nameFallback: '国家', type: 'text', sensitivityLevel: 'public' },
       { id: 'visaType', nameI18nKey: 'editor:fields.visaType', nameFallback: '签证类型', type: 'text', sensitivityLevel: 'public' },
-      { id: 'number', nameI18nKey: 'editor:fields.number', nameFallback: '签证号码', type: 'text', sensitivityLevel: 'sensitive' },
+      { id: 'number', nameI18nKey: 'editor:fields.number', nameFallback: '签证号码', type: 'text', sensitivityLevel: 'critical' },
       { id: 'issueDate', nameI18nKey: 'editor:fields.issueDate', nameFallback: '签发日期', type: 'date', sensitivityLevel: 'internal' },
       { id: 'expiryDate', nameI18nKey: 'editor:fields.expiryDate', nameFallback: '有效期至', type: 'date', sensitivityLevel: 'internal' },
     ],
@@ -86,7 +86,7 @@ export const SAMPLE_TEMPLATES: SampleTemplate[] = [
     nameFallback: '银行账户',
     properties: [
       { id: 'bankName', nameI18nKey: 'editor:fields.bankName', nameFallback: '银行名称', type: 'text', sensitivityLevel: 'public' },
-      { id: 'accountNumber', nameI18nKey: 'editor:fields.accountNumber', nameFallback: '账号', type: 'text', sensitivityLevel: 'sensitive' },
+      { id: 'accountNumber', nameI18nKey: 'editor:fields.accountNumber', nameFallback: '账号', type: 'text', sensitivityLevel: 'critical' },
       { id: 'accountType', nameI18nKey: 'editor:fields.accountType', nameFallback: '账户类型', type: 'text', sensitivityLevel: 'public' },
       { id: 'currency', nameI18nKey: 'editor:fields.currency', nameFallback: '币种', type: 'text', sensitivityLevel: 'public' },
     ],
@@ -98,7 +98,7 @@ export const SAMPLE_TEMPLATES: SampleTemplate[] = [
     nameI18nKey: 'editor:templates.card',
     nameFallback: '银行卡',
     properties: [
-      { id: 'cardNumber', nameI18nKey: 'editor:fields.cardNumber', nameFallback: '卡号', type: 'text', sensitivityLevel: 'sensitive' },
+      { id: 'cardNumber', nameI18nKey: 'editor:fields.cardNumber', nameFallback: '卡号', type: 'text', sensitivityLevel: 'critical' },
       { id: 'cardType', nameI18nKey: 'editor:fields.cardType', nameFallback: '卡类型', type: 'text', sensitivityLevel: 'public' },
       { id: 'holderName', nameI18nKey: 'editor:fields.holderName', nameFallback: '持卡人', type: 'text', sensitivityLevel: 'public' },
       { id: 'expiryDate', nameI18nKey: 'editor:fields.expiryDate', nameFallback: '有效期至', type: 'date', sensitivityLevel: 'internal' },

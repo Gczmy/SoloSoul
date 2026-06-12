@@ -11,7 +11,7 @@
         { "id": "fullName", "nameI18nKey": "editor:fields.fullName", "nameFallback": "姓名", "type": "text", "sensitivityLevel": "public", "required": true },
         { "id": "dateOfBirth", "nameI18nKey": "editor:fields.dateOfBirth", "nameFallback": "出生日期", "type": "date", "sensitivityLevel": "internal", "required": false },
         { "id": "nationality", "nameI18nKey": "editor:fields.nationality", "nameFallback": "国籍", "type": "text", "sensitivityLevel": "public", "required": false },
-        { "id": "idNumber", "nameI18nKey": "editor:fields.idNumber", "nameFallback": "证件号码", "type": "text", "sensitivityLevel": "sensitive", "required": false },
+        { "id": "idNumber", "nameI18nKey": "editor:fields.idNumber", "nameFallback": "证件号码", "type": "text", "sensitivityLevel": "critical", "required": false },
         { "id": "email", "nameI18nKey": "editor:fields.email", "nameFallback": "电子邮箱", "type": "email", "sensitivityLevel": "internal", "required": false },
         { "id": "phone", "nameI18nKey": "editor:fields.phone", "nameFallback": "电话", "type": "phone", "sensitivityLevel": "internal", "required": false }
       ]
@@ -24,7 +24,7 @@
       "nameFallback": "护照",
       "properties": [
         { "id": "fullName", "nameI18nKey": "editor:fields.fullName", "nameFallback": "姓名", "type": "text", "sensitivityLevel": "public", "required": true },
-        { "id": "passportNumber", "nameI18nKey": "editor:fields.passportNumber", "nameFallback": "护照号码", "type": "text", "sensitivityLevel": "sensitive", "required": true },
+        { "id": "passportNumber", "nameI18nKey": "editor:fields.passportNumber", "nameFallback": "护照号码", "type": "text", "sensitivityLevel": "critical", "required": true },
         { "id": "nationality", "nameI18nKey": "editor:fields.nationality", "nameFallback": "国籍", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "dateOfBirth", "nameI18nKey": "editor:fields.dateOfBirth", "nameFallback": "出生日期", "type": "date", "sensitivityLevel": "internal", "required": false },
         { "id": "issueDate", "nameI18nKey": "editor:fields.issueDate", "nameFallback": "签发日期", "type": "date", "sensitivityLevel": "internal", "required": false },
@@ -40,7 +40,7 @@
       "properties": [
         { "id": "country", "nameI18nKey": "editor:fields.country", "nameFallback": "国家", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "visaType", "nameI18nKey": "editor:fields.visaType", "nameFallback": "签证类型", "type": "text", "sensitivityLevel": "public", "required": false },
-        { "id": "number", "nameI18nKey": "editor:fields.number", "nameFallback": "签证号码", "type": "text", "sensitivityLevel": "sensitive", "required": false },
+        { "id": "number", "nameI18nKey": "editor:fields.number", "nameFallback": "签证号码", "type": "text", "sensitivityLevel": "critical", "required": false },
         { "id": "issueDate", "nameI18nKey": "editor:fields.issueDate", "nameFallback": "签发日期", "type": "date", "sensitivityLevel": "internal", "required": false },
         { "id": "expiryDate", "nameI18nKey": "editor:fields.expiryDate", "nameFallback": "有效期至", "type": "date", "sensitivityLevel": "internal", "required": false }
       ]
@@ -53,7 +53,7 @@
       "nameFallback": "银行账户",
       "properties": [
         { "id": "bankName", "nameI18nKey": "editor:fields.bankName", "nameFallback": "银行名称", "type": "text", "sensitivityLevel": "public", "required": false },
-        { "id": "accountNumber", "nameI18nKey": "editor:fields.accountNumber", "nameFallback": "账号", "type": "text", "sensitivityLevel": "sensitive", "required": false },
+        { "id": "accountNumber", "nameI18nKey": "editor:fields.accountNumber", "nameFallback": "账号", "type": "text", "sensitivityLevel": "critical", "required": false },
         { "id": "accountType", "nameI18nKey": "editor:fields.accountType", "nameFallback": "账户类型", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "currency", "nameI18nKey": "editor:fields.currency", "nameFallback": "币种", "type": "text", "sensitivityLevel": "public", "required": false }
       ]
@@ -65,7 +65,7 @@
       "nameI18nKey": "editor:templates.card",
       "nameFallback": "银行卡",
       "properties": [
-        { "id": "cardNumber", "nameI18nKey": "editor:fields.cardNumber", "nameFallback": "卡号", "type": "text", "sensitivityLevel": "sensitive", "required": false },
+        { "id": "cardNumber", "nameI18nKey": "editor:fields.cardNumber", "nameFallback": "卡号", "type": "text", "sensitivityLevel": "critical", "required": false },
         { "id": "cardType", "nameI18nKey": "editor:fields.cardType", "nameFallback": "卡类型", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "holderName", "nameI18nKey": "editor:fields.holderName", "nameFallback": "持卡人", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "expiryDate", "nameI18nKey": "editor:fields.expiryDate", "nameFallback": "有效期至", "type": "date", "sensitivityLevel": "internal", "required": false }

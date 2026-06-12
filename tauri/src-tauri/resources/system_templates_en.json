@@ -11,7 +11,7 @@
         { "id": "fullName", "nameI18nKey": "editor:fields.fullName", "nameFallback": "Full Name", "type": "text", "sensitivityLevel": "public", "required": true },
         { "id": "dateOfBirth", "nameI18nKey": "editor:fields.dateOfBirth", "nameFallback": "Date of Birth", "type": "date", "sensitivityLevel": "internal", "required": false },
         { "id": "nationality", "nameI18nKey": "editor:fields.nationality", "nameFallback": "Nationality", "type": "text", "sensitivityLevel": "public", "required": false },
-        { "id": "idNumber", "nameI18nKey": "editor:fields.idNumber", "nameFallback": "ID Number", "type": "text", "sensitivityLevel": "sensitive", "required": false },
+        { "id": "idNumber", "nameI18nKey": "editor:fields.idNumber", "nameFallback": "ID Number", "type": "text", "sensitivityLevel": "critical", "required": false },
         { "id": "email", "nameI18nKey": "editor:fields.email", "nameFallback": "Email", "type": "email", "sensitivityLevel": "internal", "required": false },
         { "id": "phone", "nameI18nKey": "editor:fields.phone", "nameFallback": "Phone", "type": "phone", "sensitivityLevel": "internal", "required": false }
       ]
@@ -24,7 +24,7 @@
       "nameFallback": "Passport",
       "properties": [
         { "id": "fullName", "nameI18nKey": "editor:fields.fullName", "nameFallback": "Full Name", "type": "text", "sensitivityLevel": "public", "required": true },
-        { "id": "passportNumber", "nameI18nKey": "editor:fields.passportNumber", "nameFallback": "Passport Number", "type": "text", "sensitivityLevel": "sensitive", "required": true },
+        { "id": "passportNumber", "nameI18nKey": "editor:fields.passportNumber", "nameFallback": "Passport Number", "type": "text", "sensitivityLevel": "critical", "required": true },
         { "id": "nationality", "nameI18nKey": "editor:fields.nationality", "nameFallback": "Nationality", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "dateOfBirth", "nameI18nKey": "editor:fields.dateOfBirth", "nameFallback": "Date of Birth", "type": "date", "sensitivityLevel": "internal", "required": false },
         { "id": "issueDate", "nameI18nKey": "editor:fields.issueDate", "nameFallback": "Issue Date", "type": "date", "sensitivityLevel": "internal", "required": false },
@@ -40,7 +40,7 @@
       "properties": [
         { "id": "country", "nameI18nKey": "editor:fields.country", "nameFallback": "Country", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "visaType", "nameI18nKey": "editor:fields.visaType", "nameFallback": "Visa Type", "type": "text", "sensitivityLevel": "public", "required": false },
-        { "id": "number", "nameI18nKey": "editor:fields.number", "nameFallback": "Visa Number", "type": "text", "sensitivityLevel": "sensitive", "required": false },
+        { "id": "number", "nameI18nKey": "editor:fields.number", "nameFallback": "Visa Number", "type": "text", "sensitivityLevel": "critical", "required": false },
         { "id": "issueDate", "nameI18nKey": "editor:fields.issueDate", "nameFallback": "Issue Date", "type": "date", "sensitivityLevel": "internal", "required": false },
         { "id": "expiryDate", "nameI18nKey": "editor:fields.expiryDate", "nameFallback": "Expiry Date", "type": "date", "sensitivityLevel": "internal", "required": false }
       ]
@@ -53,7 +53,7 @@
       "nameFallback": "Bank Account",
       "properties": [
         { "id": "bankName", "nameI18nKey": "editor:fields.bankName", "nameFallback": "Bank Name", "type": "text", "sensitivityLevel": "public", "required": false },
-        { "id": "accountNumber", "nameI18nKey": "editor:fields.accountNumber", "nameFallback": "Account Number", "type": "text", "sensitivityLevel": "sensitive", "required": false },
+        { "id": "accountNumber", "nameI18nKey": "editor:fields.accountNumber", "nameFallback": "Account Number", "type": "text", "sensitivityLevel": "critical", "required": false },
         { "id": "accountType", "nameI18nKey": "editor:fields.accountType", "nameFallback": "Account Type", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "currency", "nameI18nKey": "editor:fields.currency", "nameFallback": "Currency", "type": "text", "sensitivityLevel": "public", "required": false }
       ]
@@ -65,7 +65,7 @@
       "nameI18nKey": "editor:templates.card",
       "nameFallback": "Card",
       "properties": [
-        { "id": "cardNumber", "nameI18nKey": "editor:fields.cardNumber", "nameFallback": "Card Number", "type": "text", "sensitivityLevel": "sensitive", "required": false },
+        { "id": "cardNumber", "nameI18nKey": "editor:fields.cardNumber", "nameFallback": "Card Number", "type": "text", "sensitivityLevel": "critical", "required": false },
         { "id": "cardType", "nameI18nKey": "editor:fields.cardType", "nameFallback": "Card Type", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "holderName", "nameI18nKey": "editor:fields.holderName", "nameFallback": "Holder Name", "type": "text", "sensitivityLevel": "public", "required": false },
         { "id": "expiryDate", "nameI18nKey": "editor:fields.expiryDate", "nameFallback": "Expiry Date", "type": "date", "sensitivityLevel": "internal", "required": false }
