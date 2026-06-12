@@ -165,5 +165,19 @@
   "update_now": "立即更新",
   "skip_version": "跳过此版本",
   "update_later": "稍后提醒",
-  "update_check_failed": "检查更新失败"
+  "update_check_failed": "检查更新失败",
+  "onboarding_welcome_title": "欢迎使用 SoloSoul",
+  "onboarding_welcome_desc": "您的个人数字孪生与通用身份引擎。所有敏感数据本地加密，绝不上传云端。",
+  "onboarding_create_object_title": "创建第一个对象",
+  "onboarding_create_object_desc": "从身份、旅行、财务、职业等页面中创建对象，开始使用模板管理您的数据。",
+  "onboarding_templates_title": "使用模板",
+  "onboarding_templates_desc": "系统提供身份证、护照、银行账户等常用模板，也可在模板管理中自定义。",
+  "onboarding_security_title": "设置安全选项",
+  "onboarding_security_desc": "设置主密码、生物识别与自动锁定，确保您的保险库安全。",
+  "onboarding_finish_title": "准备就绪",
+  "onboarding_finish_desc": "您已完成新手引导。随时可在帮助页面重新打开。",
+  "onboarding_next": "下一步",
+  "onboarding_back": "上一步",
+  "onboarding_skip": "跳过",
+  "onboarding_done": "完成"
 }

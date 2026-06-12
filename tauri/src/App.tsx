@@ -32,6 +32,7 @@ import { TemplateManagerPage } from '@/pages/settings/TemplateManagerPage';
 import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UpdateBanner } from '@/components/ui/UpdateBanner';
+import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
 import { OcrPage } from '@/pages/scan/OcrPage';
 import { HistoryPage } from '@/pages/editor/HistoryPage';
@@ -394,10 +395,27 @@ function AppRoutes() {
 }
 
 function App() {
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
+    try {
+      return localStorage.getItem('solosoul_onboarding_seen') === 'true';
+    } catch { return true; }
+  });
+
+  const finishOnboarding = () => {
+    try { localStorage.setItem('solosoul_onboarding_seen', 'true'); } catch { /* ignore */ }
+    setHasSeenOnboarding(true);
+  };
+
   return (
     <BrowserRouter>
       <AppRoutes />
       <ToastContainer />
+      {!hasSeenOnboarding && (
+        <OnboardingDialog
+          onComplete={finishOnboarding}
+          onSkip={finishOnboarding}
+        />
+      )}
     </BrowserRouter>
   );
 }

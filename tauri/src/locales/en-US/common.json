@@ -166,5 +166,19 @@
   "update_now": "Update Now",
   "skip_version": "Skip This Version",
   "update_later": "Remind Me Later",
-  "update_check_failed": "Update check failed"
+  "update_check_failed": "Update check failed",
+  "onboarding_welcome_title": "Welcome to SoloSoul",
+  "onboarding_welcome_desc": "Your personal digital twin and universal identity engine. All sensitive data is encrypted and stored locally.",
+  "onboarding_create_object_title": "Create Your First Object",
+  "onboarding_create_object_desc": "Create objects from Identity, Travel, Financial, or Professional pages, and use templates to organize your data.",
+  "onboarding_templates_title": "Use Templates",
+  "onboarding_templates_desc": "System templates include ID card, passport, bank account, and more. You can also customize templates in Template Manager.",
+  "onboarding_security_title": "Set Security Options",
+  "onboarding_security_desc": "Set up your master password, biometrics, and auto-lock to keep your vault secure.",
+  "onboarding_finish_title": "You're Ready",
+  "onboarding_finish_desc": "You've completed the onboarding guide. You can reopen it anytime from the Help page.",
+  "onboarding_next": "Next",
+  "onboarding_back": "Back",
+  "onboarding_skip": "Skip",
+  "onboarding_done": "Done"
 }
