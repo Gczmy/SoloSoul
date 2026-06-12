@@ -4,35 +4,30 @@
 
 ### Changed
 
-- **Complete rewrite from Flutter to Tauri v2** — SoloSoul now uses a Rust/Tauri backend with React/TypeScript frontend, providing better performance, smaller binary size, and more native feel.
-- **Windows Installer** — Switched from ZIP portable to NSIS (.exe) installer for better user experience.
-- **Crate renamed** — `solosoul-app` → `solo_soul` (Rust naming convention).
+- **Complete Rewrite: Flutter → Tauri v2** — SoloSoul is now a Rust/Tauri desktop app with a React/TypeScript frontend. Significantly smaller bundle size (~50MB vs ~200MB), faster startup, and a fully native window experience.
 
 ### Added
 
-- **App Icon** — Custom shield icon with embedded S letter, not relying on system fonts.
-- **Multi-Select / Single-Select Field Options** — Template editor now supports defining options for select-type fields.
-- **Field Format Hints** — Show format examples (e.g. `https://example.com`, `name@example.com`) below field names in the object editor.
-- **URL Validation Relaxation** — Auto-prepend `https://` before validation to reduce user friction.
-- **Password Hint** — Welcome page now includes a password hint input field.
+- **Object Management System** — Create, edit, and organize objects with user-defined templates. Supports 8+ field types including text, number, date, URL, email, select, and multi-select with field-level validation and format hints.
+- **Template Engine** — Define and manage custom object templates with per-field types, options, and validation rules. Templates serve as schemas for consistent data entry.
+- **Card-Based Workspace** — Objects displayed as interactive cards with inline editing, sensitivity-aware masking, collapsible sections, and drag-to-reorder property fields.
+- **History & Snapshots** — Automatic version snapshots on every object modification. Browse and roll back to any previous version with diff summary.
+- **Recycle Bin** — Soft-delete with time/type filters, batch operations, conflict detection on restore, and permanent deletion.
+- **Full-Text Search** — Search across all objects with category, tag, and type filters.
+- **AI Chat Integration** — Multi-provider LLM support (OpenAI, Anthropic, Ollama, and custom endpoints) with streaming responses, conversation management, and AI-powered object creation.
+- **Attachment System** — Upload, preview (images/PDF/text), rename, download, soft-delete, restore, and permanent delete. All files encrypted with vault key.
+- **OCR Scanning** — Image-based OCR with MRZ parsing for passports and identity documents.
+- **Export/Import** — Encrypted object export with tag filtering and attachment support.
+- **Theme Engine** — 20+ preset themes with light/dark modes, accent color customization, and real-time switching.
+- **Biometric Unlock** — Touch ID / Face ID support for quick vault access.
+- **Operation Log** — Full audit trail of all CRUD actions with i18n support and structured detail logging.
 - **Privacy Policy & Terms of Service** — Bilingual (EN/ZH) documents with language-based auto-routing.
 
 ### Fixed
 
-- **Windows Language Detection** — Use `GetUserDefaultUILanguage` Win32 API to correctly detect display language (was always showing English on first launch).
-- **Windows Resource Paths** — Fixed resource path resolution for docs on Windows (was incorrectly using macOS `../Resources` path).
-- **Windows User Data Path** — Use `%USERPROFILE%` instead of `$HOME` for data storage.
-- **Windows Password Reveal Overlap** — Hidden native WebView2 password reveal button that overlapped the custom eye icon.
-- **Multi-Select Order** — Field values now display in template option order, not selection order.
-- **Multi-Select Display** — Fixed multi-select values not showing in cards, detail modals, and history panels.
-- **Page Restore** — Restoring a deleted page from trash now immediately refreshes the sidebar.
-- **Theme Sync** — Selecting a card theme now automatically syncs the light/dark appearance option.
-- **Password Validation** — Proper error message for short passwords (was incorrectly showing "incorrect password").
-- **Validation i18n** — URL/email/phone/date/number validation errors no longer display raw localization keys.
-- **Toast Messages** — Improved error toast from redundant "验证失败: 验证失败" to descriptive messages.
-- **About Page** — Platform shows OS name only (no architecture); logo uses consistent brand gradient.
-- **Privacy Policy & Terms Links** — Fixed 404 links, added bilingual documents.
+- **Windows Language Detection** — Correctly detects system display language instead of always defaulting to English.
 
+---
 ## [1.8.0] - 2026-06-03
 
 
