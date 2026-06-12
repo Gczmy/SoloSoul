@@ -214,11 +214,13 @@ if command -v create-dmg >/dev/null 2>&1; then
         "$DMG_STAGING_DIR/" \
         2>/dev/null || {
             log_warn "create-dmg failed, falling back to hdiutil"
-            hdiutil create -format UDZO -srcfolder "$DMG_STAGING_DIR" "$DMG_OUTPUT"
+            ln -s /Applications "$DMG_STAGING_DIR/Applications"
+            hdiutil create -format UDZO -volname "${APP_NAME}" -srcfolder "$DMG_STAGING_DIR" -o "$DMG_OUTPUT"
         }
 else
     log_info "Using hdiutil (install create-dmg for branded DMG)"
-    hdiutil create -format UDZO -srcfolder "$DMG_STAGING_DIR" "$DMG_OUTPUT"
+    ln -s /Applications "$DMG_STAGING_DIR/Applications"
+    hdiutil create -format UDZO -volname "${APP_NAME}" -srcfolder "$DMG_STAGING_DIR" -o "$DMG_OUTPUT"
 fi
 
 # 对 DMG 签名
