@@ -70,8 +70,10 @@ pub async fn ui_update_preference(
     }
     if let Some(obj) = prefs.as_object_mut() {
         // Try to parse the value as JSON so objects/numbers can be stored; fall back to string.
-        let parsed = serde_json::from_str(&value)
-            .unwrap_or_else(|_| serde_json::Value::String(value));
+        let parsed = match serde_json::from_str(&value) {
+            Ok(v) => v,
+            Err(_) => serde_json::Value::String(value),
+        };
         obj.insert(key, parsed);
     }
     let json = serde_json::to_string(&prefs).map_err(|e| e.to_string())?;
@@ -187,6 +189,7 @@ mod tests {
             theme: "dark".to_string(),
             accent_color: "rose".to_string(),
             language: "zh-CN".to_string(),
+            window_size: None,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("\"theme\":\"dark\""));

@@ -156,7 +156,12 @@ impl VaultService {
         result
     }
 
-    pub fn create_account(&self, name: &str, password: &str, password_hint: Option<&str>) -> Result<serde_json::Value, String> {
+    pub fn create_account(
+        &self,
+        name: &str,
+        password: &str,
+        password_hint: Option<&str>,
+    ) -> Result<serde_json::Value, String> {
         if name.trim().is_empty() {
             return Err("Account name is required".to_string());
         }
@@ -591,7 +596,7 @@ mod tests {
     #[test]
     fn test_create_account_duplicate_name_fails() {
         let (svc, _dir) = setup_service();
-        svc.create_account("Alice", "password123").unwrap();
+        svc.create_account("Alice", "password123", None).unwrap();
         let result = svc.create_account("alice", "password456", None);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("already taken"));
@@ -600,7 +605,7 @@ mod tests {
     #[test]
     fn test_unlock_and_lock() {
         let (svc, _dir) = setup_service();
-        let account = svc.create_account("Bob", "password123").unwrap();
+        let account = svc.create_account("Bob", "password123", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
 
         // create_account leaves vault unlocked
@@ -620,7 +625,7 @@ mod tests {
     #[test]
     fn test_unlock_wrong_password_fails() {
         let (svc, _dir) = setup_service();
-        let account = svc.create_account("Carol", "password123").unwrap();
+        let account = svc.create_account("Carol", "password123", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
 
         let result = svc.unlock(account_id, "wrongpassword");
@@ -631,8 +636,8 @@ mod tests {
     #[test]
     fn test_list_accounts() {
         let (svc, _dir) = setup_service();
-        svc.create_account("Alice", "password123").unwrap();
-        svc.create_account("Bob", "password123").unwrap();
+        svc.create_account("Alice", "password123", None).unwrap();
+        svc.create_account("Bob", "password123", None).unwrap();
         let accounts = svc.list_accounts();
         assert_eq!(accounts.len(), 2);
     }
@@ -640,7 +645,7 @@ mod tests {
     #[test]
     fn test_verify_password() {
         let (svc, _dir) = setup_service();
-        let account = svc.create_account("Dave", "password123").unwrap();
+        let account = svc.create_account("Dave", "password123", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
 
         assert!(svc.verify_password(account_id, "password123").unwrap());
@@ -650,7 +655,7 @@ mod tests {
     #[test]
     fn test_change_password() {
         let (svc, _dir) = setup_service();
-        let account = svc.create_account("Eve", "oldpassword").unwrap();
+        let account = svc.create_account("Eve", "oldpassword", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
 
         svc.unlock(account_id, "oldpassword").unwrap();
@@ -666,7 +671,7 @@ mod tests {
     #[test]
     fn test_update_password_hint() {
         let (svc, _dir) = setup_service();
-        let account = svc.create_account("Frank", "password123").unwrap();
+        let account = svc.create_account("Frank", "password123", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
 
         svc.update_password_hint(account_id, "My favorite color")
@@ -681,7 +686,7 @@ mod tests {
     #[test]
     fn test_delete_account() {
         let (svc, _dir) = setup_service();
-        let account = svc.create_account("Grace", "password123").unwrap();
+        let account = svc.create_account("Grace", "password123", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
 
         svc.delete_account(account_id).unwrap();
@@ -692,7 +697,7 @@ mod tests {
     #[test]
     fn test_unlock_with_session_key() {
         let (svc, _dir) = setup_service();
-        let account = svc.create_account("Hank", "password123").unwrap();
+        let account = svc.create_account("Hank", "password123", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
 
         let session_key = [0u8; 32];
@@ -705,7 +710,7 @@ mod tests {
     #[test]
     fn test_get_vault_store_when_locked() {
         let (svc, _dir) = setup_service();
-        svc.create_account("Ivy", "password123").unwrap();
+        svc.create_account("Ivy", "password123", None).unwrap();
         // create_account leaves vault unlocked; lock first
         svc.lock();
         assert!(svc.get_vault_store().is_none());
@@ -714,7 +719,7 @@ mod tests {
     #[test]
     fn test_get_vault_store_when_unlocked() {
         let (svc, _dir) = setup_service();
-        let account = svc.create_account("Jack", "password123").unwrap();
+        let account = svc.create_account("Jack", "password123", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
         svc.unlock(account_id, "password123").unwrap();
         assert!(svc.get_vault_store().is_some());

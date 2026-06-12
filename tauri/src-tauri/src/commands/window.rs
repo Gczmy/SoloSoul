@@ -33,9 +33,7 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
         use windows::Win32::Foundation::HWND;
         use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_CAPTION_COLOR};
 
-        let hwnd = window
-            .hwnd()
-            .map_err(|e| format!("无法获取 HWND: {}", e))?;
+        let hwnd = window.hwnd().map_err(|e| format!("无法获取 HWND: {}", e))?;
 
         // 将 RGB 打包为 Windows COLORREF (0x00BBGGRR)
         let caption_color: u32 =

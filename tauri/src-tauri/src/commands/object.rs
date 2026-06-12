@@ -110,10 +110,20 @@ pub async fn object_list(
     let parent_id = filter.as_ref().and_then(|f| f.parent_id.as_deref());
     let keyword = filter.as_ref().and_then(|f| f.keyword.as_deref());
 
-    let include_deleted = filter.as_ref().and_then(|f| f.include_deleted).unwrap_or(false);
+    let include_deleted = filter
+        .as_ref()
+        .and_then(|f| f.include_deleted)
+        .unwrap_or(false);
 
     // Keyword search is done at SQL level — no N+1 queries
-    vault.list_objects(&account_id, type_id, parent_id, keyword, include_deleted, false)
+    vault.list_objects(
+        &account_id,
+        type_id,
+        parent_id,
+        keyword,
+        include_deleted,
+        false,
+    )
 }
 
 #[tauri::command]
@@ -148,7 +158,10 @@ pub async fn object_create(
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
     let now = chrono::Utc::now().to_rfc3339();
-    let id = input.id.clone().unwrap_or_else(|| Uuid::new_v4().to_string());
+    let id = input
+        .id
+        .clone()
+        .unwrap_or_else(|| Uuid::new_v4().to_string());
 
     let record = ObjectRecord {
         id: id.clone(),
@@ -193,7 +206,11 @@ pub async fn object_create(
     let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "Created");
     let is_page = input.collection_type == "page";
     let _ = vault.log_structured(
-        if is_page { "page_create" } else { "object_create" },
+        if is_page {
+            "page_create"
+        } else {
+            "object_create"
+        },
         if is_page { "page" } else { "object" },
         Some(&id),
         Some(&input.name),
@@ -1035,7 +1052,10 @@ pub async fn trash_get_detail(
                     .filter_map(|p| {
                         let name = p.get("name")?.as_str()?;
                         let prop_type = p.get("type")?.as_str()?;
-                        let sensitivity = p.get("sensitivityLevel").and_then(|v| v.as_str()).unwrap_or("internal");
+                        let sensitivity = p
+                            .get("sensitivityLevel")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("internal");
                         Some(serde_json::json!({
                             "key": name,
                             "value": prop_type,
@@ -1054,12 +1074,19 @@ pub async fn trash_get_detail(
             // Load template to get field metadata and ordering
             let tpl_fields: Vec<(String, String, String, String)> =
                 if let Some(tpl_id) = data.get("template_id").and_then(|v| v.as_str()) {
-                    vault.load_user_template(tpl_id).ok().flatten()
+                    vault
+                        .load_user_template(tpl_id)
+                        .ok()
+                        .flatten()
                         .map(|tpl| {
-                            tpl.properties.into_iter()
+                            tpl.properties
+                                .into_iter()
                                 .map(|p| {
-                                    let sens = p.sensitivity_level.unwrap_or_else(|| "internal".to_string());
-                                    let ptype = serde_json::to_string(&p.prop_type).ok()
+                                    let sens = p
+                                        .sensitivity_level
+                                        .unwrap_or_else(|| "internal".to_string());
+                                    let ptype = serde_json::to_string(&p.prop_type)
+                                        .ok()
                                         .and_then(|s| serde_json::from_str::<String>(&s).ok())
                                         .unwrap_or_else(|| "text".to_string());
                                     (p.id, p.name, ptype, sens)
@@ -1083,7 +1110,8 @@ pub async fn trash_get_detail(
                 }
             }
             // Fallback: any properties not in template (orphaned fields)
-            let known: std::collections::HashSet<String> = tpl_fields.iter().map(|(id, _, _, _)| id.clone()).collect();
+            let known: std::collections::HashSet<String> =
+                tpl_fields.iter().map(|(id, _, _, _)| id.clone()).collect();
             for (k, v) in props.iter() {
                 if !k.starts_with("__") && !known.contains(k) {
                     result.push(serde_json::json!({"key": k, "value": v}));
@@ -1133,7 +1161,9 @@ pub async fn trash_get_detail(
     // Extract template_id from stored data
     let template_id = (|| -> Option<String> {
         let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
-        data.get("template_id").and_then(|v| v.as_str()).map(String::from)
+        data.get("template_id")
+            .and_then(|v| v.as_str())
+            .map(String::from)
     })();
 
     Ok(TrashDetail {

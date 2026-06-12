@@ -83,8 +83,7 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), String> {
     use objc2::{msg_send, sel};
 
     let la_name = c"LAContext";
-    let la_cls = AnyClass::get(la_name)
-        .ok_or_else(|| "Touch ID not available".to_string())?;
+    let la_cls = AnyClass::get(la_name).ok_or_else(|| "Touch ID not available".to_string())?;
 
     let ctx: *mut NSObject = unsafe {
         let alloc: *mut NSObject = msg_send![la_cls, alloc];
@@ -94,11 +93,9 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), String> {
         return Err("failed to initialise LAContext".to_string());
     }
 
-    let c_reason =
-        CString::new(reason).map_err(|_| "invalid reason string".to_string())?;
+    let c_reason = CString::new(reason).map_err(|_| "invalid reason string".to_string())?;
     let ns_name = c"NSString";
-    let ns_cls = AnyClass::get(ns_name)
-        .ok_or_else(|| "NSString class not found".to_string())?;
+    let ns_cls = AnyClass::get(ns_name).ok_or_else(|| "NSString class not found".to_string())?;
     let ns_reason: *mut NSObject = unsafe {
         let alloc: *mut NSObject = msg_send![ns_cls, alloc];
         msg_send![alloc, initWithUTF8String: c_reason.as_ptr()]
@@ -123,7 +120,9 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), String> {
         ];
     }
 
-    let success = rx.recv().map_err(|_| "Touch ID dialog interrupted".to_string())?;
+    let success = rx
+        .recv()
+        .map_err(|_| "Touch ID dialog interrupted".to_string())?;
 
     // Release manually-owned ObjC objects (MRC)
     unsafe {
@@ -297,7 +296,10 @@ pub async fn biometric_unlock(
                 Some(&account_id),
                 None,
                 "user",
-                Some(&format!("location={} action={} type={}", loc, act, bio_type)),
+                Some(&format!(
+                    "location={} action={} type={}",
+                    loc, act, bio_type
+                )),
             );
         }
     }

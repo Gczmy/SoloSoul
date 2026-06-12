@@ -1239,7 +1239,6 @@ impl VaultStore {
             .map_err(|e| format!("check_field_usage soft_deleted: {}", e))?;
         Ok((active as usize, soft_deleted as usize))
     }
-
 }
 
 #[cfg(test)]
@@ -2514,6 +2513,7 @@ mod tests {
                     sensitivity_level: None,
                     sensitive: Some(false),
                     options: None,
+                    deprecated_at: None,
                 },
                 crate::TemplateProperty {
                     id: "passport_number".to_string(),
@@ -2522,6 +2522,7 @@ mod tests {
                     sensitivity_level: None,
                     sensitive: Some(true),
                     options: None,
+                    deprecated_at: None,
                 },
                 crate::TemplateProperty {
                     id: "expiry_date".to_string(),
@@ -2530,6 +2531,7 @@ mod tests {
                     sensitivity_level: None,
                     sensitive: Some(false),
                     options: None,
+                    deprecated_at: None,
                 },
             ],
             category: Some("identity".to_string()),
@@ -2585,6 +2587,7 @@ mod tests {
             sensitivity_level: None,
             sensitive: Some(false),
             options: None,
+            deprecated_at: None,
         });
         tpl.updated_at = Some(chrono::Utc::now().to_rfc3339());
         vault.save_user_template(&tpl).unwrap();
@@ -2680,6 +2683,7 @@ mod tests {
                 sensitivity_level: None,
                 sensitive: None,
                 options: None,
+                deprecated_at: None,
             }],
             category: Some("identity".to_string()),
             created_at: "2024-01-01T00:00:00Z".to_string(),

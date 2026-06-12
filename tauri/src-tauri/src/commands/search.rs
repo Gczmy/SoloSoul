@@ -153,7 +153,8 @@ fn search_pages(
     let mut items: Vec<SearchResultItem> = Vec::new();
 
     // Custom pages are stored as objects with type_id = "page"
-    let custom_pages = vault.list_objects(account_id, Some("page"), None, Some(&q), false, false)?;
+    let custom_pages =
+        vault.list_objects(account_id, Some("page"), None, Some(&q), false, false)?;
     for page in custom_pages {
         let score = if page.name.to_lowercase() == q {
             5.0
@@ -260,11 +261,7 @@ async fn search_advanced_impl(
             let sensitivity_levels = object_sensitivity_levels(rec);
             // 每个对象只返回一条最佳结果，避免同一对象因多个字段匹配而重复出现
             let (matched_field, matched_value, relevance) = if field_matches.is_empty() {
-                (
-                    Some("name".to_string()),
-                    Some(rec.name.clone()),
-                    name_score,
-                )
+                (Some("name".to_string()), Some(rec.name.clone()), name_score)
             } else {
                 field_matches
                     .sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
@@ -316,7 +313,15 @@ pub async fn search_advanced(
     sensitivity_level: Option<String>,
     limit: Option<usize>,
 ) -> Result<SearchResult, String> {
-    search_advanced_impl(&state, &account_id, &query, collection_type, sensitivity_level, limit).await
+    search_advanced_impl(
+        &state,
+        &account_id,
+        &query,
+        collection_type,
+        sensitivity_level,
+        limit,
+    )
+    .await
 }
 
 #[tauri::command]
@@ -388,9 +393,8 @@ pub async fn search_unified(
         let svc = state.vault_service.read().await;
         let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-        match search_pages(vault, &account_id, &query) {
-            Ok(pages) => object_result.items.extend(pages),
-            Err(_) => {}
+        if let Ok(pages) = search_pages(vault, &account_id, &query) {
+            object_result.items.extend(pages);
         }
         object_result.items.sort_by(|a, b| {
             b.relevance

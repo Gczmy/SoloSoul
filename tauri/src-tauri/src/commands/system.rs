@@ -80,8 +80,7 @@ pub async fn download_update(
     use futures::StreamExt;
     use std::io::Write;
 
-    let file = std::fs::File::create(&dest)
-        .map_err(|e| format!("Failed to create file: {}", e))?;
+    let file = std::fs::File::create(&dest).map_err(|e| format!("Failed to create file: {}", e))?;
     let mut writer = std::io::BufWriter::new(file);
     // Report every ~500 KB
     let report_interval = 500 * 1024u64;
@@ -95,10 +94,13 @@ pub async fn download_update(
         downloaded += chunk.len() as u64;
 
         if downloaded >= next_report {
-            let _ = app.emit("update-download-progress", serde_json::json!({
-                "downloaded": downloaded,
-                "total": total_size,
-            }));
+            let _ = app.emit(
+                "update-download-progress",
+                serde_json::json!({
+                    "downloaded": downloaded,
+                    "total": total_size,
+                }),
+            );
             next_report = downloaded + report_interval;
         }
     }
@@ -117,10 +119,13 @@ pub async fn download_update(
     }
 
     // Emit final 100%
-    let _ = app.emit("update-download-progress", serde_json::json!({
-        "downloaded": downloaded,
-        "total": total_size,
-    }));
+    let _ = app.emit(
+        "update-download-progress",
+        serde_json::json!({
+            "downloaded": downloaded,
+            "total": total_size,
+        }),
+    );
 
     Ok(dest.to_string_lossy().to_string())
 }
@@ -215,14 +220,8 @@ async fn fetch_latest_release() -> Result<Option<(String, Vec<ReleaseAsset>)>, S
 
 /// Simple semver comparison: returns > 0 if a > b, 0 if equal, < 0 if a < b.
 fn compare_versions(a: &str, b: &str) -> i32 {
-    let a_parts: Vec<i32> = a
-        .split('.')
-        .filter_map(|s| s.parse::<i32>().ok())
-        .collect();
-    let b_parts: Vec<i32> = b
-        .split('.')
-        .filter_map(|s| s.parse::<i32>().ok())
-        .collect();
+    let a_parts: Vec<i32> = a.split('.').filter_map(|s| s.parse::<i32>().ok()).collect();
+    let b_parts: Vec<i32> = b.split('.').filter_map(|s| s.parse::<i32>().ok()).collect();
     for i in 0..3 {
         let av = a_parts.get(i).copied().unwrap_or(0);
         let bv = b_parts.get(i).copied().unwrap_or(0);

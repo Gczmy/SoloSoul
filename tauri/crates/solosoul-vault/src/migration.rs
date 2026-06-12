@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 13;
+pub const CURRENT_SCHEMA_VERSION: u32 = 14;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -268,8 +268,13 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         let now = Utc::now().timestamp();
         conn.execute(
             "INSERT INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
-            params![14, now, "Add deprecatedAt support to TemplateProperty (properties_json is free-form JSON)"],
-        ).ok();
+            params![
+                14,
+                now,
+                "Add deprecatedAt support to TemplateProperty (properties_json is free-form JSON)"
+            ],
+        )
+        .ok();
         set_schema_version(conn, 14)?;
     }
     Ok(())
