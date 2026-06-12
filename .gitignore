@@ -73,6 +73,9 @@ web/next-env.d.ts
 *.orig
 *.rej
 
+# Release artifacts (DMG, EXE — uploaded to GitHub Releases, not git)
+SoloSoul-Releases/
+
 # Version managers
 .tool-versions
 .ruby-version

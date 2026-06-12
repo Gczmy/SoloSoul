@@ -102,13 +102,18 @@ export function SecurePasswordInput({
         <input
           id="secure-password-input"
           ref={inputRef}
-          type={visible ? 'text' : 'password'}
+          type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={handleBlur}
           placeholder={t(placeholder)}
           disabled={disabled}
           autoComplete={autoComplete}
+          spellCheck={false}
+          autoCapitalize="off"
+          autoCorrect="off"
+          data-1p-ignore
+          data-lpignore="true"
           aria-live="polite"
           style={{
             flex: 1,
@@ -118,6 +123,8 @@ export function SecurePasswordInput({
             background: 'transparent',
             color: 'var(--text-primary)',
             fontFamily: 'inherit',
+            // Replace type="password" masking with CSS text-security
+            ...(visible ? {} : { WebkitTextSecurity: 'disc' as any }),
           }}
         />
 

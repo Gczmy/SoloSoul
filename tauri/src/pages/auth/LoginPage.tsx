@@ -186,6 +186,7 @@ export function LoginPage() {
               onChange={(v) => setPassword(v)}
               placeholder={t('common:password_placeholder')}
               hint={(selectedAccount as { passwordHint?: string })?.passwordHint || null}
+              autoComplete="current-password"
             />
             {(error || bioError) && (
               <div style={{ color: '#e74c3c', fontSize: 13 }}>

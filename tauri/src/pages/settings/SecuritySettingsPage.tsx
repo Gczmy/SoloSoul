@@ -112,13 +112,14 @@ export function SecuritySettingsPage() {
     try {
       if (isChangingPw) {
         // 10.3 — 同时修改密码和密码提示
-        await invoke('vault_change_password', {
+        await invoke('change_password', {
           accountId: currentAccount?.id || '',
           oldPassword: oldPw,
           newPassword: newPw,
         });
         if (hint.trim() || hintCleared) {
-          await invoke('vault_update_hint', { accountId: currentAccount?.id || '', password: oldPw, hint: hint.trim() });
+          // Password already changed — use the new password for vault_update_hint
+          await invoke('vault_update_hint', { accountId: currentAccount?.id || '', password: newPw, hint: hint.trim() });
         }
         onSuccess(t('settings:password_updated'));
       } else {

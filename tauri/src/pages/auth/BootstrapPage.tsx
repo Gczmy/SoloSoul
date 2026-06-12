@@ -43,7 +43,7 @@ export function BootstrapPage() {
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>
           {t('auth:bootstrap_subtitle')}
         </p>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <form onSubmit={handleSubmit} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input
             label={t('auth:account_name')}
             value={accountName}
@@ -55,6 +55,7 @@ export function BootstrapPage() {
             value={password}
             onChange={(v) => setPassword(v)}
             placeholder={t('common:password_placeholder')}
+            autoComplete="new-password"
           />
           <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: -12 }}>
             {t('auth:password_rule_hint')}
@@ -64,6 +65,7 @@ export function BootstrapPage() {
             value={confirm}
             onChange={(v) => setConfirm(v)}
             placeholder={t('common:password_placeholder')}
+            autoComplete="new-password"
           />
           <Input
             label={t('auth:password_hint')}

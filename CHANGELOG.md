@@ -4,6 +4,14 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-06-12
+
+### Fixed
+
+- **macOS Bootstrap Page Input (v2)** — Password fields on first-run wizard no longer blocked by WKWebView password manager. Replaced `<input type="password">` with `type="text"` + CSS `-webkit-text-security: disc` to bypass WebKit keyboard interception on forms with multiple password fields. Also applied to login page password input.
+- **Password Change Command** — Fixed `Command vault_change_password not found` error on Settings page. Frontend was calling `vault_change_password` but Rust command was registered as `change_password`.
+- **Password Hint After Password Change** — When updating password + hint simultaneously, the hint update now uses the new password (instead of the old one, which failed because the password had already changed).
+
 ## [2.0.0] - 2026-06-12
 
 ### Changed (Major)

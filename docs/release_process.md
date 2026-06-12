@@ -1,7 +1,7 @@
 # SoloSoul 发布流程（macOS + Windows）
 
-> 同时发布 macOS DMG 和 Windows MSI，版本号严格同步。
-> 当前基于 **Tauri v2** 架构，不再使用 Flutter。
+> 同时发布 macOS DMG 和 Windows NSIS 安装包，版本号严格同步。
+> 当前基于 **Tauri v2** 架构。
 
 ---
 
@@ -16,7 +16,7 @@
 
 ## 阶段一：准备（在 Mac 上执行一次）
 
-### 1. 检查代码库同步状态
+### 1. 检查私有库同步状态
 
 确认 https://github.com/Gczmy/SoloSoul_code.git 与本地状态相同，如有未推送的本地更新，优先推送。
 
@@ -40,7 +40,7 @@ Tauri 版本号分散在 **3 个文件**中，必须保持严格一致：
 > 版本号格式：`主版本.次版本.补丁`。macOS 和 Windows 使用完全相同的版本号。
 > Tauri 不支持 `+buildNumber` 后缀，请使用纯 SemVer 格式。
 
-### 3. 推送版本号更新
+### 3. 推送版本号更新到私有库
 
 ```bash
 git add tauri/package.json tauri/src-tauri/tauri.conf.json tauri/Cargo.toml
@@ -56,7 +56,7 @@ git push origin master
 
 ```bash
 cd /Users/zzc/PycharmProjects/SoloSoul_code
-./build_macos_release.sh
+./docs/build_macos_release.sh
 ```
 
 脚本自动从 `tauri/package.json` 读取版本号（如 `2.1.0`），产物：
@@ -67,7 +67,7 @@ tauri/src-tauri/target/release/bundle/
 └── dmg/SoloSoul_2.1.0_arm64.dmg
 ```
 
-> 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./build_macos_release.sh`
+> 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./docs/build_macos_release.sh`
 > （注意：传入参数不会修改源文件中的版本号，仅影响产物命名）
 
 #### 签名说明
@@ -76,13 +76,11 @@ tauri/src-tauri/target/release/bundle/
 - 首次在另一台 Mac 上运行时，需在 系统设置 > 隐私与安全性 中手动允许
 - 如需使用 Apple Development 证书：
   ```bash
-  APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name" ./build_macos_release.sh
+  APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name" ./docs/build_macos_release.sh
   ```
 - **对外公开分发**前，需获取 Apple Developer ID 账户并添加公证（Notarization）步骤
 
 ### 4b. Windows 构建（在 Windows 上执行）
-
-#### 方式一：使用一键脚本（推荐）
 
 在 Windows PC（或 Parallels/VMware 虚拟机）的 **Git Bash**（或 MSYS2 / WSL）中：
 
@@ -104,21 +102,6 @@ tauri/src-tauri/target/release/bundle/
 
 > 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./docs/build_windows_release.sh`
 
-#### 方式二：手动 PowerShell 构建
-
-```powershell
-# 1. 先拉取最新代码（确保版本号已更新）
-cd D:\PycharmProject\SoloSoul_code
-git pull origin master
-
-# 2. 安装依赖并构建
-cd tauri
-npm ci
-npm run tauri build
-```
-
-产物同上。
-
 > Windows 代码签名需另行购买证书并使用 `signtool` 签名，当前未在脚本中实现。
 
 ---
@@ -131,8 +114,8 @@ npm run tauri build
 
 ```
 ~/SoloSoul-Releases/
-├── SoloSoul_2.1.0_arm64.dmg          # macOS (Apple Silicon)
-└── SoloSoul_2.1.0_x64-setup.exe      # Windows (NSIS 安装包)
+├── SoloSoul_2.1.0_arm64.dmg      # macOS (Apple Silicon)
+└── SoloSoul_2.1.0_x64-setup.exe  # Windows (NSIS 安装包)
 ```
 
 ### 6. 本地验证
@@ -149,22 +132,25 @@ npm run tauri build
 
 ### 7. GitHub Release 发布
 
-在 https://github.com/Gczmy/SoloSoul_code.git 创建 Release：
+在 **公开库** https://github.com/Gczmy/SoloSoul.git 创建 Release：
 
 1. 点击 "Draft a new release"
 2. 选择或创建标签（如 `v2.1.0`）
 3. 填写 Release 标题和说明
-4. **上传附件**：
+4. **上传两个附件**：
    - `SoloSoul_2.1.0_arm64.dmg`
    - `SoloSoul_2.1.0_x64-setup.exe`
-5. 勾选 "Set as a pre-release"（如为预览版）或 "Publish release"
+5. 点击 "Publish release"
 
 > 通过 GitHub Releases 上传，而不是通过 git 提交。GitHub Releases 允许上传附件，这些附件不存储在 git 仓库中。
 
-### 8. 更新 Changelog
+### 8. 更新公开库 changelog（简洁版本）
 
-- **公开库**（https://github.com/Gczmy/SoloSoul.git）：更新 `CHANGELOG.md`，包含从上次版本到本次版本的所有变更摘要
-- **私有库**（当前仓库）：更新 `CHANGELOG.md`，包含详细的变更列表（检查 commit 记录，不要遗漏）
+在 https://github.com/Gczmy/SoloSoul.git 更新 `CHANGELOG.md`，包含从上次版本到本次版本的所有变更摘要。
+
+### 9. 更新私有库 changelog（详细版本）
+
+在 https://github.com/Gczmy/SoloSoul_code.git 更新 `CHANGELOG.md`，包含详细的变更列表（检查 commit 记录，不要遗漏）。
 
 ---
 
@@ -175,7 +161,7 @@ Push 到 `master` 分支后，GitHub Actions 会自动：
 1. `frontend-check` job：TypeScript 类型检查、Lint、单元测试
 2. `rust-test` job：Rust 格式化检查、Clippy、单元测试
 3. `build-macos` job：在 `macos-latest` runner 上构建 DMG（仅 master push）
-4. `build-windows` job：在 `windows-latest` runner 上构建 MSI（仅 master push）
+4. `build-windows` job：在 `windows-latest` runner 上构建 NSIS（仅 master push）
 5. `release` job：收集产物，统一创建 GitHub Release（Draft + Pre-release）
 
 详见 `.github/workflows/ci_cd.yml`。
