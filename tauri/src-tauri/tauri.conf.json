@@ -46,6 +46,15 @@
     ],
     "resources": {
       "resources/docs": "docs"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "both",
+        "installerIcon": "icons/icon.ico",
+        "installerHooks": "./bundles/nsis/hooks.nsh",
+        "languages": ["SimpChinese", "English"],
+        "displayLanguageSelector": true
+      }
     }
   }
 }
