@@ -233,7 +233,7 @@ export function ObjectEditorPage() {
   const handleSave = async () => {
     if (!accountId) return;
     if (!validateFields()) {
-      onError(t('editor:validation_failed'), t('common:save'));
+      onError(t('editor:validation_failed'), t('common:object_save_failed'));
       return;
     }
     setIsSaving(true);
