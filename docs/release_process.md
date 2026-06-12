@@ -113,7 +113,7 @@ tauri/src-tauri/target/release/bundle/
 将 Windows 产物传输到 Mac（如通过共享文件夹、云盘、U盘等），统一放到同一目录：
 
 ```
-~/SoloSoul-Releases/
+/Users/zzc/PycharmProjects/SoloSoul_code/SoloSoul-Releases
 ├── SoloSoul_2.1.0_arm64.dmg      # macOS (Apple Silicon)
 └── SoloSoul_2.1.0_x64-setup.exe  # Windows (NSIS 安装包)
 ```
