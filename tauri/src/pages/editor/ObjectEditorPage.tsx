@@ -267,11 +267,8 @@ export function ObjectEditorPage() {
   };
 
   const handleBack = () => {
-    // When returning from TemplateManager, don't rely on history stack; go home directly
-    if ((location.state as { from?: string } | null)?.from === '/settings/templates') {
-      navigate('/home');
-      return;
-    }
+    // TemplateManager already returns to /editor with replace: true,
+    // so a single history step back correctly lands on the previous page (workspace).
     navigate(-1);
   };
 

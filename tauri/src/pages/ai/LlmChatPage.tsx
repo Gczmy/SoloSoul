@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/Button';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
 import i18n from '@/lib/i18n';
@@ -416,12 +417,9 @@ export function LlmChatPage() {
         <div style={{ position: 'fixed', top: 56, left: 48, right: 0, bottom: 0, display: 'flex', overflow: 'hidden' }}>
           {/* Sidebar placeholder — same width as the real conversation sidebar */}
           <div style={{ width: 220, minWidth: 180, maxWidth: 360, borderRight: '1px solid var(--border-subtle)', background: 'var(--bg-toolbar)' }} />
-          {/* Message area placeholder — keeps the icon in the same final position */}
+          {/* Message area placeholder — solid background, no icon/text */}
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: 0 }}>
-            <div style={{ textAlign: 'center' }}>
-              <MessageSquare size={40} style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }} />
-              <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>{t('common:loading')}</p>
-            </div>
+            <LoadingPlaceholder variant="base" />
           </div>
         </div>
       </AppShell>
@@ -667,7 +665,7 @@ export function LlmChatPage() {
                   color: isSending || !input.trim() || isOnline === false ? 'var(--text-tertiary)' : 'white',
                   cursor: 'pointer',
                 }}>
-                {isSending ? <span style={{ display: 'flex', gap: 2 }}><span className="dot">·</span><span className="dot">·</span><span className="dot">·</span></span> : <Send size={16} />}
+                {isSending ? <span style={{ display: 'flex', gap: 2 }} /> : <Send size={16} />}
               </button>
             </div>
           </div>

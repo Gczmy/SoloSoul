@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
@@ -183,9 +184,7 @@ export function OperationLogPage() {
 
         {/* Log entries */}
         {isLoading ? (
-          <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
-            {t('settings:loading_logs')}
-          </div>
+          <LoadingPlaceholder variant="base" minHeight={200} />
         ) : filteredLogs.length === 0 ? (
           <Card>
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
@@ -242,25 +241,18 @@ export function OperationLogPage() {
                         {t('settings:log.performed_by_system')}
                       </span>
                     )}
-                    {entry.entityType !== 'template' && (
-                      <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
-                        {new Date(entry.timestamp).toLocaleString(i18n.language)}
-                      </span>
-                    )}
+                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
+                      {new Date(entry.timestamp).toLocaleString(i18n.language)}
+                    </span>
                   </div>
-                  {(entry.details || entry.entityType === 'template') && formatDetail(entry, t) && (
+                  {entry.details && formatDetail(entry, t) && (
                     <div style={{
                       margin: '4px 0 0', fontSize: 12, color: 'var(--text-secondary)',
-                      fontFamily: 'monospace', whiteSpace: 'pre-wrap',
+                      fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
                       backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.04))',
                       padding: '6px 8px', borderRadius: 4,
                     }}>
                       {formatDetail(entry, t)}
-                      {entry.entityType === 'template' && (
-                        <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-tertiary)', fontFamily: 'inherit' }}>
-                          {new Date(entry.timestamp).toLocaleString(i18n.language)}
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>

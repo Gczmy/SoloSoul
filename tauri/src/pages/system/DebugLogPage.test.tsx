@@ -31,14 +31,15 @@ describe('DebugLogPage', () => {
     vi.clearAllMocks();
   });
 
-  it('renders loading state initially', () => {
+  it('renders loading placeholder initially', () => {
     vi.mocked(invoke).mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <DebugLogPage />
       </MemoryRouter>
     );
-    expect(screen.getByText('settings:loading_logs_debug')).toBeInTheDocument();
+    expect(screen.getByTestId('loading-placeholder')).toBeInTheDocument();
+    expect(screen.queryByText('settings:loading_logs_debug')).not.toBeInTheDocument();
   });
 
   it('renders log entries after loading', async () => {

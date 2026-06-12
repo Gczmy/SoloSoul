@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2 } from 'lucide-react';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 
 export interface AttachmentItem {
   id: string;
@@ -300,9 +301,7 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
         {/* List */}
         <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)' }}>
-              {t('common:loading')}
-            </div>
+            <LoadingPlaceholder variant="elevated" minHeight={120} />
           ) : displayItems.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>
               {showTrash ? t('common:attachments_trash_empty') : t('common:no_attachments')}
@@ -450,7 +449,7 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
                 style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', borderRadius: 8 }}
               />
             ) : (
-              <div style={{ color: 'var(--text-tertiary)', padding: 24 }}>Loading...</div>
+              <LoadingPlaceholder variant="toolbar" minHeight={120} />
             )}
           </div>
         </div>
@@ -498,7 +497,7 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
                 style={{ width: '100%', height: '100%', border: 'none', borderRadius: 8, background: 'white' }}
               />
             ) : (
-              <div style={{ color: 'var(--text-tertiary)', padding: 24 }}>Loading...</div>
+              <LoadingPlaceholder variant="toolbar" minHeight={120} />
             )}
           </div>
         </div>

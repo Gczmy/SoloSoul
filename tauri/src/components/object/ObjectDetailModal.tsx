@@ -9,6 +9,7 @@ import { useRevealState } from '@/hooks/useRevealState';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { Button } from '@/components/ui/Button';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
@@ -79,9 +80,8 @@ export function ObjectDetailModal({
   const [showAttachments, setShowAttachments] = useState(false);
 
   const [showPwDialog, setShowPwDialog] = useState(false);
-  const pwResolveRef = useRef<((ok: boolean) => void) | null>(null);
+  const pwResolveRef = useRef<((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null>(null);
   const pendingRevealRef = useRef<{ fieldId: string; fieldName: string } | null>(null);
-  const pendingMethodRef = useRef<'password' | 'touchId' | 'faceId'>('password');
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
     available: false,
   });
@@ -136,16 +136,15 @@ export function ObjectDetailModal({
     [accountId]
   );
 
-  const passwordVerify = useCallback(async (): Promise<boolean> => {
+  const passwordVerify = useCallback(async (): Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' }> => {
     return new Promise((resolve) => {
       pwResolveRef.current = resolve;
       setShowPwDialog(true);
     });
   }, []);
 
-  const writeCriticalAccessLog = useCallback(async () => {
+  const writeCriticalAccessLog = useCallback(async (method: 'password' | 'touchId' | 'faceId') => {
     if (!accountId || !obj || !pendingRevealRef.current) return;
-    const method = pendingMethodRef.current;
     const details = `objectName=${obj.name} page=${resolveCollectionLabel(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName} method=${method}`;
     try {
       await invoke('log_write', {
@@ -163,28 +162,34 @@ export function ObjectDetailModal({
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
     if (!accountId) return false;
     try {
-      await invoke('biometric_unlock', { accountId, location: 'critical_data_access', action: 'unlock' });
-      pendingMethodRef.current = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
-      pwResolveRef.current?.(true);
-      await writeCriticalAccessLog();
+      await invoke('biometric_unlock', {
+        accountId,
+        location: 'critical_data_access',
+        action: 'unlock',
+        biometryType: bioAvailable.biometryType,
+      });
+      const method = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
+      pwResolveRef.current?.({ ok: true, method });
       return true;
     } catch {
       return false;
     }
-  }, [accountId, bioAvailable.biometryType, writeCriticalAccessLog]);
+  }, [accountId, bioAvailable.biometryType]);
 
   const handleRevealField = useCallback(
     async (fieldId: string, sens: SensitivityLevel, fieldName: string) => {
       if (sens === 'critical') {
         pendingRevealRef.current = { fieldId, fieldName };
-        pendingMethodRef.current = 'password';
-        const ok = await passwordVerify();
-        if (ok) reveal(fieldId);
+        const result = await passwordVerify();
+        if (result.ok) {
+          reveal(fieldId);
+          await writeCriticalAccessLog(result.method);
+        }
       } else {
         reveal(fieldId);
       }
     },
-    [passwordVerify, reveal]
+    [passwordVerify, reveal, writeCriticalAccessLog]
   );
 
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
@@ -290,9 +295,7 @@ export function ObjectDetailModal({
           }}
         >
           {loading || !obj ? (
-            <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 32 }}>
-              {t('common:loading')}
-            </p>
+            <LoadingPlaceholder variant="elevated" minHeight={160} />
           ) : (
             <>
               {/* Header */}
@@ -594,15 +597,11 @@ export function ObjectDetailModal({
         open={showPwDialog}
         onClose={() => {
           setShowPwDialog(false);
-          pwResolveRef.current?.(false);
+          pwResolveRef.current?.({ ok: false, method: 'password' });
         }}
         onVerify={async (password) => {
           const ok = await verifyVaultPassword(password);
-          if (ok) {
-            pwResolveRef.current?.(true);
-            pendingMethodRef.current = 'password';
-            await writeCriticalAccessLog();
-          }
+          if (ok) pwResolveRef.current?.({ ok: true, method: 'password' });
           return ok;
         }}
         title={t('common:critical_access_title')}

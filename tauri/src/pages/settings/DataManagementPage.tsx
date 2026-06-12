@@ -149,10 +149,10 @@ export function DataManagementPage() {
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{t('settings:vault_size')}</div>
               <div style={{ fontSize: 20, fontWeight: 600 }}>
-                {stats ? formatBytes(stats.totalSizeBytes) : '...'}
+                {stats ? formatBytes(stats.totalSizeBytes) : '—'}
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                {stats ? t('settings:profile_count', { count: stats.profileCount }) : t('common:loading')}
+                {stats ? t('settings:profile_count', { count: stats.profileCount }) : '—'}
                 {stats?.lastModified && ` · ${t('settings:updated')} ${new Date(stats.lastModified).toLocaleDateString()}`}
               </div>
             </div>

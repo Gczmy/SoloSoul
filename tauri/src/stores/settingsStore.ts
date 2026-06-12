@@ -128,6 +128,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.language) parsed.language = prefs.language;
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
       if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
+      if (prefs.windowSize && typeof prefs.windowSize.width === 'number' && typeof prefs.windowSize.height === 'number') {
+        parsed.windowSize = prefs.windowSize;
+        try {
+          localStorage.setItem('solosoul_window_size', JSON.stringify(prefs.windowSize));
+        } catch { /* ignore */ }
+      }
       applyTheme({
         preset: parsed.theme === 'dark' ? 'warm-stone-dark' :
                 parsed.theme === 'light' ? 'warm-stone-light' : 'system',
@@ -194,6 +200,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (encryptedWindowSize && typeof encryptedWindowSize.width === 'number' && typeof encryptedWindowSize.height === 'number') {
         parsed.windowSize = encryptedWindowSize;
         try {
+          localStorage.setItem('solosoul_window_size', JSON.stringify(encryptedWindowSize));
           const window = getCurrentWebviewWindow();
           const current = await window.innerSize();
           if (Math.abs(current.width - parsed.windowSize.width) > 1 || Math.abs(current.height - parsed.windowSize.height) > 1) {

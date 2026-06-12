@@ -32,11 +32,10 @@ describe('Button', () => {
     expect(screen.getByRole('button').className).toMatch(/lg/);
   });
 
-  it('shows spinner when loading and disables button', () => {
+  it('disables button when loading', () => {
     render(<Button loading>Loading</Button>);
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
-    expect(button.querySelector('span')!.className).toMatch(/spinner/);
   });
 
   it('is disabled when disabled prop is true', () => {

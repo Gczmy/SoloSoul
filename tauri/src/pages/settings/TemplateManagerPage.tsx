@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Dialog } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { useTemplateStore } from '@/stores/templateStore';
@@ -484,7 +485,7 @@ export function TemplateManagerPage() {
       }
     >
       <div style={{ maxWidth: 700, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {isLoading && <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>{t('common:loading')}</div>}
+        {isLoading && <LoadingPlaceholder variant="base" minHeight={120} />}
         {error && <div style={{ color: 'var(--error)' }}>{error}</div>}
 
         {!isLoading && allTemplates.length === 0 && (

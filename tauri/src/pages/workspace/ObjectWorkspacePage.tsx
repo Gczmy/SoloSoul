@@ -7,6 +7,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -113,7 +114,7 @@ export function ObjectWorkspacePage() {
 
   /** Password dialog state — shared between detail panel and history viewer. */
   const [showPwDialog, setShowPwDialog] = useState(false);
-  const pwResolveRef = useRef<((ok: boolean) => void) | null>(null);
+  const pwResolveRef = useRef<((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null>(null);
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({ available: false });
   const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
@@ -130,7 +131,7 @@ export function ObjectWorkspacePage() {
     }
   }, [accountId]);
 
-  const passwordVerify = useCallback(async (): Promise<boolean> => {
+  const passwordVerify = useCallback(async (): Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' }> => {
     return new Promise((resolve) => {
       pwResolveRef.current = resolve;
       setShowPwDialog(true);
@@ -159,13 +160,19 @@ export function ObjectWorkspacePage() {
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
     if (!accountId) return false;
     try {
-      await invoke('biometric_unlock', { accountId, location: 'critical_data_access', action: 'unlock' });
-      pwResolveRef.current?.(true);
+      await invoke('biometric_unlock', {
+        accountId,
+        location: 'critical_data_access',
+        action: 'unlock',
+        biometryType: bioAvailable.biometryType,
+      });
+      const method = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
+      pwResolveRef.current?.({ ok: true, method });
       return true;
     } catch {
       return false;
     }
-  }, [accountId]);
+  }, [accountId, bioAvailable.biometryType]);
 
   /** Resolve sensitivity level for a property key via its template definition. */
   const getFieldSensitivity = (templateId: string | undefined, fieldKey: string): SensitivityLevel => {
@@ -321,9 +328,7 @@ export function ObjectWorkspacePage() {
 
         {isLoading && (
           <Card>
-            <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '24px 0' }}>
-              {t('loading')}
-            </p>
+            <LoadingPlaceholder variant="elevated" minHeight={80} />
           </Card>
         )}
         {!isLoading && error && (
@@ -641,10 +646,10 @@ export function ObjectWorkspacePage() {
       {/* Unified password verification dialog (detail panel + history cards) */}
       <PasswordVerificationDialog
         open={showPwDialog}
-        onClose={() => { setShowPwDialog(false); pwResolveRef.current?.(false); }}
+        onClose={() => { setShowPwDialog(false); pwResolveRef.current?.({ ok: false, method: 'password' }); }}
         onVerify={async (password) => {
           const ok = await verifyVaultPassword(password);
-          if (ok) pwResolveRef.current?.(true);
+          if (ok) pwResolveRef.current?.({ ok: true, method: 'password' });
           return ok;
         }}
         title={t('common:critical_access_title')}

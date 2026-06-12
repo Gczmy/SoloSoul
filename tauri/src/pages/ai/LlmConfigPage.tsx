@@ -8,6 +8,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
 import { Settings, Plus, BarChart3, Download, Trash2, Cpu } from 'lucide-react';
@@ -285,10 +286,7 @@ export function LlmConfigPage() {
           <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:ai_service_providers')}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {loading ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0', color: 'var(--text-tertiary)', fontSize: 13 }}>
-                <span style={{ width: 16, height: 16, border: '2px solid var(--border-subtle)', borderTopColor: 'var(--accent-primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-                {t('common:loading')}
-              </div>
+              <LoadingPlaceholder variant="elevated" minHeight={60} />
             ) : providers.map((p) => (
               <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: activeId === p.id ? 'rgba(91,124,153,0.08)' : 'var(--bg-toolbar)', border: activeId === p.id ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)', cursor: 'pointer', fontSize: 13 }}
                 onClick={() => handleSetActive(p.id)}>
@@ -352,7 +350,7 @@ export function LlmConfigPage() {
           </label>
 
           {modelsLoading ? (
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{t('settings:llm_loading_models')}</p>
+            <LoadingPlaceholder variant="base" minHeight={80} />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {embedModels.map((m) => (

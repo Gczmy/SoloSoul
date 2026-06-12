@@ -14,9 +14,10 @@
   DetailPrint "SoloSoul uninstallation complete."
 !macroend
 
-; Ensure the uninstaller exits after the user clicks Finish on the final page.
-; This prevents the installer from being launched again when uninstallation completes.
-Function un.onFinishLeave
+; Ensure the uninstaller process exits after the GUI closes.
+; un.onFinishLeave is not a standard NSIS callback, so we use un.onGUIEnd
+; which is reliably invoked when the uninstaller wizard is destroyed.
+Function un.onGUIEnd
   Quit
 FunctionEnd
 

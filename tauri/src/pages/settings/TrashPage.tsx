@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
@@ -270,7 +271,7 @@ export function TrashPage() {
 
         {/* List */}
         {isLoading ? (
-          <Card><p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 24 }}>{t('common:loading')}</p></Card>
+          <Card><LoadingPlaceholder variant="elevated" minHeight={120} /></Card>
         ) : filtered.length === 0 ? (
           <Card>
             <div style={{ textAlign: 'center', padding: '48px 24px' }}>
@@ -533,7 +534,7 @@ export function TrashPage() {
                               </div>
                               {/* Content area — fixed minHeight prevents layout jump */}
                               <div style={{ minHeight: 60 }}>
-                                {loading && !data && <p style={{ color: 'var(--text-tertiary)', padding: '8px 0' }}>{t('common:loading')}</p>}
+                                {loading && !data && <LoadingPlaceholder variant="base" minHeight={60} />}
                                 {data && (() => {
                                   const d = data as Record<string, unknown>;
                                   const rawProps = d.properties as Record<string, unknown> | undefined;

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { GuideRenderer } from '@/components/guide/GuideRenderer';
 import { GuideIndex } from '@/components/guide/GuideIndex';
 import { GuideSearch } from '@/components/guide/GuideSearch';
@@ -163,12 +164,7 @@ export function HelpPage() {
         )}
 
         {!guideId && indexLoading && (
-          <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 48 }}>
-            <p style={{ margin: '0 0 8px' }}>正在连接 Tauri 后端…</p>
-            <p style={{ margin: 0, fontSize: 12, opacity: 0.8 }}>
-              已等待 {indexLoadingElapsed}s · 首次启动 Rust 编译可能需要 30–120 秒
-            </p>
-          </div>
+          <LoadingPlaceholder variant="base" minHeight={200} />
         )}
 
         {!guideId && !indexLoading && index && (
@@ -184,9 +180,7 @@ export function HelpPage() {
         )}
 
         {guideId && loading && (
-          <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 48 }}>
-            加载中...
-          </p>
+          <LoadingPlaceholder variant="base" minHeight={200} />
         )}
 
         {guideId && content && !loading && (

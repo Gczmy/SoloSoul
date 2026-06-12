@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Clock, RotateCcw, ChevronRight } from 'lucide-react';
 
 interface SnapshotEntry {
@@ -46,7 +47,7 @@ export function HistoryPage() {
     <AppShell title="History" onBack={() => navigate(-1)}>
       <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {loading ? (
-          <Card><p style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>Loading...</p></Card>
+          <Card><LoadingPlaceholder variant="elevated" minHeight={80} /></Card>
         ) : snapshots.length === 0 ? (
           <Card>
             <div style={{ textAlign: 'center', padding: 48 }}>

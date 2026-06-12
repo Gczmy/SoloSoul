@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import {
@@ -122,9 +123,7 @@ export function BackupConfigPage() {
           </h3>
 
           {isLoading ? (
-            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
-              {t('settings:loading')}
-            </div>
+            <LoadingPlaceholder variant="elevated" minHeight={120} />
           ) : backups.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>
               <HardDrive size={24} style={{ marginBottom: 8, opacity: 0.4 }} />

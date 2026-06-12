@@ -16,7 +16,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         {...props}
       >
-        {loading && <span className={styles.spinner} />}
         {children}
       </button>
     );

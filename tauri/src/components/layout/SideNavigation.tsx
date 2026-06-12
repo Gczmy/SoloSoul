@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import type { CustomPage } from '@/stores/settingsStore';
 import { SearchPopover } from './SearchPopover';
 import { NavButton } from './NavButton';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import {
   useActiveCustomPages,
   useBoundNavActions,
@@ -382,9 +383,7 @@ export function AiQuickChatPopover({
   const cardContent = (() => {
     if (loading) {
       return (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', fontSize: 13 }}>
-          {t('common:loading')}
-        </div>
+        <LoadingPlaceholder variant="elevated" />
       );
     }
 

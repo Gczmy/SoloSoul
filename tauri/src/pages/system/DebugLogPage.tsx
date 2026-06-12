@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
@@ -95,9 +96,7 @@ export function DebugLogPage() {
         {/* Log list */}
         <Card>
           {isLoading ? (
-            <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)', fontSize: 13 }}>
-              {t('settings:loading_logs_debug')}
-            </div>
+            <LoadingPlaceholder variant="elevated" minHeight={200} />
           ) : filteredLogs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)', fontSize: 13 }}>
               <Bug size={24} style={{ margin: '0 auto 8px', opacity: 0.4 }} />

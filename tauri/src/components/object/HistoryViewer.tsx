@@ -5,6 +5,7 @@ import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useRevealState } from '@/hooks/useRevealState';
 
 export interface SnapshotEntry {
@@ -79,8 +80,8 @@ function SnapshotCard({
   isFieldDeprecated: (fieldKey: string) => boolean;
   getFieldName: (fieldKey: string) => string;
   fieldOrder?: string[];
-  verifyPassword: () => Promise<boolean>;
-  onCriticalAccess?: (fieldName: string) => void;
+  verifyPassword: () => Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' }>;
+  onCriticalAccess?: (fieldName: string, method: 'password' | 'touchId' | 'faceId') => void;
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
   const { isRevealed, reveal } = useRevealState();
@@ -156,10 +157,10 @@ function SnapshotCard({
                         ? async () => {
                             try {
                               if (sens === 'critical') {
-                                const ok = await verifyPassword();
-                                if (ok) {
+                                const result = await verifyPassword();
+                                if (result.ok) {
                                   reveal(fieldId);
-                                  onCriticalAccess?.(getFieldName(f.key));
+                                  onCriticalAccess?.(getFieldName(f.key), result.method);
                                 }
                               } else {
                                 reveal(fieldId);
@@ -223,7 +224,7 @@ export interface HistoryViewerProps {
   objectName?: string;
   collectionType?: string;
   onClose: () => void;
-  passwordVerify: () => Promise<boolean>;
+  passwordVerify: () => Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' }>;
   getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
   isFieldDeprecated: (fieldKey: string) => boolean;
   getFieldName: (fieldKey: string) => string;
@@ -249,9 +250,9 @@ export function HistoryViewer({
   const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
   const { t } = useTranslation(['common', 'editor']);
 
-  const writeCriticalAccessLog = async (fieldName: string) => {
+  const writeCriticalAccessLog = async (fieldName: string, method: 'password' | 'touchId' | 'faceId') => {
     if (!objectName) return;
-    const details = `objectName=${objectName} page=${collectionType || ''} fieldName=${fieldName} method=password`;
+    const details = `objectName=${objectName} page=${collectionType || ''} fieldName=${fieldName} method=${method}`;
     try {
       await invoke('log_write', {
         actionType: 'critical_field_access',
@@ -375,9 +376,7 @@ export function HistoryViewer({
         {/* Content */}
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-tertiary)' }}>
-              {t('common:loading')}
-            </div>
+            <LoadingPlaceholder variant="elevated" minHeight={160} />
           ) : !snap ? (
             <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>
               {t('common:no_history')}

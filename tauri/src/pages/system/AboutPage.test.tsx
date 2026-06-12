@@ -19,14 +19,15 @@ describe('AboutPage', () => {
     vi.clearAllMocks();
   });
 
-  it('renders loading state initially', () => {
+  it('renders loading placeholder initially', () => {
     vi.mocked(invoke).mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <AboutPage />
       </MemoryRouter>
     );
-    expect(screen.getByText('settings:loading')).toBeInTheDocument();
+    expect(screen.getByTestId('loading-placeholder')).toBeInTheDocument();
+    expect(screen.queryByText('settings:loading')).not.toBeInTheDocument();
   });
 
   it('renders app info after loading', async () => {

@@ -1,0 +1,13 @@
+.placeholder {
+  width: 100%;
+  flex: 1;
+  background: var(--bg-base);
+}
+
+.elevated {
+  background: var(--bg-elevated);
+}
+
+.toolbar {
+  background: var(--bg-toolbar);
+}

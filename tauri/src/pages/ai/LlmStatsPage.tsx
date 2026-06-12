@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStatsStore } from '@/stores/llmStatsStore';
 import { ModelInfoCard } from '@/components/llm/ModelInfoCard';
@@ -75,10 +76,7 @@ export function LlmStatsPage() {
   if (loading && !stats) {
     return (
       <AppShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
-        <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center', padding: '48px 24px' }}>
-          <BarChart3 size={48} style={{ marginBottom: 16, opacity: 0.3 }} />
-          <p style={{ color: 'var(--text-secondary)' }}>{t('common:loading')}</p>
-        </div>
+        <LoadingPlaceholder variant="base" />
       </AppShell>
     );
   }

@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { ExternalLink, Code, Shield, Info, Download } from 'lucide-react';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 
 interface AppInfo {
   appName: string;
@@ -135,9 +136,7 @@ export function AboutPage() {
         <Card>
           <div style={{ padding: '2px 0' }}>
             {loading ? (
-              <div style={{ textAlign: 'center', padding: 16, color: 'var(--text-tertiary)', fontSize: 13 }}>
-                {t('settings:loading')}
-              </div>
+              <LoadingPlaceholder variant="elevated" minHeight={120} />
             ) : info ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0' }}>
