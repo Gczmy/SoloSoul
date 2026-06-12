@@ -361,6 +361,8 @@
       "biometric_saved": "Enable Biometric",
       "biometric_unlock": "Biometric Unlock",
       "biometric_deleted": "Disable Biometric",
+      "touch_id_unlock": "Touch ID Unlock",
+      "face_id_unlock": "Face ID Unlock",
       "login": "Password Login",
       "llm_risk_accepted": "Accept AI Risk",
       "template_save": "Save Template",

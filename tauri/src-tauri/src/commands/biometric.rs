@@ -270,6 +270,7 @@ pub async fn biometric_unlock(
     account_id: String,
     location: Option<String>,
     action: Option<String>,
+    biometry_type: Option<String>,
 ) -> Result<(), String> {
     if !is_macos() {
         return Err("platform not supported".into());
@@ -284,13 +285,19 @@ pub async fn biometric_unlock(
         if let Some(vault) = vg.as_ref() {
             let loc = location.unwrap_or_else(|| "unknown".to_string());
             let act = action.unwrap_or_else(|| "unlock".to_string());
+            let bio_type = biometry_type.as_deref().unwrap_or("unknown");
+            let action_type = match bio_type {
+                "touchId" => "touch_id_unlock",
+                "faceId" => "face_id_unlock",
+                _ => "biometric_unlock",
+            };
             let _ = vault.log_structured(
-                "biometric_unlock",
+                action_type,
                 "biometric",
                 Some(&account_id),
                 None,
                 "user",
-                Some(&format!("location={} action={}", loc, act)),
+                Some(&format!("location={} action={} type={}", loc, act, bio_type)),
             );
         }
     }

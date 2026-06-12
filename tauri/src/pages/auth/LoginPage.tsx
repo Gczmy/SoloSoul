@@ -23,6 +23,7 @@ export function LoginPage() {
   // Biometric state
   const [bioAvailable, setBioAvailable] = useState(false);
   const [biometryType, setBiometryType] = useState('Touch ID');
+  const [biometryTypeRaw, setBiometryTypeRaw] = useState('touchId');
   const [bioLoading, setBioLoading] = useState(false);
   const [bioError, setBioError] = useState<string | null>(null);
   const [showPasswordInput, setShowPasswordInput] = useState(false);
@@ -35,8 +36,13 @@ export function LoginPage() {
       .then((r) => {
         if (r.available) {
           setBioAvailable(true);
-          if (r.biometryType === 'touchId') setBiometryType('Touch ID');
-          else if (r.biometryType === 'faceId') setBiometryType('Face ID');
+          if (r.biometryType === 'touchId') {
+            setBiometryType('Touch ID');
+            setBiometryTypeRaw('touchId');
+          } else if (r.biometryType === 'faceId') {
+            setBiometryType('Face ID');
+            setBiometryTypeRaw('faceId');
+          }
         }
       })
       .catch(() => setBioAvailable(false));
@@ -64,8 +70,13 @@ export function LoginPage() {
       .then((r) => {
         if (r.available && r.configured) {
           setBioAvailable(true);
-          if (r.biometryType === 'touchId') setBiometryType('Touch ID');
-          else if (r.biometryType === 'faceId') setBiometryType('Face ID');
+          if (r.biometryType === 'touchId') {
+            setBiometryType('Touch ID');
+            setBiometryTypeRaw('touchId');
+          } else if (r.biometryType === 'faceId') {
+            setBiometryType('Face ID');
+            setBiometryTypeRaw('faceId');
+          }
         } else {
           setBioAvailable(false);
           setShowPasswordInput(true);
@@ -81,7 +92,12 @@ export function LoginPage() {
     setBioError(null);
     let success = false;
     try {
-      await invoke('biometric_unlock', { accountId: selectedAccountId, location: 'login_page', action: 'unlock' });
+      await invoke('biometric_unlock', {
+        accountId: selectedAccountId,
+        location: 'login_page',
+        action: 'unlock',
+        biometryType: biometryTypeRaw,
+      });
       // Vault already unlocked — set auth state directly
       const result = await invoke<Array<{ id: string; name: string }>>('list_accounts');
       const accs = result || [];

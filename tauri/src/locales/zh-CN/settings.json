@@ -361,6 +361,8 @@
       "biometric_saved": "启用生物识别",
       "biometric_unlock": "生物识别解锁",
       "biometric_deleted": "禁用生物识别",
+      "touch_id_unlock": "Touch ID 解锁",
+      "face_id_unlock": "Face ID 解锁",
       "login": "密码登录",
       "llm_risk_accepted": "接受 AI 风险",
       "template_save": "保存模板",
