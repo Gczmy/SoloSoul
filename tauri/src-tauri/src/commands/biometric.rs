@@ -1,5 +1,6 @@
 //! Biometric (Touch ID/Face ID/Windows Hello) commands (27)
-//! macOS: compiled Swift helper for Touch ID dialog + obfuscated local file for key storage.
+//! macOS: uses objc2 FFI to call LocalAuthentication directly (no Swift compiler needed).
+//! Master key stored obfuscated on disk at ~/.solosoul/{account_id}/biometric_key.
 
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
@@ -74,45 +75,42 @@ fn trigger_system_biometric(reason: &str) -> Result<(), String> {
 
 #[cfg(target_os = "macos")]
 fn trigger_macos_biometric(reason: &str) -> Result<(), String> {
-    use std::ffi::CString;
-    use std::sync::Arc;
-    use std::sync::atomic::{AtomicBool, Ordering};
-    use objc2::{msg_send, sel};
-    use objc2::runtime::{AnyClass, NSObject};
+    use std::ffi::{c_void, CStr, CString};
+    use std::sync::mpsc;
 
-    let la_cls =
-        AnyClass::get("LAContext").ok_or_else(|| "Touch ID not available on this system")?;
+    use block2::RcBlock;
+    use objc2::runtime::{AnyClass, NSObject};
+    use objc2::{msg_send, sel};
+
+    let la_name = c"LAContext";
+    let la_cls = AnyClass::get(la_name)
+        .ok_or_else(|| "Touch ID not available".to_string())?;
 
     let ctx: *mut NSObject = unsafe {
         let alloc: *mut NSObject = msg_send![la_cls, alloc];
         msg_send![alloc, init]
     };
     if ctx.is_null() {
-        return Err("Failed to initialize Touch ID".into());
+        return Err("failed to initialise LAContext".to_string());
     }
 
-    // Build NSString from &str without depending on objc2-foundation API details
-    let c_reason = CString::new(reason).map_err(|_| "Invalid reason string".to_string())?;
-    let ns_cls =
-        AnyClass::get("NSString").ok_or_else(|| "NSString class not found".to_string())?;
+    let c_reason =
+        CString::new(reason).map_err(|_| "invalid reason string".to_string())?;
+    let ns_name = c"NSString";
+    let ns_cls = AnyClass::get(ns_name)
+        .ok_or_else(|| "NSString class not found".to_string())?;
     let ns_reason: *mut NSObject = unsafe {
         let alloc: *mut NSObject = msg_send![ns_cls, alloc];
         msg_send![alloc, initWithUTF8String: c_reason.as_ptr()]
     };
     if ns_reason.is_null() {
-        return Err("Failed to create reason string".to_string());
+        return Err("failed to create NSString".to_string());
     }
 
-    let done = Arc::new(AtomicBool::new(false));
-    let sem = Arc::new(std::sync::Semaphore::new(0));
-    let (d, s) = (done.clone(), sem.clone());
+    let (tx, rx) = mpsc::channel::<bool>();
 
-    // SAFETY: e`evaluatePolicy:localizedReason:reply:` calls the block once on a
-    // background GCD queue, then discards it.  The closure only captures `d` and `s`
-    // which are both Send/Sync, and the semaphore ensures correct ordering.
-    let block = block2::Block::new(move |success: i8, _error: *mut std::ffi::c_void| {
-        d.store(success != 0, Ordering::SeqCst);
-        s.add_permits(1);
+    let block = RcBlock::new(move |success: i8, _error: *mut c_void| {
+        let _ = tx.send(success != 0);
     });
 
     // LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1 (NSInteger)
@@ -125,20 +123,18 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), String> {
         ];
     }
 
-    // Wait for the biometric dialog result
-    sem.acquire()
-        .map_err(|_| "Interrupted while waiting for biometric".to_string())?;
+    let success = rx.recv().map_err(|_| "Touch ID dialog interrupted".to_string())?;
 
-    // Release ObjC objects
+    // Release manually-owned ObjC objects (MRC)
     unsafe {
         let _: () = msg_send![ctx, release];
         let _: () = msg_send![ns_reason, release];
     }
 
-    if done.load(Ordering::SeqCst) {
+    if success {
         Ok(())
     } else {
-        Err("User cancelled or biometric not available".into())
+        Err("User cancelled or biometric not available".to_string())
     }
 }
 
