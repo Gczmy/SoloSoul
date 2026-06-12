@@ -1358,7 +1358,7 @@ export function SideNavigation() {
           />
 
           {/* Scrollable zone: other primary pages + custom pages */}
-          <div className={styles.navPrimary} style={{ ...zoneStyle, flex: 1, overflow: 'auto' }}>
+          <div className={styles.navPrimary} style={{ ...zoneStyle, flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>
             {primaryItems.slice(1).map((item) => (
               <NavButton
                 key={item.path}

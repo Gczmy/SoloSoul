@@ -12,14 +12,6 @@
   min-width: 0;
 }
 
-.mainVertical {
-  overflow-x: hidden;
-}
-
-.mainHorizontal {
-  overflow-x: hidden;
-}
-
 .content {
   flex: 1;
   overflow-x: hidden;
