@@ -152,7 +152,7 @@ ad090f0 feat(ui): 2.4 登录页按钮加入浮动动画与边框高亮
 | 修复前端测试断言 | ✅ 完成 | `settingsStore.test.ts` 增加 `includeDeleted: true`，`removeCustomPage` 改为验证软删除；同步 `PasswordInput`、`BootstrapPage`、`AboutPage` 测试 | `116af07`、`b933ca1` |
 | 为新增组件补充 Vitest 测试 | ✅ 完成 | 新增 `UpdateBanner`、`OnboardingDialog`、`SampleTemplateGallery`、`SampleTemplateDetail` 测试；`vitest.config.ts` 设置覆盖率阈值 | `b933ca1` |
 | `hasSeenOnboarding` 持久化 | ✅ 完成 | `UiPreferences` 新增 `has_seen_onboarding`；`App.tsx` 优先 IPC 读取、localStorage 降级、IPC 失败不影响 UI | `626a264` |
-| Windows Release 构建验证 | ⚠️ 部分完成 | 本地为 macOS，无法直接构建 Windows 安装包；已修正 CI 中 NSIS 产物路径并开启 `workflow_dispatch` 手动触发；后在 Windows 环境尝试构建时发现并修复 `HWND` 类型使用问题 | `d352f7d`、`bf03e49`、`42eea46` |
+| Windows Release 构建验证 | ⚠️ 部分完成 | 本地为 macOS，无法直接构建 Windows 安装包；已修正 CI 中 NSIS 产物路径并开启 `workflow_dispatch` 手动触发；后在 Windows 环境尝试构建时发现 windows crate 版本冲突（0.61.3 vs 0.62.2），已将对直接依赖降级为 0.61.3 与 Tauri 一致 | `d352f7d`、`bf03e49`、`42eea46`、`47422e4` |
 
 ### 8.1 验证总览
 
