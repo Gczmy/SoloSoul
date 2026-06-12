@@ -88,30 +88,21 @@
 
 ## 5. 已知问题与风险
 
-### 5.1 预先存在的 Rust 测试失败（与本次改动无关）
+### 5.1 Rust 测试
 
-```bash
-cargo test
-```
+✅ 已修复：`cargo test --all` 全部通过（271 passed）。
 
-当前 `cargo test` 存在历史测试代码未随接口更新导致的编译失败，例如：
+### 5.2 前端测试
 
-- `create_account` 调用签名与当前实现不匹配。
-- `TemplateProperty` 缺少 `deprecated_at` 字段。
-
-这些失败在改动前已存在，`cargo check` 与运行时均正常，本次任务未将其纳入修复范围。
-
-### 5.2 前端测试中的预先存在失败
-
-`settingsStore.test.ts` 中 `loadCustomPages` 断言期望 `filter: { collectionType: 'page' }`，而实际调用已增加 `includeDeleted: true`。该差异为历史代码未同步，不影响运行时功能。
+✅ 已修复：`npm run test` 全部通过（115 passed）。修复内容包括 `settingsStore` 断言同步、`PasswordInput` 可见性校验、`BootstrapPage` 调用签名、`AboutPage` 平台文案，以及新增 4 个组件的 Vitest 测试。
 
 ### 5.3 未修复的 lint 警告
 
-`npm run lint` 仍有少量预先存在的 `no-explicit-any` 与未使用变量警告，未在本次范围内处理。
+`npm run lint` 仍有 13 项预先存在的 `no-explicit-any` 与未使用变量警告，未在本次范围内新增或处理。
 
 ### 5.4 需要人工验证的场景
 
-- Windows 标题栏颜色、NSIS 安装程序、应用内更新横幅与下载流程需要在 Windows 实体机或虚拟机中验证。
+- ⚠️ **Windows 构建验证**：NSIS 安装程序、语言选择器、hooks、标题栏颜色需在 Windows 实体机/虚拟机或 GitHub Actions 中验证。本地已修正 CI 产物路径并开启 `workflow_dispatch` 手动触发。
 - 生物识别 `faceId` 分支目前主要服务于未来平台扩展，当前 macOS 以 `touchId` 为主。
 
 ---
@@ -150,6 +141,38 @@ eac97be feat(ui): 2.12 安全设置页自动锁定绑定状态并加入说明
 ad090f0 feat(ui): 2.4 登录页按钮加入浮动动画与边框高亮
 045a07b fix(ui): 2.2 优化 LLM 重置统计按钮深色模式显示
 ```
+
+---
+
+## 8. 后续建议实施结果（2026-06-12 追加）
+
+| 建议 | 状态 | 主要改动 | Commit |
+|------|------|----------|--------|
+| 修复 Rust 单元测试编译错误 | ✅ 完成 | 修复 `TemplateProperty` 缺失 `deprecated_at`、`create_account` 签名、`CURRENT_SCHEMA_VERSION` 与 `UiPreferences` 测试字段；同步格式化与 Clippy | `1d27927` |
+| 修复前端测试断言 | ✅ 完成 | `settingsStore.test.ts` 增加 `includeDeleted: true`，`removeCustomPage` 改为验证软删除；同步 `PasswordInput`、`BootstrapPage`、`AboutPage` 测试 | `116af07`、`b933ca1` |
+| 为新增组件补充 Vitest 测试 | ✅ 完成 | 新增 `UpdateBanner`、`OnboardingDialog`、`SampleTemplateGallery`、`SampleTemplateDetail` 测试；`vitest.config.ts` 设置覆盖率阈值 | `b933ca1` |
+| `hasSeenOnboarding` 持久化 | ✅ 完成 | `UiPreferences` 新增 `has_seen_onboarding`；`App.tsx` 优先 IPC 读取、localStorage 降级、IPC 失败不影响 UI | `626a264` |
+| Windows Release 构建验证 | ⚠️ 部分完成 | 本地为 macOS，无法直接构建 Windows 安装包；已修正 CI 中 NSIS 产物路径并开启 `workflow_dispatch` 手动触发 | `d352f7d` |
+
+### 8.1 验证总览
+
+| 检查项 | 命令 | 结果 |
+|--------|------|------|
+| Rust 测试 | `cargo test --all` | ✅ 271 passed |
+| Rust 格式 | `cargo fmt --check` | ✅ 通过 |
+| Rust Clippy | `cargo clippy -- -D warnings` | ✅ 通过 |
+| TypeScript 类型 | `npx tsc --noEmit` | ✅ 通过 |
+| 前端单元测试 | `npm run test` | ✅ 115 passed |
+| Lint | `npm run lint` | ⚠️ 13 项预先存在的警告/错误未处理（未新增） |
+
+### 8.2 待人工验证项
+
+- **Windows 安装包**：需在 Windows 实体机/虚拟机或 GitHub Actions 中运行 `npm run tauri build`，确认：
+  - 中英文语言选择器显示正常
+  - `hooks.nsh` 欢迎/完成页文案正确
+  - `installMode: both` 可选按用户/按机器安装
+  - 安装后应用可启动
+- **UpdateBanner 自动检查**：当前 `App.tsx` 已集成启动时 `check_version`，建议在 Windows 验证时一并确认横幅弹出逻辑。
 
 ---
 
