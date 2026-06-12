@@ -361,6 +361,7 @@
       "biometric_saved": "Enable Biometric",
       "biometric_unlock": "Biometric Unlock",
       "biometric_deleted": "Disable Biometric",
+      "login": "Password Login",
       "llm_risk_accepted": "Accept AI Risk",
       "template_save": "Save Template",
       "export_execute": "Export",
@@ -378,7 +379,8 @@
       "export": "Export",
       "import": "Import",
       "attachment": "Attachment",
-      "llm": "AI"
+      "llm": "AI",
+      "auth": "Authentication"
     },
     "performed_by_user": "User",
     "performed_by_system": "System",
@@ -407,6 +409,7 @@
       "biometric_unlock": "{{location}} — {{action}}",
       "biometric_saved": "{{location}} — {{action}}",
       "biometric_deleted": "{{location}} — {{action}}",
+      "login": "{{location}} — {{action}} ({{method}})",
       "export_execute": "{{count}} object(s) exported",
       "import_execute": "{{count}} object(s) imported ({{strategy}})",
       "attachment_cleanup": "{{count}} orphan(s) freed {{bytes}}"

@@ -63,7 +63,20 @@ pub async fn login(
     password: String,
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
-    svc.unlock(&account_id, &password)
+    svc.unlock(&account_id, &password)?;
+    if let Some(vg) = svc.get_vault_store() {
+        if let Some(vault) = vg.as_ref() {
+            let _ = vault.log_structured(
+                "login",
+                "auth",
+                Some(&account_id),
+                None,
+                "user",
+                Some("method=password location=login_page action=unlock"),
+            );
+        }
+    }
+    Ok(())
 }
 
 fn verify_password_core(

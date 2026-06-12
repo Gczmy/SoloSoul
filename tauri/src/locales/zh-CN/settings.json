@@ -361,6 +361,7 @@
       "biometric_saved": "启用生物识别",
       "biometric_unlock": "生物识别解锁",
       "biometric_deleted": "禁用生物识别",
+      "login": "密码登录",
       "llm_risk_accepted": "接受 AI 风险",
       "template_save": "保存模板",
       "export_execute": "导出",
@@ -378,7 +379,8 @@
       "export": "导出",
       "import": "导入",
       "attachment": "附件",
-      "llm": "AI"
+      "llm": "AI",
+      "auth": "认证"
     },
     "performed_by_user": "用户",
     "performed_by_system": "系统",
@@ -407,6 +409,7 @@
       "biometric_unlock": "{{location}} — {{action}}",
       "biometric_saved": "{{location}} — {{action}}",
       "biometric_deleted": "{{location}} — {{action}}",
+      "login": "{{location}} — {{action}}（{{method}}）",
       "export_execute": "导出了 {{count}} 个对象",
       "import_execute": "导入了 {{count}} 个对象（策略：{{strategy}}）",
       "attachment_cleanup": "清理了 {{count}} 个孤立附件，释放 {{bytes}}"

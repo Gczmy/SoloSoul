@@ -22,7 +22,7 @@ interface AuditLogEntry {
 }
 
 /** All known entity types — used for filter buttons */
-const ALL_ENTITY_TYPES = ['object', 'page', 'preference', 'profile', 'biometric', 'template', 'export', 'import', 'attachment', 'trash_item', 'llm'];
+const ALL_ENTITY_TYPES = ['object', 'page', 'preference', 'profile', 'biometric', 'template', 'export', 'import', 'attachment', 'trash_item', 'llm', 'auth'];
 
 function formatDetail(entry: AuditLogEntry, t: TFunction): string {
   const key = `settings:log.detail.${entry.actionType}`;
