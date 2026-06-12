@@ -29,12 +29,12 @@
 }
 
 .secondary {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--bg-toolbar);
   border: 1px solid var(--border-subtle);
   color: var(--text-primary);
 }
 .secondary:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--bg-hover, rgba(0, 0, 0, 0.04));
   border-color: var(--text-tertiary);
 }
 

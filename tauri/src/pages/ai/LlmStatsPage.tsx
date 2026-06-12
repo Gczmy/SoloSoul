@@ -157,9 +157,9 @@ export function LlmStatsPage() {
             {/* Reset */}
             <section>
               <Button
-                variant="secondary"
+                variant="danger"
                 onClick={() => setShowResetDialog(true)}
-                style={{ width: '100%', color: '#e74c3c', borderColor: '#e74c3c' }}
+                style={{ width: '100%' }}
               >
                 <RotateCcw size={14} style={{ marginRight: 4 }} /> {t('settings:llm_reset_stats')}
               </Button>
@@ -181,7 +181,7 @@ export function LlmStatsPage() {
           <Button variant="secondary" onClick={() => setShowResetDialog(false)}>
             {t('common:cancel')}
           </Button>
-          <Button onClick={handleReset} style={{ background: '#e74c3c' }}>
+          <Button variant="danger" onClick={handleReset}>
             {t('settings:llm_reset_btn')}
           </Button>
         </div>
