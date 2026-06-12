@@ -22,6 +22,10 @@
 - **Operation Log** — Full audit trail of all CRUD actions with i18n support and structured detail logging.
 - **Privacy Policy & Terms of Service** — Bilingual (EN/ZH) documents with language-based auto-routing.
 
+### Fixed
+
+- **macOS Bootstrap Page Input** — Password fields on first-run wizard no longer blocked by WebKit password manager; added explicit `autoComplete` attributes to all secure inputs.
+
 ---
 ## [1.8.0] - 2026-06-03
 
