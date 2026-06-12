@@ -252,6 +252,7 @@ impl VaultService {
         Ok(serde_json::json!({
             "id": account_id, "name": name,
             "salt": config_data.salt, "verifyHash": config_data.verify_hash,
+            "passwordHint": config_data.password_hint,
         }))
     }
 
