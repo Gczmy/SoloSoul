@@ -7,6 +7,7 @@ import {
   Search,
   Settings,
   Lock,
+  Unlock,
   Puzzle,
   MessageSquare,
   FileText,
@@ -28,6 +29,23 @@ import {
   Trash2,
   LayoutTemplate,
   ArrowLeftRight,
+  Shield,
+  Key,
+  CreditCard,
+  Wallet,
+  Coins,
+  Receipt,
+  MapPin,
+  Compass,
+  Hotel,
+  Building2,
+  User,
+  Users,
+  Smartphone,
+  Wifi,
+  Sun,
+  Moon,
+  Cloud,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -80,6 +98,32 @@ export const CUSTOM_ICON_MAP = {
   calendar: Calendar,
   map: Map,
   flag: Flag,
+  // 安全
+  shield: Shield,
+  key: Key,
+  lock: Lock,
+  unlock: Unlock,
+  // 财务
+  credit_card: CreditCard,
+  wallet: Wallet,
+  coins: Coins,
+  receipt: Receipt,
+  // 旅行
+  plane: Plane,
+  map_pin: MapPin,
+  compass: Compass,
+  hotel: Hotel,
+  // 工作
+  building: Building2,
+  user: User,
+  users: Users,
+  briefcase: Briefcase,
+  // 生活
+  smartphone: Smartphone,
+  wifi: Wifi,
+  sun: Sun,
+  moon: Moon,
+  cloud: Cloud,
 } as const satisfies Record<string, LucideIcon>;
 
 export type CustomIconId = keyof typeof CUSTOM_ICON_MAP;

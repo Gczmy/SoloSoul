@@ -891,7 +891,7 @@ export function RenameableNavButton({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(5, 1fr)',
+                gridTemplateColumns: 'repeat(6, 1fr)',
                 gap: 4,
                 padding: '4px 0',
               }}
@@ -1222,7 +1222,7 @@ export function AddPageButton({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(5, 1fr)',
+                gridTemplateColumns: 'repeat(6, 1fr)',
                 gap: 4,
                 padding: '4px 0',
               }}
