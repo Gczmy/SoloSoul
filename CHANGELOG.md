@@ -1,5 +1,13 @@
 ## [Unreleased]
 
+## [2.0.1] - 2026-06-12
+
+### Fixed
+
+- **macOS Bootstrap Page Input (v2)** — Password fields on first-run wizard no longer blocked by WKWebView password manager. Replaced `<input type="password">` with `type="text"` + CSS `-webkit-text-security: disc` to bypass WebKit keyboard interception on forms with multiple password fields. Also applied to login page.
+- **Password Change Command** — Fixed `Command vault_change_password not found` error. Frontend was calling wrong command name.
+- **Password Hint After Password Change** — Hint update now uses the new password (was using old password which failed after password change).
+
 ## [2.0.0] - 2026-06-12
 
 ### Changed
