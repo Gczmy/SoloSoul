@@ -70,5 +70,6 @@
   "validation_hint_number": "Numbers only",
   "validation_failed": "Some fields contain invalid values, please check and retry",
   "no_template_for_section": "No templates for this page. ",
-  "go_create_template": "Go to Template Manager to create one"
+  "go_create_template": "Go to Template Manager to create one",
+  "manage_templates": "Manage Templates"
 }

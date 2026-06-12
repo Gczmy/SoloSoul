@@ -13,6 +13,7 @@ import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/Sensiti
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { useToastError } from '@/hooks/useToastError';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
+import { LayoutTemplate } from 'lucide-react';
 import type { PropertyType } from '@/types/template';
 import { useTemplateStore } from '@/stores/templateStore';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
@@ -295,6 +296,21 @@ export function ObjectEditorPage() {
                   </button>
                 );
               })}
+              <button
+                onClick={() => navigate('/settings/templates')}
+                style={{
+                  marginLeft: 'auto',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '8px 12px', borderRadius: 8,
+                  border: '1px dashed var(--border-strong)',
+                  background: 'transparent',
+                  color: 'var(--text-secondary)',
+                  fontSize: 12, cursor: 'pointer',
+                }}
+                title={t('editor:manage_templates')}
+              >
+                <LayoutTemplate size={14} /> {t('editor:manage_templates')}
+              </button>
               {visibleTemplates.length === 0 && (
                 <div style={{ fontSize: 13, color: 'var(--text-tertiary)', padding: '8px 0' }}>
                   {t('editor:no_template_for_section') || '此页面暂无模板，'}
