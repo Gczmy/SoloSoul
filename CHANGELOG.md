@@ -14,18 +14,13 @@
 - **History & Snapshots** — Automatic version snapshots on every object modification. Browse and roll back to any previous version with diff summary.
 - **Recycle Bin** — Soft-delete with time/type filters, batch operations, conflict detection on restore, and permanent deletion.
 - **Full-Text Search** — Search across all objects with category, tag, and type filters.
-- **AI Chat Integration** — Multi-provider LLM support (OpenAI, Anthropic, Ollama, and custom endpoints) with streaming responses, conversation management, and AI-powered object creation.
+- **AI Chat Integration** — Multi-provider LLM support (OpenAI, Anthropic, Ollama, and custom endpoints) with streaming responses and conversation management.
 - **Attachment System** — Upload, preview (images/PDF/text), rename, download, soft-delete, restore, and permanent delete. All files encrypted with vault key.
-- **OCR Scanning** — Image-based OCR with MRZ parsing for passports and identity documents.
 - **Export/Import** — Encrypted object export with tag filtering and attachment support.
 - **Theme Engine** — 20+ preset themes with light/dark modes, accent color customization, and real-time switching.
 - **Biometric Unlock** — Touch ID / Face ID support for quick vault access.
 - **Operation Log** — Full audit trail of all CRUD actions with i18n support and structured detail logging.
 - **Privacy Policy & Terms of Service** — Bilingual (EN/ZH) documents with language-based auto-routing.
-
-### Fixed
-
-- **Windows Language Detection** — Correctly detects system display language instead of always defaulting to English.
 
 ---
 ## [1.8.0] - 2026-06-03
