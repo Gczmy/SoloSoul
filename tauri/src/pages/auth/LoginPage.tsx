@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/Button';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Fingerprint } from 'lucide-react';
+import styles from './LoginPage.module.css';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -138,6 +139,7 @@ export function LoginPage() {
             <button
               onClick={handleBiometricUnlock}
               disabled={bioLoading}
+              className={styles.loginFloatButton}
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
                 padding: '20px 24px', borderRadius: 14, border: '1px solid var(--border-subtle)',
@@ -152,6 +154,7 @@ export function LoginPage() {
             </button>
             <button
               onClick={() => setShowPasswordInput(true)}
+              className={styles.loginTextButton}
               style={{
                 marginTop: 12, fontSize: 13, color: 'var(--text-tertiary)',
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -205,6 +208,7 @@ export function LoginPage() {
             {bioAvailable && (
               <button
                 onClick={() => { setShowPasswordInput(false); setBioError(null); }}
+                className={styles.loginTextButton}
                 style={{
                   fontSize: 13, color: 'var(--text-tertiary)',
                   background: 'none', border: 'none', cursor: 'pointer',
