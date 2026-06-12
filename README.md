@@ -126,7 +126,7 @@ Start adding objects using your templates. Each object is encrypted with AES-256
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      SoloSoul (Tauri v2)                     │
+│                      SoloSoul (Tauri v2)                    │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  ┌──────────────────┐    ┌──────────────────────────────┐   │
@@ -140,12 +140,12 @@ Start adding objects using your templates. Each object is encrypted with AES-256
 │                              │                              │
 │                              ▼                              │
 │              ┌──────────────────────────────┐               │
-│              │  ~/.solosoul/ (Encrypted)     │               │
-│              │  ├── config.json              │               │
-│              │  ├── index.db (SQLite)        │               │
-│              │  └── acc_{id}/                │               │
-│              │      ├── vault.enc            │               │
-│              │      └── attachments/         │               │
+│              │  ~/.solosoul/ (Encrypted)    │               │
+│              │  ├── config.json             │               │
+│              │  ├── index.db (SQLite)       │               │
+│              │  └── acc_{id}/               │               │
+│              │      ├── vault.enc           │               │
+│              │      └── attachments/        │               │
 │              └──────────────────────────────┘               │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -185,8 +185,8 @@ Start adding objects using your templates. Each object is encrypted with AES-256
 
 ## Documentation
 
-- [Privacy Policy](./docs/en-US/PRIVACY_POLICY.md) — [中文](./docs/zh-CN/PRIVACY_POLICY.md)
-- [Terms of Service](./docs/en-US/TERMS_OF_SERVICE.md) — [中文](./docs/zh-CN/TERMS_OF_SERVICE.md)
+- [Privacy Policy](./docs/en-US/PRIVACY_POLICY.md) — [隐私政策](./docs/zh-CN/PRIVACY_POLICY.md)
+- [Terms of Service](./docs/en-US/TERMS_OF_SERVICE.md) — [服务条款](./docs/zh-CN/TERMS_OF_SERVICE.md)
 
 ---
 
