@@ -28,7 +28,31 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
         ns_window.setBackgroundColor(Some(&bg));
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        use windows::Win32::Foundation::HWND;
+        use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_CAPTION_COLOR};
+
+        let hwnd = window
+            .hwnd()
+            .map_err(|e| format!("无法获取 HWND: {}", e))?;
+
+        // 将 RGB 打包为 Windows COLORREF (0x00BBGGRR)
+        let caption_color: u32 =
+            ((color.blue as u32) << 16) | ((color.green as u32) << 8) | (color.red as u32);
+
+        unsafe {
+            DwmSetWindowAttribute(
+                HWND(hwnd as isize),
+                DWMWA_CAPTION_COLOR,
+                &caption_color as *const u32 as *const std::ffi::c_void,
+                std::mem::size_of::<u32>() as u32,
+            )
+            .map_err(|e| format!("DwmSetWindowAttribute 失败: {:?}", e))?;
+        }
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = window;
         let _ = color;
