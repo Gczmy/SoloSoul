@@ -44,6 +44,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **macOS Bootstrap Page Input** — Password fields on first-run wizard no longer blocked by WebKit password manager; added explicit `autoComplete="new-password"` / `"current-password"` to all secure inputs.
 - **Windows Language Detection** — Use `GetUserDefaultUILanguage` Win32 API to correctly detect display language (was always showing English on first launch). Final 5-layer detection chain: Rust eval → localStorage → IPC get_system_locale → navigator.language → eval override.
 - **Windows Resource Paths** — Fixed `resource_path()` resolution for docs on Windows (was incorrectly using macOS `../Resources` path).
 - **Windows User Data Path** — Use `%USERPROFILE%` instead of `$HOME` for data storage.
