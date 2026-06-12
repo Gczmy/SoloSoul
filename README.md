@@ -54,14 +54,14 @@ SoloSoul is a **Local Digital Twin & Universal Identity Engine** — a decentral
 ### macOS
 
 <p>
-<a href="https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul.dmg" target="_self">
+<a href="https://github.com/Gczmy/SoloSoul/releases/latest" target="_self">
   <img width="200" src="https://img.shields.io/badge/Download-macOS-blue?style=for-the-badge" alt="Download for macOS" />
 </a>
 </p>
 
 **Requirements**: macOS 10.15 (Catalina) or later, Apple Silicon or Intel processor
 
-Once downloaded, open the `.dmg` and drag **SoloSoul** to your `/Applications` folder.
+On the Release page, download the file named **`SoloSoul_{version}_arm64.dmg`**. Open it and drag **SoloSoul** to your `/Applications` folder.
 
 > [!IMPORTANT]
 > We don't have an Apple Developer account (yet), so macOS will warn you that SoloSoul is from an unidentified developer on first launch. This is expected behavior.
@@ -92,14 +92,14 @@ Then open the app normally.
 ### Windows
 
 <p>
-<a href="https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul_x64-setup.exe" target="_self">
+<a href="https://github.com/Gczmy/SoloSoul/releases/latest" target="_self">
   <img width="200" src="https://img.shields.io/badge/Download-Windows-blue?style=for-the-badge" alt="Download for Windows" />
 </a>
 </p>
 
 **Requirements**: Windows 10 or later, 64-bit processor
 
-Once downloaded, double-click the `.exe` installer and follow the setup wizard. SoloSoul will be installed to your Start Menu and Desktop.
+On the Release page, download the file named **`SoloSoul_{version}_x64-setup.exe`**. Double-click and follow the setup wizard.
 
 > [!NOTE]
 > Windows may show a SmartScreen warning because the installer is not yet code-signed. Click **More info** > **Run anyway** to proceed.
