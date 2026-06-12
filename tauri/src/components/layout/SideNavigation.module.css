@@ -39,14 +39,32 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  /* Thin scrollbar for Webkit */
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
+  /* Hidden scrollbar by default, show on hover — consistent with horizontal mode */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding-bottom: 4px;
 }
 
+.navPrimary::-webkit-scrollbar {
+  width: 0;
+}
+
 .navPrimary:hover {
+  scrollbar-width: thin;
   scrollbar-color: var(--border-subtle) transparent;
+}
+
+.navPrimary:hover::-webkit-scrollbar {
+  width: 4px;
+}
+
+.navPrimary:hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navPrimary:hover::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
 }
 
 /* Horizontal mode — the scrollable zone inside the sidebar strip */
