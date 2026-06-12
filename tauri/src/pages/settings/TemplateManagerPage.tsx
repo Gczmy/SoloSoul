@@ -10,13 +10,16 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import {
-  LayoutTemplate, Trash2, Pencil, X, Save, Plus,
+  LayoutTemplate, Trash2, Pencil, X, Save, Plus, BookOpen,
   Type, AlignLeft, Hash, Calendar, Clock, CheckSquare,
   List, ListChecks, Link, Mail, Phone, File,
 } from 'lucide-react';
 import { SensitivityBadge as UiSensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import type { UserTemplate, TemplateProperty, PropertyType, SensitivityLevel } from '@/types/template';
+import { SampleTemplateGallery } from '@/components/template/SampleTemplateGallery';
+import { SampleTemplateDetail } from '@/components/template/SampleTemplateDetail';
+import type { SampleTemplate } from '@/lib/sampleTemplates';
 
 const PROPERTY_TYPES: PropertyType[] = [
   'text', 'multiline', 'number', 'date', 'datetime',
@@ -181,6 +184,8 @@ export function TemplateManagerPage() {
   const [detailTemplate, setDetailTemplate] = useState<ListTemplate | null>(null);
   const [showDeprecated, setShowDeprecated] = useState(false);
   const [fieldUsageMap, setFieldUsageMap] = useState<Record<string, { active: number; softDeleted: number }>>({});
+  const [showSampleGallery, setShowSampleGallery] = useState(false);
+  const [selectedSample, setSelectedSample] = useState<SampleTemplate | null>(null);
 
   useEffect(() => {
     loadTemplates().catch(() => {});
@@ -454,10 +459,16 @@ export function TemplateManagerPage() {
       title={t('settings:template_manager_title') || '模板管理'}
       onBack={() => navigate('/settings')}
       actions={
-        <Button onClick={openCreate}>
-          <Plus size={16} style={{ marginRight: 4 }} />
-          {t('settings:new_template') || '新建模板'}
-        </Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Button variant="secondary" onClick={() => setShowSampleGallery(true)}>
+            <BookOpen size={16} style={{ marginRight: 4 }} />
+            {t('settings:sample_templates') || '模板示例'}
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus size={16} style={{ marginRight: 4 }} />
+            {t('settings:new_template') || '新建模板'}
+          </Button>
+        </div>
       }
     >
       <div style={{ maxWidth: 700, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -922,6 +933,41 @@ export function TemplateManagerPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Sample templates gallery */}
+      <SampleTemplateGallery
+        isOpen={showSampleGallery}
+        onClose={() => setShowSampleGallery(false)}
+        onSelect={(tpl) => { setShowSampleGallery(false); setSelectedSample(tpl); }}
+      />
+
+      {/* Sample template detail */}
+      {selectedSample && (
+        <SampleTemplateDetail
+          template={selectedSample}
+          onBack={() => setSelectedSample(null)}
+          onUse={async () => {
+            if (!selectedSample) return;
+            try {
+              await createTemplate(
+                t(selectedSample.nameI18nKey, selectedSample.nameFallback),
+                selectedSample.icon,
+                selectedSample.category,
+                selectedSample.properties.map((p) => ({
+                  id: p.id,
+                  name: t(p.nameI18nKey, p.nameFallback),
+                  type: p.type,
+                  sensitivityLevel: p.sensitivityLevel,
+                  options: p.options,
+                }))
+              );
+              setSelectedSample(null);
+            } catch (e) {
+              alert(t('common:save_failed') + ': ' + e);
+            }
+          }}
+        />
       )}
 
       {/* Delete confirmation dialog */}

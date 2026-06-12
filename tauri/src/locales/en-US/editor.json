@@ -1,6 +1,7 @@
 {
   "templates": {
     "identity": "Identity",
+    "idCard": "ID Card",
     "passport": "Passport",
     "visa": "Visa",
     "bank": "Bank Account",

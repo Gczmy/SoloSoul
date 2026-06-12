@@ -1,6 +1,7 @@
 {
   "templates": {
     "identity": "身份",
+    "idCard": "身份证",
     "passport": "护照",
     "visa": "签证",
     "bank": "银行账户",

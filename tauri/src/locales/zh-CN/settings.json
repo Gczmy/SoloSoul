@@ -533,5 +533,9 @@
   "sidebar_bottom": "下方",
   "sidebar_bottom_actions": "侧边栏下方按钮",
   "sidebar_bottom_actions_desc": "自定义侧边栏底部的 3 个快捷按钮，锁定和设置始终固定在末尾。",
-  "position": "位置"
+  "position": "位置",
+  "sample_templates_title": "模板示例",
+  "sample_templates_desc": "参考以下示例快速创建常用模板。",
+  "use_sample_template": "以此模板创建",
+  "sample_templates": "模板示例"
 }
