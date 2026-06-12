@@ -6,6 +6,7 @@ import './styles/global.css';
 import './styles/themes.css';
 import { initI18n } from './lib/i18n';
 import { initLlmNotificationListener } from '@/lib/notification';
+import { restoreWindowSize } from '@/hooks/useWindowSize';
 
 // Start global LLM notification listener (non-blocking)
 initLlmNotificationListener().catch(() => {});
@@ -20,7 +21,8 @@ initI18n().then(() =>
   import('@/stores/settingsStore').then(m =>
     m.useSettingsStore.getState()
   ).then(store => store.loadUiPreferences())
-).then(() => {
+).then(() => restoreWindowSize())
+.then(() => {
   ReactDOM.createRoot(rootEl!).render(
     <React.StrictMode>
       <App />

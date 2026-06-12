@@ -13,10 +13,19 @@ fn ui_prefs_path(svc: &crate::services::vault_service::VaultService) -> PathBuf 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct WindowSize {
+    pub width: u32,
+    pub height: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UiPreferences {
     pub theme: String,
     pub accent_color: String,
     pub language: String,
+    #[serde(default)]
+    pub window_size: Option<WindowSize>,
 }
 
 impl Default for UiPreferences {
@@ -25,6 +34,7 @@ impl Default for UiPreferences {
             theme: "system".to_string(),
             accent_color: "ocean".to_string(),
             language: String::new(),
+            window_size: None,
         }
     }
 }
@@ -59,7 +69,10 @@ pub async fn ui_update_preference(
         prefs = serde_json::Value::Object(serde_json::Map::new());
     }
     if let Some(obj) = prefs.as_object_mut() {
-        obj.insert(key, serde_json::Value::String(value));
+        // Try to parse the value as JSON so objects/numbers can be stored; fall back to string.
+        let parsed = serde_json::from_str(&value)
+            .unwrap_or_else(|_| serde_json::Value::String(value));
+        obj.insert(key, parsed);
     }
     let json = serde_json::to_string(&prefs).map_err(|e| e.to_string())?;
     std::fs::write(&path, json).map_err(|e| format!("Write UI prefs: {}", e))?;

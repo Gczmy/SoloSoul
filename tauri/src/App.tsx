@@ -6,7 +6,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { applyTheme, listenForSystemTheme } from '@/lib/theme';
-import { restoreWindowSize, useWindowSize } from '@/hooks/useWindowSize';
+import { useWindowSize } from '@/hooks/useWindowSize';
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { HomePage } from '@/pages/home/HomePage';
@@ -74,13 +74,11 @@ function AppRoutes() {
         // loadSettings overwrites customPages with DEFAULT_SETTINGS.
         useSettingsStore.getState().loadCustomPages(account.id);
       });
-      // Restore saved window size from Vault-encrypted preferences
-      restoreWindowSize(account.id).catch(() => {});
     }
   }, [isAuthenticated]);
 
-  // Listen to window resize and save size to Vault
-  useWindowSize(useAuthStore.getState().currentAccount?.id);
+  // Listen to window resize and save size to UI preferences (available before login)
+  useWindowSize();
 
   // Apply theme on mount (4.3.5 — instant, no refresh needed)
   useEffect(() => {
