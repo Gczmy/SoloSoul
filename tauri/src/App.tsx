@@ -401,8 +401,41 @@ function App() {
     } catch { return true; }
   });
 
+  useEffect(() => {
+    let cancelled = false;
+    invoke<{ hasSeenOnboarding?: boolean }>('ui_get_preferences')
+      .then((prefs) => {
+        if (cancelled) return;
+        const ipcSeen = prefs.hasSeenOnboarding === true;
+        if (ipcSeen) {
+          setHasSeenOnboarding(true);
+          return;
+        }
+        // IPC is authoritative: if it says not seen, ignore stale localStorage
+        try {
+          const localSeen = localStorage.getItem('solosoul_onboarding_seen') === 'true';
+          if (localSeen) {
+            // eslint-disable-next-line no-console
+            console.warn('[onboarding] ui_preferences says not seen but localStorage says seen; using IPC');
+          }
+        } catch { /* ignore */ }
+        setHasSeenOnboarding(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        // eslint-disable-next-line no-console
+        console.warn('[onboarding] Failed to read ui_preferences:', err);
+        // Fallback to localStorage already applied in initial state
+      });
+    return () => { cancelled = true; };
+  }, []);
+
   const finishOnboarding = () => {
     try { localStorage.setItem('solosoul_onboarding_seen', 'true'); } catch { /* ignore */ }
+    invoke('ui_update_preference', { key: 'hasSeenOnboarding', value: 'true' }).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn('[onboarding] Failed to persist hasSeenOnboarding:', err);
+    });
     setHasSeenOnboarding(true);
   };
 

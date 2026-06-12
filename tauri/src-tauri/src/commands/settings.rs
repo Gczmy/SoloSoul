@@ -26,6 +26,8 @@ pub struct UiPreferences {
     pub language: String,
     #[serde(default)]
     pub window_size: Option<WindowSize>,
+    #[serde(default)]
+    pub has_seen_onboarding: bool,
 }
 
 impl Default for UiPreferences {
@@ -35,6 +37,7 @@ impl Default for UiPreferences {
             accent_color: "ocean".to_string(),
             language: String::new(),
             window_size: None,
+            has_seen_onboarding: false,
         }
     }
 }
@@ -181,6 +184,7 @@ mod tests {
         assert_eq!(prefs.theme, "system");
         assert_eq!(prefs.accent_color, "ocean");
         assert_eq!(prefs.language, "");
+        assert!(!prefs.has_seen_onboarding);
     }
 
     #[test]
@@ -190,15 +194,25 @@ mod tests {
             accent_color: "rose".to_string(),
             language: "zh-CN".to_string(),
             window_size: None,
+            has_seen_onboarding: true,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("\"theme\":\"dark\""));
         assert!(json.contains("\"accentColor\":\"rose\""));
         assert!(json.contains("\"language\":\"zh-CN\""));
+        assert!(json.contains("\"hasSeenOnboarding\":true"));
         let restored: UiPreferences = serde_json::from_str(&json).unwrap();
         assert_eq!(restored.theme, original.theme);
         assert_eq!(restored.accent_color, original.accent_color);
         assert_eq!(restored.language, original.language);
+        assert!(restored.has_seen_onboarding);
+    }
+
+    #[test]
+    fn test_ui_preferences_missing_onboarding_defaults_to_false() {
+        let json = r#"{"theme":"light","accentColor":"ocean","language":"en-US"}"#;
+        let restored: UiPreferences = serde_json::from_str(json).unwrap();
+        assert!(!restored.has_seen_onboarding);
     }
 
     #[test]
