@@ -2,11 +2,17 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SecurePasswordInput } from './PasswordInput';
 
+function getTextSecurity(input: HTMLElement): string {
+  return ((input as HTMLElement).style as CSSStyleDeclaration & { WebkitTextSecurity?: string })
+    .WebkitTextSecurity ?? '';
+}
+
 describe('SecurePasswordInput', () => {
-  it('renders input with password type by default', () => {
+  it('masks input by default using WebkitTextSecurity', () => {
     render(<SecurePasswordInput value="" onChange={vi.fn()} />);
     const input = screen.getByPlaceholderText('common:password_placeholder');
-    expect(input).toHaveAttribute('type', 'password');
+    expect(input).toHaveAttribute('type', 'text');
+    expect(getTextSecurity(input as HTMLElement)).toBe('disc');
   });
 
   it('calls onChange when typing', () => {
@@ -20,15 +26,15 @@ describe('SecurePasswordInput', () => {
   it('toggles visibility when toggle button is clicked', () => {
     render(<SecurePasswordInput value="secret" onChange={vi.fn()} />);
     const input = screen.getByPlaceholderText('common:password_placeholder');
-    expect(input).toHaveAttribute('type', 'password');
+    expect(getTextSecurity(input as HTMLElement)).toBe('disc');
 
     const toggleBtn = screen.getByRole('button', { name: /common:show_password/i });
     fireEvent.click(toggleBtn);
-    expect(input).toHaveAttribute('type', 'text');
+    expect(getTextSecurity(input as HTMLElement)).toBe('');
 
     const hideBtn = screen.getByRole('button', { name: /common:hide_password/i });
     fireEvent.click(hideBtn);
-    expect(input).toHaveAttribute('type', 'password');
+    expect(getTextSecurity(input as HTMLElement)).toBe('disc');
   });
 
   it('does not show visibility toggle when value is empty', () => {
@@ -42,10 +48,10 @@ describe('SecurePasswordInput', () => {
     const toggleBtn = screen.getByRole('button', { name: /common:show_password/i });
 
     fireEvent.click(toggleBtn);
-    expect(input).toHaveAttribute('type', 'text');
+    expect(getTextSecurity(input as HTMLElement)).toBe('');
 
     fireEvent.blur(input);
-    expect(input).toHaveAttribute('type', 'password');
+    expect(getTextSecurity(input as HTMLElement)).toBe('disc');
   });
 
   it('renders label when provided', () => {

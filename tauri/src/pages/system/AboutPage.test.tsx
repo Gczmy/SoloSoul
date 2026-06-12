@@ -51,7 +51,7 @@ describe('AboutPage', () => {
     });
 
     expect(screen.getByText('SoloSoul')).toBeInTheDocument();
-    expect(screen.getByText('macOS (Apple Silicon)')).toBeInTheDocument();
+    expect(screen.getByText('macOS')).toBeInTheDocument();
     expect(screen.getByText('settings:latest_version')).toBeInTheDocument();
   });
 
@@ -76,7 +76,7 @@ describe('AboutPage', () => {
       expect(screen.getByText(/settings:update_available/)).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Windows (Intel)')).toBeInTheDocument();
+    expect(screen.getByText('Windows')).toBeInTheDocument();
   });
 
   it('renders external links', async () => {
