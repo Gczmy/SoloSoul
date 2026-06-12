@@ -200,7 +200,7 @@ describe('settingsStore', () => {
   });
 
   describe('removeCustomPage', () => {
-    it('should remove page optimistically and call page_delete', async () => {
+    it('should mark page as deleted optimistically and call page_delete', async () => {
       useSettingsStore.setState({
         settings: {
           ...useSettingsStore.getState().settings,
@@ -212,8 +212,11 @@ describe('settingsStore', () => {
       });
       vi.mocked(invoke).mockResolvedValue(undefined);
       await useSettingsStore.getState().removeCustomPage('acc-1', 'p1');
-      expect(useSettingsStore.getState().settings.customPages).toHaveLength(1);
-      expect(useSettingsStore.getState().settings.customPages[0].id).toBe('p2');
+      const pages = useSettingsStore.getState().settings.customPages;
+      expect(pages).toHaveLength(2);
+      expect(pages[0].id).toBe('p1');
+      expect(pages[0].deletedAt).toBeDefined();
+      expect(pages[1].deletedAt).toBeUndefined();
       expect(invoke).toHaveBeenCalledWith('page_delete', { accountId: 'acc-1', sectionType: 'custom', pageObjectId: 'p1' });
     });
 
@@ -278,7 +281,7 @@ describe('settingsStore', () => {
       expect(pages[1].sortOrder).toBe(1);
       expect(invoke).toHaveBeenCalledWith('object_list', {
         accountId: 'acc-1',
-        filter: { collectionType: 'page' },
+        filter: { collectionType: 'page', includeDeleted: true },
       });
     });
 
