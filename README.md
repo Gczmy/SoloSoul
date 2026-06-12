@@ -1,8 +1,10 @@
 # SoloSoul (独灵) 🧩
 
-Your Local Digital Twin & Universal Identity Engine.
+**Your Local Digital Twin & Universal Identity Engine.**
 
 「独奏生命数据，重塑数字原点」—— 一个去中心化、本地加密的个人超级档案与自动化执行引擎。
+
+> **核心理念**：「Centralized Schema definition, decentralized data storage」
 
 ---
 
@@ -10,127 +12,127 @@ Your Local Digital Twin & Universal Identity Engine.
 
 ```
 SoloSoul/
-├── tauri/            # 主项目：Tauri + React 跨平台客户端 (macOS/Windows/Linux)
-│   ├── src/          # React 前端源码
-│   ├── src-tauri/    # Rust 后端 (Tauri)
-│   │   ├── src/
-│   │   │   ├── commands/   # IPC 命令
-│   │   │   ├── core/       # 核心逻辑
-│   │   │   ├── db/         # SQLite 数据库
-│   │   │   ├── services/   # 业务服务
+├── tauri/                     # 主项目：Tauri + React 跨平台客户端
+│   ├── src/                   # React 前端 (TypeScript, Zustand, CSS Modules)
+│   │   ├── components/        # UI 组件
+│   │   ├── pages/             # 页面
+│   │   │   ├── ai/            # AI 对话
+│   │   │   ├── auth/          # 启动/登录
+│   │   │   ├── editor/        # 对象/模板编辑器
+│   │   │   ├── scan/          # OCR/本地扫描
+│   │   │   ├── settings/      # 设置页
+│   │   │   ├── system/        # 关于/调试
+│   │   │   ├── workspace/     # 对象工作区
 │   │   │   └── ...
-│   │   └── crates/         # Workspace crates (crypto, vault, sync)
-│   └── package.json
-├── SoloSoul_plugin_market/  # 插件市场（Git Submodule）
-│   ├── plugins/
-│   ├── SDK/
-│   └── ...
-├── sdk/              # SDK 占位目录（未实现）
-│   ├── js/
-│   └── python/
-└── docs/             # 文档
+│   │   ├── stores/            # Zustand 状态管理
+│   │   ├── lib/               # 工具库 (i18n, IPC, theme)
+│   │   ├── hooks/             # React Hooks
+│   │   ├── locales/           # 国际化 (en-US / zh-CN)
+│   │   ├── types/             # TypeScript 类型
+│   │   └── styles/            # 全局 CSS
+│   └── src-tauri/             # Rust 后端 (Tauri)
+│       ├── src/
+│       │   ├── commands/      # IPC 命令 (30+)
+│       │   ├── core/          # 核心逻辑 (SensitivityManager, etc.)
+│       │   ├── db/            # SQLite 数据库 + 迁移
+│       │   ├── ipc/           # IPC 通信
+│       │   ├── services/      # 业务服务 (vault, llm_context, sync)
+│       │   └── state/         # 应用状态
+│       └── crates/            # Workspace crates
+├── SoloSoul_plugin_market/    # 插件市场 (Git Submodule)
+├── docs/                      # 文档 (构建脚本、用户指南、法律文件)
+└── CHANGELOG.md               # 变更日志
 ```
 
 ---
 
 ## 已完成
 
-### Tauri 客户端 (主项目) ✅
+### 核心系统 ✅
 
-**核心加密** ✅
-- Rust Argon2id (64MB, 3 iterations)
-- AES-256-GCM 加密/解密
-- Secure memory 处理
+| 模块 | 状态 | 说明 |
+|------|------|------|
+| 对象系统 | ✅ | Create/Read/Update/Delete，扁平化管理，支持标签 |
+| 模板引擎 | ✅ | 用户自定义对象模板，8+ 字段类型 |
+| 历史快照 | ✅ | 每次修改自动保存快照，支持版本回滚 + diff 摘要 |
+| 回收站 | ✅ | 软删除/恢复/永久删除，冲突检测，批量操作 |
+| 搜索 | ✅ | 全文本搜索，支持分类/标签/类型筛选 |
+| 操作日志 | ✅ | 完整的结构化审计日志，全字段国际化 |
 
-**账户与安全** ✅
-| 功能 | 状态 |
+### 安全 ✅
+
+| 功能 | 说明 |
 |------|------|
-| 账户创建/解锁 | ✅ |
-| 密码提示词 | ✅ |
-| 账户列表折叠/展开 | ✅ |
-| 账户删除 | ✅ |
-| 数据敏感级别 | ✅ Public/Private/Restricted |
-| Privacy Shield 掩码 | ✅ |
-| Operation Log | ✅ |
-| 回收站 (30天自动清理) | ✅ |
+| Argon2id 密钥派生 | 默认 8MiB/2 iter (开发) / 64MiB/3 iter (生产) |
+| AES-256-GCM 加密 | 所有数据本地加密存储 |
+| Master Password 零存储 | 仅在内存中用于密钥派生 |
+| 敏感度分级 | Public / Private / Restricted |
+| Privacy Shield | 一键掩码敏感数据 |
+| 生物识别 | Touch ID / Face ID 解锁 |
 
-**Profile 页面** ✅
-| 页面 | 功能 |
+### AI 与工具 ✅
+
+| 功能 | 说明 |
 |------|------|
-| 启动页 | ✅ |
-| 登录页 | 账户选择 + 密码登录 |
-| 主页 | 主页面 |
-| 档案页 | Contact Info, Identity, Addresses |
-| 旅行页 | Passports, Visas, Travel History |
-| 财务页 | Bank Accounts, Cards, Tax IDs |
-| 职业页 | Education, Employment, Skills |
-| 设置页 | Account, Security, Sync, App Info |
-| 操作记录 | 操作日志 |
-| 敏感级别设置 | 敏感级别设置 |
+| AI 对话 | 多 Provider (OpenAI/Anthropic/Ollama/自定义)，流式响应 |
+| 附件系统 | 上传/预览/下载/重命名/软删除/全部加密 |
+| OCR 识别 | 本地图像 OCR + MRZ 护照/证件解析 |
+| 本地扫描 | 文件系统扫描与索引 |
+| 导出/导入 | 加密导出，支持标签筛选与附件 |
 
-**UI 组件** ✅
-- SectionCard / CollapsibleSectionCard
-- SensitiveValueWidget (分级掩码)
-- 操作提示条 (Toast/Snackbar)
-- PasswordVerificationDialog (共享密码验证)
+### 跨平台 ✅
 
-**OCR 本地识别** ✅
-- 护照 MRZ 扫描 → 自动创建 Travel Passport
-- 通用文档/名片 OCR
-- 完全本地处理，零网络依赖
+| 平台 | 安装包 | 状态 |
+|------|--------|------|
+| macOS (Apple Silicon) | DMG | ✅ 可用 |
+| Windows (x64) | NSIS (.exe) | ✅ 可用 |
+| Linux | AppImage | ⏳ 待测试 |
 
-**跨平台构建** ✅
-- macOS Release
-- Windows Release
+### 国际化 i18n ✅
+
+- en-US / zh-CN 双语言
+- 覆盖所有页面：编辑器、认证、设置、布局、对象工作区、AI、OCR 等
+- 字段标签、验证消息、操作日志、相对时间全部翻译
 
 ---
 
 ## 待完成
 
-### P0: 关键问题
+### P0
 
-1. **Tauri 平台适配**
-   - macOS 代码签名与公证
-   - Windows 签名
+1. **签名与分发**
+   - macOS 代码签名 + 公证 (Developer ID)
+   - Windows Authenticode 签名
 
-### P1: 安全
+### P1
 
 2. **物理安全**
-   - 防截屏
+   - 防截屏保护
    - 多任务视图模糊
 
-### P2: 云同步
+### P2
 
-3. Online/Offline 标识修复
-4. Offline 后台自动重连
-5. Offline 标识改为手动连接按钮
-6. 云服务器开发
-7. 隐私政策/服务条款更新
+3. **云同步**
+   - 多设备同步引擎
+   - 冲突解决
 
-### P3: 跨平台构建
+### P3
 
-| 平台 | 状态 |
-|------|------|
-| macOS | ✅ 可用 |
-| Windows | ✅ 可用 |
-| Linux | 待测试 |
+4. **插件生态系统**
+   - 插件运行时 v2 适配
+   - 插件市场集成
 
 ---
 
 ## 开发命令
 
-### Tauri 客户端
-
 ```bash
 cd tauri
-
-# 安装依赖
-npm install
 
 # 开发模式
 npm run dev
 
-# 代码检查
+# 代码检查 (TypeScript + ESLint)
 npm run check-all
 
 # Release 构建
@@ -143,37 +145,36 @@ npm run tauri build
 
 | 组件 | 技术 |
 |------|------|
-| Tauri 客户端 | React 19, TypeScript, Vite, Zustand |
-| Rust 核心 | Rust, Argon2id, AES-256-GCM, rusqlite, ONNX Runtime |
-| 加密 | Argon2id (64MB, 3 iterations), AES-256-GCM |
-| OCR | PP-OCRv4 (ONNX) / Apple Vision (iOS/macOS) |
+| 前端框架 | React 19, TypeScript, Vite |
+| 状态管理 | Zustand |
+| 样式 | CSS Modules + 全局 CSS 变量 |
+| 国际化 | i18next + react-i18next |
+| 后端框架 | Tauri v2 (Rust) |
+| 数据库 | SQLite (rusqlite) |
+| 密码学 | Argon2id, AES-256-GCM |
+| OCR | PP-OCRv4 (ONNX Runtime) |
 
 ---
 
 ## 安全特性
 
-- **零知识架构**: Master Password 从不存储
-- **本地加密**: 所有数据 AES-256-GCM 加密
-- **敏感分级**: Public/Private/Restricted 三级保护
-- **隐私盾**: Privacy Shield 一键掩码
-- **阅后即焚**: Secure memory 处理
-- **端到端加密**: 云同步时服务端不解密
+- **零知识架构** — Master Password 从不存储，仅在内存中派生密钥
+- **本地优先** — 数据仅存储在 `~/.solosoul/`，绝不上传云端
+- **全量加密** — AES-256-GCM 加密所有存储数据
+- **敏感分级** — 三阶敏感度 (Public / Private / Restricted)
+- **安全内存** — 敏感字段使用后销毁 (secure zeroing)
+- **Session 过期** — 24 小时自动过期
 
 ---
 
-## OCR 模型文件
+## 构建与发布
 
-OCR 功能依赖三个 ONNX 模型文件（共 ~15MB），已加入 `.gitignore`，通过 **GitHub Release Assets** 分发。
+详见 [`docs/release_process.md`](docs/release_process.md)。
 
-| 模型 | 大小 | 用途 | 获取方式 |
-|------|------|------|---------|
-| `ppocrv4_det.onnx` | ~4.5MB | 文本检测 | Release Assets |
-| `ppocrv4_cls.onnx` | ~571KB | 方向分类 | Release Assets / paddle2onnx 转换 |
-| `ppocrv4_rec.onnx` | ~10MB | 文本识别 | Release Assets |
-
-首次构建前，将模型文件放置到 `tauri/src-tauri/resources/models/` 目录下。
-
-详细下载脚本和转换指南见 [`docs/OCR_INTEGRATION_DESIGN.md`](docs/OCR_INTEGRATION_DESIGN.md)。
+发布流程：
+1. **准备** — 统一版本号（3 个文件同步）
+2. **构建** — macOS 产 DMG，Windows 产 NSIS `.exe`
+3. **发布** — 上传至 GitHub Releases，更新 CHANGELOG
 
 ---
 
@@ -181,14 +182,12 @@ OCR 功能依赖三个 ONNX 模型文件（共 ~15MB），已加入 `.gitignore`
 
 | 文档 | 说明 |
 |------|------|
+| [Release 流程](docs/release_process.md) | 发布构建与 GitHub Release 流程 |
 | [TODO](docs/TODO.md) | 开发任务清单 |
-| [USER_GUIDE](docs/USER_GUIDE.md) | 用户指南 |
-| [CLIENT_ROADMAP](docs/CLIENT_ROADMAP.md) | 客户端路线图 |
-| [CHANGELOG](docs/CHANGELOG.md) | 变更日志 |
-| [OCR_INTEGRATION_DESIGN](docs/OCR_INTEGRATION_DESIGN.md) | OCR 集成技术设计文档 |
+| [CHANGELOG](CHANGELOG.md) | 详细变更日志 |
 
 ---
 
 ## 许可证
 
-Private - All Rights Reserved
+Private — All Rights Reserved
