@@ -30,7 +30,6 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
 
     #[cfg(target_os = "windows")]
     {
-        use windows::Win32::Foundation::HWND;
         use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWA_CAPTION_COLOR};
 
         let hwnd = window.hwnd().map_err(|e| format!("无法获取 HWND: {}", e))?;
@@ -41,7 +40,7 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
 
         unsafe {
             DwmSetWindowAttribute(
-                HWND(hwnd as *mut std::ffi::c_void),
+                hwnd,
                 DWMWA_CAPTION_COLOR,
                 &caption_color as *const u32 as *const std::ffi::c_void,
                 std::mem::size_of::<u32>() as u32,
