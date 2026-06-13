@@ -365,7 +365,6 @@ Function PageLeaveReinstall
     ${IfThen} ${Errors} ${|} StrCpy $0 2 ${|} ; ExecWait failed, set fake exit code
 
     ${If} $0 <> 0
-    ${OrIf} ${FileExists} "$INSTDIR\${MAINBINARYNAME}.exe"
       ; User cancelled wix uninstaller? return to select un/reinstall page
       ${If} $WixMode = 1
       ${AndIf} $0 = 1602
@@ -377,12 +376,13 @@ Function PageLeaveReinstall
         Abort
       ${EndIf}
 
-      ; Other erros? show generic error message and return to select un/reinstall page
+      ; Other errors? show generic error message and return to select un/reinstall page
       MessageBox MB_ICONEXCLAMATION "$(unableToUninstall)"
       Abort
     ${EndIf}
 
-    ; Uninstall completed successfully; do not continue to the install flow.
+    ; Uninstall completed successfully (exit code 0). Do not continue to the
+    ; install flow — the user explicitly chose to remove the application.
     Quit
   reinst_done:
 FunctionEnd

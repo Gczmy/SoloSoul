@@ -95,9 +95,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
         if (cached.windowSize) {
           p.windowSize = cached.windowSize;
-          try {
-            localStorage.setItem('solosoul_window_size', JSON.stringify(cached.windowSize));
-          } catch { /* ignore */ }
+          // Do not mirror back to solosoul_window_size here; restoreWindowSize()
+          // owns that key and it may be newer than the ui_prefs snapshot.
         }
         applyTheme({
           preset: p.theme === 'dark' ? 'warm-stone-dark' :
@@ -129,10 +128,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
       if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
       if (prefs.windowSize && typeof prefs.windowSize.width === 'number' && typeof prefs.windowSize.height === 'number') {
-        parsed.windowSize = prefs.windowSize;
-        try {
-          localStorage.setItem('solosoul_window_size', JSON.stringify(prefs.windowSize));
-        } catch { /* ignore */ }
+        // Only fall back to the on-disk UI preference when there is no localStorage
+        // cache. The cache is updated synchronously on every resize, so it is always
+        // at least as fresh as the debounced disk write.
+        const hasCachedSize = !!localStorage.getItem('solosoul_window_size');
+        if (!hasCachedSize) {
+          parsed.windowSize = prefs.windowSize;
+          try {
+            localStorage.setItem('solosoul_window_size', JSON.stringify(prefs.windowSize));
+          } catch { /* ignore */ }
+        }
       }
       applyTheme({
         preset: parsed.theme === 'dark' ? 'warm-stone-dark' :

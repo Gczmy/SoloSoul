@@ -145,13 +145,18 @@ export function ObjectDetailModal({
 
   const writeCriticalAccessLog = useCallback(async (method: 'password' | 'touchId' | 'faceId') => {
     if (!accountId || !obj || !pendingRevealRef.current) return;
-    const details = `objectName=${obj.name} page=${resolveCollectionLabel(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName} method=${method}`;
+    const actionType =
+      method === 'password' ? 'critical_field_login' :
+      method === 'touchId' ? 'critical_field_touch_id' :
+      'critical_field_face_id';
+    const entityType = method === 'password' ? 'auth' : 'biometric';
+    const details = `objectName=${obj.name} page=${resolveCollectionLabel(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName}`;
     try {
       await invoke('log_write', {
-        actionType: 'critical_field_access',
-        entityType: 'object',
+        actionType,
+        entityType,
         entityId: obj.id,
-        entityName: obj.name,
+        entityName: undefined,
         details,
       });
     } catch {

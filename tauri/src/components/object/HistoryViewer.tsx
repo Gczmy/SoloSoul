@@ -259,14 +259,19 @@ export function HistoryViewer({
 
   const writeCriticalAccessLog = async (fieldName: string, method: 'password' | 'touchId' | 'faceId') => {
     if (!objectName) return;
+    const actionType =
+      method === 'password' ? 'critical_field_login' :
+      method === 'touchId' ? 'critical_field_touch_id' :
+      'critical_field_face_id';
+    const entityType = method === 'password' ? 'auth' : 'biometric';
     const pageLabel = collectionType ? resolveCollectionLabel(collectionType) : '';
-    const details = `objectName=${objectName} page=${pageLabel} fieldName=${fieldName} method=${method}`;
+    const details = `objectName=${objectName} page=${pageLabel} fieldName=${fieldName}`;
     try {
       await invoke('log_write', {
-        actionType: 'critical_field_access',
-        entityType: 'object',
+        actionType,
+        entityType,
         entityId: objectId,
-        entityName: objectName,
+        entityName: undefined,
         details,
       });
     } catch {

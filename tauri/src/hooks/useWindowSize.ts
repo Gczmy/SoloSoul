@@ -50,14 +50,17 @@ async function persistWindowSize(payload: WindowSize) {
  */
 export async function restoreWindowSize() {
   try {
-    // 1. Apply cached localStorage value instantly (no IPC delay on startup).
+    // The localStorage cache is updated synchronously on every resize, so it is
+    // the freshest source of truth for the last known window geometry.
     const cached = readCachedSize();
     if (cached) {
       const window = getCurrentWebviewWindow();
       await window.setSize(new PhysicalSize({ width: cached.width, height: cached.height }));
+      return;
     }
 
-    // 2. Reconcile with the persisted UI preference.
+    // Fallback to the persisted UI preference only when the cache is missing
+    // (e.g. first launch or after clearing app data).
     const prefs = await invoke<{ windowSize?: WindowSize }>('ui_get_preferences');
     const raw = prefs.windowSize;
     if (raw?.width && raw?.height) {
