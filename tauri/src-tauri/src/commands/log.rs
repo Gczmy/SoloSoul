@@ -105,14 +105,20 @@ pub async fn log_export(
     let entries = vault.list_audit_log(10000)?;
     let json = serde_json::to_string_pretty(&entries).map_err(|e| e.to_string())?;
 
+    // R011: restrict export to the vault's logs directory; user-supplied paths are
+    // reduced to a single file name to prevent writing to arbitrary locations.
+    let logs_dir = svc.base_path().join("logs");
     let path = if let Some(p) = export_path {
-        std::path::PathBuf::from(p)
+        let file_name = std::path::Path::new(&p)
+            .file_name()
+            .ok_or("Invalid export path")?
+            .to_string_lossy()
+            .to_string();
+        logs_dir.join(file_name)
     } else {
-        svc.base_path().join("logs").join("export_audit_log.json")
+        logs_dir.join("export_audit_log.json")
     };
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-    }
+    std::fs::create_dir_all(&logs_dir).map_err(|e| e.to_string())?;
     std::fs::write(&path, &json).map_err(|e| e.to_string())?;
 
     Ok(path.to_string_lossy().to_string())
