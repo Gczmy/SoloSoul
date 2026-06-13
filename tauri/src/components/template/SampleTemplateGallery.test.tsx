@@ -14,18 +14,18 @@ describe('SampleTemplateGallery', () => {
   it('renders all sample template cards when open', () => {
     render(<SampleTemplateGallery isOpen={true} onClose={vi.fn()} onSelect={vi.fn()} />);
 
+    expect(screen.getAllByTestId('sample-template-card')).toHaveLength(SAMPLE_TEMPLATES.length);
     SAMPLE_TEMPLATES.forEach((tpl) => {
       expect(screen.getByText(tpl.nameI18nKey)).toBeInTheDocument();
     });
-    expect(screen.getAllByRole('button')).toHaveLength(SAMPLE_TEMPLATES.length + 1); // cards + close
   });
 
   it('calls onSelect with the chosen template', () => {
     const onSelect = vi.fn();
     render(<SampleTemplateGallery isOpen={true} onClose={vi.fn()} onSelect={onSelect} />);
 
-    const firstCard = screen.getByText(SAMPLE_TEMPLATES[0].nameI18nKey);
-    fireEvent.click(firstCard);
+    const cards = screen.getAllByTestId('sample-template-card');
+    fireEvent.click(cards[0]);
     expect(onSelect).toHaveBeenCalledTimes(1);
     expect(onSelect).toHaveBeenCalledWith(SAMPLE_TEMPLATES[0]);
   });
@@ -34,9 +34,7 @@ describe('SampleTemplateGallery', () => {
     const onClose = vi.fn();
     render(<SampleTemplateGallery isOpen={true} onClose={onClose} onSelect={vi.fn()} />);
 
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBe(SAMPLE_TEMPLATES.length + 1);
-    fireEvent.click(buttons[0]);
+    fireEvent.click(screen.getByTestId('sample-gallery-close'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -46,9 +44,25 @@ describe('SampleTemplateGallery', () => {
       <SampleTemplateGallery isOpen={true} onClose={onClose} onSelect={vi.fn()} />,
     );
 
-    // The overlay is the outermost div
     const overlay = container.firstChild as HTMLElement;
     fireEvent.click(overlay);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('filters sample templates by page category', () => {
+    render(<SampleTemplateGallery isOpen={true} onClose={vi.fn()} onSelect={vi.fn()} />);
+
+    const travelCount = SAMPLE_TEMPLATES.filter((t) => t.category === 'travel').length;
+    fireEvent.click(screen.getByTestId('page-filter-travel'));
+    expect(screen.getAllByTestId('sample-template-card')).toHaveLength(travelCount);
+  });
+
+  it('filters sample templates by search query', () => {
+    render(<SampleTemplateGallery isOpen={true} onClose={vi.fn()} onSelect={vi.fn()} />);
+
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: SAMPLE_TEMPLATES[0].nameI18nKey } });
+    expect(screen.getAllByTestId('sample-template-card')).toHaveLength(1);
+    expect(screen.getByText(SAMPLE_TEMPLATES[0].nameI18nKey)).toBeInTheDocument();
   });
 });
