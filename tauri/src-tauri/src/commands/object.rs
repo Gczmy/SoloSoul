@@ -163,6 +163,15 @@ pub async fn object_create(
         .clone()
         .unwrap_or_else(|| Uuid::new_v4().to_string());
 
+    // R025: 禁止客户端指定已存在活跃对象的 ID 进行覆盖
+    if input.id.is_some() {
+        if let Ok(Some(existing)) = vault.load_object(&id) {
+            if !existing.is_deleted {
+                return Err(format!("Object with ID '{}' already exists", id));
+            }
+        }
+    }
+
     let record = ObjectRecord {
         id: id.clone(),
         account_id: input.account_id.clone(),
