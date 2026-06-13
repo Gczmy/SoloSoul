@@ -30,7 +30,44 @@
 - macOS traffic-light close button not responding.
 - Various Windows compilation and UI issues.
 
+## [2.0.1] - 2026-06-12
+
+### Fixed
+
+- **macOS Bootstrap Page Input (v2)** — Password fields on first-run wizard no longer blocked by WKWebView password manager. Replaced `<input type="password">` with `type="text"` + CSS `-webkit-text-security: disc` to bypass WebKit keyboard interception on forms with multiple password fields. Also applied to login page.
+- **Password Change Command** — Fixed `Command vault_change_password not found` error. Frontend was calling wrong command name.
+- **Password Hint After Password Change** — Hint update now uses the new password (was using old password which failed after password change).
+
+## [2.0.0] - 2026-06-12
+
+### Changed
+
+- **Complete Rewrite: Flutter → Tauri v2** — SoloSoul is now a Rust/Tauri desktop app with a React/TypeScript frontend. Significantly smaller bundle size (~50MB vs ~200MB), faster startup, and a fully native window experience.
+
+### Added
+
+- **Object Management System** — Create, edit, and organize objects with user-defined templates. Supports 8+ field types including text, number, date, URL, email, select, and multi-select with field-level validation and format hints.
+- **Template Engine** — Define and manage custom object templates with per-field types, options, and validation rules. Templates serve as schemas for consistent data entry.
+- **Card-Based Workspace** — Objects displayed as interactive cards with inline editing, sensitivity-aware masking, collapsible sections, and drag-to-reorder property fields.
+- **History & Snapshots** — Automatic version snapshots on every object modification. Browse and roll back to any previous version with diff summary.
+- **Recycle Bin** — Soft-delete with time/type filters, batch operations, conflict detection on restore, and permanent deletion.
+- **Full-Text Search** — Search across all objects with category, tag, and type filters.
+- **AI Chat Integration** — Multi-provider LLM support (OpenAI, Anthropic, Ollama, and custom endpoints) with streaming responses and conversation management.
+- **Attachment System** — Upload, preview (images/PDF/text), rename, download, soft-delete, restore, and permanent delete. All files encrypted with vault key.
+- **Export/Import** — Encrypted object export with tag filtering and attachment support.
+- **Theme Engine** — 20+ preset themes with light/dark modes, accent color customization, and real-time switching.
+- **Biometric Unlock** — Touch ID / Face ID support for quick vault access.
+- **Operation Log** — Full audit trail of all CRUD actions with i18n support and structured detail logging.
+- **Privacy Policy & Terms of Service** — Bilingual (EN/ZH) documents with language-based auto-routing.
+
+### Fixed
+
+- **macOS Bootstrap Page Input** — Password fields on first-run wizard no longer blocked by WKWebView password manager. Replaced `<input type="password">` with `type="text"` + CSS `-webkit-text-security: disc` to bypass WebKit keyboard interception on forms with multiple password fields.
+
+---
+>>>>>>> origin/main
 ## [1.8.0] - 2026-06-03
+
 
 ### Fixed
 
