@@ -97,13 +97,16 @@ export function ObjectEditorPage() {
     return Object.keys(objectTemplates);
   }, [sectionParam, parentId, objectTemplates, templateMeta]);
 
-  // Auto-select template if section provides a clear default
-  const [selectedType, setSelectedType] = useState(() => {
-    if (sectionParam && visibleTemplates.length > 0) {
-      return visibleTemplates[0];
+  // Auto-select template if section provides a clear default (F015: update after
+  // templates async-load instead of computing only on first render).
+  const [selectedType, setSelectedType] = useState('');
+  const hasAutoSelectedRef = useRef(false);
+  useEffect(() => {
+    if (!hasAutoSelectedRef.current && visibleTemplates.length > 0 && !selectedType) {
+      setSelectedType(visibleTemplates[0]);
+      hasAutoSelectedRef.current = true;
     }
-    return '';
-  });
+  }, [visibleTemplates, selectedType]);
   const [name, setName] = useState('');
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -185,7 +188,7 @@ export function ObjectEditorPage() {
       setSelectedType(matchedType);
     }
     setDataLoaded(true);
-  }, [currentObject, isNew, dataLoaded]);
+  }, [currentObject, isNew, dataLoaded, objectId]);
 
   const validateFields = (): boolean => {
     const errors: Record<string, string> = {};
