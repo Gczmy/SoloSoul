@@ -10,6 +10,7 @@ import { PluginDialog } from '@/components/plugin/PluginDialog';
 import { PluginRunParamsDialog } from '@/components/plugin/PluginRunParamsDialog';
 import { usePluginStore } from '@/stores/pluginStore';
 import { pluginCommands, PluginParam, PluginTier } from '@/lib/plugin';
+import { useToastError } from '@/hooks/useToastError';
 import styles from './PluginDashboardPage.module.css';
 
 type Tab = 'all' | 'installed' | 'running' | 'logs';
@@ -33,6 +34,7 @@ export function PluginDashboardPage() {
     enabledTiers,
     isLoadingMarket,
     isLoadingInstalled,
+    error,
     loadMarket,
     loadInstalled,
     setSelectedTier,
@@ -42,7 +44,17 @@ export function PluginDashboardPage() {
     runPlugin,
     stopPlugin,
     resolveDialog,
+    clearError,
   } = usePluginStore();
+
+  const { onError } = useToastError();
+
+  useEffect(() => {
+    if (error) {
+      onError(error, t('plugin:operation_failed', { defaultValue: 'Plugin operation failed' }));
+      clearError();
+    }
+  }, [error, onError, clearError, t]);
 
   useEffect(() => {
     loadMarket();

@@ -130,8 +130,10 @@ impl PluginManager {
             return Err(PluginError::IncompatibleVersion(version.to_string()));
         }
 
-        let manifest_path = self.market_dir.join(plugin_id).join("manifest.json");
-        let wasm_path = self.market_dir.join(plugin_id).join("plugin.wasm");
+        // 插件实际目录位于市场根目录下的 plugins/{plugin_id}/
+        let plugin_dir = self.market_dir.join("plugins").join(plugin_id);
+        let manifest_path = plugin_dir.join("manifest.json");
+        let wasm_path = plugin_dir.join("plugin.wasm");
 
         let manifest_raw: MarketManifestRaw =
             serde_json::from_str(&std::fs::read_to_string(&manifest_path)?)?;

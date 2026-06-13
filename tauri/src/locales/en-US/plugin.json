@@ -23,6 +23,7 @@
   "audit_log": "Audit Log",
   "no_logs": "No audit logs yet",
   "result_empty": "No result yet",
+  "operation_failed": "Plugin operation failed",
   "result_unknown": "Unsupported result type",
   "copy_json": "Copy as JSON",
   "copy_json_short": "JSON",

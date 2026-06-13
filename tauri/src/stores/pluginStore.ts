@@ -51,6 +51,7 @@ interface PluginState {
   stopPlugin: (pluginId: string) => void;
   clearPluginOutput: (pluginId: string) => void;
   resolveDialog: (pluginId: string, requestId: string, value?: string) => Promise<void>;
+  clearError: () => void;
 }
 
 export const usePluginStore = create<PluginState>()(
@@ -77,6 +78,10 @@ export const usePluginStore = create<PluginState>()(
 
       setSelectedTier: (tier) => {
         set({ selectedTier: tier });
+      },
+
+      clearError: () => {
+        set({ error: null });
       },
 
       loadInstalled: async () => {
