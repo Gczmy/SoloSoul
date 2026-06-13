@@ -63,9 +63,26 @@ pub fn models_base_dir(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(dir)
 }
 
+/// R013: model IDs are used as directory names, so restrict them to safe
+/// characters to prevent path traversal.
+fn sanitize_model_id(model_id: &str) -> Result<String, String> {
+    if model_id.is_empty() {
+        return Err("Model ID cannot be empty".to_string());
+    }
+    if model_id
+        .chars()
+        .all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == '.')
+    {
+        Ok(model_id.to_string())
+    } else {
+        Err("Model ID contains invalid characters".to_string())
+    }
+}
+
 /// Check if a model is installed.
 pub fn is_model_installed(app: &AppHandle, model_id: &str) -> Result<bool, String> {
-    let dir = models_base_dir(app)?.join(model_id);
+    let id = sanitize_model_id(model_id)?;
+    let dir = models_base_dir(app)?.join(&id);
     Ok(dir.join("model.onnx").exists() && dir.join("tokenizer.json").exists())
 }
 
@@ -96,7 +113,8 @@ pub fn list_installed_models(app: &AppHandle) -> Result<Vec<String>, String> {
 
 /// Delete an installed model.
 pub fn delete_model(app: &AppHandle, model_id: &str) -> Result<(), String> {
-    let dir = models_base_dir(app)?.join(model_id);
+    let id = sanitize_model_id(model_id)?;
+    let dir = models_base_dir(app)?.join(&id);
     if dir.exists() {
         std::fs::remove_dir_all(&dir).map_err(|e| format!("Remove model dir: {}", e))?;
     }
@@ -110,8 +128,9 @@ pub async fn download_model(app: &AppHandle, model: &EmbedModelInfo) -> Result<(
     let base_dir = models_base_dir(app)?;
     std::fs::create_dir_all(&base_dir).map_err(|e| format!("Create models dir: {}", e))?;
 
-    let model_dir = base_dir.join(&model.id);
-    let zip_path = base_dir.join(format!("{}.zip", model.id));
+    let id = sanitize_model_id(&model.id)?;
+    let model_dir = base_dir.join(&id);
+    let zip_path = base_dir.join(format!("{}.zip", id));
 
     // Clean up any previous incomplete download
     let _ = std::fs::remove_file(&zip_path);
