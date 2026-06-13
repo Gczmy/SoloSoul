@@ -114,7 +114,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await commands.logout();
-    set({ isAuthenticated: false, currentAccount: null });
+    set({
+      isAuthenticated: false,
+      currentAccount: null,
+      accounts: [],
+      hasAccount: false,
+    });
   },
 
   clearError: () => set({ error: null }),
