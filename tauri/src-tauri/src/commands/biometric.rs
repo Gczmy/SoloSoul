@@ -70,12 +70,7 @@ fn save_master_key(account_id: &str, key_hex: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn read_master_key(account_id: &str) -> Result<String, String> {
-    if use_keyring() {
-        let entry = keyring_entry(account_id)?;
-        return entry.get_password().map_err(|e| e.to_string());
-    }
-
+fn read_master_key_from_file(account_id: &str) -> Result<String, String> {
     let path = bio_key_path(account_id);
     let hex_str = std::fs::read_to_string(&path)
         .map_err(|e| format!("No key file at {}: {}", path.display(), e))?;
@@ -86,6 +81,24 @@ fn read_master_key(account_id: &str) -> Result<String, String> {
         .map(|(i, b)| b ^ BIO_OBF[i % 32])
         .collect();
     Ok(hex::encode(&key))
+}
+
+fn read_master_key(account_id: &str) -> Result<String, String> {
+    if use_keyring() {
+        let entry = keyring_entry(account_id)?;
+        match entry.get_password() {
+            Ok(key) => return Ok(key),
+            Err(_) => {
+                // Backwards compatibility: migrate a legacy file-stored key into
+                // the OS keychain on first read.
+                let key = read_master_key_from_file(account_id)?;
+                let _ = entry.set_password(&key);
+                return Ok(key);
+            }
+        }
+    }
+
+    read_master_key_from_file(account_id)
 }
 
 fn delete_master_key(account_id: &str) {
@@ -174,13 +187,26 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), String> {
     }
 }
 
+fn has_stored_master_key(account_id: &str) -> bool {
+    if use_keyring() {
+        if let Ok(entry) = keyring_entry(account_id) {
+            if entry.get_password().is_ok() {
+                return true;
+            }
+        }
+        // Legacy file-based key still counts as configured and will be migrated on unlock.
+        return bio_key_path(account_id).exists();
+    }
+    bio_key_path(account_id).exists()
+}
+
 fn is_configured(account_id: &str) -> bool {
     let has_flag = std::fs::read_to_string(acct_dir(account_id).join("config.json"))
         .ok()
         .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
         .and_then(|v| v.get("biometricEnabled").and_then(|v| v.as_bool()))
         .unwrap_or(false);
-    has_flag && bio_key_path(account_id).exists()
+    has_flag && has_stored_master_key(account_id)
 }
 
 fn set_config_flag(account_id: &str, enabled: bool) -> Result<(), String> {
