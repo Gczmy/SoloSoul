@@ -14,8 +14,15 @@ pub struct AccountInfo {
 
 #[tauri::command]
 pub async fn check_has_account(state: State<'_, AppState>) -> Result<bool, String> {
-    let svc = state.vault_service.read().unwrap();
-    Ok(svc.has_any_account())
+    let vault_service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let svc = vault_service.read().unwrap();
+        let has = svc.has_any_account();
+        tracing::info!("check_has_account command returning {}", has);
+        Ok::<_, String>(has)
+    })
+    .await
+    .map_err(|e| format!("check_has_account task failed: {}", e))?
 }
 
 #[tauri::command]
