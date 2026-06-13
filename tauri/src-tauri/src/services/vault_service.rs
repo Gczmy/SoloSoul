@@ -125,15 +125,25 @@ impl VaultService {
     fn load_accounts(&self) {
         let file = self.accounts_file();
         if !file.exists() {
+            tracing::warn!("Accounts file does not exist: {}", file.display());
             return;
         }
-        if let Ok(content) = fs::read_to_string(&file) {
-            if let Ok(accounts) = serde_json::from_str::<Vec<AccountEntry>>(&content) {
-                if let Ok(mut cache) = self.accounts_cache.write() {
-                    for a in accounts {
-                        cache.insert(a.id.clone(), a);
+        match fs::read_to_string(&file) {
+            Ok(content) => match serde_json::from_str::<Vec<AccountEntry>>(&content) {
+                Ok(accounts) => {
+                    if let Ok(mut cache) = self.accounts_cache.write() {
+                        for a in accounts {
+                            cache.insert(a.id.clone(), a);
+                        }
+                        tracing::info!("Loaded {} account(s) from {}", cache.len(), file.display());
                     }
                 }
+                Err(e) => {
+                    tracing::error!("Failed to parse {}: {}", file.display(), e);
+                }
+            },
+            Err(e) => {
+                tracing::error!("Failed to read {}: {}", file.display(), e);
             }
         }
     }

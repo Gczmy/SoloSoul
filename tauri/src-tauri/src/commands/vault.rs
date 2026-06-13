@@ -62,8 +62,15 @@ pub async fn delete_account(
 
 #[tauri::command]
 pub async fn list_accounts(state: State<'_, AppState>) -> Result<Vec<serde_json::Value>, String> {
-    let svc = state.vault_service.read().unwrap();
-    Ok(svc.list_accounts())
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock is poisoned".to_string())?;
+    let accounts = svc.list_accounts();
+    if accounts.is_empty() {
+        return Err("Vault account cache is empty".to_string());
+    }
+    Ok(accounts)
 }
 
 #[tauri::command]
