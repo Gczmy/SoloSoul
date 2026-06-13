@@ -109,7 +109,7 @@ function isOllama(baseUrl: string): boolean {
   return baseUrl.toLowerCase().includes('localhost') || baseUrl.toLowerCase().includes('127.0.0.1');
 }
 function generateId(): string {
-  return 'conv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  return 'conv_' + crypto.randomUUID();
 }
 
 // =============================================================================

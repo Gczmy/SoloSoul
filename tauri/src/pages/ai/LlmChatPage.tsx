@@ -37,6 +37,7 @@ interface ChatMsg {
   role: string;
   content: string;
   createdAt: string;
+  isError?: boolean;
 }
 
 interface Conversation {
@@ -92,7 +93,7 @@ function formatRelative(iso: string): string {
 }
 
 function generateId(): string {
-  return 'conv_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  return 'conv_' + crypto.randomUUID();
 }
 
 const COPY_FEEDBACK_DURATION = 1500;
@@ -239,10 +240,11 @@ export function LlmChatPage() {
     return () => clearInterval(interval);
   }, [activeProvider, checkOnline]);
 
-  // Scroll to bottom
+  // Scroll to bottom (F028: avoid smooth scroll on every message change).
+  const lastMessageKey = messages.length > 0 ? messages[messages.length - 1].createdAt : null;
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    chatEndRef.current?.scrollIntoView({ behavior: 'auto' });
+  }, [lastMessageKey]);
 
   // Focus rename input
   useEffect(() => {
@@ -325,6 +327,7 @@ export function LlmChatPage() {
         updated[lastIdx] = {
           ...updated[lastIdx],
           content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}`,
+          isError: true,
         };
         return updated;
       });
@@ -425,6 +428,7 @@ export function LlmChatPage() {
         role: 'assistant',
         content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}`,
         createdAt: nowISO(),
+        isError: true,
       };
       const errorMessages = [...updatedMessages, errorAssistantMsg];
       setMessages(errorMessages);
@@ -981,7 +985,7 @@ export function LlmChatPage() {
                       background:
                         msg.role === 'user'
                           ? 'var(--accent-primary)'
-                          : msg.content.startsWith(t('settings:ai_chat_error_prefix'))
+                          : msg.isError
                             ? 'rgba(231,76,60,0.12)'
                             : 'var(--bg-elevated)',
                       color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
@@ -991,7 +995,7 @@ export function LlmChatPage() {
                   >
                     {msg.role === 'user' ? (
                       <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-                    ) : msg.content.startsWith(t('settings:ai_chat_error_prefix')) ? (
+                    ) : msg.isError ? (
                       <div style={{ color: '#e74c3c', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
                     ) : (
                       <div className="markdown-content">
