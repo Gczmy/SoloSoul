@@ -35,6 +35,7 @@ export function LoginPage() {
   const [bioError, setBioError] = useState<string | null>(null);
   const [showPasswordInput, setShowPasswordInput] = useState(false);
   const [bioChecked, setBioChecked] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const makeCancellable = useCancellable();
 
   useEffect(() => {
@@ -153,9 +154,13 @@ export function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAccountId) return;
     clearError();
     setBioError(null);
+    setSubmitError(null);
+    if (!selectedAccountId) {
+      setSubmitError(t('auth:no_account_selected'));
+      return;
+    }
     await login(selectedAccountId, password);
   };
 
@@ -290,16 +295,16 @@ export function LoginPage() {
               hint={selectedAccount?.passwordHint || null}
               autoComplete="current-password"
             />
-            {(error || bioError) && (
+            {(error || bioError || submitError) && (
               <div style={{ color: '#e74c3c', fontSize: 13 }}>
-                {error
+                {submitError || bioError || (error
                   ? error.toLowerCase().includes('password') ||
                     error.toLowerCase().includes('invalid')
                     ? t('auth:incorrect_password')
                     : error.toLowerCase().includes('required')
                       ? t('auth:password_required')
                       : error
-                  : bioError}
+                  : '')}
               </div>
             )}
             <Button type="submit" loading={isLoading} style={{ width: '100%' }}>

@@ -63,22 +63,29 @@ pub async fn login(
     account_id: String,
     password: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    svc.unlock(&account_id, &password)?;
-    if let Some(vg) = svc.get_vault_store() {
-        let vault = vg.as_ref();
-        {
-            let _ = vault.log_structured(
-                "login",
-                "auth",
-                Some(&account_id),
-                None,
-                "user",
-                Some("method=password location=login_page action=unlock"),
-            );
+    // Run the CPU-intensive KDF and synchronous vault IO on the blocking pool
+    // so the async runtime worker threads are not starved (R018 follow-up).
+    let vault_service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let svc = vault_service.read().unwrap();
+        svc.unlock(&account_id, &password)?;
+        if let Some(vg) = svc.get_vault_store() {
+            let vault = vg.as_ref();
+            {
+                let _ = vault.log_structured(
+                    "login",
+                    "auth",
+                    Some(&account_id),
+                    None,
+                    "user",
+                    Some("method=password location=login_page action=unlock"),
+                );
+            }
         }
-    }
-    Ok(())
+        Ok::<_, String>(())
+    })
+    .await
+    .map_err(|e| format!("Login task failed: {}", e))?
 }
 
 pub(crate) fn verify_password_core(

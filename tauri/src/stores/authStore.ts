@@ -94,9 +94,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await commands.login(accountId, password);
-      // Fetch fresh account info to ensure currentAccount is set correctly
-      const result = await commands.vaultListAccounts();
-      const accounts = result || [];
+      // Try to refresh account list, but do not fail authentication if the
+      // refresh request errors (e.g. transient backend lock contention).
+      let accounts: AccountInfo[] = [];
+      try {
+        accounts = (await commands.vaultListAccounts()) || [];
+      } catch {
+        // Keep authentication state even if the account-list refresh fails.
+      }
       const account = accounts.find((a) => a.id === accountId) || {
         id: accountId,
         name: accountId,
