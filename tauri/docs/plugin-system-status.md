@@ -43,6 +43,7 @@
 - Rust 新增 `matches_domain`、版本兼容性、SHA-256、字段解析、数据结构树单元测试。
 - 前端新增 `PluginResultPanel.test.tsx`。
 - 新增 Playwright E2E：`e2e/plugin-lifecycle.spec.ts` 覆盖安装、运行、对话框响应、结果渲染。
+- 主项目 CI 集成：`.github/workflows/ci_cd.yml` 与 `.github/workflows/pr_check.yml` 新增 `plugin-market-check`，递归检出子模块并验证 `registry.json` 一致性。
 - `npm run check-all`、`cargo test`、`npm run test:e2e` 全量通过。
 
 ## 剩余任务与建议
@@ -53,8 +54,7 @@
 | 2 | ~~插件结果导出~~ | ✅ `PluginResultPanel` 每个结果卡片支持复制为 JSON / Markdown。 | P2 |
 | 3 | ~~运行中插件列表持久化/恢复~~ | ✅ `pluginStore` 通过 `zustand/persist` 持久化 `runningPlugins` 到 `localStorage`，刷新后可恢复。 | P3 |
 | 4 | ~~`plugin_update_registry` 在线更新~~ | ✅ 从 `SOLOSOUL_REGISTRY_URL` 拉取注册表，Minisign 验证签名后原子写入本地 `registry.json`。 | P3 |
-| 4 | **`plugin_update_registry` 在线更新** | 当前 registry 为本地静态文件；后续可实现从远程 URL 拉取最新 registry 并校验签名。 | P3 |
-| 5 | **插件市场子模块 CI 集成** | 主项目 CI 中验证 `SoloSoul_plugin_market/registry.json` 与子模块指针一致性。 | P3 |
+| 5 | ~~插件市场子模块 CI 集成~~ | ✅ `ci_cd.yml` / `pr_check.yml` 新增 `plugin-market-check`，验证子模块 `registry.json` 一致性并检查指针干净。 | P3 |
 | 6 | **官方 P2/P3/P4 插件** | 当前仅 P0/P1 默认启用；需要实际填充 P2–P4 官方插件并完善权限审核。 | P4 |
 | 7 | **Wasm 插件崩溃隔离** | 单个插件 Fuel 耗尽或 panic 时，确保不影响宿主与其他插件运行。 | P4 |
 | 8 | **文档与 SDK 示例** | 补充 JS/Python SDK 占位实现与 Wasm 插件开发示例。 | P4 |

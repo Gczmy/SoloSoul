@@ -43,6 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -68,3 +70,39 @@ jobs:
         run: |
           cd tauri
           cargo test --verbose
+
+  plugin-market-check:
+    name: Plugin Market Registry Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate submodule registry.json
+        run: |
+          cd SoloSoul_plugin_market
+          python3 scripts/generate_registry.py
+          if git diff --quiet registry.json; then
+            echo "✅ Plugin market registry.json is up to date."
+          else
+            echo "❌ Plugin market registry.json is out of date!"
+            git diff --stat registry.json
+            exit 1
+          fi
+
+      - name: Check submodule pointer is clean
+        run: |
+          if git diff --quiet SoloSoul_plugin_market; then
+            echo "✅ Submodule pointer is clean."
+          else
+            echo "❌ Submodule pointer has uncommitted changes."
+            git diff SoloSoul_plugin_market
+            exit 1
+          fi
