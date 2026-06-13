@@ -622,6 +622,7 @@ mod tests {
             session_key: RwLock::new(None),
             unlocked_account: RwLock::new(None),
             vault_store: RwLock::new(None),
+            create_lock: std::sync::Mutex::new(()),
         };
         (svc, dir)
     }
