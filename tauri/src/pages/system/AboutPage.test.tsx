@@ -16,6 +16,12 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }));
 
+const mockCheckForUpdate = vi.fn();
+vi.mock('@/lib/updater', () => ({
+  checkForUpdate: () => mockCheckForUpdate(),
+  downloadAndInstallUpdate: vi.fn(),
+}));
+
 describe('AboutPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -23,6 +29,7 @@ describe('AboutPage', () => {
 
   it('renders loading placeholder initially', () => {
     vi.mocked(invoke).mockImplementation(() => new Promise(() => {}));
+    mockCheckForUpdate.mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <AboutPage />
@@ -33,15 +40,13 @@ describe('AboutPage', () => {
   });
 
   it('renders app info after loading', async () => {
-    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'get_app_info') {
-        return { appName: 'SoloSoul', version: '1.2.3', os: 'macos', arch: 'aarch64' };
-      }
-      if (cmd === 'check_version') {
-        return { currentVersion: '1.2.3', latestVersion: '1.2.3', hasUpdate: false };
-      }
-      return undefined;
+    vi.mocked(invoke).mockResolvedValue({
+      appName: 'SoloSoul',
+      version: '1.2.3',
+      os: 'macos',
+      arch: 'aarch64',
     });
+    mockCheckForUpdate.mockResolvedValue(null);
 
     render(
       <MemoryRouter>
@@ -59,15 +64,13 @@ describe('AboutPage', () => {
   });
 
   it('shows update available badge when new version exists', async () => {
-    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'get_app_info') {
-        return { appName: 'SoloSoul', version: '1.0.0', os: 'windows', arch: 'x86_64' };
-      }
-      if (cmd === 'check_version') {
-        return { currentVersion: '1.0.0', latestVersion: '1.2.0', hasUpdate: true };
-      }
-      return undefined;
+    vi.mocked(invoke).mockResolvedValue({
+      appName: 'SoloSoul',
+      version: '1.0.0',
+      os: 'windows',
+      arch: 'x86_64',
     });
+    mockCheckForUpdate.mockResolvedValue({ version: '1.2.0', body: 'New features' });
 
     render(
       <MemoryRouter>
@@ -83,15 +86,13 @@ describe('AboutPage', () => {
   });
 
   it('renders external links', async () => {
-    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'get_app_info') {
-        return { appName: 'SoloSoul', version: '1.0.0', os: 'linux', arch: 'x86_64' };
-      }
-      if (cmd === 'check_version') {
-        return { currentVersion: '1.0.0', latestVersion: null, hasUpdate: false };
-      }
-      return undefined;
+    vi.mocked(invoke).mockResolvedValue({
+      appName: 'SoloSoul',
+      version: '1.0.0',
+      os: 'linux',
+      arch: 'x86_64',
     });
+    mockCheckForUpdate.mockResolvedValue(null);
 
     render(
       <MemoryRouter>
@@ -109,6 +110,7 @@ describe('AboutPage', () => {
 
   it('handles fetch errors gracefully', async () => {
     vi.mocked(invoke).mockRejectedValue(new Error('backend offline'));
+    mockCheckForUpdate.mockRejectedValue(new Error('network error'));
 
     render(
       <MemoryRouter>

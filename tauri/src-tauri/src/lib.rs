@@ -25,6 +25,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let app_state = AppState::new(app.handle().clone())?;
             app.manage(app_state);
@@ -143,8 +144,6 @@ pub fn run() {
             commands::discovery::mdns_discover,
             // System commands
             commands::system::get_app_info,
-            commands::system::check_version,
-            commands::system::download_update,
             commands::system::get_system_locale,
             // Log commands
             commands::log::log_write,
@@ -223,6 +222,8 @@ pub fn run() {
             commands::sync::sync_get_status,
             commands::sync::sync_enable,
             commands::sync::sync_with_device,
+            commands::sync::sync_trust_peer,
+            commands::sync::sync_forget_peer,
             // Window chrome commands
             commands::window::set_titlebar_color,
         ])

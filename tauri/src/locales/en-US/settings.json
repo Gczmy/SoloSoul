@@ -21,7 +21,8 @@
     "about": "About",
     "language": "Language",
     "appearance": "Appearance",
-    "templates": "Template Manager"
+    "templates": "Template Manager",
+    "plugins": "Plugins"
   },
   "auto_lock": "Auto Lock",
   "auto_lock_description": "Set how long of inactivity before the vault auto-locks and wipes sensitive state from memory.",
@@ -138,6 +139,7 @@
   "update_now": "Update Now",
   "downloading": "Downloading...",
   "download_complete": "Download complete",
+  "installing": "Installing...",
   "version": "Version",
   "build": "Build",
   "platform": "Platform",
@@ -379,7 +381,13 @@
       "template_save_from_object": "Save Template from Object",
       "export_execute": "Export",
       "import_execute": "Import",
-      "attachment_cleanup": "Cleanup Orphans"
+      "attachment_cleanup": "Cleanup Orphans",
+      "sync_enabled": "Enable Sync",
+      "sync_disabled": "Disable Sync",
+      "sync_with_device": "Sync with Device",
+      "sync_peer_trusted": "Trust Sync Peer",
+      "sync_peer_revoked": "Revoke Sync Peer",
+      "sync_peer_forgotten": "Forget Sync Peer"
     },
     "entity": {
       "object": "Object",
@@ -479,7 +487,8 @@
     "help_docs": "Browse help docs and user guides",
     "debug_log": "View system diagnostic logs",
     "about": "Version info and licenses",
-    "templates": "Manage custom object templates"
+    "templates": "Manage custom object templates",
+    "plugins": "Manage local plugin marketplace"
   },
   "ai_quick_chat_title": "Quick Chat",
   "ai_quick_chat_configure_hint": "Please configure an LLM to use AI chat",
@@ -564,5 +573,21 @@
   "sample_templates_title": "Sample Templates",
   "sample_templates_desc": "Use these examples to quickly create common templates.",
   "use_sample_template": "Create from this template",
-  "sample_templates": "Sample Templates"
+  "sample_templates": "Sample Templates",
+  "sync": "Device Sync",
+  "sync_enabled": "Sync Enabled",
+  "sync_disabled": "Sync Disabled",
+  "sync_known_devices": "{{count}} device(s) known",
+  "sync_your_fingerprint": "Your fingerprint",
+  "sync_with_device": "Sync with Device",
+  "sync_device_input_hint": "Enter a discovered device ID or a host:port address.",
+  "sync_result": "Result",
+  "sync_known_devices_title": "Known Devices",
+  "sync_no_devices": "No devices known yet. Enable sync and sync with another device to add it.",
+  "sync_trust": "Trust",
+  "sync_revoke": "Revoke",
+  "sync_forget": "Forget",
+  "sync_manual_sync": "Sync",
+  "sync_enable": "Enable",
+  "sync_disable": "Disable"
 }

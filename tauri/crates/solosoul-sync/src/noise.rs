@@ -1,161 +1,202 @@
-//! Noise protocol handshake for encrypted peer-to-peer sync.
+//! Noise protocol wrapper using the XX handshake pattern.
 //!
-//! Uses the Noise IX pattern (Interactive eXtended) for mutual
-//! authentication and encrypted transport between devices.
+//! Provides persistent long-term identity keys and an encrypted transport
+//! session over an existing `SyncTransport`.
 
-/// Noise protocol state machine
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NoiseState {
-    Initial,
-    HandshakeSent,
-    HandshakeReceived,
-    Connected,
-    Error,
+use crate::transport::SyncTransport;
+use rand::rngs::OsRng;
+use snow::{Builder, TransportState};
+use x25519_dalek::{PublicKey, StaticSecret};
+
+const PATTERN: &str = "Noise_XX_25519_ChaChaPoly_BLAKE2s";
+
+/// Long-term Noise identity keys for this node.
+#[derive(Debug, Clone)]
+pub struct NoiseKeys {
+    secret: [u8; 32],
+    public: [u8; 32],
 }
 
-/// Simple Noise handshake wrapper
-#[derive(Debug)]
+impl NoiseKeys {
+    /// Generate a fresh key pair.
+    pub fn generate() -> Self {
+        let secret = StaticSecret::random_from_rng(OsRng);
+        let public = PublicKey::from(&secret);
+        Self {
+            secret: secret.to_bytes(),
+            public: public.to_bytes(),
+        }
+    }
+
+    /// Restore keys from a persisted secret key.
+    pub fn from_secret(secret: [u8; 32]) -> Self {
+        let secret_obj = StaticSecret::from(secret);
+        let public = PublicKey::from(&secret_obj);
+        Self {
+            secret,
+            public: public.to_bytes(),
+        }
+    }
+
+    pub fn secret_key(&self) -> &[u8; 32] {
+        &self.secret
+    }
+
+    pub fn public_key(&self) -> &[u8; 32] {
+        &self.public
+    }
+
+    /// Short hex fingerprint suitable for manual peer verification.
+    pub fn fingerprint(&self) -> String {
+        hex::encode(&self.public[..16])
+    }
+}
+
+/// Encrypted transport session after a successful handshake.
 pub struct NoiseSession {
-    pub state: NoiseState,
-    pub local_public_key: [u8; 32],
-    pub remote_public_key: Option<[u8; 32]>,
-    pub session_id: u64,
+    state: TransportState,
+    buffer: Vec<u8>,
 }
 
 impl NoiseSession {
-    pub fn new(local_public_key: [u8; 32]) -> Self {
-        Self {
-            state: NoiseState::Initial,
-            local_public_key,
-            remote_public_key: None,
-            session_id: 0,
-        }
+    /// Perform an XX handshake as the initiator over the given transport.
+    pub fn handshake_initiator(
+        transport: &mut SyncTransport,
+        keys: &NoiseKeys,
+    ) -> Result<Self, String> {
+        let mut handshake = Builder::new(PATTERN.parse().map_err(|e| format!("pattern: {:?}", e))?)
+            .local_private_key(&keys.secret)
+            .build_initiator()
+            .map_err(|e| format!("build initiator: {}", e))?;
+
+        let mut buf = vec![0u8; 65535];
+
+        // -> e, es, s, ss
+        let len = handshake
+            .write_message(&[], &mut buf)
+            .map_err(|e| format!("write handshake 1: {}", e))?;
+        transport.send_message(&buf[..len])?;
+
+        // <- e, ee, se, s, es
+        let msg = transport.receive_message()?;
+        handshake
+            .read_message(&msg, &mut buf)
+            .map_err(|e| format!("read handshake 2: {}", e))?;
+
+        // -> s, se
+        let len = handshake
+            .write_message(&[], &mut buf)
+            .map_err(|e| format!("write handshake 3: {}", e))?;
+        transport.send_message(&buf[..len])?;
+
+        let state = handshake
+            .into_transport_mode()
+            .map_err(|e| format!("into transport: {}", e))?;
+        Ok(Self {
+            state,
+            buffer: vec![0u8; 65535],
+        })
     }
 
-    pub fn start_handshake(&mut self) -> Result<Vec<u8>, String> {
-        self.state = NoiseState::HandshakeSent;
-        Ok(self.local_public_key.to_vec())
+    /// Perform an XX handshake as the responder over the given transport.
+    pub fn handshake_responder(
+        transport: &mut SyncTransport,
+        keys: &NoiseKeys,
+    ) -> Result<Self, String> {
+        let mut handshake = Builder::new(PATTERN.parse().map_err(|e| format!("pattern: {:?}", e))?)
+            .local_private_key(&keys.secret)
+            .build_responder()
+            .map_err(|e| format!("build responder: {}", e))?;
+
+        let mut buf = vec![0u8; 65535];
+
+        // <- e, es, s, ss
+        let msg = transport.receive_message()?;
+        handshake
+            .read_message(&msg, &mut buf)
+            .map_err(|e| format!("read handshake 1: {}", e))?;
+
+        // -> e, ee, se, s, es
+        let len = handshake
+            .write_message(&[], &mut buf)
+            .map_err(|e| format!("write handshake 2: {}", e))?;
+        transport.send_message(&buf[..len])?;
+
+        // <- s, se
+        let msg = transport.receive_message()?;
+        handshake
+            .read_message(&msg, &mut buf)
+            .map_err(|e| format!("read handshake 3: {}", e))?;
+
+        let state = handshake
+            .into_transport_mode()
+            .map_err(|e| format!("into transport: {}", e))?;
+        Ok(Self {
+            state,
+            buffer: vec![0u8; 65535],
+        })
     }
 
-    pub fn receive_handshake(&mut self, remote_key: &[u8]) -> Result<Vec<u8>, String> {
-        if remote_key.len() != 32 {
-            return Err("Invalid remote key length".into());
-        }
-        let mut key = [0u8; 32];
-        key.copy_from_slice(remote_key);
-        self.remote_public_key = Some(key);
-        self.state = NoiseState::HandshakeReceived;
-        Ok(self.local_public_key.to_vec())
+    /// Send an encrypted payload.
+    pub fn send(&mut self, transport: &mut SyncTransport, payload: &[u8]) -> Result<(), String> {
+        let len = self
+            .state
+            .write_message(payload, &mut self.buffer)
+            .map_err(|e| format!("encrypt: {}", e))?;
+        transport.send_message(&self.buffer[..len])
     }
 
-    pub fn finalize(&mut self, remote_key: &[u8]) -> Result<(), String> {
-        if remote_key.len() != 32 {
-            return Err("Invalid remote key length".into());
-        }
-        let mut key = [0u8; 32];
-        key.copy_from_slice(remote_key);
-        self.remote_public_key = Some(key);
-        self.state = NoiseState::Connected;
-        self.session_id = rand::random();
-        Ok(())
-    }
-
-    pub fn is_connected(&self) -> bool {
-        self.state == NoiseState::Connected
+    /// Receive and decrypt a payload.
+    pub fn receive(&mut self, transport: &mut SyncTransport) -> Result<Vec<u8>, String> {
+        let msg = transport.receive_message()?;
+        let len = self
+            .state
+            .read_message(&msg, &mut self.buffer)
+            .map_err(|e| format!("decrypt: {}", e))?;
+        Ok(self.buffer[..len].to_vec())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::net::TcpListener;
+    use std::thread;
 
-    fn dummy_key() -> [u8; 32] {
-        [1u8; 32]
-    }
-
-    fn dummy_key_alt() -> [u8; 32] {
-        [2u8; 32]
+    #[test]
+    fn test_keys_fingerprint() {
+        let keys = NoiseKeys::generate();
+        assert_eq!(keys.fingerprint().len(), 32);
     }
 
     #[test]
-    fn test_noise_session_new() {
-        let key = dummy_key();
-        let session = NoiseSession::new(key);
-        assert_eq!(session.state, NoiseState::Initial);
-        assert_eq!(session.local_public_key, key);
-        assert!(session.remote_public_key.is_none());
-        assert_eq!(session.session_id, 0);
-        assert!(!session.is_connected());
-    }
+    fn test_xx_handshake() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap().to_string();
+        let server_keys = NoiseKeys::generate();
+        let client_keys = NoiseKeys::generate();
 
-    #[test]
-    fn test_start_handshake() {
-        let mut session = NoiseSession::new(dummy_key());
-        let msg = session.start_handshake().unwrap();
-        assert_eq!(msg, dummy_key().to_vec());
-        assert_eq!(session.state, NoiseState::HandshakeSent);
-    }
+        let server_thread = thread::spawn(move || {
+            let (stream, _) = listener.accept().unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            let mut session =
+                NoiseSession::handshake_responder(&mut transport, &server_keys).unwrap();
+            session.send(&mut transport, b"hello from server").unwrap();
+            let received = session.receive(&mut transport).unwrap();
+            assert_eq!(received, b"hello from client");
+        });
 
-    #[test]
-    fn test_receive_handshake() {
-        let mut session = NoiseSession::new(dummy_key());
-        let remote = dummy_key_alt();
-        let msg = session.receive_handshake(&remote).unwrap();
-        assert_eq!(msg, dummy_key().to_vec());
-        assert_eq!(session.state, NoiseState::HandshakeReceived);
-        assert_eq!(session.remote_public_key, Some(remote));
-    }
+        let client_thread = thread::spawn(move || {
+            let stream = std::net::TcpStream::connect(&addr).unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            let mut session =
+                NoiseSession::handshake_initiator(&mut transport, &client_keys).unwrap();
+            session.send(&mut transport, b"hello from client").unwrap();
+            let received = session.receive(&mut transport).unwrap();
+            assert_eq!(received, b"hello from server");
+        });
 
-    #[test]
-    fn test_receive_handshake_invalid_key_length() {
-        let mut session = NoiseSession::new(dummy_key());
-        let result = session.receive_handshake(&[1u8; 31]);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Invalid remote key length"));
-    }
-
-    #[test]
-    fn test_finalize() {
-        let mut session = NoiseSession::new(dummy_key());
-        let remote = dummy_key_alt();
-        session.start_handshake().unwrap();
-        session.finalize(&remote).unwrap();
-        assert_eq!(session.state, NoiseState::Connected);
-        assert_eq!(session.remote_public_key, Some(remote));
-        assert!(session.is_connected());
-        assert!(session.session_id != 0);
-    }
-
-    #[test]
-    fn test_finalize_invalid_key_length() {
-        let mut session = NoiseSession::new(dummy_key());
-        let result = session.finalize(&[1u8; 33]);
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Invalid remote key length"));
-    }
-
-    #[test]
-    fn test_full_handshake_sequence() {
-        let mut alice = NoiseSession::new(dummy_key());
-        let mut bob = NoiseSession::new(dummy_key_alt());
-
-        // Alice starts
-        let alice_hello = alice.start_handshake().unwrap();
-        assert_eq!(alice.state, NoiseState::HandshakeSent);
-
-        // Bob receives and responds
-        let bob_hello = bob.receive_handshake(&alice_hello).unwrap();
-        assert_eq!(bob.state, NoiseState::HandshakeReceived);
-        assert_eq!(bob.remote_public_key, Some(dummy_key()));
-
-        // Alice receives Bob's response and finalizes
-        alice.finalize(&bob_hello).unwrap();
-        assert_eq!(alice.state, NoiseState::Connected);
-        assert!(alice.is_connected());
-
-        // Bob also finalizes
-        bob.finalize(&alice_hello).unwrap();
-        assert_eq!(bob.state, NoiseState::Connected);
-        assert!(bob.is_connected());
+        server_thread.join().unwrap();
+        client_thread.join().unwrap();
     }
 }

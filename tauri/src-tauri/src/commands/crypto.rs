@@ -103,7 +103,7 @@ pub async fn constant_time_compare(a: Vec<u8>, b: Vec<u8>) -> bool {
 pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::Value, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let mut stats = vault.stats()?;
 
     // Attachments stored at base_path/attachments/{objectId}/{attachmentId}/

@@ -33,6 +33,7 @@ import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UpdateBanner } from '@/components/ui/UpdateBanner';
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
+import { checkForUpdate } from '@/lib/updater';
 import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
 import { OcrPage } from '@/pages/scan/OcrPage';
 import { HistoryPage } from '@/pages/editor/HistoryPage';
@@ -44,27 +45,19 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-interface VersionInfo {
-  currentVersion: string;
-  latestVersion: string | null;
-  hasUpdate: boolean;
-}
-
 function AppRoutes() {
   const navigate = useNavigate();
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
   const [updateBanner, setUpdateBanner] = useState<{ version: string } | null>(null);
 
-  // Check for updates on startup and show a non-intrusive banner
+  // 启动时检查更新并显示非侵入式横幅
   useEffect(() => {
-    invoke<VersionInfo>('check_version')
-      .then((info) => {
-        if (!info.hasUpdate || !info.latestVersion) return;
-        const skipped = localStorage.getItem('solosoul_skipped_version');
-        if (skipped === info.latestVersion) return;
-        setUpdateBanner({ version: info.latestVersion });
-      })
-      .catch(() => {});
+    checkForUpdate().then((info) => {
+      if (!info) return;
+      const skipped = localStorage.getItem('solosoul_skipped_version');
+      if (skipped === info.version) return;
+      setUpdateBanner({ version: info.version });
+    });
   }, []);
 
   useEffect(() => {

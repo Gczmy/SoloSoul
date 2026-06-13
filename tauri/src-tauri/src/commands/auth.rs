@@ -35,7 +35,8 @@ pub async fn bootstrap(
         let vault_guard = svc
             .get_vault_store()
             .ok_or("Vault not available after creation")?;
-        if let Some(vault) = vault_guard.as_ref() {
+        let vault = vault_guard.as_ref();
+        {
             if let Err(e) = crate::services::template_service::seed_default_templates(
                 vault,
                 &account_id,
@@ -65,7 +66,8 @@ pub async fn login(
     let svc = state.vault_service.read().await;
     svc.unlock(&account_id, &password)?;
     if let Some(vg) = svc.get_vault_store() {
-        if let Some(vault) = vg.as_ref() {
+        let vault = vg.as_ref();
+        {
             let _ = vault.log_structured(
                 "login",
                 "auth",

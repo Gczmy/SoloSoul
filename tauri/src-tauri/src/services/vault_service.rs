@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use zeroize::{Zeroize, Zeroizing};
 
 #[cfg(unix)]
@@ -68,7 +68,7 @@ pub struct VaultService {
     accounts_cache: RwLock<HashMap<String, AccountEntry>>,
     session_key: RwLock<Option<Zeroizing<[u8; 32]>>>,
     unlocked_account: RwLock<Option<String>>,
-    vault_store: RwLock<Option<VaultStore>>,
+    vault_store: RwLock<Option<Arc<VaultStore>>>,
 }
 
 impl VaultService {
@@ -279,8 +279,9 @@ impl VaultService {
             .with_data_key(master_key_arr);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
+        let vault_arc = Arc::new(vault);
         if let Ok(mut store) = self.vault_store.write() {
-            *store = Some(vault);
+            *store = Some(vault_arc);
         }
         if let Ok(mut key) = self.session_key.write() {
             *key = Some(Zeroizing::new(master_key_arr));
@@ -358,8 +359,9 @@ impl VaultService {
             .with_data_key(master_key_arr);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
+        let vault_arc = Arc::new(vault);
         if let Ok(mut store) = self.vault_store.write() {
-            *store = Some(vault);
+            *store = Some(vault_arc);
         }
 
         Ok(())
@@ -445,8 +447,9 @@ impl VaultService {
             VaultConfig::new(account_id, self.account_dir(account_id)).with_data_key(*session_key);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
+        let vault_arc = Arc::new(vault);
         if let Ok(mut store) = self.vault_store.write() {
-            *store = Some(vault);
+            *store = Some(vault_arc);
         }
 
         Ok(())
@@ -483,7 +486,7 @@ impl VaultService {
             let vault_guard = self
                 .get_vault_store()
                 .ok_or("Vault not available for re-encryption")?;
-            let vault = vault_guard.as_ref().ok_or("Vault not available")?;
+            let vault = vault_guard.as_ref();
             vault.reencrypt_all(&old_key, &new_key_enc)?;
         }
 
@@ -527,7 +530,7 @@ impl VaultService {
         match VaultStore::open(vault_config) {
             Ok(vault) => {
                 if let Ok(mut store) = self.vault_store.write() {
-                    *store = Some(vault);
+                    *store = Some(Arc::new(vault));
                 }
             }
             Err(e) => {
@@ -563,13 +566,11 @@ impl VaultService {
         self.session_key.read().ok()?.clone()
     }
 
-    pub fn get_vault_store(
-        &self,
-    ) -> Option<std::sync::RwLockReadGuard<'_, Option<solosoul_vault::VaultStore>>> {
+    pub fn get_vault_store(&self) -> Option<Arc<solosoul_vault::VaultStore>> {
         if !self.is_unlocked() {
             return None;
         }
-        self.vault_store.read().ok()
+        self.vault_store.read().ok().and_then(|g| g.clone())
     }
 
     pub fn get_current_account(&self) -> Option<String> {

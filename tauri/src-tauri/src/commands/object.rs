@@ -104,7 +104,7 @@ pub async fn object_list(
 ) -> Result<Vec<solosoul_vault::ObjectSummary>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let type_id = filter.as_ref().and_then(|f| f.collection_type.as_deref());
     let parent_id = filter.as_ref().and_then(|f| f.parent_id.as_deref());
@@ -134,7 +134,7 @@ pub async fn object_get(
 ) -> Result<Option<ObjectData>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     match vault.load_object(&object_id)? {
         Some(rec) => {
@@ -155,7 +155,7 @@ pub async fn object_create(
 ) -> Result<ObjectData, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let now = chrono::Utc::now().to_rfc3339();
     let id = input
@@ -228,7 +228,7 @@ pub async fn object_update(
 ) -> Result<ObjectData, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let mut record = vault
         .load_object(&object_id)?
@@ -278,7 +278,7 @@ pub async fn object_update(
 pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     // Load retention period from preferences
     let account_id = svc.get_current_account().unwrap_or_default();
@@ -337,7 +337,7 @@ pub async fn object_trash_list(
     let _ = account_id;
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     vault.list_trash_items(None, since)
 }
 
@@ -376,7 +376,7 @@ pub async fn object_restore(
 ) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let trash = vault
         .get_trash_item(&trash_id)?
@@ -514,7 +514,7 @@ pub async fn object_restore(
 pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let (obj_name, obj_section) = vault
         .load_object(&object_id)
@@ -552,7 +552,7 @@ pub async fn trash_permanent_delete(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     if let Ok(Some(trash)) = vault.get_trash_item(&trash_id) {
         if trash.item_type != "template" {
@@ -592,7 +592,7 @@ pub async fn page_delete(
 ) -> Result<usize, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let now_ms = chrono::Utc::now().timestamp_millis();
     let period = load_trash_retention(vault, &account_id);
@@ -690,7 +690,7 @@ pub async fn page_restore(
 ) -> Result<usize, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let fallback_lang = get_ui_language(&svc);
     let lang = lang.as_deref().unwrap_or(&fallback_lang);
     let suffix = restored_suffix(lang);
@@ -816,7 +816,7 @@ pub async fn snapshot_count_batch(
 ) -> Result<std::collections::HashMap<String, usize>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     vault.count_snapshots_batch(&object_ids)
 }
 
@@ -829,7 +829,7 @@ pub async fn snapshot_get(
 ) -> Result<Vec<serde_json::Value>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     vault.list_snapshots(&object_id)
 }
 
@@ -840,7 +840,7 @@ pub async fn snapshot_get_data(
 ) -> Result<Option<serde_json::Value>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     match vault.get_snapshot(&snapshot_id)? {
         Some(data) => serde_json::from_slice(&data)
             .map(Some)
@@ -856,7 +856,7 @@ pub async fn snapshot_list(
 ) -> Result<Vec<serde_json::Value>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     vault.list_snapshots(&object_id)
 }
 
@@ -868,7 +868,7 @@ pub async fn snapshot_rollback(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     // Get snapshot data
     let data = vault
@@ -925,7 +925,7 @@ pub async fn snapshot_rollback(
 pub async fn trash_get_retention(state: State<'_, AppState>) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let account_id = svc.get_current_account().ok_or("No account")?;
     if let Ok(Some(profile)) = vault.load_profile(&account_id) {
         if !profile.data.is_empty() {
@@ -947,7 +947,7 @@ pub async fn trash_get_retention(state: State<'_, AppState>) -> Result<String, S
 pub async fn trash_set_retention(state: State<'_, AppState>, period: String) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let account_id = svc.get_current_account().ok_or("No account")?;
     let mut profile = match vault.load_profile(&account_id) {
         Ok(Some(p)) => p,
@@ -1021,7 +1021,7 @@ pub async fn trash_get_detail(
 ) -> Result<TrashDetail, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let trash = vault
         .get_trash_item(&trash_id)?
         .ok_or("Trash item not found")?;

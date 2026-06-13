@@ -24,6 +24,11 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# Tauri updater signing keys (private key must NEVER be committed)
+.tauri-keys/
+*.key
+!*.key.pub
+
 # Generated files
 src/types/ipc.ts
 

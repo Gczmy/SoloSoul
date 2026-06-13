@@ -1,5 +1,6 @@
 //! Vault store - SQLite storage with app-layer AES-256-GCM encryption
 
+use base64::Engine as _;
 use rusqlite::{params, Connection, OptionalExtension};
 use std::sync::Mutex;
 use zeroize::Zeroize;
@@ -19,7 +20,7 @@ pub struct VaultStore {
     conn: Mutex<Option<Connection>>,
     #[allow(dead_code)]
     config: VaultConfig, // reserved for future path-based vault operations
-    state: VaultState,
+    state: Mutex<VaultState>,
     data_key: Mutex<Option<DataEncryptionKey>>,
 }
 
@@ -41,7 +42,7 @@ impl VaultStore {
         let store = Self {
             conn: Mutex::new(Some(conn)),
             config,
-            state: VaultState::Unlocked,
+            state: Mutex::new(VaultState::Unlocked),
             data_key: Mutex::new(data_key),
         };
 
@@ -93,6 +94,36 @@ impl VaultStore {
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL,
                 updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS sync_peers (
+                peer_node_id TEXT PRIMARY KEY,
+                peer_name TEXT,
+                trusted INTEGER NOT NULL DEFAULT 0,
+                public_key_fingerprint TEXT,
+                last_seen INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS sync_watermarks (
+                peer_node_id TEXT NOT NULL,
+                table_name TEXT NOT NULL,
+                wall_time_ms INTEGER NOT NULL DEFAULT 0,
+                counter INTEGER NOT NULL DEFAULT 0,
+                node_id TEXT NOT NULL DEFAULT '',
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (peer_node_id, table_name)
+            );
+
+            CREATE TABLE IF NOT EXISTS sync_hlc (
+                table_name TEXT NOT NULL,
+                record_id TEXT NOT NULL,
+                wall_time_ms INTEGER NOT NULL,
+                counter INTEGER NOT NULL,
+                node_id TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (table_name, record_id)
             );
 
             CREATE TABLE IF NOT EXISTS sys_config (
@@ -205,7 +236,7 @@ impl VaultStore {
     }
 
     pub fn state(&self) -> VaultState {
-        self.state
+        *self.state.lock().unwrap_or_else(|e| e.into_inner())
     }
 
     pub fn stats(&self) -> Result<VaultStats, String> {
@@ -265,7 +296,7 @@ impl VaultStore {
         })
     }
 
-    pub fn lock(&mut self) {
+    pub fn lock(&self) {
         if let Ok(mut guard) = self.conn.lock() {
             if let Some(conn) = guard.take() {
                 let _ = conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE)");
@@ -276,7 +307,9 @@ impl VaultStore {
                 k.0.zeroize();
             }
         }
-        self.state = VaultState::Locked;
+        if let Ok(mut s) = self.state.lock() {
+            *s = VaultState::Locked;
+        }
     }
 
     /// Migrate legacy plaintext sensitive fields to encrypted format.
@@ -807,6 +840,741 @@ impl VaultStore {
             return Err("Profile not found".to_string());
         }
         Ok(())
+    }
+
+    // ── Sync state helpers ──────────────────────────────────
+
+    fn now_rfc3339() -> String {
+        chrono::Utc::now().to_rfc3339()
+    }
+
+    fn parse_time_ms(s: &str) -> u64 {
+        chrono::DateTime::parse_from_rfc3339(s)
+            .map(|d| d.timestamp_millis() as u64)
+            .unwrap_or(0)
+    }
+
+    fn get_record_hlc(
+        &self,
+        table: &str,
+        record_id: &str,
+    ) -> Result<Option<crate::RecordHlc>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let result = conn
+            .query_row(
+                "SELECT wall_time_ms, counter, node_id FROM sync_hlc WHERE table_name = ?1 AND record_id = ?2",
+                params![table, record_id],
+                |row| {
+                    Ok(crate::RecordHlc {
+                        wall_time_ms: row.get(0)?,
+                        counter: row.get::<_, i32>(1)? as u32,
+                        node_id: row.get(2)?,
+                    })
+                },
+            )
+            .optional()
+            .map_err(|e| format!("get_record_hlc: {}", e))?;
+        Ok(result)
+    }
+
+    fn set_record_hlc(
+        &self,
+        table: &str,
+        record_id: &str,
+        hlc: &crate::RecordHlc,
+    ) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "INSERT INTO sync_hlc (table_name, record_id, wall_time_ms, counter, node_id, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+             ON CONFLICT(table_name, record_id) DO UPDATE SET
+                wall_time_ms = excluded.wall_time_ms,
+                counter = excluded.counter,
+                node_id = excluded.node_id,
+                updated_at = excluded.updated_at",
+            params![
+                table,
+                record_id,
+                hlc.wall_time_ms,
+                hlc.counter as i32,
+                &hlc.node_id,
+                Self::now_rfc3339(),
+            ],
+        )
+        .map_err(|e| format!("set_record_hlc: {}", e))?;
+        Ok(())
+    }
+
+    fn record_hlc_or_fallback(
+        &self,
+        table: &str,
+        record_id: &str,
+        updated_at: &str,
+        local_node_id: &str,
+    ) -> Result<crate::RecordHlc, String> {
+        if let Some(hlc) = self.get_record_hlc(table, record_id)? {
+            return Ok(hlc);
+        }
+        Ok(crate::RecordHlc {
+            wall_time_ms: Self::parse_time_ms(updated_at),
+            counter: 0,
+            node_id: local_node_id.to_string(),
+        })
+    }
+
+    pub fn save_peer_state(&self, peer: &crate::PeerSyncState) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "INSERT INTO sync_peers (peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+             ON CONFLICT(peer_node_id) DO UPDATE SET
+                peer_name = excluded.peer_name,
+                trusted = excluded.trusted,
+                public_key_fingerprint = excluded.public_key_fingerprint,
+                last_seen = excluded.last_seen,
+                updated_at = excluded.updated_at",
+            params![
+                &peer.peer_node_id,
+                &peer.peer_name,
+                peer.trusted as i32,
+                &peer.public_key_fingerprint,
+                peer.last_seen,
+                &peer.created_at,
+                &peer.updated_at,
+            ],
+        )
+        .map_err(|e| format!("save_peer_state: {}", e))?;
+        Ok(())
+    }
+
+    pub fn load_peer_state(
+        &self,
+        peer_node_id: &str,
+    ) -> Result<Option<crate::PeerSyncState>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let result = conn
+            .query_row(
+                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, created_at, updated_at
+                 FROM sync_peers WHERE peer_node_id = ?1",
+                params![peer_node_id],
+                |row| {
+                    Ok(crate::PeerSyncState {
+                        peer_node_id: row.get(0)?,
+                        peer_name: row.get(1)?,
+                        trusted: row.get::<_, i32>(2)? != 0,
+                        public_key_fingerprint: row.get(3)?,
+                        last_seen: row.get(4)?,
+                        created_at: row.get(5)?,
+                        updated_at: row.get(6)?,
+                    })
+                },
+            )
+            .optional()
+            .map_err(|e| format!("load_peer_state: {}", e))?;
+        Ok(result)
+    }
+
+    pub fn list_peers(&self) -> Result<Vec<crate::PeerSyncState>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, created_at, updated_at
+                 FROM sync_peers ORDER BY updated_at DESC",
+            )
+            .map_err(|e| format!("list_peers: {}", e))?;
+        let peers = stmt
+            .query_map([], |row| {
+                Ok(crate::PeerSyncState {
+                    peer_node_id: row.get(0)?,
+                    peer_name: row.get(1)?,
+                    trusted: row.get::<_, i32>(2)? != 0,
+                    public_key_fingerprint: row.get(3)?,
+                    last_seen: row.get(4)?,
+                    created_at: row.get(5)?,
+                    updated_at: row.get(6)?,
+                })
+            })
+            .map_err(|e| format!("list_peers query: {}", e))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("list_peers collect: {}", e))?;
+        Ok(peers)
+    }
+
+    pub fn set_peer_trusted(&self, peer_node_id: &str, trusted: bool) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "UPDATE sync_peers SET trusted = ?1, updated_at = ?2 WHERE peer_node_id = ?3",
+            params![trusted as i32, Self::now_rfc3339(), peer_node_id],
+        )
+        .map_err(|e| format!("set_peer_trusted: {}", e))?;
+        Ok(())
+    }
+
+    pub fn delete_peer(&self, peer_node_id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "DELETE FROM sync_peers WHERE peer_node_id = ?1",
+            params![peer_node_id],
+        )
+        .map_err(|e| format!("delete_peer: {}", e))?;
+        Ok(())
+    }
+
+    pub fn update_peer_watermark(
+        &self,
+        peer_node_id: &str,
+        table: &str,
+        watermark: &crate::SyncWatermark,
+    ) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "INSERT INTO sync_watermarks (peer_node_id, table_name, wall_time_ms, counter, node_id, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+             ON CONFLICT(peer_node_id, table_name) DO UPDATE SET
+                wall_time_ms = excluded.wall_time_ms,
+                counter = excluded.counter,
+                node_id = excluded.node_id,
+                updated_at = excluded.updated_at",
+            params![
+                peer_node_id,
+                table,
+                watermark.wall_time_ms,
+                watermark.counter as i32,
+                &watermark.node_id,
+                Self::now_rfc3339(),
+            ],
+        )
+        .map_err(|e| format!("update_peer_watermark: {}", e))?;
+        Ok(())
+    }
+
+    pub fn get_peer_watermark(
+        &self,
+        peer_node_id: &str,
+        table: &str,
+    ) -> Result<crate::SyncWatermark, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let result = conn
+            .query_row(
+                "SELECT wall_time_ms, counter, node_id FROM sync_watermarks
+                 WHERE peer_node_id = ?1 AND table_name = ?2",
+                params![peer_node_id, table],
+                |row| {
+                    Ok(crate::SyncWatermark {
+                        wall_time_ms: row.get(0)?,
+                        counter: row.get::<_, i32>(1)? as u32,
+                        node_id: row.get(2)?,
+                    })
+                },
+            )
+            .optional()
+            .map_err(|e| format!("get_peer_watermark: {}", e))?;
+        Ok(result.unwrap_or_default())
+    }
+
+    fn hlc_after_watermark(hlc: &crate::RecordHlc, watermark: &crate::SyncWatermark) -> bool {
+        hlc.wall_time_ms > watermark.wall_time_ms
+            || (hlc.wall_time_ms == watermark.wall_time_ms
+                && (hlc.counter > watermark.counter
+                    || (hlc.counter == watermark.counter && hlc.node_id > watermark.node_id)))
+    }
+
+    /// List records in a table that have an HLC newer than the given watermark.
+    pub fn list_sync_changes_since(
+        &self,
+        table: &str,
+        watermark: &crate::SyncWatermark,
+        account_id: &str,
+        local_node_id: &str,
+    ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        match table {
+            "profiles" => self.list_profile_changes_since(watermark, local_node_id),
+            "objects" => self.list_object_changes_since(watermark, account_id, local_node_id),
+            "user_templates" => {
+                self.list_user_template_changes_since(watermark, account_id, local_node_id)
+            }
+            "trash_items" => self.list_trash_changes_since(watermark, local_node_id),
+            _ => Err(format!("Unsupported sync table: {}", table)),
+        }
+    }
+
+    fn list_profile_changes_since(
+        &self,
+        watermark: &crate::SyncWatermark,
+        local_node_id: &str,
+    ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        let key = self.data_key()?;
+        let rows = {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            let mut stmt = conn
+                .prepare("SELECT id, name, data, created_at, updated_at, version FROM profiles")
+                .map_err(|e| format!("list_profile_changes: {}", e))?;
+            let rows = stmt
+                .query_map([], |row| {
+                    let raw_data: Vec<u8> = row.get(2)?;
+                    let data = decrypt_field(&key, &raw_data).map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            2,
+                            rusqlite::types::Type::Blob,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("Profile decryption failed: {}", e),
+                            )),
+                        )
+                    })?;
+                    let created: String = row.get(3)?;
+                    let updated: String = row.get(4)?;
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        data,
+                        created,
+                        updated,
+                        row.get::<_, u32>(5)?,
+                    ))
+                })
+                .map_err(|e| format!("list_profile_changes query: {}", e))?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("list_profile_changes collect: {}", e))?;
+            rows
+        };
+
+        let mut out = Vec::new();
+        for (id, name, data, created, updated, version) in rows {
+            let hlc = self.record_hlc_or_fallback("profiles", &id, &updated, local_node_id)?;
+            if !Self::hlc_after_watermark(&hlc, watermark) {
+                continue;
+            }
+            let value = serde_json::json!({
+                "id": id,
+                "name": name,
+                "data": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &data),
+                "createdAt": created,
+                "updatedAt": updated,
+                "version": version,
+            });
+            out.push(crate::VaultSyncRecord {
+                id,
+                table: "profiles".to_string(),
+                data: value,
+                hlc,
+                deleted: false,
+            });
+        }
+        Ok(out)
+    }
+
+    fn list_object_changes_since(
+        &self,
+        watermark: &crate::SyncWatermark,
+        account_id: &str,
+        local_node_id: &str,
+    ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        let key = self.data_key()?;
+        let rows = {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            let mut stmt = conn
+                .prepare(
+                    "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
+                     children_ids, properties, property_labels, sensitivity_level,
+                     is_deleted, deleted_at, tags_json, template_id, template_type, created_at, updated_at, version
+                     FROM objects WHERE account_id = ?1",
+                )
+                .map_err(|e| format!("list_object_changes: {}", e))?;
+            let rows = stmt
+                .query_map(params![account_id], |row| {
+                    let props_str: String = row.get(8)?;
+                    let labels_str: String = row.get(9)?;
+                    let decrypted_props = decrypt_text_field(&key, &props_str).map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            8,
+                            rusqlite::types::Type::Text,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("Object properties decryption failed: {}", e),
+                            )),
+                        )
+                    })?;
+                    let decrypted_labels = if labels_str.is_empty() {
+                        Ok(String::new())
+                    } else {
+                        decrypt_text_field(&key, &labels_str).map_err(|e| {
+                            rusqlite::Error::FromSqlConversionFailure(
+                                9,
+                                rusqlite::types::Type::Text,
+                                Box::new(std::io::Error::new(
+                                    std::io::ErrorKind::InvalidData,
+                                    format!("Object labels decryption failed: {}", e),
+                                )),
+                            )
+                        })
+                    }?;
+                    let children: Vec<String> =
+                        serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default();
+                    let tags: Vec<String> =
+                        serde_json::from_str(&row.get::<_, String>(13)?).unwrap_or_default();
+                    let labels: Option<serde_json::Value> = if decrypted_labels.is_empty() {
+                        None
+                    } else {
+                        serde_json::from_str(&decrypted_labels).ok()
+                    };
+                    let props: serde_json::Value =
+                        serde_json::from_str(&decrypted_props).unwrap_or_default();
+                    let obj = crate::ObjectRecord {
+                        id: row.get(0)?,
+                        account_id: row.get(1)?,
+                        type_id: row.get(2)?,
+                        section_type: row.get(3)?,
+                        name: row.get(4)?,
+                        icon_name: row.get(5)?,
+                        parent_id: row.get(6)?,
+                        children_ids: children,
+                        properties: props,
+                        property_labels: labels,
+                        sensitivity_level: row.get(10)?,
+                        is_deleted: row.get::<_, i32>(11)? != 0,
+                        deleted_at: row.get(12)?,
+                        tags_json: tags,
+                        template_id: row.get(14)?,
+                        template_type: row.get(15)?,
+                        created_at: row.get(16)?,
+                        updated_at: row.get(17)?,
+                        version: row.get(18)?,
+                    };
+                    Ok(obj)
+                })
+                .map_err(|e| format!("list_object_changes query: {}", e))?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("list_object_changes collect: {}", e))?;
+            rows
+        };
+
+        let mut out = Vec::new();
+        for obj in rows {
+            let hlc =
+                self.record_hlc_or_fallback("objects", &obj.id, &obj.updated_at, local_node_id)?;
+            if !Self::hlc_after_watermark(&hlc, watermark) {
+                continue;
+            }
+            let id = obj.id.clone();
+            out.push(crate::VaultSyncRecord {
+                id,
+                table: "objects".to_string(),
+                data: serde_json::to_value(&obj).unwrap_or_default(),
+                hlc,
+                deleted: obj.is_deleted,
+            });
+        }
+        Ok(out)
+    }
+
+    fn list_user_template_changes_since(
+        &self,
+        watermark: &crate::SyncWatermark,
+        account_id: &str,
+        local_node_id: &str,
+    ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        let key = self.data_key()?;
+        let rows = {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            let mut stmt = conn
+                .prepare(
+                    "SELECT id, account_id, name, icon_id, properties_json, category, created_at, updated_at
+                     FROM user_templates WHERE account_id = ?1",
+                )
+                .map_err(|e| format!("list_template_changes: {}", e))?;
+            let rows = stmt
+                .query_map(params![account_id], |row| {
+                    let props_json: String = row.get(4)?;
+                    let decrypted = decrypt_text_field(&key, &props_json).map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            4,
+                            rusqlite::types::Type::Text,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("Template properties decryption failed: {}", e),
+                            )),
+                        )
+                    })?;
+                    let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
+                        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+                    let tpl = crate::UserTemplate {
+                        id: row.get(0)?,
+                        account_id: row.get(1)?,
+                        name: row.get(2)?,
+                        icon_id: row.get(3)?,
+                        properties,
+                        category: row.get(5)?,
+                        created_at: row.get(6)?,
+                        updated_at: row.get(7)?,
+                    };
+                    Ok(tpl)
+                })
+                .map_err(|e| format!("list_template_changes query: {}", e))?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("list_template_changes collect: {}", e))?;
+            rows
+        };
+
+        let mut out = Vec::new();
+        for tpl in rows {
+            let updated = tpl.updated_at.clone().unwrap_or_default();
+            let hlc =
+                self.record_hlc_or_fallback("user_templates", &tpl.id, &updated, local_node_id)?;
+            if !Self::hlc_after_watermark(&hlc, watermark) {
+                continue;
+            }
+            let id = tpl.id.clone();
+            out.push(crate::VaultSyncRecord {
+                id,
+                table: "user_templates".to_string(),
+                data: serde_json::to_value(&tpl).unwrap_or_default(),
+                hlc,
+                deleted: false,
+            });
+        }
+        Ok(out)
+    }
+
+    fn list_trash_changes_since(
+        &self,
+        watermark: &crate::SyncWatermark,
+        local_node_id: &str,
+    ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        let key = self.data_key()?;
+        let rows = {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            let mut stmt = conn
+                .prepare(
+                    "SELECT id, item_type, original_id, original_parent_id, original_section_type,
+                     original_sort_order, data, deleted_at, expires_at, deleted_by, name_snapshot, icon_snapshot
+                     FROM trash_items",
+                )
+                .map_err(|e| format!("list_trash_changes: {}", e))?;
+            let rows = stmt
+                .query_map([], |row| {
+                    let raw_data: Vec<u8> = row.get(6)?;
+                    let data = decrypt_field(&key, &raw_data).map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            6,
+                            rusqlite::types::Type::Blob,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("Trash data decryption failed: {}", e),
+                            )),
+                        )
+                    })?;
+                    let deleted_at: i64 = row.get(7)?;
+                    let item = crate::TrashItem {
+                        id: row.get(0)?,
+                        item_type: row.get(1)?,
+                        original_id: row.get(2)?,
+                        original_parent_id: row.get(3)?,
+                        original_section_type: row.get(4)?,
+                        original_sort_order: row.get(5)?,
+                        data,
+                        deleted_at,
+                        expires_at: row.get(8)?,
+                        deleted_by: row.get(9)?,
+                        name_snapshot: row.get(10)?,
+                        icon_snapshot: row.get(11)?,
+                    };
+                    Ok((item, deleted_at))
+                })
+                .map_err(|e| format!("list_trash_changes query: {}", e))?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("list_trash_changes collect: {}", e))?;
+            rows
+        };
+
+        let mut out = Vec::new();
+        for (item, deleted_at) in rows {
+            let updated = chrono::DateTime::from_timestamp(deleted_at, 0)
+                .map(|d| d.to_rfc3339())
+                .unwrap_or_default();
+            let hlc =
+                self.record_hlc_or_fallback("trash_items", &item.id, &updated, local_node_id)?;
+            if !Self::hlc_after_watermark(&hlc, watermark) {
+                continue;
+            }
+            let id = item.id.clone();
+            out.push(crate::VaultSyncRecord {
+                id,
+                table: "trash_items".to_string(),
+                data: serde_json::to_value(&item).unwrap_or_default(),
+                hlc,
+                deleted: false,
+            });
+        }
+        Ok(out)
+    }
+
+    /// Apply a single incoming sync record. Returns true if the local state changed.
+    pub fn apply_sync_record(
+        &self,
+        record: &crate::VaultSyncRecord,
+        local_node_id: &str,
+    ) -> Result<bool, String> {
+        // Conflict resolution: only accept records with HLC greater than the local HLC.
+        let current = self.get_record_hlc(&record.table, &record.id)?;
+        if let Some(ref cur) = current {
+            if !Self::record_hlc_is_newer(&record.hlc, cur) {
+                return Ok(false);
+            }
+        }
+
+        let applied = match record.table.as_str() {
+            "profiles" => self.apply_profile_sync_record(record),
+            "objects" => self.apply_object_sync_record(record, local_node_id),
+            "user_templates" => self.apply_user_template_sync_record(record),
+            "trash_items" => self.apply_trash_sync_record(record),
+            _ => Err(format!("Unsupported sync table: {}", record.table)),
+        }?;
+
+        if applied {
+            self.set_record_hlc(&record.table, &record.id, &record.hlc)?;
+        }
+        Ok(applied)
+    }
+
+    fn record_hlc_is_newer(remote: &crate::RecordHlc, local: &crate::RecordHlc) -> bool {
+        remote.wall_time_ms > local.wall_time_ms
+            || (remote.wall_time_ms == local.wall_time_ms
+                && (remote.counter > local.counter
+                    || (remote.counter == local.counter && remote.node_id > local.node_id)))
+    }
+
+    fn apply_profile_sync_record(&self, record: &crate::VaultSyncRecord) -> Result<bool, String> {
+        if record.deleted {
+            let _ = self.delete_profile(&record.id);
+            return Ok(true);
+        }
+        let data_b64 = record
+            .data
+            .get("data")
+            .and_then(|v| v.as_str())
+            .ok_or("Missing profile data")?;
+        let data = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, data_b64)
+            .map_err(|e| format!("profile data decode: {}", e))?;
+        let now = Self::now_rfc3339();
+        let created = record
+            .data
+            .get("createdAt")
+            .and_then(|v| v.as_str())
+            .unwrap_or(&now);
+        let updated = record
+            .data
+            .get("updatedAt")
+            .and_then(|v| v.as_str())
+            .unwrap_or(&now);
+        let profile = crate::Profile {
+            id: record.id.clone(),
+            name: record
+                .data
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string(),
+            data,
+            created_at: chrono::DateTime::parse_from_rfc3339(created)
+                .map(|d| d.with_timezone(&chrono::Utc))
+                .unwrap_or_else(|_| chrono::Utc::now()),
+            updated_at: chrono::DateTime::parse_from_rfc3339(updated)
+                .map(|d| d.with_timezone(&chrono::Utc))
+                .unwrap_or_else(|_| chrono::Utc::now()),
+            version: record
+                .data
+                .get("version")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(1) as u32,
+        };
+        self.save_profile(&profile)?;
+        Ok(true)
+    }
+
+    fn apply_object_sync_record(
+        &self,
+        record: &crate::VaultSyncRecord,
+        local_node_id: &str,
+    ) -> Result<bool, String> {
+        let mut obj: crate::ObjectRecord = serde_json::from_value(record.data.clone())
+            .map_err(|e| format!("object decode: {}", e))?;
+        // Bump version if the local node is modifying an existing object.
+        if self.load_object(&obj.id)?.is_some() {
+            obj.version += 1;
+            obj.updated_at = Self::now_rfc3339();
+        }
+        // Re-encrypt properties locally.
+        self.save_object(&obj)?;
+        // Update HLC with the remote value.
+        self.set_record_hlc("objects", &record.id, &record.hlc)?;
+        let _ = local_node_id;
+        Ok(true)
+    }
+
+    fn apply_user_template_sync_record(
+        &self,
+        record: &crate::VaultSyncRecord,
+    ) -> Result<bool, String> {
+        if record.deleted {
+            let _ = self.load_user_template(&record.id); // ensure vault is accessible
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            conn.execute(
+                "DELETE FROM user_templates WHERE id = ?1",
+                params![record.id],
+            )
+            .map_err(|e| format!("delete template: {}", e))?;
+            return Ok(true);
+        }
+        let tpl: crate::UserTemplate = serde_json::from_value(record.data.clone())
+            .map_err(|e| format!("template decode: {}", e))?;
+        self.save_user_template(&tpl)?;
+        Ok(true)
+    }
+
+    fn apply_trash_sync_record(&self, record: &crate::VaultSyncRecord) -> Result<bool, String> {
+        let item: crate::TrashItem = serde_json::from_value(record.data.clone())
+            .map_err(|e| format!("trash decode: {}", e))?;
+        self.save_trash_item(&item)?;
+        Ok(true)
+    }
+
+    pub fn get_sync_node_id(&self) -> Result<Option<String>, String> {
+        self.read_metadata("node_id", "sync")
+            .map(|b| b.and_then(|v| String::from_utf8(v).ok()))
+    }
+
+    pub fn set_sync_node_id(&self, node_id: &str) -> Result<(), String> {
+        self.write_metadata("node_id", "sync", node_id.as_bytes())
+    }
+
+    pub fn get_sync_secret_key(&self) -> Result<Option<[u8; 32]>, String> {
+        self.read_metadata("secret_key", "sync").map(|b| {
+            b.map(|v| {
+                let mut key = [0u8; 32];
+                let len = v.len().min(32);
+                key[..len].copy_from_slice(&v[..len]);
+                key
+            })
+        })
+    }
+
+    pub fn set_sync_secret_key(&self, key: &[u8; 32]) -> Result<(), String> {
+        self.write_metadata("secret_key", "sync", key)
     }
 
     pub fn list_profiles(&self) -> Result<Vec<ProfileSummary>, String> {
@@ -3692,5 +4460,99 @@ mod tests {
 
         let loaded_obj = vault.load_object("obj-reenc").unwrap().unwrap();
         assert_eq!(loaded_obj.properties, serde_json::json!({"k": "v"}));
+    }
+
+    // ── Sync helpers ──────────────────────────────────────────
+
+    #[test]
+    fn test_sync_peer_state_roundtrip() {
+        let (vault, _dir) = setup();
+        let peer = crate::PeerSyncState {
+            peer_node_id: "node_abc".to_string(),
+            peer_name: Some("Living Room".to_string()),
+            trusted: false,
+            public_key_fingerprint: Some("deadbeef".to_string()),
+            last_seen: Some(1234567890),
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+        };
+        vault.save_peer_state(&peer).unwrap();
+
+        let loaded = vault.load_peer_state("node_abc").unwrap().unwrap();
+        assert_eq!(loaded.peer_node_id, "node_abc");
+        assert_eq!(loaded.trusted, false);
+
+        vault.set_peer_trusted("node_abc", true).unwrap();
+        let loaded = vault.load_peer_state("node_abc").unwrap().unwrap();
+        assert_eq!(loaded.trusted, true);
+
+        vault.delete_peer("node_abc").unwrap();
+        assert!(vault.load_peer_state("node_abc").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_apply_sync_record_profile() {
+        let (vault, _dir) = setup();
+        let data_b64 =
+            base64::Engine::encode(&base64::engine::general_purpose::STANDARD, b"secret data");
+        let record = crate::VaultSyncRecord {
+            id: "p1".to_string(),
+            table: "profiles".to_string(),
+            data: serde_json::json!({
+                "id": "p1",
+                "name": "Test",
+                "data": data_b64,
+                "createdAt": chrono::Utc::now().to_rfc3339(),
+                "updatedAt": chrono::Utc::now().to_rfc3339(),
+                "version": 1,
+            }),
+            hlc: crate::RecordHlc {
+                wall_time_ms: 1000,
+                counter: 1,
+                node_id: "node_a".to_string(),
+            },
+            deleted: false,
+        };
+        assert!(vault.apply_sync_record(&record, "node_b").unwrap());
+        let loaded = vault.load_profile("p1").unwrap().unwrap();
+        assert_eq!(loaded.name, "Test");
+        assert_eq!(loaded.data, b"secret data");
+    }
+
+    #[test]
+    fn test_apply_sync_record_skips_older_hlc() {
+        let (vault, _dir) = setup();
+        let hlc_newer = crate::RecordHlc {
+            wall_time_ms: 2000,
+            counter: 0,
+            node_id: "node_a".to_string(),
+        };
+        let hlc_older = crate::RecordHlc {
+            wall_time_ms: 1000,
+            counter: 0,
+            node_id: "node_a".to_string(),
+        };
+        let make_record = |hlc: crate::RecordHlc, name: &str| crate::VaultSyncRecord {
+            id: "p1".to_string(),
+            table: "profiles".to_string(),
+            data: serde_json::json!({
+                "id": "p1",
+                "name": name,
+                "data": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, b"x"),
+                "createdAt": chrono::Utc::now().to_rfc3339(),
+                "updatedAt": chrono::Utc::now().to_rfc3339(),
+                "version": 1,
+            }),
+            hlc,
+            deleted: false,
+        };
+        assert!(vault
+            .apply_sync_record(&make_record(hlc_newer, "Newer"), "node_b")
+            .unwrap());
+        assert!(!vault
+            .apply_sync_record(&make_record(hlc_older, "Older"), "node_b")
+            .unwrap());
+        let loaded = vault.load_profile("p1").unwrap().unwrap();
+        assert_eq!(loaded.name, "Newer");
     }
 }

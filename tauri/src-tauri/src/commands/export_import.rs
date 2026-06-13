@@ -215,7 +215,7 @@ pub async fn export_get_scope_tree(
 ) -> Result<Vec<PageGroup>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let objects = vault
         .list_objects(&account_id, None, None, None, false, false)
@@ -276,7 +276,7 @@ pub async fn export_estimate_size(
 ) -> Result<ExportEstimate, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let records = collect_scope_objects(vault, &account_id, &scope)?;
     let count = records.len();
@@ -339,7 +339,7 @@ pub async fn export_execute(
 ) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     // ── Validate password ──────────────────────────────────────
     if req.password.len() < 8 {
@@ -631,7 +631,7 @@ pub async fn export_get_attachments(
 ) -> Result<Vec<AttachmentInfo>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let obj = vault
         .load_object(&object_id)
@@ -733,7 +733,7 @@ pub async fn import_decrypt_preview(
 ) -> Result<DecryptedImportPreview, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let manifest = read_manifest(&file_path)?;
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
@@ -870,7 +870,7 @@ async fn import_execute_internal(
 ) -> Result<usize, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     if password.is_empty() {
         return Err(import_err("PASSWORD_REQUIRED"));

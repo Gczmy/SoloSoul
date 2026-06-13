@@ -148,4 +148,33 @@ export const commands = {
   async mdnsAdvertise(deviceName: string, port: number): Promise<void> {
     return invoke('mdns_advertise', { deviceName, port });
   },
+
+  // Sync
+  async syncGetStatus(): Promise<{
+    isDiscovering: boolean;
+    syncEnabled: boolean;
+    localFingerprint: string;
+    connectedPeers: Array<{
+      id: string;
+      name: string;
+      addr: string;
+      fingerprint: string;
+      trusted: boolean;
+      lastSeen: string;
+    }>;
+  }> {
+    return invoke('sync_get_status');
+  },
+  async syncEnable(enable: boolean): Promise<void> {
+    return invoke('sync_enable', { enable });
+  },
+  async syncWithDevice(deviceId: string): Promise<string> {
+    return invoke('sync_with_device', { deviceId });
+  },
+  async syncTrustPeer(peerNodeId: string, trusted: boolean): Promise<void> {
+    return invoke('sync_trust_peer', { peerNodeId, trusted });
+  },
+  async syncForgetPeer(peerNodeId: string): Promise<void> {
+    return invoke('sync_forget_peer', { peerNodeId });
+  },
 };

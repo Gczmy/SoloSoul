@@ -243,7 +243,8 @@ pub async fn biometric_save_credential(
     set_config_flag(&account_id, true)?;
     let svc = state.vault_service.read().await;
     if let Some(vg) = svc.get_vault_store() {
-        if let Some(vault) = vg.as_ref() {
+        let vault = vg.as_ref();
+        {
             let loc = location.unwrap_or_else(|| "unknown".to_string());
             let act = action.unwrap_or_else(|| "enable".to_string());
             let bio_type = biometry_type.as_deref().unwrap_or("unknown");
@@ -281,7 +282,8 @@ pub async fn biometric_unlock(
     let svc = state.vault_service.read().await;
     svc.unlock_with_session_key(&account_id, &key)?;
     if let Some(vg) = svc.get_vault_store() {
-        if let Some(vault) = vg.as_ref() {
+        let vault = vg.as_ref();
+        {
             let loc = location.unwrap_or_else(|| "unknown".to_string());
             let act = action.unwrap_or_else(|| "unlock".to_string());
             let bio_type = biometry_type.as_deref().unwrap_or("unknown");
@@ -323,7 +325,8 @@ pub async fn biometric_delete_credential(
     set_config_flag(&account_id, false)?;
     let svc = state.vault_service.read().await;
     if let Some(vg) = svc.get_vault_store() {
-        if let Some(vault) = vg.as_ref() {
+        let vault = vg.as_ref();
+        {
             let loc = location.unwrap_or_else(|| "unknown".to_string());
             let act = action.unwrap_or_else(|| "disable".to_string());
             let bio_type = biometry_type.as_deref().unwrap_or("unknown");

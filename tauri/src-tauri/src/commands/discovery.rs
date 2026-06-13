@@ -42,7 +42,7 @@ pub async fn mdns_discover(
 ) -> Result<Vec<DiscoveredDevice>, String> {
     let daemon_arc = daemon.get().await?;
     let guard = daemon_arc.lock().await;
-    let daemon = guard.as_ref().ok_or("mDNS daemon failed to initialize")?;
+    let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
 
     let receiver = daemon
         .browse("_solosoul._tcp.local.")
@@ -76,7 +76,7 @@ pub async fn mdns_advertise(
 ) -> Result<(), String> {
     let daemon_arc = daemon.get().await?;
     let guard = daemon_arc.lock().await;
-    let daemon = guard.as_ref().ok_or("mDNS daemon failed to initialize")?;
+    let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
 
     let service = ServiceInfo::new(
         "_solosoul._tcp.local.",

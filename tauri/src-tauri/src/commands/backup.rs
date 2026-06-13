@@ -76,7 +76,7 @@ pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, 
 pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<BackupInfo, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let backup_dir = backups_dir(svc.base_path());
     fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
@@ -148,7 +148,7 @@ pub async fn backup_restore(
 ) -> Result<usize, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let backup_dir = backups_dir(svc.base_path());
     let mut found_path: Option<PathBuf> = None;

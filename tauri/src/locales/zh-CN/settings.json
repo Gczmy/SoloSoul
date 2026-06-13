@@ -21,7 +21,8 @@
     "about": "关于",
     "language": "语言",
     "appearance": "外观",
-    "templates": "模板管理"
+    "templates": "模板管理",
+    "plugins": "插件"
   },
   "auto_lock": "自动锁定",
   "auto_lock_description": "设置多长时间无操作后自动锁定保险库并擦除内存中的敏感状态。",
@@ -138,6 +139,7 @@
   "update_now": "立即更新",
   "downloading": "正在下载...",
   "download_complete": "下载完成",
+  "installing": "正在安装...",
   "version": "版本",
   "build": "构建号",
   "platform": "平台",
@@ -379,7 +381,13 @@
       "template_save_from_object": "从对象保存模板",
       "export_execute": "导出",
       "import_execute": "导入",
-      "attachment_cleanup": "清理孤立附件"
+      "attachment_cleanup": "清理孤立附件",
+      "sync_enabled": "启用同步",
+      "sync_disabled": "关闭同步",
+      "sync_with_device": "与设备同步",
+      "sync_peer_trusted": "信任同步设备",
+      "sync_peer_revoked": "撤销信任同步设备",
+      "sync_peer_forgotten": "忘记同步设备"
     },
     "entity": {
       "object": "对象",
@@ -479,7 +487,8 @@
     "help_docs": "浏览帮助文档和使用指南",
     "debug_log": "查看系统诊断日志",
     "about": "版本信息和许可证",
-    "templates": "管理自定义对象模板"
+    "templates": "管理自定义对象模板",
+    "plugins": "管理本地插件市场"
   },
   "ai_quick_chat_title": "快速对话",
   "ai_quick_chat_configure_hint": "请先配置 LLM 以使用 AI 对话功能",
@@ -564,5 +573,21 @@
   "sample_templates_title": "模板示例",
   "sample_templates_desc": "参考以下示例快速创建常用模板。",
   "use_sample_template": "以此模板创建",
-  "sample_templates": "模板示例"
+  "sample_templates": "模板示例",
+  "sync": "设备同步",
+  "sync_enabled": "同步已启用",
+  "sync_disabled": "同步已禁用",
+  "sync_known_devices": "已知 {{count}} 台设备",
+  "sync_your_fingerprint": "你的指纹",
+  "sync_with_device": "与设备同步",
+  "sync_device_input_hint": "输入已发现的设备 ID 或 host:port 地址。",
+  "sync_result": "结果",
+  "sync_known_devices_title": "已知设备",
+  "sync_no_devices": "暂无已知设备。启用同步并与其他设备同步以添加。",
+  "sync_trust": "信任",
+  "sync_revoke": "撤销信任",
+  "sync_forget": "忘记",
+  "sync_manual_sync": "同步",
+  "sync_enable": "启用",
+  "sync_disable": "禁用"
 }

@@ -64,7 +64,7 @@ fn to_response(entry: solosoul_vault::AuditLogEntry) -> AuditLogResponse {
 pub async fn log_write(state: State<'_, AppState>, request: WriteLogRequest) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     vault.log_structured(
         &request.action_type,
@@ -84,7 +84,7 @@ pub async fn log_get_recent(
 ) -> Result<Vec<AuditLogResponse>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let entries = vault.list_audit_log(limit.unwrap_or(100))?;
     Ok(entries.into_iter().map(to_response).collect())
@@ -100,7 +100,7 @@ pub async fn log_export(
 ) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let entries = vault.list_audit_log(10000)?;
     let json = serde_json::to_string_pretty(&entries).map_err(|e| e.to_string())?;

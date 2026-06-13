@@ -21,9 +21,16 @@ chrono = { workspace = true }
 # Random
 rand = { workspace = true }
 
+# Encoding
+hex = { workspace = true }
+base64 = { workspace = true }
+
 # mDNS
 mdns-sd = "0.11"
 
 # Noise
 snow = "0.9"
 x25519-dalek = { version = "2", features = ["static_secrets"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }

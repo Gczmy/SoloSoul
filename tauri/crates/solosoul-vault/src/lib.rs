@@ -68,6 +68,46 @@ pub struct VaultStats {
 
 pub use profile::{Profile, ProfileData, ProfileSummary, VersionedProfileData};
 
+// ── Sync helpers ──────────────────────────────────────────
+
+/// HLC timestamp stored in the vault for conflict resolution.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecordHlc {
+    pub wall_time_ms: u64,
+    pub counter: u32,
+    pub node_id: String,
+}
+
+/// Per-table sync watermark for a given peer.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct SyncWatermark {
+    pub wall_time_ms: u64,
+    pub counter: u32,
+    pub node_id: String,
+}
+
+/// Persistent peer state for device sync.
+#[derive(Debug, Clone)]
+pub struct PeerSyncState {
+    pub peer_node_id: String,
+    pub peer_name: Option<String>,
+    pub trusted: bool,
+    pub public_key_fingerprint: Option<String>,
+    pub last_seen: Option<i64>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+/// A single record change produced or consumed by the sync delta engine.
+#[derive(Debug, Clone)]
+pub struct VaultSyncRecord {
+    pub id: String,
+    pub table: String,
+    pub data: serde_json::Value,
+    pub hlc: RecordHlc,
+    pub deleted: bool,
+}
+
 // ── Trash items (§23 回收站功能规范) ────────────────────────
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

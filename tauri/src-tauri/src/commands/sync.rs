@@ -7,51 +7,72 @@ pub struct SyncPeer {
     pub id: String,
     pub name: String,
     pub addr: String,
+    pub fingerprint: String,
+    pub trusted: bool,
     pub last_seen: String,
 }
 
 #[derive(Serialize)]
 pub struct SyncStatus {
     pub is_discovering: bool,
-    pub connected_peers: Vec<SyncPeer>,
     pub sync_enabled: bool,
+    pub local_fingerprint: String,
+    pub connected_peers: Vec<SyncPeer>,
 }
 
 #[tauri::command]
 pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String> {
-    let _ = state.vault_service.read().await;
-    // For now, return empty status — full mDNS integration requires
-    // running a background discovery service via the solosoul-sync crate.
+    let peers = state.sync_service.known_peers().await?;
+    let local_fingerprint = state.sync_service.local_fingerprint().await?;
     Ok(SyncStatus {
-        is_discovering: false,
-        connected_peers: vec![],
-        sync_enabled: false,
+        is_discovering: state.sync_service.is_enabled().await,
+        sync_enabled: state.sync_service.is_enabled().await,
+        local_fingerprint,
+        connected_peers: peers
+            .into_iter()
+            .map(|p| SyncPeer {
+                id: p.node_id,
+                name: p.name,
+                addr: p.addr,
+                fingerprint: p.fingerprint,
+                trusted: p.trusted,
+                last_seen: p.last_seen,
+            })
+            .collect(),
     })
 }
 
 #[tauri::command]
 pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
-    let _ = state.vault_service.read().await;
-    Ok(SyncStatus {
-        is_discovering: false,
-        connected_peers: vec![],
-        sync_enabled: false,
-    })
+    sync_discover(state).await
 }
 
 #[tauri::command]
-pub async fn sync_enable(state: State<'_, AppState>, _enable: bool) -> Result<(), String> {
-    let _ = state.vault_service.read().await;
-    // TODO: Start/stop background sync daemon
-    Ok(())
+pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(), String> {
+    state.sync_service.enable(enable).await
 }
 
 #[tauri::command]
 pub async fn sync_with_device(
     state: State<'_, AppState>,
-    _device_id: String,
+    device_id: String,
 ) -> Result<String, String> {
-    let _ = state.vault_service.read().await;
-    // TODO: Initiate Noise handshake and CRDT sync
-    Ok("sync_initiated".to_string())
+    state.sync_service.sync_with_device(device_id).await
+}
+
+#[tauri::command]
+pub async fn sync_trust_peer(
+    state: State<'_, AppState>,
+    peer_node_id: String,
+    trusted: bool,
+) -> Result<(), String> {
+    state.sync_service.trust_peer(peer_node_id, trusted).await
+}
+
+#[tauri::command]
+pub async fn sync_forget_peer(
+    state: State<'_, AppState>,
+    peer_node_id: String,
+) -> Result<(), String> {
+    state.sync_service.forget_peer(peer_node_id).await
 }

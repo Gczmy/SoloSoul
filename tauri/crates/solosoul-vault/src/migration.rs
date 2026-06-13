@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 14;
+pub const CURRENT_SCHEMA_VERSION: u32 = 15;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -276,6 +276,40 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         )
         .ok();
         set_schema_version(conn, 14)?;
+    }
+    if current < 15 {
+        apply_migration(
+            conn,
+            15,
+            "CREATE TABLE IF NOT EXISTS sync_peers (
+                peer_node_id TEXT PRIMARY KEY,
+                peer_name TEXT,
+                trusted INTEGER NOT NULL DEFAULT 0,
+                public_key_fingerprint TEXT,
+                last_seen INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+             );
+             CREATE TABLE IF NOT EXISTS sync_watermarks (
+                peer_node_id TEXT NOT NULL,
+                table_name TEXT NOT NULL,
+                wall_time_ms INTEGER NOT NULL DEFAULT 0,
+                counter INTEGER NOT NULL DEFAULT 0,
+                node_id TEXT NOT NULL DEFAULT '',
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (peer_node_id, table_name)
+             );
+             CREATE TABLE IF NOT EXISTS sync_hlc (
+                table_name TEXT NOT NULL,
+                record_id TEXT NOT NULL,
+                wall_time_ms INTEGER NOT NULL,
+                counter INTEGER NOT NULL,
+                node_id TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (table_name, record_id)
+             );",
+            "Add sync peer, watermark and HLC tables",
+        )?;
     }
     Ok(())
 }

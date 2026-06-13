@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
 import { ExternalLink, Code, Shield, Info, Download } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { checkForUpdate, downloadAndInstallUpdate, type UpdateProgress } from '@/lib/updater';
 
 interface AppInfo {
   appName: string;
@@ -15,22 +15,11 @@ interface AppInfo {
   arch: string;
 }
 
-interface UpdateAsset {
-  name: string;
-  downloadUrl: string;
-  size: number;
-}
-
 interface VersionInfo {
   currentVersion: string;
   latestVersion: string | null;
   hasUpdate: boolean;
-  assets: UpdateAsset[];
-}
-
-interface DownloadProgress {
-  downloaded: number;
-  total: number;
+  body?: string;
 }
 
 function friendlyPlatform(os: string, _arch: string): string {
@@ -51,56 +40,57 @@ export function AboutPage() {
   const { t, i18n } = useTranslation(['settings', 'common']);
   const docLang = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
 
-  // Download state
+  // 更新下载/安装状态
   const [downloading, setDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
-  const [downloadComplete, setDownloadComplete] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<UpdateProgress | null>(null);
+  const [downloadedBytes, setDownloadedBytes] = useState(0);
+  const [totalBytes, setTotalBytes] = useState(0);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([invoke<AppInfo>('get_app_info'), invoke<VersionInfo>('check_version')])
+    Promise.all([
+      invoke<AppInfo>('get_app_info'),
+      checkForUpdate().then((update) => {
+        if (!update) {
+          return { currentVersion: '', latestVersion: null, hasUpdate: false };
+        }
+        return {
+          currentVersion: '',
+          latestVersion: update.version,
+          hasUpdate: true,
+          body: update.body,
+        };
+      }),
+    ])
       .then(([app, ver]) => {
         setInfo(app);
-        setVersionInfo(ver);
+        setVersionInfo({ ...ver, currentVersion: app.version });
       })
       .catch(() => setLoading(false))
       .finally(() => setLoading(false));
   }, []);
 
-  // Listen for download progress events
-  useEffect(() => {
-    const unlisten = listen<DownloadProgress>('update-download-progress', (event) => {
-      setDownloadProgress(event.payload);
-    });
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  }, []);
-
   const handleUpdate = useCallback(async () => {
-    if (!versionInfo || versionInfo.assets.length === 0) return;
-    const asset = versionInfo.assets[0];
     setDownloading(true);
+    setDownloadError(null);
     setDownloadProgress(null);
-    setDownloadComplete(false);
+    setDownloadedBytes(0);
+    setTotalBytes(0);
     try {
-      const path = await invoke<string>('download_update', {
-        assetName: asset.name,
-        assetUrl: asset.downloadUrl,
+      await downloadAndInstallUpdate((progress) => {
+        setDownloadProgress(progress);
+        if (progress.event === 'Started') {
+          setTotalBytes(progress.data.contentLength ?? 0);
+        } else if (progress.event === 'Progress') {
+          setDownloadedBytes((prev) => prev + (progress.data.chunkLength ?? 0));
+        }
       });
-      setDownloadComplete(true);
-      // Open the downloaded file
-      const { open } = await import('@tauri-apps/plugin-shell');
-      await open(path);
-      // Reset after a short delay
-      setTimeout(() => {
-        setDownloading(false);
-        setDownloadProgress(null);
-      }, 2000);
-    } catch {
+      // 安装成功后会调用 relaunch()，通常不会执行到这里
+    } catch (err) {
       setDownloading(false);
-      setDownloadProgress(null);
+      setDownloadError(err instanceof Error ? err.message : String(err));
     }
-  }, [versionInfo]);
+  }, []);
 
   const links = [
     { labelKey: 'github_repo', url: 'https://github.com/Gczmy/SoloSoul', icon: <Code size={14} /> },
@@ -116,11 +106,8 @@ export function AboutPage() {
     },
   ];
 
-  const updateAsset = versionInfo?.assets?.[0];
   const progressPercent =
-    downloadProgress && downloadProgress.total > 0
-      ? Math.round((downloadProgress.downloaded / downloadProgress.total) * 100)
-      : 0;
+    totalBytes > 0 ? Math.min(Math.round((downloadedBytes / totalBytes) * 100), 100) : 0;
 
   return (
     <AppShell title={t('settings:about')} onBack={() => navigate('/settings')}>
@@ -224,8 +211,8 @@ export function AboutPage() {
                   </div>
                 </div>
 
-                {/* Update card — shown when an update is available */}
-                {versionInfo?.hasUpdate && updateAsset && (
+                {/* 更新卡片 — 有可用更新时显示 */}
+                {versionInfo?.hasUpdate && versionInfo.latestVersion && (
                   <>
                     <div style={{ height: 1, background: 'var(--border-subtle)' }} />
                     <div
@@ -247,11 +234,20 @@ export function AboutPage() {
                       >
                         <Download size={14} />v{info.version} → v{versionInfo.latestVersion}
                       </div>
-                      <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                        {updateAsset.name} ({formatBytes(updateAsset.size)})
-                      </div>
+                      {versionInfo.body && (
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: 'var(--text-secondary)',
+                            whiteSpace: 'pre-wrap',
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {versionInfo.body}
+                        </div>
+                      )}
 
-                      {/* Download button or progress */}
+                      {/* 下载按钮或进度 */}
                       {downloading ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           <div
@@ -274,11 +270,9 @@ export function AboutPage() {
                             />
                           </div>
                           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                            {downloadComplete
-                              ? t('settings:download_complete') || 'Download complete'
-                              : downloadProgress
-                                ? `${formatBytes(downloadProgress.downloaded)} / ${formatBytes(downloadProgress.total)} (${progressPercent}%)`
-                                : t('settings:downloading') || 'Downloading...'}
+                            {downloadProgress?.event === 'Finished'
+                              ? t('settings:installing') || 'Installing...'
+                              : `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} (${progressPercent}%)`}
                           </span>
                         </div>
                       ) : (
@@ -302,6 +296,11 @@ export function AboutPage() {
                           <Download size={14} />
                           {t('settings:update_now') || 'Update Now'}
                         </button>
+                      )}
+                      {downloadError && (
+                        <div style={{ fontSize: 12, color: 'var(--error)' }}>
+                          {downloadError}
+                        </div>
                       )}
                     </div>
                   </>

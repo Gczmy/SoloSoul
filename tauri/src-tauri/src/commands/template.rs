@@ -146,7 +146,7 @@ pub async fn template_create(
 ) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
@@ -188,7 +188,7 @@ pub async fn template_update(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
@@ -238,7 +238,7 @@ pub async fn template_check_field_usage(
 ) -> Result<serde_json::Value, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
@@ -266,7 +266,7 @@ pub async fn template_delete(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
@@ -325,7 +325,7 @@ pub async fn template_restore(
 ) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let trash = vault.get_trash_item(&trash_id)?.ok_or("回收站项目不存在")?;
 
@@ -362,7 +362,7 @@ pub async fn template_get(
 ) -> Result<UserTemplate, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
@@ -383,7 +383,7 @@ pub async fn template_get(
 pub async fn template_list(state: State<'_, AppState>) -> Result<Vec<UserTemplate>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 
@@ -404,7 +404,7 @@ pub async fn template_save_from_object(
 ) -> Result<String, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let account_id = svc.get_current_account().ok_or("No unlocked account")?;
 

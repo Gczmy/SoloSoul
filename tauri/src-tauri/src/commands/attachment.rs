@@ -51,7 +51,7 @@ pub async fn attachment_list(
     let show = show_deleted.unwrap_or(false);
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     match vault.load_object(&object_id) {
         Ok(Some(rec)) => Ok(load_attachments(&rec.properties)
             .into_iter()
@@ -76,7 +76,7 @@ pub async fn attachment_delete(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let atts: Vec<AttachmentMeta> = load_attachments(&record.properties)
         .into_iter()
@@ -105,7 +105,7 @@ pub async fn attachment_restore(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
@@ -125,7 +125,7 @@ pub async fn attachment_save(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     // §10.4.4: maximum 50 active attachments per object
@@ -149,7 +149,7 @@ pub async fn attachment_rename(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
@@ -169,7 +169,7 @@ pub async fn attachment_soft_delete(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
@@ -189,7 +189,7 @@ pub async fn attachment_count_batch(
 ) -> Result<HashMap<String, usize>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     let mut result = HashMap::new();
     for id in &object_ids {
         if let Ok(Some(rec)) = vault.load_object(id) {
@@ -258,7 +258,7 @@ pub async fn attachment_cleanup_orphans(
 ) -> Result<usize, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let active_ids = load_all_referenced_attachment_ids(vault, &account_id)?;
     let base_dir = svc.base_path().join("attachments");

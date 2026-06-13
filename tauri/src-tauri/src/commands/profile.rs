@@ -46,7 +46,7 @@ pub async fn profile_save(
 ) -> Result<ProfileSummary, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let existing = vault
         .list_profiles()
@@ -85,7 +85,7 @@ pub async fn profile_load(
 ) -> Result<Option<solosoul_vault::Profile>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     vault.load_profile(&account_id)
 }
 
@@ -93,7 +93,7 @@ pub async fn profile_load(
 pub async fn profile_list(state: State<'_, AppState>) -> Result<Vec<ProfileSummary>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let summaries = vault.list_profiles()?;
     Ok(summaries
@@ -112,7 +112,7 @@ pub async fn profile_list(state: State<'_, AppState>) -> Result<Vec<ProfileSumma
 pub async fn profile_delete(state: State<'_, AppState>, profile_id: String) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
     vault.delete_profile(&profile_id)
 }
 
@@ -171,7 +171,7 @@ pub async fn profile_get_section(
 ) -> Result<Option<SectionData>, String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let profile = vault.load_profile(&account_id)?;
     match profile {
@@ -194,7 +194,7 @@ pub async fn profile_update_field(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
+    let vault = vault_guard.as_ref();
 
     let mut profile = vault
         .load_profile(&account_id)?

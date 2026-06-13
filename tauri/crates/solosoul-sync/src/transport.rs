@@ -42,6 +42,22 @@ impl SyncTransport {
         Ok(())
     }
 
+    /// Wrap an existing connected stream.
+    pub fn from_stream(stream: TcpStream) -> Self {
+        let peer_addr = stream
+            .peer_addr()
+            .map(|a| a.to_string())
+            .unwrap_or_default();
+        // Ensure blocking mode for synchronous read/write.
+        stream.set_nonblocking(false).ok();
+        stream.set_read_timeout(Some(DEFAULT_TIMEOUT)).ok();
+        stream.set_write_timeout(Some(DEFAULT_TIMEOUT)).ok();
+        Self {
+            peer_addr,
+            stream: Some(stream),
+        }
+    }
+
     /// Send a message with magic prefix + length framing
     pub fn send_message(&mut self, data: &[u8]) -> Result<(), String> {
         let stream = self.stream.as_mut().ok_or("Not connected")?;
