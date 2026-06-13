@@ -69,6 +69,9 @@ pub struct VaultService {
     session_key: RwLock<Option<Zeroizing<[u8; 32]>>>,
     unlocked_account: RwLock<Option<String>>,
     vault_store: RwLock<Option<Arc<VaultStore>>>,
+    /// Serializes `create_account` to eliminate the check-then-act race on
+    /// account name uniqueness (R024).
+    create_lock: std::sync::Mutex<()>,
 }
 
 impl VaultService {
@@ -80,6 +83,7 @@ impl VaultService {
             session_key: RwLock::new(None),
             unlocked_account: RwLock::new(None),
             vault_store: RwLock::new(None),
+            create_lock: std::sync::Mutex::new(()),
         };
         svc.load_accounts();
         svc
@@ -203,6 +207,10 @@ impl VaultService {
         if password.len() < 8 {
             return Err("Password must be at least 8 characters".to_string());
         }
+
+        // R024: serialize account creation to eliminate the race between the
+        // name-uniqueness check and writing the new account to disk/cache.
+        let _create_guard = self.create_lock.lock().map_err(|e| e.to_string())?;
 
         let cache = self.accounts_cache.read().map_err(|e| e.to_string())?;
         if cache
