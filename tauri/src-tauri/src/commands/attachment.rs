@@ -220,7 +220,14 @@ pub async fn attachment_copy_to_vault(
         .join(&object_id)
         .join(&attachment_id);
     std::fs::create_dir_all(&dest_dir).map_err(|e| format!("Mkdir: {}", e))?;
-    let dest_path = dest_dir.join(&file_name);
+
+    // R007: sanitize file_name to prevent path traversal; only the final component is allowed.
+    let safe_name = std::path::Path::new(&file_name)
+        .file_name()
+        .ok_or("Invalid file name")?
+        .to_string_lossy()
+        .to_string();
+    let dest_path = dest_dir.join(&safe_name);
     std::fs::copy(&src_path, &dest_path).map_err(|e| format!("Copy: {}", e))?;
     Ok(dest_path.to_string_lossy().to_string())
 }
