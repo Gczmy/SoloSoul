@@ -9,9 +9,11 @@ use super::{
 };
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::ipc::Channel;
+use tokio::sync::oneshot;
 use url::Url;
 use wasmtime::{Caller, Extern, Linker, Memory};
 
@@ -31,12 +33,29 @@ mod code {
     pub const DOMAIN_NOT_ALLOWED: i32 = -10;
     pub const INVALID_ARGUMENT: i32 = -11;
     pub const WASM_TRAP: i32 = -12;
+    /// 异步 HTTP 请求仍在进行中（非错误，仅用于轮询）
+    pub const HTTP_PENDING: i32 = 1;
 }
 
 /// 传递给 Wasm Store 的状态，包含 WASI 上下文与自定义 Host 数据
 pub struct SoloHostState {
     pub wasi: wasmtime_wasi::p1::WasiP1Ctx,
     pub host: SoloHostFunctions,
+}
+
+/// 异步 HTTP 请求结果
+#[derive(Debug, Clone)]
+pub(crate) struct HttpResult {
+    pub status: u16,
+    pub body: String,
+    pub error_code: Option<i32>,
+}
+
+/// 异步 HTTP 请求句柄状态
+#[derive(Debug)]
+pub(crate) enum HttpHandleState {
+    Running(oneshot::Receiver<HttpResult>),
+    Completed(HttpResult),
 }
 
 /// 自定义 Host Functions 数据
@@ -54,6 +73,8 @@ pub struct SoloHostFunctions {
     pub consent_manager: Arc<ConsentManager>,
     pub field_resolver: Arc<FieldResolver>,
     pub channel: Channel<PluginEvent>,
+    pub(crate) http_handles: Arc<Mutex<HashMap<u32, HttpHandleState>>>,
+    pub(crate) next_http_handle: AtomicU32,
 }
 
 impl SoloHostFunctions {
@@ -84,6 +105,8 @@ impl SoloHostFunctions {
             consent_manager,
             field_resolver,
             channel,
+            http_handles: Arc::new(Mutex::new(HashMap::new())),
+            next_http_handle: AtomicU32::new(1),
         }
     }
 
@@ -206,6 +229,223 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                 // 截断到 64KB，避免结果过大
                 let truncated: String = response_text.chars().take(64 * 1024).collect();
                 write_buffer(&mut caller, out_ptr, out_len, &truncated, -1)
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_http_request —— 发起异步 HTTP 请求（返回句柄）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_http_request",
+            |mut caller: Caller<'_, SoloHostState>,
+             method_ptr: i32,
+             method_len: i32,
+             url_ptr: i32,
+             url_len: i32,
+             body_ptr: i32,
+             body_len: i32,
+             out_handle_ptr: i32|
+             -> i32 {
+                let method = match read_string(&mut caller, method_ptr, method_len) {
+                    Ok(s) if !s.is_empty() => s.to_uppercase(),
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let url = match read_string(&mut caller, url_ptr, url_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let body = match read_string(&mut caller, body_ptr, body_len) {
+                    Ok(s) => s,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+
+                if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
+                    return code::INVALID_ARGUMENT;
+                }
+
+                let (plugin_id, session_id, audit, handle) = {
+                    let host = &caller.data().host;
+                    if !host.rate_limiter.check(&host.plugin_id, "http_request") {
+                        return code::RATE_LIMITED;
+                    }
+                    if host.manifest.network_policy.block_all_outbound {
+                        return code::DOMAIN_NOT_ALLOWED;
+                    }
+                    let parsed_url = match Url::parse(&url) {
+                        Ok(u) => u,
+                        Err(_) => return code::INVALID_ARGUMENT,
+                    };
+                    let domain = parsed_url.host_str().unwrap_or("").to_lowercase();
+                    if domain.is_empty()
+                        || !is_domain_allowed(
+                            &domain,
+                            &host.manifest.network_policy.allowed_domains,
+                        )
+                    {
+                        return code::DOMAIN_NOT_ALLOWED;
+                    }
+
+                    let handle = host.next_http_handle.fetch_add(1, Ordering::Relaxed);
+                    let (tx, rx) = oneshot::channel();
+
+                    let channel = host.channel.clone();
+                    let method_clone = method.clone();
+                    let url_clone = url.clone();
+                    tokio::spawn(async move {
+                        let result = perform_http_async(&method_clone, &url_clone, &body).await;
+                        if let Err(ref e) = result {
+                            let _ = channel.send(PluginEvent::log(
+                                "error",
+                                format!("solosoul_http_request 失败: {}", e),
+                            ));
+                        }
+                        let _ = tx.send(result.unwrap_or_else(|code| HttpResult {
+                            status: 0,
+                            body: String::new(),
+                            error_code: Some(code),
+                        }));
+                    });
+
+                    {
+                        let mut handles =
+                            host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+                        handles.insert(handle, HttpHandleState::Running(rx));
+                    }
+
+                    (
+                        host.plugin_id.clone(),
+                        host.session_id.clone(),
+                        host.audit.clone(),
+                        handle,
+                    )
+                };
+
+                if write_u32(&mut caller, out_handle_ptr, handle) != code::SUCCESS {
+                    return code::INVALID_ARGUMENT;
+                }
+
+                audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                code::SUCCESS
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_http_poll —— 轮询异步 HTTP 请求状态
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_http_poll",
+            |mut caller: Caller<'_, SoloHostState>,
+             handle: i32,
+             out_status_ptr: i32,
+             out_len_ptr: i32|
+             -> i32 {
+                if handle < 0 {
+                    return code::INVALID_ARGUMENT;
+                }
+                let handle = handle as u32;
+
+                let (result, code_result) = {
+                    let host = &caller.data().host;
+                    let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+                    let state = match handles.get_mut(&handle) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
+
+                    match state {
+                        HttpHandleState::Running(rx) => match rx.try_recv() {
+                            Ok(result) => {
+                                let code_result = result.error_code.unwrap_or(code::SUCCESS);
+                                *state = HttpHandleState::Completed(result.clone());
+                                (Some(result), code_result)
+                            }
+                            Err(oneshot::error::TryRecvError::Empty) => (None, code::HTTP_PENDING),
+                            Err(oneshot::error::TryRecvError::Closed) => {
+                                let result = HttpResult {
+                                    status: 0,
+                                    body: String::new(),
+                                    error_code: Some(code::NETWORK_TIMEOUT),
+                                };
+                                *state = HttpHandleState::Completed(result.clone());
+                                (Some(result), code::NETWORK_TIMEOUT)
+                            }
+                        },
+                        HttpHandleState::Completed(result) => {
+                            let code_result = result.error_code.unwrap_or(code::SUCCESS);
+                            (Some(result.clone()), code_result)
+                        }
+                    }
+                };
+
+                if let Some(result) = result {
+                    write_http_poll_result(&mut caller, out_status_ptr, out_len_ptr, &result)
+                } else {
+                    code_result
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_http_read —— 读取异步 HTTP 响应体
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_http_read",
+            |mut caller: Caller<'_, SoloHostState>,
+             handle: i32,
+             out_ptr: i32,
+             out_cap: i32,
+             written_ptr: i32|
+             -> i32 {
+                if handle < 0 {
+                    return code::INVALID_ARGUMENT;
+                }
+                let handle = handle as u32;
+
+                let result = {
+                    let host = &caller.data().host;
+                    let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+                    match handles.get_mut(&handle) {
+                        Some(HttpHandleState::Completed(r)) => r.clone(),
+                        Some(HttpHandleState::Running(_)) => return code::HTTP_PENDING,
+                        _ => return code::INVALID_ARGUMENT,
+                    }
+                };
+
+                if let Some(error_code) = result.error_code {
+                    return error_code;
+                }
+
+                // 截断到 64KB，与同步 post_data 保持一致
+                let truncated: String = result.body.chars().take(64 * 1024).collect();
+                write_buffer(&mut caller, out_ptr, out_cap, &truncated, written_ptr)
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_http_close —— 关闭并释放异步 HTTP 句柄
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_http_close",
+            |caller: Caller<'_, SoloHostState>, handle: i32| -> i32 {
+                if handle < 0 {
+                    return code::INVALID_ARGUMENT;
+                }
+                let handle = handle as u32;
+                let host = &caller.data().host;
+                let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+                match handles.remove(&handle) {
+                    Some(_) => code::SUCCESS,
+                    None => code::INVALID_ARGUMENT,
+                }
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
@@ -620,6 +860,86 @@ fn is_domain_allowed(domain: &str, allowed: &[String]) -> bool {
         .any(|pattern| super::manifest::matches_domain(domain, pattern))
 }
 
+/// 将 u16 以 little-endian 写入 Wasm 内存
+fn write_u16(caller: &mut Caller<'_, SoloHostState>, ptr: i32, value: u16) -> i32 {
+    if ptr < 0 {
+        return code::INVALID_ARGUMENT;
+    }
+    let mem = match get_memory(caller) {
+        Ok(m) => m,
+        Err(_) => return code::WASM_TRAP,
+    };
+    if mem
+        .write(&mut *caller, ptr as usize, &value.to_le_bytes())
+        .is_err()
+    {
+        return code::WASM_TRAP;
+    }
+    code::SUCCESS
+}
+
+/// 将 u32 以 little-endian 写入 Wasm 内存
+fn write_u32(caller: &mut Caller<'_, SoloHostState>, ptr: i32, value: u32) -> i32 {
+    if ptr < 0 {
+        return code::INVALID_ARGUMENT;
+    }
+    let mem = match get_memory(caller) {
+        Ok(m) => m,
+        Err(_) => return code::WASM_TRAP,
+    };
+    if mem
+        .write(&mut *caller, ptr as usize, &value.to_le_bytes())
+        .is_err()
+    {
+        return code::WASM_TRAP;
+    }
+    code::SUCCESS
+}
+
+/// 将异步 HTTP 轮询结果写入 Wasm 内存
+fn write_http_poll_result(
+    caller: &mut Caller<'_, SoloHostState>,
+    status_ptr: i32,
+    len_ptr: i32,
+    result: &HttpResult,
+) -> i32 {
+    let _ = write_u16(caller, status_ptr, result.status);
+    let _ = write_u32(caller, len_ptr, result.body.len() as u32);
+    result.error_code.unwrap_or(code::SUCCESS)
+}
+
+/// 执行异步 HTTP 请求
+async fn perform_http_async(method: &str, url: &str, body: &str) -> Result<HttpResult, i32> {
+    let mut headers = HeaderMap::new();
+    if serde_json::from_str::<serde_json::Value>(body).is_ok() {
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    }
+
+    let method =
+        reqwest::Method::from_bytes(method.as_bytes()).map_err(|_| code::INVALID_ARGUMENT)?;
+
+    let client = reqwest::Client::new();
+    let mut req = client.request(method, url).headers(headers);
+    if !body.is_empty() {
+        req = req.body(body.to_string());
+    }
+
+    let resp = req
+        .timeout(Duration::from_secs(30))
+        .send()
+        .await
+        .map_err(|_| code::NETWORK_TIMEOUT)?;
+
+    let status = resp.status().as_u16();
+    let body = resp.text().await.map_err(|_| code::NETWORK_TIMEOUT)?;
+
+    Ok(HttpResult {
+        status,
+        body,
+        error_code: None,
+    })
+}
+
 /// 执行同步阻塞的 HTTP POST 请求
 fn perform_http_post(url: &str, body: &str) -> Result<String, String> {
     let mut headers = HeaderMap::new();
@@ -648,4 +968,50 @@ fn block_on<F: std::future::Future>(future: F) -> Result<F::Output, ()> {
     tokio::runtime::Handle::try_current()
         .map_err(|_| ())
         .map(|handle| handle.block_on(future))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    #[tokio::test]
+    async fn test_perform_http_async_get() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut buf = [0u8; 1024];
+            let _n = socket.read(&mut buf).await.unwrap();
+            let response = b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello";
+            socket.write_all(response).await.unwrap();
+        });
+
+        let url = format!("http://{}", addr);
+        let result = perform_http_async("GET", &url, "").await.unwrap();
+        assert_eq!(result.status, 200);
+        assert_eq!(result.body, "hello");
+    }
+
+    #[tokio::test]
+    async fn test_perform_http_async_post_json() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut buf = vec![0u8; 2048];
+            let _n = socket.read(&mut buf).await.unwrap();
+            let response = b"HTTP/1.1 201 Created\r\nContent-Length: 2\r\n\r\nOK";
+            socket.write_all(response).await.unwrap();
+        });
+
+        let url = format!("http://{}", addr);
+        let result = perform_http_async("POST", &url, r#"{"name":"Alice"}"#)
+            .await
+            .unwrap();
+        assert_eq!(result.status, 201);
+        assert_eq!(result.body, "OK");
+    }
 }
