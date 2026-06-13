@@ -37,8 +37,24 @@ export const useProfileStore = create<ProfileState>((set) => ({
   loadProfile: async (accountId) => {
     set({ isLoading: true, error: null });
     try {
-      const profile = await invoke<{ accountId: string } | null>('profile_load', { accountId });
-      set({ accountId: profile?.accountId || accountId, isLoading: false });
+      const profile = await invoke<{ accountId: string; data: number[] } | null>('profile_load', {
+        accountId,
+      });
+      if (profile?.data) {
+        const json = JSON.parse(new TextDecoder().decode(new Uint8Array(profile.data)));
+        const loadedSections: ProfileSection[] = (json.sections || []).map((sec: any) => ({
+          sectionType: sec.type || '',
+          fields: (sec.fields || []).map((f: any) => ({
+            key: f.key || '',
+            label: f.label || '',
+            value: f.value,
+            sensitivityLevel: f.sensitivityLevel,
+          })),
+        }));
+        set({ accountId: profile.accountId, sections: loadedSections, isLoading: false });
+      } else {
+        set({ accountId, sections: [], isLoading: false });
+      }
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }

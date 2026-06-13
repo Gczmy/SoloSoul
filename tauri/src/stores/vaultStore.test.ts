@@ -25,7 +25,7 @@ describe('vaultStore', () => {
   describe('loadAccounts', () => {
     it('should load vault state successfully', async () => {
       vi.mocked(commands.vaultGetState).mockResolvedValue('unlocked');
-      await useVaultStore.getState().loadAccounts();
+      await useVaultStore.getState().loadVaultState();
       expect(useVaultStore.getState().vaultState).toBe('unlocked');
       expect(useVaultStore.getState().isLoading).toBe(false);
       expect(useVaultStore.getState().error).toBeNull();
@@ -33,7 +33,7 @@ describe('vaultStore', () => {
 
     it('should handle error during load', async () => {
       vi.mocked(commands.vaultGetState).mockRejectedValue(new Error('db corrupt'));
-      await useVaultStore.getState().loadAccounts();
+      await useVaultStore.getState().loadVaultState();
       expect(useVaultStore.getState().vaultState).toBe('locked');
       expect(useVaultStore.getState().error).toBe('Error: db corrupt');
       expect(useVaultStore.getState().isLoading).toBe(false);

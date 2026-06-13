@@ -1,29 +1,22 @@
 import { create } from 'zustand';
 import { commands, VaultStateStr } from '@/lib/ipc';
 
-interface AccountSummary {
-  id: string;
-  name: string;
-}
-
 interface VaultStoreState {
   vaultState: VaultStateStr;
-  accounts: AccountSummary[];
   isLoading: boolean;
   error: string | null;
 
-  loadAccounts: () => Promise<void>;
+  loadVaultState: () => Promise<void>;
   unlock: (accountId: string, password: string) => Promise<void>;
   lock: () => Promise<void>;
 }
 
 export const useVaultStore = create<VaultStoreState>((set, _get) => ({
   vaultState: 'locked',
-  accounts: [],
   isLoading: false,
   error: null,
 
-  loadAccounts: async () => {
+  loadVaultState: async () => {
     set({ isLoading: true });
     try {
       const state = await commands.vaultGetState();

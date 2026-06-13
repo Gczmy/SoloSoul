@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import { z } from 'zod';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { PhysicalSize } from '@tauri-apps/api/dpi';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
@@ -61,6 +62,20 @@ interface SettingsState {
   removeCustomPage: (accountId: string, pageId: string) => Promise<void>;
 }
 
+// F032: validate the localStorage UI prefs cache with a strict schema.
+const uiPrefsSchema = z.object({
+  theme: z.enum(['light', 'dark', 'system']).optional(),
+  accentColor: z.enum(['ocean', 'amber', 'forest', 'rose', 'purple', 'custom']).optional(),
+  defaultLightTheme: z.string().optional(),
+  defaultDarkTheme: z.string().optional(),
+  windowSize: z
+    .object({
+      width: z.number(),
+      height: z.number(),
+    })
+    .optional(),
+});
+
 const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   accentColor: 'ocean',
@@ -90,31 +105,34 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     try {
       const raw = localStorage.getItem('solosoul_ui_prefs');
       if (raw) {
-        const cached = JSON.parse(raw);
-        const p = { ...get().settings };
-        if (cached.theme) p.theme = cached.theme;
-        if (cached.accentColor) p.accentColor = cached.accentColor;
-        if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
-        if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
-        if (cached.windowSize) {
-          p.windowSize = cached.windowSize;
-          // Do not mirror back to solosoul_window_size here; restoreWindowSize()
-          // owns that key and it may be newer than the ui_prefs snapshot.
+        const parsed = uiPrefsSchema.safeParse(JSON.parse(raw));
+        if (parsed.success) {
+          const cached = parsed.data;
+          const p = { ...get().settings };
+          if (cached.theme) p.theme = cached.theme;
+          if (cached.accentColor) p.accentColor = cached.accentColor;
+          if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
+          if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
+          if (cached.windowSize) {
+            p.windowSize = cached.windowSize;
+            // Do not mirror back to solosoul_window_size here; restoreWindowSize()
+            // owns that key and it may be newer than the ui_prefs snapshot.
+          }
+          applyTheme({
+            preset:
+              p.theme === 'dark'
+                ? 'warm-stone-dark'
+                : p.theme === 'light'
+                  ? 'warm-stone-light'
+                  : 'system',
+            accentColor: p.accentColor,
+            backgroundType: 'solid',
+            backgroundValue: '',
+            defaultLightTheme: p.defaultLightTheme,
+            defaultDarkTheme: p.defaultDarkTheme,
+          });
+          set({ settings: p });
         }
-        applyTheme({
-          preset:
-            p.theme === 'dark'
-              ? 'warm-stone-dark'
-              : p.theme === 'light'
-                ? 'warm-stone-light'
-                : 'system',
-          accentColor: p.accentColor,
-          backgroundType: 'solid',
-          backgroundValue: '',
-          defaultLightTheme: p.defaultLightTheme,
-          defaultDarkTheme: p.defaultDarkTheme,
-        });
-        set({ settings: p });
       }
     } catch {
       /* ignore */
