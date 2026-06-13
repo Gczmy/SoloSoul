@@ -31,7 +31,7 @@ import {
   Delete,
   BarChart3,
 } from 'lucide-react';
-import { markConversationPending } from '@/lib/notification';
+import { markConversationPending, setAiPageOpen } from '@/lib/notification';
 
 interface ChatMsg {
   role: string;
@@ -150,6 +150,11 @@ export function LlmChatPage() {
   // Refs
   const chatEndRef = useRef<HTMLDivElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setAiPageOpen(true);
+    return () => setAiPageOpen(false);
+  }, []);
 
   // Load providers and config
   useEffect(() => {

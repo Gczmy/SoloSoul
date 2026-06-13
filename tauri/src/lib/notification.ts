@@ -22,6 +22,19 @@ interface LlmStreamPayload {
 const pendingConversations = new Set<string>();
 let unlisten: UnlistenFn | null = null;
 
+// F029: avoid querying the global DOM to determine the current page; callers
+// update these flags instead.
+let isAiPageOpen = false;
+let isQuickChatOpen = false;
+
+export function setAiPageOpen(open: boolean): void {
+  isAiPageOpen = open;
+}
+
+export function setQuickChatOpen(open: boolean): void {
+  isQuickChatOpen = open;
+}
+
 /**
  * Initialize the global LLM stream listener for notification purposes.
  * Should be called once at app startup.
@@ -47,10 +60,7 @@ export async function initLlmNotificationListener(): Promise<void> {
     if (!pendingConversations.has(payload.conversationId)) return;
     pendingConversations.delete(payload.conversationId);
 
-    const isOnAiPage = window.location.pathname.startsWith('/llm-chat');
-    const hasQuickChatOpen = document.querySelector('[data-ai-quick-chat]') !== null;
-
-    if (!isOnAiPage && !hasQuickChatOpen) {
+    if (!isAiPageOpen && !isQuickChatOpen) {
       // System notification
       sendNotification({
         title: 'SoloSoul AI',

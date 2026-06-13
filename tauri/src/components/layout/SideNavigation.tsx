@@ -17,7 +17,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
-import { markConversationPending } from '@/lib/notification';
+import { markConversationPending, setQuickChatOpen } from '@/lib/notification';
 import {
   buildSystemPrompt,
   buildMessagesWithSystemPromptAndChunks,
@@ -141,6 +141,11 @@ export function AiQuickChatPopover({
   } | null>(null);
   const [isOnline, setIsOnline] = useState<boolean | null>(null);
   const [checkingOnline, setCheckingOnline] = useState(false);
+
+  useEffect(() => {
+    setQuickChatOpen(true);
+    return () => setQuickChatOpen(false);
+  }, []);
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
