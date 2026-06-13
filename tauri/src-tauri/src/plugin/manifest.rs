@@ -53,6 +53,43 @@ fn default_block_all() -> bool {
     true
 }
 
+/// 插件分批启用层级
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum PluginTier {
+    P0,
+    P1,
+    P2,
+    #[default]
+    P3,
+    P4,
+}
+
+impl PluginTier {
+    /// 从字符串解析（不区分大小写）
+    pub fn parse(s: &str) -> Option<Self> {
+        match s.to_lowercase().as_str() {
+            "p0" => Some(PluginTier::P0),
+            "p1" => Some(PluginTier::P1),
+            "p2" => Some(PluginTier::P2),
+            "p3" => Some(PluginTier::P3),
+            "p4" => Some(PluginTier::P4),
+            _ => None,
+        }
+    }
+
+    /// 显示名称
+    pub fn label(&self) -> &'static str {
+        match self {
+            PluginTier::P0 => "P0",
+            PluginTier::P1 => "P1",
+            PluginTier::P2 => "P2",
+            PluginTier::P3 => "P3",
+            PluginTier::P4 => "P4",
+        }
+    }
+}
+
 /// 本地已安装插件 manifest
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -77,6 +114,10 @@ pub struct PluginManifest {
     pub network_policy: PluginNetworkPolicy,
     #[serde(default)]
     pub require_user_confirmation: bool,
+    #[serde(default)]
+    pub tier: PluginTier,
+    #[serde(default)]
+    pub category: String,
 }
 
 fn default_ttl() -> u64 {
@@ -116,6 +157,10 @@ pub struct RegistryEntry {
     pub homepage: Option<String>,
     #[serde(default)]
     pub i18n: Option<HashMap<String, HashMap<String, String>>>,
+    #[serde(default)]
+    pub tier: PluginTier,
+    #[serde(default)]
+    pub category: String,
 }
 
 /// 返回给前端的市场插件信息（JSON 使用 camelCase）
@@ -126,6 +171,8 @@ pub struct MarketPluginInfo {
     pub installed_version: Option<String>,
     pub has_update: bool,
     pub is_compatible: bool,
+    pub tier: PluginTier,
+    pub category: String,
     pub registry_entry: RegistryEntry,
 }
 

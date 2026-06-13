@@ -120,6 +120,56 @@ impl FieldResolver {
             .iter()
             .any(|p| pattern_matches(p, normalized))
     }
+
+    /// 构建用户数据结构树（仅元数据，不含字段值）
+    pub fn build_structure_tree(&self) -> Result<String, PluginError> {
+        let vault = self
+            .vault
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+        let account_id = self
+            .account_id
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+
+        let templates = vault
+            .list_user_templates(account_id)
+            .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?;
+
+        let types: Vec<serde_json::Value> = templates
+            .into_iter()
+            .map(|tpl| {
+                let count = vault
+                    .list_objects(account_id, Some(&tpl.id), None, None, false, false)
+                    .map(|list| list.len())
+                    .unwrap_or(0);
+
+                let properties: Vec<serde_json::Value> = tpl
+                    .properties
+                    .into_iter()
+                    .map(|p| {
+                        serde_json::json!({
+                            "id": p.id,
+                            "name": p.name,
+                            "type": p.prop_type,
+                            "sensitivity": p.sensitivity_level.unwrap_or_else(|| "internal".to_string())
+                        })
+                    })
+                    .collect();
+
+                serde_json::json!({
+                    "id": tpl.id,
+                    "name": tpl.name,
+                    "category": tpl.category.unwrap_or_default(),
+                    "count": count,
+                    "properties": properties
+                })
+            })
+            .collect();
+
+        let tree = serde_json::json!({ "types": types });
+        Ok(tree.to_string())
+    }
 }
 
 /// 将 `address[0].street` 简化为 `address.street` 用于权限匹配
@@ -223,6 +273,93 @@ fn extract_property(props: &serde_json::Value, prop_path: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use solosoul_vault::{ObjectRecord, PropertyType, TemplateProperty, UserTemplate, VaultConfig};
+    use tempfile::TempDir;
+
+    fn test_vault(account_id: &str) -> (TempDir, Arc<VaultStore>) {
+        let tmp = TempDir::new().unwrap();
+        let config =
+            VaultConfig::new(account_id, tmp.path().to_path_buf()).with_data_key([0u8; 32]);
+        let vault = VaultStore::open(config).unwrap();
+        (tmp, Arc::new(vault))
+    }
+
+    #[test]
+    fn test_build_structure_tree() {
+        let account_id = "acc_test_tree";
+        let (_tmp, vault) = test_vault(account_id);
+
+        let now = chrono::Utc::now().to_rfc3339();
+        let template = UserTemplate {
+            id: "address".to_string(),
+            account_id: account_id.to_string(),
+            name: "地址".to_string(),
+            icon_id: Some("map-pin".to_string()),
+            properties: vec![
+                TemplateProperty {
+                    id: "street".to_string(),
+                    name: "街道".to_string(),
+                    prop_type: PropertyType::Text,
+                    sensitivity_level: Some("internal".to_string()),
+                    sensitive: None,
+                    options: None,
+                    deprecated_at: None,
+                },
+                TemplateProperty {
+                    id: "country".to_string(),
+                    name: "国家".to_string(),
+                    prop_type: PropertyType::Text,
+                    sensitivity_level: Some("internal".to_string()),
+                    sensitive: None,
+                    options: None,
+                    deprecated_at: None,
+                },
+            ],
+            category: Some("identity".to_string()),
+            created_at: now.clone(),
+            updated_at: Some(now),
+        };
+        vault.save_user_template(&template).unwrap();
+
+        // 写入一条地址对象，验证 count 统计
+        let record = ObjectRecord {
+            id: "addr_0".to_string(),
+            account_id: account_id.to_string(),
+            type_id: "address".to_string(),
+            section_type: "identity".to_string(),
+            name: "家".to_string(),
+            icon_name: "map-pin".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"street": "长安街1号", "country": "CN"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&record).unwrap();
+
+        let resolver = FieldResolver::with_vault(vault, account_id.to_string(), vec![]);
+        let json = resolver.build_structure_tree().unwrap();
+        let tree: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+        let types = tree["types"].as_array().unwrap();
+        assert_eq!(types.len(), 1);
+        assert_eq!(types[0]["id"], "address");
+        assert_eq!(types[0]["name"], "地址");
+        assert_eq!(types[0]["category"], "identity");
+        assert_eq!(types[0]["count"], 1);
+        let props = types[0]["properties"].as_array().unwrap();
+        assert_eq!(props.len(), 2);
+        assert_eq!(props[0]["id"], "street");
+        assert_eq!(props[0]["type"], "text");
+    }
 
     #[test]
     fn test_normalize_for_permission() {

@@ -5,7 +5,7 @@
 use super::{
     compute_sha256, ConsentManager, FieldResolver, MarketPluginInfo, PluginAuditAction,
     PluginAuditLogger, PluginError, PluginEvent, PluginInstallResult, PluginManifest,
-    PluginRegistry, PluginResult, PluginSessionInfo, PluginSessionManager, PluginStore,
+    PluginRegistry, PluginResult, PluginSessionInfo, PluginSessionManager, PluginStore, PluginTier,
     RateLimiter, WasmSandbox,
 };
 use semver::Version;
@@ -40,12 +40,17 @@ struct MarketManifestRaw {
     network_policy: super::PluginNetworkPolicy,
     #[serde(default)]
     require_user_confirmation: bool,
+    #[serde(default)]
+    tier: super::PluginTier,
+    #[serde(default)]
+    category: String,
 }
 
 /// 插件管理器
 pub struct PluginManager {
     store: PluginStore,
     registry: PluginRegistry,
+    market_dir: PathBuf,
     session_manager: PluginSessionManager,
     audit: Arc<PluginAuditLogger>,
     rate_limiter: Arc<RateLimiter>,
@@ -55,11 +60,13 @@ pub struct PluginManager {
 }
 
 impl PluginManager {
-    /// 创建插件管理器
+    /// 创建插件管理器（开发模式，无 app_handle）
     pub fn new() -> Result<Self, PluginError> {
+        let market_dir = super::paths::dev_market_dir();
         Ok(Self {
             store: PluginStore::new()?,
             registry: PluginRegistry::new(),
+            market_dir,
             session_manager: PluginSessionManager::new(),
             audit: Arc::new(PluginAuditLogger::new()),
             rate_limiter: Arc::new(RateLimiter::new(60)),
@@ -69,10 +76,33 @@ impl PluginManager {
         })
     }
 
-    /// 列出市场中所有插件
-    pub fn list_all(&self) -> Result<Vec<MarketPluginInfo>, PluginError> {
+    /// 创建插件管理器（Release 模式，使用 Tauri 资源目录）
+    pub fn new_with_app_handle(app_handle: &tauri::AppHandle) -> Result<Self, PluginError> {
+        let market_dir = super::paths::resolve_market_dir(Some(app_handle))?;
+        Ok(Self {
+            store: PluginStore::new()?,
+            registry: PluginRegistry::new_with_app_handle(app_handle)?,
+            market_dir,
+            session_manager: PluginSessionManager::new(),
+            audit: Arc::new(PluginAuditLogger::new()),
+            rate_limiter: Arc::new(RateLimiter::new(60)),
+            consent_manager: Arc::new(ConsentManager::new()),
+            field_resolver: Arc::new(FieldResolver::new()),
+            sandbox: WasmSandbox::new(),
+        })
+    }
+
+    /// 列出市场中所有插件，可按 tier 过滤
+    pub fn list_all(
+        &self,
+        tier_filter: Option<PluginTier>,
+    ) -> Result<Vec<MarketPluginInfo>, PluginError> {
         let installed = self.store.installed_manifests()?;
-        self.registry.load(&installed)
+        let mut infos = self.registry.load(&installed)?;
+        if let Some(tier) = tier_filter {
+            infos.retain(|info| info.tier == tier);
+        }
+        Ok(infos)
     }
 
     /// 列出已安装插件
@@ -96,9 +126,8 @@ impl PluginManager {
             return Err(PluginError::IncompatibleVersion(version.to_string()));
         }
 
-        let market_dir = market_plugins_dir();
-        let manifest_path = market_dir.join(plugin_id).join("manifest.json");
-        let wasm_path = market_dir.join(plugin_id).join("plugin.wasm");
+        let manifest_path = self.market_dir.join(plugin_id).join("manifest.json");
+        let wasm_path = self.market_dir.join(plugin_id).join("plugin.wasm");
 
         let manifest_raw: MarketManifestRaw =
             serde_json::from_str(&std::fs::read_to_string(&manifest_path)?)?;
@@ -125,6 +154,8 @@ impl PluginManager {
             data_ttl_seconds: manifest_raw.data_ttl_seconds.unwrap_or(300),
             network_policy: manifest_raw.network_policy,
             require_user_confirmation: manifest_raw.require_user_confirmation,
+            tier: manifest_raw.tier,
+            category: manifest_raw.category,
         };
 
         self.store.save_plugin(&manifest, &wasm_bytes)?;
@@ -303,13 +334,4 @@ fn is_version_compatible(version: &super::RegistryVersion, app_version: &Version
         Err(_) => return false,
     };
     app_version >= &min && app_version <= &max
-}
-
-/// 市场插件目录
-fn market_plugins_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("SoloSoul_plugin_market")
-        .join("plugins")
 }

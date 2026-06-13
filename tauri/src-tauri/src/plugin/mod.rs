@@ -10,6 +10,7 @@ pub mod field;
 pub mod host;
 pub mod manager;
 pub mod manifest;
+pub mod paths;
 pub mod rate_limiter;
 pub mod registry;
 pub mod sandbox;
@@ -25,8 +26,8 @@ pub use host::{register_host_functions, SoloHostFunctions, SoloHostState};
 pub use manager::PluginManager;
 pub use manifest::{
     MarketPluginInfo, PluginAuditAction, PluginAuditEntry, PluginInstallResult, PluginLogLine,
-    PluginManifest, PluginNetworkPolicy, PluginResult, PluginResultPayload, RegistryEntry,
-    RegistryVersion,
+    PluginManifest, PluginNetworkPolicy, PluginResult, PluginResultPayload, PluginTier,
+    RegistryEntry, RegistryVersion,
 };
 pub use rate_limiter::{RateLimiter, RateLimiterMap};
 pub use registry::PluginRegistry;

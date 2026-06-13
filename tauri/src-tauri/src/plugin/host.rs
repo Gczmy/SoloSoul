@@ -263,13 +263,33 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-    // solosoul_get_data_structure_tree —— 数据结构树（未实现）
+    // solosoul_get_data_structure_tree —— 数据结构树（元数据）
     linker
         .func_wrap(
             "env",
             "solosoul_get_data_structure_tree",
-            |_caller: Caller<'_, SoloHostState>, _out_ptr: i32, _out_len: i32| -> i32 {
-                code::NOT_IMPLEMENTED
+            |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_len: i32| -> i32 {
+                let (plugin_id, session_id) = {
+                    let host = &caller.data().host;
+                    if !host
+                        .rate_limiter
+                        .check(&host.plugin_id, "get_data_structure_tree")
+                    {
+                        return code::RATE_LIMITED;
+                    }
+                    (host.plugin_id.clone(), host.session_id.clone())
+                };
+
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                match caller.data().host.field_resolver.build_structure_tree() {
+                    Ok(json) => write_buffer(&mut caller, out_ptr, out_len, &json, -1),
+                    Err(e) => plugin_error_code(&e),
+                }
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;

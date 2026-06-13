@@ -11,6 +11,45 @@
   padding: 6px;
 }
 
+.tierCard {
+  padding: 8px;
+}
+
+.tierChips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tierChip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.tierChip:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.tierChipActive {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.tierChipDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
 .tabs {
   display: flex;
   gap: 4px;

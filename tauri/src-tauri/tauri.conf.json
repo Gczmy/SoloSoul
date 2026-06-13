@@ -45,7 +45,8 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "resources/docs": "docs"
+      "resources/docs": "docs",
+      "../../SoloSoul_plugin_market": "SoloSoul_plugin_market"
     },
     "windows": {
       "nsis": {

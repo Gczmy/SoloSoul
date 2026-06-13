@@ -26,14 +26,18 @@ impl Default for PluginRegistry {
 }
 
 impl PluginRegistry {
-    /// 创建注册表加载器，默认指向源码市场中 `registry.json`
+    /// 创建注册表加载器（开发模式回退到源码路径）
     pub fn new() -> Self {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("SoloSoul_plugin_market")
-            .join("registry.json");
+        let path = super::paths::dev_market_dir().join("registry.json");
         Self { path }
+    }
+
+    /// 使用 Tauri 应用句柄创建注册表加载器（Release 优先读取资源目录）
+    pub fn new_with_app_handle(app_handle: &tauri::AppHandle) -> Result<Self, PluginError> {
+        let market_dir = super::paths::resolve_market_dir(Some(app_handle))?;
+        Ok(Self {
+            path: market_dir.join("registry.json"),
+        })
     }
 
     /// 从指定路径加载注册表
@@ -76,6 +80,8 @@ impl PluginRegistry {
                 installed_version,
                 has_update,
                 is_compatible,
+                tier: entry.tier,
+                category: entry.category.clone(),
                 registry_entry: entry,
             });
         }

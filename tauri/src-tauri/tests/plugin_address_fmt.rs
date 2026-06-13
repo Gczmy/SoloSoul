@@ -127,6 +127,8 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
             allowed_domains: vec![],
         },
         require_user_confirmation: false,
+        tier: solo_soul::plugin::PluginTier::P0,
+        category: "formatter".to_string(),
     };
 
     let host = SoloHostFunctions::new(

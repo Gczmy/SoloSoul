@@ -15,7 +15,7 @@ impl AppState {
     pub fn new(handle: tauri::AppHandle) -> Result<Self, anyhow::Error> {
         let vault_service = Arc::new(RwLock::new(VaultService::new()));
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
-        let plugin_manager = Arc::new(PluginManager::new()?);
+        let plugin_manager = Arc::new(PluginManager::new_with_app_handle(&handle)?);
         Ok(Self {
             handle,
             vault_service,

@@ -4,6 +4,7 @@ import {
   MarketPluginInfo,
   PluginManifest,
   PluginResultPayload,
+  PluginTier,
   pluginCommands,
 } from '@/lib/plugin';
 
@@ -26,15 +27,20 @@ export interface RunningPlugin {
   error?: string;
 }
 
+export const DEFAULT_ENABLED_TIERS: PluginTier[] = ['p0', 'p1'];
+
 interface PluginState {
   marketPlugins: MarketPluginInfo[];
   installedPlugins: PluginManifest[];
   runningPlugins: Record<string, RunningPlugin>;
+  selectedTier: 'all' | PluginTier;
+  enabledTiers: PluginTier[];
   isLoadingMarket: boolean;
   isLoadingInstalled: boolean;
   error: string | null;
   loadMarket: () => Promise<void>;
   loadInstalled: () => Promise<void>;
+  setSelectedTier: (tier: 'all' | PluginTier) => void;
   installPlugin: (pluginId: string, version: string) => Promise<void>;
   updatePlugin: (pluginId: string) => Promise<void>;
   uninstallPlugin: (pluginId: string) => Promise<void>;
@@ -47,6 +53,8 @@ export const usePluginStore = create<PluginState>((set, get) => ({
   marketPlugins: [],
   installedPlugins: [],
   runningPlugins: {},
+  selectedTier: 'all',
+  enabledTiers: DEFAULT_ENABLED_TIERS,
   isLoadingMarket: false,
   isLoadingInstalled: false,
   error: null,
@@ -59,6 +67,10 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     } catch (err) {
       set({ error: String(err), isLoadingMarket: false });
     }
+  },
+
+  setSelectedTier: (tier) => {
+    set({ selectedTier: tier });
   },
 
   loadInstalled: async () => {

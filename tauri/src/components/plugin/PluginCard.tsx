@@ -78,6 +78,8 @@ export function PluginCard({
             {latestVersion}
           </span>
           <span className={styles.author}>{info.registryEntry.author}</span>
+          <span className={styles.badge}>{info.tier.toUpperCase()}</span>
+          <span className={styles.badge}>{info.category}</span>
         </div>
       </div>
 

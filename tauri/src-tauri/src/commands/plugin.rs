@@ -2,15 +2,25 @@
 
 use crate::plugin::{
     MarketPluginInfo, PluginAuditEntry, PluginEvent, PluginInstallResult, PluginManifest,
-    PluginResult, PluginSessionInfo,
+    PluginResult, PluginSessionInfo, PluginTier,
 };
 use crate::state::AppState;
 use std::collections::HashMap;
 use tauri::{command, ipc::Channel, State};
 
 #[command]
-pub async fn plugin_list_all(state: State<'_, AppState>) -> Result<Vec<MarketPluginInfo>, String> {
-    state.plugin_manager.list_all().map_err(|e| e.to_string())
+pub async fn plugin_list_all(
+    state: State<'_, AppState>,
+    tier: Option<String>,
+) -> Result<Vec<MarketPluginInfo>, String> {
+    let tier_filter = match tier {
+        Some(t) => Some(PluginTier::parse(&t).ok_or_else(|| format!("非法 tier: {}", t))?),
+        None => None,
+    };
+    state
+        .plugin_manager
+        .list_all(tier_filter)
+        .map_err(|e| e.to_string())
 }
 
 #[command]

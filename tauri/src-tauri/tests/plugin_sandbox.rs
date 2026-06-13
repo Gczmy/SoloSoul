@@ -49,6 +49,8 @@ async fn test_hello_world_plugin_runs() {
         data_ttl_seconds: 300,
         network_policy: Default::default(),
         require_user_confirmation: false,
+        tier: Default::default(),
+        category: Default::default(),
     };
 
     let host = SoloHostFunctions::new(

@@ -14,11 +14,15 @@ export interface RegistryEntry {
   i18n?: Record<string, { name: string; description: string }>;
 }
 
+export type PluginTier = 'p0' | 'p1' | 'p2' | 'p3' | 'p4';
+
 export interface MarketPluginInfo {
   pluginId: string;
   installedVersion?: string;
   hasUpdate: boolean;
   isCompatible: boolean;
+  tier: PluginTier;
+  category: string;
   registryEntry: RegistryEntry;
 }
 
@@ -33,6 +37,8 @@ export interface PluginManifest {
   requiredCoreVersion: string;
   wasmHashSha256: string;
   dataTtlSeconds: number;
+  tier: PluginTier;
+  category: string;
 }
 
 export interface PluginLogLine {
@@ -105,8 +111,8 @@ export interface PluginInstallResult {
 }
 
 export const pluginCommands = {
-  async listAll(): Promise<MarketPluginInfo[]> {
-    return invoke('plugin_list_all');
+  async listAll(tier?: PluginTier): Promise<MarketPluginInfo[]> {
+    return invoke('plugin_list_all', { tier });
   },
 
   async listInstalled(): Promise<PluginManifest[]> {

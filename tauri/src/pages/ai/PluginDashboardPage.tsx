@@ -7,10 +7,11 @@ import { PluginCard } from '@/components/plugin/PluginCard';
 import { PluginConsentDialog } from '@/components/plugin/PluginConsentDialog';
 import { PluginResultPanel } from '@/components/plugin/PluginResultPanel';
 import { usePluginStore } from '@/stores/pluginStore';
-import { pluginCommands } from '@/lib/plugin';
+import { pluginCommands, PluginTier } from '@/lib/plugin';
 import styles from './PluginDashboardPage.module.css';
 
 type Tab = 'all' | 'installed' | 'running' | 'logs';
+const TIERS: PluginTier[] = ['p0', 'p1', 'p2', 'p3', 'p4'];
 
 export function PluginDashboardPage() {
   const navigate = useNavigate();
@@ -21,10 +22,13 @@ export function PluginDashboardPage() {
     marketPlugins,
     installedPlugins,
     runningPlugins,
+    selectedTier,
+    enabledTiers,
     isLoadingMarket,
     isLoadingInstalled,
     loadMarket,
     loadInstalled,
+    setSelectedTier,
     installPlugin,
     updatePlugin,
     uninstallPlugin,
@@ -63,10 +67,17 @@ export function PluginDashboardPage() {
           (p) => runningPlugins[p.pluginId] && !runningPlugins[p.pluginId].completed,
         );
       case 'all':
-      default:
-        return marketPlugins;
+      default: {
+        let list = marketPlugins;
+        if (selectedTier !== 'all') {
+          list = list.filter((p) => p.tier === selectedTier);
+        } else {
+          list = list.filter((p) => enabledTiers.includes(p.tier));
+        }
+        return list;
+      }
     }
-  }, [marketPlugins, runningPlugins, activeTab]);
+  }, [marketPlugins, runningPlugins, activeTab, selectedTier, enabledTiers]);
 
   const handleRun = async (pluginId: string) => {
     const info = marketPlugins.find((p) => p.pluginId === pluginId);
@@ -111,6 +122,37 @@ export function PluginDashboardPage() {
             ))}
           </div>
         </Card>
+
+        {activeTab === 'all' && (
+          <Card className={styles.tierCard}>
+            <div className={styles.tierChips}>
+              <button
+                className={`${styles.tierChip} ${selectedTier === 'all' ? styles.tierChipActive : ''}`}
+                onClick={() => setSelectedTier('all')}
+              >
+                {t('plugin:tier_all', { defaultValue: 'All' })}
+              </button>
+              {TIERS.map((tier) => {
+                const enabled = enabledTiers.includes(tier);
+                return (
+                  <button
+                    key={tier}
+                    className={`${styles.tierChip} ${selectedTier === tier ? styles.tierChipActive : ''} ${!enabled ? styles.tierChipDisabled : ''}`}
+                    onClick={() => enabled && setSelectedTier(tier)}
+                    disabled={!enabled}
+                    title={
+                      enabled
+                        ? tier.toUpperCase()
+                        : t('plugin:tier_coming_soon', { defaultValue: 'Coming soon' })
+                    }
+                  >
+                    {tier.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+        )}
 
         {activeTab === 'logs' ? (
           <PluginLogPanel />
