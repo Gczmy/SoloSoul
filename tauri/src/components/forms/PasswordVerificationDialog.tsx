@@ -103,19 +103,27 @@ export function PasswordVerificationDialog({
           {title || t('auth:verification_title')}
         </h2>
         {description && (
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
-            {description}
-          </p>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>{description}</p>
         )}
         <SecurePasswordInput
           value={password}
-          onChange={(v) => { setPassword(v); setError(null); }}
+          onChange={(v) => {
+            setPassword(v);
+            setError(null);
+          }}
           placeholder={t('common:password_placeholder')}
           error={error}
           autoComplete="current-password"
           hint={hint}
         />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 4,
+          }}
+        >
           {/* Biometric button */}
           {biometricType && onBiometric ? (
             <button

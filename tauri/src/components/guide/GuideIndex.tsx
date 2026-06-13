@@ -16,12 +16,12 @@ function resolveTitle(title: { zh: string; en: string }, language: string): stri
 export function GuideIndex({ guides, categories, language, onSelect }: GuideIndexProps) {
   const grouped = useMemo(() => {
     const sortedCats = [...categories].sort((a, b) => a.order - b.order);
-    return sortedCats.map((cat) => ({
-      ...cat,
-      items: guides
-        .filter((g) => g.category === cat.id)
-        .sort((a, b) => a.order - b.order),
-    })).filter((g) => g.items.length > 0);
+    return sortedCats
+      .map((cat) => ({
+        ...cat,
+        items: guides.filter((g) => g.category === cat.id).sort((a, b) => a.order - b.order),
+      }))
+      .filter((g) => g.items.length > 0);
   }, [guides, categories]);
 
   return (
@@ -43,11 +43,7 @@ export function GuideIndex({ guides, categories, language, onSelect }: GuideInde
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {group.items.map((guide) => (
-              <Card
-                key={guide.id}
-                interactive
-                onClick={() => onSelect(guide.id)}
-              >
+              <Card key={guide.id} interactive onClick={() => onSelect(guide.id)}>
                 <div
                   style={{
                     display: 'flex',

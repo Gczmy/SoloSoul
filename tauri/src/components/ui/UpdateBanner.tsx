@@ -35,10 +35,17 @@ export function UpdateBanner({ version, onUpdate, onSkip, onClose }: UpdateBanne
         <button
           onClick={onUpdate}
           style={{
-            display: 'flex', alignItems: 'center', gap: 4,
-            padding: '5px 10px', borderRadius: 6,
-            border: 'none', background: 'rgba(255,255,255,0.2)',
-            color: 'white', fontSize: 12, fontWeight: 500, cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '5px 10px',
+            borderRadius: 6,
+            border: 'none',
+            background: 'rgba(255,255,255,0.2)',
+            color: 'white',
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: 'pointer',
           }}
         >
           <Download size={13} /> {t('update_now')}
@@ -46,10 +53,13 @@ export function UpdateBanner({ version, onUpdate, onSkip, onClose }: UpdateBanne
         <button
           onClick={onSkip}
           style={{
-            padding: '5px 10px', borderRadius: 6,
+            padding: '5px 10px',
+            borderRadius: 6,
             border: '1px solid rgba(255,255,255,0.35)',
-            background: 'transparent', color: 'white',
-            fontSize: 12, cursor: 'pointer',
+            background: 'transparent',
+            color: 'white',
+            fontSize: 12,
+            cursor: 'pointer',
           }}
         >
           {t('skip_version')}
@@ -58,9 +68,14 @@ export function UpdateBanner({ version, onUpdate, onSkip, onClose }: UpdateBanne
       <button
         onClick={onClose}
         style={{
-          position: 'absolute', right: 12,
-          padding: 4, borderRadius: 6, border: 'none',
-          background: 'transparent', color: 'white', cursor: 'pointer',
+          position: 'absolute',
+          right: 12,
+          padding: 4,
+          borderRadius: 6,
+          border: 'none',
+          background: 'transparent',
+          color: 'white',
+          cursor: 'pointer',
         }}
         aria-label={t('close')}
       >

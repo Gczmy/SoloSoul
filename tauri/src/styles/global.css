@@ -44,7 +44,7 @@
 
 /* Dark mode — only when explicitly selected or system preference (not plain :root) */
 @media (prefers-color-scheme: dark) {
-  [data-theme="system"] {
+  [data-theme='system'] {
     /* Warm dark palette — low contrast, cozy like Warp */
     --bg-base: #1f1c18;
     --bg-elevated: #2a2620;
@@ -76,7 +76,7 @@
 }
 
 /* Explicit dark mode (user-selected) */
-[data-theme="dark"] {
+[data-theme='dark'] {
   --bg-base: #1f1c18;
   --bg-elevated: #2a2620;
   --bg-toolbar: rgba(42, 38, 32, 0.92);
@@ -106,7 +106,7 @@
 }
 
 /* Explicit light mode — prevents system dark from leaking through */
-[data-theme="light"] {
+[data-theme='light'] {
   --bg-base: #fafaf8;
   --bg-elevated: #ffffff;
   --bg-toolbar: rgba(250, 250, 248, 0.8);
@@ -132,7 +132,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   font-family: var(--font-sans);
   background-color: var(--bg-base);
   color: var(--text-primary);
@@ -160,10 +161,10 @@ html, body {
 }
 
 /* Hide native WebView2/Chromium password reveal button (overlaps custom Eye icon) */
-input[type="password"]::-ms-reveal,
-input[type="password"]::-ms-clear,
-input[type="password"]::-webkit-textfield-decoration-container,
-input[type="password"]::-webkit-credentials-auto-fill-button,
-input[type="password"]::-webkit-contacts-auto-fill-button {
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear,
+input[type='password']::-webkit-textfield-decoration-container,
+input[type='password']::-webkit-credentials-auto-fill-button,
+input[type='password']::-webkit-contacts-auto-fill-button {
   display: none !important;
 }

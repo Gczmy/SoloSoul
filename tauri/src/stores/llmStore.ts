@@ -35,9 +35,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     // Cancel any previous listener (sync + pending) before subscribing again
     state.unlisten?.();
     if (state.unlistenPromise) {
-      state.unlistenPromise
-        .then((fn) => fn())
-        .catch(() => {});
+      state.unlistenPromise.then((fn) => fn()).catch(() => {});
     }
 
     set({
@@ -54,11 +52,13 @@ export const useLlmStore = create<LlmState>((set, get) => ({
       get().onChunk(event.payload);
     });
     set({ unlistenPromise: pending });
-    pending.then((unlistenFn) => {
-      set({ unlisten: unlistenFn, unlistenPromise: null });
-    }).catch((err) => {
-      set({ streamError: String(err), isStreaming: false, unlistenPromise: null });
-    });
+    pending
+      .then((unlistenFn) => {
+        set({ unlisten: unlistenFn, unlistenPromise: null });
+      })
+      .catch((err) => {
+        set({ streamError: String(err), isStreaming: false, unlistenPromise: null });
+      });
   },
 
   onChunk: (payload) => {
@@ -84,9 +84,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     const state = get();
     state.unlisten?.();
     if (state.unlistenPromise) {
-      state.unlistenPromise
-        .then((fn) => fn())
-        .catch(() => {});
+      state.unlistenPromise.then((fn) => fn()).catch(() => {});
     }
     set({ isStreaming: false, streamingConvId: null, unlisten: null, unlistenPromise: null });
   },
@@ -95,9 +93,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     const state = get();
     state.unlisten?.();
     if (state.unlistenPromise) {
-      state.unlistenPromise
-        .then((fn) => fn())
-        .catch(() => {});
+      state.unlistenPromise.then((fn) => fn()).catch(() => {});
     }
     set({
       isStreaming: false,

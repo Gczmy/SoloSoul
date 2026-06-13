@@ -3,8 +3,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { SecurePasswordInput } from './PasswordInput';
 
 function getTextSecurity(input: HTMLElement): string {
-  return ((input as HTMLElement).style as CSSStyleDeclaration & { WebkitTextSecurity?: string })
-    .WebkitTextSecurity ?? '';
+  return (
+    ((input as HTMLElement).style as CSSStyleDeclaration & { WebkitTextSecurity?: string })
+      .WebkitTextSecurity ?? ''
+  );
 }
 
 describe('SecurePasswordInput', () => {
@@ -98,10 +100,14 @@ describe('SecurePasswordInput', () => {
   });
 
   it('uses unique input ids for each instance', () => {
-    const { container: container1 } = render(<SecurePasswordInput value="" onChange={vi.fn()} label="First" />);
+    const { container: container1 } = render(
+      <SecurePasswordInput value="" onChange={vi.fn()} label="First" />,
+    );
     const input1 = container1.querySelector('input');
     const id1 = input1?.getAttribute('id');
-    const { container: container2 } = render(<SecurePasswordInput value="" onChange={vi.fn()} label="Second" />);
+    const { container: container2 } = render(
+      <SecurePasswordInput value="" onChange={vi.fn()} label="Second" />,
+    );
     const input2 = container2.querySelector('input');
     const id2 = input2?.getAttribute('id');
     expect(id1).toBeTruthy();

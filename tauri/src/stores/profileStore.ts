@@ -19,7 +19,12 @@ interface ProfileState {
 
   loadProfile: (accountId: string) => Promise<void>;
   loadSection: (accountId: string, sectionType: string) => Promise<ProfileSection | null>;
-  updateField: (accountId: string, sectionType: string, fieldKey: string, value: unknown) => Promise<void>;
+  updateField: (
+    accountId: string,
+    sectionType: string,
+    fieldKey: string,
+    value: unknown,
+  ) => Promise<void>;
   clear: () => void;
 }
 
@@ -42,7 +47,8 @@ export const useProfileStore = create<ProfileState>((set) => ({
   loadSection: async (accountId, sectionType) => {
     try {
       const section = await invoke<ProfileSection | null>('profile_get_section', {
-        accountId, sectionType,
+        accountId,
+        sectionType,
       });
       return section;
     } catch {
@@ -53,7 +59,9 @@ export const useProfileStore = create<ProfileState>((set) => ({
   updateField: async (accountId, sectionType, fieldKey, value) => {
     try {
       await invoke('profile_update_field', {
-        accountId, sectionType, fieldKey,
+        accountId,
+        sectionType,
+        fieldKey,
         fieldValue: value,
       });
     } catch (err) {

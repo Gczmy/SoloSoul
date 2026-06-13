@@ -11,7 +11,13 @@ interface ModelInfoCardProps {
   t: TFunction;
 }
 
-export function ModelInfoCard({ providerName, modelName, apiType, isOnline, t }: ModelInfoCardProps) {
+export function ModelInfoCard({
+  providerName,
+  modelName,
+  apiType,
+  isOnline,
+  t,
+}: ModelInfoCardProps) {
   let statusLabel = t('settings:llm_status_not_loaded');
   let statusColor = 'var(--text-tertiary)';
   let bgColor = 'rgba(128,128,128,0.08)';

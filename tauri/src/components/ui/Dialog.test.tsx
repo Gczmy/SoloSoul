@@ -7,7 +7,7 @@ describe('Dialog', () => {
     render(
       <Dialog isOpen={false} onClose={vi.fn()}>
         Content
-      </Dialog>
+      </Dialog>,
     );
     expect(screen.queryByText('Content')).not.toBeInTheDocument();
   });
@@ -16,7 +16,7 @@ describe('Dialog', () => {
     render(
       <Dialog isOpen={true} onClose={vi.fn()}>
         Content
-      </Dialog>
+      </Dialog>,
     );
     expect(screen.getByText('Content')).toBeInTheDocument();
   });
@@ -25,7 +25,7 @@ describe('Dialog', () => {
     render(
       <Dialog isOpen={true} onClose={vi.fn()} title="Test Title">
         Content
-      </Dialog>
+      </Dialog>,
     );
     expect(screen.getByRole('heading', { name: /test title/i })).toBeInTheDocument();
   });
@@ -35,7 +35,7 @@ describe('Dialog', () => {
     const { container } = render(
       <Dialog isOpen={true} onClose={onClose}>
         Content
-      </Dialog>
+      </Dialog>,
     );
     const overlay = container.querySelector('div[class*="overlay"]');
     expect(overlay).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe('Dialog', () => {
     render(
       <Dialog isOpen={true} onClose={onClose}>
         <button>Inside</button>
-      </Dialog>
+      </Dialog>,
     );
     fireEvent.click(screen.getByRole('button', { name: /inside/i }));
     expect(onClose).not.toHaveBeenCalled();
@@ -59,7 +59,7 @@ describe('Dialog', () => {
     render(
       <Dialog isOpen={true} onClose={onClose}>
         Content
-      </Dialog>
+      </Dialog>,
     );
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -70,7 +70,7 @@ describe('Dialog', () => {
     const { unmount } = render(
       <Dialog isOpen={true} onClose={onClose}>
         Content
-      </Dialog>
+      </Dialog>,
     );
     unmount();
     fireEvent.keyDown(document, { key: 'Escape' });

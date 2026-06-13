@@ -71,7 +71,7 @@ export function useRevealState() {
       }
       return true;
     },
-    [revealed, hide]
+    [revealed, hide],
   );
 
   /** Check if a field is currently revealed. */
@@ -80,7 +80,7 @@ export function useRevealState() {
       if (!revealed[fieldId]) return false;
       return Date.now() < revealed[fieldId].expiresAt;
     },
-    [revealed]
+    [revealed],
   );
 
   /** Mask a value for display. */
@@ -91,7 +91,7 @@ export function useRevealState() {
       // partial masking (e.g. bank card: show last 4 digits, date: show year only).
       return '••••••••';
     },
-    [shouldMask]
+    [shouldMask],
   );
 
   return { reveal, hide, shouldMask, isRevealed, maskValue };

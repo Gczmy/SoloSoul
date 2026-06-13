@@ -22,15 +22,17 @@ restoreWindowSize().catch(() => {});
 // UI prefs are loaded — by the time login page shows, the correct language,
 // theme and accent are already applied (~1ms IPC read).
 // i18n must init first so settingsStore's lazy changeLanguage doesn't race.
-initI18n().then(() =>
-  import('@/stores/settingsStore').then(m =>
-    m.useSettingsStore.getState()
-  ).then(store => store.loadUiPreferences())
-).then(() => restoreWindowSize())
-.then(() => {
-  ReactDOM.createRoot(rootEl!).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  );
-});
+initI18n()
+  .then(() =>
+    import('@/stores/settingsStore')
+      .then((m) => m.useSettingsStore.getState())
+      .then((store) => store.loadUiPreferences()),
+  )
+  .then(() => restoreWindowSize())
+  .then(() => {
+    ReactDOM.createRoot(rootEl!).render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>,
+    );
+  });

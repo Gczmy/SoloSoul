@@ -29,7 +29,7 @@ interface ObjectDetailModalProps {
 
 function flattenProperties(
   props: Record<string, unknown> | undefined,
-  fieldOrder?: string[]
+  fieldOrder?: string[],
 ): { key: string; value: string }[] {
   if (!props) return [];
   const entries: { key: string; value: string }[] = [];
@@ -80,7 +80,9 @@ export function ObjectDetailModal({
   const [showAttachments, setShowAttachments] = useState(false);
 
   const [showPwDialog, setShowPwDialog] = useState(false);
-  const pwResolveRef = useRef<((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null>(null);
+  const pwResolveRef = useRef<
+    ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null
+  >(null);
   const pendingRevealRef = useRef<{ fieldId: string; fieldName: string } | null>(null);
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
     available: false,
@@ -95,10 +97,15 @@ export function ObjectDetailModal({
 
   useEffect(() => {
     if (!accountId) return;
-    invoke<{ available: boolean; configured: boolean; biometryType?: string }>('biometric_check_availability', {
-      accountId,
-    })
-      .then((r) => setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }))
+    invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
+      'biometric_check_availability',
+      {
+        accountId,
+      },
+    )
+      .then((r) =>
+        setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
+      )
       .catch(() => {});
     invoke<Array<{ id: string; passwordHint?: string }>>('list_accounts')
       .then((accounts) => {
@@ -133,36 +140,44 @@ export function ObjectDetailModal({
         return false;
       }
     },
-    [accountId]
+    [accountId],
   );
 
-  const passwordVerify = useCallback(async (): Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' }> => {
+  const passwordVerify = useCallback(async (): Promise<{
+    ok: boolean;
+    method: 'password' | 'touchId' | 'faceId';
+  }> => {
     return new Promise((resolve) => {
       pwResolveRef.current = resolve;
       setShowPwDialog(true);
     });
   }, []);
 
-  const writeCriticalAccessLog = useCallback(async (method: 'password' | 'touchId' | 'faceId') => {
-    if (!accountId || !obj || !pendingRevealRef.current) return;
-    const actionType =
-      method === 'password' ? 'critical_field_login' :
-      method === 'touchId' ? 'critical_field_touch_id' :
-      'critical_field_face_id';
-    const entityType = method === 'password' ? 'auth' : 'biometric';
-    const details = `objectName=${obj.name} page=${resolveCollectionLabel(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName}`;
-    try {
-      await invoke('log_write', {
-        actionType,
-        entityType,
-        entityId: obj.id,
-        entityName: undefined,
-        details,
-      });
-    } catch {
-      // best effort
-    }
-  }, [accountId, obj]);
+  const writeCriticalAccessLog = useCallback(
+    async (method: 'password' | 'touchId' | 'faceId') => {
+      if (!accountId || !obj || !pendingRevealRef.current) return;
+      const actionType =
+        method === 'password'
+          ? 'critical_field_login'
+          : method === 'touchId'
+            ? 'critical_field_touch_id'
+            : 'critical_field_face_id';
+      const entityType = method === 'password' ? 'auth' : 'biometric';
+      const details = `objectName=${obj.name} page=${resolveCollectionLabel(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName}`;
+      try {
+        await invoke('log_write', {
+          actionType,
+          entityType,
+          entityId: obj.id,
+          entityName: undefined,
+          details,
+        });
+      } catch {
+        // best effort
+      }
+    },
+    [accountId, obj],
+  );
 
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
     if (!accountId) return false;
@@ -194,7 +209,7 @@ export function ObjectDetailModal({
         reveal(fieldId);
       }
     },
-    [passwordVerify, reveal, writeCriticalAccessLog]
+    [passwordVerify, reveal, writeCriticalAccessLog],
   );
 
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
@@ -304,7 +319,14 @@ export function ObjectDetailModal({
           ) : (
             <>
               {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 20,
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <PAGE_ICON_MAP.custom size={24} />
                   <div>
@@ -335,7 +357,14 @@ export function ObjectDetailModal({
 
               {/* Fields */}
               {fields.length === 0 ? (
-                <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center', padding: '16px 0' }}>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: 'var(--text-tertiary)',
+                    textAlign: 'center',
+                    padding: '16px 0',
+                  }}
+                >
                   {t('editor:no_properties')}
                 </p>
               ) : (
@@ -362,7 +391,14 @@ export function ObjectDetailModal({
                         }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              marginBottom: 2,
+                            }}
+                          >
                             <span
                               style={{
                                 fontSize: 12,
@@ -379,7 +415,10 @@ export function ObjectDetailModal({
                           <div
                             style={{
                               fontSize: 14,
-                              color: needsReveal && !revealed ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                              color:
+                                needsReveal && !revealed
+                                  ? 'var(--text-tertiary)'
+                                  : 'var(--text-primary)',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
@@ -400,7 +439,8 @@ export function ObjectDetailModal({
                                 padding: '4px 10px',
                                 borderRadius: 6,
                                 border: '1px solid var(--border-subtle)',
-                                background: sens === 'critical' ? 'rgba(220,38,38,0.06)' : 'transparent',
+                                background:
+                                  sens === 'critical' ? 'rgba(220,38,38,0.06)' : 'transparent',
                                 cursor: 'pointer',
                                 fontSize: 11,
                                 color: sens === 'critical' ? '#dc2626' : 'var(--text-tertiary)',
@@ -414,7 +454,12 @@ export function ObjectDetailModal({
                             </button>
                           )}
                           <button
-                            onClick={() => handleCopy(revealed ? f.value : maskValue(f.value, fieldId, sens), f.key)}
+                            onClick={() =>
+                              handleCopy(
+                                revealed ? f.value : maskValue(f.value, fieldId, sens),
+                                f.key,
+                              )
+                            }
                             style={{
                               padding: '4px 10px',
                               borderRadius: 6,
@@ -548,7 +593,14 @@ export function ObjectDetailModal({
             <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
               {t('common:object_delete_confirm_title')}
             </h3>
-            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <p
+              style={{
+                margin: '0 0 20px',
+                fontSize: 14,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5,
+              }}
+            >
               {t('common:object_delete_confirm_body', { name: obj.name })}
             </p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

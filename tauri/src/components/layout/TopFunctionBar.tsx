@@ -3,11 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './TopFunctionBar.module.css';
 import { NavButton } from './NavButton';
-import {
-  RenameableNavButton,
-  AddPageButton,
-  AiQuickChatPopover,
-} from './SideNavigation';
+import { RenameableNavButton, AddPageButton, AiQuickChatPopover } from './SideNavigation';
 import { SearchPopover } from './SearchPopover';
 import {
   useActiveCustomPages,
@@ -27,7 +23,10 @@ export function TopFunctionBar() {
   const { t } = useTranslation('navigation');
   const activeCustomPages = useActiveCustomPages();
   const { items, showSearch, setShowSearch } = useBoundNavActions();
-  const { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos } = useAiQuickChat(520, 'bottom');
+  const { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos } = useAiQuickChat(
+    520,
+    'bottom',
+  );
 
   const isWorkspaceSectionActive = (sectionPath: string): boolean => {
     if (location.pathname.startsWith('/workspace/custom/')) return false;
@@ -109,10 +108,12 @@ export function TopFunctionBar() {
                   onClick={item.action}
                   position={POSITION}
                 />
-                {isSearch && showSearch && createPortal(
-                  <SearchPopover onClose={() => setShowSearch(false)} />,
-                  document.body
-                )}
+                {isSearch &&
+                  showSearch &&
+                  createPortal(
+                    <SearchPopover onClose={() => setShowSearch(false)} />,
+                    document.body,
+                  )}
               </div>
             );
           }
@@ -130,20 +131,20 @@ export function TopFunctionBar() {
                   }}
                   position={POSITION}
                 />
-                {showQuickChat && createPortal(
-                  <AiQuickChatPopover
-                    position={quickChatPos}
-                    onClose={() => setShowQuickChat(false)}
-                    placement="bottom"
-                  />,
-                  document.body
-                )}
+                {showQuickChat &&
+                  createPortal(
+                    <AiQuickChatPopover
+                      position={quickChatPos}
+                      onClose={() => setShowQuickChat(false)}
+                      placement="bottom"
+                    />,
+                    document.body,
+                  )}
               </div>
             );
           }
-          const isActive = item.path === '/'
-            ? location.pathname === '/'
-            : location.pathname.startsWith(item.path);
+          const isActive =
+            item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
           return (
             <NavButton
               key={item.path}

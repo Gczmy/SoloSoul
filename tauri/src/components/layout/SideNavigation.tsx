@@ -3,12 +3,25 @@ import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { Plus, MessageSquare, Settings, Send, X, ArrowUpRight, History, Copy, Check } from 'lucide-react';
+import {
+  Plus,
+  MessageSquare,
+  Settings,
+  Send,
+  X,
+  ArrowUpRight,
+  History,
+  Copy,
+  Check,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import { markConversationPending } from '@/lib/notification';
-import { buildSystemPrompt, buildMessagesWithSystemPromptAndChunks } from '@/lib/llm/systemPromptBuilder';
+import {
+  buildSystemPrompt,
+  buildMessagesWithSystemPromptAndChunks,
+} from '@/lib/llm/systemPromptBuilder';
 import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
 import i18n from '@/lib/i18n';
 import styles from './SideNavigation.module.css';
@@ -35,10 +48,32 @@ import {
 } from '@/lib/pageIcons';
 
 // ── AI Quick Chat types & helpers ───────────────────────────────────────────
-interface ChatMsg { role: string; content: string; createdAt: string; }
-interface ConversationSummary { id: string; name: string; updatedAt: string; messageCount: number; deletedAt?: string; }
-interface Conversation { id: string; name: string; isTemporary: boolean; messages: ChatMsg[]; updatedAt: string; deletedAt?: string; }
-interface LlmStreamPayload { conversationId: string; chunk: string; isDone: boolean; error?: string; }
+interface ChatMsg {
+  role: string;
+  content: string;
+  createdAt: string;
+}
+interface ConversationSummary {
+  id: string;
+  name: string;
+  updatedAt: string;
+  messageCount: number;
+  deletedAt?: string;
+}
+interface Conversation {
+  id: string;
+  name: string;
+  isTemporary: boolean;
+  messages: ChatMsg[];
+  updatedAt: string;
+  deletedAt?: string;
+}
+interface LlmStreamPayload {
+  conversationId: string;
+  chunk: string;
+  isDone: boolean;
+  error?: string;
+}
 
 function nowISO(): string {
   return new Date().toISOString();
@@ -56,12 +91,19 @@ function formatRelative(iso: string): string {
 }
 function formatTimestamp(iso: string): string {
   const d = new Date(iso);
-  return d.getFullYear() + '-' +
-    String(d.getMonth() + 1).padStart(2, '0') + '-' +
-    String(d.getDate()).padStart(2, '0') + ' ' +
-    String(d.getHours()).padStart(2, '0') + ':' +
-    String(d.getMinutes()).padStart(2, '0') + ':' +
-    String(d.getSeconds()).padStart(2, '0');
+  return (
+    d.getFullYear() +
+    '-' +
+    String(d.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(d.getDate()).padStart(2, '0') +
+    ' ' +
+    String(d.getHours()).padStart(2, '0') +
+    ':' +
+    String(d.getMinutes()).padStart(2, '0') +
+    ':' +
+    String(d.getSeconds()).padStart(2, '0')
+  );
 }
 function isOllama(baseUrl: string): boolean {
   return baseUrl.toLowerCase().includes('localhost') || baseUrl.toLowerCase().includes('127.0.0.1');
@@ -90,7 +132,13 @@ export function AiQuickChatPopover({
   const [loading, setLoading] = useState(true);
   const [isConfigured, setIsConfigured] = useState(false);
   const [isAiEnabled, setIsAiEnabled] = useState(false);
-  const [activeProvider, setActiveProvider] = useState<{ id: string; name: string; model: string; baseUrl: string; apiType: string } | null>(null);
+  const [activeProvider, setActiveProvider] = useState<{
+    id: string;
+    name: string;
+    model: string;
+    baseUrl: string;
+    apiType: string;
+  } | null>(null);
   const [isOnline, setIsOnline] = useState<boolean | null>(null);
   const [checkingOnline, setCheckingOnline] = useState(false);
 
@@ -122,16 +170,34 @@ export function AiQuickChatPopover({
 
   // Load config & restore previous conversation
   useEffect(() => {
-    if (!accountId) { setLoading(false); return; }
+    if (!accountId) {
+      setLoading(false);
+      return;
+    }
     (async () => {
       try {
-        const cfg = await invoke<{ activeProviderId?: string; aiFeaturesEnabled?: { chat: boolean } }>('llm_get_config', { accountId });
+        const cfg = await invoke<{
+          activeProviderId?: string;
+          aiFeaturesEnabled?: { chat: boolean };
+        }>('llm_get_config', { accountId });
         setIsAiEnabled(cfg.aiFeaturesEnabled?.chat ?? false);
-        if (!cfg.activeProviderId) { setIsConfigured(false); setLoading(false); return; }
-        const providers = await invoke<Array<{ id: string; name: string; model: string; baseUrl: string; apiType: string }>>('llm_get_providers', { accountId });
+        if (!cfg.activeProviderId) {
+          setIsConfigured(false);
+          setLoading(false);
+          return;
+        }
+        const providers = await invoke<
+          Array<{ id: string; name: string; model: string; baseUrl: string; apiType: string }>
+        >('llm_get_providers', { accountId });
         const active = providers.find((p) => p.id === cfg.activeProviderId);
         if (active) {
-          setActiveProvider({ id: active.id, name: active.name, model: active.model, baseUrl: active.baseUrl, apiType: active.apiType });
+          setActiveProvider({
+            id: active.id,
+            name: active.name,
+            model: active.model,
+            baseUrl: active.baseUrl,
+            apiType: active.apiType,
+          });
           setIsConfigured(true);
         } else {
           setIsConfigured(false);
@@ -143,7 +209,10 @@ export function AiQuickChatPopover({
         const savedConvId = quickChatStorageKey ? localStorage.getItem(quickChatStorageKey) : null;
         if (savedConvId) {
           try {
-            const conv = await invoke<Conversation>('llm_get_conversation', { accountId, conversationId: savedConvId });
+            const conv = await invoke<Conversation>('llm_get_conversation', {
+              accountId,
+              conversationId: savedConvId,
+            });
             setCurrentConvId(conv.id);
             setMessages(conv.messages);
           } catch {
@@ -165,9 +234,19 @@ export function AiQuickChatPopover({
       setCheckingOnline(true);
       try {
         let key = '';
-        try { key = await invoke<string>('llm_get_api_key', { accountId, providerId: activeProvider.id }); } catch { /* ignore */ }
+        try {
+          key = await invoke<string>('llm_get_api_key', {
+            accountId,
+            providerId: activeProvider.id,
+          });
+        } catch {
+          /* ignore */
+        }
         const online = await invoke<boolean>('llm_check_connection', {
-          baseUrl: activeProvider.baseUrl, apiKey: key, model: activeProvider.model, apiType: activeProvider.apiType,
+          baseUrl: activeProvider.baseUrl,
+          apiKey: key,
+          model: activeProvider.model,
+          apiType: activeProvider.apiType,
         });
         setIsOnline(online);
       } catch {
@@ -194,7 +273,10 @@ export function AiQuickChatPopover({
           const lastIdx = prev.length - 1;
           if (prev[lastIdx].role !== 'assistant') return prev;
           const updated = [...prev];
-          updated[lastIdx] = { ...updated[lastIdx], content: `${t('settings:ai_chat_error_prefix')}: ${payload.error}` };
+          updated[lastIdx] = {
+            ...updated[lastIdx],
+            content: `${t('settings:ai_chat_error_prefix')}: ${payload.error}`,
+          };
           return updated;
         });
         return;
@@ -205,7 +287,7 @@ export function AiQuickChatPopover({
           const finalMsgs = msgs.map((m, i) =>
             i === msgs.length - 1 && m.role === 'assistant'
               ? { ...m, content: streamBufferRef.current }
-              : m
+              : m,
           );
           const firstUser = finalMsgs.find((m) => m.role === 'user');
           const finalConv = {
@@ -215,13 +297,17 @@ export function AiQuickChatPopover({
             messages: finalMsgs,
             updatedAt: nowISO(),
           };
-          invoke('llm_save_conversation', { accountId: accId, conversation: finalConv }).then(() => {
-            if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
-            // Refresh conversation list
-            invoke<ConversationSummary[]>('llm_list_conversations', { accountId: accId }).then((list) => {
-              setConversations(list);
-            }).catch(() => {});
-          }).catch(() => {});
+          invoke('llm_save_conversation', { accountId: accId, conversation: finalConv })
+            .then(() => {
+              if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
+              // Refresh conversation list
+              invoke<ConversationSummary[]>('llm_list_conversations', { accountId: accId })
+                .then((list) => {
+                  setConversations(list);
+                })
+                .catch(() => {});
+            })
+            .catch(() => {});
         }
         return;
       }
@@ -231,11 +317,20 @@ export function AiQuickChatPopover({
         const lastIdx = prev.length - 1;
         if (prev[lastIdx].role !== 'assistant') return prev;
         const updated = [...prev];
-        updated[lastIdx] = { ...updated[lastIdx], content: streamBufferRef.current + payload.chunk };
+        updated[lastIdx] = {
+          ...updated[lastIdx],
+          content: streamBufferRef.current + payload.chunk,
+        };
         return updated;
       });
-    }).then((fn) => { unlistenRef.current = fn; }).catch(() => {});
-    return () => { unlistenRef.current?.(); };
+    })
+      .then((fn) => {
+        unlistenRef.current = fn;
+      })
+      .catch(() => {});
+    return () => {
+      unlistenRef.current?.();
+    };
   }, [isConfigured, t]);
 
   // Scroll to bottom: instant on first mount/load, smooth on subsequent updates
@@ -278,7 +373,9 @@ export function AiQuickChatPopover({
 
   // Close on Escape
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
@@ -302,20 +399,34 @@ export function AiQuickChatPopover({
     // Save user message immediately
     const firstUser = updatedMessages.find((m) => m.role === 'user');
     const convName = firstUser ? firstUser.content.slice(0, 30) : '';
-    const partialConv = { id: convId, name: convName, isTemporary: false, messages: updatedMessages, updatedAt: nowISO() };
+    const partialConv = {
+      id: convId,
+      name: convName,
+      isTemporary: false,
+      messages: updatedMessages,
+      updatedAt: nowISO(),
+    };
     invoke('llm_save_conversation', { accountId, conversation: partialConv }).catch(() => {});
 
     const assistantMsg: ChatMsg = { role: 'assistant', content: '', createdAt: nowISO() };
     setMessages((prev) => [...prev, assistantMsg]);
 
     try {
-      const apiKey = await invoke<string>('llm_get_api_key', { accountId, providerId: activeProvider.id });
+      const apiKey = await invoke<string>('llm_get_api_key', {
+        accountId,
+        providerId: activeProvider.id,
+      });
 
       // Build system prompt and help doc chunks (RAG vector search)
       const systemPrompt = buildSystemPrompt();
       const chunks = await searchGuideChunks(text, i18n.language || 'zh-CN');
       const docPrompt = formatChunksAsSystemMessage(chunks);
-      const allMessages = buildMessagesWithSystemPromptAndChunks(text, updatedMessages, systemPrompt, docPrompt);
+      const allMessages = buildMessagesWithSystemPromptAndChunks(
+        text,
+        updatedMessages,
+        systemPrompt,
+        docPrompt,
+      );
 
       markConversationPending(convId);
       invoke('llm_send_message_stream', {
@@ -333,7 +444,10 @@ export function AiQuickChatPopover({
           const lastIdx = prev.length - 1;
           if (prev[lastIdx].role !== 'assistant') return prev;
           const updated = [...prev];
-          updated[lastIdx] = { ...updated[lastIdx], content: `${t('settings:ai_chat_error_prefix')}: ${String(err)}` };
+          updated[lastIdx] = {
+            ...updated[lastIdx],
+            content: `${t('settings:ai_chat_error_prefix')}: ${String(err)}`,
+          };
           return updated;
         });
       });
@@ -345,7 +459,10 @@ export function AiQuickChatPopover({
         const lastIdx = prev.length - 1;
         if (prev[lastIdx].role !== 'assistant') return prev;
         const updated = [...prev];
-        updated[lastIdx] = { ...updated[lastIdx], content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}` };
+        updated[lastIdx] = {
+          ...updated[lastIdx],
+          content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}`,
+        };
         return updated;
       });
     }
@@ -363,11 +480,16 @@ export function AiQuickChatPopover({
   const loadConversation = async (convId: string) => {
     if (!accountId) return;
     try {
-      const conv = await invoke<Conversation>('llm_get_conversation', { accountId, conversationId: convId });
+      const conv = await invoke<Conversation>('llm_get_conversation', {
+        accountId,
+        conversationId: convId,
+      });
       setCurrentConvId(conv.id);
       setMessages(conv.messages);
       if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, conv.id);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   };
 
   const handleCopy = async (content: string, index: number) => {
@@ -375,30 +497,53 @@ export function AiQuickChatPopover({
       await navigator.clipboard.writeText(content);
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 1500);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   };
 
   const isLocal = activeProvider ? isOllama(activeProvider.baseUrl) : false;
 
   const cardContent = (() => {
     if (loading) {
-      return (
-        <LoadingPlaceholder variant="elevated" />
-      );
+      return <LoadingPlaceholder variant="elevated" />;
     }
 
     if (!isAiEnabled || !isConfigured) {
       return (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            gap: 12,
+          }}
+        >
           <MessageSquare size={36} style={{ opacity: 0.3, color: 'var(--text-tertiary)' }} />
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', margin: 0 }}>
+          <p
+            style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', margin: 0 }}
+          >
             {t('settings:ai_quick_chat_configure_hint')}
           </p>
           <button
-            onClick={() => { onClose(); navigate('/settings/llm'); }}
+            onClick={() => {
+              onClose();
+              navigate('/settings/llm');
+            }}
             style={{
-              padding: '8px 16px', borderRadius: 8, border: 'none', background: 'var(--accent-primary)', color: 'white',
-              fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: 'none',
+              background: 'var(--accent-primary)',
+              color: 'white',
+              fontSize: 13,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
             }}
           >
             <Settings size={14} /> {t('settings:ai_chat_configure')}
@@ -410,10 +555,16 @@ export function AiQuickChatPopover({
     return (
       <>
         {/* Messages */}
-        <div ref={scrollContainerRef} style={{ flex: 1, overflowY: 'auto', padding: '8px 0', minHeight: 0 }}>
+        <div
+          ref={scrollContainerRef}
+          style={{ flex: 1, overflowY: 'auto', padding: '8px 0', minHeight: 0 }}
+        >
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <MessageSquare size={28} style={{ marginBottom: 8, opacity: 0.25, color: 'var(--text-tertiary)' }} />
+              <MessageSquare
+                size={28}
+                style={{ marginBottom: 8, opacity: 0.25, color: 'var(--text-tertiary)' }}
+              />
               <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: 0 }}>
                 {t('settings:ai_chat_start')} · {activeProvider?.name}
               </p>
@@ -421,18 +572,39 @@ export function AiQuickChatPopover({
           )}
           {messages.map((msg, i) => (
             <div key={i} style={{ marginBottom: 6 }}>
-              <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--text-tertiary)', padding: '4px 0 1px' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  fontSize: 10,
+                  color: 'var(--text-tertiary)',
+                  padding: '4px 0 1px',
+                }}
+              >
                 {formatTimestamp(msg.createdAt)}
               </div>
-              <div style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', padding: '0 10px' }}>
-                <div style={{
-                  maxWidth: msg.role === 'user' ? '75%' : '90%',
-                  padding: '8px 10px',
-                  borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                  background: msg.role === 'user' ? 'var(--accent-primary)' : msg.content.startsWith(t('settings:ai_chat_error_prefix')) ? 'rgba(231,76,60,0.12)' : 'var(--bg-toolbar)',
-                  color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
-                  fontSize: 13, lineHeight: 1.55,
-                }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                  padding: '0 10px',
+                }}
+              >
+                <div
+                  style={{
+                    maxWidth: msg.role === 'user' ? '75%' : '90%',
+                    padding: '8px 10px',
+                    borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                    background:
+                      msg.role === 'user'
+                        ? 'var(--accent-primary)'
+                        : msg.content.startsWith(t('settings:ai_chat_error_prefix'))
+                          ? 'rgba(231,76,60,0.12)'
+                          : 'var(--bg-toolbar)',
+                    color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
+                    fontSize: 13,
+                    lineHeight: 1.55,
+                  }}
+                >
                   {msg.role === 'user' ? (
                     <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
                   ) : msg.content.startsWith(t('settings:ai_chat_error_prefix')) ? (
@@ -449,22 +621,54 @@ export function AiQuickChatPopover({
                   <button
                     onClick={() => handleCopy(msg.content, i)}
                     style={{
-                      padding: '2px 6px', borderRadius: 4, border: 'none',
-                      background: 'transparent', cursor: 'pointer', fontSize: 11,
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      fontSize: 11,
                       color: copiedIndex === i ? '#27ae60' : 'var(--text-tertiary)',
-                      display: 'flex', alignItems: 'center', gap: 3,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 3,
                     }}
                   >
-                    {copiedIndex === i ? <><Check size={11} /> {t('settings:ai_copied')}</> : <><Copy size={11} /> {t('settings:ai_copy')}</>}
+                    {copiedIndex === i ? (
+                      <>
+                        <Check size={11} /> {t('settings:ai_copied')}
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={11} /> {t('settings:ai_copy')}
+                      </>
+                    )}
                   </button>
                 </div>
               )}
             </div>
           ))}
           {isSending && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '0 10px', marginTop: 4 }}>
-              <div style={{ padding: '8px 10px', borderRadius: '12px 12px 12px 2px', background: 'var(--bg-toolbar)', fontSize: 13 }}>
-                <span className="typing-animation"><span className="dot">·</span><span className="dot">·</span><span className="dot">·</span></span>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-start',
+                padding: '0 10px',
+                marginTop: 4,
+              }}
+            >
+              <div
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '12px 12px 12px 2px',
+                  background: 'var(--bg-toolbar)',
+                  fontSize: 13,
+                }}
+              >
+                <span className="typing-animation">
+                  <span className="dot">·</span>
+                  <span className="dot">·</span>
+                  <span className="dot">·</span>
+                </span>
               </div>
             </div>
           )}
@@ -472,30 +676,69 @@ export function AiQuickChatPopover({
         </div>
 
         {/* Input */}
-        <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '6px 10px 8px', flexShrink: 0 }}>
-          <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div
+          style={{
+            borderTop: '1px solid var(--border-subtle)',
+            padding: '6px 10px 8px',
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              color: 'var(--text-tertiary)',
+              marginBottom: 4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
             {activeProvider && (
               <>
-                <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>{activeProvider.name}</span>
+                <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  {activeProvider.name}
+                </span>
                 <span>·</span>
                 <span>{activeProvider.model}</span>
                 <span>·</span>
-                <span style={{
-                  padding: '0 4px', borderRadius: 3, fontSize: 9,
-                  background: isLocal ? 'rgba(39,174,96,0.12)' : 'rgba(41,128,185,0.12)',
-                  color: isLocal ? '#27ae60' : '#2980b9',
-                }}>{isLocal ? t('settings:ai_local') : t('settings:ai_cloud')}</span>
+                <span
+                  style={{
+                    padding: '0 4px',
+                    borderRadius: 3,
+                    fontSize: 9,
+                    background: isLocal ? 'rgba(39,174,96,0.12)' : 'rgba(41,128,185,0.12)',
+                    color: isLocal ? '#27ae60' : '#2980b9',
+                  }}
+                >
+                  {isLocal ? t('settings:ai_local') : t('settings:ai_cloud')}
+                </span>
                 <span>·</span>
                 {checkingOnline ? (
                   <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:ai_checking')}</span>
                 ) : isOnline === true ? (
                   <span style={{ color: '#27ae60', display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#27ae60', display: 'inline-block' }} />
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: '50%',
+                        background: '#27ae60',
+                        display: 'inline-block',
+                      }}
+                    />
                     {t('settings:ai_online')}
                   </span>
                 ) : isOnline === false ? (
                   <span style={{ color: '#e74c3c', display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#e74c3c', display: 'inline-block' }} />
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: '50%',
+                        background: '#e74c3c',
+                        display: 'inline-block',
+                      }}
+                    />
                     {t('settings:ai_offline')}
                   </span>
                 ) : null}
@@ -506,27 +749,57 @@ export function AiQuickChatPopover({
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
               placeholder={t('settings:ai_chat_input_placeholder')}
               disabled={isSending}
               rows={2}
               style={{
-                flex: 1, padding: '6px 10px', fontSize: 13, lineHeight: 1.5, fontFamily: 'inherit',
-                border: '1px solid var(--border-subtle)', borderRadius: 8,
-                background: 'var(--bg-elevated)', color: 'var(--text-primary)', resize: 'none', outline: 'none',
+                flex: 1,
+                padding: '6px 10px',
+                fontSize: 13,
+                lineHeight: 1.5,
+                fontFamily: 'inherit',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 8,
+                background: 'var(--bg-elevated)',
+                color: 'var(--text-primary)',
+                resize: 'none',
+                outline: 'none',
               }}
             />
             <button
               onClick={sendMessage}
               disabled={isSending || !input.trim() || isOnline === false}
               style={{
-                padding: '6px 12px', borderRadius: 8, border: 'none', height: 36,
-                background: isSending || !input.trim() || isOnline === false ? 'var(--border-subtle)' : 'var(--accent-primary)',
-                color: isSending || !input.trim() || isOnline === false ? 'var(--text-tertiary)' : 'white',
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: 'none',
+                height: 36,
+                background:
+                  isSending || !input.trim() || isOnline === false
+                    ? 'var(--border-subtle)'
+                    : 'var(--accent-primary)',
+                color:
+                  isSending || !input.trim() || isOnline === false
+                    ? 'var(--text-tertiary)'
+                    : 'white',
                 cursor: 'pointer',
               }}
             >
-              {isSending ? <span className="typing-animation"><span className="dot">·</span><span className="dot">·</span><span className="dot">·</span></span> : <Send size={14} />}
+              {isSending ? (
+                <span className="typing-animation">
+                  <span className="dot">·</span>
+                  <span className="dot">·</span>
+                  <span className="dot">·</span>
+                </span>
+              ) : (
+                <Send size={14} />
+              )}
             </button>
           </div>
         </div>
@@ -563,44 +836,83 @@ export function AiQuickChatPopover({
       }}
     >
       {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 12px', borderBottom: '1px solid var(--border-subtle)', flexShrink: 0,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 12px',
+          borderBottom: '1px solid var(--border-subtle)',
+          flexShrink: 0,
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <MessageSquare size={16} style={{ color: 'var(--accent-primary)' }} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{t('settings:ai_quick_chat_title')}</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+            {t('settings:ai_quick_chat_title')}
+          </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {(isConfigured && isAiEnabled) && (
+          {isConfigured && isAiEnabled && (
             <>
               <button
                 onClick={handleNewConversation}
                 title={t('settings:ai_new_conv')}
-                style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                style={{
+                  padding: 4,
+                  borderRadius: 6,
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary)',
+                }}
               >
                 <Plus size={14} />
               </button>
               <button
                 onClick={() => setShowHistory((prev) => !prev)}
                 title={t('settings:ai_history')}
-                style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: showHistory ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+                style={{
+                  padding: 4,
+                  borderRadius: 6,
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  color: showHistory ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                }}
               >
                 <History size={14} />
               </button>
             </>
           )}
           <button
-            onClick={() => { onClose(); navigate('/llm-chat'); }}
+            onClick={() => {
+              onClose();
+              navigate('/llm-chat');
+            }}
             title={t('settings:ai_quick_chat_go_full')}
-            style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}
+            style={{
+              padding: 4,
+              borderRadius: 6,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: 'var(--text-secondary)',
+            }}
           >
             <ArrowUpRight size={14} />
           </button>
           <button
             onClick={onClose}
             title={t('common:close')}
-            style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}
+            style={{
+              padding: 4,
+              borderRadius: 6,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: 'var(--text-tertiary)',
+            }}
           >
             <X size={14} />
           </button>
@@ -612,37 +924,78 @@ export function AiQuickChatPopover({
         <div
           ref={historyRef}
           style={{
-            position: 'absolute', top: 44, left: 8, right: 8, maxHeight: 220,
-            background: 'var(--bg-elevated)', borderRadius: 10, border: '1px solid var(--border-subtle)',
-            boxShadow: 'var(--shadow-lg)', zIndex: 10, overflowY: 'auto', padding: '6px 0',
+            position: 'absolute',
+            top: 44,
+            left: 8,
+            right: 8,
+            maxHeight: 220,
+            background: 'var(--bg-elevated)',
+            borderRadius: 10,
+            border: '1px solid var(--border-subtle)',
+            boxShadow: 'var(--shadow-lg)',
+            zIndex: 10,
+            overflowY: 'auto',
+            padding: '6px 0',
           }}
         >
           {conversations.length === 0 ? (
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', padding: '16px 12px', margin: 0 }}>
+            <p
+              style={{
+                fontSize: 12,
+                color: 'var(--text-tertiary)',
+                textAlign: 'center',
+                padding: '16px 12px',
+                margin: 0,
+              }}
+            >
               {t('settings:ai_no_convs')}
             </p>
           ) : (
             conversations.map((conv) => (
               <div
                 key={conv.id}
-                onClick={() => { loadConversation(conv.id); setShowHistory(false); }}
+                onClick={() => {
+                  loadConversation(conv.id);
+                  setShowHistory(false);
+                }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '7px 12px', cursor: 'pointer', fontSize: 12,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '7px 12px',
+                  cursor: 'pointer',
+                  fontSize: 12,
                   background: currentConvId === conv.id ? 'rgba(91,124,153,0.08)' : 'transparent',
                 }}
               >
                 <MessageSquare size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
                 <div style={{ flex: 1, overflow: 'hidden' }}>
-                  <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)', fontWeight: currentConvId === conv.id ? 500 : 400 }}>
+                  <div
+                    style={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      color: 'var(--text-primary)',
+                      fontWeight: currentConvId === conv.id ? 500 : 400,
+                    }}
+                  >
                     {conv.name || t('settings:ai_untitled')}
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 1 }}>
-                    {formatRelative(conv.updatedAt)} · {conv.messageCount} {t('settings:ai_messages')}
+                    {formatRelative(conv.updatedAt)} · {conv.messageCount}{' '}
+                    {t('settings:ai_messages')}
                   </div>
                 </div>
                 {currentConvId === conv.id && (
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-primary)', flexShrink: 0 }} />
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      background: 'var(--accent-primary)',
+                      flexShrink: 0,
+                    }}
+                  />
                 )}
               </div>
             ))
@@ -729,7 +1082,9 @@ export function RenameableNavButton({
       const store = useSettingsStore.getState();
       const existingNames = [
         ...SYSTEM_PAGE_KEYS.map((k) => t(k)),
-        ...store.settings.customPages.filter((p) => p.id !== page.id && !p.deletedAt).map((p) => p.name),
+        ...store.settings.customPages
+          .filter((p) => p.id !== page.id && !p.deletedAt)
+          .map((p) => p.name),
       ];
       if (existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
         setRenameError(true);
@@ -742,13 +1097,17 @@ export function RenameableNavButton({
         objectId: page.id,
         input: { name: trimmed, properties: {} },
       });
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
     // Update Zustand state so sidebar reflects the change
     const store = useSettingsStore.getState();
-    store.updateSetting('', 'customPages',
+    store.updateSetting(
+      '',
+      'customPages',
       store.settings.customPages.map((p) =>
-        p.id === page.id ? { ...p, name: trimmed, iconId: selectedIconId } : p
-      )
+        p.id === page.id ? { ...p, name: trimmed, iconId: selectedIconId } : p,
+      ),
     );
     setIsRenaming(false);
   };
@@ -768,8 +1127,12 @@ export function RenameableNavButton({
   useEffect(() => {
     if (!isRenaming) return;
     const handler = (e: MouseEvent) => {
-      if (inputRef.current && !inputRef.current.contains(e.target as Node) &&
-          wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      if (
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node) &&
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target as Node)
+      ) {
         handleConfirmRenameRef.current();
       }
     };
@@ -792,22 +1155,30 @@ export function RenameableNavButton({
           style={{
             position: 'fixed',
             left: isHorizontal
-              ? (wrapperRef.current ? wrapperRef.current.getBoundingClientRect().left : 56)
+              ? wrapperRef.current
+                ? wrapperRef.current.getBoundingClientRect().left
+                : 56
               : isRight
                 ? 'auto'
-                : (wrapperRef.current ? wrapperRef.current.getBoundingClientRect().right + 8 : 56),
+                : wrapperRef.current
+                  ? wrapperRef.current.getBoundingClientRect().right + 8
+                  : 56,
             right: isRight
-              ? (wrapperRef.current ? window.innerWidth - wrapperRef.current.getBoundingClientRect().left + 8 : 56)
+              ? wrapperRef.current
+                ? window.innerWidth - wrapperRef.current.getBoundingClientRect().left + 8
+                : 56
               : 'auto',
             top: isBottom
               ? 'auto'
-              : (wrapperRef.current
-                  ? (isHorizontal
-                      ? wrapperRef.current.getBoundingClientRect().bottom + 8
-                      : wrapperRef.current.getBoundingClientRect().top)
-                  : '50%'),
+              : wrapperRef.current
+                ? isHorizontal
+                  ? wrapperRef.current.getBoundingClientRect().bottom + 8
+                  : wrapperRef.current.getBoundingClientRect().top
+                : '50%',
             bottom: isBottom
-              ? (wrapperRef.current ? window.innerHeight - wrapperRef.current.getBoundingClientRect().top + 8 : 56)
+              ? wrapperRef.current
+                ? window.innerHeight - wrapperRef.current.getBoundingClientRect().top + 8
+                : 56
               : 'auto',
             display: 'flex',
             flexDirection: 'column',
@@ -838,7 +1209,10 @@ export function RenameableNavButton({
               }}
               title={t('navigation:add_page_placeholder') ?? 'Choose icon'}
             >
-              {React.createElement(CUSTOM_ICON_MAP[selectedIconId], { size: 18, style: { color: 'var(--accent-primary)' } })}
+              {React.createElement(CUSTOM_ICON_MAP[selectedIconId], {
+                size: 18,
+                style: { color: 'var(--accent-primary)' },
+              })}
             </button>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <input
@@ -868,15 +1242,34 @@ export function RenameableNavButton({
                 }}
               />
               {renameError && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 8,
+                  }}
+                >
                   <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
                     {t('page_name_exists')}
                   </span>
                   <button
                     onClick={handleCancelRename}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-                    style={{ fontSize: 11, color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s ease' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--accent-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--text-tertiary)';
+                    }}
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--text-tertiary)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      transition: 'color 0.15s ease',
+                    }}
                   >
                     {t('common:cancel')}
                   </button>
@@ -895,28 +1288,39 @@ export function RenameableNavButton({
                 padding: '4px 0',
               }}
             >
-              {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(([id, IconComp]) => (
-                <button
-                  key={id}
-                  onClick={() => {
-                    setSelectedIconId(id);
-                    setShowIconPicker(false);
-                  }}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 6,
-                    border: selectedIconId === id ? '1px solid var(--accent-primary)' : '1px solid transparent',
-                    background: selectedIconId === id ? 'rgba(91,124,153,0.08)' : 'transparent',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <IconComp size={18} style={{ color: selectedIconId === id ? 'var(--accent-primary)' : 'var(--text-secondary)' }} />
-                </button>
-              ))}
+              {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
+                ([id, IconComp]) => (
+                  <button
+                    key={id}
+                    onClick={() => {
+                      setSelectedIconId(id);
+                      setShowIconPicker(false);
+                    }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 6,
+                      border:
+                        selectedIconId === id
+                          ? '1px solid var(--accent-primary)'
+                          : '1px solid transparent',
+                      background: selectedIconId === id ? 'rgba(91,124,153,0.08)' : 'transparent',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <IconComp
+                      size={18}
+                      style={{
+                        color:
+                          selectedIconId === id ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      }}
+                    />
+                  </button>
+                ),
+              )}
             </div>
           )}
         </div>
@@ -1060,20 +1464,21 @@ export function AddPageButton({
     };
   }, [isHovered, updateCardPosition]);
 
-  const nameCard = isHovered && !isCreating ? (
-    <div
-      className={isHorizontal ? styles.nameCardPortalHorizontal : styles.nameCardPortal}
-      style={{
-        position: 'fixed',
-        ...cardStyle,
-        zIndex: 200,
-      }}
-      role="tooltip"
-      aria-hidden="true"
-    >
-      {t('add_page')}
-    </div>
-  ) : null;
+  const nameCard =
+    isHovered && !isCreating ? (
+      <div
+        className={isHorizontal ? styles.nameCardPortalHorizontal : styles.nameCardPortal}
+        style={{
+          position: 'fixed',
+          ...cardStyle,
+          zIndex: 200,
+        }}
+        role="tooltip"
+        aria-hidden="true"
+      >
+        {t('add_page')}
+      </div>
+    ) : null;
 
   return (
     <div className={styles.addPageRow} style={isHorizontal ? { flexDirection: 'row' } : {}}>
@@ -1108,22 +1513,30 @@ export function AddPageButton({
           style={{
             position: 'fixed',
             left: isHorizontal
-              ? (buttonRef.current ? buttonRef.current.getBoundingClientRect().left : 56)
+              ? buttonRef.current
+                ? buttonRef.current.getBoundingClientRect().left
+                : 56
               : isRight
                 ? 'auto'
-                : (buttonRef.current ? buttonRef.current.getBoundingClientRect().right + 8 : 56),
+                : buttonRef.current
+                  ? buttonRef.current.getBoundingClientRect().right + 8
+                  : 56,
             right: isRight
-              ? (buttonRef.current ? window.innerWidth - buttonRef.current.getBoundingClientRect().left + 8 : 56)
+              ? buttonRef.current
+                ? window.innerWidth - buttonRef.current.getBoundingClientRect().left + 8
+                : 56
               : 'auto',
             top: isBottom
               ? 'auto'
-              : (buttonRef.current
-                  ? (isHorizontal
-                      ? buttonRef.current.getBoundingClientRect().bottom + 8
-                      : buttonRef.current.getBoundingClientRect().top)
-                  : '50%'),
+              : buttonRef.current
+                ? isHorizontal
+                  ? buttonRef.current.getBoundingClientRect().bottom + 8
+                  : buttonRef.current.getBoundingClientRect().top
+                : '50%',
             bottom: isBottom
-              ? (buttonRef.current ? window.innerHeight - buttonRef.current.getBoundingClientRect().top + 8 : 56)
+              ? buttonRef.current
+                ? window.innerHeight - buttonRef.current.getBoundingClientRect().top + 8
+                : 56
               : 'auto',
             display: 'flex',
             flexDirection: 'column',
@@ -1173,15 +1586,34 @@ export function AddPageButton({
             }}
           />
           {nameError && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+              }}
+            >
               <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
                 {t('page_name_exists')}
               </span>
               <button
                 onClick={handleCancel}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-                style={{ fontSize: 11, color: 'var(--text-tertiary)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, transition: 'color 0.15s ease' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--text-tertiary)';
+                }}
+                style={{
+                  fontSize: 11,
+                  color: 'var(--text-tertiary)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'color 0.15s ease',
+                }}
               >
                 {t('common:cancel')}
               </button>
@@ -1198,39 +1630,42 @@ export function AddPageButton({
                 gap: 4,
               }}
             >
-              {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(([id, IconComp]) => (
-                <button
-                  key={id}
-                  onMouseDown={(e) => e.preventDefault()} // prevent input blur so selectedIconId updates before confirm
-                  onClick={() => setSelectedIconId(id)}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 6,
-                    border: id === selectedIconId
-                      ? '2px solid var(--accent-primary)'
-                      : '1px solid transparent',
-                    background: id === selectedIconId
-                      ? 'var(--accent-primary-transparent, rgba(91,124,153,0.1))'
-                      : 'transparent',
-                    cursor: 'pointer',
-                  }}
-                  title={id}
-                  aria-label={id}
-                >
-                  <IconComp
-                    size={16}
+              {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
+                ([id, IconComp]) => (
+                  <button
+                    key={id}
+                    onMouseDown={(e) => e.preventDefault()} // prevent input blur so selectedIconId updates before confirm
+                    onClick={() => setSelectedIconId(id)}
                     style={{
-                      color: id === selectedIconId
-                        ? 'var(--accent-primary)'
-                        : 'var(--text-secondary)',
+                      width: 32,
+                      height: 32,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 6,
+                      border:
+                        id === selectedIconId
+                          ? '2px solid var(--accent-primary)'
+                          : '1px solid transparent',
+                      background:
+                        id === selectedIconId
+                          ? 'var(--accent-primary-transparent, rgba(91,124,153,0.1))'
+                          : 'transparent',
+                      cursor: 'pointer',
                     }}
-                  />
-                </button>
-              ))}
+                    title={id}
+                    aria-label={id}
+                  >
+                    <IconComp
+                      size={16}
+                      style={{
+                        color:
+                          id === selectedIconId ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                      }}
+                    />
+                  </button>
+                ),
+              )}
             </div>
           </div>
         </div>
@@ -1254,7 +1689,10 @@ export function SideNavigation() {
   const { items, showSearch, setShowSearch } = useBoundNavActions();
   const aiQuickChatPlacement: import('./useNavigationItems').AiQuickChatPlacement =
     sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
-  const { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos } = useAiQuickChat(520, aiQuickChatPlacement);
+  const { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos } = useAiQuickChat(
+    520,
+    aiQuickChatPlacement,
+  );
 
   const isWorkspaceSectionActive = (sectionPath: string): boolean => {
     // Custom pages are at /workspace/custom/:id — they never match section-based routes
@@ -1302,7 +1740,9 @@ export function SideNavigation() {
 
   return (
     <nav className={styles.sideNav} aria-label={t('home')} style={navStyle}>
-      <div className={styles.logo} style={isHorizontal ? { marginBottom: 0, marginRight: 12 } : {}}>S</div>
+      <div className={styles.logo} style={isHorizontal ? { marginBottom: 0, marginRight: 12 } : {}}>
+        S
+      </div>
 
       {isHorizontal ? (
         <>
@@ -1319,8 +1759,15 @@ export function SideNavigation() {
           />
 
           {/* Scrollable zone: identity / travel / financial / professional + custom pages (excludes AddPageButton) */}
-          <div className={`${styles.navPrimary} ${styles.navPrimaryHorizontal}`}
-            style={{ flexDirection: 'row', height: '100%', flex: 1, overflowX: 'auto', overflowY: 'hidden' }}
+          <div
+            className={`${styles.navPrimary} ${styles.navPrimaryHorizontal}`}
+            style={{
+              flexDirection: 'row',
+              height: '100%',
+              flex: 1,
+              overflowX: 'auto',
+              overflowY: 'hidden',
+            }}
           >
             {primaryItems.slice(1).map((item) => (
               <NavButton
@@ -1358,7 +1805,10 @@ export function SideNavigation() {
           />
 
           {/* Scrollable zone: other primary pages + custom pages */}
-          <div className={styles.navPrimary} style={{ ...zoneStyle, flex: 1, overflowX: 'hidden', overflowY: 'auto' }}>
+          <div
+            className={styles.navPrimary}
+            style={{ ...zoneStyle, flex: 1, overflowX: 'hidden', overflowY: 'auto' }}
+          >
             {primaryItems.slice(1).map((item) => (
               <NavButton
                 key={item.path}
@@ -1384,18 +1834,27 @@ export function SideNavigation() {
 
           {/* ADD PAGE — fixed at bottom, outside scrollable zone */}
           <AddPageButton
-            onCreate={(page) => { navigate(`/workspace/custom/${page.id}`); }}
+            onCreate={(page) => {
+              navigate(`/workspace/custom/${page.id}`);
+            }}
             position={sidebarPosition}
           />
         </>
       )}
 
-      <div className={styles.navSecondary} style={{ ...zoneStyle, flexShrink: 0, marginTop: isHorizontal ? 0 : 4 }}>
+      <div
+        className={styles.navSecondary}
+        style={{ ...zoneStyle, flexShrink: 0, marginTop: isHorizontal ? 0 : 4 }}
+      >
         {/* AddPageButton — in the secondary zone for horizontal mode only */}
-        {isHorizontal && <AddPageButton
-          onCreate={(page) => { navigate(`/workspace/custom/${page.id}`); }}
-          position={sidebarPosition}
-        />}
+        {isHorizontal && (
+          <AddPageButton
+            onCreate={(page) => {
+              navigate(`/workspace/custom/${page.id}`);
+            }}
+            position={sidebarPosition}
+          />
+        )}
         {items.map((item, i) => {
           if (item.type === 'action') {
             const isSearch = item.iconKey === 'search';
@@ -1407,10 +1866,12 @@ export function SideNavigation() {
                   onClick={item.action}
                   position={sidebarPosition}
                 />
-                {isSearch && showSearch && createPortal(
-                  <SearchPopover onClose={() => setShowSearch(false)} />,
-                  document.body
-                )}
+                {isSearch &&
+                  showSearch &&
+                  createPortal(
+                    <SearchPopover onClose={() => setShowSearch(false)} />,
+                    document.body,
+                  )}
               </div>
             );
           }
@@ -1428,20 +1889,20 @@ export function SideNavigation() {
                   }}
                   position={sidebarPosition}
                 />
-                {showQuickChat && createPortal(
-                  <AiQuickChatPopover
-                    position={quickChatPos}
-                    onClose={() => setShowQuickChat(false)}
-                    placement={aiQuickChatPlacement}
-                  />,
-                  document.body
-                )}
+                {showQuickChat &&
+                  createPortal(
+                    <AiQuickChatPopover
+                      position={quickChatPos}
+                      onClose={() => setShowQuickChat(false)}
+                      placement={aiQuickChatPlacement}
+                    />,
+                    document.body,
+                  )}
               </div>
             );
           }
-          const isActive = item.path === '/'
-            ? location.pathname === '/'
-            : location.pathname.startsWith(item.path);
+          const isActive =
+            item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
           return (
             <NavButton
               key={item.path}

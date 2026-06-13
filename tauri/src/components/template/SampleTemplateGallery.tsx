@@ -45,11 +45,27 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
           border: '1px solid var(--border-subtle)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>{t('settings:sample_templates_title')}</h2>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 8,
+          }}
+        >
+          <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>
+            {t('settings:sample_templates_title')}
+          </h2>
           <button
             onClick={onClose}
-            style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}
+            style={{
+              padding: 6,
+              borderRadius: 8,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: 'var(--text-tertiary)',
+            }}
           >
             <X size={20} />
           </button>
@@ -58,7 +74,13 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
           {t('settings:sample_templates_desc')}
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+            gap: 12,
+          }}
+        >
           {SAMPLE_TEMPLATES.map((tpl) => {
             const present = new Set(tpl.properties.map((p) => p.sensitivityLevel));
             const ordered = SENSITIVITY_ORDER.filter((l) => present.has(l));
@@ -78,8 +100,12 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   textAlign: 'left',
                   transition: 'border-color 0.15s, transform 0.1s',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <LayoutTemplate size={22} style={{ color: 'var(--accent-primary)' }} />
@@ -88,7 +114,8 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                       {t(tpl.nameI18nKey, tpl.nameFallback)}
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                      {t(`navigation:${tpl.category}`, tpl.category)} · {tpl.properties.length} {t('settings:template_fields')}
+                      {t(`navigation:${tpl.category}`, tpl.category)} · {tpl.properties.length}{' '}
+                      {t('settings:template_fields')}
                     </div>
                   </div>
                 </div>

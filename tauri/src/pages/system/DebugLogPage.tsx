@@ -56,22 +56,35 @@ export function DebugLogPage() {
     }
   };
 
-  const filteredLogs = levelFilter === 'all'
-    ? logs
-    : logs.filter((l) => l.entityType === levelFilter);
+  const filteredLogs =
+    levelFilter === 'all' ? logs : logs.filter((l) => l.entityType === levelFilter);
 
   return (
     <AppShell title={t('settings:debug_log')} onBack={() => navigate('/settings')}>
-      <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-
+      <div
+        style={{
+          maxWidth: 720,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <button
             onClick={loadLogs}
             style={{
-              padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-elevated)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-              fontSize: 13, color: 'var(--text-primary)',
+              padding: '6px 10px',
+              borderRadius: 6,
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-elevated)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 13,
+              color: 'var(--text-primary)',
             }}
           >
             <RefreshCw size={14} /> {t('settings:refresh')}
@@ -80,9 +93,16 @@ export function DebugLogPage() {
           <button
             onClick={handleExport}
             style={{
-              padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-elevated)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-              fontSize: 13, color: 'var(--text-primary)',
+              padding: '6px 10px',
+              borderRadius: 6,
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-elevated)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 13,
+              color: 'var(--text-primary)',
             }}
           >
             <Download size={14} /> {t('settings:export')}
@@ -98,34 +118,62 @@ export function DebugLogPage() {
           {isLoading ? (
             <LoadingPlaceholder variant="elevated" minHeight={200} />
           ) : filteredLogs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 32, color: 'var(--text-tertiary)', fontSize: 13 }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 32,
+                color: 'var(--text-tertiary)',
+                fontSize: 13,
+              }}
+            >
               <Bug size={24} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
               {t('settings:no_log_entries_debug')}
             </div>
           ) : (
-            <div style={{ fontFamily: 'var(--font-mono, "SF Mono", Monaco, monospace)', fontSize: 12, lineHeight: 1.6 }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono, "SF Mono", Monaco, monospace)',
+                fontSize: 12,
+                lineHeight: 1.6,
+              }}
+            >
               {filteredLogs.map((log) => (
                 <div
                   key={log.id}
                   style={{
-                    display: 'flex', gap: 8, padding: '2px 4px',
-                    background: log.actionType.includes('delete') ? 'rgba(220, 38, 38, 0.06)' :
-                                log.actionType.includes('create') ? 'rgba(34,197,94,0.06)' : 'transparent',
+                    display: 'flex',
+                    gap: 8,
+                    padding: '2px 4px',
+                    background: log.actionType.includes('delete')
+                      ? 'rgba(220, 38, 38, 0.06)'
+                      : log.actionType.includes('create')
+                        ? 'rgba(34,197,94,0.06)'
+                        : 'transparent',
                     borderRadius: 2,
                   }}
                 >
-                  <span style={{ color: 'var(--text-tertiary)', whiteSpace: 'nowrap', minWidth: 80 }}>
+                  <span
+                    style={{ color: 'var(--text-tertiary)', whiteSpace: 'nowrap', minWidth: 80 }}
+                  >
                     {log.timestamp?.split('T')[1]?.split('.')[0] || ''}
                   </span>
-                  <span style={{
-                    minWidth: 48, fontWeight: 600,
-                    color: log.actionType.includes('delete') ? '#dc2626' :
-                           log.actionType.includes('create') ? 'var(--accent-success)' : 'var(--accent-primary)',
-                  }}>
+                  <span
+                    style={{
+                      minWidth: 48,
+                      fontWeight: 600,
+                      color: log.actionType.includes('delete')
+                        ? '#dc2626'
+                        : log.actionType.includes('create')
+                          ? 'var(--accent-success)'
+                          : 'var(--accent-primary)',
+                    }}
+                  >
                     {log.actionType.toUpperCase()}
                   </span>
                   <span style={{ color: 'var(--text-secondary)', flex: 1 }}>
-                    {log.entityType}{log.entityName ? `: ${log.entityName}` : ''}{log.details ? ` - ${log.details}` : ''}
+                    {log.entityType}
+                    {log.entityName ? `: ${log.entityName}` : ''}
+                    {log.details ? ` - ${log.details}` : ''}
                   </span>
                 </div>
               ))}

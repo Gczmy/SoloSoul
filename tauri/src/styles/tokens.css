@@ -69,25 +69,22 @@
 
   /* Font families */
   --font-sans:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI',
-    'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', sans-serif;
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', 'Noto Sans SC', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   --font-mono:
-    'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono',
-    'Noto Sans Mono SC', monospace;
-  --font-display:
-    'SF Pro Display', var(--font-sans);
+    'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Noto Sans Mono SC', monospace;
+  --font-display: 'SF Pro Display', var(--font-sans);
 
   /* Font sizes — modular scale (1.25 ratio) */
-  --text-xs: 0.75rem;    /* 12px */
-  --text-sm: 0.875rem;   /* 14px */
-  --text-base: 1rem;     /* 16px */
-  --text-md: 1.125rem;   /* 18px */
-  --text-lg: 1.25rem;    /* 20px */
-  --text-xl: 1.5rem;     /* 24px */
-  --text-2xl: 1.875rem;  /* 30px */
-  --text-3xl: 2.25rem;   /* 36px */
-  --text-4xl: 3rem;      /* 48px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-md: 1.125rem; /* 18px */
+  --text-lg: 1.25rem; /* 20px */
+  --text-xl: 1.5rem; /* 24px */
+  --text-2xl: 1.875rem; /* 30px */
+  --text-3xl: 2.25rem; /* 36px */
+  --text-4xl: 3rem; /* 48px */
 
   /* Font weights */
   --font-normal: 400;
@@ -108,23 +105,14 @@
 
   /* ── Shadow Tokens — Soft and layered, no harsh shadows ─ */
   --shadow-xs: 0 0 0 1px rgba(0, 0, 0, 0.03);
-  --shadow-sm:
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    0 1px 3px rgba(0, 0, 0, 0.03);
-  --shadow-md:
-    0 2px 4px rgba(0, 0, 0, 0.04),
-    0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.04);
   --shadow-lg:
-    0 4px 8px rgba(0, 0, 0, 0.04),
-    0 8px 16px rgba(0, 0, 0, 0.05),
-    0 12px 24px rgba(0, 0, 0, 0.04);
+    0 4px 8px rgba(0, 0, 0, 0.04), 0 8px 16px rgba(0, 0, 0, 0.05), 0 12px 24px rgba(0, 0, 0, 0.04);
   --shadow-xl:
-    0 8px 16px rgba(0, 0, 0, 0.05),
-    0 16px 32px rgba(0, 0, 0, 0.06),
-    0 24px 48px rgba(0, 0, 0, 0.04);
+    0 8px 16px rgba(0, 0, 0, 0.05), 0 16px 32px rgba(0, 0, 0, 0.06), 0 24px 48px rgba(0, 0, 0, 0.04);
   --shadow-2xl:
-    0 12px 24px rgba(0, 0, 0, 0.06),
-    0 24px 48px rgba(0, 0, 0, 0.08),
+    0 12px 24px rgba(0, 0, 0, 0.06), 0 24px 48px rgba(0, 0, 0, 0.08),
     0 36px 72px rgba(0, 0, 0, 0.06);
 
   /* Inset shadows for subtle depth */

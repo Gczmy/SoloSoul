@@ -25,9 +25,24 @@ function formatFileSize(bytes: number): string {
 }
 
 const SUPPORTED_EXTS = new Set([
-  'pdf', 'txt', 'md', 'json', 'csv', 'xml',
-  'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp',
-  'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+  'pdf',
+  'txt',
+  'md',
+  'json',
+  'csv',
+  'xml',
+  'png',
+  'jpg',
+  'jpeg',
+  'gif',
+  'webp',
+  'bmp',
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+  'ppt',
+  'pptx',
 ]);
 
 export function ScanLocalPage() {
@@ -44,7 +59,11 @@ export function ScanLocalPage() {
 
   const handleSelectDir = async () => {
     try {
-      const dir = await open({ directory: true, multiple: false, title: 'Select directory to scan' });
+      const dir = await open({
+        directory: true,
+        multiple: false,
+        title: 'Select directory to scan',
+      });
       if (dir && typeof dir === 'string') {
         setSelectedDir(dir);
         setIsScanning(true);
@@ -96,14 +115,29 @@ export function ScanLocalPage() {
       title={t('settings:local_import', { defaultValue: 'Local Import' })}
       onBack={() => navigate(-1)}
     >
-      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div
+        style={{
+          maxWidth: 640,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
         {/* Directory picker */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(91,124,153,0.1)',
-            }}>
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(91,124,153,0.1)',
+              }}
+            >
               <FolderOpen size={22} style={{ color: 'var(--accent-primary)' }} />
             </div>
             <div style={{ flex: 1 }}>
@@ -131,7 +165,9 @@ export function ScanLocalPage() {
             </div>
             {files.map((file) => (
               <Card key={file.path}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <FileText size={20} style={{ color: 'var(--text-tertiary)' }} />
                     <div>
@@ -156,7 +192,14 @@ export function ScanLocalPage() {
 
         {!isScanning && files.length === 0 && selectedDir && (
           <Card>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 24, fontSize: 14 }}>
+            <p
+              style={{
+                textAlign: 'center',
+                color: 'var(--text-secondary)',
+                padding: 24,
+                fontSize: 14,
+              }}
+            >
               No supported files found in this directory.
             </p>
           </Card>

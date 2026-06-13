@@ -11,8 +11,16 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { Scan, FileText, Upload } from 'lucide-react';
 
-interface OcrField { label: string; value: string; confidence: number; }
-interface OcrResult { text: string; confidence: number; fields: OcrField[]; }
+interface OcrField {
+  label: string;
+  value: string;
+  confidence: number;
+}
+interface OcrResult {
+  text: string;
+  confidence: number;
+  fields: OcrField[];
+}
 
 export function OcrPage() {
   const navigate = useNavigate();
@@ -70,13 +78,25 @@ export function OcrPage() {
 
   return (
     <AppShell title="OCR Scanner" onBack={() => navigate(-1)}>
-      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div
+        style={{
+          maxWidth: 640,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
         <Card>
           <div style={{ textAlign: 'center', padding: 24 }}>
-            <Scan size={48} style={{ marginBottom: 12, opacity: 0.3, color: 'var(--text-tertiary)' }} />
+            <Scan
+              size={48}
+              style={{ marginBottom: 12, opacity: 0.3, color: 'var(--text-tertiary)' }}
+            />
             <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>OCR Scanner</h2>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
-              Extract text from images and documents. Supports English, Chinese, Japanese, and Korean.
+              Extract text from images and documents. Supports English, Chinese, Japanese, and
+              Korean.
             </p>
             <Button onClick={handleSelectImage} loading={isScanning}>
               <FileText size={14} style={{ marginRight: 6 }} /> Select Image
@@ -86,7 +106,14 @@ export function OcrPage() {
 
         {result && (
           <Card>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 12,
+              }}
+            >
               <h3 style={{ fontSize: 14, fontWeight: 600 }}>Result</h3>
               <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
                 <Upload size={14} style={{ marginRight: 4 }} /> Import as Object
@@ -96,26 +123,57 @@ export function OcrPage() {
             {result.fields.length > 0 && (
               <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {result.fields.map((f, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 12, padding: '6px 8px', borderRadius: 6, background: 'var(--bg-toolbar)', fontSize: 13 }}>
-                    <span style={{ fontWeight: 500, color: 'var(--text-secondary)', minWidth: 80 }}>{f.label}</span>
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      gap: 12,
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      background: 'var(--bg-toolbar)',
+                      fontSize: 13,
+                    }}
+                  >
+                    <span style={{ fontWeight: 500, color: 'var(--text-secondary)', minWidth: 80 }}>
+                      {f.label}
+                    </span>
                     <span>{f.value}</span>
-                    <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-tertiary)' }}>{(f.confidence * 100).toFixed(0)}%</span>
+                    <span
+                      style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-tertiary)' }}
+                    >
+                      {(f.confidence * 100).toFixed(0)}%
+                    </span>
                   </div>
                 ))}
               </div>
             )}
 
             {result.text && (
-              <div style={{
-                padding: 12, borderRadius: 8, background: 'var(--bg-toolbar)',
-                fontSize: 13, lineHeight: 1.6, whiteSpace: 'pre-wrap', maxHeight: 300, overflowY: 'auto',
-              }}>
+              <div
+                style={{
+                  padding: 12,
+                  borderRadius: 8,
+                  background: 'var(--bg-toolbar)',
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-wrap',
+                  maxHeight: 300,
+                  overflowY: 'auto',
+                }}
+              >
                 {result.text}
               </div>
             )}
 
             {!result.text && result.fields.length === 0 && (
-              <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: 24, fontSize: 13 }}>
+              <p
+                style={{
+                  textAlign: 'center',
+                  color: 'var(--text-tertiary)',
+                  padding: 24,
+                  fontSize: 13,
+                }}
+              >
                 No text detected. Try a clearer image or a different language.
               </p>
             )}

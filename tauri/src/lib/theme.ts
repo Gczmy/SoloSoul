@@ -30,9 +30,13 @@ export function resolveEffectiveTheme(preset: ThemeConfig['preset']): 'light' | 
 function hexToRgb(hex: string): [number, number, number] | null {
   const cleaned = hex.replace('#', '');
   if (cleaned.length !== 3 && cleaned.length !== 6) return null;
-  const full = cleaned.length === 3
-    ? cleaned.split('').map((c) => c + c).join('')
-    : cleaned;
+  const full =
+    cleaned.length === 3
+      ? cleaned
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : cleaned;
   const num = parseInt(full, 16);
   if (Number.isNaN(num)) return null;
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];

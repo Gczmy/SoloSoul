@@ -42,7 +42,9 @@ export function DailySparklineCard({ daily, t }: DailySparklineCardProps) {
   if (last14.length === 0) return null;
 
   // Build series: prioritize per-model lines
-  const allModels = Array.from(new Set(last14.flatMap((d) => Object.keys(d.perModelTokens)))).sort();
+  const allModels = Array.from(
+    new Set(last14.flatMap((d) => Object.keys(d.perModelTokens))),
+  ).sort();
   const series: { name: string; values: number[] }[] = [];
   if (allModels.length > 0) {
     for (const model of allModels) {

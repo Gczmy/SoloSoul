@@ -39,7 +39,7 @@ describe('BootstrapPage', () => {
     render(
       <MemoryRouter>
         <BootstrapPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText('auth:bootstrap_title')).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe('BootstrapPage', () => {
     render(
       <MemoryRouter>
         <BootstrapPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const accountInput = screen.getByPlaceholderText('auth:account_name');
@@ -65,7 +65,7 @@ describe('BootstrapPage', () => {
     render(
       <MemoryRouter>
         <BootstrapPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const accountInput = screen.getByPlaceholderText('auth:account_name');
@@ -79,7 +79,12 @@ describe('BootstrapPage', () => {
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(bootstrapMock).toHaveBeenCalledWith('Alice', 'password123', expect.any(String), undefined);
+      expect(bootstrapMock).toHaveBeenCalledWith(
+        'Alice',
+        'password123',
+        expect.any(String),
+        undefined,
+      );
     });
     expect(navigate).toHaveBeenCalledWith('/');
   });
@@ -88,7 +93,7 @@ describe('BootstrapPage', () => {
     render(
       <MemoryRouter>
         <BootstrapPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const accountInput = screen.getByPlaceholderText('auth:account_name');
@@ -116,7 +121,7 @@ describe('BootstrapPage', () => {
     render(
       <MemoryRouter>
         <BootstrapPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByText('some backend error')).toBeInTheDocument();

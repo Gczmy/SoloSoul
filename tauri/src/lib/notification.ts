@@ -1,5 +1,9 @@
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification';
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from '@tauri-apps/plugin-notification';
 import { useUiStore } from '@/stores/uiStore';
 
 interface LlmStreamPayload {

@@ -96,7 +96,8 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   toggleSelection: (id) => {
     set((s) => {
       const next = new Set(s.selectedIds);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return { selectedIds: next };
     });
   },
@@ -109,8 +110,12 @@ export const useTrashStore = create<TrashState>((set, get) => ({
     set({ selectedIds: new Set() });
   },
 
-  clearOnVaultLock: () => set({
-    items: [], timeFilter: 'all', typeFilter: 'all', searchQuery: '',
-    selectedIds: new Set(),
-  }),
+  clearOnVaultLock: () =>
+    set({
+      items: [],
+      timeFilter: 'all',
+      typeFilter: 'all',
+      searchQuery: '',
+      selectedIds: new Set(),
+    }),
 }));

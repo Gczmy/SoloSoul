@@ -6,7 +6,9 @@ import { invoke } from '@tauri-apps/api/core';
 
 vi.mock('@/components/layout/AppShell', () => ({
   AppShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
-    <div data-testid="app-shell" data-title={title}>{children}</div>
+    <div data-testid="app-shell" data-title={title}>
+      {children}
+    </div>
   ),
 }));
 
@@ -36,7 +38,7 @@ describe('DebugLogPage', () => {
     render(
       <MemoryRouter>
         <DebugLogPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(screen.getByTestId('loading-placeholder')).toBeInTheDocument();
     expect(screen.queryByText('settings:loading_logs_debug')).not.toBeInTheDocument();
@@ -44,15 +46,33 @@ describe('DebugLogPage', () => {
 
   it('renders log entries after loading', async () => {
     const logs = [
-      { id: 1, timestamp: '2024-06-01T10:30:00.000Z', actionType: 'create', entityType: 'profile', entityId: 'p1', entityName: 'Test Profile', performedBy: 'user', details: null },
-      { id: 2, timestamp: '2024-06-01T11:00:00.000Z', actionType: 'delete', entityType: 'profile', entityId: 'p2', entityName: 'Old Profile', performedBy: 'user', details: 'cleanup' },
+      {
+        id: 1,
+        timestamp: '2024-06-01T10:30:00.000Z',
+        actionType: 'create',
+        entityType: 'profile',
+        entityId: 'p1',
+        entityName: 'Test Profile',
+        performedBy: 'user',
+        details: null,
+      },
+      {
+        id: 2,
+        timestamp: '2024-06-01T11:00:00.000Z',
+        actionType: 'delete',
+        entityType: 'profile',
+        entityId: 'p2',
+        entityName: 'Old Profile',
+        performedBy: 'user',
+        details: 'cleanup',
+      },
     ];
     vi.mocked(invoke).mockResolvedValue(logs);
 
     render(
       <MemoryRouter>
         <DebugLogPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -69,7 +89,7 @@ describe('DebugLogPage', () => {
     render(
       <MemoryRouter>
         <DebugLogPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -83,7 +103,7 @@ describe('DebugLogPage', () => {
     render(
       <MemoryRouter>
         <DebugLogPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -91,7 +111,16 @@ describe('DebugLogPage', () => {
     });
 
     const newLogs = [
-      { id: 3, timestamp: '2024-06-02T10:00:00.000Z', actionType: 'update', entityType: 'object', entityId: 'o1', entityName: 'Obj', performedBy: 'user', details: null },
+      {
+        id: 3,
+        timestamp: '2024-06-02T10:00:00.000Z',
+        actionType: 'update',
+        entityType: 'object',
+        entityId: 'o1',
+        entityName: 'Obj',
+        performedBy: 'user',
+        details: null,
+      },
     ];
     vi.mocked(invoke).mockResolvedValue(newLogs);
 
@@ -111,7 +140,7 @@ describe('DebugLogPage', () => {
     render(
       <MemoryRouter>
         <DebugLogPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -122,9 +151,11 @@ describe('DebugLogPage', () => {
     fireEvent.click(exportBtn);
 
     await waitFor(() => {
-      expect(save).toHaveBeenCalledWith(expect.objectContaining({
-        defaultPath: 'debug_log_export.json',
-      }));
+      expect(save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          defaultPath: 'debug_log_export.json',
+        }),
+      );
     });
     expect(invoke).toHaveBeenCalledWith('log_export', { exportPath: '/path/to/export.json' });
   });
@@ -137,7 +168,7 @@ describe('DebugLogPage', () => {
     render(
       <MemoryRouter>
         <DebugLogPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {

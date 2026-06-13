@@ -112,7 +112,7 @@
   border: none;
   border-radius: 12px;
   background: transparent;
-  color: var(--text-secondary);       /* 9.4 — 默认 */
+  color: var(--text-secondary); /* 9.4 — 默认 */
   cursor: pointer;
   transition: all 0.15s var(--ease-smooth, ease);
   position: relative;
@@ -120,8 +120,8 @@
 }
 
 .navButton:hover {
-  background: rgba(128, 128, 128, 0.06);  /* 9.4 — 悬停轻微高亮 */
-  color: var(--text-primary);              /* 9.4 — 悬停文字 */
+  background: rgba(128, 128, 128, 0.06); /* 9.4 — 悬停轻微高亮 */
+  color: var(--text-primary); /* 9.4 — 悬停文字 */
 }
 
 /* 9.4 — 选中状态 */

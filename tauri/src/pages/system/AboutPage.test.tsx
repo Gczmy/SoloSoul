@@ -6,7 +6,9 @@ import { invoke } from '@tauri-apps/api/core';
 
 vi.mock('@/components/layout/AppShell', () => ({
   AppShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
-    <div data-testid="app-shell" data-title={title}>{children}</div>
+    <div data-testid="app-shell" data-title={title}>
+      {children}
+    </div>
   ),
 }));
 
@@ -24,7 +26,7 @@ describe('AboutPage', () => {
     render(
       <MemoryRouter>
         <AboutPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(screen.getByTestId('loading-placeholder')).toBeInTheDocument();
     expect(screen.queryByText('settings:loading')).not.toBeInTheDocument();
@@ -44,7 +46,7 @@ describe('AboutPage', () => {
     render(
       <MemoryRouter>
         <AboutPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -70,7 +72,7 @@ describe('AboutPage', () => {
     render(
       <MemoryRouter>
         <AboutPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -94,7 +96,7 @@ describe('AboutPage', () => {
     render(
       <MemoryRouter>
         <AboutPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -111,7 +113,7 @@ describe('AboutPage', () => {
     render(
       <MemoryRouter>
         <AboutPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {

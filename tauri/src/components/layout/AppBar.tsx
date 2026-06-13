@@ -11,7 +11,14 @@ interface AppBarProps {
   sidebarPosition?: 'left' | 'right' | 'top' | 'bottom';
 }
 
-export function AppBar({ title, actions, onBack, titleBarOffset = 0, topBarHeight = 0, sidebarPosition = 'left' }: AppBarProps) {
+export function AppBar({
+  title,
+  actions,
+  onBack,
+  titleBarOffset = 0,
+  topBarHeight = 0,
+  sidebarPosition = 'left',
+}: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
 
@@ -21,8 +28,8 @@ export function AppBar({ title, actions, onBack, titleBarOffset = 0, topBarHeigh
       style={{
         paddingLeft: 20,
         top: titleBarOffset + topBarHeight,
-        left: isHorizontal ? 0 : (sidebarPosition === 'right' ? 0 : 48),
-        right: isHorizontal ? 0 : (sidebarPosition === 'right' ? 48 : 0),
+        left: isHorizontal ? 0 : sidebarPosition === 'right' ? 0 : 48,
+        right: isHorizontal ? 0 : sidebarPosition === 'right' ? 48 : 0,
       }}
     >
       <div className={styles.left}>
@@ -33,9 +40,7 @@ export function AppBar({ title, actions, onBack, titleBarOffset = 0, topBarHeigh
         )}
         <h1 className={styles.title}>{title}</h1>
       </div>
-      <div className={styles.actions}>
-        {actions}
-      </div>
+      <div className={styles.actions}>{actions}</div>
     </header>
   );
 }

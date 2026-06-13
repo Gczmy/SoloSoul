@@ -16,7 +16,16 @@ import { DailySparklineCard } from '@/components/llm/DailySparklineCard';
 import { ModelUsageCard } from '@/components/llm/ModelUsageCard';
 import { BarChart3, RotateCcw } from 'lucide-react';
 
-interface ProviderConfig { id: string; name: string; baseUrl: string; model: string; isEnabled: boolean; isBuiltIn: boolean; apiKey: string; apiType: 'openAI' | 'anthropic'; }
+interface ProviderConfig {
+  id: string;
+  name: string;
+  baseUrl: string;
+  model: string;
+  isEnabled: boolean;
+  isBuiltIn: boolean;
+  apiKey: string;
+  apiType: 'openAI' | 'anthropic';
+}
 
 export function LlmStatsPage() {
   const navigate = useNavigate();
@@ -24,7 +33,11 @@ export function LlmStatsPage() {
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { stats, loading, loadStats, resetStats } = useLlmStatsStore();
-  const [activeProvider, setActiveProvider] = useState<{ name: string; model: string; apiType: string } | null>(null);
+  const [activeProvider, setActiveProvider] = useState<{
+    name: string;
+    model: string;
+    apiType: string;
+  } | null>(null);
   const [isOnline, setIsOnline] = useState<boolean | null>(null);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [lastLoadTime, setLastLoadTime] = useState<string | undefined>();
@@ -47,13 +60,22 @@ export function LlmStatsPage() {
         if (active) {
           setActiveProvider({ name: active.name, model: active.model, apiType: active.apiType });
           let key = '';
-          try { key = await invoke<string>('llm_get_api_key', { accountId, providerId: active.id }); } catch { /* no key */ }
+          try {
+            key = await invoke<string>('llm_get_api_key', { accountId, providerId: active.id });
+          } catch {
+            /* no key */
+          }
           const online = await invoke<boolean>('llm_check_connection', {
-            baseUrl: active.baseUrl, apiKey: key, model: active.model, apiType: active.apiType,
+            baseUrl: active.baseUrl,
+            apiKey: key,
+            model: active.model,
+            apiType: active.apiType,
           });
           setIsOnline(online);
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     })();
   }, [accountId]);
 
@@ -85,7 +107,16 @@ export function LlmStatsPage() {
 
   return (
     <AppShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
-      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20, padding: '0 16px 32px' }}>
+      <div
+        style={{
+          maxWidth: 640,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+          padding: '0 16px 32px',
+        }}
+      >
         {/* Model Info */}
         <section>
           <SectionTitle>{t('settings:llm_current_model')}</SectionTitle>
@@ -100,9 +131,16 @@ export function LlmStatsPage() {
 
         {!hasData ? (
           <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-            <BarChart3 size={48} style={{ marginBottom: 16, opacity: 0.25, color: 'var(--text-tertiary)' }} />
-            <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>{t('settings:llm_no_data')}</p>
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>{t('settings:llm_no_data_hint')}</p>
+            <BarChart3
+              size={48}
+              style={{ marginBottom: 16, opacity: 0.25, color: 'var(--text-tertiary)' }}
+            />
+            <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>
+              {t('settings:llm_no_data')}
+            </p>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>
+              {t('settings:llm_no_data_hint')}
+            </p>
           </div>
         ) : (
           <>
@@ -200,15 +238,17 @@ export function LlmStatsPage() {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h3 style={{
-      fontSize: 13,
-      fontWeight: 600,
-      color: 'var(--text-secondary)',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
-      marginBottom: 8,
-      paddingLeft: 4,
-    }}>
+    <h3
+      style={{
+        fontSize: 13,
+        fontWeight: 600,
+        color: 'var(--text-secondary)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        marginBottom: 8,
+        paddingLeft: 4,
+      }}
+    >
       {children}
     </h3>
   );

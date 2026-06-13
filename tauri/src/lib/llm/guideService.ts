@@ -52,9 +52,7 @@ export async function searchGuideChunks(
 export function formatChunksAsSystemMessage(chunks: GuideChunk[]): string | null {
   if (chunks.length === 0) return null;
 
-  const parts: string[] = [
-    '以下是与用户问题相关的官方功能使用文档片段，请优先依据这些片段回答：',
-  ];
+  const parts: string[] = ['以下是与用户问题相关的官方功能使用文档片段，请优先依据这些片段回答：'];
 
   chunks.forEach((chunk, i) => {
     parts.push(

@@ -51,19 +51,38 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
       >
         <div
           style={{
-            width: 64, height: 64, borderRadius: 16,
+            width: 64,
+            height: 64,
+            borderRadius: 16,
             background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-warm))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             margin: '0 auto 20px',
           }}
         >
           <Icon size={30} color="white" />
         </div>
 
-        <h2 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 10px', color: 'var(--text-primary)' }}>
+        <h2
+          style={{
+            fontSize: 20,
+            fontWeight: 700,
+            margin: '0 0 10px',
+            color: 'var(--text-primary)',
+          }}
+        >
           {t(`onboarding_${current.key}_title`)}
         </h2>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 28px', minHeight: 70 }}>
+        <p
+          style={{
+            fontSize: 14,
+            color: 'var(--text-secondary)',
+            lineHeight: 1.6,
+            margin: '0 0 28px',
+            minHeight: 70,
+          }}
+        >
           {t(`onboarding_${current.key}_desc`)}
         </p>
 
@@ -72,7 +91,9 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
             <span
               key={i}
               style={{
-                width: 8, height: 8, borderRadius: '50%',
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
                 background: i === step ? 'var(--accent-primary)' : 'var(--border-subtle)',
               }}
             />
@@ -83,9 +104,13 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
           <button
             onClick={onSkip}
             style={{
-              padding: '8px 12px', borderRadius: 8, border: 'none',
-              background: 'transparent', color: 'var(--text-tertiary)',
-              fontSize: 13, cursor: 'pointer',
+              padding: '8px 12px',
+              borderRadius: 8,
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--text-tertiary)',
+              fontSize: 13,
+              cursor: 'pointer',
             }}
           >
             {t('onboarding_skip')}
@@ -96,13 +121,15 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
                 {t('onboarding_back')}
               </Button>
             )}
-            <Button onClick={() => {
-              if (isLast) {
-                onComplete();
-              } else {
-                setStep((s) => s + 1);
-              }
-            }}>
+            <Button
+              onClick={() => {
+                if (isLast) {
+                  onComplete();
+                } else {
+                  setStep((s) => s + 1);
+                }
+              }}
+            >
               {isLast ? t('onboarding_done') : t('onboarding_next')}
             </Button>
           </div>

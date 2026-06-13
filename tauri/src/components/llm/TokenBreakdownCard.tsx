@@ -25,24 +25,48 @@ export function TokenBreakdownCard({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0' }}>
         {/* Session */}
         <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
+          <div
+            style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}
+          >
             {t('settings:llm_this_session')}
           </div>
-          <TokenBar prompt={sessionPrompt} completion={sessionCompletion} total={sessionTotal} t={t} />
+          <TokenBar
+            prompt={sessionPrompt}
+            completion={sessionCompletion}
+            total={sessionTotal}
+            t={t}
+          />
         </div>
         {/* Account */}
         <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>
+          <div
+            style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}
+          >
             {t('settings:llm_account_total')}
           </div>
-          <TokenBar prompt={accountPrompt} completion={accountCompletion} total={accountTotal} t={t} />
+          <TokenBar
+            prompt={accountPrompt}
+            completion={accountCompletion}
+            total={accountTotal}
+            t={t}
+          />
         </div>
       </div>
     </Card>
   );
 }
 
-function TokenBar({ prompt, completion, total, t }: { prompt: number; completion: number; total: number; t: TFunction }) {
+function TokenBar({
+  prompt,
+  completion,
+  total,
+  t,
+}: {
+  prompt: number;
+  completion: number;
+  total: number;
+  t: TFunction;
+}) {
   const promptRatio = total === 0 ? 0 : prompt / total;
   const completionRatio = total === 0 ? 0 : completion / total;
 
@@ -66,7 +90,9 @@ function TokenBar({ prompt, completion, total, t }: { prompt: number; completion
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 6, fontSize: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--accent-primary)' }} />
+          <div
+            style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--accent-primary)' }}
+          />
           <span>Prompt {formatTokens(prompt)}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

@@ -57,24 +57,30 @@ export function DatePicker({
     if (d) setViewDate(d);
   }, [value]);
 
-  const handleSelect = useCallback((day: Date) => {
-    let next = day;
-    if (selectedDate && includeTime) {
-      next = setHours(setMinutes(day, selectedDate.getMinutes()), selectedDate.getHours());
-    }
-    setSelectedDate(next);
-    onChange(format(next, includeTime ? "yyyy-MM-dd'T'HH:mm" : 'yyyy-MM-dd'));
-    if (!includeTime) {
-      setOpen(false);
-    }
-  }, [includeTime, onChange, selectedDate]);
+  const handleSelect = useCallback(
+    (day: Date) => {
+      let next = day;
+      if (selectedDate && includeTime) {
+        next = setHours(setMinutes(day, selectedDate.getMinutes()), selectedDate.getHours());
+      }
+      setSelectedDate(next);
+      onChange(format(next, includeTime ? "yyyy-MM-dd'T'HH:mm" : 'yyyy-MM-dd'));
+      if (!includeTime) {
+        setOpen(false);
+      }
+    },
+    [includeTime, onChange, selectedDate],
+  );
 
-  const handleClear = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedDate(undefined);
-    onChange(undefined);
-    setOpen(false);
-  }, [onChange]);
+  const handleClear = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setSelectedDate(undefined);
+      onChange(undefined);
+      setOpen(false);
+    },
+    [onChange],
+  );
 
   const handleYearChange = useCallback((year: number) => {
     setViewDate((prev) => setYear(prev, year));
@@ -143,7 +149,10 @@ export function DatePicker({
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <Calendar size={14} style={{ marginRight: 8, verticalAlign: 'middle', color: 'var(--text-tertiary)' }} />
+        <Calendar
+          size={14}
+          style={{ marginRight: 8, verticalAlign: 'middle', color: 'var(--text-tertiary)' }}
+        />
         <span className={selectedDate ? undefined : styles.placeholder}>{displayText}</span>
       </button>
       {selectedDate && !disabled && (
@@ -161,7 +170,12 @@ export function DatePicker({
       {open && (
         <div className={styles.popover} role="dialog" aria-label="日期选择">
           <div className={styles.header}>
-            <button type="button" className={styles.navButton} onClick={goToPrevMonth} aria-label="上个月">
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={goToPrevMonth}
+              aria-label="上个月"
+            >
               ‹
             </button>
             <div className={styles.selects}>
@@ -172,7 +186,9 @@ export function DatePicker({
                 aria-label="年份"
               >
                 {yearOptions.map((y) => (
-                  <option key={y} value={y}>{y}</option>
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
                 ))}
               </select>
               <select
@@ -188,14 +204,21 @@ export function DatePicker({
                 ))}
               </select>
             </div>
-            <button type="button" className={styles.navButton} onClick={goToNextMonth} aria-label="下个月">
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={goToNextMonth}
+              aria-label="下个月"
+            >
               ›
             </button>
           </div>
 
           <div className={styles.weekdays}>
             {weekdayLabels.map((label) => (
-              <div key={label} className={styles.weekday}>{label}</div>
+              <div key={label} className={styles.weekday}>
+                {label}
+              </div>
             ))}
           </div>
 
@@ -216,7 +239,9 @@ export function DatePicker({
                     !inMonth && styles.otherMonth,
                     selected && styles.selectedDay,
                     isToday && styles.today,
-                  ].filter(Boolean).join(' ')}
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                   onClick={() => handleSelect(day)}
                 >
                   {format(day, 'd')}

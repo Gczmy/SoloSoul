@@ -26,8 +26,18 @@ export const primaryItems: NavLink[] = [
   { type: 'link', path: '/', iconKey: 'home', labelKey: 'home' },
   { type: 'link', path: '/workspace?section=identity', iconKey: 'identity', labelKey: 'identity' },
   { type: 'link', path: '/workspace?section=travel', iconKey: 'travel', labelKey: 'travel' },
-  { type: 'link', path: '/workspace?section=financial', iconKey: 'financial', labelKey: 'financial' },
-  { type: 'link', path: '/workspace?section=professional', iconKey: 'professional', labelKey: 'professional' },
+  {
+    type: 'link',
+    path: '/workspace?section=financial',
+    iconKey: 'financial',
+    labelKey: 'financial',
+  },
+  {
+    type: 'link',
+    path: '/workspace?section=professional',
+    iconKey: 'professional',
+    labelKey: 'professional',
+  },
 ];
 
 /** 下方功能按钮的可选 ID（侧边栏 3 个可变位置 + 固定的锁定/设置）。
@@ -42,17 +52,24 @@ export const CUSTOMIZABLE_ACTION_IDS = [
   'import_export',
 ] as const;
 
-export type CustomizableActionId = typeof CUSTOMIZABLE_ACTION_IDS[number];
+export type CustomizableActionId = (typeof CUSTOMIZABLE_ACTION_IDS)[number];
 
 /** 每个可变按钮的路由或动作工厂。
  *  lock / settings 永远固定，不在这里定义。 */
-const CUSTOMIZABLE_LINKS: Record<Exclude<CustomizableActionId, 'search'>, { path: string; iconKey: PageIconKey; labelKey: string }> = {
+const CUSTOMIZABLE_LINKS: Record<
+  Exclude<CustomizableActionId, 'search'>,
+  { path: string; iconKey: PageIconKey; labelKey: string }
+> = {
   plugins: { path: '/plugins', iconKey: 'plugins', labelKey: 'plugin' },
   ai_chat: { path: '/llm-chat', iconKey: 'ai_chat', labelKey: 'ai_chat' },
   trash: { path: '/settings/trash', iconKey: 'trash', labelKey: 'trash' },
   help: { path: '/help', iconKey: 'help', labelKey: 'help' },
   templates: { path: '/settings/templates', iconKey: 'templates', labelKey: 'templates' },
-  import_export: { path: '/settings/export-import', iconKey: 'import_export', labelKey: 'import_export' },
+  import_export: {
+    path: '/settings/export-import',
+    iconKey: 'import_export',
+    labelKey: 'import_export',
+  },
 };
 
 export function useActiveCustomPages() {
@@ -124,7 +141,7 @@ interface UseAiQuickChatResult {
 
 export function useAiQuickChat(
   cardHeight = 520,
-  placement: AiQuickChatPlacement = 'left'
+  placement: AiQuickChatPlacement = 'left',
 ): UseAiQuickChatResult {
   const [showQuickChat, setShowQuickChat] = useState(false);
   const aiButtonRef = useRef<HTMLDivElement>(null);
@@ -141,7 +158,7 @@ export function useAiQuickChat(
       } else {
         top = Math.min(
           Math.max(rect.top + rect.height / 2 - cardHeight / 2, 8),
-          window.innerHeight - cardHeight - 8
+          window.innerHeight - cardHeight - 8,
         );
       }
       setQuickChatPos({ top });

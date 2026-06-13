@@ -43,7 +43,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
         }}
       >
         {text.slice(idx, idx + query.length)}
-      </mark>
+      </mark>,
     );
     i = idx + query.length;
   }
@@ -76,25 +76,29 @@ export function SearchPage() {
   const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
 
-  const doSearch = useCallback(async (q: string) => {
-    if (!accountId || !q.trim()) {
-      setResults([]);
-      setHasSearched(false);
-      return;
-    }
-    setIsSearching(true);
-    setHasSearched(true);
-    try {
-      const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
-        'search_unified', { accountId, query: q, limit: 50 }
-      );
-      setResults(res.items);
-    } catch (e) {
-      onError(e, t('common:search_failed'));
-    } finally {
-      setIsSearching(false);
-    }
-  }, [accountId, onError, t]);
+  const doSearch = useCallback(
+    async (q: string) => {
+      if (!accountId || !q.trim()) {
+        setResults([]);
+        setHasSearched(false);
+        return;
+      }
+      setIsSearching(true);
+      setHasSearched(true);
+      try {
+        const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
+          'search_unified',
+          { accountId, query: q, limit: 50 },
+        );
+        setResults(res.items);
+      } catch (e) {
+        onError(e, t('common:search_failed'));
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [accountId, onError, t],
+  );
 
   const handleChange = (val: string) => {
     setQuery(val);
@@ -169,7 +173,16 @@ export function SearchPage() {
                   <PAGE_ICON_MAP.custom size={18} />
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 500 }}>{item.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--text-tertiary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       <span>{item.collectionType}</span>
                       {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
                         <>
@@ -207,10 +220,7 @@ export function SearchPage() {
 
       {/* Attachment viewer — opened via detail modal's onAttachments */}
       {attachmentObjId && (
-        <AttachmentViewer
-          objectId={attachmentObjId}
-          onClose={() => setAttachmentObjId(null)}
-        />
+        <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} />
       )}
     </AppShell>
   );

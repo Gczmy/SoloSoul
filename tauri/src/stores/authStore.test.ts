@@ -65,10 +65,16 @@ describe('authStore', () => {
 
     it('should preserve currentAccount if still present in refreshed list', async () => {
       useAuthStore.setState({ currentAccount: { id: 'acc-1', name: 'Alice' } });
-      const refreshed = [{ id: 'acc-1', name: 'Alice Updated' }, { id: 'acc-2', name: 'Bob' }];
+      const refreshed = [
+        { id: 'acc-1', name: 'Alice Updated' },
+        { id: 'acc-2', name: 'Bob' },
+      ];
       vi.mocked(commands.vaultListAccounts).mockResolvedValue(refreshed);
       await useAuthStore.getState().listAccounts();
-      expect(useAuthStore.getState().currentAccount).toEqual({ id: 'acc-1', name: 'Alice Updated' });
+      expect(useAuthStore.getState().currentAccount).toEqual({
+        id: 'acc-1',
+        name: 'Alice Updated',
+      });
     });
 
     it('should silently fail when vault is locked', async () => {
@@ -129,7 +135,10 @@ describe('authStore', () => {
 
   describe('logout', () => {
     it('should clear authenticated state', async () => {
-      useAuthStore.setState({ isAuthenticated: true, currentAccount: { id: 'acc-1', name: 'Alice' } });
+      useAuthStore.setState({
+        isAuthenticated: true,
+        currentAccount: { id: 'acc-1', name: 'Alice' },
+      });
       vi.mocked(commands.logout).mockResolvedValue(undefined);
       await useAuthStore.getState().logout();
       expect(useAuthStore.getState().isAuthenticated).toBe(false);

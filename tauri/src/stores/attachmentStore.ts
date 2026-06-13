@@ -99,10 +99,15 @@ function guessMime(fileName: string): string {
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
   const map: Record<string, string> = {
     pdf: 'application/pdf',
-    png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
-    gif: 'image/gif', webp: 'image/webp',
-    txt: 'text/plain', md: 'text/markdown',
-    json: 'application/json', xml: 'application/xml',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    txt: 'text/plain',
+    md: 'text/markdown',
+    json: 'application/json',
+    xml: 'application/xml',
   };
   return map[ext] || 'application/octet-stream';
 }

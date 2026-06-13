@@ -6,7 +6,6 @@ import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
 
-
 // 9.8.3 — Custom page data structure
 // Custom pages are now stored in the objects table (P0-1), not in preferences.
 // iconId references CUSTOM_ICON_MAP from src/lib/pageIcons.ts (Single Source of Truth)
@@ -52,7 +51,11 @@ interface SettingsState {
   loadUiPreferences: () => Promise<void>;
   loadSettings: (accountId: string) => Promise<void>;
   loadCustomPages: (accountId: string) => Promise<void>;
-  updateSetting: <K extends keyof AppSettings>(accountId: string, key: K, value: AppSettings[K]) => Promise<void>;
+  updateSetting: <K extends keyof AppSettings>(
+    accountId: string,
+    key: K,
+    value: AppSettings[K],
+  ) => Promise<void>;
   clearOnVaultLock: () => void;
   addCustomPage: (accountId: string, name: string, iconId?: string) => Promise<CustomPage>;
   removeCustomPage: (accountId: string, pageId: string) => Promise<void>;
@@ -99,8 +102,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           // owns that key and it may be newer than the ui_prefs snapshot.
         }
         applyTheme({
-          preset: p.theme === 'dark' ? 'warm-stone-dark' :
-                  p.theme === 'light' ? 'warm-stone-light' : 'system',
+          preset:
+            p.theme === 'dark'
+              ? 'warm-stone-dark'
+              : p.theme === 'light'
+                ? 'warm-stone-light'
+                : 'system',
           accentColor: p.accentColor,
           backgroundType: 'solid',
           backgroundValue: '',
@@ -109,7 +116,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         });
         set({ settings: p });
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     // Step 2: fetch fresh prefs from IPC (slow, async)
     try {
@@ -127,7 +136,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.language) parsed.language = prefs.language;
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
       if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
-      if (prefs.windowSize && typeof prefs.windowSize.width === 'number' && typeof prefs.windowSize.height === 'number') {
+      if (
+        prefs.windowSize &&
+        typeof prefs.windowSize.width === 'number' &&
+        typeof prefs.windowSize.height === 'number'
+      ) {
         // Only fall back to the on-disk UI preference when there is no localStorage
         // cache. The cache is updated synchronously on every resize, so it is always
         // at least as fresh as the debounced disk write.
@@ -136,12 +149,18 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           parsed.windowSize = prefs.windowSize;
           try {
             localStorage.setItem('solosoul_window_size', JSON.stringify(prefs.windowSize));
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }
       }
       applyTheme({
-        preset: parsed.theme === 'dark' ? 'warm-stone-dark' :
-                parsed.theme === 'light' ? 'warm-stone-light' : 'system',
+        preset:
+          parsed.theme === 'dark'
+            ? 'warm-stone-dark'
+            : parsed.theme === 'light'
+              ? 'warm-stone-light'
+              : 'system',
         accentColor: parsed.accentColor,
         backgroundType: 'solid',
         backgroundValue: '',
@@ -150,36 +169,55 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       });
       set({ settings: parsed });
       try {
-        localStorage.setItem('solosoul_ui_prefs', JSON.stringify({
-          theme: parsed.theme,
-          accentColor: parsed.accentColor,
-          defaultLightTheme: parsed.defaultLightTheme,
-          defaultDarkTheme: parsed.defaultDarkTheme,
-          windowSize: parsed.windowSize,
-        }));
-      } catch { /* ignore */ }
+        localStorage.setItem(
+          'solosoul_ui_prefs',
+          JSON.stringify({
+            theme: parsed.theme,
+            accentColor: parsed.accentColor,
+            defaultLightTheme: parsed.defaultLightTheme,
+            defaultDarkTheme: parsed.defaultDarkTheme,
+            windowSize: parsed.windowSize,
+          }),
+        );
+      } catch {
+        /* ignore */
+      }
       // Language is set by initI18n() via Rust IPC (confirmed working = zh-CN).
       // User changes via settings are applied in updateSetting() — skip here to avoid
       // overwriting correct IPC detection with stale/stored values from vault.
       // Theme/accent/bg are safe to apply immediately.
-    } catch { /* no ui_preferences file yet */ }
+    } catch {
+      /* no ui_preferences file yet */
+    }
   },
 
   loadSettings: async (accountId) => {
     set({ isLoading: true });
     try {
-      const prefs = await invoke<Record<string, unknown>>('user_data_get_preferences', { accountId });
+      const prefs = await invoke<Record<string, unknown>>('user_data_get_preferences', {
+        accountId,
+      });
       const parsed = { ...DEFAULT_SETTINGS };
       if (prefs.theme && ['light', 'dark', 'system'].includes(prefs.theme as string)) {
         parsed.theme = prefs.theme as AppSettings['theme'];
       }
-      if (prefs.accentColor && ['ocean', 'amber', 'forest', 'rose', 'purple', 'custom'].includes(prefs.accentColor as string)) {
+      if (
+        prefs.accentColor &&
+        ['ocean', 'amber', 'forest', 'rose', 'purple', 'custom'].includes(
+          prefs.accentColor as string,
+        )
+      ) {
         parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
       }
-      if (typeof prefs.defaultLightTheme === 'string') parsed.defaultLightTheme = prefs.defaultLightTheme;
-      if (typeof prefs.defaultDarkTheme === 'string') parsed.defaultDarkTheme = prefs.defaultDarkTheme;
+      if (typeof prefs.defaultLightTheme === 'string')
+        parsed.defaultLightTheme = prefs.defaultLightTheme;
+      if (typeof prefs.defaultDarkTheme === 'string')
+        parsed.defaultDarkTheme = prefs.defaultDarkTheme;
       if (typeof prefs.customAccentHex === 'string') parsed.customAccentHex = prefs.customAccentHex;
-      if (prefs.backgroundType && ['solid', 'gradient', 'image'].includes(prefs.backgroundType as string)) {
+      if (
+        prefs.backgroundType &&
+        ['solid', 'gradient', 'image'].includes(prefs.backgroundType as string)
+      ) {
         parsed.backgroundType = prefs.backgroundType as AppSettings['backgroundType'];
       }
       if (typeof prefs.backgroundValue === 'string') parsed.backgroundValue = prefs.backgroundValue;
@@ -187,10 +225,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         parsed.language = prefs.language as string;
       }
       if (prefs.locale) parsed.locale = prefs.locale as string;
-      if (typeof prefs.autoLockTimeoutMinutes === 'number') parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
-      if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
+      if (typeof prefs.autoLockTimeoutMinutes === 'number')
+        parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
+      if (typeof prefs.biometricEnabled === 'boolean')
+        parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
-      if (prefs.sidebarPosition && ['left', 'right', 'top', 'bottom'].includes(prefs.sidebarPosition as string)) {
+      if (
+        prefs.sidebarPosition &&
+        ['left', 'right', 'top', 'bottom'].includes(prefs.sidebarPosition as string)
+      ) {
         parsed.sidebarPosition = prefs.sidebarPosition as AppSettings['sidebarPosition'];
       }
       if (Array.isArray(prefs.sidebarBottomActions) && prefs.sidebarBottomActions.length === 3) {
@@ -206,23 +249,45 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // the account-specific encrypted size once without overwriting the global
       // plaintext cache, so the next cold start still uses the fallback size.
       const encryptedWindowSize = prefs.windowSize as WindowSize | undefined;
-      if (encryptedWindowSize && typeof encryptedWindowSize.width === 'number' && typeof encryptedWindowSize.height === 'number') {
+      if (
+        encryptedWindowSize &&
+        typeof encryptedWindowSize.width === 'number' &&
+        typeof encryptedWindowSize.height === 'number'
+      ) {
         parsed.windowSize = encryptedWindowSize;
         try {
           const window = getCurrentWebviewWindow();
           const current = await window.innerSize();
-          if (Math.abs(current.width - encryptedWindowSize.width) > 1 || Math.abs(current.height - encryptedWindowSize.height) > 1) {
+          if (
+            Math.abs(current.width - encryptedWindowSize.width) > 1 ||
+            Math.abs(current.height - encryptedWindowSize.height) > 1
+          ) {
             await window.setSize(new PhysicalSize(encryptedWindowSize));
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
       set({ settings: parsed, isLoading: false });
       // Sync UI prefs to plaintext file so next startup shows correct theme
-      if (parsed.theme) invoke('ui_update_preference', { key: 'theme', value: parsed.theme }).catch(() => {});
-      if (parsed.accentColor) invoke('ui_update_preference', { key: 'accentColor', value: parsed.accentColor }).catch(() => {});
-      if (parsed.language) invoke('ui_update_preference', { key: 'language', value: parsed.language }).catch(() => {});
-      if (parsed.defaultLightTheme) invoke('ui_update_preference', { key: 'defaultLightTheme', value: parsed.defaultLightTheme }).catch(() => {});
-      if (parsed.defaultDarkTheme) invoke('ui_update_preference', { key: 'defaultDarkTheme', value: parsed.defaultDarkTheme }).catch(() => {});
+      if (parsed.theme)
+        invoke('ui_update_preference', { key: 'theme', value: parsed.theme }).catch(() => {});
+      if (parsed.accentColor)
+        invoke('ui_update_preference', { key: 'accentColor', value: parsed.accentColor }).catch(
+          () => {},
+        );
+      if (parsed.language)
+        invoke('ui_update_preference', { key: 'language', value: parsed.language }).catch(() => {});
+      if (parsed.defaultLightTheme)
+        invoke('ui_update_preference', {
+          key: 'defaultLightTheme',
+          value: parsed.defaultLightTheme,
+        }).catch(() => {});
+      if (parsed.defaultDarkTheme)
+        invoke('ui_update_preference', {
+          key: 'defaultDarkTheme',
+          value: parsed.defaultDarkTheme,
+        }).catch(() => {});
     } catch {
       set({ isLoading: false });
     }
@@ -233,10 +298,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
    *  If empty but old-format pages exist in preferences, migrate them automatically. */
   loadCustomPages: async (accountId) => {
     try {
-      const objects = await invoke<Array<{ id: string; name: string; collectionType: string; createdAt: string; updatedAt: string; isDeleted?: boolean }>>(
-        'object_list',
-        { accountId, filter: { collectionType: 'page', includeDeleted: true } }
-      );
+      const objects = await invoke<
+        Array<{
+          id: string;
+          name: string;
+          collectionType: string;
+          createdAt: string;
+          updatedAt: string;
+          isDeleted?: boolean;
+        }>
+      >('object_list', { accountId, filter: { collectionType: 'page', includeDeleted: true } });
       if (objects.length > 0) {
         // New-format pages exist in objects table — use them (including deleted pages so
         // templates referencing deleted pages can still show the original page name)
@@ -280,7 +351,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             await invoke('user_data_update_preference', {
               payload: { accountId, preferences: { customPages: [] } },
             });
-          } catch { /* silent */ }
+          } catch {
+            /* silent */
+          }
         }
       }
     } catch {
@@ -296,7 +369,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (key === 'windowSize') {
         try {
           localStorage.setItem('solosoul_window_size', JSON.stringify(value));
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         await invoke('ui_update_preference', {
           key: 'windowSize',
           value: JSON.stringify(value),
@@ -311,7 +386,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         // Sync to plaintext UI prefs so backend can read the current language immediately
         invoke('ui_update_preference', { key: 'language', value }).catch(() => {});
         // Persist to localStorage for next cold launch
-        try { localStorage.setItem('i18nextLng', value); } catch { /* ignore */ }
+        try {
+          localStorage.setItem('i18nextLng', value);
+        } catch {
+          /* ignore */
+        }
       }
     } catch {
       set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));
@@ -354,9 +433,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const prevPages = get().settings.customPages;
     const now = new Date().toISOString();
     // Mark as deleted locally (keep in array so templates can still reference the name)
-    const pages = prevPages.map((p) =>
-      p.id === pageId ? { ...p, deletedAt: now } : p
-    );
+    const pages = prevPages.map((p) => (p.id === pageId ? { ...p, deletedAt: now } : p));
     set((s) => ({ settings: { ...s.settings, customPages: pages } }));
     try {
       // P0-1: Use page_delete to create a "page" type trash item

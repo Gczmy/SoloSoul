@@ -46,17 +46,27 @@ export interface GuideContent {
 }
 
 /** 包装 IPC 调用，增加超时保护（避免后端未启动时永久挂起） */
-function invokeWithTimeout<T>(cmd: string, args?: Record<string, unknown>, timeoutMs = 60000): Promise<T> {
+function invokeWithTimeout<T>(
+  cmd: string,
+  args?: Record<string, unknown>,
+  timeoutMs = 60000,
+): Promise<T> {
   if (!isTauriEnv()) {
     return Promise.reject(
-      new Error('当前不在 Tauri 环境中。帮助文档需要本地 Tauri 后端，请使用 npm run tauri dev 启动。')
+      new Error(
+        '当前不在 Tauri 环境中。帮助文档需要本地 Tauri 后端，请使用 npm run tauri dev 启动。',
+      ),
     );
   }
   return Promise.race([
     invoke<T>(cmd, args),
     new Promise<T>((_, reject) => {
       setTimeout(() => {
-        reject(new Error(`IPC 调用超时（${timeoutMs}ms）。请确认 Tauri 后端已启动（npm run tauri dev）。`));
+        reject(
+          new Error(
+            `IPC 调用超时（${timeoutMs}ms）。请确认 Tauri 后端已启动（npm run tauri dev）。`,
+          ),
+        );
       }, timeoutMs);
     }),
   ]);

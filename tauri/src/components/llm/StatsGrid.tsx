@@ -80,16 +80,32 @@ function StatTile({
 
   return (
     <Card>
-      <div style={{ display: 'flex', flexDirection: 'column', height: tileHeight, overflow: 'hidden' }}>
+      <div
+        style={{ display: 'flex', flexDirection: 'column', height: tileHeight, overflow: 'hidden' }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
           {icon}
           <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{label}</span>
         </div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>{value}</div>
+        <div
+          style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}
+        >
+          {value}
+        </div>
         {modelUsages.length > 0 && (
-          <div style={{ marginTop: 4, overflow: needsScroll ? 'auto' : 'visible', fontSize: 10, color: 'var(--text-tertiary)' }}>
+          <div
+            style={{
+              marginTop: 4,
+              overflow: needsScroll ? 'auto' : 'visible',
+              fontSize: 10,
+              color: 'var(--text-tertiary)',
+            }}
+          >
             {modelUsages.map((m) => (
-              <div key={`${m.provider}/${m.model}`} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div
+                key={`${m.provider}/${m.model}`}
+                style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+              >
                 {m.model} · {m.provider} · {modelValue(m)}
               </div>
             ))}

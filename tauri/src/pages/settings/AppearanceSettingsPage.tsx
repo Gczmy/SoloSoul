@@ -36,7 +36,11 @@ const ACTION_OPTIONS = CUSTOMIZABLE_ACTION_IDS.map((id) => ({
   Icon: PAGE_ICON_MAP[id],
 }));
 
-const SIDEBAR_OPTIONS: { value: AppSettings['sidebarPosition']; labelKey: string; icon: React.ElementType }[] = [
+const SIDEBAR_OPTIONS: {
+  value: AppSettings['sidebarPosition'];
+  labelKey: string;
+  icon: React.ElementType;
+}[] = [
   { value: 'left', labelKey: 'settings:sidebar_left', icon: PanelLeft },
   { value: 'right', labelKey: 'settings:sidebar_right', icon: PanelRight },
   { value: 'top', labelKey: 'settings:sidebar_top', icon: PanelTop },
@@ -51,27 +55,36 @@ export function AppearanceSettingsPage() {
   const { t } = useTranslation(['settings', 'common']);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  const lightSchemeName = t(getSchemeById(settings.defaultLightTheme)?.nameKey.replace('settings:', '') as string);
-  const darkSchemeName = t(getSchemeById(settings.defaultDarkTheme)?.nameKey.replace('settings:', '') as string);
+  const lightSchemeName = t(
+    getSchemeById(settings.defaultLightTheme)?.nameKey.replace('settings:', '') as string,
+  );
+  const darkSchemeName = t(
+    getSchemeById(settings.defaultDarkTheme)?.nameKey.replace('settings:', '') as string,
+  );
 
   const syncUiCache = () => {
     const s = useSettingsStore.getState().settings;
     try {
-      localStorage.setItem('solosoul_ui_prefs', JSON.stringify({
-        theme: s.theme,
-        accentColor: s.accentColor,
-        defaultLightTheme: s.defaultLightTheme,
-        defaultDarkTheme: s.defaultDarkTheme,
-      }));
-    } catch { /* ignore */ }
+      localStorage.setItem(
+        'solosoul_ui_prefs',
+        JSON.stringify({
+          theme: s.theme,
+          accentColor: s.accentColor,
+          defaultLightTheme: s.defaultLightTheme,
+          defaultDarkTheme: s.defaultDarkTheme,
+        }),
+      );
+    } catch {
+      /* ignore */
+    }
   };
 
   const handlePresetChange = (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
     invoke('ui_update_preference', { key: 'theme', value: preset }).catch(() => {});
     applyTheme({
-      preset: preset === 'dark' ? 'warm-stone-dark' :
-              preset === 'light' ? 'warm-stone-light' : 'system',
+      preset:
+        preset === 'dark' ? 'warm-stone-dark' : preset === 'light' ? 'warm-stone-light' : 'system',
       accentColor: settings.accentColor as AccentPreset,
       backgroundType: 'solid',
       backgroundValue: '',
@@ -85,8 +98,12 @@ export function AppearanceSettingsPage() {
     updateSetting(accountId, 'accentColor', accent);
     invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch(() => {});
     applyTheme({
-      preset: settings.theme === 'dark' ? 'warm-stone-dark' :
-              settings.theme === 'light' ? 'warm-stone-light' : 'system',
+      preset:
+        settings.theme === 'dark'
+          ? 'warm-stone-dark'
+          : settings.theme === 'light'
+            ? 'warm-stone-light'
+            : 'system',
       accentColor: accent,
       backgroundType: 'solid',
       backgroundValue: '',
@@ -99,10 +116,14 @@ export function AppearanceSettingsPage() {
   const handleSelectScheme = (scheme: ThemeScheme) => {
     // If the selected scheme's mode differs from the current theme setting,
     // automatically switch to match so the UI state reflects the selected theme.
-    if (scheme.mode !== (settings.theme === 'system'
-      ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-      : settings.theme
-    )) {
+    if (
+      scheme.mode !==
+      (settings.theme === 'system'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : settings.theme)
+    ) {
       const newTheme = scheme.mode;
       updateSetting(accountId, 'theme', newTheme);
       invoke('ui_update_preference', { key: 'theme', value: newTheme }).catch(() => {});
@@ -150,18 +171,33 @@ export function AppearanceSettingsPage() {
             padding: 16,
           }}
         >
-          <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div
+            style={{
+              maxWidth: 480,
+              margin: '0 auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+            }}
+          >
             {/* Theme preset */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:groups.appearance')}</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+                {t('settings:groups.appearance')}
+              </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {(['light', 'dark', 'system'] as const).map((preset) => (
                   <label
                     key={preset}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-                      padding: '8px 10px', borderRadius: 8,
-                      background: settings.theme === preset ? 'var(--state-selected)' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      cursor: 'pointer',
+                      padding: '8px 10px',
+                      borderRadius: 8,
+                      background:
+                        settings.theme === preset ? 'var(--state-selected)' : 'transparent',
                       fontSize: 14,
                     }}
                   >
@@ -217,7 +253,9 @@ export function AppearanceSettingsPage() {
 
             {/* Accent color */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t("settings:accent_color")}</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+                {t('settings:accent_color')}
+              </h3>
               <div style={{ display: 'flex', gap: 12 }}>
                 {ACCENT_OPTIONS.map((opt) => (
                   <button
@@ -225,9 +263,16 @@ export function AppearanceSettingsPage() {
                     onClick={() => handleAccentChange(opt.value)}
                     title={t(`settings:accent_${opt.value}`)}
                     style={{
-                      width: 36, height: 36, borderRadius: 10, border: '2px solid',
-                      borderColor: settings.accentColor === opt.value ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                      background: opt.color, cursor: 'pointer',
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      border: '2px solid',
+                      borderColor:
+                        settings.accentColor === opt.value
+                          ? 'var(--accent-primary)'
+                          : 'var(--border-subtle)',
+                      background: opt.color,
+                      cursor: 'pointer',
                       transition: 'border-color 0.15s, transform 0.15s',
                       transform: settings.accentColor === opt.value ? 'scale(1.1)' : 'scale(1)',
                     }}
@@ -238,15 +283,22 @@ export function AppearanceSettingsPage() {
 
             {/* Language selector (15.7) */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:items.language')}</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+                {t('settings:items.language')}
+              </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {LANG_OPTIONS.map((opt) => (
                   <label
                     key={opt.value}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-                      padding: '8px 10px', borderRadius: 8,
-                      background: settings.language === opt.value ? 'var(--state-selected)' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      cursor: 'pointer',
+                      padding: '8px 10px',
+                      borderRadius: 8,
+                      background:
+                        settings.language === opt.value ? 'var(--state-selected)' : 'transparent',
                       fontSize: 14,
                     }}
                   >
@@ -267,7 +319,9 @@ export function AppearanceSettingsPage() {
 
             {/* Sidebar position */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('settings:sidebar_position')}</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+                {t('settings:sidebar_position')}
+              </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                 {SIDEBAR_OPTIONS.map((opt) => {
                   const Icon = opt.icon;
@@ -283,7 +337,9 @@ export function AppearanceSettingsPage() {
                         gap: 6,
                         padding: '12px 4px',
                         borderRadius: 10,
-                        border: isActive ? '2px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                        border: isActive
+                          ? '2px solid var(--accent-primary)'
+                          : '1px solid var(--border-subtle)',
                         background: isActive ? 'rgba(91,124,153,0.08)' : 'transparent',
                         cursor: 'pointer',
                         transition: 'all 0.15s ease',
@@ -291,7 +347,9 @@ export function AppearanceSettingsPage() {
                       }}
                     >
                       <Icon size={22} />
-                      <span style={{ fontSize: 12, fontWeight: isActive ? 500 : 400 }}>{t(opt.labelKey)}</span>
+                      <span style={{ fontSize: 12, fontWeight: isActive ? 500 : 400 }}>
+                        {t(opt.labelKey)}
+                      </span>
                     </button>
                   );
                 })}
@@ -300,7 +358,9 @@ export function AppearanceSettingsPage() {
 
             {/* Sidebar bottom actions customization */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{t('settings:sidebar_bottom_actions')}</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
+                {t('settings:sidebar_bottom_actions')}
+              </h3>
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
                 {t('settings:sidebar_bottom_actions_desc')}
               </p>
@@ -309,14 +369,25 @@ export function AppearanceSettingsPage() {
                   const otherSelected = settings.sidebarBottomActions.filter((_, i) => i !== index);
                   return (
                     <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 12, color: 'var(--text-tertiary)', width: 48, flexShrink: 0 }}>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: 'var(--text-tertiary)',
+                          width: 48,
+                          flexShrink: 0,
+                        }}
+                      >
                         {t('settings:position')} {index + 1}
                       </span>
                       <select
                         value={selectedId}
                         onChange={(e) => {
-                          const newId = e.target.value as typeof CUSTOMIZABLE_ACTION_IDS[number];
-                          const current = [...settings.sidebarBottomActions] as [string, string, string];
+                          const newId = e.target.value as (typeof CUSTOMIZABLE_ACTION_IDS)[number];
+                          const current = [...settings.sidebarBottomActions] as [
+                            string,
+                            string,
+                            string,
+                          ];
                           const existingIndex = current.indexOf(newId);
                           if (existingIndex !== -1 && existingIndex !== index) {
                             // 交换位置，避免重复

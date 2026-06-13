@@ -8,9 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
-import {
-  HardDrive, RotateCcw, Trash2, Plus,
-} from 'lucide-react';
+import { HardDrive, RotateCcw, Trash2, Plus } from 'lucide-react';
 
 interface BackupInfo {
   id: string;
@@ -92,10 +90,27 @@ export function BackupConfigPage() {
 
   return (
     <AppShell title={t('settings:backup_restore')} onBack={() => navigate('/settings')}>
-      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div
+        style={{
+          maxWidth: 560,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
         {/* Create Backup */}
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <h3
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              margin: '0 0 4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
             <HardDrive size={16} />
             {t('settings:create_backup_title')}
           </h3>
@@ -128,9 +143,7 @@ export function BackupConfigPage() {
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>
               <HardDrive size={24} style={{ marginBottom: 8, opacity: 0.4 }} />
               <p style={{ fontSize: 14, margin: 0 }}>{t('settings:no_backups_yet')}</p>
-              <p style={{ fontSize: 12, margin: '4px 0 0' }}>
-                {t('settings:create_first_backup')}
-              </p>
+              <p style={{ fontSize: 12, margin: '4px 0 0' }}>{t('settings:create_first_backup')}</p>
             </div>
           ) : (
             <div style={{ marginTop: 4 }}>
@@ -138,8 +151,11 @@ export function BackupConfigPage() {
                 <div
                   key={backup.id}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '10px 0', borderBottom: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '10px 0',
+                    borderBottom: '1px solid var(--border-subtle)',
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>

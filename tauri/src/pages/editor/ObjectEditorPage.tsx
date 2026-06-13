@@ -53,7 +53,18 @@ export function ObjectEditorPage() {
   }, [userTemplates]);
 
   const objectTemplates = useMemo(() => {
-    const map: Record<string, { key: string; label: string; type: string; options?: string[]; sensitivityLevel?: string; required?: boolean; deprecatedAt?: string }[]> = {};
+    const map: Record<
+      string,
+      {
+        key: string;
+        label: string;
+        type: string;
+        options?: string[];
+        sensitivityLevel?: string;
+        required?: boolean;
+        deprecatedAt?: string;
+      }[]
+    > = {};
     for (const tpl of userTemplates) {
       map[tpl.id] = tpl.properties.map((p) => ({
         key: p.id,
@@ -78,14 +89,10 @@ export function ObjectEditorPage() {
   // Filter templates to only show those belonging to the current section/page
   const visibleTemplates = useMemo(() => {
     if (sectionParam) {
-      return Object.keys(objectTemplates).filter(
-        (t) => templateMeta[t]?.category === sectionParam
-      );
+      return Object.keys(objectTemplates).filter((t) => templateMeta[t]?.category === sectionParam);
     }
     if (parentId) {
-      return Object.keys(objectTemplates).filter(
-        (t) => templateMeta[t]?.category === parentId
-      );
+      return Object.keys(objectTemplates).filter((t) => templateMeta[t]?.category === parentId);
     }
     return Object.keys(objectTemplates);
   }, [sectionParam, parentId, objectTemplates, templateMeta]);
@@ -108,12 +115,18 @@ export function ObjectEditorPage() {
   const activeFields = fields.filter((f) => !f.deprecatedAt);
   const deprecatedFields = isNew
     ? []
-    : fields.filter((f) => f.deprecatedAt && values[f.key] !== undefined && values[f.key] !== '' && values[f.key] !== null);
+    : fields.filter(
+        (f) =>
+          f.deprecatedAt &&
+          values[f.key] !== undefined &&
+          values[f.key] !== '' &&
+          values[f.key] !== null,
+      );
   const displayFields = [...activeFields, ...deprecatedFields];
 
   // Determine collectionType
   const collectionType = isNew
-    ? sectionParam || (selectedType ? (templateMeta[selectedType]?.category || selectedType) : '')
+    ? sectionParam || (selectedType ? templateMeta[selectedType]?.category || selectedType : '')
     : currentObject?.collectionType || '';
 
   // Load existing object and populate form
@@ -272,14 +285,31 @@ export function ObjectEditorPage() {
 
   return (
     <AppShell title={isNew ? t('common:new_object') : t('common:edit_object')} onBack={handleBack}>
-      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div
+        style={{
+          maxWidth: 560,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
         {isNew && (
           <Card>
             <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
               {t('common:object_type')}
               {sectionParam && (
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 8, fontWeight: 400 }}>
-                  {t('editor:in_section', { section: t(`navigation:${sectionParam}`, sectionParam) })}
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--text-tertiary)',
+                    marginLeft: 8,
+                    fontWeight: 400,
+                  }}
+                >
+                  {t('editor:in_section', {
+                    section: t(`navigation:${sectionParam}`, sectionParam),
+                  })}
                 </span>
               )}
             </h3>
@@ -291,10 +321,14 @@ export function ObjectEditorPage() {
                     key={type}
                     onClick={() => setSelectedType(type)}
                     style={{
-                      padding: '10px 16px', borderRadius: 8, border: '1px solid var(--border-subtle)',
-                      background: selectedType === type ? 'var(--accent-primary)' : 'var(--bg-elevated)',
+                      padding: '10px 16px',
+                      borderRadius: 8,
+                      border: '1px solid var(--border-subtle)',
+                      background:
+                        selectedType === type ? 'var(--accent-primary)' : 'var(--bg-elevated)',
                       color: selectedType === type ? 'white' : 'var(--text-primary)',
-                      fontSize: 13, cursor: 'pointer',
+                      fontSize: 13,
+                      cursor: 'pointer',
                     }}
                   >
                     {label}
@@ -302,15 +336,23 @@ export function ObjectEditorPage() {
                 );
               })}
               <button
-                onClick={() => navigate('/settings/templates', { state: { from: location.pathname + location.search } })}
+                onClick={() =>
+                  navigate('/settings/templates', {
+                    state: { from: location.pathname + location.search },
+                  })
+                }
                 style={{
                   marginLeft: 'auto',
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '8px 12px', borderRadius: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 12px',
+                  borderRadius: 8,
                   border: '1px dashed var(--border-strong)',
                   background: 'transparent',
                   color: 'var(--text-secondary)',
-                  fontSize: 12, cursor: 'pointer',
+                  fontSize: 12,
+                  cursor: 'pointer',
                 }}
                 title={t('editor:manage_templates')}
               >
@@ -320,8 +362,16 @@ export function ObjectEditorPage() {
                 <div style={{ fontSize: 13, color: 'var(--text-tertiary)', padding: '8px 0' }}>
                   {t('editor:no_template_for_section') || '此页面暂无模板，'}
                   <span
-                    onClick={() => navigate('/settings/templates', { state: { from: location.pathname + location.search } })}
-                    style={{ color: 'var(--accent-primary)', cursor: 'pointer', textDecoration: 'underline' }}
+                    onClick={() =>
+                      navigate('/settings/templates', {
+                        state: { from: location.pathname + location.search },
+                      })
+                    }
+                    style={{
+                      color: 'var(--accent-primary)',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                    }}
                   >
                     {t('editor:go_create_template') || '前往模板管理新建'}
                   </span>
@@ -334,11 +384,19 @@ export function ObjectEditorPage() {
         {!isNew && collectionType && (
           <Card>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{t('common:object_type')}:</span>
-              <span style={{
-                fontSize: 12, fontWeight: 500, padding: '2px 8px', borderRadius: 4,
-                background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)',
-              }}>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                {t('common:object_type')}:
+              </span>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  padding: '2px 8px',
+                  borderRadius: 4,
+                  background: 'rgba(91,124,153,0.08)',
+                  color: 'var(--accent-primary)',
+                }}
+              >
                 {t(`navigation:${collectionType}`, collectionType)}
               </span>
               {selectedType && (
@@ -350,93 +408,109 @@ export function ObjectEditorPage() {
           </Card>
         )}
 
-        {(!isNew && !dataLoaded) ? null : (selectedType || !isNew) && (
-          <>
-            <Card>
-              <Input
-                label={t('common:object_name')}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('common:object_name_placeholder')}
-              />
-            </Card>
-            <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-                {t('common:properties')}
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {fields.length === 0 ? (
-                  // Fallback: render raw properties as generic text inputs when no template matches
-                  Object.entries(values).filter(([k]) => !k.startsWith('__')).map(([key, val]) => {
-                    const tplField = userTemplates.find((t) => t.id === selectedType)?.properties.find((p) => p.id === key);
-                    const isDeprecated = !!tplField?.deprecatedAt;
-                    return (
-                      <div key={key}>
-                        <Input
-                          label={t(`editor:fields.${key}`, key)}
-                          icon={<FieldTypeIcon type="text" />}
-                          value={String(val ?? '')}
-                          onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-                          placeholder={key}
-                          badge={isDeprecated ? <DeprecatedBadge /> : undefined}
-                        />
-                      </div>
-                    );
-                  })
-                ) : (
-                displayFields.map((field) => {
-                    const sensitivity = getSensitivity(field.key, field.sensitivityLevel);
-                    const fieldLabel = t(`editor:fields.${field.key}`, field.label);
-                    // Map legacy frontend type names to PropertyType
-                    const propType: PropertyType =
-                      field.type === 'tel' ? 'phone' :
-                      field.type === 'datetime-local' ? 'datetime' :
-                      (field.type as PropertyType) || 'text';
-                    const isDeprecated = !!field.deprecatedAt;
-                    return (
-                  <div key={field.key}>
-                    <TemplateFieldInput
-                      propertyId={field.key}
-                      label={fieldLabel}
-                      type={propType}
-                      options={field.options}
-                      value={values[field.key]}
-                      icon={<FieldTypeIcon type={propType} />}
-                      badge={
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <SensitivityBadge level={sensitivity} />
-                          {isDeprecated && <DeprecatedBadge />}
-                        </div>
-                      }
-                      hint={['email', 'url', 'phone', 'date', 'number'].includes(propType) ? t(`editor:validation_hint_${propType}`) : undefined}
-                      onChange={(val) => {
-                        setValues((v) => ({ ...v, [field.key]: val }));
-                        if (validationErrors[field.key]) {
-                          setValidationErrors((err) => {
-                            const next = { ...err };
-                            delete next[field.key];
-                            return next;
-                          });
-                        }
-                      }}
-                    />
-                    {validationErrors[field.key] && (
-                      <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>
-                        {validationErrors[field.key]}
-                      </div>
-                    )}
+        {!isNew && !dataLoaded
+          ? null
+          : (selectedType || !isNew) && (
+              <>
+                <Card>
+                  <Input
+                    label={t('common:object_name')}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder={t('common:object_name_placeholder')}
+                  />
+                </Card>
+                <Card>
+                  <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+                    {t('common:properties')}
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {fields.length === 0
+                      ? // Fallback: render raw properties as generic text inputs when no template matches
+                        Object.entries(values)
+                          .filter(([k]) => !k.startsWith('__'))
+                          .map(([key, val]) => {
+                            const tplField = userTemplates
+                              .find((t) => t.id === selectedType)
+                              ?.properties.find((p) => p.id === key);
+                            const isDeprecated = !!tplField?.deprecatedAt;
+                            return (
+                              <div key={key}>
+                                <Input
+                                  label={t(`editor:fields.${key}`, key)}
+                                  icon={<FieldTypeIcon type="text" />}
+                                  value={String(val ?? '')}
+                                  onChange={(e) =>
+                                    setValues((v) => ({ ...v, [key]: e.target.value }))
+                                  }
+                                  placeholder={key}
+                                  badge={isDeprecated ? <DeprecatedBadge /> : undefined}
+                                />
+                              </div>
+                            );
+                          })
+                      : displayFields.map((field) => {
+                          const sensitivity = getSensitivity(field.key, field.sensitivityLevel);
+                          const fieldLabel = t(`editor:fields.${field.key}`, field.label);
+                          // Map legacy frontend type names to PropertyType
+                          const propType: PropertyType =
+                            field.type === 'tel'
+                              ? 'phone'
+                              : field.type === 'datetime-local'
+                                ? 'datetime'
+                                : (field.type as PropertyType) || 'text';
+                          const isDeprecated = !!field.deprecatedAt;
+                          return (
+                            <div key={field.key}>
+                              <TemplateFieldInput
+                                propertyId={field.key}
+                                label={fieldLabel}
+                                type={propType}
+                                options={field.options}
+                                value={values[field.key]}
+                                icon={<FieldTypeIcon type={propType} />}
+                                badge={
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <SensitivityBadge level={sensitivity} />
+                                    {isDeprecated && <DeprecatedBadge />}
+                                  </div>
+                                }
+                                hint={
+                                  ['email', 'url', 'phone', 'date', 'number'].includes(propType)
+                                    ? t(`editor:validation_hint_${propType}`)
+                                    : undefined
+                                }
+                                onChange={(val) => {
+                                  setValues((v) => ({ ...v, [field.key]: val }));
+                                  if (validationErrors[field.key]) {
+                                    setValidationErrors((err) => {
+                                      const next = { ...err };
+                                      delete next[field.key];
+                                      return next;
+                                    });
+                                  }
+                                }}
+                              />
+                              {validationErrors[field.key] && (
+                                <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>
+                                  {validationErrors[field.key]}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                   </div>
-                    );
-                  })
-                )}
-              </div>
-            </Card>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={() => navigate(-1)}>{t('common:cancel')}</Button>
-              <Button onClick={handleSave} loading={isSaving}>{t('common:save')}</Button>
-            </div>
-          </>
-        )}
+                </Card>
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                  <Button variant="secondary" onClick={() => navigate(-1)}>
+                    {t('common:cancel')}
+                  </Button>
+                  <Button onClick={handleSave} loading={isSaving}>
+                    {t('common:save')}
+                  </Button>
+                </div>
+              </>
+            )}
       </div>
     </AppShell>
   );

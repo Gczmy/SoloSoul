@@ -1,7 +1,8 @@
 /* 登录页按钮动画与高亮效果（2.4） */
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -11,11 +12,16 @@
 
 .loginFloatButton {
   animation: float 3s ease-in-out infinite;
-  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
 }
 
 .loginFloatButton:hover:not(:disabled) {
-  box-shadow: 0 0 0 2px var(--accent-primary), 0 8px 24px rgba(91, 124, 153, 0.25);
+  box-shadow:
+    0 0 0 2px var(--accent-primary),
+    0 8px 24px rgba(91, 124, 153, 0.25);
   border-color: var(--accent-primary);
 }
 
@@ -27,7 +33,10 @@
 .loginTextButton {
   padding: 6px 12px;
   border-radius: 6px;
-  transition: box-shadow 0.25s ease, color 0.2s ease, background 0.2s ease;
+  transition:
+    box-shadow 0.25s ease,
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
 .loginTextButton:hover {

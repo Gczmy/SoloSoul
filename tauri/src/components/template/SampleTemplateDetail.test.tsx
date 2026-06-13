@@ -57,7 +57,9 @@ describe('SampleTemplateDetail', () => {
 
   it('calls onBack when clicking the overlay backdrop', () => {
     const onBack = vi.fn();
-    const { container } = render(<SampleTemplateDetail template={template} onBack={onBack} onUse={vi.fn()} />);
+    const { container } = render(
+      <SampleTemplateDetail template={template} onBack={onBack} onUse={vi.fn()} />,
+    );
 
     const overlay = container.firstChild as HTMLElement;
     fireEvent.click(overlay);

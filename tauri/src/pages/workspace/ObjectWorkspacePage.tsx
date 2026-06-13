@@ -34,7 +34,7 @@ const CATEGORY_ICONS: Record<string, typeof PAGE_ICON_MAP.profile> = {
  */
 function flattenProperties(
   props: Record<string, unknown> | undefined,
-  fieldOrder?: string[]
+  fieldOrder?: string[],
 ): { key: string; value: string }[] {
   if (!props) return [];
   const entries: { key: string; value: string }[] = [];
@@ -73,11 +73,16 @@ export function ObjectWorkspacePage() {
   const [, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
-  const [historyObj, setHistoryObj] = useState<{ id: string; name: string; collectionType: string; templateId?: string } | null>(null);
+  const [historyObj, setHistoryObj] = useState<{
+    id: string;
+    name: string;
+    collectionType: string;
+    templateId?: string;
+  } | null>(null);
   const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
   const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
-  const [detailObj, setDetailObj] = useState<typeof visibleObjects[number] | null>(null);
+  const [detailObj, setDetailObj] = useState<(typeof visibleObjects)[number] | null>(null);
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
@@ -95,7 +100,7 @@ export function ObjectWorkspacePage() {
   useEffect(() => {
     if (!detailObjectId || !accountId) return;
     invoke('object_get', { objectId: detailObjectId })
-      .then((obj) => setDetailObj(obj as typeof visibleObjects[number]))
+      .then((obj) => setDetailObj(obj as (typeof visibleObjects)[number]))
       .catch(() => {});
   }, [detailObjectId, accountId]);
 
@@ -109,28 +114,46 @@ export function ObjectWorkspacePage() {
     return cp?.name || collectionType;
   };
 
-  const activeCategoryLabel = sectionFilter ? t(`navigation:${sectionFilter}`, sectionFilter) : null;
+  const activeCategoryLabel = sectionFilter
+    ? t(`navigation:${sectionFilter}`, sectionFilter)
+    : null;
 
   /** Password dialog state — shared between detail panel and history viewer. */
   const [showPwDialog, setShowPwDialog] = useState(false);
-  const pwResolveRef = useRef<((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null>(null);
-  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({ available: false });
+  const pwResolveRef = useRef<
+    ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null
+  >(null);
+  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
+    available: false,
+  });
   const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
   // Check biometric availability on mount + load password hint
   useEffect(() => {
-    invoke<{ available: boolean; configured: boolean; biometryType?: string }>('biometric_check_availability', { accountId: accountId || '' })
-      .then((r) => setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }))
+    invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
+      'biometric_check_availability',
+      { accountId: accountId || '' },
+    )
+      .then((r) =>
+        setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
+      )
       .catch(() => {});
     if (accountId) {
-      invoke<Array<{ id: string; passwordHint?: string }>>('list_accounts').then((accounts) => {
-        const acc = accounts.find((a) => a.id === accountId);
-        setPasswordHint(acc?.passwordHint || null);
-      }).catch(() => { /* ignore */ });
+      invoke<Array<{ id: string; passwordHint?: string }>>('list_accounts')
+        .then((accounts) => {
+          const acc = accounts.find((a) => a.id === accountId);
+          setPasswordHint(acc?.passwordHint || null);
+        })
+        .catch(() => {
+          /* ignore */
+        });
     }
   }, [accountId]);
 
-  const passwordVerify = useCallback(async (): Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' }> => {
+  const passwordVerify = useCallback(async (): Promise<{
+    ok: boolean;
+    method: 'password' | 'touchId' | 'faceId';
+  }> => {
     return new Promise((resolve) => {
       pwResolveRef.current = resolve;
       setShowPwDialog(true);
@@ -138,22 +161,31 @@ export function ObjectWorkspacePage() {
   }, []);
 
   /** Verify password against vault — used by PasswordVerificationDialog. */
-  const verifyVaultPassword = useCallback(async (password: string): Promise<boolean> => {
-    if (accountId) {
-      try {
-        const ok = await invoke<boolean>('verify_password', { accountId, password });
-        if (ok) return true;
-      } catch { /* ignore */ }
-    }
-    const accounts = await invoke<Array<{ id: string; passwordHint?: string }>>('list_accounts').catch(() => []);
-    for (const acc of accounts) {
-      try {
-        const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password });
-        if (ok) return true;
-      } catch { /* ignore */ }
-    }
-    return false;
-  }, [accountId]);
+  const verifyVaultPassword = useCallback(
+    async (password: string): Promise<boolean> => {
+      if (accountId) {
+        try {
+          const ok = await invoke<boolean>('verify_password', { accountId, password });
+          if (ok) return true;
+        } catch {
+          /* ignore */
+        }
+      }
+      const accounts = await invoke<Array<{ id: string; passwordHint?: string }>>(
+        'list_accounts',
+      ).catch(() => []);
+      for (const acc of accounts) {
+        try {
+          const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password });
+          if (ok) return true;
+        } catch {
+          /* ignore */
+        }
+      }
+      return false;
+    },
+    [accountId],
+  );
 
   /** Biometric unlock handler — used by PasswordVerificationDialog. */
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
@@ -174,18 +206,27 @@ export function ObjectWorkspacePage() {
   }, [accountId, bioAvailable.biometryType]);
 
   /** Resolve sensitivity level for a property key via its template definition. */
-  const getFieldSensitivity = (templateId: string | undefined, fieldKey: string): SensitivityLevel => {
-    const prop = userTemplates.find((t) => t.id === templateId)?.properties.find((p) => p.id === fieldKey);
+  const getFieldSensitivity = (
+    templateId: string | undefined,
+    fieldKey: string,
+  ): SensitivityLevel => {
+    const prop = userTemplates
+      .find((t) => t.id === templateId)
+      ?.properties.find((p) => p.id === fieldKey);
     return (prop?.sensitivityLevel as SensitivityLevel) || 'public';
   };
 
   const isFieldDeprecated = (templateId: string | undefined, fieldKey: string): boolean => {
-    const prop = userTemplates.find((t) => t.id === templateId)?.properties.find((p) => p.id === fieldKey);
+    const prop = userTemplates
+      .find((t) => t.id === templateId)
+      ?.properties.find((p) => p.id === fieldKey);
     return !!prop?.deprecatedAt;
   };
 
   const getFieldName = (templateId: string | undefined, fieldKey: string): string => {
-    const prop = userTemplates.find((t) => t.id === templateId)?.properties.find((p) => p.id === fieldKey);
+    const prop = userTemplates
+      .find((t) => t.id === templateId)
+      ?.properties.find((p) => p.id === fieldKey);
     return prop?.name || fieldKey;
   };
 
@@ -203,29 +244,30 @@ export function ObjectWorkspacePage() {
     (obj) =>
       obj.collectionType !== 'page' &&
       obj.collectionType !== 'unknown' &&
-      obj.name.toLowerCase().includes(searchQuery.toLowerCase())
+      obj.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Load snapshot counts for visible objects
   useEffect(() => {
-    const ids = visibleObjects.map(o => o.id);
+    const ids = visibleObjects.map((o) => o.id);
     if (ids.length === 0) return;
     invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
       .then(setSnapshotCounts)
       .catch(() => {});
-  }, [visibleObjects.map(o => o.id).join(',')]);
+  }, [visibleObjects.map((o) => o.id).join(',')]);
 
   // Load attachment counts for visible objects
   const refreshAttachmentCounts = useCallback(() => {
-    const ids = visibleObjects.map(o => o.id);
+    const ids = visibleObjects.map((o) => o.id);
     if (ids.length === 0) return;
     invoke<Record<string, number>>('attachment_count_batch', { objectIds: ids })
       .then(setAttachmentCounts)
       .catch(() => {});
-  }, [visibleObjects.map(o => o.id).join(',')]);
+  }, [visibleObjects.map((o) => o.id).join(',')]);
 
-  useEffect(() => { refreshAttachmentCounts(); }, [refreshAttachmentCounts]);
-
+  useEffect(() => {
+    refreshAttachmentCounts();
+  }, [refreshAttachmentCounts]);
 
   const newObjectUrl = pageId
     ? `/editor?parentId=${pageId}`
@@ -250,9 +292,14 @@ export function ObjectWorkspacePage() {
           <button
             onClick={() => navigate(newObjectUrl)}
             style={{
-              padding: '8px 16px', borderRadius: 8, border: 'none',
-              background: 'var(--accent-primary)', color: 'white',
-              fontSize: 13, fontWeight: 500, cursor: 'pointer',
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: 'none',
+              background: 'var(--accent-primary)',
+              color: 'white',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
             }}
           >
             + {t('create')}
@@ -262,9 +309,16 @@ export function ObjectWorkspacePage() {
               onClick={() => setConfirmPageDelete(true)}
               title={t('delete')}
               style={{
-                padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border-subtle)',
-                background: 'transparent', color: '#e74c3c', cursor: 'pointer',
-                fontSize: 13, display: 'flex', alignItems: 'center', gap: 4,
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'transparent',
+                color: '#e74c3c',
+                cursor: 'pointer',
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
               }}
             >
               <Trash size={14} /> {t('delete')} {customPage?.name || t('objects')}
@@ -273,17 +327,35 @@ export function ObjectWorkspacePage() {
         </div>
       }
     >
-      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }} onMouseDown={(e) => { if (e.detail > 1) e.preventDefault(); }}>
+      <div
+        style={{
+          maxWidth: 640,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+        onMouseDown={(e) => {
+          if (e.detail > 1) e.preventDefault();
+        }}
+      >
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {CATEGORY_TYPES.map((catType) => (
             <button
               key={catType}
               onClick={() => navigate(`/workspace?section=${catType}`)}
               style={{
-                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
-                background: !pageId && sectionFilter === catType ? 'var(--accent-primary)' : 'transparent',
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background:
+                  !pageId && sectionFilter === catType ? 'var(--accent-primary)' : 'transparent',
                 color: !pageId && sectionFilter === catType ? 'white' : 'var(--text-primary)',
-                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                fontSize: 13,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
               }}
             >
               {React.createElement(CATEGORY_ICONS[catType], { size: 16 })}
@@ -295,10 +367,16 @@ export function ObjectWorkspacePage() {
               key={page.id}
               onClick={() => navigate(`/workspace/custom/${page.id}`)}
               style={{
-                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
                 background: pageId === page.id ? 'var(--accent-primary)' : 'transparent',
                 color: pageId === page.id ? 'white' : 'var(--text-primary)',
-                fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                fontSize: 13,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
               }}
             >
               <FileText size={16} />
@@ -309,9 +387,13 @@ export function ObjectWorkspacePage() {
             <button
               onClick={() => navigate('/workspace')}
               style={{
-                padding: '6px 14px', borderRadius: 8, border: '1px solid var(--border-subtle)',
-                background: 'transparent', color: 'var(--text-tertiary)',
-                fontSize: 13, cursor: 'pointer',
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'transparent',
+                color: 'var(--text-tertiary)',
+                fontSize: 13,
+                cursor: 'pointer',
               }}
             >
               {t('clear')}
@@ -337,7 +419,14 @@ export function ObjectWorkspacePage() {
         )}
         {!isLoading && !error && visibleObjects.length === 0 && (
           <Card>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '24px 0', fontSize: 14 }}>
+            <p
+              style={{
+                textAlign: 'center',
+                color: 'var(--text-secondary)',
+                padding: '24px 0',
+                fontSize: 14,
+              }}
+            >
               {searchQuery ? t('no_matching_objects') : t('no_objects')}
             </p>
           </Card>
@@ -346,19 +435,35 @@ export function ObjectWorkspacePage() {
           visibleObjects.map((obj) => {
             const tpl = userTemplates.find((t) => t.id === obj.templateId);
             const fieldOrder = tpl?.properties.map((p) => p.id);
-            const fields = flattenProperties(obj.properties as Record<string, unknown> | undefined, fieldOrder);
+            const fields = flattenProperties(
+              obj.properties as Record<string, unknown> | undefined,
+              fieldOrder,
+            );
             return (
               <Card key={obj.id} interactive onClick={() => setDetailObj(obj)}>
                 {/* Header row */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: fields.length > 0 ? 8 : 0 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: fields.length > 0 ? 8 : 0,
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <PAGE_ICON_MAP.custom size={22} />
                     <div>
                       <span style={{ fontSize: 14, fontWeight: 600 }}>{obj.name}</span>
-                      <span style={{
-                        fontSize: 10, color: 'var(--text-tertiary)', marginLeft: 8,
-                        padding: '1px 5px', borderRadius: 4, background: 'var(--bg-elevated)',
-                      }}>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          color: 'var(--text-tertiary)',
+                          marginLeft: 8,
+                          padding: '1px 5px',
+                          borderRadius: 4,
+                          background: 'var(--bg-elevated)',
+                        }}
+                      >
                         {resolveCollectionLabel(obj.collectionType)}
                       </span>
                     </div>
@@ -367,26 +472,60 @@ export function ObjectWorkspacePage() {
                   <div style={{ display: 'flex', gap: 2 }} onClick={(e) => e.stopPropagation()}>
                     <div style={{ position: 'relative' }}>
                       <button
-                        onClick={() => setHistoryObj({ id: obj.id, name: obj.name, collectionType: obj.collectionType, templateId: obj.templateId || undefined })}
+                        onClick={() =>
+                          setHistoryObj({
+                            id: obj.id,
+                            name: obj.name,
+                            collectionType: obj.collectionType,
+                            templateId: obj.templateId || undefined,
+                          })
+                        }
                         title="History"
                         style={{
-                          width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer',
-                          color: 'var(--text-tertiary)', transition: 'all 0.15s ease',
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: 'none',
+                          borderRadius: 8,
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          color: 'var(--text-tertiary)',
+                          transition: 'all 0.15s ease',
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(128,128,128,0.08)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(128,128,128,0.08)';
+                          e.currentTarget.style.color = 'var(--text-primary)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.color = 'var(--text-tertiary)';
+                        }}
                       >
                         <Clock size={14} />
                       </button>
                       {/* Badge count */}
                       {snapshotCounts[obj.id] !== undefined && snapshotCounts[obj.id] > 0 && (
-                        <span style={{
-                          position: 'absolute', top: -2, right: -2, minWidth: 14, height: 14,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: 'var(--accent-primary)', color: 'white', fontSize: 9, fontWeight: 700,
-                          borderRadius: 7, padding: '0 3px', lineHeight: 1,
-                        }}>
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: -2,
+                            right: -2,
+                            minWidth: 14,
+                            height: 14,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'var(--accent-primary)',
+                            color: 'white',
+                            fontSize: 9,
+                            fontWeight: 700,
+                            borderRadius: 7,
+                            padding: '0 3px',
+                            lineHeight: 1,
+                          }}
+                        >
                           {snapshotCounts[obj.id]}
                         </span>
                       )}
@@ -397,22 +536,49 @@ export function ObjectWorkspacePage() {
                         onClick={() => setAttachmentObjId(obj.id)}
                         title="Attachments"
                         style={{
-                          width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer',
-                          color: 'var(--text-tertiary)', transition: 'all 0.15s ease',
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: 'none',
+                          borderRadius: 8,
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          color: 'var(--text-tertiary)',
+                          transition: 'all 0.15s ease',
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(128,128,128,0.08)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(128,128,128,0.08)';
+                          e.currentTarget.style.color = 'var(--text-primary)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.color = 'var(--text-tertiary)';
+                        }}
                       >
                         <Paperclip size={14} />
                       </button>
                       {attachmentCounts[obj.id] !== undefined && attachmentCounts[obj.id] > 0 && (
-                        <span style={{
-                          position: 'absolute', top: -2, right: -2, minWidth: 14, height: 14,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: 'var(--accent-primary)', color: 'white', fontSize: 9, fontWeight: 700,
-                          borderRadius: 7, padding: '0 3px', lineHeight: 1,
-                        }}>
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: -2,
+                            right: -2,
+                            minWidth: 14,
+                            height: 14,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: 'var(--accent-primary)',
+                            color: 'white',
+                            fontSize: 9,
+                            fontWeight: 700,
+                            borderRadius: 7,
+                            padding: '0 3px',
+                            lineHeight: 1,
+                          }}
+                        >
                           {attachmentCounts[obj.id]}
                         </span>
                       )}
@@ -421,9 +587,17 @@ export function ObjectWorkspacePage() {
                       onClick={() => navigate(`/editor/${obj.id}`)}
                       title="Edit"
                       style={{
-                        width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer',
-                        color: 'var(--text-tertiary)', transition: 'all 0.15s ease',
+                        width: 32,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        borderRadius: 8,
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        color: 'var(--text-tertiary)',
+                        transition: 'all 0.15s ease',
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = 'rgba(128,128,128,0.08)';
@@ -440,9 +614,17 @@ export function ObjectWorkspacePage() {
                       onClick={() => setConfirmDelete({ id: obj.id, name: obj.name })}
                       title="Move to trash"
                       style={{
-                        width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        border: 'none', borderRadius: 8, background: 'transparent', cursor: 'pointer',
-                        color: 'var(--text-tertiary)', transition: 'all 0.15s ease',
+                        width: 32,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: 'none',
+                        borderRadius: 8,
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        color: 'var(--text-tertiary)',
+                        transition: 'all 0.15s ease',
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
@@ -467,36 +649,55 @@ export function ObjectWorkspacePage() {
                       const fieldLabel = getFieldName(obj.templateId, f.key);
                       const s = getSensitivityStyle(sens);
                       return (
-                      <span
-                        key={f.key}
-                        style={{
-                          padding: '3px 8px', borderRadius: 6, fontSize: 11,
-                          background: 'var(--bg-toolbar)', color: 'var(--text-secondary)',
-                          border: `1px solid ${isMasked ? s.fg : s.fg}`,
-                          maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          opacity: deprecated ? 0.6 : 1,
-                          ...(isMasked ? {
-                            boxShadow: `0 0 3px ${s.fg}44`,
-                          } : {
-                            boxShadow: `0 0 2px ${s.fg}33`,
-                          }),
-                        }}
-                      >
-                        <span style={{ fontWeight: 600, textDecoration: deprecated ? 'line-through' : 'none' }}>{fieldLabel}</span>
-                        <span style={{ margin: '0 3px' }}>:</span>
-                        <span style={{
-                          ...(isMasked ? {
-                            filter: 'blur(5px)',
-                            cursor: 'default',
-                            userSelect: 'none',
-                            background: 'var(--bg-subtle, rgba(128,128,128,0.12))',
-                            borderRadius: 2,
-                            padding: '0 2px',
-                          } : { color: 'var(--text-primary)' }),
-                        }}>
-                          {isMasked ? '••••' : f.value}
+                        <span
+                          key={f.key}
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: 6,
+                            fontSize: 11,
+                            background: 'var(--bg-toolbar)',
+                            color: 'var(--text-secondary)',
+                            border: `1px solid ${isMasked ? s.fg : s.fg}`,
+                            maxWidth: 220,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            opacity: deprecated ? 0.6 : 1,
+                            ...(isMasked
+                              ? {
+                                  boxShadow: `0 0 3px ${s.fg}44`,
+                                }
+                              : {
+                                  boxShadow: `0 0 2px ${s.fg}33`,
+                                }),
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 600,
+                              textDecoration: deprecated ? 'line-through' : 'none',
+                            }}
+                          >
+                            {fieldLabel}
+                          </span>
+                          <span style={{ margin: '0 3px' }}>:</span>
+                          <span
+                            style={{
+                              ...(isMasked
+                                ? {
+                                    filter: 'blur(5px)',
+                                    cursor: 'default',
+                                    userSelect: 'none',
+                                    background: 'var(--bg-subtle, rgba(128,128,128,0.12))',
+                                    borderRadius: 2,
+                                    padding: '0 2px',
+                                  }
+                                : { color: 'var(--text-primary)' }),
+                            }}
+                          >
+                            {isMasked ? '••••' : f.value}
+                          </span>
                         </span>
-                      </span>
                       );
                     })}
                   </div>
@@ -505,11 +706,17 @@ export function ObjectWorkspacePage() {
                 {obj.tags && obj.tags.length > 0 && (
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
                     {obj.tags.map((tag) => (
-                      <span key={tag} style={{
-                        padding: '1px 7px', borderRadius: 10, fontSize: 10,
-                        background: 'rgba(91,124,153,0.08)', color: 'var(--accent-primary)',
-                        fontWeight: 500,
-                      }}>
+                      <span
+                        key={tag}
+                        style={{
+                          padding: '1px 7px',
+                          borderRadius: 10,
+                          fontSize: 10,
+                          background: 'rgba(91,124,153,0.08)',
+                          color: 'var(--accent-primary)',
+                          fontWeight: 500,
+                        }}
+                      >
                         {tag}
                       </span>
                     ))}
@@ -523,26 +730,46 @@ export function ObjectWorkspacePage() {
         {confirmPageDelete && pageId && customPage && (
           <div
             style={{
-              position: 'fixed', inset: 0, zIndex: 1000,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(4px)',
             }}
             onClick={() => setConfirmPageDelete(false)}
           >
             <div
               style={{
-                background: 'var(--bg-elevated)', borderRadius: 12, padding: '24px 28px',
-                maxWidth: 360, width: '90%', boxShadow: 'var(--shadow-lg)',
+                background: 'var(--bg-elevated)',
+                borderRadius: 12,
+                padding: '24px 28px',
+                maxWidth: 360,
+                width: '90%',
+                boxShadow: 'var(--shadow-lg)',
                 border: '1px solid var(--border-subtle)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>{t('object_delete_confirm_title')}</h3>
-              <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
+                {t('object_delete_confirm_title')}
+              </h3>
+              <p
+                style={{
+                  margin: '0 0 20px',
+                  fontSize: 14,
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.5,
+                }}
+              >
                 {t('object_delete_confirm_body', { name: customPage.name })}
               </p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <Button variant="secondary" onClick={() => setConfirmPageDelete(false)}>{t('cancel')}</Button>
+                <Button variant="secondary" onClick={() => setConfirmPageDelete(false)}>
+                  {t('cancel')}
+                </Button>
                 <button
                   onClick={async () => {
                     setConfirmPageDelete(false);
@@ -552,9 +779,14 @@ export function ObjectWorkspacePage() {
                     }
                   }}
                   style={{
-                    padding: '8px 16px', borderRadius: 8, border: 'none',
-                    background: '#e74c3c', color: 'white',
-                    fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                    padding: '8px 16px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: '#e74c3c',
+                    color: 'white',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: 'pointer',
                   }}
                 >
                   {t('delete')}
@@ -571,7 +803,12 @@ export function ObjectWorkspacePage() {
             object={detailObj}
             onClose={() => setDetailObj(null)}
             onHistory={() => {
-              setHistoryObj({ id: detailObj.id, name: detailObj.name, collectionType: detailObj.collectionType, templateId: detailObj.templateId || undefined });
+              setHistoryObj({
+                id: detailObj.id,
+                name: detailObj.name,
+                collectionType: detailObj.collectionType,
+                templateId: detailObj.templateId || undefined,
+              });
               setDetailObj(null);
             }}
             onAttachments={() => {
@@ -592,32 +829,57 @@ export function ObjectWorkspacePage() {
         {confirmDelete && (
           <div
             style={{
-              position: 'fixed', inset: 0, zIndex: 1000,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(4px)',
             }}
             onClick={() => setConfirmDelete(null)}
           >
             <div
               style={{
-                background: 'var(--bg-elevated)', borderRadius: 12, padding: '24px 28px',
-                maxWidth: 360, width: '90%', boxShadow: 'var(--shadow-lg)',
+                background: 'var(--bg-elevated)',
+                borderRadius: 12,
+                padding: '24px 28px',
+                maxWidth: 360,
+                width: '90%',
+                boxShadow: 'var(--shadow-lg)',
                 border: '1px solid var(--border-subtle)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>{t('object_delete_confirm_title')}</h3>
-              <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
+                {t('object_delete_confirm_title')}
+              </h3>
+              <p
+                style={{
+                  margin: '0 0 20px',
+                  fontSize: 14,
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.5,
+                }}
+              >
                 {t('object_delete_confirm_body', { name: confirmDelete.name })}
               </p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <Button variant="secondary" onClick={() => setConfirmDelete(null)}>{t('cancel')}</Button>
+                <Button variant="secondary" onClick={() => setConfirmDelete(null)}>
+                  {t('cancel')}
+                </Button>
                 <button
                   onClick={() => handleDelete(confirmDelete.id)}
                   style={{
-                    padding: '8px 16px', borderRadius: 8, border: 'none',
-                    background: '#e74c3c', color: 'white',
-                    fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                    padding: '8px 16px',
+                    borderRadius: 8,
+                    border: 'none',
+                    background: '#e74c3c',
+                    color: 'white',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    cursor: 'pointer',
                   }}
                 >
                   {t('delete')}
@@ -637,15 +899,26 @@ export function ObjectWorkspacePage() {
           getFieldSensitivity={(fieldKey) => getFieldSensitivity(historyObj.templateId, fieldKey)}
           isFieldDeprecated={(fieldKey) => isFieldDeprecated(historyObj.templateId, fieldKey)}
           getFieldName={(fieldKey) => getFieldName(historyObj.templateId, fieldKey)}
-          fieldOrder={userTemplates.find((t) => t.id === historyObj.templateId)?.properties.map((p) => p.id)}
+          fieldOrder={userTemplates
+            .find((t) => t.id === historyObj.templateId)
+            ?.properties.map((p) => p.id)}
         />
       )}
-      {attachmentObjId && <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} onCountChange={refreshAttachmentCounts} />}
+      {attachmentObjId && (
+        <AttachmentViewer
+          objectId={attachmentObjId}
+          onClose={() => setAttachmentObjId(null)}
+          onCountChange={refreshAttachmentCounts}
+        />
+      )}
 
       {/* Unified password verification dialog (detail panel + history cards) */}
       <PasswordVerificationDialog
         open={showPwDialog}
-        onClose={() => { setShowPwDialog(false); pwResolveRef.current?.({ ok: false, method: 'password' }); }}
+        onClose={() => {
+          setShowPwDialog(false);
+          pwResolveRef.current?.({ ok: false, method: 'password' });
+        }}
         onVerify={async (password) => {
           const ok = await verifyVaultPassword(password);
           if (ok) pwResolveRef.current?.({ ok: true, method: 'password' });

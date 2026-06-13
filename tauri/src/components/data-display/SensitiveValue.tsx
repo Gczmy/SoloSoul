@@ -31,20 +31,29 @@ export function SensitiveValue({
   const [revealed, setRevealed] = useState(forceRevealed);
   const { t } = useTranslation('sensitivity');
 
-  if (level === 'public' || level === 'internal' || (revealed || forceRevealed)) {
+  if (level === 'public' || level === 'internal' || revealed || forceRevealed) {
     return (
-      <span className={className} style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        filter: level === 'internal' ? 'none' : 'none',
-      }}>
+      <span
+        className={className}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          filter: level === 'internal' ? 'none' : 'none',
+        }}
+      >
         {level === 'internal' && (
-          <span style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: 'var(--accent-warning, #f59e0b)',
-            display: 'inline-block', flexShrink: 0,
-          }} title={t('internal_hint')} />
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: 'var(--accent-warning, #f59e0b)',
+              display: 'inline-block',
+              flexShrink: 0,
+            }}
+            title={t('internal_hint')}
+          />
         )}
         {value}
         {!forceRevealed && level === 'sensitive' && (
@@ -54,9 +63,13 @@ export function SensitiveValue({
               setRevealed(false);
             }}
             style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text-tertiary)', padding: 2,
-              display: 'inline-flex', alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--text-tertiary)',
+              padding: 2,
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
             title={t('hide')}
           >
@@ -81,13 +94,21 @@ export function SensitiveValue({
         }}
         className={className}
         style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          background: 'none', border: 'none', cursor: onReveal ? 'pointer' : 'default',
-          padding: '2px 4px', borderRadius: 4,
-          fontFamily: 'inherit', fontSize: 'inherit',
-          backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'none',
+          border: 'none',
+          cursor: onReveal ? 'pointer' : 'default',
+          padding: '2px 4px',
+          borderRadius: 4,
+          fontFamily: 'inherit',
+          fontSize: 'inherit',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
           backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.08))',
-          color: 'transparent', textShadow: '0 0 8px var(--text-primary, #000)',
+          color: 'transparent',
+          textShadow: '0 0 8px var(--text-primary, #000)',
           transition: 'all 0.2s',
         }}
         title={onReveal ? t('click_to_reveal') : t('sensitive_label')}
@@ -109,12 +130,16 @@ export function SensitiveValue({
       }}
       className={className}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
         background: 'var(--bg-critical, rgba(220,38,38,0.06))',
         border: '1px solid var(--border-critical, rgba(220,38,38,0.2))',
         cursor: onReveal ? 'pointer' : 'default',
-        padding: '2px 8px', borderRadius: 4,
-        fontFamily: 'inherit', fontSize: 'inherit',
+        padding: '2px 8px',
+        borderRadius: 4,
+        fontFamily: 'inherit',
+        fontSize: 'inherit',
         color: 'var(--text-critical, #dc2626)',
         transition: 'all 0.2s',
       }}

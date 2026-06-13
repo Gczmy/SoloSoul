@@ -36,10 +36,14 @@ export function SyncPage() {
     try {
       const s = await invoke<SyncStatus>('sync_get_status');
       setStatus(s);
-    } catch { /* backend may not be ready */ }
+    } catch {
+      /* backend may not be ready */
+    }
   }, []);
 
-  useEffect(() => { loadStatus(); }, [loadStatus]);
+  useEffect(() => {
+    loadStatus();
+  }, [loadStatus]);
 
   const handleDiscover = async () => {
     setIsScanning(true);
@@ -58,22 +62,47 @@ export function SyncPage() {
     try {
       await invoke('sync_enable', { enable: !status.syncEnabled });
       await loadStatus();
-    } catch { /* stub */ }
-    finally { setIsEnabling(false); }
+    } catch {
+      /* stub */
+    } finally {
+      setIsEnabling(false);
+    }
   };
 
   return (
-    <AppShell title={t('settings:items.sync', { defaultValue: 'Device Sync' })} onBack={() => navigate('/home')}>
-      <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <AppShell
+      title={t('settings:items.sync', { defaultValue: 'Device Sync' })}
+      onBack={() => navigate('/home')}
+    >
+      <div
+        style={{
+          maxWidth: 560,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
         {/* Sync status card */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: status.syncEnabled ? 'rgba(39,174,96,0.12)' : 'rgba(128,128,128,0.1)',
-              }}>
-                {status.syncEnabled ? <Wifi size={20} color="#27ae60" /> : <WifiOff size={20} color="#888" />}
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: status.syncEnabled ? 'rgba(39,174,96,0.12)' : 'rgba(128,128,128,0.1)',
+                }}
+              >
+                {status.syncEnabled ? (
+                  <Wifi size={20} color="#27ae60" />
+                ) : (
+                  <WifiOff size={20} color="#888" />
+                )}
               </div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600 }}>
@@ -111,8 +140,12 @@ export function SyncPage() {
                 <div
                   key={i}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
-                    borderRadius: 8, background: 'var(--bg-toolbar)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    background: 'var(--bg-toolbar)',
                   }}
                 >
                   <Smartphone size={18} style={{ color: 'var(--accent-primary)' }} />
@@ -122,9 +155,12 @@ export function SyncPage() {
                       {d.host}:{d.port}
                     </div>
                   </div>
-                  <Button size="sm" onClick={() => {
-                    invoke('sync_with_device', { deviceId: d.name }).catch(() => {});
-                  }}>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      invoke('sync_with_device', { deviceId: d.name }).catch(() => {});
+                    }}
+                  >
                     Connect
                   </Button>
                 </div>
@@ -144,7 +180,10 @@ export function SyncPage() {
           <Card>
             <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Connected Devices</h3>
             {status.connectedPeers.map((peer) => (
-              <div key={peer.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+              <div
+                key={peer.id}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}
+              >
                 <Smartphone size={16} style={{ color: 'var(--accent-primary)' }} />
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 500 }}>{peer.name}</div>

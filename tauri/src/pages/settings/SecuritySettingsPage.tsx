@@ -28,18 +28,29 @@ export function SecuritySettingsPage() {
 
   // Biometric state
   const biometricEnabled = useSettingsStore((s) => s.settings.biometricEnabled);
-  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string } | null>(null);
+  const [bioAvailable, setBioAvailable] = useState<{
+    available: boolean;
+    biometryType?: string;
+  } | null>(null);
   const [bioLoading, setBioLoading] = useState(false);
   const [showBioPwDialog, setShowBioPwDialog] = useState(false);
   const [bioPw, setBioPw] = useState('');
   const [bioAction, setBioAction] = useState<'enable' | 'disable' | null>(null);
 
   useEffect(() => {
-    invoke<{ available: boolean; biometryType?: string }>('biometric_check_availability', { accountId: currentAccount?.id })
-      .then(setBioAvailable).catch(() => setBioAvailable({ available: false }));
+    invoke<{ available: boolean; biometryType?: string }>('biometric_check_availability', {
+      accountId: currentAccount?.id,
+    })
+      .then(setBioAvailable)
+      .catch(() => setBioAvailable({ available: false }));
   }, [currentAccount?.id]);
 
-  const biometryType = bioAvailable?.biometryType === 'touchId' ? 'Touch ID' : bioAvailable?.biometryType === 'faceId' ? 'Face ID' : 'Touch ID';
+  const biometryType =
+    bioAvailable?.biometryType === 'touchId'
+      ? 'Touch ID'
+      : bioAvailable?.biometryType === 'faceId'
+        ? 'Face ID'
+        : 'Touch ID';
 
   const handleBioToggle = () => {
     if (biometricEnabled) {
@@ -57,12 +68,29 @@ export function SecuritySettingsPage() {
     try {
       const rawType = bioAvailable?.biometryType || 'unknown';
       if (bioAction === 'enable') {
-        await invoke('biometric_save_credential', { accountId: currentAccount.id, password: bioPw, silent: false, location: 'settings_page', action: 'enable', biometryType: rawType });
-        await useSettingsStore.getState().updateSetting(currentAccount.id, 'biometricEnabled', true);
+        await invoke('biometric_save_credential', {
+          accountId: currentAccount.id,
+          password: bioPw,
+          silent: false,
+          location: 'settings_page',
+          action: 'enable',
+          biometryType: rawType,
+        });
+        await useSettingsStore
+          .getState()
+          .updateSetting(currentAccount.id, 'biometricEnabled', true);
         onSuccess(t('settings:biometric_enabled_toast', { type: biometryType }));
       } else {
-        await invoke('biometric_delete_credential', { accountId: currentAccount.id, password: bioPw, location: 'settings_page', action: 'disable', biometryType: rawType });
-        await useSettingsStore.getState().updateSetting(currentAccount.id, 'biometricEnabled', false);
+        await invoke('biometric_delete_credential', {
+          accountId: currentAccount.id,
+          password: bioPw,
+          location: 'settings_page',
+          action: 'disable',
+          biometryType: rawType,
+        });
+        await useSettingsStore
+          .getState()
+          .updateSetting(currentAccount.id, 'biometricEnabled', false);
         onSuccess(t('settings:biometric_disabled_toast', { type: biometryType }));
       }
       setShowBioPwDialog(false);
@@ -121,7 +149,11 @@ export function SecuritySettingsPage() {
         });
         if (hint.trim() || hintCleared) {
           // Password already changed — use the new password for vault_update_hint
-          await invoke('vault_update_hint', { accountId: currentAccount?.id || '', password: newPw, hint: hint.trim() });
+          await invoke('vault_update_hint', {
+            accountId: currentAccount?.id || '',
+            password: newPw,
+            hint: hint.trim(),
+          });
         }
         onSuccess(t('settings:password_updated'));
       } else {
@@ -133,7 +165,11 @@ export function SecuritySettingsPage() {
         }
         if (hint.trim() || hintCleared) {
           // hint.trim() 空但 hintCleared=true → 用户显式点击清除按钮，清除提示词
-          await invoke('vault_update_hint', { accountId: currentAccount?.id || '', password: oldPw, hint: hint.trim() });
+          await invoke('vault_update_hint', {
+            accountId: currentAccount?.id || '',
+            password: oldPw,
+            hint: hint.trim(),
+          });
         }
         onSuccess(t('settings:hint_updated'));
       }
@@ -198,18 +234,37 @@ export function SecuritySettingsPage() {
                 fontSize: 13,
               }}
             >
-              <option value="1">1 {t('common:minute', { ns: 'common', defaultValue: 'minute' })}</option>
-              <option value="5">5 {t('common:minutes', { ns: 'common', defaultValue: 'minutes' })}</option>
-              <option value="15">15 {t('common:minutes', { ns: 'common', defaultValue: 'minutes' })}</option>
-              <option value="30">30 {t('common:minutes', { ns: 'common', defaultValue: 'minutes' })}</option>
-              <option value="0">{t('common:never', { ns: 'common', defaultValue: 'Never' })}</option>
+              <option value="1">
+                1 {t('common:minute', { ns: 'common', defaultValue: 'minute' })}
+              </option>
+              <option value="5">
+                5 {t('common:minutes', { ns: 'common', defaultValue: 'minutes' })}
+              </option>
+              <option value="15">
+                15 {t('common:minutes', { ns: 'common', defaultValue: 'minutes' })}
+              </option>
+              <option value="30">
+                30 {t('common:minutes', { ns: 'common', defaultValue: 'minutes' })}
+              </option>
+              <option value="0">
+                {t('common:never', { ns: 'common', defaultValue: 'Never' })}
+              </option>
             </select>
           </div>
         </Card>
 
         {bioAvailable !== null && bioAvailable.available && (
           <Card>
-            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h3
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                marginBottom: 4,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
               <Fingerprint size={18} />
               {t('settings:biometric_title')}
             </h3>
@@ -217,7 +272,9 @@ export function SecuritySettingsPage() {
               {t('settings:biometric_desc', { type: biometryType })}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 14 }}>{t('settings:biometric_toggle_label', { type: biometryType })}</span>
+              <span style={{ fontSize: 14 }}>
+                {t('settings:biometric_toggle_label', { type: biometryType })}
+              </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {biometricEnabled && (
                   <Button variant="secondary" size="sm" onClick={handleBioTest}>
@@ -225,18 +282,45 @@ export function SecuritySettingsPage() {
                     {t('settings:biometric_test_button', { type: biometryType })}
                   </Button>
                 )}
-                <label style={{ position: 'relative', display: 'inline-block', width: 44, height: 24, cursor: 'pointer' }}>
-                  <input type="checkbox" checked={biometricEnabled} onChange={handleBioToggle} style={{ opacity: 0, width: 0, height: 0 }} />
-                  <span style={{
-                    position: 'absolute', inset: 0,
-                    background: biometricEnabled ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                    borderRadius: 12, transition: '0.2s',
-                  }} />
-                  <span style={{
-                    position: 'absolute', top: 2, left: biometricEnabled ? 22 : 2,
-                    width: 20, height: 20, borderRadius: '50%',
-                    background: 'white', transition: '0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                  }} />
+                <label
+                  style={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    width: 44,
+                    height: 24,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={biometricEnabled}
+                    onChange={handleBioToggle}
+                    style={{ opacity: 0, width: 0, height: 0 }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: biometricEnabled
+                        ? 'var(--accent-primary)'
+                        : 'var(--border-subtle)',
+                      borderRadius: 12,
+                      transition: '0.2s',
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 2,
+                      left: biometricEnabled ? 22 : 2,
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: 'white',
+                      transition: '0.2s',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    }}
+                  />
                 </label>
               </div>
             </div>
@@ -247,12 +331,21 @@ export function SecuritySettingsPage() {
           <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
             {t('settings:change_password')}
           </h3>
-          <div style={{
-            display: 'flex', alignItems: 'flex-start', gap: 8,
-            padding: 10, borderRadius: 8, marginBottom: 16,
-            background: 'rgba(212, 133, 10, 0.10)', border: '1px solid rgba(212, 133, 10, 0.25)',
-            color: '#D4850A', fontSize: 12, lineHeight: 1.4,
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+              padding: 10,
+              borderRadius: 8,
+              marginBottom: 16,
+              background: 'rgba(212, 133, 10, 0.10)',
+              border: '1px solid rgba(212, 133, 10, 0.25)',
+              color: '#D4850A',
+              fontSize: 12,
+              lineHeight: 1.4,
+            }}
+          >
             <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
             {t('settings:master_password_warning')}
           </div>
@@ -261,7 +354,10 @@ export function SecuritySettingsPage() {
             <SecurePasswordInput
               label={t('common:current_password')}
               value={oldPw}
-              onChange={(v) => { setOldPw(v); setError(null); }}
+              onChange={(v) => {
+                setOldPw(v);
+                setError(null);
+              }}
               placeholder={t('common:password_placeholder')}
               autoComplete="current-password"
               hint={currentAccount?.passwordHint || null}
@@ -274,8 +370,12 @@ export function SecuritySettingsPage() {
                   {t('common:new_password')}
                   <span
                     style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 3,
-                      fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 400,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 3,
+                      fontSize: 11,
+                      color: 'var(--text-tertiary)',
+                      fontWeight: 400,
                     }}
                   >
                     <Info size={12} />
@@ -285,7 +385,10 @@ export function SecuritySettingsPage() {
               }
               showHintButton={false}
               value={newPw}
-              onChange={(v) => { setNewPw(v); setError(null); }}
+              onChange={(v) => {
+                setNewPw(v);
+                setError(null);
+              }}
               placeholder={t('common:new_password')}
               autoComplete="new-password"
             />
@@ -295,14 +398,24 @@ export function SecuritySettingsPage() {
               label={t('common:confirm_password')}
               showHintButton={false}
               value={confirmPw}
-              onChange={(v) => { setConfirmPw(v); setError(null); }}
+              onChange={(v) => {
+                setConfirmPw(v);
+                setError(null);
+              }}
               placeholder={t('common:confirm_password')}
               autoComplete="new-password"
             />
 
             {/* 10.1 — 密码提示（始终明文可见，普通文本输入框） */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 4,
+                }}
+              >
                 <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
                   {t('common:password_hint')}
                 </label>
@@ -318,10 +431,14 @@ export function SecuritySettingsPage() {
                     }
                   }}
                   style={{
-                    padding: '3px 10px', borderRadius: 4, border: '1px solid',
+                    padding: '3px 10px',
+                    borderRadius: 4,
+                    border: '1px solid',
                     borderColor: hintCleared ? '#e74c3c' : 'var(--border-subtle)',
                     background: hintCleared ? '#e74c3c' : 'transparent',
-                    cursor: 'pointer', fontSize: 11, fontWeight: 500,
+                    cursor: 'pointer',
+                    fontSize: 11,
+                    fontWeight: 500,
                     color: hintCleared ? 'white' : 'var(--text-tertiary)',
                     transition: 'all 0.15s ease',
                   }}
@@ -332,16 +449,24 @@ export function SecuritySettingsPage() {
               <input
                 type="text"
                 value={hint}
-                onChange={(e) => { setHint(e.target.value); setHintCleared(false); setError(null); }}
+                onChange={(e) => {
+                  setHint(e.target.value);
+                  setHintCleared(false);
+                  setError(null);
+                }}
                 disabled={hintCleared}
                 placeholder={t('common:optional')}
                 style={{
-                  width: '100%', padding: '10px 14px', fontSize: 14,
-                  border: '1px solid', borderRadius: 8,
+                  width: '100%',
+                  padding: '10px 14px',
+                  fontSize: 14,
+                  border: '1px solid',
+                  borderRadius: 8,
                   borderColor: hintCleared ? '#e74c3c' : 'var(--border-subtle)',
                   background: hintCleared ? 'rgba(231,76,60,0.05)' : 'transparent',
                   color: hintCleared ? '#e74c3c' : 'var(--text-primary)',
-                  fontFamily: 'inherit', outline: 'none',
+                  fontFamily: 'inherit',
+                  outline: 'none',
                   opacity: hintCleared ? 0.6 : 1,
                 }}
               />
@@ -367,16 +492,45 @@ export function SecuritySettingsPage() {
             </Button>
           </div>
         </Card>
-
       </div>
 
       {/* Biometric password verification dialog */}
       {showBioPwDialog && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
-          <div style={{ background: 'var(--bg-elevated)',
-                color: 'var(--text-primary)',
-                fontFamily: 'inherit', borderRadius: 16, padding: '28px 32px', maxWidth: 380, width: '90%', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border-subtle)' }}>
-            <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.45)',
+            backdropFilter: 'blur(6px)',
+          }}
+        >
+          <div
+            style={{
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-primary)',
+              fontFamily: 'inherit',
+              borderRadius: 16,
+              padding: '28px 32px',
+              maxWidth: 380,
+              width: '90%',
+              boxShadow: 'var(--shadow-lg)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <h3
+              style={{
+                fontSize: 17,
+                fontWeight: 600,
+                marginBottom: 12,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
               <Fingerprint size={20} />
               {bioAction === 'enable'
                 ? t('settings:biometric_enable_prompt', { type: biometryType })
@@ -385,18 +539,33 @@ export function SecuritySettingsPage() {
             <SecurePasswordInput
               label={t('common:current_password')}
               value={bioPw}
-              onChange={(v) => { setBioPw(v); setError(null); }}
+              onChange={(v) => {
+                setBioPw(v);
+                setError(null);
+              }}
               placeholder={t('common:password_placeholder')}
               autoComplete="current-password"
               showHintButton={true}
               hint={currentAccount?.passwordHint || null}
             />
             {error && (
-              <div style={{ color: '#dc2626', fontSize: 13, padding: '4px 0', marginTop: 8 }}>{error}</div>
+              <div style={{ color: '#dc2626', fontSize: 13, padding: '4px 0', marginTop: 8 }}>
+                {error}
+              </div>
             )}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
-              <Button variant="secondary" onClick={() => { setShowBioPwDialog(false); setError(null); }}>{t('common:cancel')}</Button>
-              <Button onClick={handleBioConfirm} loading={bioLoading} disabled={!bioPw}>{t('common:confirm')}</Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowBioPwDialog(false);
+                  setError(null);
+                }}
+              >
+                {t('common:cancel')}
+              </Button>
+              <Button onClick={handleBioConfirm} loading={bioLoading} disabled={!bioPw}>
+                {t('common:confirm')}
+              </Button>
             </div>
           </div>
         </div>

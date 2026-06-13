@@ -1,5 +1,20 @@
 import { useTranslation } from 'react-i18next';
-import { X, ArrowLeft, Type, AlignLeft, Hash, Calendar, Clock, CheckSquare, List, ListChecks, Link, Mail, Phone, File } from 'lucide-react';
+import {
+  X,
+  ArrowLeft,
+  Type,
+  AlignLeft,
+  Hash,
+  Calendar,
+  Clock,
+  CheckSquare,
+  List,
+  ListChecks,
+  Link,
+  Mail,
+  Phone,
+  File,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
@@ -41,7 +56,10 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
         background: 'rgba(0,0,0,0.35)',
         backdropFilter: 'blur(4px)',
       }}
-      onClick={(e) => { e.stopPropagation(); onBack(); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onBack();
+      }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -57,23 +75,41 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
           border: '1px solid var(--border-subtle)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 12,
+          }}
+        >
           <button
             onClick={onBack}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '6px 10px', borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 10px',
+              borderRadius: 8,
               border: '1px solid var(--border-subtle)',
               background: 'transparent',
               color: 'var(--text-secondary)',
-              fontSize: 12, cursor: 'pointer',
+              fontSize: 12,
+              cursor: 'pointer',
             }}
           >
             <ArrowLeft size={14} /> {t('common:back', '返回')}
           </button>
           <button
             onClick={onBack}
-            style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-tertiary)' }}
+            style={{
+              padding: 6,
+              borderRadius: 8,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: 'var(--text-tertiary)',
+            }}
           >
             <X size={20} />
           </button>
@@ -83,7 +119,8 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
           {t(template.nameI18nKey, template.nameFallback)}
         </h2>
         <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 20 }}>
-          {t(`navigation:${template.category}`, template.category)} · {template.properties.length} {t('settings:template_fields')}
+          {t(`navigation:${template.category}`, template.category)} · {template.properties.length}{' '}
+          {t('settings:template_fields')}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
@@ -91,14 +128,20 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
             <div
               key={prop.id}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                gap: 12, padding: '10px 14px',
-                borderRadius: 8, background: 'var(--bg-toolbar)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                padding: '10px 14px',
+                borderRadius: 8,
+                background: 'var(--bg-toolbar)',
                 border: '1px solid var(--border-subtle)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                <span style={{ color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' }}>
+                <span
+                  style={{ color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' }}
+                >
                   {iconMap[prop.type] || iconMap.text}
                 </span>
                 <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
@@ -116,7 +159,9 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
         </div>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button variant="secondary" onClick={onBack}>{t('common:close')}</Button>
+          <Button variant="secondary" onClick={onBack}>
+            {t('common:close')}
+          </Button>
           <Button onClick={onUse}>{t('settings:use_sample_template')}</Button>
         </div>
       </div>

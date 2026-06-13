@@ -33,10 +33,11 @@ export function GuideCodeBlock({ children, className }: GuideCodeBlockProps) {
   const isInline = !className;
 
   const sensitivityLevels = ['public', 'internal', 'sensitive', 'critical'] as const;
-  const isSensitivity = isInline && sensitivityLevels.includes(text as typeof sensitivityLevels[number]);
+  const isSensitivity =
+    isInline && sensitivityLevels.includes(text as (typeof sensitivityLevels)[number]);
 
   if (isSensitivity) {
-    const level = text as typeof sensitivityLevels[number];
+    const level = text as (typeof sensitivityLevels)[number];
     return (
       <span
         style={{

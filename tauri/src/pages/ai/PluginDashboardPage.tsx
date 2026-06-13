@@ -9,16 +9,32 @@ export function PluginDashboardPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
   return (
-    <AppShell title={t('settings:items.plugins', { defaultValue: 'Plugins' })} onBack={() => navigate('/home')}>
-      <div style={{ maxWidth: 600, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <AppShell
+      title={t('settings:items.plugins', { defaultValue: 'Plugins' })}
+      onBack={() => navigate('/home')}
+    >
+      <div
+        style={{
+          maxWidth: 600,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
         <Card>
           <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-            <Puzzle size={48} style={{ marginBottom: 16, opacity: 0.3, color: 'var(--text-tertiary)' }} />
+            <Puzzle
+              size={48}
+              style={{ marginBottom: 16, opacity: 0.3, color: 'var(--text-tertiary)' }}
+            />
             <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px' }}>
               {t('settings:plugins_title', { defaultValue: 'Plugin System' })}
             </h2>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
-              {t('settings:plugins_description', { defaultValue: 'Plugin system is under development. Check back later.' })}
+              {t('settings:plugins_description', {
+                defaultValue: 'Plugin system is under development. Check back later.',
+              })}
             </p>
           </div>
         </Card>

@@ -17,7 +17,7 @@ export interface SnapshotEntry {
 
 function flattenProperties(
   props: Record<string, unknown> | undefined,
-  fieldOrder?: string[]
+  fieldOrder?: string[],
 ): { key: string; value: string }[] {
   if (!props) return [];
   const entries: { key: string; value: string }[] = [];
@@ -88,7 +88,7 @@ function SnapshotCard({
 
   useEffect(() => {
     invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id }).then(
-      setSnapData
+      setSnapData,
     );
   }, [snap.id]);
 
@@ -98,9 +98,7 @@ function SnapshotCard({
       : undefined;
   const fields = flattenProperties(rawProps, fieldOrder);
   const snapName =
-    snapData && typeof snapData === 'object' && 'name' in snapData
-      ? String(snapData.name)
-      : '';
+    snapData && typeof snapData === 'object' && 'name' in snapData ? String(snapData.name) : '';
   const tags: string[] =
     snapData && typeof snapData === 'object' && 'tags' in snapData && Array.isArray(snapData.tags)
       ? (snapData.tags as string[])
@@ -257,12 +255,17 @@ export function HistoryViewer({
     return collectionType;
   };
 
-  const writeCriticalAccessLog = async (fieldName: string, method: 'password' | 'touchId' | 'faceId') => {
+  const writeCriticalAccessLog = async (
+    fieldName: string,
+    method: 'password' | 'touchId' | 'faceId',
+  ) => {
     if (!objectName) return;
     const actionType =
-      method === 'password' ? 'critical_field_login' :
-      method === 'touchId' ? 'critical_field_touch_id' :
-      'critical_field_face_id';
+      method === 'password'
+        ? 'critical_field_login'
+        : method === 'touchId'
+          ? 'critical_field_touch_id'
+          : 'critical_field_face_id';
     const entityType = method === 'password' ? 'auth' : 'biometric';
     const pageLabel = collectionType ? resolveCollectionLabel(collectionType) : '';
     const details = `objectName=${objectName} page=${pageLabel} fieldName=${fieldName}`;
@@ -343,11 +346,7 @@ export function HistoryViewer({
                 : 'perspective(1200px) rotateY(0)',
           transition: 'transform 0.15s ease',
           transformOrigin:
-            animDir === 'left'
-              ? 'left center'
-              : animDir === 'right'
-                ? 'right center'
-                : 'center',
+            animDir === 'left' ? 'left center' : animDir === 'right' ? 'right center' : 'center',
         }}
       >
         {/* Header */}
@@ -360,7 +359,9 @@ export function HistoryViewer({
             borderBottom: '1px solid var(--border-subtle)',
           }}
         >
-          <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}
+          >
             <Clock size={14} /> {t('common:history')}
             <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 400 }}>
               {loading ? '' : `${currentIdx + 1} / ${total}`}
@@ -391,7 +392,14 @@ export function HistoryViewer({
           {loading ? (
             <LoadingPlaceholder variant="elevated" minHeight={160} />
           ) : !snap ? (
-            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 48,
+                color: 'var(--text-secondary)',
+                fontSize: 14,
+              }}
+            >
               {t('common:no_history')}
             </div>
           ) : (

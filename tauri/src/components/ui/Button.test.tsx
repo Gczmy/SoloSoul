@@ -52,14 +52,22 @@ describe('Button', () => {
 
   it('does not call onClick when disabled', () => {
     const handleClick = vi.fn();
-    render(<Button onClick={handleClick} disabled>Click</Button>);
+    render(
+      <Button onClick={handleClick} disabled>
+        Click
+      </Button>,
+    );
     fireEvent.click(screen.getByRole('button'));
     expect(handleClick).not.toHaveBeenCalled();
   });
 
   it('does not call onClick when loading', () => {
     const handleClick = vi.fn();
-    render(<Button onClick={handleClick} loading>Click</Button>);
+    render(
+      <Button onClick={handleClick} loading>
+        Click
+      </Button>,
+    );
     fireEvent.click(screen.getByRole('button'));
     expect(handleClick).not.toHaveBeenCalled();
   });

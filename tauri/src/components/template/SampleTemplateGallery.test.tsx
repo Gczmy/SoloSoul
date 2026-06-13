@@ -6,7 +6,7 @@ import { SAMPLE_TEMPLATES } from '@/lib/sampleTemplates';
 describe('SampleTemplateGallery', () => {
   it('does not render when closed', () => {
     const { container } = render(
-      <SampleTemplateGallery isOpen={false} onClose={vi.fn()} onSelect={vi.fn()} />
+      <SampleTemplateGallery isOpen={false} onClose={vi.fn()} onSelect={vi.fn()} />,
     );
     expect(container.firstChild).toBeNull();
   });
@@ -43,7 +43,7 @@ describe('SampleTemplateGallery', () => {
   it('calls onClose when clicking the overlay', () => {
     const onClose = vi.fn();
     const { container } = render(
-      <SampleTemplateGallery isOpen={true} onClose={onClose} onSelect={vi.fn()} />
+      <SampleTemplateGallery isOpen={true} onClose={onClose} onSelect={vi.fn()} />,
     );
 
     // The overlay is the outermost div

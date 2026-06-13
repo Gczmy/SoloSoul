@@ -57,7 +57,12 @@ export interface AttachmentViewerProps {
   zIndex?: number;
 }
 
-export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 2000 }: AttachmentViewerProps) {
+export function AttachmentViewer({
+  objectId,
+  onClose,
+  onCountChange,
+  zIndex = 2000,
+}: AttachmentViewerProps) {
   const [items, setItems] = useState<AttachmentItem[]>([]);
   const [trashItems, setTrashItems] = useState<AttachmentItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,8 +91,7 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
       ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext);
     const isPdf = item.mimeType === 'application/pdf' || ext === 'pdf';
     const isText =
-      item.mimeType.startsWith('text/') ||
-      ['json', 'xml', 'csv', 'md', 'txt'].includes(ext);
+      item.mimeType.startsWith('text/') || ['json', 'xml', 'csv', 'md', 'txt'].includes(ext);
 
     const filePath = item.vaultPath || item.srcPath;
     if (filePath && (isImage || isPdf || isText)) {
@@ -182,7 +186,7 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
   const handleConfirmRename = async () => {
     if (renamingId && renameValue.trim()) {
       setItems((prev) =>
-        prev.map((i) => (i.id === renamingId ? { ...i, fileName: renameValue.trim() } : i))
+        prev.map((i) => (i.id === renamingId ? { ...i, fileName: renameValue.trim() } : i)),
       );
       invoke('attachment_rename', {
         objectId,
@@ -196,7 +200,7 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
   const handleDelete = async (item: AttachmentItem) => {
     if (!confirm(item.fileName)) return;
     await invoke('attachment_soft_delete', { objectId, attachmentId: item.id }).catch((e) =>
-      alert('Delete failed: ' + e)
+      alert('Delete failed: ' + e),
     );
     await loadAttachments();
     onCountChange?.();
@@ -255,7 +259,15 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
               <Paperclip size={14} /> {t('common:attachments')}
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
@@ -290,7 +302,10 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
             </div>
           </div>
           {!showTrash && (
-            <button onClick={handleAdd} style={{ ...pgBtn, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
+            <button
+              onClick={handleAdd}
+              style={{ ...pgBtn, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
+            >
               + {t('common:create')}
             </button>
           )}
@@ -303,7 +318,14 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
           {loading ? (
             <LoadingPlaceholder variant="elevated" minHeight={120} />
           ) : displayItems.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 48, color: 'var(--text-secondary)', fontSize: 14 }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 48,
+                color: 'var(--text-secondary)',
+                fontSize: 14,
+              }}
+            >
               {showTrash ? t('common:attachments_trash_empty') : t('common:no_attachments')}
             </div>
           ) : (
@@ -347,7 +369,11 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
                 </div>
                 {showTrash ? (
                   <>
-                    <button onClick={() => handleRestore(item)} style={miniBtn} title={t('common:restore')}>
+                    <button
+                      onClick={() => handleRestore(item)}
+                      style={miniBtn}
+                      title={t('common:restore')}
+                    >
                       <RotateCw size={12} />
                     </button>
                     <button
@@ -386,7 +412,11 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
                         <button onClick={() => handlePreview(item)} style={miniBtn} title="Preview">
                           <Eye size={12} />
                         </button>
-                        <button onClick={() => handleStartRename(item)} style={miniBtn} title={t('common:rename')}>
+                        <button
+                          onClick={() => handleStartRename(item)}
+                          style={miniBtn}
+                          title={t('common:rename')}
+                        >
                           <Edit2 size={12} />
                         </button>
                       </>
@@ -434,12 +464,25 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
                 e.stopPropagation();
                 setPreviewItem(null);
               }}
-              style={{ color: 'var(--text-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              style={{
+                color: 'var(--text-secondary)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               <X size={18} />
             </button>
           </div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 24,
+            }}
+          >
             {previewUrl === 'error' ? (
               <div style={{ color: '#e74c3c', padding: 24 }}>Failed to load preview.</div>
             ) : previewUrl ? (
@@ -483,7 +526,12 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
                 e.stopPropagation();
                 setPreviewItem(null);
               }}
-              style={{ color: 'var(--text-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              style={{
+                color: 'var(--text-secondary)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               <X size={18} />
             </button>
@@ -494,7 +542,13 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
             ) : previewUrl ? (
               <iframe
                 src={previewUrl}
-                style={{ width: '100%', height: '100%', border: 'none', borderRadius: 8, background: 'white' }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  borderRadius: 8,
+                  background: 'white',
+                }}
               />
             ) : (
               <LoadingPlaceholder variant="toolbar" minHeight={120} />
@@ -531,7 +585,14 @@ export function AttachmentViewer({ objectId, onClose, onCountChange, zIndex = 20
             <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
               {t('common:perm_delete_title')}
             </h3>
-            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <p
+              style={{
+                margin: '0 0 20px',
+                fontSize: 14,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5,
+              }}
+            >
               {t('common:perm_delete_body', { name: permDeleteItem.fileName })}
             </p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

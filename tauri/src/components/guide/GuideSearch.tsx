@@ -12,10 +12,87 @@ interface GuideSearchProps {
 /** 提取搜索 token（简单空格+标点分割，过滤停用词） */
 function extractTokens(query: string): string[] {
   const stops = new Set([
-    '的', '了', '是', '在', '我', '有', '和', '就', '不', '人', '都', '一', '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有', '看', '好', '这',
-    'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from', 'as', 'and', 'but', 'or', 'if', 'i', 'me', 'my', 'you', 'your', 'he', 'him', 'his', 'she', 'her', 'it', 'its', 'they', 'them', 'their',
+    '的',
+    '了',
+    '是',
+    '在',
+    '我',
+    '有',
+    '和',
+    '就',
+    '不',
+    '人',
+    '都',
+    '一',
+    '上',
+    '也',
+    '很',
+    '到',
+    '说',
+    '要',
+    '去',
+    '你',
+    '会',
+    '着',
+    '没有',
+    '看',
+    '好',
+    '这',
+    'the',
+    'a',
+    'an',
+    'is',
+    'are',
+    'was',
+    'were',
+    'be',
+    'been',
+    'being',
+    'have',
+    'has',
+    'had',
+    'do',
+    'does',
+    'did',
+    'will',
+    'would',
+    'could',
+    'should',
+    'may',
+    'might',
+    'must',
+    'to',
+    'of',
+    'in',
+    'for',
+    'on',
+    'with',
+    'at',
+    'by',
+    'from',
+    'as',
+    'and',
+    'but',
+    'or',
+    'if',
+    'i',
+    'me',
+    'my',
+    'you',
+    'your',
+    'he',
+    'him',
+    'his',
+    'she',
+    'her',
+    'it',
+    'its',
+    'they',
+    'them',
+    'their',
   ]);
-  return query.toLowerCase()
+  return query
+    .toLowerCase()
     .split(/\s+|[^\w\u4e00-\u9fff]+/)
     .filter((t) => t.length >= 2 && !stops.has(t));
 }
@@ -79,7 +156,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
         setLoading(false);
       }
     },
-    [onSearch]
+    [onSearch],
   );
 
   const handleChange = (val: string) => {
@@ -113,7 +190,10 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
         />
         {query && (
           <button
-            onClick={() => { setQuery(''); setResults(null); }}
+            onClick={() => {
+              setQuery('');
+              setResults(null);
+            }}
             style={{
               position: 'absolute',
               right: 10,
@@ -146,7 +226,10 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
       {!loading && results && results.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {results.map((r) => {
-            const excerpt = r.content.slice(0, 260).replace(/[#*`[\]!]/g, '').replace(/\n+/g, ' ');
+            const excerpt = r.content
+              .slice(0, 260)
+              .replace(/[#*`[\]!]/g, '')
+              .replace(/\n+/g, ' ');
             return (
               <Card key={r.id} interactive onClick={() => onSelect(r.id)}>
                 <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>

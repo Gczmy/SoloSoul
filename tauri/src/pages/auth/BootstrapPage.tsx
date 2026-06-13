@@ -29,7 +29,14 @@ export function BootstrapPage() {
 
   return (
     <div
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' } as CSSProperties}
+      style={
+        {
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+        } as CSSProperties
+      }
     >
       <div
         style={{
@@ -40,11 +47,17 @@ export function BootstrapPage() {
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
         }}
       >
-        <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>{t('auth:bootstrap_title')}</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>
+          {t('auth:bootstrap_title')}
+        </h1>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>
           {t('auth:bootstrap_subtitle')}
         </p>
-        <form onSubmit={handleSubmit} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <form
+          onSubmit={handleSubmit}
+          autoComplete="off"
+          style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+        >
           <Input
             label={t('auth:account_name')}
             value={accountName}
@@ -85,12 +98,21 @@ export function BootstrapPage() {
                     : error}
             </div>
           )}
-          <div style={{
-            display: 'flex', alignItems: 'flex-start', gap: 8,
-            padding: 10, borderRadius: 8,
-            background: 'rgba(212, 133, 10, 0.10)', border: '1px solid rgba(212, 133, 10, 0.25)',
-            color: '#D4850A', fontSize: 12, lineHeight: 1.4, textAlign: 'left',
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 8,
+              padding: 10,
+              borderRadius: 8,
+              background: 'rgba(212, 133, 10, 0.10)',
+              border: '1px solid rgba(212, 133, 10, 0.25)',
+              color: '#D4850A',
+              fontSize: 12,
+              lineHeight: 1.4,
+              textAlign: 'left',
+            }}
+          >
             <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
             {t('auth:master_password_warning')}
           </div>

@@ -19,14 +19,18 @@ function readCachedSize(): WindowSize | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as WindowSize;
     if (parsed.width && parsed.height) return parsed;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return null;
 }
 
 function writeCachedSize(size: WindowSize) {
   try {
     localStorage.setItem(WINDOW_SIZE_CACHE_KEY, JSON.stringify(size));
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 async function persistWindowSize(payload: WindowSize) {

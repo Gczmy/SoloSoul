@@ -12,16 +12,19 @@ interface TemplateState {
     name: string,
     iconId: string | undefined,
     category: string | undefined,
-    properties: TemplateProperty[]
+    properties: TemplateProperty[],
   ) => Promise<string>;
   updateTemplate: (
     id: string,
-    updates: Partial<Pick<UserTemplate, 'name' | 'iconId' | 'category' | 'properties'>>
+    updates: Partial<Pick<UserTemplate, 'name' | 'iconId' | 'category' | 'properties'>>,
   ) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
   getTemplate: (id: string) => Promise<UserTemplate | null>;
   saveFromObject: (objectId: string, name: string) => Promise<string>;
-  checkFieldUsage: (templateId: string, fieldKey: string) => Promise<{ active: number; softDeleted: number }>;
+  checkFieldUsage: (
+    templateId: string,
+    fieldKey: string,
+  ) => Promise<{ active: number; softDeleted: number }>;
 }
 
 export const useTemplateStore = create<TemplateState>((set, get) => ({

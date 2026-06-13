@@ -6,7 +6,13 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { GuideRenderer } from '@/components/guide/GuideRenderer';
 import { GuideIndex } from '@/components/guide/GuideIndex';
 import { GuideSearch } from '@/components/guide/GuideSearch';
-import { loadGuideIndex, loadGuideContent, searchGuides, type GuideIndex as GuideIndexType, type GuideContent } from '@/lib/guideApi';
+import {
+  loadGuideIndex,
+  loadGuideContent,
+  searchGuides,
+  type GuideIndex as GuideIndexType,
+  type GuideContent,
+} from '@/lib/guideApi';
 import { BookOpen, RefreshCw } from 'lucide-react';
 
 export function HelpPage() {
@@ -22,12 +28,15 @@ export function HelpPage() {
   const [content, setContent] = useState<GuideContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [indexLoading, setIndexLoading] = useState(true);
-  const [error, setError] = useState<{ title: string; message: string; isTimeout: boolean } | null>(null);
+  const [error, setError] = useState<{ title: string; message: string; isTimeout: boolean } | null>(
+    null,
+  );
 
   const formatIndexError = (e: unknown) => {
     const msg = e instanceof Error ? e.message : String(e);
     const isTimeout = msg.includes('超时') || msg.includes('timeout');
-    const isNoCommand = msg.includes('not found') || msg.includes('未找到') || msg.includes('no such command');
+    const isNoCommand =
+      msg.includes('not found') || msg.includes('未找到') || msg.includes('no such command');
 
     if (isTimeout || isNoCommand) {
       return {
@@ -82,7 +91,7 @@ export function HelpPage() {
         setLoading(false);
       }
     },
-    [language]
+    [language],
   );
 
   useEffect(() => {
@@ -116,12 +125,18 @@ export function HelpPage() {
       title={content ? content.title : '帮助文档'}
       onBack={handleBack}
       actions={
-        guideId ? undefined : (
-          <BookOpen size={20} style={{ color: 'var(--text-secondary)' }} />
-        )
+        guideId ? undefined : <BookOpen size={20} style={{ color: 'var(--text-secondary)' }} />
       }
     >
-      <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div
+        style={{
+          maxWidth: 720,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+        }}
+      >
         {error && (
           <div
             style={{
@@ -157,9 +172,7 @@ export function HelpPage() {
           </div>
         )}
 
-        {!guideId && indexLoading && (
-          <LoadingPlaceholder variant="base" minHeight={200} />
-        )}
+        {!guideId && indexLoading && <LoadingPlaceholder variant="base" minHeight={200} />}
 
         {!guideId && !indexLoading && index && (
           <>
@@ -173,9 +186,7 @@ export function HelpPage() {
           </>
         )}
 
-        {guideId && loading && (
-          <LoadingPlaceholder variant="base" minHeight={200} />
-        )}
+        {guideId && loading && <LoadingPlaceholder variant="base" minHeight={200} />}
 
         {guideId && content && !loading && (
           <div>

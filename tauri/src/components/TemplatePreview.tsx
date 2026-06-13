@@ -92,7 +92,11 @@ export function TemplatePreview({ templateName, category, fields }: TemplatePrev
                 }}
                 title={field.type}
               >
-                {Icon ? <Icon size={12} strokeWidth={2} /> : <span style={{ fontSize: 10 }}>?</span>}
+                {Icon ? (
+                  <Icon size={12} strokeWidth={2} />
+                ) : (
+                  <span style={{ fontSize: 10 }}>?</span>
+                )}
               </span>
               <span style={{ fontSize: 12, flex: 1, color: 'var(--text-primary)' }}>
                 {t(`editor:fields.${field.id}`, field.nameFallback)}
@@ -131,7 +135,10 @@ export function TemplatePreview({ templateName, category, fields }: TemplatePrev
                             : '#6b7280',
                     }}
                   >
-                    {t(`editor:sensitivity_levels.${field.sensitivityLevel}`, field.sensitivityLevel)}
+                    {t(
+                      `editor:sensitivity_levels.${field.sensitivityLevel}`,
+                      field.sensitivityLevel,
+                    )}
                   </span>
                 )}
               </div>

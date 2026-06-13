@@ -87,7 +87,8 @@ export function SecurePasswordInput({
         className={className}
         style={{
           position: 'relative',
-          display: 'flex', alignItems: 'center',
+          display: 'flex',
+          alignItems: 'center',
           border: error
             ? '1px solid var(--accent-danger, #dc2626)'
             : '1px solid var(--border-subtle)',
@@ -96,10 +97,15 @@ export function SecurePasswordInput({
           backgroundColor: 'var(--bg-input)',
         }}
       >
-        <Lock size={14} style={{
-          position: 'absolute', left: 12,
-          color: 'var(--text-tertiary)', pointerEvents: 'none',
-        }} />
+        <Lock
+          size={14}
+          style={{
+            position: 'absolute',
+            left: 12,
+            color: 'var(--text-tertiary)',
+            pointerEvents: 'none',
+          }}
+        />
         <input
           id={inputId}
           ref={inputRef}
@@ -118,7 +124,8 @@ export function SecurePasswordInput({
           aria-live="polite"
           style={{
             flex: 1,
-            border: 'none', outline: 'none',
+            border: 'none',
+            outline: 'none',
             padding: showHintButton ? '10px 72px 10px 32px' : '10px 48px 10px 32px',
             fontSize: 14,
             background: 'transparent',
@@ -130,10 +137,17 @@ export function SecurePasswordInput({
         />
 
         {/* Button area (absolute positioned on the right) */}
-        <div style={{
-          position: 'absolute', right: 8, top: 0, bottom: 0,
-          display: 'flex', alignItems: 'center', gap: 2,
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            right: 8,
+            top: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
           {/* Visibility toggle button */}
           {value.length > 0 && (
             <button
@@ -143,14 +157,22 @@ export function SecurePasswordInput({
               aria-pressed={visible}
               tabIndex={-1}
               style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                padding: 4, borderRadius: 4,
-                display: 'flex', alignItems: 'center',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 4,
+                borderRadius: 4,
+                display: 'flex',
+                alignItems: 'center',
                 color: 'var(--text-tertiary)',
                 transition: 'color 0.15s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--text-secondary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-tertiary)';
+              }}
             >
               {visible ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -169,9 +191,13 @@ export function SecurePasswordInput({
                 aria-label={t('common:password_hint_tooltip')}
                 tabIndex={-1}
                 style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  padding: 4, borderRadius: 4,
-                  display: 'flex', alignItems: 'center',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 4,
+                  borderRadius: 4,
+                  display: 'flex',
+                  alignItems: 'center',
                   color: isHintHovered ? 'var(--accent-primary)' : 'var(--text-tertiary)',
                   transition: 'color 0.15s',
                 }}
@@ -180,38 +206,39 @@ export function SecurePasswordInput({
               </button>
 
               {/* Card via Portal (not clipped by overflow) */}
-              {isHintHovered && createPortal(
-                <div data-testid="password-hint-tooltip" style={{
-                  position: 'fixed',
-                  top: hintCardPos?.top ?? 0,
-                  left: hintCardPos?.left ?? 0,
-                  transform: 'translateY(-50%)',
-                  zIndex: 5000,
-                  whiteSpace: 'normal',
-                  wordBreak: 'keep-all',
-                  overflowWrap: 'break-word',
-                  maxWidth: 240,
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  fontSize: 11,
-                  lineHeight: 1.4,
-                  color: 'var(--text-secondary)',
-                  background: 'var(--bg-elevated)',
-                  boxShadow: 'var(--shadow-md)',
-                }}>
-                  {hasHint ? hint : t('common:no_hint_available')}
-                </div>,
-                document.body
-              )}
+              {isHintHovered &&
+                createPortal(
+                  <div
+                    data-testid="password-hint-tooltip"
+                    style={{
+                      position: 'fixed',
+                      top: hintCardPos?.top ?? 0,
+                      left: hintCardPos?.left ?? 0,
+                      transform: 'translateY(-50%)',
+                      zIndex: 5000,
+                      whiteSpace: 'normal',
+                      wordBreak: 'keep-all',
+                      overflowWrap: 'break-word',
+                      maxWidth: 240,
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      fontSize: 11,
+                      lineHeight: 1.4,
+                      color: 'var(--text-secondary)',
+                      background: 'var(--bg-elevated)',
+                      boxShadow: 'var(--shadow-md)',
+                    }}
+                  >
+                    {hasHint ? hint : t('common:no_hint_available')}
+                  </div>,
+                  document.body,
+                )}
             </div>
           )}
         </div>
       </div>
       {error && (
-        <span
-          role="alert"
-          style={{ fontSize: 12, color: 'var(--accent-danger, #dc2626)' }}
-        >
+        <span role="alert" style={{ fontSize: 12, color: 'var(--accent-danger, #dc2626)' }}>
           {error}
         </span>
       )}

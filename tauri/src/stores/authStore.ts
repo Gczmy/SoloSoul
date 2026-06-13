@@ -13,7 +13,12 @@ interface AuthState {
   checkHasAccount: () => Promise<void>;
   listAccounts: () => Promise<void>;
   refreshCurrentAccount: () => Promise<void>;
-  bootstrap: (name: string, password: string, locale: string, passwordHint?: string) => Promise<void>;
+  bootstrap: (
+    name: string,
+    password: string,
+    locale: string,
+    passwordHint?: string,
+  ) => Promise<void>;
   login: (accountId: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -44,7 +49,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const accounts = await commands.vaultListAccounts();
       const currentId = get().currentAccount?.id;
       const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
-      set({ accounts, currentAccount: refreshed || get().currentAccount, hasAccount: accounts.length > 0, backendError: false });
+      set({
+        accounts,
+        currentAccount: refreshed || get().currentAccount,
+        hasAccount: accounts.length > 0,
+        backendError: false,
+      });
     } catch {
       // silent — vault may be locked
     }
@@ -87,7 +97,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Fetch fresh account info to ensure currentAccount is set correctly
       const result = await commands.vaultListAccounts();
       const accounts = result || [];
-      const account = accounts.find((a) => a.id === accountId) || { id: accountId, name: accountId };
+      const account = accounts.find((a) => a.id === accountId) || {
+        id: accountId,
+        name: accountId,
+      };
       set({
         isAuthenticated: true,
         currentAccount: account,

@@ -1,7 +1,17 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, X, Loader2, Settings, Clock, User, Plane, CreditCard, Briefcase } from 'lucide-react';
+import {
+  Search,
+  X,
+  Loader2,
+  Settings,
+  Clock,
+  User,
+  Plane,
+  CreditCard,
+  Briefcase,
+} from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
@@ -86,7 +96,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
         }}
       >
         {text.slice(idx, idx + query.length)}
-      </mark>
+      </mark>,
     );
     i = idx + query.length;
   }
@@ -122,35 +132,38 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const doSearch = useCallback(async (q: string, filter: string | null) => {
-    if (!accountId || (!q.trim() && !filter)) {
-      setResults([]);
-      setHasSearched(false);
-      return;
-    }
-    setIsSearching(true);
-    setHasSearched(true);
-    try {
-      const isCustom = activeCustomPages.some((p) => p.id === filter);
-      const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
-      if (filter) {
-        if (isCustom) {
-          payload.parentId = filter;
-        } else {
-          payload.collectionType = filter;
-        }
+  const doSearch = useCallback(
+    async (q: string, filter: string | null) => {
+      if (!accountId || (!q.trim() && !filter)) {
+        setResults([]);
+        setHasSearched(false);
+        return;
       }
-      const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
-        'search_unified',
-        payload
-      );
-      setResults(res.items);
-    } catch (e) {
-      onError(e, t('common:search_failed'));
-    } finally {
-      setIsSearching(false);
-    }
-  }, [accountId, activeCustomPages, onError, t]);
+      setIsSearching(true);
+      setHasSearched(true);
+      try {
+        const isCustom = activeCustomPages.some((p) => p.id === filter);
+        const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
+        if (filter) {
+          if (isCustom) {
+            payload.parentId = filter;
+          } else {
+            payload.collectionType = filter;
+          }
+        }
+        const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
+          'search_unified',
+          payload,
+        );
+        setResults(res.items);
+      } catch (e) {
+        onError(e, t('common:search_failed'));
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [accountId, activeCustomPages, onError, t],
+  );
 
   const handleChange = (val: string) => {
     setQuery(val);
@@ -249,165 +262,183 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     <>
       <div className={styles.backdrop} onClick={handleBackdropClick}>
         <div className={styles.card}>
-        {/* 1. Search input */}
-        <div className={styles.inputRow}>
-          <div className={styles.leftControl}>
-            {isSearching ? (
-              <Loader2 size={16} className={styles.spinner} />
-            ) : (
-              <Search size={16} className={styles.inputIcon} />
+          {/* 1. Search input */}
+          <div className={styles.inputRow}>
+            <div className={styles.leftControl}>
+              {isSearching ? (
+                <Loader2 size={16} className={styles.spinner} />
+              ) : (
+                <Search size={16} className={styles.inputIcon} />
+              )}
+            </div>
+            <input
+              ref={inputRef}
+              className={styles.input}
+              placeholder={t('common:search_placeholder')}
+              value={query}
+              onChange={(e) => handleChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSubmit();
+              }}
+            />
+            <div className={styles.rightControl}>
+              <button className={styles.closeBtn} onClick={onClose} aria-label={t('common:cancel')}>
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Filter bar */}
+          <div className={styles.filterBar}>
+            {FILTER_PAGES.map((f) => {
+              const Icon = f.icon;
+              const active = selectedFilter === f.key;
+              return (
+                <button
+                  key={f.key}
+                  className={`${styles.filterBtn} ${active ? styles.filterBtnActive : ''}`}
+                  onClick={() => handleFilter(f.key)}
+                >
+                  <Icon size={12} />
+                  <span>{t(f.labelKey)}</span>
+                </button>
+              );
+            })}
+            {activeCustomPages.map((p) => {
+              const active = selectedFilter === p.id;
+              return (
+                <button
+                  key={p.id}
+                  className={`${styles.filterBtn} ${active ? styles.filterBtnActive : ''}`}
+                  onClick={() => handleFilter(p.id)}
+                >
+                  <PAGE_ICON_MAP.custom size={12} />
+                  <span>{p.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Content area */}
+          <div className={styles.content}>
+            {/* Search results */}
+            {hasSearched && (
+              <>
+                {results.length === 0 && !isSearching && (
+                  <div className={styles.empty}>{t('common:no_results')}</div>
+                )}
+                {results.map((item) => (
+                  <button
+                    key={`${item.itemType}-${item.objectId}`}
+                    className={styles.resultItem}
+                    onClick={() => handleClickResult(item)}
+                  >
+                    <PAGE_ICON_MAP.custom size={16} />
+                    <div className={styles.resultText}>
+                      <div className={styles.resultName}>{item.name}</div>
+                      <div className={styles.resultMeta}>
+                        {item.itemType === 'page' ? (
+                          <>
+                            <span className={styles.typeTag}>{t('settings:search_type_page')}</span>
+                            <span> · {resolvePageName(item)}</span>
+                            {item.objectCount !== undefined && (
+                              <span>
+                                {' '}
+                                · {item.objectCount} {t('settings:search_objects_count')}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <span className={styles.typeTag}>
+                              {t('settings:search_type_object')}
+                            </span>
+                            <span> · {resolvePageName(item)}</span>
+                            {item.fieldCount !== undefined && (
+                              <span>
+                                {' '}
+                                · {item.fieldCount} {t('settings:search_fields_count')}
+                              </span>
+                            )}
+                            {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  marginLeft: 4,
+                                }}
+                              >
+                                {' · '}
+                                {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
+                                  <SensitivityBadge key={lvl} level={lvl} />
+                                ))}
+                              </span>
+                            )}
+                          </>
+                        )}
+                        {renderMatchHint(item)}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </>
+            )}
+
+            {/* Default view when no search active */}
+            {showDefaultView && (
+              <>
+                {/* 3. Recent searches */}
+                {recent.length > 0 && (
+                  <div className={styles.section}>
+                    <div className={styles.sectionTitle}>
+                      <Clock size={13} />
+                      <span>{t('common:recent_searches')}</span>
+                    </div>
+                    {recent.map((q) => (
+                      <button
+                        key={q}
+                        className={styles.recentItem}
+                        onClick={() => handleRecentClick(q)}
+                      >
+                        <Search size={13} />
+                        <span>{q}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* 4. Settings */}
+                <div className={styles.section}>
+                  <button
+                    className={styles.settingsItem}
+                    onClick={() => {
+                      onClose();
+                      navigate('/settings');
+                    }}
+                  >
+                    <Settings size={16} />
+                    <span>{t('navigation:settings')}</span>
+                  </button>
+                </div>
+              </>
             )}
           </div>
-          <input
-            ref={inputRef}
-            className={styles.input}
-            placeholder={t('common:search_placeholder')}
-            value={query}
-            onChange={(e) => handleChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSubmit();
-            }}
-          />
-          <div className={styles.rightControl}>
-            <button className={styles.closeBtn} onClick={onClose} aria-label={t('common:cancel')}>
-              <X size={16} />
-            </button>
-          </div>
-        </div>
-
-        {/* 2. Filter bar */}
-        <div className={styles.filterBar}>
-          {FILTER_PAGES.map((f) => {
-            const Icon = f.icon;
-            const active = selectedFilter === f.key;
-            return (
-              <button
-                key={f.key}
-                className={`${styles.filterBtn} ${active ? styles.filterBtnActive : ''}`}
-                onClick={() => handleFilter(f.key)}
-              >
-                <Icon size={12} />
-                <span>{t(f.labelKey)}</span>
-              </button>
-            );
-          })}
-          {activeCustomPages.map((p) => {
-            const active = selectedFilter === p.id;
-            return (
-              <button
-                key={p.id}
-                className={`${styles.filterBtn} ${active ? styles.filterBtnActive : ''}`}
-                onClick={() => handleFilter(p.id)}
-              >
-                <PAGE_ICON_MAP.custom size={12} />
-                <span>{p.name}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Content area */}
-        <div className={styles.content}>
-          {/* Search results */}
-          {hasSearched && (
-            <>
-              {results.length === 0 && !isSearching && (
-                <div className={styles.empty}>{t('common:no_results')}</div>
-              )}
-              {results.map((item) => (
-                <button
-                  key={`${item.itemType}-${item.objectId}`}
-                  className={styles.resultItem}
-                  onClick={() => handleClickResult(item)}
-                >
-                  <PAGE_ICON_MAP.custom size={16} />
-                  <div className={styles.resultText}>
-                    <div className={styles.resultName}>{item.name}</div>
-                    <div className={styles.resultMeta}>
-                      {item.itemType === 'page' ? (
-                        <>
-                          <span className={styles.typeTag}>{t('settings:search_type_page')}</span>
-                          <span> · {resolvePageName(item)}</span>
-                          {item.objectCount !== undefined && (
-                            <span> · {item.objectCount} {t('settings:search_objects_count')}</span>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <span className={styles.typeTag}>{t('settings:search_type_object')}</span>
-                          <span> · {resolvePageName(item)}</span>
-                          {item.fieldCount !== undefined && (
-                            <span> · {item.fieldCount} {t('settings:search_fields_count')}</span>
-                          )}
-                          {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4 }}>
-                              {' · '}
-                              {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
-                                <SensitivityBadge key={lvl} level={lvl} />
-                              ))}
-                            </span>
-                          )}
-                        </>
-                      )}
-                      {renderMatchHint(item)}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </>
-          )}
-
-          {/* Default view when no search active */}
-          {showDefaultView && (
-            <>
-              {/* 3. Recent searches */}
-              {recent.length > 0 && (
-                <div className={styles.section}>
-                  <div className={styles.sectionTitle}>
-                    <Clock size={13} />
-                    <span>{t('common:recent_searches')}</span>
-                  </div>
-                  {recent.map((q) => (
-                    <button
-                      key={q}
-                      className={styles.recentItem}
-                      onClick={() => handleRecentClick(q)}
-                    >
-                      <Search size={13} />
-                      <span>{q}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* 4. Settings */}
-              <div className={styles.section}>
-                <button
-                  className={styles.settingsItem}
-                  onClick={() => { onClose(); navigate('/settings'); }}
-                >
-                  <Settings size={16} />
-                  <span>{t('navigation:settings')}</span>
-                </button>
-              </div>
-            </>
-          )}
         </div>
       </div>
-    </div>
 
-    {detailObjectId && (
-      <ObjectDetailModal
-        objectId={detailObjectId}
-        onClose={() => setDetailObjectId(null)}
-        onEdit={() => {
-          setDetailObjectId(null);
-          onClose();
-          navigate(`/editor/${detailObjectId}`);
-        }}
-      />
-    )}
+      {detailObjectId && (
+        <ObjectDetailModal
+          objectId={detailObjectId}
+          onClose={() => setDetailObjectId(null)}
+          onEdit={() => {
+            setDetailObjectId(null);
+            onClose();
+            navigate(`/editor/${detailObjectId}`);
+          }}
+        />
+      )}
     </>,
-    document.body
+    document.body,
   );
 }

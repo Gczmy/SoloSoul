@@ -154,17 +154,18 @@ export function NavButton({
     </div>
   ) : null;
 
-  const activeIndicator = path && isActive ? (
-    <div
-      className={styles.activeIndicatorPortal}
-      style={{
-        position: 'fixed',
-        ...indicatorStyle,
-        zIndex: 199,
-      }}
-      aria-hidden="true"
-    />
-  ) : null;
+  const activeIndicator =
+    path && isActive ? (
+      <div
+        className={styles.activeIndicatorPortal}
+        style={{
+          position: 'fixed',
+          ...indicatorStyle,
+          zIndex: 199,
+        }}
+        aria-hidden="true"
+      />
+    ) : null;
 
   return (
     <div

@@ -76,26 +76,33 @@ function AppRoutes() {
     const account = useAuthStore.getState().currentAccount;
     if (isAuthenticated && account) {
       useProfileStore.getState().loadProfile(account.id);
-      useSettingsStore.getState().loadSettings(account.id).then(() => {
-        // Re-apply theme with loaded settings (otherwise stays at defaults)
-        const s = useSettingsStore.getState().settings;
-        applyTheme({
-          preset: s.theme === 'dark' ? 'warm-stone-dark' :
-                  s.theme === 'light' ? 'warm-stone-light' : 'system',
-          accentColor: s.accentColor,
-          backgroundType: s.backgroundType,
-          backgroundValue: s.backgroundValue,
-          defaultLightTheme: s.defaultLightTheme,
-          defaultDarkTheme: s.defaultDarkTheme,
+      useSettingsStore
+        .getState()
+        .loadSettings(account.id)
+        .then(() => {
+          // Re-apply theme with loaded settings (otherwise stays at defaults)
+          const s = useSettingsStore.getState().settings;
+          applyTheme({
+            preset:
+              s.theme === 'dark'
+                ? 'warm-stone-dark'
+                : s.theme === 'light'
+                  ? 'warm-stone-light'
+                  : 'system',
+            accentColor: s.accentColor,
+            backgroundType: s.backgroundType,
+            backgroundValue: s.backgroundValue,
+            defaultLightTheme: s.defaultLightTheme,
+            defaultDarkTheme: s.defaultDarkTheme,
+          });
+          // Language is correctly set by initI18n() via Rust IPC.
+          // User changes via settings are handled in settingsStore.
+          // Skip here — vault-stored locale may be stale (navigator.language fallback).
+          // P0-1: Load custom pages from objects table (separate from profile preferences)
+          // Must run AFTER loadSettings finishes to avoid race condition where
+          // loadSettings overwrites customPages with DEFAULT_SETTINGS.
+          useSettingsStore.getState().loadCustomPages(account.id);
         });
-        // Language is correctly set by initI18n() via Rust IPC.
-        // User changes via settings are handled in settingsStore.
-        // Skip here — vault-stored locale may be stale (navigator.language fallback).
-        // P0-1: Load custom pages from objects table (separate from profile preferences)
-        // Must run AFTER loadSettings finishes to avoid race condition where
-        // loadSettings overwrites customPages with DEFAULT_SETTINGS.
-        useSettingsStore.getState().loadCustomPages(account.id);
-      });
     }
   }, [isAuthenticated]);
 
@@ -106,8 +113,12 @@ function AppRoutes() {
   useEffect(() => {
     const settings = useSettingsStore.getState().settings;
     applyTheme({
-      preset: settings.theme === 'dark' ? 'warm-stone-dark' :
-              settings.theme === 'light' ? 'warm-stone-light' : 'system',
+      preset:
+        settings.theme === 'dark'
+          ? 'warm-stone-dark'
+          : settings.theme === 'light'
+            ? 'warm-stone-light'
+            : 'system',
       accentColor: settings.accentColor,
       backgroundType: settings.backgroundType,
       backgroundValue: settings.backgroundValue,
@@ -121,9 +132,18 @@ function AppRoutes() {
 
     // Listen for system theme changes
     const config = {
-      preset: (settings.theme === 'dark' ? 'warm-stone-dark' :
-              settings.theme === 'light' ? 'warm-stone-light' : 'system') as import('@/types').ThemePreset,
-      accentColor: settings.accentColor as 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'custom',
+      preset: (settings.theme === 'dark'
+        ? 'warm-stone-dark'
+        : settings.theme === 'light'
+          ? 'warm-stone-light'
+          : 'system') as import('@/types').ThemePreset,
+      accentColor: settings.accentColor as
+        | 'ocean'
+        | 'amber'
+        | 'forest'
+        | 'rose'
+        | 'purple'
+        | 'custom',
       backgroundType: settings.backgroundType as 'solid' | 'gradient' | 'image',
       backgroundValue: settings.backgroundValue,
       defaultLightTheme: settings.defaultLightTheme,
@@ -132,8 +152,12 @@ function AppRoutes() {
     listenForSystemTheme(config, () => {
       const s = useSettingsStore.getState().settings;
       applyTheme({
-        preset: s.theme === 'dark' ? 'warm-stone-dark' :
-                s.theme === 'light' ? 'warm-stone-light' : 'system',
+        preset:
+          s.theme === 'dark'
+            ? 'warm-stone-dark'
+            : s.theme === 'light'
+              ? 'warm-stone-light'
+              : 'system',
         accentColor: s.accentColor,
         backgroundType: s.backgroundType,
         backgroundValue: s.backgroundValue,
@@ -156,7 +180,9 @@ function AppRoutes() {
       useAuthStore.getState().logout();
       navigate('/login');
     });
-    return () => { unlisten.then((f) => f()); };
+    return () => {
+      unlisten.then((f) => f());
+    };
   }, [navigate]);
 
   return (
@@ -164,7 +190,10 @@ function AppRoutes() {
       {updateBanner && (
         <UpdateBanner
           version={updateBanner.version}
-          onUpdate={() => { setUpdateBanner(null); navigate('/about'); }}
+          onUpdate={() => {
+            setUpdateBanner(null);
+            navigate('/about');
+          }}
           onSkip={() => {
             localStorage.setItem('solosoul_skipped_version', updateBanner.version);
             setUpdateBanner(null);
@@ -172,228 +201,261 @@ function AppRoutes() {
           onClose={() => setUpdateBanner(null)}
         />
       )}
-    <Routes>
-      <Route
-        path="/bootstrap"
-        element={
-          hasAccount === true ? <Navigate to="/login" replace /> :
-          hasAccount === false ? <BootstrapPage /> :
-          <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--text-secondary)',fontSize:14}}>
-            Connecting to backend...
-          </div>
-        }
-      />
-      <Route path="/login" element={hasAccount === null ? <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',color:'var(--text-secondary)',fontSize:14}}>Connecting...</div> : <LoginPage />} />
-      <Route
-        path="/"
-        element={
-          <AuthGuard>
-            <HomePage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/search"
-        element={
-          <AuthGuard>
-            <SearchPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <AuthGuard>
-            <SettingsPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/appearance"
-        element={
-          <AuthGuard>
-            <AppearanceSettingsPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/security"
-        element={
-          <AuthGuard>
-            <SecuritySettingsPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/export-import"
-        element={
-          <AuthGuard>
-            <ExportImportPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/data"
-        element={
-          <AuthGuard>
-            <DataManagementPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/trash"
-        element={
-          <AuthGuard>
-            <TrashPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/operation-log"
-        element={
-          <AuthGuard>
-            <OperationLogPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/backup"
-        element={
-          <AuthGuard>
-            <BackupConfigPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/about"
-        element={
-          <AuthGuard>
-            <AboutPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/debug-log"
-        element={
-          <AuthGuard>
-            <DebugLogPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/plugins"
-        element={
-          <AuthGuard>
-            <PluginDashboardPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/templates"
-        element={
-          <AuthGuard>
-            <TemplateManagerPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/llm"
-        element={
-          <AuthGuard>
-            <LlmConfigPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/settings/llm/stats"
-        element={
-          <AuthGuard>
-            <LlmStatsPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/llm-chat"
-        element={
-          <AuthGuard>
-            <LlmChatPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/local-import"
-        element={
-          <AuthGuard>
-            <ScanLocalPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/history"
-        element={
-          <AuthGuard>
-            <HistoryPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/ocr"
-        element={
-          <AuthGuard>
-            <OcrPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/sync"
-        element={
-          <AuthGuard>
-            <SyncPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/help"
-        element={
-          <AuthGuard>
-            <HelpPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/workspace"
-        element={
-          <AuthGuard>
-            <ObjectWorkspacePage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/editor"
-        element={
-          <AuthGuard>
-            <ObjectEditorPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/editor/:objectId"
-        element={
-          <AuthGuard>
-            <ObjectEditorPage />
-          </AuthGuard>
-        }
-      />
-      <Route
-        path="/workspace/custom/:pageId"
-        element={
-          <AuthGuard>
-            <ObjectWorkspacePage />
-          </AuthGuard>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      <Routes>
+        <Route
+          path="/bootstrap"
+          element={
+            hasAccount === true ? (
+              <Navigate to="/login" replace />
+            ) : hasAccount === false ? (
+              <BootstrapPage />
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100vh',
+                  color: 'var(--text-secondary)',
+                  fontSize: 14,
+                }}
+              >
+                Connecting to backend...
+              </div>
+            )
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            hasAccount === null ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100vh',
+                  color: 'var(--text-secondary)',
+                  fontSize: 14,
+                }}
+              >
+                Connecting...
+              </div>
+            ) : (
+              <LoginPage />
+            )
+          }
+        />
+        <Route
+          path="/"
+          element={
+            <AuthGuard>
+              <HomePage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <AuthGuard>
+              <SearchPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <AuthGuard>
+              <SettingsPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/appearance"
+          element={
+            <AuthGuard>
+              <AppearanceSettingsPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/security"
+          element={
+            <AuthGuard>
+              <SecuritySettingsPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/export-import"
+          element={
+            <AuthGuard>
+              <ExportImportPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/data"
+          element={
+            <AuthGuard>
+              <DataManagementPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/trash"
+          element={
+            <AuthGuard>
+              <TrashPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/operation-log"
+          element={
+            <AuthGuard>
+              <OperationLogPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/backup"
+          element={
+            <AuthGuard>
+              <BackupConfigPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <AuthGuard>
+              <AboutPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/debug-log"
+          element={
+            <AuthGuard>
+              <DebugLogPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/plugins"
+          element={
+            <AuthGuard>
+              <PluginDashboardPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/templates"
+          element={
+            <AuthGuard>
+              <TemplateManagerPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/llm"
+          element={
+            <AuthGuard>
+              <LlmConfigPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/llm/stats"
+          element={
+            <AuthGuard>
+              <LlmStatsPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/llm-chat"
+          element={
+            <AuthGuard>
+              <LlmChatPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/local-import"
+          element={
+            <AuthGuard>
+              <ScanLocalPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <AuthGuard>
+              <HistoryPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/ocr"
+          element={
+            <AuthGuard>
+              <OcrPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/sync"
+          element={
+            <AuthGuard>
+              <SyncPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/help"
+          element={
+            <AuthGuard>
+              <HelpPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/workspace"
+          element={
+            <AuthGuard>
+              <ObjectWorkspacePage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/editor"
+          element={
+            <AuthGuard>
+              <ObjectEditorPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/editor/:objectId"
+          element={
+            <AuthGuard>
+              <ObjectEditorPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/workspace/custom/:pageId"
+          element={
+            <AuthGuard>
+              <ObjectWorkspacePage />
+            </AuthGuard>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
   );
 }
@@ -402,14 +464,20 @@ function App() {
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
     try {
       return localStorage.getItem('solosoul_onboarding_seen') === 'true';
-    } catch { return true; }
+    } catch {
+      return true;
+    }
   });
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      invoke<{ hasSeenOnboarding?: boolean }>('ui_get_preferences').catch(() => ({ hasSeenOnboarding: false })),
-      invoke<Array<{ id: string; name: string }>>('list_accounts').catch(() => [] as Array<{ id: string; name: string }>),
+      invoke<{ hasSeenOnboarding?: boolean }>('ui_get_preferences').catch(() => ({
+        hasSeenOnboarding: false,
+      })),
+      invoke<Array<{ id: string; name: string }>>('list_accounts').catch(
+        () => [] as Array<{ id: string; name: string }>,
+      ),
     ])
       .then(([prefs, accounts]) => {
         if (cancelled) return;
@@ -429,9 +497,13 @@ function App() {
           const localSeen = localStorage.getItem('solosoul_onboarding_seen') === 'true';
           if (localSeen) {
             // eslint-disable-next-line no-console
-            console.warn('[onboarding] ui_preferences says not seen but localStorage says seen; using IPC');
+            console.warn(
+              '[onboarding] ui_preferences says not seen but localStorage says seen; using IPC',
+            );
           }
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         setHasSeenOnboarding(false);
       })
       .catch((err) => {
@@ -440,11 +512,17 @@ function App() {
         console.warn('[onboarding] Failed to read onboarding state:', err);
         // Fallback to localStorage already applied in initial state
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const finishOnboarding = () => {
-    try { localStorage.setItem('solosoul_onboarding_seen', 'true'); } catch { /* ignore */ }
+    try {
+      localStorage.setItem('solosoul_onboarding_seen', 'true');
+    } catch {
+      /* ignore */
+    }
     invoke('ui_update_preference', { key: 'hasSeenOnboarding', value: 'true' }).catch((err) => {
       // eslint-disable-next-line no-console
       console.warn('[onboarding] Failed to persist hasSeenOnboarding:', err);
@@ -457,10 +535,7 @@ function App() {
       <AppRoutes />
       <ToastContainer />
       {!hasSeenOnboarding && (
-        <OnboardingDialog
-          onComplete={finishOnboarding}
-          onSkip={finishOnboarding}
-        />
+        <OnboardingDialog onComplete={finishOnboarding} onSkip={finishOnboarding} />
       )}
     </BrowserRouter>
   );

@@ -10,7 +10,12 @@ interface AccountStatsCardProps {
   t: TFunction;
 }
 
-export function AccountStatsCard({ usageCount, totalTokens, modelUsages, t }: AccountStatsCardProps) {
+export function AccountStatsCard({
+  usageCount,
+  totalTokens,
+  modelUsages,
+  t,
+}: AccountStatsCardProps) {
   return (
     <Card>
       <div style={{ display: 'flex' }}>
@@ -21,7 +26,9 @@ export function AccountStatsCard({ usageCount, totalTokens, modelUsages, t }: Ac
           modelUsages={modelUsages}
           modelValue={(m) => m.count.toString()}
         />
-        <div style={{ width: 1, background: 'var(--border-subtle)', margin: '0 12px', flexShrink: 0 }} />
+        <div
+          style={{ width: 1, background: 'var(--border-subtle)', margin: '0 12px', flexShrink: 0 }}
+        />
         <StatColumn
           icon={<Hash size={20} color="var(--accent-primary)" />}
           label={t('settings:llm_total_tokens')}
@@ -55,14 +62,38 @@ function StatColumn({
   const needsScroll = contentHeight > maxHeight;
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: tileHeight, overflow: 'hidden' }}>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        height: tileHeight,
+        overflow: 'hidden',
+      }}
+    >
       <div style={{ marginBottom: 4 }}>{icon}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent-primary)', lineHeight: 1.2 }}>{value}</div>
+      <div
+        style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent-primary)', lineHeight: 1.2 }}
+      >
+        {value}
+      </div>
       <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 4 }}>{label}</div>
       {modelUsages.length > 0 && (
-        <div style={{ width: '100%', overflow: needsScroll ? 'auto' : 'visible', fontSize: 10, color: 'var(--text-tertiary)', textAlign: 'center' }}>
+        <div
+          style={{
+            width: '100%',
+            overflow: needsScroll ? 'auto' : 'visible',
+            fontSize: 10,
+            color: 'var(--text-tertiary)',
+            textAlign: 'center',
+          }}
+        >
           {modelUsages.map((m) => (
-            <div key={`${m.provider}/${m.model}`} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div
+              key={`${m.provider}/${m.model}`}
+              style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
               {m.model} · {m.provider} · {modelValue(m)}
             </div>
           ))}

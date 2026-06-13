@@ -60,8 +60,12 @@ describe('settingsStore', () => {
     localStorageData = {};
     vi.stubGlobal('localStorage', {
       getItem: (key: string) => localStorageData[key] ?? null,
-      setItem: (key: string, value: string) => { localStorageData[key] = value; },
-      removeItem: (key: string) => { delete localStorageData[key]; },
+      setItem: (key: string, value: string) => {
+        localStorageData[key] = value;
+      },
+      removeItem: (key: string) => {
+        delete localStorageData[key];
+      },
     });
 
     vi.clearAllMocks();
@@ -117,7 +121,9 @@ describe('settingsStore', () => {
         autoLockTimeoutMinutes: 10,
         biometricEnabled: true,
         confirmDelete: false,
-        customPages: [{ id: 'p1', name: 'Page1', iconId: 'document', createdAt: '2024-01-01', sortOrder: 0 }],
+        customPages: [
+          { id: 'p1', name: 'Page1', iconId: 'document', createdAt: '2024-01-01', sortOrder: 0 },
+        ],
         defaultLightTheme: 'warm-stone',
         defaultDarkTheme: 'warm-stone-dark',
       });
@@ -173,7 +179,9 @@ describe('settingsStore', () => {
     });
 
     it('should rollback on persistence failure', async () => {
-      useSettingsStore.setState({ settings: { ...useSettingsStore.getState().settings, theme: 'light' } });
+      useSettingsStore.setState({
+        settings: { ...useSettingsStore.getState().settings, theme: 'light' },
+      });
       vi.mocked(invoke).mockRejectedValue(new Error('disk full'));
       await useSettingsStore.getState().updateSetting('acc-1', 'theme', 'dark');
       expect(useSettingsStore.getState().settings.theme).toBe('light');
@@ -193,14 +201,17 @@ describe('settingsStore', () => {
       expect(page.name).toBe('My Page');
       expect(page.iconId).toBe('star');
       expect(useSettingsStore.getState().settings.customPages).toHaveLength(1);
-      expect(invoke).toHaveBeenCalledWith('object_create', expect.objectContaining({
-        input: expect.objectContaining({
-          accountId: 'acc-1',
-          name: 'My Page',
-          collectionType: 'page',
-          iconName: 'star',
+      expect(invoke).toHaveBeenCalledWith(
+        'object_create',
+        expect.objectContaining({
+          input: expect.objectContaining({
+            accountId: 'acc-1',
+            name: 'My Page',
+            collectionType: 'page',
+            iconName: 'star',
+          }),
         }),
-      }));
+      );
     });
 
     it('should rollback on creation failure', async () => {
@@ -228,14 +239,20 @@ describe('settingsStore', () => {
       expect(pages[0].id).toBe('p1');
       expect(pages[0].deletedAt).toBeDefined();
       expect(pages[1].deletedAt).toBeUndefined();
-      expect(invoke).toHaveBeenCalledWith('page_delete', { accountId: 'acc-1', sectionType: 'custom', pageObjectId: 'p1' });
+      expect(invoke).toHaveBeenCalledWith('page_delete', {
+        accountId: 'acc-1',
+        sectionType: 'custom',
+        pageObjectId: 'p1',
+      });
     });
 
     it('should rollback on deletion failure', async () => {
       useSettingsStore.setState({
         settings: {
           ...useSettingsStore.getState().settings,
-          customPages: [{ id: 'p1', name: 'Page1', iconId: 'document', createdAt: '2024-01-01', sortOrder: 0 }],
+          customPages: [
+            { id: 'p1', name: 'Page1', iconId: 'document', createdAt: '2024-01-01', sortOrder: 0 },
+          ],
         },
       });
       vi.mocked(invoke).mockRejectedValue(new Error('not found'));
@@ -250,7 +267,9 @@ describe('settingsStore', () => {
         settings: {
           ...useSettingsStore.getState().settings,
           theme: 'dark',
-          customPages: [{ id: 'p1', name: 'Page1', iconId: 'document', createdAt: '2024-01-01', sortOrder: 0 }],
+          customPages: [
+            { id: 'p1', name: 'Page1', iconId: 'document', createdAt: '2024-01-01', sortOrder: 0 },
+          ],
         },
         isLoading: true,
       });
@@ -283,8 +302,20 @@ describe('settingsStore', () => {
   describe('loadCustomPages', () => {
     it('should load pages from objects table when new-format pages exist', async () => {
       vi.mocked(invoke).mockResolvedValue([
-        { id: 'obj-1', name: 'Page A', collectionType: 'page', createdAt: '2024-06-01T00:00:00Z', updatedAt: '2024-06-01T00:00:00Z' },
-        { id: 'obj-2', name: 'Page B', collectionType: 'page', createdAt: '2024-06-02T00:00:00Z', updatedAt: '2024-06-02T00:00:00Z' },
+        {
+          id: 'obj-1',
+          name: 'Page A',
+          collectionType: 'page',
+          createdAt: '2024-06-01T00:00:00Z',
+          updatedAt: '2024-06-01T00:00:00Z',
+        },
+        {
+          id: 'obj-2',
+          name: 'Page B',
+          collectionType: 'page',
+          createdAt: '2024-06-02T00:00:00Z',
+          updatedAt: '2024-06-02T00:00:00Z',
+        },
       ]);
       await useSettingsStore.getState().loadCustomPages('acc-1');
       const pages = useSettingsStore.getState().settings.customPages;
@@ -303,7 +334,13 @@ describe('settingsStore', () => {
         settings: {
           ...useSettingsStore.getState().settings,
           customPages: [
-            { id: 'old-1', name: 'Old Page', iconId: 'star', createdAt: '2024-01-01', sortOrder: 0 },
+            {
+              id: 'old-1',
+              name: 'Old Page',
+              iconId: 'star',
+              createdAt: '2024-01-01',
+              sortOrder: 0,
+            },
           ],
         },
       });
@@ -317,9 +354,12 @@ describe('settingsStore', () => {
       const pages = useSettingsStore.getState().settings.customPages;
       expect(pages).toHaveLength(1);
       expect(pages[0].id).toBe('old-1');
-      expect(invoke).toHaveBeenCalledWith('object_create', expect.objectContaining({
-        input: expect.objectContaining({ name: 'Old Page', collectionType: 'page' }),
-      }));
+      expect(invoke).toHaveBeenCalledWith(
+        'object_create',
+        expect.objectContaining({
+          input: expect.objectContaining({ name: 'Old Page', collectionType: 'page' }),
+        }),
+      );
     });
 
     it('should silently fail when objects table is empty and no old pages exist', async () => {

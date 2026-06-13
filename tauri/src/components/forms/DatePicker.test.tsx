@@ -52,7 +52,7 @@ describe('DatePicker', () => {
     fireEvent.change(minuteInput, { target: { value: '5' } });
 
     await waitFor(() => {
-      expect(onChange).toHaveBeenLastCalledWith("2021-06-10T08:05");
+      expect(onChange).toHaveBeenLastCalledWith('2021-06-10T08:05');
     });
   });
 

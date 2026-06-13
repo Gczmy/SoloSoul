@@ -39,7 +39,7 @@
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: var(--accent-color, #5B7C99);
+  border-color: var(--accent-color, #5b7c99);
 }
 
 .textarea {

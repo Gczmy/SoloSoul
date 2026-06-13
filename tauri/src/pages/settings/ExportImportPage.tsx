@@ -175,17 +175,23 @@ function AttachmentLimitsInfo() {
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                   <td style={{ padding: '4px 8px' }}>{t('attachment_limit_single_size')}</td>
                   <td style={{ padding: '4px 8px' }}>100 MB</td>
-                  <td style={{ padding: '4px 8px' }}>{t('attachment_limit_single_size_behavior')}</td>
+                  <td style={{ padding: '4px 8px' }}>
+                    {t('attachment_limit_single_size_behavior')}
+                  </td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                   <td style={{ padding: '4px 8px' }}>{t('attachment_limit_single_count')}</td>
                   <td style={{ padding: '4px 8px' }}>50</td>
-                  <td style={{ padding: '4px 8px' }}>{t('attachment_limit_single_count_behavior')}</td>
+                  <td style={{ padding: '4px 8px' }}>
+                    {t('attachment_limit_single_count_behavior')}
+                  </td>
                 </tr>
                 <tr>
                   <td style={{ padding: '4px 8px' }}>{t('attachment_limit_total_size')}</td>
                   <td style={{ padding: '4px 8px' }}>1 GB</td>
-                  <td style={{ padding: '4px 8px' }}>{t('attachment_limit_total_size_behavior')}</td>
+                  <td style={{ padding: '4px 8px' }}>
+                    {t('attachment_limit_total_size_behavior')}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -257,7 +263,9 @@ export function ExportImportPage() {
   // ── P1/P2: Export extras ─────────────────────────────────────
   const [includeAttachments, setIncludeAttachments] = useState(false);
   const [selectedAttachmentIds, setSelectedAttachmentIds] = useState<Set<string>>(new Set());
-  const [objectAttachments, setObjectAttachments] = useState<Map<string, AttachmentInfo[]>>(new Map());
+  const [objectAttachments, setObjectAttachments] = useState<Map<string, AttachmentInfo[]>>(
+    new Map(),
+  );
   const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
   const [includePreferences, setIncludePreferences] = useState(false);
   const [includeBehavioral, setIncludeBehavioral] = useState(false);
@@ -434,7 +442,12 @@ export function ExportImportPage() {
     });
   };
 
-  const toggleAttachment = (attId: string, objectId: string, sectionType: string, allIdsInGroup: string[]) => {
+  const toggleAttachment = (
+    attId: string,
+    objectId: string,
+    sectionType: string,
+    allIdsInGroup: string[],
+  ) => {
     setSelectedAttachmentIds((prev) => {
       const next = new Set(prev);
       const isAdding = !next.has(attId);
@@ -484,7 +497,17 @@ export function ExportImportPage() {
         .finally(() => setEstimating(false));
     }, 300);
     return () => clearTimeout(debounce);
-  }, [totalSelected, selectedPageIds, selectedObjectIds, selectedTags, includeAttachments, selectedAttachmentIds, includePreferences, includeBehavioral, accountId]);
+  }, [
+    totalSelected,
+    selectedPageIds,
+    selectedObjectIds,
+    selectedTags,
+    includeAttachments,
+    selectedAttachmentIds,
+    includePreferences,
+    includeBehavioral,
+    accountId,
+  ]);
 
   // ── Password strength ───────────────────────────────────────
   const pwStrength = assessPasswordStrength(exportPassword);
@@ -499,7 +522,10 @@ export function ExportImportPage() {
   const hasSensitiveData = (() => {
     for (const group of pageGroups) {
       for (const obj of group.objects) {
-        if (selectedObjectIds.has(obj.id) && (obj.sensitivityLevel === 'sensitive' || obj.sensitivityLevel === 'critical')) {
+        if (
+          selectedObjectIds.has(obj.id) &&
+          (obj.sensitivityLevel === 'sensitive' || obj.sensitivityLevel === 'critical')
+        ) {
           return true;
         }
       }
@@ -732,15 +758,14 @@ export function ExportImportPage() {
                 {t('settings:select_objects')}
               </h3>
               {pageGroups.length === 0 ? (
-                <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>
-                  {t('common:no_data')}
-                </p>
+                <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{t('common:no_data')}</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {pageGroups.map((group) => {
                     const allIds = group.objects.map((o) => o.id);
                     const pageChecked = selectedPageIds.has(group.sectionType);
-                    const someChecked = !pageChecked && allIds.some((id) => selectedObjectIds.has(id));
+                    const someChecked =
+                      !pageChecked && allIds.some((id) => selectedObjectIds.has(id));
                     const expanded = expandedPages.has(group.sectionType);
                     return (
                       <div key={group.sectionType}>
@@ -782,7 +807,13 @@ export function ExportImportPage() {
                               gap: 4,
                             }}
                           >
-                            <span style={{ transform: expanded ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s', fontSize: 10 }}>
+                            <span
+                              style={{
+                                transform: expanded ? 'rotate(90deg)' : 'none',
+                                transition: 'transform 0.15s',
+                                fontSize: 10,
+                              }}
+                            >
                               ▶
                             </span>
                             {t(`navigation:${group.sectionType}`, group.pageName)}
@@ -812,7 +843,9 @@ export function ExportImportPage() {
                                   style={{ accentColor: 'var(--accent-primary)' }}
                                 />
                                 <span style={{ fontSize: 13, flex: 1 }}>{obj.name}</span>
-                                <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
+                                <SensitivityBadge
+                                  level={obj.sensitivityLevel as SensitivityLevel}
+                                />
                                 {includeAttachments && (
                                   <button
                                     type="button"
@@ -827,7 +860,9 @@ export function ExportImportPage() {
                                       border: 'none',
                                       cursor: 'pointer',
                                       padding: '0 4px',
-                                      transform: expandedObjects.has(obj.id) ? 'rotate(90deg)' : 'none',
+                                      transform: expandedObjects.has(obj.id)
+                                        ? 'rotate(90deg)'
+                                        : 'none',
                                       transition: 'transform 0.15s',
                                       color: 'var(--text-tertiary)',
                                     }}
@@ -877,15 +912,26 @@ export function ExportImportPage() {
                                           <input
                                             type="checkbox"
                                             checked={selectedAttachmentIds.has(att.id)}
-                                            onChange={() => toggleAttachment(att.id, obj.id, group.sectionType, allIds)}
+                                            onChange={() =>
+                                              toggleAttachment(
+                                                att.id,
+                                                obj.id,
+                                                group.sectionType,
+                                                allIds,
+                                              )
+                                            }
                                             style={{ accentColor: 'var(--accent-primary)' }}
                                           />
                                           <Paperclip
                                             size={10}
                                             style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
                                           />
-                                          <span style={{ fontSize: 12, flex: 1 }}>{att.fileName}</span>
-                                          <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                                          <span style={{ fontSize: 12, flex: 1 }}>
+                                            {att.fileName}
+                                          </span>
+                                          <span
+                                            style={{ fontSize: 11, color: 'var(--text-tertiary)' }}
+                                          >
                                             {formatBytes(att.sizeBytes)}
                                           </span>
                                         </label>
@@ -976,7 +1022,15 @@ export function ExportImportPage() {
               </h3>
               <div style={{ padding: '4px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      cursor: 'pointer',
+                      fontSize: 13,
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={includeAttachments}
@@ -987,12 +1041,27 @@ export function ExportImportPage() {
                   </label>
                   <AttachmentLimitsInfo />
                 </div>
-                <div style={{ paddingLeft: 24, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                <div
+                  style={{
+                    paddingLeft: 24,
+                    fontSize: 11,
+                    color: 'var(--text-tertiary)',
+                    marginTop: 2,
+                  }}
+                >
                   {t('settings:include_attachments_desc')}
                 </div>
               </div>
               <div style={{ padding: '4px 0' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    cursor: 'pointer',
+                    fontSize: 13,
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={includePreferences}
@@ -1001,12 +1070,27 @@ export function ExportImportPage() {
                   />
                   {t('settings:include_preferences')}
                 </label>
-                <div style={{ paddingLeft: 24, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                <div
+                  style={{
+                    paddingLeft: 24,
+                    fontSize: 11,
+                    color: 'var(--text-tertiary)',
+                    marginTop: 2,
+                  }}
+                >
                   {t('settings:include_preferences_desc')}
                 </div>
               </div>
               <div style={{ padding: '4px 0' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    cursor: 'pointer',
+                    fontSize: 13,
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={includeBehavioral}
@@ -1015,7 +1099,14 @@ export function ExportImportPage() {
                   />
                   {t('settings:include_behavioral')}
                 </label>
-                <div style={{ paddingLeft: 24, fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                <div
+                  style={{
+                    paddingLeft: 24,
+                    fontSize: 11,
+                    color: 'var(--text-tertiary)',
+                    marginTop: 2,
+                  }}
+                >
                   {t('settings:include_behavioral_desc')}
                 </div>
               </div>
@@ -1084,17 +1175,24 @@ export function ExportImportPage() {
                   showHintButton={false}
                 />
               </div>
-              {exportPassword && exportPasswordConfirm && exportPassword !== exportPasswordConfirm && (
-                <div style={{ marginTop: 4, fontSize: 12, color: '#d32f2f' }}>
-                  {t('settings:password_mismatch')}
-                </div>
-              )}
+              {exportPassword &&
+                exportPasswordConfirm &&
+                exportPassword !== exportPasswordConfirm && (
+                  <div style={{ marginTop: 4, fontSize: 12, color: '#d32f2f' }}>
+                    {t('settings:password_mismatch')}
+                  </div>
+                )}
               {exportPassword && (
                 <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
                   {t('settings:password_strength')}:{' '}
                   <span
                     style={{
-                      color: pwStrength === 'weak' ? '#d32f2f' : pwStrength === 'medium' ? '#e68a00' : '#2e7d32',
+                      color:
+                        pwStrength === 'weak'
+                          ? '#d32f2f'
+                          : pwStrength === 'medium'
+                            ? '#e68a00'
+                            : '#2e7d32',
                     }}
                   >
                     {pwStrengthLabel[pwStrength]}
@@ -1140,17 +1238,22 @@ export function ExportImportPage() {
                   color: '#663c00',
                 }}
               >
-                <p style={{ marginBottom: 8, fontWeight: 600 }}>{t('settings:hint_contains_password_title')}</p>
+                <p style={{ marginBottom: 8, fontWeight: 600 }}>
+                  {t('settings:hint_contains_password_title')}
+                </p>
                 <p style={{ marginBottom: 10 }}>{t('settings:hint_contains_password_confirm')}</p>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <WarningCancelButton onClick={() => setShowHintWarning(false)}>
                     {t('common:cancel')}
                   </WarningCancelButton>
-                  <Button size="sm" onClick={async () => {
-                    skipHintCheckRef.current = true;
-                    setShowHintWarning(false);
-                    await handleExport();
-                  }}>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      skipHintCheckRef.current = true;
+                      setShowHintWarning(false);
+                      await handleExport();
+                    }}
+                  >
                     {t('settings:export_anyway')}
                   </Button>
                 </div>
@@ -1169,16 +1272,21 @@ export function ExportImportPage() {
                   color: '#663c00',
                 }}
               >
-                <p style={{ marginBottom: 8, fontWeight: 600 }}>{t('settings:weak_password_title')}</p>
+                <p style={{ marginBottom: 8, fontWeight: 600 }}>
+                  {t('settings:weak_password_title')}
+                </p>
                 <p style={{ marginBottom: 10 }}>{t('settings:weak_password_confirm')}</p>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <WarningCancelButton onClick={() => setShowWeakWarning(false)}>
                     {t('common:cancel')}
                   </WarningCancelButton>
-                  <Button size="sm" onClick={async () => {
-                    setShowWeakWarning(false);
-                    await handleExport();
-                  }}>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      setShowWeakWarning(false);
+                      await handleExport();
+                    }}
+                  >
                     {t('settings:export_anyway')}
                   </Button>
                 </div>
@@ -1251,19 +1359,24 @@ export function ExportImportPage() {
                   {t('settings:import_preview')}
                 </h3>
                 <div style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <p>{t('settings:version')}: {importPreview.version}</p>
-                  <p>{t('settings:export_time')}: {importPreview.exportTime || t('settings:unknown')}</p>
+                  <p>
+                    {t('settings:version')}: {importPreview.version}
+                  </p>
+                  <p>
+                    {t('settings:export_time')}: {importPreview.exportTime || t('settings:unknown')}
+                  </p>
                   <p>{t('settings:objects_count', { n: importPreview.objectCount })}</p>
                   {importPreview.hasAttachments && (
                     <p style={{ color: 'var(--accent-primary)' }}>
                       {t('settings:includes_attachments')}
                     </p>
                   )}
-                  {importPreview.extraFiles.length > 0 && importPreview.extraFiles.includes('preferences.enc') && (
-                    <p style={{ color: 'var(--accent-primary)' }}>
-                      {t('settings:includes_preferences')}
-                    </p>
-                  )}
+                  {importPreview.extraFiles.length > 0 &&
+                    importPreview.extraFiles.includes('preferences.enc') && (
+                      <p style={{ color: 'var(--accent-primary)' }}>
+                        {t('settings:includes_preferences')}
+                      </p>
+                    )}
                 </div>
 
                 {/* ── Password hint (P1) ─────────────────────── */}
@@ -1372,7 +1485,9 @@ export function ExportImportPage() {
                             color: '#663c00',
                           }}
                         >
-                          {t('settings:conflict_warning', { count: decryptedPreview.conflicts.length })}
+                          {t('settings:conflict_warning', {
+                            count: decryptedPreview.conflicts.length,
+                          })}
                         </div>
                       )}
                     </div>
@@ -1380,10 +1495,19 @@ export function ExportImportPage() {
                     {/* ── P2: Strategy selector + import button ── */}
                     {!showStrategySelector ? (
                       <div style={{ marginTop: 8 }}>
-                        <Button onClick={() => setShowStrategySelector(true)} size="sm" variant="secondary" style={{ marginRight: 8 }}>
+                        <Button
+                          onClick={() => setShowStrategySelector(true)}
+                          size="sm"
+                          variant="secondary"
+                          style={{ marginRight: 8 }}
+                        >
                           {t('settings:advanced_import')}
                         </Button>
-                        <Button onClick={handleImport} loading={isImporting} disabled={!importPw || isImporting}>
+                        <Button
+                          onClick={handleImport}
+                          loading={isImporting}
+                          disabled={!importPw || isImporting}
+                        >
                           {t('settings:quick_import')}
                         </Button>
                       </div>
@@ -1426,10 +1550,18 @@ export function ExportImportPage() {
                           </label>
                         ))}
                         <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                          <Button size="sm" variant="secondary" onClick={() => setShowStrategySelector(false)}>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setShowStrategySelector(false)}
+                          >
                             {t('common:cancel')}
                           </Button>
-                          <Button onClick={handleImport} loading={isImporting} disabled={!importPw || isImporting}>
+                          <Button
+                            onClick={handleImport}
+                            loading={isImporting}
+                            disabled={!importPw || isImporting}
+                          >
                             {t('settings:import_action')} ({importSelections.size})
                           </Button>
                         </div>

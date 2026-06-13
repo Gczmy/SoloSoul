@@ -105,7 +105,9 @@ function createMarkdownComponents(onLinkClick?: (href: string) => void) {
       );
     },
     thead: ({ children }: { children?: React.ReactNode }) => (
-      <thead style={{ background: 'var(--bg-toolbar)', borderBottom: '2px solid var(--border-subtle)' }}>
+      <thead
+        style={{ background: 'var(--bg-toolbar)', borderBottom: '2px solid var(--border-subtle)' }}
+      >
         {children}
       </thead>
     ),
@@ -179,8 +181,11 @@ export function GuideRenderer({ content, onLinkClick }: GuideRendererProps) {
         if (seg.type === 'stepper') {
           return (
             <GuideStepper key={i} title={seg.title}>
-              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeHighlight]}>
+              <ReactMarkdown
+                components={markdownComponents}
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+              >
                 {seg.content}
               </ReactMarkdown>
             </GuideStepper>
@@ -190,8 +195,11 @@ export function GuideRenderer({ content, onLinkClick }: GuideRendererProps) {
         if (seg.type === 'tip') {
           return (
             <GuideTip key={i} type="tip">
-              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeHighlight]}>
+              <ReactMarkdown
+                components={markdownComponents}
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+              >
                 {seg.content}
               </ReactMarkdown>
             </GuideTip>
@@ -201,8 +209,11 @@ export function GuideRenderer({ content, onLinkClick }: GuideRendererProps) {
         if (seg.type === 'info') {
           return (
             <GuideTip key={i} type="info">
-              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeHighlight]}>
+              <ReactMarkdown
+                components={markdownComponents}
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+              >
                 {seg.content}
               </ReactMarkdown>
             </GuideTip>
@@ -212,8 +223,11 @@ export function GuideRenderer({ content, onLinkClick }: GuideRendererProps) {
         if (seg.type === 'warning') {
           return (
             <GuideTip key={i} type="warning">
-              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeHighlight]}>
+              <ReactMarkdown
+                components={markdownComponents}
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+              >
                 {seg.content}
               </ReactMarkdown>
             </GuideTip>

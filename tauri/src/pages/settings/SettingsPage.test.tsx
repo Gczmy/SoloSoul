@@ -5,9 +5,21 @@ import { SettingsPage } from './SettingsPage';
 import { invoke } from '@tauri-apps/api/core';
 
 vi.mock('@/components/layout/AppShell', () => ({
-  AppShell: ({ children, title, onBack }: { children: React.ReactNode; title: string; onBack?: () => void }) => (
+  AppShell: ({
+    children,
+    title,
+    onBack,
+  }: {
+    children: React.ReactNode;
+    title: string;
+    onBack?: () => void;
+  }) => (
     <div data-testid="app-shell" data-title={title}>
-      {onBack && <button data-testid="back-btn" onClick={onBack}>Back</button>}
+      {onBack && (
+        <button data-testid="back-btn" onClick={onBack}>
+          Back
+        </button>
+      )}
       {children}
     </div>
   ),
@@ -38,7 +50,7 @@ describe('SettingsPage', () => {
     render(
       <MemoryRouter>
         <SettingsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByTestId('app-shell')).toHaveAttribute('data-title', 'settings:title');
@@ -53,18 +65,22 @@ describe('SettingsPage', () => {
     render(
       <MemoryRouter>
         <SettingsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
       expect(invoke).toHaveBeenCalledWith('get_vault_stats');
     });
 
-    const themeCard = screen.getByText('settings:items.theme_appearance').closest('[role="button"]') as HTMLElement;
+    const themeCard = screen
+      .getByText('settings:items.theme_appearance')
+      .closest('[role="button"]') as HTMLElement;
     fireEvent.click(themeCard);
     expect(navigate).toHaveBeenCalledWith('/settings/appearance', { state: { from: '/settings' } });
 
-    const aboutCard = screen.getByText('settings:items.about').closest('[role="button"]') as HTMLElement;
+    const aboutCard = screen
+      .getByText('settings:items.about')
+      .closest('[role="button"]') as HTMLElement;
     fireEvent.click(aboutCard);
     expect(navigate).toHaveBeenCalledWith('/about', { state: { from: '/settings' } });
   });
@@ -74,7 +90,7 @@ describe('SettingsPage', () => {
     render(
       <MemoryRouter>
         <SettingsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -91,7 +107,7 @@ describe('SettingsPage', () => {
     render(
       <MemoryRouter>
         <SettingsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {
@@ -104,7 +120,7 @@ describe('SettingsPage', () => {
     render(
       <MemoryRouter>
         <SettingsPage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     await waitFor(() => {

@@ -48,7 +48,9 @@ export function TemplateFieldInput({
     case 'date':
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
+          <label htmlFor={propertyId} className={styles.label}>
+            {labelRow}
+          </label>
           {hint && <div className={styles.hint}>{hint}</div>}
           <DatePicker
             value={String(value ?? '')}
@@ -61,7 +63,9 @@ export function TemplateFieldInput({
     case 'datetime':
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
+          <label htmlFor={propertyId} className={styles.label}>
+            {labelRow}
+          </label>
           {hint && <div className={styles.hint}>{hint}</div>}
           <DatePicker
             value={String(value ?? '')}
@@ -75,7 +79,9 @@ export function TemplateFieldInput({
     case 'multiline':
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
+          <label htmlFor={propertyId} className={styles.label}>
+            {labelRow}
+          </label>
           {hint && <div className={styles.hint}>{hint}</div>}
           <textarea
             id={propertyId}
@@ -107,7 +113,9 @@ export function TemplateFieldInput({
     case 'select':
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
+          <label htmlFor={propertyId} className={styles.label}>
+            {labelRow}
+          </label>
           <select
             id={propertyId}
             className={styles.select}
@@ -117,7 +125,9 @@ export function TemplateFieldInput({
           >
             <option value="">-- 请选择 --</option>
             {(options || []).map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         </div>
@@ -157,7 +167,9 @@ export function TemplateFieldInput({
       const inputType = inputTypeMap[type] || 'text';
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>{labelRow}</label>
+          <label htmlFor={propertyId} className={styles.label}>
+            {labelRow}
+          </label>
           {hint && <div className={styles.hint}>{hint}</div>}
           <input
             id={propertyId}

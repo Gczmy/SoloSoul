@@ -5,7 +5,9 @@ import { HomePage } from './HomePage';
 
 vi.mock('@/components/layout/AppShell', () => ({
   AppShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
-    <div data-testid="app-shell" data-title={title}>{children}</div>
+    <div data-testid="app-shell" data-title={title}>
+      {children}
+    </div>
   ),
 }));
 
@@ -29,7 +31,7 @@ describe('HomePage', () => {
     render(
       <MemoryRouter>
         <HomePage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     expect(screen.getByTestId('app-shell')).toBeInTheDocument();
@@ -46,14 +48,18 @@ describe('HomePage', () => {
     render(
       <MemoryRouter>
         <HomePage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    const identityCard = screen.getByText('navigation:identity').closest('[role="button"]') as HTMLElement;
+    const identityCard = screen
+      .getByText('navigation:identity')
+      .closest('[role="button"]') as HTMLElement;
     fireEvent.click(identityCard);
     expect(navigate).toHaveBeenCalledWith('/workspace?section=identity');
 
-    const travelCard = screen.getByText('navigation:travel').closest('[role="button"]') as HTMLElement;
+    const travelCard = screen
+      .getByText('navigation:travel')
+      .closest('[role="button"]') as HTMLElement;
     fireEvent.click(travelCard);
     expect(navigate).toHaveBeenCalledWith('/workspace?section=travel');
   });
@@ -62,7 +68,7 @@ describe('HomePage', () => {
     render(
       <MemoryRouter>
         <HomePage />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
     const helpCard = screen.getByText('navigation:help').closest('[role="button"]') as HTMLElement;

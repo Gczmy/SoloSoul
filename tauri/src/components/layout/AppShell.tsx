@@ -23,16 +23,23 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
       className={styles.appShell}
       style={{
         flexDirection: isHorizontal
-          ? (sidebarPosition === 'top' ? 'column' : 'column-reverse')
-          : (sidebarPosition === 'right' ? 'row-reverse' : 'row'),
+          ? sidebarPosition === 'top'
+            ? 'column'
+            : 'column-reverse'
+          : sidebarPosition === 'right'
+            ? 'row-reverse'
+            : 'row',
       }}
     >
       {isTop ? <TopFunctionBar /> : <SideNavigation />}
-      <div
-        className={styles.main}
-        style={isTop ? { paddingTop: FUNCTION_BAR_HEIGHT } : undefined}
-      >
-        <AppBar title={title} actions={actions} onBack={onBack} topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0} sidebarPosition={sidebarPosition} />
+      <div className={styles.main} style={isTop ? { paddingTop: FUNCTION_BAR_HEIGHT } : undefined}>
+        <AppBar
+          title={title}
+          actions={actions}
+          onBack={onBack}
+          topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0}
+          sidebarPosition={sidebarPosition}
+        />
         <main className={styles.content}>{children}</main>
       </div>
     </div>

@@ -38,10 +38,25 @@ interface ObjectState {
   isLoading: boolean;
   error: string | null;
 
-  loadObjects: (accountId: string, filter?: { collectionType?: string; parentId?: string }) => Promise<void>;
+  loadObjects: (
+    accountId: string,
+    filter?: { collectionType?: string; parentId?: string },
+  ) => Promise<void>;
   getObject: (accountId: string, objectId: string) => Promise<void>;
-  createObject: (input: { accountId: string; name: string; collectionType: string; properties: Record<string, unknown>; parentId?: string; iconName?: string; templateId?: string; templateType?: 'system' | 'user' }) => Promise<ObjectData>;
-  updateObject: (objectId: string, input: { name: string; properties: Record<string, unknown> }) => Promise<void>;
+  createObject: (input: {
+    accountId: string;
+    name: string;
+    collectionType: string;
+    properties: Record<string, unknown>;
+    parentId?: string;
+    iconName?: string;
+    templateId?: string;
+    templateType?: 'system' | 'user';
+  }) => Promise<ObjectData>;
+  updateObject: (
+    objectId: string,
+    input: { name: string; properties: Record<string, unknown> },
+  ) => Promise<void>;
   deleteObject: (objectId: string) => Promise<void>;
   loadTrashObjects: (accountId: string) => Promise<void>;
   restoreObject: (objectId: string) => Promise<void>;
@@ -83,11 +98,20 @@ export const useObjectStore = create<ObjectState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const obj = await invoke<ObjectData>('object_create', { input });
-      set((s) => ({ objects: [...s.objects, {
-        id: obj.id, name: obj.name, collectionType: obj.collectionType,
-        sensitivityLevel: obj.sensitivityLevel,
-        createdAt: obj.createdAt, updatedAt: obj.updatedAt,
-      }], isLoading: false }));
+      set((s) => ({
+        objects: [
+          ...s.objects,
+          {
+            id: obj.id,
+            name: obj.name,
+            collectionType: obj.collectionType,
+            sensitivityLevel: obj.sensitivityLevel,
+            createdAt: obj.createdAt,
+            updatedAt: obj.updatedAt,
+          },
+        ],
+        isLoading: false,
+      }));
       return obj;
     } catch (err) {
       set({ error: String(err), isLoading: false });
