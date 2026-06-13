@@ -48,7 +48,7 @@ Each backup in the list can be deleted individually to free up storage space.
 
 <!--CARDS-->
 - [Export & Import](export_import.md) — Data migration solution
-- [Sync](sync.md) — Multi-device backup
+- [Device Sync](device-sync.md) — Multi-device backup
 - [Trash](trash.md) — Temporarily protect data
 <!--/CARDS-->
 

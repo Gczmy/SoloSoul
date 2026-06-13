@@ -1,6 +1,10 @@
 {
   "words": {
+    "10": [
+      "device-sync"
+    ],
     "12": [
+      "device-sync",
       "export_import",
       "getting_started"
     ],
@@ -14,6 +18,18 @@
     "80": [
       "ocr_scan"
     ],
+    "100": [
+      "device-sync"
+    ],
+    "127": [
+      "device-sync"
+    ],
+    "168": [
+      "device-sync"
+    ],
+    "192": [
+      "device-sync"
+    ],
     "256": [
       "PRIVACY_POLICY",
       "export_import"
@@ -22,8 +38,14 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE"
     ],
+    "5353": [
+      "device-sync"
+    ],
     "11434": [
       "llm_config"
+    ],
+    "54321": [
+      "device-sync"
     ],
     "快速开始": [
       "TERMS_OF_SERVICE",
@@ -62,19 +84,20 @@
       "ai_chat",
       "appearance",
       "attachments",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
       "plugins",
       "search",
       "sensitivity",
-      "sync",
       "templates"
     ],
     "始": [
       "TERMS_OF_SERVICE",
       "ai_chat",
       "appearance",
+      "device-sync",
       "getting_started"
     ],
     "getting": [
@@ -111,6 +134,7 @@
     "first": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
+      "device-sync",
       "getting_started"
     ],
     "欢迎使用": [
@@ -131,6 +155,7 @@
       "appearance",
       "audit_log",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -139,7 +164,6 @@
       "plugins",
       "search",
       "snapshots",
-      "sync",
       "templates"
     ],
     "用": [
@@ -152,6 +176,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -162,7 +187,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -174,6 +198,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -182,7 +207,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -204,7 +228,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -216,6 +239,7 @@
       "attachments",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -223,7 +247,6 @@
       "search",
       "security",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -234,23 +257,25 @@
       "appearance",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
       "ocr_scan",
       "search",
-      "sync",
       "templates"
     ],
     "优": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "appearance",
+      "device-sync",
       "getting_started"
     ],
     "先": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
+      "device-sync",
       "getting_started"
     ],
     "数": [
@@ -261,6 +286,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -269,7 +295,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -277,6 +302,7 @@
     "字": [
       "audit_log",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -319,17 +345,18 @@
     "第": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
+      "device-sync",
       "getting_started",
       "plugins"
     ],
     "步": [
       "TERMS_OF_SERVICE",
       "backup_restore",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
-      "security",
-      "sync"
+      "security"
     ],
     "创建账户": [
       "getting_started"
@@ -343,7 +370,6 @@
       "objects",
       "ocr_scan",
       "snapshots",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -352,18 +378,19 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
       "ocr_scan",
       "snapshots",
-      "sync",
       "templates",
       "workspace"
     ],
     "账": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
+      "device-sync",
       "getting_started",
       "security",
       "sensitivity",
@@ -374,6 +401,7 @@
       "TERMS_OF_SERVICE",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "getting_started",
       "llm_config",
       "security",
@@ -383,6 +411,7 @@
       "getting_started"
     ],
     "首": [
+      "device-sync",
       "getting_started",
       "ocr_scan",
       "workspace"
@@ -390,6 +419,7 @@
     "次": [
       "ai_chat",
       "biometric",
+      "device-sync",
       "getting_started",
       "llm_config",
       "plugins",
@@ -400,12 +430,12 @@
       "appearance",
       "audit_log",
       "biometric",
+      "device-sync",
       "getting_started",
       "llm_config",
       "plugins",
       "security",
-      "sensitivity",
-      "sync"
+      "sensitivity"
     ],
     "动": [
       "ai_chat",
@@ -413,6 +443,7 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -420,7 +451,6 @@
       "plugins",
       "security",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -430,6 +460,7 @@
       "audit_log",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -438,7 +469,6 @@
       "plugins",
       "security",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -449,6 +479,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -459,7 +490,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -471,6 +501,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -481,7 +512,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -492,6 +522,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -509,6 +540,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -517,7 +549,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -530,6 +561,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -564,18 +596,19 @@
       "attachments",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
       "security",
       "sensitivity",
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "码": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "ocr_scan",
@@ -590,9 +623,9 @@
     "议": [
       "TERMS_OF_SERVICE",
       "backup_restore",
+      "device-sync",
       "export_import",
-      "getting_started",
-      "sync"
+      "getting_started"
     ],
     "至": [
       "PRIVACY_POLICY",
@@ -600,6 +633,7 @@
       "getting_started"
     ],
     "少": [
+      "device-sync",
       "export_import",
       "getting_started"
     ],
@@ -611,6 +645,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -624,6 +659,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -635,6 +671,7 @@
     "大": [
       "TERMS_OF_SERVICE",
       "backup_restore",
+      "device-sync",
       "getting_started",
       "snapshots"
     ],
@@ -644,6 +681,7 @@
     ],
     "写": [
       "ai_chat",
+      "device-sync",
       "getting_started",
       "objects",
       "sensitivity",
@@ -653,8 +691,7 @@
       "getting_started"
     ],
     "可选": [
-      "getting_started",
-      "sync"
+      "getting_started"
     ],
     "可": [
       "PRIVACY_POLICY",
@@ -666,6 +703,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -676,7 +714,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -688,6 +725,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -697,7 +735,6 @@
       "search",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -711,6 +748,7 @@
       "ai_chat",
       "appearance",
       "biometric",
+      "device-sync",
       "getting_started",
       "llm_config",
       "ocr_scan",
@@ -726,6 +764,7 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -734,7 +773,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -755,7 +793,6 @@
     "帮": [
       "getting_started",
       "plugins",
-      "sync",
       "templates"
     ],
     "助": [
@@ -764,11 +801,11 @@
       "llm_config",
       "plugins",
       "security",
-      "sync",
       "templates"
     ],
     "记": [
       "audit_log",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -794,6 +831,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -827,6 +865,7 @@
       "audit_log",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "ocr_scan",
@@ -847,6 +886,7 @@
     ],
     "化": [
       "appearance",
+      "device-sync",
       "getting_started",
       "objects",
       "plugins",
@@ -857,18 +897,19 @@
       "audit_log",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "ocr_scan",
       "search",
       "security",
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "成": [
       "TERMS_OF_SERVICE",
       "backup_restore",
       "biometric",
+      "device-sync",
       "getting_started",
       "llm_config",
       "ocr_scan",
@@ -881,13 +922,13 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
       "plugins",
       "security",
       "sensitivity",
-      "sync",
       "trash",
       "workspace"
     ],
@@ -901,10 +942,10 @@
       "attachments",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
-      "sync",
       "workspace"
     ],
     "唯": [
@@ -914,6 +955,7 @@
     "钥": [
       "PRIVACY_POLICY",
       "ai_chat",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config"
@@ -932,10 +974,10 @@
       "attachments",
       "audit_log",
       "collections",
+      "device-sync",
       "getting_started",
       "objects",
       "sensitivity",
-      "sync",
       "templates",
       "trash"
     ],
@@ -944,10 +986,10 @@
       "TERMS_OF_SERVICE",
       "attachments",
       "audit_log",
+      "device-sync",
       "getting_started",
       "objects",
       "sensitivity",
-      "sync",
       "templates",
       "trash"
     ],
@@ -958,6 +1000,7 @@
       "audit_log",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -984,6 +1027,7 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "ai_chat",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -993,6 +1037,7 @@
       "workspace"
     ],
     "必": [
+      "device-sync",
       "export_import",
       "getting_started",
       "ocr_scan",
@@ -1007,6 +1052,7 @@
       "ai_chat",
       "audit_log",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -1023,12 +1069,12 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "plugins",
       "security",
-      "sensitivity",
-      "sync"
+      "sensitivity"
     ],
     "全": [
       "PRIVACY_POLICY",
@@ -1039,13 +1085,13 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
       "search",
       "security",
       "sensitivity",
-      "sync",
       "trash"
     ],
     "备": [
@@ -1053,22 +1099,22 @@
       "TERMS_OF_SERVICE",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "security",
-      "sync",
       "trash"
     ],
     "份": [
       "TERMS_OF_SERVICE",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
       "ocr_scan",
       "security",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -1092,6 +1138,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1101,7 +1148,6 @@
       "search",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -1113,6 +1159,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1122,7 +1169,6 @@
       "search",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -1135,6 +1181,7 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1142,7 +1189,6 @@
       "ocr_scan",
       "plugins",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -1159,7 +1205,6 @@
       "plugins",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -1172,6 +1217,7 @@
     "身": [
       "attachments",
       "biometric",
+      "device-sync",
       "getting_started",
       "objects",
       "ocr_scan",
@@ -1187,6 +1233,7 @@
       "ai_chat",
       "audit_log",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1239,6 +1286,7 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "objects",
       "search",
@@ -1265,6 +1313,7 @@
     "模": [
       "appearance",
       "attachments",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -1278,6 +1327,7 @@
     ],
     "板": [
       "attachments",
+      "device-sync",
       "getting_started",
       "objects",
       "ocr_scan",
@@ -1286,12 +1336,14 @@
       "workspace"
     ],
     "例如": [
+      "device-sync",
       "getting_started",
       "sensitivity",
       "workspace"
     ],
     "例": [
       "audit_log",
+      "device-sync",
       "getting_started",
       "sensitivity",
       "workspace"
@@ -1303,6 +1355,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1328,6 +1381,7 @@
     "信": [
       "TERMS_OF_SERVICE",
       "ai_chat",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -1336,12 +1390,12 @@
       "search",
       "security",
       "sensitivity",
-      "sync",
       "templates"
     ],
     "息": [
       "TERMS_OF_SERVICE",
       "ai_chat",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -1349,7 +1403,6 @@
       "search",
       "security",
       "sensitivity",
-      "sync",
       "templates"
     ],
     "填写姓名": [
@@ -1357,6 +1410,7 @@
     ],
     "填": [
       "ai_chat",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -1373,6 +1427,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -1392,11 +1447,11 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "sensitivity",
       "snapshots",
-      "sync",
       "trash",
       "workspace"
     ],
@@ -1405,6 +1460,7 @@
       "TERMS_OF_SERVICE",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1417,9 +1473,9 @@
       "TERMS_OF_SERVICE",
       "audit_log",
       "collections",
+      "device-sync",
       "getting_started",
       "ocr_scan",
-      "sync",
       "templates",
       "trash"
     ],
@@ -1448,6 +1504,7 @@
       "attachments",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1481,6 +1538,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1491,7 +1549,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -1506,6 +1563,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1516,7 +1574,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -1570,6 +1627,7 @@
       "templates"
     ],
     "模板": [
+      "device-sync",
       "getting_started",
       "templates"
     ],
@@ -1579,6 +1637,7 @@
     "段": [
       "audit_log",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1589,7 +1648,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -1613,6 +1671,7 @@
       "attachments",
       "audit_log",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -1630,6 +1689,7 @@
       "ai_chat",
       "attachments",
       "biometric",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -1641,6 +1701,7 @@
       "appearance",
       "attachments",
       "collections",
+      "device-sync",
       "getting_started",
       "objects",
       "plugins",
@@ -1658,6 +1719,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1682,6 +1744,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1690,7 +1753,6 @@
       "plugins",
       "security",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -1702,6 +1764,7 @@
       "attachments",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1710,13 +1773,13 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
     ],
     "组": [
       "collections",
+      "device-sync",
       "getting_started",
       "templates",
       "workspace"
@@ -1729,6 +1792,7 @@
     ],
     "对象": [
       "audit_log",
+      "device-sync",
       "getting_started",
       "objects",
       "trash"
@@ -1738,6 +1802,7 @@
     ],
     "并": [
       "ai_chat",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1746,7 +1811,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -1755,6 +1819,7 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -1768,6 +1833,7 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -1794,6 +1860,7 @@
     ],
     "途": [
       "backup_restore",
+      "device-sync",
       "getting_started"
     ],
     "个人基本信息": [
@@ -1815,6 +1882,7 @@
       "ai_chat",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "ocr_scan",
@@ -1831,6 +1899,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -1838,7 +1907,6 @@
       "ocr_scan",
       "plugins",
       "search",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -1872,7 +1940,6 @@
       "search",
       "security",
       "sensitivity",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -1926,6 +1993,7 @@
     ],
     "程": [
       "ai_chat",
+      "device-sync",
       "getting_started"
     ],
     "财务": [
@@ -1970,6 +2038,7 @@
     "业": [
       "TERMS_OF_SERVICE",
       "appearance",
+      "device-sync",
       "getting_started",
       "objects",
       "templates",
@@ -2003,6 +2072,7 @@
       "templates"
     ],
     "经": [
+      "device-sync",
       "getting_started",
       "objects",
       "templates"
@@ -2034,6 +2104,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -2044,7 +2115,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -2059,6 +2129,7 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -2066,7 +2137,6 @@
       "plugins",
       "security",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -2077,6 +2147,7 @@
       "appearance",
       "backup_restore",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -2105,6 +2176,7 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -2114,7 +2186,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -2126,6 +2197,7 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -2142,6 +2214,7 @@
     "己": [
       "TERMS_OF_SERVICE",
       "collections",
+      "device-sync",
       "getting_started",
       "workspace"
     ],
@@ -2152,6 +2225,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -2160,7 +2234,6 @@
       "search",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -2208,6 +2281,7 @@
       "getting_started"
     ],
     "号": [
+      "device-sync",
       "getting_started",
       "ocr_scan",
       "sensitivity",
@@ -2233,6 +2307,7 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "getting_started",
       "objects",
       "ocr_scan",
@@ -2241,7 +2316,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -2265,6 +2339,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -2283,6 +2358,7 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -2292,8 +2368,7 @@
       "search",
       "security",
       "sensitivity",
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "部分高敏感度字段需要密码验证": [
       "getting_started"
@@ -2303,6 +2378,7 @@
       "TERMS_OF_SERVICE",
       "ai_chat",
       "backup_restore",
+      "device-sync",
       "getting_started",
       "objects",
       "ocr_scan",
@@ -2336,6 +2412,7 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -2344,7 +2421,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -2352,6 +2428,7 @@
       "ai_chat",
       "appearance",
       "biometric",
+      "device-sync",
       "getting_started",
       "llm_config",
       "security",
@@ -2362,8 +2439,8 @@
       "getting_started"
     ],
     "离": [
-      "getting_started",
-      "sync"
+      "device-sync",
+      "getting_started"
     ],
     "电": [
       "getting_started"
@@ -2383,6 +2460,7 @@
     "边": [
       "ai_chat",
       "appearance",
+      "device-sync",
       "getting_started",
       "ocr_scan",
       "search",
@@ -2423,6 +2501,7 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "attachments",
+      "device-sync",
       "getting_started",
       "sensitivity"
     ],
@@ -2440,6 +2519,7 @@
       "PRIVACY_POLICY",
       "audit_log",
       "biometric",
+      "device-sync",
       "getting_started",
       "ocr_scan",
       "security",
@@ -2467,6 +2547,7 @@
       "appearance",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -2482,6 +2563,7 @@
       "ai_chat",
       "attachments",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "ocr_scan",
@@ -2495,6 +2577,7 @@
       "ai_chat",
       "attachments",
       "backup_restore",
+      "device-sync",
       "export_import",
       "getting_started",
       "snapshots",
@@ -2507,22 +2590,24 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "ai_chat",
+      "device-sync",
       "getting_started",
       "llm_config",
       "plugins",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates"
     ],
     "者": [
       "PRIVACY_POLICY",
+      "device-sync",
       "getting_started"
     ],
     "服": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "ai_chat",
+      "device-sync",
       "getting_started",
       "llm_config",
       "ocr_scan",
@@ -2531,6 +2616,7 @@
     ],
     "端": [
       "PRIVACY_POLICY",
+      "device-sync",
       "getting_started"
     ],
     "无法访问": [
@@ -2546,6 +2632,7 @@
       "TERMS_OF_SERVICE",
       "ai_chat",
       "biometric",
+      "device-sync",
       "getting_started",
       "plugins"
     ],
@@ -2555,6 +2642,7 @@
     "何": [
       "PRIVACY_POLICY",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "templates"
@@ -2567,13 +2655,13 @@
       "ai_chat",
       "attachments",
       "audit_log",
+      "device-sync",
       "getting_started",
       "llm_config",
       "plugins",
       "search",
       "security",
       "snapshots",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -2587,6 +2675,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -2597,7 +2686,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -2612,6 +2700,7 @@
     ],
     "templates": [
       "attachments",
+      "device-sync",
       "getting_started",
       "objects",
       "ocr_scan",
@@ -2628,6 +2717,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -2638,7 +2728,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -2655,6 +2744,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -2667,16 +2757,17 @@
     "多": [
       "backup_restore",
       "biometric",
+      "device-sync",
       "getting_started",
       "objects",
       "snapshots",
-      "sync",
       "templates"
     ],
     "预": [
       "appearance",
       "attachments",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -2719,6 +2810,7 @@
       "ai_chat",
       "attachments",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -2736,6 +2828,7 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "getting_started",
       "ocr_scan",
       "search",
@@ -2770,6 +2863,7 @@
       "ai_chat",
       "appearance",
       "biometric",
+      "device-sync",
       "getting_started",
       "llm_config",
       "plugins",
@@ -2802,19 +2896,20 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
       "ocr_scan",
       "plugins",
-      "security",
-      "sync"
+      "security"
     ],
     "手": [
       "ai_chat",
       "appearance",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "ocr_scan",
@@ -2828,13 +2923,13 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
       "ocr_scan",
       "plugins",
-      "security",
-      "sync"
+      "security"
     ],
     "welcome": [
       "TERMS_OF_SERVICE",
@@ -2848,6 +2943,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "ocr_scan",
@@ -2861,10 +2957,10 @@
       "TERMS_OF_SERVICE",
       "appearance",
       "backup_restore",
+      "device-sync",
       "getting_started",
       "llm_config",
-      "ocr_scan",
-      "sync"
+      "ocr_scan"
     ],
     "personal": [
       "PRIVACY_POLICY",
@@ -2900,6 +2996,7 @@
     "account": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
+      "device-sync",
       "getting_started",
       "security",
       "sensitivity",
@@ -2925,7 +3022,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -2977,8 +3073,8 @@
       "getting_started"
     ],
     "optional": [
-      "getting_started",
-      "sync"
+      "device-sync",
+      "getting_started"
     ],
     "hint": [
       "getting_started",
@@ -2988,6 +3084,7 @@
       "getting_started"
     ],
     "memory": [
+      "device-sync",
       "getting_started",
       "security"
     ],
@@ -3018,6 +3115,7 @@
       "ai_chat",
       "audit_log",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -3031,6 +3129,7 @@
     "key": [
       "PRIVACY_POLICY",
       "ai_chat",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -3042,19 +3141,19 @@
       "TERMS_OF_SERVICE",
       "attachments",
       "backup_restore",
+      "device-sync",
       "export_import",
-      "getting_started",
-      "sync"
+      "getting_started"
     ],
     "cannot": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "attachments",
       "audit_log",
+      "device-sync",
       "getting_started",
       "objects",
       "sensitivity",
-      "sync",
       "trash"
     ],
     "reset": [
@@ -3075,6 +3174,7 @@
     ],
     "securely": [
       "PRIVACY_POLICY",
+      "device-sync",
       "getting_started"
     ],
     "object": [
@@ -3082,6 +3182,7 @@
       "attachments",
       "audit_log",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -3090,7 +3191,6 @@
       "search",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -3110,7 +3210,6 @@
       "ocr_scan",
       "plugins",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -3125,7 +3224,6 @@
       "plugins",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates"
     ],
     "section": [
@@ -3157,6 +3255,7 @@
       "workspace"
     ],
     "template": [
+      "device-sync",
       "getting_started",
       "objects",
       "sensitivity",
@@ -3189,6 +3288,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -3227,6 +3327,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -3236,7 +3337,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -3249,6 +3349,7 @@
       "workspace"
     ],
     "top": [
+      "device-sync",
       "getting_started",
       "llm_config",
       "objects",
@@ -3288,6 +3389,7 @@
       "attachments",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -3296,7 +3398,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -3304,6 +3405,7 @@
     "into": [
       "PRIVACY_POLICY",
       "ai_chat",
+      "device-sync",
       "getting_started",
       "llm_config",
       "sensitivity"
@@ -3313,6 +3415,7 @@
       "attachments",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -3320,7 +3423,6 @@
       "plugins",
       "search",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -3411,6 +3513,7 @@
       "ai_chat",
       "appearance",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -3420,7 +3523,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -3431,6 +3533,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "llm_config",
@@ -3444,6 +3547,7 @@
       "workspace"
     ],
     "also": [
+      "device-sync",
       "export_import",
       "getting_started",
       "trash"
@@ -3476,11 +3580,13 @@
     ],
     "own": [
       "collections",
+      "device-sync",
       "getting_started",
       "trash",
       "workspace"
     ],
     "way": [
+      "device-sync",
       "getting_started"
     ],
     "protect": [
@@ -3504,6 +3610,7 @@
     "id": [
       "PRIVACY_POLICY",
       "biometric",
+      "device-sync",
       "getting_started",
       "ocr_scan",
       "security",
@@ -3517,6 +3624,7 @@
       "appearance",
       "biometric",
       "collections",
+      "device-sync",
       "getting_started",
       "objects",
       "ocr_scan",
@@ -3532,6 +3640,7 @@
     ],
     "field": [
       "audit_log",
+      "device-sync",
       "getting_started",
       "objects",
       "plugins",
@@ -3561,6 +3670,7 @@
     ],
     "verification": [
       "biometric",
+      "device-sync",
       "getting_started",
       "security",
       "sensitivity",
@@ -3582,6 +3692,7 @@
     "when": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
+      "device-sync",
       "getting_started",
       "plugins",
       "security",
@@ -3598,9 +3709,9 @@
     "uses": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
+      "device-sync",
       "getting_started",
-      "sensitivity",
-      "sync"
+      "sensitivity"
     ],
     "zero": [
       "PRIVACY_POLICY",
@@ -3621,6 +3732,7 @@
       "appearance",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "getting_started",
       "search",
@@ -3641,6 +3753,7 @@
       "PRIVACY_POLICY",
       "ai_chat",
       "audit_log",
+      "device-sync",
       "getting_started",
       "ocr_scan",
       "search",
@@ -3652,6 +3765,7 @@
     ],
     "servers": [
       "PRIVACY_POLICY",
+      "device-sync",
       "getting_started"
     ],
     "access": [
@@ -3662,6 +3776,7 @@
     "any": [
       "PRIVACY_POLICY",
       "collections",
+      "device-sync",
       "export_import",
       "getting_started",
       "objects",
@@ -3677,14 +3792,15 @@
       "search",
       "security",
       "sensitivity",
-      "sync",
       "templates"
     ],
     "next": [
       "collections",
+      "device-sync",
       "getting_started"
     ],
     "steps": [
+      "device-sync",
       "getting_started",
       "llm_config"
     ],
@@ -3721,10 +3837,10 @@
     "enable": [
       "audit_log",
       "biometric",
+      "device-sync",
       "getting_started",
       "plugins",
-      "security",
-      "sync"
+      "security"
     ],
     "smart": [
       "collections",
@@ -3739,6 +3855,7 @@
     "对象管理": [
       "attachments",
       "collections",
+      "device-sync",
       "objects",
       "ocr_scan",
       "plugins",
@@ -3752,6 +3869,7 @@
       "ai_chat",
       "attachments",
       "collections",
+      "device-sync",
       "objects",
       "ocr_scan",
       "plugins",
@@ -3817,22 +3935,26 @@
       "objects"
     ],
     "核": [
+      "device-sync",
       "objects",
       "security"
     ],
     "心": [
+      "device-sync",
       "objects",
       "security"
     ],
     "单": [
       "appearance",
       "backup_restore",
+      "device-sync",
       "llm_config",
       "objects",
       "templates"
     ],
     "元": [
       "appearance",
+      "device-sync",
       "objects"
     ],
     "每个对象代表一条结构化记录": [
@@ -3842,6 +3964,7 @@
       "ai_chat",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "llm_config",
       "objects",
       "plugins",
@@ -3861,11 +3984,11 @@
       "ai_chat",
       "attachments",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "plugins",
       "search",
-      "sync",
       "templates",
       "trash"
     ],
@@ -3873,11 +3996,13 @@
       "TERMS_OF_SERVICE",
       "audit_log",
       "collections",
+      "device-sync",
       "objects",
       "trash",
       "workspace"
     ],
     "结": [
+      "device-sync",
       "objects",
       "ocr_scan",
       "search",
@@ -3886,6 +4011,7 @@
     "录": [
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "security",
@@ -3934,6 +4060,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -3951,6 +4078,7 @@
       "ai_chat",
       "appearance",
       "biometric",
+      "device-sync",
       "export_import",
       "objects"
     ],
@@ -3967,6 +4095,7 @@
       "ai_chat",
       "audit_log",
       "collections",
+      "device-sync",
       "llm_config",
       "objects",
       "ocr_scan",
@@ -3980,10 +4109,12 @@
     ],
     "决": [
       "biometric",
+      "device-sync",
       "objects"
     ],
     "属": [
       "audit_log",
+      "device-sync",
       "objects",
       "search",
       "snapshots",
@@ -3997,15 +4128,16 @@
       "appearance",
       "attachments",
       "audit_log",
+      "device-sync",
       "llm_config",
       "objects",
       "search",
       "security",
       "snapshots",
-      "sync",
       "trash"
     ],
     "properties": [
+      "device-sync",
       "objects",
       "snapshots",
       "trash"
@@ -4036,6 +4168,7 @@
       "appearance",
       "attachments",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "ocr_scan",
@@ -4071,18 +4204,19 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "objects",
       "ocr_scan",
       "plugins",
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
     "检": [
       "biometric",
+      "device-sync",
       "llm_config",
       "objects",
       "ocr_scan",
@@ -4096,34 +4230,33 @@
       "objects",
       "search",
       "security",
-      "sync",
       "workspace"
     ],
     "附件": [
       "attachments",
-      "objects",
-      "sync"
+      "device-sync",
+      "objects"
     ],
     "附": [
       "attachments",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "objects",
       "ocr_scan",
       "search",
-      "sync",
       "templates",
       "trash"
     ],
     "attachments": [
       "attachments",
       "collections",
+      "device-sync",
       "export_import",
       "objects",
       "ocr_scan",
       "search",
-      "sync",
       "templates",
       "trash"
     ],
@@ -4140,6 +4273,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -4149,7 +4283,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -4157,6 +4290,7 @@
     "联": [
       "PRIVACY_POLICY",
       "attachments",
+      "device-sync",
       "export_import",
       "objects",
       "templates"
@@ -4171,6 +4305,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -4180,7 +4315,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -4240,6 +4374,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -4249,19 +4384,20 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates"
     ],
     "使用模板可以自动填充常用字段": [
       "objects"
     ],
     "充": [
+      "device-sync",
       "llm_config",
       "objects"
     ],
     "常": [
       "audit_log",
       "collections",
+      "device-sync",
       "llm_config",
       "objects",
       "ocr_scan",
@@ -4273,11 +4409,13 @@
       "objects"
     ],
     "避": [
+      "device-sync",
       "export_import",
       "objects"
     ],
     "免": [
       "TERMS_OF_SERVICE",
+      "device-sync",
       "export_import",
       "objects"
     ],
@@ -4293,6 +4431,7 @@
     "编": [
       "attachments",
       "collections",
+      "device-sync",
       "objects",
       "templates"
     ],
@@ -4309,6 +4448,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "objects",
       "snapshots",
@@ -4324,6 +4464,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "objects",
       "ocr_scan",
       "security",
@@ -4336,6 +4477,7 @@
     ],
     "详": [
       "audit_log",
+      "device-sync",
       "objects",
       "snapshots"
     ],
@@ -4351,6 +4493,7 @@
     "器": [
       "PRIVACY_POLICY",
       "biometric",
+      "device-sync",
       "objects",
       "plugins",
       "snapshots",
@@ -4373,6 +4516,7 @@
     ],
     "被": [
       "PRIVACY_POLICY",
+      "device-sync",
       "objects",
       "security",
       "sensitivity",
@@ -4385,8 +4529,8 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "objects",
-      "sync",
       "trash"
     ],
     "回收站": [
@@ -4394,6 +4538,7 @@
       "attachments",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "snapshots",
@@ -4405,6 +4550,7 @@
       "audit_log",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -4416,6 +4562,7 @@
       "attachments",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "snapshots",
@@ -4426,6 +4573,7 @@
       "attachments",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "snapshots",
@@ -4447,12 +4595,12 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
       "search",
       "sensitivity",
-      "sync",
       "templates",
       "trash"
     ],
@@ -4462,11 +4610,11 @@
       "attachments",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "security",
       "snapshots",
-      "sync",
       "trash"
     ],
     "复": [
@@ -4475,11 +4623,11 @@
       "attachments",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "security",
       "snapshots",
-      "sync",
       "trash"
     ],
     "搜索对象": [
@@ -4492,19 +4640,20 @@
       "llm_config",
       "objects",
       "search",
-      "sync",
       "workspace"
     ],
     "在工作区顶部的搜索框输入关键词": [
       "objects"
     ],
     "顶": [
+      "device-sync",
       "objects",
       "templates",
       "workspace"
     ],
     "框": [
       "ai_chat",
+      "device-sync",
       "objects",
       "search",
       "sensitivity",
@@ -4516,13 +4665,13 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
       "search",
       "security",
       "sensitivity",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -4539,7 +4688,6 @@
       "ocr_scan",
       "plugins",
       "security",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -4550,12 +4698,12 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "llm_config",
       "objects",
       "ocr_scan",
       "plugins",
       "security",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -4563,6 +4711,7 @@
     "实": [
       "appearance",
       "audit_log",
+      "device-sync",
       "llm_config",
       "objects",
       "search"
@@ -4572,6 +4721,7 @@
       "TERMS_OF_SERVICE",
       "ai_chat",
       "biometric",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -4593,6 +4743,7 @@
       "TERMS_OF_SERVICE",
       "attachments",
       "audit_log",
+      "device-sync",
       "export_import",
       "objects",
       "security",
@@ -4607,6 +4758,7 @@
       "TERMS_OF_SERVICE",
       "appearance",
       "biometric",
+      "device-sync",
       "objects",
       "ocr_scan",
       "plugins",
@@ -4633,6 +4785,7 @@
       "PRIVACY_POLICY",
       "attachments",
       "audit_log",
+      "device-sync",
       "objects",
       "trash"
     ],
@@ -4649,6 +4802,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -4658,7 +4812,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -4673,6 +4826,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -4682,7 +4836,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -4697,6 +4850,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -4706,7 +4860,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -4756,12 +4909,14 @@
     "版": [
       "attachments",
       "backup_restore",
+      "device-sync",
       "objects",
       "snapshots",
       "templates",
       "trash"
     ],
     "core": [
+      "device-sync",
       "objects",
       "security"
     ],
@@ -4771,11 +4926,11 @@
     "each": [
       "audit_log",
       "backup_restore",
+      "device-sync",
       "objects",
       "plugins",
       "sensitivity",
       "snapshots",
-      "sync",
       "trash"
     ],
     "represents": [
@@ -4785,6 +4940,7 @@
       "objects"
     ],
     "record": [
+      "device-sync",
       "objects"
     ],
     "passport": [
@@ -4797,6 +4953,7 @@
     ],
     "entry": [
       "audit_log",
+      "device-sync",
       "objects",
       "sensitivity"
     ],
@@ -4806,11 +4963,13 @@
     ],
     "every": [
       "ai_chat",
+      "device-sync",
       "objects",
       "sensitivity",
       "snapshots"
     ],
     "contains": [
+      "device-sync",
       "objects",
       "snapshots"
     ],
@@ -4852,6 +5011,7 @@
       "TERMS_OF_SERVICE",
       "attachments",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "ocr_scan",
@@ -4878,7 +5038,6 @@
     "creating": [
       "backup_restore",
       "objects",
-      "sync",
       "templates"
     ],
     "enter": [
@@ -4886,6 +5045,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -4915,6 +5075,7 @@
     ],
     "so": [
       "appearance",
+      "device-sync",
       "objects"
     ],
     "don": [
@@ -4934,11 +5095,13 @@
     "deleting": [
       "backup_restore",
       "collections",
+      "device-sync",
       "objects",
       "workspace"
     ],
     "details": [
       "audit_log",
+      "device-sync",
       "objects",
       "snapshots",
       "templates"
@@ -4952,6 +5115,7 @@
       "attachments",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "objects",
       "snapshots",
@@ -4998,7 +5162,6 @@
       "llm_config",
       "objects",
       "search",
-      "sync",
       "workspace"
     ],
     "box": [
@@ -5008,6 +5171,7 @@
       "workspace"
     ],
     "results": [
+      "device-sync",
       "objects",
       "ocr_scan",
       "search"
@@ -5027,6 +5191,7 @@
       "appearance",
       "audit_log",
       "collections",
+      "device-sync",
       "objects",
       "plugins",
       "search",
@@ -5039,6 +5204,7 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "objects",
       "snapshots",
       "templates",
@@ -5052,6 +5218,7 @@
     "after": [
       "PRIVACY_POLICY",
       "biometric",
+      "device-sync",
       "objects",
       "plugins",
       "security",
@@ -5087,6 +5254,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -5096,7 +5264,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -5111,6 +5278,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "objects",
@@ -5120,7 +5288,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -5140,6 +5307,7 @@
       "ai_chat",
       "biometric",
       "collections",
+      "device-sync",
       "llm_config",
       "objects",
       "sensitivity",
@@ -5169,6 +5337,7 @@
     ],
     "准": [
       "TERMS_OF_SERVICE",
+      "device-sync",
       "llm_config",
       "templates"
     ],
@@ -5176,6 +5345,7 @@
       "appearance",
       "attachments",
       "backup_restore",
+      "device-sync",
       "export_import",
       "ocr_scan",
       "plugins",
@@ -5198,11 +5368,11 @@
       "ai_chat",
       "attachments",
       "backup_restore",
+      "device-sync",
       "export_import",
       "search",
       "security",
       "snapshots",
-      "sync",
       "templates"
     ],
     "模板来源": [
@@ -5210,6 +5380,7 @@
     ],
     "来": [
       "collections",
+      "device-sync",
       "plugins",
       "templates",
       "trash",
@@ -5230,13 +5401,13 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "llm_config",
       "ocr_scan",
       "plugins",
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -5247,13 +5418,13 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "llm_config",
       "ocr_scan",
       "plugins",
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -5263,6 +5434,7 @@
     "应": [
       "TERMS_OF_SERVICE",
       "appearance",
+      "device-sync",
       "search",
       "security",
       "templates",
@@ -5275,6 +5447,7 @@
       "PRIVACY_POLICY",
       "appearance",
       "collections",
+      "device-sync",
       "plugins",
       "snapshots",
       "templates"
@@ -5288,6 +5461,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "plugins",
       "security",
       "sensitivity",
@@ -5305,6 +5479,7 @@
     ],
     "展": [
       "ai_chat",
+      "device-sync",
       "llm_config",
       "plugins",
       "templates"
@@ -5316,6 +5491,7 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "ocr_scan",
       "security",
       "sensitivity",
@@ -5327,12 +5503,14 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "security",
       "sensitivity",
       "snapshots",
       "templates"
     ],
     "用户模板": [
+      "device-sync",
       "templates"
     ],
     "由您从现有对象保存而来的自定义模板": [
@@ -5341,6 +5519,7 @@
     "由": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
+      "device-sync",
       "plugins",
       "templates"
     ],
@@ -5348,6 +5527,7 @@
       "PRIVACY_POLICY",
       "ai_chat",
       "attachments",
+      "device-sync",
       "ocr_scan",
       "search",
       "snapshots",
@@ -5356,9 +5536,9 @@
     ],
     "现": [
       "collections",
+      "device-sync",
       "export_import",
       "ocr_scan",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -5446,11 +5626,11 @@
       "ai_chat",
       "backup_restore",
       "biometric",
+      "device-sync",
       "ocr_scan",
       "plugins",
       "security",
       "sensitivity",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -5462,6 +5642,7 @@
     ],
     "否": [
       "biometric",
+      "device-sync",
       "llm_config",
       "security",
       "templates"
@@ -5481,6 +5662,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "ocr_scan",
@@ -5488,7 +5670,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates",
       "trash"
     ],
@@ -5506,12 +5687,12 @@
       "audit_log",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "llm_config",
       "ocr_scan",
       "security",
       "sensitivity",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -5520,10 +5701,10 @@
       "ai_chat",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "security",
       "sensitivity",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -5543,6 +5724,7 @@
     "效": [
       "appearance",
       "biometric",
+      "device-sync",
       "ocr_scan",
       "security",
       "templates"
@@ -5556,6 +5738,7 @@
     "果": [
       "appearance",
       "biometric",
+      "device-sync",
       "export_import",
       "ocr_scan",
       "search",
@@ -5568,9 +5751,9 @@
     "其": [
       "TERMS_OF_SERVICE",
       "ai_chat",
+      "device-sync",
       "llm_config",
       "plugins",
-      "sync",
       "templates"
     ],
     "打开该对象的编辑页面": [
@@ -5579,12 +5762,13 @@
     "打": [
       "ai_chat",
       "attachments",
+      "device-sync",
       "export_import",
       "search",
-      "sync",
       "templates"
     ],
     "该": [
+      "device-sync",
       "llm_config",
       "search",
       "templates",
@@ -5610,9 +5794,9 @@
       "TERMS_OF_SERVICE",
       "ai_chat",
       "biometric",
+      "device-sync",
       "export_import",
       "ocr_scan",
-      "sync",
       "templates"
     ],
     "模板与对象的关联": [
@@ -5635,11 +5819,13 @@
       "templates"
     ],
     "续": [
+      "device-sync",
       "plugins",
       "templates"
     ],
     "追": [
       "audit_log",
+      "device-sync",
       "templates"
     ],
     "溯": [
@@ -5648,6 +5834,7 @@
       "templates"
     ],
     "哪": [
+      "device-sync",
       "templates"
     ],
     "解除关联不会影响对象本身的数据": [
@@ -5656,14 +5843,12 @@
     "影": [
       "appearance",
       "collections",
-      "sync",
       "templates"
     ],
     "响": [
       "TERMS_OF_SERVICE",
       "appearance",
       "collections",
-      "sync",
       "templates"
     ],
     "编辑与删除对象": [
@@ -5674,6 +5859,7 @@
     ],
     "附件管理": [
       "attachments",
+      "device-sync",
       "ocr_scan",
       "templates"
     ],
@@ -5692,6 +5878,7 @@
     "that": [
       "attachments",
       "collections",
+      "device-sync",
       "search",
       "templates",
       "workspace"
@@ -5708,6 +5895,7 @@
     ],
     "records": [
       "audit_log",
+      "device-sync",
       "templates"
     ],
     "standard": [
@@ -5722,6 +5910,7 @@
     "includes": [
       "ai_chat",
       "audit_log",
+      "device-sync",
       "export_import",
       "llm_config",
       "plugins",
@@ -5763,7 +5952,6 @@
       "security",
       "sensitivity",
       "snapshots",
-      "sync",
       "templates"
     ],
     "expand": [
@@ -5773,11 +5961,13 @@
       "TERMS_OF_SERVICE",
       "ai_chat",
       "appearance",
+      "device-sync",
       "llm_config",
       "security",
       "templates"
     ],
     "updates": [
+      "device-sync",
       "templates"
     ],
     "read": [
@@ -5790,11 +5980,13 @@
       "TERMS_OF_SERVICE",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "llm_config",
       "templates"
     ],
     "saved": [
       "backup_restore",
+      "device-sync",
       "ocr_scan",
       "snapshots",
       "templates"
@@ -5812,13 +6004,13 @@
       "appearance",
       "audit_log",
       "biometric",
+      "device-sync",
       "export_import",
       "llm_config",
       "plugins",
       "search",
       "security",
       "snapshots",
-      "sync",
       "templates",
       "workspace"
     ],
@@ -5835,12 +6027,14 @@
     "using": [
       "TERMS_OF_SERVICE",
       "biometric",
+      "device-sync",
       "ocr_scan",
       "search",
       "templates"
     ],
     "new": [
       "ai_chat",
+      "device-sync",
       "security",
       "sensitivity",
       "templates",
@@ -5859,6 +6053,7 @@
     "shows": [
       "audit_log",
       "biometric",
+      "device-sync",
       "snapshots",
       "templates"
     ],
@@ -5869,6 +6064,7 @@
       "templates"
     ],
     "below": [
+      "device-sync",
       "ocr_scan",
       "templates",
       "workspace"
@@ -5894,6 +6090,7 @@
     ],
     "see": [
       "appearance",
+      "device-sync",
       "templates"
     ],
     "number": [
@@ -5921,16 +6118,17 @@
       "TERMS_OF_SERVICE",
       "ai_chat",
       "attachments",
+      "device-sync",
       "export_import",
       "templates"
     ],
     "confirm": [
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "security",
       "sensitivity",
-      "sync",
       "templates",
       "trash",
       "workspace"
@@ -5938,6 +6136,7 @@
     "never": [
       "PRIVACY_POLICY",
       "ai_chat",
+      "device-sync",
       "sensitivity",
       "templates"
     ],
@@ -5959,6 +6158,7 @@
     "this": [
       "TERMS_OF_SERVICE",
       "audit_log",
+      "device-sync",
       "snapshots",
       "templates"
     ],
@@ -5991,22 +6191,22 @@
       "TERMS_OF_SERVICE",
       "ai_chat",
       "collections",
+      "device-sync",
       "ocr_scan",
       "search",
       "security",
-      "sync",
       "templates",
       "workspace"
     ],
     "affect": [
       "appearance",
       "collections",
-      "sync",
       "templates"
     ],
     "attachment": [
       "attachments",
       "backup_restore",
+      "device-sync",
       "ocr_scan",
       "search",
       "templates",
@@ -6021,7 +6221,6 @@
       "ocr_scan",
       "plugins",
       "snapshots",
-      "sync",
       "trash",
       "workspace"
     ],
@@ -6049,6 +6248,7 @@
       "TERMS_OF_SERVICE",
       "ai_chat",
       "appearance",
+      "device-sync",
       "llm_config",
       "sensitivity",
       "trash",
@@ -6056,6 +6256,7 @@
     ],
     "两": [
       "collections",
+      "device-sync",
       "workspace"
     ],
     "四个固定分区": [
@@ -6085,6 +6286,7 @@
     ],
     "底": [
       "ai_chat",
+      "device-sync",
       "trash",
       "workspace"
     ],
@@ -6105,7 +6307,6 @@
     ],
     "此": [
       "snapshots",
-      "sync",
       "workspace"
     ],
     "我的项目": [
@@ -6123,10 +6324,10 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "ocr_scan",
       "sensitivity",
       "snapshots",
-      "sync",
       "trash",
       "workspace"
     ],
@@ -6161,6 +6362,7 @@
       "appearance",
       "attachments",
       "collections",
+      "device-sync",
       "search",
       "sensitivity",
       "workspace"
@@ -6188,6 +6390,7 @@
       "workspace"
     ],
     "双": [
+      "device-sync",
       "workspace"
     ],
     "进入该页面工作区": [
@@ -6200,6 +6403,7 @@
       "workspace"
     ],
     "仍": [
+      "device-sync",
       "workspace"
     ],
     "管理您的数据对象": [
@@ -6256,6 +6460,7 @@
       "workspace"
     ],
     "both": [
+      "device-sync",
       "llm_config",
       "workspace"
     ],
@@ -6267,6 +6472,7 @@
       "workspace"
     ],
     "displays": [
+      "device-sync",
       "llm_config",
       "ocr_scan",
       "workspace"
@@ -6289,6 +6495,7 @@
       "workspace"
     ],
     "appears": [
+      "device-sync",
       "workspace"
     ],
     "my": [
@@ -6348,6 +6555,7 @@
       "attachments",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "ocr_scan"
     ],
@@ -6371,15 +6579,13 @@
     "扫": [
       "attachments",
       "ocr_scan",
-      "search",
-      "sync"
+      "search"
     ],
     "描": [
       "attachments",
       "llm_config",
       "ocr_scan",
-      "search",
-      "sync"
+      "search"
     ],
     "添加附件": [
       "attachments"
@@ -6414,6 +6620,7 @@
       "ai_chat",
       "attachments",
       "backup_restore",
+      "device-sync",
       "llm_config",
       "snapshots"
     ],
@@ -6435,11 +6642,11 @@
       "attachments",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "llm_config",
       "plugins",
       "search",
-      "sync",
       "trash"
     ],
     "支持的预览格式": [
@@ -6483,6 +6690,7 @@
       "audit_log",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "llm_config",
       "plugins",
@@ -6495,6 +6703,7 @@
     "说明": [
       "appearance",
       "attachments",
+      "device-sync",
       "llm_config",
       "sensitivity",
       "trash"
@@ -6505,6 +6714,7 @@
       "appearance",
       "attachments",
       "audit_log",
+      "device-sync",
       "llm_config",
       "ocr_scan",
       "security",
@@ -6533,6 +6743,7 @@
     "状": [
       "attachments",
       "biometric",
+      "device-sync",
       "llm_config",
       "security",
       "snapshots"
@@ -6541,6 +6752,7 @@
       "attachments",
       "biometric",
       "collections",
+      "device-sync",
       "llm_config",
       "plugins",
       "security",
@@ -6573,6 +6785,7 @@
     ],
     "屏": [
       "attachments",
+      "device-sync",
       "security"
     ],
     "永久删除的附件无法恢复": [
@@ -6591,6 +6804,7 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "llm_config",
       "ocr_scan",
       "search",
@@ -6638,6 +6852,7 @@
     "count": [
       "ai_chat",
       "attachments",
+      "device-sync",
       "snapshots"
     ],
     "badge": [
@@ -6648,9 +6863,9 @@
       "ai_chat",
       "attachments",
       "backup_restore",
+      "device-sync",
       "plugins",
       "search",
-      "sync",
       "trash"
     ],
     "supported": [
@@ -6662,18 +6877,20 @@
     "text": [
       "attachments",
       "audit_log",
+      "device-sync",
       "ocr_scan",
       "sensitivity"
     ],
     "same": [
       "attachments",
+      "device-sync",
       "search",
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "encryption": [
       "TERMS_OF_SERVICE",
-      "attachments"
+      "attachments",
+      "device-sync"
     ],
     "level": [
       "PRIVACY_POLICY",
@@ -6681,6 +6898,7 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "plugins",
       "search",
       "security",
@@ -6692,16 +6910,17 @@
       "attachments",
       "audit_log",
       "biometric",
+      "device-sync",
       "export_import",
       "security",
-      "sensitivity",
-      "sync"
+      "sensitivity"
     ],
     "equals": [
       "attachments"
     ],
     "themselves": [
-      "attachments"
+      "attachments",
+      "device-sync"
     ],
     "actions": [
       "attachments",
@@ -6710,6 +6929,7 @@
     "action": [
       "attachments",
       "audit_log",
+      "device-sync",
       "trash"
     ],
     "description": [
@@ -6737,6 +6957,7 @@
     ],
     "state": [
       "attachments",
+      "device-sync",
       "llm_config",
       "security",
       "snapshots"
@@ -6773,6 +6994,7 @@
     "version": [
       "attachments",
       "backup_restore",
+      "device-sync",
       "snapshots",
       "trash"
     ],
@@ -6802,6 +7024,7 @@
     "让": [
       "ai_chat",
       "appearance",
+      "device-sync",
       "export_import",
       "ocr_scan",
       "search",
@@ -6838,10 +7061,10 @@
       "appearance",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "sensitivity",
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "查看历史": [
       "snapshots"
@@ -6855,7 +7078,6 @@
       "search",
       "sensitivity",
       "snapshots",
-      "sync",
       "trash"
     ],
     "点击对象卡片上的时钟图标": [
@@ -6868,6 +7090,7 @@
       "snapshots"
     ],
     "弹": [
+      "device-sync",
       "sensitivity",
       "snapshots"
     ],
@@ -6890,9 +7113,9 @@
       "audit_log",
       "backup_restore",
       "collections",
+      "device-sync",
       "security",
       "snapshots",
-      "sync",
       "trash"
     ],
     "切": [
@@ -6903,8 +7126,7 @@
     "换": [
       "appearance",
       "export_import",
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "查看对象历史版本": [
       "snapshots"
@@ -6925,8 +7147,7 @@
       "snapshots"
     ],
     "早": [
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "右箭头查看更新版本": [
       "snapshots"
@@ -6937,6 +7158,7 @@
     ],
     "闭": [
       "ai_chat",
+      "device-sync",
       "llm_config",
       "sensitivity",
       "snapshots"
@@ -6955,6 +7177,7 @@
     ],
     "样": [
       "appearance",
+      "device-sync",
       "search",
       "snapshots"
     ],
@@ -6970,10 +7193,12 @@
     ],
     "规": [
       "biometric",
+      "device-sync",
       "search",
       "snapshots"
     ],
     "则": [
+      "device-sync",
       "search",
       "security",
       "snapshots"
@@ -6991,13 +7216,14 @@
     "处": [
       "PRIVACY_POLICY",
       "ai_chat",
+      "device-sync",
       "ocr_scan",
       "plugins",
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "查看": [
       "biometric",
+      "device-sync",
       "llm_config",
       "snapshots"
     ],
@@ -7011,6 +7237,7 @@
       "snapshots"
     ],
     "某": [
+      "device-sync",
       "snapshots"
     ],
     "数据管理": [
@@ -7022,6 +7249,7 @@
     ],
     "独": [
       "backup_restore",
+      "device-sync",
       "llm_config",
       "plugins",
       "snapshots",
@@ -7029,6 +7257,7 @@
     ],
     "立": [
       "appearance",
+      "device-sync",
       "plugins",
       "snapshots",
       "trash"
@@ -7043,6 +7272,7 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "ai_chat",
+      "device-sync",
       "export_import",
       "llm_config",
       "plugins",
@@ -7084,10 +7314,12 @@
       "snapshots"
     ],
     "误": [
+      "device-sync",
       "export_import",
       "snapshots"
     ],
     "口": [
+      "device-sync",
       "snapshots"
     ],
     "creates": [
@@ -7125,6 +7357,7 @@
     "complete": [
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "llm_config",
       "ocr_scan",
@@ -7137,7 +7370,6 @@
       "search",
       "sensitivity",
       "snapshots",
-      "sync",
       "trash"
     ],
     "target": [
@@ -7148,6 +7380,7 @@
       "trash"
     ],
     "clock": [
+      "device-sync",
       "snapshots"
     ],
     "flip": [
@@ -7178,6 +7411,7 @@
     ],
     "between": [
       "appearance",
+      "device-sync",
       "snapshots"
     ],
     "browse": [
@@ -7194,6 +7428,7 @@
       "snapshots"
     ],
     "newer": [
+      "device-sync",
       "snapshots"
     ],
     "close": [
@@ -7210,10 +7445,10 @@
       "snapshots"
     ],
     "requires": [
+      "device-sync",
       "plugins",
       "sensitivity",
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "restoring": [
       "backup_restore",
@@ -7232,6 +7467,7 @@
       "backup_restore",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "plugins",
@@ -7251,10 +7487,10 @@
       "ai_chat",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "security",
       "snapshots",
-      "sync",
       "trash"
     ],
     "consume": [
@@ -7272,8 +7508,7 @@
       "snapshots"
     ],
     "them": [
-      "snapshots",
-      "sync"
+      "snapshots"
     ],
     "storage": [
       "PRIVACY_POLICY",
@@ -7301,6 +7536,7 @@
       "snapshots"
     ],
     "items": [
+      "device-sync",
       "export_import",
       "snapshots",
       "trash"
@@ -7324,7 +7560,8 @@
       "collections"
     ],
     "些": [
-      "collections"
+      "collections",
+      "device-sync"
     ],
     "视": [
       "appearance",
@@ -7337,11 +7574,13 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "collections",
+      "device-sync",
       "llm_config",
       "ocr_scan"
     ],
     "近": [
       "collections",
+      "device-sync",
       "llm_config"
     ],
     "最近修改的对象": [
@@ -7366,11 +7605,11 @@
       "appearance",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "ocr_scan",
       "security",
-      "sensitivity",
-      "sync"
+      "sensitivity"
     ],
     "添加": [
       "collections"
@@ -7387,11 +7626,11 @@
       "ai_chat",
       "appearance",
       "collections",
+      "device-sync",
       "llm_config",
       "plugins",
       "search",
-      "sensitivity",
-      "sync"
+      "sensitivity"
     ],
     "筛": [
       "audit_log",
@@ -7413,7 +7652,8 @@
     ],
     "根": [
       "ai_chat",
-      "collections"
+      "collections",
+      "device-sync"
     ],
     "容": [
       "PRIVACY_POLICY",
@@ -7422,11 +7662,11 @@
       "audit_log",
       "biometric",
       "collections",
+      "device-sync",
       "export_import",
       "llm_config",
       "search",
-      "sensitivity",
-      "sync"
+      "sensitivity"
     ],
     "匹配条件的对象会自动出现在集合中": [
       "collections"
@@ -7457,6 +7697,7 @@
     ],
     "未": [
       "collections",
+      "device-sync",
       "plugins"
     ],
     "等动态视图": [
@@ -7489,14 +7730,13 @@
     "全局搜索": [
       "appearance",
       "collections",
-      "search",
-      "sync"
+      "search"
     ],
     "局": [
       "appearance",
       "collections",
-      "search",
-      "sync"
+      "device-sync",
+      "search"
     ],
     "快速查找对象": [
       "collections"
@@ -7549,15 +7789,17 @@
     ],
     "appear": [
       "collections",
-      "sync"
+      "device-sync"
     ],
     "no": [
       "PRIVACY_POLICY",
       "collections",
+      "device-sync",
       "search"
     ],
     "manual": [
-      "collections"
+      "collections",
+      "device-sync"
     ],
     "needed": [
       "backup_restore",
@@ -7592,8 +7834,7 @@
     "global": [
       "appearance",
       "collections",
-      "search",
-      "sync"
+      "search"
     ],
     "敏感度与隐私": [
       "audit_log",
@@ -7607,6 +7848,7 @@
       "ai_chat",
       "audit_log",
       "biometric",
+      "device-sync",
       "llm_config",
       "ocr_scan",
       "search",
@@ -7619,6 +7861,7 @@
       "ai_chat",
       "audit_log",
       "biometric",
+      "device-sync",
       "llm_config",
       "ocr_scan",
       "search",
@@ -7655,6 +7898,7 @@
       "sensitivity"
     ],
     "细": [
+      "device-sync",
       "sensitivity"
     ],
     "敏感度级别": [
@@ -7669,6 +7913,7 @@
     "public": [
       "PRIVACY_POLICY",
       "ai_chat",
+      "device-sync",
       "llm_config",
       "sensitivity"
     ],
@@ -7677,6 +7922,7 @@
     ],
     "公": [
       "ai_chat",
+      "device-sync",
       "llm_config",
       "sensitivity"
     ],
@@ -7746,6 +7992,7 @@
       "PRIVACY_POLICY",
       "audit_log",
       "biometric",
+      "device-sync",
       "security",
       "sensitivity"
     ],
@@ -7773,18 +8020,19 @@
     "前": [
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "llm_config",
       "plugins",
       "security",
       "sensitivity",
-      "sync",
       "trash"
     ],
     "已": [
       "ai_chat",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
       "sensitivity",
       "trash"
@@ -7795,6 +8043,7 @@
     "调": [
       "appearance",
       "audit_log",
+      "device-sync",
       "sensitivity"
     ],
     "如需修改字段的保护级别": [
@@ -7818,6 +8067,7 @@
       "trash"
     ],
     "因": [
+      "device-sync",
       "sensitivity"
     ],
     "仅在降级保护时需要": [
@@ -7839,6 +8089,7 @@
     ],
     "审": [
       "audit_log",
+      "device-sync",
       "plugins",
       "sensitivity"
     ],
@@ -7846,6 +8097,7 @@
       "PRIVACY_POLICY",
       "ai_chat",
       "audit_log",
+      "device-sync",
       "llm_config",
       "plugins",
       "sensitivity"
@@ -7853,6 +8105,7 @@
     "志": [
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "sensitivity"
     ],
@@ -7863,10 +8116,12 @@
       "sensitivity"
     ],
     "撤": [
+      "device-sync",
       "plugins",
       "sensitivity"
     ],
     "销": [
+      "device-sync",
       "plugins",
       "sensitivity"
     ],
@@ -7878,6 +8133,7 @@
     ],
     "只": [
       "audit_log",
+      "device-sync",
       "plugins",
       "sensitivity"
     ],
@@ -7909,6 +8165,7 @@
     "绝": [
       "PRIVACY_POLICY",
       "ai_chat",
+      "device-sync",
       "sensitivity"
     ],
     "发送给": [
@@ -7918,6 +8175,7 @@
     "送": [
       "PRIVACY_POLICY",
       "ai_chat",
+      "device-sync",
       "llm_config",
       "sensitivity"
     ],
@@ -7972,16 +8230,19 @@
       "appearance",
       "backup_restore",
       "biometric",
+      "device-sync",
       "sensitivity"
     ],
     "纹": [
       "biometric",
+      "device-sync",
       "sensitivity"
     ],
     "隐私边界": [
       "sensitivity"
     ],
     "provide": [
+      "device-sync",
       "sensitivity"
     ],
     "fine": [
@@ -8003,6 +8264,7 @@
       "sensitivity"
     ],
     "example": [
+      "device-sync",
       "sensitivity"
     ],
     "full": [
@@ -8013,6 +8275,7 @@
       "sensitivity"
     ],
     "dialog": [
+      "device-sync",
       "sensitivity"
     ],
     "unlock": [
@@ -8025,6 +8288,7 @@
     ],
     "enabled": [
       "biometric",
+      "device-sync",
       "security",
       "sensitivity"
     ],
@@ -8039,10 +8303,12 @@
     ],
     "audit": [
       "audit_log",
+      "device-sync",
       "sensitivity"
     ],
     "log": [
       "audit_log",
+      "device-sync",
       "sensitivity"
     ],
     "reverted": [
@@ -8069,6 +8335,7 @@
     "sent": [
       "PRIVACY_POLICY",
       "ai_chat",
+      "device-sync",
       "llm_config",
       "sensitivity"
     ],
@@ -8103,6 +8370,7 @@
     ],
     "fingerprint": [
       "biometric",
+      "device-sync",
       "sensitivity"
     ],
     "face": [
@@ -8145,6 +8413,7 @@
       "PRIVACY_POLICY",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "llm_config",
       "plugins",
       "security"
@@ -8166,6 +8435,7 @@
     "失": [
       "PRIVACY_POLICY",
       "biometric",
+      "device-sync",
       "security"
     ],
     "需要重新启用": [
@@ -8189,10 +8459,10 @@
     ],
     "线": [
       "ai_chat",
+      "device-sync",
       "llm_config",
       "ocr_scan",
-      "security",
-      "sync"
+      "security"
     ],
     "修改密码时可以同步更新提示词": [
       "security"
@@ -8208,6 +8478,7 @@
     ],
     "启用": [
       "biometric",
+      "device-sync",
       "security"
     ],
     "输入主密码进行验证": [
@@ -8244,6 +8515,7 @@
     "试": [
       "ai_chat",
       "audit_log",
+      "device-sync",
       "llm_config",
       "ocr_scan",
       "security"
@@ -8262,6 +8534,7 @@
       "security"
     ],
     "正": [
+      "device-sync",
       "ocr_scan",
       "plugins",
       "security"
@@ -8277,8 +8550,8 @@
     ],
     "台": [
       "biometric",
-      "security",
-      "sync"
+      "device-sync",
+      "security"
     ],
     "超": [
       "security"
@@ -8287,6 +8560,7 @@
       "security"
     ],
     "幕": [
+      "device-sync",
       "security"
     ],
     "手动点击侧边栏": [
@@ -8318,17 +8592,17 @@
     "备份与恢复": [
       "TERMS_OF_SERVICE",
       "backup_restore",
+      "device-sync",
       "export_import",
       "security",
-      "sync",
       "trash"
     ],
     "backup": [
       "TERMS_OF_SERVICE",
       "backup_restore",
+      "device-sync",
       "export_import",
       "security",
-      "sync",
       "trash"
     ],
     "保护数据安全": [
@@ -8341,9 +8615,9 @@
       "security"
     ],
     "auto": [
+      "device-sync",
       "llm_config",
-      "security",
-      "sync"
+      "security"
     ],
     "changing": [
       "biometric",
@@ -8370,12 +8644,14 @@
     ],
     "re": [
       "biometric",
+      "device-sync",
       "security"
     ],
     "auxiliary": [
       "security"
     ],
     "shown": [
+      "device-sync",
       "security"
     ],
     "login": [
@@ -8388,6 +8664,7 @@
       "security"
     ],
     "itself": [
+      "device-sync",
       "security"
     ],
     "overly": [
@@ -8406,13 +8683,14 @@
       "PRIVACY_POLICY",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import",
-      "security",
-      "sync"
+      "security"
     ],
     "check": [
       "ai_chat",
       "biometric",
+      "device-sync",
       "export_import",
       "ocr_scan",
       "security",
@@ -8421,8 +8699,7 @@
     "availability": [
       "TERMS_OF_SERVICE",
       "ai_chat",
-      "security",
-      "sync"
+      "security"
     ],
     "follow": [
       "biometric",
@@ -8450,17 +8727,19 @@
     "enabling": [
       "ai_chat",
       "biometric",
-      "security",
-      "sync"
+      "device-sync",
+      "security"
     ],
     "test": [
       "ai_chat",
+      "device-sync",
       "llm_config",
       "security"
     ],
     "verify": [
       "ai_chat",
       "biometric",
+      "device-sync",
       "llm_config",
       "security"
     ],
@@ -8474,8 +8753,7 @@
       "export_import",
       "llm_config",
       "ocr_scan",
-      "security",
-      "sync"
+      "security"
     ],
     "works": [
       "security"
@@ -8491,6 +8769,7 @@
       "security"
     ],
     "than": [
+      "device-sync",
       "security"
     ],
     "duration": [
@@ -8500,6 +8779,7 @@
       "security"
     ],
     "manually": [
+      "device-sync",
       "security"
     ],
     "locking": [
@@ -8515,7 +8795,8 @@
       "security"
     ],
     "指纹": [
-      "biometric"
+      "biometric",
+      "device-sync"
     ],
     "touch id": [
       "biometric"
@@ -8630,7 +8911,8 @@
       "biometric"
     ],
     "禁": [
-      "biometric"
+      "biometric",
+      "device-sync"
     ],
     "禁用": [
       "biometric"
@@ -8665,7 +8947,7 @@
       "audit_log",
       "backup_restore",
       "biometric",
-      "sync"
+      "device-sync"
     ],
     "生物识别不可用": [
       "biometric"
@@ -8685,7 +8967,8 @@
       "biometric"
     ],
     "败": [
-      "biometric"
+      "biometric",
+      "device-sync"
     ],
     "系统会临时禁用生物识别": [
       "biometric"
@@ -8713,6 +8996,7 @@
       "audit_log",
       "backup_restore",
       "biometric",
+      "device-sync",
       "export_import"
     ],
     "platforms": [
@@ -8758,7 +9042,8 @@
     ],
     "used": [
       "PRIVACY_POLICY",
-      "biometric"
+      "biometric",
+      "device-sync"
     ],
     "instead": [
       "biometric"
@@ -8777,15 +9062,16 @@
       "biometric"
     ],
     "disabling": [
-      "biometric"
+      "biometric",
+      "device-sync"
     ],
     "troubleshooting": [
-      "biometric"
+      "biometric",
+      "device-sync"
     ],
     "solution": [
       "backup_restore",
-      "biometric",
-      "sync"
+      "biometric"
     ],
     "unavailable": [
       "biometric"
@@ -8808,7 +9094,8 @@
       "biometric"
     ],
     "many": [
-      "biometric"
+      "biometric",
+      "device-sync"
     ],
     "failed": [
       "biometric"
@@ -8841,8 +9128,8 @@
       "trash"
     ],
     "冲": [
+      "device-sync",
       "export_import",
-      "sync",
       "trash"
     ],
     "删除的对象": [
@@ -8965,8 +9252,8 @@
     ],
     "导出与导入": [
       "backup_restore",
+      "device-sync",
       "export_import",
-      "sync",
       "trash"
     ],
     "导": [
@@ -8974,26 +9261,26 @@
       "TERMS_OF_SERVICE",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "ocr_scan",
       "plugins",
-      "sync",
       "trash"
     ],
     "export": [
       "PRIVACY_POLICY",
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
-      "sync",
       "trash"
     ],
     "import": [
       "audit_log",
       "backup_restore",
+      "device-sync",
       "export_import",
       "ocr_scan",
-      "sync",
       "trash"
     ],
     "数据迁移": [
@@ -9001,7 +9288,7 @@
     ],
     "迁": [
       "backup_restore",
-      "sync",
+      "device-sync",
       "trash"
     ],
     "数据恢复": [
@@ -9043,14 +9330,15 @@
     "deletion": [
       "PRIVACY_POLICY",
       "audit_log",
+      "device-sync",
       "export_import",
       "trash"
     ],
     "before": [
       "backup_restore",
+      "device-sync",
       "export_import",
       "plugins",
-      "sync",
       "trash"
     ],
     "expiration": [
@@ -9084,7 +9372,7 @@
     ],
     "fully": [
       "TERMS_OF_SERVICE",
-      "sync",
+      "device-sync",
       "trash"
     ],
     "removed": [
@@ -9093,7 +9381,7 @@
     ],
     "migration": [
       "backup_restore",
-      "sync",
+      "device-sync",
       "trash"
     ],
     "导出": [
@@ -9120,8 +9408,7 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "ai_chat",
-      "export_import",
-      "sync"
+      "export_import"
     ],
     "导出数据": [
       "export_import"
@@ -9228,6 +9515,7 @@
       "export_import"
     ],
     "跳": [
+      "device-sync",
       "export_import"
     ],
     "保留现有数据": [
@@ -9258,8 +9546,8 @@
       "export_import"
     ],
     "突": [
-      "export_import",
-      "sync"
+      "device-sync",
+      "export_import"
     ],
     "保留非冲突项": [
       "export_import"
@@ -9300,6 +9588,7 @@
     ],
     "加密": [
       "PRIVACY_POLICY",
+      "device-sync",
       "export_import"
     ],
     "加密密码是打开文件的唯一钥匙": [
@@ -9321,6 +9610,7 @@
       "export_import"
     ],
     "须": [
+      "device-sync",
       "export_import"
     ],
     "足": [
@@ -9357,15 +9647,15 @@
     "完整数据保护": [
       "export_import"
     ],
-    "同步": [
+    "设备同步": [
       "backup_restore",
-      "export_import",
-      "sync"
+      "device-sync",
+      "export_import"
     ],
     "sync": [
       "backup_restore",
-      "export_import",
-      "sync"
+      "device-sync",
+      "export_import"
     ],
     "跨设备传输": [
       "export_import"
@@ -9380,16 +9670,17 @@
     ],
     "lets": [
       "ai_chat",
+      "device-sync",
       "export_import",
       "ocr_scan",
       "search"
     ],
     "exchange": [
-      "export_import",
-      "sync"
+      "export_import"
     ],
     "format": [
       "backup_restore",
+      "device-sync",
       "export_import",
       "plugins"
     ],
@@ -9440,16 +9731,15 @@
     "switch": [
       "ai_chat",
       "appearance",
+      "device-sync",
       "export_import",
-      "llm_config",
-      "sync"
+      "llm_config"
     ],
     "content": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "audit_log",
-      "export_import",
-      "sync"
+      "export_import"
     ],
     "strategy": [
       "export_import"
@@ -9458,6 +9748,7 @@
       "export_import"
     ],
     "keep": [
+      "device-sync",
       "export_import"
     ],
     "duplicates": [
@@ -9477,8 +9768,8 @@
       "export_import"
     ],
     "conflicts": [
-      "export_import",
-      "sync"
+      "device-sync",
+      "export_import"
     ],
     "non": [
       "export_import"
@@ -9495,6 +9786,7 @@
       "search"
     ],
     "avoid": [
+      "device-sync",
       "export_import"
     ],
     "overwriting": [
@@ -9508,6 +9800,7 @@
     ],
     "through": [
       "TERMS_OF_SERVICE",
+      "device-sync",
       "export_import",
       "plugins"
     ],
@@ -9523,14 +9816,12 @@
     "we": [
       "TERMS_OF_SERVICE",
       "backup_restore",
-      "export_import",
-      "sync"
+      "export_import"
     ],
     "recommend": [
       "TERMS_OF_SERVICE",
       "backup_restore",
-      "export_import",
-      "sync"
+      "export_import"
     ],
     "character": [
       "export_import",
@@ -9581,7 +9872,8 @@
       "backup_restore"
     ],
     "包含": [
-      "backup_restore"
+      "backup_restore",
+      "device-sync"
     ],
     "所有对象和档案数据": [
       "backup_restore"
@@ -9594,7 +9886,8 @@
     ],
     "操作日志": [
       "audit_log",
-      "backup_restore"
+      "backup_restore",
+      "device-sync"
     ],
     "建议在重大操作前": [
       "backup_restore"
@@ -9603,7 +9896,8 @@
       "backup_restore"
     ],
     "批": [
-      "backup_restore"
+      "backup_restore",
+      "device-sync"
     ],
     "版本升级": [
       "backup_restore"
@@ -9645,7 +9939,8 @@
       "backup_restore"
     ],
     "vs": [
-      "backup_restore"
+      "backup_restore",
+      "device-sync"
     ],
     "功能": [
       "backup_restore",
@@ -9710,15 +10005,17 @@
       "backup_restore"
     ],
     "directory": [
-      "backup_restore"
+      "backup_restore",
+      "device-sync"
     ],
     "profile": [
       "audit_log",
       "backup_restore",
-      "sync"
+      "device-sync"
     ],
     "major": [
-      "backup_restore"
+      "backup_restore",
+      "device-sync"
     ],
     "bulk": [
       "backup_restore"
@@ -9861,14 +10158,15 @@
       "search"
     ],
     "网": [
-      "search",
-      "sync"
+      "device-sync",
+      "search"
     ],
     "络": [
-      "search",
-      "sync"
+      "device-sync",
+      "search"
     ],
     "求": [
+      "device-sync",
       "plugins",
       "search"
     ],
@@ -9885,8 +10183,7 @@
       "search"
     ],
     "across": [
-      "search",
-      "sync"
+      "search"
     ],
     "keyboard": [
       "search"
@@ -9911,10 +10208,10 @@
       "TERMS_OF_SERVICE",
       "audit_log",
       "llm_config",
-      "search",
-      "sync"
+      "search"
     ],
     "values": [
+      "device-sync",
       "search"
     ],
     "looks": [
@@ -9933,258 +10230,1741 @@
       "search"
     ],
     "network": [
-      "search",
-      "sync"
+      "device-sync",
+      "search"
     ],
     "requests": [
       "plugins",
       "search"
     ],
     "matches": [
+      "device-sync",
       "search"
     ],
     "basics": [
       "search"
     ],
+    "同步": [
+      "device-sync"
+    ],
     "设备": [
-      "sync"
+      "device-sync"
     ],
     "局域网": [
-      "sync"
-    ],
-    "同步功能帮助您在多台设备间发现彼此并交换数据": [
-      "sync"
-    ],
-    "彼": [
-      "sync"
-    ],
-    "设备发现": [
-      "sync"
-    ],
-    "使用": [
-      "TERMS_OF_SERVICE",
-      "llm_config",
-      "ocr_scan",
-      "sync"
+      "device-sync"
     ],
     "mdns": [
-      "sync"
+      "device-sync"
     ],
-    "bonjour": [
-      "sync"
+    "配对": [
+      "device-sync"
     ],
-    "avahi": [
-      "sync"
+    "附件同步": [
+      "device-sync"
     ],
-    "在同一局域网内发现其他设备": [
-      "sync"
+    "冲突": [
+      "device-sync"
     ],
-    "他": [
+    "device sync": [
+      "device-sync"
+    ],
+    "lan": [
+      "device-sync"
+    ],
+    "pairing": [
+      "device-sync"
+    ],
+    "attachment sync": [
+      "device-sync"
+    ],
+    "conflict": [
+      "device-sync"
+    ],
+    "的设备同步功能让你在": [
+      "device-sync"
+    ],
+    "同一局域网": [
+      "device-sync"
+    ],
+    "内的多台设备之间安全地同步档案": [
+      "device-sync"
+    ],
+    "回收站记录以及附件文件": [
+      "device-sync"
+    ],
+    "所有同步数据均通过": [
+      "device-sync"
+    ],
+    "均": [
+      "device-sync",
       "llm_config",
-      "sync"
+      "ocr_scan"
     ],
-    "扫描设备": [
-      "sync"
+    "noise": [
+      "device-sync"
     ],
-    "系统将在局域网内搜索其他运行": [
-      "sync"
+    "xx": [
+      "device-sync"
     ],
-    "运": [
-      "plugins",
-      "sync"
+    "端到端加密传输": [
+      "device-sync"
     ],
-    "的设备": [
-      "sync"
+    "团队或任何中间网络设备都无法解密你的内容": [
+      "device-sync"
     ],
-    "发现的设备将显示在列表中": [
-      "sync"
+    "团": [
+      "device-sync"
     ],
-    "设备发现需要在同一局域网": [
-      "sync"
+    "队": [
+      "device-sync"
+    ],
+    "同步是完全可选的": [
+      "device-sync"
+    ],
+    "即使关闭同步": [
+      "device-sync"
+    ],
+    "你的本地数据依然完整可用": [
+      "device-sync"
+    ],
+    "依": [
+      "TERMS_OF_SERVICE",
+      "device-sync"
+    ],
+    "然": [
+      "appearance",
+      "device-sync",
+      "llm_config"
+    ],
+    "始终坚持本地优先": [
+      "device-sync"
+    ],
+    "终": [
+      "device-sync"
+    ],
+    "坚": [
+      "device-sync"
+    ],
+    "设计": [
+      "device-sync"
+    ],
+    "同步前准备": [
+      "device-sync"
+    ],
+    "同一账号": [
+      "device-sync"
+    ],
+    "两台设备必须使用同一个": [
+      "device-sync"
+    ],
+    "才能成功同步": [
+      "device-sync"
+    ],
+    "才": [
+      "device-sync",
+      "plugins"
+    ],
+    "最简单的方式是用同一组账号数据启动两个实例": [
+      "device-sync"
+    ],
+    "简": [
+      "appearance",
+      "device-sync"
+    ],
+    "详见": [
+      "device-sync"
+    ],
+    "见": [
+      "audit_log",
+      "device-sync",
+      "ocr_scan"
+    ],
+    "本地双实例联调指南": [
+      "device-sync"
+    ],
+    "南": [
+      "appearance",
+      "device-sync"
+    ],
+    "smoke": [
+      "device-sync"
+    ],
+    "自动发现要求设备处于同一": [
+      "device-sync"
     ],
     "wi": [
-      "sync"
+      "device-sync"
     ],
     "fi": [
-      "sync"
+      "device-sync"
     ],
-    "不同网络环境下的设备无法自动发现": [
-      "sync"
+    "或局域网": [
+      "device-sync"
     ],
-    "环": [
-      "plugins",
-      "sync"
+    "最新版本": [
+      "device-sync"
     ],
-    "境": [
-      "plugins",
-      "sync"
+    "建议将两边应用保持在相同大版本": [
+      "device-sync"
+    ],
+    "避免因数据格式差异导致同步失败": [
+      "device-sync"
+    ],
+    "差": [
+      "device-sync"
+    ],
+    "异": [
+      "device-sync"
+    ],
+    "致": [
+      "appearance",
+      "device-sync"
     ],
     "启用同步": [
-      "sync"
+      "device-sync"
     ],
-    "在同步页面打开": [
-      "sync"
+    "打开顶部的": [
+      "device-sync"
     ],
     "开关": [
       "ai_chat",
-      "sync"
+      "device-sync"
     ],
-    "选择要连接的设备": [
-      "sync"
+    "页面会显示本机的": [
+      "device-sync"
+    ],
+    "机": [
+      "device-sync"
+    ],
+    "a1b2c3d4": [
+      "device-sync"
+    ],
+    "这是本设备的": [
+      "device-sync"
+    ],
+    "长期公钥摘要": [
+      "device-sync"
+    ],
+    "长": [
+      "audit_log",
+      "device-sync"
+    ],
+    "摘": [
+      "audit_log",
+      "device-sync"
+    ],
+    "用于配对时人工比对": [
+      "device-sync"
+    ],
+    "比": [
+      "device-sync",
+      "llm_config"
+    ],
+    "绝对不要信任你不认识或无法物理核对的": [
+      "device-sync"
+    ],
+    "攻击者可能冒充你的设备": [
+      "device-sync"
+    ],
+    "攻": [
+      "device-sync"
+    ],
+    "冒": [
+      "device-sync"
+    ],
+    "只有在确认对端设备显示相同": [
+      "device-sync"
+    ],
+    "后才点击": [
+      "device-sync"
+    ],
+    "信任并配对": [
+      "device-sync"
+    ],
+    "配对与信任": [
+      "device-sync"
+    ],
+    "采用": [
+      "PRIVACY_POLICY",
+      "device-sync"
+    ],
+    "tofu": [
+      "device-sync"
+    ],
+    "trust": [
+      "device-sync"
+    ],
+    "信任模型": [
+      "device-sync"
+    ],
+    "第一次遇到某台设备时": [
+      "device-sync"
+    ],
+    "遇": [
+      "device-sync"
+    ],
+    "必须显式确认": [
+      "device-sync"
+    ],
+    "自动发现": [
+      "device-sync"
+    ],
+    "启用同步后": [
+      "device-sync"
+    ],
+    "会通过": [
+      "device-sync"
+    ],
+    "bonjour": [
+      "device-sync"
+    ],
+    "avahi": [
+      "device-sync"
+    ],
+    "在局域网广播自己": [
+      "device-sync"
+    ],
+    "广": [
+      "device-sync"
+    ],
+    "播": [
+      "device-sync"
+    ],
+    "同时监听其他设备": [
+      "device-sync"
+    ],
+    "监": [
+      "device-sync"
+    ],
+    "听": [
+      "device-sync"
+    ],
+    "他": [
+      "device-sync",
+      "llm_config"
+    ],
+    "当发现未信任的peer": [
+      "device-sync"
+    ],
+    "p": [
+      "device-sync"
+    ],
+    "e": [
+      "device-sync"
+    ],
+    "r": [
+      "device-sync"
+    ],
+    "会弹出": [
+      "device-sync"
+    ],
+    "配对设备": [
+      "device-sync"
+    ],
+    "对话框": [
+      "device-sync"
+    ],
+    "显示": [
+      "device-sync"
+    ],
+    "设备名": [
+      "device-sync"
+    ],
+    "node": [
+      "device-sync"
+    ],
+    "对端地址": [
+      "device-sync"
+    ],
+    "址": [
+      "device-sync"
+    ],
+    "对端": [
+      "device-sync"
+    ],
+    "核对该": [
+      "device-sync"
+    ],
+    "与对方设备屏幕显示一致后": [
+      "device-sync"
+    ],
+    "信任是双向的": [
+      "device-sync"
+    ],
+    "向": [
+      "device-sync"
+    ],
+    "你也需要在对端设备上信任本机": [
+      "device-sync"
+    ],
+    "手动输入地址": [
+      "device-sync"
+    ],
+    "如果": [
+      "device-sync"
+    ],
+    "因企业网络": [
+      "device-sync"
+    ],
+    "企": [
+      "device-sync"
+    ],
+    "vpn": [
+      "device-sync"
+    ],
+    "或防火墙无法工作": [
+      "device-sync"
+    ],
+    "防": [
+      "device-sync"
+    ],
+    "火": [
+      "device-sync"
+    ],
+    "墙": [
+      "device-sync"
+    ],
+    "可以使用手动地址兜底": [
+      "device-sync"
+    ],
+    "兜": [
+      "device-sync"
+    ],
+    "与设备同步": [
+      "device-sync"
+    ],
+    "输入框中填入对端地址": [
+      "device-sync"
+    ],
+    "如果这是首次连接": [
+      "device-sync"
     ],
     "连": [
       "ai_chat",
-      "llm_config",
-      "sync"
+      "device-sync",
+      "llm_config"
     ],
     "接": [
       "ai_chat",
+      "device-sync",
       "llm_config",
-      "ocr_scan",
-      "sync"
+      "ocr_scan"
     ],
-    "确认配对": [
-      "sync"
+    "系统同样会弹出配对对话框": [
+      "device-sync"
     ],
-    "同步内容": [
-      "sync"
+    "确认": [
+      "device-sync"
     ],
-    "同步将交换以下数据": [
-      "sync"
+    "后信任": [
+      "device-sync"
     ],
-    "对象数据": [
-      "sync"
+    "对方设备的监听端口由操作系统随机分配": [
+      "device-sync"
     ],
-    "加密传输": [
-      "sync"
+    "不会直接显示在": [
+      "device-sync"
     ],
-    "档案信息": [
-      "sync"
+    "直": [
+      "ai_chat",
+      "device-sync",
+      "ocr_scan"
     ],
-    "同步功能目前处于早期阶段": [
-      "sync"
+    "ui": [
+      "device-sync"
     ],
-    "阶": [
-      "plugins",
-      "sync"
+    "双实例联调脚本": [
+      "device-sync"
     ],
-    "建议在同步前创建本地备份": [
-      "sync"
+    "脚": [
+      "device-sync"
     ],
-    "以防数据冲突": [
-      "sync"
+    "scripts": [
+      "device-sync"
     ],
-    "防": [
-      "sync"
+    "dev": [
+      "device-sync"
     ],
-    "离线使用": [
-      "sync"
-    ],
-    "完全支持离线使用": [
-      "sync"
-    ],
-    "同步是可选功能": [
-      "sync"
-    ],
-    "不影响本地数据的完整性和可用性": [
-      "sync"
-    ],
-    "本地数据安全": [
-      "sync"
-    ],
-    "离线迁移方案": [
-      "sync"
-    ],
-    "查找同步对象": [
-      "sync"
-    ],
-    "helps": [
-      "sync"
-    ],
-    "discover": [
-      "sync"
-    ],
-    "other": [
-      "appearance",
-      "sync"
-    ],
-    "devices": [
-      "sync"
-    ],
-    "discovery": [
-      "sync"
-    ],
-    "scan": [
-      "ocr_scan",
-      "sync"
-    ],
-    "searches": [
-      "sync"
+    "two": [
+      "device-sync"
     ],
     "instances": [
-      "sync"
+      "device-sync"
     ],
-    "lan": [
-      "sync"
+    "sh": [
+      "device-sync"
     ],
-    "discovered": [
-      "sync"
+    "和日志输出会提供端口信息": [
+      "device-sync"
     ],
-    "different": [
-      "sync"
+    "同步内容与冲突解决": [
+      "device-sync"
     ],
-    "networks": [
-      "sync"
+    "同步的数据表": [
+      "device-sync"
+    ],
+    "数据类型": [
+      "device-sync"
+    ],
+    "档案": [
+      "audit_log",
+      "device-sync"
+    ],
+    "profiles": [
+      "device-sync"
+    ],
+    "加密数据本身不传输": [
+      "device-sync"
+    ],
+    "只同步": [
+      "device-sync"
+    ],
+    "base64": [
+      "device-sync"
+    ],
+    "编码的密文": [
+      "device-sync"
+    ],
+    "接收方用本地": [
+      "device-sync"
+    ],
+    "重新加密存储": [
+      "device-sync"
+    ],
+    "标志": [
+      "device-sync"
+    ],
+    "删除状态会传播": [
+      "device-sync"
+    ],
+    "json": [
+      "device-sync"
+    ],
+    "解密后以": [
+      "device-sync"
+    ],
+    "接收方重新加密": [
+      "device-sync"
+    ],
+    "删除记录本身即是业务": [
+      "device-sync"
+    ],
+    "tombstone": [
+      "device-sync"
+    ],
+    "直接同步": [
+      "device-sync"
+    ],
+    "数据库记录同步后": [
+      "device-sync"
+    ],
+    "再单独按": [
+      "device-sync"
+    ],
+    "再": [
+      "device-sync"
+    ],
+    "64kb": [
+      "device-sync"
+    ],
+    "分块传输文件本身": [
+      "device-sync"
+    ],
+    "块": [
+      "device-sync"
+    ],
+    "并校验": [
+      "device-sync"
+    ],
+    "校": [
+      "device-sync"
+    ],
+    "sha256": [
+      "device-sync"
+    ],
+    "冲突解决": [
+      "device-sync"
+    ],
+    "使用": [
+      "TERMS_OF_SERVICE",
+      "device-sync",
+      "llm_config",
+      "ocr_scan"
+    ],
+    "hybrid": [
+      "device-sync"
+    ],
+    "logical": [
+      "device-sync"
+    ],
+    "hlc": [
+      "device-sync"
+    ],
+    "记录每条记录的修改时间": [
+      "device-sync"
+    ],
+    "冲突解决规则为": [
+      "device-sync"
+    ],
+    "last": [
+      "PRIVACY_POLICY",
+      "TERMS_OF_SERVICE",
+      "device-sync",
+      "llm_config"
+    ],
+    "write": [
+      "device-sync"
+    ],
+    "wins": [
+      "device-sync"
+    ],
+    "lww": [
+      "device-sync"
+    ],
+    "remote": [
+      "device-sync"
+    ],
+    "胜出当且仅当": [
+      "device-sync"
+    ],
+    "胜": [
+      "device-sync"
+    ],
+    "且": [
+      "device-sync"
+    ],
+    "wall": [
+      "device-sync"
+    ],
+    "ms": [
+      "device-sync"
+    ],
+    "相等且": [
+      "device-sync"
+    ],
+    "counter": [
+      "device-sync"
+    ],
+    "均相等且": [
+      "device-sync"
+    ],
+    "当对端记录的": [
+      "device-sync"
+    ],
+    "不新于本地时": [
+      "device-sync"
+    ],
+    "该记录会被标记为": [
+      "device-sync"
+    ],
+    "并在": [
+      "device-sync"
+    ],
+    "同步活动": [
+      "device-sync"
+    ],
+    "活": [
+      "device-sync",
+      "llm_config"
+    ],
+    "面板展示": [
+      "device-sync"
+    ],
+    "记录所在表与": [
+      "device-sync"
+    ],
+    "本地": [
+      "device-sync"
+    ],
+    "与远程": [
+      "device-sync"
+    ],
+    "远": [
+      "device-sync"
+    ],
+    "胜出方": [
+      "device-sync"
+    ],
+    "通常为": [
+      "device-sync",
+      "llm_config"
+    ],
+    "冲突面板": [
+      "device-sync"
+    ],
+    "不会显示任何明文数据": [
+      "device-sync"
+    ],
+    "仅展示元信息供你判断是否需要手动干预": [
+      "device-sync"
+    ],
+    "判": [
+      "device-sync"
+    ],
+    "断": [
+      "device-sync"
+    ],
+    "干": [
+      "device-sync"
+    ],
+    "删除墓碑": [
+      "device-sync"
+    ],
+    "墓": [
+      "device-sync"
+    ],
+    "碑": [
+      "device-sync"
+    ],
+    "硬删除时会写入": [
+      "device-sync"
+    ],
+    "硬": [
+      "device-sync"
+    ],
+    "tombstones": [
+      "device-sync"
+    ],
+    "墓碑表": [
+      "device-sync"
+    ],
+    "删除后": [
+      "device-sync"
+    ],
+    "同步时会根据墓碑删除本地对应记录": [
+      "device-sync"
+    ],
+    "并保留远程": [
+      "device-sync"
+    ],
+    "作为权威删除时间": [
+      "device-sync"
+    ],
+    "权": [
+      "TERMS_OF_SERVICE",
+      "device-sync",
+      "plugins"
+    ],
+    "威": [
+      "device-sync"
+    ],
+    "同步活动面板": [
+      "device-sync"
+    ],
+    "每次同步完成后": [
+      "device-sync"
+    ],
+    "页面下方的": [
+      "device-sync"
+    ],
+    "折叠面板会记录最近": [
+      "device-sync"
+    ],
+    "折": [
+      "device-sync"
+    ],
+    "叠": [
+      "device-sync"
+    ],
+    "次结果": [
+      "device-sync"
+    ],
+    "总体统计": [
+      "device-sync"
+    ],
+    "总": [
+      "device-sync",
+      "llm_config"
+    ],
+    "体": [
+      "appearance",
+      "audit_log",
+      "device-sync",
+      "plugins"
+    ],
+    "examined": [
+      "device-sync"
+    ],
+    "applied": [
+      "appearance",
+      "device-sync"
+    ],
+    "skipped": [
+      "device-sync"
+    ],
+    "按表明细": [
+      "device-sync"
+    ],
+    "table": [
+      "device-sync"
+    ],
+    "冲突列表": [
+      "device-sync"
+    ],
+    "如有": [
+      "device-sync"
+    ],
+    "附件传输统计": [
+      "device-sync"
+    ],
+    "received": [
+      "device-sync"
+    ],
+    "bytes": [
+      "device-sync"
+    ],
+    "附件错误提示": [
+      "device-sync"
+    ],
+    "错": [
+      "device-sync"
+    ],
+    "这让你可以追踪哪些数据被应用": [
+      "device-sync"
+    ],
+    "踪": [
+      "device-sync"
+    ],
+    "哪些因本地更新被跳过": [
+      "device-sync"
+    ],
+    "以及附件是否完整到达": [
+      "device-sync"
+    ],
+    "达": [
+      "device-sync"
+    ],
+    "大库分块流式同步": [
+      "device-sync"
+    ],
+    "流": [
+      "ai_chat",
+      "device-sync",
+      "plugins"
+    ],
+    "当某个表": [
+      "device-sync"
+    ],
+    "例如对象表": [
+      "device-sync"
+    ],
+    "包含大量记录时": [
+      "device-sync"
+    ],
+    "会自动将其拆分为多个": [
+      "device-sync"
+    ],
+    "拆": [
+      "device-sync"
+    ],
+    "batch": [
+      "device-sync"
+    ],
+    "消息分页传输": [
+      "device-sync"
+    ],
+    "消": [
+      "device-sync"
+    ],
+    "每批最多": [
+      "device-sync"
+    ],
+    "条记录": [
+      "device-sync"
+    ],
+    "单条消息": [
+      "device-sync"
+    ],
+    "限制": [
+      "device-sync"
+    ],
+    "限": [
+      "device-sync",
+      "plugins"
+    ],
+    "制": [
+      "TERMS_OF_SERVICE",
+      "ai_chat",
+      "device-sync",
+      "llm_config"
+    ],
+    "发送方每发送一批后更新": [
+      "device-sync"
+    ],
+    "watermarks": [
+      "device-sync"
+    ],
+    "记录对端已消费到的最大": [
+      "device-sync"
+    ],
+    "费": [
+      "device-sync"
+    ],
+    "接收方逐批应用": [
+      "device-sync"
+    ],
+    "逐": [
+      "device-sync"
+    ],
+    "避免一次性加载全表到内存": [
+      "device-sync"
+    ],
+    "载": [
+      "device-sync",
+      "plugins"
+    ],
+    "如果中途网络断开": [
+      "device-sync"
+    ],
+    "下次同步会从上次": [
+      "device-sync"
+    ],
+    "watermark": [
+      "device-sync"
+    ],
+    "继续": [
+      "device-sync"
+    ],
+    "继": [
+      "device-sync"
+    ],
+    "减少重复传输": [
+      "device-sync"
+    ],
+    "减": [
+      "device-sync"
+    ],
+    "安全与隐私": [
+      "device-sync"
+    ],
+    "端到端加密": [
+      "device-sync"
+    ],
+    "所有同步消息都经过": [
+      "device-sync"
+    ],
+    "握手后的": [
+      "device-sync"
+    ],
+    "握": [
+      "device-sync"
+    ],
+    "transportstate": [
+      "device-sync"
+    ],
+    "本地优先": [
+      "PRIVACY_POLICY",
+      "device-sync"
+    ],
+    "同步前数据已加密存储在本地": [
+      "device-sync"
+    ],
+    "同步过程中传输的也是密文或重新加密的记录": [
+      "device-sync"
+    ],
+    "无云端": [
+      "device-sync"
+    ],
+    "云": [
+      "PRIVACY_POLICY",
+      "device-sync"
+    ],
+    "同步不经过": [
+      "device-sync"
+    ],
+    "服务器": [
+      "device-sync"
+    ],
+    "完全是局域网": [
+      "device-sync"
+    ],
+    "p2p": [
+      "device-sync"
+    ],
+    "显式信任": [
+      "device-sync"
+    ],
+    "未信任设备无法完成同步": [
+      "device-sync"
+    ],
+    "必须人工核对": [
+      "device-sync"
+    ],
+    "审计日志": [
+      "device-sync"
+    ],
+    "禁用同步": [
+      "device-sync"
+    ],
+    "信任": [
+      "device-sync"
+    ],
+    "撤销设备": [
+      "device-sync"
+    ],
+    "同步完成等事件会写入本地审计日志": [
+      "device-sync"
+    ],
+    "事": [
+      "audit_log",
+      "device-sync"
+    ],
+    "常见问题": [
+      "device-sync"
+    ],
+    "两台设备无法自动发现": [
+      "device-sync"
+    ],
+    "确认两边使用同一": [
+      "device-sync"
+    ],
+    "同一账号数据": [
+      "device-sync"
+    ],
+    "确认在同一局域网": [
+      "device-sync"
+    ],
+    "udp": [
+      "device-sync"
+    ],
+    "未被防火墙拦截": [
+      "device-sync"
+    ],
+    "拦": [
+      "device-sync"
+    ],
+    "截": [
+      "device-sync"
+    ],
+    "尝试使用": [
+      "device-sync"
+    ],
+    "尝": [
+      "device-sync",
+      "ocr_scan"
+    ],
+    "host": [
+      "device-sync"
+    ],
+    "port": [
+      "device-sync"
+    ],
+    "手动同步": [
+      "device-sync"
+    ],
+    "同步提示": [
+      "device-sync"
+    ],
+    "peer": [
+      "device-sync"
+    ],
+    "trusted": [
+      "device-sync",
+      "plugins"
+    ],
+    "先在接收方信任发送方的": [
+      "device-sync"
+    ],
+    "再在发送方信任接收方": [
+      "device-sync"
+    ],
+    "信任状态持久化在本地": [
+      "device-sync"
+    ],
+    "peers": [
+      "device-sync"
+    ],
+    "表中": [
+      "device-sync"
+    ],
+    "应用重启后仍然有效": [
+      "device-sync"
+    ],
+    "附件同步失败": [
+      "device-sync"
+    ],
+    "检查对象": [
+      "device-sync"
+    ],
+    "字段是否完整包含": [
+      "device-sync"
+    ],
+    "objectid": [
+      "device-sync"
+    ],
+    "filename": [
+      "device-sync"
+    ],
+    "sizebytes": [
+      "device-sync"
+    ],
+    "检查附件文件是否存在于": [
+      "device-sync"
+    ],
+    "dir": [
+      "device-sync"
+    ],
+    "中的附件错误提示": [
+      "device-sync"
+    ],
+    "同步后部分数据没过来": [
+      "device-sync"
+    ],
+    "没": [
+      "PRIVACY_POLICY",
+      "device-sync"
+    ],
+    "打开": [
+      "ai_chat",
+      "device-sync"
+    ],
+    "数量": [
+      "device-sync"
+    ],
+    "如果本地记录的": [
+      "device-sync"
+    ],
+    "更新": [
+      "audit_log",
+      "device-sync"
+    ],
+    "对端旧记录会被跳过": [
+      "device-sync"
+    ],
+    "旧": [
+      "device-sync"
+    ],
+    "属于正常冲突解决": [
+      "device-sync"
+    ],
+    "确认对端确实已保存该数据且其": [
+      "device-sync"
+    ],
+    "大于本地": [
+      "device-sync"
+    ],
+    "开发者调试": [
+      "device-sync"
+    ],
+    "如果你需要在本机调试两台设备同步": [
+      "device-sync"
+    ],
+    "bash": [
+      "device-sync"
+    ],
+    "cd": [
+      "device-sync"
+    ],
+    "tauri": [
+      "device-sync"
+    ],
+    "该脚本会": [
+      "device-sync"
+    ],
+    "分别指定两个独立数据目录": [
+      "device-sync"
+    ],
+    "使用不同的": [
+      "device-sync"
+    ],
+    "vite": [
+      "device-sync"
+    ],
+    "hmr": [
+      "device-sync"
+    ],
+    "避免端口冲突": [
+      "device-sync"
+    ],
+    "复制同一账号到两个目录": [
+      "device-sync"
+    ],
+    "保证": [
+      "device-sync"
+    ],
+    "一致": [
+      "device-sync"
+    ],
+    "详细步骤见": [
+      "device-sync"
+    ],
+    "骤": [
+      "device-sync",
+      "llm_config"
+    ],
+    "本地数据安全": [
+      "device-sync"
+    ],
+    "离线迁移方案": [
+      "device-sync"
+    ],
+    "同步的核心数据": [
+      "device-sync"
+    ],
+    "文件同步说明": [
+      "device-sync"
+    ],
+    "查看同步审计事件": [
+      "device-sync"
+    ],
+    "synchronize": [
+      "device-sync"
+    ],
+    "devices": [
+      "device-sync"
+    ],
+    "traffic": [
+      "device-sync"
+    ],
+    "end": [
+      "device-sync"
+    ],
+    "neither": [
+      "device-sync"
+    ],
+    "team": [
+      "device-sync"
+    ],
+    "nor": [
+      "device-sync"
+    ],
+    "intermediary": [
+      "device-sync"
+    ],
+    "decrypt": [
+      "PRIVACY_POLICY",
+      "device-sync"
+    ],
+    "completely": [
+      "device-sync"
+    ],
+    "remains": [
+      "device-sync"
+    ],
+    "functional": [
+      "device-sync"
+    ],
+    "even": [
+      "PRIVACY_POLICY",
+      "device-sync",
+      "ocr_scan"
+    ],
+    "disabled": [
+      "device-sync"
+    ],
+    "designed": [
+      "PRIVACY_POLICY",
+      "device-sync"
+    ],
+    "easiest": [
+      "device-sync"
+    ],
+    "run": [
+      "device-sync",
+      "plugins"
+    ],
+    "discovery": [
+      "device-sync"
+    ],
+    "apps": [
+      "device-sync"
+    ],
+    "mismatches": [
+      "device-sync"
     ],
     "turn": [
       "ai_chat",
-      "sync"
+      "device-sync"
     ],
-    "connect": [
-      "sync"
+    "displayed": [
+      "device-sync"
     ],
-    "pairing": [
-      "sync"
+    "short": [
+      "device-sync"
     ],
-    "exchanges": [
-      "sync"
+    "hash": [
+      "device-sync"
+    ],
+    "long": [
+      "audit_log",
+      "device-sync"
+    ],
+    "term": [
+      "audit_log",
+      "device-sync"
+    ],
+    "during": [
+      "device-sync"
+    ],
+    "recognize": [
+      "device-sync",
+      "ocr_scan"
+    ],
+    "physically": [
+      "device-sync"
+    ],
+    "attacker": [
+      "device-sync"
+    ],
+    "impersonate": [
+      "device-sync"
+    ],
+    "tap": [
+      "device-sync"
+    ],
+    "pair": [
+      "device-sync"
+    ],
+    "confirming": [
+      "device-sync"
+    ],
+    "other": [
+      "appearance",
+      "device-sync"
+    ],
+    "seen": [
+      "device-sync"
+    ],
+    "explicitly": [
+      "device-sync"
+    ],
+    "advertises": [
+      "device-sync"
+    ],
+    "listens": [
+      "device-sync"
+    ],
+    "untrusted": [
+      "device-sync"
+    ],
+    "discovered": [
+      "device-sync"
+    ],
+    "showing": [
+      "device-sync"
+    ],
+    "address": [
+      "device-sync"
+    ],
+    "what": [
+      "device-sync"
+    ],
+    "then": [
+      "device-sync"
+    ],
+    "mutual": [
+      "device-sync"
+    ],
+    "side": [
+      "device-sync"
+    ],
+    "blocked": [
+      "device-sync"
+    ],
+    "corporate": [
+      "device-sync"
+    ],
+    "firewall": [
+      "device-sync"
+    ],
+    "fallback": [
+      "device-sync"
+    ],
+    "connection": [
+      "ai_chat",
+      "device-sync",
+      "llm_config"
+    ],
+    "listening": [
+      "device-sync"
+    ],
+    "assigned": [
+      "device-sync"
+    ],
+    "os": [
+      "appearance",
+      "device-sync"
+    ],
+    "directly": [
+      "ai_chat",
+      "device-sync",
+      "ocr_scan"
+    ],
+    "instance": [
+      "device-sync"
+    ],
+    "script": [
+      "device-sync"
+    ],
+    "output": [
+      "device-sync"
+    ],
+    "syncs": [
+      "device-sync"
+    ],
+    "how": [
+      "ai_chat",
+      "device-sync"
+    ],
+    "resolved": [
+      "device-sync"
+    ],
+    "tables": [
+      "device-sync"
+    ],
+    "synchronized": [
+      "device-sync"
+    ],
+    "notes": [
+      "TERMS_OF_SERVICE",
+      "ai_chat",
+      "device-sync",
+      "ocr_scan"
+    ],
+    "payload": [
+      "device-sync"
+    ],
+    "decrypted": [
+      "device-sync"
+    ],
+    "transport": [
+      "device-sync"
+    ],
+    "encoded": [
+      "device-sync"
+    ],
+    "ciphertext": [
+      "device-sync"
+    ],
+    "receiver": [
+      "device-sync"
+    ],
+    "flag": [
+      "device-sync"
+    ],
+    "deletions": [
+      "device-sync"
+    ],
+    "propagate": [
+      "device-sync"
+    ],
+    "business": [
+      "device-sync"
+    ],
+    "database": [
+      "device-sync"
+    ],
+    "transferred": [
+      "device-sync"
+    ],
+    "separately": [
+      "device-sync"
+    ],
+    "chunks": [
+      "device-sync"
+    ],
+    "verified": [
+      "device-sync"
+    ],
+    "resolution": [
+      "device-sync"
+    ],
+    "timestamp": [
+      "device-sync"
+    ],
+    "iff": [
+      "device-sync"
+    ],
+    "equal": [
+      "device-sync"
+    ],
+    "marked": [
+      "ai_chat",
+      "audit_log",
+      "device-sync",
+      "ocr_scan"
+    ],
+    "activity": [
+      "device-sync"
+    ],
+    "panel": [
+      "device-sync"
+    ],
+    "winner": [
+      "device-sync"
+    ],
+    "usually": [
+      "device-sync"
+    ],
+    "plaintext": [
+      "device-sync"
+    ],
+    "metadata": [
+      "device-sync"
+    ],
+    "decide": [
+      "device-sync"
+    ],
+    "whether": [
+      "device-sync",
+      "llm_config"
+    ],
+    "take": [
+      "appearance",
+      "device-sync"
+    ],
+    "hard": [
+      "device-sync"
+    ],
+    "writes": [
+      "device-sync"
+    ],
+    "deletes": [
+      "device-sync"
+    ],
+    "copy": [
+      "device-sync"
+    ],
+    "keeps": [
+      "device-sync"
+    ],
+    "authoritative": [
+      "device-sync"
+    ],
+    "collapsible": [
+      "device-sync"
+    ],
+    "including": [
+      "ai_chat",
+      "device-sync"
+    ],
+    "overall": [
+      "device-sync"
+    ],
+    "stats": [
+      "device-sync"
+    ],
+    "per": [
+      "device-sync",
+      "plugins"
+    ],
+    "error": [
+      "device-sync"
+    ],
+    "messages": [
+      "device-sync"
+    ],
+    "track": [
+      "device-sync"
+    ],
+    "because": [
+      "device-sync"
+    ],
+    "arrived": [
+      "device-sync"
+    ],
+    "intact": [
+      "device-sync"
+    ],
+    "large": [
+      "device-sync"
+    ],
+    "chunked": [
+      "device-sync"
+    ],
+    "streaming": [
+      "device-sync"
+    ],
+    "splits": [
+      "device-sync"
+    ],
+    "multiple": [
+      "device-sync"
+    ],
+    "most": [
+      "device-sync"
+    ],
+    "limited": [
+      "device-sync"
+    ],
+    "message": [
+      "device-sync"
+    ],
+    "size": [
+      "device-sync"
+    ],
+    "sender": [
+      "device-sync"
+    ],
+    "recording": [
+      "device-sync"
+    ],
+    "highest": [
+      "device-sync"
+    ],
+    "consumed": [
+      "device-sync"
+    ],
+    "applies": [
+      "appearance",
+      "device-sync"
+    ],
+    "batches": [
+      "device-sync"
+    ],
+    "incrementally": [
+      "device-sync"
+    ],
+    "avoiding": [
+      "device-sync"
+    ],
+    "loading": [
+      "device-sync"
+    ],
+    "whole": [
+      "device-sync"
+    ],
+    "drops": [
+      "device-sync"
+    ],
+    "resumes": [
+      "device-sync"
+    ],
+    "reducing": [
+      "device-sync"
     ],
     "transmission": [
-      "sync"
+      "device-sync"
     ],
-    "currently": [
-      "plugins",
-      "sync"
+    "already": [
+      "device-sync"
     ],
-    "early": [
-      "sync"
+    "transported": [
+      "device-sync"
     ],
-    "stages": [
-      "sync"
+    "cloud": [
+      "PRIVACY_POLICY",
+      "device-sync"
     ],
-    "syncing": [
-      "sync"
+    "routes": [
+      "device-sync"
     ],
-    "prevent": [
-      "sync"
+    "purely": [
+      "device-sync"
+    ],
+    "explicit": [
+      "device-sync",
+      "plugins"
+    ],
+    "fingerprints": [
+      "device-sync"
+    ],
+    "trusting": [
+      "device-sync"
+    ],
+    "revoking": [
+      "device-sync"
+    ],
+    "completed": [
+      "device-sync"
+    ],
+    "written": [
+      "device-sync"
+    ],
+    "discover": [
+      "device-sync"
+    ],
+    "sides": [
+      "device-sync"
+    ],
+    "try": [
+      "device-sync"
+    ],
+    "persisted": [
+      "device-sync"
+    ],
+    "survives": [
+      "device-sync"
+    ],
+    "restarts": [
+      "device-sync"
+    ],
+    "fails": [
+      "device-sync"
+    ],
+    "exists": [
+      "device-sync"
+    ],
+    "some": [
+      "device-sync"
+    ],
+    "arrive": [
+      "device-sync"
+    ],
+    "look": [
+      "device-sync"
+    ],
+    "normal": [
+      "device-sync"
+    ],
+    "actually": [
+      "device-sync"
+    ],
+    "developer": [
+      "device-sync"
+    ],
+    "debugging": [
+      "device-sync"
+    ],
+    "debug": [
+      "audit_log",
+      "device-sync"
+    ],
+    "one": [
+      "device-sync"
+    ],
+    "machine": [
+      "device-sync"
+    ],
+    "give": [
+      "device-sync"
+    ],
+    "different": [
+      "device-sync"
+    ],
+    "collisions": [
+      "device-sync"
+    ],
+    "copies": [
+      "device-sync"
+    ],
+    "directories": [
+      "device-sync"
+    ],
+    "detailed": [
+      "device-sync"
+    ],
+    "safety": [
+      "device-sync"
     ],
     "offline": [
-      "sync"
-    ],
-    "functional": [
-      "sync"
-    ],
-    "integrity": [
-      "audit_log",
-      "sync"
+      "device-sync"
     ],
     "synced": [
-      "sync"
+      "device-sync"
+    ],
+    "events": [
+      "ai_chat",
+      "audit_log",
+      "device-sync"
     ],
     "ocr": [
       "ocr_scan"
     ],
     "与扫描": [
+      "ocr_scan"
+    ],
+    "scan": [
       "ocr_scan"
     ],
     "扫描": [
@@ -10269,13 +12049,6 @@
     "引擎会尝试自动识别常见字段": [
       "ocr_scan"
     ],
-    "尝": [
-      "ocr_scan"
-    ],
-    "见": [
-      "audit_log",
-      "ocr_scan"
-    ],
     "日期": [
       "ocr_scan"
     ],
@@ -10327,10 +12100,6 @@
     "光线均匀": [
       "ocr_scan"
     ],
-    "均": [
-      "llm_config",
-      "ocr_scan"
-    ],
     "匀": [
       "ocr_scan"
     ],
@@ -10341,10 +12110,6 @@
       "ocr_scan"
     ],
     "您还可以直接将本地文件导入为对象": [
-      "ocr_scan"
-    ],
-    "直": [
-      "ai_chat",
       "ocr_scan"
     ],
     "本地导入": [
@@ -10420,9 +12185,6 @@
     "recognized": [
       "ocr_scan"
     ],
-    "recognize": [
-      "ocr_scan"
-    ],
     "names": [
       "ocr_scan"
     ],
@@ -10436,11 +12198,6 @@
       "ocr_scan"
     ],
     "specially": [
-      "ocr_scan"
-    ],
-    "marked": [
-      "ai_chat",
-      "audit_log",
       "ocr_scan"
     ],
     "best": [
@@ -10465,14 +12222,6 @@
     "lighting": [
       "ocr_scan"
     ],
-    "even": [
-      "PRIVACY_POLICY",
-      "ocr_scan"
-    ],
-    "directly": [
-      "ai_chat",
-      "ocr_scan"
-    ],
     "folders": [
       "ocr_scan"
     ],
@@ -10480,11 +12229,6 @@
       "ocr_scan"
     ],
     "method": [
-      "ocr_scan"
-    ],
-    "notes": [
-      "TERMS_OF_SERVICE",
-      "ai_chat",
       "ocr_scan"
     ],
     "processing": [
@@ -10653,10 +12397,6 @@
     "自然清新": [
       "appearance"
     ],
-    "然": [
-      "appearance",
-      "llm_config"
-    ],
     "玫瑰红": [
       "appearance"
     ],
@@ -10673,9 +12413,6 @@
       "appearance"
     ],
     "雅": [
-      "appearance"
-    ],
-    "致": [
       "appearance"
     ],
     "选择后": [
@@ -10748,14 +12485,6 @@
     "简体": [
       "appearance"
     ],
-    "简": [
-      "appearance"
-    ],
-    "体": [
-      "appearance",
-      "audit_log",
-      "plugins"
-    ],
     "english": [
       "appearance"
     ],
@@ -10779,9 +12508,6 @@
     ],
     "门": [
       "TERMS_OF_SERVICE",
-      "appearance"
-    ],
-    "南": [
       "appearance"
     ],
     "个性化搜索体验": [
@@ -10809,9 +12535,6 @@
       "appearance"
     ],
     "match": [
-      "appearance"
-    ],
-    "os": [
       "appearance"
     ],
     "light": [
@@ -10864,9 +12587,6 @@
     "refined": [
       "appearance"
     ],
-    "applies": [
-      "appearance"
-    ],
     "buttons": [
       "appearance"
     ],
@@ -10900,9 +12620,6 @@
     "readability": [
       "appearance"
     ],
-    "take": [
-      "appearance"
-    ],
     "effect": [
       "appearance"
     ],
@@ -10913,9 +12630,6 @@
       "appearance"
     ],
     "live": [
-      "appearance"
-    ],
-    "applied": [
       "appearance"
     ],
     "instantly": [
@@ -10972,16 +12686,10 @@
     "支持按以下条件筛选": [
       "audit_log"
     ],
-    "更新": [
-      "audit_log"
-    ],
     "回滚等": [
       "audit_log"
     ],
     "实体类型": [
-      "audit_log"
-    ],
-    "档案": [
       "audit_log"
     ],
     "导入等": [
@@ -11009,9 +12717,6 @@
       "audit_log"
     ],
     "记录字段变更摘要": [
-      "audit_log"
-    ],
-    "摘": [
       "audit_log"
     ],
     "删除对象": [
@@ -11050,9 +12755,6 @@
     "操作日志长期保留在本地": [
       "audit_log"
     ],
-    "长": [
-      "audit_log"
-    ],
     "如需清理历史日志": [
       "audit_log"
     ],
@@ -11066,9 +12768,6 @@
       "audit_log"
     ],
     "审计安全事件": [
-      "audit_log"
-    ],
-    "事": [
       "audit_log"
     ],
     "保护级别变更记录": [
@@ -11132,26 +12831,16 @@
     "ensures": [
       "audit_log"
     ],
+    "integrity": [
+      "audit_log"
+    ],
     "retention": [
-      "audit_log"
-    ],
-    "long": [
-      "audit_log"
-    ],
-    "term": [
       "audit_log"
     ],
     "clean": [
       "audit_log"
     ],
     "relevant": [
-      "audit_log"
-    ],
-    "debug": [
-      "audit_log"
-    ],
-    "events": [
-      "ai_chat",
       "audit_log"
     ],
     "聊天": [
@@ -11163,10 +12852,6 @@
     "助手交流": [
       "ai_chat"
     ],
-    "流": [
-      "ai_chat",
-      "plugins"
-    ],
     "同时保持对数据的完全控制": [
       "ai_chat"
     ],
@@ -11175,17 +12860,9 @@
       "ai_chat",
       "llm_config"
     ],
-    "制": [
-      "TERMS_OF_SERVICE",
-      "ai_chat",
-      "llm_config"
-    ],
     "开启": [
       "ai_chat",
       "llm_config"
-    ],
-    "打开": [
-      "ai_chat"
     ],
     "阅读风险告知并勾选": [
       "ai_chat"
@@ -11467,13 +13144,6 @@
     "acknowledge": [
       "ai_chat"
     ],
-    "connection": [
-      "ai_chat",
-      "llm_config"
-    ],
-    "how": [
-      "ai_chat"
-    ],
     "question": [
       "ai_chat"
     ],
@@ -11504,9 +13174,6 @@
     ],
     "conversation": [
       "PRIVACY_POLICY",
-      "ai_chat"
-    ],
-    "including": [
       "ai_chat"
     ],
     "statistics": [
@@ -11595,9 +13262,6 @@
     "配置步骤": [
       "llm_config"
     ],
-    "骤": [
-      "llm_config"
-    ],
     "选择一个内置": [
       "llm_config"
     ],
@@ -11614,9 +13278,6 @@
       "llm_config"
     ],
     "激": [
-      "llm_config"
-    ],
-    "活": [
       "llm_config"
     ],
     "自定义服务商": [
@@ -11656,9 +13317,6 @@
       "llm_config"
     ],
     "ollama": [
-      "llm_config"
-    ],
-    "通常为": [
       "llm_config"
     ],
     "http": [
@@ -11740,16 +13398,10 @@
     "总对话次数和": [
       "llm_config"
     ],
-    "总": [
-      "llm_config"
-    ],
     "使用量": [
       "llm_config"
     ],
     "各模型的使用占比": [
-      "llm_config"
-    ],
-    "比": [
       "llm_config"
     ],
     "completion": [
@@ -11860,9 +13512,6 @@
     "controls": [
       "llm_config"
     ],
-    "whether": [
-      "llm_config"
-    ],
     "knows": [
       "llm_config"
     ],
@@ -11888,11 +13537,6 @@
       "llm_config"
     ],
     "trend": [
-      "llm_config"
-    ],
-    "last": [
-      "PRIVACY_POLICY",
-      "TERMS_OF_SERVICE",
       "llm_config"
     ],
     "online": [
@@ -11945,6 +13589,9 @@
     "当前插件系统处于开发阶段": [
       "plugins"
     ],
+    "阶": [
+      "plugins"
+    ],
     "插件市场": [
       "plugins"
     ],
@@ -11963,6 +13610,9 @@
     "格式运行": [
       "plugins"
     ],
+    "运": [
+      "plugins"
+    ],
     "每个插件在沙盒环境中执行": [
       "plugins"
     ],
@@ -11972,17 +13622,16 @@
     "盒": [
       "plugins"
     ],
+    "环": [
+      "plugins"
+    ],
+    "境": [
+      "plugins"
+    ],
     "插件需要显式授权才能访问数据字段": [
       "plugins"
     ],
     "授": [
-      "plugins"
-    ],
-    "权": [
-      "TERMS_OF_SERVICE",
-      "plugins"
-    ],
-    "才": [
       "plugins"
     ],
     "安装插件": [
@@ -11998,9 +13647,6 @@
       "plugins"
     ],
     "下载插件": [
-      "plugins"
-    ],
-    "载": [
       "plugins"
     ],
     "安装后启用插件": [
@@ -12031,9 +13677,6 @@
       "plugins"
     ],
     "安装前请审查其权限请求": [
-      "plugins"
-    ],
-    "限": [
       "plugins"
     ],
     "只安装来自可信来源的插件": [
@@ -12075,6 +13718,9 @@
     "functionality": [
       "plugins"
     ],
+    "currently": [
+      "plugins"
+    ],
     "market": [
       "plugins"
     ],
@@ -12084,9 +13730,6 @@
     "independent": [
       "plugins"
     ],
-    "run": [
-      "plugins"
-    ],
     "executes": [
       "plugins"
     ],
@@ -12094,9 +13737,6 @@
       "plugins"
     ],
     "environment": [
-      "plugins"
-    ],
-    "explicit": [
       "plugins"
     ],
     "authorization": [
@@ -12129,9 +13769,6 @@
     "granted": [
       "plugins"
     ],
-    "per": [
-      "plugins"
-    ],
     "revoked": [
       "plugins"
     ],
@@ -12144,9 +13781,6 @@
       "plugins"
     ],
     "parties": [
-      "plugins"
-    ],
-    "trusted": [
       "plugins"
     ],
     "continuous": [
@@ -12206,12 +13840,6 @@
     "数据存储": [
       "PRIVACY_POLICY"
     ],
-    "采用": [
-      "PRIVACY_POLICY"
-    ],
-    "本地优先": [
-      "PRIVACY_POLICY"
-    ],
     "架构": [
       "PRIVACY_POLICY"
     ],
@@ -12233,9 +13861,6 @@
     "的服务器或云端": [
       "PRIVACY_POLICY"
     ],
-    "云": [
-      "PRIVACY_POLICY"
-    ],
     "零知识架构": [
       "PRIVACY_POLICY"
     ],
@@ -12255,9 +13880,6 @@
       "PRIVACY_POLICY"
     ],
     "没有主密码也无法读取保险库": [
-      "PRIVACY_POLICY"
-    ],
-    "没": [
       "PRIVACY_POLICY"
     ],
     "功能的数据处理": [
@@ -12344,15 +13966,6 @@
       "PRIVACY_POLICY"
     ],
     "derived": [
-      "PRIVACY_POLICY"
-    ],
-    "cloud": [
-      "PRIVACY_POLICY"
-    ],
-    "designed": [
-      "PRIVACY_POLICY"
-    ],
-    "decrypt": [
       "PRIVACY_POLICY"
     ],
     "lost": [
@@ -12480,9 +14093,6 @@
       "TERMS_OF_SERVICE"
     ],
     "对话功能依赖第三方服务商": [
-      "TERMS_OF_SERVICE"
-    ],
-    "依": [
       "TERMS_OF_SERVICE"
     ],
     "赖": [
@@ -12750,9 +14360,9 @@
       "zh": "全局搜索",
       "en": "Global Search"
     },
-    "sync": {
-      "zh": "同步",
-      "en": "Sync"
+    "device-sync": {
+      "zh": "设备同步",
+      "en": "Device Sync"
     },
     "ocr_scan": {
       "zh": "OCR 与扫描",

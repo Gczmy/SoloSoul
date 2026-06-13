@@ -113,12 +113,12 @@
       "files": { "zh": "zh/search.md", "en": "en/search.md" }
     },
     {
-      "id": "sync",
-      "title": { "zh": "同步", "en": "Sync" },
+      "id": "device-sync",
+      "title": { "zh": "设备同步", "en": "Device Sync" },
       "category": "system",
       "order": 5,
-      "keywords": ["同步", "设备", "局域网", "sync", "device", "network"],
-      "files": { "zh": "zh/sync.md", "en": "en/sync.md" }
+      "keywords": ["设备同步", "同步", "设备", "局域网", "mDNS", "配对", "fingerprint", "附件同步", "冲突", "device sync", "sync", "device", "lan", "mdns", "pairing", "fingerprint", "attachment sync", "conflict"],
+      "files": { "zh": "zh/device-sync.md", "en": "en/device-sync.md" }
     },
     {
       "id": "ocr_scan",
