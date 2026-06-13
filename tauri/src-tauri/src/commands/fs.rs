@@ -1,7 +1,7 @@
 use crate::state::AppState;
 use serde::Serialize;
 use std::fs::{self as fs_std, File};
-use std::io::{Read, Write};
+use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
 use tauri::State;
 
@@ -49,10 +49,11 @@ pub async fn encrypt_file(
     let dst = resolve_within(base, &dst_path)?;
 
     let chunk_size = 1024 * 1024; // 1MB chunks
-    let data = fs_std::read(&src).map_err(|e| format!("Read failed: {}", e))?;
-    let blob = solosoul_crypto::aes::encrypt_chunked_blob(&key, &data, chunk_size)
+    let mut reader = BufReader::new(File::open(&src).map_err(|e| format!("Open failed: {}", e))?);
+    let mut writer = BufWriter::new(File::create(&dst).map_err(|e| format!("Create failed: {}", e))?);
+    solosoul_crypto::aes::encrypt_chunked_stream(&key, &mut reader, &mut writer, chunk_size)
         .map_err(|e| format!("Encryption failed: {}", e))?;
-    fs_std::write(&dst, &blob).map_err(|e| format!("Write failed: {}", e))?;
+    writer.flush().map_err(|e| format!("Flush failed: {}", e))?;
     Ok(())
 }
 
@@ -74,18 +75,11 @@ pub async fn decrypt_file(
     let src = resolve_within(base, &src_path)?;
     let dst = resolve_within(base, &dst_path)?;
 
-    let blob = fs_std::read(&src).map_err(|e| format!("Read failed: {}", e))?;
-
-    // Detect format
-    let plaintext = if blob.len() >= 5 && &blob[0..4] == b"SOLO" && blob[4] == 0x03 {
-        solosoul_crypto::aes::decrypt_chunked_blob(&key, &blob)
-            .map_err(|e| format!("Decryption failed: {}", e))?
-    } else {
-        solosoul_crypto::aes::decrypt_blob(&key, &blob)
-            .map_err(|e| format!("Decryption failed: {}", e))?
-    };
-
-    fs_std::write(&dst, &plaintext).map_err(|e| format!("Write failed: {}", e))?;
+    let mut reader = BufReader::new(File::open(&src).map_err(|e| format!("Open failed: {}", e))?);
+    let mut writer = BufWriter::new(File::create(&dst).map_err(|e| format!("Create failed: {}", e))?);
+    solosoul_crypto::aes::decrypt_chunked_stream(&key, &mut reader, &mut writer)
+        .map_err(|e| format!("Decryption failed: {}", e))?;
+    writer.flush().map_err(|e| format!("Flush failed: {}", e))?;
     Ok(())
 }
 
@@ -103,7 +97,6 @@ pub async fn create_zip_package(src_dir: String, dst_path: String) -> Result<(),
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     let walkdir = walkdir::WalkDir::new(&src);
-    let mut buffer = Vec::new();
 
     for entry in walkdir.into_iter() {
         let entry = entry.map_err(|e| format!("WalkDir error: {}", e))?;
@@ -114,13 +107,10 @@ pub async fn create_zip_package(src_dir: String, dst_path: String) -> Result<(),
 
         if path.is_file() {
             let mut f = File::open(path).map_err(|e| format!("Open file error: {}", e))?;
-            f.read_to_end(&mut buffer)
-                .map_err(|e| format!("Read error: {}", e))?;
             zip.start_file_from_path(name, options)
                 .map_err(|e| format!("ZIP start_file error: {}", e))?;
-            zip.write_all(&buffer)
-                .map_err(|e| format!("ZIP write error: {}", e))?;
-            buffer.clear();
+            std::io::copy(&mut f, &mut zip)
+                .map_err(|e| format!("ZIP copy error: {}", e))?;
         }
     }
     zip.finish()

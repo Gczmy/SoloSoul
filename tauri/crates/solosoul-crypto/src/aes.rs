@@ -8,6 +8,7 @@ use aes_gcm::{
     aead::{Aead, AeadCore, KeyInit, OsRng},
     Aes256Gcm, Nonce,
 };
+use std::io::{Read, Seek, SeekFrom, Write};
 use zeroize::Zeroizing;
 
 pub const NONCE_SIZE: usize = 12;
@@ -137,6 +138,136 @@ pub fn decrypt_chunked_blob(key: &[u8; 32], blob: &[u8]) -> Result<Zeroizing<Vec
     Ok(Zeroizing::new(plaintext))
 }
 
+/// Encrypt a stream using chunked AES-256-GCM (SOLO blob v3).
+/// Reads from `reader`, writes the v3 blob to `writer`, processing at most
+/// `chunk_size` bytes at a time so the whole file never has to fit in memory.
+pub fn encrypt_chunked_stream<R: Read + Seek, W: Write>(
+    key: &[u8; 32],
+    reader: &mut R,
+    writer: &mut W,
+    chunk_size: usize,
+) -> Result<(), String> {
+    let chunk_size = if chunk_size == 0 {
+        DEFAULT_CHUNK_SIZE
+    } else {
+        chunk_size
+    };
+    let original_size = reader
+        .seek(SeekFrom::End(0))
+        .map_err(|e| format!("Seek failed: {}", e))?;
+    reader
+        .seek(SeekFrom::Start(0))
+        .map_err(|e| format!("Seek failed: {}", e))?;
+    let chunk_count = original_size.div_ceil(chunk_size as u64) as u32;
+
+    writer
+        .write_all(&BLOB_MAGIC)
+        .map_err(|e| format!("Write failed: {}", e))?;
+    writer
+        .write_all(&[BLOB_VERSION_V3])
+        .map_err(|e| format!("Write failed: {}", e))?;
+    writer
+        .write_all(&original_size.to_be_bytes())
+        .map_err(|e| format!("Write failed: {}", e))?;
+    writer
+        .write_all(&(chunk_size as u32).to_be_bytes())
+        .map_err(|e| format!("Write failed: {}", e))?;
+    writer
+        .write_all(&chunk_count.to_be_bytes())
+        .map_err(|e| format!("Write failed: {}", e))?;
+
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|e| format!("Invalid key: {}", e))?;
+    let mut buffer = vec![0u8; chunk_size];
+
+    for i in 0..chunk_count as usize {
+        let is_last = i == chunk_count as usize - 1;
+        let to_read = if is_last {
+            (original_size - (i as u64 * chunk_size as u64)) as usize
+        } else {
+            chunk_size
+        };
+        reader
+            .read_exact(&mut buffer[..to_read])
+            .map_err(|e| format!("Read failed: {}", e))?;
+        let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+        let ciphertext = cipher
+            .encrypt(&nonce, &buffer[..to_read])
+            .map_err(|e| format!("Chunk {} encryption failed: {}", i, e))?;
+        writer
+            .write_all(nonce.as_slice())
+            .map_err(|e| format!("Write failed: {}", e))?;
+        writer
+            .write_all(&ciphertext)
+            .map_err(|e| format!("Write failed: {}", e))?;
+    }
+    Ok(())
+}
+
+/// Decrypt a SOLO blob stream (v2 or v3) to a writer.
+/// For v3 blobs each chunk is decrypted and written as soon as it is read,
+/// keeping memory usage bounded by the chunk size.
+pub fn decrypt_chunked_stream<R: Read, W: Write>(
+    key: &[u8; 32],
+    reader: &mut R,
+    writer: &mut W,
+) -> Result<(), String> {
+    let mut header = [0u8; 21];
+    reader
+        .read_exact(&mut header)
+        .map_err(|e| format!("Read header failed: {}", e))?;
+
+    if header[0..4] != BLOB_MAGIC {
+        return Err("Invalid blob magic".to_string());
+    }
+
+    // v2 blob: read the rest into memory and decrypt as one block.
+    if header[4] == BLOB_VERSION {
+        let mut blob = header.to_vec();
+        reader
+            .read_to_end(&mut blob)
+            .map_err(|e| format!("Read failed: {}", e))?;
+        let plaintext = decrypt_blob(key, &blob)?;
+        writer
+            .write_all(&plaintext)
+            .map_err(|e| format!("Write failed: {}", e))?;
+        return Ok(());
+    }
+
+    if header[4] != BLOB_VERSION_V3 {
+        return Err(format!("Unsupported blob version: {}", header[4]));
+    }
+
+    let original_size = u64::from_be_bytes(header[5..13].try_into().unwrap());
+    let chunk_size = u32::from_be_bytes(header[13..17].try_into().unwrap()) as usize;
+    let chunk_count = u32::from_be_bytes(header[17..21].try_into().unwrap());
+
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|e| format!("Invalid key: {}", e))?;
+    let mut nonce = [0u8; NONCE_SIZE];
+
+    for i in 0..chunk_count as usize {
+        reader
+            .read_exact(&mut nonce)
+            .map_err(|e| format!("Read nonce failed: {}", e))?;
+        let expected_plain = if i == chunk_count as usize - 1 {
+            (original_size - (i as u64 * chunk_size as u64)) as usize
+        } else {
+            chunk_size
+        };
+        let expected_cipher = expected_plain + TAG_SIZE;
+        let mut ciphertext = vec![0u8; expected_cipher];
+        reader
+            .read_exact(&mut ciphertext)
+            .map_err(|e| format!("Read ciphertext failed: {}", e))?;
+        let decrypted = cipher
+            .decrypt(Nonce::from_slice(&nonce), ciphertext.as_slice())
+            .map_err(|e| format!("Chunk {} decryption failed: {}", i, e))?;
+        writer
+            .write_all(&decrypted)
+            .map_err(|e| format!("Write failed: {}", e))?;
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -180,6 +311,42 @@ mod tests {
         let data = vec![0xABu8; 5 * 1024 * 1024];
         let blob = encrypt_chunked_blob(&key, &data, 1024 * 1024).unwrap();
         let decrypted = decrypt_chunked_blob(&key, &blob).unwrap();
+        assert_eq!(decrypted.as_slice(), data.as_slice());
+    }
+
+    #[test]
+    fn test_chunked_stream_roundtrip() {
+        let key = [0x42u8; 32];
+        let data = vec![0xABu8; 5 * 1024 * 1024];
+        let mut encrypted = Vec::new();
+        encrypt_chunked_stream(
+            &key,
+            &mut std::io::Cursor::new(&data),
+            &mut encrypted,
+            1024 * 1024,
+        )
+        .unwrap();
+
+        let mut decrypted = Vec::new();
+        decrypt_chunked_stream(&key, &mut encrypted.as_slice(), &mut decrypted).unwrap();
+        assert_eq!(decrypted.as_slice(), data.as_slice());
+    }
+
+    #[test]
+    fn test_chunked_stream_roundtrip_small_file() {
+        let key = [0x42u8; 32];
+        let data = b"tiny".to_vec();
+        let mut encrypted = Vec::new();
+        encrypt_chunked_stream(
+            &key,
+            &mut std::io::Cursor::new(&data),
+            &mut encrypted,
+            1024 * 1024,
+        )
+        .unwrap();
+
+        let mut decrypted = Vec::new();
+        decrypt_chunked_stream(&key, &mut encrypted.as_slice(), &mut decrypted).unwrap();
         assert_eq!(decrypted.as_slice(), data.as_slice());
     }
 }
