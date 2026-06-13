@@ -1,7 +1,6 @@
 use crate::state::AppState;
 use serde::Serialize;
 use solosoul_sync::delta::{ApplyStats, ConflictRecord};
-use solosoul_sync::hlc::Hlc;
 use tauri::State;
 
 #[derive(Serialize)]

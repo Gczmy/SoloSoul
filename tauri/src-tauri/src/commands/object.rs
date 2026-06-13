@@ -6,8 +6,7 @@
 
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
-use solosoul_vault::{ObjectRecord, ObjectSummary};
-use std::collections::HashMap;
+use solosoul_vault::ObjectRecord;
 use tauri::State;
 use uuid::Uuid;
 

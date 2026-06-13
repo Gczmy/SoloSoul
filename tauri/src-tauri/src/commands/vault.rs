@@ -1,5 +1,4 @@
 use crate::commands::auth::verify_password_core;
-use crate::services::vault_service::VaultService;
 use crate::state::AppState;
 use tauri::{Emitter, State};
 

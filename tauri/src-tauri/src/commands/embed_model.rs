@@ -1,10 +1,9 @@
 //! Embedding model management — download, install, list local models.
 
-use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 use std::path::{Path, PathBuf};
-use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager, State};
+use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
 
 // ── Registry ─────────────────────────────────────────────────
 

@@ -2,10 +2,9 @@
 //! Document chunking, embedding pre-build, and content hash management.
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 // Re-export resource_path from llm module for guide file access
-use super::llm::{resolve_language, resolve_title, resource_path, GuideIndexEntry};
+use super::llm::{resolve_language, resolve_title, resource_path};
 
 /// A single chunk returned to the frontend for context injection.
 #[derive(Debug, Clone, Serialize, Deserialize)]

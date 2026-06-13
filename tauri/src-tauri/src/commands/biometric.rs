@@ -111,12 +111,12 @@ fn trigger_system_biometric(reason: &str) -> Result<(), String> {
 
 #[cfg(target_os = "macos")]
 fn trigger_macos_biometric(reason: &str) -> Result<(), String> {
-    use std::ffi::{c_void, CStr, CString};
+    use std::ffi::{c_void, CString};
     use std::sync::mpsc;
 
     use block2::RcBlock;
     use objc2::runtime::{AnyClass, NSObject};
-    use objc2::{msg_send, sel};
+    use objc2::msg_send;
 
     let la_name = c"LAContext";
     let la_cls = AnyClass::get(la_name).ok_or_else(|| "Touch ID not available".to_string())?;

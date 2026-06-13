@@ -1,4 +1,3 @@
-#![allow(unused_variables)]
 use crate::state::AppState;
 use tauri::State;
 

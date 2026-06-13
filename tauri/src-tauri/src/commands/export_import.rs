@@ -9,8 +9,8 @@
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_vault::ObjectSummary;
-use std::collections::{BTreeSet, HashMap};
-use std::fs::{self, File};
+use std::collections::BTreeSet;
+use std::fs::File;
 use std::io::{Read, Write};
 use tauri::State;
 use uuid::Uuid;
