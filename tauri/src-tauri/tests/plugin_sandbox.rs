@@ -51,6 +51,7 @@ async fn test_hello_world_plugin_runs() {
         require_user_confirmation: false,
         tier: Default::default(),
         category: Default::default(),
+        params: vec![],
     };
 
     let host = SoloHostFunctions::new(

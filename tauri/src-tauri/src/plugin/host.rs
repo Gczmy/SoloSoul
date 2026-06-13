@@ -449,13 +449,21 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     )
                 };
 
+                // 尝试从 Vault Schema 读取真实字段标签与敏感度；失败时回退到字段 ID 本身
+                let (field_label, sensitivity_level) = caller
+                    .data()
+                    .host
+                    .field_resolver
+                    .field_metadata(&field_id)
+                    .unwrap_or_else(|_| (field_id.clone(), "sensitive".to_string()));
+
                 let event = PluginEvent::consent_request(
                     &request_id,
                     &plugin_id,
                     &plugin_name,
                     &field_id,
-                    &field_id,
-                    "sensitive",
+                    &field_label,
+                    &sensitivity_level,
                 );
                 let _ = caller.data().host.channel.send(event);
                 caller.data().host.audit.log(

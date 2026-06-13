@@ -11,10 +11,28 @@ export interface RegistryEntry {
   wasmHashSha256: string;
   permissions: string[];
   categories: string[];
+  params: PluginParam[];
   i18n?: Record<string, { name: string; description: string }>;
 }
 
 export type PluginTier = 'p0' | 'p1' | 'p2' | 'p3' | 'p4';
+
+export type PluginParamType = 'string' | 'number' | 'boolean' | 'select';
+
+export interface PluginParamOption {
+  value: string;
+  label: string;
+}
+
+export interface PluginParam {
+  id: string;
+  label: string;
+  type: PluginParamType;
+  required: boolean;
+  description?: string;
+  defaultValue?: string;
+  options?: PluginParamOption[];
+}
 
 export interface MarketPluginInfo {
   pluginId: string;
@@ -39,6 +57,7 @@ export interface PluginManifest {
   dataTtlSeconds: number;
   tier: PluginTier;
   category: string;
+  params: PluginParam[];
 }
 
 export interface PluginLogLine {

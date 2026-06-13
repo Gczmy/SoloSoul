@@ -46,7 +46,7 @@ interface PluginState {
   installPlugin: (pluginId: string, version: string) => Promise<void>;
   updatePlugin: (pluginId: string) => Promise<void>;
   uninstallPlugin: (pluginId: string) => Promise<void>;
-  runPlugin: (pluginId: string, pluginName: string) => Promise<void>;
+  runPlugin: (pluginId: string, pluginName: string, params?: Record<string, string>) => Promise<void>;
   stopPlugin: (pluginId: string) => void;
   clearPluginOutput: (pluginId: string) => void;
   resolveDialog: (pluginId: string, requestId: string, value?: string) => Promise<void>;
@@ -116,7 +116,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     }
   },
 
-  runPlugin: async (pluginId: string, pluginName: string) => {
+  runPlugin: async (pluginId: string, pluginName: string, params?: Record<string, string>) => {
     const startTime = Date.now();
     const running: RunningPlugin = {
       pluginId,
@@ -133,7 +133,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     }));
 
     try {
-      const result = await pluginCommands.run(pluginId, {}, (event) => {
+      const result = await pluginCommands.run(pluginId, params ?? {}, (event) => {
         set((state) => {
           const next = { ...state.runningPlugins[pluginId] };
           if (!next) return state;

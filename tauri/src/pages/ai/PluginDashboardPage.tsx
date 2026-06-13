@@ -7,8 +7,9 @@ import { PluginCard } from '@/components/plugin/PluginCard';
 import { PluginConsentDialog } from '@/components/plugin/PluginConsentDialog';
 import { PluginResultPanel } from '@/components/plugin/PluginResultPanel';
 import { PluginDialog } from '@/components/plugin/PluginDialog';
+import { PluginRunParamsDialog } from '@/components/plugin/PluginRunParamsDialog';
 import { usePluginStore } from '@/stores/pluginStore';
-import { pluginCommands, PluginTier } from '@/lib/plugin';
+import { pluginCommands, PluginParam, PluginTier } from '@/lib/plugin';
 import styles from './PluginDashboardPage.module.css';
 
 type Tab = 'all' | 'installed' | 'running' | 'logs';
@@ -18,6 +19,11 @@ export function PluginDashboardPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation(['plugin', 'settings', 'common']);
   const [activeTab, setActiveTab] = useState<Tab>('all');
+  const [pendingRun, setPendingRun] = useState<{
+    pluginId: string;
+    pluginName: string;
+    params: PluginParam[];
+  } | null>(null);
 
   const {
     marketPlugins,
@@ -95,7 +101,21 @@ export function PluginDashboardPage() {
     if (!info) return;
     const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
     const name = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
+    const params = info.registryEntry.params?.length
+      ? info.registryEntry.params
+      : installedMap[pluginId]?.params ?? [];
+    if (params.length > 0) {
+      setPendingRun({ pluginId, pluginName: name, params });
+      return;
+    }
     await runPlugin(pluginId, name);
+  };
+
+  const handleRunWithParams = async (values: Record<string, string>) => {
+    if (!pendingRun) return;
+    const { pluginId, pluginName } = pendingRun;
+    setPendingRun(null);
+    await runPlugin(pluginId, pluginName, values);
   };
 
   const handleConsentApprove = async (requestId: string) => {
@@ -232,6 +252,15 @@ export function PluginDashboardPage() {
           request={pendingDialogs[0]}
           onSubmit={(value) => resolveDialog(pendingDialogs[0].pluginId, pendingDialogs[0].requestId, value)}
           onCancel={() => resolveDialog(pendingDialogs[0].pluginId, pendingDialogs[0].requestId, undefined)}
+        />
+      )}
+
+      {pendingRun && (
+        <PluginRunParamsDialog
+          pluginName={pendingRun.pluginName}
+          params={pendingRun.params}
+          onSubmit={handleRunWithParams}
+          onCancel={() => setPendingRun(null)}
         />
       )}
     </AppShell>

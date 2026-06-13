@@ -44,6 +44,8 @@ struct MarketManifestRaw {
     tier: super::PluginTier,
     #[serde(default)]
     category: String,
+    #[serde(default)]
+    params: Vec<super::manifest::PluginParam>,
 }
 
 /// 插件管理器
@@ -158,6 +160,7 @@ impl PluginManager {
             require_user_confirmation: manifest_raw.require_user_confirmation,
             tier: manifest_raw.tier,
             category: manifest_raw.category,
+            params: manifest_raw.params,
         };
 
         self.store.save_plugin(&manifest, &wasm_bytes)?;

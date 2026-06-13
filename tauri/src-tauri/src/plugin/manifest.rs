@@ -53,6 +53,43 @@ fn default_block_all() -> bool {
     true
 }
 
+/// 插件参数类型
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum PluginParamType {
+    #[default]
+    String,
+    Number,
+    Boolean,
+    Select,
+}
+
+/// 插件参数选项（用于 select 类型）
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginParamOption {
+    pub value: String,
+    pub label: String,
+}
+
+/// 插件运行参数定义
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginParam {
+    pub id: String,
+    pub label: String,
+    #[serde(rename = "type")]
+    pub param_type: PluginParamType,
+    #[serde(default)]
+    pub required: bool,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub default_value: Option<String>,
+    #[serde(default)]
+    pub options: Vec<PluginParamOption>,
+}
+
 /// 插件分批启用层级
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
@@ -118,6 +155,8 @@ pub struct PluginManifest {
     pub tier: PluginTier,
     #[serde(default)]
     pub category: String,
+    #[serde(default)]
+    pub params: Vec<PluginParam>,
 }
 
 fn default_ttl() -> u64 {
@@ -161,6 +200,8 @@ pub struct RegistryEntry {
     pub tier: PluginTier,
     #[serde(default)]
     pub category: String,
+    #[serde(default)]
+    pub params: Vec<PluginParam>,
 }
 
 /// 返回给前端的市场插件信息（JSON 使用 camelCase）

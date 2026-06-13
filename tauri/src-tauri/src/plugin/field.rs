@@ -121,6 +121,71 @@ impl FieldResolver {
             .any(|p| pattern_matches(p, normalized))
     }
 
+    /// 获取字段元数据（字段标签与敏感度等级）
+    ///
+    /// 支持路径：
+    /// - `<typeId>[<index>].<prop>`
+    /// - `<typeId>.<prop>`（默认取第一个对象）
+    /// - 嵌套属性取第一级属性名匹配
+    pub fn field_metadata(&self, field_id: &str) -> Result<(String, String), PluginError> {
+        let vault = self
+            .vault
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+        let account_id = self
+            .account_id
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+
+        if field_id.is_empty() {
+            return Err(PluginError::InvalidField("字段路径为空".to_string()));
+        }
+
+        // 解析出类型 ID 与属性路径
+        let (type_id, prop_path) =
+            if let Some((type_id, _, prop_path)) = parse_indexed_field(field_id) {
+                (type_id, prop_path)
+            } else if let Some((type_id, prop_path)) = parse_type_property(field_id) {
+                (type_id, prop_path)
+            } else {
+                return Err(PluginError::InvalidField(format!(
+                    "无法解析字段元数据路径: {}",
+                    field_id
+                )));
+            };
+
+        let prop_first = prop_path.split('.').next().unwrap_or("").to_string();
+        if prop_first.is_empty() {
+            return Err(PluginError::InvalidField(format!(
+                "字段路径缺少属性名: {}",
+                field_id
+            )));
+        }
+
+        let templates = vault
+            .list_user_templates(account_id)
+            .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?;
+
+        let template = templates
+            .into_iter()
+            .find(|t| t.id == type_id)
+            .ok_or_else(|| PluginError::InvalidField(format!("未找到类型: {}", type_id)))?;
+
+        let property = template
+            .properties
+            .into_iter()
+            .find(|p| p.id == prop_first)
+            .ok_or_else(|| {
+                PluginError::InvalidField(format!("类型 {} 中未找到属性: {}", type_id, prop_first))
+            })?;
+
+        let label = property.name;
+        let sensitivity = property
+            .sensitivity_level
+            .unwrap_or_else(|| "internal".to_string());
+        Ok((label, sensitivity))
+    }
+
     /// 构建用户数据结构树（仅元数据，不含字段值）
     pub fn build_structure_tree(&self) -> Result<String, PluginError> {
         let vault = self
@@ -282,6 +347,61 @@ mod tests {
             VaultConfig::new(account_id, tmp.path().to_path_buf()).with_data_key([0u8; 32]);
         let vault = VaultStore::open(config).unwrap();
         (tmp, Arc::new(vault))
+    }
+
+    #[test]
+    fn test_field_metadata() {
+        let account_id = "acc_test_meta";
+        let (_tmp, vault) = test_vault(account_id);
+
+        let now = chrono::Utc::now().to_rfc3339();
+        let template = UserTemplate {
+            id: "address".to_string(),
+            account_id: account_id.to_string(),
+            name: "地址".to_string(),
+            icon_id: Some("map-pin".to_string()),
+            properties: vec![
+                TemplateProperty {
+                    id: "street".to_string(),
+                    name: "街道".to_string(),
+                    prop_type: PropertyType::Text,
+                    sensitivity_level: Some("private".to_string()),
+                    sensitive: None,
+                    options: None,
+                    deprecated_at: None,
+                },
+                TemplateProperty {
+                    id: "country".to_string(),
+                    name: "国家".to_string(),
+                    prop_type: PropertyType::Text,
+                    sensitivity_level: Some("internal".to_string()),
+                    sensitive: None,
+                    options: None,
+                    deprecated_at: None,
+                },
+            ],
+            category: Some("identity".to_string()),
+            created_at: now.clone(),
+            updated_at: Some(now),
+        };
+        vault.save_user_template(&template).unwrap();
+
+        let resolver = FieldResolver::with_vault(vault, account_id.to_string(), vec![]);
+
+        let (label, sensitivity) = resolver.field_metadata("address.street").unwrap();
+        assert_eq!(label, "街道");
+        assert_eq!(sensitivity, "private");
+
+        let (label2, sensitivity2) = resolver.field_metadata("address[0].country").unwrap();
+        assert_eq!(label2, "国家");
+        assert_eq!(sensitivity2, "internal");
+
+        // 嵌套路径取第一级属性
+        let (label3, sensitivity3) = resolver.field_metadata("address.street.extra").unwrap();
+        assert_eq!(label3, "街道");
+        assert_eq!(sensitivity3, "private");
+
+        assert!(resolver.field_metadata("unknown.street").is_err());
     }
 
     #[test]
