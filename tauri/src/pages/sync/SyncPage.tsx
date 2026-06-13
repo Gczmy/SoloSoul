@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
@@ -31,6 +31,8 @@ function formatHlc(hlc: SyncConflict['local_hlc']): string {
 
 export function SyncPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const backTo = (location.state as { from?: string } | null)?.from;
   const { t } = useTranslation(['settings', 'common']);
   const store = useSyncStore();
   const [manualAddr, setManualAddr] = useState('');
@@ -74,7 +76,7 @@ export function SyncPage() {
   return (
     <AppShell
       title={t('settings:sync', { defaultValue: 'Device Sync' })}
-      onBack={() => navigate('/home')}
+      onBack={() => navigate(backTo || '/home', { replace: true })}
     >
       <div
         style={{
