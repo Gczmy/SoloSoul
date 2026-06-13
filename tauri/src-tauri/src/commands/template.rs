@@ -144,7 +144,7 @@ pub async fn template_create(
     category: Option<String>,
     properties: Vec<TemplateProperty>,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -186,7 +186,7 @@ pub async fn template_update(
     category: Option<String>,
     properties: Option<Vec<TemplateProperty>>,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -236,7 +236,7 @@ pub async fn template_check_field_usage(
     template_id: String,
     field_key: String,
 ) -> Result<serde_json::Value, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -264,7 +264,7 @@ pub async fn template_delete(
     state: State<'_, AppState>,
     template_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -323,7 +323,7 @@ pub async fn template_restore(
     state: State<'_, AppState>,
     trash_id: String,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -360,7 +360,7 @@ pub async fn template_get(
     state: State<'_, AppState>,
     template_id: String,
 ) -> Result<UserTemplate, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -381,7 +381,7 @@ pub async fn template_get(
 
 #[tauri::command]
 pub async fn template_list(state: State<'_, AppState>) -> Result<Vec<UserTemplate>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -402,7 +402,7 @@ pub async fn template_save_from_object(
     template_name: String,
     icon_id: Option<String>,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 

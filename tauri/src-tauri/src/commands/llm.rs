@@ -280,7 +280,7 @@ pub async fn llm_get_config(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<LlmConfig, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     load_config(vault, &account_id)
@@ -291,7 +291,7 @@ pub async fn llm_get_providers(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<Vec<ProviderWithKey>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let config = load_config(vault, &account_id)?;
@@ -333,7 +333,7 @@ pub async fn llm_save_provider(
     account_id: String,
     provider: ProviderWithKey,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut config = load_config(vault, &account_id)?;
@@ -369,7 +369,7 @@ pub async fn llm_set_active_provider(
     account_id: String,
     provider_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut config = load_config(vault, &account_id)?;
@@ -383,7 +383,7 @@ pub async fn llm_set_ai_features(
     account_id: String,
     features: AiFeatures,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut config = load_config(vault, &account_id)?;
@@ -397,7 +397,7 @@ pub async fn llm_set_system_prompt_switch(
     account_id: String,
     enabled: bool,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut config = load_config(vault, &account_id)?;
@@ -413,7 +413,7 @@ pub async fn llm_set_local_embedding(
     enabled: bool,
     model_id: Option<String>,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut config = load_config(vault, &account_id)?;
@@ -426,7 +426,7 @@ pub async fn llm_set_local_embedding(
 
 #[tauri::command]
 pub async fn llm_accept_risk(state: State<'_, AppState>, account_id: String) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut config = load_config(vault, &account_id)?;
@@ -449,7 +449,7 @@ pub async fn llm_get_api_key(
     account_id: String,
     provider_id: String,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     load_api_keys(vault, &account_id).map(|k| k.get(&provider_id).cloned().unwrap_or_default())
@@ -461,7 +461,7 @@ pub async fn llm_delete_provider(
     account_id: String,
     provider_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut config = load_config(vault, &account_id)?;
@@ -531,7 +531,7 @@ pub async fn llm_list_conversations(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<Vec<ConversationSummary>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let convs = load_conversations(vault, &account_id)?;
@@ -555,7 +555,7 @@ pub async fn llm_list_trash(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<Vec<ConversationSummary>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let convs = load_conversations(vault, &account_id)?;
@@ -585,7 +585,7 @@ pub async fn llm_get_conversation(
     account_id: String,
     conversation_id: String,
 ) -> Result<Conversation, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let convs = load_conversations(vault, &account_id)?;
@@ -601,7 +601,7 @@ pub async fn llm_save_conversation(
     account_id: String,
     conversation: Conversation,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut convs = load_conversations(vault, &account_id)?;
@@ -621,7 +621,7 @@ pub async fn llm_delete_conversation(
     account_id: String,
     conversation_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut convs = load_conversations(vault, &account_id)?;
@@ -635,7 +635,7 @@ pub async fn llm_soft_delete_conversation(
     account_id: String,
     conversation_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut convs = load_conversations(vault, &account_id)?;
@@ -651,7 +651,7 @@ pub async fn llm_restore_conversation(
     account_id: String,
     conversation_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut convs = load_conversations(vault, &account_id)?;
@@ -667,7 +667,7 @@ pub async fn llm_permanent_delete(
     account_id: String,
     conversation_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut convs = load_conversations(vault, &account_id)?;
@@ -682,7 +682,7 @@ pub async fn llm_rename_conversation(
     conversation_id: String,
     name: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     let mut convs = load_conversations(vault, &account_id)?;
@@ -1650,7 +1650,7 @@ pub async fn llm_get_stats(
     }
     // 2. 内存未命中，从 Vault 加载（严格限定作用域，确保 RwLockGuard 在 await 前 drop）
     let stats: LlmUsageStats = {
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
         load_stats_from_vault(vault, &account_id)?
@@ -1671,7 +1671,7 @@ pub async fn llm_reset_stats(state: State<'_, AppState>, account_id: String) -> 
             STATS_MAP.write().await;
         map.remove(&account_id);
     }
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     save_stats_to_vault(vault, &account_id, &LlmUsageStats::default())
@@ -1697,7 +1697,7 @@ pub async fn llm_persist_stats(
             STATS_MAP.read().await;
         map.get(&account_id).cloned().unwrap_or_default()
     };
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vg.as_ref();
     save_stats_to_vault(vault, &account_id, &stats)
@@ -2132,7 +2132,7 @@ pub async fn llm_send_message_stream(
     // Auto-save conversation with AI reply after stream completes
     // (ensures data persists even if frontend component is unmounted)
     {
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
         let mut convs = load_conversations(vault, &account_id)?;
@@ -2198,7 +2198,7 @@ pub async fn llm_send_message_stream(
             let map = STATS_MAP.read().await;
             map.get(&account_id).cloned().unwrap_or_default()
         };
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
             {
@@ -2233,7 +2233,7 @@ pub async fn llm_chat(
 ) -> Result<(), String> {
     // 1. 读取 Provider 配置 + 解密 API Key（同步块，vault_guard 在此释放）
     let (base_url, api_key, model, api_type) = {
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vault_guard.as_ref();
 
@@ -2274,7 +2274,7 @@ pub async fn llm_chat(
     // 3a. 系统提示词（重新获取 vault）
     if request.include_system_prompt {
         let system_prompt = {
-            let svc = state.vault_service.read().await;
+            let svc = state.vault_service.read().unwrap();
             let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
             let vault = vault_guard.as_ref();
             crate::services::llm_context::build_context(
@@ -2374,7 +2374,7 @@ pub async fn llm_chat(
             let map = STATS_MAP.read().await;
             map.get(&request.account_id).cloned().unwrap_or_default()
         };
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
             {
@@ -2636,7 +2636,7 @@ pub async fn llm_search_guide_chunks(
         .map_err(|e| format!("Resolve models dir: {}", e))?;
 
     let (source, chunks) = {
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
 
@@ -2751,7 +2751,7 @@ pub async fn llm_rebuild_guide_embeddings(
 
     // 1. Extract embedding source and chunk guides (sync, vault guard released after this block)
     let (source, raw_chunks) = {
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
 
@@ -2777,7 +2777,7 @@ pub async fn llm_rebuild_guide_embeddings(
 
     // 3. Store in vault (sync)
     let count = {
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
 
@@ -2818,7 +2818,7 @@ pub async fn llm_check_embedding_available(
         .map_err(|e| format!("Resolve models dir: {}", e))?;
 
     let source = {
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
         get_embedding_source(vault, &account_id, &models_dir)
@@ -2877,7 +2877,7 @@ pub async fn ensure_guide_embeddings_built(state: &AppState, account_id: &str, l
             .resolve("models", tauri::path::BaseDirectory::LocalData)
             .map_err(|e| format!("Resolve models dir: {}", e))?;
 
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
 
@@ -2910,7 +2910,7 @@ pub async fn ensure_guide_embeddings_built(state: &AppState, account_id: &str, l
         let texts: Vec<String> = raw_chunks.iter().map(|c| c.text.clone()).collect();
         let embeddings = embed_texts(source, models_dir, texts).await?;
 
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
 

@@ -49,7 +49,7 @@ pub async fn attachment_list(
     show_deleted: Option<bool>,
 ) -> Result<Vec<AttachmentMeta>, String> {
     let show = show_deleted.unwrap_or(false);
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     match vault.load_object(&object_id) {
@@ -74,7 +74,7 @@ pub async fn attachment_delete(
     object_id: String,
     attachment_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
@@ -103,7 +103,7 @@ pub async fn attachment_restore(
     object_id: String,
     attachment_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
@@ -123,7 +123,7 @@ pub async fn attachment_save(
     object_id: String,
     meta: AttachmentMeta,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
@@ -147,7 +147,7 @@ pub async fn attachment_rename(
     attachment_id: String,
     new_name: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
@@ -167,7 +167,7 @@ pub async fn attachment_soft_delete(
     object_id: String,
     attachment_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
@@ -187,7 +187,7 @@ pub async fn attachment_count_batch(
     state: State<'_, AppState>,
     object_ids: Vec<String>,
 ) -> Result<HashMap<String, usize>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let mut result = HashMap::new();
@@ -213,7 +213,7 @@ pub async fn attachment_copy_to_vault(
     attachment_id: String,
     file_name: String,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let base = svc.base_path().clone();
     let dest_dir = base
         .join("attachments")
@@ -263,7 +263,7 @@ pub async fn attachment_cleanup_orphans(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<usize, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 

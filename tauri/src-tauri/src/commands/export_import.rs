@@ -213,7 +213,7 @@ pub async fn export_get_scope_tree(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<Vec<PageGroup>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -274,7 +274,7 @@ pub async fn export_estimate_size(
     account_id: String,
     scope: ExportScope,
 ) -> Result<ExportEstimate, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -337,7 +337,7 @@ pub async fn export_execute(
     account_id: String,
     req: ExportRequest,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -629,7 +629,7 @@ pub async fn export_get_attachments(
     _account_id: String,
     object_id: String,
 ) -> Result<Vec<AttachmentInfo>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -731,7 +731,7 @@ pub async fn import_decrypt_preview(
     file_path: String,
     password: String,
 ) -> Result<DecryptedImportPreview, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -868,7 +868,7 @@ async fn import_execute_internal(
     strategy: ImportStrategy,
     selections: Option<Vec<ImportSelection>>,
 ) -> Result<usize, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 

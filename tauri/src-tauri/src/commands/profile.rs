@@ -44,7 +44,7 @@ pub async fn profile_save(
     state: State<'_, AppState>,
     payload: SaveProfilePayload,
 ) -> Result<ProfileSummary, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -83,7 +83,7 @@ pub async fn profile_load(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<Option<solosoul_vault::Profile>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     vault.load_profile(&account_id)
@@ -91,7 +91,7 @@ pub async fn profile_load(
 
 #[tauri::command]
 pub async fn profile_list(state: State<'_, AppState>) -> Result<Vec<ProfileSummary>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -110,7 +110,7 @@ pub async fn profile_list(state: State<'_, AppState>) -> Result<Vec<ProfileSumma
 
 #[tauri::command]
 pub async fn profile_delete(state: State<'_, AppState>, profile_id: String) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     vault.delete_profile(&profile_id)
@@ -169,7 +169,7 @@ pub async fn profile_get_section(
     account_id: String,
     section_type: String,
 ) -> Result<Option<SectionData>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -192,7 +192,7 @@ pub async fn profile_update_field(
     field_key: String,
     field_value: serde_json::Value,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 

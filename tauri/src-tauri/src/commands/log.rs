@@ -62,7 +62,7 @@ fn to_response(entry: solosoul_vault::AuditLogEntry) -> AuditLogResponse {
 /// Write a structured audit log entry to the vault's audit_log table.
 #[tauri::command]
 pub async fn log_write(state: State<'_, AppState>, request: WriteLogRequest) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -82,7 +82,7 @@ pub async fn log_get_recent(
     state: State<'_, AppState>,
     limit: Option<usize>,
 ) -> Result<Vec<AuditLogResponse>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -98,7 +98,7 @@ pub async fn log_export(
     state: State<'_, AppState>,
     export_path: Option<String>,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 

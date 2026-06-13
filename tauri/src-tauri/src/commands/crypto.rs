@@ -5,7 +5,7 @@ use tauri::State;
 /// Encrypt arbitrary bytes using the vault's session key
 #[tauri::command]
 pub async fn encrypt_bytes(state: State<'_, AppState>, data: Vec<u8>) -> Result<Vec<u8>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
     let key: [u8; 32] = session_key
         .as_slice()
@@ -17,7 +17,7 @@ pub async fn encrypt_bytes(state: State<'_, AppState>, data: Vec<u8>) -> Result<
 /// Decrypt SOLO blob bytes using the vault's session key
 #[tauri::command]
 pub async fn decrypt_bytes(state: State<'_, AppState>, data: Vec<u8>) -> Result<Vec<u8>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
     let key: [u8; 32] = session_key
         .as_slice()
@@ -101,7 +101,7 @@ pub async fn constant_time_compare(a: Vec<u8>, b: Vec<u8>) -> bool {
 /// Get vault statistics with breakdown components
 #[tauri::command]
 pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::Value, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let mut stats = vault.stats()?;

@@ -41,7 +41,7 @@ fn sanitize_backup_name(name: &str) -> Result<String, String> {
 
 #[tauri::command]
 pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let backup_dir = backups_dir(svc.base_path());
     if !backup_dir.exists() {
         return Ok(vec![]);
@@ -93,7 +93,7 @@ pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, 
 
 #[tauri::command]
 pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<BackupInfo, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -165,7 +165,7 @@ pub async fn backup_restore(
     state: State<'_, AppState>,
     backup_id: String,
 ) -> Result<usize, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -235,7 +235,7 @@ pub async fn backup_restore(
 
 #[tauri::command]
 pub async fn backup_delete(state: State<'_, AppState>, backup_id: String) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let backup_dir = backups_dir(svc.base_path());
 
     if let Ok(dir) = fs::read_dir(&backup_dir) {

@@ -102,7 +102,7 @@ pub async fn object_list(
     account_id: String,
     filter: Option<ObjectFilter>,
 ) -> Result<Vec<solosoul_vault::ObjectSummary>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -132,7 +132,7 @@ pub async fn object_get(
     account_id: String,
     object_id: String,
 ) -> Result<Option<ObjectData>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -153,7 +153,7 @@ pub async fn object_create(
     state: State<'_, AppState>,
     input: CreateObjectInput,
 ) -> Result<ObjectData, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -235,7 +235,7 @@ pub async fn object_update(
     object_id: String,
     input: UpdateObjectInput,
 ) -> Result<ObjectData, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -285,7 +285,7 @@ pub async fn object_update(
 
 #[tauri::command]
 pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -344,7 +344,7 @@ pub async fn object_trash_list(
     since: Option<i64>,
 ) -> Result<Vec<solosoul_vault::TrashItemSummary>, String> {
     let _ = account_id;
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     vault.list_trash_items(None, since)
@@ -383,7 +383,7 @@ pub async fn object_restore(
     trash_id: String,
     lang: Option<String>,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -521,7 +521,7 @@ pub async fn object_restore(
 
 #[tauri::command]
 pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -559,7 +559,7 @@ pub async fn trash_permanent_delete(
     state: State<'_, AppState>,
     trash_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -599,7 +599,7 @@ pub async fn page_delete(
     section_type: String,
     page_object_id: Option<String>,
 ) -> Result<usize, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -697,7 +697,7 @@ pub async fn page_restore(
     section_type: String,
     lang: Option<String>,
 ) -> Result<usize, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let fallback_lang = get_ui_language(&svc);
@@ -823,7 +823,7 @@ pub async fn snapshot_count_batch(
     state: State<'_, AppState>,
     object_ids: Vec<String>,
 ) -> Result<std::collections::HashMap<String, usize>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     vault.count_snapshots_batch(&object_ids)
@@ -836,7 +836,7 @@ pub async fn snapshot_get(
     state: State<'_, AppState>,
     object_id: String,
 ) -> Result<Vec<serde_json::Value>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     vault.list_snapshots(&object_id)
@@ -847,7 +847,7 @@ pub async fn snapshot_get_data(
     state: State<'_, AppState>,
     snapshot_id: String,
 ) -> Result<Option<serde_json::Value>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     match vault.get_snapshot(&snapshot_id)? {
@@ -863,7 +863,7 @@ pub async fn snapshot_list(
     state: State<'_, AppState>,
     object_id: String,
 ) -> Result<Vec<serde_json::Value>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     vault.list_snapshots(&object_id)
@@ -875,7 +875,7 @@ pub async fn snapshot_rollback(
     snapshot_id: String,
     object_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -932,7 +932,7 @@ pub async fn snapshot_rollback(
 /// Get trash retention preferences for the current account.
 #[tauri::command]
 pub async fn trash_get_retention(state: State<'_, AppState>) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let account_id = svc.get_current_account().ok_or("No account")?;
@@ -954,7 +954,7 @@ pub async fn trash_get_retention(state: State<'_, AppState>) -> Result<String, S
 /// Set trash retention period.
 #[tauri::command]
 pub async fn trash_set_retention(state: State<'_, AppState>, period: String) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let account_id = svc.get_current_account().ok_or("No account")?;
@@ -1028,7 +1028,7 @@ pub async fn trash_get_detail(
     state: State<'_, AppState>,
     trash_id: String,
 ) -> Result<TrashDetail, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
     let trash = vault

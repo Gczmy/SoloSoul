@@ -8,12 +8,12 @@ use tokio::sync::Mutex;
 use crate::services::vault_service::VaultService;
 
 pub struct SyncService {
-    vault_service: Arc<tokio::sync::RwLock<VaultService>>,
+    vault_service: Arc<std::sync::RwLock<VaultService>>,
     manager: Mutex<Option<SyncManager>>,
 }
 
 impl SyncService {
-    pub fn new(vault_service: Arc<tokio::sync::RwLock<VaultService>>) -> Self {
+    pub fn new(vault_service: Arc<std::sync::RwLock<VaultService>>) -> Self {
         Self {
             vault_service,
             manager: Mutex::new(None),
@@ -27,9 +27,12 @@ impl SyncService {
             if guard.is_some() {
                 return Ok(());
             }
-            let svc = self.vault_service.read().await;
-            let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
-            let account_id = svc.get_current_account().ok_or("No account is unlocked")?;
+            let (vault, account_id) = {
+                let svc = self.vault_service.read().unwrap();
+                let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
+                let account_id = svc.get_current_account().ok_or("No account is unlocked")?;
+                (vault, account_id)
+            };
             let (node_id, keys) = get_or_create_sync_identity(&vault)?;
             let manager = SyncManager::new(
                 node_id,
@@ -111,7 +114,7 @@ impl SyncService {
             Some(m) => m.known_peers(),
             None => {
                 // Even when the manager is off, return persisted peers.
-                let svc = self.vault_service.read().await;
+                let svc = self.vault_service.read().unwrap();
                 let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
                 let account_id = svc.get_current_account().unwrap_or_default();
                 let persisted = vault.list_peers()?;
@@ -143,7 +146,7 @@ impl SyncService {
         let result = match guard.as_ref() {
             Some(m) => m.trust_peer(&peer_node_id, trusted),
             None => {
-                let svc = self.vault_service.read().await;
+                let svc = self.vault_service.read().unwrap();
                 let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
                 let now = chrono::Utc::now().to_rfc3339();
                 let mut peer = vault.load_peer_state(&peer_node_id)?.unwrap_or_else(|| {
@@ -187,7 +190,7 @@ impl SyncService {
         let result = match guard.as_ref() {
             Some(m) => m.forget_peer(&peer_node_id),
             None => {
-                let svc = self.vault_service.read().await;
+                let svc = self.vault_service.read().unwrap();
                 let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
                 vault.delete_peer(&peer_node_id)
             }
@@ -208,7 +211,7 @@ impl SyncService {
         match guard.as_ref() {
             Some(m) => Ok(m.fingerprint()),
             None => {
-                let svc = self.vault_service.read().await;
+                let svc = self.vault_service.read().unwrap();
                 let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
                 let (_, keys) = get_or_create_sync_identity(&vault)?;
                 Ok(keys.fingerprint())

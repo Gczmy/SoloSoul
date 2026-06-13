@@ -37,7 +37,7 @@ pub async fn encrypt_file(
     src_path: String,
     dst_path: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
     let key: [u8; 32] = session_key
         .as_slice()
@@ -63,7 +63,7 @@ pub async fn decrypt_file(
     src_path: String,
     dst_path: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
     let key: [u8; 32] = session_key
         .as_slice()
@@ -172,7 +172,7 @@ pub async fn inspect_backup(
     state: State<'_, AppState>,
     backup_path: String,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
     let key: [u8; 32] = session_key
         .as_slice()

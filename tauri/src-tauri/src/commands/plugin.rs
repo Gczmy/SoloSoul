@@ -72,7 +72,7 @@ pub async fn plugin_run(
     channel: Channel<PluginEvent>,
 ) -> Result<PluginResult, String> {
     let (vault_store, account_id) = {
-        let svc = state.vault_service.read().await;
+        let svc = state.vault_service.read().unwrap();
         let vault_store = svc.get_vault_store();
         let account_id = svc.get_current_account();
         (vault_store, account_id)

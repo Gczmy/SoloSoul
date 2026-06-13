@@ -1,8 +1,7 @@
 use crate::plugin::PluginManager;
 use crate::services::sync_service::SyncService;
 use crate::services::vault_service::VaultService;
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
 pub struct AppState {
     pub handle: tauri::AppHandle,

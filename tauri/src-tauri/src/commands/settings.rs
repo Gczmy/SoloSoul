@@ -44,7 +44,7 @@ impl Default for UiPreferences {
 
 #[tauri::command]
 pub async fn ui_get_preferences(state: State<'_, AppState>) -> Result<UiPreferences, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let path = ui_prefs_path(&svc);
     if !path.exists() {
         return Ok(UiPreferences::default());
@@ -59,7 +59,7 @@ pub async fn ui_update_preference(
     key: String,
     value: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let path = ui_prefs_path(&svc);
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);
@@ -101,7 +101,7 @@ pub async fn user_data_get_preferences(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<HashMap<String, Value>, String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -126,7 +126,7 @@ pub async fn user_data_update_preference(
     state: State<'_, AppState>,
     payload: UpdatePreferencesPayload,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 

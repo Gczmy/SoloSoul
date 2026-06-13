@@ -241,7 +241,7 @@ pub async fn biometric_save_credential(
     let key_hex = derive_master_key(&password, &account_id)?;
     save_master_key(&account_id, &key_hex)?;
     set_config_flag(&account_id, true)?;
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
         {
@@ -279,7 +279,7 @@ pub async fn biometric_unlock(
     let key_hex = read_master_key(&account_id)?;
     let key_bytes = hex::decode(&key_hex).map_err(|_| "Bad key format")?;
     let key: [u8; 32] = key_bytes.as_slice().try_into().map_err(|_| "Bad key len")?;
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     svc.unlock_with_session_key(&account_id, &key)?;
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
@@ -323,7 +323,7 @@ pub async fn biometric_delete_credential(
     verify_password(&password, &account_id)?;
     delete_master_key(&account_id);
     set_config_flag(&account_id, false)?;
-    let svc = state.vault_service.read().await;
+    let svc = state.vault_service.read().unwrap();
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
         {
