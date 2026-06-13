@@ -15,7 +15,6 @@ describe('vaultStore', () => {
   beforeEach(() => {
     useVaultStore.setState({
       vaultState: 'locked',
-      accounts: [],
       isLoading: false,
       error: null,
     });

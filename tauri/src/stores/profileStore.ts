@@ -11,6 +11,16 @@ interface ProfileSection {
   }>;
 }
 
+interface RawProfileSection {
+  type?: string;
+  fields?: Array<{
+    key?: string;
+    label?: string;
+    value?: unknown;
+    sensitivityLevel?: string;
+  }>;
+}
+
 interface ProfileState {
   accountId: string | null;
   sections: ProfileSection[];
@@ -42,15 +52,17 @@ export const useProfileStore = create<ProfileState>((set) => ({
       });
       if (profile?.data) {
         const json = JSON.parse(new TextDecoder().decode(new Uint8Array(profile.data)));
-        const loadedSections: ProfileSection[] = (json.sections || []).map((sec: any) => ({
-          sectionType: sec.type || '',
-          fields: (sec.fields || []).map((f: any) => ({
-            key: f.key || '',
-            label: f.label || '',
-            value: f.value,
-            sensitivityLevel: f.sensitivityLevel,
-          })),
-        }));
+        const loadedSections: ProfileSection[] = (json.sections || []).map(
+          (sec: RawProfileSection) => ({
+            sectionType: sec.type || '',
+            fields: (sec.fields || []).map((f) => ({
+              key: f.key || '',
+              label: f.label || '',
+              value: f.value,
+              sensitivityLevel: f.sensitivityLevel,
+            })),
+          }),
+        );
         set({ accountId: profile.accountId, sections: loadedSections, isLoading: false });
       } else {
         set({ accountId, sections: [], isLoading: false });
