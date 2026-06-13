@@ -164,30 +164,38 @@ fn default_ttl() -> u64 {
 }
 
 /// 市场注册表中单个版本的元数据
+///
+/// 序列化到前端使用 camelCase；反序列化本地 registry.json（snake_case）通过 alias 兼容。
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RegistryVersion {
     pub sha256: String,
-    #[serde(default)]
+    #[serde(default, alias = "plugin_api_version")]
     pub plugin_api_version: Option<String>,
+    #[serde(alias = "min_app_version")]
     pub min_app_version: String,
+    #[serde(alias = "max_app_version")]
     pub max_app_version: String,
-    #[serde(default)]
+    #[serde(default, alias = "download_url")]
     pub download_url: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "raw_url")]
     pub raw_url: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "released_at")]
     pub released_at: Option<String>,
     #[serde(default)]
     pub changelog: Option<String>,
 }
 
 /// 市场注册表中单个插件条目
+///
+/// 序列化到前端使用 camelCase；反序列化本地 registry.json（snake_case）通过 alias 兼容。
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RegistryEntry {
     pub name: String,
-    #[serde(default)]
+    #[serde(default, rename = "author", alias = "publisher")]
     pub publisher: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "latest_version")]
     pub latest_version: Option<String>,
     pub versions: HashMap<String, RegistryVersion>,
     #[serde(default)]
