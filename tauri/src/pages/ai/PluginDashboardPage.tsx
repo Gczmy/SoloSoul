@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { PluginCard } from '@/components/plugin/PluginCard';
 import { PluginConsentDialog } from '@/components/plugin/PluginConsentDialog';
 import { PluginResultPanel } from '@/components/plugin/PluginResultPanel';
+import { PluginDialog } from '@/components/plugin/PluginDialog';
 import { usePluginStore } from '@/stores/pluginStore';
 import { pluginCommands, PluginTier } from '@/lib/plugin';
 import styles from './PluginDashboardPage.module.css';
@@ -34,6 +35,7 @@ export function PluginDashboardPage() {
     uninstallPlugin,
     runPlugin,
     stopPlugin,
+    resolveDialog,
   } = usePluginStore();
 
   useEffect(() => {
@@ -54,6 +56,15 @@ export function PluginDashboardPage() {
     for (const plugin of Object.values(runningPlugins)) {
       if (plugin.completed) continue;
       out.push(...plugin.consentRequests);
+    }
+    return out;
+  }, [runningPlugins]);
+
+  const pendingDialogs = useMemo(() => {
+    const out = [];
+    for (const plugin of Object.values(runningPlugins)) {
+      if (plugin.completed) continue;
+      out.push(...plugin.dialogRequests);
     }
     return out;
   }, [runningPlugins]);
@@ -212,6 +223,15 @@ export function PluginDashboardPage() {
           requests={pendingConsents}
           onApprove={handleConsentApprove}
           onDeny={handleConsentDeny}
+        />
+      )}
+
+      {pendingDialogs.length > 0 && (
+        <PluginDialog
+          pluginName={pendingDialogs[0].pluginName}
+          request={pendingDialogs[0]}
+          onSubmit={(value) => resolveDialog(pendingDialogs[0].pluginId, pendingDialogs[0].requestId, value)}
+          onCancel={() => resolveDialog(pendingDialogs[0].pluginId, pendingDialogs[0].requestId, undefined)}
         />
       )}
     </AppShell>

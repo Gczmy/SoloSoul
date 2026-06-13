@@ -63,12 +63,13 @@ impl PluginManager {
     /// 创建插件管理器（开发模式，无 app_handle）
     pub fn new() -> Result<Self, PluginError> {
         let market_dir = super::paths::dev_market_dir();
+        let audit_path = PluginStore::data_dir()?.join("plugin_audit.jsonl");
         Ok(Self {
             store: PluginStore::new()?,
             registry: PluginRegistry::new(),
             market_dir,
             session_manager: PluginSessionManager::new(),
-            audit: Arc::new(PluginAuditLogger::new()),
+            audit: Arc::new(PluginAuditLogger::new(Some(audit_path))),
             rate_limiter: Arc::new(RateLimiter::new(60)),
             consent_manager: Arc::new(ConsentManager::new()),
             field_resolver: Arc::new(FieldResolver::new()),
@@ -79,12 +80,13 @@ impl PluginManager {
     /// 创建插件管理器（Release 模式，使用 Tauri 资源目录）
     pub fn new_with_app_handle(app_handle: &tauri::AppHandle) -> Result<Self, PluginError> {
         let market_dir = super::paths::resolve_market_dir(Some(app_handle))?;
+        let audit_path = PluginStore::data_dir()?.join("plugin_audit.jsonl");
         Ok(Self {
             store: PluginStore::new()?,
             registry: PluginRegistry::new_with_app_handle(app_handle)?,
             market_dir,
             session_manager: PluginSessionManager::new(),
-            audit: Arc::new(PluginAuditLogger::new()),
+            audit: Arc::new(PluginAuditLogger::new(Some(audit_path))),
             rate_limiter: Arc::new(RateLimiter::new(60)),
             consent_manager: Arc::new(ConsentManager::new()),
             field_resolver: Arc::new(FieldResolver::new()),
@@ -290,6 +292,19 @@ impl PluginManager {
             .respond(request_id, response_value)
             .await
             .map_err(|_| PluginError::ConsentDenied)?;
+        Ok(())
+    }
+
+    /// 响应对话框请求
+    pub async fn dialog_response(
+        &self,
+        request_id: &str,
+        value: Option<String>,
+    ) -> Result<(), PluginError> {
+        self.consent_manager
+            .respond(request_id, value)
+            .await
+            .map_err(|e| PluginError::ExecutionFailed(format!("对话框响应失败: {}", e)))?;
         Ok(())
     }
 

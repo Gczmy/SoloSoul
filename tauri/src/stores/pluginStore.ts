@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import {
   ConsentRequestEvent,
+  DialogRequestEvent,
   MarketPluginInfo,
   PluginManifest,
   PluginResultPayload,
@@ -22,6 +23,7 @@ export interface RunningPlugin {
   logs: PluginLogLine[];
   results: PluginResultPayload[];
   consentRequests: ConsentRequestEvent[];
+  dialogRequests: DialogRequestEvent[];
   completed: boolean;
   exitCode?: number;
   error?: string;
@@ -47,6 +49,7 @@ interface PluginState {
   runPlugin: (pluginId: string, pluginName: string) => Promise<void>;
   stopPlugin: (pluginId: string) => void;
   clearPluginOutput: (pluginId: string) => void;
+  resolveDialog: (pluginId: string, requestId: string, value?: string) => Promise<void>;
 }
 
 export const usePluginStore = create<PluginState>((set, get) => ({
@@ -122,6 +125,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
       logs: [],
       results: [],
       consentRequests: [],
+      dialogRequests: [],
       completed: false,
     };
     set((state) => ({
@@ -153,6 +157,9 @@ export const usePluginStore = create<PluginState>((set, get) => ({
             case 'consent_request':
               next.consentRequests = [...next.consentRequests, event as ConsentRequestEvent];
               break;
+            case 'dialog_request':
+              next.dialogRequests = [...next.dialogRequests, event as DialogRequestEvent];
+              break;
             case 'completed':
               next.completed = true;
               try {
@@ -174,7 +181,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
       set((state) => {
         const next = { ...state.runningPlugins[pluginId], completed: true };
         next.exitCode = result.exitCode;
-        next.results = result.results;
+        next.results = [...next.results, ...result.results];
         return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
       });
     } catch (err) {
@@ -198,5 +205,19 @@ export const usePluginStore = create<PluginState>((set, get) => ({
         Object.entries(state.runningPlugins).filter(([id]) => id !== pluginId),
       ),
     }));
+  },
+
+  resolveDialog: async (pluginId: string, requestId: string, value?: string) => {
+    try {
+      await pluginCommands.dialogResponse(requestId, value);
+    } catch (err) {
+      set({ error: String(err) });
+    }
+    set((state) => {
+      const next = { ...state.runningPlugins[pluginId] };
+      if (!next) return state;
+      next.dialogRequests = next.dialogRequests.filter((r) => r.requestId !== requestId);
+      return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+    });
   },
 }));

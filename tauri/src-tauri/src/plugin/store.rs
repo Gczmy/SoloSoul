@@ -28,9 +28,14 @@ impl PluginStore {
 
     /// 获取当前用户的插件基础目录
     fn plugins_dir() -> Result<PathBuf, PluginError> {
+        Ok(Self::data_dir()?.join("plugins"))
+    }
+
+    /// 获取 SoloSoul 数据根目录（~/.solosoul）
+    pub fn data_dir() -> Result<PathBuf, PluginError> {
         let home = dirs::home_dir()
             .ok_or_else(|| PluginError::StoreError("无法获取主目录".to_string()))?;
-        Ok(home.join(".solosoul").join("plugins"))
+        Ok(home.join(".solosoul"))
     }
 
     /// 确保目录存在并设置权限

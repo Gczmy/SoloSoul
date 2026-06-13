@@ -61,6 +61,25 @@ export interface PluginResult {
   fuelConsumed: number;
 }
 
+export type DialogType = 'alert' | 'confirm' | 'radio_list' | 'checkbox_list' | 'input';
+
+export interface DialogConfig {
+  type: DialogType;
+  title?: string;
+  message?: string;
+  items?: Array<{ id: string; label: string }>;
+  defaultValue?: string;
+  placeholder?: string;
+}
+
+export interface DialogRequestEvent {
+  eventType: 'dialog_request';
+  requestId: string;
+  pluginId: string;
+  pluginName: string;
+  jsonData: string;
+}
+
 export interface ConsentRequestEvent {
   eventType: 'consent_request';
   requestId: string;
@@ -72,7 +91,7 @@ export interface ConsentRequestEvent {
 }
 
 export interface PluginEvent {
-  eventType: 'log' | 'result' | 'consent_request' | 'completed' | 'error';
+  eventType: 'log' | 'result' | 'consent_request' | 'dialog_request' | 'completed' | 'error';
   jsonData: string;
   requestId?: string;
   pluginId?: string;
@@ -143,6 +162,10 @@ export const pluginCommands = {
 
   async consentResponse(requestId: string, approved: boolean, value?: string): Promise<void> {
     return invoke('plugin_consent_response', { requestId, approved, value });
+  },
+
+  async dialogResponse(requestId: string, value?: string): Promise<void> {
+    return invoke('plugin_dialog_response', { requestId, value });
   },
 
   async listSessions(): Promise<PluginSessionInfo[]> {

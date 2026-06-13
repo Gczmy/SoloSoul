@@ -65,6 +65,25 @@ impl PluginEvent {
         }
     }
 
+    /// 通用对话框请求事件
+    pub fn dialog_request(
+        request_id: impl Into<String>,
+        plugin_id: impl Into<String>,
+        plugin_name: impl Into<String>,
+        config: impl Into<String>,
+    ) -> Self {
+        Self {
+            event_type: "dialog_request".to_string(),
+            json_data: config.into(),
+            request_id: Some(request_id.into()),
+            plugin_id: Some(plugin_id.into()),
+            plugin_name: Some(plugin_name.into()),
+            field_id: None,
+            field_label: None,
+            sensitivity_level: None,
+        }
+    }
+
     /// 授权请求事件
     #[allow(clippy::too_many_arguments)]
     pub fn consent_request(

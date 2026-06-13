@@ -233,6 +233,7 @@ pub fn run() {
             commands::plugin::plugin_uninstall,
             commands::plugin::plugin_run,
             commands::plugin::plugin_consent_response,
+            commands::plugin::plugin_dialog_response,
             commands::plugin::plugin_list_sessions,
             commands::plugin::plugin_audit_log,
             commands::plugin::plugin_update_registry,

@@ -313,17 +313,61 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-    // solosoul_show_dialog —— 通用对话框（未实现）
+    // solosoul_show_dialog —— 通用对话框（阻塞等待用户响应）
     linker
         .func_wrap(
             "env",
             "solosoul_show_dialog",
-            |_caller: Caller<'_, SoloHostState>,
-             _config_ptr: i32,
-             _config_len: i32,
-             _out_ptr: i32,
-             _out_len: i32|
-             -> i32 { code::NOT_IMPLEMENTED },
+            |mut caller: Caller<'_, SoloHostState>,
+             config_ptr: i32,
+             config_len: i32,
+             out_ptr: i32,
+             out_len: i32|
+             -> i32 {
+                let config = match read_string(&mut caller, config_ptr, config_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                if config.len() > 4096 {
+                    return code::INVALID_ARGUMENT;
+                }
+
+                let request_id = uuid::Uuid::new_v4().to_string();
+                let (plugin_id, plugin_name, session_id, consent_manager) = {
+                    let host = &caller.data().host;
+                    if !host.rate_limiter.check(&host.plugin_id, "show_dialog") {
+                        return code::RATE_LIMITED;
+                    }
+                    (
+                        host.plugin_id.clone(),
+                        host.plugin_name.clone(),
+                        host.session_id.clone(),
+                        host.consent_manager.clone(),
+                    )
+                };
+
+                let event =
+                    PluginEvent::dialog_request(&request_id, &plugin_id, &plugin_name, &config);
+                let _ = caller.data().host.channel.send(event);
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                let rx = match block_on(consent_manager.request_consent(&request_id)) {
+                    Ok(rx) => rx,
+                    Err(_) => return code::NOT_IMPLEMENTED,
+                };
+
+                match block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
+                    Ok(Ok(Ok(Some(value)))) => {
+                        write_buffer(&mut caller, out_ptr, out_len, &value, -1)
+                    }
+                    Ok(Ok(Ok(None))) => code::USER_DENIED,
+                    Ok(Ok(Err(_))) | Ok(Err(_)) | Err(_) => code::TTL_EXPIRED,
+                }
+            },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 

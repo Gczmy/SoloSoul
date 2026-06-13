@@ -91,7 +91,7 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
 
     let session_manager = PluginSessionManager::new();
     let session = session_manager.create("com.solosoul.official.address-fmt", 300);
-    let audit = Arc::new(PluginAuditLogger::new());
+    let audit = Arc::new(PluginAuditLogger::default());
     let rate_limiter = Arc::new(solo_soul::plugin::RateLimiter::new(60));
     let consent_manager = Arc::new(ConsentManager::new());
 

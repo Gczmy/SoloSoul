@@ -100,6 +100,19 @@ pub async fn plugin_consent_response(
 }
 
 #[command]
+pub async fn plugin_dialog_response(
+    state: State<'_, AppState>,
+    request_id: String,
+    value: Option<String>,
+) -> Result<(), String> {
+    state
+        .plugin_manager
+        .dialog_response(&request_id, value)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[command]
 pub async fn plugin_list_sessions(
     state: State<'_, AppState>,
 ) -> Result<Vec<PluginSessionInfo>, String> {

@@ -32,7 +32,7 @@ async fn test_hello_world_plugin_runs() {
 
     let session_manager = PluginSessionManager::new();
     let session = session_manager.create("com.solosoul.official.hello-world", 300);
-    let audit = Arc::new(PluginAuditLogger::new());
+    let audit = Arc::new(PluginAuditLogger::default());
     let rate_limiter = Arc::new(solo_soul::plugin::RateLimiter::new(60));
     let consent_manager = Arc::new(ConsentManager::new());
     let field_resolver = Arc::new(FieldResolver::new());

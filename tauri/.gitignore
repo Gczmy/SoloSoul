@@ -36,6 +36,12 @@ src/types/ipc.ts
 *.log
 npm-debug.log*
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # Rust incremental compilation artifacts
 **/incremental/
 
