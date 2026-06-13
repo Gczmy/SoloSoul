@@ -22,7 +22,6 @@ export function HelpPage() {
   const [content, setContent] = useState<GuideContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [indexLoading, setIndexLoading] = useState(true);
-  const [indexLoadingElapsed, setIndexLoadingElapsed] = useState(0);
   const [error, setError] = useState<{ title: string; message: string; isTimeout: boolean } | null>(null);
 
   const formatIndexError = (e: unknown) => {
@@ -53,11 +52,7 @@ export function HelpPage() {
 
   const loadIndex = useCallback(async () => {
     setIndexLoading(true);
-    setIndexLoadingElapsed(0);
     setError(null);
-    const timer = setInterval(() => {
-      setIndexLoadingElapsed((prev) => prev + 1);
-    }, 1000);
     try {
       const idx = await loadGuideIndex();
       setIndex(idx);
@@ -65,7 +60,6 @@ export function HelpPage() {
       setError(formatIndexError(e));
       // error already surfaced in state
     } finally {
-      clearInterval(timer);
       setIndexLoading(false);
     }
   }, []);

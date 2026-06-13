@@ -259,10 +259,10 @@ export function LlmChatPage() {
         updated[lastIdx] = { ...updated[lastIdx], content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}` };
         return updated;
       });
-      llmStore.reset();
+      useLlmStore.getState().reset();
       setIsSending(false);
     }
-  }, [llmStore.streamError, llmStore, t]);
+  }, [llmStore.streamError, t]);
 
   const sendMessage = async () => {
     const text = input.trim();

@@ -64,7 +64,7 @@ function SnapshotCard({
   snap,
   index,
   total,
-  t,
+  t: _t,
   getFieldSensitivity,
   isFieldDeprecated,
   getFieldName,

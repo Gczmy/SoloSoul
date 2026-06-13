@@ -245,7 +245,7 @@ describe('settingsStore', () => {
   });
 
   describe('clearOnVaultLock', () => {
-    it('should reset settings to defaults', () => {
+    it('should preserve UI-only preferences and reset account-related state', () => {
       useSettingsStore.setState({
         settings: {
           ...useSettingsStore.getState().settings,
@@ -255,7 +255,9 @@ describe('settingsStore', () => {
         isLoading: true,
       });
       useSettingsStore.getState().clearOnVaultLock();
-      expect(useSettingsStore.getState().settings.theme).toBe('system');
+      // UI preferences (theme/language/accent/etc.) must survive vault lock
+      expect(useSettingsStore.getState().settings.theme).toBe('dark');
+      // Account-related state should be reset
       expect(useSettingsStore.getState().settings.customPages).toHaveLength(0);
       expect(useSettingsStore.getState().isLoading).toBe(false);
     });

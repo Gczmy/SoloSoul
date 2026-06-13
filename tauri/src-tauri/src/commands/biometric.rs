@@ -40,7 +40,18 @@ fn save_master_key(account_id: &str, key_hex: &str) -> Result<(), String> {
         .collect();
     let path = bio_key_path(account_id);
     std::fs::write(&path, hex::encode(&obf))
-        .map_err(|e| format!("Failed to write {}: {}", path.display(), e))
+        .map_err(|e| format!("Failed to write {}: {}", path.display(), e))?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = std::fs::metadata(&path)
+            .map_err(|e| format!("Failed to stat {}: {}", path.display(), e))?
+            .permissions();
+        perms.set_mode(0o600);
+        std::fs::set_permissions(&path, perms)
+            .map_err(|e| format!("Failed to chmod {}: {}", path.display(), e))?;
+    }
+    Ok(())
 }
 
 fn read_master_key(account_id: &str) -> Result<String, String> {
@@ -180,28 +191,11 @@ fn verify_password(password: &str, account_id: &str) -> Result<(), String> {
         .map_err(|_| "Account not found")?;
     let cfg: crate::services::vault_service::AccountConfig =
         serde_json::from_str(&s).map_err(|_| "Parse error")?;
-    let salt_bytes = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &cfg.salt)
-        .map_err(|_| "Bad salt")?;
-    let salt: [u8; 16] = salt_bytes
-        .as_slice()
-        .try_into()
-        .map_err(|_| "Bad salt len")?;
-    let k = solosoul_crypto::kdf::KdfConfig::balanced();
-    let mk = solosoul_crypto::kdf::derive_key(password, &salt, &k).map_err(|_| "KDF failed")?;
-    let vk = solosoul_crypto::kdf::derive_key(
-        &hex::encode(mk.as_slice()),
-        b"SOLOSOUL_VAULT_VERIFY_v1",
-        &solosoul_crypto::kdf::KdfConfig {
-            memory_kb: 8192,
-            iterations: 1,
-            parallelism: 1,
-        },
-    )
-    .map_err(|_| "Verify failed")?;
-    if hex::encode(vk.as_slice()) != cfg.verify_hash {
-        return Err("Invalid password".into());
+    if crate::commands::auth::verify_password_core(password, &cfg)? {
+        Ok(())
+    } else {
+        Err("Invalid password".into())
     }
-    Ok(())
 }
 
 // IPC Commands

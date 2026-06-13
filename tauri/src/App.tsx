@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
-import { applyTheme, listenForSystemTheme } from '@/lib/theme';
+import { applyTheme, listenForSystemTheme, stopListeningForSystemTheme } from '@/lib/theme';
 import { useWindowSize } from '@/hooks/useWindowSize';
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
@@ -141,6 +141,10 @@ function AppRoutes() {
         defaultDarkTheme: s.defaultDarkTheme,
       });
     });
+
+    return () => {
+      stopListeningForSystemTheme();
+    };
   }, []);
 
   // Listen for vault-locked event — clear sensitive state and redirect

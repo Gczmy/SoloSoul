@@ -2630,7 +2630,7 @@ mod tests {
             PropertyType::Number
         );
         assert_eq!(
-            PropertyType::infer_from_value(&serde_json::json!(3.14), "any"),
+            PropertyType::infer_from_value(&serde_json::json!(std::f64::consts::PI), "any"),
             PropertyType::Number
         );
         assert_eq!(

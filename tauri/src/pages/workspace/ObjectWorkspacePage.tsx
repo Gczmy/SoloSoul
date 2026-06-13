@@ -12,11 +12,10 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
-import { SensitivityBadge, getSensitivityStyle, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
+import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
-import { Pencil, Trash2, Trash, Clock, Paperclip, X, FileText } from 'lucide-react';
+import { Pencil, Trash2, Trash, Clock, Paperclip, FileText } from 'lucide-react';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
@@ -214,7 +213,7 @@ export function ObjectWorkspacePage() {
     invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
       .then(setSnapshotCounts)
       .catch(() => {});
-  }, [visibleObjects.length]);
+  }, [visibleObjects.map(o => o.id).join(',')]);
 
   // Load attachment counts for visible objects
   const refreshAttachmentCounts = useCallback(() => {
@@ -223,7 +222,7 @@ export function ObjectWorkspacePage() {
     invoke<Record<string, number>>('attachment_count_batch', { objectIds: ids })
       .then(setAttachmentCounts)
       .catch(() => {});
-  }, [visibleObjects.length]);
+  }, [visibleObjects.map(o => o.id).join(',')]);
 
   useEffect(() => { refreshAttachmentCounts(); }, [refreshAttachmentCounts]);
 

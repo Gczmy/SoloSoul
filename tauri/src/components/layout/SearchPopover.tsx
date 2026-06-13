@@ -6,7 +6,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';

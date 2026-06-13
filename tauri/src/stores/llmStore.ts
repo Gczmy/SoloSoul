@@ -14,6 +14,7 @@ interface LlmState {
   streamBuffer: string;
   streamError: string | null;
   unlisten: UnlistenFn | null;
+  unlistenPromise: Promise<UnlistenFn> | null;
 
   startStream: (conversationId: string) => void;
   onChunk: (payload: LlmStreamPayload) => void;
@@ -27,25 +28,36 @@ export const useLlmStore = create<LlmState>((set, get) => ({
   streamBuffer: '',
   streamError: null,
   unlisten: null,
+  unlistenPromise: null,
 
   startStream: (conversationId) => {
-    // 如果已有监听器，先取消
-    get().unlisten?.();
+    const state = get();
+    // Cancel any previous listener (sync + pending) before subscribing again
+    state.unlisten?.();
+    if (state.unlistenPromise) {
+      state.unlistenPromise
+        .then((fn) => fn())
+        .catch(() => {});
+    }
 
     set({
       isStreaming: true,
       streamingConvId: conversationId,
       streamBuffer: '',
       streamError: null,
+      unlisten: null,
+      unlistenPromise: null,
     });
 
     // 订阅 Tauri Event
-    listen<LlmStreamPayload>('llm-stream-chunk', (event) => {
+    const pending = listen<LlmStreamPayload>('llm-stream-chunk', (event) => {
       get().onChunk(event.payload);
-    }).then((unlistenFn) => {
-      set({ unlisten: unlistenFn });
+    });
+    set({ unlistenPromise: pending });
+    pending.then((unlistenFn) => {
+      set({ unlisten: unlistenFn, unlistenPromise: null });
     }).catch((err) => {
-      set({ streamError: String(err), isStreaming: false });
+      set({ streamError: String(err), isStreaming: false, unlistenPromise: null });
     });
   },
 
@@ -71,17 +83,29 @@ export const useLlmStore = create<LlmState>((set, get) => ({
   stopStream: () => {
     const state = get();
     state.unlisten?.();
-    set({ isStreaming: false, streamingConvId: null, unlisten: null });
+    if (state.unlistenPromise) {
+      state.unlistenPromise
+        .then((fn) => fn())
+        .catch(() => {});
+    }
+    set({ isStreaming: false, streamingConvId: null, unlisten: null, unlistenPromise: null });
   },
 
   reset: () => {
-    get().unlisten?.();
+    const state = get();
+    state.unlisten?.();
+    if (state.unlistenPromise) {
+      state.unlistenPromise
+        .then((fn) => fn())
+        .catch(() => {});
+    }
     set({
       isStreaming: false,
       streamingConvId: null,
       streamBuffer: '',
       streamError: null,
       unlisten: null,
+      unlistenPromise: null,
     });
   },
 }));

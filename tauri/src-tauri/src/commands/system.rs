@@ -107,13 +107,13 @@ pub async fn download_update(
 
     writer.flush().map_err(|e| format!("Flush error: {}", e))?;
 
-    // Ensure the file is executable on macOS (DMG needs it)
+    // Restrict permissions so the downloaded installer is only readable by the owner
     #[cfg(target_os = "macos")]
     {
         use std::os::unix::fs::PermissionsExt;
         if let Ok(meta) = std::fs::metadata(&dest) {
             let mut perms = meta.permissions();
-            perms.set_mode(0o644);
+            perms.set_mode(0o600);
             let _ = std::fs::set_permissions(&dest, perms);
         }
     }

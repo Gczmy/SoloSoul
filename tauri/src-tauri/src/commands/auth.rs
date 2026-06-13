@@ -79,7 +79,7 @@ pub async fn login(
     Ok(())
 }
 
-fn verify_password_core(
+pub(crate) fn verify_password_core(
     password: &str,
     config: &crate::services::vault_service::AccountConfig,
 ) -> Result<bool, String> {
@@ -108,7 +108,12 @@ fn verify_password_core(
     )
     .map_err(|_| "Verify failed".to_string())?;
 
-    Ok(hex::encode(verify_key.as_slice()) == config.verify_hash)
+    let expected_hash =
+        hex::decode(&config.verify_hash).map_err(|_| "Invalid verify hash".to_string())?;
+    Ok(solosoul_crypto::secure::secure_compare(
+        verify_key.as_slice(),
+        &expected_hash,
+    ))
 }
 
 #[tauri::command]

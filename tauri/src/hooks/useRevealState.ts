@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
 
@@ -16,6 +16,14 @@ const REVEAL_TTL_MS = 60_000; // 1 minute per spec §7
 export function useRevealState() {
   const [revealed, setRevealed] = useState<Record<string, RevealEntry>>({});
   const timersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  // Clear all pending timers on unmount to avoid setState on unmounted components
+  useEffect(() => {
+    return () => {
+      Object.values(timersRef.current).forEach((timer) => clearTimeout(timer));
+      timersRef.current = {};
+    };
+  }, []);
 
   /** Reveal a field for the TTL duration. */
   const reveal = useCallback((fieldId: string) => {

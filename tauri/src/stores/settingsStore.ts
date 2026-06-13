@@ -366,5 +366,25 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
-  clearOnVaultLock: () => set({ settings: DEFAULT_SETTINGS, isLoading: false }),
+  clearOnVaultLock: () =>
+    set((state) => ({
+      // Keep UI-only preferences so lock screen retains user's language/theme/accent
+      settings: {
+        ...DEFAULT_SETTINGS,
+        theme: state.settings.theme,
+        accentColor: state.settings.accentColor,
+        customAccentHex: state.settings.customAccentHex,
+        backgroundType: state.settings.backgroundType,
+        backgroundValue: state.settings.backgroundValue,
+        language: state.settings.language,
+        locale: state.settings.locale,
+        autoLockTimeoutMinutes: state.settings.autoLockTimeoutMinutes,
+        defaultLightTheme: state.settings.defaultLightTheme,
+        defaultDarkTheme: state.settings.defaultDarkTheme,
+        sidebarPosition: state.settings.sidebarPosition,
+        sidebarBottomActions: state.settings.sidebarBottomActions,
+        windowSize: state.settings.windowSize,
+      },
+      isLoading: false,
+    })),
 }));

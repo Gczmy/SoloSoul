@@ -1,3 +1,4 @@
+use crate::commands::auth::verify_password_core;
 use crate::services::vault_service::VaultService;
 use crate::state::AppState;
 use tauri::{Emitter, State};
@@ -44,9 +45,19 @@ pub async fn change_password(
 pub async fn delete_account(
     state: State<'_, AppState>,
     account_id: String,
-    _password: String,
+    password: String,
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
+    // Verify password before allowing destructive account deletion
+    let config_path = svc.base_path().join(&account_id).join("config.json");
+    let content =
+        std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
+    let config: crate::services::vault_service::AccountConfig =
+        serde_json::from_str(&content).map_err(|_| "Parse error".to_string())?;
+    if !verify_password_core(&password, &config)? {
+        return Err("Invalid password".to_string());
+    }
+    drop(config);
     svc.delete_account(&account_id)
 }
 

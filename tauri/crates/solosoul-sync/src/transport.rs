@@ -9,6 +9,7 @@ use std::time::Duration;
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 const MAGIC_PREFIX: &[u8] = b"SOLOSOUL_SYNC_v1";
+const MAX_FRAME_SIZE: usize = 64 * 1024 * 1024; // 64 MB
 
 /// Sync transport session
 #[derive(Debug)]
@@ -73,6 +74,9 @@ impl SyncTransport {
             .read_exact(&mut len_buf)
             .map_err(|e| format!("Read length failed: {}", e))?;
         let len = u32::from_be_bytes(len_buf) as usize;
+        if len > MAX_FRAME_SIZE {
+            return Err(format!("Frame too large: {} > {}", len, MAX_FRAME_SIZE));
+        }
 
         // Read payload
         let mut payload = vec![0u8; len];

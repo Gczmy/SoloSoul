@@ -6,9 +6,38 @@ use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
 use solosoul_vault::{VaultConfig, VaultStore};
 use std::collections::HashMap;
 use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 use std::sync::RwLock;
 use zeroize::{Zeroize, Zeroizing};
+
+#[cfg(unix)]
+fn set_private_dir(path: &Path) -> Result<(), String> {
+    use std::os::unix::fs::PermissionsExt;
+    let meta = fs::metadata(path).map_err(|e| e.to_string())?;
+    let mut perms = meta.permissions();
+    perms.set_mode(0o700);
+    fs::set_permissions(path, perms).map_err(|e| e.to_string())
+}
+
+#[cfg(unix)]
+fn set_private_file(path: &Path) -> Result<(), String> {
+    use std::os::unix::fs::PermissionsExt;
+    let meta = fs::metadata(path).map_err(|e| e.to_string())?;
+    let mut perms = meta.permissions();
+    perms.set_mode(0o600);
+    fs::set_permissions(path, perms).map_err(|e| e.to_string())
+}
+
+#[cfg(not(unix))]
+fn set_private_dir(_path: &Path) -> Result<(), String> {
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn set_private_file(_path: &Path) -> Result<(), String> {
+    Ok(())
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountConfig {
@@ -107,7 +136,10 @@ impl VaultService {
         let list: Vec<&AccountEntry> = cache.values().collect();
         let content = serde_json::to_string_pretty(&list).map_err(|e| e.to_string())?;
         fs::create_dir_all(&self.base_path).map_err(|e| e.to_string())?;
-        fs::write(self.accounts_file(), content).map_err(|e| e.to_string())?;
+        set_private_dir(&self.base_path)?;
+        let file = self.accounts_file();
+        fs::write(&file, content).map_err(|e| e.to_string())?;
+        set_private_file(&file)?;
         Ok(())
     }
 
@@ -202,6 +234,7 @@ impl VaultService {
 
         let dir = self.account_dir(&account_id);
         fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+        set_private_dir(&dir)?;
 
         let now = chrono::Utc::now().to_rfc3339();
         let config_data = AccountConfig {
@@ -220,8 +253,10 @@ impl VaultService {
             last_operation_at: None,
             last_operation_desc: None,
         };
+        let config_path = self.config_path(&account_id);
         let config_json = serde_json::to_string_pretty(&config_data).map_err(|e| e.to_string())?;
-        fs::write(self.config_path(&account_id), config_json).map_err(|e| e.to_string())?;
+        fs::write(&config_path, config_json).map_err(|e| e.to_string())?;
+        set_private_file(&config_path)?;
 
         // Add to cache
         let entry = AccountEntry {

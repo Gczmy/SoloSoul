@@ -46,6 +46,12 @@ pub async fn decrypt_with_key(key: Vec<u8>, ciphertext: Vec<u8>) -> Result<Vec<u
     solosoul_crypto::aes::decrypt_blob(&key_arr, &ciphertext).map(|b| b.to_vec())
 }
 
+/// Maximum Argon2 parameters accepted from the frontend to prevent DoS.
+const MAX_MEMORY_KB: u32 = 64 * 1024;
+const MAX_ITERATIONS: u32 = 10;
+const MAX_PARALLELISM: u32 = 16;
+const MAX_SALT_LENGTH: u32 = 64;
+
 /// Derive a key from password and salt using Argon2id
 #[tauri::command]
 pub async fn derive_key(
@@ -55,6 +61,15 @@ pub async fn derive_key(
     iterations: u32,
     parallelism: u32,
 ) -> Result<Vec<u8>, String> {
+    if memory_kb > MAX_MEMORY_KB {
+        return Err(format!("memory_kb exceeds maximum {}", MAX_MEMORY_KB));
+    }
+    if iterations > MAX_ITERATIONS {
+        return Err(format!("iterations exceeds maximum {}", MAX_ITERATIONS));
+    }
+    if parallelism > MAX_PARALLELISM {
+        return Err(format!("parallelism exceeds maximum {}", MAX_PARALLELISM));
+    }
     let config = solosoul_crypto::KdfConfig {
         memory_kb,
         iterations,
@@ -69,6 +84,9 @@ pub async fn derive_key(
 #[tauri::command]
 pub async fn generate_salt(length: u32) -> Vec<u8> {
     use rand::RngCore;
+    if length > MAX_SALT_LENGTH {
+        return vec![];
+    }
     let mut salt = vec![0u8; length as usize];
     rand::thread_rng().fill_bytes(&mut salt);
     salt
