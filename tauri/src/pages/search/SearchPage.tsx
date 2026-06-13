@@ -35,7 +35,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
     if (idx > i) parts.push(text.slice(i, idx));
     parts.push(
       <mark
-        key={idx}
+        key={`${idx}-${query}`}
         style={{
           fontWeight: 700,
           color: 'var(--accent-primary)',

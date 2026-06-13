@@ -113,7 +113,7 @@ function HighlightText({ text, tokens }: { text: string; tokens: string[] }) {
         if (isMatch) {
           return (
             <mark
-              key={i}
+              key={`${i}-${tokens.join('-')}`}
               style={{
                 background: 'rgba(91, 124, 153, 0.25)',
                 color: 'var(--text-primary)',
@@ -126,7 +126,7 @@ function HighlightText({ text, tokens }: { text: string; tokens: string[] }) {
             </mark>
           );
         }
-        return <span key={i}>{part}</span>;
+        return <span key={`${i}-${tokens.join('-')}`}>{part}</span>;
       })}
     </>
   );
