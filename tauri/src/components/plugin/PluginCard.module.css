@@ -106,7 +106,9 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: filter 0.15s, background 0.15s;
+  transition:
+    filter 0.15s,
+    background 0.15s;
 }
 
 .actions button:disabled {

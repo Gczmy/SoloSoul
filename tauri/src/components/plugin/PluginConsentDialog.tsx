@@ -30,7 +30,9 @@ export function PluginConsentDialog({
   return (
     <div className={styles.overlay}>
       <div className={styles.dialog}>
-        <h3 className={styles.title}>{t('consent_title', { defaultValue: 'Plugin Requests Data Access' })}</h3>
+        <h3 className={styles.title}>
+          {t('consent_title', { defaultValue: 'Plugin Requests Data Access' })}
+        </h3>
         <p className={styles.subtitle}>
           {t('consent_subtitle', { pluginName, defaultValue: `${pluginName} requests access to:` })}
         </p>
@@ -54,7 +56,10 @@ export function PluginConsentDialog({
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.denyBtn} onClick={() => requests.forEach((r) => onDeny(r.requestId))}>
+          <button
+            className={styles.denyBtn}
+            onClick={() => requests.forEach((r) => onDeny(r.requestId))}
+          >
             {t('deny_all', { defaultValue: 'Deny All' })}
           </button>
           <button

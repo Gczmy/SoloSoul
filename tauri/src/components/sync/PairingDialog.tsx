@@ -57,9 +57,7 @@ export function PairingDialog({ isOpen, peer, onTrust, onIgnore }: PairingDialog
             <Smartphone size={20} style={{ color: 'var(--accent-primary)' }} />
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 600 }}>
-              {peer.name || peer.id}
-            </div>
+            <div style={{ fontSize: 15, fontWeight: 600 }}>{peer.name || peer.id}</div>
             <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
               {peer.addr || 'offline'}
             </div>
@@ -69,7 +67,8 @@ export function PairingDialog({ isOpen, peer, onTrust, onIgnore }: PairingDialog
         <div>
           <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 6 }}>
             {t('settings:sync_pairing_verify_prompt', {
-              defaultValue: 'Verify the fingerprint below matches the one shown on the other device:',
+              defaultValue:
+                'Verify the fingerprint below matches the one shown on the other device:',
             })}
           </div>
           <div
@@ -83,7 +82,10 @@ export function PairingDialog({ isOpen, peer, onTrust, onIgnore }: PairingDialog
               color: 'var(--text-primary)',
             }}
           >
-            {peer.fingerprint || t('settings:sync_pairing_no_fingerprint', { defaultValue: 'No fingerprint available' })}
+            {peer.fingerprint ||
+              t('settings:sync_pairing_no_fingerprint', {
+                defaultValue: 'No fingerprint available',
+              })}
           </div>
         </div>
 

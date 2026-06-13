@@ -12,9 +12,7 @@ export function PluginResultPanel({ results }: PluginResultPanelProps) {
 
   if (results.length === 0) {
     return (
-      <div className={styles.empty}>
-        {t('result_empty', { defaultValue: 'No result yet' })}
-      </div>
+      <div className={styles.empty}>{t('result_empty', { defaultValue: 'No result yet' })}</div>
     );
   }
 

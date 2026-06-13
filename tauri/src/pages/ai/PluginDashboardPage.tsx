@@ -49,8 +49,7 @@ export function PluginDashboardPage() {
   } = usePluginStore();
 
   const pluginOutputs = useMemo(
-    () =>
-      Object.entries(runningPlugins).sort(([, a], [, b]) => b.startTime - a.startTime),
+    () => Object.entries(runningPlugins).sort(([, a], [, b]) => b.startTime - a.startTime),
     [runningPlugins],
   );
 
@@ -122,7 +121,7 @@ export function PluginDashboardPage() {
     const name = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
     const params = info.registryEntry.params?.length
       ? info.registryEntry.params
-      : installedMap[pluginId]?.params ?? [];
+      : (installedMap[pluginId]?.params ?? []);
     if (params.length > 0) {
       setPendingRun({ pluginId, pluginName: name, params });
       return;
@@ -222,7 +221,9 @@ export function PluginDashboardPage() {
                   key={info.pluginId}
                   info={info}
                   manifest={installedMap[info.pluginId]}
-                  isRunning={!!runningPlugins[info.pluginId] && !runningPlugins[info.pluginId].completed}
+                  isRunning={
+                    !!runningPlugins[info.pluginId] && !runningPlugins[info.pluginId].completed
+                  }
                   onInstall={() => installPlugin(info.pluginId, info.registryEntry.latestVersion)}
                   onUpdate={() => updatePlugin(info.pluginId)}
                   onUninstall={() => uninstallPlugin(info.pluginId)}
@@ -266,9 +267,7 @@ export function PluginDashboardPage() {
                 </div>
               ))}
             </div>
-            {plugin.error && (
-              <div className={styles.errorHint}>{plugin.error}</div>
-            )}
+            {plugin.error && <div className={styles.errorHint}>{plugin.error}</div>}
             <PluginResultPanel results={plugin.results} />
           </Card>
         ))}
@@ -287,8 +286,12 @@ export function PluginDashboardPage() {
         <PluginDialog
           pluginName={pendingDialogs[0].pluginName}
           request={pendingDialogs[0]}
-          onSubmit={(value) => resolveDialog(pendingDialogs[0].pluginId, pendingDialogs[0].requestId, value)}
-          onCancel={() => resolveDialog(pendingDialogs[0].pluginId, pendingDialogs[0].requestId, undefined)}
+          onSubmit={(value) =>
+            resolveDialog(pendingDialogs[0].pluginId, pendingDialogs[0].requestId, value)
+          }
+          onCancel={() =>
+            resolveDialog(pendingDialogs[0].pluginId, pendingDialogs[0].requestId, undefined)
+          }
         />
       )}
 
@@ -323,7 +326,9 @@ function PluginLogPanel() {
     <Card className={styles.logPanel}>
       <h4>{t('plugin:audit_log', { defaultValue: 'Audit Log' })}</h4>
       {logs.length === 0 ? (
-        <div className={styles.empty}>{t('plugin:no_logs', { defaultValue: 'No audit logs yet' })}</div>
+        <div className={styles.empty}>
+          {t('plugin:no_logs', { defaultValue: 'No audit logs yet' })}
+        </div>
       ) : (
         <div className={styles.auditList}>
           {logs.map((log, i) => (

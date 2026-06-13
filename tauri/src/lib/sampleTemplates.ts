@@ -58,7 +58,13 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     name: '护照',
     properties: [
       { id: 'fullName', name: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
-      { id: 'passportNumber', name: '护照号码', type: 'text', sensitivityLevel: 'critical', required: true },
+      {
+        id: 'passportNumber',
+        name: '护照号码',
+        type: 'text',
+        sensitivityLevel: 'critical',
+        required: true,
+      },
       { id: 'nationality', name: '国籍', type: 'text', sensitivityLevel: 'public' },
       { id: 'dateOfBirth', name: '出生日期', type: 'date', sensitivityLevel: 'internal' },
       { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
@@ -142,7 +148,13 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     icon: 'identity',
     name: 'Identity',
     properties: [
-      { id: 'fullName', name: 'Full Name', type: 'text', sensitivityLevel: 'public', required: true },
+      {
+        id: 'fullName',
+        name: 'Full Name',
+        type: 'text',
+        sensitivityLevel: 'public',
+        required: true,
+      },
       { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
       { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
       { id: 'idNumber', name: 'ID Number', type: 'text', sensitivityLevel: 'critical' },
@@ -157,7 +169,13 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     icon: 'idCard',
     name: 'ID Card',
     properties: [
-      { id: 'fullName', name: 'Full Name', type: 'text', sensitivityLevel: 'public', required: true },
+      {
+        id: 'fullName',
+        name: 'Full Name',
+        type: 'text',
+        sensitivityLevel: 'public',
+        required: true,
+      },
       { id: 'idNumber', name: 'ID Number', type: 'text', sensitivityLevel: 'critical' },
       { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
       { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
@@ -171,8 +189,20 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     icon: 'passport',
     name: 'Passport',
     properties: [
-      { id: 'fullName', name: 'Full Name', type: 'text', sensitivityLevel: 'public', required: true },
-      { id: 'passportNumber', name: 'Passport Number', type: 'text', sensitivityLevel: 'critical', required: true },
+      {
+        id: 'fullName',
+        name: 'Full Name',
+        type: 'text',
+        sensitivityLevel: 'public',
+        required: true,
+      },
+      {
+        id: 'passportNumber',
+        name: 'Passport Number',
+        type: 'text',
+        sensitivityLevel: 'critical',
+        required: true,
+      },
       { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
       { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
       { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },

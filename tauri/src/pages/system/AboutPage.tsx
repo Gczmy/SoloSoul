@@ -298,9 +298,7 @@ export function AboutPage() {
                         </button>
                       )}
                       {downloadError && (
-                        <div style={{ fontSize: 12, color: 'var(--error)' }}>
-                          {downloadError}
-                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--error)' }}>{downloadError}</div>
                       )}
                     </div>
                   </>

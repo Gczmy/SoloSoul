@@ -93,7 +93,8 @@ export function PluginDialog({ pluginName, request, onSubmit, onCancel }: Plugin
         </div>
 
         <p className={styles.subtitle}>
-          {message || t('dialog_subtitle', { pluginName, defaultValue: `${pluginName} is asking:` })}
+          {message ||
+            t('dialog_subtitle', { pluginName, defaultValue: `${pluginName} is asking:` })}
         </p>
 
         {config?.type === 'input' && (
@@ -113,7 +114,10 @@ export function PluginDialog({ pluginName, request, onSubmit, onCancel }: Plugin
               const isSelected = selected.has(item.id);
               const multiple = config.type === 'checkbox_list';
               return (
-                <label key={item.id} className={`${styles.option} ${isSelected ? styles.optionSelected : ''}`}>
+                <label
+                  key={item.id}
+                  className={`${styles.option} ${isSelected ? styles.optionSelected : ''}`}
+                >
                   <input
                     type={multiple ? 'checkbox' : 'radio'}
                     name={`dialog-${request.requestId}`}

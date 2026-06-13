@@ -105,13 +105,17 @@ export function PluginCard({
         {installed && info.isCompatible && (
           <button className={styles.runBtn} onClick={onRun} disabled={isRunning}>
             {isRunning ? <Loader2 size={14} className={styles.spin} /> : <Play size={14} />}
-            {isRunning ? t('status_running', { defaultValue: 'Running' }) : t('run', { defaultValue: 'Run' })}
+            {isRunning
+              ? t('status_running', { defaultValue: 'Running' })
+              : t('run', { defaultValue: 'Run' })}
           </button>
         )}
       </div>
 
       {!info.isCompatible && (
-        <p className={styles.hint}>{t('incompatible_hint', { defaultValue: 'Update SoloSoul to use this plugin' })}</p>
+        <p className={styles.hint}>
+          {t('incompatible_hint', { defaultValue: 'Update SoloSoul to use this plugin' })}
+        </p>
       )}
     </div>
   );

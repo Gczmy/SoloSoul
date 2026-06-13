@@ -20,9 +20,7 @@ import { useSyncStore } from '@/stores/syncStore';
 import type { SyncConflict } from '@/lib/ipc';
 
 function formatNodeId(bytes: number[]): string {
-  return bytes
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+  return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 function formatHlc(hlc: SyncConflict['local_hlc']): string {
@@ -41,9 +39,8 @@ export function SyncPage() {
 
   const pendingPeer = useMemo(() => {
     return (
-      store.connectedPeers.find(
-        (p) => !p.trusted && !ignoredPeerIds.has(p.id) && p.fingerprint,
-      ) || null
+      store.connectedPeers.find((p) => !p.trusted && !ignoredPeerIds.has(p.id) && p.fingerprint) ||
+      null
     );
   }, [store.connectedPeers, ignoredPeerIds]);
 
@@ -145,7 +142,9 @@ export function SyncPage() {
                 wordBreak: 'break-all',
               }}
             >
-              <strong>{t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:</strong>{' '}
+              <strong>
+                {t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:
+              </strong>{' '}
               {store.localFingerprint}
             </div>
           )}
@@ -257,7 +256,8 @@ export function SyncPage() {
                     {result.conflicts.length > 0 && (
                       <div style={{ marginTop: 6 }}>
                         <div style={{ color: '#c0392b', marginBottom: 4 }}>
-                          {t('settings:sync_conflicts', { defaultValue: 'Conflicts' })}: {result.conflicts.length}
+                          {t('settings:sync_conflicts', { defaultValue: 'Conflicts' })}:{' '}
+                          {result.conflicts.length}
                         </div>
                         <ul
                           style={{
@@ -268,8 +268,15 @@ export function SyncPage() {
                         >
                           {result.conflicts.map((c, cidx) => (
                             <li key={cidx}>
-                              {c.table}/{c.id} — {t('settings:sync_winner', { defaultValue: 'winner' })}: {c.winner}
-                              <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-tertiary)' }}>
+                              {c.table}/{c.id} —{' '}
+                              {t('settings:sync_winner', { defaultValue: 'winner' })}: {c.winner}
+                              <div
+                                style={{
+                                  fontFamily: 'monospace',
+                                  fontSize: 11,
+                                  color: 'var(--text-tertiary)',
+                                }}
+                              >
                                 local: {formatHlc(c.local_hlc)} / remote: {formatHlc(c.remote_hlc)}
                               </div>
                             </li>

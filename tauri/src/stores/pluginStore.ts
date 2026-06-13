@@ -47,7 +47,11 @@ interface PluginState {
   installPlugin: (pluginId: string, version: string) => Promise<void>;
   updatePlugin: (pluginId: string) => Promise<void>;
   uninstallPlugin: (pluginId: string) => Promise<void>;
-  runPlugin: (pluginId: string, pluginName: string, params?: Record<string, string>) => Promise<void>;
+  runPlugin: (
+    pluginId: string,
+    pluginName: string,
+    params?: Record<string, string>,
+  ) => Promise<void>;
   stopPlugin: (pluginId: string) => void;
   clearPluginOutput: (pluginId: string) => void;
   resolveDialog: (pluginId: string, requestId: string, value?: string) => Promise<void>;

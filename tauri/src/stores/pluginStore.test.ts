@@ -10,18 +10,15 @@ describe('pluginStore persistence', () => {
 
   beforeEach(() => {
     storage = {};
-    vi.stubGlobal(
-      'localStorage',
-      {
-        getItem: (key: string) => storage[key] ?? null,
-        setItem: (key: string, value: string) => {
-          storage[key] = value;
-        },
-        removeItem: (key: string) => {
-          delete storage[key];
-        },
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => storage[key] ?? null,
+      setItem: (key: string, value: string) => {
+        storage[key] = value;
       },
-    );
+      removeItem: (key: string) => {
+        delete storage[key];
+      },
+    });
   });
 
   afterEach(() => {

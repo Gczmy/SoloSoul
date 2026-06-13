@@ -14,54 +14,26 @@ const mockPeer: SyncPeer = {
 
 describe('PairingDialog', () => {
   it('does not render when closed', () => {
-    render(
-      <PairingDialog
-        isOpen={false}
-        peer={mockPeer}
-        onTrust={vi.fn()}
-        onIgnore={vi.fn()}
-      />,
-    );
+    render(<PairingDialog isOpen={false} peer={mockPeer} onTrust={vi.fn()} onIgnore={vi.fn()} />);
     expect(screen.queryByText(mockPeer.fingerprint)).not.toBeInTheDocument();
   });
 
   it('renders peer name and fingerprint when open', () => {
-    render(
-      <PairingDialog
-        isOpen={true}
-        peer={mockPeer}
-        onTrust={vi.fn()}
-        onIgnore={vi.fn()}
-      />,
-    );
+    render(<PairingDialog isOpen={true} peer={mockPeer} onTrust={vi.fn()} onIgnore={vi.fn()} />);
     expect(screen.getByText(mockPeer.name)).toBeInTheDocument();
     expect(screen.getByText(mockPeer.fingerprint)).toBeInTheDocument();
   });
 
   it('calls onTrust when clicking Trust & Pair', () => {
     const onTrust = vi.fn();
-    render(
-      <PairingDialog
-        isOpen={true}
-        peer={mockPeer}
-        onTrust={onTrust}
-        onIgnore={vi.fn()}
-      />,
-    );
+    render(<PairingDialog isOpen={true} peer={mockPeer} onTrust={onTrust} onIgnore={vi.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: /trust & pair/i }));
     expect(onTrust).toHaveBeenCalledTimes(1);
   });
 
   it('calls onIgnore when clicking Ignore', () => {
     const onIgnore = vi.fn();
-    render(
-      <PairingDialog
-        isOpen={true}
-        peer={mockPeer}
-        onTrust={vi.fn()}
-        onIgnore={onIgnore}
-      />,
-    );
+    render(<PairingDialog isOpen={true} peer={mockPeer} onTrust={vi.fn()} onIgnore={onIgnore} />);
     fireEvent.click(screen.getByRole('button', { name: /ignore/i }));
     expect(onIgnore).toHaveBeenCalledTimes(1);
   });

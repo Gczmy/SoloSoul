@@ -84,9 +84,7 @@ describe('PluginResultPanel', () => {
         {
           type: 'key_value',
           title: 'Summary',
-          pairs: [
-            { key: 'Name', value: 'Alice' },
-          ],
+          pairs: [{ key: 'Name', value: 'Alice' }],
         },
       ];
       render(<PluginResultPanel results={results} />);
