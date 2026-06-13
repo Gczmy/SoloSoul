@@ -21,7 +21,6 @@ use std::path::PathBuf;
 pub struct VaultConfig {
     pub path: PathBuf,
     pub account_id: String,
-    pub sqlcipher_key: Option<Vec<u8>>,
     /// 数据加密密钥（Vault 会话密钥）。
     /// 若未设置，VaultStore 拒绝访问任何敏感数据。
     pub data_key: Option<[u8; 32]>,
@@ -32,7 +31,6 @@ impl VaultConfig {
         Self {
             account_id: account_id.to_string(),
             path,
-            sqlcipher_key: None,
             data_key: None,
         }
     }
