@@ -1,5 +1,35 @@
 ## [Unreleased]
 
+## [2.1.0] - 2026-06-12
+
+### Added
+
+- First-run onboarding tutorial with completion persistence.
+- In-app update checker and downloader on the About page.
+- Windows NSIS installer with language selector (Simplified Chinese / English) and branded copy.
+- 8 sample object templates in Template Manager.
+- Critical-field default sensitivity for system-recommended templates.
+- Extended icon system with direct icon selection for new pages.
+- Audit logs for password login, Touch ID/Face ID unlock, and critical field access with object details.
+- Window size persistence across launches (plaintext UI prefs + encrypted account prefs).
+
+### Changed
+
+- Search result cards now sort sensitivity badges and highlight matches with the accent color.
+- Search result click opens the object detail modal instead of the editor.
+- macOS biometric authentication rewritten with objc2 FFI (no Xcode CLT required).
+- Windows system title bar now follows the app theme color.
+- Customizable sidebar bottom action buttons.
+
+### Fixed
+
+- Main content area disappearing as a solid color background.
+- Sidebar scrollbar visibility and layout shifts on Windows.
+- Window size not restored after app restart.
+- NSIS uninstaller re-entering the install flow after uninstall.
+- macOS traffic-light close button not responding.
+- Various Windows compilation and UI issues.
+
 ## [1.8.0] - 2026-06-03
 
 ### Fixed
