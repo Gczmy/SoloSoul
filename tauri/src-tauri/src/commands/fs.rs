@@ -2,8 +2,33 @@ use crate::state::AppState;
 use serde::Serialize;
 use std::fs::{self as fs_std, File};
 use std::io::{Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tauri::State;
+
+/// R012: reject paths that contain parent-dir references, which could escape the
+/// intended directory. Used for commands that operate on user-selected files.
+fn reject_traversal(path: &str) -> Result<PathBuf, String> {
+    let p = Path::new(path);
+    if p.components()
+        .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        return Err("Path traversal is not allowed".to_string());
+    }
+    Ok(p.to_path_buf())
+}
+
+/// R012: resolve a path relative to a base directory and ensure the resolved
+/// location stays within that base.
+fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
+    let p = reject_traversal(path)?;
+    let abs = if p.is_absolute() { p } else { base.join(p) };
+    let base_canon = base.canonicalize().map_err(|e| e.to_string())?;
+    let target_canon = abs.canonicalize().unwrap_or_else(|_| abs.clone());
+    if !target_canon.starts_with(&base_canon) {
+        return Err("Path is outside the allowed directory".to_string());
+    }
+    Ok(abs)
+}
 
 /// Encrypt a file using chunked AES-256-GCM (SOLO blob v3)
 #[tauri::command]
@@ -19,11 +44,15 @@ pub async fn encrypt_file(
         .try_into()
         .map_err(|_| "Invalid key")?;
 
+    let base = svc.base_path();
+    let src = resolve_within(base, &src_path)?;
+    let dst = resolve_within(base, &dst_path)?;
+
     let chunk_size = 1024 * 1024; // 1MB chunks
-    let src = fs_std::read(&src_path).map_err(|e| format!("Read failed: {}", e))?;
-    let blob = solosoul_crypto::aes::encrypt_chunked_blob(&key, &src, chunk_size)
+    let data = fs_std::read(&src).map_err(|e| format!("Read failed: {}", e))?;
+    let blob = solosoul_crypto::aes::encrypt_chunked_blob(&key, &data, chunk_size)
         .map_err(|e| format!("Encryption failed: {}", e))?;
-    fs_std::write(&dst_path, &blob).map_err(|e| format!("Write failed: {}", e))?;
+    fs_std::write(&dst, &blob).map_err(|e| format!("Write failed: {}", e))?;
     Ok(())
 }
 
@@ -41,7 +70,11 @@ pub async fn decrypt_file(
         .try_into()
         .map_err(|_| "Invalid key")?;
 
-    let blob = fs_std::read(&src_path).map_err(|e| format!("Read failed: {}", e))?;
+    let base = svc.base_path();
+    let src = resolve_within(base, &src_path)?;
+    let dst = resolve_within(base, &dst_path)?;
+
+    let blob = fs_std::read(&src).map_err(|e| format!("Read failed: {}", e))?;
 
     // Detect format
     let plaintext = if blob.len() >= 5 && &blob[0..4] == b"SOLO" && blob[4] == 0x03 {
@@ -52,7 +85,7 @@ pub async fn decrypt_file(
             .map_err(|e| format!("Decryption failed: {}", e))?
     };
 
-    fs_std::write(&dst_path, &plaintext).map_err(|e| format!("Write failed: {}", e))?;
+    fs_std::write(&dst, &plaintext).map_err(|e| format!("Write failed: {}", e))?;
     Ok(())
 }
 
@@ -62,11 +95,14 @@ pub async fn create_zip_package(src_dir: String, dst_path: String) -> Result<(),
     use zip::write::SimpleFileOptions;
     use zip::ZipWriter;
 
-    let file = File::create(&dst_path).map_err(|e| format!("Failed to create ZIP: {}", e))?;
+    let src = reject_traversal(&src_dir)?;
+    let dst = reject_traversal(&dst_path)?;
+
+    let file = File::create(&dst).map_err(|e| format!("Failed to create ZIP: {}", e))?;
     let mut zip = ZipWriter::new(file);
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
-    let walkdir = walkdir::WalkDir::new(&src_dir);
+    let walkdir = walkdir::WalkDir::new(&src);
     let mut buffer = Vec::new();
 
     for entry in walkdir.into_iter() {
@@ -98,17 +134,20 @@ pub async fn extract_zip_package(zip_path: String, dst_dir: String) -> Result<Ve
     use std::io::copy;
     use zip::ZipArchive;
 
-    let file = File::open(&zip_path).map_err(|e| format!("Failed to open ZIP: {}", e))?;
+    let zip = reject_traversal(&zip_path)?;
+    let dst = reject_traversal(&dst_dir)?;
+
+    let file = File::open(&zip).map_err(|e| format!("Failed to open ZIP: {}", e))?;
     let mut archive = ZipArchive::new(file).map_err(|e| format!("Failed to read ZIP: {}", e))?;
 
-    fs_std::create_dir_all(&dst_dir).map_err(|e| format!("Create dir error: {}", e))?;
+    fs_std::create_dir_all(&dst).map_err(|e| format!("Create dir error: {}", e))?;
 
     let mut extracted = Vec::new();
     for i in 0..archive.len() {
         let mut file = archive
             .by_index(i)
             .map_err(|e| format!("ZIP index error: {}", e))?;
-        let outpath = std::path::Path::new(&dst_dir).join(file.mangled_name());
+        let outpath = dst.join(file.mangled_name());
 
         if file.name().ends_with('/') {
             fs_std::create_dir_all(&outpath).map_err(|e| format!("Create dir error: {}", e))?;
@@ -140,7 +179,10 @@ pub async fn inspect_backup(
         .try_into()
         .map_err(|_| "Invalid key")?;
 
-    let encrypted = fs_std::read(&backup_path).map_err(|e| format!("Read backup failed: {}", e))?;
+    let base = svc.base_path();
+    let backup = resolve_within(base, &backup_path)?;
+
+    let encrypted = fs_std::read(&backup).map_err(|e| format!("Read backup failed: {}", e))?;
     let plaintext = solosoul_crypto::aes::decrypt_blob(&key, &encrypted)
         .map_err(|e| format!("Decryption failed: {}", e))?;
     let json_str =
@@ -184,12 +226,12 @@ pub struct ScannedFile {
 
 #[tauri::command]
 pub async fn fs_scan_directory(path: String) -> Result<Vec<ScannedFile>, String> {
-    let dir = Path::new(&path);
+    let dir = reject_traversal(&path)?;
     if !dir.is_dir() {
         return Err("Not a directory".to_string());
     }
     let mut files = Vec::new();
-    scan_dir_recursive(dir, &mut files, 3)?; // max depth 3
+    scan_dir_recursive(&dir, &mut files, 3)?; // max depth 3
     Ok(files)
 }
 
@@ -228,21 +270,20 @@ fn scan_dir_recursive(
 
 #[tauri::command]
 pub async fn fs_get_file_size(path: String) -> Result<u64, String> {
-    let meta = std::fs::metadata(&path).map_err(|e| format!("Read: {}", e))?;
+    let p = reject_traversal(&path)?;
+    let meta = std::fs::metadata(&p).map_err(|e| format!("Read: {}", e))?;
     Ok(meta.len())
 }
 
 #[tauri::command]
 pub async fn fs_read_file_as_data_url(path: String) -> Result<String, String> {
     use std::io::Read;
-    let mut file = std::fs::File::open(&path).map_err(|e| format!("Open: {}", e))?;
+    let p = reject_traversal(&path)?;
+    let mut file = std::fs::File::open(&p).map_err(|e| format!("Open: {}", e))?;
     let mut buf = Vec::new();
     file.read_to_end(&mut buf)
         .map_err(|e| format!("Read: {}", e))?;
-    let ext = std::path::Path::new(&path)
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("");
+    let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("");
     let mime = match ext.to_lowercase().as_str() {
         "png" => "image/png",
         "jpg" | "jpeg" => "image/jpeg",
