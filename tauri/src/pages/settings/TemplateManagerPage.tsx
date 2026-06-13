@@ -58,6 +58,22 @@ const PROPERTY_TYPES: PropertyType[] = [
   'file',
 ];
 
+// F023: shared field-type icon map to avoid repeating the same mapping in JSX.
+const FIELD_TYPE_ICONS: Record<string, React.ReactNode> = {
+  text: <Type size={14} />,
+  multiline: <AlignLeft size={14} />,
+  number: <Hash size={14} />,
+  date: <Calendar size={14} />,
+  datetime: <Clock size={14} />,
+  boolean: <CheckSquare size={14} />,
+  select: <List size={14} />,
+  multiselect: <ListChecks size={14} />,
+  url: <Link size={14} />,
+  email: <Mail size={14} />,
+  phone: <Phone size={14} />,
+  file: <File size={14} />,
+};
+
 const SENSITIVITY_LEVELS: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 
 const SYSTEM_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;
@@ -807,10 +823,9 @@ export function TemplateManagerPage() {
                 }}
               >
                 {editProperties
-                  .filter((p) => !p.deprecatedAt)
-                  .map((prop) => {
-                    const idx = editProperties.findIndex((p) => p.id === prop.id);
-                    return (
+                  .map((prop, idx) => ({ prop, idx }))
+                  .filter(({ prop }) => !prop.deprecatedAt)
+                  .map(({ prop, idx }) => (
                       <div
                         key={prop.id}
                         style={{
@@ -922,8 +937,7 @@ export function TemplateManagerPage() {
                           <Trash2 size={14} />
                         </button>
                       </div>
-                    );
-                  })}
+                  ))}
               </div>
 
               {/* Deprecated fields */}
@@ -971,27 +985,13 @@ export function TemplateManagerPage() {
                       }}
                     >
                       {editProperties
-                        .filter((p) => p.deprecatedAt)
-                        .map((prop) => {
-                          const idx = editProperties.findIndex((p) => p.id === prop.id);
+                        .map((prop, idx) => ({ prop, idx }))
+                        .filter(({ prop }) => prop.deprecatedAt)
+                        .map(({ prop, idx }) => {
                           const usage = fieldUsageMap[prop.id];
                           const cleanable = usage
                             ? usage.active === 0 && usage.softDeleted === 0
                             : false;
-                          const iconMap: Record<string, React.ReactNode> = {
-                            text: <Type size={14} />,
-                            multiline: <AlignLeft size={14} />,
-                            number: <Hash size={14} />,
-                            date: <Calendar size={14} />,
-                            datetime: <Clock size={14} />,
-                            boolean: <CheckSquare size={14} />,
-                            select: <List size={14} />,
-                            multiselect: <ListChecks size={14} />,
-                            url: <Link size={14} />,
-                            email: <Mail size={14} />,
-                            phone: <Phone size={14} />,
-                            file: <File size={14} />,
-                          };
                           return (
                             <div
                               key={prop.id}
@@ -1015,7 +1015,7 @@ export function TemplateManagerPage() {
                                     alignItems: 'center',
                                   }}
                                 >
-                                  {iconMap[prop.type] || iconMap.text}
+                                  {FIELD_TYPE_ICONS[prop.type] || FIELD_TYPE_ICONS.text}
                                 </span>
                                 <span
                                   style={{
@@ -1246,22 +1246,7 @@ export function TemplateManagerPage() {
               </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {detailTemplate.properties.map((prop) => {
-                  const iconMap: Record<string, React.ReactNode> = {
-                    text: <Type size={14} />,
-                    multiline: <AlignLeft size={14} />,
-                    number: <Hash size={14} />,
-                    date: <Calendar size={14} />,
-                    datetime: <Clock size={14} />,
-                    boolean: <CheckSquare size={14} />,
-                    select: <List size={14} />,
-                    multiselect: <ListChecks size={14} />,
-                    url: <Link size={14} />,
-                    email: <Mail size={14} />,
-                    phone: <Phone size={14} />,
-                    file: <File size={14} />,
-                  };
-                  return (
+                {detailTemplate.properties.map((prop) => (
                     <div
                       key={prop.id}
                       style={{
@@ -1292,7 +1277,7 @@ export function TemplateManagerPage() {
                             alignItems: 'center',
                           }}
                         >
-                          {iconMap[prop.type] || iconMap.text}
+                          {FIELD_TYPE_ICONS[prop.type] || FIELD_TYPE_ICONS.text}
                         </span>
                         <span
                           style={{
@@ -1312,8 +1297,7 @@ export function TemplateManagerPage() {
                         {prop.deprecatedAt && <DeprecatedBadge />}
                       </div>
                     </div>
-                  );
-                })}
+                ))}
               </div>
             )}
 
