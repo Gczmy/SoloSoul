@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { PhysicalSize } from '@tauri-apps/api/dpi';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
@@ -194,9 +196,21 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (Array.isArray(prefs.customPages)) {
         parsed.customPages = prefs.customPages as CustomPage[];
       }
-      // Window size is intentionally stored as a plaintext UI preference (not encrypted
-      // account data) so it can be restored before login. It is managed by
-      // useWindowSize.ts and restoreWindowSize(), so we do not read or apply it here.
+      // Window size: plaintext UI preference is the source of truth for the login
+      // window and is restored by restoreWindowSize(). After Vault unlock, apply
+      // the account-specific encrypted size once without overwriting the global
+      // plaintext cache, so the next cold start still uses the fallback size.
+      const encryptedWindowSize = prefs.windowSize as WindowSize | undefined;
+      if (encryptedWindowSize && typeof encryptedWindowSize.width === 'number' && typeof encryptedWindowSize.height === 'number') {
+        parsed.windowSize = encryptedWindowSize;
+        try {
+          const window = getCurrentWebviewWindow();
+          const current = await window.innerSize();
+          if (Math.abs(current.width - encryptedWindowSize.width) > 1 || Math.abs(current.height - encryptedWindowSize.height) > 1) {
+            await window.setSize(new PhysicalSize(encryptedWindowSize));
+          }
+        } catch { /* ignore */ }
+      }
       set({ settings: parsed, isLoading: false });
       // Sync UI prefs to plaintext file so next startup shows correct theme
       if (parsed.theme) invoke('ui_update_preference', { key: 'theme', value: parsed.theme }).catch(() => {});

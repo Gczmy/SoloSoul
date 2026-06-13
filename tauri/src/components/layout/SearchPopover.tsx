@@ -56,6 +56,14 @@ function saveRecent(query: string) {
 }
 
 /** Split a text into segments and bold the ones that match the query (case-insensitive). */
+const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
+
+function sortSensitivityLevels(levels: string[]): SensitivityLevel[] {
+  return levels
+    .filter((lvl): lvl is SensitivityLevel => SENSITIVITY_ORDER.includes(lvl as SensitivityLevel))
+    .sort((a, b) => SENSITIVITY_ORDER.indexOf(a) - SENSITIVITY_ORDER.indexOf(b));
+}
+
 function Highlight({ text, query }: { text: string; query: string }) {
   if (!query.trim()) return <>{text}</>;
   const lowerQuery = query.toLowerCase();
@@ -70,9 +78,16 @@ function Highlight({ text, query }: { text: string; query: string }) {
     }
     if (idx > i) parts.push(text.slice(i, idx));
     parts.push(
-      <strong key={idx} style={{ fontWeight: 700 }}>
+      <mark
+        key={idx}
+        style={{
+          fontWeight: 700,
+          color: 'var(--accent-primary)',
+          background: 'transparent',
+        }}
+      >
         {text.slice(idx, idx + query.length)}
-      </strong>
+      </mark>
     );
     i = idx + query.length;
   }
@@ -328,13 +343,9 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                           {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4 }}>
                               {' · '}
-                              {item.sensitivityLevels
-                                .filter((lvl): lvl is SensitivityLevel =>
-                                  ['public', 'internal', 'sensitive', 'critical'].includes(lvl)
-                                )
-                                .map((lvl) => (
-                                  <SensitivityBadge key={lvl} level={lvl} />
-                                ))}
+                              {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
+                                <SensitivityBadge key={lvl} level={lvl} />
+                              ))}
                             </span>
                           )}
                         </>

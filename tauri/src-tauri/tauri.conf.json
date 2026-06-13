@@ -52,6 +52,7 @@
         "installMode": "both",
         "installerIcon": "icons/icon.ico",
         "installerHooks": "./bundles/nsis/hooks.nsh",
+        "template": "./bundles/nsis/installer.nsi",
         "languages": ["SimpChinese", "English"],
         "displayLanguageSelector": true
       }

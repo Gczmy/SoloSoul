@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { PhysicalSize } from '@tauri-apps/api/dpi';
 import { invoke } from '@tauri-apps/api/core';
+import { useAuthStore } from '@/stores/authStore';
 
 const WINDOW_SIZE_KEY = 'windowSize';
 const WINDOW_SIZE_CACHE_KEY = 'solosoul_window_size';
@@ -34,6 +35,14 @@ async function persistWindowSize(payload: WindowSize) {
     key: WINDOW_SIZE_KEY,
     value: JSON.stringify(payload),
   }).catch(() => {});
+  // Mirror to encrypted account preferences so each account can retain its own
+  // window geometry while keeping a plaintext fallback for the login window.
+  const accountId = useAuthStore.getState().currentAccount?.id;
+  if (accountId) {
+    await invoke('user_data_update_preference', {
+      payload: { accountId, preferences: { windowSize: payload } },
+    }).catch(() => {});
+  }
 }
 
 /**
@@ -62,15 +71,16 @@ export async function restoreWindowSize() {
 }
 
 /**
- * Listen to window resize events and save size to plaintext UI preferences.
+ * Listen to window resize events and save size.
  * Can be called unconditionally; it does not depend on Vault unlock state.
  *
  * Strategy:
  * - localStorage is updated synchronously on every resize so the next cold
  *   launch can restore immediately even if the app closes before IPC finishes.
- * - Plaintext UI prefs are written with a short debounce for disk I/O.
- * - Window size is treated as a non-sensitive UI preference (like theme and
- *   language) so it can be restored before the user logs in.
+ * - Plaintext UI prefs are written with a short debounce for disk I/O so the
+ *   login window can be sized before the Vault is unlocked.
+ * - When an account is logged in, the size is also mirrored to the encrypted
+ *   account preferences so each account can retain its own window geometry.
  */
 export function useWindowSize() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);

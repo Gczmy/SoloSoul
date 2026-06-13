@@ -12,6 +12,44 @@ import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 
+const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
+
+function sortSensitivityLevels(levels: string[]): SensitivityLevel[] {
+  return levels
+    .filter((lvl): lvl is SensitivityLevel => SENSITIVITY_ORDER.includes(lvl as SensitivityLevel))
+    .sort((a, b) => SENSITIVITY_ORDER.indexOf(a) - SENSITIVITY_ORDER.indexOf(b));
+}
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const lowerQuery = query.toLowerCase();
+  const lowerText = text.toLowerCase();
+  const parts: React.ReactNode[] = [];
+  let i = 0;
+  while (i < text.length) {
+    const idx = lowerText.indexOf(lowerQuery, i);
+    if (idx === -1) {
+      parts.push(text.slice(i));
+      break;
+    }
+    if (idx > i) parts.push(text.slice(i, idx));
+    parts.push(
+      <mark
+        key={idx}
+        style={{
+          fontWeight: 700,
+          color: 'var(--accent-primary)',
+          background: 'transparent',
+        }}
+      >
+        {text.slice(idx, idx + query.length)}
+      </mark>
+    );
+    i = idx + query.length;
+  }
+  return <>{parts}</>;
+}
+
 interface SearchItem {
   objectId: string;
   name: string;
@@ -70,16 +108,29 @@ export function SearchPage() {
     return t(`editor:fields.${lastSegment}`, lastSegment);
   };
 
-  const renderMatchHint = (item: SearchItem): string => {
-    if (!item.matchedField || item.matchType === 'name') return '';
+  const renderMatchHint = (item: SearchItem): React.ReactNode => {
+    if (!item.matchedField || item.matchType === 'name') return null;
     const fieldLabel = resolveFieldLabel(item.matchedField);
     if (item.matchType === 'fieldName' && item.matchedValue) {
-      return ` · ${t('settings:search_field_label', '字段名')}：${fieldLabel}`;
+      return (
+        <span>
+          {' · '}
+          {t('settings:search_field_label', '字段名')}：
+          <Highlight text={fieldLabel} query={query} />
+        </span>
+      );
     }
     if (item.matchType === 'fieldValue' && item.matchedValue) {
-      return ` · ${fieldLabel}: ${item.matchedValue}`;
+      return (
+        <span>
+          {' · '}
+          <Highlight text={fieldLabel} query={query} />
+          {': '}
+          <Highlight text={item.matchedValue} query={query} />
+        </span>
+      );
     }
-    return '';
+    return null;
   };
 
   return (
@@ -123,13 +174,9 @@ export function SearchPage() {
                       {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
                         <>
                           {' · '}
-                          {item.sensitivityLevels
-                            .filter((lvl): lvl is SensitivityLevel =>
-                              ['public', 'internal', 'sensitive', 'critical'].includes(lvl)
-                            )
-                            .map((lvl) => (
-                              <SensitivityBadge key={lvl} level={lvl} />
-                            ))}
+                          {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
+                            <SensitivityBadge key={lvl} level={lvl} />
+                          ))}
                         </>
                       )}
                       {renderMatchHint(item)}
