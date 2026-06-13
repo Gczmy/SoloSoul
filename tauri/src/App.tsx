@@ -403,9 +403,18 @@ function App() {
 
   useEffect(() => {
     let cancelled = false;
-    invoke<{ hasSeenOnboarding?: boolean }>('ui_get_preferences')
-      .then((prefs) => {
+    Promise.all([
+      invoke<{ hasSeenOnboarding?: boolean }>('ui_get_preferences').catch(() => ({ hasSeenOnboarding: false })),
+      invoke<Array<{ id: string; name: string }>>('list_accounts').catch(() => [] as Array<{ id: string; name: string }>),
+    ])
+      .then(([prefs, accounts]) => {
         if (cancelled) return;
+        // If the user already has at least one account, they have clearly completed
+        // onboarding before — hide the tutorial regardless of the UI pref flag.
+        if (accounts.length > 0) {
+          setHasSeenOnboarding(true);
+          return;
+        }
         const ipcSeen = prefs.hasSeenOnboarding === true;
         if (ipcSeen) {
           setHasSeenOnboarding(true);
@@ -424,7 +433,7 @@ function App() {
       .catch((err) => {
         if (cancelled) return;
         // eslint-disable-next-line no-console
-        console.warn('[onboarding] Failed to read ui_preferences:', err);
+        console.warn('[onboarding] Failed to read onboarding state:', err);
         // Fallback to localStorage already applied in initial state
       });
     return () => { cancelled = true; };

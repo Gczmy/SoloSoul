@@ -61,6 +61,9 @@ pub async fn ui_update_preference(
 ) -> Result<(), String> {
     let svc = state.vault_service.read().await;
     let path = ui_prefs_path(&svc);
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
     let mut prefs: serde_json::Value = if path.exists() {
         let content = std::fs::read_to_string(&path).map_err(|e| format!("Read: {}", e))?;
         serde_json::from_str::<serde_json::Value>(&content).unwrap_or_default()

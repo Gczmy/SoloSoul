@@ -13,6 +13,11 @@ initLlmNotificationListener().catch(() => {});
 
 const rootEl = document.getElementById('root');
 
+// Try to restore the last known window geometry as early as possible using the
+// synchronous localStorage cache. This reduces the chance of the window briefly
+// showing at the default size before the async init sequence finishes.
+restoreWindowSize().catch(() => {});
+
 // Block initial render until i18n (system language detection via Rust) and
 // UI prefs are loaded — by the time login page shows, the correct language,
 // theme and accent are already applied (~1ms IPC read).

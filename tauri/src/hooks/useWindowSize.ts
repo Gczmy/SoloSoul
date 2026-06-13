@@ -123,11 +123,24 @@ export function useWindowSize() {
       }, DEBOUNCE_MS);
     });
 
+    // Flush pending size before the app/process exits so disk/UI prefs are up to date.
     globalThis.window?.addEventListener('beforeunload', flush);
+    const onVisibility = () => {
+      if (document.hidden) flush();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    let closeUnlisten: (() => void) | undefined;
+    const closePromise = window.onCloseRequested(() => {
+      flush();
+    }).then((fn) => {
+      closeUnlisten = fn;
+    }).catch(() => {});
 
     return () => {
       unlistenPromise.then((fn) => fn()).catch(() => {});
+      closePromise.then(() => closeUnlisten?.()).catch(() => {});
       globalThis.window?.removeEventListener('beforeunload', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
       flush();
     };
   }, []);
