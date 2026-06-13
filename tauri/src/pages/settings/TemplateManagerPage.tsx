@@ -1357,12 +1357,12 @@ export function TemplateManagerPage() {
             if (!selectedSample) return;
             try {
               await createTemplate(
-                t(selectedSample.nameI18nKey, selectedSample.nameFallback),
+                selectedSample.name,
                 selectedSample.icon,
                 selectedSample.category,
                 selectedSample.properties.map((p) => ({
                   id: p.id,
-                  name: t(p.nameI18nKey, p.nameFallback),
+                  name: p.name,
                   type: p.type,
                   sensitivityLevel: p.sensitivityLevel,
                   options: p.options,

@@ -17,7 +17,7 @@ import { Card } from '@/components/ui/Card';
 
 interface PreviewField {
   id: string;
-  nameFallback: string;
+  name: string;
   type: string;
   sensitivityLevel?: string;
   required?: boolean;
@@ -99,7 +99,7 @@ export function TemplatePreview({ templateName, category, fields }: TemplatePrev
                 )}
               </span>
               <span style={{ fontSize: 12, flex: 1, color: 'var(--text-primary)' }}>
-                {t(`editor:fields.${field.id}`, field.nameFallback)}
+                {field.name}
               </span>
               <div style={{ display: 'flex', gap: 4 }}>
                 {field.required && (

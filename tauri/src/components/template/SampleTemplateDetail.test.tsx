@@ -9,7 +9,7 @@ describe('SampleTemplateDetail', () => {
   it('renders template name, category and field count', () => {
     render(<SampleTemplateDetail template={template} onBack={vi.fn()} onUse={vi.fn()} />);
 
-    expect(screen.getByText(template.nameI18nKey)).toBeInTheDocument();
+    expect(screen.getByText(template.name)).toBeInTheDocument();
     expect(screen.getByText(new RegExp(`${template.properties.length}`))).toBeInTheDocument();
   });
 
@@ -17,7 +17,7 @@ describe('SampleTemplateDetail', () => {
     render(<SampleTemplateDetail template={template} onBack={vi.fn()} onUse={vi.fn()} />);
 
     template.properties.forEach((prop) => {
-      const propRow = screen.getByText(prop.nameI18nKey).parentElement?.parentElement;
+      const propRow = screen.getByText(prop.name).parentElement?.parentElement;
       expect(propRow).toBeInTheDocument();
       expect(propRow?.textContent).toContain(`editor:field_types.${prop.type}`);
     });
@@ -51,8 +51,8 @@ describe('SampleTemplateDetail', () => {
     const emptyTemplate = { ...template, properties: [] };
     render(<SampleTemplateDetail template={emptyTemplate} onBack={vi.fn()} onUse={vi.fn()} />);
 
-    expect(screen.getByText(emptyTemplate.nameI18nKey)).toBeInTheDocument();
-    expect(screen.queryByText(template.properties[0].nameI18nKey)).not.toBeInTheDocument();
+    expect(screen.getByText(emptyTemplate.name)).toBeInTheDocument();
+    expect(screen.queryByText(template.properties[0].name)).not.toBeInTheDocument();
   });
 
   it('calls onBack when clicking the overlay backdrop', () => {

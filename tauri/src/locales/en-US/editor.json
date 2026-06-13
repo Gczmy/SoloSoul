@@ -1,14 +1,4 @@
 {
-  "templates": {
-    "identity": "Identity",
-    "idCard": "ID Card",
-    "passport": "Passport",
-    "visa": "Visa",
-    "bank": "Bank Account",
-    "card": "Card",
-    "education": "Education",
-    "employment": "Employment"
-  },
   "fields": {
     "fullName": "Full Name",
     "dateOfBirth": "Date of Birth",

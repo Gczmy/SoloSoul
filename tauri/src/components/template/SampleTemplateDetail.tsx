@@ -115,9 +115,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
           </button>
         </div>
 
-        <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>
-          {t(template.nameI18nKey, template.nameFallback)}
-        </h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>{template.name}</h2>
         <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 20 }}>
           {t(`navigation:${template.category}`, template.category)} · {template.properties.length}{' '}
           {t('settings:template_fields')}
@@ -145,7 +143,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                   {iconMap[prop.type] || iconMap.text}
                 </span>
                 <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
-                  {t(prop.nameI18nKey, prop.nameFallback)}
+                  {prop.name}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>

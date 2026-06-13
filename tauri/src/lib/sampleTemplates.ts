@@ -1,9 +1,10 @@
 import type { PropertyType, SensitivityLevel } from '@/types/template';
 
+export type SampleTemplateLocale = 'zh' | 'en';
+
 export interface SampleTemplateProperty {
   id: string;
-  nameI18nKey: string;
-  nameFallback: string;
+  name: string;
   type: PropertyType;
   sensitivityLevel: SensitivityLevel;
   required?: boolean;
@@ -12,361 +13,250 @@ export interface SampleTemplateProperty {
 
 export interface SampleTemplate {
   key: string;
+  locale: SampleTemplateLocale;
   category: 'identity' | 'travel' | 'financial' | 'professional';
   icon: string;
-  nameI18nKey: string;
-  nameFallback: string;
+  name: string;
   properties: SampleTemplateProperty[];
 }
 
-export const SAMPLE_TEMPLATES: SampleTemplate[] = [
+export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
   {
-    key: 'identity',
+    key: 'zh_identity',
+    locale: 'zh',
     category: 'identity',
     icon: 'identity',
-    nameI18nKey: 'editor:templates.identity',
-    nameFallback: '身份信息',
+    name: '身份信息',
     properties: [
-      {
-        id: 'fullName',
-        nameI18nKey: 'editor:fields.fullName',
-        nameFallback: '姓名',
-        type: 'text',
-        sensitivityLevel: 'public',
-        required: true,
-      },
-      {
-        id: 'dateOfBirth',
-        nameI18nKey: 'editor:fields.dateOfBirth',
-        nameFallback: '出生日期',
-        type: 'date',
-        sensitivityLevel: 'internal',
-      },
-      {
-        id: 'nationality',
-        nameI18nKey: 'editor:fields.nationality',
-        nameFallback: '国籍',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'idNumber',
-        nameI18nKey: 'editor:fields.idNumber',
-        nameFallback: '证件号码',
-        type: 'text',
-        sensitivityLevel: 'critical',
-      },
-      {
-        id: 'email',
-        nameI18nKey: 'editor:fields.email',
-        nameFallback: '电子邮箱',
-        type: 'email',
-        sensitivityLevel: 'internal',
-      },
-      {
-        id: 'phone',
-        nameI18nKey: 'editor:fields.phone',
-        nameFallback: '电话',
-        type: 'phone',
-        sensitivityLevel: 'internal',
-      },
+      { id: 'fullName', name: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
+      { id: 'dateOfBirth', name: '出生日期', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'nationality', name: '国籍', type: 'text', sensitivityLevel: 'public' },
+      { id: 'idNumber', name: '证件号码', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'email', name: '电子邮箱', type: 'email', sensitivityLevel: 'internal' },
+      { id: 'phone', name: '电话', type: 'phone', sensitivityLevel: 'internal' },
     ],
   },
   {
-    key: 'idCard',
+    key: 'zh_id_card',
+    locale: 'zh',
     category: 'identity',
     icon: 'idCard',
-    nameI18nKey: 'editor:templates.idCard',
-    nameFallback: '身份证',
+    name: '身份证',
     properties: [
-      {
-        id: 'fullName',
-        nameI18nKey: 'editor:fields.fullName',
-        nameFallback: '姓名',
-        type: 'text',
-        sensitivityLevel: 'public',
-        required: true,
-      },
-      {
-        id: 'idNumber',
-        nameI18nKey: 'editor:fields.idNumber',
-        nameFallback: '身份证号',
-        type: 'text',
-        sensitivityLevel: 'critical',
-      },
-      {
-        id: 'dateOfBirth',
-        nameI18nKey: 'editor:fields.dateOfBirth',
-        nameFallback: '出生日期',
-        type: 'date',
-        sensitivityLevel: 'internal',
-      },
-      {
-        id: 'nationality',
-        nameI18nKey: 'editor:fields.nationality',
-        nameFallback: '国籍',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'issueDate',
-        nameI18nKey: 'editor:fields.issueDate',
-        nameFallback: '签发日期',
-        type: 'date',
-        sensitivityLevel: 'internal',
-      },
+      { id: 'fullName', name: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
+      { id: 'idNumber', name: '身份证号', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'dateOfBirth', name: '出生日期', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'nationality', name: '国籍', type: 'text', sensitivityLevel: 'public' },
+      { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
     ],
   },
   {
-    key: 'passport',
+    key: 'zh_passport',
+    locale: 'zh',
     category: 'travel',
     icon: 'passport',
-    nameI18nKey: 'editor:templates.passport',
-    nameFallback: '护照',
+    name: '护照',
     properties: [
-      {
-        id: 'fullName',
-        nameI18nKey: 'editor:fields.fullName',
-        nameFallback: '姓名',
-        type: 'text',
-        sensitivityLevel: 'public',
-        required: true,
-      },
-      {
-        id: 'passportNumber',
-        nameI18nKey: 'editor:fields.passportNumber',
-        nameFallback: '护照号码',
-        type: 'text',
-        sensitivityLevel: 'critical',
-        required: true,
-      },
-      {
-        id: 'nationality',
-        nameI18nKey: 'editor:fields.nationality',
-        nameFallback: '国籍',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'dateOfBirth',
-        nameI18nKey: 'editor:fields.dateOfBirth',
-        nameFallback: '出生日期',
-        type: 'date',
-        sensitivityLevel: 'internal',
-      },
-      {
-        id: 'issueDate',
-        nameI18nKey: 'editor:fields.issueDate',
-        nameFallback: '签发日期',
-        type: 'date',
-        sensitivityLevel: 'internal',
-      },
-      {
-        id: 'expiryDate',
-        nameI18nKey: 'editor:fields.expiryDate',
-        nameFallback: '有效期至',
-        type: 'date',
-        sensitivityLevel: 'internal',
-      },
+      { id: 'fullName', name: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
+      { id: 'passportNumber', name: '护照号码', type: 'text', sensitivityLevel: 'critical', required: true },
+      { id: 'nationality', name: '国籍', type: 'text', sensitivityLevel: 'public' },
+      { id: 'dateOfBirth', name: '出生日期', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal' },
     ],
   },
   {
-    key: 'visa',
+    key: 'zh_visa',
+    locale: 'zh',
     category: 'travel',
     icon: 'visa',
-    nameI18nKey: 'editor:templates.visa',
-    nameFallback: '签证',
+    name: '签证',
     properties: [
-      {
-        id: 'country',
-        nameI18nKey: 'editor:fields.country',
-        nameFallback: '国家',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'visaType',
-        nameI18nKey: 'editor:fields.visaType',
-        nameFallback: '签证类型',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'number',
-        nameI18nKey: 'editor:fields.number',
-        nameFallback: '签证号码',
-        type: 'text',
-        sensitivityLevel: 'critical',
-      },
-      {
-        id: 'issueDate',
-        nameI18nKey: 'editor:fields.issueDate',
-        nameFallback: '签发日期',
-        type: 'date',
-        sensitivityLevel: 'internal',
-      },
-      {
-        id: 'expiryDate',
-        nameI18nKey: 'editor:fields.expiryDate',
-        nameFallback: '有效期至',
-        type: 'date',
-        sensitivityLevel: 'internal',
-      },
+      { id: 'country', name: '国家', type: 'text', sensitivityLevel: 'public' },
+      { id: 'visaType', name: '签证类型', type: 'text', sensitivityLevel: 'public' },
+      { id: 'number', name: '签证号码', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal' },
     ],
   },
   {
-    key: 'bank',
+    key: 'zh_bank_account',
+    locale: 'zh',
     category: 'financial',
     icon: 'bank',
-    nameI18nKey: 'editor:templates.bank',
-    nameFallback: '银行账户',
+    name: '银行账户',
     properties: [
-      {
-        id: 'bankName',
-        nameI18nKey: 'editor:fields.bankName',
-        nameFallback: '银行名称',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'accountNumber',
-        nameI18nKey: 'editor:fields.accountNumber',
-        nameFallback: '账号',
-        type: 'text',
-        sensitivityLevel: 'critical',
-      },
-      {
-        id: 'accountType',
-        nameI18nKey: 'editor:fields.accountType',
-        nameFallback: '账户类型',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'currency',
-        nameI18nKey: 'editor:fields.currency',
-        nameFallback: '币种',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
+      { id: 'bankName', name: '银行名称', type: 'text', sensitivityLevel: 'public' },
+      { id: 'accountNumber', name: '账号', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'accountType', name: '账户类型', type: 'text', sensitivityLevel: 'public' },
+      { id: 'currency', name: '币种', type: 'text', sensitivityLevel: 'public' },
     ],
   },
   {
-    key: 'card',
+    key: 'zh_bank_card',
+    locale: 'zh',
     category: 'financial',
     icon: 'card',
-    nameI18nKey: 'editor:templates.card',
-    nameFallback: '银行卡',
+    name: '银行卡',
     properties: [
-      {
-        id: 'cardNumber',
-        nameI18nKey: 'editor:fields.cardNumber',
-        nameFallback: '卡号',
-        type: 'text',
-        sensitivityLevel: 'critical',
-      },
-      {
-        id: 'cardType',
-        nameI18nKey: 'editor:fields.cardType',
-        nameFallback: '卡类型',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'holderName',
-        nameI18nKey: 'editor:fields.holderName',
-        nameFallback: '持卡人',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'expiryDate',
-        nameI18nKey: 'editor:fields.expiryDate',
-        nameFallback: '有效期至',
-        type: 'date',
-        sensitivityLevel: 'internal',
-      },
+      { id: 'cardNumber', name: '卡号', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'cardType', name: '卡类型', type: 'text', sensitivityLevel: 'public' },
+      { id: 'holderName', name: '持卡人', type: 'text', sensitivityLevel: 'public' },
+      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal' },
     ],
   },
   {
-    key: 'education',
+    key: 'zh_education',
+    locale: 'zh',
     category: 'professional',
     icon: 'education',
-    nameI18nKey: 'editor:templates.education',
-    nameFallback: '教育经历',
+    name: '教育经历',
     properties: [
-      {
-        id: 'institution',
-        nameI18nKey: 'editor:fields.institution',
-        nameFallback: '院校',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'degree',
-        nameI18nKey: 'editor:fields.degree',
-        nameFallback: '学位',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'field',
-        nameI18nKey: 'editor:fields.field',
-        nameFallback: '专业',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'startDate',
-        nameI18nKey: 'editor:fields.startDate',
-        nameFallback: '开始日期',
-        type: 'date',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'endDate',
-        nameI18nKey: 'editor:fields.endDate',
-        nameFallback: '结束日期',
-        type: 'date',
-        sensitivityLevel: 'public',
-      },
+      { id: 'institution', name: '院校', type: 'text', sensitivityLevel: 'public' },
+      { id: 'degree', name: '学位', type: 'text', sensitivityLevel: 'public' },
+      { id: 'field', name: '专业', type: 'text', sensitivityLevel: 'public' },
+      { id: 'startDate', name: '开始日期', type: 'date', sensitivityLevel: 'public' },
+      { id: 'endDate', name: '结束日期', type: 'date', sensitivityLevel: 'public' },
     ],
   },
   {
-    key: 'employment',
+    key: 'zh_employment',
+    locale: 'zh',
     category: 'professional',
     icon: 'employment',
-    nameI18nKey: 'editor:templates.employment',
-    nameFallback: '工作经历',
+    name: '工作经历',
     properties: [
-      {
-        id: 'company',
-        nameI18nKey: 'editor:fields.company',
-        nameFallback: '公司',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'position',
-        nameI18nKey: 'editor:fields.position',
-        nameFallback: '职位',
-        type: 'text',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'startDate',
-        nameI18nKey: 'editor:fields.startDate',
-        nameFallback: '开始日期',
-        type: 'date',
-        sensitivityLevel: 'public',
-      },
-      {
-        id: 'endDate',
-        nameI18nKey: 'editor:fields.endDate',
-        nameFallback: '结束日期',
-        type: 'date',
-        sensitivityLevel: 'public',
-      },
+      { id: 'company', name: '公司', type: 'text', sensitivityLevel: 'public' },
+      { id: 'position', name: '职位', type: 'text', sensitivityLevel: 'public' },
+      { id: 'startDate', name: '开始日期', type: 'date', sensitivityLevel: 'public' },
+      { id: 'endDate', name: '结束日期', type: 'date', sensitivityLevel: 'public' },
     ],
   },
 ];
+
+export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
+  {
+    key: 'en_identity',
+    locale: 'en',
+    category: 'identity',
+    icon: 'identity',
+    name: 'Identity',
+    properties: [
+      { id: 'fullName', name: 'Full Name', type: 'text', sensitivityLevel: 'public', required: true },
+      { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
+      { id: 'idNumber', name: 'ID Number', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'email', name: 'Email', type: 'email', sensitivityLevel: 'internal' },
+      { id: 'phone', name: 'Phone', type: 'phone', sensitivityLevel: 'internal' },
+    ],
+  },
+  {
+    key: 'en_id_card',
+    locale: 'en',
+    category: 'identity',
+    icon: 'idCard',
+    name: 'ID Card',
+    properties: [
+      { id: 'fullName', name: 'Full Name', type: 'text', sensitivityLevel: 'public', required: true },
+      { id: 'idNumber', name: 'ID Number', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
+      { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },
+    ],
+  },
+  {
+    key: 'en_passport',
+    locale: 'en',
+    category: 'travel',
+    icon: 'passport',
+    name: 'Passport',
+    properties: [
+      { id: 'fullName', name: 'Full Name', type: 'text', sensitivityLevel: 'public', required: true },
+      { id: 'passportNumber', name: 'Passport Number', type: 'text', sensitivityLevel: 'critical', required: true },
+      { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
+      { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal' },
+    ],
+  },
+  {
+    key: 'en_visa',
+    locale: 'en',
+    category: 'travel',
+    icon: 'visa',
+    name: 'Visa',
+    properties: [
+      { id: 'country', name: 'Country', type: 'text', sensitivityLevel: 'public' },
+      { id: 'visaType', name: 'Visa Type', type: 'text', sensitivityLevel: 'public' },
+      { id: 'number', name: 'Number', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal' },
+    ],
+  },
+  {
+    key: 'en_bank_account',
+    locale: 'en',
+    category: 'financial',
+    icon: 'bank',
+    name: 'Bank Account',
+    properties: [
+      { id: 'bankName', name: 'Bank Name', type: 'text', sensitivityLevel: 'public' },
+      { id: 'accountNumber', name: 'Account Number', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'accountType', name: 'Account Type', type: 'text', sensitivityLevel: 'public' },
+      { id: 'currency', name: 'Currency', type: 'text', sensitivityLevel: 'public' },
+    ],
+  },
+  {
+    key: 'en_credit_card',
+    locale: 'en',
+    category: 'financial',
+    icon: 'card',
+    name: 'Credit Card',
+    properties: [
+      { id: 'cardNumber', name: 'Card Number', type: 'text', sensitivityLevel: 'critical' },
+      { id: 'cardType', name: 'Card Type', type: 'text', sensitivityLevel: 'public' },
+      { id: 'holderName', name: 'Holder Name', type: 'text', sensitivityLevel: 'public' },
+      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal' },
+    ],
+  },
+  {
+    key: 'en_education',
+    locale: 'en',
+    category: 'professional',
+    icon: 'education',
+    name: 'Education',
+    properties: [
+      { id: 'institution', name: 'Institution', type: 'text', sensitivityLevel: 'public' },
+      { id: 'degree', name: 'Degree', type: 'text', sensitivityLevel: 'public' },
+      { id: 'field', name: 'Field of Study', type: 'text', sensitivityLevel: 'public' },
+      { id: 'startDate', name: 'Start Date', type: 'date', sensitivityLevel: 'public' },
+      { id: 'endDate', name: 'End Date', type: 'date', sensitivityLevel: 'public' },
+    ],
+  },
+  {
+    key: 'en_employment',
+    locale: 'en',
+    category: 'professional',
+    icon: 'employment',
+    name: 'Employment',
+    properties: [
+      { id: 'company', name: 'Company', type: 'text', sensitivityLevel: 'public' },
+      { id: 'position', name: 'Position', type: 'text', sensitivityLevel: 'public' },
+      { id: 'startDate', name: 'Start Date', type: 'date', sensitivityLevel: 'public' },
+      { id: 'endDate', name: 'End Date', type: 'date', sensitivityLevel: 'public' },
+    ],
+  },
+];
+
+export const SAMPLE_TEMPLATES_BY_LOCALE: Record<SampleTemplateLocale, SampleTemplate[]> = {
+  zh: SAMPLE_TEMPLATES_ZH,
+  en: SAMPLE_TEMPLATES_EN,
+};
+
+/** 全部示例模板，仅在需要一次性遍历全部场景时使用；UI 默认按 locale 分组展示。 */
+export const SAMPLE_TEMPLATES: SampleTemplate[] = [...SAMPLE_TEMPLATES_ZH, ...SAMPLE_TEMPLATES_EN];
+
+export function getDefaultLocaleTab(language?: string): SampleTemplateLocale {
+  if (language && language.toLowerCase().startsWith('zh')) return 'zh';
+  return 'en';
+}

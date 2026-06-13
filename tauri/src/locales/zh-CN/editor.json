@@ -1,14 +1,4 @@
 {
-  "templates": {
-    "identity": "身份信息",
-    "idCard": "身份证",
-    "passport": "护照",
-    "visa": "签证",
-    "bank": "银行账户",
-    "card": "卡片",
-    "education": "教育",
-    "employment": "工作经历"
-  },
   "fields": {
     "fullName": "全名",
     "dateOfBirth": "出生日期",

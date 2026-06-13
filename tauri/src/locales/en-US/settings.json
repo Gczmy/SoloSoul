@@ -97,6 +97,8 @@
   "cleanup_orphans": "Clean up orphaned attachments",
   "orphan_cleanup_result": "Removed {{count}} orphaned attachment(s)",
   "language_select": "Select Language",
+  "locale_zh": "中文",
+  "locale_en": "English",
   "data_management": "Data Management",
   "backup": "Backup",
   "backup_desc": "Create encrypted backups of your vault data.",

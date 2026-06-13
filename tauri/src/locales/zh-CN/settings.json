@@ -97,6 +97,8 @@
   "cleanup_orphans": "清理孤立附件",
   "orphan_cleanup_result": "已清理 {{count}} 个孤立附件",
   "language_select": "选择语言",
+  "locale_zh": "中文",
+  "locale_en": "English",
   "data_management": "数据管理",
   "backup": "备份",
   "backup_desc": "创建加密备份，保护您的保险库数据。",
