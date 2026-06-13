@@ -55,8 +55,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         hasAccount: accounts.length > 0,
         backendError: false,
       });
-    } catch {
-      // silent — vault may be locked
+    } catch (err) {
+      // Surface the error so the user can report it; vault may be locked.
+      set({
+        error: String(err),
+        backendError: true,
+      });
     }
   },
 
