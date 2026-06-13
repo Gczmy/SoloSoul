@@ -50,8 +50,9 @@ test('renders plugin dashboard and filters by tier', async ({ page }) => {
 
   await expect(page.locator('text=Hello E2E')).toBeVisible();
 
-  // Default enabled tiers are P0/P1, so P2+ chips are disabled.
-  await expect(page.getByRole('button', { name: 'P2' })).toBeDisabled();
+  // Default enabled tiers are P0/P1/P2, so P3+ chips are disabled.
+  await expect(page.getByRole('button', { name: 'P3' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'P4' })).toBeDisabled();
 });
 
 test('installs a plugin and runs it through dialog response', async ({ page }) => {

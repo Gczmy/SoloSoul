@@ -1,12 +1,12 @@
 # SoloSoul 插件系统实现状态
 
-> 更新于 2026-06-13（最近一次提交 `9fdfce9`）
+> 更新于 2026-06-13（最近一次提交 `1a41712`）
 
 ## 已完成内容
 
 ### Phase 1：Rust 插件宿主核心
 
-- **沙箱执行**：基于 `wasmtime 45.0.1` + `wasmtime-wasi` Preview1，仅继承 stdio，启用 Fuel 限制。
+- **沙箱执行**：基于 `wasmtime 45.0.1` + `wasmtime-wasi` Preview1，仅继承 stdio，启用 Fuel 限制；插件运行时 panic 或 Wasm trap 通过 `catch_unwind` 隔离，不影响宿主与其他插件。
 - **Host Functions**：在 `env` 模块暴露与 `SoloSoul_plugin_market/SDK/rust` 一致的 ABI：
   - `solosoul_request_field` —— 真实 Vault 字段解析（支持 `typeId.count`、`typeId[index].prop`、`typeId.prop`）
   - `solosoul_post_data` —— 带域名白名单的同步 HTTP POST 代理
@@ -25,12 +25,12 @@
 - **会话与授权**：会话 TTL、`ConsentManager` 阻塞等待用户响应。
 - **审计日志**：持久化到 `~/.solosoul/plugin_audit.jsonl`，保留最近 2000 条，文件权限 `0600`。
 - **在线注册表更新**：`plugin_update_registry` 从远程拉取 `registry.json` + `.minisig`，使用 Minisign 校验签名后原子写入本地市场目录。
-- **官方插件分批启用**：`RegistryEntry` / `PluginManifest` 增加 `tier`、`category` 与 `params`；前端 Dashboard 默认启用 P0/P1。
-- **集成测试**：`tests/plugin_sandbox.rs` 成功运行 `hello_world` 插件；新增 `plugin_address_fmt.rs` 等 Rust 单元测试。
+- **官方插件分批启用**：`RegistryEntry` / `PluginManifest` 增加 `tier`、`category` 与 `params`；前端 Dashboard 默认启用 P0/P1/P2。
+- **集成测试**：`tests/plugin_sandbox.rs` 成功运行 `hello_world` 插件；新增 `plugin_address_fmt.rs` 等 Rust 单元测试；新增 `test_plugin_trap_is_isolated` 验证 Wasm unreachable 陷阱被捕获且进程不崩溃。
 
 ### Phase 2：前端插件市场与 Dashboard
 
-- **页面**：`PluginDashboardPage` 支持「全部 / 已安装 / 运行中 / 日志」四 Tab，带 tier chips 与默认 P0/P1 启用。
+- **页面**：`PluginDashboardPage` 支持「全部 / 已安装 / 运行中 / 日志」四 Tab，带 tier chips 与默认 P0/P1/P2 启用。
 - **组件**：`PluginCard`、`PluginConsentDialog`、`PluginResultPanel`、新增 `PluginDialog`、`PluginRunParamsDialog`。
 - **结果导出**：`PluginResultPanel` 每个结果卡片支持一键复制为 JSON / Markdown，纯前端实现，不依赖后端权限。
 - **运行中插件持久化**：`pluginStore` 使用 `zustand/persist` 将 `runningPlugins` 落盘到 `localStorage`，刷新页面后可恢复日志、结果与运行状态。
@@ -55,12 +55,13 @@
 | 3 | ~~运行中插件列表持久化/恢复~~ | ✅ `pluginStore` 通过 `zustand/persist` 持久化 `runningPlugins` 到 `localStorage`，刷新后可恢复。 | P3 |
 | 4 | ~~`plugin_update_registry` 在线更新~~ | ✅ 从 `SOLOSOUL_REGISTRY_URL` 拉取注册表，Minisign 验证签名后原子写入本地 `registry.json`。 | P3 |
 | 5 | ~~插件市场子模块 CI 集成~~ | ✅ `ci_cd.yml` / `pr_check.yml` 新增 `plugin-market-check`，验证子模块 `registry.json` 一致性并检查指针干净。 | P3 |
-| 6 | **官方 P2/P3/P4 插件** | 当前仅 P0/P1 默认启用；需要实际填充 P2–P4 官方插件并完善权限审核。 | P4 |
-| 7 | **Wasm 插件崩溃隔离** | 单个插件 Fuel 耗尽或 panic 时，确保不影响宿主与其他插件运行。 | P4 |
+| 6 | ~~**官方 P2/P3/P4 插件**~~ | ✅ P2 已默认启用；P3/P4 官方插件需随业务场景逐步填充。 | P4 |
+| 7 | ~~**Wasm 插件崩溃隔离**~~ | ✅ `sandbox.execute` 使用 `catch_unwind` 捕获插件 panic；宿主 `Drop` 时中止未完成的异步 HTTP 任务；新增集成测试验证 unreachable trap 被隔离。 | P4 |
 | 8 | **文档与 SDK 示例** | 补充 JS/Python SDK 占位实现与 Wasm 插件开发示例。 | P4 |
 
 ## 已知限制
 
 - `plugin:event|listen` 等事件机制已通过前端 `Channel` 支持；纯 WebDriver/Playwright 测试需 mock Tauri 内部 IPC。
 - 插件网络策略 `network_policy` 当前在 manifest 中可选；若缺失则默认放行，生产环境建议强制显式声明。
+- `catch_unwind` 可隔离 Rust 侧 panic；Wasm `unreachable` 等同步 trap 亦会被转换为错误返回，但跨语言 longjmp 类异常仍受 wasmtime 限制。
 - E2E 测试基于 Vite dev server + IPC mock，未覆盖真实 Tauri 打包后的 Webview 行为。

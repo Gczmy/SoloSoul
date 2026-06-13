@@ -56,6 +56,11 @@ impl WasmSandbox {
         wasmtime_wasi::p1::add_to_linker_sync(&mut linker, |s: &mut SoloHostState| &mut s.wasi)
             .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
+        // 在将 host 移入 Store 前克隆必要信息，以便 panic 时仍能发送错误事件
+        let plugin_id = host.plugin_id.clone();
+        let plugin_name = host.plugin_name.clone();
+        let channel = host.channel.clone();
+
         let wasi = wasmtime_wasi::WasiCtx::builder().inherit_stdio().build_p1();
         let state = SoloHostState { wasi, host };
         let mut store = Store::new(&engine, state);
@@ -71,15 +76,26 @@ impl WasmSandbox {
             .get_typed_func::<(), i32>(&mut store, "run")
             .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-        let exit_code = match run.call(&mut store, ()) {
-            Ok(code) => code,
-            Err(e) => {
+        let exit_code = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            run.call(&mut store, ())
+        })) {
+            Ok(Ok(code)) => code,
+            Ok(Err(e)) => {
                 let host = store.into_data().host;
                 let _ = host.channel.send(PluginEvent::error(
                     &host.plugin_id,
                     format!("Wasm trap: {}", e),
                 ));
                 return Err(PluginError::ExecutionFailed(e.to_string()));
+            }
+            Err(_) => {
+                let _ = channel.send(PluginEvent::error(
+                    &plugin_id,
+                    format!("插件 {} 运行时 panic", plugin_name),
+                ));
+                return Err(PluginError::ExecutionFailed(
+                    "插件运行时 panic，已被沙箱捕获".to_string(),
+                ));
             }
         };
 

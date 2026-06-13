@@ -83,3 +83,58 @@ fn test_plugin_manager_new() {
     let manager = PluginManager::new();
     assert!(manager.is_ok());
 }
+
+#[tokio::test]
+async fn test_plugin_trap_is_isolated() {
+    // 构造一个会触发 unreachable 陷阱的 Wasm 模块
+    let wat = r#"
+        (module
+            (func (export "run") (result i32)
+                unreachable
+            )
+        )
+    "#;
+    let wasm_bytes = wat::parse_str(wat).expect("解析 WAT 失败");
+    let sandbox = WasmSandbox::new();
+    let module = sandbox.compile(&wasm_bytes).expect("编译失败");
+
+    let session_manager = PluginSessionManager::new();
+    let session = session_manager.create("trap-plugin", 300);
+    let audit = Arc::new(PluginAuditLogger::default());
+    let rate_limiter = Arc::new(solo_soul::plugin::RateLimiter::new(60));
+    let consent_manager = Arc::new(ConsentManager::new());
+    let field_resolver = Arc::new(FieldResolver::new());
+    let manifest = solo_soul::plugin::PluginManifest {
+        id: "trap-plugin".to_string(),
+        name: "Trap Plugin".to_string(),
+        version: "1.0.0".to_string(),
+        description: "Test plugin".to_string(),
+        author: None,
+        homepage: None,
+        permissions: vec![],
+        required_core_version: None,
+        wasm_hash_sha256: None,
+        data_ttl_seconds: 300,
+        network_policy: Default::default(),
+        require_user_confirmation: false,
+        tier: Default::default(),
+        category: Default::default(),
+        params: vec![],
+    };
+
+    let host = SoloHostFunctions::new(
+        "trap-plugin",
+        "Trap Plugin",
+        &session.id,
+        manifest,
+        HashMap::new(),
+        audit,
+        rate_limiter,
+        consent_manager,
+        field_resolver,
+        dummy_channel(),
+    );
+
+    let result = sandbox.execute(&module, host, &session, &ConsentManager::new());
+    assert!(result.is_err(), "应当返回执行错误而非崩溃进程");
+}

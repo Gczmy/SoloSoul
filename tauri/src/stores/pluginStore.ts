@@ -30,7 +30,7 @@ export interface RunningPlugin {
   error?: string;
 }
 
-export const DEFAULT_ENABLED_TIERS: PluginTier[] = ['p0', 'p1'];
+export const DEFAULT_ENABLED_TIERS: PluginTier[] = ['p0', 'p1', 'p2'];
 
 interface PluginState {
   marketPlugins: MarketPluginInfo[];

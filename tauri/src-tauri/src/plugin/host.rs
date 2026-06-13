@@ -54,7 +54,10 @@ pub(crate) struct HttpResult {
 /// 异步 HTTP 请求句柄状态
 #[derive(Debug)]
 pub(crate) enum HttpHandleState {
-    Running(oneshot::Receiver<HttpResult>),
+    Running {
+        rx: oneshot::Receiver<HttpResult>,
+        abort: tokio::task::AbortHandle,
+    },
     Completed(HttpResult),
 }
 
@@ -75,6 +78,17 @@ pub struct SoloHostFunctions {
     pub channel: Channel<PluginEvent>,
     pub(crate) http_handles: Arc<Mutex<HashMap<u32, HttpHandleState>>>,
     pub(crate) next_http_handle: AtomicU32,
+}
+
+impl Drop for SoloHostFunctions {
+    fn drop(&mut self) {
+        let mut handles = self.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+        for (_, state) in handles.drain() {
+            if let HttpHandleState::Running { abort, .. } = state {
+                abort.abort();
+            }
+        }
+    }
 }
 
 impl SoloHostFunctions {
@@ -292,7 +306,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     let channel = host.channel.clone();
                     let method_clone = method.clone();
                     let url_clone = url.clone();
-                    tokio::spawn(async move {
+                    let task = tokio::spawn(async move {
                         let result = perform_http_async(&method_clone, &url_clone, &body).await;
                         if let Err(ref e) = result {
                             let _ = channel.send(PluginEvent::log(
@@ -306,11 +320,12 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                             error_code: Some(code),
                         }));
                     });
+                    let abort = task.abort_handle();
 
                     {
                         let mut handles =
                             host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
-                        handles.insert(handle, HttpHandleState::Running(rx));
+                        handles.insert(handle, HttpHandleState::Running { rx, abort });
                     }
 
                     (
@@ -360,7 +375,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     };
 
                     match state {
-                        HttpHandleState::Running(rx) => match rx.try_recv() {
+                        HttpHandleState::Running { rx, .. } => match rx.try_recv() {
                             Ok(result) => {
                                 let code_result = result.error_code.unwrap_or(code::SUCCESS);
                                 *state = HttpHandleState::Completed(result.clone());
@@ -414,7 +429,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
                     match handles.get_mut(&handle) {
                         Some(HttpHandleState::Completed(r)) => r.clone(),
-                        Some(HttpHandleState::Running(_)) => return code::HTTP_PENDING,
+                        Some(HttpHandleState::Running { .. }) => return code::HTTP_PENDING,
                         _ => return code::INVALID_ARGUMENT,
                     }
                 };
