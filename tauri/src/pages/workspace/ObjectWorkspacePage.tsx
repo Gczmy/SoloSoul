@@ -13,13 +13,14 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
-import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
-import { Pencil, Trash2, Trash, Clock, Paperclip, FileText } from 'lucide-react';
+import { Trash, FileText } from 'lucide-react';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 
 // Labels resolved at render time via t() so they support i18n
 const CATEGORY_TYPES = ['identity', 'travel', 'financial', 'professional'] as const;
@@ -29,40 +30,6 @@ const CATEGORY_ICONS: Record<string, typeof PAGE_ICON_MAP.profile> = {
   financial: PAGE_ICON_MAP.financial,
   professional: PAGE_ICON_MAP.professional,
 };
-
-/** Extract displayable key-value pairs from object properties (filters internal __ fields).
- *  When `fieldOrder` is provided, fields are sorted to match the template definition order.
- */
-function flattenProperties(
-  props: Record<string, unknown> | undefined,
-  fieldOrder?: string[],
-): { key: string; value: string }[] {
-  if (!props) return [];
-  const entries: { key: string; value: string }[] = [];
-  for (const [k, v] of Object.entries(props)) {
-    if (k.startsWith('__')) continue; // skip internal fields like __attachments
-    if (v === null || v === undefined || v === '') continue;
-    if (typeof v === 'string') {
-      entries.push({ key: k, value: v });
-    } else if (typeof v === 'number' || typeof v === 'boolean') {
-      entries.push({ key: k, value: String(v) });
-    } else if (Array.isArray(v) && v.length > 0) {
-      entries.push({ key: k, value: v.join(', ') });
-    }
-  }
-  if (fieldOrder && fieldOrder.length > 0) {
-    const orderMap = new Map(fieldOrder.map((id, i) => [id, i]));
-    entries.sort((a, b) => {
-      const ia = orderMap.get(a.key);
-      const ib = orderMap.get(b.key);
-      if (ia !== undefined && ib !== undefined) return ia - ib;
-      if (ia !== undefined) return -1;
-      if (ib !== undefined) return 1;
-      return a.key.localeCompare(b.key);
-    });
-  }
-  return entries;
-}
 
 export function ObjectWorkspacePage() {
   const navigate = useNavigate();
@@ -451,299 +418,28 @@ export function ObjectWorkspacePage() {
           </Card>
         )}
         {!isLoading &&
-          visibleObjects.map((obj) => {
-            const tpl = userTemplates.find((t) => t.id === obj.templateId);
-            const fieldOrder = tpl?.properties.map((p) => p.id);
-            const fields = flattenProperties(
-              obj.properties as Record<string, unknown> | undefined,
-              fieldOrder,
-            );
-            return (
-              <Card key={obj.id} interactive onClick={() => setDetailObj(obj)}>
-                {/* Header row */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: fields.length > 0 ? 8 : 0,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <PAGE_ICON_MAP.custom size={22} />
-                    <div>
-                      <span style={{ fontSize: 14, fontWeight: 600 }}>{obj.name}</span>
-                      <span
-                        style={{
-                          fontSize: 10,
-                          color: 'var(--text-tertiary)',
-                          marginLeft: 8,
-                          padding: '1px 5px',
-                          borderRadius: 4,
-                          background: 'var(--bg-elevated)',
-                        }}
-                      >
-                        {resolveCollectionLabel(obj.collectionType)}
-                      </span>
-                    </div>
-                  </div>
-                  {/* Edit + Delete + History actions */}
-                  <div style={{ display: 'flex', gap: 2 }} onClick={(e) => e.stopPropagation()}>
-                    <div style={{ position: 'relative' }}>
-                      <button
-                        onClick={() =>
-                          setHistoryObj({
-                            id: obj.id,
-                            name: obj.name,
-                            collectionType: obj.collectionType,
-                            templateId: obj.templateId || undefined,
-                          })
-                        }
-                        title="History"
-                        style={{
-                          width: 32,
-                          height: 32,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: 'none',
-                          borderRadius: 8,
-                          background: 'transparent',
-                          cursor: 'pointer',
-                          color: 'var(--text-tertiary)',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(128,128,128,0.08)';
-                          e.currentTarget.style.color = 'var(--text-primary)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.color = 'var(--text-tertiary)';
-                        }}
-                      >
-                        <Clock size={14} />
-                      </button>
-                      {/* Badge count */}
-                      {snapshotCounts[obj.id] !== undefined && snapshotCounts[obj.id] > 0 && (
-                        <span
-                          style={{
-                            position: 'absolute',
-                            top: -2,
-                            right: -2,
-                            minWidth: 14,
-                            height: 14,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: 'var(--accent-primary)',
-                            color: 'white',
-                            fontSize: 9,
-                            fontWeight: 700,
-                            borderRadius: 7,
-                            padding: '0 3px',
-                            lineHeight: 1,
-                          }}
-                        >
-                          {snapshotCounts[obj.id]}
-                        </span>
-                      )}
-                    </div>
-                    {/* Attachment button */}
-                    <div style={{ position: 'relative' }}>
-                      <button
-                        onClick={() => setAttachmentObjId(obj.id)}
-                        title="Attachments"
-                        style={{
-                          width: 32,
-                          height: 32,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: 'none',
-                          borderRadius: 8,
-                          background: 'transparent',
-                          cursor: 'pointer',
-                          color: 'var(--text-tertiary)',
-                          transition: 'all 0.15s ease',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(128,128,128,0.08)';
-                          e.currentTarget.style.color = 'var(--text-primary)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.color = 'var(--text-tertiary)';
-                        }}
-                      >
-                        <Paperclip size={14} />
-                      </button>
-                      {attachmentCounts[obj.id] !== undefined && attachmentCounts[obj.id] > 0 && (
-                        <span
-                          style={{
-                            position: 'absolute',
-                            top: -2,
-                            right: -2,
-                            minWidth: 14,
-                            height: 14,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: 'var(--accent-primary)',
-                            color: 'white',
-                            fontSize: 9,
-                            fontWeight: 700,
-                            borderRadius: 7,
-                            padding: '0 3px',
-                            lineHeight: 1,
-                          }}
-                        >
-                          {attachmentCounts[obj.id]}
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => navigate(`/editor/${obj.id}`)}
-                      title="Edit"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: 'none',
-                        borderRadius: 8,
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        color: 'var(--text-tertiary)',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(128,128,128,0.08)';
-                        e.currentTarget.style.color = 'var(--text-primary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = 'var(--text-tertiary)';
-                      }}
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete({ id: obj.id, name: obj.name })}
-                      title="Move to trash"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: 'none',
-                        borderRadius: 8,
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        color: 'var(--text-tertiary)',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
-                        e.currentTarget.style.color = '#e74c3c';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = 'var(--text-tertiary)';
-                      }}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-                {/* Property chips — label always visible, value blurred when masked */}
-                {fields.length > 0 && (
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {fields.map((f) => {
-                      const sens = getFieldSensitivity(obj.templateId, f.key);
-                      const deprecated = isFieldDeprecated(obj.templateId, f.key);
-                      const isMasked = sens !== 'public';
-                      const fieldLabel = getFieldName(obj.templateId, f.key);
-                      const s = getSensitivityStyle(sens);
-                      return (
-                        <span
-                          key={f.key}
-                          style={{
-                            padding: '3px 8px',
-                            borderRadius: 6,
-                            fontSize: 11,
-                            background: 'var(--bg-toolbar)',
-                            color: 'var(--text-secondary)',
-                            border: `1px solid ${isMasked ? s.fg : s.fg}`,
-                            maxWidth: 220,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            opacity: deprecated ? 0.6 : 1,
-                            ...(isMasked
-                              ? {
-                                  boxShadow: `0 0 3px ${s.fg}44`,
-                                }
-                              : {
-                                  boxShadow: `0 0 2px ${s.fg}33`,
-                                }),
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontWeight: 600,
-                              textDecoration: deprecated ? 'line-through' : 'none',
-                            }}
-                          >
-                            {fieldLabel}
-                          </span>
-                          <span style={{ margin: '0 3px' }}>:</span>
-                          <span
-                            style={{
-                              ...(isMasked
-                                ? {
-                                    filter: 'blur(5px)',
-                                    cursor: 'default',
-                                    userSelect: 'none',
-                                    background: 'var(--bg-subtle, rgba(128,128,128,0.12))',
-                                    borderRadius: 2,
-                                    padding: '0 2px',
-                                  }
-                                : { color: 'var(--text-primary)' }),
-                            }}
-                          >
-                            {isMasked ? '••••' : f.value}
-                          </span>
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-                {/* Tag pills */}
-                {obj.tags && obj.tags.length > 0 && (
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
-                    {obj.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        style={{
-                          padding: '1px 7px',
-                          borderRadius: 10,
-                          fontSize: 10,
-                          background: 'rgba(91,124,153,0.08)',
-                          color: 'var(--accent-primary)',
-                          fontWeight: 500,
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            );
-          })}
+          visibleObjects.map((obj) => (
+            <WorkspaceObjectCard
+              key={obj.id}
+              obj={obj}
+              collectionLabel={resolveCollectionLabel(obj.collectionType)}
+              userTemplates={userTemplates}
+              snapshotCount={snapshotCounts[obj.id]}
+              attachmentCount={attachmentCounts[obj.id]}
+              onClick={() => setDetailObj(obj)}
+              onHistory={() =>
+                setHistoryObj({
+                  id: obj.id,
+                  name: obj.name,
+                  collectionType: obj.collectionType,
+                  templateId: obj.templateId || undefined,
+                })
+              }
+              onAttachments={() => setAttachmentObjId(obj.id)}
+              onEdit={() => navigate(`/editor/${obj.id}`)}
+              onDelete={() => setConfirmDelete({ id: obj.id, name: obj.name })}
+            />
+          ))}
 
         {/* Page delete confirmation dialog */}
         {confirmPageDelete && pageId && customPage && (
