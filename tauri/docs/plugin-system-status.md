@@ -10,6 +10,7 @@
 - **Host Functions**：在 `env` 模块暴露与 `SoloSoul_plugin_market/SDK/rust` 一致的 ABI：
   - `solosoul_request_field` —— 真实 Vault 字段解析（支持 `typeId.count`、`typeId[index].prop`、`typeId.prop`）
   - `solosoul_post_data` —— 带域名白名单的同步 HTTP POST 代理
+  - `solosoul_http_request` / `solosoul_http_poll` / `solosoul_http_read` / `solosoul_http_close` —— 异步 HTTP 轮询 ABI，支持 GET/POST/PUT/PATCH/DELETE
   - `solosoul_log`
   - `solosoul_get_timestamp`
   - `solosoul_get_data_structure_tree` —— 返回用户模板元数据 + 对象数量
@@ -46,7 +47,7 @@
 
 | # | 任务 | 说明 | 优先级 |
 |---|------|------|--------|
-| 1 | **`post_data` 异步化与响应通道** | Wasmtime Host Function 签名是同步的，`post_data` 已在 `spawn_blocking` 线程中通过 Tokio Runtime 执行 async HTTP；当前实现已可工作，后续可考虑非阻塞轮询 ABI。 | P2 |
+| 1 | ~~`post_data` 异步化与响应通道~~ | ✅ 新增异步 HTTP 轮询 ABI：`solosoul_http_request` / `http_poll` / `http_read` / `http_close`；同步 `post_data` 保留兼容。 | P2 |
 | 2 | ~~插件结果导出~~ | ✅ `PluginResultPanel` 每个结果卡片支持复制为 JSON / Markdown。 | P2 |
 | 3 | **运行中插件列表持久化/恢复** | 当前运行状态仅在前端内存；刷新页面后丢失。可考虑会话保存或运行日志回放。 | P3 |
 | 4 | **`plugin_update_registry` 在线更新** | 当前 registry 为本地静态文件；后续可实现从远程 URL 拉取最新 registry 并校验签名。 | P3 |
