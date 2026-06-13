@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -519,7 +519,7 @@ export function ExportImportPage() {
   };
 
   // ── Compute whether selected objects contain sensitive data ─
-  const hasSensitiveData = (() => {
+  const hasSensitiveData = useMemo(() => {
     for (const group of pageGroups) {
       for (const obj of group.objects) {
         if (
@@ -531,10 +531,10 @@ export function ExportImportPage() {
       }
     }
     return false;
-  })();
+  }, [pageGroups, selectedObjectIds]);
 
   // ── Collect all unique tags from selected objects ──────────
-  const allTags = (() => {
+  const allTags = useMemo(() => {
     const tagSet = new Set<string>();
     for (const group of pageGroups) {
       for (const obj of group.objects) {
@@ -546,7 +546,7 @@ export function ExportImportPage() {
       }
     }
     return Array.from(tagSet);
-  })();
+  }, [pageGroups, selectedObjectIds]);
 
   // ── Export handler ──────────────────────────────────────────
   const handleExport = async () => {
