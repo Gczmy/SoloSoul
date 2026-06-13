@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
+import { useCancellable } from '@/hooks/useCancellable';
 import i18n from '@/lib/i18n';
 import {
   buildSystemPrompt,
@@ -102,6 +103,7 @@ export function LlmChatPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
+  const makeCancellable = useCancellable();
 
   // State
   const [activeProvider, setActiveProvider] = useState<{
@@ -198,48 +200,55 @@ export function LlmChatPage() {
   }, [accountId]);
 
   // Load conversations & trash
-  const loadAllLists = useCallback(async () => {
+  const loadAllLists = useCallback(() => {
     if (!accountId || !isAiEnabled || !isConfigured) return;
-    try {
-      const [list, trash] = await Promise.all([
-        invoke<ConversationSummary[]>('llm_list_conversations', { accountId }),
-        invoke<ConversationSummary[]>('llm_list_trash', { accountId }),
-      ]);
-      setConversations(list);
-      setTrashList(trash);
-    } catch {
-      /* ignore */
-    }
-  }, [accountId, isAiEnabled, isConfigured]);
+    const { isCancelled } = makeCancellable();
+    Promise.all([
+      invoke<ConversationSummary[]>('llm_list_conversations', { accountId }),
+      invoke<ConversationSummary[]>('llm_list_trash', { accountId }),
+    ])
+      .then(([list, trash]) => {
+        if (!isCancelled()) {
+          setConversations(list);
+          setTrashList(trash);
+        }
+      })
+      .catch(() => {
+        /* ignore */
+      });
+  }, [accountId, isAiEnabled, isConfigured, makeCancellable]);
 
   useEffect(() => {
     loadAllLists();
   }, [loadAllLists]);
 
   // Check online status
-  const checkOnline = useCallback(async () => {
+  const checkOnline = useCallback(() => {
     if (!activeProvider || !accountId) return;
+    const { isCancelled } = makeCancellable();
     setCheckingOnline(true);
-    try {
-      let key = '';
+    (async () => {
       try {
-        key = await invoke<string>('llm_get_api_key', { accountId, providerId: activeProvider.id });
+        let key = '';
+        try {
+          key = await invoke<string>('llm_get_api_key', { accountId, providerId: activeProvider.id });
+        } catch {
+          /* may not have key */
+        }
+        const online = await invoke<boolean>('llm_check_connection', {
+          baseUrl: activeProvider.baseUrl,
+          apiKey: key,
+          model: activeProvider.model,
+          apiType: activeProvider.apiType,
+        });
+        if (!isCancelled()) setIsOnline(online);
       } catch {
-        /* may not have key */
+        if (!isCancelled()) setIsOnline(false);
+      } finally {
+        if (!isCancelled()) setCheckingOnline(false);
       }
-      const online = await invoke<boolean>('llm_check_connection', {
-        baseUrl: activeProvider.baseUrl,
-        apiKey: key,
-        model: activeProvider.model,
-        apiType: activeProvider.apiType,
-      });
-      setIsOnline(online);
-    } catch {
-      setIsOnline(false);
-    } finally {
-      setCheckingOnline(false);
-    }
-  }, [activeProvider, accountId]);
+    })();
+  }, [activeProvider, accountId, makeCancellable]);
 
   useEffect(() => {
     if (activeProvider && accountId) checkOnline();

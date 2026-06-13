@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
+import { useCancellable } from '@/hooks/useCancellable';
 import { Button } from '@/components/ui/Button';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Fingerprint } from 'lucide-react';
@@ -34,14 +35,19 @@ export function LoginPage() {
   const [bioError, setBioError] = useState<string | null>(null);
   const [showPasswordInput, setShowPasswordInput] = useState(false);
   const [bioChecked, setBioChecked] = useState(false);
+  const makeCancellable = useCancellable();
 
   useEffect(() => {
-    checkHasAccount().then(() => listAccounts());
+    const { isCancelled, cancel } = makeCancellable();
+    checkHasAccount().then(() => {
+      if (!isCancelled()) listAccounts();
+    });
     // Check biometric availability
     invoke<{ available: boolean; biometryType?: string }>('biometric_check_availability', {
       accountId: '',
     })
       .then((r) => {
+        if (isCancelled()) return;
         if (r.available) {
           setBioAvailable(true);
           if (r.biometryType === 'touchId') {
@@ -53,7 +59,10 @@ export function LoginPage() {
           }
         }
       })
-      .catch(() => setBioAvailable(false));
+      .catch(() => {
+        if (!isCancelled()) setBioAvailable(false);
+      });
+    return cancel;
   }, []);
 
   useEffect(() => {
@@ -70,15 +79,17 @@ export function LoginPage() {
 
   // Check biometric availability for selected account (only if account exists)
   useEffect(() => {
+    const { isCancelled, cancel } = makeCancellable();
     if (!selectedAccountId) {
       setBioChecked(true);
-      return;
+      return cancel;
     }
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
       'biometric_check_availability',
       { accountId: selectedAccountId },
     )
       .then((r) => {
+        if (isCancelled()) return;
         if (r.available && r.configured) {
           setBioAvailable(true);
           if (r.biometryType === 'touchId') {
@@ -94,10 +105,14 @@ export function LoginPage() {
         }
       })
       .catch(() => {
+        if (isCancelled()) return;
         setBioAvailable(false);
         setShowPasswordInput(true);
       })
-      .finally(() => setBioChecked(true));
+      .finally(() => {
+        if (!isCancelled()) setBioChecked(true);
+      });
+    return cancel;
   }, [selectedAccountId]);
 
   const handleBiometricUnlock = useCallback(async () => {

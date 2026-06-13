@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useCancellable } from '@/hooks/useCancellable';
 import { AppShell } from '@/components/layout/AppShell';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { GuideRenderer } from '@/components/guide/GuideRenderer';
@@ -23,6 +24,7 @@ export function HelpPage() {
   const backTo = (location.state as { from?: string } | null)?.from;
   const { i18n } = useTranslation(['common', 'settings']);
   const language = i18n.language || 'zh-CN';
+  const makeCancellable = useCancellable();
 
   const [index, setIndex] = useState<GuideIndexType | null>(null);
   const [content, setContent] = useState<GuideContent | null>(null);
@@ -59,39 +61,48 @@ export function HelpPage() {
     };
   };
 
-  const loadIndex = useCallback(async () => {
+  const loadIndex = useCallback(() => {
+    const { isCancelled } = makeCancellable();
     setIndexLoading(true);
     setError(null);
-    try {
-      const idx = await loadGuideIndex();
-      setIndex(idx);
-    } catch (e) {
-      setError(formatIndexError(e));
-      // error already surfaced in state
-    } finally {
-      setIndexLoading(false);
-    }
-  }, []);
+    loadGuideIndex()
+      .then((idx) => {
+        if (!isCancelled()) setIndex(idx);
+      })
+      .catch((e) => {
+        if (!isCancelled()) setError(formatIndexError(e));
+      })
+      .finally(() => {
+        if (!isCancelled()) setIndexLoading(false);
+      });
+  }, [makeCancellable]);
 
   const loadContent = useCallback(
-    async (id: string) => {
+    (id: string) => {
+      const { isCancelled } = makeCancellable();
       if (!id) {
-        setContent(null);
+        if (!isCancelled()) setContent(null);
         return;
       }
       setLoading(true);
-      try {
-        const c = await loadGuideContent(id, language);
-        setContent(c);
-        setError(null);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        setError({ title: '无法加载文档内容', message: msg, isTimeout: false });
-      } finally {
-        setLoading(false);
-      }
+      loadGuideContent(id, language)
+        .then((c) => {
+          if (!isCancelled()) {
+            setContent(c);
+            setError(null);
+          }
+        })
+        .catch((e) => {
+          if (!isCancelled()) {
+            const msg = e instanceof Error ? e.message : String(e);
+            setError({ title: '无法加载文档内容', message: msg, isTimeout: false });
+          }
+        })
+        .finally(() => {
+          if (!isCancelled()) setLoading(false);
+        });
     },
-    [language],
+    [language, makeCancellable],
   );
 
   useEffect(() => {

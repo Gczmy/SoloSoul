@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { useCancellable } from '@/hooks/useCancellable';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -91,6 +92,7 @@ export function ObjectWorkspacePage() {
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const removeCustomPage = useSettingsStore((s) => s.removeCustomPage);
   const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
+  const makeCancellable = useCancellable();
 
   useEffect(() => {
     loadUserTemplates().catch(() => {});
@@ -249,24 +251,35 @@ export function ObjectWorkspacePage() {
 
   // Load snapshot counts for visible objects
   useEffect(() => {
+    const { isCancelled, cancel } = makeCancellable();
     const ids = visibleObjects.map((o) => o.id);
-    if (ids.length === 0) return;
+    if (ids.length === 0) return cancel;
     invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
-      .then(setSnapshotCounts)
+      .then((counts) => {
+        if (!isCancelled()) setSnapshotCounts(counts);
+      })
       .catch(() => {});
+    return cancel;
   }, [visibleObjects.map((o) => o.id).join(',')]);
 
   // Load attachment counts for visible objects
   const refreshAttachmentCounts = useCallback(() => {
+    const { isCancelled, cancel } = makeCancellable();
     const ids = visibleObjects.map((o) => o.id);
-    if (ids.length === 0) return;
+    if (ids.length === 0) {
+      cancel();
+      return cancel;
+    }
     invoke<Record<string, number>>('attachment_count_batch', { objectIds: ids })
-      .then(setAttachmentCounts)
+      .then((counts) => {
+        if (!isCancelled()) setAttachmentCounts(counts);
+      })
       .catch(() => {});
-  }, [visibleObjects.map((o) => o.id).join(',')]);
+    return cancel;
+  }, [visibleObjects.map((o) => o.id).join(','), makeCancellable]);
 
   useEffect(() => {
-    refreshAttachmentCounts();
+    return refreshAttachmentCounts();
   }, [refreshAttachmentCounts]);
 
   const newObjectUrl = pageId
