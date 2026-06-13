@@ -266,7 +266,7 @@ export function LoginPage() {
             onSubmit={handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
           >
-            {accounts.length > 1 && (
+            {accounts.length > 1 ? (
               <select
                 value={selectedAccountId}
                 onChange={(e) => setSelectedAccountId(e.target.value)}
@@ -287,7 +287,21 @@ export function LoginPage() {
                   </option>
                 ))}
               </select>
-            )}
+            ) : accounts.length === 1 ? (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-primary)',
+                  fontSize: 14,
+                  textAlign: 'left',
+                }}
+              >
+                {selectedAccount?.name ?? accounts[0]?.name}
+              </div>
+            ) : null}
             <SecurePasswordInput
               value={password}
               onChange={(v) => setPassword(v)}
