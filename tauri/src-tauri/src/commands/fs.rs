@@ -50,7 +50,8 @@ pub async fn encrypt_file(
 
     let chunk_size = 1024 * 1024; // 1MB chunks
     let mut reader = BufReader::new(File::open(&src).map_err(|e| format!("Open failed: {}", e))?);
-    let mut writer = BufWriter::new(File::create(&dst).map_err(|e| format!("Create failed: {}", e))?);
+    let mut writer =
+        BufWriter::new(File::create(&dst).map_err(|e| format!("Create failed: {}", e))?);
     solosoul_crypto::aes::encrypt_chunked_stream(&key, &mut reader, &mut writer, chunk_size)
         .map_err(|e| format!("Encryption failed: {}", e))?;
     writer.flush().map_err(|e| format!("Flush failed: {}", e))?;
@@ -76,7 +77,8 @@ pub async fn decrypt_file(
     let dst = resolve_within(base, &dst_path)?;
 
     let mut reader = BufReader::new(File::open(&src).map_err(|e| format!("Open failed: {}", e))?);
-    let mut writer = BufWriter::new(File::create(&dst).map_err(|e| format!("Create failed: {}", e))?);
+    let mut writer =
+        BufWriter::new(File::create(&dst).map_err(|e| format!("Create failed: {}", e))?);
     solosoul_crypto::aes::decrypt_chunked_stream(&key, &mut reader, &mut writer)
         .map_err(|e| format!("Decryption failed: {}", e))?;
     writer.flush().map_err(|e| format!("Flush failed: {}", e))?;
@@ -109,8 +111,7 @@ pub async fn create_zip_package(src_dir: String, dst_path: String) -> Result<(),
             let mut f = File::open(path).map_err(|e| format!("Open file error: {}", e))?;
             zip.start_file_from_path(name, options)
                 .map_err(|e| format!("ZIP start_file error: {}", e))?;
-            std::io::copy(&mut f, &mut zip)
-                .map_err(|e| format!("ZIP copy error: {}", e))?;
+            std::io::copy(&mut f, &mut zip).map_err(|e| format!("ZIP copy error: {}", e))?;
         }
     }
     zip.finish()

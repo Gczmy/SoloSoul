@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
+import { type TemplateProperty } from '@/types/template';
 import { type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
@@ -176,7 +177,7 @@ export function ObjectWorkspacePage() {
 
   // F011: cache template field metadata so lookups are O(1) instead of O(n²).
   const templateFieldMap = useMemo(() => {
-    const map = new Map<string, Map<string, PropertyType>>();
+    const map = new Map<string, Map<string, TemplateProperty>>();
     for (const t of userTemplates) {
       map.set(t.id, new Map(t.properties.map((p) => [p.id, p])));
     }
@@ -186,7 +187,7 @@ export function ObjectWorkspacePage() {
   const getFieldProperty = (
     templateId: string | undefined,
     fieldKey: string,
-  ): PropertyType | undefined => {
+  ): TemplateProperty | undefined => {
     return templateFieldMap.get(templateId || '')?.get(fieldKey);
   };
 

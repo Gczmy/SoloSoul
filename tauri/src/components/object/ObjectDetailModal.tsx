@@ -14,7 +14,7 @@ import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificat
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
-import type { PropertyType } from '@/types/template';
+import type { TemplateProperty } from '@/types/template';
 
 interface ObjectDetailModalProps {
   /** 已加载的对象摘要/完整数据。与 objectId 二选一，优先使用此值。 */
@@ -224,10 +224,10 @@ export function ObjectDetailModal({
   // F012: cache the current object's template field map for O(1) lookups.
   const fieldMap = useMemo(() => {
     const tpl = templates.find((t) => t.id === obj?.templateId);
-    return new Map<string, PropertyType>(tpl?.properties.map((p) => [p.id, p]) ?? []);
+    return new Map<string, TemplateProperty>(tpl?.properties.map((p) => [p.id, p]) ?? []);
   }, [templates, obj?.templateId]);
 
-  const getFieldProperty = (fieldKey: string): PropertyType | undefined => {
+  const getFieldProperty = (fieldKey: string): TemplateProperty | undefined => {
     return fieldMap.get(fieldKey);
   };
 

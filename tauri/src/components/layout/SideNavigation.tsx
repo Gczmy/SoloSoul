@@ -1060,6 +1060,7 @@ export function RenameableNavButton({
   onClick: () => void;
   position?: import('./NavButton').NavPosition;
 }) {
+  const accountId = useAuthStore((s) => s.currentAccount?.id);
   const isHorizontal = position === 'top' || position === 'bottom';
   const isBottom = position === 'bottom';
   const isRight = position === 'right';

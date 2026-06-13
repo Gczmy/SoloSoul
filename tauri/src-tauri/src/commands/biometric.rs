@@ -90,7 +90,8 @@ fn read_master_key(account_id: &str) -> Result<String, String> {
 
 fn delete_master_key(account_id: &str) {
     if use_keyring() {
-        let _ = keyring_entry(account_id).and_then(|e| e.delete_credential().map_err(|e| e.to_string()));
+        let _ = keyring_entry(account_id)
+            .and_then(|e| e.delete_credential().map_err(|e| e.to_string()));
     }
     let p = bio_key_path(account_id);
     if p.exists() {
@@ -115,8 +116,8 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), String> {
     use std::sync::mpsc;
 
     use block2::RcBlock;
-    use objc2::runtime::{AnyClass, NSObject};
     use objc2::msg_send;
+    use objc2::runtime::{AnyClass, NSObject};
 
     let la_name = c"LAContext";
     let la_cls = AnyClass::get(la_name).ok_or_else(|| "Touch ID not available".to_string())?;
