@@ -130,6 +130,12 @@
   color: var(--text-primary);
 }
 
+.outputActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .stopBtn {
   padding: 6px 12px;
   border-radius: 8px;
@@ -145,6 +151,27 @@
   background: var(--color-error-bg);
   color: var(--color-error-text);
   border-color: var(--color-error-border);
+}
+
+.clearBtn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.clearBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.completedStatus {
+  font-size: 12px;
+  color: var(--text-tertiary);
 }
 
 .logs {
@@ -225,5 +252,14 @@
 }
 
 .auditMessage {
+  word-break: break-word;
+}
+
+.errorHint {
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  font-size: 12px;
   word-break: break-word;
 }

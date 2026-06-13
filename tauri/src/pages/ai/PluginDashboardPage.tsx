@@ -43,9 +43,16 @@ export function PluginDashboardPage() {
     uninstallPlugin,
     runPlugin,
     stopPlugin,
+    clearPluginOutput,
     resolveDialog,
     clearError,
   } = usePluginStore();
+
+  const pluginOutputs = useMemo(
+    () =>
+      Object.entries(runningPlugins).sort(([, a], [, b]) => b.startTime - a.startTime),
+    [runningPlugins],
+  );
 
   const { onError } = useToastError();
 
@@ -226,13 +233,28 @@ export function PluginDashboardPage() {
           </div>
         )}
 
-        {activeRunning.map(([pluginId, plugin]) => (
+        {pluginOutputs.map(([pluginId, plugin]) => (
           <Card key={pluginId} className={styles.outputCard}>
             <div className={styles.outputHeader}>
               <h4>{plugin.pluginName}</h4>
-              <button className={styles.stopBtn} onClick={() => stopPlugin(pluginId)}>
-                {t('plugin:stop', { defaultValue: 'Stop' })}
-              </button>
+              <div className={styles.outputActions}>
+                {plugin.completed ? (
+                  <>
+                    <span className={styles.completedStatus}>
+                      {plugin.error
+                        ? t('plugin:status_failed', { defaultValue: 'Failed' })
+                        : t('plugin:status_completed', { defaultValue: 'Completed' })}
+                    </span>
+                    <button className={styles.clearBtn} onClick={() => clearPluginOutput(pluginId)}>
+                      {t('plugin:clear', { defaultValue: 'Clear' })}
+                    </button>
+                  </>
+                ) : (
+                  <button className={styles.stopBtn} onClick={() => stopPlugin(pluginId)}>
+                    {t('plugin:stop', { defaultValue: 'Stop' })}
+                  </button>
+                )}
+              </div>
             </div>
             <div className={styles.logs}>
               {plugin.logs.slice(-10).map((log) => (
@@ -244,6 +266,9 @@ export function PluginDashboardPage() {
                 </div>
               ))}
             </div>
+            {plugin.error && (
+              <div className={styles.errorHint}>{plugin.error}</div>
+            )}
             <PluginResultPanel results={plugin.results} />
           </Card>
         ))}
