@@ -52,6 +52,10 @@ impl VaultStore {
         Ok(store)
     }
 
+    pub fn base_path(&self) -> &std::path::Path {
+        &self.config.path
+    }
+
     fn data_key(&self) -> Result<DataEncryptionKey, String> {
         let guard = self.data_key.lock().map_err(|e| e.to_string())?;
         guard
@@ -123,6 +127,17 @@ impl VaultStore {
                 counter INTEGER NOT NULL,
                 node_id TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
+                PRIMARY KEY (table_name, record_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS sync_tombstones (
+                table_name TEXT NOT NULL,
+                record_id TEXT NOT NULL,
+                wall_time_ms INTEGER NOT NULL,
+                counter INTEGER NOT NULL,
+                node_id TEXT NOT NULL,
+                deleted_by_node_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
                 PRIMARY KEY (table_name, record_id)
             );
 
@@ -839,6 +854,8 @@ impl VaultStore {
         if affected == 0 {
             return Err("Profile not found".to_string());
         }
+        drop(guard);
+        self.record_tombstone("profiles", id)?;
         Ok(())
     }
 
@@ -854,7 +871,7 @@ impl VaultStore {
             .unwrap_or(0)
     }
 
-    fn get_record_hlc(
+    pub fn get_record_hlc(
         &self,
         table: &str,
         record_id: &str,
@@ -1081,6 +1098,122 @@ impl VaultStore {
         Ok(result.unwrap_or_default())
     }
 
+    fn local_node_id(&self) -> String {
+        self.get_sync_node_id()
+            .ok()
+            .flatten()
+            .unwrap_or_else(|| "unknown".to_string())
+    }
+
+    fn new_tombstone_hlc(&self) -> Result<crate::RecordHlc, String> {
+        let node_id = self.local_node_id();
+        let now = Self::parse_time_ms(&Self::now_rfc3339());
+        // Bump wall_time to be strictly larger than any existing HLC for this node
+        // to guarantee the tombstone wins over prior local changes.
+        let max_existing = self.max_hlc_wall_time_for_node(&node_id)?;
+        Ok(crate::RecordHlc {
+            wall_time_ms: now.max(max_existing + 1),
+            counter: 0,
+            node_id,
+        })
+    }
+
+    fn max_hlc_wall_time_for_node(&self, node_id: &str) -> Result<u64, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let max: Option<i64> = {
+            let max_result = conn
+                .query_row(
+                    "SELECT COALESCE(MAX(wall_time_ms), 0) FROM sync_hlc WHERE node_id = ?1",
+                    params![node_id],
+                    |row| row.get(0),
+                )
+                .optional()
+                .map_err(|e| format!("max_hlc: {}", e))?;
+            max_result
+        };
+        Ok(max.unwrap_or(0) as u64)
+    }
+
+    /// Record a deletion tombstone for a record that is being hard-deleted.
+    /// Also updates sync_hlc so the tombstone participates in conflict resolution.
+    fn record_tombstone(&self, table: &str, record_id: &str) -> Result<(), String> {
+        let hlc = self.new_tombstone_hlc()?;
+        let deleted_by = self.local_node_id();
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "INSERT INTO sync_tombstones (table_name, record_id, wall_time_ms, counter, node_id, deleted_by_node_id, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+             ON CONFLICT(table_name, record_id) DO UPDATE SET
+                wall_time_ms = excluded.wall_time_ms,
+                counter = excluded.counter,
+                node_id = excluded.node_id,
+                deleted_by_node_id = excluded.deleted_by_node_id,
+                created_at = excluded.created_at",
+            params![
+                table,
+                record_id,
+                hlc.wall_time_ms,
+                hlc.counter as i32,
+                &hlc.node_id,
+                &deleted_by,
+                Self::now_rfc3339(),
+            ],
+        )
+        .map_err(|e| format!("record_tombstone: {}", e))?;
+        drop(guard);
+        self.set_record_hlc(table, record_id, &hlc)
+    }
+
+    fn list_tombstones_since(
+        &self,
+        table: &str,
+        watermark: &crate::SyncWatermark,
+        local_node_id: &str,
+    ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        let rows = {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            let mut stmt = conn
+                .prepare(
+                    "SELECT table_name, record_id, wall_time_ms, counter, node_id
+                     FROM sync_tombstones WHERE table_name = ?1",
+                )
+                .map_err(|e| format!("list_tombstones: {}", e))?;
+            let rows: Vec<crate::VaultSyncRecord> = stmt
+                .query_map(params![table], |row| {
+                    Ok(crate::VaultSyncRecord {
+                        id: row.get(1)?,
+                        table: row.get(0)?,
+                        data: serde_json::Value::Null,
+                        hlc: crate::RecordHlc {
+                            wall_time_ms: row.get(2)?,
+                            counter: row.get::<_, i32>(3)? as u32,
+                            node_id: row.get(4)?,
+                        },
+                        deleted: true,
+                    })
+                })
+                .map_err(|e| format!("list_tombstones query: {}", e))?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("list_tombstones collect: {}", e))?;
+            rows
+        };
+
+        // Filter by watermark and bump counter/wall_time for local node fallback.
+        let mut out = Vec::new();
+        for mut rec in rows {
+            if rec.hlc.node_id == local_node_id && rec.hlc.counter == 0 {
+                rec.hlc.counter = 0;
+            }
+            if Self::hlc_after_watermark(&rec.hlc, watermark) {
+                out.push(rec);
+            }
+        }
+        Ok(out)
+    }
+
     fn hlc_after_watermark(hlc: &crate::RecordHlc, watermark: &crate::SyncWatermark) -> bool {
         hlc.wall_time_ms > watermark.wall_time_ms
             || (hlc.wall_time_ms == watermark.wall_time_ms
@@ -1105,6 +1238,24 @@ impl VaultStore {
             "trash_items" => self.list_trash_changes_since(watermark, local_node_id),
             _ => Err(format!("Unsupported sync table: {}", table)),
         }
+    }
+
+    /// Paginated version of `list_sync_changes_since`.
+    ///
+    /// Returns at most `limit` records starting from `offset`. This allows the sync
+    /// engine to stream large tables in multiple `Batch` messages without loading
+    /// the entire result set into a single message.
+    pub fn list_sync_changes_since_paginated(
+        &self,
+        table: &str,
+        watermark: &crate::SyncWatermark,
+        account_id: &str,
+        local_node_id: &str,
+        limit: usize,
+        offset: usize,
+    ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        let all = self.list_sync_changes_since(table, watermark, account_id, local_node_id)?;
+        Ok(all.into_iter().skip(offset).take(limit).collect())
     }
 
     fn list_profile_changes_since(
@@ -1171,6 +1322,8 @@ impl VaultStore {
                 deleted: false,
             });
         }
+        let mut tombstones = self.list_tombstones_since("profiles", watermark, local_node_id)?;
+        out.append(&mut tombstones);
         Ok(out)
     }
 
@@ -1345,6 +1498,9 @@ impl VaultStore {
                 deleted: false,
             });
         }
+        let mut tombstones =
+            self.list_tombstones_since("user_templates", watermark, local_node_id)?;
+        out.append(&mut tombstones);
         Ok(out)
     }
 
@@ -1459,7 +1615,12 @@ impl VaultStore {
 
     fn apply_profile_sync_record(&self, record: &crate::VaultSyncRecord) -> Result<bool, String> {
         if record.deleted {
-            let _ = self.delete_profile(&record.id);
+            // Apply remote tombstone directly without creating a local tombstone,
+            // so the remote HLC remains the authoritative deletion timestamp.
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            conn.execute("DELETE FROM profiles WHERE id = ?1", params![&record.id])
+                .map_err(|e| format!("delete profile: {}", e))?;
             return Ok(true);
         }
         let data_b64 = record
@@ -2655,6 +2816,8 @@ impl VaultStore {
             params![template_id],
         )
         .map_err(|e| format!("delete_user_template: {}", e))?;
+        drop(guard);
+        self.record_tombstone("user_templates", template_id)?;
         Ok(())
     }
 

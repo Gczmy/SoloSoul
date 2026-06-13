@@ -5,11 +5,30 @@
 
 use crate::hlc::Hlc;
 use crate::protocol::SyncRecord;
+use serde::{Deserialize, Serialize};
 use solosoul_vault::{RecordHlc, SyncWatermark, VaultStore, VaultSyncRecord};
 use std::collections::HashMap;
 
 /// Tables synchronized in the first milestone (attachments excluded).
 pub const SYNC_TABLES: &[&str] = &["profiles", "objects", "user_templates", "trash_items"];
+
+/// Per-table statistics returned after applying a sync batch.
+#[derive(Debug, Clone, Default)]
+pub struct TableStats {
+    pub examined: u64,
+    pub applied: u64,
+    pub skipped: u64,
+}
+
+/// A conflict detected when the remote HLC is not newer than the local HLC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConflictRecord {
+    pub table: String,
+    pub id: String,
+    pub local_hlc: Hlc,
+    pub remote_hlc: Hlc,
+    pub winner: String,
+}
 
 /// Statistics returned after applying a sync batch.
 #[derive(Debug, Clone, Default)]
@@ -18,6 +37,8 @@ pub struct ApplyStats {
     pub applied: u64,
     pub skipped: u64,
     pub errors: Vec<String>,
+    pub per_table: HashMap<String, TableStats>,
+    pub conflicts: Vec<ConflictRecord>,
 }
 
 fn hlc_to_record_hlc(hlc: &Hlc) -> RecordHlc {
@@ -32,12 +53,27 @@ fn record_hlc_to_hlc(hlc: &RecordHlc) -> Hlc {
     Hlc::new(hlc.wall_time_ms, hlc.counter, &hlc.node_id)
 }
 
-fn watermark_to_vault(wm: &crate::hlc::SyncWatermark) -> SyncWatermark {
+pub fn hlc_to_sync_watermark(hlc: &Hlc) -> crate::hlc::SyncWatermark {
+    crate::hlc::SyncWatermark {
+        wall_time_ms: hlc.wall_time_ms,
+        counter: hlc.counter,
+        node_id: hlc.node_id,
+    }
+}
+
+pub fn watermark_to_vault(wm: &crate::hlc::SyncWatermark) -> SyncWatermark {
     SyncWatermark {
         wall_time_ms: wm.wall_time_ms,
         counter: wm.counter,
         node_id: hex::encode(wm.node_id),
     }
+}
+
+/// A single page of delta records returned by `generate_delta_paginated`.
+#[derive(Debug, Clone)]
+pub struct DeltaPage {
+    pub records: Vec<SyncRecord>,
+    pub finished: bool,
 }
 
 /// Generate the set of records for a table that are newer than the peer watermark.
@@ -48,10 +84,39 @@ pub fn generate_delta(
     account_id: &str,
     local_node_id: &str,
 ) -> Result<Vec<SyncRecord>, String> {
+    Ok(generate_delta_paginated(
+        store,
+        table,
+        watermark,
+        account_id,
+        local_node_id,
+        usize::MAX,
+        0,
+    )?
+    .records)
+}
+
+/// Generate a paginated page of records for a table that are newer than the peer watermark.
+pub fn generate_delta_paginated(
+    store: &VaultStore,
+    table: &str,
+    watermark: &crate::hlc::SyncWatermark,
+    account_id: &str,
+    local_node_id: &str,
+    limit: usize,
+    offset: usize,
+) -> Result<DeltaPage, String> {
     let vault_watermark = watermark_to_vault(watermark);
-    let changes =
-        store.list_sync_changes_since(table, &vault_watermark, account_id, local_node_id)?;
-    Ok(changes
+    let changes = store.list_sync_changes_since_paginated(
+        table,
+        &vault_watermark,
+        account_id,
+        local_node_id,
+        limit,
+        offset,
+    )?;
+    let finished = changes.len() < limit;
+    let records = changes
         .into_iter()
         .map(|rec| SyncRecord {
             id: rec.id,
@@ -60,19 +125,27 @@ pub fn generate_delta(
             hlc: record_hlc_to_hlc(&rec.hlc),
             deleted: rec.deleted,
         })
-        .collect())
+        .collect();
+    Ok(DeltaPage { records, finished })
+}
+
+/// Compute the maximum HLC in a non-empty list of records.
+pub fn max_record_hlc(records: &[SyncRecord]) -> Option<Hlc> {
+    records.iter().max_by_key(|r| r.hlc).map(|r| r.hlc)
 }
 
 /// Apply a batch of records for a single table.
 pub fn apply_sync_records(
     store: &VaultStore,
-    _table: &str,
+    table: &str,
     records: &[SyncRecord],
     local_node_id: &str,
 ) -> Result<ApplyStats, String> {
     let mut stats = ApplyStats::default();
+    let table_stats = stats.per_table.entry(table.to_string()).or_default();
     for rec in records {
         stats.examined += 1;
+        table_stats.examined += 1;
         let vault_rec = VaultSyncRecord {
             id: rec.id.clone(),
             table: rec.table.clone(),
@@ -80,11 +153,36 @@ pub fn apply_sync_records(
             hlc: hlc_to_record_hlc(&rec.hlc),
             deleted: rec.deleted,
         };
+
+        // Capture local HLC before applying so we can report conflicts.
+        let local_hlc = store
+            .get_record_hlc(&rec.table, &rec.id)?
+            .map(|hlc| record_hlc_to_hlc(&hlc));
+
         match store.apply_sync_record(&vault_rec, local_node_id) {
-            Ok(true) => stats.applied += 1,
-            Ok(false) => stats.skipped += 1,
+            Ok(true) => {
+                stats.applied += 1;
+                table_stats.applied += 1;
+            }
+            Ok(false) => {
+                stats.skipped += 1;
+                table_stats.skipped += 1;
+                // A skip is a conflict when the local record is at least as new as the remote one.
+                if let Some(local) = local_hlc {
+                    if local >= rec.hlc {
+                        stats.conflicts.push(ConflictRecord {
+                            table: rec.table.clone(),
+                            id: rec.id.clone(),
+                            local_hlc: local,
+                            remote_hlc: rec.hlc,
+                            winner: "local".to_string(),
+                        });
+                    }
+                }
+            }
             Err(e) => {
                 stats.skipped += 1;
+                table_stats.skipped += 1;
                 stats.errors.push(format!("{}: {}", rec.id, e));
             }
         }

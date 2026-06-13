@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { commands } from '@/lib/ipc';
+import { commands, type SyncResult } from '@/lib/ipc';
 
 export interface SyncPeer {
   id: string;
@@ -20,7 +20,8 @@ interface SyncStatus {
 interface SyncStoreState extends SyncStatus {
   isLoading: boolean;
   error: string | null;
-  lastResult: string | null;
+  lastResult: SyncResult | null;
+  recentResults: SyncResult[];
 
   loadStatus: () => Promise<void>;
   enable: (enabled: boolean) => Promise<void>;
@@ -37,6 +38,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   isLoading: false,
   error: null,
   lastResult: null,
+  recentResults: [],
 
   loadStatus: async () => {
     try {
@@ -63,7 +65,11 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
     try {
       const result = await commands.syncWithDevice(deviceId);
       await get().loadStatus();
-      set({ isLoading: false, lastResult: result });
+      set((state) => ({
+        isLoading: false,
+        lastResult: result,
+        recentResults: [result, ...state.recentResults].slice(0, 10),
+      }));
     } catch (err) {
       set({ isLoading: false, error: String(err) });
     }

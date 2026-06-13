@@ -1,14 +1,25 @@
 //! SyncManager: mDNS discovery, TCP listener, and encrypted sync sessions.
 
-use crate::delta::{apply_sync_batch, generate_delta, ApplyStats, SYNC_TABLES};
+use crate::attachments::{
+    collect_attachment_manifests, compute_needed_attachments, receive_attachment_manifests,
+    receive_attachment_requests, receive_attachments, send_attachment_manifests,
+    send_attachment_requests, send_requested_attachments, AttachmentSyncStats,
+};
+use crate::delta::{
+    apply_sync_records, generate_delta_paginated, hlc_to_sync_watermark, max_record_hlc,
+    watermark_to_vault, ApplyStats, SYNC_TABLES,
+};
+
+const DELTA_PAGE_LIMIT: usize = 100;
 use crate::hlc::{Hlc, SyncWatermark};
 use crate::noise::{NoiseKeys, NoiseSession};
-use crate::protocol::{SyncMessage, SyncRecord};
+use crate::protocol::SyncMessage;
 use crate::transport::SyncTransport;
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
 use solosoul_vault::{PeerSyncState, VaultStore};
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, UdpSocket};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -17,6 +28,13 @@ use tokio::task::{spawn, spawn_blocking, JoinHandle};
 const SERVICE_TYPE: &str = "_solosoul._tcp.local.";
 const MDNS_TIMEOUT_MS: u64 = 200;
 const PEER_MAX_AGE_SECS: u64 = 300;
+
+/// Result of a full sync session, including database deltas and attachment transfers.
+#[derive(Debug, Clone, Default)]
+pub struct SyncSessionResult {
+    pub data: ApplyStats,
+    pub attachments: AttachmentSyncStats,
+}
 
 /// Information about a discovered or known peer.
 #[derive(Debug, Clone)]
@@ -271,7 +289,10 @@ impl SyncManager {
     }
 
     /// Connect to a discovered peer or a direct `host:port` address and sync.
-    pub async fn sync_with_peer(&self, device_id_or_addr: &str) -> Result<ApplyStats, String> {
+    pub async fn sync_with_peer(
+        &self,
+        device_id_or_addr: &str,
+    ) -> Result<SyncSessionResult, String> {
         if !self.running.load(Ordering::SeqCst) {
             return Err("Sync manager is not running".to_string());
         }
@@ -290,7 +311,7 @@ impl SyncManager {
         let keys = self.keys.clone();
         let vault = self.vault.clone();
 
-        let stats = spawn_blocking(move || {
+        let result = spawn_blocking(move || {
             let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
                 .map_err(|e| format!("connect: {}", e))?;
             let mut transport = SyncTransport::from_stream(stream);
@@ -306,7 +327,7 @@ impl SyncManager {
         .await
         .map_err(|e| format!("spawn blocking: {}", e))?;
 
-        stats
+        result
     }
 
     /// Return discovered and persisted peers visible right now.
@@ -420,7 +441,7 @@ fn run_initiator_session(
     keys: &NoiseKeys,
     vault: Arc<VaultStore>,
     peer_addr: String,
-) -> Result<ApplyStats, String> {
+) -> Result<SyncSessionResult, String> {
     let mut session = NoiseSession::handshake_initiator(transport, keys)?;
 
     send_msg(
@@ -451,20 +472,36 @@ fn run_initiator_session(
     };
     let _ = trusted;
 
-    // Send our changes first.
+    // Send our changes first, paginated by table.
     for table in SYNC_TABLES {
-        let watermark = vault_to_watermark(&vault.get_peer_watermark(&peer_node_id, table)?);
-        let records = generate_delta(&vault, table, &watermark, account_id, node_id)?;
-        if !records.is_empty() {
+        loop {
+            let watermark = vault_to_watermark(&vault.get_peer_watermark(&peer_node_id, table)?);
+            let page = generate_delta_paginated(
+                &vault,
+                table,
+                &watermark,
+                account_id,
+                node_id,
+                DELTA_PAGE_LIMIT,
+                0,
+            )?;
+            if page.records.is_empty() && page.finished {
+                break;
+            }
+
+            let finished = page.finished;
+            let max_hlc = max_record_hlc(&page.records);
+            let record_count = page.records.len();
             send_msg(
                 &mut session,
                 transport,
                 &SyncMessage::Batch {
                     table: table.to_string(),
-                    records,
-                    finished: true,
+                    records: page.records,
+                    finished,
                 },
             )?;
+
             let ack = recv_msg(&mut session, transport)?;
             if let SyncMessage::Ack {
                 table: ack_table,
@@ -478,23 +515,50 @@ fn run_initiator_session(
             } else {
                 return Err("Expected Ack after Batch".to_string());
             }
+
+            // Advance peer watermark so the next page resumes after what we just sent.
+            if let Some(max) = max_hlc {
+                vault.update_peer_watermark(
+                    &peer_node_id,
+                    table,
+                    &watermark_to_vault(&hlc_to_sync_watermark(&max)),
+                )?;
+            }
+
+            if finished {
+                break;
+            }
+            // If the peer is still behind, another page will be fetched starting from
+            // the updated watermark. The loop count is bounded by table size / DELTA_PAGE_LIMIT.
+            let _ = record_count;
         }
     }
     send_msg(&mut session, transport, &SyncMessage::Done)?;
 
-    // Receive peer changes.
-    let mut received: HashMap<String, Vec<SyncRecord>> = HashMap::new();
+    // Receive peer changes and apply each batch incrementally to bound memory.
+    let mut data_stats = ApplyStats::default();
     loop {
         let msg = recv_msg(&mut session, transport)?;
         match msg {
             SyncMessage::Batch { table, records, .. } => {
-                received.entry(table.clone()).or_default().extend(records);
+                let stats = apply_sync_records(&vault, &table, &records, node_id)?;
+                data_stats.examined += stats.examined;
+                data_stats.applied += stats.applied;
+                data_stats.skipped += stats.skipped;
+                data_stats.errors.extend(stats.errors);
+                for (t, s) in stats.per_table {
+                    let entry = data_stats.per_table.entry(t).or_default();
+                    entry.examined += s.examined;
+                    entry.applied += s.applied;
+                    entry.skipped += s.skipped;
+                }
+                data_stats.conflicts.extend(stats.conflicts);
                 send_msg(
                     &mut session,
                     transport,
                     &SyncMessage::Ack {
                         table,
-                        count: received.values().map(|v| v.len() as u64).sum(),
+                        count: data_stats.examined,
                     },
                 )?;
             }
@@ -503,8 +567,64 @@ fn run_initiator_session(
             _ => return Err("Unexpected message while receiving batches".to_string()),
         }
     }
+    let base = vault.base_path();
+    let attachment_stats =
+        exchange_attachments(&mut session, transport, &vault, account_id, base, false)
+            .unwrap_or_else(|e| {
+                tracing::warn!("Attachment exchange failed: {}", e);
+                AttachmentSyncStats {
+                    errors: vec![e],
+                    ..Default::default()
+                }
+            });
 
-    apply_sync_batch(&vault, received, node_id)
+    Ok(SyncSessionResult {
+        data: data_stats,
+        attachments: attachment_stats,
+    })
+}
+
+/// Exchange attachment files after the main record sync.
+/// `is_responder` controls who sends manifests first:
+/// - initiator sends manifests first, then receives responder's manifests.
+pub(crate) fn exchange_attachments(
+    session: &mut NoiseSession,
+    transport: &mut SyncTransport,
+    vault: &VaultStore,
+    account_id: &str,
+    base: &Path,
+    is_responder: bool,
+) -> Result<AttachmentSyncStats, String> {
+    let mut stats = AttachmentSyncStats::default();
+    let local_manifests = collect_attachment_manifests(vault, account_id)?;
+    let local_map: std::collections::HashMap<String, Vec<crate::protocol::AttachmentInfo>> =
+        local_manifests.iter().cloned().collect();
+
+    let remote_manifests = if is_responder {
+        // Responder: receive remote manifests first, then send ours.
+        let remote = receive_attachment_manifests(session, transport)?;
+        send_attachment_manifests(session, transport, &local_manifests)?;
+        remote
+    } else {
+        // Initiator: send our manifests first, then receive remote manifests.
+        send_attachment_manifests(session, transport, &local_manifests)?;
+        receive_attachment_manifests(session, transport)?
+    };
+
+    let local_needed = compute_needed_attachments(base, &remote_manifests);
+    send_attachment_requests(session, transport, &local_needed)?;
+    let requested = receive_attachment_requests(session, transport)?;
+
+    // Transfer attachment chunks sequentially to avoid interleaving Ack/Done messages.
+    if is_responder {
+        receive_attachments(session, transport, base, &remote_manifests, &mut stats)?;
+        send_requested_attachments(session, transport, base, &requested, &local_map, &mut stats)?;
+    } else {
+        send_requested_attachments(session, transport, base, &requested, &local_map, &mut stats)?;
+        receive_attachments(session, transport, base, &remote_manifests, &mut stats)?;
+    }
+
+    Ok(stats)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -517,7 +637,7 @@ fn handle_inbound(
     discovered: Arc<Mutex<HashMap<String, DiscoveredPeer>>>,
     sessions: Arc<Mutex<HashMap<String, PeerSession>>>,
     peer_addr: String,
-) -> Result<(), String> {
+) -> Result<SyncSessionResult, String> {
     let mut session = NoiseSession::handshake_responder(transport, keys)?;
 
     let (peer_node_id, peer_account, fingerprint) = match recv_msg(&mut session, transport)? {
@@ -596,19 +716,30 @@ fn handle_inbound(
         );
     }
 
-    // Receive peer changes first.
-    let mut received: HashMap<String, Vec<SyncRecord>> = HashMap::new();
+    // Receive peer changes first and apply incrementally.
+    let mut apply_stats = ApplyStats::default();
     loop {
         let msg = recv_msg(&mut session, transport)?;
         match msg {
             SyncMessage::Batch { table, records, .. } => {
-                received.entry(table.clone()).or_default().extend(records);
+                let stats = apply_sync_records(&vault, &table, &records, node_id)?;
+                apply_stats.examined += stats.examined;
+                apply_stats.applied += stats.applied;
+                apply_stats.skipped += stats.skipped;
+                apply_stats.errors.extend(stats.errors);
+                for (t, s) in stats.per_table {
+                    let entry = apply_stats.per_table.entry(t).or_default();
+                    entry.examined += s.examined;
+                    entry.applied += s.applied;
+                    entry.skipped += s.skipped;
+                }
+                apply_stats.conflicts.extend(stats.conflicts);
                 send_msg(
                     &mut session,
                     transport,
                     &SyncMessage::Ack {
                         table,
-                        count: received.values().map(|v| v.len() as u64).sum(),
+                        count: apply_stats.examined,
                     },
                 )?;
             }
@@ -618,20 +749,32 @@ fn handle_inbound(
         }
     }
 
-    let apply_stats = apply_sync_batch(&vault, received, node_id)?;
-
-    // Send our changes back.
+    // Send our changes back, paginated by table.
     for table in SYNC_TABLES {
-        let watermark = vault_to_watermark(&vault.get_peer_watermark(&peer_node_id, table)?);
-        let records = generate_delta(&vault, table, &watermark, account_id, node_id)?;
-        if !records.is_empty() {
+        loop {
+            let watermark = vault_to_watermark(&vault.get_peer_watermark(&peer_node_id, table)?);
+            let page = generate_delta_paginated(
+                &vault,
+                table,
+                &watermark,
+                account_id,
+                node_id,
+                DELTA_PAGE_LIMIT,
+                0,
+            )?;
+            if page.records.is_empty() && page.finished {
+                break;
+            }
+
+            let finished = page.finished;
+            let max_hlc = max_record_hlc(&page.records);
             send_msg(
                 &mut session,
                 transport,
                 &SyncMessage::Batch {
                     table: table.to_string(),
-                    records,
-                    finished: true,
+                    records: page.records,
+                    finished,
                 },
             )?;
             let ack = recv_msg(&mut session, transport)?;
@@ -645,21 +788,48 @@ fn handle_inbound(
             } else {
                 return Err("Expected Ack after Batch".to_string());
             }
+
+            if let Some(max) = max_hlc {
+                vault.update_peer_watermark(
+                    &peer_node_id,
+                    table,
+                    &watermark_to_vault(&hlc_to_sync_watermark(&max)),
+                )?;
+            }
+
+            if finished {
+                break;
+            }
         }
     }
     send_msg(&mut session, transport, &SyncMessage::Done)?;
 
+    let base = vault.base_path();
+    let attachment_stats =
+        exchange_attachments(&mut session, transport, &vault, account_id, base, true)
+            .unwrap_or_else(|e| {
+                tracing::warn!("Inbound attachment exchange failed: {}", e);
+                AttachmentSyncStats {
+                    errors: vec![e],
+                    ..Default::default()
+                }
+            });
+
     tracing::info!(
-        "Inbound sync from {} applied {} records",
+        "Inbound sync from {} applied {} records, received {} attachments",
         peer_node_id,
-        apply_stats.applied
+        apply_stats.applied,
+        attachment_stats.received
     );
 
     {
         let mut sess = sessions.lock().map_err(|e| e.to_string())?;
         sess.remove(&peer_node_id);
     }
-    Ok(())
+    Ok(SyncSessionResult {
+        data: apply_stats,
+        attachments: attachment_stats,
+    })
 }
 
 fn record_peer(
@@ -708,5 +878,347 @@ fn vault_to_watermark(wm: &solosoul_vault::SyncWatermark) -> SyncWatermark {
         wall_time_ms: wm.wall_time_ms,
         counter: wm.counter,
         node_id: Hlc::parse_node_id_bytes(&wm.node_id),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use solosoul_vault::{ObjectRecord, PeerSyncState, Profile, VaultConfig, VaultStore};
+    use std::thread;
+    use tempfile::TempDir;
+
+    fn trust_peer(vault: &VaultStore, peer_node_id: &str, fingerprint: &str) {
+        let now = chrono::Utc::now().to_rfc3339();
+        vault
+            .save_peer_state(&PeerSyncState {
+                peer_node_id: peer_node_id.to_string(),
+                peer_name: None,
+                trusted: true,
+                public_key_fingerprint: Some(fingerprint.to_string()),
+                last_seen: None,
+                created_at: now.clone(),
+                updated_at: now,
+            })
+            .unwrap();
+    }
+
+    fn open_test_vault(account_id: &str, path: std::path::PathBuf) -> VaultStore {
+        let config = VaultConfig::new(account_id, path).with_data_key([1u8; 32]);
+        VaultStore::open(config).unwrap()
+    }
+
+    fn make_object_with_attachment(
+        object_id: &str,
+        account_id: &str,
+        attachment_id: &str,
+        file_name: &str,
+    ) -> ObjectRecord {
+        ObjectRecord {
+            id: object_id.to_string(),
+            account_id: account_id.to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Note".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({
+                "__attachments": [{
+                    "id": attachment_id,
+                    "objectId": object_id,
+                    "fileName": file_name,
+                    "mimeType": "text/plain",
+                    "sizeBytes": 13,
+                    "createdAt": "2024-01-01T00:00:00Z"
+                }]
+            }),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        }
+    }
+
+    #[test]
+    fn test_exchange_attachments_over_noise() {
+        let dir_a = TempDir::new().unwrap();
+        let dir_b = TempDir::new().unwrap();
+        let vault_a = open_test_vault("acc_att", dir_a.path().to_path_buf());
+        let vault_b = open_test_vault("acc_att", dir_b.path().to_path_buf());
+
+        // Prepare attachment on A.
+        let object_id = "obj-1";
+        let attachment_id = "att-1";
+        let file_name = "hello.txt";
+        let record = make_object_with_attachment(object_id, "acc_att", attachment_id, file_name);
+        vault_a.save_object(&record).unwrap();
+        let att_dir = dir_a
+            .path()
+            .join("attachments")
+            .join(object_id)
+            .join(attachment_id);
+        std::fs::create_dir_all(&att_dir).unwrap();
+        let att_path = att_dir.join(file_name);
+        std::fs::write(&att_path, b"hello world!\n").unwrap();
+
+        let manifests = collect_attachment_manifests(&vault_a, "acc_att").unwrap();
+        assert_eq!(
+            manifests.len(),
+            1,
+            "expected one manifest, got {:?}",
+            manifests
+        );
+
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap().to_string();
+
+        let server_keys = NoiseKeys::generate();
+        let client_keys = NoiseKeys::generate();
+
+        let server_thread = thread::spawn(move || {
+            let (stream, _) = listener.accept().unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            let mut session =
+                NoiseSession::handshake_responder(&mut transport, &server_keys).unwrap();
+            exchange_attachments(
+                &mut session,
+                &mut transport,
+                &vault_b,
+                "acc_att",
+                vault_b.base_path(),
+                true,
+            )
+            .unwrap()
+        });
+
+        let client_thread = thread::spawn(move || {
+            let stream = std::net::TcpStream::connect(&addr).unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            let mut session =
+                NoiseSession::handshake_initiator(&mut transport, &client_keys).unwrap();
+            exchange_attachments(
+                &mut session,
+                &mut transport,
+                &vault_a,
+                "acc_att",
+                vault_a.base_path(),
+                false,
+            )
+            .unwrap()
+        });
+
+        let server_stats = server_thread.join().unwrap();
+        let client_stats = client_thread.join().unwrap();
+
+        // A sent one attachment, B received one.
+        assert_eq!(client_stats.sent, 1);
+        assert_eq!(server_stats.received, 1);
+
+        let received_path = dir_b
+            .path()
+            .join("attachments")
+            .join(object_id)
+            .join(attachment_id)
+            .join(file_name);
+        assert!(received_path.exists());
+        assert_eq!(
+            std::fs::read_to_string(&received_path).unwrap(),
+            "hello world!\n"
+        );
+    }
+
+    #[test]
+    fn test_profile_tombstone_propagation_over_noise() {
+        let dir_a = TempDir::new().unwrap();
+        let dir_b = TempDir::new().unwrap();
+        let vault_a = Arc::new(open_test_vault("acc_tomb", dir_a.path().to_path_buf()));
+        let vault_b = Arc::new(open_test_vault("acc_tomb", dir_b.path().to_path_buf()));
+        vault_a.set_sync_node_id("node_a").unwrap();
+        vault_b.set_sync_node_id("node_b").unwrap();
+
+        let server_keys = NoiseKeys::generate();
+        let client_keys = NoiseKeys::generate();
+        let server_keys2 = server_keys.clone();
+        let client_keys2 = client_keys.clone();
+        trust_peer(&vault_a, "node_b", &server_keys.fingerprint());
+        trust_peer(&vault_b, "node_a", &client_keys.fingerprint());
+
+        // 1. Create profile on A.
+        let profile = Profile::new_with_id("p1", "Travel", b"encrypted".to_vec());
+        vault_a.save_profile(&profile).unwrap();
+        assert!(vault_a.load_profile("p1").unwrap().is_some());
+
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        let vault_a2 = Arc::clone(&vault_a);
+        let vault_b2 = Arc::clone(&vault_b);
+        let server_thread = thread::spawn(move || {
+            let (stream, peer_addr) = listener.accept().unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            handle_inbound(
+                &mut transport,
+                "node_b",
+                "acc_tomb",
+                &server_keys,
+                vault_b2,
+                Arc::new(Mutex::new(HashMap::new())),
+                Arc::new(Mutex::new(HashMap::new())),
+                peer_addr.to_string(),
+            )
+            .unwrap()
+        });
+
+        let client_thread = thread::spawn(move || {
+            let stream =
+                std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(5)).unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            run_initiator_session(
+                &mut transport,
+                "node_a",
+                "acc_tomb",
+                &client_keys,
+                vault_a2,
+                addr.to_string(),
+            )
+            .unwrap()
+        });
+
+        let _server_result = server_thread.join().unwrap();
+        let _client_result = client_thread.join().unwrap();
+
+        // Profile should now exist on B.
+        assert!(
+            vault_b.load_profile("p1").unwrap().is_some(),
+            "profile should be synced to B"
+        );
+
+        // 2. Delete profile on A.
+        vault_a.delete_profile("p1").unwrap();
+        assert!(vault_a.load_profile("p1").unwrap().is_none());
+
+        // 3. Sync again to propagate the tombstone.
+        let listener2 = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr2 = listener2.local_addr().unwrap();
+
+        let vault_a3 = Arc::clone(&vault_a);
+        let vault_b3 = Arc::clone(&vault_b);
+        let server_thread2 = thread::spawn(move || {
+            let (stream, peer_addr) = listener2.accept().unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            handle_inbound(
+                &mut transport,
+                "node_b",
+                "acc_tomb",
+                &server_keys2,
+                vault_b3,
+                Arc::new(Mutex::new(HashMap::new())),
+                Arc::new(Mutex::new(HashMap::new())),
+                peer_addr.to_string(),
+            )
+            .unwrap()
+        });
+
+        let client_thread2 = thread::spawn(move || {
+            let stream =
+                std::net::TcpStream::connect_timeout(&addr2, Duration::from_secs(5)).unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            run_initiator_session(
+                &mut transport,
+                "node_a",
+                "acc_tomb",
+                &client_keys2,
+                vault_a3,
+                addr2.to_string(),
+            )
+            .unwrap()
+        });
+
+        let _server_result2 = server_thread2.join().unwrap();
+        let _client_result2 = client_thread2.join().unwrap();
+
+        assert!(
+            vault_b.load_profile("p1").unwrap().is_none(),
+            "profile should be deleted on B after tombstone sync"
+        );
+    }
+
+    #[test]
+    fn test_large_profile_table_paginated_sync() {
+        let dir_a = TempDir::new().unwrap();
+        let dir_b = TempDir::new().unwrap();
+        let vault_a = Arc::new(open_test_vault("acc_pag", dir_a.path().to_path_buf()));
+        let vault_b = Arc::new(open_test_vault("acc_pag", dir_b.path().to_path_buf()));
+        vault_a.set_sync_node_id("node_a").unwrap();
+        vault_b.set_sync_node_id("node_b").unwrap();
+
+        let server_keys = NoiseKeys::generate();
+        let client_keys = NoiseKeys::generate();
+        trust_peer(&vault_a, "node_b", &server_keys.fingerprint());
+        trust_peer(&vault_b, "node_a", &client_keys.fingerprint());
+
+        // Create enough profiles to exceed the 500-record page limit.
+        const PROFILE_COUNT: usize = 550;
+        for i in 0..PROFILE_COUNT {
+            let profile = Profile::new_with_id(
+                &format!("p-{}", i),
+                &format!("Profile {}", i),
+                b"encrypted payload".to_vec(),
+            );
+            vault_a.save_profile(&profile).unwrap();
+        }
+
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        let vault_a2 = Arc::clone(&vault_a);
+        let vault_b2 = Arc::clone(&vault_b);
+        let server_thread = thread::spawn(move || {
+            let (stream, peer_addr) = listener.accept().unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            handle_inbound(
+                &mut transport,
+                "node_b",
+                "acc_pag",
+                &server_keys,
+                vault_b2,
+                Arc::new(Mutex::new(HashMap::new())),
+                Arc::new(Mutex::new(HashMap::new())),
+                peer_addr.to_string(),
+            )
+            .unwrap()
+        });
+
+        let client_thread = thread::spawn(move || {
+            let stream =
+                std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(5)).unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            run_initiator_session(
+                &mut transport,
+                "node_a",
+                "acc_pag",
+                &client_keys,
+                vault_a2,
+                addr.to_string(),
+            )
+            .unwrap()
+        });
+
+        let server_result = server_thread.join().unwrap();
+        let _client_result = client_thread.join().unwrap();
+
+        assert_eq!(server_result.data.applied, PROFILE_COUNT as u64);
+        assert_eq!(vault_b.list_profiles().unwrap().len(), PROFILE_COUNT);
+
+        // A second sync should be a no-op because the watermark has advanced.
+        let watermark = vault_a.get_peer_watermark("node_b", "profiles").unwrap();
+        assert!(watermark.wall_time_ms > 0);
     }
 }

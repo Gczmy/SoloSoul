@@ -589,5 +589,14 @@
   "sync_forget": "Forget",
   "sync_manual_sync": "Sync",
   "sync_enable": "Enable",
-  "sync_disable": "Disable"
+  "sync_disable": "Disable",
+  "sync_pairing_title": "Pair New Device",
+  "sync_pairing_warning": "Only trust devices you physically own or control. An attacker could impersonate your device.",
+  "sync_pairing_verify_prompt": "Verify the fingerprint below matches the one shown on the other device:",
+  "sync_pairing_no_fingerprint": "No fingerprint available",
+  "sync_pairing_ignore": "Ignore",
+  "sync_pairing_trust": "Trust & Pair",
+  "sync_activity_title": "Sync Activity",
+  "sync_conflicts": "Conflicts",
+  "sync_winner": "winner"
 }

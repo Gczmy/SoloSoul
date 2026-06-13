@@ -86,6 +86,9 @@ impl VaultService {
     }
 
     fn default_base_path() -> PathBuf {
+        if let Ok(dir) = std::env::var("SOLOSOUL_DATA_DIR") {
+            return PathBuf::from(dir);
+        }
         #[cfg(target_os = "windows")]
         {
             if let Ok(profile) = std::env::var("USERPROFILE") {

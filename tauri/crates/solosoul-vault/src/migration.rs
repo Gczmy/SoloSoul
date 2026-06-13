@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 15;
+pub const CURRENT_SCHEMA_VERSION: u32 = 16;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -309,6 +309,23 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
                 PRIMARY KEY (table_name, record_id)
              );",
             "Add sync peer, watermark and HLC tables",
+        )?;
+    }
+    if current < 16 {
+        apply_migration(
+            conn,
+            16,
+            "CREATE TABLE IF NOT EXISTS sync_tombstones (
+                table_name TEXT NOT NULL,
+                record_id TEXT NOT NULL,
+                wall_time_ms INTEGER NOT NULL,
+                counter INTEGER NOT NULL,
+                node_id TEXT NOT NULL,
+                deleted_by_node_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (table_name, record_id)
+             );",
+            "Add sync tombstones table",
         )?;
     }
     Ok(())

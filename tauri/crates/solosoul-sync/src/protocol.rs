@@ -14,6 +14,16 @@ pub struct SyncRecord {
     pub deleted: bool,
 }
 
+/// Metadata for an attachment file to be synced.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttachmentInfo {
+    pub id: String,
+    pub object_id: String,
+    pub file_name: String,
+    pub size_bytes: u64,
+    pub sha256: String,
+}
+
 /// Top-level messages exchanged over a sync session.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -41,6 +51,36 @@ pub enum SyncMessage {
     Ack { table: String, count: u64 },
     #[serde(rename = "done")]
     Done,
+    #[serde(rename = "attachment_manifest")]
+    AttachmentManifest {
+        object_id: String,
+        attachments: Vec<AttachmentInfo>,
+    },
+    #[serde(rename = "attachment_manifest_done")]
+    AttachmentManifestDone,
+    #[serde(rename = "attachment_request")]
+    AttachmentRequest {
+        object_id: String,
+        attachment_ids: Vec<String>,
+    },
+    #[serde(rename = "attachment_request_done")]
+    AttachmentRequestDone,
+    #[serde(rename = "attachment_chunk")]
+    AttachmentChunk {
+        object_id: String,
+        attachment_id: String,
+        chunk_index: u32,
+        total_chunks: u32,
+        data: Vec<u8>,
+    },
+    #[serde(rename = "attachment_ack")]
+    AttachmentAck {
+        object_id: String,
+        attachment_id: String,
+        chunk_index: u32,
+    },
+    #[serde(rename = "attachment_done")]
+    AttachmentDone,
     #[serde(rename = "error")]
     Error { message: String },
 }

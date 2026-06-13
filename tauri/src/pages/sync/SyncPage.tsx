@@ -1,18 +1,49 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Smartphone, Wifi, WifiOff, RefreshCw, Shield, Trash2 } from 'lucide-react';
+import { PairingDialog } from '@/components/sync/PairingDialog';
+import {
+  Smartphone,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  ShieldOff,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { useSyncStore } from '@/stores/syncStore';
+import type { SyncConflict } from '@/lib/ipc';
+
+function formatNodeId(bytes: number[]): string {
+  return bytes
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function formatHlc(hlc: SyncConflict['local_hlc']): string {
+  return `${hlc.wall_time_ms}-${hlc.counter}-${formatNodeId(hlc.node_id)}`;
+}
 
 export function SyncPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
   const store = useSyncStore();
   const [manualAddr, setManualAddr] = useState('');
+  const [ignoredPeerIds, setIgnoredPeerIds] = useState<Set<string>>(new Set());
+  const [activityOpen, setActivityOpen] = useState(false);
+
+  const pendingPeer = useMemo(() => {
+    return (
+      store.connectedPeers.find(
+        (p) => !p.trusted && !ignoredPeerIds.has(p.id) && p.fingerprint,
+      ) || null
+    );
+  }, [store.connectedPeers, ignoredPeerIds]);
 
   const loadStatus = useCallback(async () => {
     await store.loadStatus();
@@ -28,6 +59,16 @@ export function SyncPage() {
 
   const handleSyncWithDevice = async (deviceId: string) => {
     await store.syncWithDevice(deviceId);
+  };
+
+  const handleTrustPending = async () => {
+    if (!pendingPeer) return;
+    await store.trustPeer(pendingPeer.id, true);
+  };
+
+  const handleIgnorePending = () => {
+    if (!pendingPeer) return;
+    setIgnoredPeerIds((prev) => new Set(prev).add(pendingPeer.id));
   };
 
   return (
@@ -135,13 +176,111 @@ export function SyncPage() {
           </div>
           {store.lastResult && (
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
-              {t('settings:sync_result', { defaultValue: 'Result' })}: {store.lastResult}
+              {t('settings:sync_result', { defaultValue: 'Result' })}: {store.lastResult.summary}
             </p>
           )}
           {store.error && (
             <p style={{ fontSize: 12, color: '#e74c3c', marginTop: 8 }}>{store.error}</p>
           )}
         </Card>
+
+        {/* Sync activity */}
+        {store.recentResults.length > 0 && (
+          <Card>
+            <button
+              type="button"
+              onClick={() => setActivityOpen((v) => !v)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                color: 'inherit',
+              }}
+            >
+              <h3 style={{ fontSize: 14, fontWeight: 600 }}>
+                {t('settings:sync_activity_title', { defaultValue: 'Sync Activity' })}
+              </h3>
+              {activityOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+
+            {activityOpen && (
+              <div
+                style={{
+                  marginTop: 12,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                }}
+              >
+                {store.recentResults.map((result, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: 12,
+                      borderRadius: 8,
+                      background: 'var(--bg-toolbar)',
+                      fontSize: 12,
+                    }}
+                  >
+                    <div style={{ fontWeight: 500, marginBottom: 6 }}>{result.summary}</div>
+                    {result.per_table.length > 0 && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 6,
+                          marginBottom: result.conflicts.length > 0 ? 8 : 0,
+                        }}
+                      >
+                        {result.per_table.map((t) => (
+                          <span
+                            key={t.table}
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: 4,
+                              background: 'var(--bg-elevated)',
+                              color: 'var(--text-secondary)',
+                            }}
+                          >
+                            {t.table}: {t.applied}+{t.skipped}/{t.examined}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {result.conflicts.length > 0 && (
+                      <div style={{ marginTop: 6 }}>
+                        <div style={{ color: '#c0392b', marginBottom: 4 }}>
+                          {t('settings:sync_conflicts', { defaultValue: 'Conflicts' })}: {result.conflicts.length}
+                        </div>
+                        <ul
+                          style={{
+                            margin: 0,
+                            paddingLeft: 16,
+                            color: 'var(--text-secondary)',
+                          }}
+                        >
+                          {result.conflicts.map((c, cidx) => (
+                            <li key={cidx}>
+                              {c.table}/{c.id} — {t('settings:sync_winner', { defaultValue: 'winner' })}: {c.winner}
+                              <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-tertiary)' }}>
+                                local: {formatHlc(c.local_hlc)} / remote: {formatHlc(c.remote_hlc)}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        )}
 
         {/* Known peers */}
         <Card>
@@ -186,18 +325,16 @@ export function SyncPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <Button
-                      size="sm"
-                      variant={peer.trusted ? 'secondary' : 'primary'}
-                      onClick={() => store.trustPeer(peer.id, !peer.trusted)}
-                      title={
-                        peer.trusted
-                          ? t('settings:sync_revoke', { defaultValue: 'Revoke' })
-                          : t('settings:sync_trust', { defaultValue: 'Trust' })
-                      }
-                    >
-                      <Shield size={14} />
-                    </Button>
+                    {peer.trusted && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => store.trustPeer(peer.id, false)}
+                        title={t('settings:sync_revoke', { defaultValue: 'Revoke' })}
+                      >
+                        <ShieldOff size={14} />
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="secondary"
@@ -220,6 +357,13 @@ export function SyncPage() {
           )}
         </Card>
       </div>
+
+      <PairingDialog
+        isOpen={!!pendingPeer}
+        peer={pendingPeer}
+        onTrust={handleTrustPending}
+        onIgnore={handleIgnorePending}
+      />
     </AppShell>
   );
 }

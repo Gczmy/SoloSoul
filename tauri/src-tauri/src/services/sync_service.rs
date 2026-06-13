@@ -1,5 +1,6 @@
 //! Sync service - bridges the VaultService and the solosoul-sync SyncManager.
 
+use solosoul_sync::manager::SyncSessionResult;
 use solosoul_sync::{NoiseKeys, SyncManager, SyncPeerInfo};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -65,13 +66,30 @@ impl SyncService {
     }
 
     /// Manually sync with a discovered peer (node id) or a `host:port` address.
-    pub async fn sync_with_device(&self, device_id_or_addr: String) -> Result<String, String> {
+    pub async fn sync_with_device(
+        &self,
+        device_id_or_addr: String,
+    ) -> Result<SyncSessionResult, String> {
         let guard = self.manager.lock().await;
         let manager = guard.as_ref().ok_or("Sync is not enabled")?;
-        let stats = manager.sync_with_peer(&device_id_or_addr).await?;
-        let result = format!(
-            "examined={}, applied={}, skipped={}",
-            stats.examined, stats.applied, stats.skipped
+        let result = manager.sync_with_peer(&device_id_or_addr).await?;
+        let table_summary = result
+            .data
+            .per_table
+            .iter()
+            .map(|(table, s)| format!("{}:{}+{}/{}", table, s.applied, s.skipped, s.examined))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let summary = format!(
+            "examined={}, applied={}, skipped={}; conflicts={}; tables=[{}]; attachments: sent={}, received={}, bytes={}",
+            result.data.examined,
+            result.data.applied,
+            result.data.skipped,
+            result.data.conflicts.len(),
+            table_summary,
+            result.attachments.sent,
+            result.attachments.received,
+            result.attachments.bytes_transferred
         );
         if let Ok(svc) = self.vault_service.try_read() {
             if let Some(vault) = svc.get_vault_store() {
@@ -79,7 +97,7 @@ impl SyncService {
                     &vault,
                     "sync_with_device",
                     Some(&device_id_or_addr),
-                    Some(&result),
+                    Some(&summary),
                 );
             }
         }

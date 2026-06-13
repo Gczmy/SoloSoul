@@ -1,5 +1,37 @@
 import { invoke } from '@tauri-apps/api/core';
 
+export interface SyncConflict {
+  table: string;
+  id: string;
+  local_hlc: {
+    wall_time_ms: number;
+    counter: number;
+    node_id: number[];
+  };
+  remote_hlc: {
+    wall_time_ms: number;
+    counter: number;
+    node_id: number[];
+  };
+  winner: string;
+}
+
+export interface SyncTableResult {
+  table: string;
+  examined: number;
+  applied: number;
+  skipped: number;
+}
+
+export interface SyncResult {
+  summary: string;
+  examined: number;
+  applied: number;
+  skipped: number;
+  conflicts: SyncConflict[];
+  per_table: SyncTableResult[];
+}
+
 export interface AccountInfo {
   id: string;
   name: string;
@@ -168,7 +200,7 @@ export const commands = {
   async syncEnable(enable: boolean): Promise<void> {
     return invoke('sync_enable', { enable });
   },
-  async syncWithDevice(deviceId: string): Promise<string> {
+  async syncWithDevice(deviceId: string): Promise<SyncResult> {
     return invoke('sync_with_device', { deviceId });
   },
   async syncTrustPeer(peerNodeId: string, trusted: boolean): Promise<void> {

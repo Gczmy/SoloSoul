@@ -13,13 +13,13 @@ export default defineConfig({
   },
   clearScreen: false,
   server: {
-    port: 1420,
+    port: Number(process.env.SOLOSOUL_VITE_PORT) || 1420,
     strictPort: true,
     host: host || false,
     hmr: {
       protocol: 'ws',
       host: host || 'localhost',
-      port: 1421,
+      port: Number(process.env.SOLOSOUL_VITE_HMR_PORT) || 1421,
     },
     watch: {
       ignored: ['**/src-tauri/**'],

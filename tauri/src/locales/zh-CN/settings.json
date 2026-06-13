@@ -589,5 +589,14 @@
   "sync_forget": "忘记",
   "sync_manual_sync": "同步",
   "sync_enable": "启用",
-  "sync_disable": "禁用"
+  "sync_disable": "禁用",
+  "sync_pairing_title": "配对设备",
+  "sync_pairing_warning": "请只信任您本人拥有或控制的设备。攻击者可能伪装成您的设备。",
+  "sync_pairing_verify_prompt": "请核对下方 fingerprint 与对端设备显示的是否一致：",
+  "sync_pairing_no_fingerprint": "无可用 fingerprint",
+  "sync_pairing_ignore": "忽略",
+  "sync_pairing_trust": "信任并配对",
+  "sync_activity_title": "同步活动",
+  "sync_conflicts": "冲突",
+  "sync_winner": "胜出方"
 }
