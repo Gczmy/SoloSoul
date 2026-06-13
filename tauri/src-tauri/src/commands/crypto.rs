@@ -111,23 +111,15 @@ pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::V
     // (orphaned files from old attachment_delete bug will be ignored)
     // Only count attachment files that are referenced in object __attachments metadata
     // (orphaned files from legacy attachment_delete bug are excluded)
+    // R020: use a single batch query instead of N+1 load_object calls.
     let base_dir = svc.base_path().join("attachments");
     let mut attachments_size = 0u64;
     if let Some(account_id) = &svc.get_current_account() {
-        if let Ok(objects) = vault.list_objects(account_id, None, None, None, false, false) {
-            for summary in &objects {
-                if let Ok(Some(rec)) = vault.load_object(&summary.id) {
-                    let atts: Vec<serde_json::Value> = rec
-                        .properties
-                        .get("__attachments")
-                        .and_then(|v| serde_json::from_value(v.clone()).ok())
-                        .unwrap_or_default();
-                    for att_val in &atts {
-                        if let Some(att_id) = att_val["id"].as_str() {
-                            let att_dir = base_dir.join(&summary.id).join(att_id);
-                            attachments_size += sum_dir_file_sizes(&att_dir);
-                        }
-                    }
+        if let Ok(objects) = vault.list_object_attachment_ids(account_id) {
+            for (object_id, att_ids) in objects {
+                for att_id in att_ids {
+                    let att_dir = base_dir.join(&object_id).join(&att_id);
+                    attachments_size += sum_dir_file_sizes(&att_dir);
                 }
             }
         }

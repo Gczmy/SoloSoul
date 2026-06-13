@@ -1887,6 +1887,55 @@ impl VaultStore {
         Ok(result)
     }
 
+    /// R020: batch-load object attachment IDs without the N+1 `load_object` calls
+    /// required by `get_vault_stats`. Returns `(object_id, attachment_ids)` pairs
+    /// for all active objects in the account.
+    pub fn list_object_attachment_ids(
+        &self,
+        account_id: &str,
+    ) -> Result<Vec<(String, Vec<String>)>, String> {
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn
+            .prepare("SELECT id, properties FROM objects WHERE account_id = ?1 AND is_deleted = 0")
+            .map_err(|e| format!("list_object_attachment_ids: {}", e))?;
+        let rows = stmt
+            .query_map(params![account_id], |row| {
+                let id: String = row.get(0)?;
+                let props_str: String = row.get(1)?;
+                let decrypted = decrypt_text_field(&key, &props_str).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        1,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Object properties decryption failed: {}", e),
+                        )),
+                    )
+                })?;
+                Ok((id, decrypted))
+            })
+            .map_err(|e| format!("list_object_attachment_ids: {}", e))?;
+
+        let mut result = Vec::new();
+        for row in rows {
+            let (id, decrypted) = row.map_err(|e| format!("list_object_attachment_ids: {}", e))?;
+            let props: serde_json::Value = serde_json::from_str(&decrypted).unwrap_or_default();
+            let att_ids: Vec<String> = props
+                .get("__attachments")
+                .and_then(|v| v.as_array())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|a| a.get("id").and_then(|i| i.as_str()).map(String::from))
+                        .collect()
+                })
+                .unwrap_or_default();
+            result.push((id, att_ids));
+        }
+        Ok(result)
+    }
+
     pub fn list_objects(
         &self,
         account_id: &str,
