@@ -7,6 +7,7 @@
 //! - Vault 生命周期管理（open / lock）
 //! - 原子文件写入（safe_storage）
 
+pub mod encryption;
 pub mod migration;
 pub mod profile;
 pub mod safe_storage;
@@ -21,6 +22,9 @@ pub struct VaultConfig {
     pub path: PathBuf,
     pub account_id: String,
     pub sqlcipher_key: Option<Vec<u8>>,
+    /// 数据加密密钥（Vault 会话密钥）。
+    /// 若未设置，VaultStore 拒绝访问任何敏感数据。
+    pub data_key: Option<[u8; 32]>,
 }
 
 impl VaultConfig {
@@ -29,7 +33,13 @@ impl VaultConfig {
             account_id: account_id.to_string(),
             path,
             sqlcipher_key: None,
+            data_key: None,
         }
+    }
+
+    pub fn with_data_key(mut self, key: [u8; 32]) -> Self {
+        self.data_key = Some(key);
+        self
     }
 }
 
@@ -114,6 +124,7 @@ pub struct GuideEmbeddingChunk {
     pub created_at: String,
 }
 
+pub use encryption::DataEncryptionKey;
 pub use storage::VaultStore;
 
 // =============================================================================

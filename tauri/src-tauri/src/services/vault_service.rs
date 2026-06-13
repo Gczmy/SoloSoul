@@ -270,20 +270,20 @@ impl VaultService {
         }
         self.save_accounts()?;
 
-        // Open vault
-        let vault_config = VaultConfig::new(&account_id, self.account_dir(&account_id));
+        // Open vault with data key
+        let master_key_arr: [u8; 32] = master_key
+            .as_slice()
+            .try_into()
+            .expect("HKDF output must be 32 bytes");
+        let vault_config = VaultConfig::new(&account_id, self.account_dir(&account_id))
+            .with_data_key(master_key_arr);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         if let Ok(mut store) = self.vault_store.write() {
             *store = Some(vault);
         }
         if let Ok(mut key) = self.session_key.write() {
-            *key = Some(Zeroizing::new(
-                master_key
-                    .as_slice()
-                    .try_into()
-                    .expect("HKDF output must be 32 bytes"),
-            ));
+            *key = Some(Zeroizing::new(master_key_arr));
         }
         if let Ok(mut ua) = self.unlocked_account.write() {
             *ua = Some(account_id.clone());
@@ -342,20 +342,20 @@ impl VaultService {
         self.save_accounts().ok();
 
         // Store session key
+        let master_key_arr: [u8; 32] = master_key
+            .as_slice()
+            .try_into()
+            .expect("Argon2id output must be 32 bytes");
         if let Ok(mut key) = self.session_key.write() {
-            *key = Some(Zeroizing::new(
-                master_key
-                    .as_slice()
-                    .try_into()
-                    .expect("Argon2id output must be 32 bytes"),
-            ));
+            *key = Some(Zeroizing::new(master_key_arr));
         }
         if let Ok(mut ua) = self.unlocked_account.write() {
             *ua = Some(account_id.to_string());
         }
 
-        // Open vault
-        let vault_config = VaultConfig::new(account_id, self.account_dir(account_id));
+        // Open vault with data key
+        let vault_config = VaultConfig::new(account_id, self.account_dir(account_id))
+            .with_data_key(master_key_arr);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         if let Ok(mut store) = self.vault_store.write() {
@@ -440,8 +440,9 @@ impl VaultService {
             *ua = Some(account_id.to_string());
         }
 
-        // Open vault
-        let vault_config = VaultConfig::new(account_id, self.account_dir(account_id));
+        // Open vault with data key
+        let vault_config =
+            VaultConfig::new(account_id, self.account_dir(account_id)).with_data_key(*session_key);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         if let Ok(mut store) = self.vault_store.write() {
@@ -457,15 +458,36 @@ impl VaultService {
         old_password: &str,
         new_password: &str,
     ) -> Result<(), String> {
-        // Verify old password first
+        // Verify old password first; this opens the vault with the old data key.
         self.unlock(account_id, old_password)?;
 
-        // Generate new salt
+        // Capture old data key.
+        let old_key_arr = self
+            .get_session_key()
+            .ok_or("Session key not available after unlock")?;
+        let old_key = solosoul_vault::DataEncryptionKey::new(*old_key_arr);
+
+        // Generate new salt and derive new key.
         let salt = generate_salt();
         let kdf_config = KdfConfig::balanced();
         let new_key = derive_key(new_password, &salt, &kdf_config)
             .map_err(|e| format!("New key derivation failed: {}", e))?;
+        let new_key_arr: [u8; 32] = new_key
+            .as_slice()
+            .try_into()
+            .expect("Key derivation output must be 32 bytes");
+        let new_key_enc = solosoul_vault::DataEncryptionKey::new(new_key_arr);
 
+        // Re-encrypt all sensitive data with the new key.
+        {
+            let vault_guard = self
+                .get_vault_store()
+                .ok_or("Vault not available for re-encryption")?;
+            let vault = vault_guard.as_ref().ok_or("Vault not available")?;
+            vault.reencrypt_all(&old_key, &new_key_enc)?;
+        }
+
+        // Derive new verify hash.
         let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
         let verify_key = derive_key(
             &hex::encode(new_key.as_slice()),
@@ -491,22 +513,17 @@ impl VaultService {
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
         fs::write(&config_path, config_json).map_err(|e| e.to_string())?;
 
-        // Update session key
-        let new_key_arr: [u8; 32] = new_key
-            .as_slice()
-            .try_into()
-            .expect("Key derivation output must be 32 bytes");
+        // Update session key and reopen vault with new data key.
         {
             if let Ok(mut key) = self.session_key.write() {
                 *key = Some(Zeroizing::new(new_key_arr));
             }
         }
-
-        // Re-open vault store with new session key context
         if let Ok(mut store) = self.vault_store.write() {
-            *store = None; // Drop old vault connection
+            *store = None;
         }
-        let vault_config = VaultConfig::new(account_id, self.account_dir(account_id));
+        let vault_config =
+            VaultConfig::new(account_id, self.account_dir(account_id)).with_data_key(new_key_arr);
         match VaultStore::open(vault_config) {
             Ok(vault) => {
                 if let Ok(mut store) = self.vault_store.write() {
@@ -517,11 +534,6 @@ impl VaultService {
                 return Err(format!("Password updated but vault reopen failed: {}", e));
             }
         }
-
-        // TODO: Re-encrypt existing profiles with new session key
-        // Currently stored blobs use the old key; they will fail decryption
-        // via encrypt/decrypt_bytes until the application re-encrypts them.
-        // This matches Flutter behavior where re-encryption happens at the Dart layer.
 
         Ok(())
     }

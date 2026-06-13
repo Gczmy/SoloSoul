@@ -2,7 +2,12 @@
 
 use rusqlite::{params, Connection, OptionalExtension};
 use std::sync::Mutex;
+use zeroize::Zeroize;
 
+use crate::encryption::{
+    decrypt_field, decrypt_text_field, encrypt_field, encrypt_text_field, ensure_encrypted_text,
+    DataEncryptionKey,
+};
 use crate::migration::run_migrations;
 use crate::{
     ObjectRecord, ObjectSummary, Profile, ProfileSummary, TrashItem, TrashItemSummary, VaultConfig,
@@ -15,6 +20,7 @@ pub struct VaultStore {
     #[allow(dead_code)]
     config: VaultConfig, // reserved for future path-based vault operations
     state: VaultState,
+    data_key: Mutex<Option<DataEncryptionKey>>,
 }
 
 impl VaultStore {
@@ -31,11 +37,26 @@ impl VaultStore {
         Self::init_schema(&conn)?;
         run_migrations(&mut conn)?;
 
-        Ok(Self {
+        let data_key = config.data_key.map(DataEncryptionKey::new);
+        let store = Self {
             conn: Mutex::new(Some(conn)),
             config,
             state: VaultState::Unlocked,
-        })
+            data_key: Mutex::new(data_key),
+        };
+
+        // Migrate plaintext legacy data to encrypted format on first open.
+        store.migrate_to_encrypted_format()?;
+
+        Ok(store)
+    }
+
+    fn data_key(&self) -> Result<DataEncryptionKey, String> {
+        let guard = self.data_key.lock().map_err(|e| e.to_string())?;
+        guard
+            .as_ref()
+            .cloned()
+            .ok_or_else(|| "Vault data key not available".to_string())
     }
 
     fn init_schema(conn: &Connection) -> Result<(), String> {
@@ -250,13 +271,474 @@ impl VaultStore {
                 let _ = conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE)");
             }
         }
+        if let Ok(mut key) = self.data_key.lock() {
+            if let Some(mut k) = key.take() {
+                k.0.zeroize();
+            }
+        }
         self.state = VaultState::Locked;
     }
 
+    /// Migrate legacy plaintext sensitive fields to encrypted format.
+    /// Triggered automatically on first open where encryption_version < 1.
+    pub fn migrate_to_encrypted_format(&self) -> Result<(), String> {
+        let encryption_version: u32 = self
+            .get_sys_config("encryption_version")
+            .ok()
+            .flatten()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(0);
+
+        if encryption_version >= 1 {
+            return Ok(());
+        }
+
+        let key = self.data_key()?;
+
+        // Backup the database file before migration.
+        let db_path = self.config.path.join("vault.db");
+        let backup_path = self.config.path.join("vault.db.pre_enc.bak");
+        if db_path.exists() {
+            if let Err(e) = std::fs::copy(&db_path, &backup_path) {
+                tracing::error!(
+                    "Failed to backup vault db before encryption migration: {}",
+                    e
+                );
+                return Err(format!("Migration backup failed: {}", e));
+            }
+        }
+
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+        let result: Result<(), String> = (|| {
+            // profiles.data
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, data FROM profiles")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, Vec<u8>)> = stmt
+                    .query_map([], |row| {
+                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE profiles SET data = ?1 WHERE id = ?2")
+                    .map_err(|e| e.to_string())?;
+                for (id, data) in rows {
+                    if !crate::encryption::is_encrypted_blob(&data) && !data.is_empty() {
+                        let encrypted = encrypt_field(&key, &data)?;
+                        update
+                            .execute(params![encrypted, id])
+                            .map_err(|e| e.to_string())?;
+                    }
+                }
+            }
+
+            // objects.properties / property_labels
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, properties, property_labels FROM objects")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, String, Option<String>)> = stmt
+                    .query_map([], |row| {
+                        Ok((
+                            row.get::<_, String>(0)?,
+                            row.get::<_, String>(1)?,
+                            row.get::<_, Option<String>>(2)?,
+                        ))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                drop(stmt);
+                let mut update = tx
+                    .prepare(
+                        "UPDATE objects SET properties = ?1, property_labels = ?2 WHERE id = ?3",
+                    )
+                    .map_err(|e| e.to_string())?;
+                for (id, properties, labels) in rows {
+                    let encrypted_props = ensure_encrypted_text(&key, &properties)?;
+                    let encrypted_labels = labels
+                        .as_deref()
+                        .map(|l| ensure_encrypted_text(&key, l))
+                        .transpose()?
+                        .unwrap_or_default();
+                    update
+                        .execute(params![encrypted_props, encrypted_labels, id])
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+
+            // trash_items.data
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, data FROM trash_items")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, Vec<u8>)> = stmt
+                    .query_map([], |row| {
+                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE trash_items SET data = ?1 WHERE id = ?2")
+                    .map_err(|e| e.to_string())?;
+                for (id, data) in rows {
+                    if !crate::encryption::is_encrypted_blob(&data) && !data.is_empty() {
+                        let encrypted = encrypt_field(&key, &data)?;
+                        update
+                            .execute(params![encrypted, id])
+                            .map_err(|e| e.to_string())?;
+                    }
+                }
+            }
+
+            // object_snapshots.data
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, data FROM object_snapshots")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, Vec<u8>)> = stmt
+                    .query_map([], |row| {
+                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE object_snapshots SET data = ?1 WHERE id = ?2")
+                    .map_err(|e| e.to_string())?;
+                for (id, data) in rows {
+                    if !crate::encryption::is_encrypted_blob(&data) && !data.is_empty() {
+                        let encrypted = encrypt_field(&key, &data)?;
+                        update
+                            .execute(params![encrypted, id])
+                            .map_err(|e| e.to_string())?;
+                    }
+                }
+            }
+
+            // user_templates.properties_json
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, properties_json FROM user_templates")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, String)> = stmt
+                    .query_map([], |row| {
+                        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE user_templates SET properties_json = ?1 WHERE id = ?2")
+                    .map_err(|e| e.to_string())?;
+                for (id, props_json) in rows {
+                    let encrypted = ensure_encrypted_text(&key, &props_json)?;
+                    update
+                        .execute(params![encrypted, id])
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+
+            // audit_log.details / entity_name
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, details, entity_name FROM audit_log")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(i64, Option<String>, Option<String>)> = stmt
+                    .query_map([], |row| {
+                        Ok((
+                            row.get::<_, i64>(0)?,
+                            row.get::<_, Option<String>>(1)?,
+                            row.get::<_, Option<String>>(2)?,
+                        ))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE audit_log SET details = ?1, entity_name = ?2 WHERE id = ?3")
+                    .map_err(|e| e.to_string())?;
+                for (id, details, entity_name) in rows {
+                    let encrypted_details = details
+                        .as_deref()
+                        .map(|d| ensure_encrypted_text(&key, d))
+                        .transpose()?
+                        .unwrap_or_default();
+                    let encrypted_name = entity_name
+                        .as_deref()
+                        .map(|n| ensure_encrypted_text(&key, n))
+                        .transpose()?
+                        .unwrap_or_default();
+                    update
+                        .execute(params![encrypted_details, encrypted_name, id])
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+
+            let now = chrono::Utc::now().to_rfc3339();
+            tx.execute(
+                "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES ('encryption_version', ?1, ?2)",
+                params!["1", now],
+            ).map_err(|e| e.to_string())?;
+            tx.execute(
+                "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES ('encryption_migrated_at', ?1, ?2)",
+                params![chrono::Utc::now().to_rfc3339(), now.clone()],
+            ).map_err(|e| e.to_string())?;
+
+            Ok(())
+        })();
+
+        match result {
+            Ok(()) => {
+                tx.commit().map_err(|e| e.to_string())?;
+                tracing::info!("Vault encryption migration completed successfully");
+                Ok(())
+            }
+            Err(e) => {
+                tracing::error!("Vault encryption migration failed: {}", e);
+                // Transaction is dropped here, causing rollback.
+                Err(format!("Encryption migration failed: {}", e))
+            }
+        }
+    }
+
+    /// Re-encrypt all sensitive fields with a new key.
+    /// Used by `change_password` to ensure data is accessible only with the new password.
+    pub fn reencrypt_all(
+        &self,
+        old_key: &DataEncryptionKey,
+        new_key: &DataEncryptionKey,
+    ) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+        let result: Result<(), String> = (|| {
+            // profiles
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, data FROM profiles")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, Vec<u8>)> = stmt
+                    .query_map([], |row| {
+                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                let rows_len = rows.len();
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE profiles SET data = ?1 WHERE id = ?2")
+                    .map_err(|e| e.to_string())?;
+                for (id, data) in rows {
+                    let plain = decrypt_field(old_key, &data)?;
+                    let encrypted = encrypt_field(new_key, &plain)?;
+                    update
+                        .execute(params![encrypted, id])
+                        .map_err(|e| e.to_string())?;
+                }
+                tracing::info!("reencrypt_progress: table=profiles, rows={}", rows_len);
+            }
+
+            // objects
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, properties, property_labels FROM objects")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, String, Option<String>)> = stmt
+                    .query_map([], |row| {
+                        Ok((
+                            row.get::<_, String>(0)?,
+                            row.get::<_, String>(1)?,
+                            row.get::<_, Option<String>>(2)?,
+                        ))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                let rows_len = rows.len();
+                drop(stmt);
+                let mut update = tx
+                    .prepare(
+                        "UPDATE objects SET properties = ?1, property_labels = ?2 WHERE id = ?3",
+                    )
+                    .map_err(|e| e.to_string())?;
+                for (id, properties, labels) in rows {
+                    let plain_props = decrypt_text_field(old_key, &properties)?;
+                    let encrypted_props = encrypt_text_field(new_key, &plain_props)?;
+                    let plain_labels = labels
+                        .as_deref()
+                        .map(|l| decrypt_text_field(old_key, l))
+                        .transpose()?;
+                    let encrypted_labels = plain_labels
+                        .map(|l| encrypt_text_field(new_key, &l))
+                        .transpose()?
+                        .unwrap_or_default();
+                    update
+                        .execute(params![encrypted_props, encrypted_labels, id])
+                        .map_err(|e| e.to_string())?;
+                }
+                tracing::info!("reencrypt_progress: table=objects, rows={}", rows_len);
+            }
+
+            // trash_items
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, data FROM trash_items")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, Vec<u8>)> = stmt
+                    .query_map([], |row| {
+                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                let rows_len = rows.len();
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE trash_items SET data = ?1 WHERE id = ?2")
+                    .map_err(|e| e.to_string())?;
+                for (id, data) in rows {
+                    let plain = decrypt_field(old_key, &data)?;
+                    let encrypted = encrypt_field(new_key, &plain)?;
+                    update
+                        .execute(params![encrypted, id])
+                        .map_err(|e| e.to_string())?;
+                }
+                tracing::info!("reencrypt_progress: table=trash_items, rows={}", rows_len);
+            }
+
+            // object_snapshots
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, data FROM object_snapshots")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, Vec<u8>)> = stmt
+                    .query_map([], |row| {
+                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                let rows_len = rows.len();
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE object_snapshots SET data = ?1 WHERE id = ?2")
+                    .map_err(|e| e.to_string())?;
+                for (id, data) in rows {
+                    let plain = decrypt_field(old_key, &data)?;
+                    let encrypted = encrypt_field(new_key, &plain)?;
+                    update
+                        .execute(params![encrypted, id])
+                        .map_err(|e| e.to_string())?;
+                }
+                tracing::info!(
+                    "reencrypt_progress: table=object_snapshots, rows={}",
+                    rows_len
+                );
+            }
+
+            // user_templates
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, properties_json FROM user_templates")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(String, String)> = stmt
+                    .query_map([], |row| {
+                        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                let rows_len = rows.len();
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE user_templates SET properties_json = ?1 WHERE id = ?2")
+                    .map_err(|e| e.to_string())?;
+                for (id, props_json) in rows {
+                    let plain = decrypt_text_field(old_key, &props_json)?;
+                    let encrypted = encrypt_text_field(new_key, &plain)?;
+                    update
+                        .execute(params![encrypted, id])
+                        .map_err(|e| e.to_string())?;
+                }
+                tracing::info!(
+                    "reencrypt_progress: table=user_templates, rows={}",
+                    rows_len
+                );
+            }
+
+            // audit_log
+            {
+                let mut stmt = tx
+                    .prepare("SELECT id, details, entity_name FROM audit_log")
+                    .map_err(|e| e.to_string())?;
+                let rows: Vec<(i64, Option<String>, Option<String>)> = stmt
+                    .query_map([], |row| {
+                        Ok((
+                            row.get::<_, i64>(0)?,
+                            row.get::<_, Option<String>>(1)?,
+                            row.get::<_, Option<String>>(2)?,
+                        ))
+                    })
+                    .map_err(|e| e.to_string())?
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(|e| e.to_string())?;
+                let rows_len = rows.len();
+                drop(stmt);
+                let mut update = tx
+                    .prepare("UPDATE audit_log SET details = ?1, entity_name = ?2 WHERE id = ?3")
+                    .map_err(|e| e.to_string())?;
+                for (id, details, entity_name) in rows {
+                    let plain_details = details
+                        .as_deref()
+                        .map(|d| decrypt_text_field(old_key, d))
+                        .transpose()?;
+                    let encrypted_details = plain_details
+                        .map(|d| encrypt_text_field(new_key, &d))
+                        .transpose()?
+                        .unwrap_or_default();
+                    let plain_name = entity_name
+                        .as_deref()
+                        .map(|n| decrypt_text_field(old_key, n))
+                        .transpose()?;
+                    let encrypted_name = plain_name
+                        .map(|n| encrypt_text_field(new_key, &n))
+                        .transpose()?
+                        .unwrap_or_default();
+                    update
+                        .execute(params![encrypted_details, encrypted_name, id])
+                        .map_err(|e| e.to_string())?;
+                }
+                tracing::info!("reencrypt_progress: table=audit_log, rows={}", rows_len);
+            }
+
+            Ok(())
+        })();
+
+        tx.commit().map_err(|e| e.to_string())?;
+        result
+    }
+
     pub fn save_profile(&self, profile: &Profile) -> Result<(), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let now = chrono::Utc::now().to_rfc3339();
+        let encrypted_data = encrypt_field(&key, &profile.data)?;
         conn.execute(
             "INSERT INTO profiles (id, name, data, created_at, updated_at, version)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)
@@ -266,7 +748,7 @@ impl VaultStore {
             params![
                 profile.id,
                 profile.name,
-                profile.data,
+                encrypted_data,
                 profile.created_at.to_rfc3339(),
                 now,
                 profile.version
@@ -277,6 +759,7 @@ impl VaultStore {
     }
 
     pub fn load_profile(&self, id: &str) -> Result<Option<Profile>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
@@ -286,10 +769,21 @@ impl VaultStore {
             .query_row(params![id], |row| {
                 let created_str: String = row.get(3)?;
                 let updated_str: String = row.get(4)?;
+                let raw_data: Vec<u8> = row.get(2)?;
+                let data = decrypt_field(&key, &raw_data).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        2,
+                        rusqlite::types::Type::Blob,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Profile decryption failed: {}", e),
+                        )),
+                    )
+                })?;
                 Ok(Profile {
                     id: row.get(0)?,
                     name: row.get(1)?,
-                    data: row.get(2)?,
+                    data,
                     created_at: chrono::DateTime::parse_from_rfc3339(&created_str)
                         .map(|d| d.with_timezone(&chrono::Utc))
                         .unwrap_or_else(|_| chrono::Utc::now()),
@@ -346,6 +840,7 @@ impl VaultStore {
     // ── Object CRUD ─────────────────────────────────────────
 
     pub fn save_object(&self, obj: &ObjectRecord) -> Result<(), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let children_json = serde_json::to_string(&obj.children_ids).unwrap_or_default();
@@ -355,6 +850,12 @@ impl VaultStore {
             .as_ref()
             .map(|v| serde_json::to_string(v).unwrap_or_default())
             .unwrap_or_default();
+        let encrypted_props = encrypt_text_field(&key, &props_json)?;
+        let encrypted_labels = if labels_json.is_empty() {
+            String::new()
+        } else {
+            encrypt_text_field(&key, &labels_json)?
+        };
         let tags_str = serde_json::to_string(&obj.tags_json).unwrap_or_default();
         conn.execute(
             "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name, parent_id,
@@ -372,7 +873,7 @@ impl VaultStore {
                updated_at=excluded.updated_at, version=excluded.version",
             params![
                 obj.id, obj.account_id, obj.type_id, obj.section_type, obj.name, obj.icon_name,
-                obj.parent_id, children_json, props_json, labels_json,
+                obj.parent_id, children_json, encrypted_props, encrypted_labels,
                 obj.sensitivity_level, obj.is_deleted as i32, obj.deleted_at,
                 tags_str, obj.template_id, obj.template_type,
                 obj.created_at, obj.updated_at, obj.version,
@@ -383,6 +884,7 @@ impl VaultStore {
     }
 
     pub fn load_object(&self, id: &str) -> Result<Option<ObjectRecord>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn
@@ -400,6 +902,31 @@ impl VaultStore {
                 let labels_str: String = row.get(9)?;
                 let tags_str: String = row.get(13)?;
                 let deleted: i32 = row.get(11)?;
+                let decrypted_props = decrypt_text_field(&key, &props_str).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        8,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Object properties decryption failed: {}", e),
+                        )),
+                    )
+                })?;
+                let decrypted_labels = if labels_str.is_empty() {
+                    Ok(String::new())
+                } else {
+                    decrypt_text_field(&key, &labels_str)
+                }
+                .map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        9,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Object labels decryption failed: {}", e),
+                        )),
+                    )
+                })?;
                 Ok(ObjectRecord {
                     id: row.get(0)?,
                     account_id: row.get(1)?,
@@ -409,11 +936,12 @@ impl VaultStore {
                     icon_name: row.get(5)?,
                     parent_id: row.get(6)?,
                     children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
-                    properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
-                    property_labels: if labels_str.is_empty() {
+                    properties: serde_json::from_str(&decrypted_props)
+                        .unwrap_or(serde_json::Value::Null),
+                    property_labels: if decrypted_labels.is_empty() {
                         None
                     } else {
-                        serde_json::from_str(&labels_str).ok()
+                        serde_json::from_str(&decrypted_labels).ok()
                     },
                     sensitivity_level: row.get(10)?,
                     is_deleted: deleted != 0,
@@ -439,9 +967,11 @@ impl VaultStore {
         include_deleted: bool,
         only_deleted: bool,
     ) -> Result<Vec<ObjectSummary>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
 
+        let lower_kw = keyword.map(|k| k.to_lowercase());
         let mut sql = String::from(
             "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type
              FROM objects WHERE account_id = ?1",
@@ -465,20 +995,9 @@ impl VaultStore {
         if let Some(pid) = parent_id {
             sql.push_str(&format!(" AND parent_id = ?{}", param_idx));
             param_values.push(Box::new(pid.to_string()));
-            param_idx += 1;
         }
 
-        if let Some(kw) = keyword {
-            let like = format!("%{}%", kw);
-            sql.push_str(&format!(
-                " AND (name LIKE ?{} OR properties LIKE ?{})",
-                param_idx,
-                param_idx + 1,
-            ));
-            param_values.push(Box::new(like.clone()));
-            param_values.push(Box::new(like));
-        }
-
+        // properties 已加密，无法使用 SQL LIKE。所有 keyword 匹配在解密后的内存数据上进行。
         sql.push_str(" ORDER BY updated_at DESC");
 
         let mut stmt = conn
@@ -493,6 +1012,7 @@ impl VaultStore {
                 let deleted_int: i32 = row.get(7)?;
                 let props_str: String = row.get(8)?;
                 let tags_str: String = row.get(9)?;
+                let decrypted_props = decrypt_text_field(&key, &props_str).unwrap_or_default();
                 Ok(ObjectSummary {
                     id: row.get(0)?,
                     name: row.get(1)?,
@@ -504,14 +1024,28 @@ impl VaultStore {
                     is_deleted: deleted_int != 0,
                     template_id: row.get(10)?,
                     template_type: row.get(11)?,
-                    properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
+                    properties: serde_json::from_str(&decrypted_props)
+                        .unwrap_or(serde_json::Value::Null),
                     tags: serde_json::from_str(&tags_str).unwrap_or_default(),
                 })
             })
             .map_err(|e| format!("list_objects query: {}", e))?
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| format!("list_objects collect: {}", e))?;
-        Ok(objects)
+
+        // Memory-level keyword filtering on decrypted name and properties.
+        if let Some(kw) = lower_kw {
+            let filtered: Vec<ObjectSummary> = objects
+                .into_iter()
+                .filter(|o| {
+                    o.name.to_lowercase().contains(&kw)
+                        || o.properties.to_string().to_lowercase().contains(&kw)
+                })
+                .collect();
+            Ok(filtered)
+        } else {
+            Ok(objects)
+        }
     }
 
     pub fn delete_object(&self, id: &str, soft: bool) -> Result<(), String> {
@@ -550,63 +1084,103 @@ impl VaultStore {
         account_id: &str,
         query: &str,
     ) -> Result<Vec<ObjectRecord>, String> {
+        let key = self.data_key()?;
+        let lower_query = query.to_lowercase();
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let like = format!("%{}%", query);
+        // properties 已加密，无法使用 SQL LIKE。所有匹配在解密后的内存数据上进行。
         let mut stmt = conn
             .prepare(
-                "SELECT id, account_id, type_id, name, icon_name, parent_id,
+                "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
                  is_deleted, deleted_at, tags_json, template_id, template_type, created_at, updated_at, version
                  FROM objects
                  WHERE account_id = ?1 AND is_deleted = 0
-                   AND (name LIKE ?2 OR properties LIKE ?2)
                  ORDER BY updated_at DESC",
             )
             .map_err(|e| format!("search_objects: {}", e))?;
         let results = stmt
-            .query_map(params![account_id, like], |row| {
-                let children_str: String = row.get(6)?;
-                let props_str: String = row.get(7)?;
-                let labels_str: String = row.get(8)?;
-                let deleted: i32 = row.get(10)?;
+            .query_map(params![account_id], |row| {
+                let children_str: String = row.get(7)?;
+                let props_str: String = row.get(8)?;
+                let labels_str: String = row.get(9)?;
+                let deleted: i32 = row.get(11)?;
+                let decrypted_props = decrypt_text_field(&key, &props_str).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        8,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Search properties decryption failed: {}", e),
+                        )),
+                    )
+                })?;
+                let decrypted_labels = if labels_str.is_empty() {
+                    Ok(String::new())
+                } else {
+                    decrypt_text_field(&key, &labels_str)
+                }
+                .map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        9,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Search labels decryption failed: {}", e),
+                        )),
+                    )
+                })?;
                 Ok(ObjectRecord {
                     id: row.get(0)?,
                     account_id: row.get(1)?,
                     type_id: row.get(2)?,
-                    section_type: String::new(),
-                    name: row.get(3)?,
-                    icon_name: row.get(4)?,
-                    parent_id: row.get(5)?,
+                    section_type: row.get(3)?,
+                    name: row.get(4)?,
+                    icon_name: row.get(5)?,
+                    parent_id: row.get(6)?,
                     children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
-                    properties: serde_json::from_str(&props_str).unwrap_or(serde_json::Value::Null),
-                    property_labels: if labels_str.is_empty() {
+                    properties: serde_json::from_str(&decrypted_props)
+                        .unwrap_or(serde_json::Value::Null),
+                    property_labels: if decrypted_labels.is_empty() {
                         None
                     } else {
-                        serde_json::from_str(&labels_str).ok()
+                        serde_json::from_str(&decrypted_labels).ok()
                     },
-                    sensitivity_level: row.get(9)?,
+                    sensitivity_level: row.get(10)?,
                     is_deleted: deleted != 0,
-                    deleted_at: row.get(11)?,
-                    tags_json: serde_json::from_str(&row.get::<_, String>(12)?).unwrap_or_default(),
-                    template_id: row.get(13)?,
-                    template_type: row.get(14)?,
-                    created_at: row.get(15)?,
-                    updated_at: row.get(16)?,
-                    version: row.get(17)?,
+                    deleted_at: row.get(12)?,
+                    tags_json: serde_json::from_str(&row.get::<_, String>(13)?).unwrap_or_default(),
+                    template_id: row.get(14)?,
+                    template_type: row.get(15)?,
+                    created_at: row.get(16)?,
+                    updated_at: row.get(17)?,
+                    version: row.get(18)?,
                 })
             })
             .map_err(|e| format!("search_objects query: {}", e))?
             .collect::<Result<Vec<_>, _>>()
             .map_err(|e| format!("search_objects collect: {}", e))?;
-        Ok(results)
+
+        let filtered: Vec<ObjectRecord> = results
+            .into_iter()
+            .filter(|r| {
+                r.name.to_lowercase().contains(&lower_query)
+                    || r.properties
+                        .to_string()
+                        .to_lowercase()
+                        .contains(&lower_query)
+            })
+            .collect();
+        Ok(filtered)
     }
 
     // ── Trash CRUD (§23) ────────────────────────────────────
 
     pub fn save_trash_item(&self, item: &TrashItem) -> Result<(), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let encrypted_data = encrypt_field(&key, &item.data)?;
         conn.execute(
             "INSERT INTO trash_items (id, item_type, original_id, original_parent_id,
              original_section_type, original_sort_order, data, deleted_at, expires_at, deleted_by,
@@ -619,7 +1193,7 @@ impl VaultStore {
                 item.original_parent_id,
                 item.original_section_type,
                 item.original_sort_order,
-                item.data,
+                encrypted_data,
                 item.deleted_at,
                 item.expires_at,
                 item.deleted_by,
@@ -674,6 +1248,7 @@ impl VaultStore {
     }
 
     pub fn get_trash_item(&self, id: &str) -> Result<Option<TrashItem>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
@@ -683,6 +1258,17 @@ impl VaultStore {
         ).map_err(|e| e.to_string())?;
         let result = stmt
             .query_row(rusqlite::params![id], |row| {
+                let raw_data: Vec<u8> = row.get(6)?;
+                let data = decrypt_field(&key, &raw_data).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        6,
+                        rusqlite::types::Type::Blob,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Trash data decryption failed: {}", e),
+                        )),
+                    )
+                })?;
                 Ok(TrashItem {
                     id: row.get(0)?,
                     item_type: row.get(1)?,
@@ -690,7 +1276,7 @@ impl VaultStore {
                     original_parent_id: row.get(3)?,
                     original_section_type: row.get(4)?,
                     original_sort_order: row.get(5)?,
-                    data: row.get(6)?,
+                    data,
                     deleted_at: row.get(7)?,
                     expires_at: row.get(8)?,
                     deleted_by: row.get(9)?,
@@ -735,13 +1321,26 @@ impl VaultStore {
     }
 
     pub fn get_snapshot(&self, snapshot_id: &str) -> Result<Option<Vec<u8>>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let result: Option<Vec<u8>> = conn
             .query_row(
                 "SELECT data FROM object_snapshots WHERE id=?1",
                 rusqlite::params![snapshot_id],
-                |r| r.get(0),
+                |r| {
+                    let raw: Vec<u8> = r.get(0)?;
+                    decrypt_field(&key, &raw).map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            0,
+                            rusqlite::types::Type::Blob,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("Snapshot decryption failed: {}", e),
+                            )),
+                        )
+                    })
+                },
             )
             .ok();
         Ok(result)
@@ -782,14 +1381,16 @@ impl VaultStore {
         data: &[u8],
         diff_summary: &str,
     ) -> Result<(), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let id = uuid::Uuid::new_v4().to_string();
         let now = chrono::Utc::now().timestamp_millis();
+        let encrypted_data = encrypt_field(&key, data)?;
         conn.execute(
             "INSERT INTO object_snapshots (id, object_id, timestamp, triggered_by, data, diff_summary)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            rusqlite::params![id, object_id, now, triggered_by, data, diff_summary],
+            rusqlite::params![id, object_id, now, triggered_by, encrypted_data, diff_summary],
         ).map_err(|e| format!("save_snapshot: {}", e))?;
         Ok(())
     }
@@ -797,26 +1398,56 @@ impl VaultStore {
     /// Copy all snapshots from one object to another (used when restoring a trashed object
     /// under a new ID to preserve its history).
     pub fn copy_snapshots(&self, from_object_id: &str, to_object_id: &str) -> Result<(), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        conn.execute(
+        let mut stmt = conn
+            .prepare(
+                "SELECT timestamp, triggered_by, data, diff_summary
+             FROM object_snapshots WHERE object_id = ?1",
+            )
+            .map_err(|e| e.to_string())?;
+        let rows: Vec<(i64, String, Vec<u8>, String)> = stmt
+            .query_map(rusqlite::params![from_object_id], |row| {
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+            })
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
+        drop(stmt);
+        let mut insert = conn.prepare(
             "INSERT INTO object_snapshots (id, object_id, timestamp, triggered_by, data, diff_summary)
-             SELECT lower(hex(randomblob(16))), ?1, timestamp, triggered_by, data, diff_summary
-             FROM object_snapshots WHERE object_id = ?2",
-            rusqlite::params![to_object_id, from_object_id],
-        ).map_err(|e| format!("copy_snapshots: {}", e))?;
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6)"
+        ).map_err(|e| e.to_string())?;
+        for (timestamp, triggered_by, raw_data, diff_summary) in rows {
+            let plain = decrypt_field(&key, &raw_data)?;
+            let encrypted = encrypt_field(&key, &plain)?;
+            let id = uuid::Uuid::new_v4().to_string();
+            insert
+                .execute(rusqlite::params![
+                    id,
+                    to_object_id,
+                    timestamp,
+                    triggered_by,
+                    encrypted,
+                    diff_summary
+                ])
+                .map_err(|e| e.to_string())?;
+        }
         Ok(())
     }
 
     /// Write an audit log entry with structured fields.
     /// Backward-compatible: old entries log_action(action, details) will have entity_type/entity_id/entity_name/performed_by as NULL.
     pub fn log_action(&self, action: &str, details: &str) -> Result<(), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let now = chrono::Utc::now().to_rfc3339();
+        let encrypted_details = encrypt_text_field(&key, details)?;
         conn.execute(
             "INSERT INTO audit_log (timestamp, action, performed_by, details) VALUES (?1, ?2, 'system', ?3)",
-            rusqlite::params![now, action, details],
+            rusqlite::params![now, action, encrypted_details],
         )
         .map_err(|e| format!("log_action: {}", e))?;
         Ok(())
@@ -832,9 +1463,14 @@ impl VaultStore {
         performed_by: &str,
         details: Option<&str>,
     ) -> Result<(), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let now = chrono::Utc::now().to_rfc3339();
+        let encrypted_name = entity_name
+            .map(|n| encrypt_text_field(&key, n))
+            .transpose()?;
+        let encrypted_details = details.map(|d| encrypt_text_field(&key, d)).transpose()?;
         conn.execute(
             "INSERT INTO audit_log (timestamp, action, entity_type, entity_id, entity_name, performed_by, details)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
@@ -843,9 +1479,9 @@ impl VaultStore {
                 action_type,
                 entity_type,
                 entity_id,
-                entity_name,
+                encrypted_name,
                 performed_by,
-                details,
+                encrypted_details,
             ],
         )
         .map_err(|e| format!("log_structured: {}", e))?;
@@ -854,6 +1490,7 @@ impl VaultStore {
 
     /// List recent audit log entries, newest first.
     pub fn list_audit_log(&self, limit: usize) -> Result<Vec<crate::AuditLogEntry>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
@@ -862,17 +1499,47 @@ impl VaultStore {
         ).map_err(|e| format!("list_audit_log prepare: {}", e))?;
         let entries = stmt
             .query_map(rusqlite::params![limit as i64], |row| {
+                let raw_name: Option<String> = row.get(5)?;
+                let raw_details: Option<String> = row.get(7)?;
+                let entity_name = raw_name
+                    .as_deref()
+                    .map(|n| decrypt_text_field(&key, n))
+                    .transpose()
+                    .map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            5,
+                            rusqlite::types::Type::Text,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("Audit entity_name decryption failed: {}", e),
+                            )),
+                        )
+                    })?;
+                let details = raw_details
+                    .as_deref()
+                    .map(|d| decrypt_text_field(&key, d))
+                    .transpose()
+                    .map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            7,
+                            rusqlite::types::Type::Text,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("Audit details decryption failed: {}", e),
+                            )),
+                        )
+                    })?;
                 Ok(crate::AuditLogEntry {
                     id: row.get(0)?,
                     timestamp: row.get(1)?,
                     action_type: row.get(2)?,
                     entity_type: row.get::<_, Option<String>>(3)?.unwrap_or_default(),
                     entity_id: row.get::<_, Option<String>>(4)?,
-                    entity_name: row.get::<_, Option<String>>(5)?,
+                    entity_name,
                     performed_by: row
                         .get::<_, Option<String>>(6)?
                         .unwrap_or_else(|| "system".to_string()),
-                    details: row.get::<_, Option<String>>(7)?,
+                    details,
                 })
             })
             .map_err(|e| format!("list_audit_log query: {}", e))?;
@@ -1057,10 +1724,12 @@ impl VaultStore {
 
     /// Save or update a user template (UPSERT).
     pub fn save_user_template(&self, template: &crate::UserTemplate) -> Result<(), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let props_json = serde_json::to_string(&template.properties)
             .map_err(|e| format!("serialize properties: {}", e))?;
+        let encrypted_props = encrypt_text_field(&key, &props_json)?;
         conn.execute(
             "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, category, created_at, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
@@ -1075,7 +1744,7 @@ impl VaultStore {
                 &template.account_id,
                 &template.name,
                 &template.icon_id,
-                props_json,
+                encrypted_props,
                 &template.category,
                 &template.created_at,
                 &template.updated_at,
@@ -1090,6 +1759,7 @@ impl VaultStore {
         &self,
         template_id: &str,
     ) -> Result<Option<crate::UserTemplate>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
@@ -1099,7 +1769,17 @@ impl VaultStore {
 
         let result = stmt.query_row(params![template_id], |row| {
             let props_json: String = row.get(4)?;
-            let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&props_json)
+            let decrypted = decrypt_text_field(&key, &props_json).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    4,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Template properties decryption failed: {}", e),
+                    )),
+                )
+            })?;
+            let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
                 .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
             Ok(crate::UserTemplate {
                 id: row.get(0)?,
@@ -1125,6 +1805,7 @@ impl VaultStore {
         &self,
         account_id: &str,
     ) -> Result<Vec<crate::UserTemplate>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
@@ -1135,7 +1816,17 @@ impl VaultStore {
         let rows = stmt
             .query_map(params![account_id], |row| {
                 let props_json: String = row.get(4)?;
-                let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&props_json)
+                let decrypted = decrypt_text_field(&key, &props_json).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        4,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Template properties decryption failed: {}", e),
+                        )),
+                    )
+                })?;
+                let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
                     .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
                 Ok(crate::UserTemplate {
                     id: row.get(0)?,
@@ -1247,9 +1938,14 @@ mod tests {
     use crate::Profile;
     use tempfile::TempDir;
 
+    fn test_key() -> [u8; 32] {
+        [0x42u8; 32]
+    }
+
     fn setup() -> (VaultStore, TempDir) {
         let dir = TempDir::new().unwrap();
-        let config = VaultConfig::new("test_account", dir.path().to_path_buf());
+        let config =
+            VaultConfig::new("test_account", dir.path().to_path_buf()).with_data_key(test_key());
         let vault = VaultStore::open(config).unwrap();
         (vault, dir)
     }
@@ -1257,7 +1953,7 @@ mod tests {
     #[test]
     fn test_vault_open() {
         let dir = TempDir::new().unwrap();
-        let config = VaultConfig::new("test", dir.path().to_path_buf());
+        let config = VaultConfig::new("test", dir.path().to_path_buf()).with_data_key(test_key());
         assert!(VaultStore::open(config).is_ok());
     }
 
@@ -2728,5 +3424,273 @@ mod tests {
         let template_items = vault.list_trash_items(Some("template"), None).unwrap();
         assert_eq!(template_items.len(), 1);
         assert_eq!(template_items[0].name, "Test Template");
+    }
+
+    // ── Encryption-specific tests ─────────────────────────────
+
+    #[test]
+    fn test_profile_encryption_roundtrip() {
+        let (vault, _dir) = setup();
+        let data = serde_json::to_vec(&serde_json::json!({
+            "identity": {"fullName": "Alice"},
+            "financial": {"cards": [{"cardNumber": "1234"}]},
+        }))
+        .unwrap();
+        let profile = Profile::new_with_id("enc", "Encrypted", data.clone());
+        vault.save_profile(&profile).unwrap();
+
+        // Verify raw database bytes are encrypted (SOLO magic).
+        let raw: Vec<u8> = {
+            let guard = vault.conn.lock().unwrap();
+            let conn = guard.as_ref().unwrap();
+            conn.query_row(
+                "SELECT data FROM profiles WHERE id = ?1",
+                params!["enc"],
+                |r| r.get(0),
+            )
+            .unwrap()
+        };
+        assert!(crate::encryption::is_encrypted_blob(&raw));
+        assert_ne!(raw, data);
+
+        let loaded = vault.load_profile("enc").unwrap().unwrap();
+        assert_eq!(loaded.data, data);
+    }
+
+    #[test]
+    fn test_object_properties_encryption_roundtrip() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            id: "obj-enc".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Encrypted Object".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"secret": "value"}),
+            property_labels: Some(serde_json::json!({"secret": "Secret"})),
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        let raw_props: String = {
+            let guard = vault.conn.lock().unwrap();
+            let conn = guard.as_ref().unwrap();
+            conn.query_row(
+                "SELECT properties FROM objects WHERE id = ?1",
+                params!["obj-enc"],
+                |r| r.get(0),
+            )
+            .unwrap()
+        };
+        assert!(raw_props.starts_with(crate::encryption::ENCRYPTED_TEXT_PREFIX));
+
+        let loaded = vault.load_object("obj-enc").unwrap().unwrap();
+        assert_eq!(loaded.properties, serde_json::json!({"secret": "value"}));
+        assert_eq!(
+            loaded.property_labels,
+            Some(serde_json::json!({"secret": "Secret"}))
+        );
+    }
+
+    #[test]
+    fn test_trash_and_snapshot_encryption_roundtrip() {
+        let (vault, _dir) = setup();
+        let item = TrashItem {
+            id: "trash-enc".to_string(),
+            item_type: "object".to_string(),
+            original_id: "orig-enc".to_string(),
+            original_parent_id: None,
+            original_section_type: None,
+            original_sort_order: None,
+            data: vec![1, 2, 3, 4, 5],
+            deleted_at: chrono::Utc::now().timestamp(),
+            expires_at: None,
+            deleted_by: "user".to_string(),
+            name_snapshot: "Enc".to_string(),
+            icon_snapshot: None,
+        };
+        vault.save_trash_item(&item).unwrap();
+
+        let raw_data: Vec<u8> = {
+            let guard = vault.conn.lock().unwrap();
+            let conn = guard.as_ref().unwrap();
+            conn.query_row(
+                "SELECT data FROM trash_items WHERE id = ?1",
+                params!["trash-enc"],
+                |r| r.get(0),
+            )
+            .unwrap()
+        };
+        assert!(crate::encryption::is_encrypted_blob(&raw_data));
+
+        let loaded = vault.get_trash_item("trash-enc").unwrap().unwrap();
+        assert_eq!(loaded.data, vec![1, 2, 3, 4, 5]);
+
+        vault
+            .save_snapshot("obj-enc", "user_edit", b"snapshot", "sum")
+            .unwrap();
+        let raw_snap: Vec<u8> = {
+            let guard = vault.conn.lock().unwrap();
+            let conn = guard.as_ref().unwrap();
+            conn.query_row("SELECT data FROM object_snapshots LIMIT 1", [], |r| {
+                r.get(0)
+            })
+            .unwrap()
+        };
+        assert!(crate::encryption::is_encrypted_blob(&raw_snap));
+
+        let snapshots = vault.list_snapshots("obj-enc").unwrap();
+        let snap_id = snapshots[0]["id"].as_str().unwrap();
+        assert_eq!(vault.get_snapshot(snap_id).unwrap().unwrap(), b"snapshot");
+    }
+
+    #[test]
+    fn test_migration_from_plaintext() {
+        let dir = TempDir::new().unwrap();
+        let key = test_key();
+        let db_path = dir.path().join("vault.db");
+
+        // Seed a fresh database with plaintext sensitive data (simulating pre-encryption vault).
+        {
+            let conn = Connection::open(&db_path).unwrap();
+            conn.execute_batch(
+                "CREATE TABLE IF NOT EXISTS profiles (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    data BLOB NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    version INTEGER DEFAULT 1
+                );
+                CREATE TABLE IF NOT EXISTS objects (
+                    id TEXT PRIMARY KEY,
+                    account_id TEXT NOT NULL,
+                    type_id TEXT NOT NULL DEFAULT 'note',
+                    section_type TEXT NOT NULL DEFAULT 'identity',
+                    name TEXT NOT NULL,
+                    icon_name TEXT NOT NULL DEFAULT 'document',
+                    parent_id TEXT,
+                    children_ids TEXT NOT NULL DEFAULT '[]',
+                    properties TEXT NOT NULL DEFAULT '{}',
+                    property_labels TEXT DEFAULT '{}',
+                    sensitivity_level TEXT NOT NULL DEFAULT 'internal',
+                    is_deleted INTEGER NOT NULL DEFAULT 0,
+                    deleted_at TEXT,
+                    tags_json TEXT NOT NULL DEFAULT '[]',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    version INTEGER DEFAULT 1
+                );
+                CREATE TABLE IF NOT EXISTS sys_config (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );",
+            )
+            .unwrap();
+            let now = chrono::Utc::now().to_rfc3339();
+            conn.execute(
+                "INSERT INTO profiles (id, name, data, created_at, updated_at, version)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                params!["plain-profile", "Plain", b"plain data", &now, &now, 1],
+            )
+            .unwrap();
+            conn.execute(
+                "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name,
+                 children_ids, properties, property_labels, sensitivity_level, is_deleted,
+                 tags_json, created_at, updated_at, version)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
+                params![
+                    "plain-obj",
+                    "acc",
+                    "note",
+                    "identity",
+                    "Plain Object",
+                    "document",
+                    "[]",
+                    r#"{"key":"value"}"#,
+                    "{}",
+                    "internal",
+                    0,
+                    "[]",
+                    &now,
+                    &now,
+                    1
+                ],
+            )
+            .unwrap();
+        }
+
+        // Re-open with encryption key: migration should encrypt legacy data.
+        {
+            let config = VaultConfig::new("acc", dir.path().to_path_buf()).with_data_key(key);
+            let vault = VaultStore::open(config).unwrap();
+
+            let profile = vault.load_profile("plain-profile").unwrap().unwrap();
+            assert_eq!(profile.data, b"plain data");
+
+            let obj = vault.load_object("plain-obj").unwrap().unwrap();
+            assert_eq!(obj.properties, serde_json::json!({"key": "value"}));
+
+            let version = vault.get_sys_config("encryption_version").unwrap();
+            assert_eq!(version, Some("1".to_string()));
+        }
+    }
+
+    #[test]
+    fn test_reencrypt_all_roundtrip() {
+        let (vault, _dir) = setup();
+        let profile = Profile::new_with_id("reenc", "ReEnc", b"data".to_vec());
+        vault.save_profile(&profile).unwrap();
+        let obj = ObjectRecord {
+            id: "obj-reenc".to_string(),
+            account_id: "acc".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "ReEnc".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"k": "v"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        let old_key = DataEncryptionKey::new(test_key());
+        let new_key = DataEncryptionKey::new([0x99u8; 32]);
+        vault.reencrypt_all(&old_key, &new_key).unwrap();
+
+        // After re-opening with new key, data should still decrypt.
+        // (Manually swap the internal key to simulate reopening.)
+        {
+            let mut guard = vault.data_key.lock().unwrap();
+            *guard = Some(new_key.clone());
+        }
+
+        let loaded_profile = vault.load_profile("reenc").unwrap().unwrap();
+        assert_eq!(loaded_profile.data, b"data");
+
+        let loaded_obj = vault.load_object("obj-reenc").unwrap().unwrap();
+        assert_eq!(loaded_obj.properties, serde_json::json!({"k": "v"}));
     }
 }
