@@ -20,6 +20,25 @@ fn backups_dir(base_path: &std::path::Path) -> PathBuf {
     base_path.join("backups")
 }
 
+/// R009: restrict backup names to alphanumeric, hyphen and underscore to avoid
+/// path traversal and produce predictable file names.
+fn sanitize_backup_name(name: &str) -> Result<String, String> {
+    let sanitized: String = name
+        .chars()
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+    if sanitized.is_empty() {
+        return Err("Backup name cannot be empty".to_string());
+    }
+    Ok(sanitized)
+}
+
 #[tauri::command]
 pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, String> {
     let svc = state.vault_service.read().await;
@@ -82,7 +101,7 @@ pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<B
     fs::create_dir_all(&backup_dir).map_err(|e| e.to_string())?;
 
     let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-    let safe_name = name.replace(' ', "_");
+    let safe_name = sanitize_backup_name(&name)?;
     let backup_path = backup_dir.join(format!("{}_{}.solosoul_backup", safe_name, timestamp));
 
     // Collect all profiles
@@ -158,8 +177,9 @@ pub async fn backup_restore(
             let entry = entry.map_err(|e| e.to_string())?;
             let path = entry.path();
             if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-                let stem_str: &str = stem;
-                if stem_str == backup_id.as_str() || stem_str.starts_with(backup_id.as_str()) {
+                // R009: use exact match instead of prefix matching to avoid deleting/restoring
+                // the wrong backup when IDs share a prefix.
+                if stem == backup_id.as_str() {
                     found_path = Some(path);
                     break;
                 }
@@ -223,8 +243,8 @@ pub async fn backup_delete(state: State<'_, AppState>, backup_id: String) -> Res
             let entry = entry.map_err(|e| e.to_string())?;
             let path = entry.path();
             if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
-                let stem_str: &str = stem;
-                if stem_str == backup_id.as_str() || stem_str.starts_with(backup_id.as_str()) {
+                // R009: exact match only.
+                if stem == backup_id.as_str() {
                     fs::remove_file(&path).map_err(|e| e.to_string())?;
                     return Ok(());
                 }
