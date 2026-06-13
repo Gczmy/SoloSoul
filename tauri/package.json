@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/build-search-index.js && tsc --noEmit && vite build",
+    "build": "npm run gen-nsis-assets && node scripts/build-search-index.js && tsc --noEmit && vite build",
+    "gen-nsis-assets": "python3 scripts/generate-nsis-assets.py || python scripts/generate-nsis-assets.py",
     "preview": "vite preview",
     "tauri": "tauri",
     "lint": "eslint src --ext .ts,.tsx",

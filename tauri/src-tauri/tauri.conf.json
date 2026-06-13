@@ -53,6 +53,9 @@
         "installerIcon": "icons/icon.ico",
         "installerHooks": "./bundles/nsis/hooks.nsh",
         "template": "./bundles/nsis/installer.nsi",
+        "sidebarImage": "./bundles/nsis/assets/welcome-sidebar.bmp",
+        "headerImage": "./bundles/nsis/assets/header-install.bmp",
+        "uninstallerHeaderImage": "./bundles/nsis/assets/header-uninstall.bmp",
         "languages": ["SimpChinese", "English"],
         "displayLanguageSelector": true
       }

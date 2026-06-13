@@ -135,6 +135,8 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 ; Installer sidebar image
 !if "${SIDEBARIMAGE}" != ""
   !define MUI_WELCOMEFINISHPAGE_BITMAP "${SIDEBARIMAGE}"
+  ; Keep the designed bitmap pixel-perfect instead of stretching it
+  !define MUI_WELCOMEFINISHPAGE_BITMAP_NOSTRETCH
 !endif
 
 ; Enable header images for installer and uninstaller pages when either image is configured.
@@ -147,12 +149,21 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 ; Installer header image
 !if "${HEADERIMAGE}" != ""
   !define MUI_HEADERIMAGE_BITMAP "${HEADERIMAGE}"
+  !define MUI_HEADERIMAGE_BITMAP_NOSTRETCH
 !endif
 
 ; Uninstaller header image
 !if "${UNINSTALLERHEADERIMAGE}" != ""
   !define MUI_HEADERIMAGE_UNBITMAP "${UNINSTALLERHEADERIMAGE}"
+  !define MUI_HEADERIMAGE_UNBITMAP_NOSTRETCH
 !endif
+
+; Brand-aligned background/text colors for the welcome/finish pages.
+; NSIS MUI2 uses embedded UI resources for fonts, so Windows will already
+; render with the system font (Segoe UI on Windows 10/11). These macros only
+; affect the welcome/finish page canvas and header subtitle areas.
+!define MUI_BGCOLOR "FDFCF9"
+!define MUI_TEXTCOLOR "1F1C18"
 
 ; Uninstaller icon
 !if "${UNINSTALLERICON}" != ""
@@ -167,6 +178,8 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 ; Installer pages, must be ordered as they appear
 ; 1. Welcome Page
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
+!define MUI_WELCOMEPAGE_TITLE "$(WELCOME_TITLE)"
+!define MUI_WELCOMEPAGE_TEXT "$(WELCOME_TEXT)"
 !insertmacro MUI_PAGE_WELCOME
 
 ; 2. License Page (if defined)
@@ -416,6 +429,8 @@ Var AppStartMenuFolder
 ; Show run app after installation.
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION RunMainBinary
+!define MUI_FINISHPAGE_TITLE "$(FINISH_TITLE)"
+!define MUI_FINISHPAGE_TEXT "$(FINISH_TEXT)"
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
 !insertmacro MUI_PAGE_FINISH
 
