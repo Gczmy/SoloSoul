@@ -1049,19 +1049,15 @@ async fn import_execute_internal(
             let mut enc_data = Vec::new();
             f.read_to_end(&mut enc_data).map_err(|e| e.to_string())?;
 
-            // Decrypt (try chunked first for larger files)
+            // R029: choose the decryption method based on size (matching the export logic)
+            // instead of trying one and falling back to the other.
             const STREAMING_THRESHOLD: usize = 10 * 1024 * 1024; // 10 MB
             let att_data = if enc_data.len() > (STREAMING_THRESHOLD + 28) {
                 solosoul_crypto::cipher::decrypt_chunked_from_bytes(&att_key, &enc_data)
                     .map_err(|e| format!("decrypt attachment chunked: {}", e))?
             } else {
-                match solosoul_crypto::cipher::decrypt_from_bytes(&att_key, &enc_data, None) {
-                    Ok(d) => d,
-                    Err(_) => {
-                        solosoul_crypto::cipher::decrypt_chunked_from_bytes(&att_key, &enc_data)
-                            .map_err(|e| format!("decrypt attachment fallback: {}", e))?
-                    }
-                }
+                solosoul_crypto::cipher::decrypt_from_bytes(&att_key, &enc_data, None)
+                    .map_err(|e| format!("decrypt attachment: {}", e))?
             };
 
             // Save to vault storage
