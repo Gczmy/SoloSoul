@@ -61,9 +61,16 @@ pub async fn plugin_run(
     params: HashMap<String, String>,
     channel: Channel<PluginEvent>,
 ) -> Result<PluginResult, String> {
+    let (vault_store, account_id) = {
+        let svc = state.vault_service.read().await;
+        let vault_store = svc.get_vault_store();
+        let account_id = svc.get_current_account();
+        (vault_store, account_id)
+    };
+
     state
         .plugin_manager
-        .run(&plugin_id, params, channel)
+        .run(&plugin_id, params, channel, vault_store, account_id)
         .await
         .map_err(|e| e.to_string())
 }

@@ -7,23 +7,30 @@ use super::{
     ConsentManager, FieldResolver, PluginAuditAction, PluginAuditLogger, PluginError, PluginEvent,
     PluginLogLine, PluginManifest, PluginResultPayload, RateLimiter,
 };
+use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::ipc::Channel;
+use url::Url;
 use wasmtime::{Caller, Extern, Linker, Memory};
 
-/// Host Function 错误码
+/// Host Function 错误码（与 SDK `solosoul_plugin_sdk::PluginError` 保持一致）
 #[allow(dead_code)]
 mod code {
     pub const SUCCESS: i32 = 0;
-    pub const INVALID_ARGUMENT: i32 = 1;
-    pub const FIELD_NOT_FOUND: i32 = 2;
-    pub const RATE_LIMITED: i32 = 3;
-    pub const CONSENT_DENIED: i32 = 4;
-    pub const BUFFER_TOO_SMALL: i32 = 5;
-    pub const WASM_TRAP: i32 = 6;
-    pub const NOT_IMPLEMENTED: i32 = 7;
+    pub const PERMISSION_DENIED: i32 = -1;
+    pub const USER_DENIED: i32 = -2;
+    pub const TTL_EXPIRED: i32 = -3;
+    pub const BUFFER_TOO_SMALL: i32 = -4;
+    pub const INVALID_FIELD: i32 = -5;
+    pub const NETWORK_TIMEOUT: i32 = -6;
+    pub const VAULT_LOCKED: i32 = -7;
+    pub const RATE_LIMITED: i32 = -8;
+    pub const NOT_IMPLEMENTED: i32 = -9;
+    pub const DOMAIN_NOT_ALLOWED: i32 = -10;
+    pub const INVALID_ARGUMENT: i32 = -11;
+    pub const WASM_TRAP: i32 = -12;
 }
 
 /// 传递给 Wasm Store 的状态，包含 WASI 上下文与自定义 Host 数据
@@ -122,36 +129,84 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     }
                     (host.plugin_id.clone(), host.session_id.clone())
                 };
-                // Phase 2 占位：所有字段默认返回空字符串，避免测试阻塞
-                let value = caller
-                    .data()
-                    .host
-                    .field_resolver
-                    .resolve(&field_id)
-                    .unwrap_or_default();
+                let result = caller.data().host.field_resolver.resolve(&field_id);
                 caller.data().host.audit.log(
                     &plugin_id,
                     Some(&session_id),
                     PluginAuditAction::PluginRunStarted,
                 );
-                write_buffer(&mut caller, out_ptr, out_len, &value, -1)
+                match result {
+                    Ok(value) => write_buffer(&mut caller, out_ptr, out_len, &value, -1),
+                    Err(e) => plugin_error_code(&e),
+                }
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-    // solosoul_post_data —— 网络请求（未实现）
+    // solosoul_post_data —— 代理 HTTP POST 请求
     linker
         .func_wrap(
             "env",
             "solosoul_post_data",
-            |_caller: Caller<'_, SoloHostState>,
-             _url_ptr: i32,
-             _url_len: i32,
-             _body_ptr: i32,
-             _body_len: i32,
-             _out_ptr: i32,
-             _out_len: i32|
-             -> i32 { code::NOT_IMPLEMENTED },
+            |mut caller: Caller<'_, SoloHostState>,
+             url_ptr: i32,
+             url_len: i32,
+             body_ptr: i32,
+             body_len: i32,
+             out_ptr: i32,
+             out_len: i32|
+             -> i32 {
+                let url = match read_string(&mut caller, url_ptr, url_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let body = match read_string(&mut caller, body_ptr, body_len) {
+                    Ok(s) => s,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+
+                let host = &caller.data().host;
+                if !host.rate_limiter.check(&host.plugin_id, "post_data") {
+                    return code::RATE_LIMITED;
+                }
+
+                // 检查网络策略
+                let policy = &host.manifest.network_policy;
+                if policy.block_all_outbound {
+                    return code::DOMAIN_NOT_ALLOWED;
+                }
+
+                let parsed_url = match Url::parse(&url) {
+                    Ok(u) => u,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+                let domain = parsed_url.host_str().unwrap_or("").to_lowercase();
+                if domain.is_empty() || !is_domain_allowed(&domain, &policy.allowed_domains) {
+                    return code::DOMAIN_NOT_ALLOWED;
+                }
+
+                let (plugin_id, session_id) = (host.plugin_id.clone(), host.session_id.clone());
+                host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                let response_text = match perform_http_post(&url, &body) {
+                    Ok(text) => text,
+                    Err(e) => {
+                        let _ = host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("solosoul_post_data 失败: {}", e),
+                        ));
+                        return code::NETWORK_TIMEOUT;
+                    }
+                };
+
+                // 截断到 64KB，避免结果过大
+                let truncated: String = response_text.chars().take(64 * 1024).collect();
+                write_buffer(&mut caller, out_ptr, out_len, &truncated, -1)
+            },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
@@ -298,7 +353,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-    // solosoul_request_consent —— 请求用户授权
+    // solosoul_request_consent —— 请求用户授权（阻塞等待用户响应）
     linker
         .func_wrap(
             "env",
@@ -313,21 +368,23 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     read_string(&mut caller, field_id_ptr, field_id_len).unwrap_or_default();
                 let request_id =
                     read_string(&mut caller, request_id_ptr, request_id_len).unwrap_or_default();
-                let (plugin_id, plugin_name, session_id) = {
+                if field_id.is_empty() || request_id.is_empty() {
+                    return code::INVALID_ARGUMENT;
+                }
+
+                let (plugin_id, plugin_name, session_id, consent_manager) = {
                     let host = &caller.data().host;
-                    host.audit.log(
-                        &host.plugin_id,
-                        Some(&host.session_id),
-                        PluginAuditAction::ConsentApproved {
-                            field_id: field_id.clone(),
-                        },
-                    );
+                    if !host.rate_limiter.check(&host.plugin_id, "request_consent") {
+                        return code::RATE_LIMITED;
+                    }
                     (
                         host.plugin_id.clone(),
                         host.plugin_name.clone(),
                         host.session_id.clone(),
+                        host.consent_manager.clone(),
                     )
                 };
+
                 let event = PluginEvent::consent_request(
                     &request_id,
                     &plugin_id,
@@ -340,9 +397,41 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                 caller.data().host.audit.log(
                     &plugin_id,
                     Some(&session_id),
-                    PluginAuditAction::ConsentApproved { field_id },
+                    PluginAuditAction::PluginRunStarted,
                 );
-                code::SUCCESS
+
+                // 阻塞等待用户响应，超时 5 分钟
+                let rx = match block_on(consent_manager.request_consent(&request_id)) {
+                    Ok(rx) => rx,
+                    Err(_) => return code::NOT_IMPLEMENTED,
+                };
+
+                match block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
+                    Ok(Ok(Ok(Some(_value)))) => {
+                        caller.data().host.audit.log(
+                            &plugin_id,
+                            Some(&session_id),
+                            PluginAuditAction::ConsentApproved { field_id },
+                        );
+                        code::SUCCESS
+                    }
+                    Ok(Ok(Ok(None))) => {
+                        caller.data().host.audit.log(
+                            &plugin_id,
+                            Some(&session_id),
+                            PluginAuditAction::ConsentDenied { field_id },
+                        );
+                        code::USER_DENIED
+                    }
+                    Ok(Ok(Err(_))) | Ok(Err(_)) | Err(_) => {
+                        caller.data().host.audit.log(
+                            &plugin_id,
+                            Some(&session_id),
+                            PluginAuditAction::ConsentDenied { field_id },
+                        );
+                        code::TTL_EXPIRED
+                    }
+                }
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
@@ -434,4 +523,57 @@ fn write_buffer(
         let _ = mem.write(&mut *caller, written_ptr as usize, &len_bytes);
     }
     code::SUCCESS
+}
+
+/// 将 `PluginError` 映射为 SDK 错误码
+fn plugin_error_code(err: &PluginError) -> i32 {
+    match err {
+        PluginError::ExecutionFailed(msg) if msg.contains("Vault 未解锁") => code::VAULT_LOCKED,
+        PluginError::ExecutionFailed(msg) if msg.contains("未选择账户") => code::VAULT_LOCKED,
+        PluginError::InvalidField(_) => code::INVALID_FIELD,
+        PluginError::InvalidArgument(_) => code::INVALID_ARGUMENT,
+        PluginError::RateLimited => code::RATE_LIMITED,
+        PluginError::ConsentDenied => code::USER_DENIED,
+        _ => code::INVALID_ARGUMENT,
+    }
+}
+
+/// 检查域名是否在白名单中
+fn is_domain_allowed(domain: &str, allowed: &[String]) -> bool {
+    if allowed.is_empty() {
+        return false;
+    }
+    allowed
+        .iter()
+        .any(|pattern| super::manifest::matches_domain(domain, pattern))
+}
+
+/// 执行同步阻塞的 HTTP POST 请求
+fn perform_http_post(url: &str, body: &str) -> Result<String, String> {
+    let mut headers = HeaderMap::new();
+    if serde_json::from_str::<serde_json::Value>(body).is_ok() {
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    }
+
+    block_on(async {
+        let client = reqwest::Client::new();
+        let resp = client
+            .post(url)
+            .headers(headers)
+            .body(body.to_string())
+            .timeout(Duration::from_secs(30))
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+        let text = resp.text().await.map_err(|e| e.to_string())?;
+        Ok(text)
+    })
+    .map_err(|_| "无法在当前线程执行网络请求".to_string())?
+}
+
+/// 在当前 Tokio 运行时上阻塞执行 Future（插件 Host Function 运行在 spawn_blocking 线程）
+fn block_on<F: std::future::Future>(future: F) -> Result<F::Output, ()> {
+    tokio::runtime::Handle::try_current()
+        .map_err(|_| ())
+        .map(|handle| handle.block_on(future))
 }

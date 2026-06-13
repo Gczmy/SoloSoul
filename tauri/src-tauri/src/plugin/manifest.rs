@@ -39,6 +39,20 @@ pub struct PluginInstallResult {
     pub installed_at: i64,
 }
 
+/// 插件网络策略
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginNetworkPolicy {
+    #[serde(default = "default_block_all")]
+    pub block_all_outbound: bool,
+    #[serde(default)]
+    pub allowed_domains: Vec<String>,
+}
+
+fn default_block_all() -> bool {
+    true
+}
+
 /// 本地已安装插件 manifest
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -59,6 +73,10 @@ pub struct PluginManifest {
     pub wasm_hash_sha256: Option<String>,
     #[serde(default = "default_ttl")]
     pub data_ttl_seconds: u64,
+    #[serde(default)]
+    pub network_policy: PluginNetworkPolicy,
+    #[serde(default)]
+    pub require_user_confirmation: bool,
 }
 
 fn default_ttl() -> u64 {

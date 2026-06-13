@@ -10,6 +10,7 @@ use super::{
 };
 use semver::Version;
 use serde::Deserialize;
+use solosoul_vault::VaultStore;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -33,6 +34,12 @@ struct MarketManifestRaw {
     data_ttl_seconds: Option<u64>,
     #[serde(default)]
     required_fields: Vec<String>,
+    #[serde(default)]
+    optional_fields: Vec<String>,
+    #[serde(default)]
+    network_policy: super::PluginNetworkPolicy,
+    #[serde(default)]
+    require_user_confirmation: bool,
 }
 
 /// 插件管理器
@@ -102,6 +109,9 @@ impl PluginManager {
             return Err(PluginError::ChecksumMismatch);
         }
 
+        let mut permissions = manifest_raw.required_fields;
+        permissions.extend(manifest_raw.optional_fields);
+
         let manifest = PluginManifest {
             id: manifest_raw.plugin_id,
             name: manifest_raw.name,
@@ -109,10 +119,12 @@ impl PluginManager {
             description: manifest_raw.description,
             author: manifest_raw.publisher,
             homepage: manifest_raw.homepage,
-            permissions: manifest_raw.required_fields,
+            permissions,
             required_core_version: manifest_raw.plugin_api_version,
             wasm_hash_sha256: Some(version_info.sha256.clone()),
             data_ttl_seconds: manifest_raw.data_ttl_seconds.unwrap_or(300),
+            network_policy: manifest_raw.network_policy,
+            require_user_confirmation: manifest_raw.require_user_confirmation,
         };
 
         self.store.save_plugin(&manifest, &wasm_bytes)?;
@@ -157,6 +169,8 @@ impl PluginManager {
         plugin_id: &str,
         params: HashMap<String, String>,
         channel: Channel<PluginEvent>,
+        vault_store: Option<Arc<VaultStore>>,
+        account_id: Option<String>,
     ) -> Result<PluginResult, PluginError> {
         let wasm_bytes = self.store.load_wasm(plugin_id)?;
         let manifest = self.store.load_manifest(plugin_id)?;
@@ -170,6 +184,15 @@ impl PluginManager {
             PluginAuditAction::PluginRunStarted,
         );
 
+        let field_resolver = match (vault_store, account_id) {
+            (Some(vault), Some(account)) => Arc::new(super::FieldResolver::with_vault(
+                vault,
+                account,
+                manifest.permissions.clone(),
+            )),
+            _ => self.field_resolver.clone(),
+        };
+
         let session_id = session.id.clone();
         let host = super::SoloHostFunctions::new(
             plugin_id,
@@ -180,7 +203,7 @@ impl PluginManager {
             self.audit.clone(),
             self.rate_limiter.clone(),
             self.consent_manager.clone(),
-            self.field_resolver.clone(),
+            field_resolver,
             channel.clone(),
         );
 

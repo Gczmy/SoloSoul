@@ -25,7 +25,8 @@ pub use host::{register_host_functions, SoloHostFunctions, SoloHostState};
 pub use manager::PluginManager;
 pub use manifest::{
     MarketPluginInfo, PluginAuditAction, PluginAuditEntry, PluginInstallResult, PluginLogLine,
-    PluginManifest, PluginResult, PluginResultPayload, RegistryEntry, RegistryVersion,
+    PluginManifest, PluginNetworkPolicy, PluginResult, PluginResultPayload, RegistryEntry,
+    RegistryVersion,
 };
 pub use rate_limiter::{RateLimiter, RateLimiterMap};
 pub use registry::PluginRegistry;
