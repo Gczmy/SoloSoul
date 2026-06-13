@@ -138,6 +138,12 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
   const [loading, setLoading] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   const tokens = useMemo(() => extractTokens(query), [query]);
 
   const doSearch = useCallback(

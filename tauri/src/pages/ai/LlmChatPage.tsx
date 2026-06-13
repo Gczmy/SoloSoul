@@ -135,6 +135,13 @@ export function LlmChatPage() {
 
   // Copy feedback
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   // Floating card (trash viewer)
   const [floatingConv, setFloatingConv] = useState<Conversation | null>(null);
@@ -517,7 +524,8 @@ export function LlmChatPage() {
     try {
       await navigator.clipboard.writeText(content);
       setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), COPY_FEEDBACK_DURATION);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), COPY_FEEDBACK_DURATION);
     } catch {
       /* fallback */
     }

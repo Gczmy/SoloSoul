@@ -129,7 +129,10 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, [onClose]);
 
   const doSearch = useCallback(

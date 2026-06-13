@@ -150,6 +150,7 @@ export function AiQuickChatPopover({
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -165,6 +166,12 @@ export function AiQuickChatPopover({
   streamBufferRef.current = streamBuffer;
   currentConvIdRef.current = currentConvId;
   accountIdRef.current = accountId;
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const quickChatStorageKey = accountId ? `solosoul_quick_chat_conv_${accountId}` : null;
 
@@ -496,7 +503,8 @@ export function AiQuickChatPopover({
     try {
       await navigator.clipboard.writeText(content);
       setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 1500);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 1500);
     } catch {
       /* ignore */
     }

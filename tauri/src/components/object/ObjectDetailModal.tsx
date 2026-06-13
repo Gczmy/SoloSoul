@@ -74,6 +74,14 @@ export function ObjectDetailModal({
   const [fetchedObj, setFetchedObj] = useState<ObjectData | null>(null);
   const [loading, setLoading] = useState(!object && !!objectId);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
+
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -237,7 +245,8 @@ export function ObjectDetailModal({
     try {
       await navigator.clipboard.writeText(value);
       setCopiedField(key);
-      setTimeout(() => setCopiedField(null), 1500);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopiedField(null), 1500);
     } catch {
       /* ignore */
     }
