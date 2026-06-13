@@ -24,6 +24,7 @@
 - **Release 资源路径**：`SoloSoul_plugin_market` 优先从 Tauri 资源目录读取，开发模式回退源码路径。
 - **会话与授权**：会话 TTL、`ConsentManager` 阻塞等待用户响应。
 - **审计日志**：持久化到 `~/.solosoul/plugin_audit.jsonl`，保留最近 2000 条，文件权限 `0600`。
+- **在线注册表更新**：`plugin_update_registry` 从远程拉取 `registry.json` + `.minisig`，使用 Minisign 校验签名后原子写入本地市场目录。
 - **官方插件分批启用**：`RegistryEntry` / `PluginManifest` 增加 `tier`、`category` 与 `params`；前端 Dashboard 默认启用 P0/P1。
 - **集成测试**：`tests/plugin_sandbox.rs` 成功运行 `hello_world` 插件；新增 `plugin_address_fmt.rs` 等 Rust 单元测试。
 
@@ -51,6 +52,7 @@
 | 1 | ~~`post_data` 异步化与响应通道~~ | ✅ 新增异步 HTTP 轮询 ABI：`solosoul_http_request` / `http_poll` / `http_read` / `http_close`；同步 `post_data` 保留兼容。 | P2 |
 | 2 | ~~插件结果导出~~ | ✅ `PluginResultPanel` 每个结果卡片支持复制为 JSON / Markdown。 | P2 |
 | 3 | ~~运行中插件列表持久化/恢复~~ | ✅ `pluginStore` 通过 `zustand/persist` 持久化 `runningPlugins` 到 `localStorage`，刷新后可恢复。 | P3 |
+| 4 | ~~`plugin_update_registry` 在线更新~~ | ✅ 从 `SOLOSOUL_REGISTRY_URL` 拉取注册表，Minisign 验证签名后原子写入本地 `registry.json`。 | P3 |
 | 4 | **`plugin_update_registry` 在线更新** | 当前 registry 为本地静态文件；后续可实现从远程 URL 拉取最新 registry 并校验签名。 | P3 |
 | 5 | **插件市场子模块 CI 集成** | 主项目 CI 中验证 `SoloSoul_plugin_market/registry.json` 与子模块指针一致性。 | P3 |
 | 6 | **官方 P2/P3/P4 插件** | 当前仅 P0/P1 默认启用；需要实际填充 P2–P4 官方插件并完善权限审核。 | P4 |

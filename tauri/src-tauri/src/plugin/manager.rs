@@ -329,9 +329,9 @@ impl PluginManager {
         Ok(self.audit.recent(limit.unwrap_or(50)))
     }
 
-    /// 刷新注册表（当前实现无缓存，直接返回成功）
-    pub fn update_registry(&self) -> Result<(), PluginError> {
-        Ok(())
+    /// 刷新注册表（从远程拉取并验证签名）
+    pub async fn update_registry(&self) -> Result<(), PluginError> {
+        self.registry.update_from_remote().await
     }
 }
 

@@ -3,10 +3,15 @@
 //! 解析 `SoloSoul_plugin_market/registry.json`，提供与当前应用版本的兼容性判断。
 
 use super::{MarketPluginInfo, PluginError, PluginManifest, RegistryEntry, RegistryVersion};
+use minisign_verify::{PublicKey, Signature};
 use semver::Version;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
+
+/// 默认远程注册表 URL
+const DEFAULT_REGISTRY_URL: &str = "https://plugins.solosoul.app/registry.json";
 
 /// 注册表文件顶层结构
 #[derive(Debug, Deserialize)]
@@ -45,6 +50,67 @@ impl PluginRegistry {
         Self {
             path: path.as_ref().to_path_buf(),
         }
+    }
+
+    /// 从远程 URL 拉取并更新本地注册表
+    ///
+    /// 1. 读取环境变量 `SOLOSOUL_REGISTRY_URL`（默认 `DEFAULT_REGISTRY_URL`）
+    /// 2. 读取环境变量 `SOLOSOUL_REGISTRY_PUBKEY`（必需）
+    /// 3. 下载注册表文件与对应的 `.minisig` 签名
+    /// 4. 使用 Minisign 验证签名
+    /// 5. 校验 JSON 结构后原子写入本地 `registry.json`
+    pub async fn update_from_remote(&self) -> Result<(), PluginError> {
+        let url = std::env::var("SOLOSOUL_REGISTRY_URL")
+            .unwrap_or_else(|_| DEFAULT_REGISTRY_URL.to_string());
+        let pubkey_b64 = std::env::var("SOLOSOUL_REGISTRY_PUBKEY").map_err(|_| {
+            PluginError::RegistryError("未配置 SOLOSOUL_REGISTRY_PUBKEY".to_string())
+        })?;
+        let public_key = PublicKey::from_base64(&pubkey_b64)
+            .map_err(|e| PluginError::RegistryError(format!("注册表公钥解析失败: {}", e)))?;
+
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(30))
+            .build()
+            .map_err(|e| PluginError::RegistryError(format!("HTTP 客户端创建失败: {}", e)))?;
+
+        let registry_bytes = client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| PluginError::RegistryError(format!("下载注册表失败: {}", e)))?
+            .bytes()
+            .await
+            .map_err(|e| PluginError::RegistryError(format!("读取注册表响应失败: {}", e)))?;
+
+        let sig_url = format!("{}.minisig", url);
+        let sig_text = client
+            .get(&sig_url)
+            .send()
+            .await
+            .map_err(|e| PluginError::RegistryError(format!("下载注册表签名失败: {}", e)))?
+            .text()
+            .await
+            .map_err(|e| PluginError::RegistryError(format!("读取签名响应失败: {}", e)))?;
+
+        let signature = Signature::decode(&sig_text)
+            .map_err(|e| PluginError::RegistryError(format!("签名解码失败: {}", e)))?;
+
+        public_key
+            .verify(&registry_bytes, &signature, false)
+            .map_err(|e| PluginError::RegistryError(format!("注册表签名验证失败: {}", e)))?;
+
+        // 校验 JSON 结构合法
+        let _: RegistryFile = serde_json::from_slice(&registry_bytes)
+            .map_err(|e| PluginError::RegistryError(format!("注册表 JSON 非法: {}", e)))?;
+
+        // 原子写入本地文件
+        let tmp_path = self.path.with_extension("tmp");
+        std::fs::write(&tmp_path, &registry_bytes)
+            .map_err(|e| PluginError::StoreError(format!("写入注册表临时文件失败: {}", e)))?;
+        std::fs::rename(&tmp_path, &self.path)
+            .map_err(|e| PluginError::StoreError(format!("替换注册表文件失败: {}", e)))?;
+
+        Ok(())
     }
 
     /// 加载注册表并转换为前端可用的市场插件信息列表

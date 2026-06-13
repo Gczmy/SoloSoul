@@ -138,5 +138,6 @@ pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), St
     state
         .plugin_manager
         .update_registry()
+        .await
         .map_err(|e| e.to_string())
 }
