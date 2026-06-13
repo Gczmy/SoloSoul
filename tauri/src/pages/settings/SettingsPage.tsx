@@ -17,6 +17,7 @@ import {
   BookOpen,
   LayoutTemplate,
   Puzzle,
+  Smartphone,
 } from 'lucide-react';
 
 function formatBytes(bytes: number): string {
@@ -105,6 +106,12 @@ export function SettingsPage() {
           icon: Puzzle,
           path: '/plugins',
           desc: t('settings:desc.plugins') || '管理本地插件市场',
+        },
+        {
+          label: t('settings:items.sync') || '设备同步',
+          icon: Smartphone,
+          path: '/sync',
+          desc: t('settings:desc.sync') || '与其他设备同步数据',
         },
       ],
     },
