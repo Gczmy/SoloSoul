@@ -31,7 +31,23 @@ fn bio_key_path(id: &str) -> std::path::PathBuf {
     acct_dir(id).join("biometric_key")
 }
 
+fn use_keyring() -> bool {
+    !cfg!(test)
+}
+
+fn keyring_entry(account_id: &str) -> Result<keyring::Entry, String> {
+    let service = format!("solosoul_biometric_{}", account_id);
+    keyring::Entry::new(&service, account_id).map_err(|e| e.to_string())
+}
+
 fn save_master_key(account_id: &str, key_hex: &str) -> Result<(), String> {
+    if use_keyring() {
+        let entry = keyring_entry(account_id)?;
+        entry.set_password(key_hex).map_err(|e| e.to_string())?;
+        return Ok(());
+    }
+
+    // Test/development fallback: obfuscated file storage.
     let key_bytes = hex::decode(key_hex).map_err(|e| e.to_string())?;
     let obf: Vec<u8> = key_bytes
         .iter()
@@ -55,6 +71,11 @@ fn save_master_key(account_id: &str, key_hex: &str) -> Result<(), String> {
 }
 
 fn read_master_key(account_id: &str) -> Result<String, String> {
+    if use_keyring() {
+        let entry = keyring_entry(account_id)?;
+        return entry.get_password().map_err(|e| e.to_string());
+    }
+
     let path = bio_key_path(account_id);
     let hex_str = std::fs::read_to_string(&path)
         .map_err(|e| format!("No key file at {}: {}", path.display(), e))?;
@@ -68,6 +89,9 @@ fn read_master_key(account_id: &str) -> Result<String, String> {
 }
 
 fn delete_master_key(account_id: &str) {
+    if use_keyring() {
+        let _ = keyring_entry(account_id).and_then(|e| e.delete_credential().map_err(|e| e.to_string()));
+    }
     let p = bio_key_path(account_id);
     if p.exists() {
         let _ = std::fs::remove_file(&p);
