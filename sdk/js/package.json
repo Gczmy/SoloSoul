@@ -1,0 +1,26 @@
+{
+  "name": "@solosoul/sdk",
+  "version": "0.1.0",
+  "description": "SoloSoul JavaScript client SDK (placeholder)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run --passWithNoTests"
+  },
+  "peerDependencies": {
+    "@tauri-apps/api": "^2.11.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/api": "^2.11.0",
+    "typescript": "^6.0.3"
+  },
+  "license": "MIT",
+  "private": false
+}

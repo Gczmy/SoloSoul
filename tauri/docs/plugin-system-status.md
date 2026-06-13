@@ -45,6 +45,7 @@
 - 新增 Playwright E2E：`e2e/plugin-lifecycle.spec.ts` 覆盖安装、运行、对话框响应、结果渲染。
 - 主项目 CI 集成：`.github/workflows/ci_cd.yml` 与 `.github/workflows/pr_check.yml` 新增 `plugin-market-check`，递归检出子模块并验证 `registry.json` 一致性。
 - `npm run check-all`、`cargo test`、`npm run test:e2e` 全量通过。
+- **SDK 与开发文档**：新增 `sdk/js`（TypeScript 客户端 SDK 占位）、`sdk/python`（Python 异步客户端 SDK 占位）与 `docs/wasm-plugin-development-guide.md`（含 Rust SDK 与 WAT 示例）。
 
 ## 剩余任务与建议
 
@@ -57,7 +58,7 @@
 | 5 | ~~插件市场子模块 CI 集成~~ | ✅ `ci_cd.yml` / `pr_check.yml` 新增 `plugin-market-check`，验证子模块 `registry.json` 一致性并检查指针干净。 | P3 |
 | 6 | ~~**官方 P2/P3/P4 插件**~~ | ✅ P2 已默认启用；P3/P4 官方插件需随业务场景逐步填充。 | P4 |
 | 7 | ~~**Wasm 插件崩溃隔离**~~ | ✅ `sandbox.execute` 使用 `catch_unwind` 捕获插件 panic；宿主 `Drop` 时中止未完成的异步 HTTP 任务；新增集成测试验证 unreachable trap 被隔离。 | P4 |
-| 8 | **文档与 SDK 示例** | 补充 JS/Python SDK 占位实现与 Wasm 插件开发示例。 | P4 |
+| 8 | ~~**文档与 SDK 示例**~~ | ✅ 新增 `sdk/js`、`sdk/python` 占位实现与 `docs/wasm-plugin-development-guide.md` 开发指南。 | P4 |
 
 ## 已知限制
 
