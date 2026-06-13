@@ -23,5 +23,9 @@
   "audit_log": "审计日志",
   "no_logs": "暂无审计日志",
   "result_empty": "暂无结果",
-  "result_unknown": "不支持的结果类型"
+  "result_unknown": "不支持的结果类型",
+  "copy_json": "复制为 JSON",
+  "copy_json_short": "JSON",
+  "copy_markdown": "复制为 Markdown",
+  "copy_markdown_short": "Markdown"
 }

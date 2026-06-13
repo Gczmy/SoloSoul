@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PluginResultPanel } from './PluginResultPanel';
 import type { PluginResultPayload } from '@/lib/plugin';
 
@@ -49,5 +49,56 @@ describe('PluginResultPanel', () => {
     const results: PluginResultPayload[] = [{ type: 'markdown', content: '# Title' }];
     render(<PluginResultPanel results={results} />);
     expect(screen.getByText('# Title')).toBeInTheDocument();
+  });
+
+  describe('export toolbar', () => {
+    const originalClipboard = navigator.clipboard;
+    let writeText: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        value: originalClipboard,
+        configurable: true,
+      });
+    });
+
+    it('copies text result as JSON', () => {
+      const results: PluginResultPayload[] = [{ type: 'text', content: 'Hello world' }];
+      render(<PluginResultPanel results={results} />);
+      fireEvent.click(screen.getByRole('button', { name: /copy as json/i }));
+      expect(writeText).toHaveBeenCalledWith(
+        JSON.stringify({ type: 'text', content: 'Hello world' }, null, 2),
+      );
+    });
+
+    it('copies key_value result as Markdown table', () => {
+      const results: PluginResultPayload[] = [
+        {
+          type: 'key_value',
+          title: 'Summary',
+          pairs: [
+            { key: 'Name', value: 'Alice' },
+          ],
+        },
+      ];
+      render(<PluginResultPanel results={results} />);
+      fireEvent.click(screen.getByRole('button', { name: /copy as markdown/i }));
+      const expected = [
+        '### Summary',
+        '',
+        '| Key | Value |',
+        '| --- | --- |',
+        '| Name | Alice |',
+      ].join('\n');
+      expect(writeText).toHaveBeenCalledWith(expected);
+    });
   });
 });

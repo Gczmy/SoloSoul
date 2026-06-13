@@ -30,6 +30,7 @@
 
 - **页面**：`PluginDashboardPage` 支持「全部 / 已安装 / 运行中 / 日志」四 Tab，带 tier chips 与默认 P0/P1 启用。
 - **组件**：`PluginCard`、`PluginConsentDialog`、`PluginResultPanel`、新增 `PluginDialog`、`PluginRunParamsDialog`。
+- **结果导出**：`PluginResultPanel` 每个结果卡片支持一键复制为 JSON / Markdown，纯前端实现，不依赖后端权限。
 - **状态管理**：`pluginStore`（Zustand）处理市场列表、已安装列表、运行中插件输出、Consent 请求、Dialog 请求。
 - **国际化**：新增 `plugin` namespace（zh-CN / en-US）。
 - **路由**：`/plugins` 已在 `App.tsx` 注册，设置页已添加入口。
@@ -46,7 +47,7 @@
 | # | 任务 | 说明 | 优先级 |
 |---|------|------|--------|
 | 1 | **`post_data` 异步化与响应通道** | Wasmtime Host Function 签名是同步的，`post_data` 已在 `spawn_blocking` 线程中通过 Tokio Runtime 执行 async HTTP；当前实现已可工作，后续可考虑非阻塞轮询 ABI。 | P2 |
-| 2 | **插件结果导出** | `PluginResultPanel` 的结果可复制/导出为 JSON/Markdown。 | P2 |
+| 2 | ~~插件结果导出~~ | ✅ `PluginResultPanel` 每个结果卡片支持复制为 JSON / Markdown。 | P2 |
 | 3 | **运行中插件列表持久化/恢复** | 当前运行状态仅在前端内存；刷新页面后丢失。可考虑会话保存或运行日志回放。 | P3 |
 | 4 | **`plugin_update_registry` 在线更新** | 当前 registry 为本地静态文件；后续可实现从远程 URL 拉取最新 registry 并校验签名。 | P3 |
 | 5 | **插件市场子模块 CI 集成** | 主项目 CI 中验证 `SoloSoul_plugin_market/registry.json` 与子模块指针一致性。 | P3 |

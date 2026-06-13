@@ -23,5 +23,9 @@
   "audit_log": "Audit Log",
   "no_logs": "No audit logs yet",
   "result_empty": "No result yet",
-  "result_unknown": "Unsupported result type"
+  "result_unknown": "Unsupported result type",
+  "copy_json": "Copy as JSON",
+  "copy_json_short": "JSON",
+  "copy_markdown": "Copy as Markdown",
+  "copy_markdown_short": "Markdown"
 }
