@@ -123,22 +123,19 @@ export function useWindowSize() {
       }, DEBOUNCE_MS);
     });
 
-    // Flush pending size before the app/process exits so disk/UI prefs are up to date.
+    // Flush pending size before the page hides or unloads. We intentionally do
+    // NOT use Tauri's onCloseRequested listener because registering it changes
+    // the window's close behavior and can break the traffic-light close button
+    // on macOS. localStorage is already written synchronously on every resize,
+    // so the next cold launch is covered even if the debounced disk write misses.
     globalThis.window?.addEventListener('beforeunload', flush);
     const onVisibility = () => {
       if (document.hidden) flush();
     };
     document.addEventListener('visibilitychange', onVisibility);
-    let closeUnlisten: (() => void) | undefined;
-    const closePromise = window.onCloseRequested(() => {
-      flush();
-    }).then((fn) => {
-      closeUnlisten = fn;
-    }).catch(() => {});
 
     return () => {
       unlistenPromise.then((fn) => fn()).catch(() => {});
-      closePromise.then(() => closeUnlisten?.()).catch(() => {});
       globalThis.window?.removeEventListener('beforeunload', flush);
       document.removeEventListener('visibilitychange', onVisibility);
       flush();
