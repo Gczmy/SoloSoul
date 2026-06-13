@@ -1072,7 +1072,14 @@ async fn import_execute_internal(
                 .join(obj_id)
                 .join(&new_att_id);
             std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
-            let file_path_dest = dest.join(&old_meta.file_name);
+
+            // R008: sanitize imported file_name to prevent path traversal.
+            let safe_name = std::path::Path::new(&old_meta.file_name)
+                .file_name()
+                .ok_or("Invalid attachment file name in package")?
+                .to_string_lossy()
+                .to_string();
+            let file_path_dest = dest.join(&safe_name);
             std::fs::write(&file_path_dest, &att_data).map_err(|e| e.to_string())?;
 
             imported_atts
