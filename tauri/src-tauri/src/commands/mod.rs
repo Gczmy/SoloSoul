@@ -12,6 +12,7 @@ pub mod llm;
 pub mod log;
 pub mod object;
 pub mod ocr;
+pub mod plugin;
 pub mod profile;
 pub mod rag;
 pub mod search;

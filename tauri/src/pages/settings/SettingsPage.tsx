@@ -16,6 +16,7 @@ import {
   Palette,
   BookOpen,
   LayoutTemplate,
+  Puzzle,
 } from 'lucide-react';
 
 function formatBytes(bytes: number): string {
@@ -98,6 +99,12 @@ export function SettingsPage() {
           icon: LayoutTemplate,
           path: '/settings/templates',
           desc: t('settings:desc.templates') || '管理自定义对象模板',
+        },
+        {
+          label: t('settings:items.plugins') || '插件',
+          icon: Puzzle,
+          path: '/plugins',
+          desc: t('settings:desc.plugins') || '管理本地插件市场',
         },
       ],
     },

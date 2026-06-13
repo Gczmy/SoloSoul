@@ -65,6 +65,13 @@ tokenizers = { version = "0.21", default-features = false, features = ["onig"] }
 ndarray = "0.17"
 sys-locale = "0.3.2"
 
+# 插件系统 (Wasmtime 沙箱 + Host Functions)
+wasmtime = { version = "45.0.1", features = ["cranelift", "runtime", "component-model"] }
+wasmtime-wasi = { version = "45.0.1", default-features = false, features = ["p1"] }
+dirs = "6.0.0"
+semver = "1.0"
+url = "2.5"
+
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { version = "0.6", default-features = false, features = ["std", "alloc"] }
 objc2-app-kit = { version = "0.3", default-features = false, features = ["NSWindow", "NSColor"] }

@@ -40,6 +40,22 @@
   /* Transitions */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Plugin dashboard aliases */
+  --surface-elevated: var(--bg-elevated);
+  --surface-default: var(--bg-base);
+  --accent: var(--accent-primary);
+  --accent-subtle: var(--color-info-bg);
+  --success: var(--color-success-text);
+  --success-subtle: var(--color-success-bg);
+  --warning: var(--color-warning-text);
+  --warning-subtle: var(--color-warning-bg);
+  --danger: var(--color-error-text);
+  --danger-subtle: var(--color-error-bg);
+  --info: var(--color-info-text);
+  --info-subtle: var(--color-info-bg);
+  --danger-rgb: 192, 57, 43;
+  --warning-rgb: 212, 160, 23;
 }
 
 /* Dark mode — only when explicitly selected or system preference (not plain :root) */
@@ -72,6 +88,22 @@
     --shadow-color-sm: rgba(0, 0, 0, 0.25);
     --shadow-color-md: rgba(0, 0, 0, 0.35);
     --shadow-color-lg: rgba(0, 0, 0, 0.45);
+
+    /* Plugin dashboard aliases */
+    --surface-elevated: var(--bg-elevated);
+    --surface-default: var(--bg-base);
+    --accent: var(--accent-primary);
+    --accent-subtle: var(--color-info-bg);
+    --success: var(--color-success-text);
+    --success-subtle: var(--color-success-bg);
+    --warning: var(--color-warning-text);
+    --warning-subtle: var(--color-warning-bg);
+    --danger: var(--color-error-text);
+    --danger-subtle: var(--color-error-bg);
+    --info: var(--color-info-text);
+    --info-subtle: var(--color-info-bg);
+    --danger-rgb: 224, 122, 110;
+    --warning-rgb: 230, 199, 128;
   }
 }
 
@@ -103,6 +135,22 @@
   --shadow-color-sm: rgba(0, 0, 0, 0.25);
   --shadow-color-md: rgba(0, 0, 0, 0.35);
   --shadow-color-lg: rgba(0, 0, 0, 0.45);
+
+  /* Plugin dashboard aliases */
+  --surface-elevated: var(--bg-elevated);
+  --surface-default: var(--bg-base);
+  --accent: var(--accent-primary);
+  --accent-subtle: var(--color-info-bg);
+  --success: var(--color-success-text);
+  --success-subtle: var(--color-success-bg);
+  --warning: var(--color-warning-text);
+  --warning-subtle: var(--color-warning-bg);
+  --danger: var(--color-error-text);
+  --danger-subtle: var(--color-error-bg);
+  --info: var(--color-info-text);
+  --info-subtle: var(--color-info-bg);
+  --danger-rgb: 224, 122, 110;
+  --warning-rgb: 230, 199, 128;
 }
 
 /* Explicit light mode — prevents system dark from leaking through */
@@ -124,6 +172,22 @@
   --shadow-color-sm: rgba(0, 0, 0, 0.04);
   --shadow-color-md: rgba(0, 0, 0, 0.08);
   --shadow-color-lg: rgba(0, 0, 0, 0.12);
+
+  /* Plugin dashboard aliases */
+  --surface-elevated: var(--bg-elevated);
+  --surface-default: var(--bg-base);
+  --accent: var(--accent-primary);
+  --accent-subtle: var(--color-info-bg);
+  --success: var(--color-success-text);
+  --success-subtle: var(--color-success-bg);
+  --warning: var(--color-warning-text);
+  --warning-subtle: var(--color-warning-bg);
+  --danger: var(--color-error-text);
+  --danger-subtle: var(--color-error-bg);
+  --info: var(--color-info-text);
+  --info-subtle: var(--color-info-bg);
+  --danger-rgb: 192, 57, 43;
+  --warning-rgb: 212, 160, 23;
 }
 
 * {

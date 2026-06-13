@@ -1,0 +1,190 @@
+import { create } from 'zustand';
+import {
+  ConsentRequestEvent,
+  MarketPluginInfo,
+  PluginManifest,
+  PluginResultPayload,
+  pluginCommands,
+} from '@/lib/plugin';
+
+export interface PluginLogLine {
+  id: string;
+  level: 'debug' | 'info' | 'warn' | 'error';
+  message: string;
+  timestamp: number;
+}
+
+export interface RunningPlugin {
+  pluginId: string;
+  pluginName: string;
+  startTime: number;
+  logs: PluginLogLine[];
+  results: PluginResultPayload[];
+  consentRequests: ConsentRequestEvent[];
+  completed: boolean;
+  exitCode?: number;
+  error?: string;
+}
+
+interface PluginState {
+  marketPlugins: MarketPluginInfo[];
+  installedPlugins: PluginManifest[];
+  runningPlugins: Record<string, RunningPlugin>;
+  isLoadingMarket: boolean;
+  isLoadingInstalled: boolean;
+  error: string | null;
+  loadMarket: () => Promise<void>;
+  loadInstalled: () => Promise<void>;
+  installPlugin: (pluginId: string, version: string) => Promise<void>;
+  updatePlugin: (pluginId: string) => Promise<void>;
+  uninstallPlugin: (pluginId: string) => Promise<void>;
+  runPlugin: (pluginId: string, pluginName: string) => Promise<void>;
+  stopPlugin: (pluginId: string) => void;
+  clearPluginOutput: (pluginId: string) => void;
+}
+
+export const usePluginStore = create<PluginState>((set, get) => ({
+  marketPlugins: [],
+  installedPlugins: [],
+  runningPlugins: {},
+  isLoadingMarket: false,
+  isLoadingInstalled: false,
+  error: null,
+
+  loadMarket: async () => {
+    set({ isLoadingMarket: true, error: null });
+    try {
+      const list = await pluginCommands.listAll();
+      set({ marketPlugins: list, isLoadingMarket: false });
+    } catch (err) {
+      set({ error: String(err), isLoadingMarket: false });
+    }
+  },
+
+  loadInstalled: async () => {
+    set({ isLoadingInstalled: true, error: null });
+    try {
+      const list = await pluginCommands.listInstalled();
+      set({ installedPlugins: list, isLoadingInstalled: false });
+    } catch (err) {
+      set({ error: String(err), isLoadingInstalled: false });
+    }
+  },
+
+  installPlugin: async (pluginId: string, version: string) => {
+    try {
+      await pluginCommands.install(pluginId, version);
+      await get().loadMarket();
+      await get().loadInstalled();
+    } catch (err) {
+      set({ error: String(err) });
+    }
+  },
+
+  updatePlugin: async (pluginId: string) => {
+    try {
+      await pluginCommands.update(pluginId);
+      await get().loadMarket();
+      await get().loadInstalled();
+    } catch (err) {
+      set({ error: String(err) });
+    }
+  },
+
+  uninstallPlugin: async (pluginId: string) => {
+    try {
+      await pluginCommands.uninstall(pluginId);
+      await get().loadMarket();
+      await get().loadInstalled();
+    } catch (err) {
+      set({ error: String(err) });
+    }
+  },
+
+  runPlugin: async (pluginId: string, pluginName: string) => {
+    const startTime = Date.now();
+    const running: RunningPlugin = {
+      pluginId,
+      pluginName,
+      startTime,
+      logs: [],
+      results: [],
+      consentRequests: [],
+      completed: false,
+    };
+    set((state) => ({
+      runningPlugins: { ...state.runningPlugins, [pluginId]: running },
+    }));
+
+    try {
+      const result = await pluginCommands.run(pluginId, {}, (event) => {
+        set((state) => {
+          const next = { ...state.runningPlugins[pluginId] };
+          if (!next) return state;
+          switch (event.eventType) {
+            case 'log':
+              try {
+                const log = JSON.parse(event.jsonData) as PluginLogLine;
+                next.logs = [...next.logs, log];
+              } catch {
+                // ignore malformed log
+              }
+              break;
+            case 'result':
+              try {
+                const payload = JSON.parse(event.jsonData) as PluginResultPayload;
+                next.results = [...next.results, payload];
+              } catch {
+                // ignore malformed result
+              }
+              break;
+            case 'consent_request':
+              next.consentRequests = [...next.consentRequests, event as ConsentRequestEvent];
+              break;
+            case 'completed':
+              next.completed = true;
+              try {
+                const completed = JSON.parse(event.jsonData) as { exitCode: number };
+                next.exitCode = completed.exitCode;
+              } catch {
+                // ignore
+              }
+              break;
+            case 'error':
+              next.completed = true;
+              next.error = event.jsonData;
+              break;
+          }
+          return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+        });
+      });
+
+      set((state) => {
+        const next = { ...state.runningPlugins[pluginId], completed: true };
+        next.exitCode = result.exitCode;
+        next.results = result.results;
+        return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+      });
+    } catch (err) {
+      set((state) => {
+        const next = { ...state.runningPlugins[pluginId], completed: true, error: String(err) };
+        return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+      });
+    }
+  },
+
+  stopPlugin: (pluginId: string) => {
+    set((state) => {
+      const next = { ...state.runningPlugins[pluginId], completed: true };
+      return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+    });
+  },
+
+  clearPluginOutput: (pluginId: string) => {
+    set((state) => ({
+      runningPlugins: Object.fromEntries(
+        Object.entries(state.runningPlugins).filter(([id]) => id !== pluginId),
+      ),
+    }));
+  },
+}));

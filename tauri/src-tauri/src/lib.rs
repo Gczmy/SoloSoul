@@ -4,6 +4,7 @@ pub mod commands;
 pub mod db;
 pub mod ipc;
 pub mod local_embed;
+pub mod plugin;
 pub mod services;
 pub mod state;
 
@@ -224,6 +225,17 @@ pub fn run() {
             commands::sync::sync_with_device,
             commands::sync::sync_trust_peer,
             commands::sync::sync_forget_peer,
+            // Plugin commands
+            commands::plugin::plugin_list_all,
+            commands::plugin::plugin_list_installed,
+            commands::plugin::plugin_install,
+            commands::plugin::plugin_update,
+            commands::plugin::plugin_uninstall,
+            commands::plugin::plugin_run,
+            commands::plugin::plugin_consent_response,
+            commands::plugin::plugin_list_sessions,
+            commands::plugin::plugin_audit_log,
+            commands::plugin::plugin_update_registry,
             // Window chrome commands
             commands::window::set_titlebar_color,
         ])

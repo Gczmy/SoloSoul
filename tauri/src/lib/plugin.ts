@@ -1,0 +1,153 @@
+import { invoke } from '@tauri-apps/api/core';
+import { Channel } from '@tauri-apps/api/core';
+
+export interface RegistryEntry {
+  id: string;
+  name: string;
+  author: string;
+  description: string;
+  latestVersion: string;
+  minCoreVersion: string;
+  wasmHashSha256: string;
+  permissions: string[];
+  categories: string[];
+  i18n?: Record<string, { name: string; description: string }>;
+}
+
+export interface MarketPluginInfo {
+  pluginId: string;
+  installedVersion?: string;
+  hasUpdate: boolean;
+  isCompatible: boolean;
+  registryEntry: RegistryEntry;
+}
+
+export interface PluginManifest {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  homepage?: string;
+  permissions: string[];
+  requiredCoreVersion: string;
+  wasmHashSha256: string;
+  dataTtlSeconds: number;
+}
+
+export interface PluginLogLine {
+  id: string;
+  level: 'debug' | 'info' | 'warn' | 'error';
+  message: string;
+  timestamp: number;
+}
+
+export type PluginResultPayload =
+  | { type: 'text'; content: string }
+  | { type: 'key_value'; title: string; pairs: Array<{ key: string; value: string }> }
+  | { type: 'table'; headers: string[]; rows: string[][] }
+  | { type: 'markdown'; content: string };
+
+export interface PluginResult {
+  exitCode: number;
+  logs: PluginLogLine[];
+  results: PluginResultPayload[];
+  fuelConsumed: number;
+}
+
+export interface ConsentRequestEvent {
+  eventType: 'consent_request';
+  requestId: string;
+  pluginId: string;
+  pluginName: string;
+  fieldId: string;
+  fieldLabel: string;
+  sensitivityLevel: string;
+}
+
+export interface PluginEvent {
+  eventType: 'log' | 'result' | 'consent_request' | 'completed' | 'error';
+  jsonData: string;
+  requestId?: string;
+  pluginId?: string;
+  pluginName?: string;
+  fieldId?: string;
+  fieldLabel?: string;
+  sensitivityLevel?: string;
+}
+
+export interface PluginSessionInfo {
+  id: string;
+  pluginId: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface PluginAuditEntry {
+  timestamp: string;
+  pluginId: string;
+  sessionId?: string;
+  action: PluginAuditAction;
+}
+
+export type PluginAuditAction =
+  | { action: 'plugin_installed'; version: string }
+  | { action: 'plugin_uninstalled' }
+  | { action: 'plugin_run_started' }
+  | { action: 'plugin_run_completed'; exitCode: number }
+  | { action: 'plugin_run_failed'; reason: string }
+  | { action: 'consent_approved'; fieldId: string }
+  | { action: 'consent_denied'; fieldId: string };
+
+export interface PluginInstallResult {
+  pluginId: string;
+  version: string;
+}
+
+export const pluginCommands = {
+  async listAll(): Promise<MarketPluginInfo[]> {
+    return invoke('plugin_list_all');
+  },
+
+  async listInstalled(): Promise<PluginManifest[]> {
+    return invoke('plugin_list_installed');
+  },
+
+  async install(pluginId: string, version: string): Promise<PluginInstallResult> {
+    return invoke('plugin_install', { pluginId, version });
+  },
+
+  async update(pluginId: string): Promise<PluginInstallResult> {
+    return invoke('plugin_update', { pluginId });
+  },
+
+  async uninstall(pluginId: string): Promise<void> {
+    return invoke('plugin_uninstall', { pluginId });
+  },
+
+  async run(
+    pluginId: string,
+    params: Record<string, string>,
+    onEvent: (event: PluginEvent) => void,
+  ): Promise<PluginResult> {
+    const channel = new Channel<PluginEvent>();
+    channel.onmessage = onEvent;
+    return invoke('plugin_run', { pluginId, params, channel });
+  },
+
+  async consentResponse(requestId: string, approved: boolean, value?: string): Promise<void> {
+    return invoke('plugin_consent_response', { requestId, approved, value });
+  },
+
+  async listSessions(): Promise<PluginSessionInfo[]> {
+    return invoke('plugin_list_sessions');
+  },
+
+  async auditLog(limit?: number): Promise<PluginAuditEntry[]> {
+    return invoke('plugin_audit_log', { limit });
+  },
+
+  async updateRegistry(): Promise<void> {
+    return invoke('plugin_update_registry');
+  },
+};

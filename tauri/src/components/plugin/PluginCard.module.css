@@ -1,0 +1,163 @@
+.card {
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.status {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.statusInstalled {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.statusNotInstalled {
+  background: var(--bg-hover);
+  color: var(--text-tertiary);
+}
+
+.statusUpdate {
+  background: var(--warning-subtle);
+  color: var(--warning);
+}
+
+.statusRunning {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.statusIncompatible {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+.description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.version {
+  font-family: var(--font-mono);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s, background 0.15s;
+}
+
+.actions button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.installBtn {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.installBtn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.updateBtn {
+  background: var(--warning-subtle);
+  color: var(--warning);
+}
+
+.updateBtn:hover:not(:disabled) {
+  background: var(--warning);
+  color: white;
+}
+
+.uninstallBtn {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.uninstallBtn:hover:not(:disabled) {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+.runBtn {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.runBtn:hover:not(:disabled) {
+  background: var(--success);
+  color: white;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-warning);
+}
