@@ -14,6 +14,7 @@ import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificat
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import type { PropertyType } from '@/types/template';
 
 interface ObjectDetailModalProps {
   /** 已加载的对象摘要/完整数据。与 objectId 二选一，优先使用此值。 */
@@ -220,25 +221,26 @@ export function ObjectDetailModal({
     [passwordVerify, reveal, writeCriticalAccessLog],
   );
 
+  // F012: cache the current object's template field map for O(1) lookups.
+  const fieldMap = useMemo(() => {
+    const tpl = templates.find((t) => t.id === obj?.templateId);
+    return new Map<string, PropertyType>(tpl?.properties.map((p) => [p.id, p]) ?? []);
+  }, [templates, obj?.templateId]);
+
+  const getFieldProperty = (fieldKey: string): PropertyType | undefined => {
+    return fieldMap.get(fieldKey);
+  };
+
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
-    const prop = templates
-      .find((tpl) => tpl.id === obj?.templateId)
-      ?.properties.find((p) => p.id === fieldKey);
-    return (prop?.sensitivityLevel as SensitivityLevel) || 'public';
+    return (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public';
   };
 
   const isFieldDeprecated = (fieldKey: string): boolean => {
-    const prop = templates
-      .find((tpl) => tpl.id === obj?.templateId)
-      ?.properties.find((p) => p.id === fieldKey);
-    return !!prop?.deprecatedAt;
+    return !!getFieldProperty(fieldKey)?.deprecatedAt;
   };
 
   const getFieldName = (fieldKey: string): string => {
-    const prop = templates
-      .find((tpl) => tpl.id === obj?.templateId)
-      ?.properties.find((p) => p.id === fieldKey);
-    return prop?.name || fieldKey;
+    return getFieldProperty(fieldKey)?.name || fieldKey;
   };
 
   const handleCopy = async (value: string, key: string) => {

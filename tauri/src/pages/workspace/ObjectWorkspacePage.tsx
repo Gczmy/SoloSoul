@@ -207,29 +207,35 @@ export function ObjectWorkspacePage() {
     }
   }, [accountId, bioAvailable.biometryType]);
 
-  /** Resolve sensitivity level for a property key via its template definition. */
+  // F011: cache template field metadata so lookups are O(1) instead of O(n²).
+  const templateFieldMap = useMemo(() => {
+    const map = new Map<string, Map<string, PropertyType>>();
+    for (const t of userTemplates) {
+      map.set(t.id, new Map(t.properties.map((p) => [p.id, p])));
+    }
+    return map;
+  }, [userTemplates]);
+
+  const getFieldProperty = (
+    templateId: string | undefined,
+    fieldKey: string,
+  ): PropertyType | undefined => {
+    return templateFieldMap.get(templateId || '')?.get(fieldKey);
+  };
+
   const getFieldSensitivity = (
     templateId: string | undefined,
     fieldKey: string,
   ): SensitivityLevel => {
-    const prop = userTemplates
-      .find((t) => t.id === templateId)
-      ?.properties.find((p) => p.id === fieldKey);
-    return (prop?.sensitivityLevel as SensitivityLevel) || 'public';
+    return (getFieldProperty(templateId, fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public';
   };
 
   const isFieldDeprecated = (templateId: string | undefined, fieldKey: string): boolean => {
-    const prop = userTemplates
-      .find((t) => t.id === templateId)
-      ?.properties.find((p) => p.id === fieldKey);
-    return !!prop?.deprecatedAt;
+    return !!getFieldProperty(templateId, fieldKey)?.deprecatedAt;
   };
 
   const getFieldName = (templateId: string | undefined, fieldKey: string): string => {
-    const prop = userTemplates
-      .find((t) => t.id === templateId)
-      ?.properties.find((p) => p.id === fieldKey);
-    return prop?.name || fieldKey;
+    return getFieldProperty(templateId, fieldKey)?.name || fieldKey;
   };
 
   useEffect(() => {
