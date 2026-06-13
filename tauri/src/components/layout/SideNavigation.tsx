@@ -170,7 +170,10 @@ export function AiQuickChatPopover({
   messagesRef.current = messages;
   streamBufferRef.current = streamBuffer;
   currentConvIdRef.current = currentConvId;
-  accountIdRef.current = accountId;
+
+  useEffect(() => {
+    accountIdRef.current = accountId;
+  }, [accountId]);
 
   useEffect(() => {
     return () => {
@@ -1111,12 +1114,14 @@ export function RenameableNavButton({
         input: { name: trimmed, properties: {} },
       });
     } catch {
-      /* silent */
+      // F020: stop and leave the previous name in place if persistence failed
+      setRenameError(true);
+      return;
     }
     // Update Zustand state so sidebar reflects the change
     const store = useSettingsStore.getState();
     store.updateSetting(
-      '',
+      accountId || '',
       'customPages',
       store.settings.customPages.map((p) =>
         p.id === page.id ? { ...p, name: trimmed, iconId: selectedIconId } : p,
