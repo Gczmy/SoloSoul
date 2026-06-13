@@ -115,6 +115,7 @@
   "search_objects_count": "个对象",
   "search_fields_count": "个字段",
   "search_sensitivity": "敏感度",
+  "search_field_label": "字段名",
   "all": "全部",
   "export_logs": "导出日志",
   "loading_logs": "正在加载日志...",
@@ -368,6 +369,11 @@
       "login": "密码登录",
       "llm_risk_accepted": "接受 AI 风险",
       "template_save": "保存模板",
+      "template_create": "创建模板",
+      "template_update": "更新模板",
+      "template_delete": "删除模板",
+      "template_restore": "恢复模板",
+      "template_save_from_object": "从对象保存模板",
       "export_execute": "导出",
       "import_execute": "导入",
       "attachment_cleanup": "清理孤立附件"
@@ -390,7 +396,8 @@
     "performed_by_system": "系统",
     "location": {
       "login_page": "登录页面",
-      "settings_page": "设置"
+      "settings_page": "设置",
+      "critical_data_access": "查看关键信息"
     },
     "action_name": {
       "unlock": "解锁",
@@ -426,7 +433,7 @@
       "biometric_deleted": "{{location}} — {{action}}（{{type}}）",
       "template_create": "{{name}}",
       "template_delete": "{{name}}",
-      "critical_field_access": "对象 — 查看关键信息\n对象名：{{objectName}}，所属页面：{{page}}，查看属性名：{{fieldName}}",
+      "critical_field_access": "对象 — 查看关键信息\n对象名：{{objectName}}，所属页面：{{page}}，查看属性名：{{fieldName}}，解锁方式：{{method}}",
       "login": "{{location}} — {{action}}（{{method}}）",
       "export_execute": "导出了 {{count}} 个对象",
       "import_execute": "导入了 {{count}} 个对象（策略：{{strategy}}）",

@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { PhysicalSize } from '@tauri-apps/api/dpi';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
@@ -196,18 +194,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (Array.isArray(prefs.customPages)) {
         parsed.customPages = prefs.customPages as CustomPage[];
       }
-      const encryptedWindowSize = prefs.windowSize as WindowSize | undefined;
-      if (encryptedWindowSize && typeof encryptedWindowSize.width === 'number' && typeof encryptedWindowSize.height === 'number') {
-        parsed.windowSize = encryptedWindowSize;
-        try {
-          localStorage.setItem('solosoul_window_size', JSON.stringify(encryptedWindowSize));
-          const window = getCurrentWebviewWindow();
-          const current = await window.innerSize();
-          if (Math.abs(current.width - parsed.windowSize.width) > 1 || Math.abs(current.height - parsed.windowSize.height) > 1) {
-            await window.setSize(new PhysicalSize(parsed.windowSize));
-          }
-        } catch { /* ignore */ }
-      }
+      // Window size is intentionally stored as a plaintext UI preference (not encrypted
+      // account data) so it can be restored before login. It is managed by
+      // useWindowSize.ts and restoreWindowSize(), so we do not read or apply it here.
       set({ settings: parsed, isLoading: false });
       // Sync UI prefs to plaintext file so next startup shows correct theme
       if (parsed.theme) invoke('ui_update_preference', { key: 'theme', value: parsed.theme }).catch(() => {});
@@ -215,7 +204,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (parsed.language) invoke('ui_update_preference', { key: 'language', value: parsed.language }).catch(() => {});
       if (parsed.defaultLightTheme) invoke('ui_update_preference', { key: 'defaultLightTheme', value: parsed.defaultLightTheme }).catch(() => {});
       if (parsed.defaultDarkTheme) invoke('ui_update_preference', { key: 'defaultDarkTheme', value: parsed.defaultDarkTheme }).catch(() => {});
-      if (parsed.windowSize) invoke('ui_update_preference', { key: 'windowSize', value: JSON.stringify(parsed.windowSize) }).catch(() => {});
     } catch {
       set({ isLoading: false });
     }
@@ -285,9 +273,20 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const oldValue = get().settings[key];
     set((s) => ({ settings: { ...s.settings, [key]: value } }));
     try {
-      await invoke('user_data_update_preference', {
-        payload: { accountId, preferences: { [key]: value } },
-      });
+      // Window size is a non-sensitive UI preference that must be available before login.
+      if (key === 'windowSize') {
+        try {
+          localStorage.setItem('solosoul_window_size', JSON.stringify(value));
+        } catch { /* ignore */ }
+        await invoke('ui_update_preference', {
+          key: 'windowSize',
+          value: JSON.stringify(value),
+        });
+      } else {
+        await invoke('user_data_update_preference', {
+          payload: { accountId, preferences: { [key]: value } },
+        });
+      }
       if (key === 'language' && typeof value === 'string') {
         await i18next.changeLanguage(value);
         // Sync to plaintext UI prefs so backend can read the current language immediately

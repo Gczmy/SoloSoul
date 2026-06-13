@@ -458,10 +458,12 @@ export function TemplateManagerPage() {
 
   const from = (location.state as { from?: string } | null)?.from;
   const handleBack = () => {
-    if (from && from.startsWith('/')) {
-      // Use replace when returning from ObjectEditor so TemplateManager is not left in history stack
-      const replace = from.startsWith('/editor');
-      navigate(from, { replace });
+    if (from && from.startsWith('/editor')) {
+      // Pop the TemplateManager entry so the editor page remains the only one.
+      // Using replace would duplicate the editor entry, forcing two Back clicks.
+      navigate(-1);
+    } else if (from && from.startsWith('/')) {
+      navigate(from);
     } else {
       navigate('/settings');
     }

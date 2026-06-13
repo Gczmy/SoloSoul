@@ -39,34 +39,14 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  /* Hidden scrollbar by default, show on hover — consistent with horizontal mode */
+  /* Completely hide scrollbars on all platforms to avoid layout shifts on Windows */
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding-bottom: 0;
-  /* Reserve space for scrollbar so icons don't shift when it appears */
-  scrollbar-gutter: stable;
 }
 
 .navPrimary::-webkit-scrollbar {
-  width: 0;
-}
-
-.navPrimary:hover {
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-subtle) transparent;
-}
-
-.navPrimary:hover::-webkit-scrollbar {
-  width: 4px;
-}
-
-.navPrimary:hover::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.navPrimary:hover::-webkit-scrollbar-thumb {
-  background: var(--border-subtle);
-  border-radius: 2px;
+  display: none;
 }
 
 /* Horizontal mode — the scrollable zone inside the sidebar strip */
@@ -77,27 +57,13 @@
   min-width: 0;
   overflow-x: auto !important;
   overflow-y: hidden !important;
+  /* Completely hide scrollbars on all platforms to keep horizontal icons stable */
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding-bottom: 0;
-  scrollbar-gutter: auto;
 }
 .navPrimaryHorizontal::-webkit-scrollbar {
-  height: 0;
-}
-.navPrimaryHorizontal:hover {
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-subtle) transparent;
-}
-.navPrimaryHorizontal:hover::-webkit-scrollbar {
-  height: 4px;
-}
-.navPrimaryHorizontal:hover::-webkit-scrollbar-track {
-  background: transparent;
-}
-.navPrimaryHorizontal:hover::-webkit-scrollbar-thumb {
-  background: var(--border-subtle);
-  border-radius: 2px;
+  display: none;
 }
 
 .navSecondary {

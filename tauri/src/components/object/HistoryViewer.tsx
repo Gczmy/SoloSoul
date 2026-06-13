@@ -248,11 +248,19 @@ export function HistoryViewer({
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
-  const { t } = useTranslation(['common', 'editor']);
+  const { t } = useTranslation(['common', 'editor', 'navigation']);
+
+  const resolveCollectionLabel = (collectionType: string) => {
+    if (['identity', 'travel', 'financial', 'professional'].includes(collectionType)) {
+      return t(`navigation:${collectionType}`);
+    }
+    return collectionType;
+  };
 
   const writeCriticalAccessLog = async (fieldName: string, method: 'password' | 'touchId' | 'faceId') => {
     if (!objectName) return;
-    const details = `objectName=${objectName} page=${collectionType || ''} fieldName=${fieldName} method=${method}`;
+    const pageLabel = collectionType ? resolveCollectionLabel(collectionType) : '';
+    const details = `objectName=${objectName} page=${pageLabel} fieldName=${fieldName} method=${method}`;
     try {
       await invoke('log_write', {
         actionType: 'critical_field_access',

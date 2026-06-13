@@ -115,6 +115,7 @@
   "search_objects_count": "objects",
   "search_fields_count": "fields",
   "search_sensitivity": "Sensitivity",
+  "search_field_label": "Field",
   "all": "All",
   "export_logs": "Export logs",
   "loading_logs": "Loading logs...",
@@ -368,6 +369,11 @@
       "login": "Password Login",
       "llm_risk_accepted": "Accept AI Risk",
       "template_save": "Save Template",
+      "template_create": "Create Template",
+      "template_update": "Update Template",
+      "template_delete": "Delete Template",
+      "template_restore": "Restore Template",
+      "template_save_from_object": "Save Template from Object",
       "export_execute": "Export",
       "import_execute": "Import",
       "attachment_cleanup": "Cleanup Orphans"
@@ -390,7 +396,8 @@
     "performed_by_system": "System",
     "location": {
       "login_page": "Login page",
-      "settings_page": "Settings"
+      "settings_page": "Settings",
+      "critical_data_access": "View Critical Info"
     },
     "action_name": {
       "unlock": "Unlock",
@@ -426,7 +433,7 @@
       "biometric_deleted": "{{location}} — {{action}} ({{type}})",
       "template_create": "{{name}}",
       "template_delete": "{{name}}",
-      "critical_field_access": "Object — View Critical Info\nObject: {{objectName}}, Page: {{page}}, Field: {{fieldName}}",
+      "critical_field_access": "Object — View Critical Info\nObject: {{objectName}}, Page: {{page}}, Field: {{fieldName}}, Method: {{method}}",
       "login": "{{location}} — {{action}} ({{method}})",
       "export_execute": "{{count}} object(s) exported",
       "import_execute": "{{count}} object(s) imported ({{strategy}})",

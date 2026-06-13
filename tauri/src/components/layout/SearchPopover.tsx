@@ -10,6 +10,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
+import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import styles from './SearchPopover.module.css';
 
 const FILTER_PAGES = [
@@ -30,6 +31,7 @@ interface SearchItem {
   objectCount?: number;
   matchedField?: string;
   matchedValue?: string;
+  matchType?: 'fieldName' | 'fieldValue' | 'name';
   relevance: number;
 }
 
@@ -53,13 +55,37 @@ function saveRecent(query: string) {
   localStorage.setItem(RECENT_KEY, JSON.stringify(next));
 }
 
+/** Split a text into segments and bold the ones that match the query (case-insensitive). */
+function Highlight({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const lowerQuery = query.toLowerCase();
+  const lowerText = text.toLowerCase();
+  const parts: React.ReactNode[] = [];
+  let i = 0;
+  while (i < text.length) {
+    const idx = lowerText.indexOf(lowerQuery, i);
+    if (idx === -1) {
+      parts.push(text.slice(i));
+      break;
+    }
+    if (idx > i) parts.push(text.slice(i, idx));
+    parts.push(
+      <strong key={idx} style={{ fontWeight: 700 }}>
+        {text.slice(idx, idx + query.length)}
+      </strong>
+    );
+    i = idx + query.length;
+  }
+  return <>{parts}</>;
+}
+
 export function SearchPopover({ onClose }: SearchPopoverProps) {
   const navigate = useNavigate();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const { onError } = useToastError();
-  const { t } = useTranslation(['common', 'navigation', 'settings', 'sensitivity']);
+  const { t } = useTranslation(['common', 'navigation', 'settings', 'sensitivity', 'editor']);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -146,6 +172,37 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     const system = FILTER_PAGES.find((f) => f.key === item.collectionType);
     if (system) return t(system.labelKey);
     return item.collectionType;
+  };
+
+  const resolveFieldLabel = (fieldPath?: string): string => {
+    if (!fieldPath) return '';
+    const lastSegment = fieldPath.split('.').pop() || fieldPath;
+    return t(`editor:fields.${lastSegment}`, lastSegment);
+  };
+
+  const renderMatchHint = (item: SearchItem): React.ReactNode => {
+    if (!item.matchedField || item.itemType === 'page' || item.matchType === 'name') return null;
+    const fieldLabel = resolveFieldLabel(item.matchedField);
+    if (item.matchType === 'fieldName' && item.matchedValue) {
+      return (
+        <span>
+          {' · '}
+          {t('settings:search_field_label', '字段名')}：
+          <Highlight text={fieldLabel} query={query} />
+        </span>
+      );
+    }
+    if (item.matchType === 'fieldValue' && item.matchedValue) {
+      return (
+        <span>
+          {' · '}
+          <Highlight text={fieldLabel} query={query} />
+          {': '}
+          <Highlight text={item.matchedValue} query={query} />
+        </span>
+      );
+    }
+    return null;
   };
 
   const handleClickResult = (item: SearchItem) => {
@@ -269,18 +326,20 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                             <span> · {item.fieldCount} {t('settings:search_fields_count')}</span>
                           )}
                           {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
-                            <span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4 }}>
                               {' · '}
-                              {t('settings:search_sensitivity')}
-                              {': '}
                               {item.sensitivityLevels
-                                .map((lvl) => t(`sensitivity:${lvl}`, lvl))
-                                .join(', ')}
+                                .filter((lvl): lvl is SensitivityLevel =>
+                                  ['public', 'internal', 'sensitive', 'critical'].includes(lvl)
+                                )
+                                .map((lvl) => (
+                                  <SensitivityBadge key={lvl} level={lvl} />
+                                ))}
                             </span>
                           )}
                         </>
                       )}
-                      {item.matchedField && item.itemType !== 'page' && ` · ${item.matchedField}`}
+                      {renderMatchHint(item)}
                     </div>
                   </div>
                 </button>

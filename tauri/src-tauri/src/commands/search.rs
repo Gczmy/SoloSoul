@@ -21,6 +21,8 @@ pub struct SearchResultItem {
     pub object_count: Option<usize>,
     pub matched_field: Option<String>,
     pub matched_value: Option<String>,
+    /// "fieldName" | "fieldValue" | "name"
+    pub match_type: Option<String>,
     pub relevance: f64,
 }
 
@@ -32,12 +34,27 @@ pub struct SearchResult {
     pub has_more: bool,
 }
 
+#[derive(Debug, Clone)]
+enum FieldMatchType {
+    FieldName,
+    FieldValue,
+}
+
+/// A single field-level query match.
+#[derive(Debug, Clone)]
+struct FieldMatch {
+    field_path: String,
+    display_value: String,
+    match_type: FieldMatchType,
+    score: f64,
+}
+
 /// Search object properties for field-level query matches.
 fn search_properties_for_matches(
     data: &serde_json::Value,
     query: &str,
     current_path: &str,
-    matches: &mut Vec<(String, String, f64)>,
+    matches: &mut Vec<FieldMatch>,
 ) {
     match data {
         serde_json::Value::Object(obj) => {
@@ -48,7 +65,12 @@ fn search_properties_for_matches(
                     format!("{}.{}", current_path, key)
                 };
                 if key.to_lowercase().contains(query) {
-                    matches.push((field_path.clone(), format!("field:{}", key), 2.5));
+                    matches.push(FieldMatch {
+                        field_path: field_path.clone(),
+                        display_value: key.clone(),
+                        match_type: FieldMatchType::FieldName,
+                        score: 2.5,
+                    });
                 }
                 if let serde_json::Value::String(s) = value {
                     if s.to_lowercase().contains(query) {
@@ -62,7 +84,12 @@ fn search_properties_for_matches(
                         } else {
                             s.clone()
                         };
-                        matches.push((field_path.clone(), truncated, score));
+                        matches.push(FieldMatch {
+                            field_path: field_path.clone(),
+                            display_value: truncated,
+                            match_type: FieldMatchType::FieldValue,
+                            score,
+                        });
                     }
                 }
                 search_properties_for_matches(value, query, &field_path, matches);
@@ -120,9 +147,21 @@ fn collect_sensitivity_values(data: &serde_json::Value, out: &mut HashSet<String
 }
 
 /// Build the set of sensitivity levels for an object result.
-fn object_sensitivity_levels(rec: &ObjectRecord) -> Vec<String> {
+fn object_sensitivity_levels(
+    rec: &ObjectRecord,
+    templates: &std::collections::HashMap<String, solosoul_vault::UserTemplate>,
+) -> Vec<String> {
     let mut levels = HashSet::new();
     levels.insert(rec.sensitivity_level.clone());
+    if let Some(ref tid) = rec.template_id {
+        if let Some(tpl) = templates.get(tid) {
+            for prop in &tpl.properties {
+                if let Some(ref sl) = prop.sensitivity_level {
+                    levels.insert(sl.clone());
+                }
+            }
+        }
+    }
     collect_sensitivity_values(&rec.properties, &mut levels);
     levels.into_iter().collect()
 }
@@ -172,6 +211,7 @@ fn search_pages(
             object_count: Some(count_page_objects(vault, account_id, &page.id)),
             matched_field: None,
             matched_value: None,
+            match_type: None,
             relevance: score,
         });
     }
@@ -192,6 +232,7 @@ fn search_pages(
                 object_count: Some(count_section_objects(vault, account_id, section)),
                 matched_field: None,
                 matched_value: None,
+                match_type: None,
                 relevance: 3.0,
             });
         }
@@ -220,6 +261,14 @@ async fn search_advanced_impl(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
 
+    // Pre-load user templates so we can aggregate field-level sensitivities
+    // and resolve field labels without N+1 queries.
+    let templates: std::collections::HashMap<String, solosoul_vault::UserTemplate> = vault
+        .list_user_templates(account_id)?
+        .into_iter()
+        .map(|t| (t.id.clone(), t))
+        .collect();
+
     let q = query.to_lowercase();
     let records = vault.search_objects(account_id, &q)?;
     let mut items: Vec<SearchResultItem> = Vec::new();
@@ -246,7 +295,7 @@ async fn search_advanced_impl(
         }
 
         // Collect field-level matches from properties
-        let mut field_matches: Vec<(String, String, f64)> = Vec::new();
+        let mut field_matches: Vec<FieldMatch> = Vec::new();
         search_properties_for_matches(&rec.properties, &q, "", &mut field_matches);
 
         // Name match bonus
@@ -258,18 +307,31 @@ async fn search_advanced_impl(
 
         if !field_matches.is_empty() || name_score > 0.0 {
             let field_count = count_object_fields(&rec.properties);
-            let sensitivity_levels = object_sensitivity_levels(rec);
+            let sensitivity_levels = object_sensitivity_levels(rec, &templates);
             // 每个对象只返回一条最佳结果，避免同一对象因多个字段匹配而重复出现
-            let (matched_field, matched_value, relevance) = if field_matches.is_empty() {
-                (Some("name".to_string()), Some(rec.name.clone()), name_score)
+            let (matched_field, matched_value, match_type, relevance) = if field_matches.is_empty()
+            {
+                (
+                    Some("name".to_string()),
+                    Some(rec.name.clone()),
+                    Some("name".to_string()),
+                    name_score,
+                )
             } else {
-                field_matches
-                    .sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
+                field_matches.sort_by(|a, b| {
+                    b.score
+                        .partial_cmp(&a.score)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
                 let best = &field_matches[0];
                 (
-                    Some(best.0.clone()),
-                    Some(best.1.clone()),
-                    best.2 + name_score,
+                    Some(best.field_path.clone()),
+                    Some(best.display_value.clone()),
+                    Some(match best.match_type {
+                        FieldMatchType::FieldName => "fieldName".to_string(),
+                        FieldMatchType::FieldValue => "fieldValue".to_string(),
+                    }),
+                    best.score + name_score,
                 )
             };
             items.push(SearchResultItem {
@@ -283,6 +345,7 @@ async fn search_advanced_impl(
                 object_count: None,
                 matched_field,
                 matched_value,
+                match_type,
                 relevance,
             });
         }
@@ -338,33 +401,53 @@ pub async fn search_unified(
 
     // 仅按页面筛选时（无搜索关键词），列出该页面下全部对象
     if trimmed.is_empty() && (collection_type.is_some() || parent_id.is_some()) {
-        let summaries = {
+        let (summaries, templates) = {
             let svc = state.vault_service.read().await;
             let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
             let vault = vault_guard.as_ref().ok_or("Vault not unlocked")?;
-            if let Some(ref ct) = collection_type {
+            let summaries = if let Some(ref ct) = collection_type {
                 vault.list_objects(&account_id, Some(ct), None, None, false, false)?
             } else if let Some(ref pid) = parent_id {
                 vault.list_objects(&account_id, None, Some(pid), None, false, false)?
             } else {
                 vec![]
-            }
+            };
+            let templates: std::collections::HashMap<String, solosoul_vault::UserTemplate> = vault
+                .list_user_templates(&account_id)?
+                .into_iter()
+                .map(|t| (t.id.clone(), t))
+                .collect();
+            (summaries, templates)
         };
 
         let items: Vec<SearchResultItem> = summaries
             .into_iter()
-            .map(|s| SearchResultItem {
-                object_id: s.id,
-                name: s.name,
-                collection_type: s.collection_type,
-                item_type: "object".to_string(),
-                parent_id: parent_id.clone(),
-                field_count: Some(count_object_fields(&s.properties)),
-                sensitivity_levels: Some(vec![s.sensitivity_level]),
-                object_count: None,
-                matched_field: None,
-                matched_value: None,
-                relevance: 0.0,
+            .map(|s| {
+                let mut levels = HashSet::new();
+                levels.insert(s.sensitivity_level.clone());
+                if let Some(ref tid) = s.template_id {
+                    if let Some(tpl) = templates.get(tid) {
+                        for prop in &tpl.properties {
+                            if let Some(ref sl) = prop.sensitivity_level {
+                                levels.insert(sl.clone());
+                            }
+                        }
+                    }
+                }
+                SearchResultItem {
+                    object_id: s.id,
+                    name: s.name,
+                    collection_type: s.collection_type,
+                    item_type: "object".to_string(),
+                    parent_id: parent_id.clone(),
+                    field_count: Some(count_object_fields(&s.properties)),
+                    sensitivity_levels: Some(levels.into_iter().collect()),
+                    object_count: None,
+                    matched_field: None,
+                    matched_value: None,
+                    match_type: None,
+                    relevance: 0.0,
+                }
             })
             .collect();
 
@@ -423,7 +506,10 @@ mod tests {
         let mut matches = Vec::new();
         search_properties_for_matches(&data, "alice", "", &mut matches);
         assert!(!matches.is_empty());
-        let has_value_match = matches.iter().any(|(_, val, _)| val == "alice@example.com");
+        let has_value_match = matches.iter().any(|m| {
+            m.display_value == "alice@example.com"
+                && matches!(m.match_type, FieldMatchType::FieldValue)
+        });
         assert!(has_value_match);
     }
 
@@ -434,9 +520,9 @@ mod tests {
         });
         let mut matches = Vec::new();
         search_properties_for_matches(&data, "email", "", &mut matches);
-        let has_field_match = matches
-            .iter()
-            .any(|(_, val, _)| val == "field:emailAddress");
+        let has_field_match = matches.iter().any(|m| {
+            m.display_value == "emailAddress" && matches!(m.match_type, FieldMatchType::FieldName)
+        });
         assert!(has_field_match);
     }
 
@@ -449,7 +535,7 @@ mod tests {
         });
         let mut matches = Vec::new();
         search_properties_for_matches(&data, "456", "", &mut matches);
-        let has_nested = matches.iter().any(|(path, _, _)| path == "contact.phone");
+        let has_nested = matches.iter().any(|m| m.field_path == "contact.phone");
         assert!(has_nested);
     }
 
@@ -460,7 +546,7 @@ mod tests {
         });
         let mut matches = Vec::new();
         search_properties_for_matches(&data, "world", "", &mut matches);
-        let has_array = matches.iter().any(|(path, _, _)| path == "items[1].name");
+        let has_array = matches.iter().any(|m| m.field_path == "items[1].name");
         assert!(has_array);
     }
 
@@ -473,8 +559,8 @@ mod tests {
         search_properties_for_matches(&data, "abc", "", &mut matches);
         let score = matches
             .iter()
-            .find(|(_, val, _)| val == "abc")
-            .map(|(_, _, s)| *s)
+            .find(|m| m.display_value == "abc")
+            .map(|m| m.score)
             .unwrap();
         assert_eq!(score, 5.0);
     }
@@ -488,8 +574,8 @@ mod tests {
         search_properties_for_matches(&data, "abc", "", &mut matches);
         let score = matches
             .iter()
-            .find(|(_, val, _)| val == "abcdef")
-            .map(|(_, _, s)| *s)
+            .find(|m| m.display_value == "abcdef")
+            .map(|m| m.score)
             .unwrap();
         assert_eq!(score, 3.0);
     }
@@ -500,9 +586,9 @@ mod tests {
         let data = serde_json::json!({ "description": long });
         let mut matches = Vec::new();
         search_properties_for_matches(&data, "aaa", "", &mut matches);
-        let (_, val, _) = &matches[0];
-        assert!(val.ends_with("..."));
-        assert!(val.len() <= 104); // 100 chars + "..."
+        let m = &matches[0];
+        assert!(m.display_value.ends_with("..."));
+        assert!(m.display_value.len() <= 104); // 100 chars + "..."
     }
 
     #[test]
@@ -526,7 +612,7 @@ mod tests {
         search_properties_for_matches(&data, "target", "", &mut matches);
         let has_deep = matches
             .iter()
-            .any(|(path, _, _)| path == "level1.level2.level3");
+            .any(|m| m.field_path == "level1.level2.level3");
         assert!(has_deep);
     }
 
@@ -543,6 +629,7 @@ mod tests {
             object_count: None,
             matched_field: Some("name".to_string()),
             matched_value: Some("Test".to_string()),
+            match_type: Some("name".to_string()),
             relevance: 3.5,
         };
         let result = SearchResult {
@@ -555,6 +642,7 @@ mod tests {
         assert!(json.contains("\"relevance\":3.5"));
         assert!(json.contains("\"hasMore\":false"));
         assert!(json.contains("\"total\":1"));
+        assert!(json.contains("\"matchType\":\"name\""));
     }
 
     #[test]
@@ -570,11 +658,13 @@ mod tests {
             object_count: None,
             matched_field: None,
             matched_value: None,
+            match_type: None,
             relevance: 0.0,
         };
         let json = serde_json::to_string(&item).unwrap();
         assert!(json.contains("\"objectId\":\"obj-2\""));
         assert!(json.contains("\"matchedField\":null"));
         assert!(json.contains("\"matchedValue\":null"));
+        assert!(json.contains("\"matchType\":null"));
     }
 }

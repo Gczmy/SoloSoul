@@ -10,6 +10,7 @@ import { useToastError } from '@/hooks/useToastError';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 
 interface SearchItem {
   objectId: string;
@@ -17,6 +18,8 @@ interface SearchItem {
   collectionType: string;
   matchedField?: string;
   matchedValue?: string;
+  matchType?: 'fieldName' | 'fieldValue' | 'name';
+  sensitivityLevels?: string[];
   relevance: number;
 }
 
@@ -24,7 +27,7 @@ export function SearchPage() {
   const navigate = useNavigate();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { onError } = useToastError();
-  const { t } = useTranslation(['common', 'navigation']);
+  const { t } = useTranslation(['common', 'navigation', 'settings', 'editor']);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -59,6 +62,24 @@ export function SearchPage() {
     setQuery(val);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => doSearch(val), 300);
+  };
+
+  const resolveFieldLabel = (fieldPath?: string): string => {
+    if (!fieldPath) return '';
+    const lastSegment = fieldPath.split('.').pop() || fieldPath;
+    return t(`editor:fields.${lastSegment}`, lastSegment);
+  };
+
+  const renderMatchHint = (item: SearchItem): string => {
+    if (!item.matchedField || item.matchType === 'name') return '';
+    const fieldLabel = resolveFieldLabel(item.matchedField);
+    if (item.matchType === 'fieldName' && item.matchedValue) {
+      return ` · ${t('settings:search_field_label', '字段名')}：${fieldLabel}`;
+    }
+    if (item.matchType === 'fieldValue' && item.matchedValue) {
+      return ` · ${fieldLabel}: ${item.matchedValue}`;
+    }
+    return '';
   };
 
   return (
@@ -97,9 +118,21 @@ export function SearchPage() {
                   <PAGE_ICON_MAP.custom size={18} />
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 500 }}>{item.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                      {item.collectionType}
-                      {item.matchedField && ` · matched: ${item.matchedField}`}
+                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                      <span>{item.collectionType}</span>
+                      {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
+                        <>
+                          {' · '}
+                          {item.sensitivityLevels
+                            .filter((lvl): lvl is SensitivityLevel =>
+                              ['public', 'internal', 'sensitive', 'critical'].includes(lvl)
+                            )
+                            .map((lvl) => (
+                              <SensitivityBadge key={lvl} level={lvl} />
+                            ))}
+                        </>
+                      )}
+                      {renderMatchHint(item)}
                     </div>
                   </div>
                 </div>

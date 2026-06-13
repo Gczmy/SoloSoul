@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { PhysicalSize } from '@tauri-apps/api/dpi';
 import { invoke } from '@tauri-apps/api/core';
-import { useAuthStore } from '@/stores/authStore';
 
 const WINDOW_SIZE_KEY = 'windowSize';
 const WINDOW_SIZE_CACHE_KEY = 'solosoul_window_size';
@@ -35,12 +34,6 @@ async function persistWindowSize(payload: WindowSize) {
     key: WINDOW_SIZE_KEY,
     value: JSON.stringify(payload),
   }).catch(() => {});
-  const accountId = useAuthStore.getState().currentAccount?.id;
-  if (accountId) {
-    await invoke('user_data_update_preference', {
-      payload: { accountId, preferences: { windowSize: payload } },
-    }).catch(() => {});
-  }
 }
 
 /**
@@ -76,8 +69,8 @@ export async function restoreWindowSize() {
  * - localStorage is updated synchronously on every resize so the next cold
  *   launch can restore immediately even if the app closes before IPC finishes.
  * - Plaintext UI prefs are written with a short debounce for disk I/O.
- * - When an account is logged in, the size is also mirrored to the encrypted
- *   account preferences so each account can retain its own window geometry.
+ * - Window size is treated as a non-sensitive UI preference (like theme and
+ *   language) so it can be restored before the user logs in.
  */
 export function useWindowSize() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
