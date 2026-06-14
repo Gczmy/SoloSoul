@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import math
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -91,41 +92,204 @@ def draw_rounded_rect(
     draw.rounded_rectangle(bbox, radius=radius, fill=fill, outline=outline, width=width)
 
 
-def draw_shield(
-    draw: ImageDraw.Draw,
-    center: tuple[float, float],
-    size: float,
-    color: tuple[int, int, int],
-    cutout_color: tuple[int, int, int] | None = None,
-) -> None:
-    """绘制 SoloSoul 品牌盾牌图标（近似 Material Symbols shield 路径）。"""
-    cx, cy = center
-    scale = size / 512.0
+# SoloSoul SVG 图标中的盾牌路径（与 src-tauri/icons/icon.svg 一致）
+SVG_SHIELD_PATH = (
+    "M480-80q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Z"
+    "m0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Z"
+    "m0-316Z"
+)
+# icon.svg 中用于把 Material Symbols 路径适配到 1024x1024 viewBox 的矩阵。
+SVG_SHIELD_TRANSFORM = (0.8, 0, 0, 0.8, 128, 897)
 
-    def pt(x: float, y: float) -> tuple[float, float]:
-        return cx + (x - 256) * scale, cy + (y - 256) * scale
 
-    # 顶部圆角、两侧微内凹、底部尖的盾牌外形
-    outline = [
-        pt(170, 150),
-        pt(342, 150),
-        pt(342, 290),
-        pt(256, 435),
-        pt(170, 290),
-        pt(170, 150),
-    ]
-    draw.polygon(outline, fill=color)
+def _sample_quadratic_bezier(
+    p0: tuple[float, float],
+    p1: tuple[float, float],
+    p2: tuple[float, float],
+    steps: int = 24,
+) -> list[tuple[float, float]]:
+    """把二次贝塞尔曲线采样为折线点。"""
+    pts: list[tuple[float, float]] = []
+    for i in range(1, steps + 1):
+        t = i / steps
+        a = (1 - t) * (1 - t)
+        b = 2 * (1 - t) * t
+        c = t * t
+        pts.append((a * p0[0] + b * p1[0] + c * p2[0], a * p0[1] + b * p1[1] + c * p2[1]))
+    return pts
 
-    # 内部倒 V 镂空，模拟 icon.svg 中的盾牌镂空
-    if cutout_color is not None:
-        cutout = [
-            pt(256, 235),
-            pt(292, 300),
-            pt(256, 350),
-            pt(220, 300),
-            pt(256, 235),
-        ]
-        draw.polygon(cutout, fill=cutout_color)
+
+def _tokenize_svg_path(d: str) -> list[str]:
+    """把 SVG path 的 d 属性拆分为命令字母与数字 token。"""
+    return re.findall(r"[MmLlHhVvQqTtZz]|-?\d*\.?\d+(?:[eE][-+]?\d+)?", d)
+
+
+def flatten_svg_path(
+    d: str, transform: tuple[float, float, float, float, float, float]
+) -> list[list[tuple[float, float]]]:
+    """解析 SVG path 并返回若干子路径（已做矩阵变换）。"""
+    tokens = _tokenize_svg_path(d)
+    a, b, c, d_, e, f = transform
+
+    def apply(px: float, py: float) -> tuple[float, float]:
+        return (a * px + c * py + e, b * px + d_ * py + f)
+
+    subpaths: list[list[tuple[float, float]]] = []
+    current: list[tuple[float, float]] = []
+    x = y = 0.0
+    start_x = start_y = 0.0
+    last_cx = last_cy = 0.0
+    cmd: str | None = None
+    i = 0
+
+    def take(count: int) -> list[float]:
+        nonlocal i
+        vals: list[float] = []
+        while len(vals) < count and i < len(tokens):
+            tok = tokens[i]
+            if tok[0].isalpha():
+                break
+            vals.append(float(tok))
+            i += 1
+        return vals
+
+    while i < len(tokens):
+        tok = tokens[i]
+        if tok[0].isalpha():
+            cmd = tok
+            i += 1
+        if cmd is None:
+            break
+
+        if cmd in ("M", "m"):
+            vals = take(2)
+            if len(vals) < 2:
+                break
+            nx, ny = vals
+            if cmd == "m":
+                x += nx
+                y += ny
+            else:
+                x, y = nx, ny
+            if current:
+                subpaths.append(current)
+            current = [apply(x, y)]
+            start_x, start_y = x, y
+            # 后续无命令的数字按直线处理
+            cmd = "L" if cmd == "M" else "l"
+        elif cmd in ("L", "l"):
+            vals = take(2)
+            if len(vals) < 2:
+                break
+            nx, ny = vals
+            if cmd == "l":
+                x += nx
+                y += ny
+            else:
+                x, y = nx, ny
+            current.append(apply(x, y))
+        elif cmd in ("H", "h"):
+            vals = take(1)
+            if not vals:
+                break
+            nx = vals[0]
+            x = x + nx if cmd == "h" else nx
+            current.append(apply(x, y))
+        elif cmd in ("V", "v"):
+            vals = take(1)
+            if not vals:
+                break
+            ny = vals[0]
+            y = y + ny if cmd == "v" else ny
+            current.append(apply(x, y))
+        elif cmd in ("Q", "q"):
+            vals = take(4)
+            if len(vals) < 4:
+                break
+            qx, qy, nx, ny = vals
+            if cmd == "q":
+                qx += x
+                qy += y
+                nx += x
+                ny += y
+            pts = _sample_quadratic_bezier((x, y), (qx, qy), (nx, ny))
+            current.extend(apply(px, py) for px, py in pts)
+            x, y = nx, ny
+            last_cx, last_cy = qx, qy
+        elif cmd in ("T", "t"):
+            vals = take(2)
+            if len(vals) < 2:
+                break
+            nx, ny = vals
+            if cmd == "t":
+                nx += x
+                ny += y
+            # 对称控制点
+            qx = x + (x - last_cx)
+            qy = y + (y - last_cy)
+            pts = _sample_quadratic_bezier((x, y), (qx, qy), (nx, ny))
+            current.extend(apply(px, py) for px, py in pts)
+            x, y = nx, ny
+            last_cx, last_cy = qx, qy
+        elif cmd in ("Z", "z"):
+            if current:
+                current.append(current[0])
+                subpaths.append(current)
+                current = []
+            x, y = start_x, start_y
+        else:
+            i += 1
+
+    if current:
+        subpaths.append(current)
+
+    # 过滤掉退化子路径（如 icon.svg 末尾的 m0-316Z 点）
+    return [sp for sp in subpaths if len(sp) >= 3]
+
+
+def draw_svg_shield(target: Image.Image, bbox: tuple[int, int, int, int]) -> None:
+    """在 target（RGBA）的指定区域内绘制与 icon.svg 一致的白色盾牌。"""
+    x1, y1, x2, y2 = bbox
+    width = x2 - x1
+    height = y2 - y1
+
+    subpaths = flatten_svg_path(SVG_SHIELD_PATH, SVG_SHIELD_TRANSFORM)
+    if not subpaths:
+        return
+
+    all_points = [p for sp in subpaths for p in sp]
+    min_x = min(p[0] for p in all_points)
+    max_x = max(p[0] for p in all_points)
+    min_y = min(p[1] for p in all_points)
+    max_y = max(p[1] for p in all_points)
+    path_w = max_x - min_x
+    path_h = max_y - min_y
+    if path_w <= 0 or path_h <= 0:
+        return
+
+    scale = min(width / path_w, height / path_h)
+    offset_x = x1 + (width - path_w * scale) / 2
+    offset_y = y1 + (height - path_h * scale) / 2
+
+    mapped: list[list[tuple[int, int]]] = []
+    for sp in subpaths:
+        mapped.append(
+            [
+                (int((px - min_x) * scale + offset_x), int((py - min_y) * scale + offset_y))
+                for px, py in sp
+            ]
+        )
+
+    # 用灰度蒙版实现外轮廓白、内镂空透背景
+    mask = Image.new("L", target.size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.polygon(mapped[0], fill=255)
+    for sp in mapped[1:]:
+        draw.polygon(sp, fill=0)
+
+    white_layer = Image.new("RGBA", target.size, WHITE + (255,))
+    white_layer.putalpha(mask)
+    target.alpha_composite(white_layer)
 
 
 def draw_glass_panel(
@@ -246,9 +410,7 @@ def generate_welcome_sidebar() -> Image.Image:
     logo_bg = Image.alpha_composite(logo_bg, highlight)
 
     # 在 logo 背景上绘制白色盾牌
-    logo_draw = ImageDraw.Draw(logo_bg)
-    shield_center = (logo_bg_size / 2, logo_bg_size / 2)
-    draw_shield(logo_draw, shield_center, logo_bg_size * 0.55, WHITE, cutout_color=None)
+    draw_svg_shield(logo_bg, (0, 0, logo_bg_size, logo_bg_size))
 
     img.paste(logo_bg, (logo_bg_bbox[0], logo_bg_bbox[1]), logo_bg)
 
@@ -302,9 +464,7 @@ def generate_header(title: str, subtitle: str | None = None) -> Image.Image:
     logo_bg.putalpha(mask)
 
     # 在 logo 背景上绘制白色盾牌
-    logo_draw = ImageDraw.Draw(logo_bg)
-    shield_center = (logo_size / 2, logo_size / 2)
-    draw_shield(logo_draw, shield_center, logo_size * 0.55, WHITE, cutout_color=None)
+    draw_svg_shield(logo_bg, (0, 0, logo_size, logo_size))
 
     img.paste(logo_bg, (logo_bbox[0], logo_bbox[1]), logo_bg)
 
