@@ -339,8 +339,10 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
             {/* Search results */}
             {hasSearched && (
               <>
-                {results.length === 0 && !isSearching && (
-                  <div className={styles.empty}>{t('common:no_results')}</div>
+                {results.length === 0 && (
+                  <div className={styles.empty}>
+                    {isSearching ? t('common:loading', '正在加载...') : t('common:no_results')}
+                  </div>
                 )}
                 {results.map((item) => (
                   <button

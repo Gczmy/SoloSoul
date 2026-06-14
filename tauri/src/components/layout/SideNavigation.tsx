@@ -1789,38 +1789,33 @@ export function SideNavigation() {
           />
 
           {/* Scrollable zone: identity / travel / financial / professional + custom pages (excludes AddPageButton) */}
-          <div
-            ref={horizontalNavRef}
-            onWheel={handleHorizontalWheel}
-            className={`${styles.navPrimary} ${styles.navPrimaryHorizontal}`}
-            style={{
-              flexDirection: 'row',
-              height: '100%',
-              flex: 1,
-              overflowX: 'auto',
-              overflowY: 'hidden',
-            }}
-          >
-            {primaryItems.slice(1).map((item) => (
-              <NavButton
-                key={item.path}
-                path={item.path}
-                Icon={PAGE_ICON_MAP[item.iconKey]}
-                label={t(item.labelKey)}
-                isActive={isWorkspaceSectionActive(item.path)}
-                onClick={() => navigate(item.path)}
-                position={sidebarPosition}
-              />
-            ))}
-            {activeCustomPages.map((page) => (
-              <RenameableNavButton
-                key={page.id}
-                page={page}
-                isActive={isCustomPageActive(page.id)}
-                onClick={() => handleCustomPageNavigate(page)}
-                position={sidebarPosition}
-              />
-            ))}
+          <div className={styles.navPrimaryHorizontalWrapper}>
+            <div
+              ref={horizontalNavRef}
+              onWheel={handleHorizontalWheel}
+              className={`${styles.navPrimary} ${styles.navPrimaryHorizontal}`}
+            >
+              {primaryItems.slice(1).map((item) => (
+                <NavButton
+                  key={item.path}
+                  path={item.path}
+                  Icon={PAGE_ICON_MAP[item.iconKey]}
+                  label={t(item.labelKey)}
+                  isActive={isWorkspaceSectionActive(item.path)}
+                  onClick={() => navigate(item.path)}
+                  position={sidebarPosition}
+                />
+              ))}
+              {activeCustomPages.map((page) => (
+                <RenameableNavButton
+                  key={page.id}
+                  page={page}
+                  isActive={isCustomPageActive(page.id)}
+                  onClick={() => handleCustomPageNavigate(page)}
+                  position={sidebarPosition}
+                />
+              ))}
+            </div>
           </div>
         </>
       ) : (
