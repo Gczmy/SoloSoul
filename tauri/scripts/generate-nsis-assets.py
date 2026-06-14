@@ -15,9 +15,30 @@ from __future__ import annotations
 
 import math
 import os
+import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+try:
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+except ImportError:
+    # 在缺少 Pillow 的构建环境（如干净 Windows 机器）中，若已有生成好的位图资源，
+    # 则跳过重新生成，避免构建失败。需要重新生成时请安装 Pillow：
+    #   python3 -m pip install Pillow
+    ASSETS_DIR = Path(__file__).resolve().parent.parent / "src-tauri" / "bundles" / "nsis" / "assets"
+    required = [
+        ASSETS_DIR / "welcome-sidebar.bmp",
+        ASSETS_DIR / "header-install.bmp",
+        ASSETS_DIR / "header-uninstall.bmp",
+    ]
+    if all(p.exists() for p in required):
+        print("Pillow not installed; using existing NSIS assets.")
+        sys.exit(0)
+    print(
+        "Error: Pillow is required to generate NSIS assets and no existing assets were found.\n"
+        "Install it with: python3 -m pip install Pillow",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 # ── 项目色板（与 src/styles/tokens.css / themes.css 一致）───────────────────────
 STONE_25 = (253, 252, 249)

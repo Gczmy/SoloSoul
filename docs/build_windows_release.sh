@@ -96,6 +96,10 @@ check_cmd node
 check_cmd npm
 check_cmd cargo
 
+# 安装/检查 Python Pillow（生成 NSIS 安装程序位图资源所需）
+log_step "Installing Python dependencies..."
+python3 -m pip install Pillow --quiet 2>/dev/null || python -m pip install Pillow --quiet 2>/dev/null || log_warn "Could not install Pillow; build will use existing NSIS assets if available"
+
 # 检查 Node 版本
 NODE_MAJOR=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
 if [[ "$NODE_MAJOR" -lt 22 ]]; then
