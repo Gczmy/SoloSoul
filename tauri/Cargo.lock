@@ -5252,7 +5252,7 @@ dependencies = [
 
 [[package]]
 name = "solo_soul"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -5310,7 +5310,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-crypto"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -5326,7 +5326,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-sync"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -5349,7 +5349,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-vault"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
