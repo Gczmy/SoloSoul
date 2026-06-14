@@ -101,7 +101,9 @@ export const commands = {
     return invoke('delete_account', { accountId, password });
   },
   async vaultListAccounts(): Promise<AccountInfo[]> {
-    return invoke('list_accounts');
+    const result = await invoke<AccountInfo[]>('list_accounts');
+    console.warn('[ipc.vaultListAccounts] invoke result:', result);
+    return result;
   },
 
   // Profile

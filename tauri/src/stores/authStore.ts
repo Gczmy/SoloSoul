@@ -47,6 +47,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   listAccounts: async () => {
     try {
       const accounts = await commands.vaultListAccounts();
+      console.warn('[authStore.listAccounts] raw result:', accounts);
       const currentId = get().currentAccount?.id;
       const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
       set({
