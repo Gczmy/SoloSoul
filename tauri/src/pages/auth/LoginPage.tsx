@@ -40,6 +40,12 @@ export function LoginPage() {
 
   useEffect(() => {
     console.warn('[LoginPage] mount effect');
+    invoke<string>('get_state')
+      .then((s) => console.warn('[LoginPage] get_state ok:', s))
+      .catch((e) => console.warn('[LoginPage] get_state error:', e));
+    invoke<string>('vault_list_accounts')
+      .then((s) => console.warn('[LoginPage] vault_list_accounts ok:', s))
+      .catch((e) => console.warn('[LoginPage] vault_list_accounts error:', e));
     const { isCancelled, cancel } = makeCancellable();
     checkHasAccount().then(() => {
       console.warn('[LoginPage] checkHasAccount done, calling listAccounts');
