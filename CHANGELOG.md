@@ -4,9 +4,6 @@
 
 ### Added
 
-- **End-to-end local device sync** — Full P2/P3 sync pipeline with HLC, Noise XX, and CRDT; new "Device Sync" entry in Settings.
-- **Plugin system Phase 1-4** — Complete plugin lifecycle: real Vault field access, network proxy, blocking consent, JSON/Markdown result export, online registry updates with Minisign verification, plugin state persistence, and Wasm crash isolation.
-- **Plugin development resources** — JS/Python SDK placeholders and Wasm plugin development guide.
 - **Template manager enhancements** — Template page filtering and search; sample templates split into Chinese and English sub-pages.
 - **Help docs** — Renamed "Sync" help section to "Device Sync".
 
