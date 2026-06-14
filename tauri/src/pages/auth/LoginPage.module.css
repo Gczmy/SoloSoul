@@ -1,24 +1,14 @@
 /* 登录页按钮动画与高亮效果（2.4） */
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
 .loginFloatButton {
   transition:
-    box-shadow 0.25s ease,
-    border-color 0.25s ease,
-    transform 0.25s ease;
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .loginFloatButton:hover:not(:disabled) {
-  animation: float 0.6s ease-in-out;
+  transform: translateY(-1px);
   box-shadow:
     0 0 0 2px var(--accent-primary),
     0 8px 24px rgba(91, 124, 153, 0.25);
@@ -26,7 +16,7 @@
 }
 
 .loginFloatButton:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: translateY(0);
 }
 
 /* 文本切换按钮的高亮（无浮动动画，仅边框高亮） */
