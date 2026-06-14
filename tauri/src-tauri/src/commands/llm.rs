@@ -1023,19 +1023,14 @@ fn set_summary_cache(summaries: HashMap<String, String>) {
     *guard = summaries;
 }
 
-pub fn load_guide_index() -> Result<GuideIndex, String> {
-    if let Some(idx) = get_index_cache() {
-        return Ok(idx);
+/// 如果摘要缓存为空，则按需预加载所有指南摘要。
+/// 该操作从 `load_guide_index` 中剥离，避免帮助文档首页因读取全部文件而长时间显示加载中。
+fn ensure_summary_cache(index: &GuideIndex) {
+    let cache = get_summary_cache();
+    if !cache.is_empty() {
+        return;
     }
 
-    let path = resource_path("docs/guides/index.json");
-    eprintln!("[load_guide_index] reading from {:?}", path);
-    let content = std::fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read guide index at {:?}: {}", path, e))?;
-    let index: GuideIndex = serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse guide index: {}", e))?;
-
-    // 预加载每篇指南的摘要到缓存
     let mut summaries = HashMap::new();
     for guide in &index.guides {
         let lang = guide
@@ -1066,6 +1061,20 @@ pub fn load_guide_index() -> Result<GuideIndex, String> {
         }
     }
     set_summary_cache(summaries);
+}
+
+pub fn load_guide_index() -> Result<GuideIndex, String> {
+    if let Some(idx) = get_index_cache() {
+        return Ok(idx);
+    }
+
+    let path = resource_path("docs/guides/index.json");
+    eprintln!("[load_guide_index] reading from {:?}", path);
+    let content = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read guide index at {:?}: {}", path, e))?;
+    let index: GuideIndex = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to parse guide index: {}", e))?;
+
     set_index_cache(index.clone());
     Ok(index)
 }
@@ -1299,6 +1308,7 @@ fn load_guide_content(entry: &GuideIndexEntry, language: &str) -> Result<GuideCo
 
 fn find_relevant_guides_internal(query: &str, language: &str) -> Result<Vec<GuideContent>, String> {
     let index = load_guide_index()?;
+    ensure_summary_cache(&index);
     let tokens = tokenize_query(query);
     if tokens.is_empty() {
         return Ok(vec![]);
@@ -3316,5 +3326,18 @@ mod tests {
         assert_eq!(loaded[0].deleted_at, None);
         assert_eq!(loaded[1].id, "conv-2");
         assert_eq!(loaded[1].deleted_at, Some("2024-03-01T00:00:00Z".into()));
+    }
+
+    #[test]
+    fn guide_index_loads_successfully() {
+        let index = load_guide_index().expect("load_guide_index should succeed");
+        assert!(
+            !index.guides.is_empty(),
+            "guide index should contain guides"
+        );
+        assert!(
+            !index.categories.is_empty(),
+            "guide index should contain categories"
+        );
     }
 }
