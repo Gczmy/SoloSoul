@@ -39,8 +39,10 @@ export function LoginPage() {
   const makeCancellable = useCancellable();
 
   useEffect(() => {
+    console.log('[LoginPage] mount effect');
     const { isCancelled, cancel } = makeCancellable();
     checkHasAccount().then(() => {
+      console.log('[LoginPage] checkHasAccount done, calling listAccounts');
       if (!isCancelled()) listAccounts();
     });
     // Check biometric availability
@@ -73,7 +75,9 @@ export function LoginPage() {
 
   // Auto-select first account
   useEffect(() => {
+    console.log('[LoginPage] accounts changed:', accounts.length, accounts.map((a) => a.id));
     if (accounts.length > 0 && !selectedAccountId) {
+      console.log('[LoginPage] auto-selecting', accounts[0].id);
       setSelectedAccountId(accounts[0].id);
     }
   }, [accounts, selectedAccountId]);
@@ -208,8 +212,18 @@ export function LoginPage() {
           S
         </div>
         <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>{t('auth:login_title')}</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
           {t('auth:login_subtitle')}
+        </p>
+        <p
+          style={{
+            fontSize: 11,
+            color: 'var(--text-tertiary)',
+            marginBottom: 24,
+            fontFamily: 'monospace',
+          }}
+        >
+          DEBUG accounts={accounts.length} selected={selectedAccountId || 'none'}
         </p>
 
         {/* Biometric unlock */}
