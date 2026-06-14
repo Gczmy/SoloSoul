@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { invoke } from '@tauri-apps/api/core';
 import { commands, AccountInfo } from '@/lib/ipc';
 
 interface AuthState {
@@ -46,7 +47,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   listAccounts: async () => {
     try {
-      const accounts = await commands.vaultListAccounts();
+      // Bypass potentially HMR-stale commands object to isolate the issue.
+      const json = await invoke<string>('vault_list_accounts');
+      const accounts = JSON.parse(json) as AccountInfo[];
       console.warn('[authStore.listAccounts] raw result:', accounts);
       const currentId = get().currentAccount?.id;
       const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
