@@ -147,8 +147,8 @@ export function LoginPage() {
         biometryType: biometryTypeRaw,
       });
       // Vault already unlocked — set auth state directly
-      const result = await invoke<Array<{ id: string; name: string }>>('list_accounts');
-      const accs = result || [];
+      const json = await invoke<string>('vault_list_accounts');
+      const accs = (JSON.parse(json) as Array<{ id: string; name: string }>) || [];
       const acc = accs.find((a) => a.id === selectedAccountId) || {
         id: selectedAccountId,
         name: selectedAccountId,
