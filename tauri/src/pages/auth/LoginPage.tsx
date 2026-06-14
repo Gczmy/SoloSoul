@@ -40,12 +40,20 @@ export function LoginPage() {
 
   useEffect(() => {
     console.warn('[LoginPage] mount effect');
-    invoke<string>('get_state')
-      .then((s) => console.warn('[LoginPage] get_state ok:', s))
-      .catch((e) => console.warn('[LoginPage] get_state error:', e));
+    // Work around Vite HMR not propagating authStore.ts changes: load the
+    // account list directly and push it into the store.
     invoke<string>('vault_list_accounts')
-      .then((s) => console.warn('[LoginPage] vault_list_accounts ok:', s))
-      .catch((e) => console.warn('[LoginPage] vault_list_accounts error:', e));
+      .then((json) => {
+        console.warn('[LoginPage] vault_list_accounts ok:', json);
+        const parsed = JSON.parse(json) as Array<{ id: string; name: string }>;
+        useAuthStore.setState({
+          accounts: parsed,
+          hasAccount: parsed.length > 0,
+        });
+      })
+      .catch((e) => {
+        console.warn('[LoginPage] vault_list_accounts error:', e);
+      });
     const { isCancelled, cancel } = makeCancellable();
     checkHasAccount().then(() => {
       console.warn('[LoginPage] checkHasAccount done, calling listAccounts');
