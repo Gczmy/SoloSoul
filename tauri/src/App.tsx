@@ -26,7 +26,7 @@ import { AboutPage } from '@/pages/system/AboutPage';
 import { DebugLogPage } from '@/pages/system/DebugLogPage';
 import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage';
 import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
-import { PluginDashboardPage } from '@/pages/ai/PluginDashboardPage';
+import { PluginGatePage } from '@/pages/ai/PluginGatePage';
 import { LlmChatPage } from '@/pages/ai/LlmChatPage';
 import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
 import { TemplateManagerPage } from '@/pages/settings/TemplateManagerPage';
@@ -340,7 +340,7 @@ function AppRoutes() {
           path="/plugins"
           element={
             <AuthGuard>
-              <PluginDashboardPage />
+              <PluginGatePage />
             </AuthGuard>
           }
         />

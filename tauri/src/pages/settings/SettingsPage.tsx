@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
+import { isDevOrDebug } from '@/lib/env';
 import {
   Shield,
   HardDrive,
@@ -107,12 +108,16 @@ export function SettingsPage() {
           path: '/plugins',
           desc: t('settings:desc.plugins') || '管理本地插件市场',
         },
-        {
-          label: t('settings:items.sync') || '设备同步',
-          icon: Smartphone,
-          path: '/sync',
-          desc: t('settings:desc.sync') || '与其他设备同步数据',
-        },
+        ...(isDevOrDebug()
+          ? [
+              {
+                label: t('settings:items.sync') || '设备同步',
+                icon: Smartphone,
+                path: '/sync',
+                desc: t('settings:desc.sync') || '与其他设备同步数据',
+              },
+            ]
+          : []),
       ],
     },
     {
