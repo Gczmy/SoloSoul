@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import type { GuideIndexEntry, GuideCategoryMeta } from '@/lib/guideApi';
 import { Card } from '@/components/ui/Card';
 
@@ -7,13 +7,14 @@ interface GuideIndexProps {
   categories: GuideCategoryMeta[];
   language: string;
   onSelect: (guideId: string) => void;
+  extraItems?: Record<string, ReactNode>;
 }
 
 function resolveTitle(title: { zh: string; en: string }, language: string): string {
   return language.startsWith('zh') ? title.zh : title.en;
 }
 
-export function GuideIndex({ guides, categories, language, onSelect }: GuideIndexProps) {
+export function GuideIndex({ guides, categories, language, onSelect, extraItems }: GuideIndexProps) {
   const grouped = useMemo(() => {
     const sortedCats = [...categories].sort((a, b) => a.order - b.order);
     return sortedCats
@@ -65,6 +66,7 @@ export function GuideIndex({ guides, categories, language, onSelect }: GuideInde
                 </div>
               </Card>
             ))}
+            {extraItems?.[group.id]}
           </div>
         </div>
       ))}

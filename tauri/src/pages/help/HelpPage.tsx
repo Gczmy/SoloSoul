@@ -3,10 +3,12 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCancellable } from '@/hooks/useCancellable';
 import { AppShell } from '@/components/layout/AppShell';
+import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { GuideRenderer } from '@/components/guide/GuideRenderer';
 import { GuideIndex } from '@/components/guide/GuideIndex';
 import { GuideSearch } from '@/components/guide/GuideSearch';
+import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import {
   loadGuideIndex,
   loadGuideContent,
@@ -22,7 +24,7 @@ export function HelpPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const guideId = searchParams.get('id') || '';
   const backTo = (location.state as { from?: string } | null)?.from;
-  const { i18n } = useTranslation(['common', 'settings']);
+  const { t, i18n } = useTranslation(['common', 'settings']);
   const language = i18n.language || 'zh-CN';
   const makeCancellable = useCancellable();
 
@@ -33,6 +35,7 @@ export function HelpPage() {
   const [error, setError] = useState<{ title: string; message: string; isTimeout: boolean } | null>(
     null,
   );
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const formatIndexError = (e: unknown) => {
     const msg = e instanceof Error ? e.message : String(e);
@@ -193,6 +196,24 @@ export function HelpPage() {
               categories={index.categories}
               language={language}
               onSelect={handleSelect}
+              extraItems={{
+                basics: (
+                  <Card interactive onClick={() => setShowTutorial(true)}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span style={{ fontSize: 14, fontWeight: 500 }}>
+                        {t('common:tutorial')}
+                      </span>
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>›</span>
+                    </div>
+                  </Card>
+                ),
+              }}
             />
           </>
         )}
@@ -211,6 +232,12 @@ export function HelpPage() {
           </div>
         )}
       </div>
+      {showTutorial && (
+        <OnboardingDialog
+          onComplete={() => setShowTutorial(false)}
+          onSkip={() => setShowTutorial(false)}
+        />
+      )}
     </AppShell>
   );
 }

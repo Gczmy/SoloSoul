@@ -15,10 +15,11 @@
 .content {
   flex: 1;
   overflow-x: hidden;
-  overflow-y: auto;
+  /* Use scroll instead of auto so the vertical scrollbar track is always reserved.
+     This prevents content from shifting left when a scrollbar appears/disappears. */
+  overflow-y: scroll;
   padding: 16px;
   padding-top: calc(56px + 16px);
-  /* Reserve space for the vertical scrollbar so appearing/disappearing scrollbars
-     do not shift the layout (especially visible on Windows with always-shown bars). */
+  /* Extra fallback for browsers that support scrollbar-gutter. */
   scrollbar-gutter: stable;
 }

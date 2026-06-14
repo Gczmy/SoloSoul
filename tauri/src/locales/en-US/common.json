@@ -180,5 +180,6 @@
   "onboarding_next": "Next",
   "onboarding_back": "Back",
   "onboarding_skip": "Skip",
-  "onboarding_done": "Done"
+  "onboarding_done": "Done",
+  "tutorial": "Tutorial"
 }

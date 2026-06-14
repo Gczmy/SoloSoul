@@ -60,6 +60,9 @@
         "languages": ["SimpChinese", "English"],
         "displayLanguageSelector": true
       }
+    },
+    "macos": {
+      "bundleName": "SoloSoul"
     }
   },
   "plugins": {
