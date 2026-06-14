@@ -26,7 +26,8 @@ export function HelpPage() {
   const backTo = (location.state as { from?: string } | null)?.from;
   const { t, i18n } = useTranslation(['common', 'settings']);
   const language = i18n.language || 'zh-CN';
-  const makeCancellable = useCancellable();
+  const makeIndexCancellable = useCancellable();
+  const makeContentCancellable = useCancellable();
 
   const [index, setIndex] = useState<GuideIndexType | null>(null);
   const [content, setContent] = useState<GuideContent | null>(null);
@@ -65,7 +66,7 @@ export function HelpPage() {
   };
 
   const loadIndex = useCallback(() => {
-    const { isCancelled } = makeCancellable();
+    const { isCancelled } = makeIndexCancellable();
     setIndexLoading(true);
     setError(null);
     loadGuideIndex()
@@ -78,11 +79,11 @@ export function HelpPage() {
       .finally(() => {
         if (!isCancelled()) setIndexLoading(false);
       });
-  }, [makeCancellable]);
+  }, [makeIndexCancellable]);
 
   const loadContent = useCallback(
     (id: string) => {
-      const { isCancelled } = makeCancellable();
+      const { isCancelled } = makeContentCancellable();
       if (!id) {
         if (!isCancelled()) setContent(null);
         return;
@@ -105,7 +106,7 @@ export function HelpPage() {
           if (!isCancelled()) setLoading(false);
         });
     },
-    [language, makeCancellable],
+    [language, makeContentCancellable],
   );
 
   useEffect(() => {
