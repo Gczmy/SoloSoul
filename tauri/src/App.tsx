@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
+import type { AccountInfo } from '@/lib/ipc';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -468,9 +469,7 @@ function App() {
       invoke<{ hasSeenOnboarding?: boolean }>('ui_get_preferences').catch(() => ({
         hasSeenOnboarding: false,
       })),
-      invoke<Array<{ id: string; name: string }>>('list_accounts').catch(
-        () => [] as Array<{ id: string; name: string }>,
-      ),
+      invoke<AccountInfo[]>('vault_list_accounts').catch(() => [] as AccountInfo[]),
     ])
       .then(([prefs, accounts]) => {
         if (cancelled) return;

@@ -47,7 +47,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   listAccounts: async () => {
     try {
       const accounts = await commands.vaultListAccounts();
-      console.warn('[authStore.listAccounts] raw result:', accounts);
       const currentId = get().currentAccount?.id;
       const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
       set({
@@ -58,7 +57,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
     } catch (err) {
       // Surface the error so the user can report it; vault may be locked.
-      console.warn('[authStore.listAccounts] failed:', err);
       set({
         error: String(err),
         backendError: true,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
+import type { AccountInfo } from '@/lib/ipc';
 import { useCancellable } from '@/hooks/useCancellable';
 import { Button } from '@/components/ui/Button';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
@@ -39,24 +40,20 @@ export function LoginPage() {
   const makeCancellable = useCancellable();
 
   useEffect(() => {
-    console.warn('[LoginPage] mount effect');
-    // Work around Vite HMR not propagating authStore.ts changes: load the
-    // account list directly and push it into the store.
-    invoke<string>('vault_list_accounts')
-      .then((json) => {
-        console.warn('[LoginPage] vault_list_accounts ok:', json);
-        const parsed = JSON.parse(json) as Array<{ id: string; name: string }>;
+    // Defensive load: fetch the account list directly in case Vite HMR keeps
+    // authStore.listAccounts pointing at a stale command name.
+    invoke<AccountInfo[]>('vault_list_accounts')
+      .then((parsed) => {
         useAuthStore.setState({
           accounts: parsed,
           hasAccount: parsed.length > 0,
         });
       })
-      .catch((e) => {
-        console.warn('[LoginPage] vault_list_accounts error:', e);
+      .catch(() => {
+        // Fall through to the store-level loader below.
       });
     const { isCancelled, cancel } = makeCancellable();
     checkHasAccount().then(() => {
-      console.warn('[LoginPage] checkHasAccount done, calling listAccounts');
       if (!isCancelled()) listAccounts();
     });
     // Check biometric availability
@@ -89,9 +86,7 @@ export function LoginPage() {
 
   // Auto-select first account
   useEffect(() => {
-    console.warn('[LoginPage] accounts changed:', accounts.length, accounts.map((a) => a.id));
     if (accounts.length > 0 && !selectedAccountId) {
-      console.warn('[LoginPage] auto-selecting', accounts[0].id);
       setSelectedAccountId(accounts[0].id);
     }
   }, [accounts, selectedAccountId]);
@@ -147,8 +142,7 @@ export function LoginPage() {
         biometryType: biometryTypeRaw,
       });
       // Vault already unlocked — set auth state directly
-      const json = await invoke<string>('vault_list_accounts');
-      const accs = (JSON.parse(json) as Array<{ id: string; name: string }>) || [];
+      const accs = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
       const acc = accs.find((a) => a.id === selectedAccountId) || {
         id: selectedAccountId,
         name: selectedAccountId,
@@ -226,18 +220,8 @@ export function LoginPage() {
           S
         </div>
         <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>{t('auth:login_title')}</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
           {t('auth:login_subtitle')}
-        </p>
-        <p
-          style={{
-            fontSize: 11,
-            color: 'var(--text-tertiary)',
-            marginBottom: 24,
-            fontFamily: 'monospace',
-          }}
-        >
-          DEBUG accounts={accounts.length} selected={selectedAccountId || 'none'}
         </p>
 
         {/* Biometric unlock */}

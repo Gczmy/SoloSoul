@@ -116,7 +116,7 @@ export function ObjectDetailModal({
         setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
       )
       .catch(() => {});
-    invoke<Array<{ id: string; passwordHint?: string }>>('list_accounts')
+    invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
       .then((accounts) => {
         const acc = accounts.find((a) => a.id === accountId);
         setPasswordHint(acc?.passwordHint || null);

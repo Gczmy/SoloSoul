@@ -109,7 +109,7 @@ export function ObjectWorkspacePage() {
       )
       .catch(() => {});
     if (accountId) {
-      invoke<Array<{ id: string; passwordHint?: string }>>('list_accounts')
+      invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
         .then((accounts) => {
           const acc = accounts.find((a) => a.id === accountId);
           setPasswordHint(acc?.passwordHint || null);
@@ -142,7 +142,7 @@ export function ObjectWorkspacePage() {
         }
       }
       const accounts = await invoke<Array<{ id: string; passwordHint?: string }>>(
-        'list_accounts',
+        'vault_list_accounts',
       ).catch(() => []);
       for (const acc of accounts) {
         try {

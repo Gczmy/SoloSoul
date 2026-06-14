@@ -61,7 +61,9 @@ pub async fn delete_account(
 }
 
 #[tauri::command]
-pub async fn vault_list_accounts(state: State<'_, AppState>) -> Result<String, String> {
+pub async fn vault_list_accounts(
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::services::vault_service::AccountSummary>, String> {
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
         let svc = vault_service
@@ -69,13 +71,13 @@ pub async fn vault_list_accounts(state: State<'_, AppState>) -> Result<String, S
             .map_err(|_| "Vault service lock is poisoned".to_string())?;
         let accounts = svc.list_accounts();
         tracing::info!(
-            "list_accounts command returning {} account(s)",
+            "vault_list_accounts command returning {} account(s)",
             accounts.len()
         );
         if accounts.is_empty() {
             return Err("Vault account cache is empty".to_string());
         }
-        serde_json::to_string(&accounts).map_err(|e| e.to_string())
+        Ok(accounts)
     })
     .await
     .map_err(|e| format!("vault_list_accounts task failed: {}", e))?
