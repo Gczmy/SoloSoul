@@ -1734,12 +1734,37 @@ export function SideNavigation() {
 
   const handleHorizontalWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
     const el = horizontalNavRef.current;
-    if (!el || e.deltaY === 0) return;
-    // Let trackpad horizontal gestures scroll natively; only convert vertical wheel (mouse).
-    if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+    if (!el) return;
+    const delta = e.deltaY + e.deltaX;
+    if (delta === 0) return;
+    // No native scrollbar is shown; all wheel/trackpad input scrolls horizontally.
     e.preventDefault();
-    el.scrollBy({ left: e.deltaY, behavior: 'auto' });
+    el.scrollBy({ left: delta, behavior: 'auto' });
   }, []);
+
+  // Drag-to-scroll for touch/mouse on empty areas of the horizontal bar.
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef(0);
+  const dragStartScroll = useRef(0);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || e.target !== e.currentTarget) return;
+    setIsDragging(true);
+    dragStartX.current = e.clientX;
+    dragStartScroll.current = horizontalNavRef.current?.scrollLeft ?? 0;
+    (e.currentTarget as HTMLDivElement).setPointerCapture?.(e.pointerId);
+  }, []);
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isDragging || !horizontalNavRef.current) return;
+      const dx = e.clientX - dragStartX.current;
+      horizontalNavRef.current.scrollLeft = dragStartScroll.current - dx;
+    },
+    [isDragging],
+  );
+
+  const handlePointerUp = useCallback(() => setIsDragging(false), []);
 
   const navStyle: React.CSSProperties = isHorizontal
     ? {
@@ -1793,6 +1818,10 @@ export function SideNavigation() {
             <div
               ref={horizontalNavRef}
               onWheel={handleHorizontalWheel}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
               className={`${styles.navPrimary} ${styles.navPrimaryHorizontal}`}
             >
               {primaryItems.slice(1).map((item) => (

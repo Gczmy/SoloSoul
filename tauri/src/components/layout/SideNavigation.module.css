@@ -49,7 +49,7 @@
   display: none;
 }
 
-/* Horizontal mode — wrapper clips the hidden scrollbar so it never takes layout space */
+/* Horizontal mode — no native scrollbar; scrolling is driven by wheel/trackpad/drag */
 .navPrimaryHorizontalWrapper {
   flex: 1;
   height: 100%;
@@ -62,23 +62,10 @@
   align-items: center;
   gap: 4px;
   min-width: 0;
-  height: calc(100% + 16px);
-  padding-bottom: 16px;
-  margin-bottom: -16px;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  /* Completely hide scrollbars on all platforms to keep horizontal icons stable */
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-.navPrimaryHorizontal::-webkit-scrollbar,
-.navPrimaryHorizontal::-webkit-scrollbar-track,
-.navPrimaryHorizontal::-webkit-scrollbar-thumb,
-.navPrimaryHorizontal::-webkit-scrollbar-button {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
+  height: 100%;
+  overflow: hidden !important;
+  user-select: none;
+  cursor: default;
 }
 
 .navSecondary {
