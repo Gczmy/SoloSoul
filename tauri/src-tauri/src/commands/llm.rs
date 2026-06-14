@@ -909,8 +909,12 @@ pub async fn llm_send_message(
 
 use once_cell::sync::Lazy;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Mutex, OnceLock};
 use unicode_segmentation::UnicodeSegmentation;
+
+/// 应用资源目录，由 `lib.rs` 在 setup 阶段通过 `app.path().resource_dir()` 初始化。
+/// 生产模式下使用它可正确解析 Tauri v2 打包后的资源路径。
+pub static RESOURCE_DIR: OnceLock<PathBuf> = OnceLock::new();
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuideTitle {
@@ -954,11 +958,18 @@ pub struct GuideContent {
 
 /// 资源文件路径解析：开发模式从 src-tauri/resources/ 读取，生产模式从 app bundle 读取
 pub fn resource_path(rel: &str) -> PathBuf {
+    // 优先使用 Tauri 在 setup 阶段解析的资源目录，保证生产包路径正确。
+    if let Some(dir) = RESOURCE_DIR.get() {
+        let path = dir.join(rel);
+        eprintln!("[resource_path] resource_dir: {:?}", path);
+        return path;
+    }
+
     if cfg!(debug_assertions) {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("resources")
             .join(rel);
-        eprintln!("[resource_path] debug mode: {:?}", path);
+        eprintln!("[resource_path] debug fallback: {:?}", path);
         path
     } else {
         let exe = std::env::current_exe().unwrap_or_default();
@@ -967,14 +978,14 @@ pub fn resource_path(rel: &str) -> PathBuf {
         {
             // macOS app bundle: SoloSoul.app/Contents/MacOS/SoloSoul → ../Resources
             let path = exe_dir.join("../Resources").join(rel);
-            eprintln!("[resource_path] release mode macOS: {:?}", path);
+            eprintln!("[resource_path] release fallback macOS: {:?}", path);
             path
         }
         #[cfg(not(target_os = "macos"))]
         {
-            // Windows / Linux: resources are bundled alongside the executable
+            // Windows / Linux 兜底：资源与可执行文件同目录或 resources 子目录
             let path = exe_dir.join(rel);
-            eprintln!("[resource_path] release mode: {:?}", path);
+            eprintln!("[resource_path] release fallback: {:?}", path);
             path
         }
     }

@@ -267,7 +267,7 @@ def draw_svg_shield(target: Image.Image, bbox: tuple[int, int, int, int]) -> Non
     if path_w <= 0 or path_h <= 0:
         return
 
-    scale = min(width / path_w, height / path_h)
+    scale = min(width / path_w, height / path_h) * 0.65
     offset_x = x1 + (width - path_w * scale) / 2
     offset_y = y1 + (height - path_h * scale) / 2
 

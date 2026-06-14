@@ -229,9 +229,7 @@ export function HelpPage() {
                         justifyContent: 'space-between',
                       }}
                     >
-                      <span style={{ fontSize: 14, fontWeight: 500 }}>
-                        {t('common:tutorial')}
-                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 500 }}>{t('common:tutorial')}</span>
                       <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>›</span>
                     </div>
                   </Card>

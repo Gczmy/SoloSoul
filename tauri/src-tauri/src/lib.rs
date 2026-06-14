@@ -32,6 +32,11 @@ pub fn run() {
             app.manage(app_state);
             app.manage(commands::discovery::SharedDaemon::new());
 
+            // Initialize resource directory so guide/docs path resolution works in release bundles.
+            if let Ok(resource_dir) = app.path().resource_dir() {
+                let _ = commands::llm::RESOURCE_DIR.set(resource_dir);
+            }
+
             // Detect system locale and inject before any JS runs
             let locale = commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
             let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") {

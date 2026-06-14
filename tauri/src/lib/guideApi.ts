@@ -49,7 +49,7 @@ export interface GuideContent {
 function invokeWithTimeout<T>(
   cmd: string,
   args?: Record<string, unknown>,
-  timeoutMs = 60000,
+  timeoutMs = 15000,
 ): Promise<T> {
   if (!isTauriEnv()) {
     return Promise.reject(

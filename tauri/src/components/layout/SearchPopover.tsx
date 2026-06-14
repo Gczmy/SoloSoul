@@ -304,11 +304,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
           </div>
 
           {/* 2. Filter bar */}
-          <div
-            ref={filterBarRef}
-            className={styles.filterBar}
-            onWheel={handleFilterWheel}
-          >
+          <div ref={filterBarRef} className={styles.filterBar} onWheel={handleFilterWheel}>
             {FILTER_PAGES.map((f) => {
               const Icon = f.icon;
               const active = selectedFilter === f.key;
@@ -405,43 +401,38 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
             )}
 
             {/* Default view when no search active */}
-            {showDefaultView && (
-              <>
-                {/* 3. Recent searches */}
-                {recent.length > 0 && (
-                  <div className={styles.section}>
-                    <div className={styles.sectionTitle}>
-                      <Clock size={13} />
-                      <span>{t('common:recent_searches')}</span>
-                    </div>
-                    {recent.map((q) => (
-                      <button
-                        key={q}
-                        className={styles.recentItem}
-                        onClick={() => handleRecentClick(q)}
-                      >
-                        <Search size={13} />
-                        <span>{q}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* 4. Settings */}
-                <div className={styles.section}>
-                  <button
-                    className={styles.settingsItem}
-                    onClick={() => {
-                      onClose();
-                      navigate('/settings');
-                    }}
-                  >
-                    <Settings size={16} />
-                    <span>{t('navigation:settings')}</span>
-                  </button>
+            {showDefaultView && recent.length > 0 && (
+              <div className={styles.section}>
+                <div className={styles.sectionTitle}>
+                  <Clock size={13} />
+                  <span>{t('common:recent_searches')}</span>
                 </div>
-              </>
+                {recent.map((q) => (
+                  <button
+                    key={q}
+                    className={styles.recentItem}
+                    onClick={() => handleRecentClick(q)}
+                  >
+                    <Search size={13} />
+                    <span>{q}</span>
+                  </button>
+                ))}
+              </div>
             )}
+          </div>
+
+          {/* Settings — always pinned to the bottom of the card */}
+          <div className={styles.footer}>
+            <button
+              className={styles.settingsItem}
+              onClick={() => {
+                onClose();
+                navigate('/settings');
+              }}
+            >
+              <Settings size={16} />
+              <span>{t('navigation:settings')}</span>
+            </button>
           </div>
         </div>
       </div>
