@@ -57,6 +57,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
     } catch (err) {
       // Surface the error so the user can report it; vault may be locked.
+      console.warn('[authStore.listAccounts] failed:', err);
       set({
         error: String(err),
         backendError: true,

@@ -39,10 +39,10 @@ export function LoginPage() {
   const makeCancellable = useCancellable();
 
   useEffect(() => {
-    console.log('[LoginPage] mount effect');
+    console.warn('[LoginPage] mount effect');
     const { isCancelled, cancel } = makeCancellable();
     checkHasAccount().then(() => {
-      console.log('[LoginPage] checkHasAccount done, calling listAccounts');
+      console.warn('[LoginPage] checkHasAccount done, calling listAccounts');
       if (!isCancelled()) listAccounts();
     });
     // Check biometric availability
@@ -75,9 +75,9 @@ export function LoginPage() {
 
   // Auto-select first account
   useEffect(() => {
-    console.log('[LoginPage] accounts changed:', accounts.length, accounts.map((a) => a.id));
+    console.warn('[LoginPage] accounts changed:', accounts.length, accounts.map((a) => a.id));
     if (accounts.length > 0 && !selectedAccountId) {
-      console.log('[LoginPage] auto-selecting', accounts[0].id);
+      console.warn('[LoginPage] auto-selecting', accounts[0].id);
       setSelectedAccountId(accounts[0].id);
     }
   }, [accounts, selectedAccountId]);
