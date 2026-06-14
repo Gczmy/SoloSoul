@@ -1730,6 +1730,16 @@ export function SideNavigation() {
     navigate(`/workspace/custom/${page.id}`);
   };
 
+  const horizontalNavRef = useRef<HTMLDivElement>(null);
+
+  const handleHorizontalWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    const el = horizontalNavRef.current;
+    if (!el || e.deltaY === 0) return;
+    // Convert vertical wheel movement into horizontal scrolling for the top/bottom bar.
+    e.preventDefault();
+    el.scrollBy({ left: e.deltaY, behavior: 'smooth' });
+  }, []);
+
   const navStyle: React.CSSProperties = isHorizontal
     ? {
         width: '100%',
@@ -1779,6 +1789,8 @@ export function SideNavigation() {
 
           {/* Scrollable zone: identity / travel / financial / professional + custom pages (excludes AddPageButton) */}
           <div
+            ref={horizontalNavRef}
+            onWheel={handleHorizontalWheel}
             className={`${styles.navPrimary} ${styles.navPrimaryHorizontal}`}
             style={{
               flexDirection: 'row',

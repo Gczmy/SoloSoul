@@ -14,7 +14,7 @@ import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashS
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
-import { Trash2, RotateCcw, FileText, X, Info } from 'lucide-react';
+import { Trash2, RotateCcw, FileText, X, Info, Loader2 } from 'lucide-react';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 
 // ── Detail panel types ──────────────────────────────────────────
@@ -125,6 +125,7 @@ export function TrashPage() {
     Record<string, Record<string, unknown> | null>
   >({});
   const [historySnapLoading, setHistorySnapLoading] = useState<Record<string, boolean>>({});
+  const [hasLoaded, setHasLoaded] = useState(false);
   const { getTemplate } = useTemplateStore();
 
   // ── Confirmation dialog state ──────────────────────────────────
@@ -143,6 +144,12 @@ export function TrashPage() {
   useEffect(() => {
     if (accountId) loadItems(accountId);
   }, [accountId, timeFilter]);
+
+  useEffect(() => {
+    if (!isLoading && !error) {
+      setHasLoaded(true);
+    }
+  }, [isLoading, error]);
 
   const filtered = items
     .filter((i) => typeFilter === 'all' || i.itemType === typeFilter)
@@ -332,104 +339,139 @@ export function TrashPage() {
         )}
 
         {/* List */}
-        {isLoading ? (
+        {isLoading && !hasLoaded ? (
           <Card>
             <LoadingPlaceholder variant="elevated" minHeight={120} />
           </Card>
-        ) : filtered.length === 0 ? (
-          <Card>
-            <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-              <Trash2
-                size={48}
-                style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
-              />
-              <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-                {items.length > 0 ? t('settings:trash_empty_filtered') : t('settings:trash_empty')}
-              </p>
-            </div>
-          </Card>
         ) : (
-          filtered.map((item) => (
-            <Card
-              key={item.id}
-              interactive
-              onClick={() => openDetail(item.id)}
-              style={{
-                cursor: 'pointer',
-                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(item.id)}
-                  onChange={() => toggleSelection(item.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ accentColor: 'var(--accent-primary)', flexShrink: 0 }}
+          <div style={{ position: 'relative' }}>
+            {isLoading && hasLoaded && (
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'var(--bg-elevated)',
+                  opacity: 0.85,
+                  zIndex: 1,
+                  borderRadius: 12,
+                }}
+              >
+                <Loader2
+                  size={24}
+                  style={{ animation: 'spin 1s linear infinite', color: 'var(--accent-primary)' }}
                 />
-                <div
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}
+              </div>
+            )}
+            {filtered.length === 0 ? (
+              <Card>
+                <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                  <Trash2
+                    size={48}
+                    style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
+                  />
+                  <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+                    {items.length > 0
+                      ? t('settings:trash_empty_filtered')
+                      : t('settings:trash_empty')}
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              filtered.map((item) => (
+                <Card
+                  key={item.id}
+                  interactive
+                  onClick={() => openDetail(item.id)}
+                  style={{
+                    cursor: 'pointer',
+                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                  }}
                 >
-                  <FileText size={18} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-                  <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(item.id)}
+                      onChange={() => toggleSelection(item.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ accentColor: 'var(--accent-primary)', flexShrink: 0 }}
+                    />
                     <div
                       style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        flex: 1,
+                        minWidth: 0,
                       }}
                     >
-                      {item.name}
+                      <FileText
+                        size={18}
+                        style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+                      />
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 500,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {item.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                          {t(`settings:trash_type_${item.itemType}`)} · {timeAgo(item.deletedAt, t)}
+                          {item.expiresAt &&
+                            ` · ${t('settings:trash_expires_in', { days: Math.max(0, Math.floor((item.expiresAt - Date.now()) / 86400000)) })}`}
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                      {t(`settings:trash_type_${item.itemType}`)} · {timeAgo(item.deletedAt, t)}
-                      {item.expiresAt &&
-                        ` · ${t('settings:trash_expires_in', { days: Math.max(0, Math.floor((item.expiresAt - Date.now()) / 86400000)) })}`}
-                    </div>
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        doRestore([item.id]);
+                      }}
+                      title={t('common:restore')}
+                    >
+                      <RotateCcw size={13} />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        doDelete([item.id]);
+                      }}
+                      title={t('common:delete_permanently')}
+                    >
+                      <Trash2 size={13} />
+                    </Button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDetail(item.id);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 4,
+                        color: 'var(--text-tertiary)',
+                      }}
+                      title={t('common:details')}
+                    >
+                      <Info size={16} />
+                    </button>
                   </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    doRestore([item.id]);
-                  }}
-                  title={t('common:restore')}
-                >
-                  <RotateCcw size={13} />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    doDelete([item.id]);
-                  }}
-                  title={t('common:delete_permanently')}
-                >
-                  <Trash2 size={13} />
-                </Button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openDetail(item.id);
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 4,
-                    color: 'var(--text-tertiary)',
-                  }}
-                  title={t('common:details')}
-                >
-                  <Info size={16} />
-                </button>
-              </div>
-            </Card>
-          ))
+                </Card>
+              ))
+            )}
+          </div>
         )}
 
         {/* ── Bottom action bar (batch) ─────────────────────────── */}
