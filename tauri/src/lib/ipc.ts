@@ -101,7 +101,7 @@ export const commands = {
     return invoke('delete_account', { accountId, password });
   },
   async vaultListAccounts(): Promise<AccountInfo[]> {
-    const json = await invoke<string>('list_accounts');
+    const json = await invoke<string>('vault_list_accounts');
     console.warn('[ipc.vaultListAccounts] raw json:', json);
     const result = JSON.parse(json) as AccountInfo[];
     console.warn('[ipc.vaultListAccounts] parsed:', result);

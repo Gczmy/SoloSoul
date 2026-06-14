@@ -114,7 +114,7 @@ pub fn run() {
             commands::vault::get_state,
             commands::vault::change_password,
             commands::vault::delete_account,
-            commands::vault::list_accounts,
+            commands::vault::vault_list_accounts,
             commands::vault::vault_update_hint,
             // Profile commands
             commands::profile::profile_save,

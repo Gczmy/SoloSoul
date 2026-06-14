@@ -61,7 +61,7 @@ pub async fn delete_account(
 }
 
 #[tauri::command]
-pub async fn list_accounts(state: State<'_, AppState>) -> Result<String, String> {
+pub async fn vault_list_accounts(state: State<'_, AppState>) -> Result<String, String> {
     let svc = state
         .vault_service
         .read()
