@@ -62,7 +62,8 @@
       }
     },
     "macOS": {
-      "bundleName": "SoloSoul"
+      "bundleName": "SoloSoul",
+      "infoPlist": "./Info.plist"
     }
   },
   "plugins": {

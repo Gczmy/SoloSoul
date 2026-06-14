@@ -1735,9 +1735,10 @@ export function SideNavigation() {
   const handleHorizontalWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
     const el = horizontalNavRef.current;
     if (!el || e.deltaY === 0) return;
-    // Convert vertical wheel movement into horizontal scrolling for the top/bottom bar.
+    // Let trackpad horizontal gestures scroll natively; only convert vertical wheel (mouse).
+    if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
     e.preventDefault();
-    el.scrollBy({ left: e.deltaY, behavior: 'smooth' });
+    el.scrollBy({ left: e.deltaY, behavior: 'auto' });
   }, []);
 
   const navStyle: React.CSSProperties = isHorizontal

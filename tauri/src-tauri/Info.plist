@@ -4,5 +4,7 @@
 <dict>
   <key>CFBundleDisplayName</key>
   <string>SoloSoul</string>
+  <key>CFBundleName</key>
+  <string>SoloSoul</string>
 </dict>
 </plist>
