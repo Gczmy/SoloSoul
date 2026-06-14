@@ -63,6 +63,21 @@ struct AccountEntry {
     last_accessed: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountSummary {
+    pub id: String,
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub salt: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub verify_hash: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub password_hint: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+}
+
 pub struct VaultService {
     base_path: PathBuf,
     accounts_cache: RwLock<HashMap<String, AccountEntry>>,
@@ -167,7 +182,7 @@ impl VaultService {
             .unwrap_or(false)
     }
 
-    pub fn list_accounts(&self) -> Vec<serde_json::Value> {
+    pub fn list_accounts(&self) -> Vec<AccountSummary> {
         let cache = self.accounts_cache.read().ok();
         let accounts = match cache {
             Some(ref c) => c.values().cloned().collect::<Vec<_>>(),
@@ -195,12 +210,14 @@ impl VaultService {
                 (None, None, None, None)
             };
 
-            result.push(serde_json::json!({
-                "id": entry.id, "name": entry.name,
-                "salt": salt, "verifyHash": verify_hash,
-                "passwordHint": password_hint, "createdAt": created_at,
-                "lastAccessed": entry.last_accessed,
-            }));
+            result.push(AccountSummary {
+                id: entry.id.clone(),
+                name: entry.name.clone(),
+                salt,
+                verify_hash,
+                password_hint,
+                created_at,
+            });
         }
         result
     }

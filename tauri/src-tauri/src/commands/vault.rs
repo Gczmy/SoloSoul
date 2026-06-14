@@ -61,7 +61,9 @@ pub async fn delete_account(
 }
 
 #[tauri::command]
-pub async fn list_accounts(state: State<'_, AppState>) -> Result<Vec<serde_json::Value>, String> {
+pub async fn list_accounts(
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::services::vault_service::AccountSummary>, String> {
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
         let svc = vault_service
