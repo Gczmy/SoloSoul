@@ -220,9 +220,54 @@ export function LoginPage() {
           S
         </div>
         <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>{t('auth:login_title')}</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
           {t('auth:login_subtitle')}
         </p>
+
+        {/* Account selector / name — visible for both biometric and password login */}
+        {accounts.length > 0 && (
+          <div style={{ marginBottom: 20, width: '100%' }}>
+            {accounts.length > 1 ? (
+              <select
+                value={selectedAccountId}
+                onChange={(e) => setSelectedAccountId(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-primary)',
+                  fontSize: 14,
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  textAlign: 'left',
+                }}
+              >
+                {accounts.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-primary)',
+                  fontSize: 14,
+                  textAlign: 'left',
+                }}
+              >
+                {selectedAccount?.name ?? accounts[0]?.name}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Biometric unlock */}
         {bioAvailable && !showPasswordInput && (
@@ -278,42 +323,6 @@ export function LoginPage() {
             onSubmit={handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
           >
-            {accounts.length > 1 ? (
-              <select
-                value={selectedAccountId}
-                onChange={(e) => setSelectedAccountId(e.target.value)}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                  fontSize: 14,
-                  fontFamily: 'inherit',
-                  outline: 'none',
-                }}
-              >
-                {accounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name}
-                  </option>
-                ))}
-              </select>
-            ) : accounts.length === 1 ? (
-              <div
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                  fontSize: 14,
-                  textAlign: 'left',
-                }}
-              >
-                {selectedAccount?.name ?? accounts[0]?.name}
-              </div>
-            ) : null}
             <SecurePasswordInput
               value={password}
               onChange={(v) => setPassword(v)}
