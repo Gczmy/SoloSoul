@@ -11,7 +11,6 @@
 }
 
 .loginFloatButton {
-  animation: float 3s ease-in-out infinite;
   transition:
     box-shadow 0.25s ease,
     border-color 0.25s ease,
@@ -19,6 +18,7 @@
 }
 
 .loginFloatButton:hover:not(:disabled) {
+  animation: float 0.6s ease-in-out;
   box-shadow:
     0 0 0 2px var(--accent-primary),
     0 8px 24px rgba(91, 124, 153, 0.25);
