@@ -22,8 +22,18 @@ export function GuideIndex({ guides, categories, language, onSelect, extraItems 
         ...cat,
         items: guides.filter((g) => g.category === cat.id).sort((a, b) => a.order - b.order),
       }))
-      .filter((g) => g.items.length > 0);
-  }, [guides, categories]);
+      .filter((g) => g.items.length > 0 || extraItems?.[g.id]);
+  }, [guides, categories, extraItems]);
+
+  if (grouped.length === 0) {
+    return (
+      <Card>
+        <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: 14 }}>{resolveTitle({ zh: '暂无帮助文档', en: 'No guides available' }, language)}</p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

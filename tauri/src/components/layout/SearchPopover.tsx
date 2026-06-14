@@ -118,6 +118,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const filterBarRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -261,6 +262,17 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
 
   const showDefaultView = !hasSearched || (query.trim() === '' && !selectedFilter);
 
+  const handleFilterWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = filterBarRef.current;
+    if (!el) return;
+    if (el.scrollWidth <= el.clientWidth) return;
+    // 垂直滚轮转为横向滚动，提升鼠标用户体验
+    if (e.deltaY !== 0) {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    }
+  };
+
   return createPortal(
     <>
       <div className={styles.backdrop} onClick={handleBackdropClick}>
@@ -292,7 +304,11 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
           </div>
 
           {/* 2. Filter bar */}
-          <div className={styles.filterBar}>
+          <div
+            ref={filterBarRef}
+            className={styles.filterBar}
+            onWheel={handleFilterWheel}
+          >
             {FILTER_PAGES.map((f) => {
               const Icon = f.icon;
               const active = selectedFilter === f.key;

@@ -16,7 +16,7 @@ import {
   type GuideIndex as GuideIndexType,
   type GuideContent,
 } from '@/lib/guideApi';
-import { BookOpen, RefreshCw } from 'lucide-react';
+import { BookOpen, RefreshCw, Loader2 } from 'lucide-react';
 
 export function HelpPage() {
   const navigate = useNavigate();
@@ -186,7 +186,30 @@ export function HelpPage() {
           </div>
         )}
 
-        {!guideId && indexLoading && <LoadingPlaceholder variant="base" minHeight={200} />}
+        {!guideId && indexLoading && (
+          <Card>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 12,
+                padding: '40px 16px',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <Loader2
+                size={24}
+                style={{
+                  animation: 'spin 1s linear infinite',
+                  color: 'var(--accent-primary)',
+                }}
+              />
+              <p style={{ fontSize: 14 }}>{t('common:loading', '正在加载...')}</p>
+            </div>
+          </Card>
+        )}
 
         {!guideId && !indexLoading && index && (
           <>
