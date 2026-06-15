@@ -53,11 +53,11 @@ function AppRoutes() {
 
   // 启动时检查更新并显示非侵入式横幅
   useEffect(() => {
-    checkForUpdate().then((info) => {
-      if (!info) return;
+    checkForUpdate().then((result) => {
+      if (result.kind !== 'available') return;
       const skipped = localStorage.getItem('solosoul_skipped_version');
-      if (skipped === info.version) return;
-      setUpdateBanner({ version: info.version });
+      if (skipped === result.info.version) return;
+      setUpdateBanner({ version: result.info.version });
     });
   }, []);
 

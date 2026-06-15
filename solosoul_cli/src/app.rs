@@ -471,10 +471,15 @@ impl App {
         }
     }
 
-    /// 锁定页的键盘处理：命令框优先消费输入，否则用 ↑/↓ 选择按钮，Enter 执行。
+    /// 锁定页的键盘处理。
+    ///
+    /// 命令框非空或斜杠面板打开时，复用普通命令行按键处理（包括面板 ↑/↓ 导航、
+    /// Tab 补全、Esc 等）。只有命令框为空且面板关闭时，↑/↓ 才用于选择按钮。
     fn handle_locked_key(&mut self, key: KeyEvent) -> Result<bool> {
-        if self.command_input.handle_key(&key) {
-            return Ok(false);
+        let palette_active = self.command_palette.should_render(&self.command_input);
+
+        if !self.command_input.is_empty() || palette_active {
+            return self.handle_command_key(key);
         }
 
         match key.code {
@@ -489,7 +494,7 @@ impl App {
                 self.command_input.set_value(cmd.to_string());
                 return self.execute_command();
             }
-            _ => {}
+            _ => return self.handle_command_key(key),
         }
         Ok(false)
     }
