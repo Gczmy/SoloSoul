@@ -6,12 +6,15 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
 /// 渲染已登录首页。
-pub fn render(frame: &mut ratatui::Frame, area: Rect, account_id: &str) {
+pub fn render(frame: &mut ratatui::Frame, area: Rect, account_name: &str, account_id: &str) {
+    let title = if account_name.is_empty() || account_name == account_id {
+        format!("欢迎回来 · {}", account_id)
+    } else {
+        format!("欢迎回来 · {} · {}", account_name, account_id)
+    };
     let text = Text::from(vec![
         Line::from(""),
-        Line::from(format!("欢迎回来 · {}", account_id))
-            .bold()
-            .alignment(Alignment::Center),
+        Line::from(title).bold().alignment(Alignment::Center),
         Line::from(""),
         Line::from("数据操作：").alignment(Alignment::Center),
         Line::from("  /list [页面名]       列出页面或页面内对象").alignment(Alignment::Center),

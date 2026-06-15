@@ -15,7 +15,13 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::Locked => "已锁定".to_string(),
         AppPhase::AccountList { .. } => "账户列表".to_string(),
         AppPhase::UnlockWizard { .. } => "登录".to_string(),
-        AppPhase::Home { account_id } => format!("已登录 · {}", account_id),
+        AppPhase::Home { account_id } => {
+            if app.account_name.is_empty() || app.account_name == *account_id {
+                format!("已登录 · {}", account_id)
+            } else {
+                format!("已登录 · {} · {}", app.account_name, account_id)
+            }
+        }
         AppPhase::ObjectList { title, .. } => title.clone(),
         AppPhase::ObjectDetail { object } => format!("对象: {}", object.name),
         AppPhase::Size { .. } => "账户统计".to_string(),

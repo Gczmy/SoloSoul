@@ -206,6 +206,8 @@ pub struct App {
     pub error_message: Option<String>,
     /// 日志文件路径，/doctor 中展示
     pub log_path: PathBuf,
+    /// 当前账户显示名称（用于首页与状态栏）
+    pub account_name: String,
 }
 
 impl App {
@@ -247,7 +249,25 @@ impl App {
             prompt: None,
             error_message: None,
             log_path,
+            account_name: String::new(),
         })
+    }
+
+    /// 根据 account_id 查找账户显示名称。
+    fn lookup_account_name(&self, account_id: &str) -> String {
+        self.vault_service
+            .list_accounts()
+            .into_iter()
+            .find(|a| a.id == account_id)
+            .map(|a| a.name)
+            .unwrap_or_else(|| account_id.to_string())
+    }
+
+    /// 进入已登录首页，并刷新当前账户显示名称。
+    fn enter_home(&mut self, account_id: impl AsRef<str>) {
+        let account_id = account_id.as_ref().to_string();
+        self.account_name = self.lookup_account_name(&account_id);
+        self.phase = AppPhase::Home { account_id };
     }
 
     /// 处理事件，返回 true 表示应退出事件循环。
@@ -526,6 +546,21 @@ impl App {
         );
     }
 
+    fn prompt_exit_cli(&mut self) {
+        prompt::open(
+            self,
+            PromptSpec::Confirm {
+                message: "退出 SoloSoul CLI？".to_string(),
+                default_yes: false,
+            },
+            Box::new(|app, result| {
+                if let PromptResult::Confirm(true) = result {
+                    commands::core::exit(app);
+                }
+            }),
+        );
+    }
+
     fn create_account_and_enter(
         &mut self,
         name: String,
@@ -558,7 +593,7 @@ impl App {
                     }
                 }
                 self.error_message = None;
-                self.phase = AppPhase::Home { account_id };
+                self.enter_home(&account_id);
             }
             Err(e) => {
                 self.error_message = Some(format!("创建账户失败: {}", e));
@@ -578,9 +613,7 @@ impl App {
         match self.vault_service.unlock_secure(account_id, &password) {
             Ok(()) => {
                 drop(password);
-                self.phase = AppPhase::Home {
-                    account_id: account_id.to_string(),
-                };
+                self.enter_home(account_id);
             }
             Err(e) => {
                 drop(password);
@@ -592,9 +625,18 @@ impl App {
 
     /// 普通命令模式键盘处理。
     fn handle_command_key(&mut self, key: KeyEvent) -> Result<bool> {
-        // 全局 Esc：先清 error overlay，再清命令框，再返回上一屏
+        // 全局 Esc：先清 error overlay；命令框非空时清空；首页时询问是否退出；否则返回上一屏
         if key.code == KeyCode::Esc {
-            if self.command_input.is_empty() {
+            if self.error_message.take().is_some() {
+                return Ok(false);
+            }
+            if !self.command_input.is_empty() {
+                self.command_input.clear();
+                return Ok(false);
+            }
+            if matches!(self.phase, AppPhase::Home { .. }) {
+                self.prompt_exit_cli();
+            } else {
                 commands::core::back(self);
             }
             return Ok(false);
@@ -723,9 +765,11 @@ impl App {
     fn cancel_wizard(&mut self) {
         match &self.phase {
             AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {
-                self.phase = self.previous_phase.clone().unwrap_or(AppPhase::Home {
-                    account_id: self.vault_service.get_current_account().unwrap_or_default(),
-                });
+                if let Some(prev) = self.previous_phase.clone() {
+                    self.phase = prev;
+                } else if let Some(account_id) = self.vault_service.get_current_account() {
+                    self.enter_home(account_id);
+                }
             }
             _ => {
                 self.error_message = Some("当前不在向导中".to_string());
@@ -1181,7 +1225,7 @@ impl App {
                 crate::screens::unlock::render(frame, layout[1], step, &self.password_input)
             }
             AppPhase::Home { account_id } => {
-                crate::screens::home::render(frame, layout[1], account_id)
+                crate::screens::home::render(frame, layout[1], &self.account_name, account_id)
             }
             AppPhase::ObjectList { items, title } => {
                 crate::screens::object_list::render(frame, layout[1], title, items)
@@ -1410,11 +1454,29 @@ mod tests {
 
         assert!(matches!(app.phase, AppPhase::Home { .. }));
         assert_eq!(app.vault_service.get_current_account(), Some(account_id));
+        assert_eq!(app.account_name, "Test");
 
         // 锁定
         commands::auth::lock(&mut app);
         assert!(matches!(app.phase, AppPhase::Locked));
         assert!(!app.vault_service.is_unlocked());
+    }
+
+    #[test]
+    fn test_home_esc_opens_exit_prompt() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        for c in "password123".chars() {
+            app.handle_event(crate::events::Event::Key(KeyEvent::from(KeyCode::Char(c))))
+                .unwrap();
+        }
+        app.handle_event(crate::events::Event::Key(KeyEvent::from(KeyCode::Enter)))
+            .unwrap();
+        assert!(matches!(app.phase, AppPhase::Home { .. }));
+
+        app.handle_event(crate::events::Event::Key(KeyEvent::from(KeyCode::Esc)))
+            .unwrap();
+        assert!(app.prompt.is_some());
     }
 
     #[test]
