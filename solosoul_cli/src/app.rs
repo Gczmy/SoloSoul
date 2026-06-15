@@ -5,8 +5,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use color_eyre::Result;
-use crossterm::event::{KeyCode, KeyEvent};
-use ratatui::layout::{Constraint, Direction, Layout};
+use crossterm::event::{KeyCode, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
+use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::Frame;
 use solosoul_core::process_lock::ProcessLock;
 use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, UserTemplate, VaultService};
@@ -28,6 +28,22 @@ pub struct SizeReport {
     pub trash_count: usize,
     pub profile_count: usize,
     pub total_size_bytes: u64,
+}
+
+/// 可点击区域动作。
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ClickAction {
+    /// 执行一条 CLI 命令。
+    Command(&'static str),
+    /// 进入首次创建账户向导。
+    StartOnboarding,
+}
+
+/// 可点击区域。
+#[derive(Debug, Clone)]
+pub struct ClickableRegion {
+    pub rect: Rect,
+    pub action: ClickAction,
 }
 
 /// 当前所处界面/阶段。
@@ -213,6 +229,8 @@ pub struct App {
     pub selected_shortcut: usize,
     /// 斜杠命令面板状态。
     pub command_palette: CommandPalette,
+    /// 当前帧可点击区域（由渲染阶段写入，鼠标事件读取）。
+    pub clickable_regions: Vec<ClickableRegion>,
 }
 
 impl App {
@@ -257,6 +275,7 @@ impl App {
             account_name: String::new(),
             selected_shortcut: 0,
             command_palette: CommandPalette::new(),
+            clickable_regions: Vec::new(),
         })
     }
 
@@ -284,6 +303,10 @@ impl App {
             crate::events::Event::Key(key) => {
                 self.last_activity = Instant::now();
                 self.handle_key(key)
+            }
+            crate::events::Event::Mouse(mouse) => {
+                self.last_activity = Instant::now();
+                self.handle_mouse(mouse)
             }
             crate::events::Event::Tick => self.handle_tick(),
         }
@@ -332,6 +355,36 @@ impl App {
             AppPhase::AttachmentList { .. } => self.handle_attachment_list_key(key),
             AppPhase::BackupList { .. } => self.handle_backup_list_key(key),
             _ => self.handle_command_key(key),
+        }
+    }
+
+    /// 鼠标事件处理（仅处理左键单击）。
+    fn handle_mouse(&mut self, mouse: MouseEvent) -> Result<bool> {
+        if mouse.kind != MouseEventKind::Down(MouseButton::Left) {
+            return Ok(false);
+        }
+
+        let pos = (mouse.column, mouse.row);
+        if let Some(region) = self
+            .clickable_regions
+            .iter()
+            .find(|r| r.rect.contains(pos.into()))
+            .cloned()
+        {
+            match region.action {
+                ClickAction::Command(cmd) => {
+                    self.command_input.set_value(cmd.to_string());
+                    self.execute_command()
+                }
+                ClickAction::StartOnboarding => {
+                    self.phase = AppPhase::Onboarding {
+                        step: OnboardingStep::EnterName,
+                    };
+                    Ok(false)
+                }
+            }
+        } else {
+            Ok(false)
         }
     }
 
@@ -714,6 +767,12 @@ impl App {
             {
                 let command = crate::screens::home::SHORTCUTS[self.selected_shortcut].command;
                 self.command_input.set_value(command.to_string());
+                return Ok(false);
+            }
+            if matches!(self.phase, AppPhase::Welcome) && self.command_input.is_empty() {
+                self.phase = AppPhase::Onboarding {
+                    step: OnboardingStep::EnterName,
+                };
                 return Ok(false);
             }
             return self.execute_command();
@@ -1261,7 +1320,9 @@ impl App {
     }
 
     /// 渲染一帧。
-    pub fn render(&self, frame: &mut Frame) {
+    pub fn render(&mut self, frame: &mut Frame) {
+        self.clickable_regions.clear();
+
         let layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
@@ -1277,8 +1338,12 @@ impl App {
 
         // 中间内容区
         match &self.phase {
-            AppPhase::Welcome => crate::screens::welcome::render(frame, layout[1]),
-            AppPhase::Locked => crate::screens::locked::render(frame, layout[1]),
+            AppPhase::Welcome => {
+                crate::screens::welcome::render(frame, layout[1], &mut self.clickable_regions)
+            }
+            AppPhase::Locked => {
+                crate::screens::locked::render(frame, layout[1], &mut self.clickable_regions)
+            }
             AppPhase::AccountList { accounts } => {
                 crate::screens::account_list::render(frame, layout[1], accounts)
             }
@@ -1449,7 +1514,7 @@ fn render_error_overlay(frame: &mut Frame, message: &str) {
     let popup = ratatui::layout::Rect::new(x, y, width, height);
 
     let text = Text::from(vec![
-        Line::from("⚠ 错误").bold(),
+        Line::from("! 错误").bold(),
         Line::from(message),
         Line::from("按 Esc 关闭").dark_gray(),
     ]);

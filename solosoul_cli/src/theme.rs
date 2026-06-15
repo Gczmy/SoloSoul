@@ -218,18 +218,13 @@ fn detect_color_level() -> ColorLevel {
 }
 
 /// 判断是否应使用 Unicode 图标。
+///
+/// 默认关闭，避免 emoji 或宽字符符号在不同终端出现显示问题。
 fn should_use_icons() -> bool {
     if let Ok(v) = std::env::var("SOLOSOUL_CLI_ICONS") {
         return v == "1";
     }
-
-    if let Ok(term) = std::env::var("TERM") {
-        if term == "dumb" || term == "linux" {
-            return false;
-        }
-    }
-
-    true
+    false
 }
 
 #[cfg(test)]
@@ -250,9 +245,9 @@ mod tests {
     #[test]
     fn test_icon_or_text() {
         let with_icon = Theme::with_level(ColorLevel::Indexed, true);
-        assert_eq!(with_icon.icon_or_text("📁", "[浏览]"), "📁");
+        assert_eq!(with_icon.icon_or_text(">", "[浏览]"), ">");
 
         let no_icon = Theme::with_level(ColorLevel::Indexed, false);
-        assert_eq!(no_icon.icon_or_text("📁", "[浏览]"), "[浏览]");
+        assert_eq!(no_icon.icon_or_text(">", "[浏览]"), "[浏览]");
     }
 }

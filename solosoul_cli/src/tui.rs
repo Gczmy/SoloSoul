@@ -6,6 +6,7 @@ use std::time::Duration;
 
 use color_eyre::Result;
 use crossterm::cursor::Show;
+use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
@@ -30,8 +31,9 @@ impl Tui {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        // 进入备用屏幕与 raw 模式
+        // 进入备用屏幕、raw 模式并启用鼠标捕获
         stdout().execute(EnterAlternateScreen)?;
+        stdout().execute(EnableMouseCapture)?;
         enable_raw_mode()?;
         self.terminal.clear()?;
 
@@ -39,6 +41,7 @@ impl Tui {
 
         // 恢复终端
         disable_raw_mode()?;
+        stdout().execute(DisableMouseCapture)?;
         stdout().execute(LeaveAlternateScreen)?;
         stdout().execute(Show)?;
 
@@ -70,6 +73,7 @@ impl Tui {
 /// 恢复终端（用于 panic hook）。
 pub fn restore_terminal() -> Result<()> {
     disable_raw_mode()?;
+    let _ = stdout().execute(DisableMouseCapture);
     stdout().execute(LeaveAlternateScreen)?;
     stdout().execute(Show)?;
     Ok(())

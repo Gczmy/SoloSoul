@@ -18,43 +18,43 @@ pub struct Shortcut {
 /// 首页全部快捷入口。
 pub const SHORTCUTS: &[Shortcut] = &[
     Shortcut {
-        icon: "📁",
-        fallback: "[浏览]",
+        icon: ">",
+        fallback: ">",
         label: "浏览",
         command: "/list",
         desc: "列出页面与对象",
     },
     Shortcut {
-        icon: "🔍",
-        fallback: "[搜索]",
+        icon: ">",
+        fallback: ">",
         label: "搜索",
         command: "/search",
         desc: "全局关键词搜索",
     },
     Shortcut {
-        icon: "➕",
-        fallback: "[创建]",
+        icon: ">",
+        fallback: ">",
         label: "创建",
         command: "/newobject",
         desc: "新建对象",
     },
     Shortcut {
-        icon: "🗑",
-        fallback: "[回收]",
+        icon: ">",
+        fallback: ">",
         label: "回收站",
         command: "/trash",
         desc: "查看已删除项目",
     },
     Shortcut {
-        icon: "⚙",
-        fallback: "[设置]",
+        icon: ">",
+        fallback: ">",
         label: "设置",
         command: "/setting",
         desc: "账户偏好设置",
     },
     Shortcut {
-        icon: "❓",
-        fallback: "[帮助]",
+        icon: ">",
+        fallback: ">",
         label: "帮助",
         command: "/help",
         desc: "查看全部命令",
@@ -148,7 +148,7 @@ fn render_shortcut_card(
     shortcut: &Shortcut,
     focused: bool,
 ) {
-    let marker = if focused { "▶ " } else { "" };
+    let marker = if focused { "> " } else { "" };
     let icon = theme.icon_or_text(shortcut.icon, shortcut.fallback);
     let title = format!("{}{} {}", marker, icon, shortcut.label);
 

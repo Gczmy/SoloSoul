@@ -43,9 +43,9 @@ pub fn render(app: &App) -> Paragraph<'_> {
     };
 
     let lock_text = if app.process_lock.is_some() {
-        "🔒 进程锁已持有 · GUI 不可用"
+        "[L] 进程锁已持有 · GUI 不可用"
     } else {
-        "⚠ 未独占"
+        "[!] 未独占"
     };
 
     let mut spans = vec![

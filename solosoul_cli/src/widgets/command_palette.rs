@@ -180,7 +180,7 @@ impl CommandPalette {
             .enumerate()
             .map(|(idx, candidate)| {
                 let global_idx = start + idx;
-                let marker = if global_idx == selected { "▶ " } else { "  " };
+                let marker = if global_idx == selected { "> " } else { "  " };
                 let line = Line::from(vec![
                     Span::styled(marker, theme.style_brand()),
                     Span::styled(candidate.command, theme.style_text()),

@@ -228,7 +228,7 @@ fn start_delete_account(app: &mut App) -> Result<()> {
                         prompt::open(
                             app,
                             PromptSpec::Confirm {
-                                message: "⚠ 删除账户将永久清除所有数据，是否继续？".to_string(),
+                                message: "! 删除账户将永久清除所有数据，是否继续？".to_string(),
                                 default_yes: false,
                             },
                             Box::new(move |app, result| {

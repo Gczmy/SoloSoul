@@ -51,7 +51,7 @@ fn render_select_account(
         .iter()
         .enumerate()
         .map(|(idx, account)| {
-            let marker = if idx == selected { "▶ " } else { "  " };
+            let marker = if idx == selected { "> " } else { "  " };
             let cells = vec![
                 Cell::from(format!("{}{}", marker, account.name)),
                 Cell::from(account.id.clone()).style(theme.style_muted()),
@@ -135,7 +135,18 @@ fn render_brand_header(frame: &mut ratatui::Frame, area: Rect, theme: &Theme, su
             .alignment(Alignment::Center),
         Line::from(""),
     ]);
-    frame.render_widget(Paragraph::new(text), area);
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(theme.style_border(true))
+        .title(" SoloSoul ")
+        .title_style(theme.style_brand_dim());
+    frame.render_widget(
+        Paragraph::new(text)
+            .block(block)
+            .alignment(Alignment::Center)
+            .style(theme.style_text()),
+        area,
+    );
 }
 
 #[cfg(test)]
