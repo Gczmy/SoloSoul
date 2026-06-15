@@ -38,7 +38,7 @@
 | P020 | P2 | 性能 | `tauri/src-tauri/src/commands/discovery.rs:39-69` | `mdns_discover` 接受无上限 `timeout_ms` 并阻塞任务 | `[ ]` 待修复 |
 | P021 | P2 | 性能 | `tauri/src-tauri/src/plugin/host.rs:232,959-986` | 每次插件 HTTP 调用创建新 `reqwest::Client` 并 `block_on` 阻塞 worker | `[ ]` 待修复 |
 | P022 | P2 | 性能/并发 | 多数 command 文件 | 长时间持有 `state.vault_service.read().unwrap()`，阻塞写入 | `[ ]` 待修复 |
-| P023 | P2 | 性能 | `tauri/src-tauri/src/commands/fs.rs:219-227` | `fs_scan_directory` 递归无文件数量上限 | `[ ]` 待修复 |
+| P023 | P2 | 性能 | `tauri/src-tauri/src/commands/fs.rs:219-227` | `fs_scan_directory` 递归无文件数量上限 | `[x]` 已修复：限制返回文件数为 1000 |
 | P024 | P1 | 错误处理 | `tauri/src-tauri/src/commands/*.rs` | `Mutex` / `RwLock` `unwrap()` 在锁中毒时导致 panic | `[ ]` 待修复 |
 | P025 | P2 | 错误处理 | `tauri/src-tauri/src/commands/attachment.rs:91` | `attachment_delete` 忽略 `remove_dir_all` 错误 | `[ ]` 待修复 |
 | P026 | P2 | 错误处理 | `tauri/crates/solosoul-core/src/vault_service.rs:320,401,533` | 使用 `expect` 处理理论上不应失败的密钥长度转换 | `[ ]` 待修复 |
@@ -66,7 +66,7 @@
 
 ## 修复进度
 
-- 已完成：5 / 47
+- 已完成：6 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
