@@ -78,7 +78,6 @@ export function SecuritySettingsPage() {
         await invoke('biometric_save_credential', {
           accountId: currentAccount.id,
           password: bioPw,
-          silent: false,
           location: 'settings_page',
           action: 'enable',
           biometryType: rawType,

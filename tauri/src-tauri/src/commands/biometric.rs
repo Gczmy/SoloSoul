@@ -48,7 +48,6 @@ pub async fn biometric_save_credential(
     state: State<'_, AppState>,
     account_id: String,
     password: String,
-    silent: Option<bool>,
     location: Option<String>,
     action: Option<String>,
     biometry_type: Option<String>,
@@ -58,7 +57,6 @@ pub async fn biometric_save_credential(
     manager.save_credential(
         &account_id,
         &password,
-        silent.unwrap_or(false),
         "verify your identity to enable Touch ID for SoloSoul",
     )?;
 

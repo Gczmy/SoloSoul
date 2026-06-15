@@ -68,21 +68,18 @@ impl BiometricManager {
     }
 
     /// Save a biometric credential for the account after verifying the password
-    /// and asking the user to authenticate biometrically (unless `silent`).
+    /// and requiring the user to authenticate biometrically.
     pub fn save_credential(
         &self,
         account_id: &str,
         password: &str,
-        silent: bool,
         reason: &str,
     ) -> Result<(), String> {
         if !is_macos() {
             return Err("platform not supported".into());
         }
         self.verify_password(password, account_id)?;
-        if !silent {
-            trigger_system_biometric(reason)?;
-        }
+        trigger_system_biometric(reason)?;
         let key_hex = derive_master_key(password, account_id, &self.base_path)?;
         save_master_key(&self.bio_key_path(account_id), account_id, &key_hex)?;
         set_config_flag(&self.config_path(account_id), true)?;
