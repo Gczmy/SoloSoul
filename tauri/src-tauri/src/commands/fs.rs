@@ -8,6 +8,9 @@ use tauri::State;
 /// Maximum file size that can be read into memory for a data URL preview (10 MiB).
 const MAX_DATA_URL_SIZE: u64 = 10 * 1024 * 1024;
 
+/// Maximum number of files returned by `fs_scan_directory`.
+const MAX_SCAN_FILES: usize = 1_000;
+
 /// R012: reject paths that contain parent-dir references, which could escape the
 /// intended directory. Used for commands that operate on user-selected files.
 fn reject_traversal(path: &str) -> Result<PathBuf, String> {
@@ -250,11 +253,14 @@ fn scan_dir_recursive(
     files: &mut Vec<ScannedFile>,
     max_depth: u32,
 ) -> Result<(), String> {
-    if max_depth == 0 {
+    if max_depth == 0 || files.len() >= MAX_SCAN_FILES {
         return Ok(());
     }
     let entries = fs_std::read_dir(dir).map_err(|e| e.to_string())?;
     for entry in entries {
+        if files.len() >= MAX_SCAN_FILES {
+            break;
+        }
         let entry = entry.map_err(|e| e.to_string())?;
         let path = entry.path();
         if path.is_dir() {
