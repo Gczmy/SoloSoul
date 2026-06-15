@@ -152,6 +152,14 @@ export function LlmChatPage() {
   // Refs
   const chatEndRef = useRef<HTMLDivElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
+  const currentConvRef = useRef(currentConv);
+  currentConvRef.current = currentConv;
+  const accountIdRef = useRef(accountId);
+  accountIdRef.current = accountId;
+  const loadAllListsRef = useRef(loadAllLists);
+  loadAllListsRef.current = loadAllLists;
 
   useEffect(() => {
     setAiPageOpen(true);
@@ -318,23 +326,26 @@ export function LlmChatPage() {
     if (!llmStore.isStreaming && llmStore.streamingConvId && llmStore.streamBuffer) {
       // Stream finished, save final conversation
       const convId = llmStore.streamingConvId;
-      const currentMsgs = messages;
+      const currentMsgs = messagesRef.current;
       if (currentMsgs.length > 0 && currentMsgs[currentMsgs.length - 1].role === 'assistant') {
         const finalConv: Conversation = {
           id: convId,
-          name: currentConv?.name || '',
+          name: currentConvRef.current?.name || '',
           isTemporary: false,
           messages: currentMsgs,
           updatedAt: nowISO(),
         };
-        invoke('llm_save_conversation', { accountId, conversation: finalConv }).catch(() => {});
+        invoke('llm_save_conversation', {
+          accountId: accountIdRef.current,
+          conversation: finalConv,
+        }).catch(() => {});
         setCurrentConv(finalConv);
-        loadAllLists();
+        loadAllListsRef.current();
       }
       llmStore.reset();
       setIsSending(false);
     }
-  }, [llmStore.isStreaming, llmStore.streamingConvId]);
+  }, [llmStore, llmStore.isStreaming, llmStore.streamingConvId, llmStore.streamBuffer]);
 
   // Listen to LLM stream error
   useEffect(() => {
@@ -355,7 +366,7 @@ export function LlmChatPage() {
       useLlmStore.getState().reset();
       setIsSending(false);
     }
-  }, [llmStore.streamError, t]);
+  }, [llmStore, llmStore.streamError, t]);
 
   const sendMessage = async () => {
     const text = input.trim();
