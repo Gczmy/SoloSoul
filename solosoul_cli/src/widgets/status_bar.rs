@@ -2,14 +2,16 @@
 
 use std::time::Instant;
 
-use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Paragraph;
 
 use crate::app::{App, AppPhase};
+use crate::theme::Theme;
 
 /// 渲染顶部状态栏。
 pub fn render(app: &App) -> Paragraph<'_> {
+    let theme = Theme::load();
+
     let phase_text = match &app.phase {
         AppPhase::Welcome => "未登录 · 无账户".to_string(),
         AppPhase::Locked => "已锁定".to_string(),
@@ -47,20 +49,32 @@ pub fn render(app: &App) -> Paragraph<'_> {
     };
 
     let mut spans = vec![
-        Span::styled("SoloSoul CLI", Style::default().bold()),
-        Span::raw(" | "),
-        Span::raw(phase_text),
-        Span::raw(" | "),
-        Span::raw(lock_text),
+        Span::styled("SoloSoul CLI", theme.style_status_brand()),
+        Span::styled(" | ", theme.style_muted()),
+        Span::styled(phase_text, theme.style_text()),
+        Span::styled(" | ", theme.style_muted()),
+        Span::styled(lock_text, theme.style_muted()),
     ];
 
     // 已登录时显示剩余锁定时间
     if app.vault_service.is_unlocked() {
         let idle = Instant::now().duration_since(app.last_activity);
         let remaining = app.auto_lock_duration.saturating_sub(idle).as_secs();
-        spans.push(Span::raw(" | "));
-        spans.push(Span::raw(format!("锁定倒计时: {}s", remaining)));
+        spans.push(Span::styled(" | ", theme.style_muted()));
+        spans.push(Span::styled(
+            format!("锁定倒计时: {}s", remaining),
+            theme.style_muted(),
+        ));
     }
 
-    Paragraph::new(Line::from(spans)).dark_gray()
+    // 斜杠命令面板激活时追加操作提示
+    if app.command_input.starts_with_slash() {
+        spans.push(Span::styled(" | ", theme.style_muted()));
+        spans.push(Span::styled(
+            "↑↓ 选择 · Enter 确认 · Esc 取消",
+            theme.style_cream(),
+        ));
+    }
+
+    Paragraph::new(Line::from(spans)).style(theme.style_text())
 }

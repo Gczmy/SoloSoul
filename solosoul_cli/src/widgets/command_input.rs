@@ -21,6 +21,11 @@ impl CommandInput {
         self.value.is_empty()
     }
 
+    /// 当前输入是否以 `/` 开头（触发斜杠命令面板）。
+    pub fn starts_with_slash(&self) -> bool {
+        self.value.starts_with('/')
+    }
+
     /// 处理单个键盘事件，返回 true 表示该事件已被消费。
     pub fn handle_key(&mut self, key: &KeyEvent) -> bool {
         match key.code {
@@ -153,17 +158,22 @@ impl CommandInput {
 
     /// 渲染输入框为 ratatui Paragraph。
     pub fn render(&self, frame: &mut ratatui::Frame, area: ratatui::layout::Rect) {
-        use ratatui::style::Style;
         use ratatui::text::{Line, Span};
         use ratatui::widgets::{Block, Borders, Paragraph};
 
+        let theme = crate::theme::Theme::load();
         let prefix = "> ";
         let line = Line::from(vec![
-            Span::styled(prefix, Style::default().green().bold()),
-            Span::raw(&self.value),
+            Span::styled(prefix, theme.style_command_prefix()),
+            Span::styled(&self.value, theme.style_text()),
         ]);
-        let paragraph =
-            Paragraph::new(line).block(Block::default().borders(Borders::ALL).title(" 命令 "));
+        let paragraph = Paragraph::new(line).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" 命令 ")
+                .title_style(theme.style_brand_dim())
+                .border_style(theme.style_command_border()),
+        );
         frame.render_widget(paragraph, area);
 
         // 设置光标位置

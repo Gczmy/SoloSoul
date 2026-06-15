@@ -8,5 +8,6 @@ pub mod cli;
 pub mod commands;
 pub mod events;
 pub mod screens;
+pub mod theme;
 pub mod tui;
 pub mod widgets;

@@ -15,6 +15,7 @@ use zeroize::Zeroizing;
 use crate::commands;
 use crate::commands::search::SearchResultItem;
 use crate::widgets::command_input::CommandInput;
+use crate::widgets::command_palette::{CommandPalette, PaletteAction};
 use crate::widgets::field_editor::EditableField;
 use crate::widgets::password_input::PasswordInput;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
@@ -208,6 +209,10 @@ pub struct App {
     pub log_path: PathBuf,
     /// 当前账户显示名称（用于首页与状态栏）
     pub account_name: String,
+    /// 首页快捷卡片的当前焦点索引。
+    pub selected_shortcut: usize,
+    /// 斜杠命令面板状态。
+    pub command_palette: CommandPalette,
 }
 
 impl App {
@@ -250,6 +255,8 @@ impl App {
             error_message: None,
             log_path,
             account_name: String::new(),
+            selected_shortcut: 0,
+            command_palette: CommandPalette::new(),
         })
     }
 
@@ -267,6 +274,7 @@ impl App {
     fn enter_home(&mut self, account_id: impl AsRef<str>) {
         let account_id = account_id.as_ref().to_string();
         self.account_name = self.lookup_account_name(&account_id);
+        self.selected_shortcut = 0;
         self.phase = AppPhase::Home { account_id };
     }
 
@@ -625,9 +633,13 @@ impl App {
 
     /// 普通命令模式键盘处理。
     fn handle_command_key(&mut self, key: KeyEvent) -> Result<bool> {
-        // 全局 Esc：先清 error overlay；命令框非空时清空；首页时询问是否退出；否则返回上一屏
+        // 全局 Esc：先清 error overlay；若斜杠面板打开则关闭面板；否则清空输入/返回
         if key.code == KeyCode::Esc {
             if self.error_message.take().is_some() {
+                return Ok(false);
+            }
+            if self.command_palette.should_render(&self.command_input) {
+                self.command_palette.suppress();
                 return Ok(false);
             }
             if !self.command_input.is_empty() {
@@ -642,19 +654,68 @@ impl App {
             return Ok(false);
         }
 
-        // 命令历史翻阅（仅当命令框为空时）
-        if matches!(key.code, KeyCode::Up | KeyCode::Down) && self.command_input.is_empty() {
+        // 命令历史翻阅（仅当命令框为空且面板未激活时）
+        if matches!(key.code, KeyCode::Up | KeyCode::Down)
+            && self.command_input.is_empty()
+            && !self.command_palette.should_render(&self.command_input)
+        {
             self.handle_history(key.code);
             return Ok(false);
         }
 
-        // 命令输入框优先消费事件
+        // 斜杠命令面板导航键优先处理
+        if self.command_palette.should_render(&self.command_input) {
+            let candidates = CommandPalette::build_candidates(
+                available_commands(&self.phase),
+                &self.command_input.value,
+            );
+            if !candidates.is_empty() {
+                match self.command_palette.handle_key(&key, &candidates) {
+                    PaletteAction::Close => return Ok(false),
+                    PaletteAction::Fill(cmd) => {
+                        self.command_input.set_value(cmd.to_string());
+                        return Ok(false);
+                    }
+                    PaletteAction::Execute(cmd) => {
+                        self.command_input.set_value(cmd.to_string());
+                        return self.execute_command();
+                    }
+                    PaletteAction::None => {}
+                }
+            }
+        }
+
+        // 命令输入框消费普通字符/编辑键
         if self.command_input.handle_key(&key) {
+            self.command_palette.clear_suppress();
+            return Ok(false);
+        }
+
+        // 首页快捷卡片导航（命令框为空时）
+        let is_home = matches!(self.phase, AppPhase::Home { .. });
+
+        if key.code == KeyCode::Tab && is_home && self.command_input.is_empty() {
+            let count = crate::screens::home::shortcut_count();
+            self.selected_shortcut = (self.selected_shortcut + 1) % count;
+            return Ok(false);
+        }
+
+        if key.code == KeyCode::BackTab && is_home && self.command_input.is_empty() {
+            let count = crate::screens::home::shortcut_count();
+            self.selected_shortcut = (self.selected_shortcut + count - 1) % count;
             return Ok(false);
         }
 
         // 全局快捷键
         if key.code == KeyCode::Enter {
+            if is_home
+                && self.command_input.is_empty()
+                && self.selected_shortcut < crate::screens::home::shortcut_count()
+            {
+                let command = crate::screens::home::SHORTCUTS[self.selected_shortcut].command;
+                self.command_input.set_value(command.to_string());
+                return Ok(false);
+            }
             return self.execute_command();
         }
 
@@ -1224,9 +1285,13 @@ impl App {
             AppPhase::UnlockWizard { step } => {
                 crate::screens::unlock::render(frame, layout[1], step, &self.password_input)
             }
-            AppPhase::Home { account_id } => {
-                crate::screens::home::render(frame, layout[1], &self.account_name, account_id)
-            }
+            AppPhase::Home { account_id } => crate::screens::home::render(
+                frame,
+                layout[1],
+                &self.account_name,
+                account_id,
+                self.selected_shortcut,
+            ),
             AppPhase::ObjectList { items, title } => {
                 crate::screens::object_list::render(frame, layout[1], title, items)
             }
@@ -1303,6 +1368,14 @@ impl App {
             );
         if !hide_input {
             self.command_input.render(frame, layout[2]);
+
+            if self.command_palette.should_render(&self.command_input) {
+                let candidates = CommandPalette::build_candidates(
+                    available_commands(&self.phase),
+                    &self.command_input.value,
+                );
+                self.command_palette.render(frame, layout[2], &candidates);
+            }
         }
 
         // 模态提示 overlay
@@ -1609,5 +1682,81 @@ mod tests {
         let account_id = app.vault_service.get_current_account().unwrap();
         let vault = app.vault_service.get_vault_store().unwrap();
         assert!(!vault.list_user_templates(&account_id).unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_home_shortcut_navigation() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        type_string(&mut app, "password123");
+        press_key(&mut app, KeyCode::Enter);
+        assert!(matches!(app.phase, AppPhase::Home { .. }));
+        assert_eq!(app.selected_shortcut, 0);
+
+        // Tab 前进
+        press_key(&mut app, KeyCode::Tab);
+        assert_eq!(app.selected_shortcut, 1);
+
+        // 继续 Tab 循环
+        for _ in 0..5 {
+            press_key(&mut app, KeyCode::Tab);
+        }
+        assert_eq!(app.selected_shortcut, 0);
+
+        // Shift+Tab 后退
+        press_key(&mut app, KeyCode::BackTab);
+        assert_eq!(
+            app.selected_shortcut,
+            crate::screens::home::shortcut_count() - 1
+        );
+
+        // Enter 填入命令
+        press_key(&mut app, KeyCode::Enter);
+        assert_eq!(
+            app.command_input.value,
+            crate::screens::home::SHORTCUTS[app.selected_shortcut].command
+        );
+    }
+
+    #[test]
+    fn test_home_tab_autocomplete_when_input_not_empty() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        type_string(&mut app, "password123");
+        press_key(&mut app, KeyCode::Enter);
+
+        type_string(&mut app, "/ex");
+        press_key(&mut app, KeyCode::Tab);
+        assert_eq!(app.command_input.value, "/exit");
+        assert_eq!(app.selected_shortcut, 0);
+    }
+
+    #[test]
+    fn test_slash_palette_navigation_and_execute() {
+        use ratatui::backend::TestBackend;
+
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        type_string(&mut app, "password123");
+        press_key(&mut app, KeyCode::Enter);
+        assert!(app.vault_service.is_unlocked());
+
+        // 输入 `/lo` 触发斜杠命令面板
+        type_string(&mut app, "/lo");
+        assert!(app.command_palette.should_render(&app.command_input));
+
+        // 渲染不应 panic
+        let backend = TestBackend::new(80, 24);
+        let mut terminal = ratatui::Terminal::new(backend).unwrap();
+        terminal.draw(|frame| app.render(frame)).unwrap();
+
+        // 向下选择 /logout，Enter 填入命令，再次 Enter 执行
+        press_key(&mut app, KeyCode::Down);
+        press_key(&mut app, KeyCode::Enter);
+        assert_eq!(app.command_input.value, "/logout");
+
+        press_key(&mut app, KeyCode::Enter);
+        assert!(!app.vault_service.is_unlocked());
+        assert!(matches!(app.phase, AppPhase::Locked));
     }
 }

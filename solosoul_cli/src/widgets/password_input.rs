@@ -138,18 +138,23 @@ impl PasswordInput {
 
     /// 渲染输入框为 ratatui Paragraph，所有字符显示为 `•`。
     pub fn render(&self, frame: &mut ratatui::Frame, area: ratatui::layout::Rect) {
-        use ratatui::style::Style;
         use ratatui::text::{Line, Span};
         use ratatui::widgets::{Block, Borders, Paragraph};
 
+        let theme = crate::theme::Theme::load();
         let prefix = "密码: ";
         let masked: String = self.value.chars().map(|_| '•').collect();
         let line = Line::from(vec![
-            Span::styled(prefix, Style::default().green().bold()),
-            Span::raw(masked),
+            Span::styled(prefix, theme.style_brand()),
+            Span::styled(masked, theme.style_text()),
         ]);
-        let paragraph =
-            Paragraph::new(line).block(Block::default().borders(Borders::ALL).title(" 登录 "));
+        let paragraph = Paragraph::new(line).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" 登录 ")
+                .title_style(theme.style_brand_dim())
+                .border_style(theme.style_border(false)),
+        );
         frame.render_widget(paragraph, area);
 
         let cursor_x = area.x + prefix.len() as u16 + self.cursor as u16 + 1;
