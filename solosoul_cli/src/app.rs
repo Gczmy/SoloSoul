@@ -1391,9 +1391,7 @@ impl App {
 /// 根据当前阶段返回可用的命令补全候选。
 fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
     match phase {
-        AppPhase::Welcome | AppPhase::Locked => {
-            &["/account_list", "/back", "/doctor", "/exit", "/unlock"]
-        }
+        AppPhase::Welcome | AppPhase::Locked => &["/account_list", "/doctor", "/exit", "/unlock"],
         AppPhase::Home { .. } => &[
             "/account_list",
             "/back",
@@ -1491,7 +1489,7 @@ mod tests {
     fn test_available_commands_locked() {
         assert_eq!(
             super::available_commands(&AppPhase::Locked),
-            &["/account_list", "/back", "/doctor", "/exit", "/unlock"]
+            &["/account_list", "/doctor", "/exit", "/unlock"]
         );
     }
 
