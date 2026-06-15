@@ -237,6 +237,8 @@ pub struct App {
     pub hover_pulse: bool,
     /// Logo sheen 动画偏移量。
     pub sheen_offset: u16,
+    /// 锁定页当前选中的动作按钮索引。
+    pub locked_selected: usize,
 }
 
 impl App {
@@ -283,6 +285,7 @@ impl App {
             mouse_pos: None,
             hover_pulse: false,
             sheen_offset: 0,
+            locked_selected: 0,
         })
     }
 
@@ -377,6 +380,7 @@ impl App {
             AppPhase::HistoryList { .. } => self.handle_history_list_key(key),
             AppPhase::AttachmentList { .. } => self.handle_attachment_list_key(key),
             AppPhase::BackupList { .. } => self.handle_backup_list_key(key),
+            AppPhase::Locked => self.handle_locked_key(key),
             _ => self.handle_command_key(key),
         }
     }
@@ -465,6 +469,29 @@ impl App {
                 Ok(false)
             }
         }
+    }
+
+    /// 锁定页的键盘处理：命令框优先消费输入，否则用 ↑/↓ 选择按钮，Enter 执行。
+    fn handle_locked_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if self.command_input.handle_key(&key) {
+            return Ok(false);
+        }
+
+        match key.code {
+            KeyCode::Up if self.locked_selected > 0 => {
+                self.locked_selected -= 1;
+            }
+            KeyCode::Down if self.locked_selected + 1 < crate::screens::locked::ACTION_COUNT => {
+                self.locked_selected += 1;
+            }
+            KeyCode::Enter => {
+                let cmd = crate::screens::locked::ACTIONS[self.locked_selected].command;
+                self.command_input.set_value(cmd.to_string());
+                return self.execute_command();
+            }
+            _ => {}
+        }
+        Ok(false)
     }
 
     /// 创建账户向导的键盘处理。
@@ -1382,6 +1409,7 @@ impl App {
                 self.mouse_pos,
                 self.hover_pulse,
                 self.sheen_offset,
+                self.locked_selected,
             ),
             AppPhase::AccountList { accounts } => {
                 crate::screens::account_list::render(frame, layout[1], accounts)
