@@ -1,31 +1,11 @@
 //! 无账户时的欢迎界面 —— 大品牌名 + 可点击选项 + 悬停动画。
 
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Rect};
-use ratatui::text::{Line, Span, Text};
+use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
 use crate::app::{ClickAction, ClickableRegion};
 use crate::theme::Theme;
-
-/// Logo 扫光每 tick 前进的列数。
-pub const SHEEN_STEP: u16 = 2;
-
-/// 扫光高亮宽度（奇数便于取中心）。
-const SHEEN_WIDTH: usize = 5;
-
-/// 阴影/边框字符集合，扫光动画只影响这些字符。
-const SHADOW_CHARS: [char; 11] = ['╚', '═', '╝', '║', '╔', '╗', '╠', '╣', '╦', '╩', '╬'];
-
-/// SoloSoul 品牌 Logo（Codebuff 风格 Unicode 方块艺术字）， trimming 后宽度 55。
-const LOGO_LINES: [&str; 5] = [
-    "██████╗  █████╗ ██╗  █████╗ ██████╗  █████╗ ██╗  ██╗██╗",
-    "██╔═══╝ ██╔══██╗██║ ██╔══██╗██╔═══╝ ██╔══██╗██║  ██║██║",
-    "╚████╗  ██║  ██║██║ ██║  ██║╚████╗  ██║  ██║██║  ██║██║",
-    " ╚══██║ ██║  ██║██║ ██║  ██║ ╚══██║ ██║  ██║██║  ██║██║",
-    "██████╝ ╚█████╝ ╚█╝ ╚█████╝ ██████╝ ╚█████╝ ╚█████╝ ╚█╝",
-];
-
-const LOGO_WIDTH: usize = 55;
 
 /// 渲染欢迎界面。
 pub fn render(
@@ -38,7 +18,7 @@ pub fn render(
 ) {
     let theme = Theme::load();
 
-    let inner = area.inner(Margin::new(4, 4));
+    let inner = area.inner(Margin::new(4, 1));
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -49,48 +29,10 @@ pub fn render(
         ])
         .split(inner);
 
-    render_brand(frame, chunks[0], &theme, sheen_offset);
+    crate::screens::logo::render(frame, chunks[0], &theme, sheen_offset, " 欢迎 ");
     render_taglines(frame, chunks[1], &theme);
     render_options(frame, chunks[2], &theme, regions, mouse_pos, hover_pulse);
     render_hint(frame, chunks[3], &theme);
-}
-
-fn render_brand(frame: &mut ratatui::Frame, area: Rect, theme: &Theme, sheen_offset: u16) {
-    let center = (sheen_offset as usize) % (LOGO_WIDTH + SHEEN_WIDTH);
-    let half = SHEEN_WIDTH / 2;
-
-    let lines: Vec<Line> = LOGO_LINES
-        .iter()
-        .map(|raw| {
-            let spans: Vec<Span> = raw
-                .chars()
-                .enumerate()
-                .map(|(idx, c)| {
-                    let is_shadow = SHADOW_CHARS.contains(&c);
-                    let in_sheen = is_shadow && idx.abs_diff(center) <= half;
-                    let style = if in_sheen {
-                        theme.style_cream()
-                    } else {
-                        theme.style_brand()
-                    };
-                    Span::styled(c.to_string(), style)
-                })
-                .collect();
-            Line::from(spans)
-        })
-        .collect();
-
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_style(theme.style_border(true))
-        .title(" 欢迎 ")
-        .title_style(theme.style_brand_dim());
-
-    let paragraph = Paragraph::new(Text::from(lines))
-        .block(block)
-        .alignment(Alignment::Center)
-        .style(theme.style_text());
-    frame.render_widget(paragraph, area);
 }
 
 fn render_taglines(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {

@@ -258,9 +258,7 @@ impl App {
         let phase = if vault_service.has_any_account() {
             AppPhase::Locked
         } else {
-            AppPhase::Onboarding {
-                step: OnboardingStep::EnterName,
-            }
+            AppPhase::Welcome
         };
 
         Ok(Self {
@@ -351,7 +349,7 @@ impl App {
         // Logo 扫光动画偏移
         self.sheen_offset = self
             .sheen_offset
-            .wrapping_add(crate::screens::welcome::SHEEN_STEP);
+            .wrapping_add(crate::screens::logo::SHEEN_STEP);
 
         Ok(false)
     }
@@ -1383,6 +1381,7 @@ impl App {
                 &mut self.clickable_regions,
                 self.mouse_pos,
                 self.hover_pulse,
+                self.sheen_offset,
             ),
             AppPhase::AccountList { accounts } => {
                 crate::screens::account_list::render(frame, layout[1], accounts)
@@ -1733,6 +1732,10 @@ mod tests {
     #[test]
     fn test_onboarding_creates_account() {
         let (mut app, _dir) = onboarding_app();
+        assert!(matches!(app.phase, AppPhase::Welcome));
+
+        // 从欢迎页进入创建账户向导
+        press_key(&mut app, KeyCode::Enter);
         assert!(matches!(
             app.phase,
             AppPhase::Onboarding {

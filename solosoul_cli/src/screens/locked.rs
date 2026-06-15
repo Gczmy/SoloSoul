@@ -39,48 +39,37 @@ pub fn render(
     regions: &mut Vec<ClickableRegion>,
     mouse_pos: Option<(u16, u16)>,
     hover_pulse: bool,
+    sheen_offset: u16,
 ) {
     let theme = Theme::load();
 
-    let inner = area.inner(Margin::new(4, 4));
+    let inner = area.inner(Margin::new(4, 1));
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(5),
-            Constraint::Length(10),
-            Constraint::Length(1),
+            Constraint::Length(7), // Logo + 边框
+            Constraint::Length(1), // 状态标语
+            Constraint::Length(9), // 2×2 动作卡片
+            Constraint::Length(1), // 底部提示
         ])
         .split(inner);
 
-    render_brand(frame, chunks[0], &theme);
-    render_actions(frame, chunks[1], &theme, regions, mouse_pos, hover_pulse);
-    render_hint(frame, chunks[2], &theme);
+    crate::screens::logo::render(frame, chunks[0], &theme, sheen_offset, " 已锁定 ");
+    render_tagline(frame, chunks[1], &theme);
+    render_actions(frame, chunks[2], &theme, regions, mouse_pos, hover_pulse);
+    render_hint(frame, chunks[3], &theme);
 }
 
-fn render_brand(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
-    let text = Text::from(vec![
-        Line::from("SoloSoul")
-            .style(theme.style_brand())
-            .alignment(Alignment::Center),
-        Line::from("当前已锁定")
-            .style(theme.style_cream())
-            .alignment(Alignment::Center),
-        Line::from("本地优先 · 零知识 · 你的数据你做主")
-            .style(theme.style_muted())
-            .alignment(Alignment::Center),
-    ]);
-
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_style(theme.style_border(true))
-        .title(" 已锁定 ")
-        .title_style(theme.style_brand_dim());
-
-    let paragraph = Paragraph::new(text)
-        .block(block)
-        .alignment(Alignment::Center)
-        .style(theme.style_text());
-    frame.render_widget(paragraph, area);
+fn render_tagline(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
+    let text = Text::from(vec![Line::from("当前已锁定")
+        .style(theme.style_cream())
+        .alignment(Alignment::Center)]);
+    frame.render_widget(
+        Paragraph::new(text)
+            .alignment(Alignment::Center)
+            .style(theme.style_text()),
+        area,
+    );
 }
 
 fn render_actions(
@@ -200,11 +189,12 @@ mod tests {
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
         let mut regions = Vec::new();
         terminal
-            .draw(|frame| render(frame, frame.area(), &mut regions, None, false))
+            .draw(|frame| render(frame, frame.area(), &mut regions, None, false, 0))
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();
-        assert!(content.contains("SoloSoul"));
+        assert!(content.contains('█'));
+        assert!(content.contains('╗'));
         assert!(content.contains("/unlock"));
         assert_eq!(regions.len(), ACTIONS.len());
     }

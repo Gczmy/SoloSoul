@@ -10,6 +10,7 @@ pub mod help;
 pub mod history_list;
 pub mod home;
 pub mod locked;
+pub mod logo;
 pub mod new_object;
 pub mod object_detail;
 pub mod object_list;
