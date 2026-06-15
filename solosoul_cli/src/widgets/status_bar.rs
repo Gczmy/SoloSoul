@@ -20,11 +20,14 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::ObjectDetail { object } => format!("对象: {}", object.name),
         AppPhase::Size { .. } => "账户统计".to_string(),
         AppPhase::Doctor { .. } => "Doctor".to_string(),
+        AppPhase::NewObjectWizard { .. } => "创建对象向导".to_string(),
+        AppPhase::EditObjectWizard { .. } => "编辑对象向导".to_string(),
+        AppPhase::TrashList { .. } => "回收站".to_string(),
         AppPhase::Quit => "退出中".to_string(),
     };
 
     let lock_text = if app.process_lock.is_some() {
-        "🔒 独占"
+        "🔒 进程锁已持有 · GUI 不可用"
     } else {
         "⚠ 未独占"
     };

@@ -9,11 +9,13 @@ use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::Frame;
 use solosoul_core::process_lock::ProcessLock;
-use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, VaultService};
+use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, UserTemplate, VaultService};
 
 use crate::commands;
 use crate::widgets::command_input::CommandInput;
+use crate::widgets::field_editor::EditableField;
 use crate::widgets::password_input::PasswordInput;
+use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 账户统计报告。
 #[derive(Debug, Clone, Default)]
@@ -53,8 +55,58 @@ pub enum AppPhase {
     Doctor {
         report: commands::doctor::DoctorReport,
     },
+    /// 创建对象向导
+    NewObjectWizard { step: NewObjectStep },
+    /// 编辑对象向导
+    EditObjectWizard {
+        object_id: String,
+        step: EditObjectStep,
+    },
+    /// 回收站列表
+    TrashList {
+        items: Vec<solosoul_core::TrashItemSummary>,
+    },
     /// 安全退出
     Quit,
+}
+
+/// 创建对象向导步骤。
+#[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
+pub enum NewObjectStep {
+    /// 选择父页面
+    SelectPage {
+        pages: Vec<ObjectSummary>,
+        selected: usize,
+    },
+    /// 选择模板
+    SelectTemplate {
+        page_id: String,
+        page_name: String,
+        templates: Vec<UserTemplate>,
+        selected: usize,
+    },
+    /// 填写字段
+    FillFields {
+        page_id: String,
+        page_name: String,
+        template: Option<UserTemplate>,
+        name: String,
+        fields: Vec<EditableField>,
+        selected: usize,
+    },
+}
+
+/// 编辑对象向导步骤。
+#[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
+pub enum EditObjectStep {
+    /// 字段概览
+    Overview {
+        object: ObjectRecord,
+        fields: Vec<EditableField>,
+        selected: usize,
+    },
 }
 
 /// 登录向导步骤。
@@ -81,6 +133,10 @@ pub struct App {
     pub history_index: Option<usize>,
     pub last_activity: Instant,
     pub auto_lock_duration: Duration,
+    /// 暂停自动锁定计时（模态提示或阻塞操作期间）
+    pub auto_lock_paused: bool,
+    /// 当前模态提示
+    pub prompt: Option<prompt::PromptState>,
     /// 全局错误/消息 overlay，按任意键或 Esc 清除
     pub error_message: Option<String>,
     /// 日志文件路径，/doctor 中展示
@@ -120,6 +176,8 @@ impl App {
             history_index: None,
             last_activity: Instant::now(),
             auto_lock_duration: Duration::from_secs(5 * 60),
+            auto_lock_paused: false,
+            prompt: None,
             error_message: None,
             log_path,
         })
@@ -137,12 +195,17 @@ impl App {
     }
 
     fn handle_tick(&mut self) -> Result<bool> {
-        // 自动锁定检测
+        // 自动锁定检测（模态提示期间暂停）
+        if self.auto_lock_paused {
+            self.last_activity = Instant::now();
+        }
         if self.vault_service.is_unlocked() {
             let idle = Instant::now().duration_since(self.last_activity);
             if idle >= self.auto_lock_duration {
                 self.vault_service.lock();
                 self.password_input.clear();
+                self.prompt = None;
+                self.auto_lock_paused = false;
                 self.phase = AppPhase::Locked;
                 self.error_message = Some("会话已超时锁定".to_string());
             }
@@ -156,9 +219,18 @@ impl App {
             return Ok(false);
         }
 
+        // 模态提示优先消费事件
+        if self.prompt.is_some() {
+            return Ok(prompt::handle_key(self, key));
+        }
+
         // 根据当前阶段分发
         match &self.phase.clone() {
             AppPhase::UnlockWizard { step } => self.handle_unlock_key(key, step.clone()),
+            AppPhase::NewObjectWizard { step } => self.handle_new_object_key(key, step.clone()),
+            AppPhase::EditObjectWizard { object_id, step } => {
+                self.handle_edit_object_key(key, object_id.clone(), step.clone())
+            }
             _ => self.handle_command_key(key),
         }
     }
@@ -323,8 +395,334 @@ impl App {
             "/list" => commands::vault_read::list(self, parts.get(1).copied())?,
             "/open" => commands::vault_read::open(self, parts.get(1).copied())?,
             "/size" => commands::vault_read::size(self)?,
+            "/newpage" => commands::vault_write::newpage(self, parts.get(1).copied())?,
+            "/newobject" => commands::vault_write::newobject(self, parts.get(1).copied())?,
+            "/edit" => commands::vault_write::edit(self, parts.get(1).copied())?,
+            "/delete" => commands::vault_write::delete(self, parts.get(1).copied())?,
+            "/trash" => commands::vault_write::trash(self)?,
+            "/restore" => commands::vault_write::restore(self, parts.get(1).copied())?,
+            "/purge" => commands::vault_write::purge(self, parts.get(1).copied())?,
+            "/cancel" => self.cancel_wizard(),
+            "/save" => self.save_wizard(),
             _ => {
                 self.error_message = Some(format!("未知命令: {}", cmd));
+            }
+        }
+        Ok(false)
+    }
+
+    /// 取消当前向导，返回首页或上一屏。
+    fn cancel_wizard(&mut self) {
+        match &self.phase {
+            AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {
+                self.phase = self.previous_phase.clone().unwrap_or(AppPhase::Home {
+                    account_id: self.vault_service.get_current_account().unwrap_or_default(),
+                });
+            }
+            _ => {
+                self.error_message = Some("当前不在向导中".to_string());
+            }
+        }
+    }
+
+    /// 保存当前向导。
+    fn save_wizard(&mut self) {
+        match &self.phase.clone() {
+            AppPhase::NewObjectWizard {
+                step:
+                    NewObjectStep::FillFields {
+                        page_id,
+                        page_name,
+                        template,
+                        name,
+                        fields,
+                        ..
+                    },
+            } => {
+                if let Err(e) = commands::vault_write::save_new_object(
+                    self,
+                    page_id.clone(),
+                    page_name.clone(),
+                    template.clone(),
+                    name.clone(),
+                    fields.clone(),
+                ) {
+                    self.error_message = Some(format!("保存失败: {}", e));
+                }
+            }
+            AppPhase::EditObjectWizard {
+                object_id: _,
+                step: EditObjectStep::Overview { object, .. },
+            } => {
+                if let Err(e) = commands::vault_write::save_edited_object(self, object.clone()) {
+                    self.error_message = Some(format!("保存失败: {}", e));
+                } else {
+                    self.phase = AppPhase::ObjectDetail {
+                        object: object.clone(),
+                    };
+                }
+            }
+            _ => {
+                self.error_message = Some("当前没有可保存的更改".to_string());
+            }
+        }
+    }
+
+    /// 创建对象向导的键盘处理。
+    fn handle_new_object_key(&mut self, key: KeyEvent, step: NewObjectStep) -> Result<bool> {
+        use crate::widgets::field_editor;
+
+        match step {
+            NewObjectStep::SelectPage {
+                pages,
+                mut selected,
+            } => {
+                match key.code {
+                    KeyCode::Esc | KeyCode::Char('q') => {
+                        self.cancel_wizard();
+                    }
+                    KeyCode::Up if selected > 0 => selected -= 1,
+                    KeyCode::Down if selected + 1 < pages.len() => selected += 1,
+                    KeyCode::Enter => {
+                        let page = &pages[selected];
+                        commands::vault_write::start_select_template(
+                            self,
+                            page.id.clone(),
+                            page.name.clone(),
+                        )?;
+                        return Ok(false);
+                    }
+                    _ => {}
+                }
+                self.phase = AppPhase::NewObjectWizard {
+                    step: NewObjectStep::SelectPage { pages, selected },
+                };
+            }
+            NewObjectStep::SelectTemplate {
+                page_id,
+                page_name,
+                templates,
+                mut selected,
+            } => {
+                match key.code {
+                    KeyCode::Esc | KeyCode::Char('q') => {
+                        self.cancel_wizard();
+                    }
+                    KeyCode::Up if selected > 0 => selected -= 1,
+                    KeyCode::Down if selected < templates.len() => selected += 1,
+                    KeyCode::Enter => {
+                        let template = if selected == 0 {
+                            None
+                        } else {
+                            templates.get(selected - 1).cloned()
+                        };
+                        commands::vault_write::start_fill_fields(
+                            self, page_id, page_name, template,
+                        )?;
+                        return Ok(false);
+                    }
+                    _ => {}
+                }
+                self.phase = AppPhase::NewObjectWizard {
+                    step: NewObjectStep::SelectTemplate {
+                        page_id,
+                        page_name,
+                        templates,
+                        selected,
+                    },
+                };
+            }
+            NewObjectStep::FillFields {
+                page_id,
+                page_name,
+                template,
+                name,
+                fields,
+                mut selected,
+            } => {
+                match key.code {
+                    KeyCode::Esc | KeyCode::Char('q') => {
+                        self.cancel_wizard();
+                        return Ok(false);
+                    }
+                    KeyCode::Char('s') => {
+                        self.save_wizard();
+                        return Ok(false);
+                    }
+                    KeyCode::Char('n') => {
+                        let initial = name.clone();
+                        prompt::open(
+                            self,
+                            PromptSpec::Text {
+                                label: "对象名称".to_string(),
+                                initial,
+                                mask: false,
+                                allow_toggle_mask: false,
+                            },
+                            Box::new(move |app, result| {
+                                if let PromptResult::Text(new_name) = result {
+                                    app.phase = AppPhase::NewObjectWizard {
+                                        step: NewObjectStep::FillFields {
+                                            page_id: page_id.clone(),
+                                            page_name: page_name.clone(),
+                                            template: template.clone(),
+                                            name: new_name,
+                                            fields: fields.clone(),
+                                            selected,
+                                        },
+                                    };
+                                }
+                            }),
+                        );
+                        return Ok(false);
+                    }
+                    KeyCode::Up if selected > 0 => selected -= 1,
+                    KeyCode::Down if selected + 1 < fields.len() => selected += 1,
+                    KeyCode::Enter => {
+                        let field = fields[selected].clone();
+                        let spec = field_editor::prompt_for_field(&field);
+                        let page_id2 = page_id.clone();
+                        let page_name2 = page_name.clone();
+                        let template2 = template.clone();
+                        let name2 = name.clone();
+                        let mut fields2 = fields.clone();
+                        prompt::open(
+                            self,
+                            spec,
+                            Box::new(move |app: &mut App, result: PromptResult| {
+                                if let Some(new_value) =
+                                    field_editor::value_from_result(&result, &field)
+                                {
+                                    fields2[selected].value = new_value;
+                                }
+                                app.phase = AppPhase::NewObjectWizard {
+                                    step: NewObjectStep::FillFields {
+                                        page_id: page_id2,
+                                        page_name: page_name2,
+                                        template: template2,
+                                        name: name2,
+                                        fields: fields2,
+                                        selected,
+                                    },
+                                };
+                            }),
+                        );
+                        return Ok(false);
+                    }
+                    _ => {}
+                }
+                self.phase = AppPhase::NewObjectWizard {
+                    step: NewObjectStep::FillFields {
+                        page_id,
+                        page_name,
+                        template,
+                        name,
+                        fields,
+                        selected,
+                    },
+                };
+            }
+        }
+        Ok(false)
+    }
+
+    /// 编辑对象向导的键盘处理。
+    fn handle_edit_object_key(
+        &mut self,
+        key: KeyEvent,
+        object_id: String,
+        step: EditObjectStep,
+    ) -> Result<bool> {
+        use crate::widgets::field_editor;
+
+        match step {
+            EditObjectStep::Overview {
+                mut object,
+                fields,
+                mut selected,
+            } => {
+                match key.code {
+                    KeyCode::Esc | KeyCode::Char('q') => {
+                        self.cancel_wizard();
+                        return Ok(false);
+                    }
+                    KeyCode::Char('s') => {
+                        self.save_wizard();
+                        return Ok(false);
+                    }
+                    KeyCode::Up if selected > 0 => selected -= 1,
+                    KeyCode::Down if selected + 1 < fields.len() => selected += 1,
+                    KeyCode::Char('n') => {
+                        let initial = object.name.clone();
+                        prompt::open(
+                            self,
+                            PromptSpec::Text {
+                                label: "对象名称".to_string(),
+                                initial,
+                                mask: false,
+                                allow_toggle_mask: false,
+                            },
+                            Box::new(move |app, result| {
+                                if let PromptResult::Text(new_name) = result {
+                                    object.name = new_name;
+                                    app.phase = AppPhase::EditObjectWizard {
+                                        object_id: object.id.clone(),
+                                        step: EditObjectStep::Overview {
+                                            object: object.clone(),
+                                            fields: field_editor::EditableField::from_properties_and_template(
+                                                &object.properties,
+                                                None,
+                                            ),
+                                            selected: 0,
+                                        },
+                                    };
+                                }
+                            }),
+                        );
+                        return Ok(false);
+                    }
+                    KeyCode::Enter => {
+                        let field = fields[selected].clone();
+                        let spec = field_editor::prompt_for_field(&field);
+                        let object_id2 = object_id.clone();
+                        let mut object2 = object.clone();
+                        let mut fields2 = fields.clone();
+                        prompt::open(
+                            self,
+                            spec,
+                            Box::new(move |app: &mut App, result: PromptResult| {
+                                if let Some(new_value) =
+                                    field_editor::value_from_result(&result, &field)
+                                {
+                                    fields2[selected].value = new_value.clone();
+                                    if let serde_json::Value::Object(ref mut map) =
+                                        object2.properties
+                                    {
+                                        map.insert(field.key.clone(), new_value);
+                                    }
+                                }
+                                app.phase = AppPhase::EditObjectWizard {
+                                    object_id: object_id2,
+                                    step: EditObjectStep::Overview {
+                                        object: object2.clone(),
+                                        fields: fields2,
+                                        selected,
+                                    },
+                                };
+                            }),
+                        );
+                        return Ok(false);
+                    }
+                    _ => {}
+                }
+                self.phase = AppPhase::EditObjectWizard {
+                    object_id,
+                    step: EditObjectStep::Overview {
+                        object,
+                        fields,
+                        selected,
+                    },
+                };
             }
         }
         Ok(false)
@@ -366,18 +764,32 @@ impl App {
             }
             AppPhase::Size { report } => crate::screens::size::render(frame, layout[1], report),
             AppPhase::Doctor { report } => crate::screens::doctor::render(frame, layout[1], report),
+            AppPhase::NewObjectWizard { step } => {
+                crate::screens::new_object::render(frame, layout[1], step)
+            }
+            AppPhase::EditObjectWizard { object_id, step } => {
+                crate::screens::edit_object::render(frame, layout[1], object_id, step)
+            }
+            AppPhase::TrashList { items } => {
+                crate::screens::trash_list::render(frame, layout[1], items)
+            }
             AppPhase::Quit => {}
         }
 
-        // 底部命令输入框（登录向导的密码页除外）
-        if !matches!(
-            self.phase,
-            AppPhase::UnlockWizard {
-                step: UnlockStep::EnterPassword { .. }
-            }
-        ) {
+        // 底部命令输入框（登录向导的密码页或模态提示打开时除外）
+        let hide_input = self.prompt.is_some()
+            || matches!(
+                self.phase,
+                AppPhase::UnlockWizard {
+                    step: UnlockStep::EnterPassword { .. }
+                }
+            );
+        if !hide_input {
             self.command_input.render(frame, layout[2]);
         }
+
+        // 模态提示 overlay
+        prompt::render(self, frame);
 
         // 全局错误 overlay
         if let Some(err) = &self.error_message {
@@ -402,8 +814,19 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/list",
             "/open",
             "/size",
+            "/newpage",
+            "/newobject",
+            "/edit",
+            "/delete",
+            "/trash",
+            "/restore",
+            "/purge",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
+        AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {
+            // 向导内部仅提供不会丢失未保存数据的命令
+            &["/cancel", "/save", "/back"]
+        }
         // 其他结果页至少支持 /back 和 /exit
         _ => &["/back", "/exit"],
     }

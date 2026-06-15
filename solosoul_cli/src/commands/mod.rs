@@ -4,3 +4,4 @@ pub mod auth;
 pub mod core;
 pub mod doctor;
 pub mod vault_read;
+pub mod vault_write;
