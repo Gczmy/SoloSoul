@@ -1,11 +1,19 @@
 //! 无账户时的欢迎界面 —— 大品牌名 + 可点击选项 + 悬停动画。
 
+use std::sync::OnceLock;
+
+use figlet_rs::FIGlet;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Rect};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
 use crate::app::{ClickAction, ClickableRegion};
 use crate::theme::Theme;
+
+fn standard_font() -> &'static FIGlet {
+    static FONT: OnceLock<FIGlet> = OnceLock::new();
+    FONT.get_or_init(|| FIGlet::standard().expect("内置 FIGlet 标准字体加载失败"))
+}
 
 /// 渲染欢迎界面。
 pub fn render(
@@ -33,11 +41,30 @@ pub fn render(
 }
 
 fn render_brand(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
-    let text = Text::from(vec![
-        Line::from(""),
-        Line::from("SoloSoul")
-            .style(theme.style_brand())
-            .alignment(Alignment::Center),
+    let mut lines: Vec<Line> = vec![Line::from("")];
+
+    if let Some(figure) = standard_font().convert("SoloSoul") {
+        let banner = figure.as_str();
+        for raw in banner.lines() {
+            let trimmed = raw.trim_end();
+            if trimmed.is_empty() {
+                continue;
+            }
+            lines.push(
+                Line::from(trimmed.to_string())
+                    .style(theme.style_brand())
+                    .alignment(Alignment::Center),
+            );
+        }
+    } else {
+        lines.push(
+            Line::from("SoloSoul")
+                .style(theme.style_brand())
+                .alignment(Alignment::Center),
+        );
+    }
+
+    lines.extend([
         Line::from(""),
         Line::from("独奏生命数据，重塑数字原点")
             .style(theme.style_cream())
@@ -55,7 +82,7 @@ fn render_brand(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
         .title(" 欢迎 ")
         .title_style(theme.style_brand_dim());
 
-    let paragraph = Paragraph::new(text)
+    let paragraph = Paragraph::new(Text::from(lines))
         .block(block)
         .alignment(Alignment::Center)
         .style(theme.style_text());
@@ -181,7 +208,9 @@ mod tests {
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();
-        assert!(content.contains("SoloSoul"));
+        // FIGlet banner 会渲染为 ASCII 艺术，不再包含纯文本 "SoloSoul"
+        assert!(content.contains(" ____ "));
+        assert!(content.contains("/ ___|"));
         assert_eq!(regions.len(), 2);
     }
 }
