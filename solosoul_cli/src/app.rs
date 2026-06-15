@@ -231,6 +231,10 @@ pub struct App {
     pub command_palette: CommandPalette,
     /// 当前帧可点击区域（由渲染阶段写入，鼠标事件读取）。
     pub clickable_regions: Vec<ClickableRegion>,
+    /// 当前鼠标位置（用于悬停高亮）。
+    pub mouse_pos: Option<(u16, u16)>,
+    /// 悬停脉冲状态，每 tick 切换，产生轻微动画效果。
+    pub hover_pulse: bool,
 }
 
 impl App {
@@ -276,6 +280,8 @@ impl App {
             selected_shortcut: 0,
             command_palette: CommandPalette::new(),
             clickable_regions: Vec::new(),
+            mouse_pos: None,
+            hover_pulse: false,
         })
     }
 
@@ -328,6 +334,17 @@ impl App {
                 self.error_message = Some("会话已超时锁定".to_string());
             }
         }
+
+        // 若有悬停在可点击区域上，切换脉冲状态以产生轻微动画
+        let hovering = self.mouse_pos.is_some_and(|pos| {
+            self.clickable_regions
+                .iter()
+                .any(|r| r.rect.contains(pos.into()))
+        });
+        if hovering {
+            self.hover_pulse = !self.hover_pulse;
+        }
+
         Ok(false)
     }
 
@@ -358,33 +375,39 @@ impl App {
         }
     }
 
-    /// 鼠标事件处理（仅处理左键单击）。
+    /// 鼠标事件处理（移动更新悬停位置，左键单击执行动作）。
     fn handle_mouse(&mut self, mouse: MouseEvent) -> Result<bool> {
-        if mouse.kind != MouseEventKind::Down(MouseButton::Left) {
-            return Ok(false);
-        }
-
         let pos = (mouse.column, mouse.row);
-        if let Some(region) = self
-            .clickable_regions
-            .iter()
-            .find(|r| r.rect.contains(pos.into()))
-            .cloned()
-        {
-            match region.action {
-                ClickAction::Command(cmd) => {
-                    self.command_input.set_value(cmd.to_string());
-                    self.execute_command()
-                }
-                ClickAction::StartOnboarding => {
-                    self.phase = AppPhase::Onboarding {
-                        step: OnboardingStep::EnterName,
-                    };
+
+        match mouse.kind {
+            MouseEventKind::Moved => {
+                self.mouse_pos = Some(pos);
+                Ok(false)
+            }
+            MouseEventKind::Down(MouseButton::Left) => {
+                if let Some(region) = self
+                    .clickable_regions
+                    .iter()
+                    .find(|r| r.rect.contains(pos.into()))
+                    .cloned()
+                {
+                    match region.action {
+                        ClickAction::Command(cmd) => {
+                            self.command_input.set_value(cmd.to_string());
+                            self.execute_command()
+                        }
+                        ClickAction::StartOnboarding => {
+                            self.phase = AppPhase::Onboarding {
+                                step: OnboardingStep::EnterName,
+                            };
+                            Ok(false)
+                        }
+                    }
+                } else {
                     Ok(false)
                 }
             }
-        } else {
-            Ok(false)
+            _ => Ok(false),
         }
     }
 
@@ -1338,12 +1361,20 @@ impl App {
 
         // 中间内容区
         match &self.phase {
-            AppPhase::Welcome => {
-                crate::screens::welcome::render(frame, layout[1], &mut self.clickable_regions)
-            }
-            AppPhase::Locked => {
-                crate::screens::locked::render(frame, layout[1], &mut self.clickable_regions)
-            }
+            AppPhase::Welcome => crate::screens::welcome::render(
+                frame,
+                layout[1],
+                &mut self.clickable_regions,
+                self.mouse_pos,
+                self.hover_pulse,
+            ),
+            AppPhase::Locked => crate::screens::locked::render(
+                frame,
+                layout[1],
+                &mut self.clickable_regions,
+                self.mouse_pos,
+                self.hover_pulse,
+            ),
             AppPhase::AccountList { accounts } => {
                 crate::screens::account_list::render(frame, layout[1], accounts)
             }

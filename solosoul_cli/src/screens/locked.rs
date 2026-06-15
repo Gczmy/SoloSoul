@@ -1,6 +1,7 @@
-//! 已锁定状态主界面 —— 大品牌名 + 可点击动作卡片。
+//! 已锁定状态主界面 —— 大品牌名 + 可点击动作卡片 + 悬停动画。
 
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Rect};
+use ratatui::style::Style;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
@@ -32,7 +33,13 @@ const ACTIONS: &[LockedAction] = &[
 ];
 
 /// 渲染已锁定主界面。
-pub fn render(frame: &mut ratatui::Frame, area: Rect, regions: &mut Vec<ClickableRegion>) {
+pub fn render(
+    frame: &mut ratatui::Frame,
+    area: Rect,
+    regions: &mut Vec<ClickableRegion>,
+    mouse_pos: Option<(u16, u16)>,
+    hover_pulse: bool,
+) {
     let theme = Theme::load();
 
     let inner = area.inner(Margin::new(4, 4));
@@ -46,7 +53,7 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, regions: &mut Vec<Clickabl
         .split(inner);
 
     render_brand(frame, chunks[0], &theme);
-    render_actions(frame, chunks[1], &theme, regions);
+    render_actions(frame, chunks[1], &theme, regions, mouse_pos, hover_pulse);
     render_hint(frame, chunks[2], &theme);
 }
 
@@ -81,6 +88,8 @@ fn render_actions(
     area: Rect,
     theme: &Theme,
     regions: &mut Vec<ClickableRegion>,
+    mouse_pos: Option<(u16, u16)>,
+    hover_pulse: bool,
 ) {
     // 2 行 × 2 列
     let rows = Layout::default()
@@ -101,7 +110,15 @@ fn render_actions(
             if idx >= ACTIONS.len() {
                 break;
             }
-            render_action_card(frame, *col_area, theme, &ACTIONS[idx], regions);
+            render_action_card(
+                frame,
+                *col_area,
+                theme,
+                &ACTIONS[idx],
+                regions,
+                mouse_pos,
+                hover_pulse,
+            );
         }
     }
 }
@@ -112,10 +129,17 @@ fn render_action_card(
     theme: &Theme,
     action: &LockedAction,
     regions: &mut Vec<ClickableRegion>,
+    mouse_pos: Option<(u16, u16)>,
+    hover_pulse: bool,
 ) {
+    let hovered = is_hovered(area, mouse_pos);
     let text = Text::from(vec![
         Line::from(format!("> {}", action.label))
-            .style(theme.style_cream())
+            .style(if hovered {
+                theme.style_brand()
+            } else {
+                theme.style_cream()
+            })
             .alignment(Alignment::Center),
         Line::from(action.command)
             .style(theme.style_muted())
@@ -124,7 +148,7 @@ fn render_action_card(
 
     let block = Block::default()
         .borders(Borders::ALL)
-        .border_style(theme.style_border(false));
+        .border_style(card_border_style(theme, hovered, hover_pulse));
 
     frame.render_widget(
         Paragraph::new(text)
@@ -141,10 +165,28 @@ fn render_action_card(
 }
 
 fn render_hint(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
-    let text = Text::from(vec![Line::from("鼠标可直接点击卡片，或在下方输入命令")
-        .style(theme.style_hint())
-        .alignment(Alignment::Center)]);
+    let text = Text::from(vec![Line::from(
+        "鼠标悬停卡片有动画效果，点击执行，或在下方输入命令",
+    )
+    .style(theme.style_hint())
+    .alignment(Alignment::Center)]);
     frame.render_widget(Paragraph::new(text), area);
+}
+
+fn is_hovered(rect: Rect, mouse_pos: Option<(u16, u16)>) -> bool {
+    mouse_pos.is_some_and(|pos| rect.contains(pos.into()))
+}
+
+fn card_border_style(theme: &Theme, hovered: bool, pulse: bool) -> Style {
+    if hovered {
+        if pulse {
+            theme.style_brand_dim()
+        } else {
+            theme.style_cream()
+        }
+    } else {
+        theme.style_border(false)
+    }
 }
 
 #[cfg(test)]
@@ -158,7 +200,7 @@ mod tests {
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
         let mut regions = Vec::new();
         terminal
-            .draw(|frame| render(frame, frame.area(), &mut regions))
+            .draw(|frame| render(frame, frame.area(), &mut regions, None, false))
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();

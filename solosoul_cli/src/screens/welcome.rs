@@ -1,4 +1,4 @@
-//! 无账户时的欢迎界面 —— 大品牌名 + 可点击选项。
+//! 无账户时的欢迎界面 —— 大品牌名 + 可点击选项 + 悬停动画。
 
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Rect};
 use ratatui::text::{Line, Text};
@@ -8,7 +8,13 @@ use crate::app::{ClickAction, ClickableRegion};
 use crate::theme::Theme;
 
 /// 渲染欢迎界面。
-pub fn render(frame: &mut ratatui::Frame, area: Rect, regions: &mut Vec<ClickableRegion>) {
+pub fn render(
+    frame: &mut ratatui::Frame,
+    area: Rect,
+    regions: &mut Vec<ClickableRegion>,
+    mouse_pos: Option<(u16, u16)>,
+    hover_pulse: bool,
+) {
     let theme = Theme::load();
 
     let inner = area.inner(Margin::new(4, 4));
@@ -22,7 +28,7 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, regions: &mut Vec<Clickabl
         .split(inner);
 
     render_brand(frame, chunks[0], &theme);
-    render_options(frame, chunks[1], &theme, regions);
+    render_options(frame, chunks[1], &theme, regions, mouse_pos, hover_pulse);
     render_hint(frame, chunks[2], &theme);
 }
 
@@ -61,6 +67,8 @@ fn render_options(
     area: Rect,
     theme: &Theme,
     regions: &mut Vec<ClickableRegion>,
+    mouse_pos: Option<(u16, u16)>,
+    hover_pulse: bool,
 ) {
     let cols = Layout::default()
         .direction(Direction::Horizontal)
@@ -69,10 +77,15 @@ fn render_options(
         .split(area);
 
     let start_rect = cols[0];
+    let start_hovered = is_hovered(start_rect, mouse_pos);
     let start_text = Text::from(vec![
         Line::from(""),
         Line::from("> 开始创建账户")
-            .style(theme.style_brand())
+            .style(if start_hovered {
+                theme.style_brand()
+            } else {
+                theme.style_cream()
+            })
             .alignment(Alignment::Center),
         Line::from("创建第一个本地账户并导入默认模板")
             .style(theme.style_hint())
@@ -81,7 +94,7 @@ fn render_options(
     ]);
     let start_block = Block::default()
         .borders(Borders::ALL)
-        .border_style(theme.style_border(true))
+        .border_style(card_border_style(theme, start_hovered, hover_pulse))
         .title(" 开始 ")
         .title_style(theme.style_brand_dim());
     frame.render_widget(
@@ -97,10 +110,15 @@ fn render_options(
     });
 
     let exit_rect = cols[1];
+    let exit_hovered = is_hovered(exit_rect, mouse_pos);
     let exit_text = Text::from(vec![
         Line::from(""),
         Line::from("> 退出 CLI")
-            .style(theme.style_cream())
+            .style(if exit_hovered {
+                theme.style_brand()
+            } else {
+                theme.style_cream()
+            })
             .alignment(Alignment::Center),
         Line::from("离开 SoloSoul 终端")
             .style(theme.style_hint())
@@ -109,7 +127,7 @@ fn render_options(
     ]);
     let exit_block = Block::default()
         .borders(Borders::ALL)
-        .border_style(theme.style_border(false));
+        .border_style(card_border_style(theme, exit_hovered, hover_pulse));
     frame.render_widget(
         Paragraph::new(exit_text)
             .block(exit_block)
@@ -132,6 +150,22 @@ fn render_hint(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
     frame.render_widget(Paragraph::new(text), area);
 }
 
+fn is_hovered(rect: Rect, mouse_pos: Option<(u16, u16)>) -> bool {
+    mouse_pos.is_some_and(|pos| rect.contains(pos.into()))
+}
+
+fn card_border_style(theme: &Theme, hovered: bool, pulse: bool) -> ratatui::style::Style {
+    if hovered {
+        if pulse {
+            theme.style_brand_dim()
+        } else {
+            theme.style_cream()
+        }
+    } else {
+        theme.style_border(false)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -143,7 +177,7 @@ mod tests {
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
         let mut regions = Vec::new();
         terminal
-            .draw(|frame| render(frame, frame.area(), &mut regions))
+            .draw(|frame| render(frame, frame.area(), &mut regions, None, false))
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();
