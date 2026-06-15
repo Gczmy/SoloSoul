@@ -2229,7 +2229,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-core"
-version = "2.2.0"
+version = "2.2.1"
 dependencies = [
  "anyhow",
  "base64",
@@ -2251,7 +2251,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-crypto"
-version = "2.2.0"
+version = "2.2.1"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -2267,7 +2267,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-vault"
-version = "2.2.0"
+version = "2.2.1"
 dependencies = [
  "base64",
  "chrono",

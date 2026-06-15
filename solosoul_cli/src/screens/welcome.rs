@@ -22,7 +22,7 @@ pub fn render(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(7), // Logo + 边框
+            Constraint::Length(8), // 6 行 Logo + 2 行边框
             Constraint::Length(2), // 副标语
             Constraint::Length(6), // 可点击选项卡
             Constraint::Length(1), // 底部提示

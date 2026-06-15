@@ -47,29 +47,15 @@ pub fn render(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(7), // Logo + 边框
-            Constraint::Length(1), // 状态标语
+            Constraint::Length(8), // 6 行 Logo + 2 行边框
             Constraint::Length(9), // 2×2 动作卡片
             Constraint::Length(1), // 底部提示
         ])
         .split(inner);
 
     crate::screens::logo::render(frame, chunks[0], &theme, sheen_offset, " 已锁定 ");
-    render_tagline(frame, chunks[1], &theme);
-    render_actions(frame, chunks[2], &theme, regions, mouse_pos, hover_pulse);
-    render_hint(frame, chunks[3], &theme);
-}
-
-fn render_tagline(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
-    let text = Text::from(vec![Line::from("当前已锁定")
-        .style(theme.style_cream())
-        .alignment(Alignment::Center)]);
-    frame.render_widget(
-        Paragraph::new(text)
-            .alignment(Alignment::Center)
-            .style(theme.style_text()),
-        area,
-    );
+    render_actions(frame, chunks[1], &theme, regions, mouse_pos, hover_pulse);
+    render_hint(frame, chunks[2], &theme);
 }
 
 fn render_actions(
