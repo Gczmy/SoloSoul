@@ -1,4 +1,4 @@
-//! 已锁定状态主界面 —— 大品牌名 + 可点击动作卡片 + 悬停动画。
+//! 已锁定状态主界面 —— 大品牌名 + 垂直动作按钮 + 悬停动画。
 
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Rect};
 use ratatui::style::Style;
@@ -43,19 +43,19 @@ pub fn render(
 ) {
     let theme = Theme::load();
 
-    let inner = area.inner(Margin::new(4, 1));
+    // 默认 24 行终端：状态栏 1 + 内容区 20 + 命令行 3。
+    // 为了放下 6 行 Logo（带边框 8）+ 4 个高度 3 的垂直按钮（12），垂直边距用 0。
+    let inner = area.inner(Margin::new(4, 0));
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(8), // 6 行 Logo + 2 行边框
-            Constraint::Length(9), // 2×2 动作卡片
-            Constraint::Length(1), // 底部提示
+            Constraint::Length(8),  // 6 行 Logo + 2 行边框
+            Constraint::Length(12), // 4 × 3 行垂直按钮
         ])
         .split(inner);
 
     crate::screens::logo::render(frame, chunks[0], &theme, sheen_offset, " 已锁定 ");
     render_actions(frame, chunks[1], &theme, regions, mouse_pos, hover_pulse);
-    render_hint(frame, chunks[2], &theme);
 }
 
 fn render_actions(
@@ -66,39 +66,36 @@ fn render_actions(
     mouse_pos: Option<(u16, u16)>,
     hover_pulse: bool,
 ) {
-    // 2 行 × 2 列
-    let rows = Layout::default()
+    // 按钮整体水平居中
+    let button_width = area.width.min(50);
+    let h_spacer = (area.width.saturating_sub(button_width)) / 2;
+    let centered = Rect {
+        x: area.x + h_spacer,
+        y: area.y,
+        width: button_width,
+        height: area.height,
+    };
+
+    let items: Vec<Rect> = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-        .spacing(1)
-        .split(area);
+        .constraints(ACTIONS.iter().map(|_| Constraint::Length(3)))
+        .split(centered)
+        .to_vec();
 
-    for (row_idx, row_area) in rows.iter().enumerate() {
-        let cols = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .spacing(2)
-            .split(*row_area);
-
-        for (col_idx, col_area) in cols.iter().enumerate() {
-            let idx = row_idx * 2 + col_idx;
-            if idx >= ACTIONS.len() {
-                break;
-            }
-            render_action_card(
-                frame,
-                *col_area,
-                theme,
-                &ACTIONS[idx],
-                regions,
-                mouse_pos,
-                hover_pulse,
-            );
-        }
+    for (idx, action) in ACTIONS.iter().enumerate() {
+        render_action_button(
+            frame,
+            items[idx],
+            theme,
+            action,
+            regions,
+            mouse_pos,
+            hover_pulse,
+        );
     }
 }
 
-fn render_action_card(
+fn render_action_button(
     frame: &mut ratatui::Frame,
     area: Rect,
     theme: &Theme,
@@ -108,18 +105,15 @@ fn render_action_card(
     hover_pulse: bool,
 ) {
     let hovered = is_hovered(area, mouse_pos);
-    let text = Text::from(vec![
-        Line::from(format!("> {}", action.label))
-            .style(if hovered {
-                theme.style_brand()
-            } else {
-                theme.style_cream()
-            })
-            .alignment(Alignment::Center),
-        Line::from(action.command)
-            .style(theme.style_muted())
-            .alignment(Alignment::Center),
-    ]);
+    let text = Text::from(vec![Line::from(format!(
+        "> {}  {}",
+        action.label, action.command
+    ))
+    .style(if hovered {
+        theme.style_brand()
+    } else {
+        theme.style_cream()
+    })]);
 
     let block = Block::default()
         .borders(Borders::ALL)
@@ -128,7 +122,7 @@ fn render_action_card(
     frame.render_widget(
         Paragraph::new(text)
             .block(block)
-            .alignment(Alignment::Center)
+            .alignment(Alignment::Left)
             .style(theme.style_text()),
         area,
     );
@@ -137,15 +131,6 @@ fn render_action_card(
         rect: area,
         action: ClickAction::Command(action.command),
     });
-}
-
-fn render_hint(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
-    let text = Text::from(vec![Line::from(
-        "鼠标悬停卡片有动画效果，点击执行，或在下方输入命令",
-    )
-    .style(theme.style_hint())
-    .alignment(Alignment::Center)]);
-    frame.render_widget(Paragraph::new(text), area);
 }
 
 fn is_hovered(rect: Rect, mouse_pos: Option<(u16, u16)>) -> bool {
