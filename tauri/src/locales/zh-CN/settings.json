@@ -138,6 +138,7 @@
   "loading": "加载中...",
   "could_not_load": "无法加载应用信息",
   "latest_version": "最新版本",
+  "update_check_failed": "检查更新失败",
   "update_available": "可更新: {{version}}",
   "update_now": "立即更新",
   "downloading": "正在下载...",

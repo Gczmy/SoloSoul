@@ -18,7 +18,7 @@ describe('updater', () => {
   });
 
   describe('checkForUpdate', () => {
-    it('returns update info when an update is available', async () => {
+    it('returns available result when an update is available', async () => {
       mockCheck.mockResolvedValue({
         version: '2.0.0',
         body: 'Release notes',
@@ -28,27 +28,33 @@ describe('updater', () => {
       const result = await checkForUpdate();
 
       expect(result).toEqual({
-        version: '2.0.0',
-        body: 'Release notes',
-        date: '2026-06-13',
+        kind: 'available',
+        info: {
+          version: '2.0.0',
+          body: 'Release notes',
+          date: '2026-06-13',
+        },
       });
     });
 
-    it('returns null when no update is available', async () => {
+    it('returns up-to-date result when no update is available', async () => {
       mockCheck.mockResolvedValue(null);
 
       const result = await checkForUpdate();
 
-      expect(result).toBeNull();
+      expect(result).toEqual({ kind: 'up-to-date' });
     });
 
-    it('returns null and logs warning when check throws', async () => {
+    it('returns error result and logs warning when check throws', async () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       mockCheck.mockRejectedValue(new Error('network error'));
 
       const result = await checkForUpdate();
 
-      expect(result).toBeNull();
+      expect(result).toEqual({
+        kind: 'error',
+        message: 'network error',
+      });
       expect(consoleSpy).toHaveBeenCalledWith('[updater] check failed:', expect.any(Error));
       consoleSpy.mockRestore();
     });
