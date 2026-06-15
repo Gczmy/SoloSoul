@@ -4,6 +4,30 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-06-15
+
+### Added
+
+- **SoloSoul CLI Phase 0–5 完整交付** — 独立终端 TUI 客户端达到与 GUI 一致的核心能力：账户创建/登录/自动锁定、Vault 只读与写入命令、对象向导、附件/备份/导入导出/设置/安全子命令。
+- **CLI 核心库抽取** — 新增 `solosoul-core` crate，迁移 `VaultService`、模板、生物识别、密码验证核心逻辑，供 GUI 与 CLI 共享。
+- **CLI 终端 UI** — 基于 `ratatui` 0.30.1 实现全屏 TUI，包含命令输入框、屏幕渲染、自动补全、字段编辑器、模态提示与密码输入框。
+- **CLI 命令体系** — 支持 `/unlock`、`/lock`、`/list`、`/open`、`/size`、`/search`、`/history`、`/rollback`、`/newpage`、`/newobject`、`/edit`、`/delete`、`/trash`、`/restore`、`/purge`、`/operation_log`、`/export_log`、`/attach`、`/backup`、`/export`、`/import`、`/language`、`/theme`、`/setting`、`/security`、`/debug_log`、`/about`、`/help`。
+- **CLI 品牌视觉** — 登录页/首页采用暖色仪表盘风格，新增 Codebuff 风格 Unicode Logo、FIGlet banner、扫光动画与 GUI 品牌蓝色主题。
+
+### Changed
+
+- **CLI 登录体验** — 账号名/选择器始终置顶，生物识别/密码选项改为可点击卡片，禁用 emoji 并加入鼠标悬停动画。
+- **CLI 命令补全** — 根据当前阶段动态过滤命令，未解锁时隐藏登录后命令，向导内仅提供安全命令。
+- **CLI 日志与锁定** — 日志写入 `{data_dir}/logs/cli.log`，5 分钟无操作自动锁定 Vault，模态打开期间暂停锁定计时。
+
+### Fixed
+
+- **GUI 窗口大小恢复** — 修复权限问题与同步缓存覆盖导致的启动后尺寸无法恢复。
+- **GUI 关键字段日志** — 修复关键字段操作日志中的对象名、页面与属性名记录。
+- **GUI 侧边栏滚动** — 修复各模式下滚动条显示与图标偏移。
+- **GUI 搜索闪烁** — 修复搜索弹窗与结果高亮的闪烁问题。
+- **GUI 主题悬停色** — 统一深色/浅色模式下的悬停颜色。
+
 ## [2.2.0] - 2026-06-14
 
 ### Added
