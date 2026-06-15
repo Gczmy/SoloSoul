@@ -29,6 +29,8 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::OperationLog { .. } => "审计日志".to_string(),
         AppPhase::About { .. } => "关于".to_string(),
         AppPhase::Help { .. } => "帮助".to_string(),
+        AppPhase::AttachmentList { .. } => "附件列表".to_string(),
+        AppPhase::BackupList { .. } => "备份列表".to_string(),
         AppPhase::Quit => "退出中".to_string(),
     };
 

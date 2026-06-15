@@ -2,6 +2,8 @@
 
 pub mod about;
 pub mod account_list;
+pub mod attachment_list;
+pub mod backup_list;
 pub mod doctor;
 pub mod edit_object;
 pub mod help;

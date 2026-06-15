@@ -19,7 +19,7 @@
 |------|------|------|
 | **Tauri 客户端（GUI）** | ✅ 主项目，活跃开发 | React + Tauri 跨平台客户端，macOS/Windows 已适配 |
 | **Rust 原生核心** | ✅ 完整 | Argon2id + AES-256-GCM，通过 Tauri Commands 供前端调用 |
-| **SoloSoul CLI** | ✅ Phase 4 已交付 | 独立终端 TUI 客户端；首次启动自动进入创建账户向导。已支持 `/unlock`、`/lock`、`/list`、`/open`、`/size`、`/search`、`/history`、`/rollback`、`/newpage`、`/newobject`、`/edit`、`/delete`、`/trash`、`/restore`、`/purge`、`/operation_log`、`/export_log`、`/about`、`/help` |
+| **SoloSoul CLI** | ✅ Phase 5 已交付 | 独立终端 TUI 客户端；首次启动自动进入创建账户向导。已支持 `/unlock`、`/lock`、`/list`、`/open`、`/size`、`/search`、`/history`、`/rollback`、`/newpage`、`/newobject`、`/edit`、`/delete`、`/trash`、`/restore`、`/purge`、`/operation_log`、`/export_log`、`/attach`、`/backup`、`/export`、`/import`、`/language`、`/theme`、`/setting`、`/security`、`/debug_log`、`/about`、`/help` |
 | **JS SDK** | ❌ 未开始 | `sdk/js/` 为空占位目录 |
 | **Python SDK** | ❌ 未开始 | `sdk/python/` 为空占位目录 |
 
@@ -61,6 +61,9 @@
 - `fs2` — 进程级文件锁
 - `zeroize` — 敏感内存安全清零
 - `sys-locale` — 首次启动检测系统语言以导入对应默认模板
+- `solosoul-crypto` — 复用 GUI 的 Argon2id / AES-256-GCM 密码学 crate（加密导出/导入）
+- `zip` 2 — 加密导出/导入包格式
+- `hex` 0.4 — manifest salt 编解码
 
 ---
 
@@ -104,7 +107,7 @@ SoloSoul/
 │   │   ├── cli.rs              # 命令行参数定义
 │   │   ├── commands/           # 命令实现（doctor 等）
 │   │   ├── events.rs           # 终端事件轮询
-│   │   ├── screens/            # 屏幕渲染（welcome/locked/unlock/onboarding/home/object_list/object_detail/size/doctor/account_list/new_object/edit_object/trash_list/search_results/history_list/operation_log/about/help）
+│   │   ├── screens/            # 屏幕渲染（welcome/locked/unlock/onboarding/home/object_list/object_detail/size/doctor/account_list/new_object/edit_object/trash_list/search_results/history_list/operation_log/attachment_list/backup_list/about/help）
 │   │   ├── tui.rs              # TUI 启动/恢复与帧绘制
 │   │   ├── widgets/            # 可复用 TUI 组件（command_input 等）
 │   │   └── lib.rs              # CLI 库入口
@@ -209,6 +212,12 @@ cargo clippy -- -D warnings
 - 已登录态 5 分钟无键盘操作自动锁定 Vault，状态栏显示剩余锁定倒计时。
 - `/search` 在解密后的对象属性中做流式匹配，命中 200 条后提前截断并提示；支持 `"quoted phrase"` 多词关键词。
 - `/operation_log`、`/export_log` 必须先解锁 Vault，审计日志通过 `VaultStore::list_audit_log` 读取并解密。
+- `/attach` 子命令（`list/add/rename/delete/restore/purge/cleanup`）管理对象附件，附件元数据存储于对象 `properties.__attachments`，物理文件存放于 `{data_dir}/attachments/{object_id}/{attachment_id}/`。
+- `/backup` 子命令（`list/create/restore/delete`）对当前 Vault 的 Profile 做备份与恢复；恢复前强制显示备份概要并要求 `Y/n` 确认。
+- `/export` 与 `/import` 使用与 GUI 相同的 `.solosoul` 加密 ZIP 格式（`manifest.json`、`payload.enc`、可选 `attachments/`）；导出密码通过模态提示安全采集，且不允许与主密码相同。
+- `/language`、`/theme` 读写 `{data_dir}/ui_preferences.json`；`/setting <key> <value>` 写入当前账户的加密 profile preferences。
+- `/security` 子命令支持修改主密码、密码提示、回收站保留天数与删除账户；删除账户前须通过当前主密码验证与二次确认。
+- `/debug_log` 导出包含审计日志与脱敏系统信息的诊断包。
 - 命令补全根据当前阶段动态过滤，未解锁时不会提示 `/list`、`/open` 等需登录命令；向导内部仅提供 `/cancel`、`/save`、`/back` 等不会丢失未保存数据的命令。
 - 模态提示（字段编辑、确认对话框）打开期间自动暂停自动锁定计时，关闭后恢复。
 - 状态栏明确显示 `🔒 进程锁已持有 · GUI 不可用`，提示 CLI 持有进程锁时 GUI 无法访问同一数据目录。
@@ -259,6 +268,11 @@ cargo test
 - `src/commands/history.rs` — `/history`、`/rollback` 快照与回滚单元测试。
 - `src/commands/log.rs` — `/operation_log`、`/export_log` 审计日志单元测试。
 - `src/commands/system.rs` — `/about`、`/help` 系统信息单元测试。
+- `src/commands/attachment.rs` — `/attach` 附件生命周期单元测试。
+- `src/commands/backup.rs` — `/backup` 创建/列出/恢复/删除单元测试。
+- `src/commands/export_import.rs` — `/export`、`/import` 加密包导出导入单元测试。
+- `src/commands/settings.rs` — `/language`、`/theme`、`/setting`、`/debug_log` 设置与诊断单元测试。
+- `src/commands/security.rs` — `/security` 密码/提示/保留期/删除账户单元测试。
 - `tauri/crates/solosoul-core/src/process_lock.rs` — 进程锁获取/释放单元测试。
 
 **注意**：涉及 `VaultService`/`SOLOSOUL_DATA_DIR` 的测试使用全局锁 `crate::VAULT_TEST_LOCK` 串行化，避免并发访问同一数据目录。
@@ -437,7 +451,13 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 | CLI 对象列表/详情/统计 | `solosoul_cli/src/screens/object_list.rs`、`object_detail.rs`、`size.rs` |
 | CLI 创建对象/编辑对象/回收站 | `solosoul_cli/src/screens/new_object.rs`、`edit_object.rs`、`trash_list.rs` |
 | CLI 搜索结果/历史快照/审计日志 | `solosoul_cli/src/screens/search_results.rs`、`history_list.rs`、`operation_log.rs` |
+| CLI 附件列表/备份列表 | `solosoul_cli/src/screens/attachment_list.rs`、`backup_list.rs` |
 | CLI 关于/帮助 | `solosoul_cli/src/screens/about.rs`、`help.rs` |
+| CLI 附件命令 | `solosoul_cli/src/commands/attachment.rs` |
+| CLI 备份命令 | `solosoul_cli/src/commands/backup.rs` |
+| CLI 加密导入导出命令 | `solosoul_cli/src/commands/export_import.rs` |
+| CLI 设置/语言/主题/诊断命令 | `solosoul_cli/src/commands/settings.rs` |
+| CLI 安全命令 | `solosoul_cli/src/commands/security.rs` |
 | CLI Vault 只读命令 | `solosoul_cli/src/commands/vault_read.rs` |
 | CLI Vault 写入命令 | `solosoul_cli/src/commands/vault_write.rs` |
 | CLI 搜索/历史/审计/系统命令 | `solosoul_cli/src/commands/search.rs`、`history.rs`、`log.rs`、`system.rs` |

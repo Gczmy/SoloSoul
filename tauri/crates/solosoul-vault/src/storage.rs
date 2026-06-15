@@ -1,6 +1,5 @@
 //! Vault store - SQLite storage with app-layer AES-256-GCM encryption
 
-use base64::Engine as _;
 use rusqlite::{params, Connection, OptionalExtension};
 use std::sync::Mutex;
 use zeroize::Zeroize;
@@ -2983,7 +2982,7 @@ mod tests {
     #[test]
     fn test_lock() {
         let (vault, _dir) = setup();
-        let mut vault = vault;
+        let vault = vault;
         let profile = Profile::new("test", vec![1, 2, 3]);
         vault.save_profile(&profile).unwrap();
         vault.lock();
@@ -3032,7 +3031,7 @@ mod tests {
 
     #[test]
     fn test_locked_vault_rejects_operations() {
-        let (mut vault, _dir) = setup();
+        let (vault, _dir) = setup();
         vault.lock();
         assert_eq!(vault.state(), VaultState::Locked);
 
@@ -4693,11 +4692,11 @@ mod tests {
 
         let loaded = vault.load_peer_state("node_abc").unwrap().unwrap();
         assert_eq!(loaded.peer_node_id, "node_abc");
-        assert_eq!(loaded.trusted, false);
+        assert!(!loaded.trusted);
 
         vault.set_peer_trusted("node_abc", true).unwrap();
         let loaded = vault.load_peer_state("node_abc").unwrap().unwrap();
-        assert_eq!(loaded.trusted, true);
+        assert!(loaded.trusted);
 
         vault.delete_peer("node_abc").unwrap();
         assert!(vault.load_peer_state("node_abc").unwrap().is_none());

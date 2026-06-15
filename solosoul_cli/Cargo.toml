@@ -53,5 +53,10 @@ tokio = { version = "1.42.0", features = ["rt-multi-thread", "macros"] }
 anyhow = "1.0.95"
 thiserror = "2.0.9"
 
+# 加密导出/导入
+solosoul-crypto = { path = "../tauri/crates/solosoul-crypto" }
+zip = "2"
+hex = "0.4"
+
 [dev-dependencies]
 tempfile = "3.14.0"

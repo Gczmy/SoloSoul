@@ -94,6 +94,18 @@ pub enum AppPhase {
     About { info: commands::system::AboutInfo },
     /// 帮助页
     Help { topic: Option<String> },
+    /// 附件列表页
+    AttachmentList {
+        object_id: String,
+        items: Vec<crate::commands::attachment::AttachmentMeta>,
+        show_deleted: bool,
+        selected: usize,
+    },
+    /// 备份列表页
+    BackupList {
+        items: Vec<crate::commands::backup::BackupInfo>,
+        selected: usize,
+    },
     /// 安全退出
     Quit,
 }
@@ -289,6 +301,8 @@ impl App {
             }
             AppPhase::SearchResults { .. } => self.handle_search_results_key(key),
             AppPhase::HistoryList { .. } => self.handle_history_list_key(key),
+            AppPhase::AttachmentList { .. } => self.handle_attachment_list_key(key),
+            AppPhase::BackupList { .. } => self.handle_backup_list_key(key),
             _ => self.handle_command_key(key),
         }
     }
@@ -688,6 +702,14 @@ impl App {
             "/export_log" => commands::log::export_log(self, parts.get(1).copied())?,
             "/about" => commands::system::about(self)?,
             "/help" => commands::system::help(self, parts.get(1).copied())?,
+            "/attach" => commands::attachment::handle(self, &parts[1..])?,
+            "/backup" => commands::backup::handle(self, &parts[1..])?,
+            "/export" => commands::export_import::handle(self, &parts)?,
+            "/import" => commands::export_import::handle(self, &parts)?,
+            "/language" | "/theme" | "/setting" | "/debug_log" => {
+                commands::settings::handle(self, &parts)?
+            }
+            "/security" => commands::security::handle(self, &parts)?,
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -1083,6 +1105,56 @@ impl App {
         Ok(false)
     }
 
+    /// 附件列表页的键盘处理。
+    fn handle_attachment_list_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::AttachmentList {
+            object_id,
+            items,
+            show_deleted,
+            selected,
+        } = &self.phase
+        {
+            let mut selected = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if selected > 0 => selected -= 1,
+                KeyCode::Down if selected + 1 < items.len() => selected += 1,
+                _ => {}
+            }
+            self.phase = AppPhase::AttachmentList {
+                object_id: object_id.clone(),
+                items: items.clone(),
+                show_deleted: *show_deleted,
+                selected,
+            };
+        }
+        Ok(false)
+    }
+
+    /// 备份列表页的键盘处理。
+    fn handle_backup_list_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::BackupList { items, selected } = &self.phase {
+            let mut selected = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if selected > 0 => selected -= 1,
+                KeyCode::Down if selected + 1 < items.len() => selected += 1,
+                _ => {}
+            }
+            self.phase = AppPhase::BackupList {
+                items: items.clone(),
+                selected,
+            };
+        }
+        Ok(false)
+    }
+
     /// 渲染一帧。
     pub fn render(&self, frame: &mut Frame) {
         let layout = Layout::default()
@@ -1158,6 +1230,22 @@ impl App {
             } => crate::screens::operation_log::render(frame, layout[1], entries, *selected),
             AppPhase::About { info } => crate::screens::about::render(frame, layout[1], info),
             AppPhase::Help { topic } => crate::screens::help::render(frame, layout[1], topic),
+            AppPhase::AttachmentList {
+                object_id,
+                items,
+                show_deleted,
+                selected,
+            } => crate::screens::attachment_list::render(
+                frame,
+                layout[1],
+                object_id,
+                items,
+                *show_deleted,
+                *selected,
+            ),
+            AppPhase::BackupList { items, selected } => {
+                crate::screens::backup_list::render(frame, layout[1], items, *selected)
+            }
             AppPhase::Quit => {}
         }
 
@@ -1211,6 +1299,15 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/purge",
             "/operation_log",
             "/export_log",
+            "/attach",
+            "/backup",
+            "/export",
+            "/import",
+            "/language",
+            "/theme",
+            "/setting",
+            "/security",
+            "/debug_log",
             "/about",
             "/help",
         ],

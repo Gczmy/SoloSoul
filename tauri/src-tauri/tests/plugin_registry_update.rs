@@ -121,22 +121,26 @@ fn registry_json() -> Vec<u8> {
 
 #[tokio::test]
 async fn test_update_registry_from_remote() {
-    let _guard = ENV_LOCK.lock().unwrap();
-    let (key_id, public_key, keypair) = generate_minisign_keypair();
-    let data = registry_json();
-    let signature = sign_registry(&data, key_id, &keypair);
+    let (data, signature) = {
+        let _guard = ENV_LOCK.lock().unwrap();
+        let (key_id, public_key, keypair) = generate_minisign_keypair();
+        let data = registry_json();
+        let signature = sign_registry(&data, key_id, &keypair);
+
+        std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
+        std::env::set_var(
+            "SOLOSOUL_REGISTRY_PUBKEY",
+            public_key_base64(key_id, &public_key),
+        );
+        (data, signature)
+    };
 
     let (_server, url) = start_test_server(data.clone(), signature).await;
+    std::env::set_var("SOLOSOUL_REGISTRY_URL", format!("{}/registry.json", url));
 
     let dir = tempfile::tempdir().unwrap();
     let registry_path: PathBuf = dir.path().join("registry.json");
     std::fs::write(&registry_path, br#"{"plugins": {"old": {}}}"#).unwrap();
-
-    std::env::set_var("SOLOSOUL_REGISTRY_URL", format!("{}/registry.json", url));
-    std::env::set_var(
-        "SOLOSOUL_REGISTRY_PUBKEY",
-        public_key_base64(key_id, &public_key),
-    );
 
     let registry = PluginRegistry::from_path(&registry_path);
     registry.update_from_remote().await.expect("更新注册表失败");
@@ -147,29 +151,33 @@ async fn test_update_registry_from_remote() {
 
 #[tokio::test]
 async fn test_update_registry_rejects_invalid_signature() {
-    let _guard = ENV_LOCK.lock().unwrap();
-    let (key_id, public_key, keypair) = generate_minisign_keypair();
-    let data = registry_json();
-    let signature = sign_registry(&data, key_id, &keypair);
-    // 破坏 global signature 的 base64：将最后一行第一个字符替换为 'A'
-    let mut lines: Vec<&str> = signature.lines().collect();
-    let last = lines.last_mut().unwrap();
-    if !last.is_empty() {
-        *last = "A";
-    }
-    let corrupted = lines.join("\n");
+    let (data, corrupted) = {
+        let _guard = ENV_LOCK.lock().unwrap();
+        let (key_id, public_key, keypair) = generate_minisign_keypair();
+        let data = registry_json();
+        let signature = sign_registry(&data, key_id, &keypair);
+        // 破坏 global signature 的 base64：将最后一行第一个字符替换为 'A'
+        let mut lines: Vec<&str> = signature.lines().collect();
+        let last = lines.last_mut().unwrap();
+        if !last.is_empty() {
+            *last = "A";
+        }
+        let corrupted = lines.join("\n");
+
+        std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
+        std::env::set_var(
+            "SOLOSOUL_REGISTRY_PUBKEY",
+            public_key_base64(key_id, &public_key),
+        );
+        (data, corrupted)
+    };
 
     let (_server, url) = start_test_server(data, corrupted).await;
+    std::env::set_var("SOLOSOUL_REGISTRY_URL", format!("{}/registry.json", url));
 
     let dir = tempfile::tempdir().unwrap();
     let registry_path: PathBuf = dir.path().join("registry.json");
     std::fs::write(&registry_path, br#"{"plugins": {}}"#).unwrap();
-
-    std::env::set_var("SOLOSOUL_REGISTRY_URL", format!("{}/registry.json", url));
-    std::env::set_var(
-        "SOLOSOUL_REGISTRY_PUBKEY",
-        public_key_base64(key_id, &public_key),
-    );
 
     let registry = PluginRegistry::from_path(&registry_path);
     let result = registry.update_from_remote().await;
@@ -178,25 +186,29 @@ async fn test_update_registry_rejects_invalid_signature() {
 
 #[tokio::test]
 async fn test_update_registry_rejects_mismatched_key() {
-    let _guard = ENV_LOCK.lock().unwrap();
-    let (key_id, _public_key, keypair) = generate_minisign_keypair();
-    let data = registry_json();
-    let signature = sign_registry(&data, key_id, &keypair);
+    let (data, signature) = {
+        let _guard = ENV_LOCK.lock().unwrap();
+        let (key_id, _public_key, keypair) = generate_minisign_keypair();
+        let data = registry_json();
+        let signature = sign_registry(&data, key_id, &keypair);
+
+        // 使用另一把公钥
+        let (_, other_pk, _) = generate_minisign_keypair();
+
+        std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
+        std::env::set_var(
+            "SOLOSOUL_REGISTRY_PUBKEY",
+            public_key_base64(key_id, &other_pk),
+        );
+        (data, signature)
+    };
 
     let (_server, url) = start_test_server(data, signature).await;
+    std::env::set_var("SOLOSOUL_REGISTRY_URL", format!("{}/registry.json", url));
 
     let dir = tempfile::tempdir().unwrap();
     let registry_path: PathBuf = dir.path().join("registry.json");
     std::fs::write(&registry_path, br#"{"plugins": {}}"#).unwrap();
-
-    // 使用另一把公钥
-    let (_, other_pk, _) = generate_minisign_keypair();
-
-    std::env::set_var("SOLOSOUL_REGISTRY_URL", format!("{}/registry.json", url));
-    std::env::set_var(
-        "SOLOSOUL_REGISTRY_PUBKEY",
-        public_key_base64(key_id, &other_pk),
-    );
 
     let registry = PluginRegistry::from_path(&registry_path);
     let result = registry.update_from_remote().await;

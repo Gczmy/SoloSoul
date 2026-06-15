@@ -1725,7 +1725,9 @@ mod tests {
         let parsed: serde_json::Value = serde_json::from_slice(&data).unwrap();
         assert!(parsed.get("name").is_some());
 
-        let counts = vault.count_snapshots_batch(&[record.id.clone()]).unwrap();
+        let counts = vault
+            .count_snapshots_batch(std::slice::from_ref(&record.id))
+            .unwrap();
         assert_eq!(counts.get(&record.id), Some(&2));
     }
 

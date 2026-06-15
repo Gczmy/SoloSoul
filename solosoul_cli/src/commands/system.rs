@@ -73,9 +73,28 @@ pub const HELP_GROUPS: &[(&str, &[&str])] = &[
         &[
             "/operation_log [条数]",
             "/export_log [文件名]",
+            "/debug_log [文件名]",
             "/doctor",
             "/about",
             "/help [命令]",
+        ],
+    ),
+    (
+        "数据可移植性",
+        &[
+            "/attach list [对象ID] | add <文件> | rename <id> <新名> | delete <id> | restore <id> | purge <id> | cleanup",
+            "/backup list | create <名称> | restore <id> | delete <id>",
+            "/export [文件] --full | --pages a,b | --objects id1,id2 [--include-attachments]",
+            "/import [文件] --preview | --strategy skip|overwrite|merge",
+        ],
+    ),
+    (
+        "设置与安全",
+        &[
+            "/language [语言]",
+            "/theme [主题]",
+            "/setting <键> <值>",
+            "/security password|hint|trash-retention|delete-account",
         ],
     ),
 ];
@@ -113,6 +132,29 @@ pub fn command_usage(command: &str) -> Option<&'static str> {
         }
         "export_log" | "/export_log" => Some(
             "/export_log [文件名]\n  将审计日志导出到数据目录的 logs/ 文件夹。\n  默认文件名为 export_audit_log.json。需要已解锁。",
+        ),
+        "debug_log" | "/debug_log" => Some(
+            "/debug_log [文件名]\n  导出包含审计日志与系统信息的诊断包到数据目录的 logs/ 文件夹。",
+        ),
+        "attach" | "/attach" => Some(
+            "/attach list [对象ID] | add <文件> | rename <id> <新名> | delete <id> | restore <id> | purge <id> | cleanup\n  管理对象附件。",
+        ),
+        "backup" | "/backup" => Some(
+            "/backup list | create <名称> | restore <id> | delete <id>\n  创建、列出、恢复或删除 Vault 备份。",
+        ),
+        "export" | "/export" => Some(
+            "/export [文件] --full | --pages a,b | --objects id1,id2 [--include-attachments]\n  将对象加密导出为 .solosoul 包。",
+        ),
+        "import" | "/import" => Some(
+            "/import [文件] --preview | --strategy skip|overwrite|merge\n  从 .solosoul 包导入对象。",
+        ),
+        "language" | "/language" => Some("/language [语言]\n  获取或设置界面语言，保存于 ui_preferences.json。"),
+        "theme" | "/theme" => Some("/theme [主题]\n  获取或设置界面主题，保存于 ui_preferences.json。"),
+        "setting" | "/setting" => {
+            Some("/setting <键> <值>\n  更新当前账户的加密偏好设置。值会尝试按 JSON 解析，失败则保存为字符串。")
+        }
+        "security" | "/security" => Some(
+            "/security password|hint|trash-retention|delete-account\n  修改主密码、密码提示、回收站保留天数或删除账户。",
         ),
         "doctor" | "/doctor" => Some("/doctor\n  生成数据目录健康诊断报告。"),
         "about" | "/about" => Some("/about\n  显示应用版本、系统与数据目录信息。"),

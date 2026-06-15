@@ -416,7 +416,7 @@ mod tests {
 
     fn create_test_account_config(password: &str) -> (crate::vault_service::AccountConfig, String) {
         let salt = solosoul_crypto::kdf::generate_salt();
-        let salt_b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &salt);
+        let salt_b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt);
         let config = solosoul_crypto::kdf::KdfConfig::balanced();
         let master_key = solosoul_crypto::kdf::derive_key(password, &salt, &config).unwrap();
         let master_key_hex = hex::encode(master_key.as_slice());
