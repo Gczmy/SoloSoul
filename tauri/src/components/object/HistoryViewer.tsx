@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
@@ -248,6 +248,7 @@ export function HistoryViewer({
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
+  const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const customPages = useSettingsStore((s) => s.settings.customPages);
 
@@ -289,10 +290,18 @@ export function HistoryViewer({
       .finally(() => setLoading(false));
   }, [objectId]);
 
+  useEffect(() => {
+    return () => {
+      if (navTimeoutRef.current) {
+        clearTimeout(navTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const goPrev = () => {
     if (currentIdx < snapshots.length - 1) {
       setAnimDir('right');
-      setTimeout(() => {
+      navTimeoutRef.current = setTimeout(() => {
         setCurrentIdx((i) => i + 1);
         setAnimDir(null);
       }, 150);
@@ -301,7 +310,7 @@ export function HistoryViewer({
   const goNext = () => {
     if (currentIdx > 0) {
       setAnimDir('left');
-      setTimeout(() => {
+      navTimeoutRef.current = setTimeout(() => {
         setCurrentIdx((i) => i - 1);
         setAnimDir(null);
       }, 150);
