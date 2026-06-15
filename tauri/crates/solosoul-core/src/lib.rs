@@ -17,3 +17,6 @@ pub mod vault_service;
 
 //  Convenience re-exports for callers that only need the public types.
 pub use vault_service::{AccountConfig, AccountSummary, VaultService};
+
+// Re-export vault storage types so CLI/GUI hosts can use them through a single crate.
+pub use solosoul_vault::{ObjectRecord, ObjectSummary, VaultStats, VaultStore};

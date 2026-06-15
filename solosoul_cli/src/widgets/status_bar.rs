@@ -1,5 +1,7 @@
 //! 顶部状态栏组件。
 
+use std::time::Instant;
+
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Paragraph;
@@ -8,12 +10,17 @@ use crate::app::{App, AppPhase};
 
 /// 渲染顶部状态栏。
 pub fn render(app: &App) -> Paragraph<'_> {
-    let phase_text = match app.phase {
-        AppPhase::Welcome => "未登录 · 无账户",
-        AppPhase::Locked => "已锁定",
-        AppPhase::AccountList { .. } => "账户列表",
-        AppPhase::Doctor { .. } => "Doctor",
-        AppPhase::Quit => "退出中",
+    let phase_text = match &app.phase {
+        AppPhase::Welcome => "未登录 · 无账户".to_string(),
+        AppPhase::Locked => "已锁定".to_string(),
+        AppPhase::AccountList { .. } => "账户列表".to_string(),
+        AppPhase::UnlockWizard { .. } => "登录".to_string(),
+        AppPhase::Home { account_id } => format!("已登录 · {}", account_id),
+        AppPhase::ObjectList { title, .. } => title.clone(),
+        AppPhase::ObjectDetail { object } => format!("对象: {}", object.name),
+        AppPhase::Size { .. } => "账户统计".to_string(),
+        AppPhase::Doctor { .. } => "Doctor".to_string(),
+        AppPhase::Quit => "退出中".to_string(),
     };
 
     let lock_text = if app.process_lock.is_some() {
@@ -22,13 +29,21 @@ pub fn render(app: &App) -> Paragraph<'_> {
         "⚠ 未独占"
     };
 
-    let spans = vec![
+    let mut spans = vec![
         Span::styled("SoloSoul CLI", Style::default().bold()),
         Span::raw(" | "),
         Span::raw(phase_text),
         Span::raw(" | "),
         Span::raw(lock_text),
     ];
+
+    // 已登录时显示剩余锁定时间
+    if app.vault_service.is_unlocked() {
+        let idle = Instant::now().duration_since(app.last_activity);
+        let remaining = app.auto_lock_duration.saturating_sub(idle).as_secs();
+        spans.push(Span::raw(" | "));
+        spans.push(Span::raw(format!("锁定倒计时: {}s", remaining)));
+    }
 
     Paragraph::new(Line::from(spans)).dark_gray()
 }

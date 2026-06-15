@@ -2,4 +2,5 @@
 
 pub mod account_list;
 pub mod command_input;
+pub mod password_input;
 pub mod status_bar;

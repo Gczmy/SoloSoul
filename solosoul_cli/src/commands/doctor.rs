@@ -89,6 +89,7 @@ mod tests {
     use tempfile::TempDir;
 
     fn app_with_temp_dir() -> (App, TempDir) {
+        let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
         let dir = TempDir::new().unwrap();
         std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
         let vault = VaultService::new();

@@ -340,6 +340,15 @@ impl VaultService {
         }))
     }
 
+    /// 安全解锁：接受 Zeroizing<String> 主密码，避免调用侧额外明文拷贝。
+    pub fn unlock_secure(
+        &self,
+        account_id: &str,
+        password: &Zeroizing<String>,
+    ) -> Result<(), String> {
+        self.unlock(account_id, password.as_ref())
+    }
+
     pub fn unlock(&self, account_id: &str, password: &str) -> Result<(), String> {
         let config_path = self.config_path(account_id);
         let content =

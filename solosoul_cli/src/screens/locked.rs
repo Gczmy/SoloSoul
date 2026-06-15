@@ -15,9 +15,10 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect) {
         Line::from(""),
         Line::from("当前未登录。可用命令：").alignment(Alignment::Center),
         Line::from(""),
-        Line::from("  /account_list    列出本地账户").alignment(Alignment::Center),
-        Line::from("  /doctor          诊断数据目录与健康状态").alignment(Alignment::Center),
-        Line::from("  /exit            退出").alignment(Alignment::Center),
+        Line::from("  /unlock        登录账户").alignment(Alignment::Center),
+        Line::from("  /account_list  列出本地账户").alignment(Alignment::Center),
+        Line::from("  /doctor        诊断数据目录与健康状态").alignment(Alignment::Center),
+        Line::from("  /exit          退出").alignment(Alignment::Center),
     ]);
 
     let paragraph = Paragraph::new(text)

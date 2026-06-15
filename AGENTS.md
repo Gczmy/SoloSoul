@@ -19,7 +19,7 @@
 |------|------|------|
 | **Tauri 客户端（GUI）** | ✅ 主项目，活跃开发 | React + Tauri 跨平台客户端，macOS/Windows 已适配 |
 | **Rust 原生核心** | ✅ 完整 | Argon2id + AES-256-GCM，通过 Tauri Commands 供前端调用 |
-| **SoloSoul CLI** | 🚧 Phase 1 进行中 | 独立终端 TUI 客户端，基于 `ratatui`/`crossterm`，位于 `solosoul_cli/` |
+| **SoloSoul CLI** | 🚧 Phase 2 进行中 | 独立终端 TUI 客户端；已支持 `/unlock`、`/lock`、`/list`、`/open`、`/size` 等只读命令 |
 | **JS SDK** | ❌ 未开始 | `sdk/js/` 为空占位目录 |
 | **Python SDK** | ❌ 未开始 | `sdk/python/` 为空占位目录 |
 
@@ -59,6 +59,7 @@
 - `color-eyre` — 增强错误报告
 - `tracing-appender` — 文件日志输出
 - `fs2` — 进程级文件锁
+- `zeroize` — 敏感内存安全清零
 
 ---
 
@@ -102,7 +103,7 @@ SoloSoul/
 │   │   ├── cli.rs              # 命令行参数定义
 │   │   ├── commands/           # 命令实现（doctor 等）
 │   │   ├── events.rs           # 终端事件轮询
-│   │   ├── screens/            # 屏幕渲染（welcome/locked/doctor/account_list）
+│   │   ├── screens/            # 屏幕渲染（welcome/locked/unlock/home/object_list/object_detail/size/doctor/account_list）
 │   │   ├── tui.rs              # TUI 启动/恢复与帧绘制
 │   │   ├── widgets/            # 可复用 TUI 组件（command_input 等）
 │   │   └── lib.rs              # CLI 库入口
@@ -200,8 +201,11 @@ cargo clippy -- -D warnings
 **CLI 注意事项：**
 - CLI 是独立 Cargo 项目，不混入 `tauri/` workspace，因此单独维护 `Cargo.lock`。
 - 默认数据目录为 `~/.solosoul/`，可通过 `--data-dir` 或 `SOLOSOUL_DATA_DIR` 覆盖。
-- 日志写入 `{data_dir}/logs/cli.log`，避免污染全屏 TUI。
+- 日志写入 `{data_dir}/logs/cli.log`，避免污染全屏 TUI；所有日志路径已做脱敏审查，不输出主密码、session key 等敏感信息。
 - CLI 启动时会获取进程级排他锁（`solosoul_core::process_lock::ProcessLock`），防止多个 CLI/GUI 实例并发修改同一数据目录。
+- 登录密码使用 `Zeroizing<String>` 管理，通过 `VaultService::unlock_secure` 传递，失败后立即 zeroize。
+- 已登录态 5 分钟无键盘操作自动锁定 Vault，状态栏显示剩余锁定倒计时。
+- 命令补全根据当前阶段动态过滤，未解锁时不会提示 `/list`、`/open` 等需登录命令。
 
 ---
 
@@ -238,8 +242,14 @@ cargo test
 
 **CLI 测试结构：**
 - `src/widgets/command_input.rs` — 命令输入框光标、历史、补全单元测试。
+- `src/widgets/password_input.rs` — 密码输入框掩码、光标、zeroize 单元测试。
+- `src/app.rs` — 登录/锁定/自动锁定/状态机/渲染集成测试。
+- `src/commands/auth.rs` — `/unlock`、`/lock`、`/logout` 命令测试。
+- `src/commands/vault_read.rs` — `/list`、`/open`、`/size` 只读命令测试。
 - `src/commands/doctor.rs` — `/doctor` 诊断报告单元测试。
 - `tauri/crates/solosoul-core/src/process_lock.rs` — 进程锁获取/释放单元测试。
+
+**注意**：涉及 `VaultService`/`SOLOSOUL_DATA_DIR` 的测试使用全局锁 `crate::VAULT_TEST_LOCK` 串行化，避免并发访问同一数据目录。
 
 ---
 
@@ -408,7 +418,13 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 | CLI 命令实现 | `solosoul_cli/src/commands/` |
 | CLI 屏幕渲染 | `solosoul_cli/src/screens/` |
 | CLI 可复用组件 | `solosoul_cli/src/widgets/` |
+| CLI 密码输入框 | `solosoul_cli/src/widgets/password_input.rs` |
+| CLI 登录/解锁屏幕 | `solosoul_cli/src/screens/unlock.rs` |
+| CLI 已登录首页 | `solosoul_cli/src/screens/home.rs` |
+| CLI 对象列表/详情/统计 | `solosoul_cli/src/screens/object_list.rs`、`object_detail.rs`、`size.rs` |
+| CLI Vault 只读命令 | `solosoul_cli/src/commands/vault_read.rs` |
 | 共享进程锁 | `tauri/crates/solosoul-core/src/process_lock.rs` |
+| 共享核心库安全解锁 | `tauri/crates/solosoul-core/src/vault_service.rs` (`unlock_secure`)
 | 任务清单 | `docs/TODO.md` |
 | 用户指南 | `docs/USER_GUIDE.md` |
 | 技术路线图 | `docs/CLIENT_ROADMAP.md` |
