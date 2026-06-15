@@ -43,6 +43,9 @@ uuid = { version = "1.11.0", features = ["v4"] }
 # 安全内存清零
 zeroize = "1.8"
 
+# 系统 locale 检测（首次启动选择模板语言）
+sys-locale = "0.3"
+
 # 异步运行时（为后续 LLM/同步功能预留）
 tokio = { version = "1.42.0", features = ["rt-multi-thread", "macros"] }
 

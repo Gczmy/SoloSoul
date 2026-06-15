@@ -20,6 +20,6 @@ pub use vault_service::{AccountConfig, AccountSummary, VaultService};
 
 // Re-export vault storage types so CLI/GUI hosts can use them through a single crate.
 pub use solosoul_vault::{
-    ObjectRecord, ObjectSummary, PropertyType, TemplateProperty, TrashItem, TrashItemSummary,
-    UserTemplate, VaultStats, VaultStore,
+    AuditLogEntry, ObjectRecord, ObjectSummary, PropertyType, TemplateProperty, TrashItem,
+    TrashItemSummary, UserTemplate, VaultStats, VaultStore,
 };

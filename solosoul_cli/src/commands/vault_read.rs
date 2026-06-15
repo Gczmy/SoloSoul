@@ -140,7 +140,9 @@ mod tests {
     use std::sync::Arc;
 
     fn unlocked_app() -> (App, String, tempfile::TempDir) {
-        let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+        let _guard = crate::VAULT_TEST_LOCK
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
         let vault = VaultService::new();

@@ -123,6 +123,12 @@ impl CommandInput {
         self.cursor = self.value.chars().count();
     }
 
+    /// 设置输入内容并将光标移到末尾。
+    pub fn set_value(&mut self, value: String) {
+        self.value = value;
+        self.cursor = self.value.chars().count();
+    }
+
     /// 清空输入并返回清空前的内容。
     pub fn clear(&mut self) -> String {
         let value = std::mem::take(&mut self.value);

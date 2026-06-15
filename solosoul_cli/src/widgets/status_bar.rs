@@ -23,6 +23,12 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::NewObjectWizard { .. } => "创建对象向导".to_string(),
         AppPhase::EditObjectWizard { .. } => "编辑对象向导".to_string(),
         AppPhase::TrashList { .. } => "回收站".to_string(),
+        AppPhase::Onboarding { .. } => "创建账户".to_string(),
+        AppPhase::SearchResults { .. } => "搜索结果".to_string(),
+        AppPhase::HistoryList { .. } => "历史快照".to_string(),
+        AppPhase::OperationLog { .. } => "审计日志".to_string(),
+        AppPhase::About { .. } => "关于".to_string(),
+        AppPhase::Help { .. } => "帮助".to_string(),
         AppPhase::Quit => "退出中".to_string(),
     };
 

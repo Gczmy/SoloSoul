@@ -10,8 +10,10 @@ use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::Frame;
 use solosoul_core::process_lock::ProcessLock;
 use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, UserTemplate, VaultService};
+use zeroize::Zeroizing;
 
 use crate::commands;
+use crate::commands::search::SearchResultItem;
 use crate::widgets::command_input::CommandInput;
 use crate::widgets::field_editor::EditableField;
 use crate::widgets::password_input::PasswordInput;
@@ -66,6 +68,32 @@ pub enum AppPhase {
     TrashList {
         items: Vec<solosoul_core::TrashItemSummary>,
     },
+    /// 首次启动创建账户向导
+    Onboarding { step: OnboardingStep },
+    /// 搜索结果页
+    SearchResults {
+        query: String,
+        items: Vec<SearchResultItem>,
+        selected: usize,
+        truncated: bool,
+        total_scanned: usize,
+    },
+    /// 对象历史快照页
+    HistoryList {
+        object_id: String,
+        snapshots: Vec<serde_json::Value>,
+        selected: usize,
+    },
+    /// 审计日志页
+    OperationLog {
+        account_id: String,
+        entries: Vec<solosoul_core::AuditLogEntry>,
+        selected: usize,
+    },
+    /// 关于页
+    About { info: commands::system::AboutInfo },
+    /// 帮助页
+    Help { topic: Option<String> },
     /// 安全退出
     Quit,
 }
@@ -106,6 +134,31 @@ pub enum EditObjectStep {
         object: ObjectRecord,
         fields: Vec<EditableField>,
         selected: usize,
+    },
+}
+
+/// 首次启动创建账户向导步骤。
+#[derive(Debug, Clone)]
+pub enum OnboardingStep {
+    /// 输入账户名
+    EnterName,
+    /// 输入主密码
+    EnterPassword { name: String },
+    /// 确认主密码
+    ConfirmPassword {
+        name: String,
+        password: Zeroizing<String>,
+    },
+    /// 输入密码提示词
+    EnterHint {
+        name: String,
+        password: Zeroizing<String>,
+    },
+    /// 最终确认
+    Confirm {
+        name: String,
+        password: Zeroizing<String>,
+        hint: Option<String>,
     },
 }
 
@@ -162,7 +215,9 @@ impl App {
         let phase = if vault_service.has_any_account() {
             AppPhase::Locked
         } else {
-            AppPhase::Welcome
+            AppPhase::Onboarding {
+                step: OnboardingStep::EnterName,
+            }
         };
 
         Ok(Self {
@@ -226,11 +281,14 @@ impl App {
 
         // 根据当前阶段分发
         match &self.phase.clone() {
+            AppPhase::Onboarding { step } => self.handle_onboarding_key(key, step.clone()),
             AppPhase::UnlockWizard { step } => self.handle_unlock_key(key, step.clone()),
             AppPhase::NewObjectWizard { step } => self.handle_new_object_key(key, step.clone()),
             AppPhase::EditObjectWizard { object_id, step } => {
                 self.handle_edit_object_key(key, object_id.clone(), step.clone())
             }
+            AppPhase::SearchResults { .. } => self.handle_search_results_key(key),
+            AppPhase::HistoryList { .. } => self.handle_history_list_key(key),
             _ => self.handle_command_key(key),
         }
     }
@@ -283,6 +341,219 @@ impl App {
                 Ok(false)
             }
         }
+    }
+
+    /// 创建账户向导的键盘处理。
+    fn handle_onboarding_key(&mut self, key: KeyEvent, step: OnboardingStep) -> Result<bool> {
+        match step {
+            OnboardingStep::EnterName => match key.code {
+                KeyCode::Esc => {
+                    self.prompt_exit_onboarding();
+                    return Ok(false);
+                }
+                KeyCode::Enter => {
+                    let name = self.command_input.clear().trim().to_string();
+                    if name.is_empty() {
+                        self.error_message = Some("账户名不能为空".to_string());
+                        self.phase = AppPhase::Onboarding {
+                            step: OnboardingStep::EnterName,
+                        };
+                    } else {
+                        self.error_message = None;
+                        self.phase = AppPhase::Onboarding {
+                            step: OnboardingStep::EnterPassword { name },
+                        };
+                    }
+                    return Ok(false);
+                }
+                _ => {
+                    self.command_input.handle_key(&key);
+                    self.phase = AppPhase::Onboarding {
+                        step: OnboardingStep::EnterName,
+                    };
+                }
+            },
+            OnboardingStep::EnterPassword { name } => {
+                if key.code == KeyCode::Esc {
+                    self.password_input.clear();
+                    self.command_input.clear();
+                    self.phase = AppPhase::Onboarding {
+                        step: OnboardingStep::EnterName,
+                    };
+                    return Ok(false);
+                }
+                if key.code == KeyCode::Enter {
+                    let password = self.password_input.value().clone();
+                    self.password_input.clear();
+                    if password.len() < 8 {
+                        self.error_message = Some("主密码至少需要 8 位".to_string());
+                        self.phase = AppPhase::Onboarding {
+                            step: OnboardingStep::EnterPassword { name },
+                        };
+                    } else {
+                        self.error_message = None;
+                        self.phase = AppPhase::Onboarding {
+                            step: OnboardingStep::ConfirmPassword { name, password },
+                        };
+                    }
+                    return Ok(false);
+                }
+                self.password_input.handle_key(&key);
+                self.phase = AppPhase::Onboarding {
+                    step: OnboardingStep::EnterPassword { name },
+                };
+            }
+            OnboardingStep::ConfirmPassword { name, password } => {
+                if key.code == KeyCode::Esc {
+                    self.password_input.clear();
+                    self.phase = AppPhase::Onboarding {
+                        step: OnboardingStep::EnterPassword { name },
+                    };
+                    return Ok(false);
+                }
+                if key.code == KeyCode::Enter {
+                    let confirm = self.password_input.value().clone();
+                    self.password_input.clear();
+                    if confirm.as_str() != password.as_str() {
+                        self.error_message = Some("两次输入的密码不一致，请重新设置".to_string());
+                        self.phase = AppPhase::Onboarding {
+                            step: OnboardingStep::EnterPassword { name },
+                        };
+                    } else {
+                        self.error_message = None;
+                        self.phase = AppPhase::Onboarding {
+                            step: OnboardingStep::EnterHint { name, password },
+                        };
+                    }
+                    return Ok(false);
+                }
+                self.password_input.handle_key(&key);
+                self.phase = AppPhase::Onboarding {
+                    step: OnboardingStep::ConfirmPassword { name, password },
+                };
+            }
+            OnboardingStep::EnterHint { name, password } => match key.code {
+                KeyCode::Esc => {
+                    let hint = self.command_input.clear().trim().to_string();
+                    let hint = if hint.is_empty() { None } else { Some(hint) };
+                    self.phase = AppPhase::Onboarding {
+                        step: OnboardingStep::Confirm {
+                            name,
+                            password,
+                            hint,
+                        },
+                    };
+                    return Ok(false);
+                }
+                KeyCode::Enter => {
+                    let hint = self.command_input.clear().trim().to_string();
+                    let hint = if hint.is_empty() { None } else { Some(hint) };
+                    self.error_message = None;
+                    self.phase = AppPhase::Onboarding {
+                        step: OnboardingStep::Confirm {
+                            name,
+                            password,
+                            hint,
+                        },
+                    };
+                    return Ok(false);
+                }
+                _ => {
+                    self.command_input.handle_key(&key);
+                    self.phase = AppPhase::Onboarding {
+                        step: OnboardingStep::EnterHint { name, password },
+                    };
+                }
+            },
+            OnboardingStep::Confirm {
+                name,
+                password,
+                hint,
+            } => {
+                if key.code == KeyCode::Esc {
+                    self.command_input
+                        .set_value(hint.clone().unwrap_or_default());
+                    self.phase = AppPhase::Onboarding {
+                        step: OnboardingStep::EnterHint { name, password },
+                    };
+                    return Ok(false);
+                }
+                if key.code == KeyCode::Enter {
+                    self.create_account_and_enter(name, password, hint)?;
+                    return Ok(false);
+                }
+                // 其他按键忽略
+                self.phase = AppPhase::Onboarding {
+                    step: OnboardingStep::Confirm {
+                        name,
+                        password,
+                        hint,
+                    },
+                };
+            }
+        }
+        Ok(false)
+    }
+
+    fn prompt_exit_onboarding(&mut self) {
+        prompt::open(
+            self,
+            PromptSpec::Confirm {
+                message: "退出创建账户？未保存的数据将不会被保留。".to_string(),
+                default_yes: false,
+            },
+            Box::new(|app, result| {
+                if let PromptResult::Confirm(true) = result {
+                    app.vault_service.lock();
+                    app.password_input.clear();
+                    app.phase = AppPhase::Quit;
+                }
+            }),
+        );
+    }
+
+    fn create_account_and_enter(
+        &mut self,
+        name: String,
+        password: Zeroizing<String>,
+        hint: Option<String>,
+    ) -> Result<()> {
+        let hint_ref = hint.as_deref();
+        match self
+            .vault_service
+            .create_account(&name, password.as_ref(), hint_ref)
+        {
+            Ok(account) => {
+                let account_id = account["id"].as_str().unwrap_or("").to_string();
+                if let Some(vault) = self.vault_service.get_vault_store() {
+                    let locale = sys_locale::get_locale()
+                        .map(|l| {
+                            if l.starts_with("zh") {
+                                "zh-CN".to_string()
+                            } else {
+                                l
+                            }
+                        })
+                        .unwrap_or_else(|| "en-US".to_string());
+                    if let Err(e) = solosoul_core::template_service::seed_default_templates(
+                        &vault,
+                        &account_id,
+                        &locale,
+                    ) {
+                        tracing::warn!("导入默认模板失败: {}", e);
+                    }
+                }
+                self.error_message = None;
+                self.phase = AppPhase::Home { account_id };
+            }
+            Err(e) => {
+                self.error_message = Some(format!("创建账户失败: {}", e));
+                self.phase = AppPhase::Onboarding {
+                    step: OnboardingStep::EnterName,
+                };
+            }
+        }
+        Ok(())
     }
 
     /// 提交密码进行解锁。
@@ -402,6 +673,21 @@ impl App {
             "/trash" => commands::vault_write::trash(self)?,
             "/restore" => commands::vault_write::restore(self, parts.get(1).copied())?,
             "/purge" => commands::vault_write::purge(self, parts.get(1).copied())?,
+            "/search" => {
+                let rest = cmd
+                    .strip_prefix("/search")
+                    .map(|s| s.trim())
+                    .filter(|s| !s.is_empty());
+                commands::search::search(self, rest)?
+            }
+            "/history" => commands::history::history(self, parts.get(1).copied())?,
+            "/rollback" => {
+                commands::history::rollback(self, parts.get(1).copied(), parts.get(2).copied())?
+            }
+            "/operation_log" => commands::log::operation_log(self, parts.get(1).copied())?,
+            "/export_log" => commands::log::export_log(self, parts.get(1).copied())?,
+            "/about" => commands::system::about(self)?,
+            "/help" => commands::system::help(self, parts.get(1).copied())?,
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -728,6 +1014,75 @@ impl App {
         Ok(false)
     }
 
+    /// 搜索结果页的键盘处理。
+    fn handle_search_results_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::SearchResults {
+            items,
+            selected,
+            query,
+            truncated,
+            total_scanned,
+        } = &self.phase
+        {
+            let mut selected = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if selected > 0 => selected -= 1,
+                KeyCode::Down if selected + 1 < items.len() => selected += 1,
+                KeyCode::Enter => {
+                    self.phase = AppPhase::SearchResults {
+                        query: query.clone(),
+                        items: items.clone(),
+                        selected,
+                        truncated: *truncated,
+                        total_scanned: *total_scanned,
+                    };
+                    commands::search::open_selected(self)?;
+                    return Ok(false);
+                }
+                _ => {}
+            }
+            self.phase = AppPhase::SearchResults {
+                query: query.clone(),
+                items: items.clone(),
+                selected,
+                truncated: *truncated,
+                total_scanned: *total_scanned,
+            };
+        }
+        Ok(false)
+    }
+
+    /// 历史快照页的键盘处理。
+    fn handle_history_list_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::HistoryList {
+            object_id,
+            snapshots,
+            selected,
+        } = &self.phase
+        {
+            let mut selected = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if selected > 0 => selected -= 1,
+                KeyCode::Down if selected + 1 < snapshots.len() => selected += 1,
+                _ => {}
+            }
+            self.phase = AppPhase::HistoryList {
+                object_id: object_id.clone(),
+                snapshots: snapshots.clone(),
+                selected,
+            };
+        }
+        Ok(false)
+    }
+
     /// 渲染一帧。
     pub fn render(&self, frame: &mut Frame) {
         let layout = Layout::default()
@@ -773,16 +1128,46 @@ impl App {
             AppPhase::TrashList { items } => {
                 crate::screens::trash_list::render(frame, layout[1], items)
             }
+            AppPhase::Onboarding { step } => {
+                crate::screens::onboarding::render(frame, layout[1], self, step)
+            }
+            AppPhase::SearchResults {
+                query,
+                items,
+                selected,
+                truncated,
+                total_scanned,
+            } => crate::screens::search_results::render(
+                frame,
+                layout[1],
+                query,
+                items,
+                *selected,
+                *truncated,
+                *total_scanned,
+            ),
+            AppPhase::HistoryList {
+                object_id,
+                snapshots,
+                selected,
+            } => crate::screens::history_list::render(
+                frame, layout[1], object_id, snapshots, *selected,
+            ),
+            AppPhase::OperationLog {
+                entries, selected, ..
+            } => crate::screens::operation_log::render(frame, layout[1], entries, *selected),
+            AppPhase::About { info } => crate::screens::about::render(frame, layout[1], info),
+            AppPhase::Help { topic } => crate::screens::help::render(frame, layout[1], topic),
             AppPhase::Quit => {}
         }
 
-        // 底部命令输入框（登录向导的密码页或模态提示打开时除外）
+        // 底部命令输入框（登录向导的密码页、创建账户向导、模态提示打开时除外）
         let hide_input = self.prompt.is_some()
             || matches!(
                 self.phase,
                 AppPhase::UnlockWizard {
                     step: UnlockStep::EnterPassword { .. }
-                }
+                } | AppPhase::Onboarding { .. }
             );
         if !hide_input {
             self.command_input.render(frame, layout[2]);
@@ -814,6 +1199,9 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/list",
             "/open",
             "/size",
+            "/search",
+            "/history",
+            "/rollback",
             "/newpage",
             "/newobject",
             "/edit",
@@ -821,6 +1209,10 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/trash",
             "/restore",
             "/purge",
+            "/operation_log",
+            "/export_log",
+            "/about",
+            "/help",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
         AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {
@@ -868,7 +1260,9 @@ mod tests {
     use super::*;
 
     fn locked_app() -> (App, String, tempfile::TempDir) {
-        let _guard = crate::VAULT_TEST_LOCK.lock().unwrap();
+        let _guard = crate::VAULT_TEST_LOCK
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
         let vault = VaultService::new();
@@ -977,5 +1371,84 @@ mod tests {
         let backend = ratatui::backend::TestBackend::new(80, 24);
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
         terminal.draw(|frame| app.render(frame)).unwrap();
+    }
+
+    fn onboarding_app() -> (App, tempfile::TempDir) {
+        let _guard = crate::VAULT_TEST_LOCK
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let dir = tempfile::TempDir::new().unwrap();
+        std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
+        let vault = VaultService::new();
+        let app = App::new(Arc::new(vault)).unwrap();
+        (app, dir)
+    }
+
+    fn press_key(app: &mut App, key: KeyCode) {
+        app.handle_event(crate::events::Event::Key(KeyEvent::from(key)))
+            .unwrap();
+    }
+
+    fn type_string(app: &mut App, s: &str) {
+        for c in s.chars() {
+            press_key(app, KeyCode::Char(c));
+        }
+    }
+
+    #[test]
+    fn test_onboarding_creates_account() {
+        let (mut app, _dir) = onboarding_app();
+        assert!(matches!(
+            app.phase,
+            AppPhase::Onboarding {
+                step: OnboardingStep::EnterName
+            }
+        ));
+
+        type_string(&mut app, "Alice");
+        press_key(&mut app, KeyCode::Enter);
+        assert!(matches!(
+            app.phase,
+            AppPhase::Onboarding {
+                step: OnboardingStep::EnterPassword { .. }
+            }
+        ));
+
+        type_string(&mut app, "password123");
+        press_key(&mut app, KeyCode::Enter);
+        assert!(matches!(
+            app.phase,
+            AppPhase::Onboarding {
+                step: OnboardingStep::ConfirmPassword { .. }
+            }
+        ));
+
+        type_string(&mut app, "password123");
+        press_key(&mut app, KeyCode::Enter);
+        assert!(matches!(
+            app.phase,
+            AppPhase::Onboarding {
+                step: OnboardingStep::EnterHint { .. }
+            }
+        ));
+
+        type_string(&mut app, "my favorite color");
+        press_key(&mut app, KeyCode::Enter);
+        assert!(matches!(
+            app.phase,
+            AppPhase::Onboarding {
+                step: OnboardingStep::Confirm { .. }
+            }
+        ));
+
+        press_key(&mut app, KeyCode::Enter);
+        assert!(matches!(app.phase, AppPhase::Home { .. }));
+        assert!(app.vault_service.is_unlocked());
+        assert!(app.vault_service.has_any_account());
+
+        // 验证默认模板已导入
+        let account_id = app.vault_service.get_current_account().unwrap();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        assert!(!vault.list_user_templates(&account_id).unwrap().is_empty());
     }
 }

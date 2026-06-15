@@ -15,12 +15,9 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect) {
         Line::from(""),
         Line::from("本地优先 · 零知识 · 你的数据你做主").alignment(Alignment::Center),
         Line::from(""),
-        Line::from("当前未发现本地账户。请使用 GUI 客户端创建账户后，再使用 CLI 登录。")
-            .alignment(Alignment::Center),
+        Line::from("当前未发现本地账户。CLI 将引导你创建第一个账户。").alignment(Alignment::Center),
         Line::from(""),
-        Line::from("可用命令：").alignment(Alignment::Center),
-        Line::from("  /doctor    诊断数据目录与健康状态").alignment(Alignment::Center),
-        Line::from("  /exit      退出").alignment(Alignment::Center),
+        Line::from("按 Enter 开始创建账户，或 /exit 退出。").alignment(Alignment::Center),
     ]);
 
     let paragraph = Paragraph::new(text)
