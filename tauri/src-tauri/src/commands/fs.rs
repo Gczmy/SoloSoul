@@ -5,6 +5,9 @@ use std::io::{BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use tauri::State;
 
+/// Maximum file size that can be read into memory for a data URL preview (10 MiB).
+const MAX_DATA_URL_SIZE: u64 = 10 * 1024 * 1024;
+
 /// R012: reject paths that contain parent-dir references, which could escape the
 /// intended directory. Used for commands that operate on user-selected files.
 fn reject_traversal(path: &str) -> Result<PathBuf, String> {
@@ -287,6 +290,14 @@ pub async fn fs_read_file_as_data_url(path: String) -> Result<String, String> {
     use std::io::Read;
     let p = reject_traversal(&path)?;
     let mut file = std::fs::File::open(&p).map_err(|e| format!("Open: {}", e))?;
+    let meta = file.metadata().map_err(|e| format!("Metadata: {}", e))?;
+    if meta.len() > MAX_DATA_URL_SIZE {
+        return Err(format!(
+            "File too large for preview: {} bytes (max {})",
+            meta.len(),
+            MAX_DATA_URL_SIZE
+        ));
+    }
     let mut buf = Vec::new();
     file.read_to_end(&mut buf)
         .map_err(|e| format!("Read: {}", e))?;
