@@ -29,19 +29,21 @@ pub fn render(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Percentage(45),
-            Constraint::Length(8),
-            Constraint::Length(2),
+            Constraint::Length(7), // FIGlet banner + 边框
+            Constraint::Length(2), // 副标语
+            Constraint::Length(6), // 可点击选项卡
+            Constraint::Length(1), // 底部提示
         ])
         .split(inner);
 
     render_brand(frame, chunks[0], &theme);
-    render_options(frame, chunks[1], &theme, regions, mouse_pos, hover_pulse);
-    render_hint(frame, chunks[2], &theme);
+    render_taglines(frame, chunks[1], &theme);
+    render_options(frame, chunks[2], &theme, regions, mouse_pos, hover_pulse);
+    render_hint(frame, chunks[3], &theme);
 }
 
 fn render_brand(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
-    let mut lines: Vec<Line> = vec![Line::from("")];
+    let mut lines: Vec<Line> = Vec::new();
 
     if let Some(figure) = standard_font().convert("SoloSoul") {
         let banner = figure.as_str();
@@ -64,18 +66,6 @@ fn render_brand(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
         );
     }
 
-    lines.extend([
-        Line::from(""),
-        Line::from("独奏生命数据，重塑数字原点")
-            .style(theme.style_cream())
-            .alignment(Alignment::Center),
-        Line::from(""),
-        Line::from("本地优先 · 零知识 · 你的数据你做主")
-            .style(theme.style_muted())
-            .alignment(Alignment::Center),
-        Line::from(""),
-    ]);
-
     let block = Block::default()
         .borders(Borders::ALL)
         .border_style(theme.style_border(true))
@@ -87,6 +77,23 @@ fn render_brand(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
         .alignment(Alignment::Center)
         .style(theme.style_text());
     frame.render_widget(paragraph, area);
+}
+
+fn render_taglines(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
+    let text = Text::from(vec![
+        Line::from("独奏生命数据，重塑数字原点")
+            .style(theme.style_cream())
+            .alignment(Alignment::Center),
+        Line::from("本地优先 · 零知识 · 你的数据你做主")
+            .style(theme.style_muted())
+            .alignment(Alignment::Center),
+    ]);
+    frame.render_widget(
+        Paragraph::new(text)
+            .alignment(Alignment::Center)
+            .style(theme.style_text()),
+        area,
+    );
 }
 
 fn render_options(

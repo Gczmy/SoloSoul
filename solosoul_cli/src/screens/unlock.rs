@@ -1,4 +1,4 @@
-//! 登录向导屏幕 —— 暖色账户选择与密码输入。
+//! 登录向导屏幕 —— 品牌蓝账户选择与密码输入。
 
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Rect};
 use ratatui::style::{Modifier, Style};

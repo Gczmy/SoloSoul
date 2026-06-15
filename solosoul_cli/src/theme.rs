@@ -1,6 +1,7 @@
-//! SoloSoul CLI 暖色主题系统。
+//! SoloSoul CLI 主题系统（GUI 默认品牌蓝）。
 //!
 //! 统一提供品牌色、状态色、图标回退与终端颜色自动降级。
+//! 品牌蓝沿用 GUI 默认主色 `--accent-primary: #5b7c99`。
 //! 降级规则：
 //! - `COLORTERM=truecolor` 或 `SOLOSOUL_CLI_TRUECOLOR=1` → RGB 真色
 //! - `TERM` 包含 `256color` → 256 色（Indexed）
@@ -8,7 +9,7 @@
 
 use ratatui::style::{Color, Modifier, Style};
 
-/// 暖色主题调色板与图标配置。
+/// GUI 品牌蓝主题调色板与图标配置。
 #[derive(Debug, Clone, Copy)]
 pub struct Theme {
     pub brand: Color,
@@ -32,36 +33,36 @@ impl Theme {
         Self::with_level(color_level, use_icons)
     }
 
-    /// 按指定颜色级别构造暖色主题。
+    /// 按指定颜色级别构造 GUI 品牌蓝主题。
     pub fn with_level(level: ColorLevel, use_icons: bool) -> Self {
         match level {
             ColorLevel::TrueColor => Self {
-                brand: Color::Rgb(255, 160, 72),
-                cream: Color::Rgb(255, 200, 130),
-                border: Color::Rgb(140, 110, 80),
-                text: Color::Rgb(250, 245, 230),
-                muted: Color::Rgb(170, 160, 145),
+                brand: Color::Rgb(91, 124, 153),  // #5b7c99
+                cream: Color::Rgb(142, 175, 200), // #8eafc8
+                border: Color::Rgb(74, 106, 133), // #4a6a85
+                text: Color::Rgb(224, 234, 242),  // #e0eaf2
+                muted: Color::Rgb(143, 163, 176), // #8fa3b0
                 success: Color::Rgb(130, 200, 120),
                 warning: Color::Rgb(255, 200, 100),
                 error: Color::Rgb(255, 120, 100),
-                bg: Color::Rgb(60, 45, 35),
+                bg: Color::Rgb(26, 32, 38), // #1a2026
                 use_icons,
             },
             ColorLevel::Indexed => Self {
-                brand: Color::Indexed(214),
-                cream: Color::Indexed(222),
-                border: Color::Indexed(137),
-                text: Color::Indexed(230),
-                muted: Color::Indexed(180),
+                brand: Color::Indexed(67),
+                cream: Color::Indexed(110),
+                border: Color::Indexed(60),
+                text: Color::Indexed(255),
+                muted: Color::Indexed(109),
                 success: Color::Indexed(114),
                 warning: Color::Indexed(221),
                 error: Color::Indexed(203),
-                bg: Color::Indexed(235),
+                bg: Color::Indexed(234),
                 use_icons,
             },
             ColorLevel::Ansi => Self {
-                brand: Color::Yellow,
-                cream: Color::LightYellow,
+                brand: Color::Blue,
+                cream: Color::LightBlue,
                 border: Color::DarkGray,
                 text: Color::White,
                 muted: Color::Gray,
@@ -234,11 +235,11 @@ mod tests {
     #[test]
     fn test_theme_with_level() {
         let t = Theme::with_level(ColorLevel::Ansi, true);
-        assert_eq!(t.brand, Color::Yellow);
+        assert_eq!(t.brand, Color::Blue);
         assert!(t.use_icons);
 
         let t = Theme::with_level(ColorLevel::TrueColor, false);
-        assert_eq!(t.brand, Color::Rgb(255, 160, 72));
+        assert_eq!(t.brand, Color::Rgb(91, 124, 153));
         assert!(!t.use_icons);
     }
 

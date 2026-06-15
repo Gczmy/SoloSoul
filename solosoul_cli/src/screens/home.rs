@@ -1,4 +1,4 @@
-//! 已登录首页 —— 暖色仪表盘 + 可导航快捷卡片。
+//! 已登录首页 —— 品牌蓝仪表盘 + 可导航快捷卡片。
 
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Rect};
 use ratatui::text::{Line, Text};
