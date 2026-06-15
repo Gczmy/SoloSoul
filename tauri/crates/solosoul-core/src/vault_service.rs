@@ -3,6 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
+use solosoul_crypto::secure::secure_compare;
 use solosoul_vault::{VaultConfig, VaultStore};
 use std::collections::HashMap;
 use std::fs;
@@ -381,7 +382,7 @@ impl VaultService {
         .map_err(|_| "Verify failed".to_string())?;
         let computed_hash = hex::encode(verify_key.as_slice());
 
-        if computed_hash != config.verify_hash {
+        if !secure_compare(computed_hash.as_bytes(), config.verify_hash.as_bytes()) {
             return Err("Invalid password".to_string());
         }
 
@@ -476,7 +477,10 @@ impl VaultService {
         .map_err(|_| "Verify failed".to_string())?;
         let computed_hash = hex::encode(verify_key.as_slice());
 
-        Ok(computed_hash == config.verify_hash)
+        Ok(secure_compare(
+            computed_hash.as_bytes(),
+            config.verify_hash.as_bytes(),
+        ))
     }
 
     /// Unlock vault with a pre-derived session key (used by biometric unlock).
