@@ -1,5 +1,55 @@
 ## [Released]
 
+## [2.2.1] - 2026-06-15
+
+### Added
+
+- **SoloSoul CLI** — Full-featured terminal TUI client with account creation/login, auto-lock, Vault read/write commands, object wizard, attachments, backups, import/export, settings, and security commands.
+- **Shared core crate** — New `solosoul-core` crate extracted for reuse by both GUI and CLI.
+- **CLI brand visuals** — Warm dashboard UI, Codebuff-style Unicode logo, FIGlet banner, and GUI-matching brand blue theme.
+
+### Fixed
+
+- Window size not restored on launch.
+- Critical-field audit log details.
+- Sidebar scrollbar visibility and icon offset.
+- Search flicker and result highlighting.
+- Theme hover colors in light/dark modes.
+
+## [2.2.0] - 2026-06-14
+
+### Added
+
+- **End-to-end device sync** — Local P2P sync with HLC, Noise XX, and CRDT, accessible from Settings.
+- **Plugin system Phase 1–4** — Full plugin lifecycle: Vault field access, network proxy, blocking consent, JSON/Markdown export, online registry updates, Minisign verification, and Wasm crash isolation.
+- **Plugin SDK placeholders** — JS/Python SDK directories and Wasm plugin development guide.
+- **Template manager** — Filtering, search, and Chinese/English sample template subpages.
+- **Help docs** — Reworked sync chapter into "Device Sync".
+
+### Changed
+
+- **Windows installer branding** — Branded NSIS UI with more robust resource generation.
+- **macOS app identity** — Fixed bundle config keys for correct Dock and app names.
+- **Login page UX** — Account selector always visible above login methods; unified biometric button hover/animation.
+- **Search & layout** — Adaptive search modal, optimized result cards, and `scrollbar-gutter: stable`.
+- **Sidebar scrollbars** — Fully hidden across modes to prevent icon shifts on Windows.
+
+### Fixed
+
+- R001–R032 / F001–F032 audit issues.
+- Sensitive fields now encrypted with AES-256-GCM; VaultService IO moved out of async lock path; large-file crypto streamed.
+- Biometric master key moved from obfuscated file to system Keychain.
+- Path traversal protection for attachments, backups, and embedded model IDs.
+- Account creation race condition; serialized `create_account` and duplicate active-ID rejection.
+- Login performance: KDF and account-list queries moved to blocking thread pool.
+- Async races and memory leaks via `useCancellable` and cleaned-up timeouts.
+
+### Security
+
+- Fixed plaintext sensitive data, hardcoded XOR obfuscation, path traversal, and unauthorized command access reported by audit.
+- Restricted `fs` command accessible paths to prevent directory traversal.
+- Backup and attachment operations use exact ID matching.
+
 ## [2.1.0] - 2026-06-12
 
 ### Added
