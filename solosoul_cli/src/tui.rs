@@ -1,0 +1,76 @@
+//! TUI 终端初始化与运行循环。
+
+use std::io::{self, stdout};
+use std::sync::Arc;
+use std::time::Duration;
+
+use color_eyre::Result;
+use crossterm::cursor::Show;
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+};
+use crossterm::ExecutableCommand;
+use ratatui::backend::CrosstermBackend;
+use ratatui::Terminal;
+use solosoul_core::VaultService;
+
+use crate::app::{App, AppPhase};
+use crate::events::poll_event;
+
+pub struct Tui {
+    terminal: Terminal<CrosstermBackend<io::Stdout>>,
+    app: App,
+}
+
+impl Tui {
+    pub fn new(vault_service: VaultService) -> Result<Self> {
+        let terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+        let app = App::new(Arc::new(vault_service))?;
+        Ok(Self { terminal, app })
+    }
+
+    pub fn run(&mut self) -> Result<()> {
+        // 进入备用屏幕与 raw 模式
+        stdout().execute(EnterAlternateScreen)?;
+        enable_raw_mode()?;
+        self.terminal.clear()?;
+
+        let result = self.run_loop();
+
+        // 恢复终端
+        disable_raw_mode()?;
+        stdout().execute(LeaveAlternateScreen)?;
+        stdout().execute(Show)?;
+
+        result
+    }
+
+    fn run_loop(&mut self) -> Result<()> {
+        let tick_rate = Duration::from_millis(250);
+
+        while !matches!(self.app.phase, AppPhase::Quit) {
+            // 绘制一帧
+            self.terminal.draw(|frame| self.app.render(frame))?;
+
+            // 轮询事件
+            match poll_event(tick_rate)? {
+                Some(event) => {
+                    if self.app.handle_event(event)? {
+                        break;
+                    }
+                }
+                None => continue,
+            }
+        }
+
+        Ok(())
+    }
+}
+
+/// 恢复终端（用于 panic hook）。
+pub fn restore_terminal() -> Result<()> {
+    disable_raw_mode()?;
+    stdout().execute(LeaveAlternateScreen)?;
+    stdout().execute(Show)?;
+    Ok(())
+}

@@ -35,6 +35,9 @@ tracing = { workspace = true }
 # 生物识别凭证存储
 keyring = "3"
 
+# 进程级文件锁
+fs2 = "0.4.3"
+
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { version = "0.6", default-features = false, features = ["std", "alloc"] }
 block2 = { version = "0.6", default-features = false, features = ["std"] }

@@ -1,0 +1,48 @@
+[package]
+name = "solosoul-cli"
+version = "0.1.0"
+edition = "2021"
+authors = ["SoloSoul Team"]
+license = "MIT"
+repository = "https://github.com/Gczmy/SoloSoul"
+description = "SoloSoul terminal CLI — local-first, zero-knowledge personal data vault."
+
+[[bin]]
+name = "solosoul"
+path = "src/main.rs"
+
+[dependencies]
+# 共享核心库
+solosoul-core = { path = "../tauri/crates/solosoul-core" }
+
+# 命令行与 TUI
+clap = { version = "4.5.23", features = ["derive"] }
+ratatui = "0.30.1"
+crossterm = "0.28.1"
+inquire = "0.7.5"
+color-eyre = "0.6.3"
+
+# 进程锁
+fs2 = "0.4.3"
+
+# 日志
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-appender = "0.2.3"
+
+# 序列化
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.134"
+
+# 时间
+chrono = { version = "0.4.39", features = ["serde"] }
+
+# 异步运行时（为后续 LLM/同步功能预留）
+tokio = { version = "1.42.0", features = ["rt-multi-thread", "macros"] }
+
+# 错误处理
+anyhow = "1.0.95"
+thiserror = "2.0.9"
+
+[dev-dependencies]
+tempfile = "3.14.0"

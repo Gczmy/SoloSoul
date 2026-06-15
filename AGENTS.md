@@ -17,8 +17,9 @@
 
 | 组件 | 状态 | 说明 |
 |------|------|------|
-| **Tauri 客户端** | ✅ 主项目，活跃开发 | React + Tauri 跨平台客户端，macOS/Windows 已适配 |
+| **Tauri 客户端（GUI）** | ✅ 主项目，活跃开发 | React + Tauri 跨平台客户端，macOS/Windows 已适配 |
 | **Rust 原生核心** | ✅ 完整 | Argon2id + AES-256-GCM，通过 Tauri Commands 供前端调用 |
+| **SoloSoul CLI** | 🚧 Phase 1 进行中 | 独立终端 TUI 客户端，基于 `ratatui`/`crossterm`，位于 `solosoul_cli/` |
 | **JS SDK** | ❌ 未开始 | `sdk/js/` 为空占位目录 |
 | **Python SDK** | ❌ 未开始 | `sdk/python/` 为空占位目录 |
 
@@ -30,6 +31,7 @@
 |------|------|------|
 | Tauri 客户端 | React 19, TypeScript, Vite, Zustand, `@tauri-apps/api` | 状态管理以 Zustand 为主；UI 采用自定义 CSS Modules |
 | Rust 核心（Tauri） | Rust 2021, `argon2`, `aes-gcm`, `rusqlite`, `tokio`, `ort` | 位于 `tauri/src-tauri/` 及 `tauri/crates/`，通过 Tauri Commands 暴露给前端 |
+| SoloSoul CLI | Rust 2021, `ratatui` 0.30.1, `crossterm` 0.28.1, `clap` 4, `color-eyre` | 独立 Cargo 项目 `solosoul_cli/`，binary 名 `solosoul` |
 | 构建脚本 | Bash | 无 Makefile |
 
 ### 关键外部依赖
@@ -49,6 +51,14 @@
 - `ort` — ONNX Runtime 本地 Embedding
 - `reqwest` — HTTP 客户端（LLM 代理）
 - `mdns-sd` — 本地同步 mDNS 发现
+
+**CLI 关键依赖：**
+- `ratatui` 0.30.1 — 终端用户界面（TUI）
+- `crossterm` 0.28.1 — 跨平台终端事件与光标控制
+- `clap` 4 — 命令行参数解析
+- `color-eyre` — 增强错误报告
+- `tracing-appender` — 文件日志输出
+- `fs2` — 进程级文件锁
 
 ---
 
@@ -85,6 +95,19 @@ SoloSoul/
 │   │   └── tauri.conf.json     # Tauri 应用配置
 │   ├── scripts/                # 构建脚本（搜索索引等）
 │   └── package.json            # npm 依赖
+│
+├── solosoul_cli/               # 独立终端 CLI（TUI）
+│   ├── src/
+│   │   ├── app.rs              # 全局状态机与事件循环
+│   │   ├── cli.rs              # 命令行参数定义
+│   │   ├── commands/           # 命令实现（doctor 等）
+│   │   ├── events.rs           # 终端事件轮询
+│   │   ├── screens/            # 屏幕渲染（welcome/locked/doctor/account_list）
+│   │   ├── tui.rs              # TUI 启动/恢复与帧绘制
+│   │   ├── widgets/            # 可复用 TUI 组件（command_input 等）
+│   │   └── lib.rs              # CLI 库入口
+│   ├── Cargo.toml
+│   └── Cargo.lock
 │
 ├── SoloSoul_plugin_market/     # 插件市场子模块（独立 Git 仓库）
 │   ├── plugins/
@@ -152,6 +175,34 @@ cargo fmt --check
 cargo clippy -- -D warnings
 ```
 
+### SoloSoul CLI
+
+```bash
+cd solosoul_cli
+
+# 构建 Debug
+cargo build
+
+# 运行 TUI
+cargo run
+
+# 运行一次性子命令（如 upgrade 占位）
+cargo run -- upgrade
+
+# 测试
+cargo test
+
+# 格式化与静态检查
+cargo fmt --check
+cargo clippy -- -D warnings
+```
+
+**CLI 注意事项：**
+- CLI 是独立 Cargo 项目，不混入 `tauri/` workspace，因此单独维护 `Cargo.lock`。
+- 默认数据目录为 `~/.solosoul/`，可通过 `--data-dir` 或 `SOLOSOUL_DATA_DIR` 覆盖。
+- 日志写入 `{data_dir}/logs/cli.log`，避免污染全屏 TUI。
+- CLI 启动时会获取进程级排他锁（`solosoul_core::process_lock::ProcessLock`），防止多个 CLI/GUI 实例并发修改同一数据目录。
+
 ---
 
 ## 测试指令
@@ -175,6 +226,20 @@ npm run test:e2e
 - `src/**/*.test.ts(x)` — Vitest 单元测试（前端逻辑、组件）。
 - `src-tauri/src/` 中的 `#[cfg(test)]` — Rust 单元测试。
 - `e2e/` — Playwright 端到端测试（应用启动、导航、核心流程）。
+
+### CLI 测试
+
+```bash
+cd solosoul_cli
+
+# Rust 单元测试
+cargo test
+```
+
+**CLI 测试结构：**
+- `src/widgets/command_input.rs` — 命令输入框光标、历史、补全单元测试。
+- `src/commands/doctor.rs` — `/doctor` 诊断报告单元测试。
+- `tauri/crates/solosoul-core/src/process_lock.rs` — 进程锁获取/释放单元测试。
 
 ---
 
@@ -335,6 +400,15 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 | Rust vault crate | `tauri/crates/solosoul-vault/` |
 | Rust sync crate | `tauri/crates/solosoul-sync/` |
 | Rust shared core crate | `tauri/crates/solosoul-core/` |
+| CLI 入口 | `solosoul_cli/src/main.rs` |
+| CLI 参数定义 | `solosoul_cli/src/cli.rs` |
+| CLI 状态机与事件循环 | `solosoul_cli/src/app.rs` |
+| CLI TUI 启动/渲染 | `solosoul_cli/src/tui.rs` |
+| CLI 事件轮询 | `solosoul_cli/src/events.rs` |
+| CLI 命令实现 | `solosoul_cli/src/commands/` |
+| CLI 屏幕渲染 | `solosoul_cli/src/screens/` |
+| CLI 可复用组件 | `solosoul_cli/src/widgets/` |
+| 共享进程锁 | `tauri/crates/solosoul-core/src/process_lock.rs` |
 | 任务清单 | `docs/TODO.md` |
 | 用户指南 | `docs/USER_GUIDE.md` |
 | 技术路线图 | `docs/CLIENT_ROADMAP.md` |
