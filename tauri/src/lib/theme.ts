@@ -42,6 +42,21 @@ function hexToRgb(hex: string): [number, number, number] | null {
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 }
 
+function rgbToHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b]
+    .map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0'))
+    .join('')}`;
+}
+
+/** Generate a slightly darker hover variant for a custom accent hex. */
+function adjustAccentHover(hex: string): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  const factor = -0.12;
+  const [r, g, b] = rgb.map((c) => c + c * factor);
+  return rgbToHex(r, g, b);
+}
+
 /** Sync the native window background color with the active scheme so the
  *  system title bar (traffic lights area) matches the app theme. */
 async function syncTitleBarColor(config: ThemeConfig) {
@@ -62,15 +77,23 @@ async function syncTitleBarColor(config: ThemeConfig) {
   }
 }
 
-/** Apply accent color as a CSS custom property on <html> */
+/** Apply accent color as a CSS custom property on <html>.
+ *  Preset accents also set [data-accent] so themes.css can provide the
+ *  matching hover/focus/selected tokens; custom accents compute a hover
+ *  variant inline. */
 export function applyAccentColor(accent: AccentPreset, customHex?: string) {
   const root = document.documentElement;
   if (accent === 'custom' && customHex) {
+    root.setAttribute('data-accent', 'custom');
     root.style.setProperty('--accent-primary', customHex);
-  } else {
-    const color = ACCENT_COLORS[accent] || ACCENT_COLORS.ocean;
-    root.style.setProperty('--accent-primary', color);
+    root.style.setProperty('--accent-hover', adjustAccentHover(customHex));
+    return;
   }
+  const preset = accent && ACCENT_COLORS[accent] ? accent : 'ocean';
+  root.setAttribute('data-accent', preset);
+  // Let themes.css [data-accent] selectors drive --accent-primary and --accent-hover.
+  root.style.removeProperty('--accent-primary');
+  root.style.removeProperty('--accent-hover');
 }
 
 /** Full theme application: mode (data-theme attr) + accent color + active scheme */

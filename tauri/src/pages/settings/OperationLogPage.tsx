@@ -10,6 +10,8 @@ import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { Search, Download } from 'lucide-react';
+import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 interface AuditLogEntry {
   id: number;
@@ -38,7 +40,11 @@ const ALL_ENTITY_TYPES = [
   'auth',
 ];
 
-function formatDetail(entry: AuditLogEntry, t: TFunction): string {
+function formatDetail(
+  entry: AuditLogEntry,
+  t: TFunction,
+  customPages: import('@/stores/settingsStore').CustomPage[],
+): string {
   const raw = entry.details || '';
 
   // Normalize touch_id_unlock / face_id_unlock to biometric_unlock with explicit type
@@ -84,9 +90,9 @@ function formatDetail(entry: AuditLogEntry, t: TFunction): string {
       vars.action = t(`settings:log.action_name.${vars.action}`, {
         defaultValue: String(vars.action),
       });
-    // Translate section codes (identity/travel/financial/professional)
+    // Resolve section to human-readable page/section name (built-in or custom page)
     if (vars.section)
-      vars.section = t(`common:${vars.section}`, { defaultValue: String(vars.section) });
+      vars.section = resolveCollectionLabel(String(vars.section), customPages, t);
     // Translate unlock method for critical field access logs
     if (vars.method)
       vars.method = t(`settings:log.method.${vars.method}`, { defaultValue: String(vars.method) });
@@ -99,6 +105,7 @@ export function OperationLogPage() {
   const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
   const { t, i18n } = useTranslation(['settings', 'common']);
+  const customPages = useSettingsStore((s) => s.settings.customPages);
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [entityTypeFilter, setEntityTypeFilter] = useState<string | null>(null);
@@ -335,7 +342,7 @@ export function OperationLogPage() {
                       {new Date(entry.timestamp).toLocaleString(i18n.language)}
                     </span>
                   </div>
-                  {entry.details && formatDetail(entry, t) && (
+                  {entry.details && formatDetail(entry, t, customPages) && (
                     <div
                       style={{
                         margin: '4px 0 0',
@@ -349,7 +356,7 @@ export function OperationLogPage() {
                         borderRadius: 4,
                       }}
                     >
-                      {formatDetail(entry, t)}
+                      {formatDetail(entry, t, customPages)}
                     </div>
                   )}
                 </div>

@@ -3,6 +3,7 @@ use serde::Serialize;
 use tauri::State;
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AccountInfo {
     pub id: String,
     pub name: String,
@@ -212,20 +213,22 @@ mod tests {
         let json = serde_json::to_string(&info).unwrap();
         assert!(json.contains("\"id\":\"acc-1\""));
         assert!(json.contains("\"name\":\"Alice\""));
-        assert!(json.contains("\"password_hint\":\"hint\""));
-        assert!(json.contains("\"created_at\":\"2024-01-01T00:00:00Z\""));
+        assert!(json.contains("\"passwordHint\":\"hint\""));
+        assert!(json.contains("\"createdAt\":\"2024-01-01T00:00:00Z\""));
     }
 
     #[test]
     fn test_account_config_serde_roundtrip() {
         let original = sample_account_config();
         let json = serde_json::to_string(&original).unwrap();
+        assert!(json.contains("\"biometricEnabled\":false"));
         let restored: AccountConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(restored.account_id, original.account_id);
         assert_eq!(restored.name, original.name);
         assert_eq!(restored.salt, original.salt);
         assert_eq!(restored.verify_hash, original.verify_hash);
         assert_eq!(restored.crypto_version, original.crypto_version);
+        assert_eq!(restored.biometric_enabled, original.biometric_enabled);
     }
 
     #[test]

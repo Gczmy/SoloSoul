@@ -226,6 +226,8 @@ pub struct ObjectSummary {
     pub template_id: Option<String>,
     #[serde(rename = "templateType")]
     pub template_type: Option<String>,
+    #[serde(rename = "iconName")]
+    pub icon_name: String,
     /// First few property key-value pairs for card previews
     pub properties: serde_json::Value,
     pub tags: Vec<String>,
@@ -244,6 +246,7 @@ impl ObjectSummary {
             is_deleted: r.is_deleted,
             template_id: r.template_id.clone(),
             template_type: r.template_type.clone(),
+            icon_name: r.icon_name.clone(),
             properties: r.properties.clone(),
             tags: r.tags_json.clone(),
         }

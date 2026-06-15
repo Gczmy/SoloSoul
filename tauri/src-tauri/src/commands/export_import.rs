@@ -764,6 +764,7 @@ pub async fn import_decrypt_preview(
                         is_deleted: false,
                         template_id: o["template_id"].as_str().map(String::from),
                         template_type: o["template_type"].as_str().map(String::from),
+                        icon_name: o["icon_name"].as_str().unwrap_or("document").to_string(),
                         properties: o["properties"].clone(),
                         tags: o["tags"]
                             .as_array()

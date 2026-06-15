@@ -11,7 +11,7 @@
   transform: translateY(-1px);
   box-shadow:
     0 0 0 2px var(--accent-primary),
-    0 8px 24px rgba(91, 124, 153, 0.25);
+    0 8px 24px color-mix(in srgb, var(--accent-primary) 25%, transparent);
   border-color: var(--accent-primary);
 }
 

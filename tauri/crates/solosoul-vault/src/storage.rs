@@ -1951,7 +1951,7 @@ impl VaultStore {
 
         let lower_kw = keyword.map(|k| k.to_lowercase());
         let mut sql = String::from(
-            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, icon_name
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
@@ -2002,6 +2002,7 @@ impl VaultStore {
                     is_deleted: deleted_int != 0,
                     template_id: row.get(10)?,
                     template_type: row.get(11)?,
+                    icon_name: row.get(12)?,
                     properties: serde_json::from_str(&decrypted_props)
                         .unwrap_or(serde_json::Value::Null),
                     tags: serde_json::from_str(&tags_str).unwrap_or_default(),

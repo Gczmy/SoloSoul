@@ -1,7 +1,9 @@
 import { createPortal } from 'react-dom';
+import { useRef, useCallback, type WheelEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './TopFunctionBar.module.css';
+import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { NavButton } from './NavButton';
 import { RenameableNavButton, AddPageButton, AiQuickChatPopover } from './SideNavigation';
 import { SearchPopover } from './SearchPopover';
@@ -44,6 +46,17 @@ export function TopFunctionBar() {
     navigate(`/workspace/custom/${page.id}`);
   };
 
+  const scrollableRef = useRef<HTMLDivElement>(null);
+
+  const handleWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
+    const el = scrollableRef.current;
+    if (!el) return;
+    const delta = e.deltaY + e.deltaX;
+    if (delta === 0) return;
+    e.preventDefault();
+    el.scrollBy({ left: delta, behavior: 'auto' });
+  }, []);
+
   return (
     <header
       className={styles.functionBar}
@@ -52,7 +65,7 @@ export function TopFunctionBar() {
     >
       {/* Left zone: logo + primary pages + custom pages + add page */}
       <div className={styles.leftZone} data-tauri-drag-region="false">
-        <div className={styles.logo}>S</div>
+        <ShieldLogo size={32} />
 
         <nav className={styles.primaryZone} aria-label={t('home')}>
           {/* HOME — always visible (static left) */}
@@ -66,7 +79,7 @@ export function TopFunctionBar() {
           />
 
           {/* Scrollable zone: identity / travel / financial / professional + custom pages (excludes AddPageButton) */}
-          <div className={styles.scrollablePages}>
+          <div ref={scrollableRef} className={styles.scrollablePages} onWheel={handleWheel}>
             {primaryItems.slice(1).map((item) => (
               <NavButton
                 key={item.path}

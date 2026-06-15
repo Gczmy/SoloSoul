@@ -431,7 +431,7 @@
     "conflict_renamed": "with name conflict",
     "conflict_none": "no conflict",
     "detail": {
-      "object_create": "{{section}}",
+      "object_create": "{{name}} · {{section}}",
       "page_create": "Page: {{name}}",
       "object_update": "",
       "object_delete": "{{section}} — moved to trash",

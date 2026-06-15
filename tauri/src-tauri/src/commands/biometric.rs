@@ -40,14 +40,7 @@ fn keyring_entry(account_id: &str) -> Result<keyring::Entry, String> {
     keyring::Entry::new(&service, account_id).map_err(|e| e.to_string())
 }
 
-fn save_master_key(account_id: &str, key_hex: &str) -> Result<(), String> {
-    if use_keyring() {
-        let entry = keyring_entry(account_id)?;
-        entry.set_password(key_hex).map_err(|e| e.to_string())?;
-        return Ok(());
-    }
-
-    // Test/development fallback: obfuscated file storage.
+fn write_obfuscated_key_file(account_id: &str, key_hex: &str) -> Result<(), String> {
     let key_bytes = hex::decode(key_hex).map_err(|e| e.to_string())?;
     let obf: Vec<u8> = key_bytes
         .iter()
@@ -55,6 +48,8 @@ fn save_master_key(account_id: &str, key_hex: &str) -> Result<(), String> {
         .map(|(i, b)| b ^ BIO_OBF[i % 32])
         .collect();
     let path = bio_key_path(account_id);
+    std::fs::create_dir_all(path.parent().unwrap())
+        .map_err(|e| format!("Failed to create {}: {}", path.display(), e))?;
     std::fs::write(&path, hex::encode(&obf))
         .map_err(|e| format!("Failed to write {}: {}", path.display(), e))?;
     #[cfg(unix)]
@@ -66,6 +61,35 @@ fn save_master_key(account_id: &str, key_hex: &str) -> Result<(), String> {
         perms.set_mode(0o600);
         std::fs::set_permissions(&path, perms)
             .map_err(|e| format!("Failed to chmod {}: {}", path.display(), e))?;
+    }
+    Ok(())
+}
+
+fn save_master_key(account_id: &str, key_hex: &str) -> Result<(), String> {
+    // Always keep an obfuscated file backup. The OS keychain is the primary
+    // store, but keychain reads can fail after app restart/lock on some macOS
+    // configurations; the backup lets us still report biometric as configured.
+    write_obfuscated_key_file(account_id, key_hex)?;
+
+    if use_keyring() {
+        match keyring_entry(account_id) {
+            Ok(entry) => {
+                if let Err(e) = entry.set_password(key_hex) {
+                    tracing::warn!(
+                        "Failed to write biometric key to keychain for {}: {}; file backup is available",
+                        account_id,
+                        e
+                    );
+                }
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to create keychain entry for {}: {}; relying on file backup",
+                    account_id,
+                    e
+                );
+            }
+        }
     }
     Ok(())
 }
@@ -201,12 +225,21 @@ fn has_stored_master_key(account_id: &str) -> bool {
 }
 
 fn is_configured(account_id: &str) -> bool {
-    let has_flag = std::fs::read_to_string(acct_dir(account_id).join("config.json"))
+    let config_path = acct_dir(account_id).join("config.json");
+    let has_flag = std::fs::read_to_string(&config_path)
         .ok()
         .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
         .and_then(|v| v.get("biometricEnabled").and_then(|v| v.as_bool()))
         .unwrap_or(false);
-    has_flag && has_stored_master_key(account_id)
+    let has_key = has_stored_master_key(account_id);
+    tracing::debug!(
+        "biometric is_configured for {}: flag={}, key={}, config_path={}",
+        account_id,
+        has_flag,
+        has_key,
+        config_path.display()
+    );
+    has_flag && has_key
 }
 
 fn set_config_flag(account_id: &str, enabled: bool) -> Result<(), String> {
@@ -260,9 +293,22 @@ pub async fn biometric_check_availability(
     } else {
         None
     };
+    let configured = is_configured(&account_id);
+    // `available` = device supports biometric; `configured` = this account has
+    // a credential stored. The frontend combines them as needed.
+    let available = bt.is_some();
+    if !account_id.is_empty() {
+        tracing::debug!(
+            "biometric_check_availability account_id={} available={} configured={} biometry_type={:?}",
+            account_id,
+            available,
+            configured,
+            bt
+        );
+    }
     Ok(BiometricAvailability {
-        available: bt.is_some(),
-        configured: is_configured(&account_id),
+        available,
+        configured,
         biometry_type: bt,
         error: if is_macos() {
             None

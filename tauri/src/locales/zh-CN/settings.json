@@ -431,7 +431,7 @@
     "conflict_renamed": "名称已调整",
     "conflict_none": "无冲突",
     "detail": {
-      "object_create": "{{section}}",
+      "object_create": "{{name}} · {{section}}",
       "page_create": "页面: {{name}}",
       "object_update": "",
       "object_delete": "{{section}} — 已移入回收站",

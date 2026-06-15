@@ -43,7 +43,7 @@
   color: var(--accent-primary);
 }
 .tertiary:hover:not(:disabled) {
-  background: rgba(91, 124, 153, 0.08);
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
 }
 
 .glass {

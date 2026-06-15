@@ -52,6 +52,7 @@ pub struct AccountConfig {
     pub last_operation_at: Option<String>,
     pub last_operation_desc: Option<String>,
     #[serde(default)]
+    #[serde(rename = "biometricEnabled")]
     pub biometric_enabled: bool,
 }
 
@@ -150,7 +151,7 @@ impl VaultService {
                         for a in accounts {
                             cache.insert(a.id.clone(), a);
                         }
-                        tracing::info!("Loaded {} account(s) from {}", cache.len(), file.display());
+                        tracing::debug!("Loaded {} account(s) from {}", cache.len(), file.display());
                     }
                 }
                 Err(e) => {
@@ -745,6 +746,13 @@ mod tests {
         let account = svc.create_account("Eve", "oldpassword", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
 
+        // Simulate biometric unlock having been enabled
+        let config_path = svc.config_path(account_id);
+        let mut raw: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+        raw["biometricEnabled"] = serde_json::Value::Bool(true);
+        fs::write(&config_path, serde_json::to_string_pretty(&raw).unwrap()).unwrap();
+
         svc.unlock(account_id, "oldpassword").unwrap();
         svc.change_password(account_id, "oldpassword", "newpassword")
             .unwrap();
@@ -753,6 +761,10 @@ mod tests {
         assert!(!svc.verify_password(account_id, "oldpassword").unwrap());
         // New password should succeed
         assert!(svc.verify_password(account_id, "newpassword").unwrap());
+
+        let content = fs::read_to_string(&config_path).unwrap();
+        let config: AccountConfig = serde_json::from_str(&content).unwrap();
+        assert!(config.biometric_enabled);
     }
 
     #[test]
@@ -761,13 +773,20 @@ mod tests {
         let account = svc.create_account("Frank", "password123", None).unwrap();
         let account_id = account["id"].as_str().unwrap();
 
+        // Simulate biometric unlock having been enabled
+        let config_path = svc.config_path(account_id);
+        let mut raw: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+        raw["biometricEnabled"] = serde_json::Value::Bool(true);
+        fs::write(&config_path, serde_json::to_string_pretty(&raw).unwrap()).unwrap();
+
         svc.update_password_hint(account_id, "My favorite color")
             .unwrap();
 
-        let config_path = svc.config_path(account_id);
         let content = fs::read_to_string(&config_path).unwrap();
         let config: AccountConfig = serde_json::from_str(&content).unwrap();
         assert_eq!(config.password_hint, Some("My favorite color".to_string()));
+        assert!(config.biometric_enabled);
     }
 
     #[test]

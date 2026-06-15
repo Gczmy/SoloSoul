@@ -7,6 +7,8 @@ import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useRevealState } from '@/hooks/useRevealState';
+import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 export interface SnapshotEntry {
   id: string;
@@ -247,13 +249,10 @@ export function HistoryViewer({
   const [currentIdx, setCurrentIdx] = useState(0);
   const [animDir, setAnimDir] = useState<'left' | 'right' | null>(null);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
+  const customPages = useSettingsStore((s) => s.settings.customPages);
 
-  const resolveCollectionLabel = (collectionType: string) => {
-    if (['identity', 'travel', 'financial', 'professional'].includes(collectionType)) {
-      return t(`navigation:${collectionType}`);
-    }
-    return collectionType;
-  };
+  const resolveCollectionLabelLocal = (collectionType: string) =>
+    resolveCollectionLabel(collectionType, customPages, t);
 
   const writeCriticalAccessLog = async (
     fieldName: string,
@@ -267,7 +266,7 @@ export function HistoryViewer({
           ? 'critical_field_touch_id'
           : 'critical_field_face_id';
     const entityType = method === 'password' ? 'auth' : 'biometric';
-    const pageLabel = collectionType ? resolveCollectionLabel(collectionType) : '';
+    const pageLabel = collectionType ? resolveCollectionLabelLocal(collectionType) : '';
     const details = `objectName=${objectName} page=${pageLabel} fieldName=${fieldName}`;
     try {
       await invoke('log_write', {

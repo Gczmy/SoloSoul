@@ -45,6 +45,13 @@ export function SecuritySettingsPage() {
       .catch(() => setBioAvailable({ available: false }));
   }, [currentAccount?.id]);
 
+  // 10.3 — 回填当前账户的密码提示词，确保新建账户首次进入安全设置时可见
+  useEffect(() => {
+    if (currentAccount?.passwordHint !== undefined) {
+      setHint(currentAccount.passwordHint);
+    }
+  }, [currentAccount?.passwordHint]);
+
   const biometryType =
     bioAvailable?.biometryType === 'touchId'
       ? 'Touch ID'

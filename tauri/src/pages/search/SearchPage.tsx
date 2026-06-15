@@ -10,6 +10,8 @@ import { useToastError } from '@/hooks/useToastError';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
@@ -66,6 +68,7 @@ export function SearchPage() {
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { onError } = useToastError();
   const { t } = useTranslation(['common', 'navigation', 'settings', 'editor']);
+  const customPages = useSettingsStore((s) => s.settings.customPages);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -189,7 +192,7 @@ export function SearchPage() {
                         flexWrap: 'wrap',
                       }}
                     >
-                      <span>{item.collectionType}</span>
+                      <span>{resolveCollectionLabel(item.collectionType, customPages, t)}</span>
                       {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
                         <>
                           {' · '}

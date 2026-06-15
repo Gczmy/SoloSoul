@@ -70,10 +70,6 @@ pub async fn vault_list_accounts(
             .read()
             .map_err(|_| "Vault service lock is poisoned".to_string())?;
         let accounts = svc.list_accounts();
-        tracing::info!(
-            "vault_list_accounts command returning {} account(s)",
-            accounts.len()
-        );
         if accounts.is_empty() {
             return Err("Vault account cache is empty".to_string());
         }

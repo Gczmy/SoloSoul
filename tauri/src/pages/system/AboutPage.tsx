@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
+import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { invoke } from '@tauri-apps/api/core';
 import { ExternalLink, Code, Shield, Info, Download } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -122,24 +123,10 @@ export function AboutPage() {
         }}
       >
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: 16,
-              background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-warm))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 14px',
-              fontSize: 34,
-              fontWeight: 700,
-              color: 'white',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-            }}
-          >
-            S
-          </div>
+          <ShieldLogo
+            size={72}
+            style={{ margin: '0 auto 14px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
+          />
           <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
             SoloSoul
           </h1>

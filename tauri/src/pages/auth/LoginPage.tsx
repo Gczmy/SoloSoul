@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
 import { useCancellable } from '@/hooks/useCancellable';
 import { Button } from '@/components/ui/Button';
+import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Fingerprint } from 'lucide-react';
 import styles from './LoginPage.module.css';
@@ -56,25 +57,23 @@ export function LoginPage() {
     checkHasAccount().then(() => {
       if (!isCancelled()) listAccounts();
     });
-    // Check biometric availability
+    // Probe device biometry type early (do not set bioAvailable here — configured
+    // status is account-specific and decided in the selectedAccountId effect).
     invoke<{ available: boolean; biometryType?: string }>('biometric_check_availability', {
       accountId: '',
     })
       .then((r) => {
         if (isCancelled()) return;
-        if (r.available) {
-          setBioAvailable(true);
-          if (r.biometryType === 'touchId') {
-            setBiometryType('Touch ID');
-            setBiometryTypeRaw('touchId');
-          } else if (r.biometryType === 'faceId') {
-            setBiometryType('Face ID');
-            setBiometryTypeRaw('faceId');
-          }
+        if (r.biometryType === 'touchId') {
+          setBiometryType('Touch ID');
+          setBiometryTypeRaw('touchId');
+        } else if (r.biometryType === 'faceId') {
+          setBiometryType('Face ID');
+          setBiometryTypeRaw('faceId');
         }
       })
       .catch(() => {
-        if (!isCancelled()) setBioAvailable(false);
+        // Ignore: account-specific check will handle availability.
       });
     return cancel;
   }, []);
@@ -202,23 +201,7 @@ export function LoginPage() {
           textAlign: 'center',
         }}
       >
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 12,
-            background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-warm))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: 700,
-            fontSize: 22,
-            margin: '0 auto 16px',
-          }}
-        >
-          S
-        </div>
+        <ShieldLogo size={48} style={{ margin: '0 auto 16px' }} />
         <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>{t('auth:login_title')}</h1>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
           {t('auth:login_subtitle')}
@@ -246,7 +229,7 @@ export function LoginPage() {
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
-                    {acc.name}
+                    {acc.name} · {acc.id}
                   </option>
                 ))}
               </select>
@@ -263,7 +246,20 @@ export function LoginPage() {
                   textAlign: 'left',
                 }}
               >
-                {selectedAccount?.name ?? accounts[0]?.name}
+                <div>{selectedAccount?.name ?? accounts[0]?.name}</div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--text-tertiary)',
+                    marginTop: 2,
+                    fontFamily: 'monospace',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {selectedAccount?.id ?? accounts[0]?.id}
+                </div>
               </div>
             )}
           </div>

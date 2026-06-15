@@ -321,6 +321,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           id: string;
           name: string;
           collectionType: string;
+          iconName?: string;
           createdAt: string;
           updatedAt: string;
           isDeleted?: boolean;
@@ -332,7 +333,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         const pages: CustomPage[] = objects.map((o, i) => ({
           id: o.id,
           name: o.name,
-          iconId: DEFAULT_CUSTOM_ICON,
+          iconId: o.iconName || DEFAULT_CUSTOM_ICON,
           createdAt: o.createdAt,
           sortOrder: i,
           deletedAt: o.isDeleted ? o.updatedAt : undefined,

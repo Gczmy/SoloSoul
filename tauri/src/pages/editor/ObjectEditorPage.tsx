@@ -14,7 +14,9 @@ import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import { LayoutTemplate } from 'lucide-react';
 import type { PropertyType } from '@/types/template';
 import { useTemplateStore } from '@/stores/templateStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
+import { resolveCollectionLabel } from '@/lib/pageLabels';
 
 // Each template belongs to a workspace section.
 // collectionType is the section (for filtering), not the template name.
@@ -35,6 +37,7 @@ export function ObjectEditorPage() {
   const { getObject, createObject, updateObject, currentObject } = useObjectStore();
   const { onError, onSuccess } = useToastError();
   const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
+  const customPages = useSettingsStore((s) => s.settings.customPages);
 
   useEffect(() => {
     loadUserTemplates().catch(() => {});
@@ -311,7 +314,7 @@ export function ObjectEditorPage() {
                   }}
                 >
                   {t('editor:in_section', {
-                    section: t(`navigation:${sectionParam}`, sectionParam),
+                    section: resolveCollectionLabel(sectionParam, customPages, t),
                   })}
                 </span>
               )}
@@ -400,7 +403,7 @@ export function ObjectEditorPage() {
                   color: 'var(--accent-primary)',
                 }}
               >
-                {t(`navigation:${collectionType}`, collectionType)}
+                {resolveCollectionLabel(collectionType, customPages, t)}
               </span>
               {selectedType && (
                 <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>

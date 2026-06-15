@@ -14,6 +14,8 @@ import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificat
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 
 interface ObjectDetailModalProps {
@@ -71,6 +73,7 @@ export function ObjectDetailModal({
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
   const { templates, loadTemplates } = useTemplateStore();
+  const customPages = useSettingsStore((s) => s.settings.customPages);
   const { maskValue, isRevealed, reveal } = useRevealState();
   const [fetchedObj, setFetchedObj] = useState<ObjectData | null>(null);
   const [loading, setLoading] = useState(!object && !!objectId);
@@ -172,7 +175,7 @@ export function ObjectDetailModal({
             ? 'critical_field_touch_id'
             : 'critical_field_face_id';
       const entityType = method === 'password' ? 'auth' : 'biometric';
-      const details = `objectName=${obj.name} page=${resolveCollectionLabel(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName}`;
+      const details = `objectName=${obj.name} page=${resolveCollectionLabelLocal(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName}`;
       try {
         await invoke('log_write', {
           actionType,
@@ -272,12 +275,8 @@ export function ObjectDetailModal({
     }
   };
 
-  const resolveCollectionLabel = (collectionType: string) => {
-    if (['identity', 'travel', 'financial', 'professional'].includes(collectionType)) {
-      return t(`navigation:${collectionType}`);
-    }
-    return collectionType;
-  };
+  const resolveCollectionLabelLocal = (collectionType: string) =>
+    resolveCollectionLabel(collectionType, customPages, t);
 
   const fieldOrder = templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id);
   const fields = flattenProperties(obj?.properties, fieldOrder);
@@ -343,7 +342,7 @@ export function ObjectDetailModal({
                   <div>
                     <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{obj.name}</h2>
                     <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                      {resolveCollectionLabel(obj.collectionType)} · {t('common:created')}:{' '}
+                      {resolveCollectionLabelLocal(obj.collectionType)} · {t('common:created')}:{' '}
                       {obj.createdAt?.slice(0, 10) || '—'} · {t('common:updated')}:{' '}
                       {obj.updatedAt?.slice(0, 10) || '—'}
                     </span>

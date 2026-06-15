@@ -280,11 +280,16 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
           {/* 1. Search input */}
           <div className={styles.inputRow}>
             <div className={styles.leftControl}>
-              {isSearching ? (
-                <Loader2 size={16} className={styles.spinner} />
-              ) : (
-                <Search size={16} className={styles.inputIcon} />
-              )}
+              <div className={styles.iconWrap}>
+                <Search
+                  size={16}
+                  className={`${styles.inputIcon} ${isSearching ? styles.iconHidden : ''}`}
+                />
+                <Loader2
+                  size={16}
+                  className={`${styles.spinner} ${isSearching ? styles.spinnerVisible : ''}`}
+                />
+              </div>
             </div>
             <input
               ref={inputRef}
@@ -340,8 +345,12 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
             {hasSearched && (
               <>
                 {results.length === 0 && (
-                  <div className={styles.empty}>
-                    {isSearching ? t('common:loading', '正在加载...') : t('common:no_results')}
+                  <div
+                    className={`${styles.empty} ${
+                      isSearching ? styles.emptyHidden : styles.emptyVisible
+                    }`}
+                  >
+                    {t('common:no_results')}
                   </div>
                 )}
                 {results.map((item) => (

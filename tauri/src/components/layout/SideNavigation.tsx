@@ -32,6 +32,7 @@ import type { CustomPage } from '@/stores/settingsStore';
 import { SearchPopover } from './SearchPopover';
 import { NavButton } from './NavButton';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import {
   useActiveCustomPages,
   useBoundNavActions,
@@ -1070,14 +1071,17 @@ export function RenameableNavButton({
   const [renameError, setRenameError] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<CustomIconId>(page.iconId as CustomIconId);
   const [showIconPicker, setShowIconPicker] = useState(false);
+  const [renameCardRect, setRenameCardRect] = useState<DOMRect | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setRenameValue(page.name);
     setSelectedIconId(page.iconId as CustomIconId);
     setShowIconPicker(false);
+    setRenameCardRect(wrapperRef.current?.getBoundingClientRect() || null);
     setIsRenaming(true);
     setTimeout(() => inputRef.current?.focus(), 50);
   };
@@ -1112,7 +1116,7 @@ export function RenameableNavButton({
     try {
       await invoke('object_update', {
         objectId: page.id,
-        input: { name: trimmed, properties: {} },
+        input: { name: trimmed, properties: {}, iconName: selectedIconId },
       });
     } catch {
       // F020: stop and leave the previous name in place if persistence failed
@@ -1142,7 +1146,7 @@ export function RenameableNavButton({
   const handleConfirmRenameRef = useRef(handleConfirmRename);
   handleConfirmRenameRef.current = handleConfirmRename;
 
-  // Close on outside click
+  // Close on outside click (exclude the portaled rename card itself)
   useEffect(() => {
     if (!isRenaming) return;
     const handler = (e: MouseEvent) => {
@@ -1150,7 +1154,9 @@ export function RenameableNavButton({
         inputRef.current &&
         !inputRef.current.contains(e.target as Node) &&
         wrapperRef.current &&
-        !wrapperRef.current.contains(e.target as Node)
+        !wrapperRef.current.contains(e.target as Node) &&
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node)
       ) {
         handleConfirmRenameRef.current();
       }
@@ -1169,181 +1175,187 @@ export function RenameableNavButton({
         onClick={onClick}
         position={position}
       />
-      {isRenaming && (
-        <div
-          style={{
-            position: 'fixed',
-            left: isHorizontal
-              ? wrapperRef.current
-                ? wrapperRef.current.getBoundingClientRect().left
-                : 56
-              : isRight
+      {isRenaming &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            style={{
+              position: 'fixed',
+              left: isHorizontal
+                ? renameCardRect
+                  ? renameCardRect.left
+                  : 56
+                : isRight
+                  ? 'auto'
+                  : renameCardRect
+                    ? renameCardRect.right + 8
+                    : 56,
+              right: isRight
+                ? renameCardRect
+                  ? window.innerWidth - renameCardRect.left + 8
+                  : 56
+                : 'auto',
+              top: isBottom
                 ? 'auto'
-                : wrapperRef.current
-                  ? wrapperRef.current.getBoundingClientRect().right + 8
-                  : 56,
-            right: isRight
-              ? wrapperRef.current
-                ? window.innerWidth - wrapperRef.current.getBoundingClientRect().left + 8
-                : 56
-              : 'auto',
-            top: isBottom
-              ? 'auto'
-              : wrapperRef.current
-                ? isHorizontal
-                  ? wrapperRef.current.getBoundingClientRect().bottom + 8
-                  : wrapperRef.current.getBoundingClientRect().top
-                : '50%',
-            bottom: isBottom
-              ? wrapperRef.current
-                ? window.innerHeight - wrapperRef.current.getBoundingClientRect().top + 8
-                : 56
-              : 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-            padding: '6px 10px',
-            background: 'var(--bg-elevated)',
-            borderRadius: 8,
-            boxShadow: 'var(--shadow-lg)',
-            zIndex: 300,
-            border: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-            {/* Icon picker trigger */}
-            <button
-              onClick={() => setShowIconPicker(!showIconPicker)}
-              style={{
-                width: 32,
-                height: 32,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-              title={t('navigation:add_page_placeholder') ?? 'Choose icon'}
-            >
-              {React.createElement(CUSTOM_ICON_MAP[selectedIconId], {
-                size: 18,
-                style: { color: 'var(--accent-primary)' },
-              })}
-            </button>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <input
-                ref={inputRef}
-                value={renameValue}
-                onChange={(e) => {
-                  setRenameValue(e.target.value.slice(0, 30));
-                  setRenameError(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleConfirmRename();
-                  if (e.key === 'Escape') handleCancelRename();
-                }}
-                maxLength={30}
-                autoFocus
+                : renameCardRect
+                  ? isHorizontal
+                    ? renameCardRect.bottom + 8
+                    : renameCardRect.top
+                  : '50%',
+              bottom: isBottom
+                ? renameCardRect
+                  ? window.innerHeight - renameCardRect.top + 8
+                  : 56
+                : 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              padding: '6px 10px',
+              background: 'var(--bg-elevated)',
+              borderRadius: 8,
+              boxShadow: 'var(--shadow-lg)',
+              zIndex: 300,
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+              {/* Icon picker trigger */}
+              <button
+                onClick={() => setShowIconPicker(!showIconPicker)}
                 style={{
-                  padding: '6px 10px',
-                  fontSize: 14,
-                  border: renameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
+                  width: 32,
+                  height: 32,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   borderRadius: 6,
+                  border: '1px solid var(--border-subtle)',
                   background: 'transparent',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'inherit',
-                  outline: 'none',
-                  width: 140,
-                  animation: renameError ? 'shake 0.4s ease' : 'none',
+                  cursor: 'pointer',
+                  flexShrink: 0,
                 }}
-              />
-              {renameError && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 8,
+                title={t('navigation:add_page_placeholder') ?? 'Choose icon'}
+              >
+                {React.createElement(CUSTOM_ICON_MAP[selectedIconId], {
+                  size: 18,
+                  style: { color: 'var(--accent-primary)' },
+                })}
+              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <input
+                  ref={inputRef}
+                  value={renameValue}
+                  onChange={(e) => {
+                    setRenameValue(e.target.value.slice(0, 30));
+                    setRenameError(false);
                   }}
-                >
-                  <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
-                    {t('page_name_exists')}
-                  </span>
-                  <button
-                    onClick={handleCancelRename}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = 'var(--accent-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = 'var(--text-tertiary)';
-                    }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleConfirmRename();
+                    if (e.key === 'Escape') handleCancelRename();
+                  }}
+                  maxLength={30}
+                  autoFocus
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: 14,
+                    border: renameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
+                    borderRadius: 6,
+                    background: 'transparent',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    width: 140,
+                    animation: renameError ? 'shake 0.4s ease' : 'none',
+                  }}
+                />
+                {renameError && (
+                  <div
                     style={{
-                      fontSize: 11,
-                      color: 'var(--text-tertiary)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      transition: 'color 0.15s ease',
-                    }}
-                  >
-                    {t('common:cancel')}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Icon picker grid */}
-          {showIconPicker && (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(6, 1fr)',
-                gap: 4,
-                padding: '4px 0',
-              }}
-            >
-              {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
-                ([id, IconComp]) => (
-                  <button
-                    key={id}
-                    onClick={() => {
-                      setSelectedIconId(id);
-                      setShowIconPicker(false);
-                    }}
-                    style={{
-                      width: 32,
-                      height: 32,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      border:
-                        selectedIconId === id
-                          ? '1px solid var(--accent-primary)'
-                          : '1px solid transparent',
-                      background: selectedIconId === id ? 'rgba(91,124,153,0.08)' : 'transparent',
-                      cursor: 'pointer',
+                      justifyContent: 'space-between',
+                      gap: 8,
                     }}
                   >
-                    <IconComp
-                      size={18}
-                      style={{
-                        color:
-                          selectedIconId === id ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
+                      {t('page_name_exists')}
+                    </span>
+                    <button
+                      onClick={handleCancelRename}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'var(--accent-primary)';
                       }}
-                    />
-                  </button>
-                ),
-              )}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'var(--text-tertiary)';
+                      }}
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--text-tertiary)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'color 0.15s ease',
+                      }}
+                    >
+                      {t('common:cancel')}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Icon picker grid */}
+            {showIconPicker && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(6, 1fr)',
+                  gap: 4,
+                  padding: '4px 0',
+                }}
+              >
+                {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
+                  ([id, IconComp]) => (
+                    <button
+                      key={id}
+                      onClick={() => {
+                        setSelectedIconId(id);
+                        setShowIconPicker(false);
+                      }}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 6,
+                        border:
+                          selectedIconId === id
+                            ? '1px solid var(--accent-primary)'
+                            : '1px solid transparent',
+                        background:
+                          selectedIconId === id ? 'rgba(91,124,153,0.08)' : 'transparent',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <IconComp
+                        size={18}
+                        style={{
+                          color:
+                            selectedIconId === id
+                              ? 'var(--accent-primary)'
+                              : 'var(--text-secondary)',
+                        }}
+                      />
+                    </button>
+                  ),
+                )}
+              </div>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
@@ -1366,6 +1378,7 @@ export function AddPageButton({
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<CustomIconId>(DEFAULT_CUSTOM_ICON);
+  const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -1513,6 +1526,7 @@ export function AddPageButton({
           className={styles.addPageButton}
           style={isHorizontal ? { width: 40, height: 40, borderRadius: 10 } : {}}
           onClick={() => {
+            setButtonRect(buttonRef.current?.getBoundingClientRect() || null);
             setIsCreating(true);
             setSelectedIconId(DEFAULT_CUSTOM_ICON);
             setTimeout(() => inputRef.current?.focus(), 100);
@@ -1525,170 +1539,174 @@ export function AddPageButton({
         {createPortal(nameCard, document.body)}
       </div>
 
-      {/* Popover create row — rendered outside sidebar flow */}
-      {isCreating && (
-        <div
-          ref={popoverRef}
-          style={{
-            position: 'fixed',
-            left: isHorizontal
-              ? buttonRef.current
-                ? buttonRef.current.getBoundingClientRect().left
-                : 56
-              : isRight
-                ? 'auto'
-                : buttonRef.current
-                  ? buttonRef.current.getBoundingClientRect().right + 8
-                  : 56,
-            right: isRight
-              ? buttonRef.current
-                ? window.innerWidth - buttonRef.current.getBoundingClientRect().left + 8
-                : 56
-              : 'auto',
-            top: isBottom
-              ? 'auto'
-              : buttonRef.current
-                ? isHorizontal
-                  ? buttonRef.current.getBoundingClientRect().bottom + 8
-                  : buttonRef.current.getBoundingClientRect().top
-                : '50%',
-            bottom: isBottom
-              ? buttonRef.current
-                ? window.innerHeight - buttonRef.current.getBoundingClientRect().top + 8
-                : 56
-              : 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-            padding: '10px 12px',
-            background: 'var(--bg-elevated)',
-            borderRadius: 8,
-            boxShadow: 'var(--shadow-lg)',
-            zIndex: 300,
-            border: '1px solid var(--border-subtle)',
-          }}
-        >
-          {/* Name input */}
-          <input
-            ref={inputRef}
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value.slice(0, 20));
-              setNameError(false);
-            }}
-            onBlur={(e) => {
-              // Only confirm if the blur is not caused by clicking inside the popover
-              if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
-                handleConfirm();
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleConfirm();
-              if (e.key === 'Escape') handleCancel();
-            }}
-            placeholder={t('add_page_placeholder')}
-            maxLength={20}
-            autoFocus
-            aria-label={t('add_page_placeholder')}
+      {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
+      {isCreating &&
+        createPortal(
+          <div
+            ref={popoverRef}
             style={{
-              padding: '6px 10px',
-              fontSize: 14,
-              border: nameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
-              borderRadius: 6,
-              background: 'transparent',
-              color: 'var(--text-primary)',
-              fontFamily: 'inherit',
-              outline: 'none',
-              width: '100%',
-              boxSizing: 'border-box',
-              animation: nameError ? 'shake 0.4s ease' : 'none',
+              position: 'fixed',
+              left: isHorizontal
+                ? buttonRect
+                  ? buttonRect.left
+                  : 56
+                : isRight
+                  ? 'auto'
+                  : buttonRect
+                    ? buttonRect.right + 8
+                    : 56,
+              right: isRight
+                ? buttonRect
+                  ? window.innerWidth - buttonRect.left + 8
+                  : 56
+                : 'auto',
+              top: isBottom
+                ? 'auto'
+                : buttonRect
+                  ? isHorizontal
+                    ? buttonRect.bottom + 8
+                    : buttonRect.top
+                  : '50%',
+              bottom: isBottom
+                ? buttonRect
+                  ? window.innerHeight - buttonRect.top + 8
+                  : 56
+                : 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              padding: '10px 12px',
+              background: 'var(--bg-elevated)',
+              borderRadius: 8,
+              boxShadow: 'var(--shadow-lg)',
+              zIndex: 300,
+              border: '1px solid var(--border-subtle)',
             }}
-          />
-          {nameError && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 8,
+          >
+            {/* Name input */}
+            <input
+              ref={inputRef}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value.slice(0, 20));
+                setNameError(false);
               }}
-            >
-              <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
-                {t('page_name_exists')}
-              </span>
-              <button
-                onClick={handleCancel}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'var(--text-tertiary)';
-                }}
+              onBlur={(e) => {
+                // Only confirm if the blur is not caused by clicking inside the popover
+                if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
+                  handleConfirm();
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleConfirm();
+                if (e.key === 'Escape') handleCancel();
+              }}
+              placeholder={t('add_page_placeholder')}
+              maxLength={20}
+              autoFocus
+              aria-label={t('add_page_placeholder')}
+              style={{
+                padding: '6px 10px',
+                fontSize: 14,
+                border: nameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
+                borderRadius: 6,
+                background: 'transparent',
+                color: 'var(--text-primary)',
+                fontFamily: 'inherit',
+                outline: 'none',
+                width: '100%',
+                boxSizing: 'border-box',
+                animation: nameError ? 'shake 0.4s ease' : 'none',
+              }}
+            />
+            {nameError && (
+              <div
                 style={{
-                  fontSize: 11,
-                  color: 'var(--text-tertiary)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  transition: 'color 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 8,
                 }}
               >
-                {t('common:cancel')}
-              </button>
-            </div>
-          )}
+                <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
+                  {t('page_name_exists')}
+                </span>
+                <button
+                  onClick={handleCancel}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-tertiary)';
+                  }}
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--text-tertiary)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    transition: 'color 0.15s ease',
+                  }}
+                >
+                  {t('common:cancel')}
+                </button>
+              </div>
+            )}
 
-          {/* Icon picker grid — always visible for quick selection */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{t('select_icon')}</span>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(6, 1fr)',
-                gap: 4,
-              }}
-            >
-              {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
-                ([id, IconComp]) => (
-                  <button
-                    key={id}
-                    onMouseDown={(e) => e.preventDefault()} // prevent input blur so selectedIconId updates before confirm
-                    onClick={() => setSelectedIconId(id)}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      border:
-                        id === selectedIconId
-                          ? '2px solid var(--accent-primary)'
-                          : '1px solid transparent',
-                      background:
-                        id === selectedIconId
-                          ? 'var(--accent-primary-transparent, rgba(91,124,153,0.1))'
-                          : 'transparent',
-                      cursor: 'pointer',
-                    }}
-                    title={id}
-                    aria-label={id}
-                  >
-                    <IconComp
-                      size={16}
+            {/* Icon picker grid — always visible for quick selection */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{t('select_icon')}</span>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(6, 1fr)',
+                  gap: 4,
+                }}
+              >
+                {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
+                  ([id, IconComp]) => (
+                    <button
+                      key={id}
+                      onMouseDown={(e) => e.preventDefault()} // prevent input blur so selectedIconId updates before confirm
+                      onClick={() => setSelectedIconId(id)}
                       style={{
-                        color:
-                          id === selectedIconId ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                        width: 32,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 6,
+                        border:
+                          id === selectedIconId
+                            ? '2px solid var(--accent-primary)'
+                            : '1px solid transparent',
+                        background:
+                          id === selectedIconId
+                            ? 'var(--accent-primary-transparent, rgba(91,124,153,0.1))'
+                            : 'transparent',
+                        cursor: 'pointer',
                       }}
-                    />
-                  </button>
-                ),
-              )}
+                      title={id}
+                      aria-label={id}
+                    >
+                      <IconComp
+                        size={16}
+                        style={{
+                          color:
+                            id === selectedIconId
+                              ? 'var(--accent-primary)'
+                              : 'var(--text-secondary)',
+                        }}
+                      />
+                    </button>
+                  ),
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
@@ -1795,9 +1813,10 @@ export function SideNavigation() {
 
   return (
     <nav className={styles.sideNav} aria-label={t('home')} style={navStyle}>
-      <div className={styles.logo} style={isHorizontal ? { marginBottom: 0, marginRight: 12 } : {}}>
-        S
-      </div>
+      <ShieldLogo
+        size={32}
+        style={isHorizontal ? { marginBottom: 0, marginRight: 12 } : { marginBottom: 16 }}
+      />
 
       {isHorizontal ? (
         <>

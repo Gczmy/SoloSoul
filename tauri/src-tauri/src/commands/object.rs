@@ -62,6 +62,8 @@ pub struct UpdateObjectInput {
     pub properties: serde_json::Value,
     #[serde(rename = "sensitivityLevel")]
     pub sensitivity_level: Option<String>,
+    #[serde(rename = "iconName")]
+    pub icon_name: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -247,6 +249,9 @@ pub async fn object_update(
     record.properties = input.properties;
     if let Some(sl) = input.sensitivity_level {
         record.sensitivity_level = sl;
+    }
+    if let Some(icon_name) = input.icon_name {
+        record.icon_name = icon_name;
     }
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
