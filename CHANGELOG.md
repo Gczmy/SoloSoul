@@ -20,35 +20,32 @@
 
 ### Added
 
-- **End-to-end device sync** — Local P2P sync with HLC, Noise XX, and CRDT, accessible from Settings.
-- **Plugin system Phase 1–4** — Full plugin lifecycle: Vault field access, network proxy, blocking consent, JSON/Markdown export, online registry updates, Minisign verification, and Wasm crash isolation.
-- **Plugin SDK placeholders** — JS/Python SDK directories and Wasm plugin development guide.
-- **Template manager** — Filtering, search, and Chinese/English sample template subpages.
-- **Help docs** — Reworked sync chapter into "Device Sync".
+- **Template manager enhancements** — Template page filtering and search; sample templates split into Chinese and English sub-pages.
+- **Help docs** — Renamed "Sync" help section to "Device Sync".
 
 ### Changed
 
-- **Windows installer branding** — Branded NSIS UI with more robust resource generation.
-- **macOS app identity** — Fixed bundle config keys for correct Dock and app names.
-- **Login page UX** — Account selector always visible above login methods; unified biometric button hover/animation.
-- **Search & layout** — Adaptive search modal, optimized result cards, and `scrollbar-gutter: stable`.
-- **Sidebar scrollbars** — Fully hidden across modes to prevent icon shifts on Windows.
+- **Windows NSIS installer branding** — Branded installer UI and more robust NSIS asset generation.
+- **macOS app identity** — Fixed macOS bundle config key and Dock/app name.
+- **Login page UX** — Account name/selector always shown above login methods; biometric button hover/float polish.
+- **Search and layout** — Adaptive search popover, improved result cards and highlighting; `scrollbar-gutter: stable` to prevent layout shift.
+- **Sidebar scrollbars** — Hidden across all sidebar modes to avoid icon offset on Windows.
 
 ### Fixed
 
-- R001–R032 / F001–F032 audit issues.
-- Sensitive fields now encrypted with AES-256-GCM; VaultService IO moved out of async lock path; large-file crypto streamed.
-- Biometric master key moved from obfuscated file to system Keychain.
-- Path traversal protection for attachments, backups, and embedded model IDs.
-- Account creation race condition; serialized `create_account` and duplicate active-ID rejection.
-- Login performance: KDF and account-list queries moved to blocking thread pool.
-- Async races and memory leaks via `useCancellable` and cleaned-up timeouts.
+- **Code audit P0/P1 issues** — Addressed resolvable R001–R032 and F001–F032 security/stability findings.
+- **Vault encryption** — Sensitive fields encrypted with AES-256-GCM; VaultService IO moved out of async lock path; large-file encryption/decryption streamed to bound memory.
+- **Biometric security** — Biometric master key moved from obfuscated file to system Keychain.
+- **Path traversal protection** — Sanitized attachment import/export, backup names, and embed model IDs.
+- **Account creation race** — Serialized `create_account` and reject object creation with duplicate active ID.
+- **Login performance** — Password login KDF and account list queries moved to blocking thread pool.
+- **Async races and memory leaks** — Introduced `useCancellable` for critical effects and cleaned up remaining copy/search timeouts.
 
 ### Security
 
-- Fixed plaintext sensitive data, hardcoded XOR obfuscation, path traversal, and unauthorized command access reported by audit.
-- Restricted `fs` command accessible paths to prevent directory traversal.
-- Backup and attachment operations use exact ID matching.
+- Fixed audit findings around plaintext sensitive data, hardcoded XOR obfuscation, path traversal, and command overreach.
+- Restricted `fs` commands to allowed paths with traversal rejection.
+- Backup and attachment operations use exact ID matching instead of prefix matching.
 
 ## [2.1.0] - 2026-06-12
 
