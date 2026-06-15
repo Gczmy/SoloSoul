@@ -310,10 +310,10 @@ jobs:
             ../artifacts/updater \
             ../artifacts/updater/latest.json
 
-      - name: Create Release Draft
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          draft: true
+          draft: false
           prerelease: false
           tag_name: v${{ steps.version.outputs.version }}
           name: SoloSoul v${{ steps.version.outputs.version }}

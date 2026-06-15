@@ -162,7 +162,7 @@ Push 到 `master` 分支后，GitHub Actions 会自动：
 2. `rust-test` job：Rust 格式化检查、Clippy、单元测试
 3. `build-macos` job：在 `macos-latest` runner 上构建 DMG（仅 master push）
 4. `build-windows` job：在 `windows-latest` runner 上构建 NSIS（仅 master push）
-5. `release` job：收集产物，统一创建 GitHub Release（Draft + Pre-release）
+5. `release` job：收集产物，统一创建并发布 GitHub Release（非 Draft、非 Pre-release），使 `releases/latest/download/latest.json` 立即对客户端可见。
 
 详见 `.github/workflows/ci_cd.yml`。
 

@@ -46,7 +46,7 @@ describe('AboutPage', () => {
       os: 'macos',
       arch: 'aarch64',
     });
-    mockCheckForUpdate.mockResolvedValue(null);
+    mockCheckForUpdate.mockResolvedValue({ kind: 'up-to-date' });
 
     render(
       <MemoryRouter>
@@ -70,7 +70,10 @@ describe('AboutPage', () => {
       os: 'windows',
       arch: 'x86_64',
     });
-    mockCheckForUpdate.mockResolvedValue({ version: '1.2.0', body: 'New features' });
+    mockCheckForUpdate.mockResolvedValue({
+      kind: 'available',
+      info: { version: '1.2.0', body: 'New features' },
+    });
 
     render(
       <MemoryRouter>
@@ -92,7 +95,7 @@ describe('AboutPage', () => {
       os: 'linux',
       arch: 'x86_64',
     });
-    mockCheckForUpdate.mockResolvedValue(null);
+    mockCheckForUpdate.mockResolvedValue({ kind: 'up-to-date' });
 
     render(
       <MemoryRouter>
@@ -110,7 +113,7 @@ describe('AboutPage', () => {
 
   it('handles fetch errors gracefully', async () => {
     vi.mocked(invoke).mockRejectedValue(new Error('backend offline'));
-    mockCheckForUpdate.mockRejectedValue(new Error('network error'));
+    mockCheckForUpdate.mockResolvedValue({ kind: 'error', message: 'network error' });
 
     render(
       <MemoryRouter>
@@ -120,6 +123,26 @@ describe('AboutPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('settings:could_not_load')).toBeInTheDocument();
+    });
+  });
+
+  it('shows update check failed badge when update check errors', async () => {
+    vi.mocked(invoke).mockResolvedValue({
+      appName: 'SoloSoul',
+      version: '1.0.0',
+      os: 'macos',
+      arch: 'aarch64',
+    });
+    mockCheckForUpdate.mockResolvedValue({ kind: 'error', message: 'network error' });
+
+    render(
+      <MemoryRouter>
+        <AboutPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('settings:update_check_failed')).toBeInTheDocument();
     });
   });
 });

@@ -19,9 +19,8 @@ interface AppInfo {
 interface VersionInfo {
   currentVersion: string;
   latestVersion: string | null;
-  state: 'up-to-date' | 'available' | 'error';
+  hasUpdate: boolean;
   body?: string;
-  error?: string;
 }
 
 function friendlyPlatform(os: string, _arch: string): string {
@@ -52,24 +51,16 @@ export function AboutPage() {
   useEffect(() => {
     Promise.all([
       invoke<AppInfo>('get_app_info'),
-      checkForUpdate().then((result) => {
-        if (result.kind === 'available') {
-          return {
-            currentVersion: '',
-            latestVersion: result.info.version,
-            state: 'available' as const,
-            body: result.info.body,
-          };
+      checkForUpdate().then((update) => {
+        if (!update) {
+          return { currentVersion: '', latestVersion: null, hasUpdate: false };
         }
-        if (result.kind === 'error') {
-          return {
-            currentVersion: '',
-            latestVersion: null,
-            state: 'error' as const,
-            error: result.message,
-          };
-        }
-        return { currentVersion: '', latestVersion: null, state: 'up-to-date' as const };
+        return {
+          currentVersion: '',
+          latestVersion: update.version,
+          hasUpdate: true,
+          body: update.body,
+        };
       }),
     ])
       .then(([app, ver]) => {
@@ -175,7 +166,7 @@ export function AboutPage() {
                     <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
                       v{info.version}
                     </span>
-                    {versionInfo?.state === 'available' ? (
+                    {versionInfo?.hasUpdate ? (
                       <span
                         style={{
                           fontSize: 11,
@@ -189,20 +180,6 @@ export function AboutPage() {
                         {t('settings:update_available', {
                           version: versionInfo.latestVersion || '',
                         })}
-                      </span>
-                    ) : versionInfo?.state === 'error' ? (
-                      <span
-                        style={{
-                          fontSize: 11,
-                          padding: '2px 8px',
-                          borderRadius: 10,
-                          background: 'rgba(231,76,60,0.12)',
-                          color: '#e74c3c',
-                          fontWeight: 500,
-                        }}
-                        title={versionInfo.error}
-                      >
-                        {t('settings:update_check_failed')}
                       </span>
                     ) : versionInfo ? (
                       <span
@@ -222,7 +199,7 @@ export function AboutPage() {
                 </div>
 
                 {/* 更新卡片 — 有可用更新时显示 */}
-                {versionInfo?.state === 'available' && versionInfo.latestVersion && (
+                {versionInfo?.hasUpdate && versionInfo.latestVersion && (
                   <>
                     <div style={{ height: 1, background: 'var(--border-subtle)' }} />
                     <div
