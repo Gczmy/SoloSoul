@@ -1,5 +1,3 @@
-#![cfg_attr(not(test), allow(dead_code))]
-#![cfg_attr(not(test), allow(unused_imports))]
 //! SoloSoul Vault 存储库
 //!
 //! 提供：
