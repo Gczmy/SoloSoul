@@ -235,6 +235,8 @@ pub struct App {
     pub mouse_pos: Option<(u16, u16)>,
     /// 悬停脉冲状态，每 tick 切换，产生轻微动画效果。
     pub hover_pulse: bool,
+    /// Logo sheen 动画偏移量。
+    pub sheen_offset: u16,
 }
 
 impl App {
@@ -282,6 +284,7 @@ impl App {
             clickable_regions: Vec::new(),
             mouse_pos: None,
             hover_pulse: false,
+            sheen_offset: 0,
         })
     }
 
@@ -344,6 +347,11 @@ impl App {
         if hovering {
             self.hover_pulse = !self.hover_pulse;
         }
+
+        // Logo 扫光动画偏移
+        self.sheen_offset = self
+            .sheen_offset
+            .wrapping_add(crate::screens::welcome::SHEEN_STEP);
 
         Ok(false)
     }
@@ -1367,6 +1375,7 @@ impl App {
                 &mut self.clickable_regions,
                 self.mouse_pos,
                 self.hover_pulse,
+                self.sheen_offset,
             ),
             AppPhase::Locked => crate::screens::locked::render(
                 frame,

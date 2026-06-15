@@ -1,19 +1,31 @@
 //! 无账户时的欢迎界面 —— 大品牌名 + 可点击选项 + 悬停动画。
 
-use std::sync::OnceLock;
-
-use figlet_rs::FIGlet;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Rect};
-use ratatui::text::{Line, Text};
+use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
 use crate::app::{ClickAction, ClickableRegion};
 use crate::theme::Theme;
 
-fn standard_font() -> &'static FIGlet {
-    static FONT: OnceLock<FIGlet> = OnceLock::new();
-    FONT.get_or_init(|| FIGlet::standard().expect("内置 FIGlet 标准字体加载失败"))
-}
+/// Logo 扫光每 tick 前进的列数。
+pub const SHEEN_STEP: u16 = 2;
+
+/// 扫光高亮宽度（奇数便于取中心）。
+const SHEEN_WIDTH: usize = 5;
+
+/// 阴影/边框字符集合，扫光动画只影响这些字符。
+const SHADOW_CHARS: [char; 11] = ['╚', '═', '╝', '║', '╔', '╗', '╠', '╣', '╦', '╩', '╬'];
+
+/// SoloSoul 品牌 Logo（Codebuff 风格 Unicode 方块艺术字）， trimming 后宽度 55。
+const LOGO_LINES: [&str; 5] = [
+    "██████╗  █████╗ ██╗  █████╗ ██████╗  █████╗ ██╗  ██╗██╗",
+    "██╔═══╝ ██╔══██╗██║ ██╔══██╗██╔═══╝ ██╔══██╗██║  ██║██║",
+    "╚████╗  ██║  ██║██║ ██║  ██║╚████╗  ██║  ██║██║  ██║██║",
+    " ╚══██║ ██║  ██║██║ ██║  ██║ ╚══██║ ██║  ██║██║  ██║██║",
+    "██████╝ ╚█████╝ ╚█╝ ╚█████╝ ██████╝ ╚█████╝ ╚█████╝ ╚█╝",
+];
+
+const LOGO_WIDTH: usize = 55;
 
 /// 渲染欢迎界面。
 pub fn render(
@@ -22,6 +34,7 @@ pub fn render(
     regions: &mut Vec<ClickableRegion>,
     mouse_pos: Option<(u16, u16)>,
     hover_pulse: bool,
+    sheen_offset: u16,
 ) {
     let theme = Theme::load();
 
@@ -29,42 +42,43 @@ pub fn render(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(7), // FIGlet banner + 边框
+            Constraint::Length(7), // Logo + 边框
             Constraint::Length(2), // 副标语
             Constraint::Length(6), // 可点击选项卡
             Constraint::Length(1), // 底部提示
         ])
         .split(inner);
 
-    render_brand(frame, chunks[0], &theme);
+    render_brand(frame, chunks[0], &theme, sheen_offset);
     render_taglines(frame, chunks[1], &theme);
     render_options(frame, chunks[2], &theme, regions, mouse_pos, hover_pulse);
     render_hint(frame, chunks[3], &theme);
 }
 
-fn render_brand(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
-    let mut lines: Vec<Line> = Vec::new();
+fn render_brand(frame: &mut ratatui::Frame, area: Rect, theme: &Theme, sheen_offset: u16) {
+    let center = (sheen_offset as usize) % (LOGO_WIDTH + SHEEN_WIDTH);
+    let half = SHEEN_WIDTH / 2;
 
-    if let Some(figure) = standard_font().convert("SoloSoul") {
-        let banner = figure.as_str();
-        for raw in banner.lines() {
-            let trimmed = raw.trim_end();
-            if trimmed.is_empty() {
-                continue;
-            }
-            lines.push(
-                Line::from(trimmed.to_string())
-                    .style(theme.style_brand())
-                    .alignment(Alignment::Center),
-            );
-        }
-    } else {
-        lines.push(
-            Line::from("SoloSoul")
-                .style(theme.style_brand())
-                .alignment(Alignment::Center),
-        );
-    }
+    let lines: Vec<Line> = LOGO_LINES
+        .iter()
+        .map(|raw| {
+            let spans: Vec<Span> = raw
+                .chars()
+                .enumerate()
+                .map(|(idx, c)| {
+                    let is_shadow = SHADOW_CHARS.contains(&c);
+                    let in_sheen = is_shadow && idx.abs_diff(center) <= half;
+                    let style = if in_sheen {
+                        theme.style_cream()
+                    } else {
+                        theme.style_brand()
+                    };
+                    Span::styled(c.to_string(), style)
+                })
+                .collect();
+            Line::from(spans)
+        })
+        .collect();
 
     let block = Block::default()
         .borders(Borders::ALL)
@@ -211,13 +225,13 @@ mod tests {
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
         let mut regions = Vec::new();
         terminal
-            .draw(|frame| render(frame, frame.area(), &mut regions, None, false))
+            .draw(|frame| render(frame, frame.area(), &mut regions, None, false, 0))
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();
-        // FIGlet banner 会渲染为 ASCII 艺术，不再包含纯文本 "SoloSoul"
-        assert!(content.contains(" ____ "));
-        assert!(content.contains("/ ___|"));
+        // 静态 Unicode Logo 包含方块与阴影框线字符
+        assert!(content.contains('█'));
+        assert!(content.contains('╗'));
         assert_eq!(regions.len(), 2);
     }
 }

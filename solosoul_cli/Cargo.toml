@@ -21,7 +21,6 @@ ratatui = "0.30.1"
 crossterm = "0.28.1"
 inquire = "0.7.5"
 color-eyre = "0.6.3"
-figlet-rs = "1.0"
 
 # 进程锁
 fs2 = "0.4.3"
