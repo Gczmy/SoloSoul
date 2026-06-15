@@ -157,6 +157,7 @@ export function AiQuickChatPopover({
   const [showHistory, setShowHistory] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -383,8 +384,16 @@ export function AiQuickChatPopover({
         onClose();
       }
     };
-    setTimeout(() => document.addEventListener('mousedown', handler), 0);
-    return () => document.removeEventListener('mousedown', handler);
+    outsideClickTimeoutRef.current = setTimeout(
+      () => document.addEventListener('mousedown', handler),
+      0
+    );
+    return () => {
+      if (outsideClickTimeoutRef.current) {
+        clearTimeout(outsideClickTimeoutRef.current);
+      }
+      document.removeEventListener('mousedown', handler);
+    };
   }, [onClose]);
 
   // Close on Escape
@@ -1075,6 +1084,7 @@ export function RenameableNavButton({
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -1161,8 +1171,16 @@ export function RenameableNavButton({
         handleConfirmRenameRef.current();
       }
     };
-    setTimeout(() => document.addEventListener('mousedown', handler), 0);
-    return () => document.removeEventListener('mousedown', handler);
+    outsideClickTimeoutRef.current = setTimeout(
+      () => document.addEventListener('mousedown', handler),
+      0
+    );
+    return () => {
+      if (outsideClickTimeoutRef.current) {
+        clearTimeout(outsideClickTimeoutRef.current);
+      }
+      document.removeEventListener('mousedown', handler);
+    };
   }, [isRenaming]);
 
   return (
@@ -1382,6 +1400,7 @@ export function AddPageButton({
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { t } = useTranslation(['navigation', 'common']);
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const addCustomPage = useSettingsStore((s) => s.addCustomPage);
@@ -1430,8 +1449,16 @@ export function AddPageButton({
       }
     };
     // Small delay to avoid conflicting with the button click
-    setTimeout(() => document.addEventListener('mousedown', handler), 0);
-    return () => document.removeEventListener('mousedown', handler);
+    outsideClickTimeoutRef.current = setTimeout(
+      () => document.addEventListener('mousedown', handler),
+      0
+    );
+    return () => {
+      if (outsideClickTimeoutRef.current) {
+        clearTimeout(outsideClickTimeoutRef.current);
+      }
+      document.removeEventListener('mousedown', handler);
+    };
   }, [isCreating, handleConfirm]);
 
   // Hover name card (same portal pattern as NavButton)
