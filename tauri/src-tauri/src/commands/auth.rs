@@ -94,6 +94,25 @@ pub async fn login(
     .map_err(|e| format!("Login task failed: {}", e))?
 }
 
+/// Verify the master password and unlock the vault without writing an audit log.
+/// Used when re-authenticating to reveal critical fields, so the resulting
+/// critical-field audit entry is the only log produced.
+#[tauri::command]
+pub async fn unlock_with_password(
+    state: State<'_, AppState>,
+    account_id: String,
+    password: String,
+) -> Result<(), String> {
+    let vault_service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let svc = vault_service.read().unwrap();
+        svc.unlock(&account_id, &password)?;
+        Ok::<_, String>(())
+    })
+    .await
+    .map_err(|e| format!("Unlock task failed: {}", e))?
+}
+
 pub(crate) fn verify_password_core(
     password: &str,
     config: &crate::services::vault_service::AccountConfig,

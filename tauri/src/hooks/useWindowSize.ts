@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { PhysicalSize } from '@tauri-apps/api/dpi';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
@@ -58,7 +58,7 @@ export async function restoreWindowSize() {
     // the freshest source of truth for the last known window geometry.
     const cached = readCachedSize();
     if (cached) {
-      const window = getCurrentWebviewWindow();
+      const window = getCurrentWindow();
       await window.setSize(new PhysicalSize({ width: cached.width, height: cached.height }));
       return;
     }
@@ -69,7 +69,7 @@ export async function restoreWindowSize() {
     const raw = prefs.windowSize;
     if (raw?.width && raw?.height) {
       writeCachedSize(raw);
-      const window = getCurrentWebviewWindow();
+      const window = getCurrentWindow();
       await window.setSize(new PhysicalSize({ width: raw.width, height: raw.height }));
     }
   } catch {
@@ -95,7 +95,9 @@ export function useWindowSize() {
   const lastSizeRef = useRef<WindowSize | null>(null);
 
   useEffect(() => {
-    const window = getCurrentWebviewWindow();
+    let mounted = true;
+    let unlistenCleanup: (() => void) | undefined;
+    let onVisibility: (() => void) | undefined;
 
     const flush = () => {
       if (timeoutRef.current) {
@@ -108,40 +110,63 @@ export function useWindowSize() {
       }
     };
 
-    const unlistenPromise = window.onResized(({ payload: size }) => {
-      const payload = { width: size.width, height: size.height };
-      const last = lastSizeRef.current;
-      if (last && last.width === payload.width && last.height === payload.height) return;
-      lastSizeRef.current = payload;
-      pendingRef.current = payload;
+    const setup = async () => {
+      // Restore the saved size *before* registering the resize listener.
+      // Otherwise the listener may fire with the default window size and
+      // overwrite the saved geometry before we have a chance to apply it.
+      await restoreWindowSize();
+      if (!mounted) return;
 
-      // Always cache locally first so recovery is reliable on abrupt exit.
-      writeCachedSize(payload);
+      const window = getCurrentWindow();
 
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        if (pendingRef.current) {
-          persistWindowSize(pendingRef.current);
-          pendingRef.current = null;
-        }
-      }, DEBOUNCE_MS);
-    });
+      // Seed the last known size from the cache so a startup resize event that
+      // matches the saved size is treated as a no-op.
+      lastSizeRef.current = readCachedSize();
 
-    // Flush pending size before the page hides or unloads. We intentionally do
-    // NOT use Tauri's onCloseRequested listener because registering it changes
-    // the window's close behavior and can break the traffic-light close button
-    // on macOS. localStorage is already written synchronously on every resize,
-    // so the next cold launch is covered even if the debounced disk write misses.
-    globalThis.window?.addEventListener('beforeunload', flush);
-    const onVisibility = () => {
-      if (document.hidden) flush();
+      const unlisten = await window.onResized(({ payload: size }) => {
+        const payload = { width: size.width, height: size.height };
+        const last = lastSizeRef.current;
+        if (last && last.width === payload.width && last.height === payload.height) return;
+        lastSizeRef.current = payload;
+        pendingRef.current = payload;
+
+        // Always cache locally first so recovery is reliable on abrupt exit.
+        writeCachedSize(payload);
+
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          if (pendingRef.current) {
+            persistWindowSize(pendingRef.current);
+            pendingRef.current = null;
+          }
+        }, DEBOUNCE_MS);
+      });
+
+      if (!mounted) {
+        unlisten();
+        return;
+      }
+      unlistenCleanup = unlisten;
+
+      // Flush pending size before the page hides or unloads. We intentionally do
+      // NOT use Tauri's onCloseRequested listener because registering it changes
+      // the window's close behavior and can break the traffic-light close button
+      // on macOS. localStorage is already written synchronously on every resize,
+      // so the next cold launch is covered even if the debounced disk write misses.
+      globalThis.window?.addEventListener('beforeunload', flush);
+      onVisibility = () => {
+        if (document.hidden) flush();
+      };
+      document.addEventListener('visibilitychange', onVisibility);
     };
-    document.addEventListener('visibilitychange', onVisibility);
+
+    setup();
 
     return () => {
-      unlistenPromise.then((fn) => fn()).catch(() => {});
+      mounted = false;
+      unlistenCleanup?.();
       globalThis.window?.removeEventListener('beforeunload', flush);
-      document.removeEventListener('visibilitychange', onVisibility);
+      if (onVisibility) document.removeEventListener('visibilitychange', onVisibility);
       flush();
     };
   }, []);

@@ -384,22 +384,27 @@ pub async fn biometric_unlock(
             let loc = location.unwrap_or_else(|| "unknown".to_string());
             let act = action.unwrap_or_else(|| "unlock".to_string());
             let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-            let action_type = match bio_type {
-                "touchId" => "touch_id_unlock",
-                "faceId" => "face_id_unlock",
-                _ => "biometric_unlock",
-            };
-            let _ = vault.log_structured(
-                action_type,
-                "biometric",
-                Some(&account_id),
-                None,
-                "user",
-                Some(&format!(
-                    "location={} action={} type={}",
-                    loc, act, bio_type
-                )),
-            );
+            // Critical field access produces a more detailed frontend-side audit
+            // entry (critical_field_touch_id / critical_field_face_id), so skip
+            // the generic biometric unlock entry to avoid duplicates.
+            if loc != "critical_data_access" {
+                let action_type = match bio_type {
+                    "touchId" => "touch_id_unlock",
+                    "faceId" => "face_id_unlock",
+                    _ => "biometric_unlock",
+                };
+                let _ = vault.log_structured(
+                    action_type,
+                    "biometric",
+                    Some(&account_id),
+                    None,
+                    "user",
+                    Some(&format!(
+                        "location={} action={} type={}",
+                        loc, act, bio_type
+                    )),
+                );
+            }
         }
     }
     Ok(())

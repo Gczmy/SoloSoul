@@ -270,11 +270,13 @@ export function HistoryViewer({
     const details = `objectName=${objectName} page=${pageLabel} fieldName=${fieldName}`;
     try {
       await invoke('log_write', {
-        actionType,
-        entityType,
-        entityId: objectId,
-        entityName: undefined,
-        details,
+        request: {
+          actionType,
+          entityType,
+          entityId: objectId,
+          entityName: null,
+          details,
+        },
       });
     } catch {
       // best effort

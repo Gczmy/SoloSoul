@@ -6,8 +6,8 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }));
 
-vi.mock('@tauri-apps/api/webviewWindow', () => ({
-  getCurrentWebviewWindow: () => ({
+vi.mock('@tauri-apps/api/window', () => ({
+  getCurrentWindow: () => ({
     innerSize: vi.fn(() => Promise.resolve({ width: 1280, height: 800 })),
     setSize: vi.fn(() => Promise.resolve()),
   }),

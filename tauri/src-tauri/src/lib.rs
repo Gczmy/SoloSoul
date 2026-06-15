@@ -57,6 +57,31 @@ pub fn run() {
                 ));
             }
 
+            // Restore the last saved window geometry before the webview renders,
+            // so the window does not flash at the default size.
+            let managed_state = app.state::<AppState>();
+            if let Ok(svc) = managed_state.vault_service.read() {
+                let prefs_path = svc.base_path().join("ui_preferences.json");
+                if let Ok(content) = std::fs::read_to_string(&prefs_path) {
+                    if let Ok(prefs) =
+                        serde_json::from_str::<commands::settings::UiPreferences>(&content)
+                    {
+                        if let Some(ws) = prefs.window_size {
+                            let _ = app.get_webview_window("main").map(|win| {
+                                let _ = win.set_size(tauri::Size::Physical(
+                                    tauri::PhysicalSize::new(ws.width, ws.height),
+                                ));
+                                // Seed the frontend cache so later JS restores use the same size.
+                                let _ = win.eval(&format!(
+                                    "try{{localStorage.setItem('solosoul_window_size','{}')}}catch(e){{}}",
+                                    serde_json::json!({"width": ws.width, "height": ws.height})
+                                ));
+                            });
+                        }
+                    }
+                }
+            }
+
             // System templates are no longer loaded at startup.
             // Default templates are seeded once during account creation instead.
             Ok(())
@@ -69,6 +94,7 @@ pub fn run() {
             commands::auth::logout,
             commands::auth::get_current_account,
             commands::auth::verify_password,
+            commands::auth::unlock_with_password,
             // Vault commands
             commands::vault::unlock,
             commands::discovery::mdns_advertise,

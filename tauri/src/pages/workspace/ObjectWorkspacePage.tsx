@@ -130,29 +130,18 @@ export function ObjectWorkspacePage() {
     });
   }, []);
 
-  /** Verify password against vault — used by PasswordVerificationDialog. */
+  /** Unlock the current account with the master password — used by PasswordVerificationDialog
+   *  before revealing critical fields. This ensures the vault is open so the subsequent
+   *  critical-field audit log can be written. */
   const verifyVaultPassword = useCallback(
     async (password: string): Promise<boolean> => {
-      if (accountId) {
-        try {
-          const ok = await invoke<boolean>('verify_password', { accountId, password });
-          if (ok) return true;
-        } catch {
-          /* ignore */
-        }
+      if (!accountId) return false;
+      try {
+        await invoke('unlock_with_password', { accountId, password });
+        return true;
+      } catch {
+        return false;
       }
-      const accounts = await invoke<Array<{ id: string; passwordHint?: string }>>(
-        'vault_list_accounts',
-      ).catch(() => []);
-      for (const acc of accounts) {
-        try {
-          const ok = await invoke<boolean>('verify_password', { accountId: acc.id, password });
-          if (ok) return true;
-        } catch {
-          /* ignore */
-        }
-      }
-      return false;
     },
     [accountId],
   );

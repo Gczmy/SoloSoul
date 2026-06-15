@@ -143,11 +143,12 @@ export function ObjectDetailModal({
       .finally(() => setLoading(false));
   }, [object, objectId, accountId]);
 
-  const verifyVaultPassword = useCallback(
+  const unlockVaultWithPassword = useCallback(
     async (password: string): Promise<boolean> => {
       if (!accountId) return false;
       try {
-        return await invoke<boolean>('verify_password', { accountId, password });
+        await invoke('unlock_with_password', { accountId, password });
+        return true;
       } catch {
         return false;
       }
@@ -178,11 +179,13 @@ export function ObjectDetailModal({
       const details = `objectName=${obj.name} page=${resolveCollectionLabelLocal(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName}`;
       try {
         await invoke('log_write', {
-          actionType,
-          entityType,
-          entityId: obj.id,
-          entityName: undefined,
-          details,
+          request: {
+            actionType,
+            entityType,
+            entityId: obj.id,
+            entityName: null,
+            details,
+          },
         });
       } catch {
         // best effort
@@ -667,7 +670,7 @@ export function ObjectDetailModal({
           pwResolveRef.current?.({ ok: false, method: 'password' });
         }}
         onVerify={async (password) => {
-          const ok = await verifyVaultPassword(password);
+          const ok = await unlockVaultWithPassword(password);
           if (ok) pwResolveRef.current?.({ ok: true, method: 'password' });
           return ok;
         }}

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import { z } from 'zod';
-import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { PhysicalSize } from '@tauri-apps/api/dpi';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import { applyTheme } from '@/lib/theme';
@@ -262,28 +262,52 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (Array.isArray(prefs.customPages)) {
         parsed.customPages = prefs.customPages as CustomPage[];
       }
-      // Window size: plaintext UI preference is the source of truth for the login
-      // window and is restored by restoreWindowSize(). After Vault unlock, apply
-      // the account-specific encrypted size once without overwriting the global
-      // plaintext cache, so the next cold start still uses the fallback size.
-      const encryptedWindowSize = prefs.windowSize as WindowSize | undefined;
+      // Window size: plaintext UI preference / localStorage cache is the freshest source
+      // because it is updated synchronously on every resize. Prefer it over the encrypted
+      // account preference to avoid reverting to a stale size after login.
+      let effectiveWindowSize: WindowSize | undefined;
+      try {
+        const cachedRaw = localStorage.getItem('solosoul_window_size');
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw) as WindowSize;
+          if (typeof cached.width === 'number' && typeof cached.height === 'number') {
+            effectiveWindowSize = cached;
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+      if (!effectiveWindowSize) {
+        effectiveWindowSize = prefs.windowSize as WindowSize | undefined;
+      }
       if (
-        encryptedWindowSize &&
-        typeof encryptedWindowSize.width === 'number' &&
-        typeof encryptedWindowSize.height === 'number'
+        effectiveWindowSize &&
+        typeof effectiveWindowSize.width === 'number' &&
+        typeof effectiveWindowSize.height === 'number'
       ) {
-        parsed.windowSize = encryptedWindowSize;
+        parsed.windowSize = effectiveWindowSize;
         try {
-          const window = getCurrentWebviewWindow();
+          const window = getCurrentWindow();
           const current = await window.innerSize();
           if (
-            Math.abs(current.width - encryptedWindowSize.width) > 1 ||
-            Math.abs(current.height - encryptedWindowSize.height) > 1
+            Math.abs(current.width - effectiveWindowSize.width) > 1 ||
+            Math.abs(current.height - effectiveWindowSize.height) > 1
           ) {
-            await window.setSize(new PhysicalSize(encryptedWindowSize));
+            await window.setSize(new PhysicalSize(effectiveWindowSize));
           }
         } catch {
           /* ignore */
+        }
+        // Sync the effective size back to encrypted account prefs if it differs from what was stored.
+        const encryptedWindowSize = prefs.windowSize as WindowSize | undefined;
+        if (
+          !encryptedWindowSize ||
+          encryptedWindowSize.width !== effectiveWindowSize.width ||
+          encryptedWindowSize.height !== effectiveWindowSize.height
+        ) {
+          invoke('user_data_update_preference', {
+            payload: { accountId, preferences: { windowSize: effectiveWindowSize } },
+          }).catch(() => {});
         }
       }
       set({ settings: parsed, isLoading: false });
