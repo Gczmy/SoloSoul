@@ -17,7 +17,7 @@
 | ID   | 优先级 | 类别       | 文件位置 | 描述 | 状态 |
 |------|--------|------------|----------|------|------|
 | P001 | P0 | 安全漏洞 | `tauri/crates/solosoul-core/src/biometric.rs:22,178-200` | 生物特征主密钥文件回退使用硬编码 XOR 混淆，可被轻易反混淆 | `[ ]` 待修复 |
-| P002 | P0 | 代码规范/死代码 | `tauri/crates/solosoul-vault/src/lib.rs:1-2` | 顶层 `#![allow(dead_code)]` / `#![allow(unused_imports)]` 抑制整 crate 警告 | `[ ]` 待修复 |
+| P002 | P0 | 代码规范/死代码 | `tauri/crates/solosoul-vault/src/lib.rs:1-2` | 顶层 `#![allow(dead_code)]` / `#![allow(unused_imports)]` 抑制整 crate 警告 | `[x]` 已修复：移除全局 suppression，clippy 无警告 |
 | P003 | P0 | 代码结构 | `tauri/src-tauri/src/commands/*.rs` | vault 访问样板代码在 11+ 个命令文件中重复 | `[ ]` 待修复 |
 | P004 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:90-158,219-294` | `create_zip_package` / `extract_zip_package` / `fs_scan_directory` / `fs_get_file_size` / `fs_read_file_as_data_url` 未限制基础目录，存在路径遍历 | `[ ]` 待修复 |
 | P005 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/attachment.rs:86-91,208-232` | `attachment_delete` / `attachment_copy_to_vault` 直接拼接 `object_id` / `attachment_id` 到路径，未校验 | `[ ]` 待修复 |
@@ -25,7 +25,7 @@
 | P007 | P1 | 安全漏洞 | `tauri/crates/solosoul-sync/src/attachments.rs:32-42,166-177,373-376` | 同步附件路径直接拼接远程 `object_id` / `attachment_id` / `file_name` | `[ ]` 待修复 |
 | P008 | P1 | 安全漏洞 | `tauri/src-tauri/src/plugin/store.rs:51-53` / `tauri/src-tauri/src/plugin/manager.rs:134,168` | `plugin_id` 直接用于路径拼接，可能导致插件目录逃逸 | `[ ]` 待修复 |
 | P009 | P1 | 安全漏洞 | `tauri/src-tauri/src/plugin/host.rs:767-813` | `solosoul_sleep` 接受未限制时长，`read_string` 分配未限制长度，存在 DoS / OOM 风险 | `[ ]` 待修复 |
-| P010 | P1 | 安全漏洞 | `tauri/crates/solosoul-core/src/vault_service.rs:384,479` | 密码验证使用 `==` 而非恒定时间比较，存在时序侧信道 | `[ ]` 待修复 |
+| P010 | P1 | 安全漏洞 | `tauri/crates/solosoul-core/src/vault_service.rs:384,479` | 密码验证使用 `==` 而非恒定时间比较，存在时序侧信道 | `[x]` 已修复：改用 `solosoul_crypto::secure::secure_compare` |
 | P011 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/biometric.rs:47-63` | 前端可控 `silent` 参数可跳过生物特征挑战 | `[ ]` 待修复 |
 | P012 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/window.rs:21` | 原始指针未判空直接解引用 | `[ ]` 待修复 |
 | P013 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:22-31` | `resolve_within` canonicalize 失败时回退到文本比较，symlink 指向不存在目标可绕过检查 | `[ ]` 待修复 |
@@ -66,8 +66,8 @@
 
 ## 修复进度
 
-- 已完成：0 / 47
-- 当前处理：无
+- 已完成：2 / 47
+- 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
 
