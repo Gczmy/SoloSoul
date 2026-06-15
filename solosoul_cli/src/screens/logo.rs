@@ -17,7 +17,7 @@ const SHADOW_CHARS: [char; 11] = ['╚', '═', '╝', '║', '╔', '╗', '╠
 
 /// SoloSoul 品牌 Logo， trimming 后宽度 58。
 const LOGO_LINES: [&str; 6] = [
-    "██████╗ █████╗ ██╗  █████╗ ██████╗ █████╗ ██╗  ██╗██╗     ",
+    " █████╗ █████╗ ██╗  █████╗  █████╗ █████╗ ██╗  ██╗██╗     ",
     "██╔═══╝██╔══██╗██║ ██╔══██╗██╔═══╝██╔══██╗██║  ██║██║     ",
     "╚████╗ ██║  ██║██║ ██║  ██║╚████╗ ██║  ██║██║  ██║██║     ",
     " ╚══██╗██║  ██║██║ ██║  ██║ ╚══██╗██║  ██║██║  ██║██║     ",
@@ -51,8 +51,10 @@ pub fn render(
                     let in_sheen = is_shadow && idx.abs_diff(center) <= half;
                     let style = if in_sheen {
                         theme.style_cream()
-                    } else {
+                    } else if is_shadow {
                         theme.style_brand()
+                    } else {
+                        theme.style_logo_fill()
                     };
                     Span::styled(c.to_string(), style)
                 })

@@ -17,6 +17,8 @@ pub struct Theme {
     pub border: Color,
     pub text: Color,
     pub muted: Color,
+    /// Logo 填充色，GUI 暖石白 `--stone-50: #fafaf6`。
+    pub logo_fill: Color,
     pub success: Color,
     pub warning: Color,
     pub error: Color,
@@ -37,11 +39,12 @@ impl Theme {
     pub fn with_level(level: ColorLevel, use_icons: bool) -> Self {
         match level {
             ColorLevel::TrueColor => Self {
-                brand: Color::Rgb(91, 124, 153),  // #5b7c99
-                cream: Color::Rgb(142, 175, 200), // #8eafc8
-                border: Color::Rgb(74, 106, 133), // #4a6a85
-                text: Color::Rgb(224, 234, 242),  // #e0eaf2
-                muted: Color::Rgb(143, 163, 176), // #8fa3b0
+                brand: Color::Rgb(91, 124, 153),      // #5b7c99
+                cream: Color::Rgb(142, 175, 200),     // #8eafc8
+                border: Color::Rgb(74, 106, 133),     // #4a6a85
+                text: Color::Rgb(224, 234, 242),      // #e0eaf2
+                muted: Color::Rgb(143, 163, 176),     // #8fa3b0
+                logo_fill: Color::Rgb(250, 250, 246), // #fafaf6 暖石白
                 success: Color::Rgb(130, 200, 120),
                 warning: Color::Rgb(255, 200, 100),
                 error: Color::Rgb(255, 120, 100),
@@ -54,6 +57,7 @@ impl Theme {
                 border: Color::Indexed(60),
                 text: Color::Indexed(255),
                 muted: Color::Indexed(109),
+                logo_fill: Color::Indexed(15),
                 success: Color::Indexed(114),
                 warning: Color::Indexed(221),
                 error: Color::Indexed(203),
@@ -66,6 +70,7 @@ impl Theme {
                 border: Color::DarkGray,
                 text: Color::White,
                 muted: Color::Gray,
+                logo_fill: Color::White,
                 success: Color::Green,
                 warning: Color::Yellow,
                 error: Color::Red,
@@ -98,6 +103,13 @@ impl Theme {
     /// 次要/提示文字样式。
     pub fn style_muted(&self) -> Style {
         Style::default().fg(self.muted)
+    }
+
+    /// Logo 填充色（GUI 暖石白）。
+    pub fn style_logo_fill(&self) -> Style {
+        Style::default()
+            .fg(self.logo_fill)
+            .add_modifier(Modifier::BOLD)
     }
 
     /// 卡片标题样式。
