@@ -4,6 +4,7 @@ members = [
     "crates/solosoul-crypto",
     "crates/solosoul-vault",
     "crates/solosoul-sync",
+    "crates/solosoul-core",
 ]
 resolver = "2"
 

@@ -74,9 +74,9 @@ impl SystemTemplateRegistry {
     /// `locale` should be a language code like "zh-CN" or "en-US".
     pub fn load_for_locale(locale: &str) -> Result<Self, String> {
         let json_str = if locale.starts_with("zh") {
-            include_str!("../../resources/system_templates_zh.json")
+            include_str!("../resources/system_templates_zh.json")
         } else {
-            include_str!("../../resources/system_templates_en.json")
+            include_str!("../resources/system_templates_en.json")
         };
         let data: SystemTemplateResource =
             serde_json::from_str(json_str).map_err(|e| format!("Parse system_templates: {}", e))?;

@@ -22,6 +22,7 @@ tauri-plugin-updater = "2"
 solosoul-crypto = { path = "../crates/solosoul-crypto" }
 solosoul-vault = { path = "../crates/solosoul-vault" }
 solosoul-sync = { path = "../crates/solosoul-sync" }
+solosoul-core = { path = "../crates/solosoul-core" }
 
 # 序列化
 serde = { workspace = true }
@@ -72,7 +73,6 @@ dirs = "6.0.0"
 semver = "1.0"
 url = "2.5"
 minisign-verify = "0.2"
-keyring = "3"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { version = "0.6", default-features = false, features = ["std", "alloc"] }

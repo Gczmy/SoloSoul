@@ -1,5 +1,6 @@
-use crate::commands::auth::verify_password_core;
 use crate::state::AppState;
+use solosoul_core::auth::verify_password_core;
+use solosoul_core::{AccountConfig, AccountSummary};
 use tauri::{Emitter, State};
 
 #[tauri::command]
@@ -51,7 +52,7 @@ pub async fn delete_account(
     let config_path = svc.base_path().join(&account_id).join("config.json");
     let content =
         std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
-    let config: crate::services::vault_service::AccountConfig =
+    let config: AccountConfig =
         serde_json::from_str(&content).map_err(|_| "Parse error".to_string())?;
     if !verify_password_core(&password, &config)? {
         return Err("Invalid password".to_string());
@@ -63,7 +64,7 @@ pub async fn delete_account(
 #[tauri::command]
 pub async fn vault_list_accounts(
     state: State<'_, AppState>,
-) -> Result<Vec<crate::services::vault_service::AccountSummary>, String> {
+) -> Result<Vec<AccountSummary>, String> {
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
         let svc = vault_service

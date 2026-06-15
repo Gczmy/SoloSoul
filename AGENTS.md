@@ -79,7 +79,8 @@ SoloSoul/
 │   │   ├── crates/             # Workspace Crates
 │   │   │   ├── solosoul-crypto/# 密码学（Argon2id + AES-256-GCM）
 │   │   │   ├── solosoul-vault/ # Vault 存储接口与实现
-│   │   │   └── solosoul-sync/  # 同步引擎（mDNS + Noise）
+│   │   │   ├── solosoul-sync/  # 同步引擎（mDNS + Noise）
+│   │   │   └── solosoul-core/  # 共享核心逻辑（Vault/模板/生物识别）
 │   │   ├── resources/          # 打包资源（docs, ONNX models）
 │   │   └── tauri.conf.json     # Tauri 应用配置
 │   ├── scripts/                # 构建脚本（搜索索引等）
@@ -322,16 +323,18 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 | Tauri 前端入口 | `tauri/src/main.tsx` |
 | Tauri 应用根组件 | `tauri/src/App.tsx` |
 | Tauri IPC 封装 | `tauri/src/lib/ipc.ts` |
-| Tauri Vault 服务 | `tauri/src-tauri/src/services/vault_service.rs` |
+| Tauri Vault 服务（薄包装） | `tauri/src-tauri/src/services/vault_service.rs` |
+| 共享核心库（Vault/模板/生物识别） | `tauri/crates/solosoul-core/` |
 | Tauri SensitivityManager | `tauri/src-tauri/src/core/sensitivity_manager.rs` |
 | Tauri Auth 命令 | `tauri/src-tauri/src/commands/auth.rs` |
 | Tauri Profile 命令 | `tauri/src-tauri/src/commands/profile.rs` |
 | Tauri 对象命令 | `tauri/src-tauri/src/commands/unified_object.rs` |
 | Tauri 数据库模块 | `tauri/src-tauri/src/db/` |
 | Tauri 本地 Embedding | `tauri/src-tauri/src/local_embed.rs` |
-| Rust crypto crate | `tauri/src-tauri/crates/solosoul-crypto/` |
-| Rust vault crate | `tauri/src-tauri/crates/solosoul-vault/` |
-| Rust sync crate | `tauri/src-tauri/crates/solosoul-sync/` |
+| Rust crypto crate | `tauri/crates/solosoul-crypto/` |
+| Rust vault crate | `tauri/crates/solosoul-vault/` |
+| Rust sync crate | `tauri/crates/solosoul-sync/` |
+| Rust shared core crate | `tauri/crates/solosoul-core/` |
 | 任务清单 | `docs/TODO.md` |
 | 用户指南 | `docs/USER_GUIDE.md` |
 | 技术路线图 | `docs/CLIENT_ROADMAP.md` |

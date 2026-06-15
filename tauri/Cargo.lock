@@ -5262,7 +5262,6 @@ dependencies = [
  "dirs",
  "futures",
  "hex",
- "keyring",
  "mdns-sd",
  "minisign-verify",
  "ndarray",
@@ -5278,6 +5277,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "solosoul-core",
  "solosoul-crypto",
  "solosoul-sync",
  "solosoul-vault",
@@ -5306,6 +5306,28 @@ dependencies = [
  "windows",
  "zeroize",
  "zip 2.4.2",
+]
+
+[[package]]
+name = "solosoul-core"
+version = "2.2.0"
+dependencies = [
+ "anyhow",
+ "base64 0.22.1",
+ "block2",
+ "chrono",
+ "hex",
+ "keyring",
+ "objc2",
+ "serde",
+ "serde_json",
+ "solosoul-crypto",
+ "solosoul-vault",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tracing",
+ "uuid",
+ "zeroize",
 ]
 
 [[package]]

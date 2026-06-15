@@ -72,7 +72,7 @@ pub fn run() {
                                     tauri::PhysicalSize::new(ws.width, ws.height),
                                 ));
                                 // Seed the frontend cache so later JS restores use the same size.
-                                let _ = win.eval(&format!(
+                                let _ = win.eval(format!(
                                     "try{{localStorage.setItem('solosoul_window_size','{}')}}catch(e){{}}",
                                     serde_json::json!({"width": ws.width, "height": ws.height})
                                 ));
