@@ -34,7 +34,7 @@ function buildLatestJson(version, artifactsDir) {
   const platforms = {};
 
   // macOS DMG (Apple Silicon)
-  const macArmDmg = findFiles(artifactsDir, /SoloSoul_.*_aarch64\.dmg$/)[0];
+  const macArmDmg = findFiles(artifactsDir, /SoloSoul_.*_(aarch64|arm64)\.dmg$/)[0];
   if (macArmDmg) {
     platforms['darwin-aarch64'] = {
       signature: resolveSignature(path.join(artifactsDir, macArmDmg)),

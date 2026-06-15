@@ -70,7 +70,7 @@
     "updater": {
       "active": true,
       "endpoints": ["https://github.com/Gczmy/SoloSoul/releases/latest/download/latest.json"],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY4M0U2MUFCQjdCNDIzQjEKUldTeEk3UzNxMkUrK0Q2ZlUvNHhGRFd0eFhWNERSMlZNVWtUKzZaNkRZMU5GVDlhYmhBRVc5L1EK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE1ODNEMDJGMjk0RjIxMEMKUldRTUlVOHBMOUNEcFgwVVhPWXlCcHFoZE1qeHUrMEtNUzhmVVVhUDVGbEJhcFZXNjJ1a3dVUTcK",
       "windows": {
         "installMode": "basicUi"
       }
