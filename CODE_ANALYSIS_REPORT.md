@@ -28,7 +28,7 @@
 | P010 | P1 | 安全漏洞 | `tauri/crates/solosoul-core/src/vault_service.rs:384,479` | 密码验证使用 `==` 而非恒定时间比较，存在时序侧信道 | `[x]` 已修复：改用 `solosoul_crypto::secure::secure_compare` |
 | P011 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/biometric.rs:47-63` | 前端可控 `silent` 参数可跳过生物特征挑战 | `[x]` 已修复：从命令签名与 core API 移除 `silent`，始终要求生物特征挑战 |
 | P012 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/window.rs:21` | 原始指针未判空直接解引用 | `[ ]` 待修复 |
-| P013 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:22-31` | `resolve_within` canonicalize 失败时回退到文本比较，symlink 指向不存在目标可绕过检查 | `[ ]` 待修复 |
+| P013 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:22-31` | `resolve_within` canonicalize 失败时回退到文本比较，symlink 指向不存在目标可绕过检查 | `[x]` 已修复：canonicalize 最深存在的路径前缀，失败则拒绝 |
 | P014 | P2 | 安全漏洞 | `tauri/src-tauri/src/local_embed.rs:169,186-188` | `model_id` 直接拼接到模型目录 | `[ ]` 待修复 |
 | P015 | P2 | 安全漏洞 | `tauri/crates/solosoul-crypto/src/kdf.rs:72-77` / `tauri/src-tauri/src/commands/crypto.rs:84-92` | `generate_salt` 使用 `thread_rng()` 而非 OS CSPRNG | `[ ]` 待修复 |
 | P016 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/embed_model.rs:218-243` | ZIP 解压未校验条目路径是否逃出目标目录 | `[ ]` 待修复 |
@@ -66,7 +66,7 @@
 
 ## 修复进度
 
-- 已完成：3 / 47
+- 已完成：4 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
