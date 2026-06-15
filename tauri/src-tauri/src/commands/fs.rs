@@ -17,13 +17,29 @@ fn reject_traversal(path: &str) -> Result<PathBuf, String> {
     Ok(p.to_path_buf())
 }
 
+/// R012: canonicalize a path by resolving symlinks on the deepest existing
+/// prefix and appending any non-existing trailing components.
+fn canonicalize_existing(path: &Path) -> Result<PathBuf, String> {
+    if path.exists() {
+        return path.canonicalize().map_err(|e| e.to_string());
+    }
+    let parent = path.parent().ok_or("Invalid path")?;
+    let mut canon = canonicalize_existing(parent)?;
+    if let Some(name) = path.file_name() {
+        canon.push(name);
+    }
+    Ok(canon)
+}
+
 /// R012: resolve a path relative to a base directory and ensure the resolved
-/// location stays within that base.
+/// location stays within that base. Symlinks are resolved on existing path
+/// components; if resolution fails, the path is rejected rather than falling
+/// back to a textual comparison.
 fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
     let p = reject_traversal(path)?;
     let abs = if p.is_absolute() { p } else { base.join(p) };
     let base_canon = base.canonicalize().map_err(|e| e.to_string())?;
-    let target_canon = abs.canonicalize().unwrap_or_else(|_| abs.clone());
+    let target_canon = canonicalize_existing(&abs)?;
     if !target_canon.starts_with(&base_canon) {
         return Err("Path is outside the allowed directory".to_string());
     }
