@@ -15,17 +15,15 @@ const SHEEN_WIDTH: usize = 5;
 /// 阴影/边框字符集合，扫光动画只影响这些字符。
 const SHADOW_CHARS: [char; 11] = ['╚', '═', '╝', '║', '╔', '╗', '╠', '╣', '╦', '╩', '╬'];
 
-/// SoloSoul 品牌 Logo， trimming 后宽度 58。
+/// SoloSoul 品牌 Logo（每行右侧空格仅用于源代码对齐，运行时按最宽行补齐）。
 const LOGO_LINES: [&str; 6] = [
-    " █████╗ █████╗ ██╗  █████╗  █████╗ █████╗ ██╗  ██╗██╗     ",
-    "██╔═══╝██╔══██╗██║ ██╔══██╗██╔═══╝██╔══██╗██║  ██║██║     ",
-    "╚████╗ ██║  ██║██║ ██║  ██║╚████╗ ██║  ██║██║  ██║██║     ",
-    " ╚══██╗██║  ██║██║ ██║  ██║ ╚══██╗██║  ██║██║  ██║██║     ",
-    "█████╔╝╚█████╔╝██║ ╚█████╝ █████╔╝╚█████╝ ╚█████╝ ╚██████╗",
-    "╚════╝ ╚═════╝ ╚═╝ ╚═════╝ ╚════╝ ╚═════╝ ╚═════╝  ╚═════╝",
+    " █████╗ █████╗ ██╗░░    █████╗  █████╗ █████╗ ██╗░░██╗██╗░░",
+    "██╔═══╝██╔══██╗██║░░   ██╔══██╗██╔═══╝██╔══██╗██║░░██║██║░░",
+    "╚████╗░██║░░██║██║░░   ██║░░██║╚████╗░██║░░██║██║░░██║██║░░",
+    "░╚══██╗██║░░██║██║░░   ██║░░██║░╚══██╗██║░░██║██║░░██║██║░░",
+    "█████╔╝╚█████╔╝╚██████╗╚█████╝ █████╔╝╚█████╝ ╚█████╝ ╚██████╗",
+    "╚════╝  ╚════╝  ╚═════╝ ╚════╝ ╚════╝  ╚════╝  ╚════╝  ╚═════╝",
 ];
-
-const LOGO_WIDTH: usize = 58;
 
 /// 渲染带边框与扫光动画的品牌 Logo。
 ///
@@ -37,13 +35,20 @@ pub fn render(
     sheen_offset: u16,
     title: &str,
 ) {
-    let center = (sheen_offset as usize) % (LOGO_WIDTH + SHEEN_WIDTH);
+    let logo_width = LOGO_LINES
+        .iter()
+        .map(|line| line.trim_end().chars().count())
+        .max()
+        .unwrap_or(0);
+    let center = (sheen_offset as usize) % (logo_width + SHEEN_WIDTH);
     let half = SHEEN_WIDTH / 2;
 
     let lines: Vec<Line> = LOGO_LINES
         .iter()
         .map(|raw| {
-            let spans: Vec<Span> = raw
+            let trimmed = raw.trim_end();
+            let padded = format!("{: <width$}", trimmed, width = logo_width);
+            let spans: Vec<Span> = padded
                 .chars()
                 .enumerate()
                 .map(|(idx, c)| {

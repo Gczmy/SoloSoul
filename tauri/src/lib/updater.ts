@@ -9,26 +9,39 @@ export interface UpdateInfo {
 
 export type UpdateProgress = DownloadEvent;
 
+export type UpdateCheckResult =
+  | { kind: 'available'; info: UpdateInfo }
+  | { kind: 'up-to-date' }
+  | { kind: 'error'; message?: string };
+
 /**
  * 检查是否有可用更新。
- * 返回 null 表示当前已是最新版或检查失败。
+ * - 'available': 有新版本可更新
+ * - 'up-to-date': 当前已是最新版
+ * - 'error': 检查失败（如网络异常、端点不可达）
  */
-export async function checkForUpdate(): Promise<UpdateInfo | null> {
+export async function checkForUpdate(): Promise<UpdateCheckResult> {
   try {
     const update = await check();
     if (!update) {
-      return null;
+      return { kind: 'up-to-date' };
     }
     return {
-      version: update.version,
-      body: update.body,
-      date: update.date,
+      kind: 'available',
+      info: {
+        version: update.version,
+        body: update.body,
+        date: update.date,
+      },
     };
   } catch (error) {
     // 网络异常时静默失败，避免打扰用户
     // eslint-disable-next-line no-console
     console.warn('[updater] check failed:', error);
-    return null;
+    return {
+      kind: 'error',
+      message: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 
