@@ -233,12 +233,14 @@ pub struct App {
     pub clickable_regions: Vec<ClickableRegion>,
     /// 当前鼠标位置（用于悬停高亮）。
     pub mouse_pos: Option<(u16, u16)>,
-    /// 悬停脉冲状态，每 tick 切换，产生轻微动画效果。
-    pub hover_pulse: bool,
     /// Logo sheen 动画偏移量。
     pub sheen_offset: u16,
     /// 锁定页当前选中的动作按钮索引。
     pub locked_selected: usize,
+    /// 欢迎页当前选中的选项索引。
+    pub welcome_selected: usize,
+    /// 当前触屏/鼠标拖拽起始位置，用于在支持滚动的页面区分点击与滑动滚动。
+    pub drag_start: Option<(u16, u16)>,
 }
 
 impl App {
@@ -283,9 +285,10 @@ impl App {
             command_palette: CommandPalette::new(),
             clickable_regions: Vec::new(),
             mouse_pos: None,
-            hover_pulse: false,
             sheen_offset: 0,
             locked_selected: 0,
+            welcome_selected: 0,
+            drag_start: None,
         })
     }
 
@@ -339,16 +342,6 @@ impl App {
             }
         }
 
-        // 若有悬停在可点击区域上，切换脉冲状态以产生轻微动画
-        let hovering = self.mouse_pos.is_some_and(|pos| {
-            self.clickable_regions
-                .iter()
-                .any(|r| r.rect.contains(pos.into()))
-        });
-        if hovering {
-            self.hover_pulse = !self.hover_pulse;
-        }
-
         // Logo 扫光动画偏移
         self.sheen_offset = self
             .sheen_offset
@@ -381,11 +374,12 @@ impl App {
             AppPhase::AttachmentList { .. } => self.handle_attachment_list_key(key),
             AppPhase::BackupList { .. } => self.handle_backup_list_key(key),
             AppPhase::Locked => self.handle_locked_key(key),
+            AppPhase::Welcome => self.handle_welcome_key(key),
             _ => self.handle_command_key(key),
         }
     }
 
-    /// 鼠标事件处理（移动更新悬停位置，左键单击执行动作）。
+    /// 鼠标事件处理（移动更新悬停位置，左键单击执行动作，滚轮/拖拽滚动选项列表）。
     fn handle_mouse(&mut self, mouse: MouseEvent) -> Result<bool> {
         let pos = (mouse.column, mouse.row);
 
@@ -395,29 +389,117 @@ impl App {
                 Ok(false)
             }
             MouseEventKind::Down(MouseButton::Left) => {
-                if let Some(region) = self
-                    .clickable_regions
-                    .iter()
-                    .find(|r| r.rect.contains(pos.into()))
-                    .cloned()
-                {
-                    match region.action {
-                        ClickAction::Command(cmd) => {
-                            self.command_input.set_value(cmd.to_string());
-                            self.execute_command()
+                if self.has_scrollable_options() {
+                    // 可滚动选项页：先记录拖拽起点，区分手指点按与滑动滚动。
+                    self.drag_start = Some(pos);
+                    Ok(false)
+                } else {
+                    self.execute_click(pos)
+                }
+            }
+            MouseEventKind::Drag(MouseButton::Left) => {
+                self.mouse_pos = Some(pos);
+                if self.has_scrollable_options() {
+                    if let Some(start) = self.drag_start {
+                        const DRAG_THRESHOLD: i32 = 2;
+                        let dy = pos.1 as i32 - start.1 as i32;
+                        if dy.abs() >= DRAG_THRESHOLD {
+                            let steps = (dy / DRAG_THRESHOLD).clamp(-1, 1);
+                            self.scroll_selection(steps);
+                            self.drag_start = Some(pos);
                         }
-                        ClickAction::StartOnboarding => {
-                            self.phase = AppPhase::Onboarding {
-                                step: OnboardingStep::EnterName,
-                            };
+                    }
+                }
+                Ok(false)
+            }
+            MouseEventKind::Up(MouseButton::Left) => {
+                let result = if self.has_scrollable_options() {
+                    if let Some(start) = self.drag_start {
+                        const TAP_THRESHOLD: i32 = 2;
+                        let dx = pos.0 as i32 - start.0 as i32;
+                        let dy = pos.1 as i32 - start.1 as i32;
+                        if dx.abs() < TAP_THRESHOLD && dy.abs() < TAP_THRESHOLD {
+                            self.execute_click(pos)
+                        } else {
                             Ok(false)
                         }
+                    } else {
+                        Ok(false)
                     }
                 } else {
                     Ok(false)
+                };
+                self.drag_start = None;
+                result
+            }
+            MouseEventKind::ScrollDown => {
+                if self.has_scrollable_options() {
+                    self.scroll_selection(1);
                 }
+                Ok(false)
+            }
+            MouseEventKind::ScrollUp => {
+                if self.has_scrollable_options() {
+                    self.scroll_selection(-1);
+                }
+                Ok(false)
             }
             _ => Ok(false),
+        }
+    }
+
+    /// 当前阶段是否使用可滚动选项列表。
+    fn has_scrollable_options(&self) -> bool {
+        matches!(
+            self.phase,
+            AppPhase::Locked | AppPhase::Welcome | AppPhase::Home { .. }
+        )
+    }
+
+    /// 在可点击区域上执行点击动作。
+    fn execute_click(&mut self, pos: (u16, u16)) -> Result<bool> {
+        if let Some(region) = self
+            .clickable_regions
+            .iter()
+            .find(|r| r.rect.contains(pos.into()))
+            .cloned()
+        {
+            match region.action {
+                ClickAction::Command(cmd) => {
+                    self.command_input.set_value(cmd.to_string());
+                    self.execute_command()
+                }
+                ClickAction::StartOnboarding => {
+                    self.phase = AppPhase::Onboarding {
+                        step: OnboardingStep::EnterName,
+                    };
+                    Ok(false)
+                }
+            }
+        } else {
+            Ok(false)
+        }
+    }
+
+    /// 滚动当前阶段的可滚动选项选择索引。`steps` 为正向下、负向上。
+    fn scroll_selection(&mut self, steps: i32) {
+        match self.phase {
+            AppPhase::Locked => {
+                let count = crate::screens::locked::ACTION_COUNT as i32;
+                self.locked_selected =
+                    (self.locked_selected as i32 + steps).clamp(0, count - 1) as usize;
+            }
+            AppPhase::Welcome => {
+                let count = crate::screens::welcome::WELCOME_ACTIONS.len() as i32;
+                self.welcome_selected =
+                    (self.welcome_selected as i32 + steps).clamp(0, count - 1) as usize;
+            }
+            AppPhase::Home { .. } => {
+                let count = crate::screens::home::shortcut_count() as i32;
+                self.selected_shortcut =
+                    (self.selected_shortcut as i32 + steps).clamp(0, count - 1) as usize;
+            }
+            _ => {}
         }
     }
 
@@ -490,13 +572,60 @@ impl App {
                 self.locked_selected += 1;
             }
             KeyCode::Enter => {
-                let cmd = crate::screens::locked::ACTIONS[self.locked_selected].command;
-                self.command_input.set_value(cmd.to_string());
-                return self.execute_command();
+                if let ClickAction::Command(cmd) =
+                    crate::screens::locked::ACTIONS[self.locked_selected].action
+                {
+                    self.command_input.set_value(cmd.to_string());
+                    return self.execute_command();
+                }
             }
             _ => return self.handle_command_key(key),
         }
         Ok(false)
+    }
+
+    /// 欢迎页的键盘处理。
+    ///
+    /// 命令框非空或斜杠面板打开时，复用普通命令行按键处理。只有命令框为空且面板
+    /// 关闭时，↑/↓ 才用于选择选项。
+    fn handle_welcome_key(&mut self, key: KeyEvent) -> Result<bool> {
+        let palette_active = self.command_palette.should_render(&self.command_input);
+
+        if !self.command_input.is_empty() || palette_active {
+            return self.handle_command_key(key);
+        }
+
+        match key.code {
+            KeyCode::Up if self.welcome_selected > 0 => {
+                self.welcome_selected -= 1;
+            }
+            KeyCode::Down
+                if self.welcome_selected + 1 < crate::screens::welcome::WELCOME_ACTIONS.len() =>
+            {
+                self.welcome_selected += 1;
+            }
+            KeyCode::Enter => {
+                return self.execute_welcome_action();
+            }
+            _ => return self.handle_command_key(key),
+        }
+        Ok(false)
+    }
+
+    /// 执行当前欢迎页选中的动作。
+    fn execute_welcome_action(&mut self) -> Result<bool> {
+        match crate::screens::welcome::WELCOME_ACTIONS[self.welcome_selected].action {
+            ClickAction::Command(cmd) => {
+                self.command_input.set_value(cmd.to_string());
+                self.execute_command()
+            }
+            ClickAction::StartOnboarding => {
+                self.phase = AppPhase::Onboarding {
+                    step: OnboardingStep::EnterName,
+                };
+                Ok(false)
+            }
+        }
     }
 
     /// 创建账户向导的键盘处理。
@@ -768,10 +897,11 @@ impl App {
             return Ok(false);
         }
 
-        // 命令历史翻阅（仅当命令框为空且面板未激活时）
+        // 命令历史翻阅（仅当命令框为空、面板未激活且不在首页时；首页 ↑/↓ 用于选项导航）
         if matches!(key.code, KeyCode::Up | KeyCode::Down)
             && self.command_input.is_empty()
             && !self.command_palette.should_render(&self.command_input)
+            && !matches!(self.phase, AppPhase::Home { .. })
         {
             self.handle_history(key.code);
             return Ok(false);
@@ -805,18 +935,26 @@ impl App {
             return Ok(false);
         }
 
-        // 首页快捷卡片导航（命令框为空时）
+        // 首页选项导航（命令框为空时）：↑/↓/Tab/Shift+Tab 循环选择。
         let is_home = matches!(self.phase, AppPhase::Home { .. });
 
-        if key.code == KeyCode::Tab && is_home && self.command_input.is_empty() {
+        if is_home
+            && self.command_input.is_empty()
+            && matches!(
+                key.code,
+                KeyCode::Up | KeyCode::Down | KeyCode::Tab | KeyCode::BackTab
+            )
+        {
             let count = crate::screens::home::shortcut_count();
-            self.selected_shortcut = (self.selected_shortcut + 1) % count;
-            return Ok(false);
-        }
-
-        if key.code == KeyCode::BackTab && is_home && self.command_input.is_empty() {
-            let count = crate::screens::home::shortcut_count();
-            self.selected_shortcut = (self.selected_shortcut + count - 1) % count;
+            match key.code {
+                KeyCode::Up | KeyCode::BackTab => {
+                    self.selected_shortcut = (self.selected_shortcut + count - 1) % count;
+                }
+                KeyCode::Down | KeyCode::Tab => {
+                    self.selected_shortcut = (self.selected_shortcut + 1) % count;
+                }
+                _ => {}
+            }
             return Ok(false);
         }
 
@@ -826,14 +964,9 @@ impl App {
                 && self.command_input.is_empty()
                 && self.selected_shortcut < crate::screens::home::shortcut_count()
             {
-                let command = crate::screens::home::SHORTCUTS[self.selected_shortcut].command;
-                self.command_input.set_value(command.to_string());
-                return Ok(false);
-            }
-            if matches!(self.phase, AppPhase::Welcome) && self.command_input.is_empty() {
-                self.phase = AppPhase::Onboarding {
-                    step: OnboardingStep::EnterName,
-                };
+                if let Some(cmd) = crate::screens::home::SHORTCUTS[self.selected_shortcut].command {
+                    self.command_input.set_value(cmd.to_string());
+                }
                 return Ok(false);
             }
             return self.execute_command();
@@ -1404,15 +1537,14 @@ impl App {
                 layout[1],
                 &mut self.clickable_regions,
                 self.mouse_pos,
-                self.hover_pulse,
                 self.sheen_offset,
+                self.welcome_selected,
             ),
             AppPhase::Locked => crate::screens::locked::render(
                 frame,
                 layout[1],
                 &mut self.clickable_regions,
                 self.mouse_pos,
-                self.hover_pulse,
                 self.sheen_offset,
                 self.locked_selected,
             ),
@@ -1427,7 +1559,9 @@ impl App {
                 layout[1],
                 &self.account_name,
                 account_id,
+                &mut self.clickable_regions,
                 self.selected_shortcut,
+                self.mouse_pos,
             ),
             AppPhase::ObjectList { items, title } => {
                 crate::screens::object_list::render(frame, layout[1], title, items)
@@ -1604,9 +1738,20 @@ mod tests {
     use std::sync::Arc;
     use std::time::{Duration, Instant};
 
-    use crossterm::event::{KeyCode, KeyEvent};
+    use crossterm::event::{
+        KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
+    };
 
     use super::*;
+
+    fn mouse_event(kind: MouseEventKind, column: u16, row: u16) -> crate::events::Event {
+        crate::events::Event::Mouse(MouseEvent {
+            kind,
+            column,
+            row,
+            modifiers: KeyModifiers::empty(),
+        })
+    }
 
     fn locked_app() -> (App, String, tempfile::TempDir) {
         let _guard = crate::VAULT_TEST_LOCK
@@ -1832,18 +1977,18 @@ mod tests {
         assert!(matches!(app.phase, AppPhase::Home { .. }));
         assert_eq!(app.selected_shortcut, 0);
 
-        // Tab 前进
-        press_key(&mut app, KeyCode::Tab);
+        // ↓ 前进
+        press_key(&mut app, KeyCode::Down);
         assert_eq!(app.selected_shortcut, 1);
 
-        // 继续 Tab 循环
+        // Tab 继续前进并循环
         for _ in 0..5 {
             press_key(&mut app, KeyCode::Tab);
         }
         assert_eq!(app.selected_shortcut, 0);
 
-        // Shift+Tab 后退
-        press_key(&mut app, KeyCode::BackTab);
+        // ↑ 后退
+        press_key(&mut app, KeyCode::Up);
         assert_eq!(
             app.selected_shortcut,
             crate::screens::home::shortcut_count() - 1
@@ -1851,10 +1996,9 @@ mod tests {
 
         // Enter 填入命令
         press_key(&mut app, KeyCode::Enter);
-        assert_eq!(
-            app.command_input.value,
-            crate::screens::home::SHORTCUTS[app.selected_shortcut].command
-        );
+        if let Some(cmd) = crate::screens::home::SHORTCUTS[app.selected_shortcut].command {
+            assert_eq!(app.command_input.value, cmd);
+        }
     }
 
     #[test]
@@ -1897,5 +2041,162 @@ mod tests {
         press_key(&mut app, KeyCode::Enter);
         assert!(!app.vault_service.is_unlocked());
         assert!(matches!(app.phase, AppPhase::Locked));
+    }
+
+    #[test]
+    fn test_locked_mouse_wheel_scroll() {
+        let (mut app, _id, _dir) = locked_app();
+        assert!(matches!(app.phase, AppPhase::Locked));
+        assert_eq!(app.locked_selected, 0);
+
+        app.handle_event(mouse_event(MouseEventKind::ScrollDown, 0, 0))
+            .unwrap();
+        assert_eq!(app.locked_selected, 1);
+
+        app.handle_event(mouse_event(MouseEventKind::ScrollUp, 0, 0))
+            .unwrap();
+        assert_eq!(app.locked_selected, 0);
+
+        // 滚动不会超出边界
+        for _ in 0..10 {
+            app.handle_event(mouse_event(MouseEventKind::ScrollDown, 0, 0))
+                .unwrap();
+        }
+        assert_eq!(
+            app.locked_selected,
+            crate::screens::locked::ACTION_COUNT - 1
+        );
+    }
+
+    #[test]
+    fn test_locked_touch_drag_scroll() {
+        let (mut app, _id, _dir) = locked_app();
+        assert!(matches!(app.phase, AppPhase::Locked));
+        assert_eq!(app.locked_selected, 0);
+
+        // 按下
+        app.handle_event(mouse_event(MouseEventKind::Down(MouseButton::Left), 10, 10))
+            .unwrap();
+        assert_eq!(app.locked_selected, 0);
+
+        // 向下拖拽超过阈值
+        app.handle_event(mouse_event(MouseEventKind::Drag(MouseButton::Left), 10, 15))
+            .unwrap();
+        assert_eq!(app.locked_selected, 1);
+
+        // 释放时不应触发点击（因为是滑动不是点按）
+        app.handle_event(mouse_event(MouseEventKind::Up(MouseButton::Left), 10, 15))
+            .unwrap();
+        assert!(matches!(app.phase, AppPhase::Locked));
+    }
+
+    #[test]
+    fn test_locked_mouse_click_after_down_up() {
+        let (mut app, _id, _dir) = locked_app();
+        let backend = ratatui::backend::TestBackend::new(80, 24);
+        let mut terminal = ratatui::Terminal::new(backend).unwrap();
+        terminal.draw(|frame| app.render(frame)).unwrap();
+
+        let region = app
+            .clickable_regions
+            .iter()
+            .find(|r| r.action == ClickAction::Command("/unlock"))
+            .unwrap()
+            .rect;
+        let col = region.x + region.width / 2;
+        let row = region.y + region.height / 2;
+
+        // 按下时不执行命令
+        app.handle_event(mouse_event(
+            MouseEventKind::Down(MouseButton::Left),
+            col,
+            row,
+        ))
+        .unwrap();
+        assert!(matches!(app.phase, AppPhase::Locked));
+
+        // 松开时执行点击动作
+        app.handle_event(mouse_event(MouseEventKind::Up(MouseButton::Left), col, row))
+            .unwrap();
+        assert!(matches!(
+            app.phase,
+            AppPhase::UnlockWizard {
+                step: UnlockStep::EnterPassword { .. }
+            }
+        ));
+    }
+
+    #[test]
+    fn test_welcome_key_navigation() {
+        let (mut app, _dir) = onboarding_app();
+        assert!(matches!(app.phase, AppPhase::Welcome));
+        assert_eq!(app.welcome_selected, 0);
+
+        // ↓ 切换选项
+        press_key(&mut app, KeyCode::Down);
+        assert_eq!(app.welcome_selected, 1);
+
+        // ↑ 切换回第一个
+        press_key(&mut app, KeyCode::Up);
+        assert_eq!(app.welcome_selected, 0);
+
+        // Enter 执行当前选项（默认开始创建账户）
+        press_key(&mut app, KeyCode::Enter);
+        assert!(matches!(
+            app.phase,
+            AppPhase::Onboarding {
+                step: OnboardingStep::EnterName
+            }
+        ));
+    }
+
+    #[test]
+    fn test_welcome_mouse_wheel_scroll() {
+        let (mut app, _dir) = onboarding_app();
+        assert!(matches!(app.phase, AppPhase::Welcome));
+        assert_eq!(app.welcome_selected, 0);
+
+        app.handle_event(mouse_event(MouseEventKind::ScrollDown, 0, 0))
+            .unwrap();
+        assert_eq!(app.welcome_selected, 1);
+
+        app.handle_event(mouse_event(MouseEventKind::ScrollUp, 0, 0))
+            .unwrap();
+        assert_eq!(app.welcome_selected, 0);
+    }
+
+    #[test]
+    fn test_home_mouse_wheel_scroll() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        type_string(&mut app, "password123");
+        press_key(&mut app, KeyCode::Enter);
+        assert!(matches!(app.phase, AppPhase::Home { .. }));
+        assert_eq!(app.selected_shortcut, 0);
+
+        app.handle_event(mouse_event(MouseEventKind::ScrollDown, 0, 0))
+            .unwrap();
+        assert_eq!(app.selected_shortcut, 1);
+
+        app.handle_event(mouse_event(MouseEventKind::ScrollUp, 0, 0))
+            .unwrap();
+        assert_eq!(app.selected_shortcut, 0);
+    }
+
+    #[test]
+    fn test_home_up_down_no_conflict_with_command_input() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        type_string(&mut app, "password123");
+        press_key(&mut app, KeyCode::Enter);
+        assert!(matches!(app.phase, AppPhase::Home { .. }));
+        assert_eq!(app.selected_shortcut, 0);
+
+        // 命令框非空时，↑/↓ 不用于选项导航
+        type_string(&mut app, "/ex");
+        press_key(&mut app, KeyCode::Down);
+        assert_eq!(app.selected_shortcut, 0);
+        press_key(&mut app, KeyCode::Up);
+        assert_eq!(app.selected_shortcut, 0);
     }
 }

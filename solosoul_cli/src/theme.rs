@@ -1,7 +1,7 @@
 //! SoloSoul CLI 主题系统（GUI 默认品牌蓝）。
 //!
 //! 统一提供品牌色、状态色、图标回退与终端颜色自动降级。
-//! 品牌蓝沿用 GUI 默认主色 `--accent-primary: #5b7c99`。
+//! 品牌蓝使用新主色 `--accent-primary: #4fa8ff`。
 //! 降级规则：
 //! - `COLORTERM=truecolor` 或 `SOLOSOUL_CLI_TRUECOLOR=1` → RGB 真色
 //! - `TERM` 包含 `256color` → 256 色（Indexed）
@@ -39,7 +39,7 @@ impl Theme {
     pub fn with_level(level: ColorLevel, use_icons: bool) -> Self {
         match level {
             ColorLevel::TrueColor => Self {
-                brand: Color::Rgb(91, 124, 153),      // #5b7c99
+                brand: Color::Rgb(79, 168, 255),      // #4fa8ff
                 cream: Color::Rgb(142, 175, 200),     // #8eafc8
                 border: Color::Rgb(74, 106, 133),     // #4a6a85
                 text: Color::Rgb(224, 234, 242),      // #e0eaf2
@@ -52,7 +52,7 @@ impl Theme {
                 use_icons,
             },
             ColorLevel::Indexed => Self {
-                brand: Color::Indexed(67),
+                brand: Color::Indexed(75), // 最接近 #4fa8ff 的 256 色
                 cream: Color::Indexed(110),
                 border: Color::Indexed(60),
                 text: Color::Indexed(255),
@@ -65,7 +65,7 @@ impl Theme {
                 use_icons,
             },
             ColorLevel::Ansi => Self {
-                brand: Color::Blue,
+                brand: Color::LightBlue, // ANSI 下最接近 #4fa8ff 的亮色蓝
                 cream: Color::LightBlue,
                 border: Color::DarkGray,
                 text: Color::White,
@@ -247,11 +247,11 @@ mod tests {
     #[test]
     fn test_theme_with_level() {
         let t = Theme::with_level(ColorLevel::Ansi, true);
-        assert_eq!(t.brand, Color::Blue);
+        assert_eq!(t.brand, Color::LightBlue);
         assert!(t.use_icons);
 
         let t = Theme::with_level(ColorLevel::TrueColor, false);
-        assert_eq!(t.brand, Color::Rgb(91, 124, 153));
+        assert_eq!(t.brand, Color::Rgb(79, 168, 255));
         assert!(!t.use_icons);
     }
 
