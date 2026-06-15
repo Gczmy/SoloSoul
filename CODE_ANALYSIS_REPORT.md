@@ -53,7 +53,7 @@
 | P035 | P1 | 类型安全 | `tauri/src/stores/pluginStore.ts:155,163,170,173,178` / `src/components/plugin/PluginDialog.tsx:24-26,41` | 插件事件 JSON 解析后直接使用 `as` 断言，无运行时校验 | `[ ]` 待修复 |
 | P036 | P2 | 类型安全 | `tauri/src/lib/llm/systemPromptBuilder.ts:16-17` / `src/lib/guideApi.ts:13` / `src/pages/settings/settingsStore.ts` / `ExportImportPage.tsx` / `TemplateManagerPage.tsx` 等 | 多处使用 `any` / `as` 绕过类型检查 | `[ ]` 待修复 |
 | P037 | P1 | React 缺陷 | `tauri/src/components/layout/SideNavigation.tsx:386,1164,1433` | 延迟注册事件监听器未保存 timeoutId，卸载后泄漏 | `[x]` 已修复：使用 ref 保存 timeoutId 并在 cleanup 中清除 |
-| P038 | P1 | React 缺陷 | `tauri/src/components/object/HistoryViewer.tsx:295,304` / `src/stores/uiStore.ts:34` | `setTimeout` 未清理，组件卸载/ store 销毁后仍更新状态 | `[ ]` 待修复 |
+| P038 | P1 | React 缺陷 | `tauri/src/components/object/HistoryViewer.tsx:295,304` / `src/stores/uiStore.ts:34` | `setTimeout` 未清理，组件卸载/ store 销毁后仍更新状态 | `[x]` 已修复：HistoryViewer 用 ref 保存并清理；uiStore 在 dismissToast 时清除 timeout |
 | P039 | P1 | React 缺陷 | `tauri/src/pages/ai/LlmChatPage.tsx:317-337` | `useEffect` 依赖项不完整，存在 stale closure 风险 | `[ ]` 待修复 |
 | P040 | P1 | 代码规范 | `tauri/eslint.config.js:5-15` | 未启用 `react-hooks/exhaustive-deps`，无法自动发现 hooks 依赖问题 | `[ ]` 待修复 |
 | P041 | P2 | React 规范 | `tauri/src/components/layout/SideNavigation.tsx` / `App.tsx` | render 阶段副作用、空依赖数组 useEffect | `[ ]` 待修复 |
@@ -66,7 +66,7 @@
 
 ## 修复进度
 
-- 已完成：7 / 47
+- 已完成：8 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
