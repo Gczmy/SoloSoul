@@ -1,5 +1,27 @@
 ## [Released]
 
+## [2.2.2] - 2026-06-16
+
+### Added
+
+- **Windows startup crash diagnostics** — File logging, panic hook, and preflight checks (WebView2, data directory, resource directory) to diagnose launch crashes.
+- **Graceful plugin-market fallback** — App no longer panics when the bundled `SoloSoul_plugin_market` resource is missing.
+- **SoloSoul CLI Phase 4 M1+M2 enhancements** — Further terminal UI and command improvements.
+- **Code audit completed** — All 47 items in `CODE_ANALYSIS_REPORT.md` resolved or verified.
+
+### Changed
+
+- **Version bump** — All platforms synchronized to `2.2.2`.
+- **Component split** — Extracted `ChatMessageBubble` from `LlmChatPage` and moved `AiQuickChatPopover` to its own file.
+- **Shared helpers** — Moved `formatTimestamp` / `formatRelative` to `src/lib/time.ts` and extracted `COPY_FEEDBACK_DURATION_MS` / `DEBOUNCE_DELAY_MS` to `src/lib/constants.ts`.
+
+### Fixed
+
+- **Windows launch crash** — Fixed the issue where the installed app crashed immediately after double-clicking on some Windows systems.
+- **Remaining audit findings** — Completed P004, P019-P022, P029-P030, P033-P034, P036, and P041-P046.
+- **Native dialogs replaced** — Replaced 4 native `alert()` / `confirm()` calls with the project's `ConfirmDialog`.
+- **Production console warning removed** — Removed `console.warn` from the onboarding flow in `App.tsx`.
+
 ## [2.2.1] - 2026-06-15
 
 ### Added
