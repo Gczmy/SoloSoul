@@ -16,7 +16,7 @@
 
 | ID   | 优先级 | 类别       | 文件位置 | 描述 | 状态 |
 |------|--------|------------|----------|------|------|
-| P001 | P0 | 安全漏洞 | `tauri/crates/solosoul-core/src/biometric.rs:22,178-200` | 生物特征主密钥文件回退使用硬编码 XOR 混淆，可被轻易反混淆 | `[ ]` 待修复 |
+| P001 | P0 | 安全漏洞 | `tauri/crates/solosoul-core/src/biometric.rs:22,178-200` | 生物特征主密钥文件回退使用硬编码 XOR 混淆，可被轻易反混淆 | `[x]` 已修复：改为 Keychain 保护的 AES-256-GCM 加密文件，保留旧 XOR 原子迁移 |
 | P002 | P0 | 代码规范/死代码 | `tauri/crates/solosoul-vault/src/lib.rs:1-2` | 顶层 `#![allow(dead_code)]` / `#![allow(unused_imports)]` 抑制整 crate 警告 | `[x]` 已修复：移除全局 suppression，clippy 无警告 |
 | P003 | P0 | 代码结构 | `tauri/src-tauri/src/commands/*.rs` | vault 访问样板代码在 11+ 个命令文件中重复 | `[x]` 已修复：提取 `vault_handle` / `current_account` / `current_account_optional` 到 `mod.rs` 并在命令模块复用 |
 | P004 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:90-158,219-294` | `create_zip_package` / `extract_zip_package` / `fs_scan_directory` / `fs_get_file_size` / `fs_read_file_as_data_url` 未限制基础目录，存在路径遍历 | `[ ]` 待修复 |
@@ -66,8 +66,8 @@
 
 ## 修复进度
 
-- 已完成：22 / 47
-- 当前处理：本轮修复暂停；剩余 25 项（含 P001 架构调整、P004/P006/P007 路径遍历、P018 性能、P024 锁中毒、P027/P028 剩余魔术数、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）待下一轮处理
+- 已完成：23 / 47
+- 当前处理：本轮修复暂停；剩余 24 项（P004/P006/P007 路径遍历、P018 性能、P024 锁中毒、P027/P028 剩余魔术数、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）待下一轮处理
 
 ## 详细问题描述与修复指引
 
