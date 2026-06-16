@@ -24,7 +24,7 @@
 | P006 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/export_import.rs:456-469,1068-1079` | 导出/导入附件时读取 `att.src_path` 或使用导入包中的 `obj_id` 构建路径，可被恶意包利用 | `[ ]` 待修复 |
 | P007 | P1 | 安全漏洞 | `tauri/crates/solosoul-sync/src/attachments.rs:32-42,166-177,373-376` | 同步附件路径直接拼接远程 `object_id` / `attachment_id` / `file_name` | `[ ]` 待修复 |
 | P008 | P1 | 安全漏洞 | `tauri/src-tauri/src/plugin/store.rs:51-53` / `tauri/src-tauri/src/plugin/manager.rs:134,168` | `plugin_id` 直接用于路径拼接，可能导致插件目录逃逸 | `[ ]` 待修复 |
-| P009 | P1 | 安全漏洞 | `tauri/src-tauri/src/plugin/host.rs:767-813` | `solosoul_sleep` 接受未限制时长，`read_string` 分配未限制长度，存在 DoS / OOM 风险 | `[ ]` 待修复 |
+| P009 | P1 | 安全漏洞 | `tauri/src-tauri/src/plugin/host.rs:767-813` | `solosoul_sleep` 接受未限制时长，`read_string` 分配未限制长度，存在 DoS / OOM 风险 | `[x]` 已修复：睡眠上限 1s，字符串读取上限 64 KiB |
 | P010 | P1 | 安全漏洞 | `tauri/crates/solosoul-core/src/vault_service.rs:384,479` | 密码验证使用 `==` 而非恒定时间比较，存在时序侧信道 | `[x]` 已修复：改用 `solosoul_crypto::secure::secure_compare` |
 | P011 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/biometric.rs:47-63` | 前端可控 `silent` 参数可跳过生物特征挑战 | `[x]` 已修复：从命令签名与 core API 移除 `silent`，始终要求生物特征挑战 |
 | P012 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/window.rs:21` | 原始指针未判空直接解引用 | `[x]` 已修复：判空后再解引用 |
@@ -66,7 +66,7 @@
 
 ## 修复进度
 
-- 已完成：15 / 47
+- 已完成：16 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
