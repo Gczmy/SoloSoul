@@ -158,8 +158,6 @@ export function LlmChatPage() {
   currentConvRef.current = currentConv;
   const accountIdRef = useRef(accountId);
   accountIdRef.current = accountId;
-  const loadAllListsRef = useRef(loadAllLists);
-  loadAllListsRef.current = loadAllLists;
 
   useEffect(() => {
     setAiPageOpen(true);
@@ -225,6 +223,9 @@ export function LlmChatPage() {
         /* ignore */
       });
   }, [accountId, isAiEnabled, isConfigured, makeCancellable]);
+
+  const loadAllListsRef = useRef(loadAllLists);
+  loadAllListsRef.current = loadAllLists;
 
   useEffect(() => {
     loadAllLists();
