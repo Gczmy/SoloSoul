@@ -16,6 +16,7 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
 import { Trash2, RotateCcw, FileText, X, Info, Loader2 } from 'lucide-react';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
+import { formatBytes } from '@/lib/format';
 
 // ── Detail panel types ──────────────────────────────────────────
 
@@ -73,13 +74,6 @@ const TYPE_OPTIONS: { value: TrashTypeFilter; i18nKey: string }[] = [
   { value: 'object', i18nKey: 'object' },
   { value: 'template', i18nKey: 'template' },
 ];
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
 
 function timeAgo(ms: number, t: (k: string) => string): string {
   const diff = Date.now() - ms;

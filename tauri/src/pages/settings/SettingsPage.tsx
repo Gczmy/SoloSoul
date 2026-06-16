@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { isDevOrDebug } from '@/lib/env';
+import { formatBytes } from '@/lib/format';
 import {
   Shield,
   HardDrive,
@@ -20,13 +21,6 @@ import {
   Puzzle,
   Smartphone,
 } from 'lucide-react';
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
 
 export function SettingsPage() {
   const navigate = useNavigate();

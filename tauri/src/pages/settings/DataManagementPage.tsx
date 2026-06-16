@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { HardDrive, PieChart, X } from 'lucide-react';
+import { formatBytes } from '@/lib/format';
 
 interface VaultStats {
   profileCount: number;
@@ -28,13 +29,6 @@ const PIE_COLORS = [
   '#2e7d32', // attachments
   '#d32f2f', // AI conversations
 ];
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
 
 // ── SVG Pie Chart ────────────────────────────────────────────
 

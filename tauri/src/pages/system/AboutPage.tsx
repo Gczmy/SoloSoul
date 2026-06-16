@@ -8,6 +8,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { ExternalLink, Code, Shield, Info, Download } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { checkForUpdate, downloadAndInstallUpdate, type UpdateProgress } from '@/lib/updater';
+import { formatBytes } from '@/lib/format';
 
 interface AppInfo {
   appName: string;
@@ -26,12 +27,6 @@ interface VersionInfo {
 
 function friendlyPlatform(os: string, _arch: string): string {
   return os === 'macos' ? 'macOS' : os === 'windows' ? 'Windows' : os === 'linux' ? 'Linux' : os;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function AboutPage() {
