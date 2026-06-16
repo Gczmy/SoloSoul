@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 
-interface ProfileSection {
+interface ProfileSectionData {
   sectionType: string;
   fields: Array<{
     key: string;
@@ -23,12 +23,12 @@ interface RawProfileSection {
 
 interface ProfileState {
   accountId: string | null;
-  sections: ProfileSection[];
+  sections: ProfileSectionData[];
   isLoading: boolean;
   error: string | null;
 
   loadProfile: (accountId: string) => Promise<void>;
-  loadSection: (accountId: string, sectionType: string) => Promise<ProfileSection | null>;
+  loadSection: (accountId: string, sectionType: string) => Promise<ProfileSectionData | null>;
   updateField: (
     accountId: string,
     sectionType: string,
@@ -52,7 +52,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
       });
       if (profile?.data) {
         const json = JSON.parse(new TextDecoder().decode(new Uint8Array(profile.data)));
-        const loadedSections: ProfileSection[] = (json.sections || []).map(
+        const loadedSections: ProfileSectionData[] = (json.sections || []).map(
           (sec: RawProfileSection) => ({
             sectionType: sec.type || '',
             fields: (sec.fields || []).map((f) => ({
@@ -74,7 +74,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
 
   loadSection: async (accountId, sectionType) => {
     try {
-      const section = await invoke<ProfileSection | null>('profile_get_section', {
+      const section = await invoke<ProfileSectionData | null>('profile_get_section', {
         accountId,
         sectionType,
       });
