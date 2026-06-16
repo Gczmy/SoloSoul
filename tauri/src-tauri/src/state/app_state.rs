@@ -14,7 +14,27 @@ impl AppState {
     pub fn new(handle: tauri::AppHandle) -> Result<Self, anyhow::Error> {
         let vault_service = Arc::new(RwLock::new(VaultService::new()));
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
-        let plugin_manager = Arc::new(PluginManager::new_with_app_handle(&handle)?);
+
+        // 插件管理器初始化失败不阻止应用启动，降级为无插件模式
+        let plugin_manager = match PluginManager::new_with_app_handle(&handle) {
+            Ok(pm) => Arc::new(pm),
+            Err(e) => {
+                tracing::warn!(
+                    "[AppState] PluginManager 初始化失败，将以无插件模式运行: {:#}",
+                    e
+                );
+                // 回退：使用不依赖市场目录的默认构造（用于开发或子模块未初始化场景）
+                let fallback = PluginManager::new().map_err(|fallback_err| {
+                    anyhow::anyhow!(
+                        "PluginManager 初始化失败: {:#}, 回退构造也失败: {:#}",
+                        e,
+                        fallback_err
+                    )
+                })?;
+                Arc::new(fallback)
+            }
+        };
+
         Ok(Self {
             handle,
             vault_service,

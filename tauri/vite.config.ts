@@ -22,7 +22,7 @@ export default defineConfig({
       port: Number(process.env.SOLOSOUL_VITE_HMR_PORT) || 1421,
     },
     watch: {
-      ignored: ['**/src-tauri/**'],
+      ignored: ['**/src-tauri/**', '**/target/**'],
     },
   },
 });

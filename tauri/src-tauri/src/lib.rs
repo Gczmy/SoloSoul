@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+use std::sync::OnceLock;
 use tauri::Manager;
 
 pub mod commands;
@@ -10,16 +12,168 @@ pub mod state;
 
 use state::AppState;
 
+/// 全局日志目录，在 panic hook 中可直接写文件（不依赖 tracing 基础设施）。
+static LOG_DIR: OnceLock<PathBuf> = OnceLock::new();
+
+/// 注册全局 panic hook，将 panic 信息写入文件日志。
+/// 在 Windows Release 构建中还会弹出 MessageBox 提示用户。
+fn setup_panic_hook() {
+    let previous_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |panic_info| {
+        let location = panic_info
+            .location()
+            .map(|l| format!("{}:{}", l.file(), l.line()))
+            .unwrap_or_else(|| "无位置信息".to_string());
+        let payload = if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
+            *s
+        } else if let Some(s) = panic_info.payload().downcast_ref::<String>() {
+            s.as_str()
+        } else {
+            "无法解析的 panic payload"
+        };
+
+        let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
+        let msg = format!(
+            "[FATAL PANIC] time={} location={} payload={}\n",
+            timestamp, location, payload
+        );
+
+        // 直接写入文件日志（tracing 基础设施在 panic 时可能已不可用）
+        if let Some(log_dir) = LOG_DIR.get() {
+            let _ = std::fs::create_dir_all(log_dir);
+            let log_path = log_dir.join("app.log");
+            if let Ok(mut f) = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&log_path)
+            {
+                use std::io::Write;
+                let _ = writeln!(f, "{}", msg);
+                let _ = f.flush();
+            }
+        }
+
+        // 也写入 stderr（调试构建中可见）
+        eprintln!("{}", msg);
+
+        // Windows：弹出友好的错误消息框
+        #[cfg(target_os = "windows")]
+        {
+            let box_text = format!(
+                "SoloSoul 启动时发生致命错误。\n\n\
+                 错误: {}\n\
+                 位置: {}\n\n\
+                 请将日志文件 %APPDATA%\\com.solosoul.app\\logs\\app.log\n\
+                 发送给开发团队以协助排查。",
+                payload, location
+            );
+            unsafe {
+                show_message_box("SoloSoul 错误", &box_text);
+            }
+        }
+
+        // 调用之前的 hook（默认行为，会打印 backtrace 到 stderr）
+        previous_hook(panic_info);
+    }));
+}
+
+/// Windows MessageBox 辅助函数（仅 Windows 编译）
+#[cfg(target_os = "windows")]
+unsafe fn show_message_box(title: &str, text: &str) {
+    use windows::core::PCWSTR;
+    use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_ICONERROR, MB_OK};
+    let title_wide: Vec<u16> = title.encode_utf16().chain(std::iter::once(0)).collect();
+    let text_wide: Vec<u16> = text.encode_utf16().chain(std::iter::once(0)).collect();
+    let _ = MessageBoxW(
+        None,
+        PCWSTR::from_raw(text_wide.as_ptr()),
+        PCWSTR::from_raw(title_wide.as_ptr()),
+        MB_OK | MB_ICONERROR,
+    );
+}
+
+/// Windows: 检查 WebView2 运行时是否安装
+/// 通过检查 Edge WebView2 Runtime 文件系统路径
+#[cfg(target_os = "windows")]
+fn check_webview2_installed() -> bool {
+    // 检查常见 WebView2 Runtime 安装路径
+    let candidate_dirs = [
+        "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application",
+        "C:\\Program Files\\Microsoft\\EdgeWebView\\Application",
+    ];
+    for dir in &candidate_dirs {
+        let p = std::path::Path::new(dir);
+        if p.exists() {
+            // 检查目录中有子目录（版本号），确认不是空目录
+            if let Ok(entries) = std::fs::read_dir(p) {
+                if entries.count() > 0 {
+                    tracing::info!("[check] WebView2 安装路径存在: {}", dir);
+                    return true;
+                }
+            }
+        }
+    }
+
+    // 检查 System32 中的 WebView2Loader.dll
+    if let Ok(root) = std::env::var("SystemRoot") {
+        let dll_path = std::path::PathBuf::from(root)
+            .join("System32")
+            .join("WebView2Loader.dll");
+        if dll_path.exists() {
+            tracing::info!("[check] WebView2Loader.dll 存在: {}", dll_path.display());
+            return true;
+        }
+    }
+
+    false
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::builder()
-                .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-                .from_env_lossy(),
-        )
-        .init();
+    // ── 第 0 步：确定日志目录 ──
+    let log_dir = dirs::data_dir()
+        .unwrap_or_else(|| std::env::temp_dir())
+        .join("com.solosoul.app")
+        .join("logs");
+    let _ = std::fs::create_dir_all(&log_dir);
+    LOG_DIR.set(log_dir.clone()).ok();
 
+    // ── 第 0.5 步：注册 panic hook（在一切初始化之前）──
+    setup_panic_hook();
+
+    // ── 第 1 步：初始化 tracing（文件 + stderr）──
+    let file_appender = tracing_appender::rolling::never(&log_dir, "app.log");
+    let (file_writer, guard) = tracing_appender::non_blocking(file_appender);
+
+    let env_filter = tracing_subscriber::EnvFilter::builder()
+        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
+        .from_env_lossy();
+
+    // 将 guard 泄漏，确保 non-blocking writer 在进程生命周期内不会 drop
+    std::mem::forget(guard);
+
+    // 使用 tracing-subscriber registry + layers，同时输出到文件和 stderr
+    {
+        use tracing_subscriber::prelude::*;
+
+        let file_layer = tracing_subscriber::fmt::layer()
+            .with_ansi(false)
+            .with_writer(file_writer);
+
+        let stderr_layer = tracing_subscriber::fmt::layer().with_writer(std::io::stderr);
+
+        tracing_subscriber::registry()
+            .with(file_layer)
+            .with(stderr_layer)
+            .with(env_filter)
+            .init();
+    }
+
+    tracing::info!("[init] SoloSoul v{} 启动", env!("CARGO_PKG_VERSION"));
+    tracing::info!("[init] 日志目录: {}", log_dir.display());
+    tracing::info!("[init] 目标平台: {}", std::env::consts::OS);
+
+    // ── 第 2 步：构建 Tauri 应用 ──
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
@@ -28,24 +182,86 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
-            let app_state = AppState::new(app.handle().clone())?;
+            // ════════════════════════════════════════════════════════
+            // 启动前检查：ERROR/WARN 记录问题，正常路径不输出噪音
+            // 设 RUST_LOG=solo_soul=debug 可看到完整步骤级日志
+            // ════════════════════════════════════════════════════════
+
+            // 1. 检查数据目录是否可写
+            {
+                let data_dir = dirs::data_dir()
+                    .unwrap_or_else(|| std::env::temp_dir())
+                    .join("com.solosoul.app");
+                if let Err(e) = std::fs::create_dir_all(&data_dir) {
+                    tracing::error!(
+                        "[setup] ❌ 数据目录不可写: {} 错误: {}",
+                        data_dir.display(),
+                        e
+                    );
+                }
+            }
+
+            // 2. 检查 WebView2 是否安装（仅 Windows）
+            #[cfg(target_os = "windows")]
+            {
+                if !check_webview2_installed() {
+                    tracing::error!(
+                        "[setup] ❌ WebView2 运行时未检测到，应用窗口可能无法创建。\n\
+                         请访问 https://go.microsoft.com/fwlink/p/?LinkId=2124703 下载安装。"
+                    );
+                }
+            }
+
+            // 3. 检查资源目录与关键子目录
+            match app.path().resource_dir() {
+                Ok(resource_dir) => {
+                    if !resource_dir.join("SoloSoul_plugin_market").exists() {
+                        tracing::warn!(
+                            "[setup] ⚠️  插件市场目录不存在: {} （插件功能可能不可用）",
+                            resource_dir.join("SoloSoul_plugin_market").display()
+                        );
+                    }
+                    if !resource_dir.join("docs").exists() {
+                        tracing::warn!(
+                            "[setup] ⚠️  文档目录不存在: {}",
+                            resource_dir.join("docs").display()
+                        );
+                    }
+                }
+                Err(e) => {
+                    tracing::error!("[setup] ❌ 无法获取资源目录: {}", e);
+                }
+            }
+
+            // 4. 初始化 AppState（关键步骤，失败时中止启动）
+            tracing::debug!("[setup] 正在创建 AppState...");
+            let app_state = match AppState::new(app.handle().clone()) {
+                Ok(state) => state,
+                Err(e) => {
+                    tracing::error!("[setup] ❌ AppState 创建失败: {:#}", e);
+                    return Err(format!("AppState 创建失败: {:#}", e).into());
+                }
+            };
             app.manage(app_state);
             app.manage(commands::discovery::SharedDaemon::new());
 
-            // Initialize resource directory so guide/docs path resolution works in release bundles.
+            // 5. 初始化 RESOURCE_DIR
             if let Ok(resource_dir) = app.path().resource_dir() {
                 let _ = commands::llm::RESOURCE_DIR.set(resource_dir);
+            } else {
+                tracing::error!("[setup] ❌ 无法获取 resource_dir，RESOURCE_DIR 未设置");
             }
 
-            // Detect system locale and inject before any JS runs
-            let locale = commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
+            // 6. 检测系统 locale 并注入前端
+            let locale =
+                commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
             let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") {
                 "zh-CN"
             } else {
                 "en-US"
             };
-            tracing::info!(
-                "[i18n] Rust setup: get_ui_language()={}, resolved={}",
+            tracing::debug!(
+                "[setup] locale: get_ui_language()={}, resolved={}",
                 locale,
                 locale_flag
             );
@@ -57,8 +273,7 @@ pub fn run() {
                 ));
             }
 
-            // Restore the last saved window geometry before the webview renders,
-            // so the window does not flash at the default size.
+            // 7. 恢复窗口大小
             let managed_state = app.state::<AppState>();
             if let Ok(svc) = managed_state.vault_service.read() {
                 let prefs_path = svc.base_path().join("ui_preferences.json");
@@ -67,23 +282,20 @@ pub fn run() {
                         serde_json::from_str::<commands::settings::UiPreferences>(&content)
                     {
                         if let Some(ws) = prefs.window_size {
-                            let _ = app.get_webview_window("main").map(|win| {
+                            if let Some(win) = app.get_webview_window("main") {
                                 let _ = win.set_size(tauri::Size::Physical(
                                     tauri::PhysicalSize::new(ws.width, ws.height),
                                 ));
-                                // Seed the frontend cache so later JS restores use the same size.
                                 let _ = win.eval(format!(
                                     "try{{localStorage.setItem('solosoul_window_size','{}')}}catch(e){{}}",
                                     serde_json::json!({"width": ws.width, "height": ws.height})
                                 ));
-                            });
+                            }
                         }
                     }
                 }
             }
 
-            // System templates are no longer loaded at startup.
-            // Default templates are seeded once during account creation instead.
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -98,9 +310,8 @@ pub fn run() {
             // Vault commands
             commands::vault::unlock,
             commands::discovery::mdns_advertise,
-            // Vault-locked event: broadcast when vault is locked
             commands::vault::lock,
-            // Object commands (UnifiedObject → Object, per 21_矛盾冲突)
+            // Object commands
             commands::object::object_list,
             commands::object::object_get,
             commands::object::object_create,
@@ -132,7 +343,7 @@ pub fn run() {
             // Search commands
             commands::search::search_unified,
             commands::search::search_advanced,
-            // Export/Import commands (P0+P1)
+            // Export/Import commands
             commands::export_import::export_get_scope_tree,
             commands::export_import::export_estimate_size,
             commands::export_import::export_get_attachments,
@@ -182,7 +393,7 @@ pub fn run() {
             commands::backup::backup_create,
             commands::backup::backup_restore,
             commands::backup::backup_delete,
-            // Settings / user_data commands
+            // Settings commands
             commands::settings::user_data_get_preferences,
             commands::settings::user_data_update_preference,
             commands::settings::ui_get_preferences,
