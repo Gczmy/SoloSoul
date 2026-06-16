@@ -11,6 +11,9 @@ const MAX_DATA_URL_SIZE: u64 = 10 * 1024 * 1024;
 /// Maximum number of files returned by `fs_scan_directory`.
 const MAX_SCAN_FILES: usize = 1_000;
 
+/// Number of objects sampled from a backup for the type-id preview.
+const BACKUP_PREVIEW_SAMPLE: usize = 30;
+
 /// R012: reject paths that contain parent-dir references, which could escape the
 /// intended directory. Used for commands that operate on user-selected files.
 fn reject_traversal(path: &str) -> Result<PathBuf, String> {
@@ -70,7 +73,7 @@ pub async fn encrypt_file(
     let src = resolve_within(base, &src_path)?;
     let dst = resolve_within(base, &dst_path)?;
 
-    let chunk_size = 1024 * 1024; // 1MB chunks
+    let chunk_size = solosoul_crypto::aes::DEFAULT_CHUNK_SIZE;
     let mut reader = BufReader::new(File::open(&src).map_err(|e| format!("Open failed: {}", e))?);
     let mut writer =
         BufWriter::new(File::create(&dst).map_err(|e| format!("Create failed: {}", e))?);
@@ -211,7 +214,7 @@ pub async fn inspect_backup(
             .and_then(|o| o.as_array())
         {
             obj_count = arr.len();
-            for obj in arr.iter().take(30) {
+            for obj in arr.iter().take(BACKUP_PREVIEW_SAMPLE) {
                 if let Some(tid) = obj.get("typeId").and_then(|t| t.as_str()) {
                     type_ids.push(tid.to_string());
                 }
