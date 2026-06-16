@@ -4,6 +4,29 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-06-16
+
+### Added
+
+- **Windows 启动崩溃排查基础设施** — 增加文件日志、panic 捕获、启动前检查（WebView2 / 数据目录 / 资源目录），便于定位安装后双击闪退。
+- **插件市场缺失优雅降级** — 当打包资源中 `SoloSoul_plugin_market` 缺失时不再 panic，记录警告后继续启动。
+- **SoloSoul CLI Phase 4 M1+M2 增强能力** — 终端 UI 与命令体系进一步增强。
+- **代码审计清零** — `CODE_ANALYSIS_REPORT.md` 全部 47 项问题已修复或确认关闭。
+
+### Changed
+
+- **版本号统一** — 全平台版本号同步升级到 `2.2.2`。
+- **大组件拆分** — `LlmChatPage` 提取 `ChatMessageBubble`，`SideNavigation` 提取 `AiQuickChatPopover` 独立文件。
+- **共享工具函数** — `formatTimestamp` / `formatRelative` 提取到 `src/lib/time.ts`，复制反馈时长与 debounce 延迟提取到 `src/lib/constants.ts`。
+
+### Fixed
+
+- **Windows 安装后闪退** — 修复在部分 Windows 环境下安装包安装成功但双击启动即崩溃的问题。
+- **代码审计剩余 16 项** — 完成 P004、P019-P022、P029、P030、P033、P034、P036、P041-P046。
+- **原生对话框替换** — 替换 4 处原生 `alert()` / `confirm()` 为项目统一的 `ConfirmDialog`。
+- **生产日志清理** — 移除 `App.tsx` onboarding 路径的 `console.warn`。
+- **Clippy 警告** — 修复 `lib.rs` 中的 `redundant_closure` 警告。
+
 ## [2.2.1] - 2026-06-15
 
 ### Added
