@@ -18,6 +18,9 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
         let ptr = window
             .ns_window()
             .map_err(|e| format!("无法获取 NSWindow: {}", e))? as *mut NSWindow;
+        if ptr.is_null() {
+            return Err("NSWindow pointer is null".to_string());
+        }
         let ns_window = unsafe { &*ptr };
         let bg = NSColor::colorWithRed_green_blue_alpha(
             color.red as f64 / 255.0,
