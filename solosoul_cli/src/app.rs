@@ -179,6 +179,10 @@ pub enum AppPhase {
         plugins: Vec<PluginSummary>,
         selected: usize,
     },
+    /// 插件详情页
+    PluginDetail {
+        manifest: solosoul_plugin::PluginManifest,
+    },
     /// 安全退出
     Quit,
 }
@@ -698,6 +702,7 @@ impl App {
             AppPhase::ConversationList { .. } => self.handle_conversation_list_key(key),
             AppPhase::LlmChat => self.handle_llm_chat_key(key),
             AppPhase::PluginList { .. } => self.handle_plugin_list_key(key),
+            AppPhase::PluginDetail { .. } => self.handle_plugin_detail_key(key),
             AppPhase::Locked => self.handle_locked_key(key),
             AppPhase::Welcome => self.handle_welcome_key(key),
             _ => self.handle_command_key(key),
@@ -2028,7 +2033,9 @@ impl App {
                 KeyCode::Down if sel + 1 < plugins.len() => sel += 1,
                 KeyCode::Enter if sel < plugins.len() => {
                     let plugin_id = plugins[sel].id.clone();
-                    commands::plugin::run_plugin(self, Some(&plugin_id))?;
+                    if let Some(manifest) = commands::plugin::load_manifest(&plugin_id) {
+                        self.phase = AppPhase::PluginDetail { manifest };
+                    }
                     return Ok(false);
                 }
                 _ => {}
@@ -2037,6 +2044,14 @@ impl App {
                 plugins: plugins.clone(),
                 selected: sel,
             };
+        }
+        Ok(false)
+    }
+
+    /// 插件详情页的键盘处理。
+    fn handle_plugin_detail_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if matches!(key.code, KeyCode::Esc | KeyCode::Char('q')) {
+            commands::core::back(self);
         }
         Ok(false)
     }
@@ -2367,6 +2382,9 @@ impl App {
                 plugins,
                 selected,
             } => crate::screens::plugin_list::render(frame, layout[1], plugins, *selected),
+            AppPhase::PluginDetail { manifest } => {
+                crate::screens::plugin_detail::render(frame, layout[1], manifest)
+            }
             AppPhase::Quit => {}
         }
 

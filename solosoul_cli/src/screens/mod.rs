@@ -15,6 +15,7 @@ pub mod llm_config;
 pub mod llm_stats;
 pub mod locked;
 pub mod plugin_list;
+pub mod plugin_detail;
 pub mod logo;
 pub mod new_object;
 pub mod object_detail;

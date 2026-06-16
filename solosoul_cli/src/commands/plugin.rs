@@ -344,7 +344,19 @@ pub fn audit_log(app: &mut App, limit: Option<&str>) -> Result<()> {
     Ok(())
 }
 
-/// 创建 PluginManager 实例（提取公共代码）。
+/// 从插件市场加载指定插件的清单。
+pub fn load_manifest(plugin_id: &str) -> Option<solosoul_plugin::PluginManifest> {
+    let market_dir = resolve_plugin_market_dir();
+    let manifest_path = market_dir
+        .join("plugins")
+        .join(plugin_id)
+        .join("manifest.json");
+
+    let content = std::fs::read_to_string(&manifest_path).ok()?;
+    serde_json::from_str::<solosoul_plugin::PluginManifest>(&content).ok()
+}
+
+/// 创建 PluginManager 实例（提取公共代码）。/// 创建 PluginManager 实例（提取公共代码）。
 fn create_manager(app: &mut App) -> Option<solosoul_plugin::PluginManager> {
     let market_dir = resolve_plugin_market_dir();
     match solosoul_plugin::PluginManager::new_with_resource_dir(&market_dir) {
