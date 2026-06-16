@@ -323,7 +323,8 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     let method_clone = method.clone();
                     let url_clone = url.clone();
                     let task = tokio::spawn(async move {
-                        let result = perform_http_async(&client, &method_clone, &url_clone, &body).await;
+                        let result =
+                            perform_http_async(&client, &method_clone, &url_clone, &body).await;
                         if let Err(ref e) = result {
                             let _ = channel.send(PluginEvent::log(
                                 "error",

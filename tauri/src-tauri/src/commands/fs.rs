@@ -28,9 +28,7 @@ fn allowed_fs_base() -> Result<PathBuf, String> {
     let home_key = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
     std::env::var(home_key)
         .map(PathBuf::from)
-        .map_err(|_| {
-            "Could not determine user home directory; set SOLOSOUL_FS_BASE".to_string()
-        })
+        .map_err(|_| "Could not determine user home directory; set SOLOSOUL_FS_BASE".to_string())
 }
 
 /// During tests, allow any absolute path by using the filesystem root as the
