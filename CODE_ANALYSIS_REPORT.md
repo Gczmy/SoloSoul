@@ -62,11 +62,11 @@
 | P044 | P2 | 代码质量 | `tauri/src/components/layout/SideNavigation.tsx` / `pages/settings/ExportImportPage.tsx` / `TemplateManagerPage.tsx` / `LlmChatPage.tsx` / `TrashPage.tsx` | 单个组件超过 800–1300 行，职责过重 | `[ ]` 待修复 |
 | P045 | P2 | 性能 | `tauri/src/pages/ai/LlmChatPage.tsx` / `components/layout/SideNavigation.tsx` / `pages/workspace/ObjectWorkspacePage.tsx` 等 | 长列表未做虚拟化/分页，消息区无 memo | `[ ]` 待修复 |
 | P046 | P2 | 命名/注释 | `tauri/src-tauri/src/services/llm_context.rs:256` / `src-tauri/src/commands/crypto.rs:102` / `src-tauri/src/commands/ocr.rs:21-37` / `src-tauri/src/plugin/paths.rs:48-50` | 过时 TODO / 函数位置不当 / 占位 stub / 命名误导 | `[ ]` 待修复 |
-| P047 | P1 | 命名冲突 | `tauri/src/types/index.ts:22` / `src/stores/profileStore.ts:4` | 两个不同的 `ProfileSection` 类型同名 | `[ ]` 待修复 |
+| P047 | P1 | 命名冲突 | `tauri/src/types/index.ts:22` / `src/stores/profileStore.ts:4` | 两个不同的 `ProfileSection` 类型同名 | `[x]` 已修复：store 类型重命名为 `ProfileSectionData` |
 
 ## 修复进度
 
-- 已完成：11 / 47
+- 已完成：12 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
