@@ -7,8 +7,11 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+uuid = { workspace = true }
 solosoul-crypto = { path = "../solosoul-crypto" }
 solosoul-vault = { path = "../solosoul-vault" }
+# 需要 solosoul_core::VaultService 复用 GUI + CLI 账户生命周期逻辑
+solosoul-core = { path = "../solosoul-core" }
 
 tokio = { workspace = true }
 tokio-util = { workspace = true }
@@ -35,3 +38,5 @@ x25519-dalek = { version = "2", features = ["static_secrets"] }
 
 [dev-dependencies]
 tempfile = { workspace = true }
+# service.rs 中的 #[tokio::test] 需要 macros feature
+tokio = { workspace = true, features = ["macros", "rt"] }

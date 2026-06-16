@@ -5402,6 +5402,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "snow",
+ "solosoul-core",
  "solosoul-crypto",
  "solosoul-vault",
  "tempfile",
@@ -5409,6 +5410,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+ "uuid",
  "x25519-dalek",
 ]
 

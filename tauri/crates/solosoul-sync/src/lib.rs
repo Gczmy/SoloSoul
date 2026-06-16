@@ -12,6 +12,7 @@ pub mod hlc;
 pub mod manager;
 pub mod noise;
 pub mod protocol;
+pub mod service;
 pub mod transport;
 
 pub use attachments::AttachmentSyncStats;
@@ -19,3 +20,4 @@ pub use hlc::{Hlc, SyncWatermark};
 pub use manager::{SyncManager, SyncPeerInfo};
 pub use noise::NoiseKeys;
 pub use protocol::{AttachmentInfo, SyncMessage, SyncRecord};
+pub use service::SyncService;

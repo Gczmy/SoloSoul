@@ -1,6 +1,6 @@
 use crate::plugin::PluginManager;
-use crate::services::sync_service::SyncService;
 use solosoul_core::VaultService;
+use solosoul_sync::SyncService;
 use std::sync::{Arc, RwLock};
 
 pub struct AppState {
