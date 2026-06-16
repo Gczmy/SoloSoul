@@ -47,7 +47,7 @@
 | P029 | P1 | 死代码 | `tauri/crates/solosoul-sync/src/discovery.rs:24-75` / `src-tauri/src/commands/profile.rs:22-26` / `crates/solosoul-vault/src/lib.rs:237-253` / `src-tauri/src/plugin/host.rs:24` 等 | 未使用或重复定义的代码/类型 | `[ ]` 待修复 |
 | P030 | P2 | 死代码 | `tauri/src/types/index.ts:13-191` / `src/stores/attachmentStore.ts:29` / `src/components/TemplatePreview.tsx:47` 等 | 未引用的 TS 类型/组件/导出 | `[ ]` 待修复 |
 | P031 | P0 | 代码重复 | `tauri/src-tauri/src/commands/*.rs` | vault 访问样板代码重复（同 P003） | `[ ]` 待修复 |
-| P032 | P1 | 代码重复 | `tauri/src/pages/system/AboutPage.tsx` / `settings/*Page.tsx` | `formatBytes` 在 5 处重复实现 | `[ ]` 待修复 |
+| P032 | P1 | 代码重复 | `tauri/src/pages/system/AboutPage.tsx` / `settings/*Page.tsx` | `formatBytes` 在 5 处重复实现 | `[x]` 已修复：抽取到 `src/lib/format.ts` 并替换所有实现 |
 | P033 | P2 | 代码重复 | `tauri/src/pages/ai/LlmChatPage.tsx` / `components/layout/SideNavigation.tsx` | `formatRelative` 重复、复制反馈超时 `1500` 魔术数 | `[ ]` 待修复 |
 | P034 | P2 | 代码重复 | `tauri/src/pages/search/SearchPage.tsx` / `components/layout/SearchPopover.tsx` / `components/guide/GuideSearch.tsx` | 300ms debounce 重复 | `[ ]` 待修复 |
 | P035 | P1 | 类型安全 | `tauri/src/stores/pluginStore.ts:155,163,170,173,178` / `src/components/plugin/PluginDialog.tsx:24-26,41` | 插件事件 JSON 解析后直接使用 `as` 断言，无运行时校验 | `[ ]` 待修复 |
@@ -66,7 +66,7 @@
 
 ## 修复进度
 
-- 已完成：10 / 47
+- 已完成：11 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
