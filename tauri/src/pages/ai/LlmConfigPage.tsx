@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
+import { useConfirm } from '@/hooks/useConfirm';
 import { Settings, Plus, BarChart3, Download, Trash2, Cpu } from 'lucide-react';
 
 interface ProviderConfig {
@@ -50,6 +51,7 @@ export function LlmConfigPage() {
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { onError, onSuccess } = useToastError();
+  const { requestConfirm, dialog: confirmDialog } = useConfirm();
 
   const [providers, setProviders] = useState<ProviderConfig[]>([]);
   const [activeId, setActiveId] = useState<string>('');
@@ -160,22 +162,28 @@ export function LlmConfigPage() {
     }
   };
 
-  const handleDeleteModel = async (modelId: string) => {
-    if (!confirm(t('settings:llm_confirm_delete_model'))) return;
-    try {
-      await invoke('llm_delete_embed_model', { modelId });
-      onSuccess(t('settings:llm_model_deleted'));
-      await loadEmbedModels();
-      if (localModelId === modelId) {
-        setLocalModelId(null);
-        setUseLocalEmbedding(false);
-        if (accountId) {
-          await invoke('llm_set_local_embedding', { accountId, enabled: false, modelId: null });
+  const handleDeleteModel = (modelId: string) => {
+    requestConfirm(
+      t('settings:llm_delete_model_title') || 'Delete model',
+      t('settings:llm_confirm_delete_model') || 'Delete this local embedding model?',
+      async () => {
+        try {
+          await invoke('llm_delete_embed_model', { modelId });
+          onSuccess(t('settings:llm_model_deleted'));
+          await loadEmbedModels();
+          if (localModelId === modelId) {
+            setLocalModelId(null);
+            setUseLocalEmbedding(false);
+            if (accountId) {
+              await invoke('llm_set_local_embedding', { accountId, enabled: false, modelId: null });
+            }
+          }
+        } catch (e) {
+          onError(e, t('settings:llm_delete_model_failed'));
         }
-      }
-    } catch (e) {
-      onError(e, t('settings:llm_delete_model_failed'));
-    }
+      },
+      { confirmLabel: t('common:delete') || 'Delete', cancelLabel: t('common:cancel') || 'Cancel' },
+    );
   };
 
   const handleToggleLocalEmbedding = async (enabled: boolean) => {
@@ -311,11 +319,18 @@ export function LlmConfigPage() {
     }
   };
 
-  const handleDeleteProvider = async (id: string) => {
-    if (!accountId || !confirm(t('common:confirm'))) return;
-    await invoke('llm_delete_provider', { accountId, providerId: id }).catch(() => {});
-    setProviders((prev) => prev.filter((p) => p.id !== id));
-    if (activeId === id) setActiveId('');
+  const handleDeleteProvider = (id: string) => {
+    if (!accountId) return;
+    requestConfirm(
+      t('settings:llm_delete_provider_title') || 'Delete provider',
+      t('settings:llm_delete_provider_body') || 'Delete this provider configuration?',
+      async () => {
+        await invoke('llm_delete_provider', { accountId, providerId: id }).catch(() => {});
+        setProviders((prev) => prev.filter((p) => p.id !== id));
+        if (activeId === id) setActiveId('');
+      },
+      { confirmLabel: t('common:delete') || 'Delete', cancelLabel: t('common:cancel') || 'Cancel' },
+    );
   };
 
   const handleAddCustom = () => {
@@ -340,6 +355,7 @@ export function LlmConfigPage() {
 
   return (
     <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
+      {confirmDialog}
       <div
         style={{
           maxWidth: 560,

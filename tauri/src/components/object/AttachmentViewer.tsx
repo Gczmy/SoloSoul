@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2 } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { useUiStore } from '@/stores/uiStore';
+import { useConfirm } from '@/hooks/useConfirm';
 
 export interface AttachmentItem {
   id: string;
@@ -74,13 +76,19 @@ export function AttachmentViewer({
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const { t } = useTranslation(['common', 'editor']);
+  const showToast = useUiStore((s) => s.showToast);
+  const { requestConfirm, dialog: confirmDialog } = useConfirm();
 
   const openWithDefault = async (path: string) => {
     try {
       const { open } = await import('@tauri-apps/plugin-shell');
       await open(path);
     } catch {
-      alert('Cannot open file. Make sure the file still exists at: ' + path);
+      showToast({
+        type: 'error',
+        message: t('common:cannot_open_file', { path }) ||
+          `Cannot open file. Make sure the file still exists at: ${path}`,
+      });
     }
   };
 
@@ -197,13 +205,23 @@ export function AttachmentViewer({
     setRenamingId(null);
   };
 
-  const handleDelete = async (item: AttachmentItem) => {
-    if (!confirm(item.fileName)) return;
-    await invoke('attachment_soft_delete', { objectId, attachmentId: item.id }).catch((e) =>
-      alert('Delete failed: ' + e),
+  const handleDelete = (item: AttachmentItem) => {
+    requestConfirm(
+      t('common:confirm_delete_title', 'Delete attachment'),
+      t('common:confirm_delete_body', { name: item.fileName }) ||
+        `Delete "${item.fileName}"? It will be moved to trash.`,
+      async () => {
+        await invoke('attachment_soft_delete', { objectId, attachmentId: item.id }).catch((e) => {
+          showToast({
+            type: 'error',
+            message: t('common:delete_failed') || `Delete failed: ${e}`,
+          });
+        });
+        await loadAttachments();
+        onCountChange?.();
+      },
+      { confirmLabel: t('common:delete'), cancelLabel: t('common:cancel') },
     );
-    await loadAttachments();
-    onCountChange?.();
   };
 
   const handleRestore = async (item: AttachmentItem) => {
@@ -556,6 +574,7 @@ export function AttachmentViewer({
           </div>
         </div>
       )}
+      {confirmDialog}
       {/* Permanent delete confirmation */}
       {permDeleteItem && (
         <div

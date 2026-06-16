@@ -5,6 +5,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { useUiStore } from '@/stores/uiStore';
+import { useConfirm } from '@/hooks/useConfirm';
 import { Clock, RotateCcw, ChevronRight } from 'lucide-react';
 
 interface SnapshotEntry {
@@ -21,6 +23,8 @@ export function HistoryPage() {
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState<string | null>(null);
+  const showToast = useUiStore((s) => s.showToast);
+  const { requestConfirm, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
     if (objectId) {
@@ -30,22 +34,28 @@ export function HistoryPage() {
     }
   }, [objectId]);
 
-  const handleRollback = async (snapshot: SnapshotEntry) => {
-    if (!confirm(`Rollback to version from ${new Date(snapshot.timestamp).toLocaleString()}?`))
-      return;
-    setRestoring(snapshot.id);
-    try {
-      await invoke('snapshot_rollback', { snapshotId: snapshot.id, objectId });
-      navigate(-1);
-    } catch (e) {
-      alert(`Rollback failed: ${e}`);
-    } finally {
-      setRestoring(null);
-    }
+  const handleRollback = (snapshot: SnapshotEntry) => {
+    requestConfirm(
+      'Restore version',
+      `Rollback to version from ${new Date(snapshot.timestamp).toLocaleString()}?`,
+      async () => {
+        setRestoring(snapshot.id);
+        try {
+          await invoke('snapshot_rollback', { snapshotId: snapshot.id, objectId });
+          navigate(-1);
+        } catch (e) {
+          showToast({ type: 'error', message: `Rollback failed: ${e}` });
+        } finally {
+          setRestoring(null);
+        }
+      },
+      { confirmLabel: 'Restore', cancelLabel: 'Cancel' },
+    );
   };
 
   return (
     <AppShell title="History" onBack={() => navigate(-1)}>
+      {confirmDialog}
       <div
         style={{
           maxWidth: 560,

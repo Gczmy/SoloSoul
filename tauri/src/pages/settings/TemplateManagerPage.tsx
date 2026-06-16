@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/Input';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useUiStore } from '@/stores/uiStore';
+import { useConfirm } from '@/hooks/useConfirm';
 import {
   LayoutTemplate,
   Trash2,
@@ -274,6 +276,8 @@ export function TemplateManagerPage() {
   } = useTemplateStore();
   const { settings, loadCustomPages } = useSettingsStore();
   const accountId = useAuthStore((s) => s.currentAccount?.id) || '';
+  const showToast = useUiStore((s) => s.showToast);
+  const { requestConfirm, dialog: confirmDialog } = useConfirm();
 
   const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
   const [isNewTemplate, setIsNewTemplate] = useState(false);
@@ -381,7 +385,7 @@ export function TemplateManagerPage() {
       await deleteTemplate(confirmDelete.id);
       setConfirmDelete(null);
     } catch (e) {
-      alert(t('common:delete_failed') + ': ' + e);
+      showToast({ type: 'error', message: `${t('common:delete_failed')}: ${e}` });
     }
   };
 
@@ -419,7 +423,7 @@ export function TemplateManagerPage() {
   const saveEdit = async () => {
     const name = editName.trim();
     if (!name) {
-      alert(t('common:name_required') || '请输入模板名称');
+      showToast({ type: 'warning', message: t('common:name_required') || '请输入模板名称' });
       return;
     }
     try {
@@ -436,7 +440,7 @@ export function TemplateManagerPage() {
         closeEdit();
       }
     } catch (e) {
-      alert(t('common:save_failed') + ': ' + e);
+      showToast({ type: 'error', message: `${t('common:save_failed')}: ${e}` });
     }
   };
 
@@ -473,17 +477,22 @@ export function TemplateManagerPage() {
     try {
       const usage = await checkFieldUsage(editingTemplate.id, prop.id);
       if (usage.active > 0 || usage.softDeleted > 0) {
-        const confirmed = confirm(
-          `${t('settings:confirm_deprecate_title')}\n\n${t('settings:confirm_deprecate_body', { activeCount: usage.active, softDeletedCount: usage.softDeleted })}`,
+        requestConfirm(
+          t('settings:confirm_deprecate_title'),
+          t('settings:confirm_deprecate_body', {
+            activeCount: usage.active,
+            softDeletedCount: usage.softDeleted,
+          }),
+          () => {
+            setEditProperties((prev) =>
+              prev.map((p, i) =>
+                i === index ? { ...p, deprecatedAt: new Date().toISOString() } : p,
+              ),
+            );
+            setFieldUsageMap((prev) => ({ ...prev, [prop.id]: usage }));
+          },
+          { confirmLabel: t('common:confirm'), cancelLabel: t('common:cancel') },
         );
-        if (confirmed) {
-          setEditProperties((prev) =>
-            prev.map((p, i) =>
-              i === index ? { ...p, deprecatedAt: new Date().toISOString() } : p,
-            ),
-          );
-          setFieldUsageMap((prev) => ({ ...prev, [prop.id]: usage }));
-        }
       } else {
         setEditProperties((prev) => prev.filter((_, i) => i !== index));
       }
@@ -1355,11 +1364,13 @@ export function TemplateManagerPage() {
               setSelectedSample(null);
               setShowSampleGallery(false);
             } catch (e) {
-              alert(t('common:save_failed') + ': ' + e);
+              showToast({ type: 'error', message: `${t('common:save_failed')}: ${e}` });
             }
           }}
         />
       )}
+
+      {confirmDialog}
 
       {/* Delete confirmation dialog */}
       {confirmDelete && (

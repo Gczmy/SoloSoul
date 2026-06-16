@@ -34,3 +34,33 @@
   font-weight: 600;
   margin-bottom: 16px;
 }
+.message {
+  line-height: 1.5;
+  margin-bottom: 24px;
+  color: var(--text-secondary);
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.actions button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.actions button:hover {
+  opacity: 0.85;
+}
+.secondaryButton {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+.primaryButton {
+  background: var(--accent-primary);
+  color: var(--accent-on-primary);
+}
