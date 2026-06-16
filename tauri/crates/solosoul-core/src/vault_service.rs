@@ -318,7 +318,7 @@ impl VaultService {
         let master_key_arr: [u8; 32] = master_key
             .as_slice()
             .try_into()
-            .expect("HKDF output must be 32 bytes");
+            .map_err(|_| "HKDF output must be 32 bytes".to_string())?;
         let vault_config = VaultConfig::new(&account_id, self.account_dir(&account_id))
             .with_data_key(master_key_arr);
         let vault =
@@ -399,7 +399,7 @@ impl VaultService {
         let master_key_arr: [u8; 32] = master_key
             .as_slice()
             .try_into()
-            .expect("Argon2id output must be 32 bytes");
+            .map_err(|_| "Argon2id output must be 32 bytes".to_string())?;
         if let Ok(mut key) = self.session_key.write() {
             *key = Some(Zeroizing::new(master_key_arr));
         }
@@ -534,7 +534,7 @@ impl VaultService {
         let new_key_arr: [u8; 32] = new_key
             .as_slice()
             .try_into()
-            .expect("Key derivation output must be 32 bytes");
+            .map_err(|_| "Key derivation output must be 32 bytes".to_string())?;
         let new_key_enc = solosoul_vault::DataEncryptionKey::new(new_key_arr);
 
         // Re-encrypt all sensitive data with the new key.
