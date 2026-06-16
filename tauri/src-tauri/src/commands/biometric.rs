@@ -8,6 +8,39 @@ use crate::state::AppState;
 use solosoul_core::biometric::{trigger_system_biometric, BiometricAvailability, BiometricManager};
 use tauri::State;
 
+const BIO_ERR_PREFIX: &str = "__BIO_ERR__:";
+
+fn bio_err(code: &str) -> String {
+    format!("{}{}", BIO_ERR_PREFIX, code)
+}
+
+/// 将 BiometricManager 返回的原始错误映射为前端可国际化的短代码。
+fn map_bio_error(e: &str, operation: &str) -> String {
+    let lower = e.to_lowercase();
+    let code = if lower.contains("platform not supported") {
+        "platform_not_supported"
+    } else if lower.contains("invalid password") {
+        "invalid_password"
+    } else if lower.contains("cancel") || lower.contains("interrupted") {
+        "cancelled"
+    } else if lower.contains("previous file key") || lower.contains("keychain fallback also failed")
+    {
+        "stale_credential"
+    } else if lower.contains("verification mismatch") {
+        "credential_mismatch"
+    } else if lower.contains("no key file") {
+        "not_configured"
+    } else {
+        match operation {
+            "save" => "save_failed",
+            "unlock" => "unlock_failed",
+            "delete" => "delete_failed",
+            _ => "unknown",
+        }
+    };
+    bio_err(code)
+}
+
 #[tauri::command]
 pub async fn biometric_check_availability(
     state: State<'_, AppState>,
@@ -60,11 +93,25 @@ pub async fn biometric_save_credential(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
-    manager.save_credential(
-        &account_id,
-        &password,
-        "verify your identity to enable Touch ID for SoloSoul",
-    )?;
+
+    // 保存前校验即将写入的密钥与当前 Vault 会话密钥一致，避免钥匙串/文件访问问题导致回读失败。
+    if let Some(session_key) = svc.get_session_key() {
+        let expected = hex::encode(session_key.as_slice());
+        let derived = manager
+            .derive_key_hex(&password, &account_id)
+            .map_err(|e| map_bio_error(&e, "save"))?;
+        if derived != expected {
+            return Err(bio_err("credential_mismatch"));
+        }
+    }
+
+    manager
+        .save_credential(
+            &account_id,
+            &password,
+            "verify your identity to enable Touch ID for SoloSoul",
+        )
+        .map_err(|e| map_bio_error(&e, "save"))?;
 
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
@@ -99,7 +146,9 @@ pub async fn biometric_unlock(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
-    let used_bio_type = manager.unlock(&account_id, &svc, "unlock SoloSoul")?;
+    let used_bio_type = manager
+        .unlock(&account_id, &svc, "unlock SoloSoul")
+        .map_err(|e| map_bio_error(&e, "unlock"))?;
 
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
@@ -145,7 +194,9 @@ pub async fn biometric_delete_credential(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
-    manager.delete_credential(&account_id, &password)?;
+    manager
+        .delete_credential(&account_id, &password)
+        .map_err(|e| map_bio_error(&e, "delete"))?;
 
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();

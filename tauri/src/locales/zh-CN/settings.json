@@ -352,6 +352,16 @@
   "biometric_locked_out": "验证失败次数过多，请使用密码解锁",
   "biometric_save_failed": "保存 {{type}} 凭证失败，请重试",
   "biometric_needs_update": "需要更新",
+  "biometric_error_platform_not_supported": "当前平台不支持生物识别",
+  "biometric_error_invalid_password": "当前密码不正确",
+  "biometric_error_stale_credential": "生物识别凭证已失效，请使用密码登录后重新启用",
+  "biometric_error_credential_mismatch": "生物识别校验失败，请重新启用",
+  "biometric_error_cancelled": "已取消",
+  "biometric_error_unlock_failed": "生物识别解锁失败",
+  "biometric_error_save_failed": "保存生物识别凭证失败",
+  "biometric_error_delete_failed": "删除生物识别凭证失败",
+  "biometric_error_not_configured": "尚未配置生物识别，请先启用",
+  "biometric_error_unknown": "生物识别出现未知错误",
   "log": {
     "action": {
       "object_create": "创建对象",

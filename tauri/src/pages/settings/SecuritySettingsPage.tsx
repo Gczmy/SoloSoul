@@ -8,6 +8,7 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
+import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { invoke } from '@tauri-apps/api/core';
 import { Info, Fingerprint, ShieldCheck, AlertTriangle } from 'lucide-react';
 
@@ -102,10 +103,10 @@ export function SecuritySettingsPage() {
       setShowBioPwDialog(false);
     } catch (e) {
       const msg = String(e);
-      if (msg.includes('Invalid password') || msg.includes('incorrect')) {
-        setError('密码错误');
+      if (msg.toLowerCase().includes('invalid password') || msg.toLowerCase().includes('incorrect')) {
+        setError(t('settings:current_password_incorrect'));
       } else {
-        onError(e, t('common:error'));
+        setError(getBiometricErrorMessage(e, t));
       }
     } finally {
       setBioLoading(false);

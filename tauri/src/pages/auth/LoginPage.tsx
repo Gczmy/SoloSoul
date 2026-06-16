@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
+import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { useCancellable } from '@/hooks/useCancellable';
 import { Button } from '@/components/ui/Button';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
@@ -26,7 +27,7 @@ export function LoginPage() {
   } = useAuthStore();
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [password, setPassword] = useState('');
-  const { t } = useTranslation(['auth', 'common']);
+  const { t } = useTranslation(['auth', 'common', 'settings']);
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
 
   // Biometric state
@@ -152,10 +153,14 @@ export function LoginPage() {
       navigate('/');
     } catch (e) {
       const msg = String(e);
-      if (msg.includes('cancelled') || msg.includes('cancel')) {
+      if (
+        msg.toLowerCase().includes('cancelled') ||
+        msg.toLowerCase().includes('cancel') ||
+        msg.includes('__BIO_ERR__:cancelled')
+      ) {
         setShowPasswordInput(true);
       } else {
-        setBioError(msg.slice(0, 200));
+        setBioError(getBiometricErrorMessage(e, t));
         setShowPasswordInput(true);
       }
     } finally {

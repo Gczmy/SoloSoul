@@ -352,6 +352,16 @@
   "biometric_locked_out": "Too many failed attempts. Please use your password.",
   "biometric_save_failed": "Failed to save {{type}} credential. Please try again.",
   "biometric_needs_update": "Needs Update",
+  "biometric_error_platform_not_supported": "Biometric authentication is not supported on this platform",
+  "biometric_error_invalid_password": "Incorrect password",
+  "biometric_error_stale_credential": "Biometric credential is stale; please log in with password and re-enable",
+  "biometric_error_credential_mismatch": "Biometric verification failed; please re-enable",
+  "biometric_error_cancelled": "Cancelled",
+  "biometric_error_unlock_failed": "Biometric unlock failed",
+  "biometric_error_save_failed": "Failed to save biometric credential",
+  "biometric_error_delete_failed": "Failed to delete biometric credential",
+  "biometric_error_not_configured": "Biometric not configured; please enable first",
+  "biometric_error_unknown": "Biometric unknown error",
   "log": {
     "action": {
       "object_create": "Create Object",

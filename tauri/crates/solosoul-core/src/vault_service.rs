@@ -1,6 +1,7 @@
 //! Vault service - manages accounts and vault lifecycle.
 //! Stores accounts in ~/.solosoul/ with per-account config and vault.db
 
+use crate::biometric::BiometricManager;
 use serde::{Deserialize, Serialize};
 use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
 use solosoul_crypto::secure::secure_compare;
@@ -546,6 +547,18 @@ impl VaultService {
             vault.reencrypt_all(&old_key, &new_key_enc)?;
         }
 
+        // 修改密码后，旧的生物识别密钥（从旧密码派生）已失效，必须清除并让用户重新启用。
+        {
+            let bio_manager = BiometricManager::new(self.base_path().clone());
+            if let Err(e) = bio_manager.delete_credential(account_id, old_password) {
+                tracing::warn!(
+                    "Failed to delete stale biometric credential after password change for {}: {}",
+                    account_id,
+                    e
+                );
+            }
+        }
+
         // Derive new verify hash.
         let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
         let verify_key = derive_key(
@@ -781,7 +794,9 @@ mod tests {
 
         let content = fs::read_to_string(&config_path).unwrap();
         let config: AccountConfig = serde_json::from_str(&content).unwrap();
-        assert!(config.biometric_enabled);
+        // 修改密码后旧生物识别密钥已失效，必须被清除。
+        assert!(!config.biometric_enabled);
+        assert!(!svc.account_dir(account_id).join("biometric_key").exists());
     }
 
     #[test]
