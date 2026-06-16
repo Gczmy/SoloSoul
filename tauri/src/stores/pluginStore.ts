@@ -4,7 +4,6 @@ import {
   ConsentRequestEvent,
   DialogRequestEvent,
   MarketPluginInfo,
-  PluginEvent,
   PluginManifest,
   PluginResultPayload,
   PluginTier,

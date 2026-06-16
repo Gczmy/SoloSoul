@@ -19,14 +19,6 @@ const SYSTEM_DARK_MQ = '(prefers-color-scheme: dark)';
 let systemMediaQuery: MediaQueryList | null = null;
 let systemListener: ((e: MediaQueryListEvent) => void) | null = null;
 
-/** Resolve the effective theme (light or dark) given a ThemeConfig preset */
-export function resolveEffectiveTheme(preset: ThemeConfig['preset']): 'light' | 'dark' {
-  if (preset === 'system') {
-    return window.matchMedia(SYSTEM_DARK_MQ).matches ? 'dark' : 'light';
-  }
-  return preset === 'warm-stone-dark' ? 'dark' : 'light';
-}
-
 function hexToRgb(hex: string): [number, number, number] | null {
   const cleaned = hex.replace('#', '');
   if (cleaned.length !== 3 && cleaned.length !== 6) return null;

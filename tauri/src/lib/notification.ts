@@ -86,9 +86,4 @@ export function markConversationPending(convId: string): void {
   pendingConversations.add(convId);
 }
 
-/**
- * Clear a pending conversation (e.g. when user manually cancels or leaves).
- */
-export function clearPendingConversation(convId: string): void {
-  pendingConversations.delete(convId);
-}
+
