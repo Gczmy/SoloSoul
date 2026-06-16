@@ -29,6 +29,13 @@ fn generate_id() -> String {
 const EXPORT_ERR_PREFIX: &str = "__EXPORT_ERR__:";
 const IMPORT_ERR_PREFIX: &str = "__IMPORT_ERR__:";
 
+/// 导出审计日志时最多读取的条数。
+const MAX_AUDIT_LOG_EXPORT: usize = 100_000;
+/// 附件采用流式加解密的大小阈值（字节）。
+const ATTACHMENT_STREAMING_THRESHOLD: u64 = 10 * 1024 * 1024; // 10 MiB
+/// 附件采用分块解密的大小阈值（字节），需与加密侧阈值对应。
+const ATTACHMENT_STREAMING_DECRYPT_THRESHOLD: usize = 10 * 1024 * 1024; // 10 MiB
+
 fn export_err(code: &str) -> String {
     format!("{}{}", EXPORT_ERR_PREFIX, code)
 }
@@ -314,7 +321,7 @@ pub async fn export_estimate_size(
 
     // Estimate behavioral data (audit log)
     if scope.include_behavioral {
-        if let Ok(logs) = vault.list_audit_log(100000) {
+        if let Ok(logs) = vault.list_audit_log(MAX_AUDIT_LOG_EXPORT) {
             let log_json = serde_json::to_vec(&logs).unwrap_or_default();
             estimated_bytes += log_json.len() as u64;
         }
@@ -422,7 +429,6 @@ pub async fn export_execute(
     // ── P1: Attachments ────────────────────────────────────────
     const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB
     const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
-    const STREAMING_THRESHOLD: u64 = 10 * 1024 * 1024; // 10 MB
 
     let mut has_attachments = false;
     let selected_attachment_ids: std::collections::HashSet<String> =
@@ -507,7 +513,7 @@ pub async fn export_execute(
             zip.start_file(&zip_name, options)
                 .map_err(|e| e.to_string())?;
 
-            if file_size <= STREAMING_THRESHOLD {
+            if file_size <= ATTACHMENT_STREAMING_THRESHOLD {
                 let mut buf = Vec::new();
                 let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
                 f.read_to_end(&mut buf)
@@ -552,7 +558,7 @@ pub async fn export_execute(
     // ── P2: Behavioral data (audit log) ────────────────────────
     let mut behavioral_encrypted = false;
     if req.scope.include_behavioral {
-        if let Ok(logs) = vault.list_audit_log(100000) {
+        if let Ok(logs) = vault.list_audit_log(MAX_AUDIT_LOG_EXPORT) {
             let logs_json = serde_json::to_vec(&logs).unwrap_or_default();
             if !logs_json.is_empty() {
                 let behav_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
@@ -1057,8 +1063,7 @@ async fn import_execute_internal(
 
             // R029: choose the decryption method based on size (matching the export logic)
             // instead of trying one and falling back to the other.
-            const STREAMING_THRESHOLD: usize = 10 * 1024 * 1024; // 10 MB
-            let att_data = if enc_data.len() > (STREAMING_THRESHOLD + 28) {
+            let att_data = if enc_data.len() > (ATTACHMENT_STREAMING_DECRYPT_THRESHOLD + 28) {
                 solosoul_crypto::cipher::decrypt_chunked_from_bytes(&att_key, &enc_data)
                     .map_err(|e| format!("decrypt attachment chunked: {}", e))?
             } else {

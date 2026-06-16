@@ -9,6 +9,13 @@ use solosoul_vault::VaultStore;
 use std::collections::HashMap;
 use tauri::{Manager, State};
 
+/// 错误响应/正文预览的最大字符数。
+const MAX_PREVIEW_CHARS: usize = 300;
+/// 指南摘要的最大字节数。
+const MAX_GUIDE_SUMMARY_BYTES: usize = 200;
+/// 默认 LLM 输出 token 上限。
+const DEFAULT_MAX_TOKENS: u32 = 4096;
+
 // ── Data models ─────────────────────────────────────────────
 
 /// API protocol type for the provider
@@ -741,7 +748,7 @@ pub async fn llm_test_provider(
         let snippet = if text.is_empty() {
             "(empty body)".to_string()
         } else {
-            text.chars().take(300).collect()
+            text.chars().take(MAX_PREVIEW_CHARS).collect()
         };
         return Err(format!("HTTP {} {} — {}", status.as_u16(), url, snippet));
     }
@@ -799,7 +806,7 @@ pub async fn llm_send_message(
 
         let mut body = serde_json::json!({
             "model": model,
-            "max_tokens": 4096,
+            "max_tokens": DEFAULT_MAX_TOKENS,
             "messages": chat_msgs,
         });
         if let Some(sys) = &system {
@@ -1005,9 +1012,9 @@ fn ensure_summary_cache(index: &GuideIndex) {
         if let Some(file) = guide.files.get(&lang) {
             let file_path = resource_path(&format!("docs/guides/{}", file));
             if let Ok(text) = std::fs::read_to_string(&file_path) {
-                let summary = if text.len() > 200 {
-                    // 找到不超过 200 字节的最近合法字符边界（避免在中文字符中间切片 panic）
-                    let mut end = 200;
+                let summary = if text.len() > MAX_GUIDE_SUMMARY_BYTES {
+                    // 找到不超过 MAX_GUIDE_SUMMARY_BYTES 字节的最近合法字符边界（避免在中文字符中间切片 panic）
+                    let mut end = MAX_GUIDE_SUMMARY_BYTES;
                     while !text.is_char_boundary(end) {
                         end -= 1;
                     }
@@ -1772,7 +1779,7 @@ async fn send_chat_stream(
                 .collect();
             let mut b = serde_json::json!({
                 "model": model,
-                "max_tokens": 4096,
+                "max_tokens": DEFAULT_MAX_TOKENS,
                 "messages": chat_msgs,
                 "stream": true,
             });
@@ -2548,7 +2555,10 @@ async fn embed_text(
                 return Err(format!(
                     "Embedding API HTTP {}: {}",
                     status,
-                    body_text.chars().take(300).collect::<String>()
+                    body_text
+                        .chars()
+                        .take(MAX_PREVIEW_CHARS)
+                        .collect::<String>()
                 ));
             }
 

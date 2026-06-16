@@ -11,6 +11,17 @@ use solosoul_vault::ObjectRecord;
 use tauri::State;
 use uuid::Uuid;
 
+/// 一天的毫秒数。
+const MS_PER_DAY: i64 = 24 * 3600 * 1000;
+
+/// 回收站保留期选项。
+const RETENTION_30D: &str = "30d";
+const RETENTION_60D: &str = "60d";
+const RETENTION_HALF_YEAR: &str = "half_year";
+const RETENTION_ONE_YEAR: &str = "one_year";
+const RETENTION_NEVER: &str = "never";
+const DEFAULT_RETENTION: &str = RETENTION_30D;
+
 // ── Frontend-facing types ──────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -929,7 +940,7 @@ pub async fn trash_get_retention(state: State<'_, AppState>) -> Result<String, S
             }
         }
     }
-    Ok("30d".to_string())
+    Ok(DEFAULT_RETENTION.to_string())
 }
 
 /// Set trash retention period.
@@ -1014,7 +1025,7 @@ pub async fn trash_get_detail(
 
     let remaining_days = trash.expires_at.map(|exp| {
         let diff_ms = exp - chrono::Utc::now().timestamp_millis();
-        std::cmp::max(0, diff_ms / 86400000)
+        std::cmp::max(0, diff_ms / MS_PER_DAY)
     });
 
     let original_location = match trash.item_type.as_str() {
@@ -1185,17 +1196,17 @@ fn load_trash_retention(vault: &solosoul_vault::VaultStore, account_id: &str) ->
             }
         }
     }
-    "30d".to_string()
+    DEFAULT_RETENTION.to_string()
 }
 
 /// Compute retention ms from period string.
 fn retention_ms(period: &str) -> i64 {
     match period {
-        "60d" => 60 * 24 * 3600 * 1000i64,
-        "half_year" => 180 * 24 * 3600 * 1000i64,
-        "one_year" => 365 * 24 * 3600 * 1000i64,
-        "never" => i64::MAX,
-        _ => 30 * 24 * 3600 * 1000i64,
+        RETENTION_60D => 60 * MS_PER_DAY,
+        RETENTION_HALF_YEAR => 180 * MS_PER_DAY,
+        RETENTION_ONE_YEAR => 365 * MS_PER_DAY,
+        RETENTION_NEVER => i64::MAX,
+        _ => 30 * MS_PER_DAY,
     }
 }
 

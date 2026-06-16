@@ -8,6 +8,9 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tauri::State;
 
+/// 单个对象最多允许的活跃附件数量。
+const MAX_ACTIVE_ATTACHMENTS: usize = 50;
+
 /// 附件 ID 与对象 ID 允许使用的字符集，防止路径遍历。
 fn validate_attachment_id(id: &str) -> Result<(), String> {
     if id.is_empty()
@@ -143,10 +146,13 @@ pub async fn attachment_save(
     let vault = vault_handle(&state)?;
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
-    // §10.4.4: maximum 50 active attachments per object
+    // §10.4.4: maximum active attachments per object
     let active_count = atts.iter().filter(|a| a.deleted_at.is_none()).count();
-    if active_count >= 50 {
-        return Err("Maximum 50 active attachments per object reached".to_string());
+    if active_count >= MAX_ACTIVE_ATTACHMENTS {
+        return Err(format!(
+            "Maximum {} active attachments per object reached",
+            MAX_ACTIVE_ATTACHMENTS
+        ));
     }
     atts.push(meta);
     save_attachments(&mut record.properties, &atts);

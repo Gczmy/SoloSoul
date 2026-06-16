@@ -5,6 +5,25 @@ use solosoul_vault::{ObjectRecord, VaultStore};
 use std::collections::HashSet;
 use tauri::State;
 
+/// 默认返回的搜索结果条数。
+const DEFAULT_SEARCH_LIMIT: usize = 50;
+/// 字段名匹配基础分。
+const SCORE_FIELD_NAME: f64 = 2.5;
+/// 字段值匹配基础分。
+const SCORE_FIELD_VALUE: f64 = 3.0;
+/// 完全匹配（长度相等）字段值基础分。
+const SCORE_EXACT_VALUE: f64 = 5.0;
+/// 页面/对象名称完全匹配分。
+const SCORE_EXACT_NAME: f64 = 5.0;
+/// 页面/对象名称部分匹配分。
+const SCORE_PARTIAL_NAME: f64 = 3.0;
+/// 默认对象结果相关性分。
+const SCORE_OBJECT_DEFAULT: f64 = 3.0;
+/// 对象名称匹配加分。
+const SCORE_NAME_BONUS: f64 = 2.0;
+/// 字段值展示时的最大字符数。
+const MAX_DISPLAY_VALUE_CHARS: usize = 100;
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResultItem {
@@ -70,14 +89,18 @@ fn search_properties_for_matches(
                         field_path: field_path.clone(),
                         display_value: key.clone(),
                         match_type: FieldMatchType::FieldName,
-                        score: 2.5,
+                        score: SCORE_FIELD_NAME,
                     });
                 }
                 if let serde_json::Value::String(s) = value {
                     if s.to_lowercase().contains(query) {
-                        let score = if s.len() == query.len() { 5.0 } else { 3.0 };
-                        let truncated = if s.len() > 100 {
-                            let mut end = 100;
+                        let score = if s.len() == query.len() {
+                            SCORE_EXACT_VALUE
+                        } else {
+                            SCORE_FIELD_VALUE
+                        };
+                        let truncated = if s.len() > MAX_DISPLAY_VALUE_CHARS {
+                            let mut end = MAX_DISPLAY_VALUE_CHARS;
                             while !s.is_char_boundary(end) {
                                 end -= 1;
                             }
@@ -197,9 +220,9 @@ fn search_pages(
         vault.list_objects(account_id, Some("page"), None, Some(&q), false, false)?;
     for page in custom_pages {
         let score = if page.name.to_lowercase() == q {
-            5.0
+            SCORE_EXACT_NAME
         } else {
-            3.0
+            SCORE_PARTIAL_NAME
         };
         items.push(SearchResultItem {
             object_id: page.id.clone(),
@@ -234,7 +257,7 @@ fn search_pages(
                 matched_field: None,
                 matched_value: None,
                 match_type: None,
-                relevance: 3.0,
+                relevance: SCORE_OBJECT_DEFAULT,
             });
         }
     }
@@ -299,7 +322,7 @@ async fn search_advanced_impl(
 
         // Name match bonus
         let name_score = if rec.name.to_lowercase().contains(&q) {
-            2.0
+            SCORE_NAME_BONUS
         } else {
             0.0
         };
@@ -355,7 +378,7 @@ async fn search_advanced_impl(
             .partial_cmp(&a.relevance)
             .unwrap_or(std::cmp::Ordering::Equal)
     });
-    let limit = limit.unwrap_or(50);
+    let limit = limit.unwrap_or(DEFAULT_SEARCH_LIMIT);
     let has_more = items.len() > limit;
     items.truncate(limit);
     let total = items.len();
@@ -395,7 +418,7 @@ pub async fn search_unified(
     parent_id: Option<String>,
     limit: Option<usize>,
 ) -> Result<SearchResult, String> {
-    let limit = limit.unwrap_or(50);
+    let limit = limit.unwrap_or(DEFAULT_SEARCH_LIMIT);
     let trimmed = query.trim();
 
     // 仅按页面筛选时（无搜索关键词），列出该页面下全部对象
