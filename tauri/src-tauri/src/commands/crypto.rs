@@ -82,12 +82,13 @@ pub async fn derive_key(
 /// Generate cryptographically secure random bytes
 #[tauri::command]
 pub async fn generate_salt(length: u32) -> Vec<u8> {
+    use rand::rngs::OsRng;
     use rand::RngCore;
-    if length > MAX_SALT_LENGTH {
+    if length == 0 || length > MAX_SALT_LENGTH {
         return vec![];
     }
     let mut salt = vec![0u8; length as usize];
-    rand::thread_rng().fill_bytes(&mut salt);
+    OsRng.fill_bytes(&mut salt);
     salt
 }
 
