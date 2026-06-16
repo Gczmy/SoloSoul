@@ -3,6 +3,7 @@ import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import type { GuideContent } from '@/lib/guideApi';
+import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 
 interface GuideSearchProps {
   onSearch: (query: string) => Promise<GuideContent[]>;
@@ -172,7 +173,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
       setResults(null);
       return;
     }
-    timeoutRef.current = setTimeout(() => doSearch(val), 300);
+    timeoutRef.current = setTimeout(() => doSearch(val), DEBOUNCE_DELAY_MS);
   };
 
   return (

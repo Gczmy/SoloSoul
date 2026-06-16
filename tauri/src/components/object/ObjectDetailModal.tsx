@@ -15,6 +15,7 @@ import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 
@@ -254,7 +255,7 @@ export function ObjectDetailModal({
       await navigator.clipboard.writeText(value);
       setCopiedField(key);
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => setCopiedField(null), 1500);
+      copyTimeoutRef.current = setTimeout(() => setCopiedField(null), COPY_FEEDBACK_DURATION_MS);
     } catch {
       /* ignore */
     }

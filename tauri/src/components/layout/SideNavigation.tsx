@@ -24,6 +24,8 @@ import {
 } from '@/lib/llm/systemPromptBuilder';
 import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
 import i18n from '@/lib/i18n';
+import { formatRelative, formatTimestamp } from '@/lib/time';
+import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import styles from './SideNavigation.module.css';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
@@ -78,33 +80,6 @@ interface LlmStreamPayload {
 
 function nowISO(): string {
   return new Date().toISOString();
-}
-function formatRelative(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '刚刚';
-  if (mins < 60) return mins + ' 分钟前';
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return hours + ' 小时前';
-  const days = Math.floor(hours / 24);
-  if (days < 30) return days + ' 天前';
-  return formatTimestamp(iso).slice(0, 10);
-}
-function formatTimestamp(iso: string): string {
-  const d = new Date(iso);
-  return (
-    d.getFullYear() +
-    '-' +
-    String(d.getMonth() + 1).padStart(2, '0') +
-    '-' +
-    String(d.getDate()).padStart(2, '0') +
-    ' ' +
-    String(d.getHours()).padStart(2, '0') +
-    ':' +
-    String(d.getMinutes()).padStart(2, '0') +
-    ':' +
-    String(d.getSeconds()).padStart(2, '0')
-  );
 }
 function isOllama(baseUrl: string): boolean {
   return baseUrl.toLowerCase().includes('localhost') || baseUrl.toLowerCase().includes('127.0.0.1');
@@ -522,7 +497,7 @@ export function AiQuickChatPopover({
       await navigator.clipboard.writeText(content);
       setCopiedIndex(index);
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), 1500);
+      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), COPY_FEEDBACK_DURATION_MS);
     } catch {
       /* ignore */
     }

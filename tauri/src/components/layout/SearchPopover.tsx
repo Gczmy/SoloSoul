@@ -18,6 +18,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import styles from './SearchPopover.module.css';
@@ -172,7 +173,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const handleChange = (val: string) => {
     setQuery(val);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => doSearch(val, selectedFilter), 300);
+    timeoutRef.current = setTimeout(() => doSearch(val, selectedFilter), DEBOUNCE_DELAY_MS);
   };
 
   const handleFilter = (key: string | null) => {

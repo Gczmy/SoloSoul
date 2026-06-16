@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/authStore';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { Paperclip, Info } from 'lucide-react';
 import { formatBytes } from '@/lib/format';
+import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 
 // ── Types matching Rust backend ─────────────────────────────
 
@@ -496,7 +497,7 @@ export function ExportImportPage() {
         .then(setExportEstimate)
         .catch(() => setExportEstimate(null))
         .finally(() => setEstimating(false));
-    }, 300);
+    }, DEBOUNCE_DELAY_MS);
     return () => clearTimeout(debounce);
   }, [
     totalSelected,

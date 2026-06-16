@@ -9,6 +9,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
 import { useCancellable } from '@/hooks/useCancellable';
 import i18n from '@/lib/i18n';
+import { formatRelative, formatTimestamp } from '@/lib/time';
+import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import {
   buildSystemPrompt,
   buildMessagesWithSystemPromptAndChunks,
@@ -66,38 +68,9 @@ function nowISO(): string {
   return new Date().toISOString();
 }
 
-function formatTimestamp(iso: string): string {
-  const d = new Date(iso);
-  return (
-    d.getFullYear() +
-    '-' +
-    String(d.getMonth() + 1).padStart(2, '0') +
-    '-' +
-    String(d.getDate()).padStart(2, '0') +
-    ' ' +
-    String(d.getHours()).padStart(2, '0') +
-    ':' +
-    String(d.getMinutes()).padStart(2, '0') +
-    ':' +
-    String(d.getSeconds()).padStart(2, '0')
-  );
-}
-
-function formatRelative(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '刚刚';
-  if (mins < 60) return mins + ' 分钟前';
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return hours + ' 小时前';
-  return formatTimestamp(iso).slice(0, 10);
-}
-
 function generateId(): string {
   return 'conv_' + crypto.randomUUID();
 }
-
-const COPY_FEEDBACK_DURATION = 1500;
 
 export function LlmChatPage() {
   const navigate = useNavigate();
@@ -551,7 +524,7 @@ export function LlmChatPage() {
       await navigator.clipboard.writeText(content);
       setCopiedIndex(index);
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), COPY_FEEDBACK_DURATION);
+      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), COPY_FEEDBACK_DURATION_MS);
     } catch {
       /* fallback */
     }

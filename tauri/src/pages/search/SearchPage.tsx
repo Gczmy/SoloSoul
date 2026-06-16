@@ -13,6 +13,7 @@ import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 
@@ -112,7 +113,7 @@ export function SearchPage() {
   const handleChange = (val: string) => {
     setQuery(val);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => doSearch(val), 300);
+    timeoutRef.current = setTimeout(() => doSearch(val), DEBOUNCE_DELAY_MS);
   };
 
   const resolveFieldLabel = (fieldPath?: string): string => {
