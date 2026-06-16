@@ -211,8 +211,8 @@ mod tests {
     #[test]
     fn test_model_exists() {
         // This test assumes the model is downloaded in resources for dev testing
-        let models_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("resources/models");
+        let models_dir =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/models");
         assert!(is_model_installed(&models_dir, "all-MiniLM-L6-v2"));
     }
 
