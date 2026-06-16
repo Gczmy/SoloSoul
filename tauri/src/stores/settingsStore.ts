@@ -76,6 +76,43 @@ const uiPrefsSchema = z.object({
     .optional(),
 });
 
+const customPageSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  iconId: z.string(),
+  createdAt: z.string(),
+  sortOrder: z.number(),
+  deletedAt: z.string().optional(),
+});
+
+const windowSizeSchema = z.object({
+  width: z.number(),
+  height: z.number(),
+});
+
+const accountPrefsSchema = z
+  .object({
+    theme: z.enum(['light', 'dark', 'system']).optional(),
+    accentColor: z.enum(['ocean', 'amber', 'forest', 'rose', 'purple', 'custom']).optional(),
+    defaultLightTheme: z.string().optional(),
+    defaultDarkTheme: z.string().optional(),
+    customAccentHex: z.string().optional(),
+    backgroundType: z.enum(['solid', 'gradient', 'image']).optional(),
+    backgroundValue: z.string().optional(),
+    language: z.enum(['zh-CN', 'en-US']).optional(),
+    locale: z.string().optional(),
+    autoLockTimeoutMinutes: z.number().optional(),
+    biometricEnabled: z.boolean().optional(),
+    confirmDelete: z.boolean().optional(),
+    sidebarPosition: z.enum(['left', 'right', 'top', 'bottom']).optional(),
+    sidebarBottomActions: z.tuple([z.string(), z.string(), z.string()]).optional(),
+    customPages: z.array(customPageSchema).optional(),
+    windowSize: windowSizeSchema.optional(),
+  })
+  .passthrough();
+
+type AccountPrefs = z.infer<typeof accountPrefsSchema>;
+
 const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   accentColor: 'ocean',
@@ -212,56 +249,28 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   loadSettings: async (accountId) => {
     set({ isLoading: true });
     try {
-      const prefs = await invoke<Record<string, unknown>>('user_data_get_preferences', {
-        accountId,
-      });
+      const raw = await invoke<unknown>('user_data_get_preferences', { accountId });
+      const parsedPrefsResult = accountPrefsSchema.safeParse(raw);
+      const prefs: AccountPrefs = parsedPrefsResult.success ? parsedPrefsResult.data : {};
       const parsed = { ...DEFAULT_SETTINGS };
-      if (prefs.theme && ['light', 'dark', 'system'].includes(prefs.theme as string)) {
-        parsed.theme = prefs.theme as AppSettings['theme'];
-      }
-      if (
-        prefs.accentColor &&
-        ['ocean', 'amber', 'forest', 'rose', 'purple', 'custom'].includes(
-          prefs.accentColor as string,
-        )
-      ) {
-        parsed.accentColor = prefs.accentColor as AppSettings['accentColor'];
-      }
-      if (typeof prefs.defaultLightTheme === 'string')
-        parsed.defaultLightTheme = prefs.defaultLightTheme;
-      if (typeof prefs.defaultDarkTheme === 'string')
-        parsed.defaultDarkTheme = prefs.defaultDarkTheme;
-      if (typeof prefs.customAccentHex === 'string') parsed.customAccentHex = prefs.customAccentHex;
-      if (
-        prefs.backgroundType &&
-        ['solid', 'gradient', 'image'].includes(prefs.backgroundType as string)
-      ) {
-        parsed.backgroundType = prefs.backgroundType as AppSettings['backgroundType'];
-      }
-      if (typeof prefs.backgroundValue === 'string') parsed.backgroundValue = prefs.backgroundValue;
-      if (prefs.language && ['zh-CN', 'en-US'].includes(prefs.language as string)) {
-        parsed.language = prefs.language as string;
-      }
-      if (prefs.locale) parsed.locale = prefs.locale as string;
+      if (prefs.theme) parsed.theme = prefs.theme;
+      if (prefs.accentColor) parsed.accentColor = prefs.accentColor;
+      if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
+      if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
+      if (prefs.customAccentHex) parsed.customAccentHex = prefs.customAccentHex;
+      if (prefs.backgroundType) parsed.backgroundType = prefs.backgroundType;
+      if (prefs.backgroundValue) parsed.backgroundValue = prefs.backgroundValue;
+      if (prefs.language) parsed.language = prefs.language;
+      if (prefs.locale) parsed.locale = prefs.locale;
       if (typeof prefs.autoLockTimeoutMinutes === 'number')
         parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
-      if (typeof prefs.biometricEnabled === 'boolean')
-        parsed.biometricEnabled = prefs.biometricEnabled;
+      if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
-      if (
-        prefs.sidebarPosition &&
-        ['left', 'right', 'top', 'bottom'].includes(prefs.sidebarPosition as string)
-      ) {
-        parsed.sidebarPosition = prefs.sidebarPosition as AppSettings['sidebarPosition'];
-      }
-      if (Array.isArray(prefs.sidebarBottomActions) && prefs.sidebarBottomActions.length === 3) {
-        parsed.sidebarBottomActions = prefs.sidebarBottomActions as [string, string, string];
-      }
+      if (prefs.sidebarPosition) parsed.sidebarPosition = prefs.sidebarPosition;
+      if (prefs.sidebarBottomActions) parsed.sidebarBottomActions = prefs.sidebarBottomActions;
       // Load old-format customPages from preferences for migration.
       // Once loaded, also try the new objects-table source via loadCustomPages().
-      if (Array.isArray(prefs.customPages)) {
-        parsed.customPages = prefs.customPages as CustomPage[];
-      }
+      if (prefs.customPages) parsed.customPages = prefs.customPages;
       // Window size: plaintext UI preference / localStorage cache is the freshest source
       // because it is updated synchronously on every resize. Prefer it over the encrypted
       // account preference to avoid reverting to a stale size after login.
@@ -269,16 +278,14 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       try {
         const cachedRaw = localStorage.getItem('solosoul_window_size');
         if (cachedRaw) {
-          const cached = JSON.parse(cachedRaw) as WindowSize;
-          if (typeof cached.width === 'number' && typeof cached.height === 'number') {
-            effectiveWindowSize = cached;
-          }
+          const cached = windowSizeSchema.safeParse(JSON.parse(cachedRaw));
+          if (cached.success) effectiveWindowSize = cached.data;
         }
       } catch {
         /* ignore */
       }
       if (!effectiveWindowSize) {
-        effectiveWindowSize = prefs.windowSize as WindowSize | undefined;
+        effectiveWindowSize = prefs.windowSize;
       }
       if (
         effectiveWindowSize &&

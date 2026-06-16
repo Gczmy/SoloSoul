@@ -262,7 +262,7 @@ export function ObjectEditorPage() {
           accountId,
           name: name || templateMeta[selectedType]?.label || 'Untitled',
           collectionType,
-          properties: values as unknown as Record<string, unknown>,
+          properties: values,
           parentId,
           templateId: selectedType || undefined,
           templateType: selectedType ? 'user' : undefined,
@@ -271,7 +271,7 @@ export function ObjectEditorPage() {
       } else {
         await updateObject(objectId!, {
           name: name || t('common:object_name_placeholder'),
-          properties: values as unknown as Record<string, unknown>,
+          properties: values,
         });
         onSuccess(t('common:object_saved'));
       }

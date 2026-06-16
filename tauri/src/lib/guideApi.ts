@@ -10,8 +10,7 @@ import { invoke } from '@tauri-apps/api/core';
 /** 检测当前是否在 Tauri 运行环境中 */
 function isTauriEnv(): boolean {
   if (typeof window === 'undefined') return false;
-  const w = window as unknown as Record<string, unknown>;
-  return !!w.__TAURI__ || !!w.__TAURI_INTERNALS__;
+  return '__TAURI__' in window || '__TAURI_INTERNALS__' in window;
 }
 
 export interface GuideTitle {

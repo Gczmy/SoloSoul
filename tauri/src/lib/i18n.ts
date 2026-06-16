@@ -21,6 +21,12 @@ import zhPlugin from '@/locales/zh-CN/plugin.json';
 export const SUPPORTED_LANGS = ['zh-CN', 'en-US'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
 
+declare global {
+  interface Window {
+    __SOLOSOUL_LOCALE__?: string;
+  }
+}
+
 const resources: Record<string, Record<string, object>> = {
   'en-US': {
     common: enCommon,
@@ -64,7 +70,7 @@ export async function initI18n(): Promise<typeof i18next> {
   let detectedLng: SupportedLang | null = null;
 
   // Layer 1: Rust setup eval (injects before page loads)
-  const winLocale = (window as unknown as Record<string, string>).__SOLOSOUL_LOCALE__;
+  const winLocale = window.__SOLOSOUL_LOCALE__;
   if (winLocale === 'zh-CN' || winLocale === 'en-US') detectedLng = winLocale;
 
   // Layer 2: localStorage

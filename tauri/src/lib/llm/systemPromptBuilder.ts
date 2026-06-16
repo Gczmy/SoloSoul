@@ -13,8 +13,7 @@ const APP_NAME = 'SoloSoul（独灵）';
 const AI_NAME = 'Solon';
 
 // 从环境或构建时注入的版本信息（Vite 方式）
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const APP_VERSION = ((import.meta as any).env?.VITE_APP_VERSION as string) || '2.0.0';
+const APP_VERSION = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? '2.0.0';
 
 function getPlatform(): string {
   const nav = navigator as Navigator & { userAgentData?: { platform: string } };
