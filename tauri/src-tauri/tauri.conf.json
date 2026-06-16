@@ -46,7 +46,8 @@
     ],
     "resources": {
       "resources/docs": "docs",
-      "../../SoloSoul_plugin_market": "SoloSoul_plugin_market"
+      "../../SoloSoul_plugin_market/plugins": "SoloSoul_plugin_market/plugins",
+      "../../SoloSoul_plugin_market/registry.json": "SoloSoul_plugin_market/registry.json"
     },
     "windows": {
       "nsis": {
