@@ -29,16 +29,38 @@ fn attachments_dir(base: &Path) -> PathBuf {
     base.join("attachments")
 }
 
+fn validate_attachment_id(id: &str) -> Result<(), String> {
+    if id.is_empty()
+        || id.len() > 64
+        || !id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return Err(format!("Invalid attachment id: {}", id));
+    }
+    Ok(())
+}
+
+fn sanitize_file_name(name: &str) -> Result<String, String> {
+    Path::new(name)
+        .file_name()
+        .map(|s| s.to_string_lossy().to_string())
+        .ok_or_else(|| format!("Invalid attachment file name: {}", name))
+}
+
 fn attachment_file_path(
     base: &Path,
     object_id: &str,
     attachment_id: &str,
     file_name: &str,
-) -> PathBuf {
-    attachments_dir(base)
+) -> Result<PathBuf, String> {
+    validate_attachment_id(object_id)?;
+    validate_attachment_id(attachment_id)?;
+    let safe_name = sanitize_file_name(file_name)?;
+    Ok(attachments_dir(base)
         .join(object_id)
         .join(attachment_id)
-        .join(file_name)
+        .join(safe_name))
 }
 
 pub(crate) fn sha256_file(path: &Path) -> Result<String, String> {
@@ -73,7 +95,7 @@ pub fn collect_attachment_manifests(
                     .into_iter()
                     .filter(|a| a.deleted_at.is_none())
                     .filter_map(|a| {
-                        let path = attachment_file_path(base, &a.object_id, &a.id, &a.file_name);
+                        let path = attachment_file_path(base, &a.object_id, &a.id, &a.file_name).ok()?;
                         if !path.exists() {
                             return None;
                         }
@@ -163,7 +185,11 @@ pub fn compute_needed_attachments(
     let mut needed = Vec::new();
     for (object_id, infos) in remote_manifests {
         for info in infos {
-            let local_path = attachment_file_path(base, object_id, &info.id, &info.file_name);
+            let local_path = match attachment_file_path(base, object_id, &info.id, &info.file_name)
+            {
+                Ok(p) => p,
+                Err(_) => continue,
+            };
             let need = if !local_path.exists() {
                 true
             } else {
@@ -255,7 +281,7 @@ pub fn send_requested_attachments(
         let info = info_map
             .get(&(object_id.clone(), att_id.clone()))
             .ok_or_else(|| format!("Unknown attachment {}:{}", object_id, att_id))?;
-        let path = attachment_file_path(base, object_id, att_id, &info.file_name);
+        let path = attachment_file_path(base, object_id, att_id, &info.file_name)?;
         let mut file =
             fs::File::open(&path).map_err(|e| format!("open {}: {}", path.display(), e))?;
         let total_size = fs::metadata(&path)
@@ -370,7 +396,7 @@ pub fn receive_attachments(
         let info = info_map
             .get(&(object_id.clone(), att_id.clone()))
             .ok_or_else(|| format!("Received unknown attachment {}:{}", object_id, att_id))?;
-        let path = attachment_file_path(base, &object_id, &att_id, &info.file_name);
+        let path = attachment_file_path(base, &object_id, &att_id, &info.file_name)?;
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).map_err(|e| format!("mkdir {}: {}", parent.display(), e))?;
         }
