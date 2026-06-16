@@ -16,7 +16,7 @@
 //   let manager = guard.as_ref().ok_or("Sync is not enabled")?;
 //   // manager: &SyncManager, 调用方法 .await / .x() 全部明确
 
-use crate::manager::{SyncManager, SyncSessionResult, SyncPeerInfo};
+use crate::manager::{SyncManager, SyncPeerInfo, SyncSessionResult};
 use crate::noise::NoiseKeys;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -53,13 +53,7 @@ impl SyncService {
                 (vault, account_id)
             };
             let (node_id, keys) = get_or_create_sync_identity(&vault)?;
-            let manager = SyncManager::new(
-                node_id,
-                account_id,
-                keys,
-                vault.clone(),
-                "0.0.0.0:0",
-            );
+            let manager = SyncManager::new(node_id, account_id, keys, vault.clone(), "0.0.0.0:0");
             manager.start().await?;
             audit_log(
                 &vault,

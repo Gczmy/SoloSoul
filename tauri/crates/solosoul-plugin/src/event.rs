@@ -139,7 +139,6 @@ impl PluginEvent {
     }
 }
 
-
 /// Trait for sending plugin events to the host (Tauri frontend or CLI terminal).
 pub trait PluginEventSink: Send + Sync {
     /// Send a plugin event to the sink.

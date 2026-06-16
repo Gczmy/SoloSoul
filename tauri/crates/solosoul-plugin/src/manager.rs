@@ -8,8 +8,8 @@ use super::{
     PluginRegistry, PluginResult, PluginSessionInfo, PluginSessionManager, PluginStore, PluginTier,
     RateLimiter, WasmSandbox,
 };
-use semver::Version;
 use crate::event::PluginEventSink;
+use semver::Version;
 use serde::Deserialize;
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;

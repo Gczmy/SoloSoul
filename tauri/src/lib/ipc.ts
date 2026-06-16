@@ -197,4 +197,54 @@ export const commands = {
   async syncForgetPeer(peerNodeId: string): Promise<void> {
     return invoke('sync_forget_peer', { peerNodeId });
   },
+
+  // OCR
+  async ocrScanImage(filePath: string, language?: string): Promise<OcrResult> {
+    return invoke('ocr_scan_image', { filePath, language });
+  },
+  async ocrGetSupportedLanguages(): Promise<string[]> {
+    return invoke('ocr_get_supported_languages');
+  },
+  async ocrListAvailableTiers(): Promise<OcrTierInfo[]> {
+    return invoke('ocr_list_available_tiers');
+  },
+  async ocrGetActiveTier(): Promise<string> {
+    return invoke('ocr_get_active_tier');
+  },
+  async ocrSetActiveTier(tier: string): Promise<void> {
+    return invoke('ocr_set_active_tier', { tier });
+  },
+  async ocrGetModelStatus(tier: string): Promise<OcrModelStatus> {
+    return invoke('ocr_get_model_status', { tier });
+  },
+  async ocrInstallBundledModel(tier: string): Promise<void> {
+    return invoke('ocr_install_bundled_model', { tier });
+  },
+  async ocrDownloadModel(tier: string, baseUrl: string): Promise<void> {
+    return invoke('ocr_download_model', { tier, baseUrl });
+  },
 };
+
+export interface OcrBox {
+  text: string;
+  confidence: number;
+  points: [number, number][];
+}
+
+export interface OcrResult {
+  text: string;
+  confidence: number;
+  boxes: OcrBox[];
+}
+
+export interface OcrTierInfo {
+  tier: string;
+  name: string;
+  description: string;
+}
+
+export interface OcrModelStatus {
+  tier: string;
+  installed: boolean;
+  bundled: boolean;
+}

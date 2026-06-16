@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
-import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2 } from 'lucide-react';
+import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2, Scan } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -76,8 +77,21 @@ export function AttachmentViewer({
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const { t } = useTranslation(['common', 'editor']);
+  const navigate = useNavigate();
   const showToast = useUiStore((s) => s.showToast);
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
+
+  const handleOcr = (item: AttachmentItem) => {
+    const filePath = item.vaultPath || item.srcPath;
+    if (!filePath) {
+      showToast({
+        type: 'error',
+        message: t('common:ocr_no_path') || 'Cannot locate attachment file for OCR',
+      });
+      return;
+    }
+    navigate('/ocr', { state: { filePath } });
+  };
 
   const openWithDefault = async (path: string) => {
     try {
@@ -430,6 +444,15 @@ export function AttachmentViewer({
                         <button onClick={() => handlePreview(item)} style={miniBtn} title="Preview">
                           <Eye size={12} />
                         </button>
+                        {item.mimeType.startsWith('image/') && (
+                          <button
+                            onClick={() => handleOcr(item)}
+                            style={miniBtn}
+                            title={t('common:ocr') || 'OCR'}
+                          >
+                            <Scan size={12} />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleStartRename(item)}
                           style={miniBtn}

@@ -20,6 +20,7 @@ import {
   LayoutTemplate,
   Puzzle,
   Smartphone,
+  Scan,
 } from 'lucide-react';
 
 export function SettingsPage() {
@@ -117,6 +118,12 @@ export function SettingsPage() {
     {
       title: t('settings:groups.system'),
       items: [
+        {
+          label: t('settings:items.ocr') || 'OCR',
+          icon: Scan,
+          path: '/settings/ocr',
+          desc: t('settings:desc.ocr') || 'Manage OCR models and preferences',
+        },
         {
           label: t('settings:items.help_docs'),
           icon: BookOpen,

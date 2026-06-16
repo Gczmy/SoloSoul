@@ -140,6 +140,8 @@
   "no_attachments": "No attachments",
   "attachments_trash_empty": "No attachments in this object's trash.",
   "rename": "Rename",
+  "ocr": "OCR",
+  "ocr_no_path": "Cannot locate attachment file for OCR",
   "rename_prompt": "Rename:",
   "undo": "Undo",
   "clear_hint": "Clear hint",

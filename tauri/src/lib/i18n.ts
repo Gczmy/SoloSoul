@@ -9,6 +9,7 @@ import enAuth from '@/locales/en-US/auth.json';
 import enSensitivity from '@/locales/en-US/sensitivity.json';
 import enEditor from '@/locales/en-US/editor.json';
 import enPlugin from '@/locales/en-US/plugin.json';
+import enOcr from '@/locales/en-US/ocr.json';
 
 import zhCommon from '@/locales/zh-CN/common.json';
 import zhNav from '@/locales/zh-CN/navigation.json';
@@ -17,6 +18,7 @@ import zhAuth from '@/locales/zh-CN/auth.json';
 import zhSensitivity from '@/locales/zh-CN/sensitivity.json';
 import zhEditor from '@/locales/zh-CN/editor.json';
 import zhPlugin from '@/locales/zh-CN/plugin.json';
+import zhOcr from '@/locales/zh-CN/ocr.json';
 
 export const SUPPORTED_LANGS = ['zh-CN', 'en-US'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
@@ -36,6 +38,7 @@ const resources: Record<string, Record<string, object>> = {
     sensitivity: enSensitivity,
     editor: enEditor,
     plugin: enPlugin,
+    ocr: enOcr,
   },
   'zh-CN': {
     common: zhCommon,
@@ -45,6 +48,7 @@ const resources: Record<string, Record<string, object>> = {
     sensitivity: zhSensitivity,
     editor: zhEditor,
     plugin: zhPlugin,
+    ocr: zhOcr,
   },
 };
 
@@ -97,7 +101,7 @@ export async function initI18n(): Promise<typeof i18next> {
     lng: detectedLng,
     fallbackLng: 'en-US',
     defaultNS: 'common',
-    ns: ['common', 'navigation', 'settings', 'auth', 'sensitivity', 'editor', 'plugin'],
+    ns: ['common', 'navigation', 'settings', 'auth', 'sensitivity', 'editor', 'plugin', 'ocr'],
     interpolation: { escapeValue: false },
   });
 

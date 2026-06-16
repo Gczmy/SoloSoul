@@ -46,6 +46,7 @@
     ],
     "resources": {
       "resources/docs": "docs",
+      "resources/models": "models",
       "../../SoloSoul_plugin_market/plugins": "SoloSoul_plugin_market/plugins",
       "../../SoloSoul_plugin_market/registry.json": "SoloSoul_plugin_market/registry.json"
     },

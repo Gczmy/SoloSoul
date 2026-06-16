@@ -23,7 +23,8 @@
     "appearance": "Appearance",
     "templates": "Template Manager",
     "plugins": "Plugins",
-    "sync": "Device Sync"
+    "sync": "Device Sync",
+    "ocr": "OCR"
   },
   "auto_lock": "Auto Lock",
   "auto_lock_description": "Set how long of inactivity before the vault auto-locks and wipes sensitive state from memory.",
@@ -496,7 +497,8 @@
     "about": "Version info and licenses",
     "templates": "Manage custom object templates",
     "plugins": "Manage local plugin marketplace",
-    "sync": "Sync profiles, objects and templates across devices"
+    "sync": "Sync profiles, objects and templates across devices",
+    "ocr": "Manage OCR models and preferences"
   },
   "ai_quick_chat_title": "Quick Chat",
   "ai_quick_chat_configure_hint": "Please configure an LLM to use AI chat",

@@ -446,6 +446,12 @@ pub fn run() {
             // OCR commands
             commands::ocr::ocr_scan_image,
             commands::ocr::ocr_get_supported_languages,
+            commands::ocr::ocr_list_available_tiers,
+            commands::ocr::ocr_get_active_tier,
+            commands::ocr::ocr_set_active_tier,
+            commands::ocr::ocr_get_model_status,
+            commands::ocr::ocr_install_bundled_model,
+            commands::ocr::ocr_download_model,
             // Attachment commands
             commands::attachment::attachment_list,
             commands::attachment::attachment_save,

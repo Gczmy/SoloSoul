@@ -46,6 +46,7 @@ import {
   Sun,
   Moon,
   Cloud,
+  Scan,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -74,6 +75,7 @@ export const PAGE_ICON_MAP = {
   trash: Trash2,
   templates: LayoutTemplate,
   import_export: ArrowLeftRight,
+  ocr: Scan,
 } as const satisfies Record<string, LucideIcon>;
 
 export type PageIconKey = keyof typeof PAGE_ICON_MAP;

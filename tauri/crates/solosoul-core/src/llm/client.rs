@@ -2,6 +2,9 @@
 
 use crate::llm::config::ApiType;
 
+/// LLM 请求构建结果：URL、JSON body、HTTP headers。
+type LlmRequestParts = (String, serde_json::Value, Vec<(String, String)>);
+
 /// Events emitted during streaming.
 #[derive(Debug, Clone)]
 pub enum LlmStreamEvent {
@@ -39,9 +42,7 @@ pub fn send_chat_stream(
         req = req.header(k.as_str(), v.as_str());
     }
 
-    let resp = req
-        .send()
-        .map_err(|e| format!("Request failed: {}", e))?;
+    let resp = req.send().map_err(|e| format!("Request failed: {}", e))?;
 
     if !resp.status().is_success() {
         let status = resp.status();
@@ -78,8 +79,7 @@ pub fn send_chat(
         .build()
         .map_err(|e| format!("Client build error: {}", e))?;
 
-    let (url, mut body, headers_map) =
-        build_request(base_url, api_key, model, api_type, messages)?;
+    let (url, mut body, headers_map) = build_request(base_url, api_key, model, api_type, messages)?;
 
     if let serde_json::Value::Object(ref mut map) = body {
         map.remove("stream");
@@ -91,9 +91,7 @@ pub fn send_chat(
         req = req.header(k.as_str(), v.as_str());
     }
 
-    let resp = req
-        .send()
-        .map_err(|e| format!("Request failed: {}", e))?;
+    let resp = req.send().map_err(|e| format!("Request failed: {}", e))?;
 
     if !resp.status().is_success() {
         let status = resp.status();
@@ -101,18 +99,17 @@ pub fn send_chat(
         return Err(format!("HTTP {}: {}", status, body));
     }
 
-    let json: serde_json::Value =
-        resp.json().map_err(|e: reqwest::Error| format!("Parse response: {}", e))?;
+    let json: serde_json::Value = resp
+        .json()
+        .map_err(|e: reqwest::Error| format!("Parse response: {}", e))?;
 
     match api_type {
-        ApiType::Anthropic => {
-            json["content"]
-                .as_array()
-                .and_then(|arr: &Vec<serde_json::Value>| arr.first())
-                .and_then(|b: &serde_json::Value| b["text"].as_str())
-                .map(|s: &str| s.to_string())
-                .ok_or_else(|| "No text in Anthropic response".to_string())
-        }
+        ApiType::Anthropic => json["content"]
+            .as_array()
+            .and_then(|arr: &Vec<serde_json::Value>| arr.first())
+            .and_then(|b: &serde_json::Value| b["text"].as_str())
+            .map(|s: &str| s.to_string())
+            .ok_or_else(|| "No text in Anthropic response".to_string()),
         ApiType::OpenAI => json["choices"][0]["message"]["content"]
             .as_str()
             .map(|s: &str| s.to_string())
@@ -128,7 +125,7 @@ fn build_request(
     model: &str,
     api_type: &ApiType,
     messages: &[serde_json::Value],
-) -> Result<(String, serde_json::Value, Vec<(String, String)>), String> {
+) -> Result<LlmRequestParts, String> {
     match api_type {
         ApiType::Anthropic => {
             let url = format!("{}/messages", base_url.trim_end_matches('/'));
@@ -160,10 +157,7 @@ fn build_request(
                 "stream_options": { "include_usage": true },
             });
             let headers = vec![
-                (
-                    "Authorization".to_string(),
-                    format!("Bearer {}", api_key),
-                ),
+                ("Authorization".to_string(), format!("Bearer {}", api_key)),
                 ("content-type".to_string(), "application/json".to_string()),
             ];
             Ok((url, body, headers))
@@ -201,9 +195,7 @@ fn process_sse(
     use std::io::BufRead;
 
     // Read the full body as bytes, then use Cursor for BufRead
-    let bytes = resp
-        .bytes()
-        .map_err(|e| format!("Read response: {}", e))?;
+    let bytes = resp.bytes().map_err(|e| format!("Read response: {}", e))?;
     let cursor = std::io::Cursor::new(bytes);
     let reader = std::io::BufReader::new(cursor);
 
@@ -237,12 +229,16 @@ fn process_sse(
             match api_type {
                 ApiType::Anthropic => {
                     if let Some(usage) = json.get("message").and_then(|m| m.get("usage")) {
-                        anthropic_prompt_tokens =
-                            usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0);
+                        anthropic_prompt_tokens = usage
+                            .get("input_tokens")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0);
                     }
                     if let Some(usage) = json.get("usage") {
-                        anthropic_completion_tokens =
-                            usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0);
+                        anthropic_completion_tokens = usage
+                            .get("output_tokens")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0);
                     }
 
                     if let Some(delta) = json.get("delta") {
@@ -255,8 +251,10 @@ fn process_sse(
                 }
                 ApiType::OpenAI => {
                     if let Some(usage) = json.get("usage") {
-                        prompt_tokens =
-                            usage.get("prompt_tokens").and_then(|v| v.as_u64()).unwrap_or(0);
+                        prompt_tokens = usage
+                            .get("prompt_tokens")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0);
                         completion_tokens = usage
                             .get("completion_tokens")
                             .and_then(|v| v.as_u64())
@@ -266,8 +264,7 @@ fn process_sse(
                     if let Some(choices) = json.get("choices").and_then(|c| c.as_array()) {
                         for choice in choices {
                             if let Some(delta) = choice.get("delta") {
-                                if let Some(content) =
-                                    delta.get("content").and_then(|v| v.as_str())
+                                if let Some(content) = delta.get("content").and_then(|v| v.as_str())
                                 {
                                     on_event(LlmStreamEvent::Chunk {
                                         content: content.to_string(),
@@ -281,12 +278,9 @@ fn process_sse(
         }
     }
 
-    match api_type {
-        ApiType::Anthropic => {
-            prompt_tokens = anthropic_prompt_tokens;
-            completion_tokens = anthropic_completion_tokens;
-        }
-        _ => {}
+    if api_type == &ApiType::Anthropic {
+        prompt_tokens = anthropic_prompt_tokens;
+        completion_tokens = anthropic_completion_tokens;
     }
 
     on_event(LlmStreamEvent::Done {
@@ -302,8 +296,9 @@ fn process_non_streaming(
     api_type: &ApiType,
     on_event: &dyn Fn(LlmStreamEvent),
 ) -> Result<(), String> {
-    let json: serde_json::Value =
-        resp.json().map_err(|e: reqwest::Error| format!("Parse response: {}", e))?;
+    let json: serde_json::Value = resp
+        .json()
+        .map_err(|e: reqwest::Error| format!("Parse response: {}", e))?;
 
     let text = match api_type {
         ApiType::Anthropic => json["content"]

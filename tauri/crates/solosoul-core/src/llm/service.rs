@@ -15,6 +15,12 @@ pub type LlmResult<T> = Result<T, String>;
 /// Service for managing LLM configuration, conversations, and usage statistics.
 pub struct LlmService;
 
+impl Default for LlmService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LlmService {
     /// Create a new LlmService.
     pub fn new() -> Self {
@@ -24,10 +30,7 @@ impl LlmService {
     // ── helpers ────────────────────────────────────────────────────
 
     /// Load the root profile data JSON for an account.
-    fn load_profile_data(
-        vault: &VaultStore,
-        account_id: &str,
-    ) -> LlmResult<serde_json::Value> {
+    fn load_profile_data(vault: &VaultStore, account_id: &str) -> LlmResult<serde_json::Value> {
         let profile = vault
             .load_profile(account_id)
             .map_err(|e| format!("Failed to load profile: {}", e))?
@@ -49,8 +52,7 @@ impl LlmService {
             .load_profile(account_id)
             .map_err(|e| format!("Failed to load profile: {}", e))?
             .unwrap_or_else(|| Profile::new_with_id(account_id, account_id, Vec::new()));
-        profile.data =
-            serde_json::to_vec(data).map_err(|e| format!("Serialize profile: {}", e))?;
+        profile.data = serde_json::to_vec(data).map_err(|e| format!("Serialize profile: {}", e))?;
         profile.updated_at = chrono::Utc::now();
         profile.version += 1;
         vault
@@ -71,11 +73,7 @@ impl LlmService {
     // ── LLM Configuration ─────────────────────────────────────────
 
     /// Load the LlmConfig for an account.
-    pub fn load_config(
-        &self,
-        vault: &VaultStore,
-        account_id: &str,
-    ) -> LlmResult<LlmConfig> {
+    pub fn load_config(&self, vault: &VaultStore, account_id: &str) -> LlmResult<LlmConfig> {
         let data = Self::load_profile_data(vault, account_id)?;
         let config = data
             .get("preferences")
@@ -133,8 +131,11 @@ impl LlmService {
             .and_then(|v| serde_json::from_value(v.clone()).ok())
             .unwrap_or_default();
         let config = self.load_config(vault, account_id)?;
-        Ok(config.providers.iter().find(|p| p.id == provider_id).map(|p| {
-            ProviderWithKey {
+        Ok(config
+            .providers
+            .iter()
+            .find(|p| p.id == provider_id)
+            .map(|p| ProviderWithKey {
                 id: p.id.clone(),
                 name: p.name.clone(),
                 base_url: p.base_url.clone(),
@@ -144,8 +145,7 @@ impl LlmService {
                 api_key: keys.get(&p.id).cloned().unwrap_or_default(),
                 api_type: p.api_type.clone(),
                 embedding_model: p.embedding_model.clone(),
-            }
-        }))
+            }))
     }
 
     /// Save a provider (with API key stored separately).
@@ -168,11 +168,7 @@ impl LlmService {
         };
 
         // Upsert provider in list
-        if let Some(existing) = config
-            .providers
-            .iter_mut()
-            .find(|p| p.id == provider.id)
-        {
+        if let Some(existing) = config.providers.iter_mut().find(|p| p.id == provider.id) {
             *existing = provider_config;
         } else {
             config.providers.push(provider_config);
@@ -343,9 +339,7 @@ impl LlmService {
         conversation_id: &str,
     ) -> LlmResult<Option<Conversation>> {
         let conversations = self.load_conversations(vault, account_id)?;
-        Ok(conversations
-            .into_iter()
-            .find(|c| c.id == conversation_id))
+        Ok(conversations.into_iter().find(|c| c.id == conversation_id))
     }
 
     /// Save a single conversation (upsert).
@@ -356,10 +350,7 @@ impl LlmService {
         conversation: &Conversation,
     ) -> LlmResult<()> {
         let mut conversations = self.load_conversations(vault, account_id)?;
-        if let Some(existing) = conversations
-            .iter_mut()
-            .find(|c| c.id == conversation.id)
-        {
+        if let Some(existing) = conversations.iter_mut().find(|c| c.id == conversation.id) {
             *existing = conversation.clone();
         } else {
             conversations.push(conversation.clone());
@@ -425,11 +416,7 @@ impl LlmService {
     // ── Stats ──────────────────────────────────────────────────────
 
     /// Load usage stats for an account.
-    pub fn load_stats(
-        &self,
-        vault: &VaultStore,
-        account_id: &str,
-    ) -> LlmResult<LlmUsageStats> {
+    pub fn load_stats(&self, vault: &VaultStore, account_id: &str) -> LlmResult<LlmUsageStats> {
         let data = Self::load_profile_data(vault, account_id)?;
         Ok(data
             .get("preferences")
@@ -455,84 +442,76 @@ impl LlmService {
     }
 
     /// Reset usage stats for an account.
-    pub fn reset_stats(
-        &self,
-        vault: &VaultStore,
-        account_id: &str,
-    ) -> LlmResult<()> {
+    pub fn reset_stats(&self, vault: &VaultStore, account_id: &str) -> LlmResult<()> {
         self.save_stats(vault, account_id, &LlmUsageStats::default())
     }
 
-/// Truncate a message to a short name (first 30 chars).
-fn truncate_for_name(message: &str) -> String {
-    let cleaned: String = message
-        .chars()
-        .take(30)
-        .collect();
-    let trimmed = cleaned.trim();
-    if trimmed.len() < message.len() {
-        format!("{}…", trimmed)
-    } else {
-        trimmed.to_string()
+    /// Truncate a message to a short name (first 30 chars).
+    fn truncate_for_name(message: &str) -> String {
+        let cleaned: String = message.chars().take(30).collect();
+        let trimmed = cleaned.trim();
+        if trimmed.len() < message.len() {
+            format!("{}…", trimmed)
+        } else {
+            trimmed.to_string()
+        }
     }
-}
 
-fn default_providers() -> Vec<ProviderConfig> {
-    use crate::llm::config::ApiType;
-    vec![
-        ProviderConfig {
-            id: "openai".into(),
-            name: "OpenAI".into(),
-            base_url: "https://api.openai.com/v1".into(),
-            model: "gpt-4o".into(),
-            is_enabled: false,
-            is_built_in: true,
-            api_type: ApiType::OpenAI,
-            embedding_model: Some("text-embedding-3-small".into()),
-        },
-        ProviderConfig {
-            id: "anthropic".into(),
-            name: "Anthropic".into(),
-            base_url: "https://api.anthropic.com/v1".into(),
-            model: "claude-sonnet-4-20250514".into(),
-            is_enabled: false,
-            is_built_in: true,
-            api_type: ApiType::Anthropic,
-            embedding_model: None,
-        },
-        ProviderConfig {
-            id: "ollama".into(),
-            name: "Ollama".into(),
-            base_url: "http://localhost:11434/v1".into(),
-            model: "llama3.2".into(),
-            is_enabled: false,
-            is_built_in: true,
-            api_type: ApiType::OpenAI,
-            embedding_model: Some("nomic-embed-text".into()),
-        },
-        ProviderConfig {
-            id: "deepseek".into(),
-            name: "DeepSeek".into(),
-            base_url: "https://api.deepseek.com/v1".into(),
-            model: "deepseek-chat".into(),
-            is_enabled: false,
-            is_built_in: true,
-            api_type: ApiType::OpenAI,
-            embedding_model: None,
-        },
-        ProviderConfig {
-            id: "dashscope".into(),
-            name: "Alibaba Cloud".into(),
-            base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1".into(),
-            model: "qwen-plus".into(),
-            is_enabled: false,
-            is_built_in: true,
-            api_type: ApiType::OpenAI,
-            embedding_model: None,
-        },
-    ]
-}
-
+    fn default_providers() -> Vec<ProviderConfig> {
+        use crate::llm::config::ApiType;
+        vec![
+            ProviderConfig {
+                id: "openai".into(),
+                name: "OpenAI".into(),
+                base_url: "https://api.openai.com/v1".into(),
+                model: "gpt-4o".into(),
+                is_enabled: false,
+                is_built_in: true,
+                api_type: ApiType::OpenAI,
+                embedding_model: Some("text-embedding-3-small".into()),
+            },
+            ProviderConfig {
+                id: "anthropic".into(),
+                name: "Anthropic".into(),
+                base_url: "https://api.anthropic.com/v1".into(),
+                model: "claude-sonnet-4-20250514".into(),
+                is_enabled: false,
+                is_built_in: true,
+                api_type: ApiType::Anthropic,
+                embedding_model: None,
+            },
+            ProviderConfig {
+                id: "ollama".into(),
+                name: "Ollama".into(),
+                base_url: "http://localhost:11434/v1".into(),
+                model: "llama3.2".into(),
+                is_enabled: false,
+                is_built_in: true,
+                api_type: ApiType::OpenAI,
+                embedding_model: Some("nomic-embed-text".into()),
+            },
+            ProviderConfig {
+                id: "deepseek".into(),
+                name: "DeepSeek".into(),
+                base_url: "https://api.deepseek.com/v1".into(),
+                model: "deepseek-chat".into(),
+                is_enabled: false,
+                is_built_in: true,
+                api_type: ApiType::OpenAI,
+                embedding_model: None,
+            },
+            ProviderConfig {
+                id: "dashscope".into(),
+                name: "Alibaba Cloud".into(),
+                base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1".into(),
+                model: "qwen-plus".into(),
+                is_enabled: false,
+                is_built_in: true,
+                api_type: ApiType::OpenAI,
+                embedding_model: None,
+            },
+        ]
+    }
 
     // ── Chat / Send ───────────────────────────────────────────────
 
@@ -693,17 +672,15 @@ fn default_providers() -> Vec<ProviderConfig> {
         let (pt, ct) = *final_tokens.lock().map_err(|e| e.to_string())?;
 
         // Save conversation
-        self.save_to_conversation(
-            vault,
-            account_id,
-            conversation_id,
-            message,
-            &response_text,
-        )?;
+        self.save_to_conversation(vault, account_id, conversation_id, message, &response_text)?;
 
         // Record usage
         let p_tokens = if pt > 0 { pt } else { prompt_chars };
-        let c_tokens = if ct > 0 { ct } else { response_text.len() as u64 };
+        let c_tokens = if ct > 0 {
+            ct
+        } else {
+            response_text.len() as u64
+        };
         self.record_usage_stats(
             vault,
             &account_id_owned,
@@ -812,10 +789,7 @@ fn default_providers() -> Vec<ProviderConfig> {
         if let Some(daily) = stats.daily_stats.iter_mut().find(|d| d.date == today) {
             daily.count += 1;
             daily.tokens += total;
-            *daily
-                .per_model_tokens
-                .entry(model_key)
-                .or_insert(0) += total;
+            *daily.per_model_tokens.entry(model_key).or_insert(0) += total;
         } else {
             let mut daily = DailyUsage {
                 date: today,
@@ -829,8 +803,6 @@ fn default_providers() -> Vec<ProviderConfig> {
 
         self.save_stats(vault, account_id, &stats)
     }
-
-
 }
 #[cfg(test)]
 mod tests {
@@ -839,17 +811,13 @@ mod tests {
 
     fn setup_vault() -> (tempfile::TempDir, VaultStore, String) {
         let dir = tempfile::TempDir::new().unwrap();
-        let config =
-            solosoul_vault::VaultConfig::new("test", dir.path().to_path_buf()).with_data_key([0x42u8; 32]);
+        let config = solosoul_vault::VaultConfig::new("test", dir.path().to_path_buf())
+            .with_data_key([0x42u8; 32]);
         let vault = VaultStore::open(config).unwrap();
         let account_id = "test_account";
         // Initialize profile
         vault
-            .save_profile(&Profile::new_with_id(
-                account_id,
-                account_id,
-                Vec::new(),
-            ))
+            .save_profile(&Profile::new_with_id(account_id, account_id, Vec::new()))
             .unwrap();
         (dir, vault, account_id.to_string())
     }
@@ -951,9 +919,7 @@ mod tests {
             total_tokens: 1000,
             ..Default::default()
         };
-        service
-            .save_stats(&vault, &account_id, &new_stats)
-            .unwrap();
+        service.save_stats(&vault, &account_id, &new_stats).unwrap();
         let loaded = service.load_stats(&vault, &account_id).unwrap();
         assert_eq!(loaded.total_tokens, 1000);
 

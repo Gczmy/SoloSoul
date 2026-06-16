@@ -7,12 +7,12 @@ use super::{
     ConsentManager, FieldResolver, PluginAuditAction, PluginAuditLogger, PluginError, PluginEvent,
     PluginLogLine, PluginManifest, PluginResultPayload, RateLimiter,
 };
+use crate::event::PluginEventSink;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use crate::event::PluginEventSink;
 
 /// 插件单次 `solosoul_sleep` 最大允许时长（毫秒）。
 const MAX_PLUGIN_SLEEP_MS: u64 = 1_000;

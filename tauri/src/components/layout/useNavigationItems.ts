@@ -50,13 +50,14 @@ export const CUSTOMIZABLE_ACTION_IDS = [
   'help',
   'templates',
   'import_export',
+  'ocr',
 ] as const;
 
 export type CustomizableActionId = (typeof CUSTOMIZABLE_ACTION_IDS)[number];
 
 /** 每个可变按钮的路由或动作工厂。
  *  lock / settings 永远固定，不在这里定义。 */
-const CUSTOMIZABLE_LINKS: Record<
+export const CUSTOMIZABLE_LINKS: Record<
   Exclude<CustomizableActionId, 'search'>,
   { path: string; iconKey: PageIconKey; labelKey: string }
 > = {
@@ -70,6 +71,7 @@ const CUSTOMIZABLE_LINKS: Record<
     iconKey: 'import_export',
     labelKey: 'import_export',
   },
+  ocr: { path: '/ocr', iconKey: 'ocr', labelKey: 'ocr' },
 };
 
 export function useActiveCustomPages() {

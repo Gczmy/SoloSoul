@@ -19,6 +19,7 @@
 |------|------|------|
 | **Tauri 客户端（GUI）** | ✅ 主项目，活跃开发 | React + Tauri 跨平台客户端，macOS/Windows 已适配 |
 | **Rust 原生核心** | ✅ 完整 | Argon2id + AES-256-GCM，通过 Tauri Commands 供前端调用 |
+| **OCR（PP-OCRv6）** | ✅ 已集成 | 本地 ONNX 文字识别，tiny/small/medium 三档，扫描图片/附件并导入为对象 |
 | **SoloSoul CLI** | ✅ Phase 5 已交付 | 独立终端 TUI 客户端；首次启动自动进入创建账户向导。已支持 `/unlock`、`/lock`、`/list`、`/open`、`/size`、`/search`、`/history`、`/rollback`、`/newpage`、`/newobject`、`/edit`、`/delete`、`/trash`、`/restore`、`/purge`、`/operation_log`、`/export_log`、`/attach`、`/backup`、`/export`、`/import`、`/language`、`/theme`、`/setting`、`/security`、`/debug_log`、`/about`、`/help` |
 | **JS SDK** | ❌ 未开始 | `sdk/js/` 为空占位目录 |
 | **Python SDK** | ❌ 未开始 | `sdk/python/` 为空占位目录 |
@@ -30,7 +31,7 @@
 | 组件 | 技术 | 备注 |
 |------|------|------|
 | Tauri 客户端 | React 19, TypeScript, Vite, Zustand, `@tauri-apps/api` | 状态管理以 Zustand 为主；UI 采用自定义 CSS Modules |
-| Rust 核心（Tauri） | Rust 2021, `argon2`, `aes-gcm`, `rusqlite`, `tokio`, `ort` | 位于 `tauri/src-tauri/` 及 `tauri/crates/`，通过 Tauri Commands 暴露给前端 |
+| Rust 核心（Tauri） | Rust 2021, `argon2`, `aes-gcm`, `rusqlite`, `tokio`, `ort` | 位于 `tauri/src-tauri/` 及 `tauri/crates/`，通过 Tauri Commands 暴露给前端；`ort` 同时用于本地 Embedding 与 OCR |
 | SoloSoul CLI | Rust 2021, `ratatui` 0.30.1, `crossterm` 0.28.1, `clap` 4, `color-eyre` | 独立 Cargo 项目 `solosoul_cli/`，binary 名 `solosoul` |
 | 构建脚本 | Bash | 无 Makefile |
 
@@ -48,8 +49,8 @@
 **Tauri Rust 关键依赖：**
 - `tauri` v2 — 桌面应用框架
 - `rusqlite` — SQLite 数据库
-- `ort` — ONNX Runtime 本地 Embedding
-- `reqwest` — HTTP 客户端（LLM 代理）
+- `ort` — ONNX Runtime 本地 Embedding / OCR 推理
+- `reqwest` — HTTP 客户端（LLM 代理、OCR 模型下载）
 - `mdns-sd` — 本地同步 mDNS 发现
 
 **CLI 关键依赖：**
@@ -82,7 +83,7 @@ SoloSoul/
 │   │   └── main.tsx            # 前端入口
 │   ├── src-tauri/              # Rust 后端（Tauri）
 │   │   ├── src/
-│   │   │   ├── commands/       # IPC 命令（25+ 个模块）
+│   │   │   ├── commands/       # IPC 命令（30+ 个模块）
 │   │   │   ├── core/           # 核心逻辑（SensitivityManager）
 │   │   │   ├── db/             # SQLite 连接与迁移
 │   │   │   ├── ipc/            # IPC 通信
@@ -95,8 +96,8 @@ SoloSoul/
 │   │   │   ├── solosoul-crypto/# 密码学（Argon2id + AES-256-GCM）
 │   │   │   ├── solosoul-vault/ # Vault 存储接口与实现
 │   │   │   ├── solosoul-sync/  # 同步引擎（mDNS + Noise）
-│   │   │   └── solosoul-core/  # 共享核心逻辑（Vault/模板/生物识别）
-│   │   ├── resources/          # 打包资源（docs, ONNX models）
+│   │   │   └── solosoul-core/  # 共享核心逻辑（Vault/模板/生物识别/OCR）
+│   │   ├── resources/          # 打包资源（docs, ONNX models, OCR PP-OCRv6 small）
 │   │   └── tauri.conf.json     # Tauri 应用配置
 │   ├── scripts/                # 构建脚本（搜索索引等）
 │   └── package.json            # npm 依赖
@@ -430,8 +431,12 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 | Tauri Auth 命令 | `tauri/src-tauri/src/commands/auth.rs` |
 | Tauri Profile 命令 | `tauri/src-tauri/src/commands/profile.rs` |
 | Tauri 对象命令 | `tauri/src-tauri/src/commands/unified_object.rs` |
+| Tauri OCR 页面 | `tauri/src/pages/scan/OcrPage.tsx` |
+| Tauri OCR 设置页 | `tauri/src/pages/settings/OcrSettingsPage.tsx` |
 | Tauri 数据库模块 | `tauri/src-tauri/src/db/` |
 | Tauri 本地 Embedding | `tauri/src-tauri/src/local_embed.rs` |
+| Tauri OCR 命令 | `tauri/src-tauri/src/commands/ocr.rs` |
+| Rust OCR 引擎 | `tauri/crates/solosoul-core/src/ocr/` |
 | Rust crypto crate | `tauri/crates/solosoul-crypto/` |
 | Rust vault crate | `tauri/crates/solosoul-vault/` |
 | Rust sync crate | `tauri/crates/solosoul-sync/` |
@@ -466,5 +471,6 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 | 共享核心库安全解锁 | `tauri/crates/solosoul-core/src/vault_service.rs` (`unlock_secure`)
 | 任务清单 | `docs/TODO.md` |
 | 用户指南 | `docs/USER_GUIDE.md` |
+| OCR 功能说明 | `docs/ocr-guide.md` |
 | 技术路线图 | `docs/CLIENT_ROADMAP.md` |
 | 事件日志 | `docs/WORKLOG.md` |

@@ -62,9 +62,9 @@ unicode-segmentation = "1.12"
 futures = "0.3"
 
 # 本地 Embedding (ONNX Runtime)
-ort = { version = "2.0.0-rc.12", features = ["ndarray"] }
+ort = { workspace = true }
 tokenizers = { version = "0.21", default-features = false, features = ["onig"] }
-ndarray = "0.17"
+ndarray = { workspace = true }
 sys-locale = "0.3.2"
 
 # 插件系统 (Wasmtime 沙箱 + Host Functions)

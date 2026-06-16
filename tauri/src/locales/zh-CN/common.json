@@ -139,6 +139,8 @@
   "no_attachments": "暂无附件",
   "attachments_trash_empty": "目前没有附件在该对象回收站中",
   "rename": "重命名",
+  "ocr": "OCR 识别",
+  "ocr_no_path": "无法定位附件文件以进行 OCR 识别",
   "rename_prompt": "重命名：",
   "undo": "撤销",
   "clear_hint": "清除提示词",

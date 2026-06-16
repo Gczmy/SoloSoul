@@ -23,7 +23,8 @@
     "appearance": "外观",
     "templates": "模板管理",
     "plugins": "插件",
-    "sync": "设备同步"
+    "sync": "设备同步",
+    "ocr": "OCR"
   },
   "auto_lock": "自动锁定",
   "auto_lock_description": "设置多长时间无操作后自动锁定保险库并擦除内存中的敏感状态。",
@@ -496,7 +497,8 @@
     "about": "版本信息和许可证",
     "templates": "管理自定义对象模板",
     "plugins": "管理本地插件市场",
-    "sync": "与其他设备同步档案、对象和模板"
+    "sync": "与其他设备同步档案、对象和模板",
+    "ocr": "管理 OCR 模型和偏好设置"
   },
   "ai_quick_chat_title": "快速对话",
   "ai_quick_chat_configure_hint": "请先配置 LLM 以使用 AI 对话功能",

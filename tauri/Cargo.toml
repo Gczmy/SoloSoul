@@ -52,6 +52,11 @@ chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.10", features = ["v4", "serde"] }
 subtle = "2.6"
 
+# 本地推理（OCR / Embedding）
+ort = { version = "2.0.0-rc.12", features = ["ndarray"] }
+image = "0.25"
+ndarray = "0.17"
+
 # 测试
 hex = "0.4"
 base64 = "0.22"

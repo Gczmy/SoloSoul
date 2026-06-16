@@ -30,6 +30,7 @@ import { PluginGatePage } from '@/pages/ai/PluginGatePage';
 import { LlmChatPage } from '@/pages/ai/LlmChatPage';
 import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
 import { TemplateManagerPage } from '@/pages/settings/TemplateManagerPage';
+import { OcrSettingsPage } from '@/pages/settings/OcrSettingsPage';
 import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UpdateBanner } from '@/components/ui/UpdateBanner';
@@ -349,6 +350,14 @@ function AppRoutes() {
           element={
             <AuthGuard>
               <TemplateManagerPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/settings/ocr"
+          element={
+            <AuthGuard>
+              <OcrSettingsPage />
             </AuthGuard>
           }
         />
