@@ -8,23 +8,27 @@ use solosoul_core::AccountSummary;
 
 use crate::app::UnlockStep;
 use crate::theme::Theme;
-use crate::widgets::password_input::PasswordInput;
 
 /// 渲染登录向导。
-pub fn render(
-    frame: &mut ratatui::Frame,
-    area: Rect,
-    step: &UnlockStep,
-    password_input: &PasswordInput,
-) {
+pub fn render(frame: &mut ratatui::Frame, area: Rect, step: &UnlockStep, sheen_offset: u16) {
     let theme = Theme::load();
     match step {
         UnlockStep::SelectAccount { accounts, selected } => {
             render_select_account(frame, area, &theme, accounts, *selected)
         }
-        UnlockStep::EnterPassword { account_id } => {
-            render_enter_password(frame, area, &theme, account_id, password_input)
-        }
+        UnlockStep::EnterPassword {
+            account_id,
+            account_name,
+            password_hint,
+        } => render_enter_password(
+            frame,
+            area,
+            &theme,
+            account_id,
+            account_name,
+            password_hint,
+            sheen_offset,
+        ),
     }
 }
 
@@ -94,34 +98,56 @@ fn render_enter_password(
     area: Rect,
     theme: &Theme,
     account_id: &str,
-    password_input: &PasswordInput,
+    account_name: &str,
+    password_hint: &Option<String>,
+    sheen_offset: u16,
 ) {
     let inner = area.inner(Margin::new(2, 2));
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(5),
-            Constraint::Length(3),
-            Constraint::Length(3),
-            Constraint::Length(2),
-        ])
-        .split(inner);
 
-    render_brand_header(frame, chunks[0], theme, "输入主密码");
+    // 终端高度足够时显示品牌 Logo banner，否则显示紧凑品牌头。
+    let show_banner = inner.height >= 16;
+    let chunks = if show_banner {
+        Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(8),
+                Constraint::Min(0),
+                Constraint::Length(1),
+            ])
+            .split(inner)
+    } else {
+        Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(5),
+                Constraint::Min(0),
+                Constraint::Length(1),
+            ])
+            .split(inner)
+    };
 
-    let title = Paragraph::new(Text::from(vec![
-        Line::from(format!("账户: {}", account_id)).style(theme.style_muted()),
+    if show_banner {
+        crate::screens::logo::render(frame, chunks[0], theme, sheen_offset, " 登录 ");
+    } else {
+        render_brand_header(frame, chunks[0], theme, "输入主密码");
+    }
+
+    let hint_display = password_hint.as_deref().unwrap_or("无");
+    let info = Paragraph::new(Text::from(vec![
+        Line::from(format!(
+            "账户：{}·{}，密码提示词：{}",
+            account_name, account_id, hint_display
+        ))
+        .style(theme.style_muted()),
         Line::from(""),
         Line::from("主密码不会被保存，无法找回。").style(theme.style_warning()),
     ]))
     .alignment(Alignment::Center);
-    frame.render_widget(title, chunks[1]);
-
-    password_input.render(frame, chunks[2]);
+    frame.render_widget(info, chunks[1]);
 
     let hint = Paragraph::new(Line::from("Enter 确认 · Esc 取消").style(theme.style_hint()))
         .alignment(Alignment::Center);
-    frame.render_widget(hint, chunks[3]);
+    frame.render_widget(hint, chunks[2]);
 }
 
 fn render_brand_header(frame: &mut ratatui::Frame, area: Rect, theme: &Theme, subtitle: &str) {
@@ -175,7 +201,7 @@ mod tests {
                         accounts,
                         selected: 0,
                     },
-                    &PasswordInput::new(),
+                    0,
                 )
             })
             .unwrap();

@@ -33,9 +33,13 @@ pub fn unlock(app: &mut App) -> Result<()> {
     app.previous_phase = Some(app.phase.clone());
 
     if accounts.len() == 1 {
-        let account_id = accounts[0].id.clone();
+        let account = &accounts[0];
         app.phase = AppPhase::UnlockWizard {
-            step: UnlockStep::EnterPassword { account_id },
+            step: UnlockStep::EnterPassword {
+                account_id: account.id.clone(),
+                account_name: account.name.clone(),
+                password_hint: account.password_hint.clone(),
+            },
         };
         app.password_input.clear();
     } else {

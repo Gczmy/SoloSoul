@@ -56,6 +56,7 @@ pub fn shortcut_count() -> usize {
 /// 渲染已登录首页。
 ///
 /// `selected_shortcut` 为当前获得焦点的选项索引（0..shortcut_count()）。
+#[allow(clippy::too_many_arguments)]
 pub fn render(
     frame: &mut ratatui::Frame,
     area: Rect,
@@ -64,27 +65,47 @@ pub fn render(
     regions: &mut Vec<ClickableRegion>,
     selected_shortcut: usize,
     mouse_pos: Option<(u16, u16)>,
+    sheen_offset: u16,
 ) {
     let theme = Theme::load();
 
-    let header_text = if account_name.is_empty() || account_name == account_id {
-        format!("SoloSoul · 欢迎回来，{}", account_id)
+    // 整体内容区：留出边距。
+    let inner = area.inner(Margin::new(2, 1));
+
+    // 终端高度足够时显示品牌 Logo banner，否则显示紧凑文本标题。
+    // banner(8) + 6 个按钮(18) + 提示(2) = 28，需 inner 高度 >= 26 才能无滚动完整显示。
+    let show_banner = inner.height >= 26;
+    let chunks = if show_banner {
+        Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(8),
+                Constraint::Min(0),
+                Constraint::Length(2),
+            ])
+            .split(inner)
     } else {
-        format!("SoloSoul · 欢迎回来，{} · {}", account_name, account_id)
+        Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(4),
+                Constraint::Min(0),
+                Constraint::Length(2),
+            ])
+            .split(inner)
     };
 
-    // 整体内容区：留出边距，纵向分三份（标题、可滚动选项、提示）。
-    let inner = area.inner(Margin::new(2, 1));
-    let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(4),
-            Constraint::Min(0),
-            Constraint::Length(2),
-        ])
-        .split(inner);
+    if show_banner {
+        crate::screens::logo::render(frame, chunks[0], &theme, sheen_offset, " 已解锁 ");
+    } else {
+        let header_text = if account_name.is_empty() || account_name == account_id {
+            format!("SoloSoul · 欢迎回来，{}", account_id)
+        } else {
+            format!("SoloSoul · 欢迎回来，{} · {}", account_name, account_id)
+        };
+        render_header(frame, chunks[0], &theme, &header_text);
+    }
 
-    render_header(frame, chunks[0], &theme, &header_text);
     crate::widgets::option_list::render(
         frame,
         chunks[1],
@@ -146,12 +167,15 @@ mod tests {
                     &mut regions,
                     0,
                     None,
+                    0,
                 )
             })
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();
-        assert!(content.contains("SoloSoul"));
+        // 32 行高度会触发 banner，断言 Logo 艺术字字符；
+        // 紧凑模式下则显示文本标题 "SoloSoul"。
+        assert!(content.contains('█') || content.contains("SoloSoul"));
         assert_eq!(regions.len(), SHORTCUTS.len());
         // CJK 在 TestBackend 中会被宽字符分隔，断言单个字符
         assert!(content.contains('浏'));

@@ -200,7 +200,11 @@ pub enum UnlockStep {
         selected: usize,
     },
     /// 输入密码
-    EnterPassword { account_id: String },
+    EnterPassword {
+        account_id: String,
+        account_name: String,
+        password_hint: Option<String>,
+    },
 }
 
 pub struct App {
@@ -521,9 +525,16 @@ impl App {
                         selected += 1;
                     }
                     KeyCode::Enter => {
-                        let account_id = accounts[selected].id.clone();
+                        let account = &accounts[selected];
+                        let account_id = account.id.clone();
+                        let account_name = account.name.clone();
+                        let password_hint = account.password_hint.clone();
                         self.phase = AppPhase::UnlockWizard {
-                            step: UnlockStep::EnterPassword { account_id },
+                            step: UnlockStep::EnterPassword {
+                                account_id,
+                                account_name,
+                                password_hint,
+                            },
                         };
                         self.password_input.clear();
                         return Ok(false);
@@ -535,7 +546,7 @@ impl App {
                 };
                 Ok(false)
             }
-            UnlockStep::EnterPassword { account_id } => {
+            UnlockStep::EnterPassword { account_id, .. } => {
                 if key.code == KeyCode::Esc {
                     self.password_input.clear();
                     commands::core::back(self);
@@ -1552,7 +1563,7 @@ impl App {
                 crate::screens::account_list::render(frame, layout[1], accounts)
             }
             AppPhase::UnlockWizard { step } => {
-                crate::screens::unlock::render(frame, layout[1], step, &self.password_input)
+                crate::screens::unlock::render(frame, layout[1], step, self.sheen_offset)
             }
             AppPhase::Home { account_id } => crate::screens::home::render(
                 frame,
@@ -1562,6 +1573,7 @@ impl App {
                 &mut self.clickable_regions,
                 self.selected_shortcut,
                 self.mouse_pos,
+                self.sheen_offset,
             ),
             AppPhase::ObjectList { items, title } => {
                 crate::screens::object_list::render(frame, layout[1], title, items)
@@ -1629,23 +1641,27 @@ impl App {
             AppPhase::Quit => {}
         }
 
-        // 底部命令输入框（登录向导的密码页、创建账户向导、模态提示打开时除外）
-        let hide_input = self.prompt.is_some()
-            || matches!(
-                self.phase,
-                AppPhase::UnlockWizard {
-                    step: UnlockStep::EnterPassword { .. }
-                } | AppPhase::Onboarding { .. }
-            );
+        // 底部命令输入框（创建账户向导、模态提示打开时除外；登录密码页改为渲染密码输入框）
+        let is_password_page = matches!(
+            self.phase,
+            AppPhase::UnlockWizard {
+                step: UnlockStep::EnterPassword { .. }
+            }
+        );
+        let hide_input = self.prompt.is_some() || matches!(self.phase, AppPhase::Onboarding { .. });
         if !hide_input {
-            self.command_input.render(frame, layout[2]);
+            if is_password_page {
+                self.password_input.render(frame, layout[2]);
+            } else {
+                self.command_input.render(frame, layout[2]);
 
-            if self.command_palette.should_render(&self.command_input) {
-                let candidates = CommandPalette::build_candidates(
-                    available_commands(&self.phase),
-                    &self.command_input.value,
-                );
-                self.command_palette.render(frame, layout[2], &candidates);
+                if self.command_palette.should_render(&self.command_input) {
+                    let candidates = CommandPalette::build_candidates(
+                        available_commands(&self.phase),
+                        &self.command_input.value,
+                    );
+                    self.command_palette.render(frame, layout[2], &candidates);
+                }
             }
         }
 

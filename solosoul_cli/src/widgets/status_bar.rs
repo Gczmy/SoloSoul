@@ -19,9 +19,9 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::UnlockWizard { .. } => "登录".to_string(),
         AppPhase::Home { account_id } => {
             if app.account_name.is_empty() || app.account_name == *account_id {
-                format!("已登录 · {}", account_id)
+                format!("已解锁 · {}", account_id)
             } else {
-                format!("已登录 · {} · {}", app.account_name, account_id)
+                format!("已解锁 · {} · {}", app.account_name, account_id)
             }
         }
         AppPhase::ObjectList { title, .. } => title.clone(),
