@@ -21,6 +21,7 @@ pub use audit::PluginAuditLogger;
 pub use consent::ConsentManager;
 pub use error::PluginError;
 pub use event::PluginEvent;
+pub use event::PluginEventSink;
 pub use field::FieldResolver;
 pub use host::{register_host_functions, SoloHostFunctions, SoloHostState};
 pub use manager::PluginManager;
