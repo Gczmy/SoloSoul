@@ -132,7 +132,7 @@ fn check_webview2_installed() -> bool {
 pub fn run() {
     // ── 第 0 步：确定日志目录 ──
     let log_dir = dirs::data_dir()
-        .unwrap_or_else(|| std::env::temp_dir())
+        .unwrap_or_else(std::env::temp_dir)
         .join("com.solosoul.app")
         .join("logs");
     let _ = std::fs::create_dir_all(&log_dir);
@@ -190,7 +190,7 @@ pub fn run() {
             // 1. 检查数据目录是否可写
             {
                 let data_dir = dirs::data_dir()
-                    .unwrap_or_else(|| std::env::temp_dir())
+                    .unwrap_or_else(std::env::temp_dir)
                     .join("com.solosoul.app");
                 if let Err(e) = std::fs::create_dir_all(&data_dir) {
                     tracing::error!(
