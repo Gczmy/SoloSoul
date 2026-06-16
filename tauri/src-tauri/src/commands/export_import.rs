@@ -44,6 +44,32 @@ fn import_err(code: &str) -> String {
     format!("{}{}", IMPORT_ERR_PREFIX, code)
 }
 
+/// 校验附件物理路径位于 Vault 的 attachments 目录内，防止导出时通过恶意 src_path 读取任意文件。
+fn validate_attachment_path(base: &std::path::Path, path: &std::path::Path) -> Result<(), String> {
+    let base_abs = std::path::absolute(base).map_err(|e| e.to_string())?;
+    let path_abs = std::path::absolute(path).map_err(|e| e.to_string())?;
+    if !path_abs.starts_with(&base_abs) {
+        return Err(format!(
+            "Attachment path escapes vault attachments directory: {}",
+            path.display()
+        ));
+    }
+    Ok(())
+}
+
+/// 导出/导入包中的对象 ID 与附件 ID 字符集校验。
+fn validate_export_id(id: &str) -> Result<(), String> {
+    if id.is_empty()
+        || id.len() > 64
+        || !id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return Err(format!("Invalid export id: {}", id));
+    }
+    Ok(())
+}
+
 fn export_err_with_detail(code: &str, detail: &str) -> String {
     format!("{}{}:{}", EXPORT_ERR_PREFIX, code, detail)
 }
@@ -475,6 +501,7 @@ pub async fn export_execute(
                     });
 
                 if let Some(src) = src {
+                    validate_attachment_path(svc.base_path().join("attachments").as_path(), &src)?;
                     total_attachment_bytes += att.size_bytes;
                     attachment_entries.push((
                         rec.id.clone(),
@@ -1047,6 +1074,9 @@ async fn import_execute_internal(
                 Some(id) => id,
                 None => continue,
             };
+            if validate_export_id(obj_id).is_err() || validate_export_id(old_att_id).is_err() {
+                continue;
+            }
 
             // Skip if object was not imported (e.g. SkipExisting)
             if !imported_object_ids.contains(obj_id) {
