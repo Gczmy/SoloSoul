@@ -11,6 +11,7 @@
 
 pub mod auth;
 pub mod biometric;
+pub mod llm;
 pub mod process_lock;
 pub mod template_service;
 pub mod vault_service;
