@@ -8,7 +8,6 @@
 pub mod attachments;
 pub mod crdt;
 pub mod delta;
-pub mod discovery;
 pub mod hlc;
 pub mod manager;
 pub mod noise;

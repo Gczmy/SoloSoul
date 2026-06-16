@@ -231,26 +231,6 @@ pub struct ObjectSummary {
     pub tags: Vec<String>,
 }
 
-impl ObjectSummary {
-    pub fn from_record(r: &ObjectRecord) -> Self {
-        Self {
-            id: r.id.clone(),
-            name: r.name.clone(),
-            collection_type: r.type_id.clone(),
-            section_type: r.section_type.clone(),
-            sensitivity_level: r.sensitivity_level.clone(),
-            created_at: r.created_at.clone(),
-            updated_at: r.updated_at.clone(),
-            is_deleted: r.is_deleted,
-            template_id: r.template_id.clone(),
-            template_type: r.template_type.clone(),
-            icon_name: r.icon_name.clone(),
-            properties: r.properties.clone(),
-            tags: r.tags_json.clone(),
-        }
-    }
-}
-
 // =============================================================================
 // Template system types (P1: 模板系统重构)
 // =============================================================================

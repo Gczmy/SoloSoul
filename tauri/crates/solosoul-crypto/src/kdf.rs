@@ -18,14 +18,6 @@ impl KdfConfig {
         }
     }
 
-    pub fn production() -> Self {
-        Self {
-            memory_kb: 64 * 1024,
-            iterations: 3,
-            parallelism: 4,
-        }
-    }
-
     pub fn balanced() -> Self {
         Self {
             memory_kb: 16 * 1024,

@@ -20,12 +20,6 @@ pub struct SaveProfilePayload {
     pub data: Vec<u8>,
 }
 
-#[derive(Deserialize)]
-pub struct LoadProfilePayload {
-    #[serde(rename = "accountId")]
-    pub account_id: String,
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct SectionData {
     pub section_type: String,
