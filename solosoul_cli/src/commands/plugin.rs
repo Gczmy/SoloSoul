@@ -271,6 +271,79 @@ pub fn list_sessions(app: &mut App) -> Result<()> {
     Ok(())
 }
 
+/// /plugin_list_installed — 列出本地已安装插件。
+pub fn list_installed_plugins(app: &mut App) -> Result<()> {
+    let Some(manager) = create_manager(app) else { return Ok(()); };
+
+    match manager.list_installed() {
+        Ok(installed) => {
+            if installed.is_empty() {
+                app.error_message = Some("本地暂无已安装的插件".to_string());
+            } else {
+                let lines: Vec<String> = installed
+                    .iter()
+                    .map(|p| format!("- {} v{} ({})", p.name, p.version, p.description))
+                    .collect();
+                app.error_message = Some(format!(
+                    "已安装插件 ({}):\n{}",
+                    installed.len(),
+                    lines.join("\n")
+                ));
+            }
+        }
+        Err(e) => {
+            app.error_message = Some(format!("获取已安装列表失败: {}", e));
+        }
+    }
+    Ok(())
+}
+
+/// /plugin_audit_log [limit] — 查看插件审计日志。
+pub fn audit_log(app: &mut App, limit: Option<&str>) -> Result<()> {
+    let Some(manager) = create_manager(app) else { return Ok(()); };
+
+    let limit_num: Option<usize> = match limit.and_then(|s| s.parse().ok()) {
+        Some(n) if n > 0 => Some(n),
+        Some(_) => {
+            app.error_message = Some("limit 必须为正整数".to_string());
+            return Ok(());
+        }
+        None if limit.is_some() => {
+            app.error_message = Some("limit 必须为数字".to_string());
+            return Ok(());
+        }
+        None => Some(20), // 默认 20 条
+    };
+
+    match manager.audit_log(limit_num) {
+        Ok(entries) => {
+            if entries.is_empty() {
+                app.error_message = Some("暂无插件审计日志".to_string());
+            } else {
+                let lines: Vec<String> = entries
+                    .iter()
+                    .map(|e| {
+                        let session = e.session_id.as_deref().unwrap_or("-");
+                        format!(
+                            "[{}] {} @ {} — {:?}",
+                            e.timestamp, e.plugin_id, session, e.action
+                        )
+                    })
+                    .collect();
+                app.error_message = Some(format!(
+                    "审计日志 (最近 {}):\n{}",
+                    entries.len(),
+                    lines.join("\n")
+                ));
+            }
+        }
+        Err(e) => {
+            app.error_message = Some(format!("获取审计日志失败: {}", e));
+        }
+    }
+    Ok(())
+}
+
 /// 创建 PluginManager 实例（提取公共代码）。
 fn create_manager(app: &mut App) -> Option<solosoul_plugin::PluginManager> {
     let market_dir = resolve_plugin_market_dir();

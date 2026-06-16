@@ -1469,6 +1469,10 @@ impl App {
             "/plugin_update" => commands::plugin::update_plugin(self, parts.get(1).copied())?,
             "/plugin_uninstall" => commands::plugin::uninstall_plugin(self, parts.get(1).copied())?,
             "/plugin_sessions" => commands::plugin::list_sessions(self)?,
+            "/plugin_list_installed" => commands::plugin::list_installed_plugins(self)?,
+            "/plugin_audit_log" => {
+                commands::plugin::audit_log(self, parts.get(1).copied())?
+            }
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -2456,6 +2460,8 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/plugin_update",
             "/plugin_uninstall",
             "/plugin_sessions",
+            "/plugin_list_installed",
+            "/plugin_audit_log",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
         AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {
