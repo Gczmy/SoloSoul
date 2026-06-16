@@ -39,7 +39,7 @@
 | P021 | P2 | 性能 | `tauri/src-tauri/src/plugin/host.rs:232,959-986` | 每次插件 HTTP 调用创建新 `reqwest::Client` 并 `block_on` 阻塞 worker | `[ ]` 待修复 |
 | P022 | P2 | 性能/并发 | 多数 command 文件 | 长时间持有 `state.vault_service.read().unwrap()`，阻塞写入 | `[ ]` 待修复 |
 | P023 | P2 | 性能 | `tauri/src-tauri/src/commands/fs.rs:219-227` | `fs_scan_directory` 递归无文件数量上限 | `[x]` 已修复：限制返回文件数为 1000 |
-| P024 | P1 | 错误处理 | `tauri/src-tauri/src/commands/*.rs` | `Mutex` / `RwLock` `unwrap()` 在锁中毒时导致 panic | `[ ]` 待修复 |
+| P024 | P1 | 错误处理 | `tauri/src-tauri/src/commands/*.rs` / `services/sync_service.rs` | `Mutex` / `RwLock` `unwrap()` 在锁中毒时导致 panic | `[x]` 已修复：所有 `vault_service.read().unwrap()` 改为 `.map_err(...)?` |
 | P025 | P2 | 错误处理 | `tauri/src-tauri/src/commands/attachment.rs:91` | `attachment_delete` 忽略 `remove_dir_all` 错误 | `[x]` 已修复：错误现在返回给调用方 |
 | P026 | P2 | 错误处理 | `tauri/crates/solosoul-core/src/vault_service.rs:320,401,533` | 使用 `expect` 处理理论上不应失败的密钥长度转换 | `[x]` 已修复：改用 `map_err` 返回错误 |
 | P027 | P1 | 魔术数/字符串 | `tauri/src-tauri/src/commands/attachment.rs:130-133` / `object.rs:1044,1221-1225` / `llm.rs` / `search.rs` / `export_import.rs` | 多处硬编码阈值/权重/字符串未命名常量 | `[ ]` 待修复 |
@@ -66,8 +66,8 @@
 
 ## 修复进度
 
-- 已完成：23 / 47
-- 当前处理：本轮修复暂停；剩余 24 项（P004/P006/P007 路径遍历、P018 性能、P024 锁中毒、P027/P028 剩余魔术数、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）待下一轮处理
+- 已完成：24 / 47
+- 当前处理：本轮继续；剩余 23 项（P004/P006/P007 路径遍历、P018 性能、P027/P028 剩余魔术数、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）
 
 ## 详细问题描述与修复指引
 
