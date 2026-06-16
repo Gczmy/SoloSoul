@@ -5330,6 +5330,7 @@ dependencies = [
  "hex",
  "keyring",
  "objc2",
+ "rand 0.8.6",
  "serde",
  "serde_json",
  "solosoul-crypto",

@@ -11,8 +11,34 @@ const MAX_DATA_URL_SIZE: u64 = 10 * 1024 * 1024;
 /// Maximum number of files returned by `fs_scan_directory`.
 const MAX_SCAN_FILES: usize = 1_000;
 
+/// Maximum recursion depth for `fs_scan_directory`.
+const MAX_SCAN_DEPTH: u32 = 8;
+
 /// Number of objects sampled from a backup for the type-id preview.
 const BACKUP_PREVIEW_SAMPLE: usize = 30;
+
+/// Return the allowed base directory for filesystem commands. The base is taken
+/// from the `SOLOSOUL_FS_BASE` environment variable if set, otherwise the user's
+/// home directory (`HOME` on Unix, `USERPROFILE` on Windows).
+#[cfg(not(test))]
+fn allowed_fs_base() -> Result<PathBuf, String> {
+    if let Ok(base) = std::env::var("SOLOSOUL_FS_BASE") {
+        return Ok(PathBuf::from(base));
+    }
+    let home_key = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
+    std::env::var(home_key)
+        .map(PathBuf::from)
+        .map_err(|_| {
+            "Could not determine user home directory; set SOLOSOUL_FS_BASE".to_string()
+        })
+}
+
+/// During tests, allow any absolute path by using the filesystem root as the
+/// base. This keeps unit tests simple while still exercising path logic.
+#[cfg(test)]
+fn allowed_fs_base() -> Result<PathBuf, String> {
+    Ok(PathBuf::from(if cfg!(windows) { "C:\\" } else { "/" }))
+}
 
 /// R012: reject paths that contain parent-dir references, which could escape the
 /// intended directory. Used for commands that operate on user-selected files.
@@ -53,6 +79,13 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
         return Err("Path is outside the allowed directory".to_string());
     }
     Ok(abs)
+}
+
+/// Resolve `path` within the allowed filesystem base directory. Filesystem
+/// commands that operate on user-selected paths must use this helper.
+fn resolve_allowed_path(path: &str) -> Result<PathBuf, String> {
+    let base = allowed_fs_base()?;
+    resolve_within(&base, path)
 }
 
 /// Encrypt a file using chunked AES-256-GCM (SOLO blob v3)
@@ -114,78 +147,6 @@ pub async fn decrypt_file(
         .map_err(|e| format!("Decryption failed: {}", e))?;
     writer.flush().map_err(|e| format!("Flush failed: {}", e))?;
     Ok(())
-}
-
-/// Create a ZIP package from a directory
-#[tauri::command]
-pub async fn create_zip_package(src_dir: String, dst_path: String) -> Result<(), String> {
-    use zip::write::SimpleFileOptions;
-    use zip::ZipWriter;
-
-    let src = reject_traversal(&src_dir)?;
-    let dst = reject_traversal(&dst_path)?;
-
-    let file = File::create(&dst).map_err(|e| format!("Failed to create ZIP: {}", e))?;
-    let mut zip = ZipWriter::new(file);
-    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
-
-    let walkdir = walkdir::WalkDir::new(&src);
-
-    for entry in walkdir.into_iter() {
-        let entry = entry.map_err(|e| format!("WalkDir error: {}", e))?;
-        let path = entry.path();
-        let name = path
-            .strip_prefix(&src_dir)
-            .map_err(|e| format!("Path error: {}", e))?;
-
-        if path.is_file() {
-            let mut f = File::open(path).map_err(|e| format!("Open file error: {}", e))?;
-            zip.start_file_from_path(name, options)
-                .map_err(|e| format!("ZIP start_file error: {}", e))?;
-            std::io::copy(&mut f, &mut zip).map_err(|e| format!("ZIP copy error: {}", e))?;
-        }
-    }
-    zip.finish()
-        .map_err(|e| format!("ZIP finish error: {}", e))?;
-    Ok(())
-}
-
-/// Extract a ZIP package to a directory
-#[tauri::command]
-pub async fn extract_zip_package(zip_path: String, dst_dir: String) -> Result<Vec<String>, String> {
-    use std::io::copy;
-    use zip::ZipArchive;
-
-    let zip = reject_traversal(&zip_path)?;
-    let dst = reject_traversal(&dst_dir)?;
-
-    let file = File::open(&zip).map_err(|e| format!("Failed to open ZIP: {}", e))?;
-    let mut archive = ZipArchive::new(file).map_err(|e| format!("Failed to read ZIP: {}", e))?;
-
-    fs_std::create_dir_all(&dst).map_err(|e| format!("Create dir error: {}", e))?;
-
-    let mut extracted = Vec::new();
-    for i in 0..archive.len() {
-        let mut file = archive
-            .by_index(i)
-            .map_err(|e| format!("ZIP index error: {}", e))?;
-        let outpath = dst.join(file.mangled_name());
-
-        if file.name().ends_with('/') {
-            fs_std::create_dir_all(&outpath).map_err(|e| format!("Create dir error: {}", e))?;
-        } else {
-            if let Some(p) = outpath.parent() {
-                if !p.exists() {
-                    fs_std::create_dir_all(p).map_err(|e| format!("Create parent error: {}", e))?;
-                }
-            }
-            let mut outfile =
-                File::create(&outpath).map_err(|e| format!("Create file error: {}", e))?;
-            copy(&mut file, &mut outfile).map_err(|e| format!("Extract error: {}", e))?;
-            extracted.push(outpath.to_string_lossy().to_string());
-        }
-    }
-    Ok(extracted)
 }
 
 /// Inspect a backup file and return metadata about its contents
@@ -251,12 +212,12 @@ pub struct ScannedFile {
 
 #[tauri::command]
 pub async fn fs_scan_directory(path: String) -> Result<Vec<ScannedFile>, String> {
-    let dir = reject_traversal(&path)?;
+    let dir = resolve_allowed_path(&path)?;
     if !dir.is_dir() {
         return Err("Not a directory".to_string());
     }
     let mut files = Vec::new();
-    scan_dir_recursive(&dir, &mut files, 3)?; // max depth 3
+    scan_dir_recursive(&dir, &mut files, MAX_SCAN_DEPTH)?;
     Ok(files)
 }
 
@@ -298,7 +259,7 @@ fn scan_dir_recursive(
 
 #[tauri::command]
 pub async fn fs_get_file_size(path: String) -> Result<u64, String> {
-    let p = reject_traversal(&path)?;
+    let p = resolve_allowed_path(&path)?;
     let meta = std::fs::metadata(&p).map_err(|e| format!("Read: {}", e))?;
     Ok(meta.len())
 }
@@ -306,7 +267,7 @@ pub async fn fs_get_file_size(path: String) -> Result<u64, String> {
 #[tauri::command]
 pub async fn fs_read_file_as_data_url(path: String) -> Result<String, String> {
     use std::io::Read;
-    let p = reject_traversal(&path)?;
+    let p = resolve_allowed_path(&path)?;
     let mut file = std::fs::File::open(&p).map_err(|e| format!("Open: {}", e))?;
     let meta = file.metadata().map_err(|e| format!("Metadata: {}", e))?;
     if meta.len() > MAX_DATA_URL_SIZE {

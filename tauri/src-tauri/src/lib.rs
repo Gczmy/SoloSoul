@@ -164,10 +164,6 @@ pub fn run() {
             commands::crypto::constant_time_compare,
             commands::crypto::get_vault_stats,
             // File System commands
-            commands::fs::encrypt_file,
-            commands::fs::decrypt_file,
-            commands::fs::create_zip_package,
-            commands::fs::extract_zip_package,
             commands::fs::inspect_backup,
             commands::fs::fs_scan_directory,
             commands::fs::fs_get_file_size,

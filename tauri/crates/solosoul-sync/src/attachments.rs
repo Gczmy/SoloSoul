@@ -95,7 +95,8 @@ pub fn collect_attachment_manifests(
                     .into_iter()
                     .filter(|a| a.deleted_at.is_none())
                     .filter_map(|a| {
-                        let path = attachment_file_path(base, &a.object_id, &a.id, &a.file_name).ok()?;
+                        let path =
+                            attachment_file_path(base, &a.object_id, &a.id, &a.file_name).ok()?;
                         if !path.exists() {
                             return None;
                         }

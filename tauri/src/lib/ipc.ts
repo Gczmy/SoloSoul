@@ -155,18 +155,6 @@ export const commands = {
   },
 
   // File System
-  async encryptFile(srcPath: string, dstPath: string): Promise<void> {
-    return invoke('encrypt_file', { srcPath, dstPath });
-  },
-  async decryptFile(srcPath: string, dstPath: string): Promise<void> {
-    return invoke('decrypt_file', { srcPath, dstPath });
-  },
-  async createZipPackage(srcDir: string, dstPath: string): Promise<void> {
-    return invoke('create_zip_package', { srcDir, dstPath });
-  },
-  async extractZipPackage(zipPath: string, dstDir: string): Promise<string[]> {
-    return invoke('extract_zip_package', { zipPath, dstDir });
-  },
   async inspectBackup(backupPath: string): Promise<string> {
     return invoke('inspect_backup', { backupPath });
   },
