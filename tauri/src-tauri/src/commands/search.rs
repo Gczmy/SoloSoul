@@ -1,3 +1,4 @@
+use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::Serialize;
 use solosoul_vault::{ObjectRecord, VaultStore};
@@ -257,9 +258,7 @@ async fn search_advanced_impl(
         });
     }
 
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(state)?;
 
     // Pre-load user templates so we can aggregate field-level sensitivities
     // and resolve field labels without N+1 queries.
@@ -402,9 +401,7 @@ pub async fn search_unified(
     // 仅按页面筛选时（无搜索关键词），列出该页面下全部对象
     if trimmed.is_empty() && (collection_type.is_some() || parent_id.is_some()) {
         let (summaries, templates) = {
-            let svc = state.vault_service.read().unwrap();
-            let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-            let vault = vault_guard.as_ref();
+            let vault = vault_handle(&state)?;
             let summaries = if let Some(ref ct) = collection_type {
                 vault.list_objects(&account_id, Some(ct), None, None, false, false)?
             } else if let Some(ref pid) = parent_id {
@@ -473,10 +470,8 @@ pub async fn search_unified(
 
     // 未按具体页面筛选时，额外搜索页面（系统分区 + 自定义页面）
     if collection_type.is_none() && parent_id.is_none() {
-        let svc = state.vault_service.read().unwrap();
-        let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let vault = vault_guard.as_ref();
-        if let Ok(pages) = search_pages(vault, &account_id, &query) {
+        let vault = vault_handle(&state)?;
+        if let Ok(pages) = search_pages(&vault, &account_id, &query) {
             object_result.items.extend(pages);
         }
         object_result.items.sort_by(|a, b| {

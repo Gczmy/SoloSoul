@@ -1,3 +1,4 @@
+use crate::commands::current_account_optional;
 use crate::state::AppState;
 use serde::Serialize;
 use solosoul_core::auth::verify_password_core;
@@ -137,8 +138,7 @@ pub async fn logout(state: State<'_, AppState>) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn get_current_account(state: State<'_, AppState>) -> Result<Option<String>, String> {
-    let svc = state.vault_service.read().unwrap();
-    Ok(svc.get_current_account())
+    Ok(current_account_optional(&state))
 }
 
 #[cfg(test)]

@@ -6,6 +6,7 @@
 //! - Salt stored in manifest.json (hex), hint stored plaintext.
 //! - P2 extras: tag filtering, preferences export, attachment export, import strategy selection.
 
+use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_vault::ObjectSummary;
@@ -213,9 +214,7 @@ pub async fn export_get_scope_tree(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<Vec<PageGroup>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     let objects = vault
         .list_objects(&account_id, None, None, None, false, false)
@@ -274,11 +273,9 @@ pub async fn export_estimate_size(
     account_id: String,
     scope: ExportScope,
 ) -> Result<ExportEstimate, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
-    let records = collect_scope_objects(vault, &account_id, &scope)?;
+    let records = collect_scope_objects(&vault, &account_id, &scope)?;
     let count = records.len();
     let mut estimated_bytes: u64 = records
         .iter()
@@ -629,9 +626,7 @@ pub async fn export_get_attachments(
     _account_id: String,
     object_id: String,
 ) -> Result<Vec<AttachmentInfo>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     let obj = vault
         .load_object(&object_id)
@@ -731,9 +726,7 @@ pub async fn import_decrypt_preview(
     file_path: String,
     password: String,
 ) -> Result<DecryptedImportPreview, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     let manifest = read_manifest(&file_path)?;
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;

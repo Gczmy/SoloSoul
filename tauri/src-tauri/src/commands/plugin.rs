@@ -1,5 +1,6 @@
 //! 插件系统 Tauri Commands
 
+use crate::commands::{current_account_optional, vault_handle};
 use crate::plugin::{
     MarketPluginInfo, PluginAuditEntry, PluginEvent, PluginInstallResult, PluginManifest,
     PluginResult, PluginSessionInfo, PluginTier,
@@ -71,12 +72,8 @@ pub async fn plugin_run(
     params: HashMap<String, String>,
     channel: Channel<PluginEvent>,
 ) -> Result<PluginResult, String> {
-    let (vault_store, account_id) = {
-        let svc = state.vault_service.read().unwrap();
-        let vault_store = svc.get_vault_store();
-        let account_id = svc.get_current_account();
-        (vault_store, account_id)
-    };
+    let vault_store = vault_handle(&state).ok();
+    let account_id = current_account_optional(&state);
 
     state
         .plugin_manager

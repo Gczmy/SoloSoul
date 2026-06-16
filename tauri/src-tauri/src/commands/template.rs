@@ -6,6 +6,7 @@
 //! lazily migrated the first time any template command is invoked after the
 //! vault is unlocked.
 
+use crate::commands::{current_account, vault_handle};
 use crate::state::AppState;
 use solosoul_vault::{PropertyType, TemplateProperty, UserTemplate};
 use tauri::State;
@@ -144,13 +145,11 @@ pub async fn template_create(
     category: Option<String>,
     properties: Vec<TemplateProperty>,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
-    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
+    let account_id = current_account(&state)?;
 
-    migrate_legacy_templates_if_needed(vault, &account_id)?;
+    migrate_legacy_templates_if_needed(&vault, &account_id)?;
 
     let template = UserTemplate {
         id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
@@ -186,13 +185,11 @@ pub async fn template_update(
     category: Option<String>,
     properties: Option<Vec<TemplateProperty>>,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
-    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
+    let account_id = current_account(&state)?;
 
-    migrate_legacy_templates_if_needed(vault, &account_id)?;
+    migrate_legacy_templates_if_needed(&vault, &account_id)?;
 
     let mut template = vault
         .load_user_template(&template_id)?
@@ -236,13 +233,11 @@ pub async fn template_check_field_usage(
     template_id: String,
     field_key: String,
 ) -> Result<serde_json::Value, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
-    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
+    let account_id = current_account(&state)?;
 
-    migrate_legacy_templates_if_needed(vault, &account_id)?;
+    migrate_legacy_templates_if_needed(&vault, &account_id)?;
 
     // Verify template ownership
     let template = vault
@@ -264,13 +259,11 @@ pub async fn template_delete(
     state: State<'_, AppState>,
     template_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
-    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
+    let account_id = current_account(&state)?;
 
-    migrate_legacy_templates_if_needed(vault, &account_id)?;
+    migrate_legacy_templates_if_needed(&vault, &account_id)?;
 
     let template = vault
         .load_user_template(&template_id)?
@@ -281,7 +274,7 @@ pub async fn template_delete(
     }
 
     // Load retention period and build TrashItem
-    let period = load_trash_retention(vault, &account_id);
+    let period = load_trash_retention(&vault, &account_id);
     let retention_ms = retention_ms(&period);
     let now_ms = chrono::Utc::now().timestamp_millis();
 
@@ -323,9 +316,7 @@ pub async fn template_restore(
     state: State<'_, AppState>,
     trash_id: String,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     let trash = vault.get_trash_item(&trash_id)?.ok_or("回收站项目不存在")?;
 
@@ -360,13 +351,11 @@ pub async fn template_get(
     state: State<'_, AppState>,
     template_id: String,
 ) -> Result<UserTemplate, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
-    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
+    let account_id = current_account(&state)?;
 
-    migrate_legacy_templates_if_needed(vault, &account_id)?;
+    migrate_legacy_templates_if_needed(&vault, &account_id)?;
 
     let template = vault
         .load_user_template(&template_id)?
@@ -381,15 +370,13 @@ pub async fn template_get(
 
 #[tauri::command]
 pub async fn template_list(state: State<'_, AppState>) -> Result<Vec<UserTemplate>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
-    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
+    let account_id = current_account(&state)?;
 
     // Lazy migration: if this is the first template call after unlock,
     // migrate legacy Profile-JSON templates into the new table.
-    migrate_legacy_templates_if_needed(vault, &account_id)?;
+    migrate_legacy_templates_if_needed(&vault, &account_id)?;
 
     let templates = vault.list_user_templates(&account_id)?;
     Ok(templates)
@@ -402,13 +389,11 @@ pub async fn template_save_from_object(
     template_name: String,
     icon_id: Option<String>,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
-    let account_id = svc.get_current_account().ok_or("No unlocked account")?;
+    let account_id = current_account(&state)?;
 
-    migrate_legacy_templates_if_needed(vault, &account_id)?;
+    migrate_legacy_templates_if_needed(&vault, &account_id)?;
 
     let record = vault.load_object(&object_id)?.ok_or("Object not found")?;
 

@@ -1,3 +1,4 @@
+use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -101,9 +102,7 @@ pub async fn user_data_get_preferences(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<HashMap<String, Value>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     // Load profile for preferences
     match vault.load_profile(&account_id) {
@@ -126,9 +125,7 @@ pub async fn user_data_update_preference(
     state: State<'_, AppState>,
     payload: UpdatePreferencesPayload,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     // Load or create profile so preferences can always be saved.
     // This mirrors user_data_get_preferences which returns an empty map

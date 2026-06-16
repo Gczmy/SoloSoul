@@ -2,6 +2,7 @@
 //! Multi-provider model with encrypted API key storage.
 //! `llm_test_provider` and `llm_send_message` use reqwest for HTTP calls.
 
+use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_vault::VaultStore;
@@ -280,10 +281,8 @@ pub async fn llm_get_config(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<LlmConfig, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    load_config(vault, &account_id)
+    let vault = vault_handle(&state)?;
+    load_config(&vault, &account_id)
 }
 
 #[tauri::command]
@@ -291,11 +290,9 @@ pub async fn llm_get_providers(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<Vec<ProviderWithKey>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let config = load_config(vault, &account_id)?;
-    let keys = load_api_keys(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let config = load_config(&vault, &account_id)?;
+    let keys = load_api_keys(&vault, &account_id)?;
     let mut defaults = default_providers();
     for saved in &config.providers {
         if let Some(d) = defaults.iter_mut().find(|d| d.id == saved.id) {
@@ -333,17 +330,15 @@ pub async fn llm_save_provider(
     account_id: String,
     provider: ProviderWithKey,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut config = load_config(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut config = load_config(&vault, &account_id)?;
     let api_key = if provider.is_built_in && provider.api_key == "••••••••" {
         String::new()
     } else {
         provider.api_key.clone()
     };
     if !api_key.is_empty() {
-        save_api_key(vault, &account_id, &provider.id, &api_key)?;
+        save_api_key(&vault, &account_id, &provider.id, &api_key)?;
     }
     let pc = ProviderConfig {
         id: provider.id.clone(),
@@ -360,7 +355,7 @@ pub async fn llm_save_provider(
     } else {
         config.providers.push(pc);
     }
-    save_config(vault, &account_id, &config)
+    save_config(&vault, &account_id, &config)
 }
 
 #[tauri::command]
@@ -369,12 +364,10 @@ pub async fn llm_set_active_provider(
     account_id: String,
     provider_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut config = load_config(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut config = load_config(&vault, &account_id)?;
     config.active_provider_id = Some(provider_id);
-    save_config(vault, &account_id, &config)
+    save_config(&vault, &account_id, &config)
 }
 
 #[tauri::command]
@@ -383,12 +376,10 @@ pub async fn llm_set_ai_features(
     account_id: String,
     features: AiFeatures,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut config = load_config(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut config = load_config(&vault, &account_id)?;
     config.ai_features_enabled = features;
-    save_config(vault, &account_id, &config)
+    save_config(&vault, &account_id, &config)
 }
 
 #[tauri::command]
@@ -397,12 +388,10 @@ pub async fn llm_set_system_prompt_switch(
     account_id: String,
     enabled: bool,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut config = load_config(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut config = load_config(&vault, &account_id)?;
     config.include_system_prompt = enabled;
-    save_config(vault, &account_id, &config)
+    save_config(&vault, &account_id, &config)
 }
 
 /// Toggle local embedding and set the active model ID.
@@ -413,25 +402,21 @@ pub async fn llm_set_local_embedding(
     enabled: bool,
     model_id: Option<String>,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut config = load_config(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut config = load_config(&vault, &account_id)?;
     config.use_local_embedding = enabled;
     config.local_embed_model_id = model_id;
-    save_config(vault, &account_id, &config)?;
+    save_config(&vault, &account_id, &config)?;
     crate::local_embed::clear_embedder_cache();
     Ok(())
 }
 
 #[tauri::command]
 pub async fn llm_accept_risk(state: State<'_, AppState>, account_id: String) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut config = load_config(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut config = load_config(&vault, &account_id)?;
     config.has_accepted_risk = true;
-    save_config(vault, &account_id, &config)?;
+    save_config(&vault, &account_id, &config)?;
     let _ = vault.log_structured(
         "llm_risk_accepted",
         "preference",
@@ -449,10 +434,8 @@ pub async fn llm_get_api_key(
     account_id: String,
     provider_id: String,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    load_api_keys(vault, &account_id).map(|k| k.get(&provider_id).cloned().unwrap_or_default())
+    let vault = vault_handle(&state)?;
+    load_api_keys(&vault, &account_id).map(|k| k.get(&provider_id).cloned().unwrap_or_default())
 }
 
 #[tauri::command]
@@ -461,15 +444,13 @@ pub async fn llm_delete_provider(
     account_id: String,
     provider_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut config = load_config(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut config = load_config(&vault, &account_id)?;
     config.providers.retain(|p| p.id != provider_id);
     if config.active_provider_id.as_deref() == Some(&provider_id) {
         config.active_provider_id = config.providers.first().map(|p| p.id.clone());
     }
-    save_config(vault, &account_id, &config)
+    save_config(&vault, &account_id, &config)
 }
 
 fn is_anthropic(api_type: &ApiType) -> bool {
@@ -531,10 +512,8 @@ pub async fn llm_list_conversations(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<Vec<ConversationSummary>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let convs = load_conversations(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let convs = load_conversations(&vault, &account_id)?;
     let mut summaries: Vec<ConversationSummary> = convs
         .into_iter()
         .filter(|c| !c.is_temporary && c.deleted_at.is_none())
@@ -555,10 +534,8 @@ pub async fn llm_list_trash(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<Vec<ConversationSummary>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let convs = load_conversations(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let convs = load_conversations(&vault, &account_id)?;
     let mut summaries: Vec<ConversationSummary> = convs
         .into_iter()
         .filter(|c| c.deleted_at.is_some())
@@ -585,10 +562,8 @@ pub async fn llm_get_conversation(
     account_id: String,
     conversation_id: String,
 ) -> Result<Conversation, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let convs = load_conversations(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let convs = load_conversations(&vault, &account_id)?;
     convs
         .into_iter()
         .find(|c| c.id == conversation_id)
@@ -601,10 +576,8 @@ pub async fn llm_save_conversation(
     account_id: String,
     conversation: Conversation,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut convs = load_conversations(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut convs = load_conversations(&vault, &account_id)?;
     let mut c = conversation;
     c.is_temporary = false;
     if let Some(existing) = convs.iter_mut().find(|e| e.id == c.id) {
@@ -612,7 +585,7 @@ pub async fn llm_save_conversation(
     } else {
         convs.push(c);
     }
-    save_conversations(vault, &account_id, &convs)
+    save_conversations(&vault, &account_id, &convs)
 }
 
 #[tauri::command]
@@ -621,12 +594,10 @@ pub async fn llm_delete_conversation(
     account_id: String,
     conversation_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut convs = load_conversations(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut convs = load_conversations(&vault, &account_id)?;
     convs.retain(|c| c.id != conversation_id);
-    save_conversations(vault, &account_id, &convs)
+    save_conversations(&vault, &account_id, &convs)
 }
 
 #[tauri::command]
@@ -635,14 +606,12 @@ pub async fn llm_soft_delete_conversation(
     account_id: String,
     conversation_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut convs = load_conversations(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut convs = load_conversations(&vault, &account_id)?;
     if let Some(c) = convs.iter_mut().find(|c| c.id == conversation_id) {
         c.deleted_at = Some(now_iso());
     }
-    save_conversations(vault, &account_id, &convs)
+    save_conversations(&vault, &account_id, &convs)
 }
 
 #[tauri::command]
@@ -651,14 +620,12 @@ pub async fn llm_restore_conversation(
     account_id: String,
     conversation_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut convs = load_conversations(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut convs = load_conversations(&vault, &account_id)?;
     if let Some(c) = convs.iter_mut().find(|c| c.id == conversation_id) {
         c.deleted_at = None;
     }
-    save_conversations(vault, &account_id, &convs)
+    save_conversations(&vault, &account_id, &convs)
 }
 
 #[tauri::command]
@@ -667,12 +634,10 @@ pub async fn llm_permanent_delete(
     account_id: String,
     conversation_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut convs = load_conversations(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut convs = load_conversations(&vault, &account_id)?;
     convs.retain(|c| c.id != conversation_id);
-    save_conversations(vault, &account_id, &convs)
+    save_conversations(&vault, &account_id, &convs)
 }
 
 #[tauri::command]
@@ -682,15 +647,13 @@ pub async fn llm_rename_conversation(
     conversation_id: String,
     name: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    let mut convs = load_conversations(vault, &account_id)?;
+    let vault = vault_handle(&state)?;
+    let mut convs = load_conversations(&vault, &account_id)?;
     if let Some(c) = convs.iter_mut().find(|c| c.id == conversation_id) {
         c.name = name;
         c.updated_at = now_iso();
     }
-    save_conversations(vault, &account_id, &convs)
+    save_conversations(&vault, &account_id, &convs)
 }
 
 #[tauri::command]
@@ -1671,10 +1634,8 @@ pub async fn llm_get_stats(
     }
     // 2. 内存未命中，从 Vault 加载（严格限定作用域，确保 RwLockGuard 在 await 前 drop）
     let stats: LlmUsageStats = {
-        let svc = state.vault_service.read().unwrap();
-        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let vault = vg.as_ref();
-        load_stats_from_vault(vault, &account_id)?
+        let vault = vault_handle(&state)?;
+        load_stats_from_vault(&vault, &account_id)?
     };
     // 3. 加载到内存
     {
@@ -1692,10 +1653,8 @@ pub async fn llm_reset_stats(state: State<'_, AppState>, account_id: String) -> 
             STATS_MAP.write().await;
         map.remove(&account_id);
     }
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    save_stats_to_vault(vault, &account_id, &LlmUsageStats::default())
+    let vault = vault_handle(&state)?;
+    save_stats_to_vault(&vault, &account_id, &LlmUsageStats::default())
 }
 
 /// 将指定账户的统计持久化到 Vault（debounce 保存由调用方管理）
@@ -1718,10 +1677,8 @@ pub async fn llm_persist_stats(
             STATS_MAP.read().await;
         map.get(&account_id).cloned().unwrap_or_default()
     };
-    let svc = state.vault_service.read().unwrap();
-    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vg.as_ref();
-    save_stats_to_vault(vault, &account_id, &stats)
+    let vault = vault_handle(&state)?;
+    save_stats_to_vault(&vault, &account_id, &stats)
 }
 
 // =============================================================================
@@ -2657,11 +2614,9 @@ pub async fn llm_search_guide_chunks(
         .map_err(|e| format!("Resolve models dir: {}", e))?;
 
     let (source, chunks) = {
-        let svc = state.vault_service.read().unwrap();
-        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let vault = vg.as_ref();
+        let vault = vault_handle(&state)?;
 
-        let source = match get_embedding_source(vault, &account_id, &models_dir) {
+        let source = match get_embedding_source(&vault, &account_id, &models_dir) {
             Ok(s) => s,
             Err(e) => {
                 eprintln!(
@@ -2772,11 +2727,9 @@ pub async fn llm_rebuild_guide_embeddings(
 
     // 1. Extract embedding source and chunk guides (sync, vault guard released after this block)
     let (source, raw_chunks) = {
-        let svc = state.vault_service.read().unwrap();
-        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let vault = vg.as_ref();
+        let vault = vault_handle(&state)?;
 
-        let source = get_embedding_source(vault, &account_id, &models_dir)?;
+        let source = get_embedding_source(&vault, &account_id, &models_dir)?;
         let raw_chunks = super::rag::chunk_all_guides(&language)?;
         if raw_chunks.is_empty() {
             return Ok(0);
@@ -2798,9 +2751,7 @@ pub async fn llm_rebuild_guide_embeddings(
 
     // 3. Store in vault (sync)
     let count = {
-        let svc = state.vault_service.read().unwrap();
-        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let vault = vg.as_ref();
+        let vault = vault_handle(&state)?;
 
         let now = chrono::Utc::now().to_rfc3339();
         for (i, (raw, mut vec)) in raw_chunks.into_iter().zip(embeddings).enumerate() {
@@ -2819,7 +2770,7 @@ pub async fn llm_rebuild_guide_embeddings(
                 .map_err(|e| format!("Save embedding {}: {}", i, e))?;
         }
 
-        super::rag::mark_rebuilt(vault, &language)?;
+        super::rag::mark_rebuilt(&vault, &language)?;
         vault.count_guide_embeddings()?
     };
 
@@ -2839,10 +2790,8 @@ pub async fn llm_check_embedding_available(
         .map_err(|e| format!("Resolve models dir: {}", e))?;
 
     let source = {
-        let svc = state.vault_service.read().unwrap();
-        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let vault = vg.as_ref();
-        get_embedding_source(vault, &account_id, &models_dir)
+        let vault = vault_handle(&state)?;
+        get_embedding_source(&vault, &account_id, &models_dir)
     };
 
     match source {

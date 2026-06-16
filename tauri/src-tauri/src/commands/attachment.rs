@@ -1,5 +1,6 @@
 //! File attachment commands — attach files to objects, with soft-delete support (§25.6)
 
+use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -48,9 +49,7 @@ pub async fn attachment_list(
     show_deleted: Option<bool>,
 ) -> Result<Vec<AttachmentMeta>, String> {
     let show = show_deleted.unwrap_or(false);
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     match vault.load_object(&object_id) {
         Ok(Some(rec)) => Ok(load_attachments(&rec.properties)
             .into_iter()
@@ -102,9 +101,7 @@ pub async fn attachment_restore(
     object_id: String,
     attachment_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
@@ -122,9 +119,7 @@ pub async fn attachment_save(
     object_id: String,
     meta: AttachmentMeta,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     // §10.4.4: maximum 50 active attachments per object
@@ -146,9 +141,7 @@ pub async fn attachment_rename(
     attachment_id: String,
     new_name: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
@@ -166,9 +159,7 @@ pub async fn attachment_soft_delete(
     object_id: String,
     attachment_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
@@ -186,9 +177,7 @@ pub async fn attachment_count_batch(
     state: State<'_, AppState>,
     object_ids: Vec<String>,
 ) -> Result<HashMap<String, usize>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     let mut result = HashMap::new();
     for id in &object_ids {
         if let Ok(Some(rec)) = vault.load_object(id) {

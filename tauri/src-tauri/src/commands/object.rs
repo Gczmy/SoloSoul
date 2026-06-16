@@ -4,6 +4,7 @@
 //! Supports: type schemas, parent/child hierarchies, property storage,
 //! soft-delete trash, and account-scoped queries.
 
+use crate::commands::{current_account, current_account_optional, vault_handle};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_vault::ObjectRecord;
@@ -103,9 +104,7 @@ pub async fn object_list(
     account_id: String,
     filter: Option<ObjectFilter>,
 ) -> Result<Vec<solosoul_vault::ObjectSummary>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     let type_id = filter.as_ref().and_then(|f| f.collection_type.as_deref());
     let parent_id = filter.as_ref().and_then(|f| f.parent_id.as_deref());
@@ -133,9 +132,7 @@ pub async fn object_get(
     account_id: String,
     object_id: String,
 ) -> Result<Option<ObjectData>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     match vault.load_object(&object_id)? {
         Some(rec) => {
@@ -154,9 +151,7 @@ pub async fn object_create(
     state: State<'_, AppState>,
     input: CreateObjectInput,
 ) -> Result<ObjectData, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     let now = chrono::Utc::now().to_rfc3339();
     let id = input
@@ -236,9 +231,7 @@ pub async fn object_update(
     object_id: String,
     input: UpdateObjectInput,
 ) -> Result<ObjectData, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     let mut record = vault
         .load_object(&object_id)?
@@ -264,7 +257,7 @@ pub async fn object_update(
         && (old_sensitivity == "public" || new_sensitivity == "public")
     {
         let account_id = record.account_id.clone();
-        let _ = crate::services::llm_context::bump_public_data_version(vault, &account_id);
+        let _ = crate::services::llm_context::bump_public_data_version(&vault, &account_id);
     }
 
     // §25.5 — Save snapshot for history
@@ -289,13 +282,11 @@ pub async fn object_update(
 
 #[tauri::command]
 pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     // Load retention period from preferences
-    let account_id = svc.get_current_account().unwrap_or_default();
-    let period = load_trash_retention(vault, &account_id);
+    let account_id = current_account_optional(&state).unwrap_or_default();
+    let period = load_trash_retention(&vault, &account_id);
     let retention_ms = retention_ms(&period);
 
     if let Ok(Some(rec)) = vault.load_object(&object_id) {
@@ -348,9 +339,7 @@ pub async fn object_trash_list(
     since: Option<i64>,
 ) -> Result<Vec<solosoul_vault::TrashItemSummary>, String> {
     let _ = account_id;
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     vault.list_trash_items(None, since)
 }
 
@@ -525,9 +514,7 @@ pub async fn object_restore(
 
 #[tauri::command]
 pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     let (obj_name, obj_section) = vault
         .load_object(&object_id)
@@ -563,9 +550,7 @@ pub async fn trash_permanent_delete(
     state: State<'_, AppState>,
     trash_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     if let Ok(Some(trash)) = vault.get_trash_item(&trash_id) {
         if trash.item_type != "template" {
@@ -603,12 +588,10 @@ pub async fn page_delete(
     section_type: String,
     page_object_id: Option<String>,
 ) -> Result<usize, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     let now_ms = chrono::Utc::now().timestamp_millis();
-    let period = load_trash_retention(vault, &account_id);
+    let period = load_trash_retention(&vault, &account_id);
     let retention_ms = retention_ms(&period);
     let mut count = 0usize;
 
@@ -827,9 +810,7 @@ pub async fn snapshot_count_batch(
     state: State<'_, AppState>,
     object_ids: Vec<String>,
 ) -> Result<std::collections::HashMap<String, usize>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     vault.count_snapshots_batch(&object_ids)
 }
 
@@ -840,9 +821,7 @@ pub async fn snapshot_get(
     state: State<'_, AppState>,
     object_id: String,
 ) -> Result<Vec<serde_json::Value>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     vault.list_snapshots(&object_id)
 }
 
@@ -851,9 +830,7 @@ pub async fn snapshot_get_data(
     state: State<'_, AppState>,
     snapshot_id: String,
 ) -> Result<Option<serde_json::Value>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     match vault.get_snapshot(&snapshot_id)? {
         Some(data) => serde_json::from_slice(&data)
             .map(Some)
@@ -867,9 +844,7 @@ pub async fn snapshot_list(
     state: State<'_, AppState>,
     object_id: String,
 ) -> Result<Vec<serde_json::Value>, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     vault.list_snapshots(&object_id)
 }
 
@@ -879,9 +854,7 @@ pub async fn snapshot_rollback(
     snapshot_id: String,
     object_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
 
     // Get snapshot data
     let data = vault
@@ -936,10 +909,8 @@ pub async fn snapshot_rollback(
 /// Get trash retention preferences for the current account.
 #[tauri::command]
 pub async fn trash_get_retention(state: State<'_, AppState>) -> Result<String, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
-    let account_id = svc.get_current_account().ok_or("No account")?;
+    let vault = vault_handle(&state)?;
+    let account_id = current_account(&state)?;
     if let Ok(Some(profile)) = vault.load_profile(&account_id) {
         if !profile.data.is_empty() {
             if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
@@ -958,10 +929,8 @@ pub async fn trash_get_retention(state: State<'_, AppState>) -> Result<String, S
 /// Set trash retention period.
 #[tauri::command]
 pub async fn trash_set_retention(state: State<'_, AppState>, period: String) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
-    let account_id = svc.get_current_account().ok_or("No account")?;
+    let vault = vault_handle(&state)?;
+    let account_id = current_account(&state)?;
     let mut profile = match vault.load_profile(&account_id) {
         Ok(Some(p)) => p,
         Ok(None) => solosoul_vault::Profile::new_with_id(&account_id, &account_id, Vec::new()),
@@ -1032,9 +1001,7 @@ pub async fn trash_get_detail(
     state: State<'_, AppState>,
     trash_id: String,
 ) -> Result<TrashDetail, String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let vault = vault_handle(&state)?;
     let trash = vault
         .get_trash_item(&trash_id)?
         .ok_or("Trash item not found")?;
