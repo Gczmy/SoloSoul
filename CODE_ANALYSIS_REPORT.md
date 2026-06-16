@@ -41,7 +41,7 @@
 | P023 | P2 | 性能 | `tauri/src-tauri/src/commands/fs.rs:219-227` | `fs_scan_directory` 递归无文件数量上限 | `[x]` 已修复：限制返回文件数为 1000 |
 | P024 | P1 | 错误处理 | `tauri/src-tauri/src/commands/*.rs` | `Mutex` / `RwLock` `unwrap()` 在锁中毒时导致 panic | `[ ]` 待修复 |
 | P025 | P2 | 错误处理 | `tauri/src-tauri/src/commands/attachment.rs:91` | `attachment_delete` 忽略 `remove_dir_all` 错误 | `[x]` 已修复：错误现在返回给调用方 |
-| P026 | P2 | 错误处理 | `tauri/crates/solosoul-core/src/vault_service.rs:320,401,533` | 使用 `expect` 处理理论上不应失败的密钥长度转换 | `[ ]` 待修复 |
+| P026 | P2 | 错误处理 | `tauri/crates/solosoul-core/src/vault_service.rs:320,401,533` | 使用 `expect` 处理理论上不应失败的密钥长度转换 | `[x]` 已修复：改用 `map_err` 返回错误 |
 | P027 | P1 | 魔术数/字符串 | `tauri/src-tauri/src/commands/attachment.rs:130-133` / `object.rs:1044,1221-1225` / `llm.rs` / `search.rs` / `export_import.rs` | 多处硬编码阈值/权重/字符串未命名常量 | `[ ]` 待修复 |
 | P028 | P2 | 魔术数/字符串 | `tauri/src-tauri/src/commands/fs.rs:51,192` / `discovery.rs:48,82` / `system.rs:24-25` / `crypto.rs:9,21,31,41` / `src/lib/notification.ts:73` | 魔术 chunk size / service type / language ID / key size / toast duration | `[x]` 已修复（fs.rs 部分）：使用 `DEFAULT_CHUNK_SIZE` 与 `BACKUP_PREVIEW_SAMPLE`；其余文件待后续 |
 | P029 | P1 | 死代码 | `tauri/crates/solosoul-sync/src/discovery.rs:24-75` / `src-tauri/src/commands/profile.rs:22-26` / `crates/solosoul-vault/src/lib.rs:237-253` / `src-tauri/src/plugin/host.rs:24` 等 | 未使用或重复定义的代码/类型 | `[ ]` 待修复 |
@@ -66,7 +66,7 @@
 
 ## 修复进度
 
-- 已完成：20 / 47
+- 已完成：21 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
