@@ -9,22 +9,18 @@ import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
 import { useCancellable } from '@/hooks/useCancellable';
 import i18n from '@/lib/i18n';
-import { formatRelative, formatTimestamp } from '@/lib/time';
+import { formatRelative } from '@/lib/time';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import {
   buildSystemPrompt,
   buildMessagesWithSystemPromptAndChunks,
 } from '@/lib/llm/systemPromptBuilder';
 import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
-import ReactMarkdown from 'react-markdown';
-import rehypeHighlight from 'rehype-highlight';
 import {
   MessageSquare,
   Settings,
   Send,
   Plus,
-  Copy,
-  Check,
   Trash2,
   Pencil,
   RotateCw,
@@ -35,13 +31,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { markConversationPending, setAiPageOpen } from '@/lib/notification';
-
-interface ChatMsg {
-  role: string;
-  content: string;
-  createdAt: string;
-  isError?: boolean;
-}
+import { ChatMessageBubble, type ChatMsg } from './ChatMessageBubble';
 
 interface Conversation {
   id: string;
@@ -965,88 +955,14 @@ export function LlmChatPage() {
               </div>
             )}
             {messages.map((msg, i) => (
-              <div key={i} style={{ marginBottom: 4 }}>
-                <div
-                  style={{
-                    textAlign: 'center',
-                    fontSize: 11,
-                    color: 'var(--text-tertiary)',
-                    padding: '8px 0 2px',
-                  }}
-                >
-                  {formatTimestamp(msg.createdAt)}
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                    padding: '0 16px',
-                  }}
-                >
-                  <div
-                    style={{
-                      maxWidth: msg.role === 'user' ? '70%' : '85%',
-                      padding: '10px 14px',
-                      borderRadius:
-                        msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                      background:
-                        msg.role === 'user'
-                          ? 'var(--accent-primary)'
-                          : msg.isError
-                            ? 'rgba(231,76,60,0.12)'
-                            : 'var(--bg-elevated)',
-                      color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
-                      fontSize: 14,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {msg.role === 'user' ? (
-                      <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-                    ) : msg.isError ? (
-                      <div style={{ color: '#e74c3c', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-                    ) : (
-                      <div className="markdown-content">
-                        <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                    padding: '2px 20px',
-                  }}
-                >
-                  <button
-                    onClick={() => handleCopy(msg.content, i)}
-                    style={{
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                      fontSize: 11,
-                      color: copiedIndex === i ? '#27ae60' : 'var(--text-tertiary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 3,
-                    }}
-                  >
-                    {copiedIndex === i ? (
-                      <>
-                        <Check size={11} /> {t('settings:ai_copied')}
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={11} /> {t('settings:ai_copy')}
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
+              <ChatMessageBubble
+                key={i}
+                msg={msg}
+                isCopied={copiedIndex === i}
+                onCopy={() => handleCopy(msg.content, i)}
+                copyLabel={t('settings:ai_copy')}
+                copiedLabel={t('settings:ai_copied')}
+              />
             ))}
             {isSending && (
               <div
@@ -1275,46 +1191,15 @@ export function LlmChatPage() {
               </div>
               <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
                 {floatingConv.messages.map((msg, i) => (
-                  <div key={i} style={{ marginBottom: 8 }}>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: 'var(--text-tertiary)',
-                        textAlign: 'center',
-                        marginBottom: 2,
-                      }}
-                    >
-                      {formatTimestamp(msg.createdAt)}
-                    </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                      }}
-                    >
-                      <div
-                        style={{
-                          maxWidth: '80%',
-                          padding: '8px 12px',
-                          borderRadius: 12,
-                          fontSize: 13,
-                          background:
-                            msg.role === 'user' ? 'var(--accent-primary)' : 'var(--bg-toolbar)',
-                          color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
-                        }}
-                      >
-                        {msg.role === 'user' ? (
-                          msg.content
-                        ) : (
-                          <div className="markdown-content">
-                            <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-                              {msg.content}
-                            </ReactMarkdown>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  <ChatMessageBubble
+                    key={i}
+                    msg={msg}
+                    variant="compact"
+                    isCopied={copiedIndex === i}
+                    onCopy={() => handleCopy(msg.content, i)}
+                    copyLabel={t('settings:ai_copy')}
+                    copiedLabel={t('settings:ai_copied')}
+                  />
                 ))}
               </div>
             </div>

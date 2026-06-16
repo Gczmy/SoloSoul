@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import styles from './TopFunctionBar.module.css';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { NavButton } from './NavButton';
-import { RenameableNavButton, AddPageButton, AiQuickChatPopover } from './SideNavigation';
+import { RenameableNavButton, AddPageButton } from './SideNavigation';
+import { AiQuickChatPopover } from './AiQuickChatPopover';
 import { SearchPopover } from './SearchPopover';
 import {
   useActiveCustomPages,
