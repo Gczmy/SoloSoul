@@ -9,7 +9,10 @@ pub async fn unlock(
     account_id: String,
     password: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     svc.unlock(&account_id, &password)?;
     Ok(())
 }
@@ -17,7 +20,10 @@ pub async fn unlock(
 #[tauri::command]
 pub async fn lock(state: State<'_, AppState>) -> Result<(), String> {
     let app_handle = state.app_handle().clone();
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     svc.lock();
     // Emit event so frontend can clear sensitive stores and redirect to login
     let _ = app_handle.emit("vault-locked", ());
@@ -26,7 +32,10 @@ pub async fn lock(state: State<'_, AppState>) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn get_state(state: State<'_, AppState>) -> Result<String, String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     Ok(svc.get_vault_state())
 }
 
@@ -37,7 +46,10 @@ pub async fn change_password(
     old_password: String,
     new_password: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     svc.change_password(&account_id, &old_password, &new_password)
 }
 
@@ -47,7 +59,10 @@ pub async fn delete_account(
     account_id: String,
     password: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     // Verify password before allowing destructive account deletion
     let config_path = svc.base_path().join(&account_id).join("config.json");
     let content =
@@ -86,6 +101,9 @@ pub async fn vault_update_hint(
     account_id: String,
     hint: Option<String>,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     svc.update_password_hint(&account_id, hint.as_deref().unwrap_or(""))
 }

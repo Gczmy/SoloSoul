@@ -21,7 +21,9 @@ pub struct AccountInfo {
 pub async fn check_has_account(state: State<'_, AppState>) -> Result<bool, String> {
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
-        let svc = vault_service.read().unwrap();
+        let svc = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
         Ok::<_, String>(svc.has_any_account())
     })
     .await
@@ -36,7 +38,10 @@ pub async fn bootstrap(
     locale: String,
     password_hint: Option<String>,
 ) -> Result<AccountInfo, String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let result = svc.create_account(&account_name, &password, password_hint.as_deref())?;
     let account_id = result["id"].as_str().unwrap_or("").to_string();
 
@@ -73,7 +78,9 @@ pub async fn login(
     // so the async runtime worker threads are not starved (R018 follow-up).
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
-        let svc = vault_service.read().unwrap();
+        let svc = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
         svc.unlock(&account_id, &password)?;
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
@@ -105,7 +112,9 @@ pub async fn unlock_with_password(
 ) -> Result<(), String> {
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
-        let svc = vault_service.read().unwrap();
+        let svc = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
         svc.unlock(&account_id, &password)?;
         Ok::<_, String>(())
     })
@@ -119,7 +128,10 @@ pub async fn verify_password(
     account_id: String,
     password: String,
 ) -> Result<bool, String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let config_path = svc.base_path().join(&account_id).join("config.json");
     let content =
         std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
@@ -131,7 +143,10 @@ pub async fn verify_password(
 
 #[tauri::command]
 pub async fn logout(state: State<'_, AppState>) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     svc.lock();
     Ok(())
 }

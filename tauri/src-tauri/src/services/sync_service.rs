@@ -28,7 +28,10 @@ impl SyncService {
                 return Ok(());
             }
             let (vault, account_id) = {
-                let svc = self.vault_service.read().unwrap();
+                let svc = self
+                    .vault_service
+                    .read()
+                    .map_err(|_| "Vault service lock poisoned".to_string())?;
                 let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
                 let account_id = svc.get_current_account().ok_or("No account is unlocked")?;
                 (vault, account_id)
@@ -114,7 +117,10 @@ impl SyncService {
             Some(m) => m.known_peers(),
             None => {
                 // Even when the manager is off, return persisted peers.
-                let svc = self.vault_service.read().unwrap();
+                let svc = self
+                    .vault_service
+                    .read()
+                    .map_err(|_| "Vault service lock poisoned".to_string())?;
                 let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
                 let account_id = svc.get_current_account().unwrap_or_default();
                 let persisted = vault.list_peers()?;
@@ -146,7 +152,10 @@ impl SyncService {
         let result = match guard.as_ref() {
             Some(m) => m.trust_peer(&peer_node_id, trusted),
             None => {
-                let svc = self.vault_service.read().unwrap();
+                let svc = self
+                    .vault_service
+                    .read()
+                    .map_err(|_| "Vault service lock poisoned".to_string())?;
                 let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
                 let now = chrono::Utc::now().to_rfc3339();
                 let mut peer = vault.load_peer_state(&peer_node_id)?.unwrap_or_else(|| {
@@ -190,7 +199,10 @@ impl SyncService {
         let result = match guard.as_ref() {
             Some(m) => m.forget_peer(&peer_node_id),
             None => {
-                let svc = self.vault_service.read().unwrap();
+                let svc = self
+                    .vault_service
+                    .read()
+                    .map_err(|_| "Vault service lock poisoned".to_string())?;
                 let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
                 vault.delete_peer(&peer_node_id)
             }
@@ -211,7 +223,10 @@ impl SyncService {
         match guard.as_ref() {
             Some(m) => Ok(m.fingerprint()),
             None => {
-                let svc = self.vault_service.read().unwrap();
+                let svc = self
+                    .vault_service
+                    .read()
+                    .map_err(|_| "Vault service lock poisoned".to_string())?;
                 let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
                 let (_, keys) = get_or_create_sync_identity(&vault)?;
                 Ok(keys.fingerprint())

@@ -13,7 +13,10 @@ pub async fn biometric_check_availability(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<BiometricAvailability, String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
     let bt = if solosoul_core::biometric::is_macos() {
         Some("touchId".into())
@@ -52,7 +55,10 @@ pub async fn biometric_save_credential(
     action: Option<String>,
     biometry_type: Option<String>,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
     manager.save_credential(
         &account_id,
@@ -88,7 +94,10 @@ pub async fn biometric_unlock(
     action: Option<String>,
     biometry_type: Option<String>,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
     let used_bio_type = manager.unlock(&account_id, &svc, "unlock SoloSoul")?;
 
@@ -131,7 +140,10 @@ pub async fn biometric_delete_credential(
     action: Option<String>,
     biometry_type: Option<String>,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
     manager.delete_credential(&account_id, &password)?;
 

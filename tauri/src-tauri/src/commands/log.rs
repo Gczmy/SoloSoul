@@ -95,7 +95,10 @@ pub async fn log_export(
     state: State<'_, AppState>,
     export_path: Option<String>,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 

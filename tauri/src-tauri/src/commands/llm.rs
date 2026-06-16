@@ -2110,7 +2110,10 @@ pub async fn llm_send_message_stream(
     // Auto-save conversation with AI reply after stream completes
     // (ensures data persists even if frontend component is unmounted)
     {
-        let svc = state.vault_service.read().unwrap();
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
         let mut convs = load_conversations(vault, &account_id)?;
@@ -2176,7 +2179,10 @@ pub async fn llm_send_message_stream(
             let map = STATS_MAP.read().await;
             map.get(&account_id).cloned().unwrap_or_default()
         };
-        let svc = state.vault_service.read().unwrap();
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
             {
@@ -2211,7 +2217,10 @@ pub async fn llm_chat(
 ) -> Result<(), String> {
     // 1. 读取 Provider 配置 + 解密 API Key（同步块，vault_guard 在此释放）
     let (base_url, api_key, model, api_type) = {
-        let svc = state.vault_service.read().unwrap();
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
         let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vault_guard.as_ref();
 
@@ -2252,7 +2261,10 @@ pub async fn llm_chat(
     // 3a. 系统提示词（重新获取 vault）
     if request.include_system_prompt {
         let system_prompt = {
-            let svc = state.vault_service.read().unwrap();
+            let svc = state
+                .vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
             let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
             let vault = vault_guard.as_ref();
             crate::services::llm_context::build_context(
@@ -2352,7 +2364,10 @@ pub async fn llm_chat(
             let map = STATS_MAP.read().await;
             map.get(&request.account_id).cloned().unwrap_or_default()
         };
-        let svc = state.vault_service.read().unwrap();
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
             {
@@ -2847,7 +2862,10 @@ pub async fn ensure_guide_embeddings_built(state: &AppState, account_id: &str, l
             .resolve("models", tauri::path::BaseDirectory::LocalData)
             .map_err(|e| format!("Resolve models dir: {}", e))?;
 
-        let svc = state.vault_service.read().unwrap();
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
 
@@ -2880,7 +2898,10 @@ pub async fn ensure_guide_embeddings_built(state: &AppState, account_id: &str, l
         let texts: Vec<String> = raw_chunks.iter().map(|c| c.text.clone()).collect();
         let embeddings = embed_texts(source, models_dir, texts).await?;
 
-        let svc = state.vault_service.read().unwrap();
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
 

@@ -45,7 +45,10 @@ impl Default for UiPreferences {
 
 #[tauri::command]
 pub async fn ui_get_preferences(state: State<'_, AppState>) -> Result<UiPreferences, String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let path = ui_prefs_path(&svc);
     if !path.exists() {
         return Ok(UiPreferences::default());
@@ -60,7 +63,10 @@ pub async fn ui_update_preference(
     key: String,
     value: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let path = ui_prefs_path(&svc);
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);

@@ -334,7 +334,10 @@ pub async fn export_execute(
     account_id: String,
     req: ExportRequest,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
@@ -862,7 +865,10 @@ async fn import_execute_internal(
     strategy: ImportStrategy,
     selections: Option<Vec<ImportSelection>>,
 ) -> Result<usize, String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
