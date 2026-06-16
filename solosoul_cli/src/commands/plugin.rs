@@ -42,6 +42,7 @@ pub fn list_plugins(app: &mut App) -> Result<()> {
                 app.phase = AppPhase::PluginList {
                     plugins,
                     selected: 0,
+                    filter: String::new(),
                 };
             }
         }
@@ -436,6 +437,7 @@ pub fn search_plugins(app: &mut App, keyword: Option<&str>) -> Result<()> {
                 app.phase = AppPhase::PluginList {
                     plugins: matched,
                     selected: 0,
+                    filter: String::new(),
                 };
             }
         }

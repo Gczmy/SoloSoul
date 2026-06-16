@@ -178,6 +178,7 @@ pub enum AppPhase {
     PluginList {
         plugins: Vec<PluginSummary>,
         selected: usize,
+        filter: String,
     },
     /// 插件详情页
     PluginDetail {
@@ -2027,8 +2028,78 @@ impl App {
 
     /// 插件列表页的键盘处理。
     fn handle_plugin_list_key(&mut self, key: KeyEvent) -> Result<bool> {
-        if let AppPhase::PluginList { plugins, selected } = &self.phase {
+        if let AppPhase::PluginList { plugins, selected, filter } = &self.phase {
             let mut sel = *selected;
+            let mut filter = filter.clone();
+
+            // 过滤模式下优先处理字符输入
+            if !filter.is_empty() {
+                match key.code {
+                    KeyCode::Esc => {
+                        filter.clear();
+                        sel = 0;
+                    }
+                    KeyCode::Backspace => {
+                        filter.pop();
+                        sel = 0;
+                    }
+                    KeyCode::Char(c) => {
+                        filter.push(c);
+                        sel = 0;
+                    }
+                    _ => {
+                        // 非过滤键：正常处理导航/操作（但基于过滤后列表）
+                        let filtered: Vec<&PluginSummary> = plugins
+                            .iter()
+                            .filter(|p| {
+                                p.name.to_lowercase().contains(&filter.to_lowercase())
+                                    || p.description.to_lowercase().contains(&filter.to_lowercase())
+                            })
+                            .collect();
+                        let filtered_len = filtered.len();
+                        match key.code {
+                            KeyCode::Up if sel > 0 => sel -= 1,
+                            KeyCode::Down if sel + 1 < filtered_len => sel += 1,
+                            KeyCode::Enter if sel < filtered_len => {
+                                let plugin_id = filtered[sel].id.clone();
+                                if let Some(manifest) = commands::plugin::load_manifest(&plugin_id) {
+                                    self.phase = AppPhase::PluginDetail { manifest };
+                                }
+                                return Ok(false);
+                            }
+                            KeyCode::Char('r') if sel < filtered_len => {
+                                let plugin_id = filtered[sel].id.clone();
+                                commands::plugin::run_plugin(self, Some(&plugin_id))?;
+                                return Ok(false);
+                            }
+                            KeyCode::Char('i') if sel < filtered_len => {
+                                let plugin_id = filtered[sel].id.clone();
+                                commands::plugin::install_plugin(self, Some(&plugin_id))?;
+                                return Ok(false);
+                            }
+                            KeyCode::Char('u') if sel < filtered_len => {
+                                let plugin_id = filtered[sel].id.clone();
+                                commands::plugin::update_plugin(self, Some(&plugin_id))?;
+                                return Ok(false);
+                            }
+                            KeyCode::Char('d') if sel < filtered_len => {
+                                let plugin_id = filtered[sel].id.clone();
+                                commands::plugin::uninstall_plugin(self, Some(&plugin_id))?;
+                                return Ok(false);
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                self.phase = AppPhase::PluginList {
+                    plugins: plugins.clone(),
+                    selected: sel,
+                    filter,
+                };
+                return Ok(false);
+            }
+
+            // 非过滤模式
             match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => {
                     commands::core::back(self);
@@ -2063,11 +2134,16 @@ impl App {
                     commands::plugin::uninstall_plugin(self, Some(&plugin_id))?;
                     return Ok(false);
                 }
+                KeyCode::Char(c) => {
+                    filter.push(c);
+                    sel = 0;
+                }
                 _ => {}
             }
             self.phase = AppPhase::PluginList {
                 plugins: plugins.clone(),
                 selected: sel,
+                filter,
             };
         }
         Ok(false)
@@ -2406,7 +2482,8 @@ impl App {
             AppPhase::PluginList {
                 plugins,
                 selected,
-            } => crate::screens::plugin_list::render(frame, layout[1], plugins, *selected),
+                filter,
+            } => crate::screens::plugin_list::render(frame, layout[1], plugins, *selected, filter),
             AppPhase::PluginDetail { manifest } => {
                 crate::screens::plugin_detail::render(frame, layout[1], manifest)
             }
