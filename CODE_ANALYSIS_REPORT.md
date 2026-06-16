@@ -20,7 +20,7 @@
 | P002 | P0 | 代码规范/死代码 | `tauri/crates/solosoul-vault/src/lib.rs:1-2` | 顶层 `#![allow(dead_code)]` / `#![allow(unused_imports)]` 抑制整 crate 警告 | `[x]` 已修复：移除全局 suppression，clippy 无警告 |
 | P003 | P0 | 代码结构 | `tauri/src-tauri/src/commands/*.rs` | vault 访问样板代码在 11+ 个命令文件中重复 | `[x]` 已修复：提取 `vault_handle` / `current_account` / `current_account_optional` 到 `mod.rs` 并在命令模块复用 |
 | P004 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:90-158,219-294` | `create_zip_package` / `extract_zip_package` / `fs_scan_directory` / `fs_get_file_size` / `fs_read_file_as_data_url` 未限制基础目录，存在路径遍历 | `[ ]` 待修复 |
-| P005 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/attachment.rs:86-91,208-232` | `attachment_delete` / `attachment_copy_to_vault` 直接拼接 `object_id` / `attachment_id` 到路径，未校验 | `[ ]` 待修复 |
+| P005 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/attachment.rs:86-91,208-232` | `attachment_delete` / `attachment_copy_to_vault` 直接拼接 `object_id` / `attachment_id` 到路径，未校验 | `[x]` 已修复：添加 ID 校验辅助函数，拒绝非法字符与长度；删除错误现在会传播 |
 | P006 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/export_import.rs:456-469,1068-1079` | 导出/导入附件时读取 `att.src_path` 或使用导入包中的 `obj_id` 构建路径，可被恶意包利用 | `[ ]` 待修复 |
 | P007 | P1 | 安全漏洞 | `tauri/crates/solosoul-sync/src/attachments.rs:32-42,166-177,373-376` | 同步附件路径直接拼接远程 `object_id` / `attachment_id` / `file_name` | `[ ]` 待修复 |
 | P008 | P1 | 安全漏洞 | `tauri/src-tauri/src/plugin/store.rs:51-53` / `tauri/src-tauri/src/plugin/manager.rs:134,168` | `plugin_id` 直接用于路径拼接，可能导致插件目录逃逸 | `[ ]` 待修复 |
@@ -40,7 +40,7 @@
 | P022 | P2 | 性能/并发 | 多数 command 文件 | 长时间持有 `state.vault_service.read().unwrap()`，阻塞写入 | `[ ]` 待修复 |
 | P023 | P2 | 性能 | `tauri/src-tauri/src/commands/fs.rs:219-227` | `fs_scan_directory` 递归无文件数量上限 | `[x]` 已修复：限制返回文件数为 1000 |
 | P024 | P1 | 错误处理 | `tauri/src-tauri/src/commands/*.rs` | `Mutex` / `RwLock` `unwrap()` 在锁中毒时导致 panic | `[ ]` 待修复 |
-| P025 | P2 | 错误处理 | `tauri/src-tauri/src/commands/attachment.rs:91` | `attachment_delete` 忽略 `remove_dir_all` 错误 | `[ ]` 待修复 |
+| P025 | P2 | 错误处理 | `tauri/src-tauri/src/commands/attachment.rs:91` | `attachment_delete` 忽略 `remove_dir_all` 错误 | `[x]` 已修复：错误现在返回给调用方 |
 | P026 | P2 | 错误处理 | `tauri/crates/solosoul-core/src/vault_service.rs:320,401,533` | 使用 `expect` 处理理论上不应失败的密钥长度转换 | `[ ]` 待修复 |
 | P027 | P1 | 魔术数/字符串 | `tauri/src-tauri/src/commands/attachment.rs:130-133` / `object.rs:1044,1221-1225` / `llm.rs` / `search.rs` / `export_import.rs` | 多处硬编码阈值/权重/字符串未命名常量 | `[ ]` 待修复 |
 | P028 | P2 | 魔术数/字符串 | `tauri/src-tauri/src/commands/fs.rs:51,192` / `discovery.rs:48,82` / `system.rs:24-25` / `crypto.rs:9,21,31,41` / `src/lib/notification.ts:73` | 魔术 chunk size / service type / language ID / key size / toast duration | `[x]` 已修复（fs.rs 部分）：使用 `DEFAULT_CHUNK_SIZE` 与 `BACKUP_PREVIEW_SAMPLE`；其余文件待后续 |
@@ -66,7 +66,7 @@
 
 ## 修复进度
 
-- 已完成：18 / 47
+- 已完成：20 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
