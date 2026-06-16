@@ -10,6 +10,19 @@ use tokenizers::Tokenizer;
 /// Global cache for the loaded embedder instance.
 static EMBEDDER_CACHE: Mutex<Option<Arc<LocalEmbedder>>> = Mutex::new(None);
 
+/// 模型 ID 允许字符集，防止通过 model_id 构造路径遍历。
+fn validate_model_id(id: &str) -> Result<(), String> {
+    if id.is_empty()
+        || id.len() > 64
+        || !id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
+    {
+        return Err(format!("Invalid model id: {}", id));
+    }
+    Ok(())
+}
+
 /// A local embedding model instance.
 pub struct LocalEmbedder {
     session: std::sync::Mutex<Session>,
@@ -166,6 +179,7 @@ pub fn get_embedder(
     }
 
     // Not in cache or different model — load and cache
+    validate_model_id(model_id)?;
     let model_dir = models_dir.join(model_id);
     let embedder = Arc::new(LocalEmbedder::load(&model_dir, model_id)?);
 
@@ -183,6 +197,9 @@ pub fn clear_embedder_cache() {
 
 /// Check if a model is installed locally.
 pub fn is_model_installed(models_dir: &std::path::Path, model_id: &str) -> bool {
+    if validate_model_id(model_id).is_err() {
+        return false;
+    }
     let model_dir = models_dir.join(model_id);
     model_dir.join("model.onnx").exists() && model_dir.join("tokenizer.json").exists()
 }
@@ -194,9 +211,9 @@ mod tests {
     #[test]
     fn test_model_exists() {
         // This test assumes the model is downloaded in resources for dev testing
-        let model_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("resources/models/all-MiniLM-L6-v2");
-        assert!(is_model_installed(&model_dir, ""));
+        let models_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("resources/models");
+        assert!(is_model_installed(&models_dir, "all-MiniLM-L6-v2"));
     }
 
     #[test]
