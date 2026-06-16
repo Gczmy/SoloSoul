@@ -20,9 +20,11 @@ pub fn get_system_locale() -> Result<String, String> {
 #[cfg(target_os = "windows")]
 pub fn get_ui_language() -> Option<String> {
     use windows::Win32::Globalization::GetUserDefaultUILanguage;
+    const LANGID_PRIMARY_MASK: u16 = 0x3FF;
+    const LANGID_CHINESE: u16 = 0x04;
     let lang_id = unsafe { GetUserDefaultUILanguage() };
-    let primary_id = lang_id & 0x3FF;
-    if primary_id == 0x04 {
+    let primary_id = lang_id & LANGID_PRIMARY_MASK;
+    if primary_id == LANGID_CHINESE {
         Some("zh-CN".to_string())
     } else {
         Some("en-US".to_string())

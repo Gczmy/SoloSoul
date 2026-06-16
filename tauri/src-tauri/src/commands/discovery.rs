@@ -3,6 +3,10 @@ use serde::Serialize;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+const MDNS_SERVICE_TYPE: &str = "_solosoul._tcp.local.";
+const MDNS_MAX_TIMEOUT_MS: u64 = 30_000;
+const MDNS_POLL_INTERVAL_MS: u64 = 200;
+
 /// Wrapper to share ServiceDaemon across commands (prevents mem::forget leaks)
 pub struct SharedDaemon(Arc<Mutex<Option<ServiceDaemon>>>);
 
@@ -40,12 +44,13 @@ pub async fn mdns_discover(
     daemon: tauri::State<'_, SharedDaemon>,
     timeout_ms: u64,
 ) -> Result<Vec<DiscoveredDevice>, String> {
+    let timeout_ms = timeout_ms.min(MDNS_MAX_TIMEOUT_MS);
     let daemon_arc = daemon.get().await?;
     let guard = daemon_arc.lock().await;
     let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
 
     let receiver = daemon
-        .browse("_solosoul._tcp.local.")
+        .browse(MDNS_SERVICE_TYPE)
         .map_err(|e| format!("Browse: {}", e))?;
 
     let mut devices = Vec::new();
@@ -53,7 +58,7 @@ pub async fn mdns_discover(
 
     while std::time::Instant::now() < deadline {
         if let Ok(ServiceEvent::ServiceResolved(info)) =
-            receiver.recv_timeout(std::time::Duration::from_millis(200))
+            receiver.recv_timeout(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS))
         {
             let addresses: Vec<String> =
                 info.get_addresses().iter().map(|a| a.to_string()).collect();
@@ -79,7 +84,7 @@ pub async fn mdns_advertise(
     let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
 
     let service = ServiceInfo::new(
-        "_solosoul._tcp.local.",
+        MDNS_SERVICE_TYPE,
         &device_name,
         &format!("{}.local.", device_name),
         "",

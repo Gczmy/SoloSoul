@@ -9,7 +9,7 @@ pub async fn encrypt_bytes(state: State<'_, AppState>, data: Vec<u8>) -> Result<
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
-    let key: [u8; 32] = session_key
+    let key: [u8; solosoul_crypto::aes::KEY_SIZE] = session_key
         .as_slice()
         .try_into()
         .map_err(|_| "Invalid key length")?;
@@ -24,7 +24,7 @@ pub async fn decrypt_bytes(state: State<'_, AppState>, data: Vec<u8>) -> Result<
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
-    let key: [u8; 32] = session_key
+    let key: [u8; solosoul_crypto::aes::KEY_SIZE] = session_key
         .as_slice()
         .try_into()
         .map_err(|_| "Invalid key length")?;
@@ -34,20 +34,28 @@ pub async fn decrypt_bytes(state: State<'_, AppState>, data: Vec<u8>) -> Result<
 /// Encrypt data with an explicit 32-byte key (no vault needed)
 #[tauri::command]
 pub async fn encrypt_with_key(key: Vec<u8>, plaintext: Vec<u8>) -> Result<Vec<u8>, String> {
-    let key_arr: [u8; 32] = key
-        .as_slice()
-        .try_into()
-        .map_err(|_| format!("Key must be 32 bytes, got {}", key.len()))?;
+    let key_arr: [u8; solosoul_crypto::aes::KEY_SIZE] =
+        key.as_slice().try_into().map_err(|_| {
+            format!(
+                "Key must be {} bytes, got {}",
+                solosoul_crypto::aes::KEY_SIZE,
+                key.len()
+            )
+        })?;
     solosoul_crypto::aes::encrypt_blob(&key_arr, &plaintext).map(|b| b.to_vec())
 }
 
 /// Decrypt data with an explicit 32-byte key (no vault needed)
 #[tauri::command]
 pub async fn decrypt_with_key(key: Vec<u8>, ciphertext: Vec<u8>) -> Result<Vec<u8>, String> {
-    let key_arr: [u8; 32] = key
-        .as_slice()
-        .try_into()
-        .map_err(|_| format!("Key must be 32 bytes, got {}", key.len()))?;
+    let key_arr: [u8; solosoul_crypto::aes::KEY_SIZE] =
+        key.as_slice().try_into().map_err(|_| {
+            format!(
+                "Key must be {} bytes, got {}",
+                solosoul_crypto::aes::KEY_SIZE,
+                key.len()
+            )
+        })?;
     solosoul_crypto::aes::decrypt_blob(&key_arr, &ciphertext).map(|b| b.to_vec())
 }
 

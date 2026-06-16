@@ -6,6 +6,8 @@ import {
 } from '@tauri-apps/plugin-notification';
 import { useUiStore } from '@/stores/uiStore';
 
+const AI_NOTIFICATION_TOAST_DURATION_MS = 5000;
+
 interface LlmStreamPayload {
   conversationId: string;
   chunk: string;
@@ -70,7 +72,7 @@ export async function initLlmNotificationListener(): Promise<void> {
       useUiStore.getState().showToast({
         message: 'AI 已完成回复',
         type: 'info',
-        duration: 5000,
+        duration: AI_NOTIFICATION_TOAST_DURATION_MS,
       });
     }
   });
