@@ -18,7 +18,7 @@
 |------|--------|------------|----------|------|------|
 | P001 | P0 | 安全漏洞 | `tauri/crates/solosoul-core/src/biometric.rs:22,178-200` | 生物特征主密钥文件回退使用硬编码 XOR 混淆，可被轻易反混淆 | `[ ]` 待修复 |
 | P002 | P0 | 代码规范/死代码 | `tauri/crates/solosoul-vault/src/lib.rs:1-2` | 顶层 `#![allow(dead_code)]` / `#![allow(unused_imports)]` 抑制整 crate 警告 | `[x]` 已修复：移除全局 suppression，clippy 无警告 |
-| P003 | P0 | 代码结构 | `tauri/src-tauri/src/commands/*.rs` | vault 访问样板代码在 11+ 个命令文件中重复 | `[ ]` 待修复 |
+| P003 | P0 | 代码结构 | `tauri/src-tauri/src/commands/*.rs` | vault 访问样板代码在 11+ 个命令文件中重复 | `[x]` 已修复：提取 `vault_handle` / `current_account` / `current_account_optional` 到 `mod.rs` 并在命令模块复用 |
 | P004 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:90-158,219-294` | `create_zip_package` / `extract_zip_package` / `fs_scan_directory` / `fs_get_file_size` / `fs_read_file_as_data_url` 未限制基础目录，存在路径遍历 | `[ ]` 待修复 |
 | P005 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/attachment.rs:86-91,208-232` | `attachment_delete` / `attachment_copy_to_vault` 直接拼接 `object_id` / `attachment_id` 到路径，未校验 | `[ ]` 待修复 |
 | P006 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/export_import.rs:456-469,1068-1079` | 导出/导入附件时读取 `att.src_path` 或使用导入包中的 `obj_id` 构建路径，可被恶意包利用 | `[ ]` 待修复 |
@@ -66,7 +66,7 @@
 
 ## 修复进度
 
-- 已完成：12 / 47
+- 已完成：13 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
