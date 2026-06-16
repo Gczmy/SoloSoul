@@ -13,6 +13,11 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::ipc::Channel;
+
+/// 插件单次 `solosoul_sleep` 最大允许时长（毫秒）。
+const MAX_PLUGIN_SLEEP_MS: u64 = 1_000;
+/// 插件通过 Host 读取字符串的最大字节数（64 KiB）。
+const MAX_PLUGIN_READ_LEN: usize = 64 * 1024;
 use tokio::sync::oneshot;
 use url::Url;
 use wasmtime::{Caller, Extern, Linker, Memory};
@@ -769,7 +774,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
             "env",
             "solosoul_sleep",
             |_caller: Caller<'_, SoloHostState>, ms: i64| -> i32 {
-                let dur = u64::try_from(ms).unwrap_or(0);
+                let dur = u64::try_from(ms).unwrap_or(0).min(MAX_PLUGIN_SLEEP_MS);
                 std::thread::sleep(Duration::from_millis(dur));
                 code::SUCCESS
             },
@@ -805,8 +810,15 @@ fn read_string(
     if ptr < 0 || len < 0 {
         return Err(PluginError::InvalidArgument("非法指针".to_string()));
     }
+    let len = len as usize;
+    if len > MAX_PLUGIN_READ_LEN {
+        return Err(PluginError::InvalidArgument(format!(
+            "字符串长度超过 {} 字节限制",
+            MAX_PLUGIN_READ_LEN
+        )));
+    }
     let mem = get_memory(caller)?;
-    let mut buf = vec![0u8; len as usize];
+    let mut buf = vec![0u8; len];
     mem.read(&mut *caller, ptr as usize, &mut buf)
         .map_err(|e| PluginError::ExecutionFailed(format!("读取内存失败: {}", e)))?;
     String::from_utf8(buf).map_err(|_| PluginError::InvalidManifest("非法 UTF-8".to_string()))
