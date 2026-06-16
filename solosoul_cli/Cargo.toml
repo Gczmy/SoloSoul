@@ -19,7 +19,7 @@ solosoul-core = { path = "../tauri/crates/solosoul-core" }
 clap = { version = "4.5.23", features = ["derive"] }
 ratatui = "0.30.1"
 crossterm = "0.28.1"
-inquire = "0.7.5"
+inquire = { version = "0.7.5", features = ["date", "editor"] }
 color-eyre = "0.6.3"
 
 # 进程锁

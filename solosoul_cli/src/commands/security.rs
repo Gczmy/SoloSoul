@@ -1,7 +1,8 @@
-//! 安全相关命令：/security password、/security hint、/security trash-retention、/security delete-account。
+//! 安全相关命令：/security password、/security hint、/security trash-retention、/security delete-account、/security biometric。
 
 use color_eyre::Result;
 use serde_json::{Map, Value};
+use solosoul_core::biometric::BiometricManager;
 
 use crate::app::{App, AppPhase};
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
@@ -18,12 +19,19 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
         "hint" => handle_hint(app, args.get(2).copied()),
         "trash-retention" => handle_trash_retention(app, args.get(2).copied()),
         "delete-account" => start_delete_account(app),
+        "biometric" => handle_biometric(app, args.get(2).copied(), args.get(3).copied()),
         _ => {
-            app.error_message =
-                Some("用法: /security password|hint|trash-retention|delete-account".to_string());
+            app.error_message = Some(
+                "用法: /security password|hint|trash-retention|delete-account|biometric"
+                    .to_string(),
+            );
             Ok(())
         }
     }
+}
+
+fn biometric_manager(app: &App) -> BiometricManager {
+    BiometricManager::new(app.vault_service.base_path().to_path_buf())
 }
 
 /// 确保 Vault 已解锁，返回当前账户 ID。
@@ -208,6 +216,108 @@ fn handle_trash_retention(app: &mut App, days: Option<&str>) -> Result<()> {
     Ok(())
 }
 
+/// 执行 `/security biometric status|enable|disable|test`：管理生物识别登录。
+fn handle_biometric(app: &mut App, action: Option<&str>, reason: Option<&str>) -> Result<()> {
+    let account_id = require_unlocked(app)?;
+    let manager = biometric_manager(app);
+    let availability = manager.availability(&account_id);
+
+    match action {
+        Some("status") | None => {
+            let status = if availability.available {
+                "可用"
+            } else {
+                "不可用"
+            };
+            let configured = if availability.configured {
+                "已启用"
+            } else {
+                "未启用"
+            };
+            let kind = availability
+                .biometry_type
+                .as_deref()
+                .unwrap_or("未知")
+                .to_string();
+            app.error_message = Some(format!(
+                "生物识别: {} · {} · 类型: {} · {}",
+                status,
+                configured,
+                kind,
+                availability.error.as_deref().unwrap_or("")
+            ));
+            Ok(())
+        }
+        Some("enable") => {
+            if !availability.available {
+                app.error_message = Some("当前平台不支持生物识别".to_string());
+                return Ok(());
+            }
+            let reason = reason
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "启用 SoloSoul 生物识别登录".to_string());
+            prompt::open(
+                app,
+                PromptSpec::Text {
+                    label: "输入当前主密码以启用生物识别".to_string(),
+                    initial: String::new(),
+                    mask: true,
+                    allow_toggle_mask: true,
+                },
+                Box::new(move |app, result| {
+                    if let PromptResult::Text(password) = result {
+                        let manager = biometric_manager(app);
+                        match manager.save_credential(&account_id, &password, &reason) {
+                            Ok(()) => app.error_message = Some("生物识别登录已启用".to_string()),
+                            Err(e) => app.error_message = Some(format!("启用失败: {}", e)),
+                        }
+                    }
+                }),
+            );
+            Ok(())
+        }
+        Some("disable") => {
+            prompt::open(
+                app,
+                PromptSpec::Text {
+                    label: "输入当前主密码以关闭生物识别".to_string(),
+                    initial: String::new(),
+                    mask: true,
+                    allow_toggle_mask: true,
+                },
+                Box::new(move |app, result| {
+                    if let PromptResult::Text(password) = result {
+                        let manager = biometric_manager(app);
+                        match manager.delete_credential(&account_id, &password) {
+                            Ok(()) => app.error_message = Some("生物识别登录已关闭".to_string()),
+                            Err(e) => app.error_message = Some(format!("关闭失败: {}", e)),
+                        }
+                    }
+                }),
+            );
+            Ok(())
+        }
+        Some("test") => {
+            let reason = reason
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "SoloSoul 生物识别测试".to_string());
+            match manager.test(&reason) {
+                Ok(true) => app.error_message = Some("生物识别测试通过".to_string()),
+                Ok(false) => app.error_message = Some("生物识别测试不可用".to_string()),
+                Err(e) => app.error_message = Some(format!("测试失败: {}", e)),
+            }
+            Ok(())
+        }
+        Some(other) => {
+            app.error_message = Some(format!(
+                "未知子命令: {}。用法: /security biometric status|enable|disable|test",
+                other
+            ));
+            Ok(())
+        }
+    }
+}
+
 /// 执行 `/security delete-account`：验证密码并确认后删除账户。
 fn start_delete_account(app: &mut App) -> Result<()> {
     let account_id = require_unlocked(app)?;
@@ -341,6 +451,25 @@ mod tests {
             .vault_service
             .verify_password(&account_id, "password123")
             .unwrap());
+    }
+
+    #[test]
+    fn test_biometric_status() {
+        let (mut app, _account_id, _dir) = unlocked_app();
+        handle(&mut app, &["/security", "biometric", "status"]).unwrap();
+        let msg = app.error_message.as_deref().unwrap_or("");
+        assert!(msg.contains("生物识别"));
+    }
+
+    #[test]
+    fn test_biometric_unknown_subcommand() {
+        let (mut app, _account_id, _dir) = unlocked_app();
+        handle(&mut app, &["/security", "biometric", "foo"]).unwrap();
+        assert!(app
+            .error_message
+            .as_deref()
+            .unwrap_or("")
+            .contains("未知子命令"));
     }
 
     #[test]

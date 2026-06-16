@@ -3,6 +3,7 @@
 pub mod account_list;
 pub mod command_input;
 pub mod command_palette;
+pub mod external_editor;
 pub mod field_editor;
 pub mod option_list;
 pub mod password_input;

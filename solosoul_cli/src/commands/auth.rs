@@ -1,6 +1,7 @@
 //! 认证相关命令。
 
 use color_eyre::Result;
+use solosoul_core::biometric::BiometricManager;
 
 use crate::app::{App, AppPhase, UnlockStep};
 
@@ -34,11 +35,15 @@ pub fn unlock(app: &mut App) -> Result<()> {
 
     if accounts.len() == 1 {
         let account = &accounts[0];
+        let manager = BiometricManager::new(app.vault_service.base_path().to_path_buf());
+        let avail = manager.availability(&account.id);
         app.phase = AppPhase::UnlockWizard {
             step: UnlockStep::EnterPassword {
                 account_id: account.id.clone(),
                 account_name: account.name.clone(),
                 password_hint: account.password_hint.clone(),
+                biometric_configured: avail.configured,
+                biometry_type: avail.biometry_type,
             },
         };
         app.password_input.clear();

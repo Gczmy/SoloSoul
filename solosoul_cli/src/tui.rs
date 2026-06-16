@@ -55,6 +55,20 @@ impl Tui {
             // 绘制一帧
             self.terminal.draw(|frame| self.app.render(frame))?;
 
+            // 若存在需要 inquire 外部编辑的字段，优先处理
+            if self.app.external_edit.is_some() {
+                let request = self.app.external_edit.take().unwrap();
+                match crate::widgets::external_editor::run(&request) {
+                    Ok(value) => self.app.apply_external_edit(value),
+                    Err(e) => {
+                        self.app.error_message = Some(format!("外部编辑失败: {}", e));
+                    }
+                }
+                // 恢复全屏后清屏并立即重绘，避免残影
+                self.terminal.clear()?;
+                continue;
+            }
+
             // 轮询事件
             match poll_event(tick_rate)? {
                 Some(event) => {

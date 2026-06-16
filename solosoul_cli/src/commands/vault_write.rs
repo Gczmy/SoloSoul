@@ -6,7 +6,7 @@
 use color_eyre::Result;
 use solosoul_core::{ObjectRecord, ObjectSummary, TrashItem, UserTemplate};
 
-use crate::app::{App, AppPhase, EditObjectStep, NewObjectStep};
+use crate::app::{App, AppPhase, EditObjectStep, NewObjectStep, TrashFilter};
 use crate::widgets::field_editor::EditableField;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
@@ -495,17 +495,168 @@ fn move_object_to_trash(
 // /trash /restore /purge
 // ============================================================================
 
-/// 列出回收站项目。
-pub fn trash(app: &mut App) -> Result<()> {
-    require_unlocked(app)?;
+/// 解析回收站筛选参数。
+fn parse_trash_filter(args: &[&str]) -> TrashFilter {
+    let mut filter = TrashFilter::default();
+    let mut i = 0;
+    while i < args.len() {
+        match args[i] {
+            "--type" | "-t" if i + 1 < args.len() => {
+                filter.item_type = Some(args[i + 1].to_lowercase());
+                i += 2;
+                continue;
+            }
+            "--filter" | "-f" if i + 1 < args.len() => {
+                filter.since_ms = parse_trash_since(args[i + 1]);
+                i += 2;
+                continue;
+            }
+            "--search" | "-s" if i + 1 < args.len() => {
+                filter.search = Some(args[i + 1].to_string());
+                i += 2;
+                continue;
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+    filter
+}
+
+fn parse_trash_since(s: &str) -> Option<i64> {
+    let now = chrono::Utc::now().timestamp_millis();
+    let ms = match s {
+        "1d" => 24 * 3600 * 1000,
+        "3d" => 3 * 24 * 3600 * 1000,
+        "7d" => 7 * 24 * 3600 * 1000,
+        "30d" => 30 * 24 * 3600 * 1000,
+        "half_year" | "half-year" | "6m" => 180 * 24 * 3600 * 1000,
+        _ => {
+            // 尝试解析为天数
+            if let Ok(days) = s.parse::<i64>() {
+                days * 24 * 3600 * 1000
+            } else {
+                return None;
+            }
+        }
+    };
+    Some(now - ms)
+}
+
+fn load_trash_items(
+    app: &mut App,
+    filter: &TrashFilter,
+) -> Result<Vec<solosoul_core::TrashItemSummary>> {
     let vault = vault(app)?;
-    let items = vault.list_trash_items(None, None).map_err(map_err)?;
+    let mut items = vault
+        .list_trash_items(filter.item_type.as_deref(), filter.since_ms)
+        .map_err(map_err)?;
+    if let Some(search) = &filter.search {
+        let lower = search.to_lowercase();
+        items.retain(|item| item.name.to_lowercase().contains(&lower));
+    }
+    Ok(items)
+}
+
+pub fn apply_trash_filter(app: &mut App, filter: TrashFilter) -> Result<()> {
+    let items = load_trash_items(app, &filter)?;
     app.previous_phase = Some(app.phase.clone());
-    app.phase = AppPhase::TrashList { items };
+    app.phase = AppPhase::TrashList {
+        items,
+        selected: 0,
+        selected_ids: Vec::new(),
+        filter,
+    };
     Ok(())
 }
 
-/// 从回收站恢复对象/页面/模板。
+/// 列出回收站项目。
+pub fn trash(app: &mut App, args: &[&str]) -> Result<()> {
+    require_unlocked(app)?;
+    let filter = parse_trash_filter(args);
+    apply_trash_filter(app, filter)
+}
+
+/// 批量恢复回收站项目。
+pub fn batch_restore(app: &mut App, ids: &[String]) -> Result<()> {
+    let account_id = require_unlocked(app)?;
+    let vault = vault(app)?;
+    let mut success = Vec::new();
+    let mut failed = Vec::new();
+    for id in ids {
+        match restore_single(app, vault.as_ref(), &account_id, id) {
+            Ok(new_id) => success.push(format!("{} -> {}", id, new_id)),
+            Err(e) => failed.push(format!("{}: {}", id, e)),
+        }
+    }
+    app.error_message = Some(format!(
+        "恢复完成：成功 {} 项；失败 {} 项{}",
+        success.len(),
+        failed.len(),
+        if failed.is_empty() {
+            String::new()
+        } else {
+            format!("\n{}", failed.join("\n"))
+        }
+    ));
+    Ok(())
+}
+
+/// 批量彻底删除回收站项目。
+pub fn batch_purge(app: &mut App, ids: &[String]) -> Result<()> {
+    require_unlocked(app)?;
+    let vault = vault(app)?;
+    let mut success = 0usize;
+    let mut failed = Vec::new();
+    for id in ids {
+        match vault.delete_trash_item(id).map_err(map_err) {
+            Ok(()) => success += 1,
+            Err(e) => failed.push(format!("{}: {}", id, e)),
+        }
+    }
+    app.error_message = Some(format!(
+        "彻底删除完成：成功 {} 项；失败 {} 项{}",
+        success,
+        failed.len(),
+        if failed.is_empty() {
+            String::new()
+        } else {
+            format!("\n{}", failed.join("\n"))
+        }
+    ));
+    Ok(())
+}
+
+fn restore_single(
+    app: &mut App,
+    vault: &solosoul_core::VaultStore,
+    account_id: &str,
+    trash_id: &str,
+) -> Result<String> {
+    let trash = match vault.get_trash_item(trash_id).map_err(map_err)? {
+        Some(t) => t,
+        None => return Err(color_eyre::eyre::eyre!("回收站项目不存在")),
+    };
+    match trash.item_type.as_str() {
+        "object" | "page" => {
+            let record = object_record_from_trash(&trash)?;
+            restore_record(app, vault, &trash, record, account_id)
+        }
+        "template" => {
+            let template: UserTemplate = serde_json::from_slice(&trash.data)
+                .map_err(|e| map_err(format!("模板数据损坏: {}", e)))?;
+            vault.save_user_template(&template).map_err(map_err)?;
+            vault.delete_trash_item(trash_id).map_err(map_err)?;
+            Ok(template.name)
+        }
+        _ => Err(color_eyre::eyre::eyre!(format!(
+            "不支持的回收站类型: {}",
+            trash.item_type
+        ))),
+    }
+}
+
+/// 从回收站恢复单个对象/页面/模板。
 pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
     let account_id = require_unlocked(app)?;
     let trash_id = match trash_id {
@@ -517,32 +668,10 @@ pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
     };
 
     let vault = vault(app)?;
-    let trash = match vault.get_trash_item(trash_id).map_err(map_err)? {
-        Some(t) => t,
-        None => {
-            app.error_message = Some(format!("回收站项目 '{}' 不存在", trash_id));
-            return Ok(());
-        }
-    };
-
-    match trash.item_type.as_str() {
-        "object" | "page" => {
-            let record = object_record_from_trash(&trash)?;
-            let new_id = restore_record(app, &vault, &trash, record, &account_id)?;
-            app.error_message = Some(format!("已恢复: {}", new_id));
-        }
-        "template" => {
-            let template: UserTemplate = serde_json::from_slice(&trash.data)
-                .map_err(|e| map_err(format!("模板数据损坏: {}", e)))?;
-            vault.save_user_template(&template).map_err(map_err)?;
-            vault.delete_trash_item(trash_id).map_err(map_err)?;
-            app.error_message = Some(format!("已恢复模板: {}", template.name));
-        }
-        _ => {
-            app.error_message = Some(format!("不支持的回收站类型: {}", trash.item_type));
-        }
+    match restore_single(app, vault.as_ref(), &account_id, trash_id) {
+        Ok(new_id) => app.error_message = Some(format!("已恢复: {}", new_id)),
+        Err(e) => app.error_message = Some(format!("恢复失败: {}", e)),
     }
-
     Ok(())
 }
 
@@ -1009,12 +1138,22 @@ mod tests {
         // 模拟确认
         if app.prompt.take().is_some() {
             let page_record = vault.load_object(&page.id).unwrap().unwrap();
-            super::delete_page(
-                &mut app,
-                &page_record,
-                &[ObjectSummary::from_record(&child)],
-            )
-            .unwrap();
+            let child_summary = ObjectSummary {
+                id: child.id.clone(),
+                name: child.name.clone(),
+                collection_type: child.type_id.clone(),
+                section_type: child.section_type.clone(),
+                sensitivity_level: child.sensitivity_level.clone(),
+                created_at: child.created_at.clone(),
+                updated_at: child.updated_at.clone(),
+                is_deleted: child.is_deleted,
+                template_id: child.template_id.clone(),
+                template_type: child.template_type.clone(),
+                icon_name: child.icon_name.clone(),
+                properties: child.properties.clone(),
+                tags: child.tags_json.clone(),
+            };
+            super::delete_page(&mut app, &page_record, &[child_summary]).unwrap();
             assert!(app.error_message.as_ref().unwrap().contains("已删除"));
         }
     }

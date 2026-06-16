@@ -32,7 +32,7 @@ fn ui_prefs_path(app: &App) -> std::path::PathBuf {
 }
 
 /// 加载 UI 偏好，缺失字段使用默认值填充。
-fn load_ui_prefs(app: &App) -> Map<String, Value> {
+pub(crate) fn load_ui_prefs(app: &App) -> Map<String, Value> {
     let path = ui_prefs_path(app);
     let mut map = if path.exists() {
         std::fs::read_to_string(&path)

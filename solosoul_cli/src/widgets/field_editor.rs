@@ -76,6 +76,19 @@ impl EditableField {
             "sensitive" | "critical" | "restricted"
         )
     }
+
+    /// 编辑前是否需要主密码验证（sensitive / critical / restricted）。
+    pub fn requires_password_verification(&self) -> bool {
+        matches!(
+            self.sensitivity.to_lowercase().as_str(),
+            "sensitive" | "critical" | "restricted"
+        )
+    }
+
+    /// 是否为 critical 级别（需要更严格审计日志）。
+    pub fn is_critical(&self) -> bool {
+        self.sensitivity.to_lowercase() == "critical"
+    }
 }
 
 fn default_value(prop_type: &PropertyType) -> serde_json::Value {
@@ -98,6 +111,18 @@ pub fn format_value(value: &serde_json::Value) -> String {
         }
         serde_json::Value::Object(_) => serde_json::to_string(value).unwrap_or_default(),
     }
+}
+
+/// 判断字段是否需要临时退出 ratatui 全屏，通过 inquire 编辑。
+pub fn needs_external_editor(field: &EditableField) -> bool {
+    matches!(
+        field.prop_type,
+        PropertyType::Date
+            | PropertyType::DateTime
+            | PropertyType::Select
+            | PropertyType::MultiSelect
+            | PropertyType::MultilineText
+    )
 }
 
 pub fn mask_value(value: &str) -> String {

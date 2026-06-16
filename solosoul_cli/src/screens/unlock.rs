@@ -20,6 +20,8 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, step: &UnlockStep, sheen_o
             account_id,
             account_name,
             password_hint,
+            biometric_configured,
+            biometry_type,
         } => render_enter_password(
             frame,
             area,
@@ -27,6 +29,8 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, step: &UnlockStep, sheen_o
             account_id,
             account_name,
             password_hint,
+            *biometric_configured,
+            biometry_type.as_deref(),
             sheen_offset,
         ),
     }
@@ -93,6 +97,7 @@ fn render_select_account(
     frame.render_widget(hint, chunks[2]);
 }
 
+#[allow(clippy::too_many_arguments)]
 fn render_enter_password(
     frame: &mut ratatui::Frame,
     area: Rect,
@@ -100,6 +105,8 @@ fn render_enter_password(
     account_id: &str,
     account_name: &str,
     password_hint: &Option<String>,
+    biometric_configured: bool,
+    biometry_type: Option<&str>,
     sheen_offset: u16,
 ) {
     let inner = area.inner(Margin::new(2, 2));
@@ -145,8 +152,16 @@ fn render_enter_password(
     .alignment(Alignment::Center);
     frame.render_widget(info, chunks[1]);
 
-    let hint = Paragraph::new(Line::from("Enter 确认 · Esc 取消").style(theme.style_hint()))
-        .alignment(Alignment::Center);
+    let biometric_hint = if biometric_configured {
+        let kind = biometry_type.unwrap_or("生物识别");
+        format!(" · B 使用 {}", kind)
+    } else {
+        String::new()
+    };
+    let hint = Paragraph::new(
+        Line::from(format!("Enter 确认 · Esc 取消{}", biometric_hint)).style(theme.style_hint()),
+    )
+    .alignment(Alignment::Center);
     frame.render_widget(hint, chunks[2]);
 }
 

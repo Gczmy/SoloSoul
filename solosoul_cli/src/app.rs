@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use color_eyre::Result;
-use crossterm::event::{KeyCode, KeyEvent, MouseButton, MouseEvent, MouseEventKind};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::Frame;
 use solosoul_core::process_lock::ProcessLock;
@@ -16,9 +16,17 @@ use crate::commands;
 use crate::commands::search::SearchResultItem;
 use crate::widgets::command_input::CommandInput;
 use crate::widgets::command_palette::{CommandPalette, PaletteAction};
-use crate::widgets::field_editor::EditableField;
+use crate::widgets::field_editor::{self, EditableField};
 use crate::widgets::password_input::PasswordInput;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
+
+/// 回收站筛选条件。
+#[derive(Debug, Clone, Default)]
+pub struct TrashFilter {
+    pub item_type: Option<String>,
+    pub since_ms: Option<i64>,
+    pub search: Option<String>,
+}
 
 /// 账户统计报告。
 #[derive(Debug, Clone, Default)]
@@ -84,6 +92,9 @@ pub enum AppPhase {
     /// 回收站列表
     TrashList {
         items: Vec<solosoul_core::TrashItemSummary>,
+        selected: usize,
+        selected_ids: Vec<String>,
+        filter: TrashFilter,
     },
     /// 首次启动创建账户向导
     Onboarding { step: OnboardingStep },
@@ -122,6 +133,25 @@ pub enum AppPhase {
     BackupList {
         items: Vec<crate::commands::backup::BackupInfo>,
         selected: usize,
+    },
+    /// Profile 展示页
+    Profile {
+        profile: solosoul_core::Profile,
+        data: serde_json::Value,
+        selected: usize,
+    },
+    /// 模板列表页
+    TemplateList {
+        user_templates: Vec<solosoul_core::UserTemplate>,
+        system_templates: Vec<solosoul_core::template_service::SystemTemplate>,
+        selected: usize,
+    },
+    /// 模板详情页
+    TemplateDetail {
+        template_id: String,
+        name: String,
+        source: String,
+        json: String,
     },
     /// 安全退出
     Quit,
@@ -204,7 +234,19 @@ pub enum UnlockStep {
         account_id: String,
         account_name: String,
         password_hint: Option<String>,
+        biometric_configured: bool,
+        biometry_type: Option<String>,
     },
+}
+
+/// 需要临时退出 ratatui 全屏，调用 inquire 进行编辑的字段请求。
+#[derive(Debug, Clone)]
+pub enum ExternalEditRequest {
+    Date(EditableField),
+    DateTime(EditableField),
+    Select(EditableField),
+    MultiSelect(EditableField),
+    Textarea(EditableField),
 }
 
 pub struct App {
@@ -245,6 +287,8 @@ pub struct App {
     pub welcome_selected: usize,
     /// 当前触屏/鼠标拖拽起始位置，用于在支持滚动的页面区分点击与滑动滚动。
     pub drag_start: Option<(u16, u16)>,
+    /// 待通过 inquire 在外部编辑的字段请求。
+    pub external_edit: Option<ExternalEditRequest>,
 }
 
 impl App {
@@ -293,6 +337,7 @@ impl App {
             locked_selected: 0,
             welcome_selected: 0,
             drag_start: None,
+            external_edit: None,
         })
     }
 
@@ -312,6 +357,213 @@ impl App {
         self.account_name = self.lookup_account_name(&account_id);
         self.selected_shortcut = 0;
         self.phase = AppPhase::Home { account_id };
+    }
+}
+
+/// 根据字段类型构造对应的外部编辑请求。
+pub fn build_external_edit_request(field: EditableField) -> ExternalEditRequest {
+    use solosoul_core::PropertyType;
+    match field.prop_type {
+        PropertyType::Date => ExternalEditRequest::Date(field),
+        PropertyType::DateTime => ExternalEditRequest::DateTime(field),
+        PropertyType::Select => ExternalEditRequest::Select(field),
+        PropertyType::MultiSelect => ExternalEditRequest::MultiSelect(field),
+        PropertyType::MultilineText => ExternalEditRequest::Textarea(field),
+        _ => ExternalEditRequest::Textarea(field),
+    }
+}
+
+impl App {
+    /// 将外部编辑器（inquire）返回的值应用到当前向导的选中字段。
+    #[allow(clippy::collapsible_match)]
+    pub fn apply_external_edit(&mut self, value: Option<serde_json::Value>) {
+        if value.is_none() {
+            return;
+        }
+        let value = value.unwrap();
+        match &mut self.phase {
+            AppPhase::NewObjectWizard {
+                step:
+                    NewObjectStep::FillFields {
+                        fields, selected, ..
+                    },
+            } => {
+                if *selected < fields.len() {
+                    fields[*selected].value = value;
+                }
+            }
+            AppPhase::EditObjectWizard {
+                step:
+                    EditObjectStep::Overview {
+                        object,
+                        fields,
+                        selected,
+                        ..
+                    },
+                ..
+            } => {
+                if *selected < fields.len() {
+                    let key = fields[*selected].key.clone();
+                    fields[*selected].value = value.clone();
+                    if let serde_json::Value::Object(ref mut map) = object.properties {
+                        map.insert(key, value);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// 开始编辑字段；若字段敏感则先弹出主密码验证。
+    pub fn start_field_edit(&mut self, field: EditableField) {
+        if field.requires_password_verification() {
+            self.prompt_verify_password_for_field(field);
+        } else {
+            self.proceed_with_field_edit(field);
+        }
+    }
+
+    /// 弹出主密码验证，通过后再进入字段编辑。
+    fn prompt_verify_password_for_field(&mut self, field: EditableField) {
+        let account_id = self.vault_service.get_current_account().unwrap_or_default();
+        prompt::open(
+            self,
+            PromptSpec::Text {
+                label: format!(
+                    "字段 [{}] 为 {} 级别，请输入主密码验证",
+                    field.label,
+                    field.sensitivity.to_uppercase()
+                ),
+                initial: String::new(),
+                mask: true,
+                allow_toggle_mask: false,
+            },
+            Box::new(move |app, result| {
+                if let PromptResult::Text(password) = result {
+                    match app.vault_service.verify_password(&account_id, &password) {
+                        Ok(true) => app.proceed_with_field_edit(field),
+                        Ok(false) => {
+                            app.error_message = Some("主密码验证失败".to_string());
+                        }
+                        Err(e) => {
+                            app.error_message = Some(format!("验证失败: {}", e));
+                        }
+                    }
+                }
+            }),
+        );
+    }
+
+    /// 验证已通过，根据字段类型进入内部或外部编辑器。
+    fn proceed_with_field_edit(&mut self, field: EditableField) {
+        if field_editor::needs_external_editor(&field) {
+            self.external_edit = Some(build_external_edit_request(field));
+            return;
+        }
+        self.open_internal_field_editor(field);
+    }
+
+    /// 打开自绘字段编辑器（适用于 text/number/boolean 等简单类型）。
+    fn open_internal_field_editor(&mut self, field: EditableField) {
+        use crate::widgets::prompt::PromptResult;
+
+        let spec = field_editor::prompt_for_field(&field);
+        let is_critical = field.is_critical();
+        let field_key = field.key.clone();
+        let field_label = field.label.clone();
+
+        match self.phase.clone() {
+            AppPhase::NewObjectWizard {
+                step:
+                    NewObjectStep::FillFields {
+                        page_id,
+                        page_name,
+                        template,
+                        name,
+                        mut fields,
+                        selected,
+                    },
+            } => {
+                prompt::open(
+                    self,
+                    spec,
+                    Box::new(move |app: &mut App, result: PromptResult| {
+                        if let Some(new_value) = field_editor::value_from_result(&result, &field) {
+                            if is_critical {
+                                app.log_critical_field_edit(&field_key, &field_label);
+                            }
+                            if selected < fields.len() {
+                                fields[selected].value = new_value;
+                            }
+                        }
+                        app.phase = AppPhase::NewObjectWizard {
+                            step: NewObjectStep::FillFields {
+                                page_id,
+                                page_name,
+                                template,
+                                name,
+                                fields,
+                                selected,
+                            },
+                        };
+                    }),
+                );
+            }
+            AppPhase::EditObjectWizard {
+                object_id,
+                step:
+                    EditObjectStep::Overview {
+                        mut object,
+                        mut fields,
+                        selected,
+                    },
+            } => {
+                prompt::open(
+                    self,
+                    spec,
+                    Box::new(move |app: &mut App, result: PromptResult| {
+                        if let Some(new_value) = field_editor::value_from_result(&result, &field) {
+                            if is_critical {
+                                app.log_critical_field_edit(&field_key, &field_label);
+                            }
+                            if selected < fields.len() {
+                                let key = fields[selected].key.clone();
+                                fields[selected].value = new_value.clone();
+                                if let serde_json::Value::Object(ref mut map) = object.properties {
+                                    map.insert(key, new_value);
+                                }
+                            }
+                        }
+                        app.phase = AppPhase::EditObjectWizard {
+                            object_id,
+                            step: EditObjectStep::Overview {
+                                object,
+                                fields,
+                                selected,
+                            },
+                        };
+                    }),
+                );
+            }
+            _ => {}
+        }
+    }
+
+    /// 记录 critical 字段编辑审计日志。
+    fn log_critical_field_edit(&self, field_key: &str, field_label: &str) {
+        if let (Some(account_id), Some(vault)) = (
+            self.vault_service.get_current_account(),
+            self.vault_service.get_vault_store(),
+        ) {
+            let _ = vault.log_structured(
+                "critical_field_edit",
+                "field",
+                Some(field_key),
+                Some(field_label),
+                &account_id,
+                Some("cli"),
+            );
+        }
     }
 
     /// 处理事件，返回 true 表示应退出事件循环。
@@ -377,6 +629,10 @@ impl App {
             AppPhase::HistoryList { .. } => self.handle_history_list_key(key),
             AppPhase::AttachmentList { .. } => self.handle_attachment_list_key(key),
             AppPhase::BackupList { .. } => self.handle_backup_list_key(key),
+            AppPhase::Profile { .. } => self.handle_profile_key(key),
+            AppPhase::TemplateList { .. } => self.handle_template_list_key(key),
+            AppPhase::TemplateDetail { .. } => self.handle_template_detail_key(key),
+            AppPhase::TrashList { .. } => self.handle_trash_list_key(key),
             AppPhase::Locked => self.handle_locked_key(key),
             AppPhase::Welcome => self.handle_welcome_key(key),
             _ => self.handle_command_key(key),
@@ -529,11 +785,15 @@ impl App {
                         let account_id = account.id.clone();
                         let account_name = account.name.clone();
                         let password_hint = account.password_hint.clone();
+                        let (biometric_configured, biometry_type) =
+                            self.biometric_status(&account_id);
                         self.phase = AppPhase::UnlockWizard {
                             step: UnlockStep::EnterPassword {
                                 account_id,
                                 account_name,
                                 password_hint,
+                                biometric_configured,
+                                biometry_type,
                             },
                         };
                         self.password_input.clear();
@@ -546,7 +806,11 @@ impl App {
                 };
                 Ok(false)
             }
-            UnlockStep::EnterPassword { account_id, .. } => {
+            UnlockStep::EnterPassword {
+                account_id,
+                biometric_configured,
+                ..
+            } => {
                 if key.code == KeyCode::Esc {
                     self.password_input.clear();
                     commands::core::back(self);
@@ -555,6 +819,15 @@ impl App {
 
                 if key.code == KeyCode::Enter {
                     self.submit_password(&account_id)?;
+                    return Ok(false);
+                }
+
+                if key.code == KeyCode::Char('b') || key.code == KeyCode::Char('B') {
+                    if biometric_configured {
+                        self.try_biometric_unlock(&account_id)?;
+                    } else {
+                        self.error_message = Some("当前账户未启用生物识别登录".to_string());
+                    }
                     return Ok(false);
                 }
 
@@ -885,6 +1158,35 @@ impl App {
         Ok(())
     }
 
+    /// 获取指定账户的生物识别状态。
+    fn biometric_status(&self, account_id: &str) -> (bool, Option<String>) {
+        use solosoul_core::biometric::BiometricManager;
+        let manager = BiometricManager::new(self.vault_service.base_path().to_path_buf());
+        let avail = manager.availability(account_id);
+        if avail.configured {
+            (true, avail.biometry_type)
+        } else {
+            (false, None)
+        }
+    }
+
+    /// 尝试使用生物识别解锁 Vault。
+    fn try_biometric_unlock(&mut self, account_id: &str) -> Result<()> {
+        use solosoul_core::biometric::BiometricManager;
+        let manager = BiometricManager::new(self.vault_service.base_path().to_path_buf());
+        match manager.unlock(account_id, &self.vault_service, "解锁 SoloSoul Vault") {
+            Ok(kind) => {
+                self.error_message = None;
+                self.enter_home(account_id);
+                tracing::info!("biometric unlock succeeded: {}", kind);
+            }
+            Err(e) => {
+                self.error_message = Some(format!("生物识别解锁失败: {}", e));
+            }
+        }
+        Ok(())
+    }
+
     /// 普通命令模式键盘处理。
     fn handle_command_key(&mut self, key: KeyEvent) -> Result<bool> {
         // 全局 Esc：先清 error overlay；若斜杠面板打开则关闭面板；否则清空输入/返回
@@ -904,6 +1206,16 @@ impl App {
                 self.prompt_exit_cli();
             } else {
                 commands::core::back(self);
+            }
+            return Ok(false);
+        }
+
+        // 全局 Ctrl+L：手动锁定 Vault
+        if key.modifiers.contains(KeyModifiers::CONTROL)
+            && matches!(key.code, KeyCode::Char('l') | KeyCode::Char('L'))
+        {
+            if self.vault_service.is_unlocked() {
+                commands::auth::lock(self);
             }
             return Ok(false);
         }
@@ -1042,16 +1354,16 @@ impl App {
             "/back" => commands::core::back(self),
             "/account_list" => commands::auth::account_list(self)?,
             "/doctor" => commands::doctor::run(self)?,
-            "/unlock" => commands::auth::unlock(self)?,
+            "/unlock" | "/login" => commands::auth::unlock(self)?,
             "/lock" | "/logout" => commands::auth::lock(self),
             "/list" => commands::vault_read::list(self, parts.get(1).copied())?,
             "/open" => commands::vault_read::open(self, parts.get(1).copied())?,
-            "/size" => commands::vault_read::size(self)?,
+            "/size" | "/status" | "/state" => commands::vault_read::size(self)?,
             "/newpage" => commands::vault_write::newpage(self, parts.get(1).copied())?,
             "/newobject" => commands::vault_write::newobject(self, parts.get(1).copied())?,
             "/edit" => commands::vault_write::edit(self, parts.get(1).copied())?,
             "/delete" => commands::vault_write::delete(self, parts.get(1).copied())?,
-            "/trash" => commands::vault_write::trash(self)?,
+            "/trash" | "/bin" => commands::vault_write::trash(self, &parts[1..])?,
             "/restore" => commands::vault_write::restore(self, parts.get(1).copied())?,
             "/purge" => commands::vault_write::purge(self, parts.get(1).copied())?,
             "/search" => {
@@ -1067,7 +1379,7 @@ impl App {
             }
             "/operation_log" => commands::log::operation_log(self, parts.get(1).copied())?,
             "/export_log" => commands::log::export_log(self, parts.get(1).copied())?,
-            "/about" => commands::system::about(self)?,
+            "/about" | "/version" => commands::system::about(self)?,
             "/help" => commands::system::help(self, parts.get(1).copied())?,
             "/attach" => commands::attachment::handle(self, &parts[1..])?,
             "/backup" => commands::backup::handle(self, &parts[1..])?,
@@ -1077,6 +1389,8 @@ impl App {
                 commands::settings::handle(self, &parts)?
             }
             "/security" => commands::security::handle(self, &parts)?,
+            "/profile" => commands::profile::handle(self, &parts)?,
+            "/template" => commands::template::handle(self, &parts)?,
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -1147,8 +1461,6 @@ impl App {
 
     /// 创建对象向导的键盘处理。
     fn handle_new_object_key(&mut self, key: KeyEvent, step: NewObjectStep) -> Result<bool> {
-        use crate::widgets::field_editor;
-
         match step {
             NewObjectStep::SelectPage {
                 pages,
@@ -1257,33 +1569,7 @@ impl App {
                     KeyCode::Down if selected + 1 < fields.len() => selected += 1,
                     KeyCode::Enter => {
                         let field = fields[selected].clone();
-                        let spec = field_editor::prompt_for_field(&field);
-                        let page_id2 = page_id.clone();
-                        let page_name2 = page_name.clone();
-                        let template2 = template.clone();
-                        let name2 = name.clone();
-                        let mut fields2 = fields.clone();
-                        prompt::open(
-                            self,
-                            spec,
-                            Box::new(move |app: &mut App, result: PromptResult| {
-                                if let Some(new_value) =
-                                    field_editor::value_from_result(&result, &field)
-                                {
-                                    fields2[selected].value = new_value;
-                                }
-                                app.phase = AppPhase::NewObjectWizard {
-                                    step: NewObjectStep::FillFields {
-                                        page_id: page_id2,
-                                        page_name: page_name2,
-                                        template: template2,
-                                        name: name2,
-                                        fields: fields2,
-                                        selected,
-                                    },
-                                };
-                            }),
-                        );
+                        self.start_field_edit(field);
                         return Ok(false);
                     }
                     _ => {}
@@ -1310,8 +1596,6 @@ impl App {
         object_id: String,
         step: EditObjectStep,
     ) -> Result<bool> {
-        use crate::widgets::field_editor;
-
         match step {
             EditObjectStep::Overview {
                 mut object,
@@ -1360,34 +1644,7 @@ impl App {
                     }
                     KeyCode::Enter => {
                         let field = fields[selected].clone();
-                        let spec = field_editor::prompt_for_field(&field);
-                        let object_id2 = object_id.clone();
-                        let mut object2 = object.clone();
-                        let mut fields2 = fields.clone();
-                        prompt::open(
-                            self,
-                            spec,
-                            Box::new(move |app: &mut App, result: PromptResult| {
-                                if let Some(new_value) =
-                                    field_editor::value_from_result(&result, &field)
-                                {
-                                    fields2[selected].value = new_value.clone();
-                                    if let serde_json::Value::Object(ref mut map) =
-                                        object2.properties
-                                    {
-                                        map.insert(field.key.clone(), new_value);
-                                    }
-                                }
-                                app.phase = AppPhase::EditObjectWizard {
-                                    object_id: object_id2,
-                                    step: EditObjectStep::Overview {
-                                        object: object2.clone(),
-                                        fields: fields2,
-                                        selected,
-                                    },
-                                };
-                            }),
-                        );
+                        self.start_field_edit(field);
                         return Ok(false);
                     }
                     _ => {}
@@ -1524,6 +1781,165 @@ impl App {
         Ok(false)
     }
 
+    /// Profile 页的键盘处理。
+    fn handle_profile_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::Profile {
+            profile,
+            data,
+            selected,
+        } = &self.phase
+        {
+            let mut selected = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if selected > 0 => selected -= 1,
+                KeyCode::Down => selected += 1,
+                _ => {}
+            }
+            self.phase = AppPhase::Profile {
+                profile: profile.clone(),
+                data: data.clone(),
+                selected,
+            };
+        }
+        Ok(false)
+    }
+
+    /// 模板列表页的键盘处理。
+    fn handle_template_list_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::TemplateList {
+            user_templates,
+            system_templates,
+            selected,
+        } = &self.phase
+        {
+            let total = user_templates.len() + system_templates.len();
+            let mut selected = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if selected > 0 => selected -= 1,
+                KeyCode::Down if selected + 1 < total => selected += 1,
+                KeyCode::Enter if selected < total => {
+                    let id = if selected < user_templates.len() {
+                        user_templates[selected].id.clone()
+                    } else {
+                        system_templates[selected - user_templates.len()]
+                            .key
+                            .clone()
+                    };
+                    commands::template::handle(self, &["/template", "show", &id])?;
+                    return Ok(false);
+                }
+                KeyCode::Char('d') if selected < user_templates.len() => {
+                    let id = user_templates[selected].id.clone();
+                    commands::template::handle(self, &["/template", "delete", &id])?;
+                    return Ok(false);
+                }
+                _ => {}
+            }
+            self.phase = AppPhase::TemplateList {
+                user_templates: user_templates.clone(),
+                system_templates: system_templates.clone(),
+                selected,
+            };
+        }
+        Ok(false)
+    }
+
+    /// 模板详情页的键盘处理。
+    fn handle_template_detail_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if matches!(key.code, KeyCode::Esc | KeyCode::Char('q')) {
+            commands::core::back(self);
+        }
+        Ok(false)
+    }
+
+    /// 回收站列表页的键盘处理。
+    fn handle_trash_list_key(&mut self, key: KeyEvent) -> Result<bool> {
+        let (items, mut selected, mut selected_ids, filter) = if let AppPhase::TrashList {
+            items,
+            selected,
+            selected_ids,
+            filter,
+        } = &self.phase
+        {
+            (
+                items.clone(),
+                *selected,
+                selected_ids.clone(),
+                filter.clone(),
+            )
+        } else {
+            return Ok(false);
+        };
+
+        let mut need_refresh = false;
+        match key.code {
+            KeyCode::Esc | KeyCode::Char('q') => {
+                commands::core::back(self);
+                return Ok(false);
+            }
+            KeyCode::Up if selected > 0 => selected -= 1,
+            KeyCode::Down if selected + 1 < items.len() => selected += 1,
+            KeyCode::Char(' ') if selected < items.len() => {
+                let id = items[selected].id.clone();
+                if let Some(pos) = selected_ids.iter().position(|x| x == &id) {
+                    selected_ids.remove(pos);
+                } else {
+                    selected_ids.push(id);
+                }
+            }
+            KeyCode::Char('r') => {
+                let ids = if selected_ids.is_empty() && selected < items.len() {
+                    vec![items[selected].id.clone()]
+                } else {
+                    selected_ids.clone()
+                };
+                if !ids.is_empty() {
+                    commands::vault_write::batch_restore(self, &ids)?;
+                    selected_ids.clear();
+                    need_refresh = true;
+                }
+            }
+            KeyCode::Char('p') => {
+                let ids = if selected_ids.is_empty() && selected < items.len() {
+                    vec![items[selected].id.clone()]
+                } else {
+                    selected_ids.clone()
+                };
+                if !ids.is_empty() {
+                    commands::vault_write::batch_purge(self, &ids)?;
+                    selected_ids.clear();
+                    need_refresh = true;
+                }
+            }
+            _ => {}
+        }
+
+        if need_refresh {
+            commands::vault_write::apply_trash_filter(self, filter.clone())?;
+            return Ok(false);
+        }
+
+        // 限制 selected 在有效范围内
+        if !items.is_empty() && selected >= items.len() {
+            selected = items.len() - 1;
+        }
+        self.phase = AppPhase::TrashList {
+            items,
+            selected,
+            selected_ids,
+            filter,
+        };
+        Ok(false)
+    }
+
     /// 渲染一帧。
     pub fn render(&mut self, frame: &mut Frame) {
         self.clickable_regions.clear();
@@ -1589,8 +2005,13 @@ impl App {
             AppPhase::EditObjectWizard { object_id, step } => {
                 crate::screens::edit_object::render(frame, layout[1], object_id, step)
             }
-            AppPhase::TrashList { items } => {
-                crate::screens::trash_list::render(frame, layout[1], items)
+            AppPhase::TrashList {
+                items,
+                selected,
+                selected_ids,
+                ..
+            } => {
+                crate::screens::trash_list::render(frame, layout[1], items, *selected, selected_ids)
             }
             AppPhase::Onboarding { step } => {
                 crate::screens::onboarding::render(frame, layout[1], self, step)
@@ -1638,6 +2059,35 @@ impl App {
             AppPhase::BackupList { items, selected } => {
                 crate::screens::backup_list::render(frame, layout[1], items, *selected)
             }
+            AppPhase::Profile {
+                profile,
+                data,
+                selected,
+            } => crate::screens::profile::render(frame, layout[1], profile, data, *selected),
+            AppPhase::TemplateList {
+                user_templates,
+                system_templates,
+                selected,
+            } => crate::screens::template_list::render(
+                frame,
+                layout[1],
+                user_templates,
+                system_templates,
+                *selected,
+            ),
+            AppPhase::TemplateDetail {
+                template_id,
+                name,
+                source,
+                json,
+            } => crate::screens::template_detail::render(
+                frame,
+                layout[1],
+                template_id,
+                name,
+                source,
+                json,
+            ),
             AppPhase::Quit => {}
         }
 
@@ -1678,7 +2128,9 @@ impl App {
 /// 根据当前阶段返回可用的命令补全候选。
 fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
     match phase {
-        AppPhase::Welcome | AppPhase::Locked => &["/account_list", "/doctor", "/exit", "/unlock"],
+        AppPhase::Welcome | AppPhase::Locked => {
+            &["/account_list", "/doctor", "/exit", "/unlock", "/login"]
+        }
         AppPhase::Home { .. } => &[
             "/account_list",
             "/back",
@@ -1689,6 +2141,8 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/list",
             "/open",
             "/size",
+            "/status",
+            "/state",
             "/search",
             "/history",
             "/rollback",
@@ -1697,6 +2151,7 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/edit",
             "/delete",
             "/trash",
+            "/bin",
             "/restore",
             "/purge",
             "/operation_log",
@@ -1711,6 +2166,7 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/security",
             "/debug_log",
             "/about",
+            "/version",
             "/help",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
@@ -1787,7 +2243,7 @@ mod tests {
     fn test_available_commands_locked() {
         assert_eq!(
             super::available_commands(&AppPhase::Locked),
-            &["/account_list", "/doctor", "/exit", "/unlock"]
+            &["/account_list", "/doctor", "/exit", "/unlock", "/login"]
         );
     }
 

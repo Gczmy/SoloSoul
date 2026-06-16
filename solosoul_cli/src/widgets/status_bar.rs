@@ -39,6 +39,9 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::Help { .. } => "帮助".to_string(),
         AppPhase::AttachmentList { .. } => "附件列表".to_string(),
         AppPhase::BackupList { .. } => "备份列表".to_string(),
+        AppPhase::Profile { .. } => "Profile".to_string(),
+        AppPhase::TemplateList { .. } => "模板列表".to_string(),
+        AppPhase::TemplateDetail { .. } => "模板详情".to_string(),
         AppPhase::Quit => "退出中".to_string(),
     };
 
