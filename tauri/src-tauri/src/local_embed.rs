@@ -169,6 +169,13 @@ pub fn get_embedder(
     models_dir: &std::path::Path,
     model_id: &str,
 ) -> Result<Arc<LocalEmbedder>, String> {
+    get_embedder_internal(models_dir, model_id)
+}
+
+fn get_embedder_internal(
+    models_dir: &std::path::Path,
+    model_id: &str,
+) -> Result<Arc<LocalEmbedder>, String> {
     {
         let cache = EMBEDDER_CACHE.lock().map_err(|e| e.to_string())?;
         if let Some(ref embedder) = *cache {
@@ -187,6 +194,17 @@ pub fn get_embedder(
     *cache = Some(Arc::clone(&embedder));
 
     Ok(embedder)
+}
+
+/// Async version of [`get_embedder`]. ONNX model loading is CPU-bound and
+/// memory-intensive; it must not run on the async runtime thread.
+pub async fn get_embedder_async(
+    models_dir: std::path::PathBuf,
+    model_id: String,
+) -> Result<Arc<LocalEmbedder>, String> {
+    tokio::task::spawn_blocking(move || get_embedder_internal(&models_dir, &model_id))
+        .await
+        .map_err(|e| format!("Embedder load task: {}", e))?
 }
 
 /// Clear the cached embedder (e.g., when switching models).

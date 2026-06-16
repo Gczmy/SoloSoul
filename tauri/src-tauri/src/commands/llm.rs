@@ -2586,7 +2586,7 @@ async fn embed_text(
             Ok(vec)
         }
         EmbeddingSource::Local { model_id } => {
-            let embedder = crate::local_embed::get_embedder(&models_dir, &model_id)?;
+            let embedder = crate::local_embed::get_embedder_async(models_dir, model_id).await?;
             tokio::task::spawn_blocking(move || embedder.embed(&text))
                 .await
                 .map_err(|e| format!("Embedding task: {}", e))?
@@ -2603,7 +2603,7 @@ async fn embed_texts(
     match &source {
         EmbeddingSource::Local { model_id } => {
             let model_id = model_id.clone();
-            let embedder = crate::local_embed::get_embedder(&models_dir, &model_id)?;
+            let embedder = crate::local_embed::get_embedder_async(models_dir, model_id).await?;
             tokio::task::spawn_blocking(move || embedder.embed_batch(&texts))
                 .await
                 .map_err(|e| format!("Embedding batch task: {}", e))?
@@ -2822,7 +2822,7 @@ pub async fn llm_check_embedding_available(
     match source {
         Ok(EmbeddingSource::Local { model_id }) => {
             // Local model: just check if it's installed and can load
-            match crate::local_embed::get_embedder(&models_dir, &model_id) {
+            match crate::local_embed::get_embedder_async(models_dir, model_id).await {
                 Ok(_) => Ok(true),
                 Err(e) => {
                     eprintln!("[RAG] Local embedding not available: {}", e);
