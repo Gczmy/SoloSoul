@@ -83,6 +83,8 @@ pub struct SoloHostFunctions {
     pub channel: Channel<PluginEvent>,
     pub(crate) http_handles: Arc<Mutex<HashMap<u32, HttpHandleState>>>,
     pub(crate) next_http_handle: AtomicU32,
+    /// Shared HTTP client reused across plugin HTTP calls.
+    pub(crate) http_client: reqwest::Client,
 }
 
 impl Drop for SoloHostFunctions {
@@ -111,6 +113,12 @@ impl SoloHostFunctions {
         field_resolver: Arc<FieldResolver>,
         channel: Channel<PluginEvent>,
     ) -> Self {
+        let http_client = reqwest::Client::builder()
+            .connect_timeout(Duration::from_secs(10))
+            .timeout(Duration::from_secs(30))
+            .build()
+            .unwrap_or_default();
+
         Self {
             plugin_id: plugin_id.into(),
             plugin_name: plugin_name.into(),
@@ -126,6 +134,7 @@ impl SoloHostFunctions {
             channel,
             http_handles: Arc::new(Mutex::new(HashMap::new())),
             next_http_handle: AtomicU32::new(1),
+            http_client,
         }
     }
 
@@ -228,13 +237,14 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                 }
 
                 let (plugin_id, session_id) = (host.plugin_id.clone(), host.session_id.clone());
+                let client = host.http_client.clone();
                 host.audit.log(
                     &plugin_id,
                     Some(&session_id),
                     PluginAuditAction::PluginRunStarted,
                 );
 
-                let response_text = match perform_http_post(&url, &body) {
+                let response_text = match perform_http_post(&client, &url, &body) {
                     Ok(text) => text,
                     Err(e) => {
                         let _ = host.channel.send(PluginEvent::log(
@@ -309,10 +319,11 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     let (tx, rx) = oneshot::channel();
 
                     let channel = host.channel.clone();
+                    let client = host.http_client.clone();
                     let method_clone = method.clone();
                     let url_clone = url.clone();
                     let task = tokio::spawn(async move {
-                        let result = perform_http_async(&method_clone, &url_clone, &body).await;
+                        let result = perform_http_async(&client, &method_clone, &url_clone, &body).await;
                         if let Err(ref e) = result {
                             let _ = channel.send(PluginEvent::log(
                                 "error",
@@ -936,7 +947,12 @@ fn write_http_poll_result(
 }
 
 /// 执行异步 HTTP 请求
-async fn perform_http_async(method: &str, url: &str, body: &str) -> Result<HttpResult, i32> {
+async fn perform_http_async(
+    client: &reqwest::Client,
+    method: &str,
+    url: &str,
+    body: &str,
+) -> Result<HttpResult, i32> {
     let mut headers = HeaderMap::new();
     if serde_json::from_str::<serde_json::Value>(body).is_ok() {
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
@@ -945,7 +961,6 @@ async fn perform_http_async(method: &str, url: &str, body: &str) -> Result<HttpR
     let method =
         reqwest::Method::from_bytes(method.as_bytes()).map_err(|_| code::INVALID_ARGUMENT)?;
 
-    let client = reqwest::Client::new();
     let mut req = client.request(method, url).headers(headers);
     if !body.is_empty() {
         req = req.body(body.to_string());
@@ -968,14 +983,13 @@ async fn perform_http_async(method: &str, url: &str, body: &str) -> Result<HttpR
 }
 
 /// 执行同步阻塞的 HTTP POST 请求
-fn perform_http_post(url: &str, body: &str) -> Result<String, String> {
+fn perform_http_post(client: &reqwest::Client, url: &str, body: &str) -> Result<String, String> {
     let mut headers = HeaderMap::new();
     if serde_json::from_str::<serde_json::Value>(body).is_ok() {
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     }
 
     block_on(async {
-        let client = reqwest::Client::new();
         let resp = client
             .post(url)
             .headers(headers)
@@ -1016,7 +1030,8 @@ mod tests {
         });
 
         let url = format!("http://{}", addr);
-        let result = perform_http_async("GET", &url, "").await.unwrap();
+        let client = reqwest::Client::new();
+        let result = perform_http_async(&client, "GET", &url, "").await.unwrap();
         assert_eq!(result.status, 200);
         assert_eq!(result.body, "hello");
     }
@@ -1035,7 +1050,8 @@ mod tests {
         });
 
         let url = format!("http://{}", addr);
-        let result = perform_http_async("POST", &url, r#"{"name":"Alice"}"#)
+        let client = reqwest::Client::new();
+        let result = perform_http_async(&client, "POST", &url, r#"{"name":"Alice"}"#)
             .await
             .unwrap();
         assert_eq!(result.status, 201);
