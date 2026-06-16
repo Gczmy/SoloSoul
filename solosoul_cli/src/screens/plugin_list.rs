@@ -58,7 +58,7 @@ pub fn render(
     let help = Paragraph::new(Line::from(vec![
         Span::styled("↑↓ 导航", Style::default().fg(Color::DarkGray)),
         Span::styled(" | ", Style::default().fg(Color::DarkGray)),
-        Span::styled("Enter 查看详情", Style::default().fg(Color::DarkGray)),
+        Span::styled("Enter 详情  r 运行  i 安装  u 更新  d 卸载", Style::default().fg(Color::DarkGray)),
         Span::styled(" | ", Style::default().fg(Color::DarkGray)),
         Span::styled("q/Esc 返回", Style::default().fg(Color::DarkGray)),
     ]));

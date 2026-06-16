@@ -1478,6 +1478,7 @@ impl App {
             "/plugin_audit_log" => {
                 commands::plugin::audit_log(self, parts.get(1).copied())?
             }
+            "/plugin_registry_update" => commands::plugin::update_registry(self)?,
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -2043,6 +2044,21 @@ impl App {
                     commands::plugin::run_plugin(self, Some(&plugin_id))?;
                     return Ok(false);
                 }
+                KeyCode::Char('i') if sel < plugins.len() => {
+                    let plugin_id = plugins[sel].id.clone();
+                    commands::plugin::install_plugin(self, Some(&plugin_id))?;
+                    return Ok(false);
+                }
+                KeyCode::Char('u') if sel < plugins.len() => {
+                    let plugin_id = plugins[sel].id.clone();
+                    commands::plugin::update_plugin(self, Some(&plugin_id))?;
+                    return Ok(false);
+                }
+                KeyCode::Char('d') if sel < plugins.len() => {
+                    let plugin_id = plugins[sel].id.clone();
+                    commands::plugin::uninstall_plugin(self, Some(&plugin_id))?;
+                    return Ok(false);
+                }
                 _ => {}
             }
             self.phase = AppPhase::PluginList {
@@ -2485,6 +2501,7 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/plugin_sessions",
             "/plugin_list_installed",
             "/plugin_audit_log",
+            "/plugin_registry_update",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
         AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {

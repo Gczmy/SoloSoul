@@ -357,6 +357,45 @@ pub fn load_manifest(plugin_id: &str) -> Option<solosoul_plugin::PluginManifest>
 }
 
 /// 创建 PluginManager 实例（提取公共代码）。/// 创建 PluginManager 实例（提取公共代码）。
+/// /plugin_registry_update — 异步刷新远程插件注册表。
+pub fn update_registry(app: &mut App) -> Result<()> {
+    let Some(manager) = create_manager(app) else { return Ok(()); };
+
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            app.error_message = Some(format!("无法创建异步运行时: {}", e));
+            return Ok(());
+        }
+    };
+
+    app.error_message = Some("正在更新插件注册表...".to_string());
+
+    let result_holder: std::sync::Arc<std::sync::Mutex<Option<String>>> =
+        std::sync::Arc::new(std::sync::Mutex::new(None));
+    let holder = result_holder.clone();
+
+    std::thread::spawn(move || {
+        rt.block_on(async {
+            match manager.update_registry().await {
+                Ok(()) => {
+                    if let Ok(mut h) = holder.lock() {
+                        *h = Some("插件注册表已更新".to_string());
+                    }
+                }
+                Err(e) => {
+                    if let Ok(mut h) = holder.lock() {
+                        *h = Some(format!("更新注册表失败: {}", e));
+                    }
+                }
+            }
+        });
+    });
+
+    app.plugin_run_pending = Some(result_holder);
+    Ok(())
+}
+
 fn create_manager(app: &mut App) -> Option<solosoul_plugin::PluginManager> {
     let market_dir = resolve_plugin_market_dir();
     match solosoul_plugin::PluginManager::new_with_resource_dir(&market_dir) {
