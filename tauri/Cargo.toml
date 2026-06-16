@@ -5,6 +5,7 @@ members = [
     "crates/solosoul-vault",
     "crates/solosoul-sync",
     "crates/solosoul-core",
+    "crates/solosoul-plugin",
 ]
 resolver = "2"
 

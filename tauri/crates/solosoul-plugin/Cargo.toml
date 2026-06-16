@@ -1,0 +1,66 @@
+[package]
+name = "solosoul-plugin"
+version = "0.1.0"
+edition = "2021"
+description = "SoloSoul plugin runtime — Wasm-based plugin execution engine"
+
+[lib]
+name = "solosoul_plugin"
+path = "src/mod.rs"
+
+[dependencies]
+# Internal
+solosoul-vault = { path = "../solosoul-vault" }
+solosoul-core = { path = "../solosoul-core" }
+
+# Wasm runtime
+wasmtime = { version = "45.0.1", features = ["async", "cranelift"] }
+wasmtime-wasi = { version = "45.0.1", features = ["p1"] }
+
+# HTTP
+reqwest = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Errors
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Time
+chrono = { workspace = true }
+
+# URL parsing
+url = "2.5"
+
+# Version comparison
+semver = "1.0"
+
+# Signature verification
+minisign-verify = "0.2"
+
+# System locale
+sys-locale = "0.3.2"
+
+# Platform directories
+dirs = "6.0"
+
+# Rand
+rand = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# SHA
+sha2 = { workspace = true }
+hex = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

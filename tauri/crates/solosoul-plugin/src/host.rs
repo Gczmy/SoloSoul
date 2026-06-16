@@ -1,0 +1,1061 @@
+//! 插件 Host Functions
+//!
+//! 本模块将 SoloSoul 核心能力通过 `env` 模块暴露给 WebAssembly 插件。
+//! ABI 与 `SoloSoul_plugin_market/SDK/rust` 保持一致。
+
+use super::{
+    ConsentManager, FieldResolver, PluginAuditAction, PluginAuditLogger, PluginError, PluginEvent,
+    PluginLogLine, PluginManifest, PluginResultPayload, RateLimiter,
+};
+use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+use crate::event::PluginEventSink;
+
+/// 插件单次 `solosoul_sleep` 最大允许时长（毫秒）。
+const MAX_PLUGIN_SLEEP_MS: u64 = 1_000;
+/// 插件通过 Host 读取字符串的最大字节数（64 KiB）。
+const MAX_PLUGIN_READ_LEN: usize = 64 * 1024;
+use tokio::sync::oneshot;
+use url::Url;
+use wasmtime::{Caller, Extern, Linker, Memory};
+
+/// Host Function 错误码（与 SDK `solosoul_plugin_sdk::PluginError` 保持一致）
+#[allow(dead_code)]
+mod code {
+    pub const SUCCESS: i32 = 0;
+    pub const PERMISSION_DENIED: i32 = -1;
+    pub const USER_DENIED: i32 = -2;
+    pub const TTL_EXPIRED: i32 = -3;
+    pub const BUFFER_TOO_SMALL: i32 = -4;
+    pub const INVALID_FIELD: i32 = -5;
+    pub const NETWORK_TIMEOUT: i32 = -6;
+    pub const VAULT_LOCKED: i32 = -7;
+    pub const RATE_LIMITED: i32 = -8;
+    pub const NOT_IMPLEMENTED: i32 = -9;
+    pub const DOMAIN_NOT_ALLOWED: i32 = -10;
+    pub const INVALID_ARGUMENT: i32 = -11;
+    pub const WASM_TRAP: i32 = -12;
+    /// 异步 HTTP 请求仍在进行中（非错误，仅用于轮询）
+    pub const HTTP_PENDING: i32 = 1;
+}
+
+/// 传递给 Wasm Store 的状态，包含 WASI 上下文与自定义 Host 数据
+pub struct SoloHostState {
+    pub wasi: wasmtime_wasi::p1::WasiP1Ctx,
+    pub host: SoloHostFunctions,
+}
+
+/// 异步 HTTP 请求结果
+#[derive(Debug, Clone)]
+pub(crate) struct HttpResult {
+    pub status: u16,
+    pub body: String,
+    pub error_code: Option<i32>,
+}
+
+/// 异步 HTTP 请求句柄状态
+#[derive(Debug)]
+pub(crate) enum HttpHandleState {
+    Running {
+        rx: oneshot::Receiver<HttpResult>,
+        abort: tokio::task::AbortHandle,
+    },
+    Completed(HttpResult),
+}
+
+/// 自定义 Host Functions 数据
+#[allow(clippy::module_name_repetitions)]
+pub struct SoloHostFunctions {
+    pub plugin_id: String,
+    pub plugin_name: String,
+    pub session_id: String,
+    pub manifest: PluginManifest,
+    pub params: HashMap<String, String>,
+    pub logs: Mutex<Vec<PluginLogLine>>,
+    pub results: Mutex<Vec<PluginResultPayload>>,
+    pub audit: Arc<PluginAuditLogger>,
+    pub rate_limiter: Arc<RateLimiter>,
+    pub consent_manager: Arc<ConsentManager>,
+    pub field_resolver: Arc<FieldResolver>,
+    pub channel: std::sync::Arc<dyn PluginEventSink>,
+    pub(crate) http_handles: Arc<Mutex<HashMap<u32, HttpHandleState>>>,
+    pub(crate) next_http_handle: AtomicU32,
+    /// Shared HTTP client reused across plugin HTTP calls.
+    pub(crate) http_client: reqwest::Client,
+}
+
+impl Drop for SoloHostFunctions {
+    fn drop(&mut self) {
+        let mut handles = self.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+        for (_, state) in handles.drain() {
+            if let HttpHandleState::Running { abort, .. } = state {
+                abort.abort();
+            }
+        }
+    }
+}
+
+impl SoloHostFunctions {
+    /// 创建 Host Functions 数据
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        plugin_id: impl Into<String>,
+        plugin_name: impl Into<String>,
+        session_id: impl Into<String>,
+        manifest: PluginManifest,
+        params: HashMap<String, String>,
+        audit: Arc<PluginAuditLogger>,
+        rate_limiter: Arc<RateLimiter>,
+        consent_manager: Arc<ConsentManager>,
+        field_resolver: Arc<FieldResolver>,
+        channel: std::sync::Arc<dyn PluginEventSink>,
+    ) -> Self {
+        let http_client = reqwest::Client::builder()
+            .connect_timeout(Duration::from_secs(10))
+            .timeout(Duration::from_secs(30))
+            .build()
+            .unwrap_or_default();
+
+        Self {
+            plugin_id: plugin_id.into(),
+            plugin_name: plugin_name.into(),
+            session_id: session_id.into(),
+            manifest,
+            params,
+            logs: Mutex::new(Vec::new()),
+            results: Mutex::new(Vec::new()),
+            audit,
+            rate_limiter,
+            consent_manager,
+            field_resolver,
+            channel,
+            http_handles: Arc::new(Mutex::new(HashMap::new())),
+            next_http_handle: AtomicU32::new(1),
+            http_client,
+        }
+    }
+
+    /// 取出运行期间收集的日志
+    pub fn take_logs(&self) -> Vec<PluginLogLine> {
+        let mut guard = self.logs.lock().unwrap_or_else(|e| e.into_inner());
+        std::mem::take(&mut *guard)
+    }
+
+    /// 取出运行期间收集的结构化结果
+    pub fn take_results(&self) -> Vec<PluginResultPayload> {
+        let mut guard = self.results.lock().unwrap_or_else(|e| e.into_inner());
+        std::mem::take(&mut *guard)
+    }
+}
+
+/// 注册所有 Host Functions 到 linker
+pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
+    // solosoul_request_field —— 请求字段
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_request_field",
+            |mut caller: Caller<'_, SoloHostState>,
+             field_id_ptr: i32,
+             field_id_len: i32,
+             out_ptr: i32,
+             out_len: i32|
+             -> i32 {
+                let field_id = match read_string(&mut caller, field_id_ptr, field_id_len) {
+                    Ok(s) => s,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+                let (plugin_id, session_id) = {
+                    let host = &caller.data().host;
+                    host.audit.log(
+                        &host.plugin_id,
+                        Some(&host.session_id),
+                        PluginAuditAction::PluginRunStarted,
+                    );
+                    if !host.rate_limiter.check(&host.plugin_id, "request_field") {
+                        return code::RATE_LIMITED;
+                    }
+                    (host.plugin_id.clone(), host.session_id.clone())
+                };
+                let result = caller.data().host.field_resolver.resolve(&field_id);
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+                match result {
+                    Ok(value) => write_buffer(&mut caller, out_ptr, out_len, &value, -1),
+                    Err(e) => plugin_error_code(&e),
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_post_data —— 代理 HTTP POST 请求
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_post_data",
+            |mut caller: Caller<'_, SoloHostState>,
+             url_ptr: i32,
+             url_len: i32,
+             body_ptr: i32,
+             body_len: i32,
+             out_ptr: i32,
+             out_len: i32|
+             -> i32 {
+                let url = match read_string(&mut caller, url_ptr, url_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let body = match read_string(&mut caller, body_ptr, body_len) {
+                    Ok(s) => s,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+
+                let host = &caller.data().host;
+                if !host.rate_limiter.check(&host.plugin_id, "post_data") {
+                    return code::RATE_LIMITED;
+                }
+
+                // 检查网络策略
+                let policy = &host.manifest.network_policy;
+                if policy.block_all_outbound {
+                    return code::DOMAIN_NOT_ALLOWED;
+                }
+
+                let parsed_url = match Url::parse(&url) {
+                    Ok(u) => u,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+                let domain = parsed_url.host_str().unwrap_or("").to_lowercase();
+                if domain.is_empty() || !is_domain_allowed(&domain, &policy.allowed_domains) {
+                    return code::DOMAIN_NOT_ALLOWED;
+                }
+
+                let (plugin_id, session_id) = (host.plugin_id.clone(), host.session_id.clone());
+                let client = host.http_client.clone();
+                host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                let response_text = match perform_http_post(&client, &url, &body) {
+                    Ok(text) => text,
+                    Err(e) => {
+                        let _ = host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("solosoul_post_data 失败: {}", e),
+                        ));
+                        return code::NETWORK_TIMEOUT;
+                    }
+                };
+
+                // 截断到 64KB，避免结果过大
+                let truncated: String = response_text.chars().take(64 * 1024).collect();
+                write_buffer(&mut caller, out_ptr, out_len, &truncated, -1)
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_http_request —— 发起异步 HTTP 请求（返回句柄）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_http_request",
+            |mut caller: Caller<'_, SoloHostState>,
+             method_ptr: i32,
+             method_len: i32,
+             url_ptr: i32,
+             url_len: i32,
+             body_ptr: i32,
+             body_len: i32,
+             out_handle_ptr: i32|
+             -> i32 {
+                let method = match read_string(&mut caller, method_ptr, method_len) {
+                    Ok(s) if !s.is_empty() => s.to_uppercase(),
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let url = match read_string(&mut caller, url_ptr, url_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let body = match read_string(&mut caller, body_ptr, body_len) {
+                    Ok(s) => s,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+
+                if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
+                    return code::INVALID_ARGUMENT;
+                }
+
+                let (plugin_id, session_id, audit, handle) = {
+                    let host = &caller.data().host;
+                    if !host.rate_limiter.check(&host.plugin_id, "http_request") {
+                        return code::RATE_LIMITED;
+                    }
+                    if host.manifest.network_policy.block_all_outbound {
+                        return code::DOMAIN_NOT_ALLOWED;
+                    }
+                    let parsed_url = match Url::parse(&url) {
+                        Ok(u) => u,
+                        Err(_) => return code::INVALID_ARGUMENT,
+                    };
+                    let domain = parsed_url.host_str().unwrap_or("").to_lowercase();
+                    if domain.is_empty()
+                        || !is_domain_allowed(
+                            &domain,
+                            &host.manifest.network_policy.allowed_domains,
+                        )
+                    {
+                        return code::DOMAIN_NOT_ALLOWED;
+                    }
+
+                    let handle = host.next_http_handle.fetch_add(1, Ordering::Relaxed);
+                    let (tx, rx) = oneshot::channel();
+
+                    let channel = host.channel.clone();
+                    let client = host.http_client.clone();
+                    let method_clone = method.clone();
+                    let url_clone = url.clone();
+                    let task = tokio::spawn(async move {
+                        let result =
+                            perform_http_async(&client, &method_clone, &url_clone, &body).await;
+                        if let Err(ref e) = result {
+                            let _ = channel.send(PluginEvent::log(
+                                "error",
+                                format!("solosoul_http_request 失败: {}", e),
+                            ));
+                        }
+                        let _ = tx.send(result.unwrap_or_else(|code| HttpResult {
+                            status: 0,
+                            body: String::new(),
+                            error_code: Some(code),
+                        }));
+                    });
+                    let abort = task.abort_handle();
+
+                    {
+                        let mut handles =
+                            host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+                        handles.insert(handle, HttpHandleState::Running { rx, abort });
+                    }
+
+                    (
+                        host.plugin_id.clone(),
+                        host.session_id.clone(),
+                        host.audit.clone(),
+                        handle,
+                    )
+                };
+
+                if write_u32(&mut caller, out_handle_ptr, handle) != code::SUCCESS {
+                    return code::INVALID_ARGUMENT;
+                }
+
+                audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                code::SUCCESS
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_http_poll —— 轮询异步 HTTP 请求状态
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_http_poll",
+            |mut caller: Caller<'_, SoloHostState>,
+             handle: i32,
+             out_status_ptr: i32,
+             out_len_ptr: i32|
+             -> i32 {
+                if handle < 0 {
+                    return code::INVALID_ARGUMENT;
+                }
+                let handle = handle as u32;
+
+                let (result, code_result) = {
+                    let host = &caller.data().host;
+                    let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+                    let state = match handles.get_mut(&handle) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
+
+                    match state {
+                        HttpHandleState::Running { rx, .. } => match rx.try_recv() {
+                            Ok(result) => {
+                                let code_result = result.error_code.unwrap_or(code::SUCCESS);
+                                *state = HttpHandleState::Completed(result.clone());
+                                (Some(result), code_result)
+                            }
+                            Err(oneshot::error::TryRecvError::Empty) => (None, code::HTTP_PENDING),
+                            Err(oneshot::error::TryRecvError::Closed) => {
+                                let result = HttpResult {
+                                    status: 0,
+                                    body: String::new(),
+                                    error_code: Some(code::NETWORK_TIMEOUT),
+                                };
+                                *state = HttpHandleState::Completed(result.clone());
+                                (Some(result), code::NETWORK_TIMEOUT)
+                            }
+                        },
+                        HttpHandleState::Completed(result) => {
+                            let code_result = result.error_code.unwrap_or(code::SUCCESS);
+                            (Some(result.clone()), code_result)
+                        }
+                    }
+                };
+
+                if let Some(result) = result {
+                    write_http_poll_result(&mut caller, out_status_ptr, out_len_ptr, &result)
+                } else {
+                    code_result
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_http_read —— 读取异步 HTTP 响应体
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_http_read",
+            |mut caller: Caller<'_, SoloHostState>,
+             handle: i32,
+             out_ptr: i32,
+             out_cap: i32,
+             written_ptr: i32|
+             -> i32 {
+                if handle < 0 {
+                    return code::INVALID_ARGUMENT;
+                }
+                let handle = handle as u32;
+
+                let result = {
+                    let host = &caller.data().host;
+                    let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+                    match handles.get_mut(&handle) {
+                        Some(HttpHandleState::Completed(r)) => r.clone(),
+                        Some(HttpHandleState::Running { .. }) => return code::HTTP_PENDING,
+                        _ => return code::INVALID_ARGUMENT,
+                    }
+                };
+
+                if let Some(error_code) = result.error_code {
+                    return error_code;
+                }
+
+                // 截断到 64KB，与同步 post_data 保持一致
+                let truncated: String = result.body.chars().take(64 * 1024).collect();
+                write_buffer(&mut caller, out_ptr, out_cap, &truncated, written_ptr)
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_http_close —— 关闭并释放异步 HTTP 句柄
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_http_close",
+            |caller: Caller<'_, SoloHostState>, handle: i32| -> i32 {
+                if handle < 0 {
+                    return code::INVALID_ARGUMENT;
+                }
+                let handle = handle as u32;
+                let host = &caller.data().host;
+                let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+                match handles.remove(&handle) {
+                    Some(_) => code::SUCCESS,
+                    None => code::INVALID_ARGUMENT,
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_log —— 写日志（SDK 签名：无返回值）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_log",
+            |mut caller: Caller<'_, SoloHostState>,
+             level_ptr: i32,
+             level_len: i32,
+             message_ptr: i32,
+             message_len: i32| {
+                let level = read_string(&mut caller, level_ptr, level_len).unwrap_or_default();
+                let message =
+                    read_string(&mut caller, message_ptr, message_len).unwrap_or_default();
+                if level.is_empty() || message.is_empty() {
+                    return;
+                }
+                let log = PluginLogLine {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    level: level.clone(),
+                    message: message.clone(),
+                    timestamp: now_millis(),
+                };
+                let (plugin_id, session_id) = {
+                    let host = &caller.data().host;
+                    if let Ok(mut guard) = host.logs.lock() {
+                        guard.push(log);
+                    }
+                    let _ = host.channel.send(PluginEvent::log(&level, &message));
+                    (host.plugin_id.clone(), host.session_id.clone())
+                };
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_get_timestamp —— 获取当前 Unix 时间戳（毫秒）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_get_timestamp",
+            |_caller: Caller<'_, SoloHostState>| -> i64 {
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_millis() as i64
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_get_data_structure_tree —— 数据结构树（元数据）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_get_data_structure_tree",
+            |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_len: i32| -> i32 {
+                let (plugin_id, session_id) = {
+                    let host = &caller.data().host;
+                    if !host
+                        .rate_limiter
+                        .check(&host.plugin_id, "get_data_structure_tree")
+                    {
+                        return code::RATE_LIMITED;
+                    }
+                    (host.plugin_id.clone(), host.session_id.clone())
+                };
+
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                match caller.data().host.field_resolver.build_structure_tree() {
+                    Ok(json) => write_buffer(&mut caller, out_ptr, out_len, &json, -1),
+                    Err(e) => plugin_error_code(&e),
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_result —— SDK 原始结果通道
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_result",
+            |mut caller: Caller<'_, SoloHostState>, data_ptr: i32, data_len: i32| -> i32 {
+                let json = read_string(&mut caller, data_ptr, data_len).unwrap_or_default();
+                let value = serde_json::from_str(&json).unwrap_or(serde_json::Value::Null);
+                let host = &caller.data().host;
+                {
+                    let mut guard = host.results.lock().unwrap_or_else(|e| e.into_inner());
+                    guard.push(PluginResultPayload(value));
+                }
+                let _ = host.channel.send(PluginEvent::result(json));
+                code::SUCCESS
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_show_dialog —— 通用对话框（阻塞等待用户响应）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_show_dialog",
+            |mut caller: Caller<'_, SoloHostState>,
+             config_ptr: i32,
+             config_len: i32,
+             out_ptr: i32,
+             out_len: i32|
+             -> i32 {
+                let config = match read_string(&mut caller, config_ptr, config_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                if config.len() > 4096 {
+                    return code::INVALID_ARGUMENT;
+                }
+
+                let request_id = uuid::Uuid::new_v4().to_string();
+                let (plugin_id, plugin_name, session_id, consent_manager) = {
+                    let host = &caller.data().host;
+                    if !host.rate_limiter.check(&host.plugin_id, "show_dialog") {
+                        return code::RATE_LIMITED;
+                    }
+                    (
+                        host.plugin_id.clone(),
+                        host.plugin_name.clone(),
+                        host.session_id.clone(),
+                        host.consent_manager.clone(),
+                    )
+                };
+
+                let event =
+                    PluginEvent::dialog_request(&request_id, &plugin_id, &plugin_name, &config);
+                let _ = caller.data().host.channel.send(event);
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                let rx = match block_on(consent_manager.request_consent(&request_id)) {
+                    Ok(rx) => rx,
+                    Err(_) => return code::NOT_IMPLEMENTED,
+                };
+
+                match block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
+                    Ok(Ok(Ok(Some(value)))) => {
+                        write_buffer(&mut caller, out_ptr, out_len, &value, -1)
+                    }
+                    Ok(Ok(Ok(None))) => code::USER_DENIED,
+                    Ok(Ok(Err(_))) | Ok(Err(_)) | Err(_) => code::TTL_EXPIRED,
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_get_param —— 获取运行参数
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_get_param",
+            |mut caller: Caller<'_, SoloHostState>,
+             key_ptr: i32,
+             key_len: i32,
+             out_ptr: i32,
+             out_len: i32,
+             written_ptr: i32|
+             -> i32 {
+                let key = match read_string(&mut caller, key_ptr, key_len) {
+                    Ok(s) => s,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+                let value = caller
+                    .data()
+                    .host
+                    .params
+                    .get(&key)
+                    .cloned()
+                    .unwrap_or_default();
+                write_buffer(&mut caller, out_ptr, out_len, &value, written_ptr)
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_get_locale —— 获取当前 locale
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_get_locale",
+            |mut caller: Caller<'_, SoloHostState>,
+             out_ptr: i32,
+             out_len: i32,
+             written_ptr: i32|
+             -> i32 {
+                let locale = sys_locale::get_locale()
+                    .map(|l| l.to_string())
+                    .unwrap_or_else(|| "en-US".to_string());
+                write_buffer(&mut caller, out_ptr, out_len, &locale, written_ptr)
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_request_consent —— 请求用户授权（阻塞等待用户响应）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_request_consent",
+            |mut caller: Caller<'_, SoloHostState>,
+             field_id_ptr: i32,
+             field_id_len: i32,
+             request_id_ptr: i32,
+             request_id_len: i32|
+             -> i32 {
+                let field_id =
+                    read_string(&mut caller, field_id_ptr, field_id_len).unwrap_or_default();
+                let request_id =
+                    read_string(&mut caller, request_id_ptr, request_id_len).unwrap_or_default();
+                if field_id.is_empty() || request_id.is_empty() {
+                    return code::INVALID_ARGUMENT;
+                }
+
+                let (plugin_id, plugin_name, session_id, consent_manager) = {
+                    let host = &caller.data().host;
+                    if !host.rate_limiter.check(&host.plugin_id, "request_consent") {
+                        return code::RATE_LIMITED;
+                    }
+                    (
+                        host.plugin_id.clone(),
+                        host.plugin_name.clone(),
+                        host.session_id.clone(),
+                        host.consent_manager.clone(),
+                    )
+                };
+
+                // 尝试从 Vault Schema 读取真实字段标签与敏感度；失败时回退到字段 ID 本身
+                let (field_label, sensitivity_level) = caller
+                    .data()
+                    .host
+                    .field_resolver
+                    .field_metadata(&field_id)
+                    .unwrap_or_else(|_| (field_id.clone(), "sensitive".to_string()));
+
+                let event = PluginEvent::consent_request(
+                    &request_id,
+                    &plugin_id,
+                    &plugin_name,
+                    &field_id,
+                    &field_label,
+                    &sensitivity_level,
+                );
+                let _ = caller.data().host.channel.send(event);
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                // 阻塞等待用户响应，超时 5 分钟
+                let rx = match block_on(consent_manager.request_consent(&request_id)) {
+                    Ok(rx) => rx,
+                    Err(_) => return code::NOT_IMPLEMENTED,
+                };
+
+                match block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
+                    Ok(Ok(Ok(Some(_value)))) => {
+                        caller.data().host.audit.log(
+                            &plugin_id,
+                            Some(&session_id),
+                            PluginAuditAction::ConsentApproved { field_id },
+                        );
+                        code::SUCCESS
+                    }
+                    Ok(Ok(Ok(None))) => {
+                        caller.data().host.audit.log(
+                            &plugin_id,
+                            Some(&session_id),
+                            PluginAuditAction::ConsentDenied { field_id },
+                        );
+                        code::USER_DENIED
+                    }
+                    Ok(Ok(Err(_))) | Ok(Err(_)) | Err(_) => {
+                        caller.data().host.audit.log(
+                            &plugin_id,
+                            Some(&session_id),
+                            PluginAuditAction::ConsentDenied { field_id },
+                        );
+                        code::TTL_EXPIRED
+                    }
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_sleep —— 同步睡眠（毫秒）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_sleep",
+            |_caller: Caller<'_, SoloHostState>, ms: i64| -> i32 {
+                let dur = u64::try_from(ms).unwrap_or(0).min(MAX_PLUGIN_SLEEP_MS);
+                std::thread::sleep(Duration::from_millis(dur));
+                code::SUCCESS
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    Ok(())
+}
+
+fn now_millis() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64
+}
+
+/// 从 caller 中获取 memory 导出
+fn get_memory(caller: &mut Caller<'_, SoloHostState>) -> Result<Memory, PluginError> {
+    match caller.get_export("memory") {
+        Some(Extern::Memory(mem)) => Ok(mem),
+        _ => Err(PluginError::ExecutionFailed(
+            "未找到 memory 导出".to_string(),
+        )),
+    }
+}
+
+/// 从 Wasm 内存读取 UTF-8 字符串
+fn read_string(
+    caller: &mut Caller<'_, SoloHostState>,
+    ptr: i32,
+    len: i32,
+) -> Result<String, PluginError> {
+    if ptr < 0 || len < 0 {
+        return Err(PluginError::InvalidArgument("非法指针".to_string()));
+    }
+    let len = len as usize;
+    if len > MAX_PLUGIN_READ_LEN {
+        return Err(PluginError::InvalidArgument(format!(
+            "字符串长度超过 {} 字节限制",
+            MAX_PLUGIN_READ_LEN
+        )));
+    }
+    let mem = get_memory(caller)?;
+    let mut buf = vec![0u8; len];
+    mem.read(&mut *caller, ptr as usize, &mut buf)
+        .map_err(|e| PluginError::ExecutionFailed(format!("读取内存失败: {}", e)))?;
+    String::from_utf8(buf).map_err(|_| PluginError::InvalidManifest("非法 UTF-8".to_string()))
+}
+
+/// 将 UTF-8 字符串写入 Wasm 内存，并以 `\0` 结尾
+///
+/// `written_ptr` 为 -1 时不回写已写入长度
+fn write_buffer(
+    caller: &mut Caller<'_, SoloHostState>,
+    ptr: i32,
+    cap: i32,
+    value: &str,
+    written_ptr: i32,
+) -> i32 {
+    if ptr < 0 || cap <= 0 {
+        return code::INVALID_ARGUMENT;
+    }
+    // 需要为结尾的 \0 预留一字节
+    if value.len() + 1 > cap as usize {
+        return code::BUFFER_TOO_SMALL;
+    }
+    let mem = match get_memory(caller) {
+        Ok(m) => m,
+        Err(_) => return code::WASM_TRAP,
+    };
+    if mem
+        .write(&mut *caller, ptr as usize, value.as_bytes())
+        .is_err()
+    {
+        return code::WASM_TRAP;
+    }
+    if mem
+        .write(&mut *caller, ptr as usize + value.len(), &[0])
+        .is_err()
+    {
+        return code::WASM_TRAP;
+    }
+    if written_ptr >= 0 {
+        let len_bytes = (value.len() as u32).to_le_bytes();
+        let _ = mem.write(&mut *caller, written_ptr as usize, &len_bytes);
+    }
+    code::SUCCESS
+}
+
+/// 将 `PluginError` 映射为 SDK 错误码
+fn plugin_error_code(err: &PluginError) -> i32 {
+    match err {
+        PluginError::ExecutionFailed(msg) if msg.contains("Vault 未解锁") => code::VAULT_LOCKED,
+        PluginError::ExecutionFailed(msg) if msg.contains("未选择账户") => code::VAULT_LOCKED,
+        PluginError::InvalidField(_) => code::INVALID_FIELD,
+        PluginError::InvalidArgument(_) => code::INVALID_ARGUMENT,
+        PluginError::RateLimited => code::RATE_LIMITED,
+        PluginError::ConsentDenied => code::USER_DENIED,
+        _ => code::INVALID_ARGUMENT,
+    }
+}
+
+/// 检查域名是否在白名单中
+fn is_domain_allowed(domain: &str, allowed: &[String]) -> bool {
+    if allowed.is_empty() {
+        return false;
+    }
+    allowed
+        .iter()
+        .any(|pattern| super::manifest::matches_domain(domain, pattern))
+}
+
+/// 将 u16 以 little-endian 写入 Wasm 内存
+fn write_u16(caller: &mut Caller<'_, SoloHostState>, ptr: i32, value: u16) -> i32 {
+    if ptr < 0 {
+        return code::INVALID_ARGUMENT;
+    }
+    let mem = match get_memory(caller) {
+        Ok(m) => m,
+        Err(_) => return code::WASM_TRAP,
+    };
+    if mem
+        .write(&mut *caller, ptr as usize, &value.to_le_bytes())
+        .is_err()
+    {
+        return code::WASM_TRAP;
+    }
+    code::SUCCESS
+}
+
+/// 将 u32 以 little-endian 写入 Wasm 内存
+fn write_u32(caller: &mut Caller<'_, SoloHostState>, ptr: i32, value: u32) -> i32 {
+    if ptr < 0 {
+        return code::INVALID_ARGUMENT;
+    }
+    let mem = match get_memory(caller) {
+        Ok(m) => m,
+        Err(_) => return code::WASM_TRAP,
+    };
+    if mem
+        .write(&mut *caller, ptr as usize, &value.to_le_bytes())
+        .is_err()
+    {
+        return code::WASM_TRAP;
+    }
+    code::SUCCESS
+}
+
+/// 将异步 HTTP 轮询结果写入 Wasm 内存
+fn write_http_poll_result(
+    caller: &mut Caller<'_, SoloHostState>,
+    status_ptr: i32,
+    len_ptr: i32,
+    result: &HttpResult,
+) -> i32 {
+    let _ = write_u16(caller, status_ptr, result.status);
+    let _ = write_u32(caller, len_ptr, result.body.len() as u32);
+    result.error_code.unwrap_or(code::SUCCESS)
+}
+
+/// 执行异步 HTTP 请求
+async fn perform_http_async(
+    client: &reqwest::Client,
+    method: &str,
+    url: &str,
+    body: &str,
+) -> Result<HttpResult, i32> {
+    let mut headers = HeaderMap::new();
+    if serde_json::from_str::<serde_json::Value>(body).is_ok() {
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    }
+
+    let method =
+        reqwest::Method::from_bytes(method.as_bytes()).map_err(|_| code::INVALID_ARGUMENT)?;
+
+    let mut req = client.request(method, url).headers(headers);
+    if !body.is_empty() {
+        req = req.body(body.to_string());
+    }
+
+    let resp = req
+        .timeout(Duration::from_secs(30))
+        .send()
+        .await
+        .map_err(|_| code::NETWORK_TIMEOUT)?;
+
+    let status = resp.status().as_u16();
+    let body = resp.text().await.map_err(|_| code::NETWORK_TIMEOUT)?;
+
+    Ok(HttpResult {
+        status,
+        body,
+        error_code: None,
+    })
+}
+
+/// 执行同步阻塞的 HTTP POST 请求
+fn perform_http_post(client: &reqwest::Client, url: &str, body: &str) -> Result<String, String> {
+    let mut headers = HeaderMap::new();
+    if serde_json::from_str::<serde_json::Value>(body).is_ok() {
+        headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    }
+
+    block_on(async {
+        let resp = client
+            .post(url)
+            .headers(headers)
+            .body(body.to_string())
+            .timeout(Duration::from_secs(30))
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+        let text = resp.text().await.map_err(|e| e.to_string())?;
+        Ok(text)
+    })
+    .map_err(|_| "无法在当前线程执行网络请求".to_string())?
+}
+
+/// 在当前 Tokio 运行时上阻塞执行 Future（插件 Host Function 运行在 spawn_blocking 线程）
+fn block_on<F: std::future::Future>(future: F) -> Result<F::Output, ()> {
+    tokio::runtime::Handle::try_current()
+        .map_err(|_| ())
+        .map(|handle| handle.block_on(future))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    #[tokio::test]
+    async fn test_perform_http_async_get() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut buf = [0u8; 1024];
+            let _n = socket.read(&mut buf).await.unwrap();
+            let response = b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello";
+            socket.write_all(response).await.unwrap();
+        });
+
+        let url = format!("http://{}", addr);
+        let client = reqwest::Client::new();
+        let result = perform_http_async(&client, "GET", &url, "").await.unwrap();
+        assert_eq!(result.status, 200);
+        assert_eq!(result.body, "hello");
+    }
+
+    #[tokio::test]
+    async fn test_perform_http_async_post_json() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+
+        tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut buf = vec![0u8; 2048];
+            let _n = socket.read(&mut buf).await.unwrap();
+            let response = b"HTTP/1.1 201 Created\r\nContent-Length: 2\r\n\r\nOK";
+            socket.write_all(response).await.unwrap();
+        });
+
+        let url = format!("http://{}", addr);
+        let client = reqwest::Client::new();
+        let result = perform_http_async(&client, "POST", &url, r#"{"name":"Alice"}"#)
+            .await
+            .unwrap();
+        assert_eq!(result.status, 201);
+        assert_eq!(result.body, "OK");
+    }
+}
