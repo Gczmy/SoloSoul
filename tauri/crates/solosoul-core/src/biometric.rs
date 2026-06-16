@@ -9,6 +9,7 @@ use crate::auth::verify_password_core;
 use crate::vault_service::{AccountConfig, VaultService};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
+use zeroize::Zeroizing;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -19,7 +20,12 @@ pub struct BiometricAvailability {
     pub error: Option<String>,
 }
 
-const BIO_OBF: &[u8; 32] = b"Solosoul_biometric_obfuscate_v1!";
+/// Legacy hard-coded XOR key used only for one-way migration of old biometric files.
+const LEGACY_XOR_KEY: &[u8; 32] = b"Solosoul_biometric_obfuscate_v1!";
+const BIO_FILE_KEY_SERVICE: &str = "solosoul.biometric.filekey";
+#[cfg(test)]
+const TEST_FILE_KEY_SALT: &[u8] = b"test-only-biometric-file-key-salt";
+const LEGACY_KEY_HEX_LEN: usize = 64;
 
 /// Host-agnostic manager for biometric credentials.
 #[derive(Debug, Clone)]
@@ -172,16 +178,77 @@ fn keyring_entry(account_id: &str) -> Result<keyring::Entry, String> {
     keyring::Entry::new(&service, account_id).map_err(|e| e.to_string())
 }
 
-fn write_obfuscated_key_file(path: &Path, key_hex: &str) -> Result<(), String> {
-    let key_bytes = hex::decode(key_hex).map_err(|e| e.to_string())?;
-    let obf: Vec<u8> = key_bytes
+fn file_keyring_entry(account_id: &str) -> Result<keyring::Entry, String> {
+    let service = format!("{}.{}", BIO_FILE_KEY_SERVICE, account_id);
+    keyring::Entry::new(&service, account_id).map_err(|e| e.to_string())
+}
+
+fn generate_random_file_key() -> [u8; 32] {
+    use rand::rngs::OsRng;
+    use rand::RngCore;
+    let mut key = [0u8; 32];
+    OsRng.fill_bytes(&mut key);
+    key
+}
+
+/// 获取（或创建）用于加密生物特征回退文件的 32 字节文件密钥。
+/// 生产环境从 Keychain 读取/保存随机密钥；测试环境使用固定派生密钥。
+#[cfg(not(test))]
+fn file_encryption_key(account_id: &str) -> Result<Zeroizing<Vec<u8>>, String> {
+    let entry = file_keyring_entry(account_id)?;
+    match entry.get_password() {
+        Ok(hex_str) => {
+            let bytes = hex::decode(hex_str.trim())
+                .map_err(|e| format!("Invalid file key encoding: {}", e))?;
+            if bytes.len() != 32 {
+                return Err("Invalid file key length".to_string());
+            }
+            Ok(Zeroizing::new(bytes))
+        }
+        Err(_) => {
+            let key = generate_random_file_key();
+            let hex_str = hex::encode(key);
+            entry
+                .set_password(&hex_str)
+                .map_err(|e| format!("Failed to store file key: {}", e))?;
+            Ok(Zeroizing::new(key.to_vec()))
+        }
+    }
+}
+
+#[cfg(test)]
+fn file_encryption_key(account_id: &str) -> Result<Zeroizing<Vec<u8>>, String> {
+    let config = solosoul_crypto::kdf::KdfConfig::development();
+    let key = solosoul_crypto::kdf::derive_key(account_id, TEST_FILE_KEY_SALT, &config)
+        .map_err(|_| "Failed to derive test file key".to_string())?;
+    Ok(key)
+}
+
+fn is_legacy_key_file(content: &str) -> bool {
+    content.len() == LEGACY_KEY_HEX_LEN && content.chars().all(|c| c.is_ascii_hexdigit())
+}
+
+fn legacy_xor_decrypt(content: &str) -> Result<String, String> {
+    let obf = hex::decode(content.trim()).map_err(|e| e.to_string())?;
+    let key: Vec<u8> = obf
         .iter()
         .enumerate()
-        .map(|(i, b)| b ^ BIO_OBF[i % 32])
+        .map(|(i, b)| b ^ LEGACY_XOR_KEY[i % 32])
         .collect();
+    Ok(hex::encode(&key))
+}
+
+fn write_encrypted_key_file(path: &Path, account_id: &str, key_hex: &str) -> Result<(), String> {
+    let file_key = file_encryption_key(account_id)?;
+    let file_key_arr: [u8; 32] = file_key
+        .as_slice()
+        .try_into()
+        .map_err(|_| "File key length invalid".to_string())?;
+    let blob = solosoul_crypto::aes::encrypt_blob(&file_key_arr, key_hex.as_bytes())?;
+
     std::fs::create_dir_all(path.parent().unwrap())
         .map_err(|e| format!("Failed to create {}: {}", path.display(), e))?;
-    std::fs::write(path, hex::encode(&obf))
+    std::fs::write(path, hex::encode(blob.as_slice()))
         .map_err(|e| format!("Failed to write {}: {}", path.display(), e))?;
     #[cfg(unix)]
     {
@@ -196,45 +263,62 @@ fn write_obfuscated_key_file(path: &Path, key_hex: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn save_master_key(path: &Path, account_id: &str, key_hex: &str) -> Result<(), String> {
-    // Always keep an obfuscated file backup. The OS keychain is the primary
-    // store, but keychain reads can fail after app restart/lock on some macOS
-    // configurations; the backup lets us still report biometric as configured.
-    write_obfuscated_key_file(path, key_hex)?;
-
-    if use_keyring() {
-        match keyring_entry(account_id) {
-            Ok(entry) => {
-                if let Err(e) = entry.set_password(key_hex) {
-                    tracing::warn!(
-                        "Failed to write biometric key to keychain for {}: {}; file backup is available",
-                        account_id,
-                        e
-                    );
-                }
-            }
-            Err(e) => {
-                tracing::warn!(
-                    "Failed to create keychain entry for {}: {}; relying on file backup",
-                    account_id,
-                    e
-                );
-            }
-        }
-    }
+/// 以原子方式将旧 XOR 文件迁移为新的加密文件。
+fn migrate_legacy_key_file(
+    path: &Path,
+    account_id: &str,
+    legacy_key_hex: &str,
+) -> Result<(), String> {
+    let new_path = path.with_extension("key.new");
+    let old_path = path.with_extension("key.old");
+    write_encrypted_key_file(&new_path, account_id, legacy_key_hex)?;
+    std::fs::rename(path, &old_path)
+        .map_err(|e| format!("Failed to backup legacy key file: {}", e))?;
+    std::fs::rename(&new_path, path)
+        .map_err(|e| format!("Failed to replace legacy key file: {}", e))?;
+    let _ = std::fs::remove_file(&old_path);
     Ok(())
 }
 
-fn read_master_key_from_file(path: &Path) -> Result<String, String> {
-    let hex_str = std::fs::read_to_string(path)
+fn read_encrypted_key_file(path: &Path, account_id: &str) -> Result<String, String> {
+    let content = std::fs::read_to_string(path)
         .map_err(|e| format!("No key file at {}: {}", path.display(), e))?;
-    let obf = hex::decode(hex_str.trim()).map_err(|e| e.to_string())?;
-    let key: Vec<u8> = obf
-        .iter()
-        .enumerate()
-        .map(|(i, b)| b ^ BIO_OBF[i % 32])
-        .collect();
-    Ok(hex::encode(&key))
+    let content = content.trim();
+
+    if is_legacy_key_file(content) {
+        let key_hex = legacy_xor_decrypt(content)?;
+        // Attempt atomic migration; failure keeps the legacy file intact.
+        if let Err(e) = migrate_legacy_key_file(path, account_id, &key_hex) {
+            tracing::warn!("Failed to migrate legacy biometric key file: {}", e);
+        }
+        return Ok(key_hex);
+    }
+
+    let file_key = file_encryption_key(account_id)?;
+    let file_key_arr: [u8; 32] = file_key
+        .as_slice()
+        .try_into()
+        .map_err(|_| "File key length invalid".to_string())?;
+    let blob = hex::decode(content).map_err(|e| format!("Invalid key file encoding: {}", e))?;
+    let plaintext = solosoul_crypto::aes::decrypt_blob(&file_key_arr, &blob)?;
+    String::from_utf8(plaintext.to_vec()).map_err(|_| "Invalid UTF-8 in key file".to_string())
+}
+
+fn save_master_key(path: &Path, account_id: &str, key_hex: &str) -> Result<(), String> {
+    // The file backup is encrypted with a key stored in the OS keychain.
+    // Trust boundary: the encrypted file alone is useless without the Keychain file key.
+    write_encrypted_key_file(path, account_id, key_hex)?;
+
+    if use_keyring() {
+        let entry = keyring_entry(account_id)?;
+        entry.set_password(key_hex).map_err(|e| {
+            format!(
+                "Failed to write biometric key to keychain for {}: {}",
+                account_id, e
+            )
+        })?;
+    }
+    Ok(())
 }
 
 fn read_master_key(path: &Path, account_id: &str) -> Result<String, String> {
@@ -243,26 +327,28 @@ fn read_master_key(path: &Path, account_id: &str) -> Result<String, String> {
         match entry.get_password() {
             Ok(key) => return Ok(key),
             Err(_) => {
-                // Backwards compatibility: migrate a legacy file-stored key into
-                // the OS keychain on first read.
-                let key = read_master_key_from_file(path)?;
+                // Backwards compatibility: read encrypted file and migrate to keychain.
+                let key = read_encrypted_key_file(path, account_id)?;
                 let _ = entry.set_password(&key);
                 return Ok(key);
             }
         }
     }
 
-    read_master_key_from_file(path)
+    read_encrypted_key_file(path, account_id)
 }
 
 fn delete_master_key(path: &Path, account_id: &str) {
     if use_keyring() {
         let _ = keyring_entry(account_id)
             .and_then(|e| e.delete_credential().map_err(|e| e.to_string()));
+        let _ = file_keyring_entry(account_id)
+            .and_then(|e| e.delete_credential().map_err(|e| e.to_string()));
     }
     if path.exists() {
         let _ = std::fs::remove_file(path);
     }
+    let _ = std::fs::remove_file(path.with_extension("key.old"));
 }
 
 fn has_stored_master_key(path: &Path, account_id: &str) -> bool {
@@ -272,7 +358,7 @@ fn has_stored_master_key(path: &Path, account_id: &str) -> bool {
                 return true;
             }
         }
-        // Legacy file-based key still counts as configured and will be migrated on unlock.
+        // Encrypted or legacy file-based key still counts as configured.
         return path.exists();
     }
     path.exists()

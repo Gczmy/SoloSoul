@@ -35,6 +35,9 @@ tracing = { workspace = true }
 # 生物识别凭证存储
 keyring = "3"
 
+# 随机数生成
+rand = { workspace = true }
+
 # 进程级文件锁
 fs2 = "0.4.3"
 
