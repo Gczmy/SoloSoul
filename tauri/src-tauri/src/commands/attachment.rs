@@ -5,7 +5,27 @@ use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use tauri::State;
+
+/// 附件 ID 与对象 ID 允许使用的字符集，防止路径遍历。
+fn validate_attachment_id(id: &str) -> Result<(), String> {
+    if id.is_empty()
+        || id.len() > 64
+        || !id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return Err(format!("Invalid attachment id: {}", id));
+    }
+    Ok(())
+}
+
+fn attachment_dir(base: &Path, object_id: &str, attachment_id: &str) -> Result<PathBuf, String> {
+    validate_attachment_id(object_id)?;
+    validate_attachment_id(attachment_id)?;
+    Ok(base.join("attachments").join(object_id).join(attachment_id))
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -72,9 +92,13 @@ pub async fn attachment_delete(
     object_id: String,
     attachment_id: String,
 ) -> Result<(), String> {
-    let svc = state.vault_service.read().unwrap();
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let vault = svc
+        .get_vault_store()
+        .ok_or_else(|| "Vault not unlocked".to_string())?;
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let atts: Vec<AttachmentMeta> = load_attachments(&record.properties)
         .into_iter()
@@ -82,12 +106,9 @@ pub async fn attachment_delete(
         .collect();
 
     // Also delete the physical file from disk
-    let attachments_dir = svc
-        .base_path()
-        .join("attachments")
-        .join(&object_id)
-        .join(&attachment_id);
-    let _ = std::fs::remove_dir_all(&attachments_dir);
+    let attachments_dir = attachment_dir(svc.base_path(), &object_id, &attachment_id)?;
+    std::fs::remove_dir_all(&attachments_dir)
+        .map_err(|e| format!("Failed to delete attachment file: {}", e))?;
 
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
@@ -201,12 +222,12 @@ pub async fn attachment_copy_to_vault(
     attachment_id: String,
     file_name: String,
 ) -> Result<String, String> {
-    let svc = state.vault_service.read().unwrap();
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
     let base = svc.base_path().clone();
-    let dest_dir = base
-        .join("attachments")
-        .join(&object_id)
-        .join(&attachment_id);
+    let dest_dir = attachment_dir(&base, &object_id, &attachment_id)?;
     std::fs::create_dir_all(&dest_dir).map_err(|e| format!("Mkdir: {}", e))?;
 
     // R007: sanitize file_name to prevent path traversal; only the final component is allowed.
