@@ -504,22 +504,28 @@ pub async fn export_execute(
         for (obj_id, att_id, _file_name, src_path) in &attachment_entries {
             let file_size = std::fs::metadata(src_path).map(|m| m.len()).unwrap_or(0);
             let zip_name = format!("attachments/{}/{}.enc", obj_id, att_id);
-            let mut buf = Vec::new();
-            let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
-            f.read_to_end(&mut buf)
-                .map_err(|e| format!("read attachment: {}", e))?;
-
-            let enc = if file_size <= STREAMING_THRESHOLD {
-                solosoul_crypto::cipher::encrypt_to_bytes(ak, &buf, None)
-                    .map_err(|e| format!("encrypt attachment: {}", e))?
-            } else {
-                solosoul_crypto::cipher::encrypt_chunked_to_bytes(ak, &buf)
-                    .map_err(|e| format!("encrypt attachment chunked: {}", e))?
-            };
-
             zip.start_file(&zip_name, options)
                 .map_err(|e| e.to_string())?;
-            zip.write_all(&enc).map_err(|e| e.to_string())?;
+
+            if file_size <= STREAMING_THRESHOLD {
+                let mut buf = Vec::new();
+                let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
+                f.read_to_end(&mut buf)
+                    .map_err(|e| format!("read attachment: {}", e))?;
+                let enc = solosoul_crypto::cipher::encrypt_to_bytes(ak, &buf, None)
+                    .map_err(|e| format!("encrypt attachment: {}", e))?;
+                zip.write_all(&enc).map_err(|e| e.to_string())?;
+            } else {
+                let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
+                let mut reader = std::io::BufReader::new(&mut f);
+                solosoul_crypto::cipher::encrypt_chunked_stream(
+                    ak,
+                    file_size,
+                    &mut reader,
+                    &mut zip,
+                )
+                .map_err(|e| format!("encrypt attachment chunked stream: {}", e))?;
+            }
             has_attachments = true;
         }
     }

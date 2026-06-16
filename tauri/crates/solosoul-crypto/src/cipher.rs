@@ -2,6 +2,7 @@ use aes_gcm::{
     aead::{Aead, AeadCore, KeyInit, OsRng, Payload},
     Aes256Gcm, Nonce,
 };
+use std::io::{Read, Write};
 use zeroize::Zeroizing;
 
 /// 加密后的数据格式：nonce (12 bytes) || ciphertext || tag (16 bytes)
@@ -155,6 +156,55 @@ pub fn encrypt_chunked_to_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<Vec<
     Ok(result)
 }
 
+/// Encrypt a large stream in chunks, writing the same chunked format directly to `writer`.
+/// `total_size` must be the exact number of plaintext bytes that `reader` will yield.
+pub fn encrypt_chunked_stream<R: Read, W: Write>(
+    key: &[u8; 32],
+    total_size: u64,
+    reader: &mut R,
+    writer: &mut W,
+) -> Result<(), CipherError> {
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CipherError::InvalidKeyLength)?;
+    let base_nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+    let base_nonce_bytes: [u8; 12] = base_nonce
+        .as_slice()
+        .try_into()
+        .map_err(|_| CipherError::NonceGenerationFailed)?;
+
+    let total_chunks = total_size.div_ceil(CHUNK_SIZE as u64);
+    writer
+        .write_all(&base_nonce_bytes)
+        .map_err(|e| CipherError::Io(e.to_string()))?;
+    writer
+        .write_all(&total_chunks.to_be_bytes())
+        .map_err(|e| CipherError::Io(e.to_string()))?;
+
+    let mut buf = vec![0u8; CHUNK_SIZE];
+    for i in 0..total_chunks as usize {
+        let chunk_len = if i == total_chunks as usize - 1 {
+            (total_size as usize) - (i * CHUNK_SIZE)
+        } else {
+            CHUNK_SIZE
+        };
+        reader
+            .read_exact(&mut buf[..chunk_len])
+            .map_err(|e| CipherError::Io(e.to_string()))?;
+        let mut nonce_bytes = base_nonce_bytes;
+        let idx_bytes = (i as u64).to_be_bytes();
+        for j in 0..8 {
+            nonce_bytes[4 + j] ^= idx_bytes[j];
+        }
+        let nonce = Nonce::from_slice(&nonce_bytes);
+        let ct = cipher
+            .encrypt(nonce, &buf[..chunk_len])
+            .map_err(|_| CipherError::EncryptionFailed)?;
+        writer
+            .write_all(&ct)
+            .map_err(|e| CipherError::Io(e.to_string()))?;
+    }
+    Ok(())
+}
+
 /// Decrypt a chunked file.
 /// Expects format: nonce(12) || chunk_count(8) || chunk_ct+tag ...
 pub fn decrypt_chunked_from_bytes(
@@ -215,6 +265,8 @@ pub enum CipherError {
     DecryptionFailed,
     #[error("无效的密文格式")]
     InvalidCiphertext,
+    #[error("IO 错误: {0}")]
+    Io(String),
 }
 
 #[cfg(test)]
