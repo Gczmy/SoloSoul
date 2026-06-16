@@ -1,12 +1,15 @@
 //! 插件系统命令：列表与运行插件。
 
+use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
+use crate::plugin_sink::TerminalPluginSink;
 
-/// 已安装插件的摘要信息（用于列表展示）。
+/// 以安装插件的摘要信息（用定列表展示）。
 #[derive(Debug, Clone)]
 pub struct PluginSummary {
     pub id: String,
@@ -49,9 +52,9 @@ pub fn list_plugins(app: &mut App) -> Result<()> {
     Ok(())
 }
 
-/// /plugin_run <plugin_id> — 运行指定插件（预览模式）。
+/// /plugin_run <plugin_id> — 运行指定插件（后台异步执行）。
 ///
-/// 完整插件运行时依赖 WebAssembly 沙箱，当前版本仅展示插件清单信息。
+/// 插件在后台线程中运行，结果通过 app.error_message 异步展示。
 pub fn run_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
     let plugin_id = match plugin_id {
         Some(id) => id.to_string(),
@@ -61,47 +64,104 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         }
     };
 
-    let market_dir = resolve_plugin_market_dir();
-    let manifest_path = market_dir
-        .join("plugins")
-        .join(&plugin_id)
-        .join("manifest.json");
-
-    if manifest_path.exists() {
-        match std::fs::read_to_string(&manifest_path) {
-            Ok(content) => match serde_json::from_str::<serde_json::Value>(&content) {
-                Ok(manifest) => {
-                    let name = manifest["name"].as_str().unwrap_or(&plugin_id);
-                    let version = manifest["version"].as_str().unwrap_or("unknown");
-                    let desc = manifest["description"]
-                        .as_str()
-                        .unwrap_or("无描述");
-                    app.error_message = Some(format!(
-                        "插件 {} v{} — {}. (完整运行时将在后续版本中支持)",
-                        name, version, desc
-                    ));
-                }
-                Err(e) => {
-                    app.error_message =
-                        Some(format!("解析插件清单失败: {}", e));
-                }
-            },
-            Err(e) => {
-                app.error_message =
-                    Some(format!("读取插件清单失败: {}", e));
-            }
+    let account_id = match app.vault_service.get_current_account() {
+        Some(id) => id,
+        None => {
+            app.error_message = Some("未登录，无法运行插件".to_string());
+            return Ok(());
         }
-    } else {
-        app.error_message =
-            Some(format!("未找到插件 {} 的清单文件", plugin_id));
+    };
+
+    let vault = match app.vault_service.get_vault_store() {
+        Some(v) => v,
+        None => {
+            app.error_message = Some("Vault 未解锁".to_string());
+            return Ok(());
+        }
+    };
+
+    let market_dir = resolve_plugin_market_dir();
+    let plugin_dir = market_dir.join("plugins").join(&plugin_id);
+    if !plugin_dir.exists() {
+        app.error_message = Some(format!("未找到插件: {}", plugin_id));
+        return Ok(());
     }
+
+    // 查找插件版本
+    let version = match load_registry_entries(&market_dir) {
+        Ok(entries) => entries
+            .iter()
+            .find(|e| e.id == plugin_id)
+            .map(|e| e.version.clone())
+            .unwrap_or_else(|| "latest".to_string()),
+        Err(_) => "latest".to_string(),
+    };
+
+    // 共享结果容器：工作线程写入，主线程在 handle_tick 中轮询
+    let result_holder: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
+    app.plugin_run_pending = Some(result_holder.clone());
+    app.error_message = Some(format!("正在后台运行插件: {} ...", plugin_id));
+
+    let plugin_id_clone = plugin_id.clone();
+    let market_dir_clone = market_dir.clone();
+
+    std::thread::spawn(move || {
+        let rt = match tokio::runtime::Runtime::new() {
+            Ok(rt) => rt,
+            Err(e) => {
+                if let Ok(mut h) = result_holder.lock() {
+                    *h = Some(format!("无法创建异步运行时: {}", e));
+                }
+                return;
+            }
+        };
+
+        let outcome = rt.block_on(async {
+            let manager = match solosoul_plugin::PluginManager::new_with_resource_dir(
+                &market_dir_clone,
+            ) {
+                Ok(m) => m,
+                Err(e) => return format!("初始化插件管理器失败: {}", e),
+            };
+
+            // 安装插件到本地
+            if let Err(e) = manager.install_from_registry(&plugin_id_clone, &version) {
+                return format!("安装插件 {} 失败: {}", plugin_id_clone, e);
+            }
+
+            let sink = Arc::new(TerminalPluginSink);
+
+            let params = HashMap::new();
+            match manager
+                .run(
+                    &plugin_id_clone,
+                    params,
+                    sink,
+                    Some(vault),
+                    Some(account_id),
+                )
+                .await
+            {
+                Ok(result) => {
+                    format!(
+                        "插件 {} 运行完成: exit_code={}, fuel={}",
+                        plugin_id_clone, result.exit_code, result.fuel_consumed
+                    )
+                }
+                Err(e) => format!("插件 {} 运行失败: {}", plugin_id_clone, e),
+            }
+        });
+
+        if let Ok(mut h) = result_holder.lock() {
+            *h = Some(outcome);
+        }
+    });
 
     Ok(())
 }
 
 /// 解析插件市场目录路径。
 fn resolve_plugin_market_dir() -> PathBuf {
-    // 优先使用 SOLOSOUL_PLUGIN_DIR 环境变量
     if let Ok(dir) = std::env::var("SOLOSOUL_PLUGIN_DIR") {
         let p = PathBuf::from(&dir);
         if p.exists() {
@@ -109,7 +169,6 @@ fn resolve_plugin_market_dir() -> PathBuf {
         }
     }
 
-    // 尝试从 solosoul-cli 的相对路径解析
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let candidate = manifest_dir
         .join("..")
@@ -118,11 +177,10 @@ fn resolve_plugin_market_dir() -> PathBuf {
         return candidate;
     }
 
-    // 最后回退到当前目录
     PathBuf::from("./SoloSoul_plugin_market")
 }
 
-/// 从 registry.json 加载插件注册表条目。
+/// 克 registry.json 加载插件注册表条目。
 fn load_registry_entries(
     market_dir: &PathBuf,
 ) -> Result<Vec<RegistryEntry>, String> {

@@ -283,6 +283,8 @@ pub struct App {
     pub llm_service: LlmService,
     /// LLM 聊天会话状态（从 AppPhase 中分离以避免 Clone 问题）。
     pub chat_state: Option<crate::screens::llm_chat::LlmChatState>,
+    /// 插件运行结果等待句柄（后台线程写入，主线程 tick 轮询）。
+    pub plugin_run_pending: Option<std::sync::Arc<std::sync::Mutex<Option<String>>>>,
     pub process_lock: Option<ProcessLock>,
     pub command_input: CommandInput,
     pub password_input: PasswordInput,
@@ -369,6 +371,7 @@ impl App {
             external_edit: None,
             llm_service: LlmService::new(),
             chat_state: None,
+            plugin_run_pending: None,
         })
     }
 
@@ -638,6 +641,25 @@ impl App {
         if matches!(self.phase, AppPhase::LlmChat) {
             if let Some(ref mut state) = self.chat_state {
                 state.poll_stream();
+            }
+        }
+
+        // 插件运行结果轮询
+        let holder = self.plugin_run_pending.take();
+        if let Some(holder) = holder {
+            let done = if let Ok(mut guard) = holder.lock() {
+                if let Some(msg) = guard.take() {
+                    self.error_message = Some(msg);
+                    true
+                } else {
+                    false
+                }
+            } else {
+                // 锁被 poison，丢弃
+                true
+            };
+            if !done {
+                self.plugin_run_pending = Some(holder);
             }
         }
 
