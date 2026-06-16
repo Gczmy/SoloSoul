@@ -29,7 +29,7 @@
 | P011 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/biometric.rs:47-63` | 前端可控 `silent` 参数可跳过生物特征挑战 | `[x]` 已修复：从命令签名与 core API 移除 `silent`，始终要求生物特征挑战 |
 | P012 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/window.rs:21` | 原始指针未判空直接解引用 | `[x]` 已修复：判空后再解引用 |
 | P013 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:22-31` | `resolve_within` canonicalize 失败时回退到文本比较，symlink 指向不存在目标可绕过检查 | `[x]` 已修复：canonicalize 最深存在的路径前缀，失败则拒绝 |
-| P014 | P2 | 安全漏洞 | `tauri/src-tauri/src/local_embed.rs:169,186-188` | `model_id` 直接拼接到模型目录 | `[ ]` 待修复 |
+| P014 | P2 | 安全漏洞 | `tauri/src-tauri/src/local_embed.rs:169,186-188` | `model_id` 直接拼接到模型目录 | `[x]` 已修复：校验 model_id 字符集后再拼接 |
 | P015 | P2 | 安全漏洞 | `tauri/crates/solosoul-crypto/src/kdf.rs:72-77` / `tauri/src-tauri/src/commands/crypto.rs:84-92` | `generate_salt` 使用 `thread_rng()` 而非 OS CSPRNG | `[x]` 已修复：改用 `rand::rngs::OsRng`，命令端拒绝 length 0 |
 | P016 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/embed_model.rs:218-243` | ZIP 解压未校验条目路径是否逃出目标目录 | `[x]` 已修复：canonicalize 目标目录并校验每个条目路径 |
 | P017 | P1 | 性能/安全 | `tauri/src-tauri/src/commands/fs.rs:270-294` | `fs_read_file_as_data_url` 无文件大小限制直接读入内存 | `[x]` 已修复：限制为 10 MiB，超限拒绝 |
@@ -66,8 +66,8 @@
 
 ## 修复进度
 
-- 已完成：29 / 47
-- 当前处理：本轮继续；剩余 18 项（P004 路径遍历、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）
+- 已完成：30 / 47
+- 当前处理：本轮继续；剩余 17 项（P004 路径遍历、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）
 
 ## 详细问题描述与修复指引
 
