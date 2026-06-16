@@ -31,7 +31,7 @@
 | P013 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:22-31` | `resolve_within` canonicalize 失败时回退到文本比较，symlink 指向不存在目标可绕过检查 | `[x]` 已修复：canonicalize 最深存在的路径前缀，失败则拒绝 |
 | P014 | P2 | 安全漏洞 | `tauri/src-tauri/src/local_embed.rs:169,186-188` | `model_id` 直接拼接到模型目录 | `[ ]` 待修复 |
 | P015 | P2 | 安全漏洞 | `tauri/crates/solosoul-crypto/src/kdf.rs:72-77` / `tauri/src-tauri/src/commands/crypto.rs:84-92` | `generate_salt` 使用 `thread_rng()` 而非 OS CSPRNG | `[x]` 已修复：改用 `rand::rngs::OsRng`，命令端拒绝 length 0 |
-| P016 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/embed_model.rs:218-243` | ZIP 解压未校验条目路径是否逃出目标目录 | `[ ]` 待修复 |
+| P016 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/embed_model.rs:218-243` | ZIP 解压未校验条目路径是否逃出目标目录 | `[x]` 已修复：canonicalize 目标目录并校验每个条目路径 |
 | P017 | P1 | 性能/安全 | `tauri/src-tauri/src/commands/fs.rs:270-294` | `fs_read_file_as_data_url` 无文件大小限制直接读入内存 | `[x]` 已修复：限制为 10 MiB，超限拒绝 |
 | P018 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import.rs:503-525` | 附件导出先完整读入内存再加密，内存峰值高 | `[ ]` 待修复 |
 | P019 | P2 | 性能 | `tauri/src-tauri/src/commands/llm.rs:2607,2624,2851` | 在 async Tauri command 中直接加载 ONNX embedder，阻塞运行时 | `[ ]` 待修复 |
@@ -66,7 +66,7 @@
 
 ## 修复进度
 
-- 已完成：17 / 47
+- 已完成：18 / 47
 - 当前处理：P001（生物特征主密钥文件回退加密方式需架构调整，暂缓）
 
 ## 详细问题描述与修复指引
