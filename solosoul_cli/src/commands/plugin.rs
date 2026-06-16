@@ -396,6 +396,57 @@ pub fn update_registry(app: &mut App) -> Result<()> {
     Ok(())
 }
 
+/// /plugin_search <keyword> — 在插件市场中按关键词搜索。
+pub fn search_plugins(app: &mut App, keyword: Option<&str>) -> Result<()> {
+    let keyword = match keyword {
+        Some(k) => k.to_lowercase(),
+        None => {
+            app.error_message = Some("用法: /plugin_search <keyword>".to_string());
+            return Ok(());
+        }
+    };
+
+    let market_dir = resolve_plugin_market_dir();
+
+    match load_registry_entries(&market_dir) {
+        Ok(entries) => {
+            let matched: Vec<PluginSummary> = entries
+                .into_iter()
+                .filter(|e| {
+                    e.name.to_lowercase().contains(&keyword)
+                        || e.description
+                            .as_deref()
+                            .unwrap_or("")
+                            .to_lowercase()
+                            .contains(&keyword)
+                })
+                .map(|e| PluginSummary {
+                    id: e.id,
+                    name: e.name,
+                    version: e.version,
+                    description: e.description.unwrap_or_default(),
+                    tier: e.tier.unwrap_or_else(|| "community".to_string()),
+                })
+                .collect();
+
+            if matched.is_empty() {
+                app.error_message =
+                    Some(format!("未找到匹配 \"{}\" 的插件", keyword));
+            } else {
+                app.phase = AppPhase::PluginList {
+                    plugins: matched,
+                    selected: 0,
+                };
+            }
+        }
+        Err(e) => {
+            app.error_message = Some(format!("搜索插件失败: {}", e));
+        }
+    }
+    Ok(())
+}
+
+/// 创建 PluginManager 实例（提取公共代码）。
 fn create_manager(app: &mut App) -> Option<solosoul_plugin::PluginManager> {
     let market_dir = resolve_plugin_market_dir();
     match solosoul_plugin::PluginManager::new_with_resource_dir(&market_dir) {

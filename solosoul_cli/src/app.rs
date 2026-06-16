@@ -1479,6 +1479,10 @@ impl App {
                 commands::plugin::audit_log(self, parts.get(1).copied())?
             }
             "/plugin_registry_update" => commands::plugin::update_registry(self)?,
+            "/plugin_search" => {
+                let kw = cmd.strip_prefix("/plugin_search").map(|s| s.trim()).filter(|s| !s.is_empty());
+                commands::plugin::search_plugins(self, kw)?
+            }
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -2502,6 +2506,7 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/plugin_list_installed",
             "/plugin_audit_log",
             "/plugin_registry_update",
+            "/plugin_search",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
         AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {
