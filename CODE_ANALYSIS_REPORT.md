@@ -33,7 +33,7 @@
 | P015 | P2 | 安全漏洞 | `tauri/crates/solosoul-crypto/src/kdf.rs:72-77` / `tauri/src-tauri/src/commands/crypto.rs:84-92` | `generate_salt` 使用 `thread_rng()` 而非 OS CSPRNG | `[x]` 已修复：改用 `rand::rngs::OsRng`，命令端拒绝 length 0 |
 | P016 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/embed_model.rs:218-243` | ZIP 解压未校验条目路径是否逃出目标目录 | `[x]` 已修复：canonicalize 目标目录并校验每个条目路径 |
 | P017 | P1 | 性能/安全 | `tauri/src-tauri/src/commands/fs.rs:270-294` | `fs_read_file_as_data_url` 无文件大小限制直接读入内存 | `[x]` 已修复：限制为 10 MiB，超限拒绝 |
-| P018 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import.rs:503-525` | 附件导出先完整读入内存再加密，内存峰值高 | `[ ]` 待修复 |
+| P018 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import.rs:503-525` | 附件导出先完整读入内存再加密，内存峰值高 | `[x]` 已修复：大附件使用 `encrypt_chunked_stream` 直接写入 ZIP，避免全载内存 |
 | P019 | P2 | 性能 | `tauri/src-tauri/src/commands/llm.rs:2607,2624,2851` | 在 async Tauri command 中直接加载 ONNX embedder，阻塞运行时 | `[ ]` 待修复 |
 | P020 | P2 | 性能 | `tauri/src-tauri/src/commands/discovery.rs:39-69` | `mdns_discover` 接受无上限 `timeout_ms` 并阻塞任务 | `[ ]` 待修复 |
 | P021 | P2 | 性能 | `tauri/src-tauri/src/plugin/host.rs:232,959-986` | 每次插件 HTTP 调用创建新 `reqwest::Client` 并 `block_on` 阻塞 worker | `[ ]` 待修复 |
@@ -66,8 +66,8 @@
 
 ## 修复进度
 
-- 已完成：24 / 47
-- 当前处理：本轮继续；剩余 23 项（P004/P006/P007 路径遍历、P018 性能、P027/P028 剩余魔术数、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）
+- 已完成：25 / 47
+- 当前处理：本轮继续；剩余 22 项（P004/P006/P007 路径遍历、P027/P028 剩余魔术数、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）
 
 ## 详细问题描述与修复指引
 
