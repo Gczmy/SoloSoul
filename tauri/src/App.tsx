@@ -485,23 +485,10 @@ function App() {
           return;
         }
         // IPC is authoritative: if it says not seen, ignore stale localStorage
-        try {
-          const localSeen = localStorage.getItem('solosoul_onboarding_seen') === 'true';
-          if (localSeen) {
-            // eslint-disable-next-line no-console
-            console.warn(
-              '[onboarding] ui_preferences says not seen but localStorage says seen; using IPC',
-            );
-          }
-        } catch {
-          /* ignore */
-        }
         setHasSeenOnboarding(false);
       })
-      .catch((err) => {
+      .catch(() => {
         if (cancelled) return;
-        // eslint-disable-next-line no-console
-        console.warn('[onboarding] Failed to read onboarding state:', err);
         // Fallback to localStorage already applied in initial state
       });
     return () => {
@@ -515,9 +502,8 @@ function App() {
     } catch {
       /* ignore */
     }
-    invoke('ui_update_preference', { key: 'hasSeenOnboarding', value: 'true' }).catch((err) => {
-      // eslint-disable-next-line no-console
-      console.warn('[onboarding] Failed to persist hasSeenOnboarding:', err);
+    invoke('ui_update_preference', { key: 'hasSeenOnboarding', value: 'true' }).catch(() => {
+      /* ignore persistence errors; localStorage fallback is already set */
     });
     setHasSeenOnboarding(true);
   };
