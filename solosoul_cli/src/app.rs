@@ -1470,7 +1470,7 @@ impl App {
             }
             "/llm_chat" => commands::llm::chat(self, parts.get(1).copied())?,
             "/plugin" | "/plugin_list" => commands::plugin::list_plugins(self)?,
-            "/plugin_run" => commands::plugin::run_plugin(self, parts.get(1).copied())?,
+            "/plugin_run" => commands::plugin::run_plugin(self, parts.get(1).copied(), &parts[2..])?,
             "/plugin_install" => commands::plugin::install_plugin(self, parts.get(1).copied())?,
             "/plugin_update" => commands::plugin::update_plugin(self, parts.get(1).copied())?,
             "/plugin_uninstall" => commands::plugin::uninstall_plugin(self, parts.get(1).copied())?,
@@ -2069,7 +2069,7 @@ impl App {
                             }
                             KeyCode::Char('r') if sel < filtered_len => {
                                 let plugin_id = filtered[sel].id.clone();
-                                commands::plugin::run_plugin(self, Some(&plugin_id))?;
+                                commands::plugin::run_plugin(self, Some(&plugin_id), &[])?;
                                 return Ok(false);
                             }
                             KeyCode::Char('i') if sel < filtered_len => {
@@ -2116,7 +2116,7 @@ impl App {
                 }
                 KeyCode::Char('r') if sel < plugins.len() => {
                     let plugin_id = plugins[sel].id.clone();
-                    commands::plugin::run_plugin(self, Some(&plugin_id))?;
+                    commands::plugin::run_plugin(self, Some(&plugin_id), &[])?;
                     return Ok(false);
                 }
                 KeyCode::Char('i') if sel < plugins.len() => {

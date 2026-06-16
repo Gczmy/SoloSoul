@@ -53,10 +53,11 @@ pub fn list_plugins(app: &mut App) -> Result<()> {
     Ok(())
 }
 
-/// /plugin_run <plugin_id> — 运行指定插件（后台异步执行）。
+/// /plugin_run <plugin_id> [key=value ...] — 运行指定插件（后台异步执行）。
 ///
+/// 可选的 key=value 参数将传递给插件作为运行时配置。
 /// 插件在后台线程中运行，结果通过 app.error_message 异步展示。
-pub fn run_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
+pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -> Result<()> {
     let plugin_id = match plugin_id {
         Some(id) => id.to_string(),
         None => {
@@ -98,6 +99,17 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         Err(_) => "latest".to_string(),
     };
 
+    // 解析 key=value 运行时参数
+    let params: HashMap<String, String> = raw_params
+        .iter()
+        .filter_map(|p| {
+            let mut parts = p.splitn(2, '=');
+            let key = parts.next()?.trim().to_string();
+            let value = parts.next()?.trim().to_string();
+            if key.is_empty() { None } else { Some((key, value)) }
+        })
+        .collect();
+
     // 共享结果容器：工作线程写入，主线程在 handle_tick 中轮询
     let result_holder: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
     app.plugin_run_pending = Some(result_holder.clone());
@@ -132,7 +144,6 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
 
             let sink = Arc::new(TerminalPluginSink);
 
-            let params = HashMap::new();
             match manager
                 .run(
                     &plugin_id_clone,
