@@ -19,11 +19,19 @@ const ICONS: Record<string, typeof MessageSquareText> = {
   input: MessageSquareText,
 };
 
+const DIALOG_TYPES = ['alert', 'confirm', 'radio_list', 'checkbox_list', 'input'] as const;
+
+function isDialogConfig(value: unknown): value is DialogConfig {
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return DIALOG_TYPES.includes(v.type as (typeof DIALOG_TYPES)[number]);
+}
+
 function parseConfig(json: string): DialogConfig | null {
   try {
     const parsed = JSON.parse(json);
-    if (!parsed || typeof parsed !== 'object') return null;
-    return parsed as DialogConfig;
+    if (isDialogConfig(parsed)) return parsed;
+    return null;
   } catch {
     return null;
   }

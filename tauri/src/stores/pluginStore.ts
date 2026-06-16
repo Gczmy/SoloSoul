@@ -4,6 +4,7 @@ import {
   ConsentRequestEvent,
   DialogRequestEvent,
   MarketPluginInfo,
+  PluginEvent,
   PluginManifest,
   PluginResultPayload,
   PluginTier,
@@ -15,6 +16,49 @@ export interface PluginLogLine {
   level: 'debug' | 'info' | 'warn' | 'error';
   message: string;
   timestamp: number;
+}
+
+function isPluginLogLine(value: unknown): value is PluginLogLine {
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.message === 'string' &&
+    typeof v.timestamp === 'number' &&
+    ['debug', 'info', 'warn', 'error'].includes(v.level as string)
+  );
+}
+
+function isPluginResultPayload(value: unknown): value is PluginResultPayload {
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  switch (v.type) {
+    case 'text':
+    case 'markdown':
+      return typeof v.content === 'string';
+    case 'key_value':
+      return typeof v.title === 'string' && Array.isArray(v.pairs);
+    case 'table':
+      return Array.isArray(v.headers) && Array.isArray(v.rows);
+    default:
+      return false;
+  }
+}
+
+function isConsentRequestEvent(event: unknown): event is ConsentRequestEvent {
+  const e = event as Record<string, unknown>;
+  return (
+    e?.eventType === 'consent_request' &&
+    typeof (event as ConsentRequestEvent).fieldId === 'string'
+  );
+}
+
+function isDialogRequestEvent(event: unknown): event is DialogRequestEvent {
+  const e = event as Record<string, unknown>;
+  return (
+    e?.eventType === 'dialog_request' &&
+    typeof (event as DialogRequestEvent).requestId === 'string'
+  );
 }
 
 export interface RunningPlugin {
@@ -152,31 +196,41 @@ export const usePluginStore = create<PluginState>()(
               switch (event.eventType) {
                 case 'log':
                   try {
-                    const log = JSON.parse(event.jsonData) as PluginLogLine;
-                    next.logs = [...next.logs, log];
+                    const parsed = JSON.parse(event.jsonData);
+                    if (isPluginLogLine(parsed)) {
+                      next.logs = [...next.logs, parsed];
+                    }
                   } catch {
                     // ignore malformed log
                   }
                   break;
                 case 'result':
                   try {
-                    const payload = JSON.parse(event.jsonData) as PluginResultPayload;
-                    next.results = [...next.results, payload];
+                    const parsed = JSON.parse(event.jsonData);
+                    if (isPluginResultPayload(parsed)) {
+                      next.results = [...next.results, parsed];
+                    }
                   } catch {
                     // ignore malformed result
                   }
                   break;
                 case 'consent_request':
-                  next.consentRequests = [...next.consentRequests, event as ConsentRequestEvent];
+                  if (isConsentRequestEvent(event)) {
+                    next.consentRequests = [...next.consentRequests, event];
+                  }
                   break;
                 case 'dialog_request':
-                  next.dialogRequests = [...next.dialogRequests, event as DialogRequestEvent];
+                  if (isDialogRequestEvent(event)) {
+                    next.dialogRequests = [...next.dialogRequests, event];
+                  }
                   break;
                 case 'completed':
                   next.completed = true;
                   try {
                     const completed = JSON.parse(event.jsonData) as { exitCode: number };
-                    next.exitCode = completed.exitCode;
+                    if (typeof completed.exitCode === 'number') {
+                      next.exitCode = completed.exitCode;
+                    }
                   } catch {
                     // ignore
                   }
