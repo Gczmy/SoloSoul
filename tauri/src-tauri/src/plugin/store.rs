@@ -13,6 +13,22 @@ use std::path::{Path, PathBuf};
 /// Wasm 文件最大 10 MiB
 const MAX_WASM_SIZE: usize = 10 * 1024 * 1024;
 
+/// 插件 ID 允许字符集，防止通过 ID 构造路径遍历。
+fn validate_plugin_id(id: &str) -> Result<(), PluginError> {
+    if id.is_empty()
+        || id.len() > 64
+        || !id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
+    {
+        return Err(PluginError::StoreError(format!(
+            "Invalid plugin id: {}",
+            id
+        )));
+    }
+    Ok(())
+}
+
 /// 插件本地存储
 pub struct PluginStore {
     base_dir: PathBuf,
@@ -48,16 +64,17 @@ impl PluginStore {
         Ok(())
     }
 
-    fn plugin_dir(&self, plugin_id: &str) -> PathBuf {
-        self.base_dir.join(plugin_id)
+    fn plugin_dir(&self, plugin_id: &str) -> Result<PathBuf, PluginError> {
+        validate_plugin_id(plugin_id)?;
+        Ok(self.base_dir.join(plugin_id))
     }
 
-    fn manifest_path(&self, plugin_id: &str) -> PathBuf {
-        self.plugin_dir(plugin_id).join("manifest.json")
+    fn manifest_path(&self, plugin_id: &str) -> Result<PathBuf, PluginError> {
+        Ok(self.plugin_dir(plugin_id)?.join("manifest.json"))
     }
 
-    fn wasm_path(&self, plugin_id: &str) -> PathBuf {
-        self.plugin_dir(plugin_id).join("plugin.wasm")
+    fn wasm_path(&self, plugin_id: &str) -> Result<PathBuf, PluginError> {
+        Ok(self.plugin_dir(plugin_id)?.join("plugin.wasm"))
     }
 
     /// 保存插件 manifest 与 wasm 到本地
@@ -70,7 +87,7 @@ impl PluginStore {
             return Err(PluginError::WasmTooLarge(wasm_bytes.len()));
         }
 
-        let dir = self.plugin_dir(&manifest.id);
+        let dir = self.plugin_dir(&manifest.id)?;
         Self::ensure_dir(&dir)?;
 
         let manifest_json = serde_json::to_string_pretty(manifest)?;
@@ -91,7 +108,7 @@ impl PluginStore {
 
     /// 加载插件 manifest
     pub fn load_manifest(&self, plugin_id: &str) -> Result<PluginManifest, PluginError> {
-        let path = self.manifest_path(plugin_id);
+        let path = self.manifest_path(plugin_id)?;
         if !path.exists() {
             return Err(PluginError::NotFound(plugin_id.to_string()));
         }
@@ -103,7 +120,7 @@ impl PluginStore {
     /// 加载插件 wasm 并校验 SHA-256（manifest 中提供时）
     pub fn load_wasm(&self, plugin_id: &str) -> Result<Vec<u8>, PluginError> {
         let manifest = self.load_manifest(plugin_id)?;
-        let path = self.wasm_path(plugin_id);
+        let path = self.wasm_path(plugin_id)?;
         if !path.exists() {
             return Err(PluginError::NotFound(plugin_id.to_string()));
         }
@@ -122,7 +139,7 @@ impl PluginStore {
 
     /// 删除已安装的插件
     pub fn delete_plugin(&self, plugin_id: &str) -> Result<(), PluginError> {
-        let dir = self.plugin_dir(plugin_id);
+        let dir = self.plugin_dir(plugin_id)?;
         if dir.exists() {
             fs::remove_dir_all(dir)?;
         }

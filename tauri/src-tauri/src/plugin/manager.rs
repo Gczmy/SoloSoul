@@ -16,6 +16,22 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use tauri::ipc::Channel;
 
+/// 插件 ID 允许字符集，防止通过 ID 构造路径遍历。
+fn validate_plugin_id(id: &str) -> Result<(), PluginError> {
+    if id.is_empty()
+        || id.len() > 64
+        || !id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.')
+    {
+        return Err(PluginError::StoreError(format!(
+            "Invalid plugin id: {}",
+            id
+        )));
+    }
+    Ok(())
+}
+
 /// 市场 manifest 原始结构（与 `SoloSoul_plugin_market/plugins/*/manifest.json` 对应）
 #[derive(Debug, Deserialize)]
 struct MarketManifestRaw {
@@ -131,6 +147,7 @@ impl PluginManager {
         }
 
         // 插件实际目录位于市场根目录下的 plugins/{plugin_id}/
+        validate_plugin_id(plugin_id)?;
         let plugin_dir = self.market_dir.join("plugins").join(plugin_id);
         let manifest_path = plugin_dir.join("manifest.json");
         let wasm_path = plugin_dir.join("plugin.wasm");
