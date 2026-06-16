@@ -1465,6 +1465,10 @@ impl App {
             "/llm_chat" => commands::llm::chat(self, parts.get(1).copied())?,
             "/plugin" | "/plugin_list" => commands::plugin::list_plugins(self)?,
             "/plugin_run" => commands::plugin::run_plugin(self, parts.get(1).copied())?,
+            "/plugin_install" => commands::plugin::install_plugin(self, parts.get(1).copied())?,
+            "/plugin_update" => commands::plugin::update_plugin(self, parts.get(1).copied())?,
+            "/plugin_uninstall" => commands::plugin::uninstall_plugin(self, parts.get(1).copied())?,
+            "/plugin_sessions" => commands::plugin::list_sessions(self)?,
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -2448,6 +2452,10 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/plugin",
             "/plugin_list",
             "/plugin_run",
+            "/plugin_install",
+            "/plugin_update",
+            "/plugin_uninstall",
+            "/plugin_sessions",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
         AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {

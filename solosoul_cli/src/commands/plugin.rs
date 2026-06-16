@@ -160,6 +160,129 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
     Ok(())
 }
 
+/// /plugin_install <plugin_id> — 从插件市场安装插件。
+pub fn install_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
+    let plugin_id = match plugin_id {
+        Some(id) => id.to_string(),
+        None => {
+            app.error_message = Some("用法: /plugin_install <plugin_id>".to_string());
+            return Ok(());
+        }
+    };
+
+    let Some(manager) = create_manager(app) else { return Ok(()); };
+
+    let version = match load_registry_entries(&resolve_plugin_market_dir()) {
+        Ok(entries) => entries
+            .iter()
+            .find(|e| e.id == plugin_id)
+            .map(|e| e.version.clone())
+            .unwrap_or_else(|| "latest".to_string()),
+        Err(_) => "latest".to_string(),
+    };
+
+    match manager.install_from_registry(&plugin_id, &version) {
+        Ok(result) => {
+            app.error_message = Some(format!(
+                "插件 {} v{} 安装成功",
+                result.plugin_id, result.version
+            ));
+        }
+        Err(e) => {
+            app.error_message = Some(format!("安装插件 {} 失败: {}", plugin_id, e));
+        }
+    }
+    Ok(())
+}
+
+/// /plugin_update <plugin_id> — 更新已安装插件。
+pub fn update_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
+    let plugin_id = match plugin_id {
+        Some(id) => id.to_string(),
+        None => {
+            app.error_message = Some("用法: /plugin_update <plugin_id>".to_string());
+            return Ok(());
+        }
+    };
+
+    let Some(manager) = create_manager(app) else { return Ok(()); };
+
+    match manager.update(&plugin_id) {
+        Ok(result) => {
+            app.error_message = Some(format!(
+                "插件 {} 更新成功 (v{})",
+                result.plugin_id, result.version
+            ));
+        }
+        Err(e) => {
+            app.error_message = Some(format!("更新插件 {} 失败: {}", plugin_id, e));
+        }
+    }
+    Ok(())
+}
+
+/// /plugin_uninstall <plugin_id> — 卸载插件。
+pub fn uninstall_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
+    let plugin_id = match plugin_id {
+        Some(id) => id.to_string(),
+        None => {
+            app.error_message = Some("用法: /plugin_uninstall <plugin_id>".to_string());
+            return Ok(());
+        }
+    };
+
+    let Some(manager) = create_manager(app) else { return Ok(()); };
+
+    match manager.uninstall(&plugin_id) {
+        Ok(()) => {
+            app.error_message = Some(format!("插件 {} 已卸载", plugin_id));
+        }
+        Err(e) => {
+            app.error_message = Some(format!("卸载插件 {} 失败: {}", plugin_id, e));
+        }
+    }
+    Ok(())
+}
+
+/// /plugin_sessions — 查看活跃插件会话。
+pub fn list_sessions(app: &mut App) -> Result<()> {
+    let Some(manager) = create_manager(app) else { return Ok(()); };
+
+    match manager.list_sessions() {
+        Ok(sessions) => {
+            if sessions.is_empty() {
+                app.error_message = Some("当前没有活跃的插件会话".to_string());
+            } else {
+                let lines: Vec<String> = sessions
+                    .iter()
+                    .map(|s| format!("- {} (plugin: {}, created: {})", s.session_id, s.plugin_id, s.created_at))
+                    .collect();
+                app.error_message = Some(format!(
+                    "活跃会话 ({}):\n{}",
+                    sessions.len(),
+                    lines.join("\n")
+                ));
+            }
+        }
+        Err(e) => {
+            app.error_message = Some(format!("获取会话列表失败: {}", e));
+        }
+    }
+    Ok(())
+}
+
+/// 创建 PluginManager 实例（提取公共代码）。
+fn create_manager(app: &mut App) -> Option<solosoul_plugin::PluginManager> {
+    let market_dir = resolve_plugin_market_dir();
+    match solosoul_plugin::PluginManager::new_with_resource_dir(&market_dir) {
+        Ok(m) => Some(m),
+        Err(e) => {
+            app.error_message = Some(format!("初始化插件管理器失败: {}", e));
+            None
+        }
+    }
+}
+
 /// 解析插件市场目录路径。
 fn resolve_plugin_market_dir() -> PathBuf {
     if let Ok(dir) = std::env::var("SOLOSOUL_PLUGIN_DIR") {
