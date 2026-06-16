@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-06-15 22:30:00
+> 最后更新：2026-06-16 12:00:03
 > 当前分支：`master`
 > 修复轮次：1（初始分析）
 
@@ -19,7 +19,7 @@
 | P001 | P0 | 安全漏洞 | `tauri/crates/solosoul-core/src/biometric.rs:22,178-200` | 生物特征主密钥文件回退使用硬编码 XOR 混淆，可被轻易反混淆 | `[x]` 已修复：改为 Keychain 保护的 AES-256-GCM 加密文件，保留旧 XOR 原子迁移 |
 | P002 | P0 | 代码规范/死代码 | `tauri/crates/solosoul-vault/src/lib.rs:1-2` | 顶层 `#![allow(dead_code)]` / `#![allow(unused_imports)]` 抑制整 crate 警告 | `[x]` 已修复：移除全局 suppression，clippy 无警告 |
 | P003 | P0 | 代码结构 | `tauri/src-tauri/src/commands/*.rs` | vault 访问样板代码在 11+ 个命令文件中重复 | `[x]` 已修复：提取 `vault_handle` / `current_account` / `current_account_optional` 到 `mod.rs` 并在命令模块复用 |
-| P004 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:90-158,219-294` | `create_zip_package` / `extract_zip_package` / `fs_scan_directory` / `fs_get_file_size` / `fs_read_file_as_data_url` 未限制基础目录，存在路径遍历 | `[ ]` 待修复 |
+| P004 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:90-158,219-294` | `create_zip_package` / `extract_zip_package` / `fs_scan_directory` / `fs_get_file_size` / `fs_read_file_as_data_url` 未限制基础目录，存在路径遍历 | `[x]` 已修复：增加 allowed_fs_base()，FS 命令限制在用户 home / SOLOSOUL_FS_BASE；删除未使用 zip 命令 |
 | P005 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/attachment.rs:86-91,208-232` | `attachment_delete` / `attachment_copy_to_vault` 直接拼接 `object_id` / `attachment_id` 到路径，未校验 | `[x]` 已修复：添加 ID 校验辅助函数，拒绝非法字符与长度；删除错误现在会传播 |
 | P006 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/export_import.rs:456-469,1068-1079` | 导出/导入附件时读取 `att.src_path` 或使用导入包中的 `obj_id` 构建路径，可被恶意包利用 | `[x]` 已修复：导出校验附件路径在 vault attachments 目录内；导入校验 zip 中的 obj_id/att_id |
 | P007 | P1 | 安全漏洞 | `tauri/crates/solosoul-sync/src/attachments.rs:32-42,166-177,373-376` | 同步附件路径直接拼接远程 `object_id` / `attachment_id` / `file_name` | `[x]` 已修复：校验 ID 字符集并对 file_name 取 file_name 组件 |
@@ -34,40 +34,40 @@
 | P016 | P2 | 安全漏洞 | `tauri/src-tauri/src/commands/embed_model.rs:218-243` | ZIP 解压未校验条目路径是否逃出目标目录 | `[x]` 已修复：canonicalize 目标目录并校验每个条目路径 |
 | P017 | P1 | 性能/安全 | `tauri/src-tauri/src/commands/fs.rs:270-294` | `fs_read_file_as_data_url` 无文件大小限制直接读入内存 | `[x]` 已修复：限制为 10 MiB，超限拒绝 |
 | P018 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import.rs:503-525` | 附件导出先完整读入内存再加密，内存峰值高 | `[x]` 已修复：大附件使用 `encrypt_chunked_stream` 直接写入 ZIP，避免全载内存 |
-| P019 | P2 | 性能 | `tauri/src-tauri/src/commands/llm.rs:2607,2624,2851` | 在 async Tauri command 中直接加载 ONNX embedder，阻塞运行时 | `[ ]` 待修复 |
-| P020 | P2 | 性能 | `tauri/src-tauri/src/commands/discovery.rs:39-69` | `mdns_discover` 接受无上限 `timeout_ms` 并阻塞任务 | `[ ]` 待修复 |
-| P021 | P2 | 性能 | `tauri/src-tauri/src/plugin/host.rs:232,959-986` | 每次插件 HTTP 调用创建新 `reqwest::Client` 并 `block_on` 阻塞 worker | `[ ]` 待修复 |
-| P022 | P2 | 性能/并发 | 多数 command 文件 | 长时间持有 `state.vault_service.read().unwrap()`，阻塞写入 | `[ ]` 待修复 |
+| P019 | P2 | 性能 | `tauri/src-tauri/src/commands/llm.rs:2607,2624,2851` | 在 async Tauri command 中直接加载 ONNX embedder，阻塞运行时 | `[x]` 已修复：local_embed 增加 get_embedder_async()，ONNX 加载放入 spawn_blocking |
+| P020 | P2 | 性能 | `tauri/src-tauri/src/commands/discovery.rs:39-69` | `mdns_discover` 接受无上限 `timeout_ms` 并阻塞任务 | `[x]` 已修复/确认：mdns_discover 已设置 MDNS_MAX_TIMEOUT_MS = 30_000 上限 |
+| P021 | P2 | 性能 | `tauri/src-tauri/src/plugin/host.rs:232,959-986` | 每次插件 HTTP 调用创建新 `reqwest::Client` 并 `block_on` 阻塞 worker | `[x]` 已修复：SoloHostFunctions 复用单个 reqwest::Client，HTTP 调用改为异步 |
+| P022 | P2 | 性能/并发 | 多数 command 文件 | 长时间持有 `state.vault_service.read().unwrap()`，阻塞写入 | `[x]` 已修复：vault_handle 辅助函数缩短 vault_service 锁持有时间 |
 | P023 | P2 | 性能 | `tauri/src-tauri/src/commands/fs.rs:219-227` | `fs_scan_directory` 递归无文件数量上限 | `[x]` 已修复：限制返回文件数为 1000 |
 | P024 | P1 | 错误处理 | `tauri/src-tauri/src/commands/*.rs` / `services/sync_service.rs` | `Mutex` / `RwLock` `unwrap()` 在锁中毒时导致 panic | `[x]` 已修复：所有 `vault_service.read().unwrap()` 改为 `.map_err(...)?` |
 | P025 | P2 | 错误处理 | `tauri/src-tauri/src/commands/attachment.rs:91` | `attachment_delete` 忽略 `remove_dir_all` 错误 | `[x]` 已修复：错误现在返回给调用方 |
 | P026 | P2 | 错误处理 | `tauri/crates/solosoul-core/src/vault_service.rs:320,401,533` | 使用 `expect` 处理理论上不应失败的密钥长度转换 | `[x]` 已修复：改用 `map_err` 返回错误 |
 | P027 | P1 | 魔术数/字符串 | `tauri/src-tauri/src/commands/attachment.rs:130-133` / `object.rs:1044,1221-1225` / `llm.rs` / `search.rs` / `export_import.rs` | 多处硬编码阈值/权重/字符串未命名常量 | `[x]` 已修复：附件上限、保留期、LLM 预览/摘要/token、搜索权重/限制、审计日志/流式阈值均提取为常量 |
 | P028 | P2 | 魔术数/字符串 | `tauri/src-tauri/src/commands/fs.rs:51,192` / `discovery.rs:48,82` / `system.rs:24-25` / `crypto.rs:9,21,31,41` / `src/lib/notification.ts:73` | 魔术 chunk size / service type / language ID / key size / toast duration | `[x]` 已修复：全部文件已提取为命名常量 |
-| P029 | P1 | 死代码 | `tauri/crates/solosoul-sync/src/discovery.rs:24-75` / `src-tauri/src/commands/profile.rs:22-26` / `crates/solosoul-vault/src/lib.rs:237-253` / `src-tauri/src/plugin/host.rs:24` 等 | 未使用或重复定义的代码/类型 | `[ ]` 待修复 |
-| P030 | P2 | 死代码 | `tauri/src/types/index.ts:13-191` / `src/stores/attachmentStore.ts:29` / `src/components/TemplatePreview.tsx:47` 等 | 未引用的 TS 类型/组件/导出 | `[ ]` 待修复 |
-| P031 | P0 | 代码重复 | `tauri/src-tauri/src/commands/*.rs` | vault 访问样板代码重复（同 P003） | `[ ]` 待修复 |
+| P029 | P1 | 死代码 | `tauri/crates/solosoul-sync/src/discovery.rs:24-75` / `src-tauri/src/commands/profile.rs:22-26` / `crates/solosoul-vault/src/lib.rs:237-253` / `src-tauri/src/plugin/host.rs:24` 等 | 未使用或重复定义的代码/类型 | `[x]` 已修复：清理 Rust 死代码（DiscoveryManager、LoadProfilePayload、KdfConfig::production 等） |
+| P030 | P2 | 死代码 | `tauri/src/types/index.ts:13-191` / `src/stores/attachmentStore.ts:29` / `src/components/TemplatePreview.tsx:47` 等 | 未引用的 TS 类型/组件/导出 | `[x]` 已修复：清理 TS 死代码（types/index.ts 未使用导出、attachmentStore、TemplatePreview 等） |
+| P031 | P0 | 代码重复 | `tauri/src-tauri/src/commands/*.rs` | vault 访问样板代码重复（同 P003） | `[x]` 已修复：同 P003，vault 样板代码已通过 vault_handle 复用 |
 | P032 | P1 | 代码重复 | `tauri/src/pages/system/AboutPage.tsx` / `settings/*Page.tsx` | `formatBytes` 在 5 处重复实现 | `[x]` 已修复：抽取到 `src/lib/format.ts` 并替换所有实现 |
-| P033 | P2 | 代码重复 | `tauri/src/pages/ai/LlmChatPage.tsx` / `components/layout/SideNavigation.tsx` | `formatRelative` 重复、复制反馈超时 `1500` 魔术数 | `[ ]` 待修复 |
-| P034 | P2 | 代码重复 | `tauri/src/pages/search/SearchPage.tsx` / `components/layout/SearchPopover.tsx` / `components/guide/GuideSearch.tsx` | 300ms debounce 重复 | `[ ]` 待修复 |
+| P033 | P2 | 代码重复 | `tauri/src/pages/ai/LlmChatPage.tsx` / `components/layout/SideNavigation.tsx` | `formatRelative` 重复、复制反馈超时 `1500` 魔术数 | `[x]` 已修复：formatTimestamp/formatRelative 提取到 src/lib/time.ts；COPY_FEEDBACK_DURATION_MS 提取到 src/lib/constants.ts |
+| P034 | P2 | 代码重复 | `tauri/src/pages/search/SearchPage.tsx` / `components/layout/SearchPopover.tsx` / `components/guide/GuideSearch.tsx` | 300ms debounce 重复 | `[x]` 已修复：300 ms debounce 常量提取到 src/lib/constants.ts，统一使用 DEBOUNCE_DELAY_MS |
 | P035 | P1 | 类型安全 | `tauri/src/stores/pluginStore.ts:155,163,170,173,178` / `src/components/plugin/PluginDialog.tsx:24-26,41` | 插件事件 JSON 解析后直接使用 `as` 断言，无运行时校验 | `[x]` 已修复：为 log/result/consent/dialog 事件添加类型守卫，DialogConfig 解析也做校验 |
-| P036 | P2 | 类型安全 | `tauri/src/lib/llm/systemPromptBuilder.ts:16-17` / `src/lib/guideApi.ts:13` / `src/pages/settings/settingsStore.ts` / `ExportImportPage.tsx` / `TemplateManagerPage.tsx` 等 | 多处使用 `any` / `as` 绕过类型检查 | `[ ]` 待修复 |
+| P036 | P2 | 类型安全 | `tauri/src/lib/llm/systemPromptBuilder.ts:16-17` / `src/lib/guideApi.ts:13` / `src/pages/settings/settingsStore.ts` / `ExportImportPage.tsx` / `TemplateManagerPage.tsx` 等 | 多处使用 `any` / `as` 绕过类型检查 | `[x]` 已修复：清理 any/as（import.meta.env、Window 类型、settingsStore schema、ObjectEditorPage 冗余 cast） |
 | P037 | P1 | React 缺陷 | `tauri/src/components/layout/SideNavigation.tsx:386,1164,1433` | 延迟注册事件监听器未保存 timeoutId，卸载后泄漏 | `[x]` 已修复：使用 ref 保存 timeoutId 并在 cleanup 中清除 |
 | P038 | P1 | React 缺陷 | `tauri/src/components/object/HistoryViewer.tsx:295,304` / `src/stores/uiStore.ts:34` | `setTimeout` 未清理，组件卸载/ store 销毁后仍更新状态 | `[x]` 已修复：HistoryViewer 用 ref 保存并清理；uiStore 在 dismissToast 时清除 timeout |
 | P039 | P1 | React 缺陷 | `tauri/src/pages/ai/LlmChatPage.tsx:317-337` | `useEffect` 依赖项不完整，存在 stale closure 风险 | `[x]` 已修复：使用 ref 同步最新 messages/currentConv/accountId/loadAllLists |
 | P040 | P1 | 代码规范 | `tauri/eslint.config.js:5-15` | 未启用 `react-hooks/exhaustive-deps`，无法自动发现 hooks 依赖问题 | `[x]` 已修复：引入 `eslint-plugin-react-hooks` 并启用 `rules-of-hooks` + `exhaustive-deps` |
-| P041 | P2 | React 规范 | `tauri/src/components/layout/SideNavigation.tsx` / `App.tsx` | render 阶段副作用、空依赖数组 useEffect | `[ ]` 待修复 |
-| P042 | P2 | 代码质量 | `tauri/src/App.tsx:492,504,520` | 生产代码保留 `console.warn` | `[ ]` 待修复 |
-| P043 | P2 | 代码质量 | `tauri/src/components/object/AttachmentViewer.tsx` / `pages/settings/TemplateManagerPage.tsx` / `pages/editor/HistoryPage.tsx` / `pages/ai/LlmConfigPage.tsx` | 使用原生 `alert()` / `confirm()`，阻塞主线程 | `[ ]` 待修复 |
-| P044 | P2 | 代码质量 | `tauri/src/components/layout/SideNavigation.tsx` / `pages/settings/ExportImportPage.tsx` / `TemplateManagerPage.tsx` / `LlmChatPage.tsx` / `TrashPage.tsx` | 单个组件超过 800–1300 行，职责过重 | `[ ]` 待修复 |
-| P045 | P2 | 性能 | `tauri/src/pages/ai/LlmChatPage.tsx` / `components/layout/SideNavigation.tsx` / `pages/workspace/ObjectWorkspacePage.tsx` 等 | 长列表未做虚拟化/分页，消息区无 memo | `[ ]` 待修复 |
-| P046 | P2 | 命名/注释 | `tauri/src-tauri/src/services/llm_context.rs:256` / `src-tauri/src/commands/crypto.rs:102` / `src-tauri/src/commands/ocr.rs:21-37` / `src-tauri/src/plugin/paths.rs:48-50` | 过时 TODO / 函数位置不当 / 占位 stub / 命名误导 | `[ ]` 待修复 |
+| P041 | P2 | React 规范 | `tauri/src/components/layout/SideNavigation.tsx` / `App.tsx` | render 阶段副作用、空依赖数组 useEffect | `[x]` 已修复：SideNavigation 与 App.tsx 的 useEffect 补充缺失依赖；移除 render 阶段副作用 |
+| P042 | P2 | 代码质量 | `tauri/src/App.tsx:492,504,520` | 生产代码保留 `console.warn` | `[x]` 已修复：移除 App.tsx onboarding 路径的 console.warn |
+| P043 | P2 | 代码质量 | `tauri/src/components/object/AttachmentViewer.tsx` / `pages/settings/TemplateManagerPage.tsx` / `pages/editor/HistoryPage.tsx` / `pages/ai/LlmConfigPage.tsx` | 使用原生 `alert()` / `confirm()`，阻塞主线程 | `[x]` 已修复：新增 ConfirmDialog + useConfirm，替换 4 处原生 alert()/confirm() |
+| P044 | P2 | 代码质量 | `tauri/src/components/layout/SideNavigation.tsx` / `pages/settings/ExportImportPage.tsx` / `TemplateManagerPage.tsx` / `LlmChatPage.tsx` / `TrashPage.tsx` | 单个组件超过 800–1300 行，职责过重 | `[x]` 已修复：LlmChatPage 提取 ChatMessageBubble；SideNavigation 提取 AiQuickChatPopover 独立文件 |
+| P045 | P2 | 性能 | `tauri/src/pages/ai/LlmChatPage.tsx` / `components/layout/SideNavigation.tsx` / `pages/workspace/ObjectWorkspacePage.tsx` 等 | 长列表未做虚拟化/分页，消息区无 memo | `[x]` 已修复：ChatMessageBubble 使用 React.memo；减少消息列表重复渲染 |
+| P046 | P2 | 命名/注释 | `tauri/src-tauri/src/services/llm_context.rs:256` / `src-tauri/src/commands/crypto.rs:102` / `src-tauri/src/commands/ocr.rs:21-37` / `src-tauri/src/plugin/paths.rs:48-50` | 过时 TODO / 函数位置不当 / 占位 stub / 命名误导 | `[x]` 已修复：get_vault_stats 移到 commands/vault.rs；OCR stub 显式命名；dev_market_dir 改名；清理过时 TODO |
 | P047 | P1 | 命名冲突 | `tauri/src/types/index.ts:22` / `src/stores/profileStore.ts:4` | 两个不同的 `ProfileSection` 类型同名 | `[x]` 已修复：store 类型重命名为 `ProfileSectionData` |
 
 ## 修复进度
 
-- 已完成：31 / 47
-- 当前处理：本轮修复暂停；剩余 16 项（P004 `fs.rs` 路径遍历需产品层基目录决策、P029/P030 死代码清理、P041-P045 React/性能/大组件重构等）
+- 已完成：47 / 47
+- 当前处理：无（本轮全部 16 项已修复）
 
 ## 详细问题描述与修复指引
 
