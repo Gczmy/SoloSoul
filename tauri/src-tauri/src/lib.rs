@@ -162,7 +162,7 @@ pub fn run() {
             commands::crypto::derive_key,
             commands::crypto::generate_salt,
             commands::crypto::constant_time_compare,
-            commands::crypto::get_vault_stats,
+            commands::vault::get_vault_stats,
             // File System commands
             commands::fs::inspect_backup,
             commands::fs::fs_scan_directory,

@@ -1,3 +1,4 @@
+use crate::commands::{current_account, vault_handle};
 use crate::state::AppState;
 use solosoul_core::auth::verify_password_core;
 use solosoul_core::{AccountConfig, AccountSummary};
@@ -106,4 +107,85 @@ pub async fn vault_update_hint(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     svc.update_password_hint(&account_id, hint.as_deref().unwrap_or(""))
+}
+
+/// Get vault statistics with breakdown components.
+#[tauri::command]
+pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::Value, String> {
+    let vault = vault_handle(&state)?;
+    let account_id = current_account(&state)?;
+    let mut stats = vault.stats()?;
+
+    // Attachments stored at base_path/attachments/{objectId}/{attachmentId}/
+    // Only count attachment files that are referenced in object __attachments metadata
+    // (orphaned files from legacy attachment_delete bug are excluded)
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let base_dir = svc.base_path().join("attachments");
+    let mut attachments_size = 0u64;
+    if let Ok(objects) = vault.list_object_attachment_ids(&account_id) {
+        for (object_id, att_ids) in objects {
+            for att_id in att_ids {
+                let att_dir = base_dir.join(&object_id).join(&att_id);
+                attachments_size += sum_dir_file_sizes(&att_dir);
+            }
+        }
+    }
+    stats.attachments_size = attachments_size;
+
+    // AI conversations stored inside profiles (in the preferences JSON blob)
+    if let Ok(Some(profile)) = vault.load_profile(&account_id) {
+        if !profile.data.is_empty() {
+            if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
+                if let Some(convs) = data.pointer("/preferences/llmConversations") {
+                    if let Some(arr) = convs.as_array() {
+                        let raw = serde_json::to_vec(arr).unwrap_or_default();
+                        stats.ai_conversations_size = raw.len() as u64;
+                    }
+                }
+            }
+        }
+    }
+
+    let total = stats.profiles_size
+        + stats.objects_size
+        + stats.trash_size
+        + stats.snapshots_size
+        + stats.attachments_size
+        + stats.ai_conversations_size;
+
+    Ok(serde_json::json!({
+        "profileCount": stats.profile_count,
+        "totalSizeBytes": total,
+        "lastModified": stats.last_modified,
+        "profilesSize": stats.profiles_size,
+        "objectsSize": stats.objects_size,
+        "trashSize": stats.trash_size,
+        "snapshotsSize": stats.snapshots_size,
+        "attachmentsSize": stats.attachments_size,
+        "aiConversationsSize": stats.ai_conversations_size,
+    }))
+}
+
+/// Recursively sum file sizes under a directory (returns 0 if path doesn't exist).
+fn sum_dir_file_sizes(dir: &std::path::Path) -> u64 {
+    if !dir.exists() {
+        return 0;
+    }
+    let mut total = 0u64;
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                total += sum_dir_file_sizes(&path);
+            } else if path.is_file() {
+                if let Ok(meta) = path.metadata() {
+                    total += meta.len();
+                }
+            }
+        }
+    }
+    total
 }

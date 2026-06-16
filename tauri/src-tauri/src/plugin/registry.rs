@@ -33,7 +33,7 @@ impl Default for PluginRegistry {
 impl PluginRegistry {
     /// 创建注册表加载器（开发模式回退到源码路径）
     pub fn new() -> Self {
-        let path = super::paths::dev_market_dir().join("registry.json");
+        let path = super::paths::default_market_dir().join("registry.json");
         Self { path }
     }
 

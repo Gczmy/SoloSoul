@@ -20,15 +20,21 @@ pub struct OcrField {
 
 #[tauri::command]
 pub async fn ocr_scan_image(
+    file_path: String,
+    language: Option<String>,
+) -> Result<OcrResult, String> {
+    ocr_scan_image_stub(file_path, language).await
+}
+
+/// Platform-specific OCR backend placeholder.
+/// The public `ocr_scan_image` command delegates here so the stub nature is
+/// explicit in the source; replace this implementation with the real backend.
+async fn ocr_scan_image_stub(
     _file_path: String,
     _language: Option<String>,
 ) -> Result<OcrResult, String> {
-    // OCR scanning — returns extracted text and structured fields.
     // Full OCR implementation requires platform-specific integration
     // (Apple Vision on macOS, Tesseract on Linux/Windows).
-    //
-    // For now, returns a placeholder result indicating the feature
-    // is ready for platform-specific OCR backend integration.
     Ok(OcrResult {
         text: String::new(),
         confidence: 0.0,

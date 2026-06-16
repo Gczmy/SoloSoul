@@ -36,9 +36,9 @@ pub fn resolve_market_dir(app_handle: Option<&tauri::AppHandle>) -> Result<PathB
     ))
 }
 
-/// 开发模式下的市场目录（用于测试与无 app_handle 的场景）
+/// 默认市场目录（用于测试与无 app_handle 的场景）
 #[cfg(debug_assertions)]
-pub fn dev_market_dir() -> PathBuf {
+pub fn default_market_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("..")
@@ -46,6 +46,8 @@ pub fn dev_market_dir() -> PathBuf {
 }
 
 #[cfg(not(debug_assertions))]
-pub fn dev_market_dir() -> PathBuf {
+pub fn default_market_dir() -> PathBuf {
+    // Release builds should always provide an AppHandle and use the bundled
+    // resource directory; this fallback exists only to satisfy the type system.
     PathBuf::from(".")
 }

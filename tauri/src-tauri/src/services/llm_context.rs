@@ -253,7 +253,8 @@ fn build_section4_preferences(vault: &VaultStore, account_id: &str) -> Result<St
 }
 
 fn build_section5_plugins() -> String {
-    // TODO: 等 Tauri 插件系统上线后接入
+    // Plugin context is intentionally omitted until the installed plugin list
+    // is exposed to the LLM context service.
     "（暂无已安装插件）".to_string()
 }
 

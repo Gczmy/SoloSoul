@@ -80,7 +80,7 @@ pub struct PluginManager {
 impl PluginManager {
     /// 创建插件管理器（开发模式，无 app_handle）
     pub fn new() -> Result<Self, PluginError> {
-        let market_dir = super::paths::dev_market_dir();
+        let market_dir = super::paths::default_market_dir();
         let audit_path = PluginStore::data_dir()?.join("plugin_audit.jsonl");
         Ok(Self {
             store: PluginStore::new()?,
