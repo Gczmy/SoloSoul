@@ -218,12 +218,22 @@ pub async fn download_model(app: &AppHandle, model: &EmbedModelInfo) -> Result<(
 fn extract_zip(zip_path: &PathBuf, dest: &Path) -> Result<(), String> {
     let file = std::fs::File::open(zip_path).map_err(|e| format!("Open zip: {}", e))?;
     let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Read zip: {}", e))?;
+    let dest_canon = dest
+        .canonicalize()
+        .map_err(|e| format!("Canonicalize dest: {}", e))?;
 
     for i in 0..archive.len() {
         let mut file = archive
             .by_index(i)
             .map_err(|e| format!("Zip entry: {}", e))?;
-        let outpath = dest.join(file.mangled_name());
+        let outpath = dest_canon.join(file.mangled_name());
+        if outpath
+            .components()
+            .any(|c| matches!(c, std::path::Component::ParentDir))
+            || !outpath.starts_with(&dest_canon)
+        {
+            return Err(format!("ZIP entry escapes destination: {}", file.name()));
+        }
 
         if file.name().ends_with('/') {
             std::fs::create_dir_all(&outpath).map_err(|e| format!("Create dir: {}", e))?;
