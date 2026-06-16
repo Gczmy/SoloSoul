@@ -46,6 +46,12 @@ pub const SHORTCUTS: &[OptionItem] = &[
         desc: "查看全部命令",
         action: ClickAction::Command("/help"),
     },
+    OptionItem {
+        label: "插件",
+        command: Some("/plugin"),
+        desc: "浏览插件市场",
+        action: ClickAction::Command("/plugin"),
+    },
 ];
 
 /// 返回快捷入口总数。
@@ -147,14 +153,14 @@ mod tests {
     #[test]
     fn test_shortcut_count_matches_const() {
         assert_eq!(shortcut_count(), SHORTCUTS.len());
-        assert_eq!(shortcut_count(), 6);
+        assert_eq!(shortcut_count(), 7);
     }
 
     #[test]
     fn test_render_home_smoke() {
         let _theme = Theme::with_level(ColorLevel::Indexed, true);
         // 使用足够高度以完整显示全部 6 个选项
-        let backend = TestBackend::new(80, 32);
+        let backend = TestBackend::new(80, 36);
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
         let mut regions = Vec::new();
         terminal

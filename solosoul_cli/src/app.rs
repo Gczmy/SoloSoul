@@ -2038,6 +2038,11 @@ impl App {
                     }
                     return Ok(false);
                 }
+                KeyCode::Char('r') if sel < plugins.len() => {
+                    let plugin_id = plugins[sel].id.clone();
+                    commands::plugin::run_plugin(self, Some(&plugin_id))?;
+                    return Ok(false);
+                }
                 _ => {}
             }
             self.phase = AppPhase::PluginList {
@@ -2766,7 +2771,7 @@ mod tests {
         assert_eq!(app.selected_shortcut, 1);
 
         // Tab 继续前进并循环
-        for _ in 0..5 {
+        for _ in 0..6 {
             press_key(&mut app, KeyCode::Tab);
         }
         assert_eq!(app.selected_shortcut, 0);
