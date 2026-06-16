@@ -9,6 +9,8 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent,
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::Frame;
 use solosoul_core::process_lock::ProcessLock;
+use solosoul_core::llm::config::{ConversationSummary, LlmConfig, LlmUsageStats};
+use solosoul_core::llm::service::LlmService;
 use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, UserTemplate, VaultService};
 use zeroize::Zeroizing;
 
@@ -153,6 +155,24 @@ pub enum AppPhase {
         source: String,
         json: String,
     },
+    /// LLM 配置页
+    LlmConfig {
+        config: LlmConfig,
+        account_id: String,
+        selected: usize,
+    },
+    /// LLM 使用统计页
+    LlmStats {
+        stats: LlmUsageStats,
+        selected: usize,
+    },
+    /// LLM 对话历史列表页
+    ConversationList {
+        conversations: Vec<ConversationSummary>,
+        selected: usize,
+    },
+    /// LLM 聊天页
+    LlmChat,
     /// 安全退出
     Quit,
 }
@@ -254,6 +274,9 @@ pub struct App {
     /// 返回 `Locked` 或 `Welcome` 时恢复此上一屏
     pub previous_phase: Option<AppPhase>,
     pub vault_service: Arc<VaultService>,
+    pub llm_service: LlmService,
+    /// LLM 聊天会话状态（从 AppPhase 中分离以避免 Clone 问题）。
+    pub chat_state: Option<crate::screens::llm_chat::LlmChatState>,
     pub process_lock: Option<ProcessLock>,
     pub command_input: CommandInput,
     pub password_input: PasswordInput,
@@ -338,6 +361,8 @@ impl App {
             welcome_selected: 0,
             drag_start: None,
             external_edit: None,
+            llm_service: LlmService::new(),
+            chat_state: None,
         })
     }
 
@@ -603,6 +628,13 @@ impl App {
             .sheen_offset
             .wrapping_add(crate::screens::logo::SHEEN_STEP);
 
+        // LLM chat streaming poll
+        if matches!(self.phase, AppPhase::LlmChat) {
+            if let Some(ref mut state) = self.chat_state {
+                state.poll_stream();
+            }
+        }
+
         Ok(false)
     }
 
@@ -633,6 +665,10 @@ impl App {
             AppPhase::TemplateList { .. } => self.handle_template_list_key(key),
             AppPhase::TemplateDetail { .. } => self.handle_template_detail_key(key),
             AppPhase::TrashList { .. } => self.handle_trash_list_key(key),
+            AppPhase::LlmConfig { .. } => self.handle_llm_config_key(key),
+            AppPhase::LlmStats { .. } => self.handle_llm_stats_key(key),
+            AppPhase::ConversationList { .. } => self.handle_conversation_list_key(key),
+            AppPhase::LlmChat => self.handle_llm_chat_key(key),
             AppPhase::Locked => self.handle_locked_key(key),
             AppPhase::Welcome => self.handle_welcome_key(key),
             _ => self.handle_command_key(key),
@@ -1391,6 +1427,13 @@ impl App {
             "/security" => commands::security::handle(self, &parts)?,
             "/profile" => commands::profile::handle(self, &parts)?,
             "/template" => commands::template::handle(self, &parts)?,
+            "/model" => commands::llm::model(self)?,
+            "/llm_config" => commands::llm::config(self)?,
+            "/llm_stats" => commands::llm::stats(self)?,
+            "/llm_list_conversations" | "/llm_conversations" => {
+                commands::llm::list_conversations(self)?
+            }
+            "/llm_chat" => commands::llm::chat(self, parts.get(1).copied())?,
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -1860,6 +1903,148 @@ impl App {
         Ok(false)
     }
 
+    /// LLM 配置页的键盘处理。
+    fn handle_llm_config_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::LlmConfig {
+            config,
+            account_id,
+            selected,
+        } = &self.phase
+        {
+            let mut sel = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if sel > 0 => sel -= 1,
+                KeyCode::Down if sel + 1 < config.providers.len() => sel += 1,
+                _ => {}
+            }
+            self.phase = AppPhase::LlmConfig {
+                config: config.clone(),
+                account_id: account_id.clone(),
+                selected: sel,
+            };
+        }
+        Ok(false)
+    }
+
+    /// LLM 统计页的键盘处理。
+    fn handle_llm_stats_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::LlmStats { stats, selected } = &self.phase {
+            let mut sel = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if sel > 0 => sel -= 1,
+                KeyCode::Down if sel + 1 < stats.per_model_stats.len() => sel += 1,
+                _ => {}
+            }
+            self.phase = AppPhase::LlmStats {
+                stats: stats.clone(),
+                selected: sel,
+            };
+        }
+        Ok(false)
+    }
+
+    /// 对话列表页的键盘处理。
+    fn handle_conversation_list_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::ConversationList {
+            conversations,
+            selected,
+        } = &self.phase
+        {
+            let mut sel = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if sel > 0 => sel -= 1,
+                KeyCode::Down if sel + 1 < conversations.len() => sel += 1,
+                _ => {}
+            }
+            self.phase = AppPhase::ConversationList {
+                conversations: conversations.clone(),
+                selected: sel,
+            };
+        }
+        Ok(false)
+    }
+
+    /// LLM 聊天页的键盘处理。
+    fn handle_llm_chat_key(&mut self, key: KeyEvent) -> Result<bool> {
+        let state = match self.chat_state.as_mut() {
+            Some(s) => s,
+            None => return Ok(false),
+        };
+        if state.is_streaming {
+            return Ok(false);
+        }
+        match key.code {
+            KeyCode::Esc => {
+                self.chat_state = None;
+                commands::core::back(self);
+                return Ok(false);
+            }
+            KeyCode::Enter => {
+                let msg = std::mem::take(&mut state.input);
+                if !msg.trim().is_empty() {
+                    if msg.trim() == "/back" {
+                        self.chat_state = None;
+                        commands::core::back(self);
+                        return Ok(false);
+                    }
+                    let msg_for_thread = msg.clone();
+                    state.messages.push(crate::screens::llm_chat::ChatLine::User(msg));
+                    state.is_streaming = true;
+                    state.pending_response.clear();
+                    let (tx, rx) = std::sync::mpsc::channel();
+                    state.stream_rx = Some(rx);
+                    let vault = self.vault_service.get_vault_store();
+                    let account_id = self.vault_service.get_current_account();
+                    if let (Some(vault), Some(account_id)) = (vault, account_id) {
+                        std::thread::spawn(move || {
+                            let service = LlmService::new();
+                            let result = service.send_message_stream(
+                                &vault, &account_id, None, &msg_for_thread,
+                                &|event| match event {
+                                    solosoul_core::llm::client::LlmStreamEvent::Chunk { content } => {
+                                        let _ = tx.send(crate::screens::llm_chat::StreamChunk::Text(content));
+                                    }
+                                    solosoul_core::llm::client::LlmStreamEvent::Done { .. } => {
+                                        let _ = tx.send(crate::screens::llm_chat::StreamChunk::Done);
+                                    }
+                                    solosoul_core::llm::client::LlmStreamEvent::Error { message } => {
+                                        let _ = tx.send(crate::screens::llm_chat::StreamChunk::Error(message));
+                                    }
+                                },
+                            );
+                            if let Err(e) = result {
+                                let _ = tx.send(crate::screens::llm_chat::StreamChunk::Error(e));
+                            }
+                        });
+                    } else {
+                        state.messages.push(crate::screens::llm_chat::ChatLine::Error(
+                            "Vault 未解锁".into(),
+                        ));
+                        state.is_streaming = false;
+                        state.stream_rx = None;
+                    }
+                }
+                return Ok(false);
+            }
+            KeyCode::Char(c) => { state.input.push(c); }
+            KeyCode::Backspace => { state.input.pop(); }
+            _ => {}
+        }
+        Ok(false)
+    }
+
     /// 回收站列表页的键盘处理。
     fn handle_trash_list_key(&mut self, key: KeyEvent) -> Result<bool> {
         let (items, mut selected, mut selected_ids, filter) = if let AppPhase::TrashList {
@@ -2088,6 +2273,31 @@ impl App {
                 source,
                 json,
             ),
+            AppPhase::LlmConfig {
+                config,
+                selected,
+                ..
+            } => crate::screens::llm_config::render(frame, layout[1], config, *selected),
+            AppPhase::LlmStats {
+                stats,
+                selected,
+            } => crate::screens::llm_stats::render(frame, layout[1], stats, *selected),
+            AppPhase::ConversationList {
+                conversations,
+                selected,
+            } => {
+                crate::screens::conversation_list::render(
+                    frame,
+                    layout[1],
+                    conversations,
+                    *selected,
+                )
+            }
+            AppPhase::LlmChat => {
+                if let Some(ref state) = self.chat_state {
+                    crate::screens::llm_chat::render(frame, layout[1], state)
+                }
+            }
             AppPhase::Quit => {}
         }
 
@@ -2168,6 +2378,12 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/about",
             "/version",
             "/help",
+            "/model",
+            "/llm_config",
+            "/llm_stats",
+            "/llm_list_conversations",
+            "/llm_conversations",
+            "/llm_chat",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
         AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {

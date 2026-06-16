@@ -7,6 +7,7 @@ pub mod core;
 pub mod doctor;
 pub mod export_import;
 pub mod history;
+pub mod llm;
 pub mod log;
 pub mod profile;
 pub mod search;
