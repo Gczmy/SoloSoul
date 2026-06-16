@@ -472,5 +472,6 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 | 任务清单 | `docs/TODO.md` |
 | 用户指南 | `docs/USER_GUIDE.md` |
 | OCR 功能说明 | `docs/ocr-guide.md` |
+| 生物识别实现规范 | `docs/biometric-spec.md` |
 | 技术路线图 | `docs/CLIENT_ROADMAP.md` |
 | 事件日志 | `docs/WORKLOG.md` |
