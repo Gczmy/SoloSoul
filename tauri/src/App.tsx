@@ -63,7 +63,7 @@ function AppRoutes() {
 
   useEffect(() => {
     checkHasAccount();
-  }, []);
+  }, [checkHasAccount]);
 
   // Load settings and profile after authentication
   useEffect(() => {

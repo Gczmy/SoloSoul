@@ -217,7 +217,7 @@ export function AiQuickChatPopover({
         setLoading(false);
       }
     })();
-  }, [accountId]);
+  }, [accountId, quickChatStorageKey]);
 
   // Check online
   useEffect(() => {
@@ -323,7 +323,7 @@ export function AiQuickChatPopover({
     return () => {
       unlistenRef.current?.();
     };
-  }, [isConfigured, t]);
+  }, [isConfigured, t, quickChatStorageKey]);
 
   // Scroll to bottom: instant on first mount/load, smooth on subsequent updates
   const hasScrolledRef = useRef(false);
