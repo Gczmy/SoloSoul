@@ -22,7 +22,7 @@
 | P004 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/fs.rs:90-158,219-294` | `create_zip_package` / `extract_zip_package` / `fs_scan_directory` / `fs_get_file_size` / `fs_read_file_as_data_url` 未限制基础目录，存在路径遍历 | `[ ]` 待修复 |
 | P005 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/attachment.rs:86-91,208-232` | `attachment_delete` / `attachment_copy_to_vault` 直接拼接 `object_id` / `attachment_id` 到路径，未校验 | `[x]` 已修复：添加 ID 校验辅助函数，拒绝非法字符与长度；删除错误现在会传播 |
 | P006 | P1 | 安全漏洞 | `tauri/src-tauri/src/commands/export_import.rs:456-469,1068-1079` | 导出/导入附件时读取 `att.src_path` 或使用导入包中的 `obj_id` 构建路径，可被恶意包利用 | `[x]` 已修复：导出校验附件路径在 vault attachments 目录内；导入校验 zip 中的 obj_id/att_id |
-| P007 | P1 | 安全漏洞 | `tauri/crates/solosoul-sync/src/attachments.rs:32-42,166-177,373-376` | 同步附件路径直接拼接远程 `object_id` / `attachment_id` / `file_name` | `[ ]` 待修复 |
+| P007 | P1 | 安全漏洞 | `tauri/crates/solosoul-sync/src/attachments.rs:32-42,166-177,373-376` | 同步附件路径直接拼接远程 `object_id` / `attachment_id` / `file_name` | `[x]` 已修复：校验 ID 字符集并对 file_name 取 file_name 组件 |
 | P008 | P1 | 安全漏洞 | `tauri/src-tauri/src/plugin/store.rs:51-53` / `tauri/src-tauri/src/plugin/manager.rs:134,168` | `plugin_id` 直接用于路径拼接，可能导致插件目录逃逸 | `[x]` 已修复：添加并调用插件 ID 校验，非法 ID 返回错误 |
 | P009 | P1 | 安全漏洞 | `tauri/src-tauri/src/plugin/host.rs:767-813` | `solosoul_sleep` 接受未限制时长，`read_string` 分配未限制长度，存在 DoS / OOM 风险 | `[x]` 已修复：睡眠上限 1s，字符串读取上限 64 KiB |
 | P010 | P1 | 安全漏洞 | `tauri/crates/solosoul-core/src/vault_service.rs:384,479` | 密码验证使用 `==` 而非恒定时间比较，存在时序侧信道 | `[x]` 已修复：改用 `solosoul_crypto::secure::secure_compare` |
@@ -66,8 +66,8 @@
 
 ## 修复进度
 
-- 已完成：28 / 47
-- 当前处理：本轮继续；剩余 19 项（P004/P007 路径遍历、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）
+- 已完成：29 / 47
+- 当前处理：本轮继续；剩余 18 项（P004 路径遍历、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）
 
 ## 详细问题描述与修复指引
 
