@@ -9,6 +9,7 @@ pub mod export_import;
 pub mod history;
 pub mod llm;
 pub mod log;
+pub mod plugin;
 pub mod profile;
 pub mod search;
 pub mod security;

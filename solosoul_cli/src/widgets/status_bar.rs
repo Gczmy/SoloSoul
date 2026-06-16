@@ -46,6 +46,7 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::LlmStats { .. } => "LLM 统计".to_string(),
         AppPhase::ConversationList { .. } => "对话历史".to_string(),
         AppPhase::LlmChat { .. } => "LLM 聊天".to_string(),
+        AppPhase::PluginList { .. } => "插件列表".to_string(),
         AppPhase::Quit => "退出中".to_string(),
     };
 

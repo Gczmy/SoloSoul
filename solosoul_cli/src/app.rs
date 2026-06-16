@@ -15,6 +15,7 @@ use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, UserTemplate, V
 use zeroize::Zeroizing;
 
 use crate::commands;
+use crate::commands::plugin::PluginSummary;
 use crate::commands::search::SearchResultItem;
 use crate::widgets::command_input::CommandInput;
 use crate::widgets::command_palette::{CommandPalette, PaletteAction};
@@ -173,6 +174,11 @@ pub enum AppPhase {
     },
     /// LLM 聊天页
     LlmChat,
+    /// 插件列表页
+    PluginList {
+        plugins: Vec<PluginSummary>,
+        selected: usize,
+    },
     /// 安全退出
     Quit,
 }
@@ -669,6 +675,7 @@ impl App {
             AppPhase::LlmStats { .. } => self.handle_llm_stats_key(key),
             AppPhase::ConversationList { .. } => self.handle_conversation_list_key(key),
             AppPhase::LlmChat => self.handle_llm_chat_key(key),
+            AppPhase::PluginList { .. } => self.handle_plugin_list_key(key),
             AppPhase::Locked => self.handle_locked_key(key),
             AppPhase::Welcome => self.handle_welcome_key(key),
             _ => self.handle_command_key(key),
@@ -1434,6 +1441,8 @@ impl App {
                 commands::llm::list_conversations(self)?
             }
             "/llm_chat" => commands::llm::chat(self, parts.get(1).copied())?,
+            "/plugin" | "/plugin_list" => commands::plugin::list_plugins(self)?,
+            "/plugin_run" => commands::plugin::run_plugin(self, parts.get(1).copied())?,
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -1976,6 +1985,32 @@ impl App {
         Ok(false)
     }
 
+    /// 插件列表页的键盘处理。
+    fn handle_plugin_list_key(&mut self, key: KeyEvent) -> Result<bool> {
+        if let AppPhase::PluginList { plugins, selected } = &self.phase {
+            let mut sel = *selected;
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                KeyCode::Up if sel > 0 => sel -= 1,
+                KeyCode::Down if sel + 1 < plugins.len() => sel += 1,
+                KeyCode::Enter if sel < plugins.len() => {
+                    let plugin_id = plugins[sel].id.clone();
+                    commands::plugin::run_plugin(self, Some(&plugin_id))?;
+                    return Ok(false);
+                }
+                _ => {}
+            }
+            self.phase = AppPhase::PluginList {
+                plugins: plugins.clone(),
+                selected: sel,
+            };
+        }
+        Ok(false)
+    }
+
     /// LLM 聊天页的键盘处理。
     fn handle_llm_chat_key(&mut self, key: KeyEvent) -> Result<bool> {
         let state = match self.chat_state.as_mut() {
@@ -2298,6 +2333,10 @@ impl App {
                     crate::screens::llm_chat::render(frame, layout[1], state)
                 }
             }
+            AppPhase::PluginList {
+                plugins,
+                selected,
+            } => crate::screens::plugin_list::render(frame, layout[1], plugins, *selected),
             AppPhase::Quit => {}
         }
 
@@ -2384,6 +2423,9 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/llm_list_conversations",
             "/llm_conversations",
             "/llm_chat",
+            "/plugin",
+            "/plugin_list",
+            "/plugin_run",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
         AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {
