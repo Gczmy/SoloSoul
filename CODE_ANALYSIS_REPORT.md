@@ -50,7 +50,7 @@
 | P032 | P1 | 代码重复 | `tauri/src/pages/system/AboutPage.tsx` / `settings/*Page.tsx` | `formatBytes` 在 5 处重复实现 | `[x]` 已修复：抽取到 `src/lib/format.ts` 并替换所有实现 |
 | P033 | P2 | 代码重复 | `tauri/src/pages/ai/LlmChatPage.tsx` / `components/layout/SideNavigation.tsx` | `formatRelative` 重复、复制反馈超时 `1500` 魔术数 | `[ ]` 待修复 |
 | P034 | P2 | 代码重复 | `tauri/src/pages/search/SearchPage.tsx` / `components/layout/SearchPopover.tsx` / `components/guide/GuideSearch.tsx` | 300ms debounce 重复 | `[ ]` 待修复 |
-| P035 | P1 | 类型安全 | `tauri/src/stores/pluginStore.ts:155,163,170,173,178` / `src/components/plugin/PluginDialog.tsx:24-26,41` | 插件事件 JSON 解析后直接使用 `as` 断言，无运行时校验 | `[ ]` 待修复 |
+| P035 | P1 | 类型安全 | `tauri/src/stores/pluginStore.ts:155,163,170,173,178` / `src/components/plugin/PluginDialog.tsx:24-26,41` | 插件事件 JSON 解析后直接使用 `as` 断言，无运行时校验 | `[x]` 已修复：为 log/result/consent/dialog 事件添加类型守卫，DialogConfig 解析也做校验 |
 | P036 | P2 | 类型安全 | `tauri/src/lib/llm/systemPromptBuilder.ts:16-17` / `src/lib/guideApi.ts:13` / `src/pages/settings/settingsStore.ts` / `ExportImportPage.tsx` / `TemplateManagerPage.tsx` 等 | 多处使用 `any` / `as` 绕过类型检查 | `[ ]` 待修复 |
 | P037 | P1 | React 缺陷 | `tauri/src/components/layout/SideNavigation.tsx:386,1164,1433` | 延迟注册事件监听器未保存 timeoutId，卸载后泄漏 | `[x]` 已修复：使用 ref 保存 timeoutId 并在 cleanup 中清除 |
 | P038 | P1 | React 缺陷 | `tauri/src/components/object/HistoryViewer.tsx:295,304` / `src/stores/uiStore.ts:34` | `setTimeout` 未清理，组件卸载/ store 销毁后仍更新状态 | `[x]` 已修复：HistoryViewer 用 ref 保存并清理；uiStore 在 dismissToast 时清除 timeout |
@@ -66,8 +66,8 @@
 
 ## 修复进度
 
-- 已完成：30 / 47
-- 当前处理：本轮继续；剩余 17 项（P004 路径遍历、P029/P030 死代码、P035 类型安全、P041-P045 代码质量/性能等）
+- 已完成：31 / 47
+- 当前处理：本轮继续；剩余 16 项（P004 路径遍历、P029/P030 死代码、P041-P045 代码质量/性能等）
 
 ## 详细问题描述与修复指引
 
