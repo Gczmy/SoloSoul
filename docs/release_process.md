@@ -12,16 +12,23 @@
 
 > 注：macOS 包必须在 Mac 上编译，Windows 包必须在 Windows 上编译，无法在一台机器上完成双平台。
 
-### 本地模型文件
+### 本地资源文件
 
-`tauri/src-tauri/resources/models/` 目录下的模型文件（`all-MiniLM-L6-v2/`、`pp-ocr-v6-small/`）被 `.gitignore` 排除，不会随仓库克隆自动出现，但 `tauri.conf.json` 将其声明为打包资源。构建前必须确保该目录存在且完整，否则 Tauri 打包会失败。
+以下资源文件被 `.gitignore` 排除，不会随仓库克隆自动出现，但 `tauri.conf.json` 将其声明为打包资源。构建前必须确保它们存在且完整，否则 Tauri 打包会失败。
 
-若从干净仓库开始构建，请从已准备好的构建机复制，或解压预打包的模型文件：
+- **模型文件**：`tauri/src-tauri/resources/models/` 下的 `all-MiniLM-L6-v2/`、`pp-ocr-v6-small/`
+- **PDFium 动态库**：`tauri/src-tauri/resources/pdfium/` 下的平台对应库（macOS 为 `libpdfium.dylib`，Windows 为 `pdfium.dll`）
+
+若从干净仓库开始构建，可运行自动下载脚本，或从已准备好的构建机复制：
 
 ```bash
 # 在 Mac/Windows 构建前检查
 ls tauri/src-tauri/resources/models/all-MiniLM-L6-v2
 ls tauri/src-tauri/resources/models/pp-ocr-v6-small
+ls tauri/src-tauri/resources/pdfium
+
+# 自动下载 PDFium（根据当前平台）
+bash tauri/scripts/download-pdfium.sh
 ```
 
 ### Tauri 自动更新器签名密钥
