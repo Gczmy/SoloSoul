@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -9,15 +9,12 @@ import {
   ArrowUpRight,
   History,
   Loader2,
-  CheckCircle,
   AlertCircle,
   Trash2,
   RotateCcw,
-  Clock,
 } from 'lucide-react';
-import { createPortal } from 'react-dom';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
-import { commands, type OcrTierInfo, type OcrModelStatus, type OcrResult, type MrzResult } from '@/lib/ipc';
+import { commands, type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
 import { OCR_MODEL_SERIES } from '@/lib/constants';
 import { getTierLabel } from '@/lib/ocr';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
@@ -38,7 +35,7 @@ export function OcrQuickScanPopover({
 }) {
   const { t } = useTranslation(['ocr', 'common']);
   const navigate = useNavigate();
-  const { onError, onSuccess } = useToastError();
+  const { onError } = useToastError();
   const store = useOcrScanStore();
 
   const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
@@ -46,7 +43,6 @@ export function OcrQuickScanPopover({
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
-  const [historyScrollAtBottom, setHistoryScrollAtBottom] = useState(false);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
@@ -177,13 +173,6 @@ export function OcrQuickScanPopover({
     store.setCardOpen(true);
     useOcrScanStore.setState({ currentScanId: entry.id });
     setShowHistory(false);
-  };
-
-  const getFileFilters = () => {
-    if (store.scanMode === 'mrz') {
-      return [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }];
-    }
-    return [{ name: 'Images & PDFs', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'pdf'] }];
   };
 
   const activeHistory = store.getActiveHistory();
