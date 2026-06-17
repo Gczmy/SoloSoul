@@ -137,7 +137,7 @@ export function HelpPage() {
 
   return (
     <AppShell
-      title={content ? content.title : '帮助文档'}
+      title={content ? content.title : t('settings:help_docs')}
       onBack={handleBack}
       actions={
         guideId ? undefined : <BookOpen size={20} style={{ color: 'var(--text-secondary)' }} />

@@ -19,6 +19,7 @@ import { createPortal } from 'react-dom';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
 import { commands, type OcrTierInfo, type OcrModelStatus, type OcrResult, type MrzResult } from '@/lib/ipc';
 import { OCR_MODEL_SERIES } from '@/lib/constants';
+import { getTierLabel } from '@/lib/ocr';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
 import { useToastError } from '@/hooks/useToastError';
 
@@ -550,12 +551,15 @@ export function OcrQuickScanPopover({
               color: 'var(--text-primary)',
             }}
           >
-            {tiers.map((tier) => (
-              <option key={tier.tier} value={tier.tier}>
-                {tier.name} — {tier.description}
-                {!statusMap[tier.tier]?.installed ? ` (${t('ocr:status_not_installed')})` : ''}
-              </option>
-            ))}
+            {tiers.map((tier) => {
+              const label = getTierLabel(t, tier);
+              return (
+                <option key={tier.tier} value={tier.tier}>
+                  {label.name} — {label.description}
+                  {!statusMap[tier.tier]?.installed ? ` (${t('ocr:status_not_installed')})` : ''}
+                </option>
+              );
+            })}
           </select>
         </div>
 

@@ -178,8 +178,8 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 ; Installer pages, must be ordered as they appear
 ; 1. Welcome Page
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
-!define MUI_WELCOMEPAGE_TITLE "$(WELCOME_TITLE)"
-!define MUI_WELCOMEPAGE_TEXT "$(WELCOME_TEXT)"
+!define MUI_WELCOMEPAGE_TITLE "$(SS_WELCOME_TITLE)"
+!define MUI_WELCOMEPAGE_TEXT "$(SS_WELCOME_TEXT)"
 !insertmacro MUI_PAGE_WELCOME
 
 ; 2. License Page (if defined)
@@ -429,8 +429,8 @@ Var AppStartMenuFolder
 ; Show run app after installation.
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION RunMainBinary
-!define MUI_FINISHPAGE_TITLE "$(FINISH_TITLE)"
-!define MUI_FINISHPAGE_TEXT "$(FINISH_TEXT)"
+!define MUI_FINISHPAGE_TITLE "$(SS_FINISH_TITLE)"
+!define MUI_FINISHPAGE_TEXT "$(SS_FINISH_TEXT)"
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
 !insertmacro MUI_PAGE_FINISH
 
@@ -497,6 +497,17 @@ FunctionEnd
 ; i18n.nsh — 覆盖 Tauri 默认 NSIS 语言字符串，确保安装/卸载全过程中英文正确显示。
 ; 本文件在 installer.nsi 的语言文件循环（\{{#each language_files}}）之后引入，因此会覆盖 Tauri 自动生成的默认值。
 ; 键名必须与 Tauri 默认 NSIS 模板使用的 LangString 名称保持一致（包括已知的拼写错误 choowHowToInstall）。
+
+; ── 欢迎页 / 完成页文案（在 MUI_LANGUAGE 之后定义，确保覆盖默认值）────────────
+LangString SS_WELCOME_TITLE ${LANG_ENGLISH} "Welcome to SoloSoul"
+LangString SS_WELCOME_TITLE ${LANG_SIMPCHINESE} "欢迎使用 SoloSoul（独灵）"
+LangString SS_WELCOME_TEXT ${LANG_ENGLISH} "SoloSoul is a local-first, privacy-first personal digital twin.$\r$\n$\r$\nAll your data is encrypted and stored locally on this device. No cloud, no compromise.$\r$\n$\r$\nClick Next to continue."
+LangString SS_WELCOME_TEXT ${LANG_SIMPCHINESE} "SoloSoul 是一款本地优先、隐私优先的个人数字孪生应用。$\r$\n$\r$\n你的所有数据都将在本机加密存储，无需上传云端，也无需担心泄露。$\r$\n$\r$\n点击“下一步”继续。"
+
+LangString SS_FINISH_TITLE ${LANG_ENGLISH} "Installation Complete"
+LangString SS_FINISH_TITLE ${LANG_SIMPCHINESE} "安装完成"
+LangString SS_FINISH_TEXT ${LANG_ENGLISH} "SoloSoul has been installed successfully.$\r$\n$\r$\nClick Finish to launch the app and start building your personal digital twin."
+LangString SS_FINISH_TEXT ${LANG_SIMPCHINESE} "SoloSoul 已成功安装。$\r$\n$\r$\n点击“完成”启动应用，开始构建你的个人数字孪生。"
 
 ; ── 已安装版本检测 / 重新安装页面 ────────────────────────────────────────────
 LangString addOrReinstall ${LANG_ENGLISH} "Add/Reinstall components"

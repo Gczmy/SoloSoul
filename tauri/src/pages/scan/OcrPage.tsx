@@ -10,6 +10,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { commands, type OcrResult, type OcrTierInfo, type OcrModelStatus, type MrzResult } from '@/lib/ipc';
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
+import { getTierLabel } from '@/lib/ocr';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
 import { Scan, FileText, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
@@ -275,11 +276,14 @@ export function OcrPage() {
                   color: 'var(--text-primary)',
                 }}
               >
-                {tiers.map((tier) => (
-                  <option key={tier.tier} value={tier.tier}>
-                    {tier.name} — {tier.description}
-                  </option>
-                ))}
+                {tiers.map((tier) => {
+                  const label = getTierLabel(t, tier);
+                  return (
+                    <option key={tier.tier} value={tier.tier}>
+                      {label.name} — {label.description}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -309,7 +313,9 @@ export function OcrPage() {
                         <AlertCircle size={16} color="var(--error)" />
                       )}
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 500 }}>{tier.name}</div>
+                        <div style={{ fontSize: 13, fontWeight: 500 }}>
+                          {getTierLabel(t, tier).name}
+                        </div>
                         <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                           {status?.installed
                             ? t('ocr:status_installed')

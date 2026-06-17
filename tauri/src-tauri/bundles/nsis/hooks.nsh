@@ -26,16 +26,8 @@ Function un.onUninstSuccess
   Quit
 FunctionEnd
 
-; ── 自定义页面文案（由 installer.nsi 中的 MUI_WELCOMEPAGE_TITLE / TEXT 引用）────
-LangString WELCOME_TITLE ${LANG_ENGLISH} "Welcome to SoloSoul"
-LangString WELCOME_TEXT ${LANG_ENGLISH} "SoloSoul is a local-first, privacy-first personal digital twin.$\r$\n$\r$\nAll your data is encrypted and stored locally on this device. No cloud, no compromise.$\r$\n$\r$\nClick Next to continue."
-LangString FINISH_TITLE ${LANG_ENGLISH} "Installation Complete"
-LangString FINISH_TEXT ${LANG_ENGLISH} "SoloSoul has been installed successfully.$\r$\n$\r$\nClick Finish to launch the app and start building your personal digital twin."
-
-LangString WELCOME_TITLE ${LANG_SIMPCHINESE} "欢迎使用 SoloSoul（独灵）"
-LangString WELCOME_TEXT ${LANG_SIMPCHINESE} "SoloSoul 是一款本地优先、隐私优先的个人数字孪生应用。$\r$\n$\r$\n你的所有数据都将在本机加密存储，无需上传云端，也无需担心泄露。$\r$\n$\r$\n点击“下一步”继续。"
-LangString FINISH_TITLE ${LANG_SIMPCHINESE} "安装完成"
-LangString FINISH_TEXT ${LANG_SIMPCHINESE} "SoloSoul 已成功安装。$\r$\n$\r$\n点击“完成”启动应用，开始构建你的个人数字孪生。"
+; 注意：欢迎页/完成页文案已移至 installer.nsi 的 inline i18n.nsh 段，
+; 确保在 MUI_LANGUAGE 加载语言文件之后再定义，避免语言选择后仍显示默认中文。
 
 ; ── 安装过程状态提示（在 INSTFILES 页面通过 DetailPrint 使用）────────────────
 LangString preparingInstall ${LANG_ENGLISH} "Preparing installation..."
