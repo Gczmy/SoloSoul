@@ -22,7 +22,6 @@ pub struct BiometricAvailability {
 
 /// Legacy hard-coded XOR key used only for one-way migration of old biometric files.
 const LEGACY_XOR_KEY: &[u8; 32] = b"Solosoul_biometric_obfuscate_v1!";
-const BIO_FILE_KEY_SERVICE: &str = "solosoul.biometric.filekey";
 #[cfg(test)]
 const TEST_FILE_KEY_SALT: &[u8] = b"test-only-biometric-file-key-salt";
 const LEGACY_KEY_HEX_LEN: usize = 64;
@@ -205,20 +204,6 @@ pub fn is_macos() -> bool {
     std::env::consts::OS == "macos"
 }
 
-fn use_keyring() -> bool {
-    !cfg!(test)
-}
-
-fn keyring_entry(account_id: &str) -> Result<keyring::Entry, String> {
-    let service = format!("solosoul_biometric_{}", account_id);
-    keyring::Entry::new(&service, account_id).map_err(|e| e.to_string())
-}
-
-fn file_keyring_entry(account_id: &str) -> Result<keyring::Entry, String> {
-    let service = format!("{}.{}", BIO_FILE_KEY_SERVICE, account_id);
-    keyring::Entry::new(&service, account_id).map_err(|e| e.to_string())
-}
-
 /// 生成用于加密生物识别备份文件的 32 字节文件密钥。
 /// 使用 HKDF-SHA256 从固定应用级 secret 与 account_id 派生，避免依赖 Keychain
 /// 来读取备份文件，从而解决设备锁定后 Keychain 不可用导致生物识别失效的问题。
@@ -238,23 +223,6 @@ fn file_encryption_key(account_id: &str) -> Result<Zeroizing<Vec<u8>>, String> {
     let key = solosoul_crypto::kdf::derive_key(account_id, TEST_FILE_KEY_SALT, &config)
         .map_err(|_| "Failed to derive test file key".to_string())?;
     Ok(key)
-}
-
-/// 旧版：从 Keychain 读取随机文件密钥。保留仅用于迁移旧的备份文件。
-#[cfg(not(test))]
-fn legacy_file_encryption_key(account_id: &str) -> Result<Option<Zeroizing<Vec<u8>>>, String> {
-    let entry = file_keyring_entry(account_id)?;
-    match entry.get_password() {
-        Ok(hex_str) => {
-            let bytes = hex::decode(hex_str.trim())
-                .map_err(|e| format!("Invalid file key encoding: {}", e))?;
-            if bytes.len() != 32 {
-                return Ok(None);
-            }
-            Ok(Some(Zeroizing::new(bytes)))
-        }
-        Err(_) => Ok(None),
-    }
 }
 
 fn is_legacy_key_file(content: &str) -> bool {
@@ -329,101 +297,37 @@ fn read_encrypted_key_file(path: &Path, account_id: &str) -> Result<String, Stri
 
     let blob = hex::decode(content).map_err(|e| format!("Invalid key file encoding: {}", e))?;
 
-    // 优先使用确定性文件密钥；失败时尝试旧版 Keychain 随机密钥（迁移用途）。
     let file_key = file_encryption_key(account_id)?;
     let file_key_arr: [u8; 32] = file_key
         .as_slice()
         .try_into()
         .map_err(|_| "File key length invalid".to_string())?;
-    if let Ok(plaintext) = solosoul_crypto::aes::decrypt_blob(&file_key_arr, &blob) {
-        return String::from_utf8(plaintext.to_vec())
-            .map_err(|_| "Invalid UTF-8 in key file".to_string());
-    }
-
-    #[cfg(not(test))]
-    if let Some(legacy_key) = legacy_file_encryption_key(account_id)? {
-        let legacy_arr: [u8; 32] = legacy_key
-            .as_slice()
-            .try_into()
-            .map_err(|_| "Legacy file key length invalid".to_string())?;
-        if let Ok(plaintext) = solosoul_crypto::aes::decrypt_blob(&legacy_arr, &blob) {
-            let key_hex = String::from_utf8(plaintext.to_vec())
-                .map_err(|_| "Invalid UTF-8 in key file".to_string())?;
-            // 静默迁移到确定性密钥，避免未来再次依赖旧 Keychain 文件密钥。
-            let _ = migrate_legacy_key_file(path, account_id, &key_hex);
-            return Ok(key_hex);
-        }
-    }
-
-    Err("Decryption failed: the biometric backup file cannot be decrypted with the current file key \
-         (hint: try re-enabling biometric after password login)"
-        .to_string())
+    let plaintext = solosoul_crypto::aes::decrypt_blob(&file_key_arr, &blob).map_err(|e| {
+        format!(
+            "{} (hint: try re-enabling biometric after password login)",
+            e
+        )
+    })?;
+    String::from_utf8(plaintext.to_vec()).map_err(|_| "Invalid UTF-8 in key file".to_string())
 }
 
 pub(crate) fn save_master_key(path: &Path, account_id: &str, key_hex: &str) -> Result<(), String> {
-    // The file backup is encrypted with a key stored in the OS keychain.
-    // Trust boundary: the encrypted file alone is useless without the Keychain file key.
-    write_encrypted_key_file(path, account_id, key_hex)?;
-
-    if use_keyring() {
-        let entry = keyring_entry(account_id)?;
-        entry.set_password(key_hex).map_err(|e| {
-            format!(
-                "Failed to write biometric key to keychain for {}: {}",
-                account_id, e
-            )
-        })?;
-    }
-    Ok(())
+    // 备份文件使用确定性 HKDF 密钥加密，不依赖钥匙串，避免打开应用时弹出钥匙串输入框。
+    write_encrypted_key_file(path, account_id, key_hex)
 }
 
 pub(crate) fn read_master_key(path: &Path, account_id: &str) -> Result<String, String> {
-    if use_keyring() {
-        let entry = keyring_entry(account_id)?;
-        match entry.get_password() {
-            Ok(key) => return Ok(key),
-            Err(keyring_err) => {
-                tracing::info!(
-                    "Biometric keychain read failed for {} ({}); falling back to encrypted file",
-                    account_id,
-                    keyring_err
-                );
-                // Backwards compatibility: read encrypted file and migrate to keychain.
-                let key = read_encrypted_key_file(path, account_id).map_err(|e| {
-                    format!("{}; keychain fallback also failed: {}", e, keyring_err)
-                })?;
-                let _ = entry.set_password(&key);
-                return Ok(key);
-            }
-        }
-    }
-
     read_encrypted_key_file(path, account_id)
 }
 
-fn delete_master_key(path: &Path, account_id: &str) {
-    if use_keyring() {
-        let _ = keyring_entry(account_id)
-            .and_then(|e| e.delete_credential().map_err(|e| e.to_string()));
-        let _ = file_keyring_entry(account_id)
-            .and_then(|e| e.delete_credential().map_err(|e| e.to_string()));
-    }
+fn delete_master_key(path: &Path, _account_id: &str) {
     if path.exists() {
         let _ = std::fs::remove_file(path);
     }
     let _ = std::fs::remove_file(path.with_extension("key.old"));
 }
 
-fn has_stored_master_key(path: &Path, account_id: &str) -> bool {
-    if use_keyring() {
-        if let Ok(entry) = keyring_entry(account_id) {
-            if entry.get_password().is_ok() {
-                return true;
-            }
-        }
-        // Encrypted or legacy file-based key still counts as configured.
-        return path.exists();
-    }
+fn has_stored_master_key(path: &Path, _account_id: &str) -> bool {
     path.exists()
 }
 

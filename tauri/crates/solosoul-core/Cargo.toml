@@ -35,8 +35,7 @@ zeroize = { workspace = true }
 tracing = { workspace = true }
 
 # 生物识别凭证存储
-# macOS 使用 apple-native feature，避免 security CLI 在 macOS 15+ 上“返回成功但实际未写入”的问题。
-keyring = { version = "3", features = ["apple-native"] }
+# 使用本地加密文件（确定性 HKDF 密钥），不依赖 Keychain/钥匙串，避免打开应用时弹出钥匙串输入框。
 
 # 随机数生成
 rand = { workspace = true }

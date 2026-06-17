@@ -6,7 +6,7 @@
 
 | 平台 | 状态 | 实现位置 |
 |------|------|---------|
-| **macOS** | ✅ 已支持 Touch ID / Face ID | `tauri/crates/solosoul-core/src/biometric.rs` |
+| **macOS** | ✅ 已支持 Touch ID / Face ID（文件存储，不弹 Keychain 框） | `tauri/crates/solosoul-core/src/biometric.rs` |
 | **Windows** | ❌ 未实现 | 待后续按本规范扩展 |
 | **Linux** | ❌ 未实现 | 暂不支持 |
 
@@ -15,37 +15,29 @@
 - 生物识别只用于**替代输入主密码**这一过程，不改变 Vault 的加密模型。
 - Vault 数据密钥仍由主密码派生；生物识别凭证里保存的是该派生密钥。
 - 生物识别操作必须在 Vault 已解锁或能通过当前主密码验证的上下文中进行。
+- **不依赖系统钥匙串/Keychain**：避免打开应用时弹出钥匙串输入框，也避免设备锁定后钥匙串不可用导致生物识别失效。
 
 ---
 
 ## 2. 已知的 macOS 坑与修复方案
 
-### 2.1 `keyring` 默认 `security` CLI 可能“假写入”
+### 2.1 不再使用 macOS Keychain / `keyring` 存储主密钥
 
-**现象**：调用 `keyring::Entry::set_password` 返回 `Ok(())`，但实际未写入 macOS 钥匙串。再次读取时失败，导致后续解锁走备份文件。
+**现象**：
 
-**修复**：
-
-- `crates/solosoul-core/Cargo.toml` 中启用 `apple-native` feature：
-
-  ```toml
-  keyring = { version = "3", features = ["apple-native"] }
-  ```
-
-- 直接使用 Security framework 而非 `security` 子进程，写入更可靠。
-
-### 2.2 备份文件不能依赖同一级密钥存储
-
-**现象**：macOS 设备锁定后，钥匙串可能处于锁定状态。主密钥存在钥匙串里读不出，回退到本地备份文件；但备份文件的加密密钥也放在钥匙串里，于是备份文件也解不开，最终报错「生物识别凭证已失效」。
+1. `keyring` crate 默认使用 `security` CLI，在 macOS 15 上经常“假写入”（返回成功但实际未写入）。
+2. 打开应用时，如果尝试读取 Keychain 中的生物识别主密钥，可能弹出系统钥匙串输入框，影响体验。
+3. 设备锁定后 Keychain 可能不可用，导致生物识别解锁失败。
 
 **修复**：
 
-- 备份文件改用**确定性 HKDF 文件密钥**：
+- **完全移除 Keychain / `keyring` 依赖**。
+- 生物识别主密钥只保存在应用数据目录的本地加密文件中。
+- 加密文件使用**确定性 HKDF 文件密钥**：
   - `info = b"solosoul:biometric:filekey:v1"`
   - 以 `account_id` 作为 salt
-  - 从一个固定应用级 secret 派生
-- 这样即使钥匙串完全不可用，只要应用本身在运行，就能解密备份文件。
-- 旧版使用钥匙串随机密钥加密的文件保留兼容读取，成功读取后静默迁移到新方案。
+  - 从固定应用级 secret 派生
+- 这样打开应用、锁定/解锁设备时都不会触发任何 Keychain 对话框。
 
 ### 2.3 修改主密码后同步更新生物识别凭证
 
@@ -83,26 +75,24 @@
 
 ### 3.1 凭证存储方案
 
-推荐选项（按优先级）：
+**推荐：本地加密文件 + 可选 DPAPI-NG（不要只放 Credential Manager）**
 
-1. **Windows Credential Manager + DPAPI-NG（推荐）**
-   - 将主密钥或一个用于派生主密钥的中间密钥存入 Windows Credential Manager。
-   - 使用 `windows` crate 或 `keyring` crate 的 Windows native 后端。
-   - 注意：Credential Manager 在某些域策略或 Windows Hello 配置下可能不可用，必须有备份方案。
-
-2. **TPM / Windows Hello 专用密钥句柄**
-   - 使用 Windows Hello 验证后，从 TPM 释放一个受生物识别保护的密钥。
-   - 安全性最高，但实现复杂，需要处理不同 TPM 版本和 Windows 版本兼容性。
+- 参考 macOS 实现，把主密钥保存在应用数据目录的加密文件中。
+- 文件密钥使用 HKDF 从 `account_id + 应用级 secret` 派生，确保不依赖 Credential Manager 也能解密。
+- 可以额外用 DPAPI-NG 对文件再做一层保护，但**必须保留不依赖 DPAPI-NG 的解密路径**，避免域策略或用户拒绝时生物识别彻底失效。
+- 不推荐单独使用 Windows Credential Manager，因为它可能导致与 macOS Keychain 类似的弹窗和锁定问题。
 
 ### 3.2 必须遵守的约束
 
 | 约束 | 原因 | 实现建议 |
 |------|------|---------|
+| **不依赖系统钥匙串/凭证管理器作为唯一存储** | 避免打开应用弹窗和设备锁定后失效 | 主密钥存放在本地加密文件，系统凭证管理器只作可选增强 |
 | **备份文件必须使用确定性文件密钥** | 避免 Credential Manager / DPAPI 不可用时，备份文件也报废 | 复用 macOS 的 HKDF 方案：`info = b"solosoul:biometric:filekey:v1"`，salt = `account_id` |
 | **修改密码后更新 Windows 凭证** | 旧凭证中的密钥无法解密新 Vault | 在 `VaultService::change_password` 中用新密钥调用 Windows 更新逻辑；仅当已启用时更新 |
-| **保存前做派生校验** | 不要依赖保存后再回读 Credential Manager | 用当前密码派生密钥，与 `get_session_key()` 比较一致后再保存 |
+| **保存前做派生校验** | 不要依赖保存后再回读系统存储 | 用当前密码派生密钥，与 `get_session_key()` 比较一致后再保存 |
 | **错误返回 `__BIO_ERR__:<code>`** | 保持前端国际化逻辑一致 | 新增 Windows 专用 code：`windows_hello_unavailable`、`windows_auth_failed` 等 |
 | **不直接暴露后端异常原文** | 避免 UI 截断和用户困惑 | 所有用户可见错误走 `biometricError.ts` 映射 |
+| **打开应用时不应弹出系统对话框** | 用户体验 | 任何探测 `is_configured` 的操作都只检查文件存在性，不访问 Credential Manager |
 
 ### 3.3 建议的平台抽象
 
