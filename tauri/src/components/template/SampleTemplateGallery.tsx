@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, LayoutTemplate } from 'lucide-react';
 import {
@@ -34,6 +34,12 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
 
   const currentSamples = SAMPLE_TEMPLATES_BY_LOCALE[localeTab];
 
+  // 用于卡片可见判断与“点击护送”联动，避免重复计算 q。
+  const normalizedQuery = useMemo(
+    () => searchQuery.trim().toLowerCase(),
+    [searchQuery],
+  );
+
   const pageOptions = useMemo(
     () => [
       { id: 'all', label: t('settings:filter_all') },
@@ -42,15 +48,24 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
     [t],
   );
 
-  const filteredSamples = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return currentSamples.filter((tpl) => {
-      const matchesPage = pageFilter === 'all' || tpl.category === pageFilter;
-      if (!matchesPage) return false;
-      if (!q) return true;
-      return tpl.name.toLowerCase().includes(q);
-    });
-  }, [currentSamples, pageFilter, searchQuery]);
+  // 单一可见性谓词：同时供 `filteredSamples` 与网格渲染逻辑复用，避免重复实现。
+  // 为了让弹卡在切换选项时大小保持稳定（含全部示例时的高度），
+  // 渲染侧始终遍历 `currentSamples`，对不匹配的卡片使用 `visibility: hidden` +
+  // `pointer-events: none` 占位，DOM 上保留全部卡，但可见数量随过滤收敛，
+  // 上面筛选按钮位置不会跳动。
+  const isSampleMatch = useCallback(
+    (tpl: SampleTemplate) => {
+      if (pageFilter !== 'all' && tpl.category !== pageFilter) return false;
+      if (normalizedQuery && !tpl.name.toLowerCase().includes(normalizedQuery)) return false;
+      return true;
+    },
+    [pageFilter, normalizedQuery],
+  );
+
+  const filteredSamples = useMemo(
+    () => currentSamples.filter(isSampleMatch),
+    [currentSamples, isSampleMatch],
+  );
 
   const switchLocale = (locale: SampleTemplateLocale) => {
     setLocaleTab(locale);
@@ -196,60 +211,94 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
           </div>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: 12,
-          }}
-        >
-          {filteredSamples.map((tpl) => {
-            const present = new Set(tpl.properties.map((p) => p.sensitivityLevel));
-            const ordered = SENSITIVITY_ORDER.filter((l) => present.has(l));
-            return (
-              <button
-                key={tpl.key}
-                data-testid="sample-template-card"
-                onClick={() => onSelect(tpl)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                  padding: 16,
-                  borderRadius: 12,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'border-color 0.15s, transform 0.1s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <LayoutTemplate size={22} style={{ color: 'var(--accent-primary)' }} />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {tpl.name}
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                      {t(`navigation:${tpl.category}`, tpl.category)} · {tpl.properties.length}{' '}
-                      {t('settings:template_fields')}
+        <div style={{ position: 'relative' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+              gap: 12,
+            }}
+            data-testid="sample-template-grid"
+          >
+            {currentSamples.map((tpl) => {
+              const visible = isSampleMatch(tpl);
+              const present = new Set(tpl.properties.map((p) => p.sensitivityLevel));
+              const ordered = SENSITIVITY_ORDER.filter((l) => present.has(l));
+              return (
+                <button
+                  key={tpl.key}
+                  data-testid="sample-template-card"
+                  data-visible={visible ? 'true' : 'false'}
+                  aria-hidden={visible ? 'false' : 'true'}
+                  tabIndex={visible ? 0 : -1}
+                  onClick={() => visible && onSelect(tpl)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
+                    padding: 16,
+                    borderRadius: 12,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-toolbar)',
+                    cursor: visible ? 'pointer' : 'default',
+                    textAlign: 'left',
+                    transition: 'border-color 0.15s, transform 0.1s',
+                    // 关键：
+                    // 1) visibility:hidden 让不可见卡仍占据网格位置，保持弹卡高度不变。
+                    // 2) order:-1 让可见卡排在网格第一项，避免空出 1、2 位。
+                    //    CSS Grid 的 auto-placement 顺序：先排 order:-1 项，再排 order:0 项，
+                    //    不可见项会被推到可见项之后的位置。
+                    visibility: visible ? 'visible' : 'hidden',
+                    pointerEvents: visible ? 'auto' : 'none',
+                    order: visible ? -1 : 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!visible) return;
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <LayoutTemplate size={22} style={{ color: 'var(--accent-primary)' }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {tpl.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                        {t(`navigation:${tpl.category}`, tpl.category)} · {tpl.properties.length}{' '}
+                        {t('settings:template_fields')}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                  {ordered.map((level) => (
-                    <SensitivityBadge key={level} level={level} />
-                  ))}
-                </div>
-              </button>
-            );
-          })}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                    {ordered.map((level) => (
+                      <SensitivityBadge key={level} level={level} />
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {/* 过滤后零命中时用空状态覆盖提示，不改变网格高度。 */}
+          {filteredSamples.length === 0 && (
+            <div
+              role="status"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-tertiary)',
+                fontSize: 13,
+                pointerEvents: 'none',
+              }}
+            >
+              {t('common:no_results')}
+            </div>
+          )}
         </div>
       </div>
     </div>
