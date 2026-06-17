@@ -968,6 +968,9 @@ export function SideNavigation() {
                 <NavButton
                   Icon={PAGE_ICON_MAP[item.iconKey]}
                   label={t(item.labelKey)}
+                  // 与 AI/OCR 按钮保持一致：搜索弹卡打开时，按钮显示为激活态（主题色）。
+                  // 其他未来的 action 类按钮在该分支内默认 isActive=false。
+                  isActive={isSearch && showSearch}
                   onClick={item.action}
                   position={sidebarPosition}
                 />
