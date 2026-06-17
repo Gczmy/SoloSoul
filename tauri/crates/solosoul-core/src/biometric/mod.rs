@@ -182,7 +182,10 @@ impl BiometricManager {
             return Ok(());
         }
         if self.storage.exists(account_id) {
-            self.remove_legacy_key_file(account_id);
+            // 开发环境回退到本地文件时，不能清理该文件，否则凭证会丢失。
+            if !self.storage.uses_legacy_file() {
+                self.remove_legacy_key_file(account_id);
+            }
             return Ok(());
         }
         if !self.legacy_key_exists(account_id) {
@@ -192,7 +195,10 @@ impl BiometricManager {
         let key_hex = legacy_storage.read(account_id, "")?;
         self.storage
             .save(account_id, &key_hex, "migrate legacy biometric credential")?;
-        self.remove_legacy_key_file(account_id);
+        // 如果当前后端就是本地文件（开发兜底），save 后文件仍在原位，不能删除。
+        if !self.storage.uses_legacy_file() {
+            self.remove_legacy_key_file(account_id);
+        }
         self.set_config_flag(account_id, true)?;
         Ok(())
     }
@@ -647,19 +653,48 @@ mod tests {
             .unwrap();
 
             // Legacy key file
-            let legacy_storage = legacy::FileBiometricStorage::new(base.clone());
             let legacy_key = "deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678";
+            let legacy_storage = legacy::FileBiometricStorage::new(base.clone());
             legacy_storage
                 .save(account_id, legacy_key, "reason")
                 .unwrap();
             assert!(manager_from_home().legacy_key_exists(account_id));
 
-            // Migrate to a separate target storage
+            // Migrate to a separate target storage that does not use the legacy file path.
+            struct NonLegacyFileStorage(legacy::FileBiometricStorage);
+            impl BiometricStorage for NonLegacyFileStorage {
+                fn save(
+                    &self,
+                    account_id: &str,
+                    key_hex: &str,
+                    reason: &str,
+                ) -> Result<(), BiometricError> {
+                    self.0.save(account_id, key_hex, reason)
+                }
+                fn update(&self, account_id: &str, key_hex: &str) -> Result<(), BiometricError> {
+                    self.0.update(account_id, key_hex)
+                }
+                fn read(&self, account_id: &str, reason: &str) -> Result<String, BiometricError> {
+                    self.0.read(account_id, reason)
+                }
+                fn delete(&self, account_id: &str) -> Result<(), BiometricError> {
+                    self.0.delete(account_id)
+                }
+                fn exists(&self, account_id: &str) -> bool {
+                    self.0.exists(account_id)
+                }
+                fn uses_legacy_file(&self) -> bool {
+                    false
+                }
+            }
+
             let target_base = base.join("migrated");
             std::fs::create_dir_all(&target_base).unwrap();
             let manager = BiometricManager::with_storage(
                 base.clone(),
-                Box::new(legacy::FileBiometricStorage::new(target_base.clone())),
+                Box::new(NonLegacyFileStorage(legacy::FileBiometricStorage::new(
+                    target_base.clone(),
+                ))),
             );
 
             manager.migrate_legacy_if_needed(account_id).unwrap();
