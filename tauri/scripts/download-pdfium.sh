@@ -21,14 +21,17 @@ case "${OS}" in
       ARCH="mac-x64"
     fi
     FILENAME="libpdfium.dylib"
+    SRC_PATH="lib/${FILENAME}"
     ;;
   Linux*)
     ARCH="linux-x64"
     FILENAME="libpdfium.so"
+    SRC_PATH="lib/${FILENAME}"
     ;;
   MINGW*|CYGWIN*|MSYS*)
     ARCH="win-x64"
     FILENAME="pdfium.dll"
+    SRC_PATH="bin/${FILENAME}"
     ;;
   *)
     echo "Unsupported operating system: ${OS}"
@@ -46,7 +49,7 @@ echo "Extracting..."
 tar xzf "${TMP_DIR}/pdfium.tgz" -C "${TMP_DIR}"
 
 echo "Installing ${FILENAME} to ${DEST_DIR}..."
-cp "${TMP_DIR}/lib/${FILENAME}" "${DEST_DIR}/${FILENAME}"
+cp "${TMP_DIR}/${SRC_PATH}" "${DEST_DIR}/${FILENAME}"
 
 rm -rf "${TMP_DIR}"
 
