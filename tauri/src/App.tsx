@@ -36,8 +36,10 @@ import { TemplateManagerPage } from '@/pages/settings/TemplateManagerPage';
 import { OcrSettingsPage } from '@/pages/settings/OcrSettingsPage';
 import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
 import { HelpPage } from '@/pages/help/HelpPage';
-import { UpdateBanner } from '@/components/ui/UpdateBanner';
+import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
 import { OcrInstallBanner } from '@/components/ui/OcrInstallBanner';
+import { relaunch } from '@tauri-apps/plugin-process';
+import type { Update } from '@tauri-apps/plugin-updater';
 import { OcrScanNotificationListener } from '@/components/layout/OcrScanNotificationListener';
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { checkForUpdate } from '@/lib/updater';
@@ -62,7 +64,17 @@ function AppRoutes() {
   const navigate = useNavigate();
   const { t } = useTranslation('ocr');
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
-  const [updateBanner, setUpdateBanner] = useState<{ version: string } | null>(null);
+  const [updateState, setUpdateState] = useState<
+    | { kind: 'hidden' }
+    | {
+        kind: 'available' | 'downloading' | 'downloaded' | 'error';
+        update: Update;
+        version: string;
+        downloadedBytes: number;
+        totalBytes: number;
+        error?: string;
+      }
+  >({ kind: 'hidden' });
   const [showOcrBanner, setShowOcrBanner] = useState(false);
   const { isInstalling, progress, error, startListening } = useOcrInstallStore();
 
@@ -72,9 +84,66 @@ function AppRoutes() {
       if (result.kind !== 'available') return;
       const skipped = localStorage.getItem('solosoul_skipped_version');
       if (skipped === result.info.version) return;
-      setUpdateBanner({ version: result.info.version });
+      setUpdateState({
+        kind: 'available',
+        update: result.update,
+        version: result.info.version,
+        downloadedBytes: 0,
+        totalBytes: 0,
+      });
     });
   }, []);
+
+  const startDownload = useCallback(async () => {
+    if (updateState.kind !== 'available' && updateState.kind !== 'error') return;
+    const { update, version } = updateState;
+    setUpdateState({ kind: 'downloading', update, version, downloadedBytes: 0, totalBytes: 0 });
+    try {
+      await update.download((event) => {
+        setUpdateState((prev) => {
+          if (prev.kind !== 'downloading') return prev;
+          if (event.event === 'Started') {
+            return { ...prev, totalBytes: event.data.contentLength ?? 0 };
+          }
+          if (event.event === 'Progress') {
+            return { ...prev, downloadedBytes: prev.downloadedBytes + event.data.chunkLength };
+          }
+          if (event.event === 'Finished') {
+            return prev;
+          }
+          return prev;
+        });
+      });
+      setUpdateState({ kind: 'downloaded', update, version, downloadedBytes: 0, totalBytes: 0 });
+    } catch (err) {
+      setUpdateState({
+        kind: 'error',
+        update,
+        version,
+        downloadedBytes: 0,
+        totalBytes: 0,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }, [updateState]);
+
+  const installUpdate = useCallback(async () => {
+    if (updateState.kind !== 'downloaded') return;
+    try {
+      await updateState.update.install();
+      await relaunch();
+    } catch (err) {
+      setUpdateState((prev) =>
+        prev.kind === 'downloaded'
+          ? {
+              ...prev,
+              kind: 'error' as const,
+              error: err instanceof Error ? err.message : String(err),
+            }
+          : prev,
+      );
+    }
+  }, [updateState]);
 
   // 首次启动时静默安装 bundled small OCR 模型
   const triggerOcrFirstInstall = useCallback(async () => {
@@ -263,7 +332,7 @@ function AppRoutes() {
 
   return (
     <>
-      {(updateBanner || showOcrBanner) && (
+      {(updateState.kind !== 'hidden' || showOcrBanner) && (
         <div
           style={{
             position: 'fixed',
@@ -275,18 +344,20 @@ function AppRoutes() {
             flexDirection: 'column',
           }}
         >
-          {updateBanner && (
+          {updateState.kind !== 'hidden' && (
             <UpdateBanner
-              version={updateBanner.version}
-              onUpdate={() => {
-                setUpdateBanner(null);
-                navigate('/about');
-              }}
+              version={updateState.version}
+              state={updateState.kind as UpdateBannerState}
+              downloadedBytes={updateState.downloadedBytes}
+              totalBytes={updateState.totalBytes}
+              error={updateState.error}
+              onUpdate={startDownload}
+              onInstall={installUpdate}
               onSkip={() => {
-                localStorage.setItem('solosoul_skipped_version', updateBanner.version);
-                setUpdateBanner(null);
+                localStorage.setItem('solosoul_skipped_version', updateState.version);
+                setUpdateState({ kind: 'hidden' });
               }}
-              onClose={() => setUpdateBanner(null)}
+              onClose={() => setUpdateState({ kind: 'hidden' })}
             />
           )}
           {showOcrBanner && (

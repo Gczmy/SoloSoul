@@ -27,6 +27,12 @@ describe('updater', () => {
 
       const result = await checkForUpdate();
 
+      const mockUpdate = {
+        version: '2.0.0',
+        body: 'Release notes',
+        date: '2026-06-13',
+      };
+
       expect(result).toEqual({
         kind: 'available',
         info: {
@@ -34,6 +40,7 @@ describe('updater', () => {
           body: 'Release notes',
           date: '2026-06-13',
         },
+        update: mockUpdate,
       });
     });
 

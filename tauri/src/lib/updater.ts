@@ -10,7 +10,7 @@ export interface UpdateInfo {
 export type UpdateProgress = DownloadEvent;
 
 export type UpdateCheckResult =
-  | { kind: 'available'; info: UpdateInfo }
+  | { kind: 'available'; info: UpdateInfo; update: Update }
   | { kind: 'up-to-date' }
   | { kind: 'error'; message?: string };
 
@@ -33,6 +33,7 @@ export async function checkForUpdate(): Promise<UpdateCheckResult> {
         body: update.body,
         date: update.date,
       },
+      update,
     };
   } catch (error) {
     // 网络异常时静默失败，避免打扰用户
