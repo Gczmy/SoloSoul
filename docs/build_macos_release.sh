@@ -259,7 +259,12 @@ codesign --force --sign "${SIGN_IDENTITY}" --timestamp=none "$DMG_OUTPUT" 2>/dev
 log_step "Creating app.tar.gz for updater..."
 APP_TAR_NAME="${APP_NAME}_${VERSION}_${ARCH}.app.tar.gz"
 APP_TAR_OUTPUT="${BUNDLE_BASE}/macos/${APP_TAR_NAME}"
-tar czf "$APP_TAR_OUTPUT" -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")"
+# COPYFILE_DISABLE=1 避免 macOS tar 生成 ._ 开头的 AppleDouble 元数据文件，
+# 否则 Tauri updater 在解压时会因 ._SoloSoul.app 这类文件报错。
+COPYFILE_DISABLE=1 tar czf "$APP_TAR_OUTPUT" \
+  --exclude='.DS_Store' \
+  --exclude='._*' \
+  -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")"
 log_info "Created ${APP_TAR_OUTPUT}"
 
 # 生成 Tauri 自动更新器签名文件（.sig）
