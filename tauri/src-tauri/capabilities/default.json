@@ -9,6 +9,7 @@
     "core:window:allow-set-size",
     "core:window:allow-inner-size",
     "updater:default",
+    "process:default",
     "shell:allow-open",
     "dialog:default",
     "fs:default",
