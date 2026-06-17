@@ -23,6 +23,7 @@
 - **Touch ID unlock after password change/lock** — Fixed cases where Touch ID could not unlock the Vault after the master password was changed or the app was locked.
 - **Biometric Keychain fallback** — Development builds now fall back to local-file credential storage when Keychain returns `-34018` or `not_found`, avoiding repeated keychain password prompts.
 - **Biometric migration edge cases** — Fixed legacy biometric migration/close failures and accidental deletion of local credential files.
+- **Windows build failure** — Restricted `macos_keychain` module to macOS-only compilation, fixing unresolved `core_foundation` / `security_framework` crates on Windows.
 
 ## [2.2.2] - 2026-06-16
 
