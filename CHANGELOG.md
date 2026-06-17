@@ -31,6 +31,7 @@ All notable changes to SoloSoul are documented in this file.
 - **生物识别凭证迁移** — 修复旧账户生物识别迁移与关闭失败、本地凭证文件误删等问题。
 - **生物识别取消提示** — 修复生物识别测试取消时错误使用国际化消息的问题。
 - **Windows 构建失败** — 将 `macos_keychain` 模块限制为仅 macOS 编译，修复 Windows 构建时找不到 `core_foundation` / `security_framework` 的问题。
+- **NSIS i18n.nsh 打包失败** — 将 `i18n.nsh` 内容内联到 `installer.nsi`，避免 Windows 构建时因未复制该文件导致 `could not find: "i18n.nsh"` 错误。
 
 ## [2.2.2] - 2026-06-16
 
