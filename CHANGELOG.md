@@ -24,6 +24,7 @@
 - **Biometric Keychain fallback** — Development builds now fall back to local-file credential storage when Keychain returns `-34018` or `not_found`, avoiding repeated keychain password prompts.
 - **Biometric migration edge cases** — Fixed legacy biometric migration/close failures and accidental deletion of local credential files.
 - **Windows build failure** — Restricted `macos_keychain` module to macOS-only compilation, fixing unresolved `core_foundation` / `security_framework` crates on Windows.
+- **NSIS i18n.nsh bundle failure** — Inlined `i18n.nsh` contents into `installer.nsi` to prevent the `could not find: "i18n.nsh"` error on Windows builds.
 
 ## [2.2.2] - 2026-06-16
 
