@@ -329,12 +329,13 @@ impl BiometricStorage for MacOsBiometricStorage {
             unsafe { CFRelease(result) };
         }
 
-        if status == ERR_SEC_MISSING_ENTITLEMENT {
-            return self.fallback_storage().exists(account_id);
-        }
-
-        if status == errSecItemNotFound {
-            return self.fallback_storage().exists(account_id);
+        if status == ERR_SEC_MISSING_ENTITLEMENT || status == errSecItemNotFound {
+            let fallback = self.fallback_storage();
+            let exists = fallback.exists(account_id);
+            if exists {
+                self.used_fallback.store(true, Ordering::SeqCst);
+            }
+            return exists;
         }
 
         // 项存在但需要认证时会返回 user-canceled / auth-failed；只要不是"未找到"就认为存在。
