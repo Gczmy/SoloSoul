@@ -236,7 +236,14 @@ export function OcrPage() {
   };
 
   return (
-    <AppShell title={t('ocr:title')} onBack={() => navigate(-1)}>
+    <AppShell title={t('ocr:title')} onBack={() => {
+            const state = location.state as { fromHome?: boolean } | undefined;
+            if (state?.fromHome) {
+              navigate('/home');
+            } else {
+              navigate(-1);
+            }
+          }}>
       <div
         style={{
           maxWidth: 720,

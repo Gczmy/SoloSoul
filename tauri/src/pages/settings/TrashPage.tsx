@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -88,6 +88,7 @@ function timeAgo(ms: number, t: (k: string) => string): string {
 
 export function TrashPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation(['settings', 'common', 'editor']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const {
@@ -230,7 +231,14 @@ export function TrashPage() {
   };
 
   return (
-    <AppShell title={t('settings:trash')} onBack={() => navigate('/settings')}>
+    <AppShell title={t('settings:trash')} onBack={() => {
+            const state = location.state as { fromHome?: boolean } | undefined;
+            if (state?.fromHome) {
+              navigate('/home');
+            } else {
+              navigate('/settings');
+            }
+          }}>
       <div
         style={{
           maxWidth: 600,

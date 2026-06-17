@@ -143,7 +143,8 @@ export function HomePage() {
           }}
         >
           {quickCards.map((q) => (
-            <Card key={q.path} interactive onClick={() => navigate(q.path)}>
+            <Card key={q.path} interactive onClick={() => navigate(q.path, { state: { fromHome: true } })}>
+
               <div style={{ marginBottom: 8 }}>
                 <q.icon size={28} />
               </div>
