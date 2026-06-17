@@ -4,6 +4,25 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-06-17
+
+### Added
+
+- **OCR PDF/MRZ 扩展** — 支持扫描/解析 PDF 文档与机读区（MRZ），识别结果可导入为对象。
+- **自动更新签名集成** — Release 构建脚本自动生成 `.sig` 签名文件，并生成 Tauri updater 所需的 `latest.json`。
+- **本地模型文件前置检查** — macOS/Windows 构建脚本在编译前检查 OCR 与 Embedding 模型是否完整，避免打包失败。
+
+### Changed
+
+- **国际化补全** — NSIS 安装程序欢迎/完成页、OCR 模型选项、帮助文档标题支持多语言。
+- **发布脚本增强** — 自动检测 `~/.tauri/secret.key`，按版本号过滤产物生成 `latest.json`，补充签名密钥管理文档。
+
+### Fixed
+
+- **OCR 侧边栏快速扫描** — 修复快速扫描卡片阻塞性 bug 与相关体验问题。
+- **NSIS 模板语法** — 修复内联 i18n 注释中的 Handlebars 转义问题，避免安装包构建异常。
+- **签名路径** — 修复 macOS/Windows 构建脚本在 `tauri` 子目录中调用 `tauri signer` 时相对路径错误的 bug。
+
 ## [2.3.0] - 2026-06-17
 
 ### Added
