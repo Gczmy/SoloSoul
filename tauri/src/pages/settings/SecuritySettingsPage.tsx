@@ -119,7 +119,10 @@ export function SecuritySettingsPage() {
       await invoke('biometric_test', { accountId: currentAccount.id });
       onSuccess(t('settings:biometric_test_success', { type: biometryType }));
     } catch (e) {
-      onError(e, t('settings:biometric_test_failed', { type: biometryType }));
+      onError(
+        getBiometricErrorMessage(e, t),
+        t('settings:biometric_test_failed', { type: biometryType }),
+      );
     }
   };
 
