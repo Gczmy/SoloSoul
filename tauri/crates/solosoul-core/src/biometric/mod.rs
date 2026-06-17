@@ -22,8 +22,13 @@ mod macos;
 #[cfg(not(target_os = "macos"))]
 mod stub;
 
-/// 旧版基于本地加密文件的存储。用于从旧版本升级时迁移凭证，以及测试 mock。
+/// 旧版基于本地加密文件的存储。用于从旧版本升级时迁移凭证、当前 macOS 方案、以及测试 mock。
 pub(crate) mod legacy;
+
+/// ⚠️ 未来 Keychain 方案保留模块。详见 `macos_keychain.rs` 顶部注释。
+/// 当前未使用，但保留完整实现以便团队加入 Apple Developer Program 后切换。
+#[allow(dead_code)]
+mod macos_keychain;
 
 /// 设备/平台对生物识别的可用性信息。
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -268,6 +273,9 @@ impl BiometricManager {
         reason: &str,
     ) -> Result<String, BiometricError> {
         self.migrate_legacy_if_needed(account_id)?;
+        // 在读取凭证前先触发系统生物识别弹窗（Touch ID / 设备密码）。
+        // 这样即使使用本地文件存储，也能保证用户身份验证。
+        trigger_system_biometric(reason)?;
         let key_hex = self.storage.read(account_id, reason)?;
         let key_bytes = hex::decode(&key_hex).map_err(|_| BiometricError::InvalidKeyFormat)?;
         let key: [u8; 32] = key_bytes

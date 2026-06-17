@@ -6,7 +6,8 @@
 
 | 平台 | 状态 | 实现位置 |
 |------|------|---------|
-| **macOS** | ✅ 已支持 Touch ID / Face ID / 设备密码（Keychain UserPresence） | `tauri/crates/solosoul-core/src/biometric/` |
+| **macOS** | ✅ 已支持 Touch ID / Face ID / 设备密码（本地加密文件 + LocalAuthentication 弹窗） | `tauri/crates/solosoul-core/src/biometric/macos.rs` |
+| **macOS (未来)** | ⏳ Keychain UserPresence 方案已保留 | `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs` |
 | **Windows** | ❌ 未实现 | 待后续按本规范扩展 |
 | **Linux** | ❌ 未实现 | 暂不支持 |
 
@@ -15,36 +16,40 @@
 - 生物识别只用于**替代输入主密码**这一过程，不改变 Vault 的加密模型。
 - Vault 数据密钥仍由主密码派生；生物识别凭证里保存的是该派生密钥。
 - 生物识别操作必须在 Vault 已解锁或能通过当前主密码验证的上下文中进行。
-- **macOS 使用 Keychain 但打开应用时不弹框**：`is_configured` 使用 `kSecUseAuthenticationUIFail` 只检查项是否存在，不会触发 Touch ID / 设备密码提示。
+- **macOS 当前使用本地加密文件**：由于团队暂未加入 Apple Developer Program，无法获得 `keychain-access-groups` entitlement，因此当前方案不使用 Keychain，而是在读取/保存前调用 `LocalAuthentication` 弹窗验证用户身份。
+- **打开应用时不弹框**：`is_configured` 只检查本地 `biometric_key` 文件是否存在，不会触发系统验证框。
 
 ---
 
 ## 2. 已知的 macOS 坑与修复方案
 
-### 2.1 从本地加密文件迁移到 Keychain UserPresence
+### 2.1 当前 macOS 方案：本地加密文件 + LocalAuthentication 弹窗
 
-**现象（旧版文件方案）**：
+**背景**：
 
-1. 旧版使用本地加密文件 + 确定性 HKDF 文件密钥存储主密钥；若应用数据目录被整体拷贝，攻击者可在另一台机器上解密该文件。
-2. 打开应用时，`is_configured` 若读取 Keychain 会弹出钥匙串输入框，影响体验。
-3. 设备锁定后 Keychain 可能不可用，导致生物识别解锁失败。
+- 团队暂未付费加入 Apple Developer Program，无法获得有效的 `keychain-access-groups` entitlement。
+- 直接使用 Keychain `kSecAccessControlUserPresence` 在 ad-hoc 签名构建中会返回 `-34018`（"A required entitlement isn't present"），导致生物识别无法启用。
 
 **当前 macOS 方案**：
 
-- 使用 `Security.framework` 的 **Keychain Services**。
-- Keychain Item 类型为 `kSecClassGenericPassword`。
-- 使用 `SecAccessControlCreateWithFlags(..., kSecAccessControlUserPresence, ...)` 约束：
-  - 读取时必须通过 Touch ID、Face ID 或 Mac 登录密码验证。
-  - 未配置 Touch ID 的设备会自动回退到设备密码框。
-- `is_configured` 使用 `kSecUseAuthenticationUIFail` 查询，**只检查项是否存在，不会弹出任何验证框**。
-- 写入/更新 Keychain Item 不触发用户验证；开启生物识别前会主动调用 `LocalAuthentication` 验证用户身份。
-- 旧版 `biometric_key` 文件会在以下时机自动迁移到 Keychain：
-  - 登录页调用 `biometric_check_availability` 时；
-  - 使用生物识别解锁时。
-  迁移成功后立即删除旧文件。
-- 若 Keychain 项不存在（例如旧账户），关闭生物识别时会静默清理本地标记与旧文件，不再报错。
-- macOS App 必须在 `src-tauri/entitlements.plist` 中声明 `keychain-access-groups`，否则 `SecItemAdd` 会返回 `-34018`（"A required entitlement isn't present"）。
-- 为方便未签名开发构建，`MacOsBiometricStorage` 检测到 `-34018` 时会自动回退到本地加密文件存储，并输出 `tracing::warn` 日志提醒；Release 包带 entitlement 后仍走 Keychain。
+- 主密钥保存在应用数据目录的本地加密文件 `biometric_key` 中（复用 `FileBiometricStorage`）。
+- 文件密钥使用 HKDF 从 `account_id + 应用级 secret` 派生，不依赖 Keychain 也能解密。
+- **保存凭证前**由 `BiometricManager::save_credential` 调用 `LocalAuthentication`，弹出 Touch ID / 设备密码框验证用户身份。
+- **读取凭证前**由 `BiometricManager::unlock` 调用 `LocalAuthentication`，验证通过后才读取文件并解锁 Vault。
+- `is_configured` 只检查 `biometricEnabled` 标记和 `biometric_key` 文件是否存在，**不会弹出任何系统验证框**。
+- 旧版 `biometric_key` 文件无需迁移；当前 macOS 后端直接把它作为主存储。
+- 若关闭生物识别，会清理 `biometricEnabled` 标记并删除 `biometric_key` 文件。
+
+### 2.2 未来 macOS 方案：Keychain UserPresence（已保留实现）
+
+- 完整实现保留在 `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs`。
+- 启用条件：
+  1. 加入 Apple Developer Program（99 USD/年）并获取 Team ID。
+  2. 使用有效的 `Developer ID Application` 证书对 App 签名。
+  3. 在 `src-tauri/entitlements.plist` 中声明 `keychain-access-groups`（格式 `<TeamID>.<BundleID>`）。
+  4. 在 `tauri.conf.json` 的 `bundle.macOS.entitlements` 中引用该 plist。
+- 切换方式：将 `biometric/mod.rs` 中 `platform_storage()` 的 macOS 分支从 `MacOsBiometricStorage::new(base_path)` 改为 `macos_keychain::MacOsKeychainStorage::new(base_path)`。
+- **请勿删除 `macos_keychain.rs`**，它是未来加入 Apple Developer Program 后的官方方案。
 
 ### 2.3 修改主密码后同步更新生物识别凭证
 
@@ -56,9 +61,9 @@
 - 仅当用户之前已启用生物识别时才更新；未启用则不操作。
 - 这样改密后 Touch ID / Face ID 仍然可用，无需用户手动重新启用。
 
-### 2.4 保存后回读钥匙串校验不可靠
+### 2.4 保存后回读校验不可靠
 
-**现象**：保存生物识别凭证后，尝试从钥匙串/文件回读以做一致性校验。在 macOS 上，回读钥匙串可能因权限或锁定失败，导致误报凭证失效。
+**现象**：保存生物识别凭证后，尝试回读以做一致性校验。回读可能因权限或锁定失败，导致误报凭证失效。
 
 **修复**：
 
