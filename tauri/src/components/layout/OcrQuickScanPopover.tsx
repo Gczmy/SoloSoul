@@ -46,6 +46,7 @@ export function OcrQuickScanPopover({
 
   const cardRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
+  const resultContainerRef = useRef<HTMLDivElement>(null);
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevScanningRef = useRef(false);
   const restoredCurrentScanRef = useRef(false);
@@ -171,8 +172,14 @@ export function OcrQuickScanPopover({
 
   const handleLoadHistoryEntry = (entry: OcrScanEntry) => {
     store.setCardOpen(true);
-    useOcrScanStore.setState({ currentScanId: entry.id });
+    // 使用函数式 setState 强制触发订阅，避开浅相等比较短路，
+    // 确保点击同一条记录时依然能刷新结果区域。
+    useOcrScanStore.setState((_s) => ({ currentScanId: entry.id }));
     setShowHistory(false);
+    // 点击历史记录后，将结果区域滚到可视范围内，避免位于滚动容器底部被遮挡。
+    requestAnimationFrame(() => {
+      resultContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
   };
 
   const activeHistory = store.getActiveHistory();
@@ -351,69 +358,87 @@ export function OcrQuickScanPopover({
               </p>
             ) : (
               <>
-                {activeHistory.map((entry) => (
-                  <div
-                    key={entry.id}
-                    onClick={() => handleLoadHistoryEntry(entry)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '7px 12px',
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      background:
-                        currentEntry?.id === entry.id ? 'rgba(91,124,153,0.08)' : 'transparent',
-                    }}
-                  >
-                    <FileText size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-                    <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <div
+                {activeHistory.map((entry) => {
+                  const isSelected = currentEntry?.id === entry.id;
+                  const hasError = !!entry.error;
+                  return (
+                    <div
+                      key={entry.id}
+                      className={isSelected ? 'ocr-history-item ocr-history-item--selected' : 'ocr-history-item'}
+                      onClick={() => handleLoadHistoryEntry(entry)}
+                      title={entry.fileName}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '7px 12px',
+                        cursor: 'pointer',
+                        fontSize: 12,
+                      }}
+                    >
+                      <FileText
+                        size={12}
                         style={{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          color: 'var(--text-primary)',
-                          fontWeight: currentEntry?.id === entry.id ? 500 : 400,
-                        }}
-                      >
-                        {entry.fileName}
-                      </div>
-                      <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 1 }}>
-                        {new Date(entry.timestamp).toLocaleString()} · {entry.mode === 'mrz' ? 'MRZ' : 'OCR'}
-                      </div>
-                    </div>
-                    {currentEntry?.id === entry.id && (
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          background: 'var(--accent-primary)',
+                          color: hasError ? '#e74c3c' : 'var(--text-tertiary)',
                           flexShrink: 0,
                         }}
                       />
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        store.softDeleteEntry(entry.id);
-                      }}
-                      title={t('common:delete')}
-                      style={{
-                        padding: 2,
-                        borderRadius: 4,
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        color: 'var(--text-tertiary)',
-                        flexShrink: 1,
-                      }}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                ))}
+                      <div style={{ flex: 1, overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            color: 'var(--text-primary)',
+                            fontWeight: isSelected ? 500 : 400,
+                          }}
+                        >
+                          {entry.fileName}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: hasError ? '#e74c3c' : 'var(--text-tertiary)',
+                            marginTop: 1,
+                          }}
+                        >
+                          {new Date(entry.timestamp).toLocaleString()} · {entry.mode === 'mrz' ? 'MRZ' : 'OCR'}
+                          {hasError ? ` · ${t('common:error')}` : ''}
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: 'var(--accent-primary)',
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          store.softDeleteEntry(entry.id);
+                        }}
+                        title={t('common:delete')}
+                        className="ocr-history-item__btn"
+                        style={{
+                          padding: 2,
+                          borderRadius: 4,
+                          border: 'none',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          color: 'var(--text-tertiary)',
+                          flexShrink: 1,
+                        }}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  );
+                })}
               </>
             )
           ) : trash.length === 0 ? (
@@ -645,8 +670,9 @@ export function OcrQuickScanPopover({
           </div>
         )}
 
-        {/* Error state */}
-        {store.lastScanError && !store.isScanning && (
+        {/* Error state (transient, shown after latest scan attempt).
+            若当前选中的历史条目携带相同错误信息，则仅在 selected entry 中显示，避免重复。 */}
+        {store.lastScanError && !store.isScanning && store.lastScanError !== currentEntry?.error && (
           <div
             style={{
               padding: 12,
@@ -667,81 +693,138 @@ export function OcrQuickScanPopover({
 
         {/* Current result */}
         {currentEntry && !store.isScanning && (
-          <>
-            {/* General OCR result */}
-            {currentEntry.mode === 'general' && currentEntry.result && (
+          <div ref={resultContainerRef} className="ocr-result-container">
+            {/* Result header — 指示当前查看的是哪一条历史记录 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 8px',
+                borderRadius: 6,
+                background: 'rgba(91,124,153,0.06)',
+                fontSize: 11,
+                color: 'var(--text-tertiary)',
+                lineHeight: 1.4,
+              }}
+            >
+              <FileText size={11} style={{ flexShrink: 0 }} />
+              <span
+                style={{
+                  flex: 1,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+                title={currentEntry.fileName}
+              >
+                {currentEntry.fileName}
+              </span>
+              <span style={{ flexShrink: 0 }}>
+                {currentEntry.mode === 'mrz' ? 'MRZ' : 'OCR'}
+              </span>
+            </div>
+
+            {/* 历史记录带有错误（例如多次扫描后重新选择失败的历史条目） */}
+            {currentEntry.error && (
               <div
                 style={{
                   padding: 12,
                   borderRadius: 10,
-                  background: 'var(--bg-toolbar)',
+                  background: 'rgba(231,76,60,0.08)',
+                  border: '1px solid rgba(231,76,60,0.2)',
+                  color: '#e74c3c',
                   fontSize: 13,
-                  lineHeight: 1.6,
-                  whiteSpace: 'pre-wrap',
-                  maxHeight: 200,
-                  overflowY: 'auto',
-                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
                 }}
               >
-                {currentEntry.result.text || t('ocr:no_text')}
+                <AlertCircle size={16} />
+                {currentEntry.error}
               </div>
             )}
 
+            {/* General OCR result */}
+            {!currentEntry.error &&
+              currentEntry.mode === 'general' &&
+              currentEntry.result && (
+                <div
+                  style={{
+                    padding: 12,
+                    borderRadius: 10,
+                    background: 'var(--bg-toolbar)',
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                    whiteSpace: 'pre-wrap',
+                    maxHeight: 200,
+                    overflowY: 'auto',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  {currentEntry.result.text || t('ocr:no_text')}
+                </div>
+              )}
+
             {/* MRZ result */}
-            {currentEntry.mode === 'mrz' && currentEntry.mrzResult && (
-              <MrzResultCard result={currentEntry.mrzResult} />
-            )}
+            {!currentEntry.error &&
+              currentEntry.mode === 'mrz' &&
+              currentEntry.mrzResult && (
+                <MrzResultCard result={currentEntry.mrzResult} />
+              )}
 
             {/* MRZ not detected fallback: show general OCR result if available */}
-            {currentEntry.mode === 'mrz' && !currentEntry.mrzResult && !currentEntry.error && (
-              <>
-                {currentEntry.result ? (
-                  <>
-                    <div
-                      style={{
-                        padding: '6px 10px',
-                        borderRadius: 6,
-                        background: 'rgba(41,128,185,0.08)',
-                        fontSize: 12,
-                        color: 'var(--text-secondary)',
-                        textAlign: 'center',
-                      }}
-                    >
-                      {t('ocr:mrz_no_detected')}
-                    </div>
+            {!currentEntry.error &&
+              currentEntry.mode === 'mrz' &&
+              !currentEntry.mrzResult && (
+                <>
+                  {currentEntry.result ? (
+                    <>
+                      <div
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: 6,
+                          background: 'rgba(41,128,185,0.08)',
+                          fontSize: 12,
+                          color: 'var(--text-secondary)',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {t('ocr:mrz_no_detected')}
+                      </div>
+                      <div
+                        style={{
+                          padding: 12,
+                          borderRadius: 10,
+                          background: 'var(--bg-toolbar)',
+                          fontSize: 13,
+                          lineHeight: 1.6,
+                          whiteSpace: 'pre-wrap',
+                          maxHeight: 200,
+                          overflowY: 'auto',
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        {currentEntry.result.text || t('ocr:no_text')}
+                      </div>
+                    </>
+                  ) : (
                     <div
                       style={{
                         padding: 12,
                         borderRadius: 10,
                         background: 'var(--bg-toolbar)',
                         fontSize: 13,
-                        lineHeight: 1.6,
-                        whiteSpace: 'pre-wrap',
-                        maxHeight: 200,
-                        overflowY: 'auto',
-                        color: 'var(--text-primary)',
+                        color: 'var(--text-secondary)',
+                        textAlign: 'center',
                       }}
                     >
-                      {currentEntry.result.text || t('ocr:no_text')}
+                      {t('ocr:mrz_no_detected')}
                     </div>
-                  </>
-                ) : (
-                  <div
-                    style={{
-                      padding: 12,
-                      borderRadius: 10,
-                      background: 'var(--bg-toolbar)',
-                      fontSize: 13,
-                      color: 'var(--text-secondary)',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {t('ocr:mrz_no_detected')}
-                  </div>
-                )}
-              </>
-            )}
-          </>
+                  )}
+                </>
+              )}
+          </div>
         )}
 
         {/* Empty state hint */}
@@ -771,6 +854,34 @@ export function OcrQuickScanPopover({
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        @keyframes ocrResultFadeIn {
+          from { opacity: 0; transform: translateY(2px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .ocr-history-item {
+          transition: background-color 120ms ease;
+        }
+        .ocr-history-item:hover {
+          background-color: rgba(91, 124, 153, 0.10);
+        }
+        .ocr-history-item--selected {
+          background-color: rgba(91, 124, 153, 0.08);
+        }
+        .ocr-history-item--selected:hover {
+          background-color: rgba(91, 124, 153, 0.16);
+        }
+        .ocr-history-item:active {
+          background-color: rgba(91, 124, 153, 0.22);
+        }
+        .ocr-history-item__btn:hover {
+          color: var(--accent-primary) !important;
+        }
+        .ocr-result-container {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          animation: ocrResultFadeIn 180ms ease-out both;
         }
       `}</style>
     </div>
