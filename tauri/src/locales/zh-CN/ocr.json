@@ -1,7 +1,7 @@
 {
   "title": "OCR 扫描",
   "settings_title": "OCR 设置",
-  "description": "使用本地 PP-OCRv6 模型从图片中提取文字，数据不会离开您的设备。",
+  "description": "使用本地 OCR 模型从图片中提取文字，数据不会离开您的设备。",
   "select_image": "选择图片",
   "select_image_title": "选择要扫描的图片",
   "select_image_failed": "选择图片失败",

@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { commands, type OcrResult, type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
+import { OCR_MODEL_SERIES } from '@/lib/constants';
 import { Scan, FileText, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export function OcrPage() {
@@ -195,7 +196,7 @@ export function OcrPage() {
                   marginBottom: 6,
                 }}
               >
-                {t('ocr:active_model')}
+                {t('ocr:active_model')} — {OCR_MODEL_SERIES}系列
               </label>
               <select
                 value={activeTier}

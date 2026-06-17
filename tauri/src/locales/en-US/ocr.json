@@ -1,7 +1,7 @@
 {
   "title": "OCR Scanner",
   "settings_title": "OCR Settings",
-  "description": "Extract text from images using the local PP-OCRv6 model. No data leaves your device.",
+  "description": "Extract text from images using the local OCR model. No data leaves your device.",
   "select_image": "Select Image",
   "select_image_title": "Select image to scan",
   "select_image_failed": "Failed to select image",

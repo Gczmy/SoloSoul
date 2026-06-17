@@ -5,3 +5,6 @@ export const COPY_FEEDBACK_DURATION_MS = 1500;
 
 /** Default debounce delay (ms) for search inputs and similar live filters. */
 export const DEBOUNCE_DELAY_MS = 300;
+
+/** Current OCR model series displayed in the scan page. Change this when switching models. */
+export const OCR_MODEL_SERIES = 'PP-OCRv6';
