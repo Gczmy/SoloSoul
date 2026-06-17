@@ -1,7 +1,7 @@
 //! 插件系统命令：列表与运行插件。
 
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use color_eyre::Result;
@@ -106,7 +106,11 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
             let mut parts = p.splitn(2, '=');
             let key = parts.next()?.trim().to_string();
             let value = parts.next()?.trim().to_string();
-            if key.is_empty() { None } else { Some((key, value)) }
+            if key.is_empty() {
+                None
+            } else {
+                Some((key, value))
+            }
         })
         .collect();
 
@@ -130,12 +134,11 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
         };
 
         let outcome = rt.block_on(async {
-            let manager = match solosoul_plugin::PluginManager::new_with_resource_dir(
-                &market_dir_clone,
-            ) {
-                Ok(m) => m,
-                Err(e) => return format!("初始化插件管理器失败: {}", e),
-            };
+            let manager =
+                match solosoul_plugin::PluginManager::new_with_resource_dir(&market_dir_clone) {
+                    Ok(m) => m,
+                    Err(e) => return format!("初始化插件管理器失败: {}", e),
+                };
 
             // 安装插件到本地
             if let Err(e) = manager.install_from_registry(&plugin_id_clone, &version) {
@@ -182,7 +185,9 @@ pub fn install_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         }
     };
 
-    let Some(manager) = create_manager(app) else { return Ok(()); };
+    let Some(manager) = create_manager(app) else {
+        return Ok(());
+    };
 
     let version = match load_registry_entries(&resolve_plugin_market_dir()) {
         Ok(entries) => entries
@@ -217,7 +222,9 @@ pub fn update_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         }
     };
 
-    let Some(manager) = create_manager(app) else { return Ok(()); };
+    let Some(manager) = create_manager(app) else {
+        return Ok(());
+    };
 
     match manager.update(&plugin_id) {
         Ok(result) => {
@@ -243,7 +250,9 @@ pub fn uninstall_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         }
     };
 
-    let Some(manager) = create_manager(app) else { return Ok(()); };
+    let Some(manager) = create_manager(app) else {
+        return Ok(());
+    };
 
     match manager.uninstall(&plugin_id) {
         Ok(()) => {
@@ -258,7 +267,9 @@ pub fn uninstall_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
 
 /// /plugin_sessions — 查看活跃插件会话。
 pub fn list_sessions(app: &mut App) -> Result<()> {
-    let Some(manager) = create_manager(app) else { return Ok(()); };
+    let Some(manager) = create_manager(app) else {
+        return Ok(());
+    };
 
     match manager.list_sessions() {
         Ok(sessions) => {
@@ -267,7 +278,12 @@ pub fn list_sessions(app: &mut App) -> Result<()> {
             } else {
                 let lines: Vec<String> = sessions
                     .iter()
-                    .map(|s| format!("- {} (plugin: {}, created: {})", s.session_id, s.plugin_id, s.created_at))
+                    .map(|s| {
+                        format!(
+                            "- {} (plugin: {}, created: {})",
+                            s.session_id, s.plugin_id, s.created_at
+                        )
+                    })
                     .collect();
                 app.error_message = Some(format!(
                     "活跃会话 ({}):\n{}",
@@ -285,7 +301,9 @@ pub fn list_sessions(app: &mut App) -> Result<()> {
 
 /// /plugin_list_installed — 列出本地已安装插件。
 pub fn list_installed_plugins(app: &mut App) -> Result<()> {
-    let Some(manager) = create_manager(app) else { return Ok(()); };
+    let Some(manager) = create_manager(app) else {
+        return Ok(());
+    };
 
     match manager.list_installed() {
         Ok(installed) => {
@@ -312,7 +330,9 @@ pub fn list_installed_plugins(app: &mut App) -> Result<()> {
 
 /// /plugin_audit_log [limit] — 查看插件审计日志。
 pub fn audit_log(app: &mut App, limit: Option<&str>) -> Result<()> {
-    let Some(manager) = create_manager(app) else { return Ok(()); };
+    let Some(manager) = create_manager(app) else {
+        return Ok(());
+    };
 
     let limit_num: Option<usize> = match limit.and_then(|s| s.parse().ok()) {
         Some(n) if n > 0 => Some(n),
@@ -371,7 +391,9 @@ pub fn load_manifest(plugin_id: &str) -> Option<solosoul_plugin::PluginManifest>
 /// 创建 PluginManager 实例（提取公共代码）。/// 创建 PluginManager 实例（提取公共代码）。
 /// /plugin_registry_update — 异步刷新远程插件注册表。
 pub fn update_registry(app: &mut App) -> Result<()> {
-    let Some(manager) = create_manager(app) else { return Ok(()); };
+    let Some(manager) = create_manager(app) else {
+        return Ok(());
+    };
 
     let rt = match tokio::runtime::Runtime::new() {
         Ok(rt) => rt,
@@ -442,8 +464,7 @@ pub fn search_plugins(app: &mut App, keyword: Option<&str>) -> Result<()> {
                 .collect();
 
             if matched.is_empty() {
-                app.error_message =
-                    Some(format!("未找到匹配 \"{}\" 的插件", keyword));
+                app.error_message = Some(format!("未找到匹配 \"{}\" 的插件", keyword));
             } else {
                 app.phase = AppPhase::PluginList {
                     plugins: matched,
@@ -481,9 +502,7 @@ fn resolve_plugin_market_dir() -> PathBuf {
     }
 
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let candidate = manifest_dir
-        .join("..")
-        .join("SoloSoul_plugin_market");
+    let candidate = manifest_dir.join("..").join("SoloSoul_plugin_market");
     if candidate.exists() {
         return candidate;
     }
@@ -492,9 +511,7 @@ fn resolve_plugin_market_dir() -> PathBuf {
 }
 
 /// 克 registry.json 加载插件注册表条目。
-fn load_registry_entries(
-    market_dir: &PathBuf,
-) -> Result<Vec<RegistryEntry>, String> {
+fn load_registry_entries(market_dir: &Path) -> Result<Vec<RegistryEntry>, String> {
     let registry_path = market_dir.join("registry.json");
     if !registry_path.exists() {
         return Err(format!("未找到 registry.json: {}", registry_path.display()));
@@ -508,8 +525,8 @@ fn load_registry_entries(
         plugins: Vec<RegistryEntry>,
     }
 
-    let registry: RegistryFile = serde_json::from_str(&content)
-        .map_err(|e| format!("解析 registry.json 失败: {}", e))?;
+    let registry: RegistryFile =
+        serde_json::from_str(&content).map_err(|e| format!("解析 registry.json 失败: {}", e))?;
 
     Ok(registry.plugins)
 }

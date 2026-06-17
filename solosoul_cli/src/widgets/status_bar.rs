@@ -45,9 +45,12 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::LlmConfig { .. } => "LLM 配置".to_string(),
         AppPhase::LlmStats { .. } => "LLM 统计".to_string(),
         AppPhase::ConversationList { .. } => "对话历史".to_string(),
-        AppPhase::LlmChat { .. } => "LLM 聊天".to_string(),
+        AppPhase::LlmChat => "LLM 聊天".to_string(),
         AppPhase::PluginList { .. } => "插件列表".to_string(),
         AppPhase::PluginDetail { .. } => "插件详情".to_string(),
+        AppPhase::SyncStatus { .. } => "设备同步".to_string(),
+        AppPhase::OcrResult { .. } => "OCR".to_string(),
+        AppPhase::EmbedModelList { .. } => "Embedding 模型".to_string(),
         AppPhase::Quit => "退出中".to_string(),
     };
 

@@ -106,3 +106,31 @@ jobs:
             git diff SoloSoul_plugin_market
             exit 1
           fi
+
+  cli-check:
+    name: SoloSoul CLI (Rust Format, Clippy & Tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: solosoul_cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Cache cargo (solosoul_cli)
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: solosoul_cli
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Run CLI Tests
+        run: cargo test --verbose --no-fail-fast

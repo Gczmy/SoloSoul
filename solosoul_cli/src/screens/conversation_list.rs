@@ -56,25 +56,18 @@ pub fn render(
                 &c.updated_at
             };
             ListItem::new(Line::from(vec![
-                Span::styled(
-                    format!("{}  ", c.name),
-                    style.fg(Color::White).bold(),
-                ),
+                Span::styled(format!("{}  ", c.name), style.fg(Color::White).bold()),
                 Span::styled(
                     format!("({} 条消息)", c.message_count),
                     style.fg(Color::DarkGray),
                 ),
-                Span::styled(
-                    format!("  {}", date),
-                    style.fg(Color::DarkGray),
-                ),
+                Span::styled(format!("  {}", date), style.fg(Color::DarkGray)),
             ]))
         })
         .collect();
 
     let mut list_state = ListState::default();
     list_state.select(Some(selected));
-    let list = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title("对话"));
+    let list = List::new(items).block(Block::default().borders(Borders::ALL).title("对话"));
     frame.render_stateful_widget(list, layout[1], &mut list_state);
 }

@@ -26,7 +26,9 @@ pub fn render(
         .filter(|p| {
             filter.is_empty()
                 || p.name.to_lowercase().contains(&filter.to_lowercase())
-                || p.description.to_lowercase().contains(&filter.to_lowercase())
+                || p.description
+                    .to_lowercase()
+                    .contains(&filter.to_lowercase())
         })
         .collect();
 
@@ -60,12 +62,10 @@ pub fn render(
                     Style::default()
                 };
 
-                ListItem::new(Line::from(vec![
-                    Span::styled(
-                        format!("{}{} v{}  [{}]", prefix, p.name, p.version, p.tier),
-                        style,
-                    ),
-                ]))
+                ListItem::new(Line::from(vec![Span::styled(
+                    format!("{}{} v{}  [{}]", prefix, p.name, p.version, p.tier),
+                    style,
+                )]))
             })
             .collect()
     };

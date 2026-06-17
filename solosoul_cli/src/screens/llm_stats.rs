@@ -9,7 +9,11 @@ use solosoul_core::llm::config::LlmUsageStats;
 
 pub fn render(frame: &mut Frame, area: Rect, stats: &LlmUsageStats, selected: usize) {
     let layout = Layout::default()
-        .constraints([Constraint::Length(3), Constraint::Length(3), Constraint::Min(0)])
+        .constraints([
+            Constraint::Length(3),
+            Constraint::Length(3),
+            Constraint::Min(0),
+        ])
         .split(area);
 
     // Header
@@ -24,15 +28,10 @@ pub fn render(frame: &mut Frame, area: Rect, stats: &LlmUsageStats, selected: us
     frame.render_widget(header, layout[0]);
 
     // Summary
-    let summary = Paragraph::new(Text::from(vec![Line::from(vec![
-        Span::raw(format!(
-            "总请求: {}  |  总 tokens: {}  |  Prompt: {}  |  Completion: {}",
-            stats.usage_count,
-            stats.total_tokens,
-            stats.prompt_tokens,
-            stats.completion_tokens
-        )),
-    ])]))
+    let summary = Paragraph::new(Text::from(vec![Line::from(vec![Span::raw(format!(
+        "总请求: {}  |  总 tokens: {}  |  Prompt: {}  |  Completion: {}",
+        stats.usage_count, stats.total_tokens, stats.prompt_tokens, stats.completion_tokens
+    ))])]))
     .block(Block::default().borders(Borders::ALL));
     frame.render_widget(summary, layout[1]);
 

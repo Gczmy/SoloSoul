@@ -18,9 +18,10 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
     let dim = Style::default().fg(Color::DarkGray);
 
     // 标题
-    lines.push(Line::from(vec![
-        Span::styled(format!("{} v{}", manifest.name, manifest.version), header),
-    ]));
+    lines.push(Line::from(vec![Span::styled(
+        format!("{} v{}", manifest.name, manifest.version),
+        header,
+    )]));
     lines.push(Line::from(vec![Span::styled(
         format!("id: {}", manifest.id),
         dim,
@@ -29,17 +30,17 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
 
     // 描述
     if !manifest.description.is_empty() {
-        lines.push(Line::from(vec![Span::styled(manifest.description.as_str(), value)]));
+        lines.push(Line::from(vec![Span::styled(
+            manifest.description.as_str(),
+            value,
+        )]));
         lines.push(Line::from(vec![Span::raw("")]));
     }
 
     // 基本信息
     lines.push(Line::from(vec![
         Span::styled("作者: ", label),
-        Span::styled(
-            manifest.author.as_deref().unwrap_or("未指定"),
-            value,
-        ),
+        Span::styled(manifest.author.as_deref().unwrap_or("未指定"), value),
     ]));
     lines.push(Line::from(vec![
         Span::styled("类别: ", label),
@@ -52,7 +53,11 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
     lines.push(Line::from(vec![
         Span::styled("需要确认: ", label),
         Span::styled(
-            if manifest.require_user_confirmation { "是" } else { "否" },
+            if manifest.require_user_confirmation {
+                "是"
+            } else {
+                "否"
+            },
             value,
         ),
     ]));
@@ -79,7 +84,10 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
         lines.push(Line::from(vec![Span::styled("  无特殊权限", dim)]));
     } else {
         for perm in &manifest.permissions {
-            lines.push(Line::from(vec![Span::styled(format!("  - {}", perm), value)]));
+            lines.push(Line::from(vec![Span::styled(
+                format!("  - {}", perm),
+                value,
+            )]));
         }
     }
 
@@ -95,7 +103,10 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
 
     if !net.allowed_domains.is_empty() {
         for d in &net.allowed_domains {
-            lines.push(Line::from(vec![Span::styled(format!("  domain: {}", d), dim)]));
+            lines.push(Line::from(vec![Span::styled(
+                format!("  domain: {}", d),
+                dim,
+            )]));
         }
     }
 

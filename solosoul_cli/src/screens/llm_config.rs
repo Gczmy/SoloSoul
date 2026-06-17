@@ -7,12 +7,7 @@ use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
 use ratatui::Frame;
 use solosoul_core::llm::config::LlmConfig;
 
-pub fn render(
-    frame: &mut Frame,
-    area: Rect,
-    config: &LlmConfig,
-    selected: usize,
-) {
+pub fn render(frame: &mut Frame, area: Rect, config: &LlmConfig, selected: usize) {
     let layout = Layout::default()
         .constraints([Constraint::Length(3), Constraint::Min(0)])
         .split(area);
@@ -23,9 +18,10 @@ pub fn render(
         .map(|p| p.name.as_str())
         .unwrap_or("未设置");
     let header = Paragraph::new(Text::from(vec![
-        Line::from(vec![
-            Span::styled("LLM 提供商配置", Style::default().bold().fg(Color::Cyan)),
-        ]),
+        Line::from(vec![Span::styled(
+            "LLM 提供商配置",
+            Style::default().bold().fg(Color::Cyan),
+        )]),
         Line::from(vec![
             Span::raw("当前活跃: "),
             Span::styled(active_name, Style::default().fg(Color::Yellow).bold()),
@@ -60,15 +56,9 @@ pub fn render(
                 Style::default()
             };
             ListItem::new(Line::from(vec![
-                Span::styled(
-                    format!("{} [{}] ", marker, status),
-                    style.fg(status_color),
-                ),
-                Span::styled(format!("{}", p.name), style.patch(name_style)),
-                Span::styled(
-                    format!("  ─  {}", p.model),
-                    style.fg(Color::DarkGray),
-                ),
+                Span::styled(format!("{} [{}] ", marker, status), style.fg(status_color)),
+                Span::styled(p.name.clone(), style.patch(name_style)),
+                Span::styled(format!("  ─  {}", p.model), style.fg(Color::DarkGray)),
             ]))
         })
         .collect();

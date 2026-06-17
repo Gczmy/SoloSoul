@@ -15,6 +15,8 @@ path = "src/main.rs"
 # 共享核心库
 solosoul-core = { path = "../tauri/crates/solosoul-core" }
 solosoul-plugin = { path = "../tauri/crates/solosoul-plugin" }
+solosoul-sync = { path = "../tauri/crates/solosoul-sync" }
+solosoul-vault = { path = "../tauri/crates/solosoul-vault" }
 
 # 命令行与 TUI
 clap = { version = "4.5.23", features = ["derive"] }
@@ -47,8 +49,8 @@ zeroize = "1.8"
 # 系统 locale 检测（首次启动选择模板语言）
 sys-locale = "0.3"
 
-# 异步运行时（为后续 LLM/同步功能预留）
-tokio = { version = "1.42.0", features = ["rt-multi-thread", "macros"] }
+# 异步运行时 — /sync /ocr /embed_model /plugin_run 都需要后台常驻任务(SyncManager mDNS + TCP listener)
+tokio = { version = "1.42.0", features = ["rt-multi-thread", "macros", "time", "sync"] }
 
 # 错误处理
 anyhow = "1.0.95"
@@ -58,6 +60,16 @@ thiserror = "2.0.9"
 solosoul-crypto = { path = "../tauri/crates/solosoul-crypto" }
 zip = "2"
 hex = "0.4"
+
+# HTTP — /embed_model 从 SoloSoul/models registry 拉取模型清单与下载二进制
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+# sha256 校验 embedding 模型下载完整性
+sha2 = "0.10"
+
+# 生成本地 sync node_id 与随机 NoiseKeys fallback (solosoul-sync 可选传递依赖，
+# 这里声明为直接依赖以避免实现上的版本差异)
+rand = "0.8"
 
 [dev-dependencies]
 tempfile = "3.14.0"

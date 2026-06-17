@@ -89,11 +89,14 @@ impl LlmChatState {
     }
 }
 
-pub fn render(
-    frame: &mut Frame,
-    area: Rect,
-    chat_state: &LlmChatState,
-) {
+impl Default for LlmChatState {
+    /// 转调 `new()` 以包含系统欢迎语，避免 `Receiver::default()` 不存在的问题。
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub fn render(frame: &mut Frame, area: Rect, chat_state: &LlmChatState) {
     let layout = Layout::default()
         .constraints([Constraint::Min(3), Constraint::Length(3)])
         .split(area);
@@ -156,20 +159,12 @@ fn render_messages(frame: &mut Frame, area: Rect, state: &LlmChatState) {
 
     let text = Text::from(lines);
     let paragraph = Paragraph::new(text)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title("LLM 对话"),
-        )
+        .block(Block::default().borders(Borders::ALL).title("LLM 对话"))
         .wrap(Wrap { trim: false });
     frame.render_widget(paragraph, area);
 }
 
-fn render_input(
-    frame: &mut Frame,
-    area: Rect,
-    state: &LlmChatState,
-) {
+fn render_input(frame: &mut Frame, area: Rect, state: &LlmChatState) {
     let status = if state.is_streaming {
         "⏳ 等待响应中..."
     } else {

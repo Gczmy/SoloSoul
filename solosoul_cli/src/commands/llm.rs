@@ -114,10 +114,7 @@ pub fn list_conversations(app: &mut App) -> Result<()> {
             return Ok(());
         }
     };
-    match app
-        .llm_service
-        .list_conversations(&vault, &account_id)
-    {
+    match app.llm_service.list_conversations(&vault, &account_id) {
         Ok(conversations) => {
             app.phase = AppPhase::ConversationList {
                 conversations,
@@ -152,15 +149,31 @@ pub fn chat(app: &mut App, conversation_id: Option<&str>) -> Result<()> {
     if let Some(conv_id) = conversation_id {
         // Load existing conversation if specified
         let vault = app.vault_service.get_vault_store().unwrap();
-        if let Ok(Some(conv)) = app.llm_service.get_conversation(&vault, &account_id, conv_id) {
+        if let Ok(Some(conv)) = app
+            .llm_service
+            .get_conversation(&vault, &account_id, conv_id)
+        {
             state.messages.clear();
-            state.messages.push(crate::screens::llm_chat::ChatLine::System(
-                format!("已加载对话: {}", conv.name),
-            ));
+            state
+                .messages
+                .push(crate::screens::llm_chat::ChatLine::System(format!(
+                    "已加载对话: {}",
+                    conv.name
+                )));
             for msg in &conv.messages {
                 match msg.role.as_str() {
-                    "user" => state.messages.push(crate::screens::llm_chat::ChatLine::User(msg.content.clone())),
-                    "assistant" => state.messages.push(crate::screens::llm_chat::ChatLine::Assistant(msg.content.clone())),
+                    "user" => state
+                        .messages
+                        .push(crate::screens::llm_chat::ChatLine::User(
+                            msg.content.clone(),
+                        )),
+                    "assistant" => {
+                        state
+                            .messages
+                            .push(crate::screens::llm_chat::ChatLine::Assistant(
+                                msg.content.clone(),
+                            ))
+                    }
                     _ => {}
                 }
             }
@@ -171,4 +184,3 @@ pub fn chat(app: &mut App, conversation_id: Option<&str>) -> Result<()> {
     app.chat_state = Some(state);
     Ok(())
 }
-

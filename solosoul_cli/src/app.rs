@@ -8,9 +8,9 @@ use color_eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::Frame;
-use solosoul_core::process_lock::ProcessLock;
 use solosoul_core::llm::config::{ConversationSummary, LlmConfig, LlmUsageStats};
 use solosoul_core::llm::service::LlmService;
+use solosoul_core::process_lock::ProcessLock;
 use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, UserTemplate, VaultService};
 use zeroize::Zeroizing;
 
@@ -183,6 +183,25 @@ pub enum AppPhase {
     /// 插件详情页
     PluginDetail {
         manifest: solosoul_plugin::PluginManifest,
+    },
+    /// 设备同步状态页（`/sync status` 或 `/sync with` 完成后的展示）。
+    SyncStatus {
+        peers: Vec<solosoul_sync::manager::SyncPeerInfo>,
+        info: String,
+    },
+    /// OCR 扫描结果页（`/ocr scan <path>` 或 `/ocr tiers` / `/ocr status`）。
+    OcrResult {
+        result: solosoul_core::ocr::types::OcrResult,
+        source_path: String,
+        /// 当 `/ocr tiers`/`status` 调用时携带，扫描时不使用。
+        tiers: Option<Vec<crate::screens::ocr_result::TierEntry>>,
+        /// `/ocr scan --mrz` 时携带，需要结构化字段展示。
+        mrz: Option<solosoul_core::ocr::types::MrzResult>,
+    },
+    /// Embedding 模型列表页。
+    EmbedModelList {
+        models: Vec<crate::screens::embed_model::EmbedModelEntry>,
+        info: String,
     },
     /// 安全退出
     Quit,
@@ -1469,21 +1488,29 @@ impl App {
                 commands::llm::list_conversations(self)?
             }
             "/llm_chat" => commands::llm::chat(self, parts.get(1).copied())?,
-            "/plugin" | "/plugin_list" => commands::plugin::list_plugins(self)?,
-            "/plugin_run" => commands::plugin::run_plugin(self, parts.get(1).copied(), &parts[2..])?,
+            "/plugin" | "/plugin_list" | "/plugin-market" | "/plugin_market" => {
+                commands::plugin::list_plugins(self)?
+            }
+            "/plugin_run" => {
+                commands::plugin::run_plugin(self, parts.get(1).copied(), &parts[2..])?
+            }
             "/plugin_install" => commands::plugin::install_plugin(self, parts.get(1).copied())?,
             "/plugin_update" => commands::plugin::update_plugin(self, parts.get(1).copied())?,
             "/plugin_uninstall" => commands::plugin::uninstall_plugin(self, parts.get(1).copied())?,
             "/plugin_sessions" => commands::plugin::list_sessions(self)?,
             "/plugin_list_installed" => commands::plugin::list_installed_plugins(self)?,
-            "/plugin_audit_log" => {
-                commands::plugin::audit_log(self, parts.get(1).copied())?
-            }
+            "/plugin_audit_log" => commands::plugin::audit_log(self, parts.get(1).copied())?,
             "/plugin_registry_update" => commands::plugin::update_registry(self)?,
             "/plugin_search" => {
-                let kw = cmd.strip_prefix("/plugin_search").map(|s| s.trim()).filter(|s| !s.is_empty());
+                let kw = cmd
+                    .strip_prefix("/plugin_search")
+                    .map(|s| s.trim())
+                    .filter(|s| !s.is_empty());
                 commands::plugin::search_plugins(self, kw)?
             }
+            "/sync" => commands::sync::handle(self, &parts[1..])?,
+            "/ocr" => commands::ocr::handle(self, &parts[1..])?,
+            "/embed_model" => commands::embed_model::handle(self, &parts[1..])?,
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
@@ -2028,7 +2055,12 @@ impl App {
 
     /// 插件列表页的键盘处理。
     fn handle_plugin_list_key(&mut self, key: KeyEvent) -> Result<bool> {
-        if let AppPhase::PluginList { plugins, selected, filter } = &self.phase {
+        if let AppPhase::PluginList {
+            plugins,
+            selected,
+            filter,
+        } = &self.phase
+        {
             let mut sel = *selected;
             let mut filter = filter.clone();
 
@@ -2053,7 +2085,9 @@ impl App {
                             .iter()
                             .filter(|p| {
                                 p.name.to_lowercase().contains(&filter.to_lowercase())
-                                    || p.description.to_lowercase().contains(&filter.to_lowercase())
+                                    || p.description
+                                        .to_lowercase()
+                                        .contains(&filter.to_lowercase())
                             })
                             .collect();
                         let filtered_len = filtered.len();
@@ -2062,7 +2096,8 @@ impl App {
                             KeyCode::Down if sel + 1 < filtered_len => sel += 1,
                             KeyCode::Enter if sel < filtered_len => {
                                 let plugin_id = filtered[sel].id.clone();
-                                if let Some(manifest) = commands::plugin::load_manifest(&plugin_id) {
+                                if let Some(manifest) = commands::plugin::load_manifest(&plugin_id)
+                                {
                                     self.phase = AppPhase::PluginDetail { manifest };
                                 }
                                 return Ok(false);
@@ -2181,7 +2216,9 @@ impl App {
                         return Ok(false);
                     }
                     let msg_for_thread = msg.clone();
-                    state.messages.push(crate::screens::llm_chat::ChatLine::User(msg));
+                    state
+                        .messages
+                        .push(crate::screens::llm_chat::ChatLine::User(msg));
                     state.is_streaming = true;
                     state.pending_response.clear();
                     let (tx, rx) = std::sync::mpsc::channel();
@@ -2192,16 +2229,28 @@ impl App {
                         std::thread::spawn(move || {
                             let service = LlmService::new();
                             let result = service.send_message_stream(
-                                &vault, &account_id, None, &msg_for_thread,
+                                &vault,
+                                &account_id,
+                                None,
+                                &msg_for_thread,
                                 &|event| match event {
-                                    solosoul_core::llm::client::LlmStreamEvent::Chunk { content } => {
-                                        let _ = tx.send(crate::screens::llm_chat::StreamChunk::Text(content));
+                                    solosoul_core::llm::client::LlmStreamEvent::Chunk {
+                                        content,
+                                    } => {
+                                        let _ = tx.send(
+                                            crate::screens::llm_chat::StreamChunk::Text(content),
+                                        );
                                     }
                                     solosoul_core::llm::client::LlmStreamEvent::Done { .. } => {
-                                        let _ = tx.send(crate::screens::llm_chat::StreamChunk::Done);
+                                        let _ =
+                                            tx.send(crate::screens::llm_chat::StreamChunk::Done);
                                     }
-                                    solosoul_core::llm::client::LlmStreamEvent::Error { message } => {
-                                        let _ = tx.send(crate::screens::llm_chat::StreamChunk::Error(message));
+                                    solosoul_core::llm::client::LlmStreamEvent::Error {
+                                        message,
+                                    } => {
+                                        let _ = tx.send(
+                                            crate::screens::llm_chat::StreamChunk::Error(message),
+                                        );
                                     }
                                 },
                             );
@@ -2210,17 +2259,23 @@ impl App {
                             }
                         });
                     } else {
-                        state.messages.push(crate::screens::llm_chat::ChatLine::Error(
-                            "Vault 未解锁".into(),
-                        ));
+                        state
+                            .messages
+                            .push(crate::screens::llm_chat::ChatLine::Error(
+                                "Vault 未解锁".into(),
+                            ));
                         state.is_streaming = false;
                         state.stream_rx = None;
                     }
                 }
                 return Ok(false);
             }
-            KeyCode::Char(c) => { state.input.push(c); }
-            KeyCode::Backspace => { state.input.pop(); }
+            KeyCode::Char(c) => {
+                state.input.push(c);
+            }
+            KeyCode::Backspace => {
+                state.input.pop();
+            }
             _ => {}
         }
         Ok(false)
@@ -2455,25 +2510,20 @@ impl App {
                 json,
             ),
             AppPhase::LlmConfig {
-                config,
-                selected,
-                ..
+                config, selected, ..
             } => crate::screens::llm_config::render(frame, layout[1], config, *selected),
-            AppPhase::LlmStats {
-                stats,
-                selected,
-            } => crate::screens::llm_stats::render(frame, layout[1], stats, *selected),
+            AppPhase::LlmStats { stats, selected } => {
+                crate::screens::llm_stats::render(frame, layout[1], stats, *selected)
+            }
             AppPhase::ConversationList {
                 conversations,
                 selected,
-            } => {
-                crate::screens::conversation_list::render(
-                    frame,
-                    layout[1],
-                    conversations,
-                    *selected,
-                )
-            }
+            } => crate::screens::conversation_list::render(
+                frame,
+                layout[1],
+                conversations,
+                *selected,
+            ),
             AppPhase::LlmChat => {
                 if let Some(ref state) = self.chat_state {
                     crate::screens::llm_chat::render(frame, layout[1], state)
@@ -2486,6 +2536,28 @@ impl App {
             } => crate::screens::plugin_list::render(frame, layout[1], plugins, *selected, filter),
             AppPhase::PluginDetail { manifest } => {
                 crate::screens::plugin_detail::render(frame, layout[1], manifest)
+            }
+            AppPhase::SyncStatus { peers, info } => {
+                crate::screens::sync_status::render(frame, layout[1], peers, info)
+            }
+            AppPhase::OcrResult {
+                result,
+                source_path,
+                tiers,
+                mrz,
+            } => {
+                let t = tiers.clone().unwrap_or_default();
+                crate::screens::ocr_result::render(
+                    frame,
+                    layout[1],
+                    result,
+                    source_path,
+                    &t,
+                    mrz.as_ref(),
+                )
+            }
+            AppPhase::EmbedModelList { models, info } => {
+                crate::screens::embed_model::render(frame, layout[1], models, info)
             }
             AppPhase::Quit => {}
         }
@@ -2584,6 +2656,9 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/plugin_audit_log",
             "/plugin_registry_update",
             "/plugin_search",
+            "/sync",
+            "/ocr",
+            "/embed_model",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
         AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {
