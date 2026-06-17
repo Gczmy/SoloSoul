@@ -261,6 +261,26 @@ export function SecuritySettingsPage() {
               </option>
             </select>
           </div>
+          {settings.autoLockTimeoutMinutes === 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 8,
+                padding: 10,
+                borderRadius: 8,
+                marginTop: 12,
+                background: 'rgba(212, 133, 10, 0.10)',
+                border: '1px solid rgba(212, 133, 10, 0.25)',
+                color: '#D4850A',
+                fontSize: 12,
+                lineHeight: 1.4,
+              }}
+            >
+              <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+              {t('settings:auto_lock_never_warning')}
+            </div>
+          )}
         </Card>
 
         {bioAvailable !== null && bioAvailable.available && (

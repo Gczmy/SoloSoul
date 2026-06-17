@@ -492,6 +492,9 @@ FunctionEnd
   !include "{{this}}"
 {{/each}}
 
+; 覆盖 Tauri 默认语言字符串，确保中英文在安装/卸载全过程中正确显示。
+!include "i18n.nsh"
+
 Function .onInit
   ${GetOptions} $CMDLINE "/P" $PassiveMode
   ${IfNot} ${Errors}

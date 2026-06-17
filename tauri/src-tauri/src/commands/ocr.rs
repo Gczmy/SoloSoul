@@ -9,11 +9,14 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use solosoul_core::ocr::{
     engine::OcrEngine,
-    model::{install_model_from_bundled, is_model_installed, resolve_model_bundle},
+    model::{
+        install_model_from_bundled, install_model_from_bundled_with_progress, is_model_installed,
+        resolve_model_bundle,
+    },
     types::{OcrModelTier, OcrResult},
 };
 use std::path::{Path, PathBuf};
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 // Re-export core types so callers can rely on a stable Tauri-facing name.
 pub use solosoul_core::ocr::types::{OcrBox, OcrResult as OcrScanResult};
@@ -263,6 +266,62 @@ pub async fn ocr_get_model_status(
         installed: is_model_installed(&models_dir, tier),
         bundled: resolve_model_bundle(&bundled_dir, tier).is_ok(),
     })
+}
+
+/// OCR 模型安装进度事件负载。
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct OcrInstallProgress {
+    pub tier: String,
+    pub progress: u8,
+    pub done: bool,
+    pub error: Option<String>,
+}
+
+/// 从打包资源安装指定档位的模型到应用数据目录，并发送进度事件。
+///
+/// 事件名：`ocr-install-progress`
+///
+/// 注意：首次启动安装模型可能在用户登录前发生，因此本命令不依赖 Vault 解锁状态，
+/// 也不写入账户审计日志。
+#[tauri::command]
+pub async fn ocr_install_bundled_model_with_progress(
+    state: tauri::State<'_, AppState>,
+    tier: String,
+) -> Result<(), String> {
+    let tier: OcrModelTier = tier.parse()?;
+    let models_dir = models_dir(state.app_handle())?;
+    let bundled_dir = bundled_models_dir()?;
+    let app = state.app_handle().clone();
+    let tier_str = tier.to_string();
+
+    let emit_progress = move |progress: u8| {
+        let _ = app.emit(
+            "ocr-install-progress",
+            OcrInstallProgress {
+                tier: tier_str.clone(),
+                progress,
+                done: progress == 100,
+                error: None,
+            },
+        );
+    };
+
+    let result =
+        install_model_from_bundled_with_progress(&bundled_dir, &models_dir, tier, emit_progress);
+
+    if let Err(ref e) = result {
+        let _ = state.app_handle().emit(
+            "ocr-install-progress",
+            OcrInstallProgress {
+                tier: tier.to_string(),
+                progress: 0,
+                done: true,
+                error: Some(e.clone()),
+            },
+        );
+    }
+
+    result
 }
 
 /// 从打包资源安装指定档位的模型到应用数据目录。

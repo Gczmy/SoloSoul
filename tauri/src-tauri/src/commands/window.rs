@@ -13,7 +13,10 @@ pub struct TitlebarColor {
 pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        use objc2_app_kit::{NSColor, NSWindow};
+        use objc2_app_kit::{
+            NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua,
+            NSAppearanceNameDarkAqua, NSColor, NSWindow,
+        };
 
         let ptr = window
             .ns_window()
@@ -29,6 +32,18 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
             1.0,
         );
         ns_window.setBackgroundColor(Some(&bg));
+
+        // 根据标题栏背景亮度设置窗口 appearance，确保深色主题下标题文字为白色。
+        let luminance = 0.299 * f64::from(color.red)
+            + 0.587 * f64::from(color.green)
+            + 0.114 * f64::from(color.blue);
+        let appearance_name = if luminance < 128.0 {
+            unsafe { NSAppearanceNameDarkAqua }
+        } else {
+            unsafe { NSAppearanceNameAqua }
+        };
+        let appearance = NSAppearance::appearanceNamed(appearance_name);
+        ns_window.setAppearance(appearance.as_deref());
     }
 
     #[cfg(target_os = "windows")]

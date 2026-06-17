@@ -451,6 +451,7 @@ pub fn run() {
             commands::ocr::ocr_set_active_tier,
             commands::ocr::ocr_get_model_status,
             commands::ocr::ocr_install_bundled_model,
+            commands::ocr::ocr_install_bundled_model_with_progress,
             commands::ocr::ocr_download_model,
             // Attachment commands
             commands::attachment::attachment_list,

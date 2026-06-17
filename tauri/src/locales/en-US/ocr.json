@@ -30,5 +30,10 @@
   "download_url_required": "Please enter a download URL",
   "set_tier_success": "Active model set to {{tier}}",
   "set_tier_failed": "Failed to set active model",
-  "load_status_failed": "Failed to load model status"
+  "load_status_failed": "Failed to load model status",
+  "first_install_banner": "Preparing OCR model on first launch ({{progress}}%). Please don't quit the app.",
+  "first_install_error": "OCR model installation failed",
+  "first_install_retry": "Retry",
+  "quit_while_installing_title": "Quit now?",
+  "quit_while_installing_message": "The OCR model is still installing. Quitting now may leave the installation incomplete. Are you sure you want to quit?"
 }

@@ -28,6 +28,7 @@
   },
   "auto_lock": "Auto Lock",
   "auto_lock_description": "Set how long of inactivity before the vault auto-locks and wipes sensitive state from memory.",
+  "auto_lock_never_warning": "Never locking reduces security. We recommend setting an auto-lock time when you step away from your device.",
   "change_password": "Change Password",
   "master_password_warning": "Please keep your master password safe. If lost, you will be unable to unlock the vault and all data will be unrecoverable!",
   "password_updated": "Password updated. Please re-login with your new password.",

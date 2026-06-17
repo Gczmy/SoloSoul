@@ -30,5 +30,10 @@
   "download_url_required": "请输入下载地址",
   "set_tier_success": "已切换到模型 {{tier}}",
   "set_tier_failed": "切换模型失败",
-  "load_status_failed": "加载模型状态失败"
+  "load_status_failed": "加载模型状态失败",
+  "first_install_banner": "首次启动正在准备 OCR 模型（{{progress}}%），请勿退出应用",
+  "first_install_error": "OCR 模型安装失败",
+  "first_install_retry": "重试",
+  "quit_while_installing_title": "确认退出？",
+  "quit_while_installing_message": "OCR 模型正在安装，现在退出可能导致安装不完整，确定要退出吗？"
 }

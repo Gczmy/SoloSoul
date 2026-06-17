@@ -220,6 +220,9 @@ export const commands = {
   async ocrInstallBundledModel(tier: string): Promise<void> {
     return invoke('ocr_install_bundled_model', { tier });
   },
+  async ocrInstallBundledModelWithProgress(tier: string): Promise<void> {
+    return invoke('ocr_install_bundled_model_with_progress', { tier });
+  },
   async ocrDownloadModel(tier: string, baseUrl: string): Promise<void> {
     return invoke('ocr_download_model', { tier, baseUrl });
   },

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import type { AccountInfo } from '@/lib/ipc';
@@ -9,6 +10,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { applyTheme, listenForSystemTheme, stopListeningForSystemTheme } from '@/lib/theme';
 import { useWindowSize } from '@/hooks/useWindowSize';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { confirm } from '@tauri-apps/plugin-dialog';
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { HomePage } from '@/pages/home/HomePage';
@@ -34,8 +37,15 @@ import { OcrSettingsPage } from '@/pages/settings/OcrSettingsPage';
 import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UpdateBanner } from '@/components/ui/UpdateBanner';
+import { OcrInstallBanner } from '@/components/ui/OcrInstallBanner';
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { checkForUpdate } from '@/lib/updater';
+import {
+  useOcrInstallStore,
+  isOcrFirstInstallDone,
+  markOcrFirstInstallDone,
+} from '@/stores/ocrInstallStore';
+import { commands } from '@/lib/ipc';
 import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
 import { OcrPage } from '@/pages/scan/OcrPage';
 import { HistoryPage } from '@/pages/editor/HistoryPage';
@@ -49,8 +59,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const navigate = useNavigate();
+  const { t } = useTranslation('ocr');
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
   const [updateBanner, setUpdateBanner] = useState<{ version: string } | null>(null);
+  const [showOcrBanner, setShowOcrBanner] = useState(false);
+  const { isInstalling, progress, error, startListening } = useOcrInstallStore();
 
   // 启动时检查更新并显示非侵入式横幅
   useEffect(() => {
@@ -61,6 +74,68 @@ function AppRoutes() {
       setUpdateBanner({ version: result.info.version });
     });
   }, []);
+
+  // 首次启动时静默安装 bundled small OCR 模型
+  const triggerOcrFirstInstall = useCallback(async () => {
+    if (isOcrFirstInstallDone()) return;
+    try {
+      const status = await commands.ocrGetModelStatus('small');
+      if (status.installed) {
+        markOcrFirstInstallDone();
+        return;
+      }
+      if (!status.bundled) {
+        // 安装包未附带 small 模型，跳过自动安装。
+        markOcrFirstInstallDone();
+        return;
+      }
+      setShowOcrBanner(true);
+      startListening();
+      await commands.ocrInstallBundledModelWithProgress('small');
+    } catch {
+      // 错误会通过 ocr-install-progress 事件进入 store；这里兜底确保 banner 不消失。
+      setShowOcrBanner(true);
+    }
+  }, [startListening]);
+
+  useEffect(() => {
+    triggerOcrFirstInstall();
+  }, [triggerOcrFirstInstall]);
+
+  // 安装完成或出错后，若已不在安装中且已完成，隐藏 banner。
+  useEffect(() => {
+    if (!isInstalling && isOcrFirstInstallDone()) {
+      setShowOcrBanner(false);
+    }
+  }, [isInstalling]);
+
+  // OCR 模型安装期间拦截窗口关闭，提示用户避免退出导致安装不完整。
+  useEffect(() => {
+    if (!isInstalling) return;
+
+    const appWindow = getCurrentWindow();
+    let unlisten: (() => void) | undefined;
+
+    appWindow
+      .onCloseRequested(async (event) => {
+        event.preventDefault();
+        const confirmed = await confirm(t('quit_while_installing_message'), {
+          title: t('quit_while_installing_title'),
+          kind: 'warning',
+        });
+        if (confirmed) {
+          await appWindow.close();
+        }
+      })
+      .then((fn) => {
+        unlisten = fn;
+      })
+      .catch(() => {});
+
+    return () => {
+      unlisten?.();
+    };
+  }, [isInstalling, t]);
 
   useEffect(() => {
     checkHasAccount();
@@ -180,21 +255,43 @@ function AppRoutes() {
     };
   }, [navigate]);
 
+  const retryOcrInstall = useCallback(() => {
+    useOcrInstallStore.getState().reset();
+    triggerOcrFirstInstall();
+  }, [triggerOcrFirstInstall]);
+
   return (
     <>
-      {updateBanner && (
-        <UpdateBanner
-          version={updateBanner.version}
-          onUpdate={() => {
-            setUpdateBanner(null);
-            navigate('/about');
+      {(updateBanner || showOcrBanner) && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
           }}
-          onSkip={() => {
-            localStorage.setItem('solosoul_skipped_version', updateBanner.version);
-            setUpdateBanner(null);
-          }}
-          onClose={() => setUpdateBanner(null)}
-        />
+        >
+          {updateBanner && (
+            <UpdateBanner
+              version={updateBanner.version}
+              onUpdate={() => {
+                setUpdateBanner(null);
+                navigate('/about');
+              }}
+              onSkip={() => {
+                localStorage.setItem('solosoul_skipped_version', updateBanner.version);
+                setUpdateBanner(null);
+              }}
+              onClose={() => setUpdateBanner(null)}
+            />
+          )}
+          {showOcrBanner && (
+            <OcrInstallBanner progress={progress} error={error} onRetry={retryOcrInstall} />
+          )}
+        </div>
       )}
       <Routes>
         <Route

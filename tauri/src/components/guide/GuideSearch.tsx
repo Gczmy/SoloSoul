@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
@@ -134,6 +135,7 @@ function HighlightText({ text, tokens }: { text: string; tokens: string[] }) {
 }
 
 export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
+  const { t } = useTranslation('common');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<GuideContent[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -190,7 +192,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
           }}
         />
         <Input
-          placeholder="搜索帮助文档..."
+          placeholder={t('search_help_docs')}
           value={query}
           onChange={(e) => handleChange(e.target.value)}
           style={{ paddingLeft: 38 }}
@@ -220,13 +222,13 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
 
       {loading && (
         <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
-          搜索中...
+          {t('searching')}
         </p>
       )}
 
       {!loading && results !== null && results.length === 0 && (
         <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
-          未找到匹配的文档
+          {t('no_matching_help_docs')}
         </p>
       )}
 

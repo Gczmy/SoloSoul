@@ -101,6 +101,8 @@
   "object_delete_confirm_title": "删除对象",
   "object_delete_confirm_body": "确定要删除「{{name}}」吗？将被移入回收站，后续可恢复。",
   "search_objects_placeholder": "搜索对象…",
+  "search_help_docs": "搜索帮助文档…",
+  "no_matching_help_docs": "未找到匹配的文档",
   "no_objects": "暂无对象",
   "no_matching_objects": "未找到匹配的对象",
   "objects": "对象",

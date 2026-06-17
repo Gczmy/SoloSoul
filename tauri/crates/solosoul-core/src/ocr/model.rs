@@ -35,17 +35,47 @@ pub fn is_model_installed(models_dir: &Path, tier: OcrModelTier) -> bool {
     resolve_model_bundle(models_dir, tier).is_ok()
 }
 
+/// 删除指定档位的模型目标目录，用于清理残留或损坏的安装。
+pub fn remove_model_dir(models_dir: &Path, tier: OcrModelTier) -> Result<(), String> {
+    let base = models_dir.join(tier.dir_name());
+    if base.exists() {
+        std::fs::remove_dir_all(&base)
+            .map_err(|e| format!("清理模型目录失败: {} ({e})", base.display()))?;
+    }
+    Ok(())
+}
+
 /// 将打包资源中的模型复制到应用数据目录。
 ///
 /// 若目标目录已存在完整模型，则直接返回成功。
+/// 若目标目录存在但不完整（例如上次安装被中断），会先清理再复制。
 pub fn install_model_from_bundled(
     bundled_dir: &Path,
     models_dir: &Path,
     tier: OcrModelTier,
 ) -> Result<(), String> {
+    install_model_from_bundled_with_progress(bundled_dir, models_dir, tier, |_| {})
+}
+
+/// 带进度回调的模型安装。
+///
+/// `progress` 会在复制每个文件后被调用，传入 0–100 的百分比。
+pub fn install_model_from_bundled_with_progress<F>(
+    bundled_dir: &Path,
+    models_dir: &Path,
+    tier: OcrModelTier,
+    mut progress: F,
+) -> Result<(), String>
+where
+    F: FnMut(u8),
+{
     if is_model_installed(models_dir, tier) {
+        progress(100);
         return Ok(());
     }
+
+    // 清理可能残留的不完整目录，确保从干净状态开始复制。
+    remove_model_dir(models_dir, tier)?;
 
     let src = resolve_model_bundle(bundled_dir, tier)?;
     let dst_base = models_dir.join(tier.dir_name());
@@ -55,14 +85,19 @@ pub fn install_model_from_bundled(
     std::fs::create_dir_all(&dst_det_dir).map_err(|e| format!("创建 det 目录失败: {e}"))?;
     std::fs::create_dir_all(&dst_rec_dir).map_err(|e| format!("创建 rec 目录失败: {e}"))?;
 
+    progress(0);
     std::fs::copy(&src.det_model, dst_det_dir.join("inference.onnx"))
         .map_err(|e| format!("复制 det 模型失败: {e}"))?;
+    progress(25);
     std::fs::copy(&src.det_config, dst_det_dir.join("inference.yml"))
         .map_err(|e| format!("复制 det 配置失败: {e}"))?;
+    progress(50);
     std::fs::copy(&src.rec_model, dst_rec_dir.join("inference.onnx"))
         .map_err(|e| format!("复制 rec 模型失败: {e}"))?;
+    progress(75);
     std::fs::copy(&src.rec_config, dst_rec_dir.join("inference.yml"))
         .map_err(|e| format!("复制 rec 配置失败: {e}"))?;
+    progress(100);
 
     Ok(())
 }
@@ -285,6 +320,45 @@ mod tests {
 
         // 再次安装应幂等。
         install_model_from_bundled(bundled.path(), models.path(), OcrModelTier::Small).unwrap();
+    }
+
+    #[test]
+    fn test_install_model_from_bundled_cleans_partial_state() {
+        let bundled = tempfile::tempdir().unwrap();
+        let models = tempfile::tempdir().unwrap();
+
+        let base = bundled.path().join("pp-ocr-v6-small");
+        let det_dir = base.join("det");
+        let rec_dir = base.join("rec");
+        std::fs::create_dir_all(&det_dir).unwrap();
+        std::fs::create_dir_all(&rec_dir).unwrap();
+        std::fs::write(det_dir.join("inference.onnx"), b"det_model").unwrap();
+        std::fs::write(det_dir.join("inference.yml"), b"det_cfg").unwrap();
+        std::fs::write(rec_dir.join("inference.onnx"), b"rec_model").unwrap();
+        std::fs::write(
+            rec_dir.join("inference.yml"),
+            b"PostProcess:\n  character_dict:\n  - 'a'\n",
+        )
+        .unwrap();
+
+        // 模拟上次安装中断：目标目录存在但文件不完整。
+        let partial = models.path().join("pp-ocr-v6-small/det/incomplete.onnx");
+        std::fs::create_dir_all(partial.parent().unwrap()).unwrap();
+        std::fs::write(&partial, b"partial").unwrap();
+
+        install_model_from_bundled(bundled.path(), models.path(), OcrModelTier::Small).unwrap();
+
+        // 残留文件应被清理，完整模型应已复制。
+        assert!(!partial.exists());
+        assert!(models
+            .path()
+            .join("pp-ocr-v6-small/rec/inference.onnx")
+            .exists());
+        assert_eq!(
+            std::fs::read_to_string(models.path().join("pp-ocr-v6-small/det/inference.onnx"))
+                .unwrap(),
+            "det_model"
+        );
     }
 
     #[test]

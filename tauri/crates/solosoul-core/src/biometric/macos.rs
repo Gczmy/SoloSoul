@@ -57,12 +57,10 @@ impl BiometricStorage for MacOsBiometricStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
-
     #[test]
     fn test_macos_storage_delegates_to_file_storage() {
-        let dir = PathBuf::from(std::env::temp_dir())
-            .join(format!("solosoul-macos-test-{}", uuid::Uuid::new_v4()));
+        let dir =
+            std::env::temp_dir().join(format!("solosoul-macos-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         let storage = MacOsBiometricStorage::new(dir.clone());
         let account_id = "acc-macos";

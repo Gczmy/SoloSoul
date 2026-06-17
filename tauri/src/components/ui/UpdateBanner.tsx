@@ -14,11 +14,6 @@ export function UpdateBanner({ version, onUpdate, onSkip, onClose }: UpdateBanne
   return (
     <div
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

@@ -101,6 +101,8 @@
   "object_delete_confirm_title": "Delete Object",
   "object_delete_confirm_body": "Delete \"{{name}}\"? It will be moved to the trash and can be restored later.",
   "search_objects_placeholder": "Search objects…",
+  "search_help_docs": "Search help docs…",
+  "no_matching_help_docs": "No matching documents",
   "no_objects": "No objects yet",
   "no_matching_objects": "No matching objects",
   "objects": "Objects",
