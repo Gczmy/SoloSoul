@@ -307,6 +307,8 @@ export function TemplateManagerPage() {
     [editProperties],
   );
 
+  const editingTemplateId = useMemo(() => editingTemplate?.id, [editingTemplate]);
+
   // 加载废弃字段的使用情况
   useEffect(() => {
     if (!editingTemplate) {
@@ -330,7 +332,7 @@ export function TemplateManagerPage() {
       setFieldUsageMap(map);
     };
     loadAll();
-  }, [editingTemplate, deprecatedKey, editProperties, checkFieldUsage]);
+  }, [editingTemplateId, deprecatedKey, checkFieldUsage]);
 
   const allTemplates: ListTemplate[] = useMemo(() => {
     return templates.map((ut) => ({
