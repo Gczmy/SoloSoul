@@ -361,6 +361,11 @@
   "biometric_error_save_failed": "保存生物识别凭证失败",
   "biometric_error_delete_failed": "删除生物识别凭证失败",
   "biometric_error_not_configured": "尚未配置生物识别，请先启用",
+  "biometric_error_user_presence_unavailable": "当前设备未设置生物识别或设备密码，请先设置 Touch ID 或登录密码",
+  "biometric_error_keychain_write_failed": "保存凭证到钥匙串失败",
+  "biometric_error_keychain_read_failed": "从钥匙串读取凭证失败",
+  "biometric_error_keychain_item_not_found": "钥匙串中未找到生物识别凭证",
+  "biometric_error_invalid_key_format": "保存的生物识别凭证已损坏",
   "biometric_error_unknown": "生物识别出现未知错误",
   "log": {
     "action": {

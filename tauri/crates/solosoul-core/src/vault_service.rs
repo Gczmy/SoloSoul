@@ -1,6 +1,8 @@
 //! Vault service - manages accounts and vault lifecycle.
 //! Stores accounts in ~/.solosoul/ with per-account config and vault.db
 
+#[cfg(test)]
+use crate::biometric::legacy::FileBiometricStorage;
 use crate::biometric::BiometricManager;
 use serde::{Deserialize, Serialize};
 use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
@@ -90,6 +92,19 @@ pub struct VaultService {
     /// Serializes `create_account` to eliminate the check-then-act race on
     /// account name uniqueness (R024).
     create_lock: std::sync::Mutex<()>,
+}
+
+#[cfg(not(test))]
+fn make_biometric_manager(base_path: PathBuf) -> BiometricManager {
+    BiometricManager::new(base_path)
+}
+
+#[cfg(test)]
+fn make_biometric_manager(base_path: PathBuf) -> BiometricManager {
+    BiometricManager::with_storage(
+        base_path.clone(),
+        Box::new(FileBiometricStorage::new(base_path)),
+    )
 }
 
 impl VaultService {
@@ -597,7 +612,7 @@ impl VaultService {
 
         // 如果用户已启用生物识别，同步更新其中保存的主密钥，使改密后 Touch ID 仍可用。
         {
-            let bio_manager = BiometricManager::new(self.base_path().clone());
+            let bio_manager = make_biometric_manager(self.base_path().clone());
             let new_key_hex = hex::encode(new_key_arr.as_slice());
             if let Err(e) = bio_manager.update_credential(account_id, &new_key_hex) {
                 tracing::warn!(
@@ -783,12 +798,10 @@ mod tests {
             serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
         raw["biometricEnabled"] = serde_json::Value::Bool(true);
         fs::write(&config_path, serde_json::to_string_pretty(&raw).unwrap()).unwrap();
-        crate::biometric::save_master_key(
-            &svc.account_dir(account_id).join("biometric_key"),
-            account_id,
-            "deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678",
-        )
-        .unwrap();
+        // 用旧版文件模拟已启用生物识别，验证 change_password 不会误删标记。
+        let legacy_key_path = svc.account_dir(account_id).join("biometric_key");
+        let legacy_key_hex = "deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678";
+        fs::write(&legacy_key_path, legacy_key_hex).unwrap();
 
         svc.unlock(account_id, "oldpassword").unwrap();
         svc.change_password(account_id, "oldpassword", "newpassword")
@@ -801,16 +814,15 @@ mod tests {
 
         let content = fs::read_to_string(&config_path).unwrap();
         let config: AccountConfig = serde_json::from_str(&content).unwrap();
-        // 修改密码后生物识别凭证应保持启用，并同步更新为新密钥。
+        // 修改密码后生物识别启用标记应保持为 true；测试使用文件存储后端，实际密钥应同步更新。
         assert!(config.biometric_enabled);
-        assert!(svc.account_dir(account_id).join("biometric_key").exists());
 
+        let bio_manager = make_biometric_manager(svc.base_path().clone());
+        assert!(bio_manager.is_configured(account_id));
         let expected_hex = hex::encode(svc.get_session_key().unwrap().as_slice());
-        let stored_hex = crate::biometric::read_master_key(
-            &svc.account_dir(account_id).join("biometric_key"),
-            account_id,
-        )
-        .unwrap();
+        let stored_hex = bio_manager
+            .read_stored_key_hex(account_id, "verify after change")
+            .unwrap();
         assert_eq!(stored_hex, expected_hex);
     }
 

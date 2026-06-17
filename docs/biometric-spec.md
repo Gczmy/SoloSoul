@@ -6,7 +6,7 @@
 
 | 平台 | 状态 | 实现位置 |
 |------|------|---------|
-| **macOS** | ✅ 已支持 Touch ID / Face ID（文件存储，不弹 Keychain 框） | `tauri/crates/solosoul-core/src/biometric.rs` |
+| **macOS** | ✅ 已支持 Touch ID / Face ID / 设备密码（Keychain UserPresence） | `tauri/crates/solosoul-core/src/biometric/` |
 | **Windows** | ❌ 未实现 | 待后续按本规范扩展 |
 | **Linux** | ❌ 未实现 | 暂不支持 |
 
@@ -15,29 +15,30 @@
 - 生物识别只用于**替代输入主密码**这一过程，不改变 Vault 的加密模型。
 - Vault 数据密钥仍由主密码派生；生物识别凭证里保存的是该派生密钥。
 - 生物识别操作必须在 Vault 已解锁或能通过当前主密码验证的上下文中进行。
-- **不依赖系统钥匙串/Keychain**：避免打开应用时弹出钥匙串输入框，也避免设备锁定后钥匙串不可用导致生物识别失效。
+- **macOS 使用 Keychain 但打开应用时不弹框**：`is_configured` 使用 `kSecUseAuthenticationUIFail` 只检查项是否存在，不会触发 Touch ID / 设备密码提示。
 
 ---
 
 ## 2. 已知的 macOS 坑与修复方案
 
-### 2.1 不再使用 macOS Keychain / `keyring` 存储主密钥
+### 2.1 从本地加密文件迁移到 Keychain UserPresence
 
-**现象**：
+**现象（旧版文件方案）**：
 
-1. `keyring` crate 默认使用 `security` CLI，在 macOS 15 上经常“假写入”（返回成功但实际未写入）。
-2. 打开应用时，如果尝试读取 Keychain 中的生物识别主密钥，可能弹出系统钥匙串输入框，影响体验。
+1. 旧版使用本地加密文件 + 确定性 HKDF 文件密钥存储主密钥；若应用数据目录被整体拷贝，攻击者可在另一台机器上解密该文件。
+2. 打开应用时，`is_configured` 若读取 Keychain 会弹出钥匙串输入框，影响体验。
 3. 设备锁定后 Keychain 可能不可用，导致生物识别解锁失败。
 
-**修复**：
+**当前 macOS 方案**：
 
-- **完全移除 Keychain / `keyring` 依赖**。
-- 生物识别主密钥只保存在应用数据目录的本地加密文件中。
-- 加密文件使用**确定性 HKDF 文件密钥**：
-  - `info = b"solosoul:biometric:filekey:v1"`
-  - 以 `account_id` 作为 salt
-  - 从固定应用级 secret 派生
-- 这样打开应用、锁定/解锁设备时都不会触发任何 Keychain 对话框。
+- 使用 `Security.framework` 的 **Keychain Services**。
+- Keychain Item 类型为 `kSecClassGenericPassword`。
+- 使用 `SecAccessControlCreateWithFlags(..., kSecAccessControlUserPresence, ...)` 约束：
+  - 读取时必须通过 Touch ID、Face ID 或 Mac 登录密码验证。
+  - 未配置 Touch ID 的设备会自动回退到设备密码框。
+- `is_configured` 使用 `kSecUseAuthenticationUIFail` 查询，**只检查项是否存在，不会弹出任何验证框**。
+- 写入/更新 Keychain Item 不触发用户验证；开启生物识别前会主动调用 `LocalAuthentication` 验证用户身份。
+- 旧版 `biometric_key` 文件在启用/更新/删除时会被清理，不会自动迁移旧密钥。
 
 ### 2.3 修改主密码后同步更新生物识别凭证
 
@@ -96,28 +97,23 @@
 
 ### 3.3 建议的平台抽象
 
-当前 `BiometricManager` 已经是 host-agnostic 的封装。实现 Windows Hello 时建议：
+当前 `BiometricManager` 通过 `BiometricStorage` trait 注入平台后端：
 
 ```rust
-pub struct BiometricManager {
-    base_path: PathBuf,
+pub(crate) trait BiometricStorage: Send + Sync {
+    fn save(&self, account_id: &str, key_hex: &str, reason: &str) -> Result<(), BiometricError>;
+    fn update(&self, account_id: &str, key_hex: &str) -> Result<(), BiometricError>;
+    fn read(&self, account_id: &str, reason: &str) -> Result<String, BiometricError>;
+    fn delete(&self, account_id: &str) -> Result<(), BiometricError>;
+    fn exists(&self, account_id: &str) -> bool;
 }
 ```
 
-在 `BiometricManager` 内部按平台分发：
+实现 Windows Hello 时：
 
-```rust
-impl BiometricManager {
-    pub fn save_credential(...) -> Result<(), String> {
-        if cfg!(target_os = "macos") { /* macOS 实现 */ }
-        else if cfg!(target_os = "windows") { /* Windows Hello 实现 */ }
-        else { Err("platform not supported".into()) }
-    }
-}
-```
-
+- 新增 `biometric/windows.rs`，实现 `BiometricStorage`。
 - 公共接口保持统一：`save_credential`、`unlock`、`delete_credential`、`availability`。
-- 平台相关代码放到私有模块，如 `biometric/macos.rs`、`biometric/windows.rs`。
+- `BiometricManager` 在 `new()` 中按平台选择后端；测试通过 `with_storage()` 注入 mock。
 
 ### 3.4 Windows 专用错误代码建议
 
@@ -146,8 +142,11 @@ Windows Hello 实现后，至少覆盖以下场景：
 
 | 文件 | 说明 |
 |------|------|
-| `tauri/crates/solosoul-core/src/biometric.rs` | 生物识别核心实现 |
-| `tauri/crates/solosoul-core/src/vault_service.rs` | 改密时清除生物识别凭证 |
+| `tauri/crates/solosoul-core/src/biometric/mod.rs` | 生物识别核心接口与 `BiometricManager` |
+| `tauri/crates/solosoul-core/src/biometric/macos.rs` | macOS Keychain UserPresence 存储实现 |
+| `tauri/crates/solosoul-core/src/biometric/stub.rs` | 非 macOS 占位实现 |
+| `tauri/crates/solosoul-core/src/biometric/legacy.rs` | 旧版文件存储（仅测试/清理） |
+| `tauri/crates/solosoul-core/src/vault_service.rs` | 改密时同步更新生物识别凭证 |
 | `tauri/src-tauri/src/commands/biometric.rs` | Tauri 命令层与错误码映射 |
 | `tauri/src/lib/biometricError.ts` | 前端错误码国际化解析 |
 | `tauri/src/pages/auth/LoginPage.tsx` | 登录页生物识别解锁 |
@@ -161,3 +160,4 @@ Windows Hello 实现后，至少覆盖以下场景：
 | 日期 | 变更 |
 |------|------|
 | 2026-06-16 | 根据 macOS Touch ID 修复经验，整理形成本规范，明确 Windows Hello 实现约束 |
+| 2026-06-16 | macOS 生物识别存储升级为 Keychain `kSecAccessControlUserPresence`；新增 `BiometricStorage` trait 与错误码 |

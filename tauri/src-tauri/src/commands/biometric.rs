@@ -5,7 +5,9 @@
 //! that depends on the unlocked vault store.
 
 use crate::state::AppState;
-use solosoul_core::biometric::{trigger_system_biometric, BiometricAvailability, BiometricManager};
+use solosoul_core::biometric::{
+    trigger_system_biometric, BiometricAvailability, BiometricError, BiometricManager,
+};
 use tauri::State;
 
 const BIO_ERR_PREFIX: &str = "__BIO_ERR__:";
@@ -14,29 +16,36 @@ fn bio_err(code: &str) -> String {
     format!("{}{}", BIO_ERR_PREFIX, code)
 }
 
-/// 将 BiometricManager 返回的原始错误映射为前端可国际化的短代码。
-fn map_bio_error(e: &str, operation: &str) -> String {
-    let lower = e.to_lowercase();
-    let code = if lower.contains("platform not supported") {
-        "platform_not_supported"
-    } else if lower.contains("invalid password") {
-        "invalid_password"
-    } else if lower.contains("cancel") || lower.contains("interrupted") {
-        "cancelled"
-    } else if lower.contains("previous file key") || lower.contains("keychain fallback also failed")
-    {
-        "stale_credential"
-    } else if lower.contains("verification mismatch") {
-        "credential_mismatch"
-    } else if lower.contains("no key file") {
-        "not_configured"
-    } else {
-        match operation {
-            "save" => "save_failed",
-            "unlock" => "unlock_failed",
-            "delete" => "delete_failed",
-            _ => "unknown",
+/// 将 BiometricError 映射为前端可国际化的短代码。
+fn map_bio_error(e: BiometricError, operation: &str) -> String {
+    let code = match &e {
+        BiometricError::PlatformNotSupported => "platform_not_supported",
+        BiometricError::UserPresenceCancelled => "cancelled",
+        BiometricError::UserPresenceUnavailable => "user_presence_unavailable",
+        BiometricError::KeychainItemNotFound => "not_configured",
+        BiometricError::InvalidKeyFormat => "invalid_key_format",
+        BiometricError::LegacyMigrationFailed(_) => "stale_credential",
+        BiometricError::Other(msg) => {
+            let lower = msg.to_lowercase();
+            if lower.contains("invalid password") {
+                return bio_err("invalid_password");
+            }
+            match operation {
+                "save" => "save_failed",
+                "unlock" => "unlock_failed",
+                "delete" => "delete_failed",
+                _ => "unknown",
+            }
         }
+        BiometricError::KeychainWriteFailed(_) => match operation {
+            "save" => "keychain_write_failed",
+            "delete" => "delete_failed",
+            _ => "keychain_write_failed",
+        },
+        BiometricError::KeychainReadFailed(_) => match operation {
+            "unlock" => "keychain_read_failed",
+            _ => "keychain_read_failed",
+        },
     };
     bio_err(code)
 }
@@ -99,7 +108,7 @@ pub async fn biometric_save_credential(
         let expected = hex::encode(session_key.as_slice());
         let derived = manager
             .derive_key_hex(&password, &account_id)
-            .map_err(|e| map_bio_error(&e, "save"))?;
+            .map_err(|e| map_bio_error(e, "save"))?;
         if derived != expected {
             return Err(bio_err("credential_mismatch"));
         }
@@ -111,7 +120,7 @@ pub async fn biometric_save_credential(
             &password,
             "verify your identity to enable Touch ID for SoloSoul",
         )
-        .map_err(|e| map_bio_error(&e, "save"))?;
+        .map_err(|e| map_bio_error(e, "save"))?;
 
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
@@ -148,7 +157,7 @@ pub async fn biometric_unlock(
     let manager = BiometricManager::new(svc.base_path().clone());
     let used_bio_type = manager
         .unlock(&account_id, &svc, "unlock SoloSoul")
-        .map_err(|e| map_bio_error(&e, "unlock"))?;
+        .map_err(|e| map_bio_error(e, "unlock"))?;
 
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
@@ -196,7 +205,7 @@ pub async fn biometric_delete_credential(
     let manager = BiometricManager::new(svc.base_path().clone());
     manager
         .delete_credential(&account_id, &password)
-        .map_err(|e| map_bio_error(&e, "delete"))?;
+        .map_err(|e| map_bio_error(e, "delete"))?;
 
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
@@ -223,6 +232,7 @@ pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
     if !solosoul_core::biometric::is_macos() {
         return Ok(false);
     }
-    trigger_system_biometric("test biometric authentication for SoloSoul")?;
+    trigger_system_biometric("test biometric authentication for SoloSoul")
+        .map_err(|e| map_bio_error(e, "test"))?;
     Ok(true)
 }

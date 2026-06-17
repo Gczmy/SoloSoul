@@ -361,6 +361,11 @@
   "biometric_error_save_failed": "Failed to save biometric credential",
   "biometric_error_delete_failed": "Failed to delete biometric credential",
   "biometric_error_not_configured": "Biometric not configured; please enable first",
+  "biometric_error_user_presence_unavailable": "Biometric authentication is not available on this device. Please set up Touch ID or a device password.",
+  "biometric_error_keychain_write_failed": "Failed to save credential to Keychain",
+  "biometric_error_keychain_read_failed": "Failed to read credential from Keychain",
+  "biometric_error_keychain_item_not_found": "Biometric credential not found in Keychain",
+  "biometric_error_invalid_key_format": "Stored biometric credential is corrupted",
   "biometric_error_unknown": "Biometric unknown error",
   "log": {
     "action": {
