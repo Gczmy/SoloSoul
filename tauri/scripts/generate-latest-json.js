@@ -35,21 +35,21 @@ function buildLatestJson(version, artifactsDir) {
   // 文件名中包含版本号，避免目录中旧版本产物干扰
   const versionPattern = version.replace(/\./g, '\\.');
 
-  // macOS DMG (Apple Silicon)
-  const macArmDmg = findFiles(artifactsDir, new RegExp(`SoloSoul_${versionPattern}_(aarch64|arm64)\\.dmg$`))[0];
-  if (macArmDmg) {
+  // macOS .app.tar.gz (Apple Silicon) — Tauri updater on macOS expects a gzipped tar archive
+  const macArmAppTarGz = findFiles(artifactsDir, new RegExp(`SoloSoul_${versionPattern}_(aarch64|arm64)\\.app\\.tar\\.gz$`))[0];
+  if (macArmAppTarGz) {
     platforms['darwin-aarch64'] = {
-      signature: resolveSignature(path.join(artifactsDir, macArmDmg)),
-      url: `https://github.com/Gczmy/SoloSoul/releases/download/v${version}/${macArmDmg}`,
+      signature: resolveSignature(path.join(artifactsDir, macArmAppTarGz)),
+      url: `https://github.com/Gczmy/SoloSoul/releases/download/v${version}/${macArmAppTarGz}`,
     };
   }
 
-  // macOS DMG (Intel)
-  const macIntelDmg = findFiles(artifactsDir, new RegExp(`SoloSoul_${versionPattern}_x64\\.dmg$`))[0];
-  if (macIntelDmg) {
+  // macOS .app.tar.gz (Intel)
+  const macIntelAppTarGz = findFiles(artifactsDir, new RegExp(`SoloSoul_${versionPattern}_x64\\.app\\.tar\\.gz$`))[0];
+  if (macIntelAppTarGz) {
     platforms['darwin-x86_64'] = {
-      signature: resolveSignature(path.join(artifactsDir, macIntelDmg)),
-      url: `https://github.com/Gczmy/SoloSoul/releases/download/v${version}/${macIntelDmg}`,
+      signature: resolveSignature(path.join(artifactsDir, macIntelAppTarGz)),
+      url: `https://github.com/Gczmy/SoloSoul/releases/download/v${version}/${macIntelAppTarGz}`,
     };
   }
 

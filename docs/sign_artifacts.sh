@@ -87,6 +87,7 @@ signed_count=0
 skipped_count=0
 
 for pattern in \
+    "${ARTIFACTS_DIR}/SoloSoul_${VERSION}_"*.app.tar.gz \
     "${ARTIFACTS_DIR}/SoloSoul_${VERSION}_"*.dmg \
     "${ARTIFACTS_DIR}/SoloSoul_${VERSION}_"*-setup.exe \
     "${ARTIFACTS_DIR}/SoloSoul_${VERSION}.AppImage"

@@ -255,8 +255,15 @@ fi
 # 对 DMG 签名
 codesign --force --sign "${SIGN_IDENTITY}" --timestamp=none "$DMG_OUTPUT" 2>/dev/null || true
 
+# --- 生成 Tauri updater 所需的 .app.tar.gz ---
+log_step "Creating app.tar.gz for updater..."
+APP_TAR_NAME="${APP_NAME}_${VERSION}_${ARCH}.app.tar.gz"
+APP_TAR_OUTPUT="${BUNDLE_BASE}/macos/${APP_TAR_NAME}"
+tar czf "$APP_TAR_OUTPUT" -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")"
+log_info "Created ${APP_TAR_OUTPUT}"
+
 # 生成 Tauri 自动更新器签名文件（.sig）
-log_step "Signing updater package..."
+log_step "Signing updater packages..."
 if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
     log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，且未找到 ~/.tauri/secret.key"
     log_error "请设置环境变量：export TAURI_SIGNING_PRIVATE_KEY='...'"
@@ -265,12 +272,14 @@ if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
     log_error "然后将公钥更新到 tauri/src-tauri/tauri.conf.json 的 updater.pubkey"
     exit 1
 fi
-# 注意：TAURI_DIR 下运行 npx tauri，但 DMG_OUTPUT 是相对于项目根目录的路径，
+# 注意：TAURI_DIR 下运行 npx tauri，但产物路径是相对于项目根目录的路径，
 # 因此传入绝对路径，避免文件找不到。
 DMG_OUTPUT_ABS="$(cd "${TAURI_DIR}/.." && pwd)/${DMG_OUTPUT}"
+APP_TAR_OUTPUT_ABS="$(cd "${TAURI_DIR}/.." && pwd)/${APP_TAR_OUTPUT}"
 (
     cd "${TAURI_DIR}"
     npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$DMG_OUTPUT_ABS"
+    npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$APP_TAR_OUTPUT_ABS"
 )
 
 # 清理 staging
@@ -279,6 +288,7 @@ rm -rf "$DMG_STAGING_DIR"
 # --- 输出结果 ---
 APP_SIZE=$(du -sh "$APP_PATH" 2>/dev/null | cut -f1)
 DMG_SIZE=$(du -sh "$DMG_OUTPUT" 2>/dev/null | cut -f1)
+APP_TAR_SIZE=$(du -sh "$APP_TAR_OUTPUT" 2>/dev/null | cut -f1)
 
 echo ""
 echo -e "${GREEN}========================================${NC}"
@@ -287,6 +297,7 @@ echo -e "${GREEN}========================================${NC}"
 echo -e "${BLUE}Version:${NC}      ${VERSION}"
 echo -e "${BLUE}App Bundle:${NC}   ${APP_PATH} (${APP_SIZE})"
 echo -e "${BLUE}DMG:${NC}          ${DMG_OUTPUT} (${DMG_SIZE})"
+echo -e "${BLUE}Updater Archive:${NC} ${APP_TAR_OUTPUT} (${APP_TAR_SIZE})"
 echo ""
 echo -e "${YELLOW}Notes:${NC}"
 echo -e "  • 当前签名方式: ${SIGN_IDENTITY}"
