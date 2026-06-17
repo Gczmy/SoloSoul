@@ -121,6 +121,14 @@ if [[ ! -d "${MODELS_DIR}/all-MiniLM-L6-v2" || ! -d "${MODELS_DIR}/pp-ocr-v6-sma
     exit 1
 fi
 
+# 解析 Tauri 自动更新器签名密钥
+TAURI_KEY_FILE="${HOME}/.tauri/secret.key"
+if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" && -f "${TAURI_KEY_FILE}" ]]; then
+    log_info "从 ${TAURI_KEY_FILE} 读取 Tauri 签名私钥"
+    TAURI_SIGNING_PRIVATE_KEY=$(cat "${TAURI_KEY_FILE}")
+    export TAURI_SIGNING_PRIVATE_KEY
+fi
+
 # --- 清理旧产物 ---
 log_step "Cleaning previous build artifacts..."
 rm -rf "${BUNDLE_BASE}"
@@ -147,11 +155,11 @@ fi
 # 生成 Tauri 自动更新器签名文件（.sig）
 log_step "Signing updater package..."
 if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
-    log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，无法生成 NSIS 安装包的 .sig 更新签名文件"
+    log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，且未找到 ~/.tauri/secret.key"
     log_error "请设置环境变量：export TAURI_SIGNING_PRIVATE_KEY='...'"
-    log_error "若尚无签名密钥，可通过以下命令生成："
-    log_error "  npx tauri signer generate -w ~/.tauri/solo_soul.key"
-    log_error "并将公钥更新到 tauri/src-tauri/tauri.conf.json 的 updater.pubkey"
+    log_error "或生成并保存密钥到 ~/.tauri/secret.key："
+    log_error "  cd tauri && npx tauri signer generate -w ~/.tauri/secret.key"
+    log_error "然后将公钥更新到 tauri/src-tauri/tauri.conf.json 的 updater.pubkey"
     exit 1
 fi
 (

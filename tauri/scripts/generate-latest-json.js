@@ -32,9 +32,11 @@ function resolveSignature(installerPath) {
 
 function buildLatestJson(version, artifactsDir) {
   const platforms = {};
+  // 文件名中包含版本号，避免目录中旧版本产物干扰
+  const versionPattern = version.replace(/\./g, '\\.');
 
   // macOS DMG (Apple Silicon)
-  const macArmDmg = findFiles(artifactsDir, /SoloSoul_.*_(aarch64|arm64)\.dmg$/)[0];
+  const macArmDmg = findFiles(artifactsDir, new RegExp(`SoloSoul_${versionPattern}_(aarch64|arm64)\\.dmg$`))[0];
   if (macArmDmg) {
     platforms['darwin-aarch64'] = {
       signature: resolveSignature(path.join(artifactsDir, macArmDmg)),
@@ -43,7 +45,7 @@ function buildLatestJson(version, artifactsDir) {
   }
 
   // macOS DMG (Intel)
-  const macIntelDmg = findFiles(artifactsDir, /SoloSoul_.*_x64\.dmg$/)[0];
+  const macIntelDmg = findFiles(artifactsDir, new RegExp(`SoloSoul_${versionPattern}_x64\\.dmg$`))[0];
   if (macIntelDmg) {
     platforms['darwin-x86_64'] = {
       signature: resolveSignature(path.join(artifactsDir, macIntelDmg)),
@@ -52,7 +54,7 @@ function buildLatestJson(version, artifactsDir) {
   }
 
   // Windows NSIS installer
-  const windowsExe = findFiles(artifactsDir, /SoloSoul_.*_x64-setup\.exe$/)[0];
+  const windowsExe = findFiles(artifactsDir, new RegExp(`SoloSoul_${versionPattern}_x64-setup\\.exe$`))[0];
   if (windowsExe) {
     platforms['windows-x86_64'] = {
       signature: resolveSignature(path.join(artifactsDir, windowsExe)),
@@ -61,7 +63,7 @@ function buildLatestJson(version, artifactsDir) {
   }
 
   // Linux AppImage
-  const linuxAppImage = findFiles(artifactsDir, /SoloSoul_.*\.AppImage$/)[0];
+  const linuxAppImage = findFiles(artifactsDir, new RegExp(`SoloSoul_${versionPattern}\\.AppImage$`))[0];
   if (linuxAppImage) {
     platforms['linux-x86_64'] = {
       signature: resolveSignature(path.join(artifactsDir, linuxAppImage)),
@@ -70,7 +72,7 @@ function buildLatestJson(version, artifactsDir) {
   }
 
   if (Object.keys(platforms).length === 0) {
-    throw new Error(`No installer artifacts found in ${artifactsDir}`);
+    throw new Error(`No installer artifacts found in ${artifactsDir} for version ${version}`);
   }
 
   return {

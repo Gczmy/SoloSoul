@@ -26,19 +26,28 @@ ls tauri/src-tauri/resources/models/pp-ocr-v6-small
 
 ### Tauri 自动更新器签名密钥
 
-应用内「检查更新」依赖 Tauri Updater，要求 Release 包附带 Ed25519 签名文件（`.sig`）以及 `latest.json`。构建前必须配置私钥：
+应用内「检查更新」依赖 Tauri Updater，要求 Release 包附带 Ed25519 签名文件（`.sig`）以及 `latest.json`。构建前必须配置私钥。
 
-```bash
-export TAURI_SIGNING_PRIVATE_KEY="-----BEGIN OPENSSH PRIVATE KEY-----\n...\n-----END OPENSSH PRIVATE KEY-----\n"
+本项目默认将私钥保存在 Mac 构建机的：
+
+```
+~/.tauri/secret.key
+~/.tauri/secret.key.pub
 ```
 
-> 私钥 **绝对不要** 提交到 Git。建议存储在密码管理器或 CI Secrets 中。
+构建脚本会自动从该位置读取（无密码），也可手动导出为环境变量：
+
+```bash
+export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/secret.key)"
+```
+
+> 私钥 **绝对不要** 提交到 Git。建议同时备份到密码管理器或 CI Secrets（GitHub Secret 名：`TAURI_SIGNING_PRIVATE_KEY`）。
 
 若首次设置签名密钥，使用 Tauri CLI 生成：
 
 ```bash
 cd tauri
-npx tauri signer generate -w ~/.tauri/solo_soul.key
+npx tauri signer generate -w ~/.tauri/secret.key
 ```
 
 生成后会输出公钥，将其更新到 `tauri/src-tauri/tauri.conf.json`：
