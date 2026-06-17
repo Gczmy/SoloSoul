@@ -145,9 +145,15 @@ pub fn run() {
     let file_appender = tracing_appender::rolling::never(&log_dir, "app.log");
     let (file_writer, guard) = tracing_appender::non_blocking(file_appender);
 
-    let env_filter = tracing_subscriber::EnvFilter::builder()
-        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-        .from_env_lossy();
+    // `ort` crate 2.x 会通过内置 tracing 输出 session 创建 / 算子分配日志，在开发模式下
+    // 污染 stderr。仅在用户未提供 RUST_LOG 时应用默认收敛策略（INFO + ort=WARN）；
+    // 一旦用户在环境变量里写 RUST_LOG=ort=debug 这样的表达式，则完全交由 RUST_LOG 主导，
+    // 避免 add_directive / from_env_lossy 在不同 tracing-subscriber 版本下的优先级差异。
+    let env_filter = std::env::var("RUST_LOG")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| tracing_subscriber::EnvFilter::new(&s))
+        .unwrap_or_else(|| tracing_subscriber::EnvFilter::new("info,ort=warn"));
 
     // 将 guard 泄漏，确保 non-blocking writer 在进程生命周期内不会 drop
     std::mem::forget(guard);
