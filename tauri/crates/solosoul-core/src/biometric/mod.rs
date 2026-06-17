@@ -27,6 +27,7 @@ pub(crate) mod legacy;
 
 /// ⚠️ 未来 Keychain 方案保留模块。详见 `macos_keychain.rs` 顶部注释。
 /// 当前未使用，但保留完整实现以便团队加入 Apple Developer Program 后切换。
+#[cfg(target_os = "macos")]
 #[allow(dead_code)]
 mod macos_keychain;
 
@@ -132,7 +133,10 @@ fn platform_storage(base_path: PathBuf) -> Box<dyn BiometricStorage + Send + Syn
     #[cfg(target_os = "macos")]
     return Box::new(macos::MacOsBiometricStorage::new(base_path));
     #[cfg(not(target_os = "macos"))]
-    return Box::new(stub::StubBiometricStorage);
+    {
+        let _ = base_path;
+        Box::new(stub::StubBiometricStorage)
+    }
 }
 
 /// Host-agnostic manager for biometric credentials.
@@ -413,13 +417,13 @@ fn derive_master_key(
 }
 
 pub fn trigger_system_biometric(reason: &str) -> Result<(), BiometricError> {
-    if !is_macos() {
-        return Err(BiometricError::PlatformNotSupported);
-    }
     #[cfg(target_os = "macos")]
     return trigger_macos_biometric(reason);
     #[cfg(not(target_os = "macos"))]
-    Err(BiometricError::PlatformNotSupported)
+    {
+        let _ = reason;
+        Err(BiometricError::PlatformNotSupported)
+    }
 }
 
 #[cfg(target_os = "macos")]
