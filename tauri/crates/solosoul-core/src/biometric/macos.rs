@@ -199,6 +199,11 @@ impl BiometricStorage for MacOsBiometricStorage {
         }
 
         if status == errSecItemNotFound {
+            let fallback = self.fallback_storage();
+            if fallback.exists(account_id) {
+                self.used_fallback.store(true, Ordering::SeqCst);
+                return fallback.update(account_id, key_hex);
+            }
             return Err(BiometricError::KeychainItemNotFound);
         }
 
@@ -231,6 +236,11 @@ impl BiometricStorage for MacOsBiometricStorage {
         }
 
         if status == errSecItemNotFound {
+            let fallback = self.fallback_storage();
+            if fallback.exists(account_id) {
+                self.used_fallback.store(true, Ordering::SeqCst);
+                return fallback.read(account_id, reason);
+            }
             return Err(BiometricError::KeychainItemNotFound);
         }
         if status == ERR_SEC_USER_CANCELED {
@@ -247,6 +257,11 @@ impl BiometricStorage for MacOsBiometricStorage {
             )));
         }
         if result.is_null() {
+            let fallback = self.fallback_storage();
+            if fallback.exists(account_id) {
+                self.used_fallback.store(true, Ordering::SeqCst);
+                return fallback.read(account_id, reason);
+            }
             return Err(BiometricError::KeychainItemNotFound);
         }
 
@@ -270,6 +285,11 @@ impl BiometricStorage for MacOsBiometricStorage {
         }
 
         if status == errSecItemNotFound {
+            let fallback = self.fallback_storage();
+            if fallback.exists(account_id) {
+                self.used_fallback.store(true, Ordering::SeqCst);
+                return fallback.delete(account_id);
+            }
             return Err(BiometricError::KeychainItemNotFound);
         }
 
@@ -313,8 +333,12 @@ impl BiometricStorage for MacOsBiometricStorage {
             return self.fallback_storage().exists(account_id);
         }
 
+        if status == errSecItemNotFound {
+            return self.fallback_storage().exists(account_id);
+        }
+
         // 项存在但需要认证时会返回 user-canceled / auth-failed；只要不是"未找到"就认为存在。
-        status != errSecItemNotFound
+        true
     }
 
     fn uses_legacy_file(&self) -> bool {
