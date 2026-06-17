@@ -28,7 +28,8 @@ const sections: {
   },
 ];
 
-const helpCard = {
+const helpCard: QuickCard = {
+  path: '/help',
   labelKey: 'help',
   icon: PAGE_ICON_MAP.help,
   descKey: 'help_desc',
@@ -66,6 +67,7 @@ const quickCards: QuickCard[] = [
     icon: PAGE_ICON_MAP.ai_chat,
     descKey: 'ai_chat_desc',
   },
+  helpCard,
 ];
 
 export function HomePage() {
@@ -117,17 +119,7 @@ export function HomePage() {
               </p>
             </Card>
           ))}
-          <Card interactive onClick={() => navigate('/help')}>
-            <div style={{ marginBottom: 8 }}>
-              <helpCard.icon size={28} />
-            </div>
-            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
-              {t(`navigation:${helpCard.labelKey}`)}
-            </h3>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-              {t(`common:${helpCard.descKey}`)}
-            </p>
-          </Card>
+
         </div>
 
         <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: -8, color: 'var(--text-primary)' }}>
