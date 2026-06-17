@@ -24,6 +24,35 @@ ls tauri/src-tauri/resources/models/all-MiniLM-L6-v2
 ls tauri/src-tauri/resources/models/pp-ocr-v6-small
 ```
 
+### Tauri 自动更新器签名密钥
+
+应用内「检查更新」依赖 Tauri Updater，要求 Release 包附带 Ed25519 签名文件（`.sig`）以及 `latest.json`。构建前必须配置私钥：
+
+```bash
+export TAURI_SIGNING_PRIVATE_KEY="-----BEGIN OPENSSH PRIVATE KEY-----\n...\n-----END OPENSSH PRIVATE KEY-----\n"
+```
+
+> 私钥 **绝对不要** 提交到 Git。建议存储在密码管理器或 CI Secrets 中。
+
+若首次设置签名密钥，使用 Tauri CLI 生成：
+
+```bash
+cd tauri
+npx tauri signer generate -w ~/.tauri/solo_soul.key
+```
+
+生成后会输出公钥，将其更新到 `tauri/src-tauri/tauri.conf.json`：
+
+```json
+"plugins": {
+  "updater": {
+    "pubkey": "替换为生成命令输出的公钥"
+  }
+}
+```
+
+> 如果修改了 `pubkey`，旧版本客户端将无法再通过自动更新接收新版本，需要重新安装。仅在旧私钥丢失或泄露时更换密钥。
+
 ---
 
 ## 阶段一：准备（在 Mac 上执行一次）
@@ -76,11 +105,14 @@ cd /Users/zzc/PycharmProjects/SoloSoul_code
 ```
 tauri/src-tauri/target/release/bundle/
 ├── macos/SoloSoul.app
-└── dmg/SoloSoul_2.1.0_arm64.dmg
+├── dmg/SoloSoul_2.1.0_arm64.dmg
+└── dmg/SoloSoul_2.1.0_arm64.dmg.sig
 ```
 
 > 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./docs/build_macos_release.sh`
 > （注意：传入参数不会修改源文件中的版本号，仅影响产物命名）
+
+> 构建脚本会自动调用 `npx tauri signer sign` 生成 `.sig`，需要提前设置 `TAURI_SIGNING_PRIVATE_KEY`。
 
 #### 签名说明
 
@@ -110,9 +142,12 @@ git pull origin master
 ```
 tauri/src-tauri/target/release/bundle/
 └── nsis/SoloSoul_2.1.0_x64-setup.exe
+└── nsis/SoloSoul_2.1.0_x64-setup.exe.sig
 ```
 
 > 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./docs/build_windows_release.sh`
+
+> 构建脚本会自动调用 `npx tauri signer sign` 生成 `.sig`，需要提前设置 `TAURI_SIGNING_PRIVATE_KEY`。
 
 > Windows 代码签名需另行购买证书并使用 `signtool` 签名，当前未在脚本中实现。
 
@@ -122,12 +157,14 @@ tauri/src-tauri/target/release/bundle/
 
 ### 5. 收集产物
 
-将 Windows 产物传输到 Mac（如通过共享文件夹、云盘、U盘等），统一放到同一目录：
+将 Windows 产物传输到 Mac（如通过共享文件夹、云盘、U盘等），统一放到同一目录，并确保 `.sig` 文件与安装包同名且放在一起：
 
 ```
 /Users/zzc/PycharmProjects/SoloSoul_code/SoloSoul-Releases
-├── SoloSoul_2.1.0_arm64.dmg      # macOS (Apple Silicon)
-└── SoloSoul_2.1.0_x64-setup.exe  # Windows (NSIS 安装包)
+├── SoloSoul_2.1.0_arm64.dmg         # macOS (Apple Silicon)
+├── SoloSoul_2.1.0_arm64.dmg.sig     # macOS 更新签名
+├── SoloSoul_2.1.0_x64-setup.exe     # Windows (NSIS 安装包)
+└── SoloSoul_2.1.0_x64-setup.exe.sig # Windows 更新签名
 ```
 
 ### 6. 本地验证
@@ -142,25 +179,42 @@ tauri/src-tauri/target/release/bundle/
 - 从开始菜单或桌面快捷方式启动 SoloSoul
 - 验证 Vault 解锁、对象 CRUD、设置页面等基础功能
 
-### 7. GitHub Release 发布
+### 7. 生成 latest.json
+
+在 Mac 上执行：
+
+```bash
+cd tauri
+node scripts/generate-latest-json.js \
+  "$(node -p "require('./src-tauri/tauri.conf.json').version")" \
+  ../SoloSoul-Releases \
+  ../SoloSoul-Releases/latest.json
+```
+
+生成的 `latest.json` 包含各平台安装包下载地址与 Ed25519 签名，供应用内更新器读取。
+
+### 8. GitHub Release 发布
 
 在 **公开库** https://github.com/Gczmy/SoloSoul.git 创建 Release：
 
 1. 点击 "Draft a new release"
 2. 选择或创建标签（如 `v2.1.0`）
 3. 填写 Release 标题和说明
-4. **上传两个附件**：
+4. **上传以下 5 个附件**（应用内更新器依赖 `.sig` 与 `latest.json`）：
    - `SoloSoul_2.1.0_arm64.dmg`
+   - `SoloSoul_2.1.0_arm64.dmg.sig`
    - `SoloSoul_2.1.0_x64-setup.exe`
+   - `SoloSoul_2.1.0_x64-setup.exe.sig`
+   - `latest.json`
 5. 点击 "Publish release"
 
 > 通过 GitHub Releases 上传，而不是通过 git 提交。GitHub Releases 允许上传附件，这些附件不存储在 git 仓库中。
 
-### 8. 更新公开库 changelog（简洁版本）
+### 9. 更新公开库 changelog（简洁版本）
 
 在 https://github.com/Gczmy/SoloSoul.git 更新 `CHANGELOG.md`，包含从上次版本到本次版本的所有变更摘要。
 
-### 9. 更新私有库 changelog（详细版本）
+### 10. 更新私有库 changelog（详细版本）
 
 在 https://github.com/Gczmy/SoloSoul_code.git 更新 `CHANGELOG.md`，包含详细的变更列表（检查 commit 记录，不要遗漏）。
 

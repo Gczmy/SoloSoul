@@ -235,6 +235,21 @@ fi
 # 对 DMG 签名
 codesign --force --sign "${SIGN_IDENTITY}" --timestamp=none "$DMG_OUTPUT" 2>/dev/null || true
 
+# 生成 Tauri 自动更新器签名文件（.sig）
+log_step "Signing updater package..."
+if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
+    log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，无法生成 DMG 的 .sig 更新签名文件"
+    log_error "请设置环境变量：export TAURI_SIGNING_PRIVATE_KEY='...'"
+    log_error "若尚无签名密钥，可通过以下命令生成："
+    log_error "  npx tauri signer generate -w ~/.tauri/solo_soul.key"
+    log_error "并将公钥更新到 tauri/src-tauri/tauri.conf.json 的 updater.pubkey"
+    exit 1
+fi
+(
+    cd "${TAURI_DIR}"
+    npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$DMG_OUTPUT"
+)
+
 # 清理 staging
 rm -rf "$DMG_STAGING_DIR"
 
