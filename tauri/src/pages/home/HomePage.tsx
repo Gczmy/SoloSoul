@@ -93,33 +93,6 @@ export function HomePage() {
         </Card>
 
         <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: -8, color: 'var(--text-primary)' }}>
-          {t('common:quick_access')}
-        </h2>
-
-        {/* Quick Access Cards */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-            gap: 12,
-          }}
-        >
-          {quickCards.map((q) => (
-            <Card key={q.path} interactive onClick={() => navigate(q.path)}>
-              <div style={{ marginBottom: 8 }}>
-                <q.icon size={28} />
-              </div>
-              <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
-                {t(`navigation:${q.labelKey}`)}
-              </h3>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                {t(`common:${q.descKey}`)}
-              </p>
-            </Card>
-          ))}
-        </div>
-
-        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: -8, color: 'var(--text-primary)' }}>
           {t('common:data_sections')}
         </h2>
 
@@ -155,6 +128,33 @@ export function HomePage() {
               {t(`common:${helpCard.descKey}`)}
             </p>
           </Card>
+        </div>
+
+        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: -8, color: 'var(--text-primary)' }}>
+          {t('common:quick_access')}
+        </h2>
+
+        {/* Quick Access Cards */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+            gap: 12,
+          }}
+        >
+          {quickCards.map((q) => (
+            <Card key={q.path} interactive onClick={() => navigate(q.path)}>
+              <div style={{ marginBottom: 8 }}>
+                <q.icon size={28} />
+              </div>
+              <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+                {t(`navigation:${q.labelKey}`)}
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                {t(`common:${q.descKey}`)}
+              </p>
+            </Card>
+          ))}
         </div>
       </div>
     </AppShell>
