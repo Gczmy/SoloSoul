@@ -65,7 +65,8 @@
     },
     "macOS": {
       "bundleName": "SoloSoul",
-      "infoPlist": "./Info.plist"
+      "infoPlist": "./Info.plist",
+      "entitlements": "./entitlements.plist"
     }
   },
   "plugins": {

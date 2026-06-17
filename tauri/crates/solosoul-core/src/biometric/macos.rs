@@ -4,8 +4,13 @@
 //! `kSecAccessControlUserPresence` 约束的 Generic Password Item。
 //! 读取时系统自动弹出 Touch ID / 设备密码验证框；`is_configured` 以本地
 //! `biometricEnabled` 配置标记为准，避免在应用启动时访问 Keychain 弹框。
+//!
+//! 开发环境兜底：若 Keychain 返回 `-34018`（缺少 entitlement，未签名构建），
+//! 自动回退到旧版本地加密文件存储，并在日志中输出警告。Release 包带
+//! `keychain-access-groups` entitlement 时会正常走 Keychain。
 
 use super::{BiometricError, BiometricStorage};
+use crate::biometric::legacy::FileBiometricStorage;
 use core_foundation::base::{CFType, TCFType};
 use core_foundation::boolean::CFBoolean;
 use core_foundation::data::{CFData, CFDataRef};
@@ -24,20 +29,38 @@ use security_framework_sys::item::{
 use security_framework_sys::keychain_item::{
     SecItemAdd, SecItemCopyMatching, SecItemDelete, SecItemUpdate,
 };
+use std::path::PathBuf;
 use std::ptr;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 const SERVICE: &str = "com.solosoul.biometric";
 const KEYCHAIN_PROMPT_KEY: &str = "u_OpPrompt";
 const KEYCHAIN_UI_FAIL_VALUE: &str = "u_AuthUIF";
 const ERR_SEC_USER_CANCELED: OSStatus = -128;
+const ERR_SEC_MISSING_ENTITLEMENT: OSStatus = -34018;
 
 fn account_key(account_id: &str) -> String {
     format!("solosoul.biometric.{account_id}")
 }
 
-pub struct MacOsBiometricStorage;
+pub struct MacOsBiometricStorage {
+    base_path: PathBuf,
+    /// 开发环境是否已回退到本地文件存储（缺少 Keychain entitlement 时）。
+    used_fallback: AtomicBool,
+}
 
 impl MacOsBiometricStorage {
+    pub fn new(base_path: PathBuf) -> Self {
+        Self {
+            base_path,
+            used_fallback: AtomicBool::new(false),
+        }
+    }
+
+    fn fallback_storage(&self) -> FileBiometricStorage {
+        FileBiometricStorage::new(self.base_path.clone())
+    }
+
     fn access_control() -> Result<SecAccessControl, BiometricError> {
         SecAccessControl::create_with_protection(
             Some(ProtectionMode::AccessibleWhenUnlockedThisDeviceOnly),
@@ -106,10 +129,13 @@ impl MacOsBiometricStorage {
 }
 
 impl BiometricStorage for MacOsBiometricStorage {
-    fn save(&self, account_id: &str, key_hex: &str, _reason: &str) -> Result<(), BiometricError> {
+    fn save(&self, account_id: &str, key_hex: &str, reason: &str) -> Result<(), BiometricError> {
         // 先删除可能存在的旧项，避免 access control 参与 match 导致 SecItemUpdate 失败。
         match self.delete(account_id) {
             Ok(()) | Err(BiometricError::KeychainItemNotFound) => {}
+            Err(BiometricError::MissingKeychainEntitlement) => {
+                // 当前构建缺少 Keychain entitlement，直接走文件兜底。
+            }
             Err(e) => return Err(e),
         }
 
@@ -122,8 +148,17 @@ impl BiometricStorage for MacOsBiometricStorage {
             )
         };
 
+        if status == ERR_SEC_MISSING_ENTITLEMENT {
+            tracing::warn!(
+                "macOS Keychain entitlement missing for account_id={}; \
+                 falling back to file-based biometric storage (dev build).",
+                account_id
+            );
+            self.used_fallback.store(true, Ordering::SeqCst);
+            return self.fallback_storage().save(account_id, key_hex, reason);
+        }
+
         if status == errSecDuplicateItem {
-            // 删除后仍出现重复（并发/删除失败），降级为 update。
             return self.update(account_id, key_hex);
         }
 
@@ -153,6 +188,16 @@ impl BiometricStorage for MacOsBiometricStorage {
             )
         };
 
+        if status == ERR_SEC_MISSING_ENTITLEMENT {
+            tracing::warn!(
+                "macOS Keychain entitlement missing for account_id={}; \
+                 falling back to file-based biometric storage (dev build).",
+                account_id
+            );
+            self.used_fallback.store(true, Ordering::SeqCst);
+            return self.fallback_storage().update(account_id, key_hex);
+        }
+
         if status == errSecItemNotFound {
             return Err(BiometricError::KeychainItemNotFound);
         }
@@ -174,6 +219,16 @@ impl BiometricStorage for MacOsBiometricStorage {
         let mut result: CFTypeRef = ptr::null();
         let status =
             unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut result as *mut _) };
+
+        if status == ERR_SEC_MISSING_ENTITLEMENT {
+            tracing::warn!(
+                "macOS Keychain entitlement missing for account_id={}; \
+                 falling back to file-based biometric storage (dev build).",
+                account_id
+            );
+            self.used_fallback.store(true, Ordering::SeqCst);
+            return self.fallback_storage().read(account_id, reason);
+        }
 
         if status == errSecItemNotFound {
             return Err(BiometricError::KeychainItemNotFound);
@@ -203,6 +258,16 @@ impl BiometricStorage for MacOsBiometricStorage {
     fn delete(&self, account_id: &str) -> Result<(), BiometricError> {
         let query = Self::base_query(account_id).to_immutable();
         let status = unsafe { SecItemDelete(query.as_concrete_TypeRef()) };
+
+        if status == ERR_SEC_MISSING_ENTITLEMENT {
+            tracing::warn!(
+                "macOS Keychain entitlement missing for account_id={}; \
+                 falling back to file-based biometric storage (dev build).",
+                account_id
+            );
+            self.used_fallback.store(true, Ordering::SeqCst);
+            return self.fallback_storage().delete(account_id);
+        }
 
         if status == errSecItemNotFound {
             return Err(BiometricError::KeychainItemNotFound);
@@ -244,8 +309,16 @@ impl BiometricStorage for MacOsBiometricStorage {
             unsafe { CFRelease(result) };
         }
 
+        if status == ERR_SEC_MISSING_ENTITLEMENT {
+            return self.fallback_storage().exists(account_id);
+        }
+
         // 项存在但需要认证时会返回 user-canceled / auth-failed；只要不是"未找到"就认为存在。
         status != errSecItemNotFound
+    }
+
+    fn uses_legacy_file(&self) -> bool {
+        self.used_fallback.load(Ordering::SeqCst)
     }
 }
 
@@ -263,6 +336,8 @@ fn map_write_err(e: SecError) -> BiometricError {
         BiometricError::UserPresenceCancelled
     } else if code == errSecAuthFailed {
         BiometricError::UserPresenceUnavailable
+    } else if code == ERR_SEC_MISSING_ENTITLEMENT {
+        BiometricError::MissingKeychainEntitlement
     } else {
         BiometricError::KeychainWriteFailed(e.to_string())
     }
@@ -279,7 +354,8 @@ mod tests {
 
     #[test]
     fn test_read_missing_returns_not_found() {
-        let storage = MacOsBiometricStorage;
+        let base = PathBuf::from("/tmp");
+        let storage = MacOsBiometricStorage::new(base);
         let account_id = format!("test-macos-bio-{}", uuid::Uuid::new_v4());
         // 未配置时应直接返回 KeychainItemNotFound，不应弹出 Touch ID 提示框。
         let err = storage
@@ -290,7 +366,8 @@ mod tests {
 
     #[test]
     fn test_exists_missing_without_prompt() {
-        let storage = MacOsBiometricStorage;
+        let base = PathBuf::from("/tmp");
+        let storage = MacOsBiometricStorage::new(base);
         let account_id = format!("test-macos-bio-{}", uuid::Uuid::new_v4());
         // 未配置时不应弹框；返回 false。
         assert!(!storage.exists(&account_id));
@@ -298,7 +375,8 @@ mod tests {
 
     #[test]
     fn test_delete_missing_returns_not_found() {
-        let storage = MacOsBiometricStorage;
+        let base = PathBuf::from("/tmp");
+        let storage = MacOsBiometricStorage::new(base);
         let account_id = format!("test-macos-bio-{}", uuid::Uuid::new_v4());
         let err = storage
             .delete(&account_id)

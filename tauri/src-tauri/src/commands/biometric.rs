@@ -23,6 +23,7 @@ fn map_bio_error(e: BiometricError, operation: &str) -> String {
         BiometricError::UserPresenceCancelled => "cancelled",
         BiometricError::UserPresenceUnavailable => "user_presence_unavailable",
         BiometricError::KeychainItemNotFound => "not_configured",
+        BiometricError::MissingKeychainEntitlement => "keychain_write_failed",
         BiometricError::InvalidKeyFormat => "invalid_key_format",
         BiometricError::LegacyMigrationFailed(_) => "stale_credential",
         BiometricError::Other(msg) => {

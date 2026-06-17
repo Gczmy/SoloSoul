@@ -48,6 +48,8 @@ pub enum BiometricError {
     KeychainReadFailed(String),
     /// Keychain 中不存在对应凭证。
     KeychainItemNotFound,
+    /// macOS Keychain entitlement 缺失（常见于未签名的开发构建）。
+    MissingKeychainEntitlement,
     /// 读取到的主密钥格式不正确。
     InvalidKeyFormat,
     /// 旧版凭证迁移/清理失败。
@@ -66,6 +68,9 @@ impl fmt::Display for BiometricError {
             BiometricError::KeychainWriteFailed(s) => write!(f, "keychain write failed: {s}"),
             BiometricError::KeychainReadFailed(s) => write!(f, "keychain read failed: {s}"),
             BiometricError::KeychainItemNotFound => write!(f, "keychain item not found"),
+            BiometricError::MissingKeychainEntitlement => {
+                write!(f, "macOS Keychain entitlement is missing")
+            }
             BiometricError::InvalidKeyFormat => write!(f, "invalid key format"),
             BiometricError::LegacyMigrationFailed(s) => write!(f, "legacy migration failed: {s}"),
             BiometricError::PlatformNotSupported => write!(f, "platform not supported"),
@@ -85,6 +90,7 @@ impl BiometricError {
             BiometricError::KeychainWriteFailed(_) => "keychain_write_failed",
             BiometricError::KeychainReadFailed(_) => "keychain_read_failed",
             BiometricError::KeychainItemNotFound => "keychain_item_not_found",
+            BiometricError::MissingKeychainEntitlement => "missing_keychain_entitlement",
             BiometricError::InvalidKeyFormat => "invalid_key_format",
             BiometricError::LegacyMigrationFailed(_) => "legacy_migration_failed",
             BiometricError::PlatformNotSupported => "platform_not_supported",
@@ -117,9 +123,9 @@ pub(crate) trait BiometricStorage: Send + Sync {
     }
 }
 
-fn platform_storage() -> Box<dyn BiometricStorage + Send + Sync> {
+fn platform_storage(base_path: PathBuf) -> Box<dyn BiometricStorage + Send + Sync> {
     #[cfg(target_os = "macos")]
-    return Box::new(macos::MacOsBiometricStorage);
+    return Box::new(macos::MacOsBiometricStorage::new(base_path));
     #[cfg(not(target_os = "macos"))]
     return Box::new(stub::StubBiometricStorage);
 }
@@ -132,10 +138,8 @@ pub struct BiometricManager {
 
 impl BiometricManager {
     pub fn new(base_path: PathBuf) -> Self {
-        Self {
-            base_path,
-            storage: platform_storage(),
-        }
+        let storage = platform_storage(base_path.clone());
+        Self { base_path, storage }
     }
 
     #[cfg(test)]

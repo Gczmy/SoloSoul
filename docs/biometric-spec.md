@@ -43,6 +43,8 @@
   - 使用生物识别解锁时。
   迁移成功后立即删除旧文件。
 - 若 Keychain 项不存在（例如旧账户），关闭生物识别时会静默清理本地标记与旧文件，不再报错。
+- macOS App 必须在 `src-tauri/entitlements.plist` 中声明 `keychain-access-groups`，否则 `SecItemAdd` 会返回 `-34018`（"A required entitlement isn't present"）。
+- 为方便未签名开发构建，`MacOsBiometricStorage` 检测到 `-34018` 时会自动回退到本地加密文件存储，并输出 `tracing::warn` 日志提醒；Release 包带 entitlement 后仍走 Keychain。
 
 ### 2.3 修改主密码后同步更新生物识别凭证
 
