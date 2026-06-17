@@ -4,6 +4,33 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-06-17
+
+### Added
+
+- **本地 OCR 引擎（PP-OCRv6）** — 集成 ONNX Runtime 本地文字识别，支持 tiny/small/medium 三档模型；扫描图片/附件后可导入为对象，并补充测试、文档与审计日志。
+- **OCR 首次启动静默安装** — 新账户首次启动时自动在后台下载并安装 small 模型，避免用户首次扫描时无模型可用。
+- **macOS 生物识别改进** — 支持 Touch ID 凭证迁移到 Keychain UserPresence；修改主密码后自动更新生物识别凭证，无需重新启用。
+- **SoloSoul CLI Phase 5 插件系统** — 终端完整支持插件生命周期：`/plugin_install`、`/plugin_update`、`/plugin_uninstall`、`/plugin_run`（支持 `key=value` 运行时参数，后台线程异步运行 Wasm 插件）、`/plugin_search`、`/plugin_sessions`，以及插件列表内联过滤、批量快捷键与详情屏幕。
+- **SoloSoul CLI Phase 5 LLM 能力** — 终端新增 LLM 配置、对话、聊天与统计命令，核心能力下沉到 `solosoul-core`。
+- **生物识别实现规范** — 新增 `docs/biometric-spec.md`，记录 macOS Touch ID 与 Windows Hello 实现约束及回退策略。
+- **同步服务跨二进制复用** — 将 `SyncService` 移入 `solosoul-sync` crate，供 GUI 与 CLI 共享。
+
+### Changed
+
+- **版本号统一** — 全平台版本号同步升级到 `2.3.0`。
+- **扫描页模型描述** — 模型系列改为变量管理，描述不再硬编码模型名，便于后续扩展。
+- **OCR 无模型提示** — 未安装模型时触发扫描，改为弹出国际化提示引导用户下载。
+- **macOS 标题栏与 UI 修复** — 优化安全警告、国际化文案、NSIS 资源与 macOS 标题栏行为。
+- **Updater ACL 权限** — 授予 `updater:default` ACL 权限，允许客户端正常下载并安装更新。
+
+### Fixed
+
+- **生物识别 Touch ID 解锁失败** — 修复修改密码或锁定后 Touch ID 无法解锁的问题。
+- **生物识别 Keychain 回退** — 开发模式下 Keychain `-34018` 或 `not_found` 时自动回退到本地文件存储，避免反复弹出钥匙串输入框。
+- **生物识别凭证迁移** — 修复旧账户生物识别迁移与关闭失败、本地凭证文件误删等问题。
+- **生物识别取消提示** — 修复生物识别测试取消时错误使用国际化消息的问题。
+
 ## [2.2.2] - 2026-06-16
 
 ### Added
