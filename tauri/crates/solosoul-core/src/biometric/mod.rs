@@ -22,8 +22,7 @@ mod macos;
 #[cfg(not(target_os = "macos"))]
 mod stub;
 
-/// 旧版基于本地加密文件的存储。仅用于测试 mock。
-#[cfg(test)]
+/// 旧版基于本地加密文件的存储。用于从旧版本升级时迁移凭证，以及测试 mock。
 pub(crate) mod legacy;
 
 /// 设备/平台对生物识别的可用性信息。
@@ -159,6 +158,41 @@ impl BiometricManager {
         self.account_dir(account_id).join("config.json")
     }
 
+    fn legacy_key_exists(&self, account_id: &str) -> bool {
+        self.bio_key_path(account_id).exists()
+    }
+
+    fn flag_enabled(&self, account_id: &str) -> bool {
+        let config_path = self.config_path(account_id);
+        std::fs::read_to_string(&config_path)
+            .ok()
+            .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
+            .and_then(|v| v.get("biometricEnabled").and_then(|v| v.as_bool()))
+            .unwrap_or(false)
+    }
+
+    /// 将旧版本地文件凭证迁移到当前平台存储后端（macOS Keychain）。
+    /// 若配置标记未开启、当前后端已存在凭证或没有旧文件，则不执行操作。
+    fn migrate_legacy_if_needed(&self, account_id: &str) -> Result<(), BiometricError> {
+        if !self.flag_enabled(account_id) {
+            return Ok(());
+        }
+        if self.storage.exists(account_id) {
+            self.remove_legacy_key_file(account_id);
+            return Ok(());
+        }
+        if !self.legacy_key_exists(account_id) {
+            return Ok(());
+        }
+        let legacy_storage = legacy::FileBiometricStorage::new(self.base_path.clone());
+        let key_hex = legacy_storage.read(account_id, "")?;
+        self.storage
+            .save(account_id, &key_hex, "migrate legacy biometric credential")?;
+        self.remove_legacy_key_file(account_id);
+        self.set_config_flag(account_id, true)?;
+        Ok(())
+    }
+
     /// Check whether biometric authentication is available and configured for
     /// the given account. `available` refers to the device/platform; `configured`
     /// refers to whether this account has a stored credential.
@@ -223,6 +257,7 @@ impl BiometricManager {
         vault_service: &VaultService,
         reason: &str,
     ) -> Result<String, BiometricError> {
+        self.migrate_legacy_if_needed(account_id)?;
         let key_hex = self.storage.read(account_id, reason)?;
         let key_bytes = hex::decode(&key_hex).map_err(|_| BiometricError::InvalidKeyFormat)?;
         let key: [u8; 32] = key_bytes
@@ -245,7 +280,11 @@ impl BiometricManager {
         password: &str,
     ) -> Result<(), BiometricError> {
         self.verify_password(password, account_id)?;
-        self.storage.delete(account_id)?;
+        // Keychain 项可能不存在（旧账户只有本地文件），NotFound 时不阻断关闭流程。
+        match self.storage.delete(account_id) {
+            Ok(()) | Err(BiometricError::KeychainItemNotFound) => {}
+            Err(e) => return Err(e),
+        }
         self.set_config_flag(account_id, false)?;
         self.remove_legacy_key_file(account_id);
         Ok(())
@@ -277,14 +316,10 @@ impl BiometricManager {
     }
 
     /// Return true if the account has enabled biometric AND a stored credential exists.
+    /// 兼容旧版本地文件：只要 flag 为 true 且 Keychain/旧文件任意一个存在，即视为已配置。
     pub fn is_configured(&self, account_id: &str) -> bool {
-        let config_path = self.config_path(account_id);
-        let has_flag = std::fs::read_to_string(&config_path)
-            .ok()
-            .and_then(|s| serde_json::from_str::<serde_json::Value>(&s).ok())
-            .and_then(|v| v.get("biometricEnabled").and_then(|v| v.as_bool()))
-            .unwrap_or(false);
-        let has_key = self.storage.exists(account_id);
+        let has_flag = self.flag_enabled(account_id);
+        let has_key = self.storage.exists(account_id) || self.legacy_key_exists(account_id);
         tracing::debug!(
             "biometric is_configured for {}: flag={}, key={}",
             account_id,
@@ -580,6 +615,99 @@ mod tests {
             // Disable flag
             manager.set_config_flag(account_id, false).unwrap();
             assert!(!manager.is_configured(account_id));
+        });
+    }
+
+    #[test]
+    fn test_legacy_migration_to_storage() {
+        with_temp_home(|path| {
+            let account_id = "acc-migrate";
+            let base = path.join(".solosoul");
+            let acct_path = base.join(account_id);
+            std::fs::create_dir_all(&acct_path).unwrap();
+
+            // Simulate old account with biometricEnabled=true and legacy file
+            let config = serde_json::json!({
+                "accountId": account_id,
+                "name": "Test",
+                "salt": "c2FsdDEyMzQ1Njc=",
+                "verifyHash": "abcd",
+                "createdAt": "2024-01-01T00:00:00Z",
+                "cryptoVersion": 2,
+                "biometricEnabled": true,
+            });
+            std::fs::write(
+                acct_path.join("config.json"),
+                serde_json::to_string_pretty(&config).unwrap(),
+            )
+            .unwrap();
+
+            // Legacy key file
+            let legacy_storage = legacy::FileBiometricStorage::new(base.clone());
+            let legacy_key = "deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678";
+            legacy_storage
+                .save(account_id, legacy_key, "reason")
+                .unwrap();
+            assert!(manager_from_home().legacy_key_exists(account_id));
+
+            // Migrate to a separate target storage
+            let target_base = base.join("migrated");
+            std::fs::create_dir_all(&target_base).unwrap();
+            let manager = BiometricManager::with_storage(
+                base.clone(),
+                Box::new(legacy::FileBiometricStorage::new(target_base.clone())),
+            );
+
+            manager.migrate_legacy_if_needed(account_id).unwrap();
+
+            // Legacy file should be removed; target storage should contain the same key
+            assert!(!manager.legacy_key_exists(account_id));
+            let target_storage = legacy::FileBiometricStorage::new(target_base);
+            assert_eq!(target_storage.read(account_id, "").unwrap(), legacy_key);
+            assert!(manager.is_configured(account_id));
+        });
+    }
+
+    #[test]
+    fn test_delete_credential_ignores_missing_keychain() {
+        with_temp_home(|path| {
+            let account_id = "acc-delete-missing";
+            let base = path.join(".solosoul");
+            let acct_path = base.join(account_id);
+            std::fs::create_dir_all(&acct_path).unwrap();
+
+            // Account with biometric enabled but no Keychain item and no legacy file
+            let config = serde_json::json!({
+                "accountId": account_id,
+                "name": "Test",
+                "salt": "c2FsdDEyMzQ1Njc=",
+                "verifyHash": "abcd",
+                "createdAt": "2024-01-01T00:00:00Z",
+                "cryptoVersion": 2,
+                "biometricEnabled": true,
+            });
+            std::fs::write(
+                acct_path.join("config.json"),
+                serde_json::to_string_pretty(&config).unwrap(),
+            )
+            .unwrap();
+
+            // Create a VaultService-compatible config so verify_password passes
+            let (cfg, _) = create_test_account_config("mypassword");
+            std::fs::write(
+                acct_path.join("config.json"),
+                serde_json::to_string_pretty(&cfg).unwrap(),
+            )
+            .unwrap();
+
+            let manager = BiometricManager::with_storage(
+                base.clone(),
+                Box::new(legacy::FileBiometricStorage::new(base.join("target"))),
+            );
+
+            // Should succeed even though the storage item is missing
+            manager.delete_credential(account_id, "mypassword").unwrap();
+            assert!(!manager.flag_enabled(account_id));
         });
     }
 
