@@ -39,7 +39,7 @@
 - `is_configured` 使用 `kSecUseAuthenticationUIFail` 查询，**只检查项是否存在，不会弹出任何验证框**。
 - 写入/更新 Keychain Item 不触发用户验证；开启生物识别前会主动调用 `LocalAuthentication` 验证用户身份。
 - 旧版 `biometric_key` 文件会在以下时机自动迁移到 Keychain：
-  - 登录页检测到 `biometricEnabled=true` 且存在旧文件但 Keychain 项缺失时；
+  - 登录页调用 `biometric_check_availability` 时；
   - 使用生物识别解锁时。
   迁移成功后立即删除旧文件。
 - 若 Keychain 项不存在（例如旧账户），关闭生物识别时会静默清理本地标记与旧文件，不再报错。

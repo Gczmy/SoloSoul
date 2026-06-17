@@ -65,6 +65,10 @@ pub async fn biometric_check_availability(
     } else {
         None
     };
+    // 旧版本地文件凭证在查询时自动迁移到 Keychain；失败也不影响显示按钮。
+    if !account_id.is_empty() {
+        let _ = manager.migrate_legacy_if_needed(&account_id);
+    }
     let configured = manager.is_configured(&account_id);
     let available = bt.is_some();
     if !account_id.is_empty() {

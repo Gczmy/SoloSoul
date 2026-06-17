@@ -173,7 +173,7 @@ impl BiometricManager {
 
     /// 将旧版本地文件凭证迁移到当前平台存储后端（macOS Keychain）。
     /// 若配置标记未开启、当前后端已存在凭证或没有旧文件，则不执行操作。
-    fn migrate_legacy_if_needed(&self, account_id: &str) -> Result<(), BiometricError> {
+    pub fn migrate_legacy_if_needed(&self, account_id: &str) -> Result<(), BiometricError> {
         if !self.flag_enabled(account_id) {
             return Ok(());
         }

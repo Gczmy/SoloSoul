@@ -141,8 +141,11 @@ impl BiometricStorage for MacOsBiometricStorage {
 
     fn delete(&self, account_id: &str) -> Result<(), BiometricError> {
         let options = PasswordOptions::new_generic_password(SERVICE, &account_key(account_id));
-        delete_generic_password_options(options)
-            .map_err(|e| map_write_err(SecError::from_code(e.code())))
+        match delete_generic_password_options(options) {
+            Ok(()) => Ok(()),
+            Err(e) if e.code() == errSecItemNotFound => Err(BiometricError::KeychainItemNotFound),
+            Err(e) => Err(map_write_err(SecError::from_code(e.code()))),
+        }
     }
 
     fn exists(&self, account_id: &str) -> bool {
@@ -230,5 +233,15 @@ mod tests {
         let account_id = format!("test-macos-bio-{}", uuid::Uuid::new_v4());
         // 未配置时不应弹框；返回 false。
         assert!(!storage.exists(&account_id));
+    }
+
+    #[test]
+    fn test_delete_missing_returns_not_found() {
+        let storage = MacOsBiometricStorage;
+        let account_id = format!("test-macos-bio-{}", uuid::Uuid::new_v4());
+        let err = storage
+            .delete(&account_id)
+            .expect_err("should fail for missing item");
+        assert!(matches!(err, BiometricError::KeychainItemNotFound));
     }
 }
