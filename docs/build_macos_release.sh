@@ -268,7 +268,8 @@ COPYFILE_DISABLE=1 tar czf "$APP_TAR_OUTPUT" \
 log_info "Created ${APP_TAR_OUTPUT}"
 
 # 生成 Tauri 自动更新器签名文件（.sig）
-log_step "Signing updater packages..."
+# DMG 仅用于手动安装，不需要 updater 签名；只有 .app.tar.gz 需要。
+log_step "Signing updater archive..."
 if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
     log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，且未找到 ~/.tauri/secret.key"
     log_error "请设置环境变量：export TAURI_SIGNING_PRIVATE_KEY='...'"
@@ -279,11 +280,9 @@ if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
 fi
 # 注意：TAURI_DIR 下运行 npx tauri，但产物路径是相对于项目根目录的路径，
 # 因此传入绝对路径，避免文件找不到。
-DMG_OUTPUT_ABS="$(cd "${TAURI_DIR}/.." && pwd)/${DMG_OUTPUT}"
 APP_TAR_OUTPUT_ABS="$(cd "${TAURI_DIR}/.." && pwd)/${APP_TAR_OUTPUT}"
 (
     cd "${TAURI_DIR}"
-    npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$DMG_OUTPUT_ABS"
     npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$APP_TAR_OUTPUT_ABS"
 )
 

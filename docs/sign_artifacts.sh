@@ -2,8 +2,11 @@
 # ============================================================
 # SoloSoul Release Artifact Signer
 # ============================================================
-# 在 macOS 上为所有已收集的 Release 产物生成 Tauri updater .sig 签名。
+# 在 macOS 上为 Release 产物生成 Tauri updater .sig 签名。
 # 统一签名入口，避免在 Windows 构建机上暴露私钥。
+#
+# 注意：.sig 文件的内容会被 generate-latest-json.js 读入 latest.json，
+#       但 .sig 文件本身不需要上传到 GitHub Release。
 #
 # 使用方式:
 #   ./docs/sign_artifacts.sh [artifacts-dir]
@@ -86,9 +89,13 @@ shopt -s nullglob
 signed_count=0
 skipped_count=0
 
+# 仅为 updater 实际使用的包生成 .sig：
+# - macOS: .app.tar.gz
+# - Windows: -setup.exe
+# - Linux: .AppImage
+# DMG 仅用于手动安装，不需要 updater 签名。
 for pattern in \
     "${ARTIFACTS_DIR}/SoloSoul_${VERSION}_"*.app.tar.gz \
-    "${ARTIFACTS_DIR}/SoloSoul_${VERSION}_"*.dmg \
     "${ARTIFACTS_DIR}/SoloSoul_${VERSION}_"*-setup.exe \
     "${ARTIFACTS_DIR}/SoloSoul_${VERSION}.AppImage"
 do

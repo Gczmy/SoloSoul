@@ -122,15 +122,15 @@ cd /Users/zzc/PycharmProjects/SoloSoul_code
 tauri/src-tauri/target/release/bundle/
 ├── macos/SoloSoul.app
 ├── macos/SoloSoul_2.1.0_arm64.app.tar.gz     # Tauri updater 用的 macOS 更新包
-├── macos/SoloSoul_2.1.0_arm64.app.tar.gz.sig # updater 签名
-├── dmg/SoloSoul_2.1.0_arm64.dmg              # 首次安装用的 DMG
-└── dmg/SoloSoul_2.1.0_arm64.dmg.sig          # DMG 签名（可选）
+├── macos/SoloSoul_2.1.0_arm64.app.tar.gz.sig # updater 签名（生成 latest.json 用，不上传）
+└── dmg/SoloSoul_2.1.0_arm64.dmg              # 首次安装用的 DMG
 ```
 
 > 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./docs/build_macos_release.sh`
 > （注意：传入参数不会修改源文件中的版本号，仅影响产物命名）
 
-> 构建脚本会自动调用 `npx tauri signer sign` 生成 `.sig`，需要提前设置 `TAURI_SIGNING_PRIVATE_KEY`。
+> 构建脚本会自动为 `.app.tar.gz` 调用 `npx tauri signer sign` 生成 `.sig`，需要提前设置 `TAURI_SIGNING_PRIVATE_KEY`。
+> `.sig` 文件的内容会被写入 `latest.json`，但 `.sig` 文件本身不需要上传到 GitHub Release。
 > macOS 自动更新实际使用的是 `.app.tar.gz`，不是 `.dmg`。
 
 #### 签名说明
@@ -228,13 +228,10 @@ node scripts/generate-latest-json.js \
 1. 点击 "Draft a new release"
 2. 选择或创建标签（如 `v2.1.0`）
 3. 填写 Release 标题和说明
-4. **上传以下附件**（应用内更新器依赖 `.app.tar.gz`、`.sig` 与 `latest.json`）：
-   - `SoloSoul_2.1.0_arm64.app.tar.gz`     # macOS 自动更新包（必需）
-   - `SoloSoul_2.1.0_arm64.app.tar.gz.sig` # macOS 更新签名（必需）
-   - `SoloSoul_2.1.0_arm64.dmg`            # macOS 首次安装 DMG（推荐）
-   - `SoloSoul_2.1.0_arm64.dmg.sig`        # DMG 签名（可选）
-   - `SoloSoul_2.1.0_x64-setup.exe`        # Windows 安装包
-   - `SoloSoul_2.1.0_x64-setup.exe.sig`    # Windows 更新签名
+4. **上传以下附件**（应用内更新器依赖 `latest.json` 中的签名，`.sig` 文件本身不必上传）：
+   - `SoloSoul_2.1.0_arm64.app.tar.gz`  # macOS 自动更新包（必需）
+   - `SoloSoul_2.1.0_arm64.dmg`         # macOS 首次安装 DMG（推荐）
+   - `SoloSoul_2.1.0_x64-setup.exe`     # Windows 安装包
    - `latest.json`
 5. 点击 "Publish release"
 
