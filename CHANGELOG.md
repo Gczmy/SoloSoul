@@ -1,5 +1,29 @@
 ## [Released]
 
+## [2.3.0] - 2026-06-17
+
+### Added
+
+- **Local OCR engine (PP-OCRv6)** — On-device text recognition via ONNX Runtime with tiny/small/medium models; scanned images/attachments can be imported as objects.
+- **First-run OCR model installation** — Silently downloads and installs the small model on first launch so scanning works out of the box.
+- **macOS biometric improvements** — Touch ID credentials can use Keychain UserPresence; changing the master password automatically updates biometric credentials.
+- **SoloSoul CLI Phase 5 plugin system** — Terminal plugin lifecycle commands: install, update, uninstall, run with `key=value` runtime args, search, sessions, plus in-line filtering and detail screen.
+- **SoloSoul CLI Phase 5 LLM features** — Terminal LLM configuration, conversation, chat, and statistics commands; core logic moved to `solosoul-core`.
+- **SyncService cross-binary reuse** — `SyncService` moved into the `solosoul-sync` crate for reuse by GUI and CLI.
+
+### Changed
+
+- **Version bump** — All platforms synchronized to `2.3.0`.
+- **OCR model descriptions** — Model series is now variable-driven so descriptions no longer hard-code model names.
+- **Missing-model UX** — Scanning without an installed model now shows an internationalized prompt instead of failing silently.
+- **Updater ACL** — Granted `updater:default` permission so the app can download and install updates correctly.
+
+### Fixed
+
+- **Touch ID unlock after password change/lock** — Fixed cases where Touch ID could not unlock the Vault after the master password was changed or the app was locked.
+- **Biometric Keychain fallback** — Development builds now fall back to local-file credential storage when Keychain returns `-34018` or `not_found`, avoiding repeated keychain password prompts.
+- **Biometric migration edge cases** — Fixed legacy biometric migration/close failures and accidental deletion of local credential files.
+
 ## [2.2.2] - 2026-06-16
 
 ### Added
