@@ -1,5 +1,24 @@
 ## [Released]
 
+## [2.3.1] - 2026-06-17
+
+### Added
+
+- **OCR PDF/MRZ extension** — Added support for scanning and parsing PDF documents and machine-readable zones (MRZ), with results importable as objects.
+- **Auto-updater signature integration** — Release build scripts now auto-generate `.sig` files and the Tauri updater `latest.json`.
+- **Local model pre-build check** — macOS/Windows build scripts verify that OCR and Embedding model files are present before bundling.
+
+### Changed
+
+- **Improved internationalization** — NSIS installer welcome/finish pages, OCR model options, and help document titles are now localized.
+- **Release script improvements** — Auto-detect `~/.tauri/secret.key`, filter artifacts by version when generating `latest.json`, and document signing-key management.
+
+### Fixed
+
+- **OCR sidebar quick scan** — Fixed blocking bug and usability issues in the sidebar quick-scan card.
+- **NSIS template syntax** — Escaped Handlebars syntax in inlined i18n comments to prevent installer build errors.
+- **Signer path** — Fixed relative-path bug when `tauri signer` is invoked from inside the `tauri` directory on macOS/Windows.
+
 ## [2.3.0] - 2026-06-17
 
 ### Added
@@ -160,7 +179,6 @@
 - **macOS Bootstrap Page Input** — Password fields on first-run wizard no longer blocked by WKWebView password manager. Replaced `<input type="password">` with `type="text"` + CSS `-webkit-text-security: disc` to bypass WebKit keyboard interception on forms with multiple password fields.
 
 ---
->>>>>>> origin/main
 ## [1.8.0] - 2026-06-03
 
 
