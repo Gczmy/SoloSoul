@@ -12,6 +12,18 @@
 
 > 注：macOS 包必须在 Mac 上编译，Windows 包必须在 Windows 上编译，无法在一台机器上完成双平台。
 
+### 本地模型文件
+
+`tauri/src-tauri/resources/models/` 目录下的模型文件（`all-MiniLM-L6-v2/`、`pp-ocr-v6-small/`）被 `.gitignore` 排除，不会随仓库克隆自动出现，但 `tauri.conf.json` 将其声明为打包资源。构建前必须确保该目录存在且完整，否则 Tauri 打包会失败。
+
+若从干净仓库开始构建，请从已准备好的构建机复制，或解压预打包的模型文件：
+
+```bash
+# 在 Mac/Windows 构建前检查
+ls tauri/src-tauri/resources/models/all-MiniLM-L6-v2
+ls tauri/src-tauri/resources/models/pp-ocr-v6-small
+```
+
 ---
 
 ## 阶段一：准备（在 Mac 上执行一次）

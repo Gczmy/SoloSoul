@@ -112,6 +112,15 @@ if [[ ! -d ".git" || ! -d "${TAURI_DIR}" ]]; then
     exit 1
 fi
 
+# 检查本地模型文件是否存在（tauri.conf.json 中声明为打包资源，但模型文件被 gitignore）
+MODELS_DIR="${TAURI_DIR}/src-tauri/resources/models"
+if [[ ! -d "${MODELS_DIR}/all-MiniLM-L6-v2" || ! -d "${MODELS_DIR}/pp-ocr-v6-small" ]]; then
+    log_error "找不到本地模型文件: ${MODELS_DIR}"
+    log_error "模型文件未提交到 Git，构建前请确保已下载或从其他机器复制。"
+    log_error "本次发布已准备的模型包: SoloSoul-Releases/models-v2.3.0.zip"
+    exit 1
+fi
+
 # --- 清理旧产物 ---
 log_step "Cleaning previous build artifacts..."
 rm -rf "${BUNDLE_BASE}"
