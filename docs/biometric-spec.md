@@ -47,14 +47,15 @@
 - 这样即使钥匙串完全不可用，只要应用本身在运行，就能解密备份文件。
 - 旧版使用钥匙串随机密钥加密的文件保留兼容读取，成功读取后静默迁移到新方案。
 
-### 2.3 修改主密码后必须清除旧生物识别凭证
+### 2.3 修改主密码后同步更新生物识别凭证
 
 **现象**：改密会重新生成 Vault 数据密钥（新 salt + 新派生）。旧的生物识别密钥还是从「旧密码 + 旧 salt」派生的，用旧密钥去解新 Vault 会报 `Decryption failed: aead::Error`。
 
 **修复**：
 
-- `VaultService::change_password` 在 re-encrypt 完成后、写入新 config 前，调用 `BiometricManager::delete_credential` 清除旧凭证。
-- 这样改密后用户必须重新启用生物识别，避免旧密钥残留。
+- `VaultService::change_password` 在 re-encrypt 并重新打开 Vault 后，调用 `BiometricManager::update_credential(account_id, new_key_hex)`。
+- 仅当用户之前已启用生物识别时才更新；未启用则不操作。
+- 这样改密后 Touch ID / Face ID 仍然可用，无需用户手动重新启用。
 
 ### 2.4 保存后回读钥匙串校验不可靠
 
@@ -98,7 +99,7 @@
 | 约束 | 原因 | 实现建议 |
 |------|------|---------|
 | **备份文件必须使用确定性文件密钥** | 避免 Credential Manager / DPAPI 不可用时，备份文件也报废 | 复用 macOS 的 HKDF 方案：`info = b"solosoul:biometric:filekey:v1"`，salt = `account_id` |
-| **修改密码后必须清除 Windows 凭证** | 旧凭证中的密钥无法解密新 Vault | 在 `VaultService::change_password` 中调用 Windows 实现的删除逻辑 |
+| **修改密码后更新 Windows 凭证** | 旧凭证中的密钥无法解密新 Vault | 在 `VaultService::change_password` 中用新密钥调用 Windows 更新逻辑；仅当已启用时更新 |
 | **保存前做派生校验** | 不要依赖保存后再回读 Credential Manager | 用当前密码派生密钥，与 `get_session_key()` 比较一致后再保存 |
 | **错误返回 `__BIO_ERR__:<code>`** | 保持前端国际化逻辑一致 | 新增 Windows 专用 code：`windows_hello_unavailable`、`windows_auth_failed` 等 |
 | **不直接暴露后端异常原文** | 避免 UI 截断和用户困惑 | 所有用户可见错误走 `biometricError.ts` 映射 |
@@ -144,7 +145,7 @@ impl BiometricManager {
 Windows Hello 实现后，至少覆盖以下场景：
 
 1. 密码登录 → 启用 Windows Hello → 锁定 → Windows Hello 解锁成功。
-2. 启用 Windows Hello → 修改主密码 → 旧 Hello 凭证应被清除 → 必须重新启用。
+2. 启用 Windows Hello → 修改主密码 → Hello 凭证应自动更新为新密钥 → 仍能用 Hello 解锁。
 3. 启用 Windows Hello → 禁用 Hello → 再启用 → 新凭证应能正常解锁。
 4. 模拟 Credential Manager 不可用（如用测试桩）→ 应能回退到确定性文件密钥解密。
 5. 取消 Windows Hello 验证 → 只显示密码输入框，不显示错误文案。

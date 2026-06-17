@@ -547,18 +547,6 @@ impl VaultService {
             vault.reencrypt_all(&old_key, &new_key_enc)?;
         }
 
-        // 修改密码后，旧的生物识别密钥（从旧密码派生）已失效，必须清除并让用户重新启用。
-        {
-            let bio_manager = BiometricManager::new(self.base_path().clone());
-            if let Err(e) = bio_manager.delete_credential(account_id, old_password) {
-                tracing::warn!(
-                    "Failed to delete stale biometric credential after password change for {}: {}",
-                    account_id,
-                    e
-                );
-            }
-        }
-
         // Derive new verify hash.
         let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
         let verify_key = derive_key(
@@ -604,6 +592,19 @@ impl VaultService {
             }
             Err(e) => {
                 return Err(format!("Password updated but vault reopen failed: {}", e));
+            }
+        }
+
+        // 如果用户已启用生物识别，同步更新其中保存的主密钥，使改密后 Touch ID 仍可用。
+        {
+            let bio_manager = BiometricManager::new(self.base_path().clone());
+            let new_key_hex = hex::encode(new_key_arr.as_slice());
+            if let Err(e) = bio_manager.update_credential(account_id, &new_key_hex) {
+                tracing::warn!(
+                    "Failed to update biometric credential after password change for {}: {}",
+                    account_id,
+                    e
+                );
             }
         }
 
@@ -782,6 +783,12 @@ mod tests {
             serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
         raw["biometricEnabled"] = serde_json::Value::Bool(true);
         fs::write(&config_path, serde_json::to_string_pretty(&raw).unwrap()).unwrap();
+        crate::biometric::save_master_key(
+            &svc.account_dir(account_id).join("biometric_key"),
+            account_id,
+            "deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678",
+        )
+        .unwrap();
 
         svc.unlock(account_id, "oldpassword").unwrap();
         svc.change_password(account_id, "oldpassword", "newpassword")
@@ -794,9 +801,17 @@ mod tests {
 
         let content = fs::read_to_string(&config_path).unwrap();
         let config: AccountConfig = serde_json::from_str(&content).unwrap();
-        // 修改密码后旧生物识别密钥已失效，必须被清除。
-        assert!(!config.biometric_enabled);
-        assert!(!svc.account_dir(account_id).join("biometric_key").exists());
+        // 修改密码后生物识别凭证应保持启用，并同步更新为新密钥。
+        assert!(config.biometric_enabled);
+        assert!(svc.account_dir(account_id).join("biometric_key").exists());
+
+        let expected_hex = hex::encode(svc.get_session_key().unwrap().as_slice());
+        let stored_hex = crate::biometric::read_master_key(
+            &svc.account_dir(account_id).join("biometric_key"),
+            account_id,
+        )
+        .unwrap();
+        assert_eq!(stored_hex, expected_hex);
     }
 
     #[test]
