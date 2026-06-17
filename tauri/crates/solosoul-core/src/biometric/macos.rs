@@ -15,15 +15,15 @@ use core_foundation::string::CFString;
 use core_foundation_sys::base::{CFRelease, CFTypeRef, OSStatus};
 use security_framework::access_control::{ProtectionMode, SecAccessControl};
 use security_framework::base::Error as SecError;
-use security_framework::passwords::{
-    delete_generic_password_options, set_generic_password_options, PasswordOptions,
-};
 use security_framework::passwords_options::AccessControlOptions;
-use security_framework_sys::base::{errSecAuthFailed, errSecItemNotFound};
+use security_framework_sys::base::{errSecAuthFailed, errSecDuplicateItem, errSecItemNotFound};
 use security_framework_sys::item::{
-    kSecMatchLimit, kSecReturnAttributes, kSecReturnData, kSecUseAuthenticationUI,
+    kSecAttrAccessControl, kSecAttrAccount, kSecAttrService, kSecClass, kSecClassGenericPassword,
+    kSecMatchLimit, kSecReturnAttributes, kSecReturnData, kSecUseAuthenticationUI, kSecValueData,
 };
-use security_framework_sys::keychain_item::SecItemCopyMatching;
+use security_framework_sys::keychain_item::{
+    SecItemAdd, SecItemCopyMatching, SecItemDelete, SecItemUpdate,
+};
 use std::ptr;
 
 const SERVICE: &str = "com.solosoul.biometric";
@@ -46,49 +46,57 @@ impl MacOsBiometricStorage {
         .map_err(|_e| BiometricError::UserPresenceUnavailable)
     }
 
-    fn password_options(account_id: &str, access_control: SecAccessControl) -> PasswordOptions {
-        let mut options = PasswordOptions::new_generic_password(SERVICE, &account_key(account_id));
-        options.set_access_control(access_control);
-        options
+    /// 通用查询：class / service / account，用于 match、update、delete。
+    fn base_query(account_id: &str) -> CFMutableDictionary<CFString, CFType> {
+        let mut dict = CFMutableDictionary::<CFString, CFType>::new();
+
+        let class_key = unsafe { CFString::wrap_under_get_rule(kSecClass) };
+        let class_val: CFType =
+            unsafe { CFString::wrap_under_get_rule(kSecClassGenericPassword) }.into_CFType();
+        dict.add(&class_key, &class_val);
+
+        let service_key = unsafe { CFString::wrap_under_get_rule(kSecAttrService) };
+        let service_val: CFType = CFString::from(SERVICE).into_CFType();
+        dict.add(&service_key, &service_val);
+
+        let account_key_cf = unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) };
+        let account_val: CFType = CFString::from(account_key(account_id).as_str()).into_CFType();
+        dict.add(&account_key_cf, &account_val);
+
+        dict
+    }
+
+    /// 用于新增的字典：base + access control + value data。
+    fn add_query(
+        account_id: &str,
+        key_hex: &str,
+    ) -> Result<CFMutableDictionary<CFString, CFType>, BiometricError> {
+        let mut dict = Self::base_query(account_id);
+
+        let access_control = Self::access_control()?;
+        let access_key = unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) };
+        let access_val: CFType = access_control.into_CFType();
+        dict.add(&access_key, &access_val);
+
+        let data_key = unsafe { CFString::wrap_under_get_rule(kSecValueData) };
+        let data_val: CFType = CFData::from_buffer(key_hex.as_bytes()).into_CFType();
+        dict.add(&data_key, &data_val);
+
+        Ok(dict)
     }
 
     /// 构造用于读取的原始查询字典，包含 `kSecUseOperationPrompt` 以显示自定义原因。
     fn read_query(account_id: &str, reason: &str) -> CFMutableDictionary<CFString, CFType> {
-        use core_foundation::base::CFType;
-        let mut dict = CFMutableDictionary::<CFString, CFType>::new();
+        let mut dict = Self::base_query(account_id);
 
-        // class = generic password
-        let class_key =
-            unsafe { CFString::wrap_under_get_rule(security_framework_sys::item::kSecClass) };
-        let class_val: CFType = unsafe {
-            CFString::wrap_under_get_rule(security_framework_sys::item::kSecClassGenericPassword)
-        }
-        .into_CFType();
-        dict.add(&class_key, &class_val);
-
-        // service
-        let service_key =
-            unsafe { CFString::wrap_under_get_rule(security_framework_sys::item::kSecAttrService) };
-        let service_val: CFType = CFString::from(SERVICE).into_CFType();
-        dict.add(&service_key, &service_val);
-
-        // account
-        let account_key_cf =
-            unsafe { CFString::wrap_under_get_rule(security_framework_sys::item::kSecAttrAccount) };
-        let account_val: CFType = CFString::from(account_key(account_id).as_str()).into_CFType();
-        dict.add(&account_key_cf, &account_val);
-
-        // return data
         let return_data_key = unsafe { CFString::wrap_under_get_rule(kSecReturnData) };
         let true_val: CFType = CFBoolean::from(true).into_CFType();
         dict.add(&return_data_key, &true_val);
 
-        // match limit = 1
         let limit_key = unsafe { CFString::wrap_under_get_rule(kSecMatchLimit) };
         let limit_val: CFType = CFNumber::from(1i64).into_CFType();
         dict.add(&limit_key, &limit_val);
 
-        // operation prompt
         let prompt_key = CFString::from_static_string(KEYCHAIN_PROMPT_KEY);
         let prompt_val: CFType = CFString::from(reason).into_CFType();
         dict.add(&prompt_key, &prompt_val);
@@ -99,18 +107,66 @@ impl MacOsBiometricStorage {
 
 impl BiometricStorage for MacOsBiometricStorage {
     fn save(&self, account_id: &str, key_hex: &str, _reason: &str) -> Result<(), BiometricError> {
-        let access_control = Self::access_control()?;
-        let options = Self::password_options(account_id, access_control);
-        set_generic_password_options(key_hex.as_bytes(), options)
-            .map_err(|e| map_write_err(SecError::from_code(e.code())))
+        // 先删除可能存在的旧项，避免 access control 参与 match 导致 SecItemUpdate 失败。
+        match self.delete(account_id) {
+            Ok(()) | Err(BiometricError::KeychainItemNotFound) => {}
+            Err(e) => return Err(e),
+        }
+
+        let dict = Self::add_query(account_id, key_hex)?;
+        let params = dict.to_immutable();
+        let status = unsafe {
+            SecItemAdd(
+                params.as_concrete_TypeRef(),
+                ptr::null_mut() as *mut CFTypeRef,
+            )
+        };
+
+        if status == errSecDuplicateItem {
+            // 删除后仍出现重复（并发/删除失败），降级为 update。
+            return self.update(account_id, key_hex);
+        }
+
+        if let Err(e) = check_status(status) {
+            tracing::error!(
+                "SecItemAdd failed for account_id={}: code={} ({:?})",
+                account_id,
+                e.code(),
+                e
+            );
+            return Err(map_write_err(e));
+        }
+        Ok(())
     }
 
     fn update(&self, account_id: &str, key_hex: &str) -> Result<(), BiometricError> {
-        // `set_generic_password_options` 内部会先尝试添加，遇到重复项则更新。
-        let access_control = Self::access_control()?;
-        let options = Self::password_options(account_id, access_control);
-        set_generic_password_options(key_hex.as_bytes(), options)
-            .map_err(|e| map_write_err(SecError::from_code(e.code())))
+        let query = Self::base_query(account_id).to_immutable();
+        let mut update = CFMutableDictionary::<CFString, CFType>::new();
+        let data_key = unsafe { CFString::wrap_under_get_rule(kSecValueData) };
+        let data_val: CFType = CFData::from_buffer(key_hex.as_bytes()).into_CFType();
+        update.add(&data_key, &data_val);
+
+        let status = unsafe {
+            SecItemUpdate(
+                query.as_concrete_TypeRef(),
+                update.to_immutable().as_concrete_TypeRef(),
+            )
+        };
+
+        if status == errSecItemNotFound {
+            return Err(BiometricError::KeychainItemNotFound);
+        }
+
+        if let Err(e) = check_status(status) {
+            tracing::error!(
+                "SecItemUpdate failed for account_id={}: code={} ({:?})",
+                account_id,
+                e.code(),
+                e
+            );
+            return Err(map_write_err(e));
+        }
+        Ok(())
     }
 
     fn read(&self, account_id: &str, reason: &str) -> Result<String, BiometricError> {
@@ -126,6 +182,11 @@ impl BiometricStorage for MacOsBiometricStorage {
             return Err(BiometricError::UserPresenceCancelled);
         }
         if status != 0 {
+            tracing::error!(
+                "SecItemCopyMatching failed for account_id={}: code={}",
+                account_id,
+                status
+            );
             return Err(BiometricError::KeychainReadFailed(format!(
                 "status={status}"
             )));
@@ -140,35 +201,27 @@ impl BiometricStorage for MacOsBiometricStorage {
     }
 
     fn delete(&self, account_id: &str) -> Result<(), BiometricError> {
-        let options = PasswordOptions::new_generic_password(SERVICE, &account_key(account_id));
-        match delete_generic_password_options(options) {
-            Ok(()) => Ok(()),
-            Err(e) if e.code() == errSecItemNotFound => Err(BiometricError::KeychainItemNotFound),
-            Err(e) => Err(map_write_err(SecError::from_code(e.code()))),
+        let query = Self::base_query(account_id).to_immutable();
+        let status = unsafe { SecItemDelete(query.as_concrete_TypeRef()) };
+
+        if status == errSecItemNotFound {
+            return Err(BiometricError::KeychainItemNotFound);
         }
+
+        if let Err(e) = check_status(status) {
+            tracing::error!(
+                "SecItemDelete failed for account_id={}: code={} ({:?})",
+                account_id,
+                e.code(),
+                e
+            );
+            return Err(map_write_err(e));
+        }
+        Ok(())
     }
 
     fn exists(&self, account_id: &str) -> bool {
-        use core_foundation::base::CFType;
-        let mut dict = CFMutableDictionary::<CFString, CFType>::new();
-
-        let class_key =
-            unsafe { CFString::wrap_under_get_rule(security_framework_sys::item::kSecClass) };
-        let class_val: CFType = unsafe {
-            CFString::wrap_under_get_rule(security_framework_sys::item::kSecClassGenericPassword)
-        }
-        .into_CFType();
-        dict.add(&class_key, &class_val);
-
-        let service_key =
-            unsafe { CFString::wrap_under_get_rule(security_framework_sys::item::kSecAttrService) };
-        let service_val: CFType = CFString::from(SERVICE).into_CFType();
-        dict.add(&service_key, &service_val);
-
-        let account_key_cf =
-            unsafe { CFString::wrap_under_get_rule(security_framework_sys::item::kSecAttrAccount) };
-        let account_val: CFType = CFString::from(account_key(account_id).as_str()).into_CFType();
-        dict.add(&account_key_cf, &account_val);
+        let mut dict = Self::base_query(account_id);
 
         let return_attrs_key = unsafe { CFString::wrap_under_get_rule(kSecReturnAttributes) };
         let true_val: CFType = CFBoolean::from(true).into_CFType();
@@ -193,6 +246,14 @@ impl BiometricStorage for MacOsBiometricStorage {
 
         // 项存在但需要认证时会返回 user-canceled / auth-failed；只要不是"未找到"就认为存在。
         status != errSecItemNotFound
+    }
+}
+
+fn check_status(status: OSStatus) -> Result<(), SecError> {
+    if status == 0 {
+        Ok(())
+    } else {
+        Err(SecError::from_code(status))
     }
 }
 
