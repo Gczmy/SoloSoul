@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import styles from './SideNavigation.module.css';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useOcrScanStore } from '@/stores/ocrScanStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
 import type { CustomPage } from '@/stores/settingsStore';
@@ -13,10 +14,11 @@ import { SearchPopover } from './SearchPopover';
 import { NavButton } from './NavButton';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { AiQuickChatPopover } from './AiQuickChatPopover';
-import {
+import { OcrQuickScanPopover } from './OcrQuickScanPopover';import {
   useActiveCustomPages,
   useBoundNavActions,
   useAiQuickChat,
+  useOcrQuickScan,
   SYSTEM_PAGE_KEYS,
   primaryItems,
 } from './useNavigationItems';
@@ -725,8 +727,13 @@ export function SideNavigation() {
   const { t } = useTranslation('navigation');
 
   const { items, showSearch, setShowSearch } = useBoundNavActions();
+  const ocrQuickScanPlacement: import('./useNavigationItems').OcrQuickScanPlacement =
+    sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
+  const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, ocrQuickScanPlacement);
   const aiQuickChatPlacement: import('./useNavigationItems').AiQuickChatPlacement =
     sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
+  const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);
+
   const { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos } = useAiQuickChat(
     520,
     aiQuickChatPlacement,
@@ -933,6 +940,28 @@ export function SideNavigation() {
         )}
         {items.map((item, i) => {
           if (item.type === 'action') {
+            if (item.iconKey === 'ocr') {
+              return (
+                <div ref={ocrButtonRef} key="ocr" data-ocr-button="true">
+                  <NavButton
+                    Icon={PAGE_ICON_MAP[item.iconKey]}
+                    label={t(item.labelKey)}
+                    isActive={isOcrCardOpen}
+                    onClick={item.action}
+                    position={sidebarPosition}
+                  />
+                  {isOcrCardOpen &&
+                    createPortal(
+                      <OcrQuickScanPopover
+                        position={quickScanPos}
+                        onClose={() => useOcrScanStore.getState().setCardOpen(false)}
+                        placement={ocrQuickScanPlacement}
+                      />,
+                      document.body,
+                    )}
+                </div>
+              );
+            }
             const isSearch = item.iconKey === 'search';
             return (
               <div key={`action-${i}`} style={{ position: 'relative' }}>

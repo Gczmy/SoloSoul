@@ -47,4 +47,5 @@ npm-debug.log*
 
 # OS-specific
 *.dylib
-*.dll.dll
+*.dll
+*.so

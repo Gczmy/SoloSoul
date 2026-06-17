@@ -47,6 +47,7 @@
     "resources": {
       "resources/docs": "docs",
       "resources/models": "models",
+      "resources/pdfium": "pdfium",
       "../../SoloSoul_plugin_market/plugins": "SoloSoul_plugin_market/plugins",
       "../../SoloSoul_plugin_market/registry.json": "SoloSoul_plugin_market/registry.json"
     },

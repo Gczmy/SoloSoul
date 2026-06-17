@@ -47,6 +47,7 @@ vi.mock('@/lib/ipc', () => ({
     ocrInstallBundledModel: vi.fn(),
     ocrDownloadModel: vi.fn(),
     ocrScanImage: vi.fn(),
+    ocrScanMrz: vi.fn(),
   },
 }));
 
@@ -86,6 +87,7 @@ const mockCmd = commands as unknown as {
   ocrInstallBundledModel: ReturnType<typeof vi.fn>;
   ocrDownloadModel: ReturnType<typeof vi.fn>;
   ocrScanImage: ReturnType<typeof vi.fn>;
+  ocrScanMrz: ReturnType<typeof vi.fn>;
 };
 
 describe('OcrPage', () => {
@@ -112,7 +114,7 @@ describe('OcrPage', () => {
     );
 
     expect(screen.getByTestId('app-shell')).toHaveAttribute('data-title', 'ocr:title');
-    expect(await screen.findByText('ocr:select_image')).toBeInTheDocument();
+    expect(await screen.findByText('ocr:select_image_or_pdf')).toBeInTheDocument();
   });
 
   it('loads model tiers and status on mount', async () => {
@@ -144,10 +146,10 @@ describe('OcrPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('ocr:select_image')).toBeInTheDocument();
+      expect(screen.getByText('ocr:select_image_or_pdf')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('ocr:select_image'));
+    fireEvent.click(screen.getByText('ocr:select_image_or_pdf'));
 
     await waitFor(() => {
       expect(mockCmd.ocrScanImage).toHaveBeenCalledWith('/test/image.png');
@@ -172,7 +174,7 @@ describe('OcrPage', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(await screen.findByText('ocr:select_image'));
+    fireEvent.click(await screen.findByText('ocr:select_image_or_pdf'));
     await screen.findAllByText('Hello World');
 
     fireEvent.click(screen.getByText('ocr:import_as_object'));
@@ -202,7 +204,7 @@ describe('OcrPage', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(await screen.findByText('ocr:select_image'));
+    fireEvent.click(await screen.findByText('ocr:select_image_or_pdf'));
 
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalledWith(
@@ -225,7 +227,7 @@ describe('OcrPage', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(await screen.findByText('ocr:select_image'));
+    fireEvent.click(await screen.findByText('ocr:select_image_or_pdf'));
 
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalledWith(

@@ -119,6 +119,21 @@ pub fn perspective_crop(img: &RgbImage, points: &[(f32, f32); 4]) -> RgbImage {
     image::imageops::crop_imm(img, x, y, w, h).to_image()
 }
 
+/// 对 MRZ 裁剪区域做增强：灰度、放大 2x。
+pub fn enhance_mrz_crop(img: &RgbImage) -> RgbImage {
+    let gray = image::imageops::grayscale(img);
+    let scaled = image::imageops::resize(
+        &gray,
+        gray.width() * 2,
+        gray.height() * 2,
+        FilterType::Triangle,
+    );
+    RgbImage::from_fn(scaled.width(), scaled.height(), |x, y| {
+        let p = scaled.get_pixel(x, y).0[0];
+        Rgb([p, p, p])
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

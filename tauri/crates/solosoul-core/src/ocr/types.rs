@@ -81,3 +81,25 @@ impl std::str::FromStr for OcrModelTier {
         }
     }
 }
+
+/// MRZ（机读区）识别结果。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MrzResult {
+    pub document_type: String,
+    pub document_type_sub: String,
+    pub issuing_country: String,
+    pub document_number: String,
+    pub check_digit_document_number: char,
+    pub nationality: String,
+    pub date_of_birth: String,
+    pub check_digit_date_of_birth: char,
+    pub sex: String,
+    pub expiry_date: String,
+    pub check_digit_expiry: char,
+    pub optional_data: String,
+    pub composite_check_digit: String,
+    pub raw_lines: Vec<String>,
+    pub confidence: f64,
+    pub checksum_valid: bool,
+}

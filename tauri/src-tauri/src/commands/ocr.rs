@@ -13,7 +13,7 @@ use solosoul_core::ocr::{
         install_model_from_bundled, install_model_from_bundled_with_progress, is_model_installed,
         resolve_model_bundle,
     },
-    types::{OcrModelTier, OcrResult},
+    types::{MrzResult, OcrModelTier, OcrResult},
 };
 use std::path::{Path, PathBuf};
 use tauri::{Emitter, Manager};
@@ -115,6 +115,28 @@ fn active_tier(app: &tauri::AppHandle) -> OcrModelTier {
     load_preferences(app).active_tier
 }
 
+/// 尝试从 Tauri 资源目录定位 PDFium 动态库，并通过环境变量告知 `pdfium-render`。
+///
+/// 该环境变量仅在当前进程内有效；若用户已手动设置，则保留原值。
+fn ensure_pdfium_library_path(app: &tauri::AppHandle) {
+    if std::env::var("PDFIUM_LIBRARY_PATH").is_ok() {
+        return;
+    }
+    let filename = if cfg!(target_os = "macos") {
+        "libpdfium.dylib"
+    } else if cfg!(target_os = "windows") {
+        "pdfium.dll"
+    } else {
+        "libpdfium.so"
+    };
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        let candidate = resource_dir.join("pdfium").join(filename);
+        if candidate.exists() {
+            std::env::set_var("PDFIUM_LIBRARY_PATH", candidate);
+        }
+    }
+}
+
 /** 前端用于识别「模型未安装」错误并做国际化提示的前缀。 */
 const OCR_MODEL_NOT_INSTALLED_PREFIX: &str = "__OCR_MODEL_NOT_INSTALLED__";
 
@@ -139,9 +161,10 @@ fn ensure_model_available(app: &tauri::AppHandle, tier: OcrModelTier) -> Result<
 // Commands
 // =============================================================================
 
-/// 扫描图片并返回识别到的文本。
+/// 扫描图片或 PDF 并返回识别到的文本。
 ///
 /// 要求 Vault 已解锁；使用当前激活的模型档位。
+/// PDF 文件优先提取文本层，若无文本则逐页渲染为图片后 OCR。
 #[tauri::command]
 pub async fn ocr_scan_image(
     state: tauri::State<'_, AppState>,
@@ -162,10 +185,23 @@ pub async fn ocr_scan_image(
     }
 
     let mut engine = OcrEngine::load(&models_dir, tier)?;
-    let result = engine.scan_image(&path)?;
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_lowercase());
+    let file_type = ext.as_deref();
+
+    let result = match file_type {
+        Some("pdf") => {
+            ensure_pdfium_library_path(app);
+            engine.scan_pdf(&path)?
+        }
+        _ => engine.scan_image(&path)?,
+    };
 
     let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
     let details = json!({
+        "fileType": file_type.unwrap_or("unknown"),
         "tier": tier.to_string(),
         "boxCount": result.boxes.len(),
         "textLength": result.text.len(),
@@ -174,6 +210,48 @@ pub async fn ocr_scan_image(
     .to_string();
     let _ = vault.log_structured(
         "ocr_scan",
+        "file",
+        None,
+        file_name.as_deref(),
+        &account_id,
+        Some(&details),
+    );
+
+    Ok(result)
+}
+
+/// 扫描图片中的 MRZ（机读区）并返回解析结果。
+///
+/// 若未检测到 MRZ 区域，返回 `null`。
+#[tauri::command]
+pub async fn ocr_scan_mrz(
+    state: tauri::State<'_, AppState>,
+    file_path: String,
+) -> Result<Option<MrzResult>, String> {
+    let vault = vault_handle(&state)?;
+    let account_id = current_account(&state)?;
+
+    let app = state.app_handle();
+    let tier = active_tier(app);
+    let models_dir = ensure_model_available(app, tier)?;
+
+    let path = PathBuf::from(&file_path);
+    if !path.exists() {
+        return Err(format!("文件不存在: {}", path.display()));
+    }
+
+    let mut engine = OcrEngine::load(&models_dir, tier)?;
+    let result = engine.scan_mrz(&path)?;
+
+    let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
+    let has_mrz = result.is_some();
+    let details = json!({
+        "tier": tier.to_string(),
+        "hasMrz": has_mrz,
+    })
+    .to_string();
+    let _ = vault.log_structured(
+        "ocr_scan_mrz",
         "file",
         None,
         file_name.as_deref(),

@@ -38,6 +38,7 @@ import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
 import { HelpPage } from '@/pages/help/HelpPage';
 import { UpdateBanner } from '@/components/ui/UpdateBanner';
 import { OcrInstallBanner } from '@/components/ui/OcrInstallBanner';
+import { OcrScanNotificationListener } from '@/components/layout/OcrScanNotificationListener';
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { checkForUpdate } from '@/lib/updater';
 import {
@@ -618,6 +619,7 @@ function App() {
     <BrowserRouter>
       <AppRoutes />
       <ToastContainer />
+      <OcrScanNotificationListener />
       {!hasSeenOnboarding && (
         <OnboardingDialog onComplete={finishOnboarding} onSkip={finishOnboarding} />
       )}

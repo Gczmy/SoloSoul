@@ -202,6 +202,9 @@ export const commands = {
   async ocrScanImage(filePath: string, language?: string): Promise<OcrResult> {
     return invoke('ocr_scan_image', { filePath, language });
   },
+  async ocrScanMrz(filePath: string): Promise<MrzResult | null> {
+    return invoke('ocr_scan_mrz', { filePath });
+  },
   async ocrGetSupportedLanguages(): Promise<string[]> {
     return invoke('ocr_get_supported_languages');
   },
@@ -238,6 +241,25 @@ export interface OcrResult {
   text: string;
   confidence: number;
   boxes: OcrBox[];
+}
+
+export interface MrzResult {
+  documentType: string;
+  documentTypeSub: string;
+  issuingCountry: string;
+  documentNumber: string;
+  checkDigitDocumentNumber: string;
+  nationality: string;
+  dateOfBirth: string;
+  checkDigitDateOfBirth: string;
+  sex: string;
+  expiryDate: string;
+  checkDigitExpiry: string;
+  optionalData: string;
+  compositeCheckDigit: string;
+  rawLines: string[];
+  confidence: number;
+  checksumValid: boolean;
 }
 
 export interface OcrTierInfo {

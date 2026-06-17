@@ -7,7 +7,7 @@ use super::postprocess::{build_ocr_result, ctc_decode, extract_text_boxes};
 use super::preprocess::{
     load_rgb_image, perspective_crop, preprocess_for_detection, preprocess_for_recognition,
 };
-use super::types::{OcrModelTier, OcrResult};
+use super::types::{MrzResult, OcrModelTier, OcrResult};
 use ort::session::Session;
 use std::path::Path;
 
@@ -47,10 +47,15 @@ impl OcrEngine {
     /// 扫描单张图片并返回所有识别到的文本块。
     pub fn scan_image(&mut self, image_path: &Path) -> Result<OcrResult, String> {
         let img = load_rgb_image(image_path)?;
+        self.scan_rgb(&img)
+    }
+
+    /// 对已加载的 RGB 图像执行 OCR。
+    pub fn scan_rgb(&mut self, img: &image::RgbImage) -> Result<OcrResult, String> {
         let det_cfg = load_det_postprocess_config(&self.bundle.det_config)?;
 
         // 1. 检测
-        let det_input = preprocess_for_detection(&img);
+        let det_input = preprocess_for_detection(img);
         let det_tensor = ndarray_to_ort_tensor(&det_input.tensor.view())?;
         let det_outputs = self
             .det_session
@@ -87,7 +92,7 @@ impl OcrEngine {
         let mut texts = Vec::with_capacity(boxes.len());
         let mut confidences = Vec::with_capacity(boxes.len());
         for pts in &boxes {
-            let crop = perspective_crop(&img, pts);
+            let crop = perspective_crop(img, pts);
             let rec_input = preprocess_for_recognition(&crop);
             let rec_tensor = ndarray_to_ort_tensor(&rec_input.tensor.view())?;
             let rec_outputs = self
@@ -112,6 +117,123 @@ impl OcrEngine {
         }
 
         Ok(build_ocr_result(boxes, texts, confidences))
+    }
+
+    /// 扫描 PDF 文件。
+    /// 优先提取文本层；无文本时渲染为图片再 OCR。
+    pub fn scan_pdf(&mut self, pdf_path: &Path) -> Result<OcrResult, String> {
+        use super::pdf::{
+            cleanup_rendered_pages, extract_pdf_text, has_meaningful_text, render_pdf_pages,
+        };
+
+        // 1. 提取文本层
+        let pages = extract_pdf_text(pdf_path)?;
+
+        // 2. 若文本有意义，直接返回
+        if has_meaningful_text(&pages, 20) {
+            let mut all_text = String::new();
+            let mut all_boxes = Vec::new();
+            for (i, page_text) in pages.iter().enumerate() {
+                if i > 0 {
+                    all_text.push_str(&format!("\n--- Page {} ---\n", i + 1));
+                    all_boxes.push(super::types::OcrBox {
+                        text: format!("--- Page {} ---", i + 1),
+                        confidence: 1.0,
+                        points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
+                    });
+                }
+                all_text.push_str(page_text);
+                all_boxes.push(super::types::OcrBox {
+                    text: page_text.clone(),
+                    confidence: 1.0,
+                    points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
+                });
+            }
+            return Ok(OcrResult {
+                text: all_text,
+                confidence: 1.0,
+                boxes: all_boxes,
+            });
+        }
+
+        // 3. 渲染为图片并 OCR
+        let temp_dir =
+            std::env::temp_dir().join(format!("solosoul-pdf-{}-pages", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&temp_dir).map_err(|e| format!("创建临时目录失败: {e}"))?;
+
+        let image_paths = render_pdf_pages(pdf_path, 150, &temp_dir)?;
+
+        let mut all_text_parts = Vec::new();
+        let mut all_boxes = Vec::new();
+
+        for (i, path) in image_paths.iter().enumerate() {
+            let page_result = self.scan_image(path)?;
+            if i > 0 {
+                all_text_parts.push(format!("\n--- Page {} ---\n", i + 1));
+                all_boxes.push(super::types::OcrBox {
+                    text: format!("--- Page {} ---", i + 1),
+                    confidence: 1.0,
+                    points: [(0.0, 1.0), (0.0, 1.0), (1.0, 1.0), (1.0, 1.0)],
+                });
+            }
+            all_text_parts.push(page_result.text.clone());
+            all_boxes.extend(page_result.boxes);
+        }
+
+        cleanup_rendered_pages(&image_paths);
+        let _ = std::fs::remove_dir(&temp_dir);
+
+        let text = all_text_parts.join("");
+        let confidence = if !all_boxes.is_empty() {
+            all_boxes.iter().map(|b| b.confidence).sum::<f64>() / all_boxes.len() as f64
+        } else {
+            0.0
+        };
+
+        Ok(OcrResult {
+            text,
+            confidence,
+            boxes: all_boxes,
+        })
+    }
+
+    /// 扫描图片中的 MRZ 区域并解析。
+    /// 若未检测到 MRZ 或解析失败，返回 Ok(None)。
+    pub fn scan_mrz(&mut self, image_path: &Path) -> Result<Option<MrzResult>, String> {
+        use super::mrz::{detect_mrz_region, enhance_mrz_crop, parse_mrz};
+
+        let img = load_rgb_image(image_path)?;
+
+        // 1. 检测 MRZ 区域
+        let region = match detect_mrz_region(&img) {
+            Some(r) => r,
+            None => return Ok(None),
+        };
+
+        // 2. 裁剪 MRZ 区域
+        let crop = perspective_crop(&img, &region);
+
+        // 3. 增强
+        let enhanced = enhance_mrz_crop(&crop);
+
+        // 4. OCR
+        let ocr_result = self.scan_rgb(&enhanced)?;
+
+        // 5. 提取文本行并解析
+        let lines: Vec<String> = ocr_result
+            .text
+            .lines()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        if lines.len() < 2 {
+            return Ok(None);
+        }
+
+        let mut mrz = parse_mrz(&lines)?;
+        mrz.confidence = ocr_result.confidence;
+        Ok(Some(mrz))
     }
 }
 

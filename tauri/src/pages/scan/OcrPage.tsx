@@ -8,9 +8,12 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
-import { commands, type OcrResult, type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
+import { commands, type OcrResult, type OcrTierInfo, type OcrModelStatus, type MrzResult } from '@/lib/ipc';
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
+import { MrzResultCard } from '@/components/ocr/MrzResultCard';
 import { Scan, FileText, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+
+type ScanMode = 'general' | 'mrz';
 
 export function OcrPage() {
   const navigate = useNavigate();
@@ -24,8 +27,10 @@ export function OcrPage() {
 
   const [filePath, setFilePath] = useState(initialFilePath);
   const [result, setResult] = useState<OcrResult | null>(null);
+  const [mrzResult, setMrzResult] = useState<MrzResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [scanMode, setScanMode] = useState<ScanMode>('general');
 
   const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
   const [activeTier, setActiveTier] = useState('small');
@@ -86,6 +91,40 @@ export function OcrPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const getFileFilters = () => {
+    if (scanMode === 'mrz') {
+      return [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }];
+    }
+    return [{ name: 'Images & PDFs', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'pdf'] }];
+  };
+
+  const performScan = async (path: string) => {
+    if (!guardActiveModelInstalled()) return;
+    setIsScanning(true);
+    setResult(null);
+    setMrzResult(null);
+    try {
+      if (scanMode === 'mrz') {
+        const res = await commands.ocrScanMrz(path);
+        if (res) {
+          setMrzResult(res);
+        } else {
+          // MRZ not detected: fall back to general OCR
+          const ocrRes = await commands.ocrScanImage(path);
+          setResult(ocrRes);
+          onSuccess(t('ocr:mrz_no_detected'));
+        }
+      } else {
+        const res = await commands.ocrScanImage(path);
+        setResult(res);
+      }
+    } catch (e) {
+      handleScanError(e);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
   // 如果通过附件菜单传入文件路径，自动开始扫描。
   useEffect(() => {
     if (!initialFilePath) return;
@@ -94,10 +133,21 @@ export function OcrPage() {
       if (!guardActiveModelInstalled()) return;
       setIsScanning(true);
       setResult(null);
+      setMrzResult(null);
       try {
-        const res = await commands.ocrScanImage(initialFilePath);
-        if (cancelled) return;
-        setResult(res);
+        if (scanMode === 'mrz') {
+          const res = await commands.ocrScanMrz(initialFilePath);
+          if (cancelled) return;
+          if (res) {
+            setMrzResult(res);
+          } else {
+            const ocrRes = await commands.ocrScanImage(initialFilePath);
+            if (!cancelled) setResult(ocrRes);
+          }
+        } else {
+          const res = await commands.ocrScanImage(initialFilePath);
+          if (!cancelled) setResult(res);
+        }
       } catch (e) {
         if (!cancelled) handleScanError(e);
       } finally {
@@ -111,26 +161,16 @@ export function OcrPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialFilePath]);
 
-  const handleSelectImage = async () => {
+  const handleSelectFile = async () => {
     try {
       const path = await open({
-        filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }],
+        filters: getFileFilters(),
         multiple: false,
-        title: t('ocr:select_image_title'),
+        title: scanMode === 'mrz' ? t('ocr:select_image_title') : t('ocr:select_file_title'),
       });
       if (path && typeof path === 'string') {
-        if (!guardActiveModelInstalled()) return;
         setFilePath(path);
-        setIsScanning(true);
-        setResult(null);
-        try {
-          const res = await commands.ocrScanImage(path);
-          setResult(res);
-        } catch (e) {
-          handleScanError(e);
-        } finally {
-          setIsScanning(false);
-        }
+        await performScan(path);
       }
     } catch (e) {
       onError(e, t('ocr:select_image_failed'));
@@ -337,7 +377,7 @@ export function OcrPage() {
           </div>
         </Card>
 
-        {/* Scan area */}
+        {/* Scan mode + action */}
         <Card>
           <div style={{ textAlign: 'center', padding: 24 }}>
             <Scan
@@ -348,8 +388,63 @@ export function OcrPage() {
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
               {t('ocr:description')}
             </p>
-            <Button onClick={handleSelectImage} loading={isScanning}>
-              <FileText size={14} style={{ marginRight: 6 }} /> {t('ocr:select_image')}
+
+            {/* Mode toggle */}
+            <div
+              style={{
+                display: 'inline-flex',
+                gap: 4,
+                padding: 4,
+                borderRadius: 8,
+                background: 'var(--bg-toolbar)',
+                marginBottom: 16,
+              }}
+            >
+              <button
+                onClick={() => {
+                  setScanMode('general');
+                  setResult(null);
+                  setMrzResult(null);
+                }}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 6,
+                  border: 'none',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  background: scanMode === 'general' ? 'var(--bg-elevated)' : 'transparent',
+                  color: 'var(--text-primary)',
+                  fontWeight: scanMode === 'general' ? 600 : 400,
+                }}
+              >
+                {t('ocr:scan_mode_general')}
+              </button>
+              <button
+                onClick={() => {
+                  setScanMode('mrz');
+                  setResult(null);
+                  setMrzResult(null);
+                }}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 6,
+                  border: 'none',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  background: scanMode === 'mrz' ? 'var(--bg-elevated)' : 'transparent',
+                  color: 'var(--text-primary)',
+                  fontWeight: scanMode === 'mrz' ? 600 : 400,
+                }}
+              >
+                {t('ocr:scan_mode_mrz')}
+              </button>
+            </div>
+
+            <br />
+
+            <Button onClick={handleSelectFile} loading={isScanning}>
+              <FileText size={14} style={{ marginRight: 6 }} />{' '}
+              {scanMode === 'mrz' ? t('ocr:select_image') : t('ocr:select_image_or_pdf')}
             </Button>
           </div>
         </Card>
@@ -372,6 +467,7 @@ export function OcrPage() {
           </Card>
         )}
 
+        {/* General OCR result */}
         {result && (
           <Card>
             <div
@@ -388,7 +484,7 @@ export function OcrPage() {
               </Button>
             </div>
 
-            {result.boxes.length > 0 && (
+            {result.boxes.length > 1 && (
               <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {result.boxes.map((box, i) => (
                   <div
@@ -440,6 +536,26 @@ export function OcrPage() {
                 {t('ocr:no_text')}
               </p>
             )}
+          </Card>
+        )}
+
+        {/* MRZ result */}
+        {mrzResult && (
+          <Card>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 12,
+              }}
+            >
+              <h3 style={{ fontSize: 14, fontWeight: 600 }}>{t('ocr:mrz_result_title')}</h3>
+              <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
+                <Upload size={14} style={{ marginRight: 4 }} /> {t('ocr:import_as_object')}
+              </Button>
+            </div>
+            <MrzResultCard result={mrzResult} />
           </Card>
         )}
       </div>

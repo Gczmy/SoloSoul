@@ -445,6 +445,7 @@ pub fn run() {
             commands::biometric::biometric_test,
             // OCR commands
             commands::ocr::ocr_scan_image,
+            commands::ocr::ocr_scan_mrz,
             commands::ocr::ocr_get_supported_languages,
             commands::ocr::ocr_list_available_tiers,
             commands::ocr::ocr_get_active_tier,

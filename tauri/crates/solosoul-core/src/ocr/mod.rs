@@ -4,10 +4,12 @@
 
 pub mod engine;
 pub mod model;
+pub mod mrz;
+pub mod pdf;
 pub mod postprocess;
 pub mod preprocess;
 pub mod types;
 
 pub use engine::OcrEngine;
 pub use model::{resolve_model_bundle, OcrModelBundle};
-pub use types::{OcrBox, OcrModelTier, OcrResult};
+pub use types::{MrzResult, OcrBox, OcrModelTier, OcrResult};

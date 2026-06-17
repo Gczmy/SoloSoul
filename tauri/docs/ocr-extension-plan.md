@@ -28,21 +28,22 @@
 
 ## 2. 依赖配置
 
-修改 `crates/solosoul-core/Cargo.toml`：
+当前 `crates/solosoul-core/Cargo.toml` 实际使用的 PDF 相关依赖：
 
 ```toml
 [dependencies]
 # ... 现有依赖 ...
 
 # PDF 文本提取
-lopdf = "0.35"
-pdf-extract = "0.8"
+pdf-extract = "0.10.0"
 
 # PDF 渲染为图片
-pdfium-render = { version = "0.8", features = ["image"] }
+pdfium-render = "0.9.2"
 ```
 
-> 注意：`pdfium-render` 0.8 默认依赖 `image` 0.24，而项目已使用 `image` 0.25。为避免类型冲突，渲染后统一**保存为临时 PNG 文件**，再用项目现有的 `image::open`（0.25）读取。不直接在内存中传递 `image::DynamicImage`。
+> 说明：原计划的 `lopdf = "0.35"` 并未实际使用；PDF 文本提取由 `pdf-extract` 完成。若后续需要直接操作 PDF 结构，可再引入 `lopdf`。
+>
+> 注意：`pdfium-render` 默认依赖的 `image` 版本与项目使用的 `image` 0.25 存在差异。为避免类型冲突，渲染后统一**保存为临时 PNG 文件**，再用项目现有的 `image::open`（0.25）读取。不直接在内存中传递 `image::DynamicImage`。
 
 ---
 
@@ -54,38 +55,49 @@ pdfium-render = { version = "0.8", features = ["image"] }
 
 #### 开发环境
 
-手动下载对应平台 PDFium 二进制并放入 `src-tauri/resources/`：
+运行提供的脚本自动下载对应平台 PDFium 动态库：
+
+```bash
+bash scripts/download-pdfium.sh
+```
+
+脚本会将二进制放入 `src-tauri/resources/pdfium/`。也可手动下载：
 
 ```bash
 # macOS (Apple Silicon)
 curl -L -o pdfium-mac-arm64.tgz https://github.com/bblanchon/pdfium-binaries/releases/latest/download/pdfium-mac-arm64.tgz
 tar xzf pdfium-mac-arm64.tgz
-# 将 libpdfium.dylib 放到 src-tauri/resources/
+mkdir -p src-tauri/resources/pdfium
+cp lib/libpdfium.dylib src-tauri/resources/pdfium/
 
 # Windows
-# 下载 pdfium-win-x64.tgz，将 pdfium.dll 放到 src-tauri/resources/
+# 下载 pdfium-win-x64.tgz，将 pdfium.dll 放到 src-tauri/resources/pdfium/
 
 # Linux
-# 下载 pdfium-linux-x64.tgz，将 libpdfium.so 放到 src-tauri/resources/
+# 下载 pdfium-linux-x64.tgz，将 libpdfium.so 放到 src-tauri/resources/pdfium/
 ```
+
+> 注意：`src-tauri/resources/pdfium/` 下的动态库文件已被 `.gitignore` 忽略，**不应提交到 Git**；CI 或新 clone 需重新执行下载脚本。
 
 #### 生产打包
 
-在 `src-tauri/tauri.conf.json` 的 `bundle.resources` 中注册 PDFium 动态库：
+在 `src-tauri/tauri.conf.json` 的 `bundle.resources` 中注册 PDFium 目录：
 
 ```json
 "resources": {
   "resources/docs": "docs",
   "resources/models": "models",
-  "resources/libpdfium.dylib": "libpdfium.dylib"
+  "resources/pdfium": "pdfium"
 }
 ```
 
-运行时从 `RESOURCE_DIR` 定位动态库，设置环境变量或传入 `PdfiumLibraryConfig`：
+运行时优先从 Tauri `RESOURCE_DIR/pdfium/` 定位动态库，并在调用 `scan_pdf` 前设置环境变量：
 
 ```rust
-std::env::set_var("PDFIUM_LIBRARY_PATH", pdfium_dylib_path);
+std::env::set_var("PDFIUM_LIBRARY_PATH", resource_dir.join("pdfium").join(dylib_filename));
 ```
+
+`crates/solosoul-core/src/ocr/pdf.rs` 会读取 `PDFIUM_LIBRARY_PATH`，并回退到当前可执行文件附近的资源目录及开发工作目录。
 
 ### 3.2 新增 `crates/solosoul-core/src/ocr/pdf.rs`
 

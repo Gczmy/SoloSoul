@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import type { RefObject } from 'react';
 import { useVaultStore } from '@/stores/vaultStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useOcrScanStore } from '@/stores/ocrScanStore';
 import type { PageIconKey } from '@/lib/pageIcons';
 
 export interface NavLink {
@@ -56,9 +57,10 @@ export const CUSTOMIZABLE_ACTION_IDS = [
 export type CustomizableActionId = (typeof CUSTOMIZABLE_ACTION_IDS)[number];
 
 /** 每个可变按钮的路由或动作工厂。
- *  lock / settings 永远固定，不在这里定义。 */
+ *  lock / settings 永远固定，不在这里定义。
+ *  search 与 ocr 是动作型按钮，不在这里定义路由。 */
 export const CUSTOMIZABLE_LINKS: Record<
-  Exclude<CustomizableActionId, 'search'>,
+  Exclude<CustomizableActionId, 'search' | 'ocr'>,
   { path: string; iconKey: PageIconKey; labelKey: string }
 > = {
   plugins: { path: '/plugins', iconKey: 'plugins', labelKey: 'plugin' },
@@ -71,7 +73,6 @@ export const CUSTOMIZABLE_LINKS: Record<
     iconKey: 'import_export',
     labelKey: 'import_export',
   },
-  ocr: { path: '/ocr', iconKey: 'ocr', labelKey: 'ocr' },
 };
 
 export function useActiveCustomPages() {
@@ -99,7 +100,25 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
         action: () => setShowSearch(true),
       } as NavAction;
     }
-    const link = CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search'>];
+    if (id === 'ocr') {
+      return {
+        type: 'action',
+        iconKey: 'ocr',
+        labelKey: 'ocr',
+        action: () => {
+          const s = useOcrScanStore.getState();
+          s.setCardOpen(!s.isCardOpen);
+        },
+      } as NavAction;
+    }
+      return {
+        type: 'action',
+        iconKey: 'ocr',
+        labelKey: 'ocr',
+        action: () => useOcrScanStore.getState().setCardOpen(true),
+      } as NavAction;
+    }
+    const link = CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search' | 'ocr'>];
     if (!link) {
       // 未知 ID 回退为搜索，避免渲染错误
       return {
@@ -179,4 +198,52 @@ export function useAiQuickChat(
   }, [showQuickChat, updateQuickChatPos]);
 
   return { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos, updateQuickChatPos };
+}
+
+export type OcrQuickScanPlacement = 'left' | 'right' | 'bottom' | 'top';
+
+interface UseOcrQuickScanResult {
+  ocrButtonRef: RefObject<HTMLDivElement | null>;
+  quickScanPos: { top: number } | null;
+  updateQuickScanPos: () => void;
+}
+
+export function useOcrQuickScan(
+  cardHeight = 560,
+  placement: OcrQuickScanPlacement = 'left',
+): UseOcrQuickScanResult {
+  const isCardOpen = useOcrScanStore((s) => s.isCardOpen);
+  const ocrButtonRef = useRef<HTMLDivElement>(null);
+  const [quickScanPos, setQuickScanPos] = useState<{ top: number } | null>(null);
+
+  const updateQuickScanPos = useCallback(() => {
+    if (ocrButtonRef.current) {
+      const rect = ocrButtonRef.current.getBoundingClientRect();
+      let top: number;
+      if (placement === 'bottom') {
+        top = rect.bottom + 8;
+      } else if (placement === 'top') {
+        top = Math.max(rect.top - cardHeight - 8, 8);
+      } else {
+        top = Math.min(
+          Math.max(rect.top + rect.height / 2 - cardHeight / 2, 8),
+          window.innerHeight - cardHeight - 8,
+        );
+      }
+      setQuickScanPos({ top });
+    }
+  }, [cardHeight, placement]);
+
+  useEffect(() => {
+    if (!isCardOpen) return;
+    updateQuickScanPos();
+    window.addEventListener('scroll', updateQuickScanPos, true);
+    window.addEventListener('resize', updateQuickScanPos);
+    return () => {
+      window.removeEventListener('scroll', updateQuickScanPos, true);
+      window.removeEventListener('resize', updateQuickScanPos);
+    };
+  }, [isCardOpen, updateQuickScanPos]);
+
+  return { ocrButtonRef, quickScanPos, updateQuickScanPos };
 }
