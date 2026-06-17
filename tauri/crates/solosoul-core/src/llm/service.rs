@@ -61,13 +61,14 @@ impl LlmService {
     }
 
     /// Get or create the preferences sub-object within profile data.
-    fn prefs_mut(data: &mut serde_json::Value) -> &mut serde_json::Map<String, serde_json::Value> {
-        data.as_object_mut()
-            .expect("profile data must be object")
+    fn prefs_mut(data: &mut serde_json::Value) -> LlmResult<&mut serde_json::Map<String, serde_json::Value>> {
+        let obj = data.as_object_mut()
+            .ok_or_else(|| "profile data must be object".to_string())?;
+        Ok(obj
             .entry("preferences".to_string())
             .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()))
             .as_object_mut()
-            .expect("preferences must be object")
+            .ok_or_else(|| "preferences must be object".to_string())?)
     }
 
     // ── LLM Configuration ─────────────────────────────────────────
@@ -99,7 +100,7 @@ impl LlmService {
         config: &LlmConfig,
     ) -> LlmResult<()> {
         let mut data = Self::load_profile_data(vault, account_id)?;
-        let prefs = Self::prefs_mut(&mut data);
+        let prefs = Self::prefs_mut(&mut data)?;
         prefs.insert(
             "llmConfig".to_string(),
             serde_json::to_value(config).map_err(|e| e.to_string())?,
@@ -176,7 +177,7 @@ impl LlmService {
 
         // Save API key separately
         let mut data = Self::load_profile_data(vault, account_id)?;
-        let prefs = Self::prefs_mut(&mut data);
+        let prefs = Self::prefs_mut(&mut data)?;
         let mut keys: std::collections::HashMap<String, String> = prefs
             .get("llmApiKeys")
             .and_then(|v| serde_json::from_value(v.clone()).ok())
@@ -264,7 +265,7 @@ impl LlmService {
         }
         // Also clean up API key
         let mut data = Self::load_profile_data(vault, account_id)?;
-        let prefs = Self::prefs_mut(&mut data);
+        let prefs = Self::prefs_mut(&mut data)?;
         if let Some(keys_val) = prefs.get_mut("llmApiKeys") {
             if let Some(keys_obj) = keys_val.as_object_mut() {
                 keys_obj.remove(provider_id);
@@ -301,7 +302,7 @@ impl LlmService {
         conversations: &[Conversation],
     ) -> LlmResult<()> {
         let mut data = Self::load_profile_data(vault, account_id)?;
-        let prefs = Self::prefs_mut(&mut data);
+        let prefs = Self::prefs_mut(&mut data)?;
         prefs.insert(
             "llmConversations".to_string(),
             serde_json::to_value(conversations).map_err(|e| e.to_string())?,
@@ -433,7 +434,7 @@ impl LlmService {
         stats: &LlmUsageStats,
     ) -> LlmResult<()> {
         let mut data = Self::load_profile_data(vault, account_id)?;
-        let prefs = Self::prefs_mut(&mut data);
+        let prefs = Self::prefs_mut(&mut data)?;
         prefs.insert(
             "llmStats".to_string(),
             serde_json::to_value(stats).map_err(|e| e.to_string())?,
