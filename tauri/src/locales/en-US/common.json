@@ -190,5 +190,11 @@
   "onboarding_back": "Back",
   "onboarding_skip": "Skip",
   "onboarding_done": "Done",
-  "tutorial": "Tutorial"
+  "tutorial": "Tutorial",
+  "trash_desc": "View and manage deleted objects, restore or permanently purge",
+  "ocr_desc": "Scan images for text, quickly extract and create objects",
+  "search_desc": "Globally search objects, profiles, and help docs",
+  "ai_chat_desc": "Chat with the AI assistant for suggestions and help",
+  "quick_access": "Quick Access",
+  "data_sections": "Data Sections"
 }

@@ -524,7 +524,7 @@ export function OcrQuickScanPopover({
               marginBottom: 6,
             }}
           >
-            {t('ocr:active_model')} — {OCR_MODEL_SERIES}系列
+            {t('ocr:active_model_series', { model: OCR_MODEL_SERIES })}
           </label>
           <select
             value={store.activeTier}

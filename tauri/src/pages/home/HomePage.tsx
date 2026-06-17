@@ -34,6 +34,40 @@ const helpCard = {
   descKey: 'help_desc',
 };
 
+type QuickCard = {
+  path: string;
+  labelKey: string;
+  icon: typeof PAGE_ICON_MAP.profile;
+  descKey: string;
+};
+
+const quickCards: QuickCard[] = [
+  {
+    path: '/settings/trash',
+    labelKey: 'trash',
+    icon: PAGE_ICON_MAP.trash,
+    descKey: 'trash_desc',
+  },
+  {
+    path: '/ocr',
+    labelKey: 'ocr',
+    icon: PAGE_ICON_MAP.ocr,
+    descKey: 'ocr_desc',
+  },
+  {
+    path: '/search',
+    labelKey: 'search',
+    icon: PAGE_ICON_MAP.search,
+    descKey: 'search_desc',
+  },
+  {
+    path: '/llm-chat',
+    labelKey: 'ai_chat',
+    icon: PAGE_ICON_MAP.ai_chat,
+    descKey: 'ai_chat_desc',
+  },
+];
+
 export function HomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'navigation']);
@@ -58,6 +92,38 @@ export function HomePage() {
           </p>
         </Card>
 
+        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: -8, color: 'var(--text-primary)' }}>
+          {t('common:quick_access')}
+        </h2>
+
+        {/* Quick Access Cards */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+            gap: 12,
+          }}
+        >
+          {quickCards.map((q) => (
+            <Card key={q.path} interactive onClick={() => navigate(q.path)}>
+              <div style={{ marginBottom: 8 }}>
+                <q.icon size={28} />
+              </div>
+              <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+                {t(`navigation:${q.labelKey}`)}
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                {t(`common:${q.descKey}`)}
+              </p>
+            </Card>
+          ))}
+        </div>
+
+        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: -8, color: 'var(--text-primary)' }}>
+          {t('common:data_sections')}
+        </h2>
+
+        {/* Profile Sections */}
         <div
           style={{
             display: 'grid',
