@@ -253,9 +253,12 @@ if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
     log_error "然后将公钥更新到 tauri/src-tauri/tauri.conf.json 的 updater.pubkey"
     exit 1
 fi
+# 注意：TAURI_DIR 下运行 npx tauri，但 DMG_OUTPUT 是相对于项目根目录的路径，
+# 因此传入绝对路径，避免文件找不到。
+DMG_OUTPUT_ABS="$(cd "${TAURI_DIR}/.." && pwd)/${DMG_OUTPUT}"
 (
     cd "${TAURI_DIR}"
-    npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$DMG_OUTPUT"
+    npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$DMG_OUTPUT_ABS"
 )
 
 # 清理 staging

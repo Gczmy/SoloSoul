@@ -162,9 +162,12 @@ if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
     log_error "然后将公钥更新到 tauri/src-tauri/tauri.conf.json 的 updater.pubkey"
     exit 1
 fi
+# 注意：TAURI_DIR 下运行 npx tauri，但 NSIS_PATH 是相对于项目根目录的路径，
+# 因此传入绝对路径，避免文件找不到。
+NSIS_PATH_ABS="$(cd "${TAURI_DIR}/.." && pwd)/${NSIS_PATH}"
 (
     cd "${TAURI_DIR}"
-    npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$NSIS_PATH"
+    npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$NSIS_PATH_ABS"
 )
 
 NSIS_SIZE=$(du -sh "$NSIS_PATH" 2>/dev/null | cut -f1)
