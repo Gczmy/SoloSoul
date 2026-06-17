@@ -1,5 +1,28 @@
 ## [Released]
 
+## [2.3.2] - 2026-06-17
+
+### Added
+
+- **Home quick-access cards** — Added quick-access cards for Trash, OCR, Search, and AI Chat.
+- **Updater improvements** — Download progress in update banner, background updates, and macOS `.app.tar.gz` updater archive generation.
+- **Unified artifact signing** — New `docs/sign_artifacts.sh` signs Windows `.exe` and macOS `.app.tar.gz` on macOS.
+- **PDFium auto-download** — Release build scripts auto-download the platform-specific PDFium library if missing.
+
+### Changed
+
+- Moved Help card into the quick-access section and placed quick-access below data sections.
+- `.sig` files are no longer uploaded to GitHub Release; signatures are embedded in `latest.json` only.
+
+### Fixed
+
+- Corrected i18n key for the help page title.
+- Fixed back-button navigation from quick-access destination pages.
+- Resolved code audit items P048–P051 (error handling, dead code, React hook dependencies, memoization).
+- Registered `tauri-plugin-process` and granted `process:default` ACL for relaunch after update.
+- Disabled macOS AppleDouble metadata in updater archive to prevent extraction errors.
+- Fixed PDFium Windows DLL download source path.
+
 ## [2.3.1] - 2026-06-17
 
 ### Added
