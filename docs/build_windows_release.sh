@@ -133,14 +133,6 @@ if [[ ! -d "${PDFIUM_DIR}" || -z "$(find "${PDFIUM_DIR}" -maxdepth 1 -type f 2>/
     exit 1
 fi
 
-# 解析 Tauri 自动更新器签名密钥
-TAURI_KEY_FILE="${HOME}/.tauri/secret.key"
-if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" && -f "${TAURI_KEY_FILE}" ]]; then
-    log_info "从 ${TAURI_KEY_FILE} 读取 Tauri 签名私钥"
-    TAURI_SIGNING_PRIVATE_KEY=$(cat "${TAURI_KEY_FILE}")
-    export TAURI_SIGNING_PRIVATE_KEY
-fi
-
 # --- 清理旧产物 ---
 log_step "Cleaning previous build artifacts..."
 rm -rf "${BUNDLE_BASE}"
@@ -164,23 +156,9 @@ if [[ ! -f "$NSIS_PATH" ]]; then
     exit 1
 fi
 
-# 生成 Tauri 自动更新器签名文件（.sig）
-log_step "Signing updater package..."
-if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
-    log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，且未找到 ~/.tauri/secret.key"
-    log_error "请设置环境变量：export TAURI_SIGNING_PRIVATE_KEY='...'"
-    log_error "或生成并保存密钥到 ~/.tauri/secret.key："
-    log_error "  cd tauri && npx tauri signer generate -w ~/.tauri/secret.key"
-    log_error "然后将公钥更新到 tauri/src-tauri/tauri.conf.json 的 updater.pubkey"
-    exit 1
-fi
-# 注意：TAURI_DIR 下运行 npx tauri，但 NSIS_PATH 是相对于项目根目录的路径，
-# 因此传入绝对路径，避免文件找不到。
-NSIS_PATH_ABS="$(cd "${TAURI_DIR}/.." && pwd)/${NSIS_PATH}"
-(
-    cd "${TAURI_DIR}"
-    npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$NSIS_PATH_ABS"
-)
+# Windows 安装包签名统一在 macOS 本机进行，此处不生成 .sig
+log_info "Windows 安装包已生成，.sig 签名将在 macOS 上统一生成。"
+log_info "请将 ${NSIS_PATH} 复制到 Mac 的 SoloSoul-Releases/ 目录后运行 docs/sign_artifacts.sh。"
 
 NSIS_SIZE=$(du -sh "$NSIS_PATH" 2>/dev/null | cut -f1)
 

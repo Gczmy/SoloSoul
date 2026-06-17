@@ -158,12 +158,11 @@ git pull origin master
 ```
 tauri/src-tauri/target/release/bundle/
 └── nsis/SoloSoul_2.1.0_x64-setup.exe
-└── nsis/SoloSoul_2.1.0_x64-setup.exe.sig
 ```
 
 > 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./docs/build_windows_release.sh`
 
-> 构建脚本会自动调用 `npx tauri signer sign` 生成 `.sig`，需要提前设置 `TAURI_SIGNING_PRIVATE_KEY`。
+> Windows 脚本**不生成 `.sig`**，所有更新签名统一在 macOS 本机生成，避免在 Windows 上暴露私钥。
 
 > Windows 代码签名需另行购买证书并使用 `signtool` 签名，当前未在脚本中实现。
 
@@ -173,17 +172,26 @@ tauri/src-tauri/target/release/bundle/
 
 ### 5. 收集产物
 
-将 Windows 产物传输到 Mac（如通过共享文件夹、云盘、U盘等），统一放到同一目录，并确保 `.sig` 文件与安装包同名且放在一起：
+将 Windows 产物传输到 Mac（如通过共享文件夹、云盘、U盘等），统一放到同一目录：
 
 ```
 /Users/zzc/PycharmProjects/SoloSoul_code/SoloSoul-Releases
-├── SoloSoul_2.1.0_arm64.dmg         # macOS (Apple Silicon)
-├── SoloSoul_2.1.0_arm64.dmg.sig     # macOS 更新签名
-├── SoloSoul_2.1.0_x64-setup.exe     # Windows (NSIS 安装包)
-└── SoloSoul_2.1.0_x64-setup.exe.sig # Windows 更新签名
+├── SoloSoul_2.1.0_arm64.dmg     # macOS (Apple Silicon)
+└── SoloSoul_2.1.0_x64-setup.exe # Windows (NSIS 安装包)
 ```
 
-### 6. 本地验证
+### 6. 统一签名（在 Mac 上执行）
+
+所有平台的 Tauri updater `.sig` 签名统一在 macOS 上生成：
+
+```bash
+cd /Users/zzc/PycharmProjects/SoloSoul_code
+./docs/sign_artifacts.sh
+```
+
+脚本会读取 `~/.tauri/secret.key`（或环境变量 `TAURI_SIGNING_PRIVATE_KEY`），为 `SoloSoul-Releases/` 中的 `.dmg`、`.exe` 和 `.AppImage` 生成同名 `.sig` 文件。
+
+### 7. 本地验证
 
 #### macOS
 - 双击 DMG 安装，将 `SoloSoul.app` 拖入 Applications
@@ -195,7 +203,7 @@ tauri/src-tauri/target/release/bundle/
 - 从开始菜单或桌面快捷方式启动 SoloSoul
 - 验证 Vault 解锁、对象 CRUD、设置页面等基础功能
 
-### 7. 生成 latest.json
+### 8. 生成 latest.json
 
 在 Mac 上执行：
 
@@ -209,7 +217,7 @@ node scripts/generate-latest-json.js \
 
 生成的 `latest.json` 包含各平台安装包下载地址与 Ed25519 签名，供应用内更新器读取。
 
-### 8. GitHub Release 发布
+### 9. GitHub Release 发布
 
 在 **公开库** https://github.com/Gczmy/SoloSoul.git 创建 Release：
 
