@@ -111,13 +111,6 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
         },
       } as NavAction;
     }
-      return {
-        type: 'action',
-        iconKey: 'ocr',
-        labelKey: 'ocr',
-        action: () => useOcrScanStore.getState().setCardOpen(true),
-      } as NavAction;
-    }
     const link = CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search' | 'ocr'>];
     if (!link) {
       // 未知 ID 回退为搜索，避免渲染错误

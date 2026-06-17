@@ -51,6 +51,7 @@ export function OcrQuickScanPopover({
   const historyRef = useRef<HTMLDivElement>(null);
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevScanningRef = useRef(false);
+  const restoredCurrentScanRef = useRef(false);
 
   // Load model tiers on mount
   useEffect(() => {
@@ -86,6 +87,16 @@ export function OcrQuickScanPopover({
   useEffect(() => {
     prevScanningRef.current = store.isScanning;
   }, [store.isScanning]);
+
+  // On first open, restore the most recent history entry as current result
+  useEffect(() => {
+    if (restoredCurrentScanRef.current) return;
+    restoredCurrentScanRef.current = true;
+    if (!store.currentScanId && activeHistory.length > 0) {
+      useOcrScanStore.setState({ currentScanId: activeHistory[0].id });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Close history dropdown on outside click within card
   useEffect(() => {
@@ -336,7 +347,7 @@ export function OcrQuickScanPopover({
           </div>
 
           {!showTrash ? (
-            activeHistory.length === 1 ? (
+            activeHistory.length === 0 ? (
               <p
                 style={{
                   fontSize: 12,
@@ -415,7 +426,7 @@ export function OcrQuickScanPopover({
                 ))}
               </>
             )
-          ) : trash.length === 1 ? (
+          ) : trash.length === 0 ? (
             <p
               style={{
                 fontSize: 12,
@@ -688,20 +699,54 @@ export function OcrQuickScanPopover({
               <MrzResultCard result={currentEntry.mrzResult} />
             )}
 
-            {/* MRZ not detected fallback */}
+            {/* MRZ not detected fallback: show general OCR result if available */}
             {currentEntry.mode === 'mrz' && !currentEntry.mrzResult && !currentEntry.error && (
-              <div
-                style={{
-                  padding: 12,
-                  borderRadius: 10,
-                  background: 'var(--bg-toolbar)',
-                  fontSize: 13,
-                  color: 'var(--text-secondary)',
-                  textAlign: 'center',
-                }}
-              >
-                {t('ocr:mrz_no_detected')}
-              </div>
+              <>
+                {currentEntry.result ? (
+                  <>
+                    <div
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        background: 'rgba(41,128,185,0.08)',
+                        fontSize: 12,
+                        color: 'var(--text-secondary)',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {t('ocr:mrz_no_detected')}
+                    </div>
+                    <div
+                      style={{
+                        padding: 12,
+                        borderRadius: 10,
+                        background: 'var(--bg-toolbar)',
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                        whiteSpace: 'pre-wrap',
+                        maxHeight: 200,
+                        overflowY: 'auto',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      {currentEntry.result.text || t('ocr:no_text')}
+                    </div>
+                  </>
+                ) : (
+                  <div
+                    style={{
+                      padding: 12,
+                      borderRadius: 10,
+                      background: 'var(--bg-toolbar)',
+                      fontSize: 13,
+                      color: 'var(--text-secondary)',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {t('ocr:mrz_no_detected')}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

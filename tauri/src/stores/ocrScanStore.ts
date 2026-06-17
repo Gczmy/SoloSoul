@@ -75,19 +75,31 @@ export const useOcrScanStore = create<OcrScanState>()(
           isScanning: true,
           currentScanId: id,
           lastScanError: null,
-          scanHistory: [entry, ...state.scanHistory].slice(1, HISTORY_LIMIT + 1),
+          scanHistory: [entry, ...state.scanHistory].slice(0, HISTORY_LIMIT),
         });
 
         try {
           if (state.scanMode === 'mrz') {
             const res = await commands.ocrScanMrz(filePath);
-            set((s) => ({
-              isScanning: false,
-              scanHistory: s.scanHistory.map((h) =>
-                h.id === id ? { ...h, mrzResult: res || null } : h,
-              ),
-              lastScanError: res ? null : '未检测到 MRZ',
-            }));
+            if (res) {
+              set((s) => ({
+                isScanning: false,
+                scanHistory: s.scanHistory.map((h) =>
+                  h.id === id ? { ...h, mrzResult: res } : h,
+                ),
+                lastScanError: null,
+              }));
+            } else {
+              // 未检测到 MRZ 时自动 fallback 到通用 OCR
+              const fallback = await commands.ocrScanImage(filePath);
+              set((s) => ({
+                isScanning: false,
+                scanHistory: s.scanHistory.map((h) =>
+                  h.id === id ? { ...h, result: fallback } : h,
+                ),
+                lastScanError: null,
+              }));
+            }
           } else {
             const res = await commands.ocrScanImage(filePath);
             set((s) => ({

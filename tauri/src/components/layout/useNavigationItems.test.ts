@@ -6,11 +6,7 @@ describe('useNavigationItems constants', () => {
     expect(CUSTOMIZABLE_ACTION_IDS).toContain('ocr');
   });
 
-  it('maps ocr to /ocr route', () => {
-    expect(CUSTOMIZABLE_LINKS.ocr).toEqual({
-      path: '/ocr',
-      iconKey: 'ocr',
-      labelKey: 'ocr',
-    });
+  it('does not map ocr to a link because it is a sidebar action', () => {
+    expect(CUSTOMIZABLE_LINKS).not.toHaveProperty('ocr');
   });
 });
