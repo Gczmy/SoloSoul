@@ -495,7 +495,7 @@ FunctionEnd
 ; 覆盖 Tauri 默认语言字符串，确保中英文在安装/卸载全过程中正确显示。
 ; BEGIN inlined i18n.nsh
 ; i18n.nsh — 覆盖 Tauri 默认 NSIS 语言字符串，确保安装/卸载全过程中英文正确显示。
-; 本文件在 installer.nsi 的 {{#each language_files}} 之后引入，因此会覆盖 Tauri 自动生成的默认值。
+; 本文件在 installer.nsi 的语言文件循环（\{{#each language_files}}）之后引入，因此会覆盖 Tauri 自动生成的默认值。
 ; 键名必须与 Tauri 默认 NSIS 模板使用的 LangString 名称保持一致（包括已知的拼写错误 choowHowToInstall）。
 
 ; ── 已安装版本检测 / 重新安装页面 ────────────────────────────────────────────
