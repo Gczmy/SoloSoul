@@ -7,6 +7,7 @@
   "select_image_failed": "选择图片失败",
   "scanning": "扫描中…",
   "scan_failed": "OCR 扫描失败",
+  "scan_model_not_installed": "模型 {{tier}} 未安装。请先调用 ocr_install_bundled_model 或 ocr_download_model。",
   "result_title": "识别结果",
   "import_as_object": "导入为对象",
   "scanned_document": "扫描文档",

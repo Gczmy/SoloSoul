@@ -115,7 +115,10 @@ fn active_tier(app: &tauri::AppHandle) -> OcrModelTier {
     load_preferences(app).active_tier
 }
 
-/// 确保目标档位的模型可用：优先从打包资源复制，否则返回错误提示下载。
+/** 前端用于识别「模型未安装」错误并做国际化提示的前缀。 */
+const OCR_MODEL_NOT_INSTALLED_PREFIX: &str = "__OCR_MODEL_NOT_INSTALLED__";
+
+/// 确保目标档位的模型可用：优先从打包资源复制，否则返回机器可读错误码供前端国际化。
 fn ensure_model_available(app: &tauri::AppHandle, tier: OcrModelTier) -> Result<PathBuf, String> {
     let models_dir = models_dir(app)?;
 
@@ -129,10 +132,7 @@ fn ensure_model_available(app: &tauri::AppHandle, tier: OcrModelTier) -> Result<
         return Ok(models_dir);
     }
 
-    Err(format!(
-        "模型 {} 未安装。请先调用 ocr_install_bundled_model 或 ocr_download_model。",
-        tier
-    ))
+    Err(format!("{}:{}", OCR_MODEL_NOT_INSTALLED_PREFIX, tier))
 }
 
 // =============================================================================

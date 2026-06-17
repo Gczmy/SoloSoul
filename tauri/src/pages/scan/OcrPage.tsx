@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { commands, type OcrResult, type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
-import { OCR_MODEL_SERIES } from '@/lib/constants';
+import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
 import { Scan, FileText, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export function OcrPage() {
@@ -34,6 +34,27 @@ export function OcrPage() {
   const [installingTier, setInstallingTier] = useState<string | null>(null);
   const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState('');
+
+  /** 处理扫描错误：将后端返回的「模型未安装」前缀解析为国际化提示。 */
+  const handleScanError = (err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.startsWith(`${OCR_MODEL_NOT_INSTALLED_PREFIX}:`)) {
+      const tier = message.slice(OCR_MODEL_NOT_INSTALLED_PREFIX.length + 1) || activeTier;
+      onError(new Error(t('ocr:scan_model_not_installed', { tier })), t('ocr:scan_failed'));
+      return;
+    }
+    onError(err, t('ocr:scan_failed'));
+  };
+
+  /** 如果已知当前档位模型未安装，直接显示国际化提示。 */
+  const guardActiveModelInstalled = (): boolean => {
+    const status = statusMap[activeTier];
+    if (status && !status.installed) {
+      onError(new Error(t('ocr:scan_model_not_installed', { tier: activeTier })), t('ocr:scan_failed'));
+      return false;
+    }
+    return true;
+  };
 
   const loadTiersAndStatus = async () => {
     try {
@@ -70,6 +91,7 @@ export function OcrPage() {
     if (!initialFilePath) return;
     let cancelled = false;
     async function scan() {
+      if (!guardActiveModelInstalled()) return;
       setIsScanning(true);
       setResult(null);
       try {
@@ -77,7 +99,7 @@ export function OcrPage() {
         if (cancelled) return;
         setResult(res);
       } catch (e) {
-        if (!cancelled) onError(e, t('ocr:scan_failed'));
+        if (!cancelled) handleScanError(e);
       } finally {
         if (!cancelled) setIsScanning(false);
       }
@@ -97,6 +119,7 @@ export function OcrPage() {
         title: t('ocr:select_image_title'),
       });
       if (path && typeof path === 'string') {
+        if (!guardActiveModelInstalled()) return;
         setFilePath(path);
         setIsScanning(true);
         setResult(null);
@@ -104,7 +127,7 @@ export function OcrPage() {
           const res = await commands.ocrScanImage(path);
           setResult(res);
         } catch (e) {
-          onError(e, t('ocr:scan_failed'));
+          handleScanError(e);
         } finally {
           setIsScanning(false);
         }

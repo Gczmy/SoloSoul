@@ -187,6 +187,34 @@ describe('OcrPage', () => {
     });
   });
 
+  it('shows not-installed toast when active model is not installed', async () => {
+    mockCmd.ocrGetActiveTier.mockResolvedValue('tiny');
+    mockCmd.ocrGetModelStatus.mockResolvedValue({
+      tier: 'tiny',
+      installed: false,
+      bundled: true,
+    });
+    mockOpen.mockResolvedValue('/test/image.png');
+
+    render(
+      <MemoryRouter>
+        <OcrPage />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(await screen.findByText('ocr:select_image'));
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          message: expect.stringContaining('ocr:scan_model_not_installed'),
+        }),
+      );
+    });
+    expect(mockCmd.ocrScanImage).not.toHaveBeenCalled();
+  });
+
   it('shows error toast when scan fails', async () => {
     mockOpen.mockResolvedValue('/test/image.png');
     mockCmd.ocrScanImage.mockRejectedValue(new Error('model not found'));

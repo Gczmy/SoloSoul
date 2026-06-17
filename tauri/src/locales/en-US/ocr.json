@@ -7,6 +7,7 @@
   "select_image_failed": "Failed to select image",
   "scanning": "Scanning…",
   "scan_failed": "OCR scan failed",
+  "scan_model_not_installed": "Model {{tier}} is not installed. Please call ocr_install_bundled_model or ocr_download_model first.",
   "result_title": "Result",
   "import_as_object": "Import as Object",
   "scanned_document": "Scanned Document",
