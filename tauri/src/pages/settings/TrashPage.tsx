@@ -133,17 +133,17 @@ export function TrashPage() {
   // Reset type filter to 'all' on mount so users always see all trash items
   useEffect(() => {
     setTypeFilter('all');
-  }, []);
+  }, [setTypeFilter]);
 
   useEffect(() => {
     if (accountId) loadItems(accountId);
-  }, [accountId, timeFilter]);
+  }, [accountId, timeFilter, loadItems]);
 
   useEffect(() => {
     if (!isLoading && !error) {
       setHasLoaded(true);
     }
-  }, [isLoading, error]);
+  }, [isLoading, error, setHasLoaded]);
 
   const filtered = items
     .filter((i) => typeFilter === 'all' || i.itemType === typeFilter)

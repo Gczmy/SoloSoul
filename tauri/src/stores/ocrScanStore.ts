@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { commands, type OcrResult, type MrzResult } from '@/lib/ipc';
-import { OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
+
 
 export interface OcrScanEntry {
   id: string;

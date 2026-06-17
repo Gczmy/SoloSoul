@@ -144,7 +144,7 @@ export function ObjectEditorPage() {
       setValues({});
       getObject(accountId, objectId).catch((e) => onError(e, t('common:object_load_failed')));
     }
-  }, [objectId, accountId]);
+  }, [objectId, accountId, getObject, isNew, onError, t]);
 
   // When currentObject loads (for editing), populate the form
   useEffect(() => {
@@ -191,7 +191,7 @@ export function ObjectEditorPage() {
       setSelectedType(matchedType);
     }
     setDataLoaded(true);
-  }, [currentObject, isNew, dataLoaded, objectId]);
+  }, [currentObject, isNew, dataLoaded, objectId, objectTemplates]);
 
   const validateFields = (): boolean => {
     const errors: Record<string, string> = {};

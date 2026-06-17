@@ -77,7 +77,7 @@ export function LoginPage() {
         // Ignore: account-specific check will handle availability.
       });
     return cancel;
-  }, []);
+  }, [checkHasAccount, listAccounts, makeCancellable]);
 
   useEffect(() => {
     if (hasAccount === false) navigate('/bootstrap');
@@ -127,7 +127,7 @@ export function LoginPage() {
         if (!isCancelled()) setBioChecked(true);
       });
     return cancel;
-  }, [selectedAccountId]);
+  }, [selectedAccountId, makeCancellable]);
 
   const handleBiometricUnlock = useCallback(async () => {
     if (!selectedAccountId || bioLoading) return;
@@ -166,7 +166,7 @@ export function LoginPage() {
     } finally {
       if (!success) setBioLoading(false);
     }
-  }, [selectedAccountId, bioLoading, biometryType, t, navigate]);
+  }, [selectedAccountId, bioLoading, t, navigate, biometryTypeRaw]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

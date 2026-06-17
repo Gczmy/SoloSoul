@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
@@ -34,11 +34,7 @@ export function BackupConfigPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadBackups();
-  }, []);
-
-  const loadBackups = async () => {
+  const loadBackups = useCallback(async () => {
     setIsLoading(true);
     try {
       const list = await invoke<BackupInfo[]>('backup_list');
@@ -48,7 +44,13 @@ export function BackupConfigPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [onError, t]);
+
+
+  useEffect(() => {
+    loadBackups();
+  }, [loadBackups]);
+
 
   const handleCreate = async () => {
     if (!backupName.trim()) return;

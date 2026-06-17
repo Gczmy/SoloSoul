@@ -203,13 +203,17 @@ export function ObjectWorkspacePage() {
         loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
       }
     }
-  }, [accountId, sectionFilter, pageId]);
+  }, [accountId, sectionFilter, pageId, loadObjects]);
 
-  const visibleObjects = objects.filter(
-    (obj) =>
-      obj.collectionType !== 'page' &&
-      obj.collectionType !== 'unknown' &&
-      obj.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  const visibleObjects = useMemo(
+    () =>
+      objects.filter(
+        (obj) =>
+          obj.collectionType !== 'page' &&
+          obj.collectionType !== 'unknown' &&
+          obj.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [objects, searchQuery],
   );
 
   // Load snapshot counts for visible objects
@@ -223,7 +227,7 @@ export function ObjectWorkspacePage() {
       })
       .catch(() => {});
     return cancel;
-  }, [visibleObjects.map((o) => o.id).join(',')]);
+  }, [visibleObjects, makeCancellable]);
 
   // Load attachment counts for visible objects
   const refreshAttachmentCounts = useCallback(() => {
@@ -239,7 +243,7 @@ export function ObjectWorkspacePage() {
       })
       .catch(() => {});
     return cancel;
-  }, [visibleObjects.map((o) => o.id).join(','), makeCancellable]);
+  }, [visibleObjects, makeCancellable]);
 
   useEffect(() => {
     return refreshAttachmentCounts();

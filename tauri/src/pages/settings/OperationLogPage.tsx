@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom';
@@ -111,11 +111,7 @@ export function OperationLogPage() {
   const [entityTypeFilter, setEntityTypeFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    loadLogs();
-  }, []);
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setIsLoading(true);
     try {
       const entries = await invoke<AuditLogEntry[]>('log_get_recent', { limit: 200 });
@@ -125,7 +121,13 @@ export function OperationLogPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [onError, t]);
+
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
+
 
   const handleExport = async () => {
     try {

@@ -21,8 +21,8 @@
 
 | ID   | 优先级 | 类别       | 文件位置 | 描述 | 状态 |
 |------|--------|------------|----------|------|------|
-| P048 | P1 | 错误处理 | `tauri/crates/solosoul-core/src/llm/service.rs:66,70` | 生产代码使用 `.expect()` 解析 profile/preferences，若数据结构异常将直接 panic | `[ ]` 待修复 |
-| P049 | P1 | 错误处理 | `tauri/crates/solosoul-crypto/src/cipher.rs:221` | `decrypt_chunked_from_bytes` 中 `try_into().unwrap()` 未先校验输入长度 | `[ ]` 待修复 |
+| P048 | P1 | 错误处理 | `tauri/crates/solosoul-core/src/llm/service.rs:66,70` | 生产代码使用 `.expect()` 解析 profile/preferences，若数据结构异常将直接 panic | `[x]` 已修复：`prefs_mut` 改用 `ok_or_else()?`，5 处调用加 `?` |
+| P049 | P1 | 错误处理 | `tauri/crates/solosoul-crypto/src/cipher.rs:221` | `decrypt_chunked_from_bytes` 中 `try_into().unwrap()` 未先校验输入长度 | `[x]` 已修复：改用 `try_into().map_err(|_| CipherError::InvalidCiphertext)?` |
 | P050 | P1 | 代码规范 | `tauri/src/components/layout/OcrQuickScanPopover.tsx` | 11 个 `@typescript-eslint/no-unused-vars` 警告（未使用导入/变量） | `[ ]` 待修复 |
 | P051 | P1 | React 规范 | `tauri/src/pages/ai/LlmChatPage.tsx` 等 | 17 个 `react-hooks/exhaustive-deps` 警告（useEffect/useCallback 依赖缺失） | `[ ]` 待修复 |
 | P052 | P2 | 代码质量 | `tauri/src/pages/settings/ExportImportPage.tsx` | 1580 行，职责过重（导出/导入/预览/选择/进度） | `[ ]` 待修复 |

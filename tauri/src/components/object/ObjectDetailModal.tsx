@@ -167,6 +167,11 @@ export function ObjectDetailModal({
     });
   }, []);
 
+  const resolveCollectionLabelLocal = useCallback((collectionType: string) =>
+    resolveCollectionLabel(collectionType, customPages, t),
+  [customPages, t]);
+
+
   const writeCriticalAccessLog = useCallback(
     async (method: 'password' | 'touchId' | 'faceId') => {
       if (!accountId || !obj || !pendingRevealRef.current) return;
@@ -192,7 +197,7 @@ export function ObjectDetailModal({
         // best effort
       }
     },
-    [accountId, obj],
+    [accountId, obj, resolveCollectionLabelLocal],
   );
 
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
@@ -279,8 +284,6 @@ export function ObjectDetailModal({
     }
   };
 
-  const resolveCollectionLabelLocal = (collectionType: string) =>
-    resolveCollectionLabel(collectionType, customPages, t);
 
   const fieldOrder = templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id);
   const fields = flattenProperties(obj?.properties, fieldOrder);

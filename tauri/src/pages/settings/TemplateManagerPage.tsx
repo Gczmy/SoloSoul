@@ -302,6 +302,11 @@ export function TemplateManagerPage() {
     if (accountId) loadCustomPages(accountId).catch(() => {});
   }, [loadTemplates, accountId, loadCustomPages]);
 
+  const deprecatedKey = useMemo(
+    () => editProperties.map((p) => p.deprecatedAt).join(','),
+    [editProperties],
+  );
+
   // 加载废弃字段的使用情况
   useEffect(() => {
     if (!editingTemplate) {
@@ -325,7 +330,7 @@ export function TemplateManagerPage() {
       setFieldUsageMap(map);
     };
     loadAll();
-  }, [editingTemplate?.id, editProperties.map((p) => p.deprecatedAt).join(',')]);
+  }, [editingTemplate, deprecatedKey, editProperties, checkFieldUsage]);
 
   const allTemplates: ListTemplate[] = useMemo(() => {
     return templates.map((ut) => ({
