@@ -132,6 +132,18 @@ if [[ ! -d "${MODELS_DIR}/all-MiniLM-L6-v2" || ! -d "${MODELS_DIR}/pp-ocr-v6-sma
     exit 1
 fi
 
+# 检查 PDFium 动态库是否存在；缺失时自动下载对应平台库
+PDFIUM_DIR="${TAURI_DIR}/src-tauri/resources/pdfium"
+if [[ ! -d "${PDFIUM_DIR}" || -z "$(find "${PDFIUM_DIR}" -maxdepth 1 -type f 2>/dev/null)" ]]; then
+    log_warn "找不到 PDFium 动态库，尝试自动下载..."
+    bash "${TAURI_DIR}/scripts/download-pdfium.sh"
+fi
+if [[ ! -d "${PDFIUM_DIR}" || -z "$(find "${PDFIUM_DIR}" -maxdepth 1 -type f 2>/dev/null)" ]]; then
+    log_error "PDFium 动态库准备失败: ${PDFIUM_DIR}"
+    log_error "请手动运行: bash tauri/scripts/download-pdfium.sh"
+    exit 1
+fi
+
 # 解析 Tauri 自动更新器签名密钥
 TAURI_KEY_FILE="${HOME}/.tauri/secret.key"
 if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" && -f "${TAURI_KEY_FILE}" ]]; then
