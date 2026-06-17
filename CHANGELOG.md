@@ -4,6 +4,31 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.3.2] - 2026-06-17
+
+### Added
+
+- **首页快捷入口** — 为回收站、OCR、搜索、AI 聊天添加快速访问卡片，优化高频功能入口。
+- **自动更新下载进度** — 更新横幅显示下载进度，支持后台下载更新。
+- **macOS 更新包生成** — Release 构建脚本生成 `.app.tar.gz` 供 Tauri updater 使用，替代 DMG 作为更新载体。
+- **统一签名脚本** — 新增 `docs/sign_artifacts.sh`，在 macOS 上为 Windows `.exe` 和 macOS `.app.tar.gz` 统一生成 updater 签名，避免在 Windows 构建机暴露私钥。
+- **PDFium 自动下载** — Release 构建脚本在缺失 PDFium 动态库时自动下载对应平台库。
+
+### Changed
+
+- **帮助入口调整** — 将帮助卡片从数据区移至快捷入口区。
+- **快捷入口位置** — 将快捷入口区域调整到数据区下方，优化信息层级。
+- **Release 签名策略** — `.sig` 签名文件不再上传到 GitHub Release，仅嵌入 `latest.json`。
+
+### Fixed
+
+- **帮助页面国际化** — 修正帮助页面标题的 i18n key。
+- **快捷入口返回行为** — 修复快捷访问目标页面的返回按钮无法正确回到首页的问题。
+- **代码审计 P048-P051** — 修复 `llm/service.rs` 中的 `.expect()`、`decrypt_chunked_from_bytes` 中的 `.unwrap()`、`OcrQuickScanPopover` 死代码，以及前端 `react-hooks/exhaustive-deps` 警告；使用 `editingTemplateId` memo 避免 `TemplateManagerPage` 过度重渲染。
+- **更新后重启** — 注册 `tauri-plugin-process` 并授予 `process:default` ACL，允许更新完成后自动重启应用。
+- **macOS 更新包元数据** — 禁用 `tar` 生成 `._*` AppleDouble 文件，避免 Tauri updater 解压报错。
+- **PDFium 下载路径** — 修正 Windows DLL 的下载源路径。
+
 ## [2.3.1] - 2026-06-17
 
 ### Added
