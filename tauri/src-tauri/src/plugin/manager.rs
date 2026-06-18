@@ -248,12 +248,14 @@ impl PluginManager {
         );
 
         let field_resolver = match (vault_store, account_id) {
-            (Some(vault), Some(account)) => Arc::new(super::FieldResolver::with_vault_and_contracts(
-                vault,
-                account,
-                manifest.permissions.clone(),
-                manifest.contracts.clone(),
-            )),
+            (Some(vault), Some(account)) => {
+                Arc::new(super::FieldResolver::with_vault_and_contracts(
+                    vault,
+                    account,
+                    manifest.permissions.clone(),
+                    manifest.contracts.clone(),
+                ))
+            }
             _ => self.field_resolver.clone(),
         };
 

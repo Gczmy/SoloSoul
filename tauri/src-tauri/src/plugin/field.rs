@@ -13,8 +13,8 @@
 //! 通过 `resolve_typed` 路径反查 `UserTemplate.contract_type_id` 和
 //! `TemplateProperty.contract_field` gate，不再依赖字符串前缀匹配。
 
-use super::PluginError;
 use super::manifest::PluginContractBinding;
+use super::PluginError;
 use solosoul_vault::VaultStore;
 use std::sync::Arc;
 
@@ -85,9 +85,8 @@ impl FieldResolver {
         &self,
         field_id: &str,
     ) -> Result<Option<(String, String)>, PluginError> {
-        let (alias, prop_path) = parse_type_property(field_id).ok_or_else(|| {
-            PluginError::InvalidField(format!("不支持的字段路径: {}", field_id))
-        })?;
+        let (alias, prop_path) = parse_type_property(field_id)
+            .ok_or_else(|| PluginError::InvalidField(format!("不支持的字段路径: {}", field_id)))?;
 
         // PRIMARY：UserTemplate 反查（user-space 真实 anchor）
         if let (Some(vault), Some(account_id)) = (self.vault.as_ref(), self.account_id.as_ref()) {
@@ -123,9 +122,8 @@ impl FieldResolver {
     ) -> Result<String, PluginError> {
         // 1. 解析 typed 路径
         let parsed = self.parse_typed_field(field_id)?;
-        let (ctid, prop_path) = parsed.ok_or_else(|| {
-            PluginError::InvalidField("typed 路径不能解析".into())
-        })?;
+        let (ctid, prop_path) =
+            parsed.ok_or_else(|| PluginError::InvalidField("typed 路径不能解析".into()))?;
 
         // 2. 按 contract_type_id 反查 UserTemplate（优先 contract_type_id，fallback t.id）
         let alias = parse_type_property(field_id)
@@ -163,10 +161,7 @@ impl FieldResolver {
             .iter()
             .find(|p| p.id == prop_first)
             .ok_or_else(|| {
-                PluginError::InvalidField(format!(
-                    "contract {} 没有属性 {}",
-                    ctid, prop_first
-                ))
+                PluginError::InvalidField(format!("contract {} 没有属性 {}", ctid, prop_first))
             })?;
         if prop.contract_field != Some(true) {
             return Err(PluginError::InvalidField(format!(
@@ -188,10 +183,7 @@ impl FieldResolver {
         // 复用 parse_typed_field 获取 ctid（保持与 resolve_typed 一致）
         let parsed = self.parse_typed_field(field_id)?;
         let (ctid, prop_path) = parsed.ok_or_else(|| {
-            PluginError::InvalidField(format!(
-                "typed 路径不能解析字段元数据: {}",
-                field_id
-            ))
+            PluginError::InvalidField(format!("typed 路径不能解析字段元数据: {}", field_id))
         })?;
 
         let prop_first = prop_path.split('.').next().unwrap_or("").to_string();
@@ -210,7 +202,9 @@ impl FieldResolver {
             .iter()
             .find(|t| t.contract_type_id.as_deref() == Some(&ctid))
             .or_else(|| {
-                let alias = parse_type_property(field_id).map(|(a, _)| a).unwrap_or_default();
+                let alias = parse_type_property(field_id)
+                    .map(|(a, _)| a)
+                    .unwrap_or_default();
                 templates.iter().find(|t| t.id == alias)
             })
             .ok_or_else(|| PluginError::InvalidField(format!("未找到类型: {}", ctid)))?
@@ -283,7 +277,6 @@ impl FieldResolver {
             return self.resolve_typed(field_id, vault, account_id);
         }
 
-
         // Legacy 路径：尝试 <typeId>[<index>].<prop>
         if let Some((type_id, index, prop_path)) = parse_indexed_field(field_id) {
             let objects = vault
@@ -354,7 +347,6 @@ impl FieldResolver {
         if !self.contracts.is_empty() {
             return self.field_metadata_typed(field_id, vault, account_id);
         }
-
 
         // Legacy 路径
         let (type_id, prop_path) =
@@ -867,8 +859,11 @@ mod tests {
         let result = resolver.resolve("addr.street");
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
-        assert!(err.contains("gate") || err.contains("contract_field"),
-            "Expected gate rejection error, got: {}", err);
+        assert!(
+            err.contains("gate") || err.contains("contract_field"),
+            "Expected gate rejection error, got: {}",
+            err
+        );
     }
 
     /// Legacy 路径不受 typed-lookup 影响
@@ -947,10 +942,7 @@ mod tests {
         let res = resolver.parse_typed_field("address.street").unwrap();
         assert_eq!(
             res,
-            Some((
-                "com.solosoul.address/v1".to_string(),
-                "street".to_string()
-            ))
+            Some(("com.solosoul.address/v1".to_string(), "street".to_string()))
         );
 
         // miss

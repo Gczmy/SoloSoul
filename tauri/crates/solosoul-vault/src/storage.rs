@@ -1445,7 +1445,7 @@ impl VaultStore {
             let conn = guard.as_mut().ok_or("Vault is locked")?;
             let mut stmt = conn
                 .prepare(
-                    "SELECT id, account_id, name, icon_id, properties_json, category, created_at, updated_at
+                    "SELECT id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at
                      FROM user_templates WHERE account_id = ?1",
                 )
                 .map_err(|e| format!("list_template_changes: {}", e))?;
@@ -1465,15 +1465,15 @@ impl VaultStore {
                     let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
                         .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
                     let tpl = crate::UserTemplate {
-                        contract_type_id: None,
+                        contract_type_id: row.get(6)?,
                         id: row.get(0)?,
                         account_id: row.get(1)?,
                         name: row.get(2)?,
                         icon_id: row.get(3)?,
                         properties,
                         category: row.get(5)?,
-                        created_at: row.get(6)?,
-                        updated_at: row.get(7)?,
+                        created_at: row.get(7)?,
+                        updated_at: row.get(8)?,
                     };
                     Ok(tpl)
                 })
@@ -2720,13 +2720,14 @@ impl VaultStore {
             .map_err(|e| format!("serialize properties: {}", e))?;
         let encrypted_props = encrypt_text_field(&key, &props_json)?;
         conn.execute(
-            "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, category, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+            "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
              ON CONFLICT(id) DO UPDATE SET
                  name = excluded.name,
                  icon_id = excluded.icon_id,
                  properties_json = excluded.properties_json,
                  category = excluded.category,
+                 contract_type_id = excluded.contract_type_id,
                  updated_at = excluded.updated_at",
             params![
                 &template.id,
@@ -2735,6 +2736,7 @@ impl VaultStore {
                 &template.icon_id,
                 encrypted_props,
                 &template.category,
+                &template.contract_type_id,
                 &template.created_at,
                 &template.updated_at,
             ],
@@ -2752,7 +2754,7 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
-            "SELECT id, account_id, name, icon_id, properties_json, category, created_at, updated_at
+            "SELECT id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at
              FROM user_templates WHERE id = ?1"
         ).map_err(|e| format!("prepare load_user_template: {}", e))?;
 
@@ -2771,15 +2773,15 @@ impl VaultStore {
             let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
                 .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
             Ok(crate::UserTemplate {
-                contract_type_id: None,
+                contract_type_id: row.get(6)?,
                 id: row.get(0)?,
                 account_id: row.get(1)?,
                 name: row.get(2)?,
                 icon_id: row.get(3)?,
                 properties,
                 category: row.get(5)?,
-                created_at: row.get(6)?,
-                updated_at: row.get(7)?,
+                created_at: row.get(7)?,
+                updated_at: row.get(8)?,
             })
         });
 
@@ -2799,7 +2801,7 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
-            "SELECT id, account_id, name, icon_id, properties_json, category, created_at, updated_at
+            "SELECT id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at
              FROM user_templates WHERE account_id = ?1 ORDER BY created_at DESC"
         ).map_err(|e| format!("prepare list_user_templates: {}", e))?;
 
@@ -2819,15 +2821,15 @@ impl VaultStore {
                 let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
                     .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
                 Ok(crate::UserTemplate {
-                    contract_type_id: None,
+                    contract_type_id: row.get(6)?,
                     id: row.get(0)?,
                     account_id: row.get(1)?,
                     name: row.get(2)?,
                     icon_id: row.get(3)?,
                     properties,
                     category: row.get(5)?,
-                    created_at: row.get(6)?,
-                    updated_at: row.get(7)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
                 })
             })
             .map_err(|e| format!("list_user_templates query: {}", e))?;

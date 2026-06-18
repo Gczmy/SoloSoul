@@ -9,7 +9,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
 import { useCancellable } from '@/hooks/useCancellable';
 import i18n from '@/lib/i18n';
-import { formatRelative } from '@/lib/time';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import {
   buildSystemPrompt,
@@ -19,19 +18,13 @@ import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideS
 import {
   MessageSquare,
   Settings,
-  Send,
-  Plus,
-  Trash2,
-  Pencil,
-  RotateCw,
-  RefreshCw,
-  X,
-  Undo2,
-  Delete,
   BarChart3,
 } from 'lucide-react';
 import { markConversationPending, setAiPageOpen } from '@/lib/notification';
-import { ChatMessageBubble, type ChatMsg } from './ChatMessageBubble';
+import type { ChatMsg } from './ChatMessageBubble';
+import { ConversationSidebar } from '@/components/llm/ConversationSidebar';
+import { MessageArea } from '@/components/llm/MessageArea';
+import { TrashConversationCard } from '@/components/llm/TrashConversationCard';
 
 interface Conversation {
   id: string;
@@ -68,7 +61,6 @@ export function LlmChatPage() {
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const makeCancellable = useCancellable();
 
-  // State
   const [activeProvider, setActiveProvider] = useState<{
     id: string;
     name: string;
@@ -89,32 +81,13 @@ export function LlmChatPage() {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
-
-  // Online status
   const [isOnline, setIsOnline] = useState<boolean | null>(null);
   const [checkingOnline, setCheckingOnline] = useState(false);
-
-  // Rename
-  const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState('');
-
-  // Copy feedback
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-    };
-  }, []);
-
-  // Floating card (trash viewer)
   const [floatingConv, setFloatingConv] = useState<Conversation | null>(null);
   const [confirmPermanentDelete, setConfirmPermanentDelete] = useState<string | null>(null);
 
-  // Refs
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const renameInputRef = useRef<HTMLInputElement>(null);
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
   const currentConvRef = useRef(currentConv);
@@ -182,9 +155,7 @@ export function LlmChatPage() {
           setTrashList(trash);
         }
       })
-      .catch(() => {
-        /* ignore */
-      });
+      .catch(() => {});
   }, [accountId, isAiEnabled, isConfigured, makeCancellable]);
 
   const loadAllListsRef = useRef(loadAllLists);
@@ -226,23 +197,24 @@ export function LlmChatPage() {
     if (activeProvider && accountId) checkOnline();
   }, [activeProvider, accountId, checkOnline]);
 
-  // Periodic online check every 60s
   useEffect(() => {
     if (!activeProvider) return;
     const interval = setInterval(checkOnline, 60000);
     return () => clearInterval(interval);
   }, [activeProvider, checkOnline]);
 
-  // Scroll to bottom (F028: avoid smooth scroll on every message change).
+  // Scroll to bottom
   const lastMessageKey = messages.length > 0 ? messages[messages.length - 1].createdAt : null;
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    const el = document.querySelector('[data-chat-end]');
+    el?.scrollIntoView({ behavior: 'auto' });
   }, [lastMessageKey]);
 
-  // Focus rename input
   useEffect(() => {
-    if (renamingId) renameInputRef.current?.focus();
-  }, [renamingId]);
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const loadConversation = useCallback(
     async (convId: string) => {
@@ -271,10 +243,9 @@ export function LlmChatPage() {
 
   const llmStore = useLlmStore();
 
-  // Listen to LLM stream state: update messages when stream buffer changes
+  // Stream listeners
   useEffect(() => {
     if (!llmStore.isStreaming || !llmStore.streamingConvId) return;
-    // Update the last assistant message with current stream buffer
     setMessages((prev) => {
       if (prev.length === 0) return prev;
       const lastIdx = prev.length - 1;
@@ -285,10 +256,8 @@ export function LlmChatPage() {
     });
   }, [llmStore.streamBuffer, llmStore.isStreaming, llmStore.streamingConvId]);
 
-  // Listen to LLM stream done: save conversation when stream ends
   useEffect(() => {
     if (!llmStore.isStreaming && llmStore.streamingConvId && llmStore.streamBuffer) {
-      // Stream finished, save final conversation
       const convId = llmStore.streamingConvId;
       const currentMsgs = messagesRef.current;
       if (currentMsgs.length > 0 && currentMsgs[currentMsgs.length - 1].role === 'assistant') {
@@ -311,7 +280,6 @@ export function LlmChatPage() {
     }
   }, [llmStore, llmStore.isStreaming, llmStore.streamingConvId, llmStore.streamBuffer]);
 
-  // Listen to LLM stream error
   useEffect(() => {
     if (llmStore.streamError) {
       const errMsg = llmStore.streamError;
@@ -347,7 +315,6 @@ export function LlmChatPage() {
     const convName = isFirstMsg ? text.slice(0, 30) : currentConv?.name || '';
     const convId = currentConvId || generateId();
 
-    // Save immediately with user message
     if (isFirstMsg || currentConv?.isTemporary) {
       const partialConv: Conversation = {
         id: convId,
@@ -366,7 +333,6 @@ export function LlmChatPage() {
       }
     }
 
-    // Add empty assistant message for streaming
     const assistantMsg: ChatMsg = { role: 'assistant', content: '', createdAt: nowISO() };
     const streamingMessages = [...updatedMessages, assistantMsg];
     setMessages(streamingMessages);
@@ -377,7 +343,6 @@ export function LlmChatPage() {
         providerId: activeProvider.id,
       });
 
-      // Build system prompt and help doc (merged into single system message)
       let allMessages: Array<{ role: string; content: string }> = [];
       if (includeSystemPrompt) {
         const systemPrompt = buildSystemPrompt();
@@ -394,14 +359,11 @@ export function LlmChatPage() {
         allMessages.push({ role: 'user', content: text });
       }
 
-      // Convert to serde_json::Value compatible format
       const messagesPayload = allMessages.map((m) => ({ role: m.role, content: m.content }));
 
-      // Start stream
       markConversationPending(convId);
       llmStore.startStream(convId);
 
-      // Call streaming command (fire-and-forget)
       invoke('llm_send_message_stream', {
         accountId,
         conversationId: convId,
@@ -447,30 +409,20 @@ export function LlmChatPage() {
     }
   };
 
-  const handleRenameStart = (convId: string, currentName: string) => {
-    setRenamingId(convId);
-    setRenameValue(currentName);
-  };
-
-  const handleRenameConfirm = async () => {
-    if (!renamingId || !renameValue.trim() || !accountId) {
-      setRenamingId(null);
-      return;
-    }
+  const handleRename = async (convId: string, newName: string) => {
+    if (!accountId || !newName.trim()) return;
     await invoke('llm_rename_conversation', {
       accountId,
-      conversationId: renamingId,
-      name: renameValue.trim(),
+      conversationId: convId,
+      name: newName.trim(),
     });
     setConversations((prev) =>
-      prev.map((c) => (c.id === renamingId ? { ...c, name: renameValue.trim() } : c)),
+      prev.map((c) => (c.id === convId ? { ...c, name: newName.trim() } : c)),
     );
-    if (currentConv?.id === renamingId)
-      setCurrentConv((prev) => (prev ? { ...prev, name: renameValue.trim() } : prev));
-    setRenamingId(null);
+    if (currentConv?.id === convId)
+      setCurrentConv((prev) => (prev ? { ...prev, name: newName.trim() } : prev));
   };
 
-  // Soft-delete: move to trash
   const handleSoftDelete = async (convId: string) => {
     if (!accountId) return;
     await invoke('llm_soft_delete_conversation', { accountId, conversationId: convId });
@@ -479,14 +431,12 @@ export function LlmChatPage() {
     loadAllLists();
   };
 
-  // Restore from trash
   const handleRestore = async (convId: string) => {
     if (!accountId) return;
     await invoke('llm_restore_conversation', { accountId, conversationId: convId });
     loadAllLists();
   };
 
-  // Permanent delete
   const handlePermanentDelete = async (convId: string) => {
     if (!accountId) return;
     await invoke('llm_permanent_delete', { accountId, conversationId: convId });
@@ -495,7 +445,6 @@ export function LlmChatPage() {
     setFloatingConv((prev) => (prev?.id === convId ? null : prev));
   };
 
-  // View trash conversation as floating card
   const handleViewTrashConv = async (convId: string) => {
     if (!accountId) return;
     try {
@@ -520,7 +469,7 @@ export function LlmChatPage() {
     }
   };
 
-  // ── Render logic ──
+  const isLocal = activeProvider ? isOllama(activeProvider.baseUrl) : false;
 
   if (loading) {
     return (
@@ -536,7 +485,6 @@ export function LlmChatPage() {
             overflow: 'hidden',
           }}
         >
-          {/* Sidebar placeholder — same width as the real conversation sidebar */}
           <div
             style={{
               width: 220,
@@ -546,7 +494,6 @@ export function LlmChatPage() {
               background: 'var(--bg-toolbar)',
             }}
           />
-          {/* Message area placeholder — solid background, no icon/text */}
           <div
             style={{
               flex: 1,
@@ -596,8 +543,6 @@ export function LlmChatPage() {
       </AppShell>
     );
   }
-
-  const isLocal = activeProvider ? isOllama(activeProvider.baseUrl) : false;
 
   return (
     <AppShell
@@ -649,562 +594,49 @@ export function LlmChatPage() {
           overflow: 'hidden',
         }}
       >
-        {/* ── Conversation Sidebar (fixed layout, only list scrolls) ── */}
-        <div
-          style={{
-            width: 220,
-            minWidth: 180,
-            maxWidth: 360,
-            borderRight: '1px solid var(--border-subtle)',
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'var(--bg-toolbar)',
-            overflow: 'hidden',
-            height: '100%',
+        <ConversationSidebar
+          conversations={conversations}
+          trashList={trashList}
+          currentConvId={currentConvId}
+          showTrash={showTrash}
+          onNewConversation={handleNewConversation}
+          onLoadConversation={loadConversation}
+          onSoftDelete={handleSoftDelete}
+          onRename={handleRename}
+          onToggleTrash={() => setShowTrash(!showTrash)}
+          onRestore={handleRestore}
+          confirmPermanentDeleteId={confirmPermanentDelete}
+          onRequestPermanentDelete={(id) => {
+            if (confirmPermanentDelete === id) {
+              handlePermanentDelete(id);
+            } else {
+              setConfirmPermanentDelete(id);
+            }
           }}
-        >
-          <div
-            style={{
-              padding: '10px 12px',
-              borderBottom: '1px solid var(--border-subtle)',
-              flexShrink: 0,
-            }}
-          >
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleNewConversation}
-              style={{ width: '100%' }}
-            >
-              <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:ai_new_conv')}
-            </Button>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '6px 0', minHeight: 0 }}>
-            {conversations.length === 0 && (
-              <p
-                style={{
-                  fontSize: 12,
-                  color: 'var(--text-tertiary)',
-                  textAlign: 'center',
-                  padding: '24px 12px',
-                }}
-              >
-                {t('settings:ai_no_convs')}
-              </p>
-            )}
-            {conversations.map((conv) => (
-              <div
-                key={conv.id}
-                className="conv-item"
-                onClick={() => loadConversation(conv.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 12px',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  background: currentConvId === conv.id ? 'rgba(91,124,153,0.08)' : 'transparent',
-                  borderLeft:
-                    currentConvId === conv.id
-                      ? '2px solid var(--accent-primary)'
-                      : '2px solid transparent',
-                }}
-              >
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                  {renamingId === conv.id ? (
-                    <input
-                      ref={renameInputRef}
-                      value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleRenameConfirm();
-                        if (e.key === 'Escape') setRenamingId(null);
-                      }}
-                      onBlur={handleRenameConfirm}
-                      style={{
-                        width: '100%',
-                        padding: '2px 4px',
-                        fontSize: 13,
-                        border: '1px solid var(--accent-primary)',
-                        borderRadius: 4,
-                        background: 'var(--bg-elevated)',
-                        color: 'var(--text-primary)',
-                        outline: 'none',
-                      }}
-                      autoFocus
-                    />
-                  ) : (
-                    <>
-                      <div
-                        style={{
-                          fontWeight: 500,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          color: 'var(--text-primary)',
-                        }}
-                      >
-                        {conv.name || t('settings:ai_untitled')}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>
-                        {formatRelative(conv.updatedAt)}
-                      </div>
-                    </>
-                  )}
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRenameStart(conv.id, conv.name);
-                  }}
-                  title={t('common:rename')}
-                  style={{
-                    padding: 3,
-                    borderRadius: 4,
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    color: 'var(--text-tertiary)',
-                    opacity: 0,
-                  }}
-                  className="sidebar-action-btn"
-                >
-                  <Pencil size={12} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSoftDelete(conv.id);
-                  }}
-                  title={t('common:delete')}
-                  style={{
-                    padding: 3,
-                    borderRadius: 4,
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    color: '#e74c3c',
-                    opacity: 0,
-                  }}
-                  className="sidebar-action-btn"
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-          </div>
+          onViewTrashConv={handleViewTrashConv}
+        />
 
-          {/* ── Trash entry (fixed at bottom) ── */}
-          <div style={{ borderTop: '1px solid var(--border-subtle)', flexShrink: 0 }}>
-            <button
-              onClick={() => setShowTrash(!showTrash)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '10px 12px',
-                border: 'none',
-                background: showTrash ? 'rgba(91,124,153,0.08)' : 'transparent',
-                cursor: 'pointer',
-                fontSize: 13,
-                color: 'var(--text-tertiary)',
-              }}
-            >
-              <Trash2 size={14} />
-              <span>{t('settings:ai_trash')}</span>
-              {trashList.length > 0 && (
-                <span
-                  style={{
-                    marginLeft: 'auto',
-                    fontSize: 11,
-                    background: 'rgba(231,76,60,0.15)',
-                    color: '#e74c3c',
-                    padding: '1px 6px',
-                    borderRadius: 8,
-                  }}
-                >
-                  {trashList.length}
-                </span>
-              )}
-            </button>
-            {showTrash && (
-              <div
-                style={{
-                  maxHeight: 200,
-                  overflowY: 'auto',
-                  borderTop: '1px solid var(--border-subtle)',
-                }}
-              >
-                {trashList.length === 0 ? (
-                  <p
-                    style={{
-                      fontSize: 12,
-                      color: 'var(--text-tertiary)',
-                      textAlign: 'center',
-                      padding: '16px 12px',
-                    }}
-                  >
-                    {t('settings:ai_trash_empty')}
-                  </p>
-                ) : (
-                  trashList.map((conv) => (
-                    <div
-                      key={conv.id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        padding: '6px 12px',
-                        fontSize: 12,
-                      }}
-                    >
-                      <div
-                        style={{ flex: 1, overflow: 'hidden', cursor: 'pointer' }}
-                        onClick={() => handleViewTrashConv(conv.id)}
-                      >
-                        <div
-                          style={{
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            color: 'var(--text-secondary)',
-                          }}
-                        >
-                          {conv.name || t('settings:ai_untitled')}
-                        </div>
-                        <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
-                          {conv.deletedAt ? formatRelative(conv.deletedAt) : ''}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleRestore(conv.id)}
-                        title="恢复"
-                        style={{
-                          padding: 3,
-                          borderRadius: 4,
-                          border: 'none',
-                          background: 'transparent',
-                          cursor: 'pointer',
-                          color: '#27ae60',
-                        }}
-                      >
-                        <Undo2 size={12} />
-                      </button>
-                      {confirmPermanentDelete === conv.id ? (
-                        <button
-                          onClick={() => handlePermanentDelete(conv.id)}
-                          title={t('settings:ai_confirm_delete')}
-                          style={{
-                            padding: '2px 6px',
-                            borderRadius: 4,
-                            border: '1px solid #e74c3c',
-                            background: '#e74c3c',
-                            cursor: 'pointer',
-                            color: 'white',
-                            fontSize: 10,
-                          }}
-                        >
-                          {t('settings:ai_confirm_btn')}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setConfirmPermanentDelete(conv.id)}
-                          title="永久删除"
-                          style={{
-                            padding: 3,
-                            borderRadius: 4,
-                            border: 'none',
-                            background: 'transparent',
-                            cursor: 'pointer',
-                            color: '#e74c3c',
-                          }}
-                        >
-                          <Delete size={12} />
-                        </button>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        <MessageArea
+          messages={messages}
+          input={input}
+          isSending={isSending}
+          isOnline={isOnline}
+          checkingOnline={checkingOnline}
+          activeProvider={activeProvider}
+          isLocal={isLocal}
+          copiedIndex={copiedIndex}
+          onInputChange={setInput}
+          onSend={sendMessage}
+          onCopy={handleCopy}
+          onCheckOnline={checkOnline}
+        />
 
-        {/* ── Message Area (only messages scroll) ── */}
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            minWidth: 0,
-          }}
-        >
-          <div style={{ flex: 1, overflowY: 'auto', padding: '4px 0', minHeight: 0 }}>
-            {messages.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '64px 24px' }}>
-                <MessageSquare
-                  size={40}
-                  style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
-                />
-                <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>
-                  {t('settings:ai_chat_start')} · {activeProvider?.name} · {activeProvider?.model}
-                </p>
-              </div>
-            )}
-            {messages.map((msg, i) => (
-              <ChatMessageBubble
-                key={i}
-                msg={msg}
-                isCopied={copiedIndex === i}
-                onCopy={() => handleCopy(msg.content, i)}
-                copyLabel={t('settings:ai_copy')}
-                copiedLabel={t('settings:ai_copied')}
-              />
-            ))}
-            {isSending && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'flex-start',
-                  padding: '0 16px',
-                  marginTop: 4,
-                }}
-              >
-                <div
-                  style={{
-                    padding: '10px 14px',
-                    borderRadius: '16px 16px 16px 4px',
-                    background: 'var(--bg-elevated)',
-                    fontSize: 14,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  <span className="typing-animation">
-                    <span className="dot">·</span>
-                    <span className="dot">·</span>
-                    <span className="dot">·</span>
-                  </span>
-                </div>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* ── Input Area (fixed at bottom) ── */}
-          <div
-            style={{
-              borderTop: '1px solid var(--border-subtle)',
-              padding: '6px 12px 10px',
-              flexShrink: 0,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 11,
-                color: 'var(--text-tertiary)',
-                marginBottom: 4,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              {activeProvider && (
-                <>
-                  <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
-                    {activeProvider.name}
-                  </span>
-                  <span>·</span>
-                  <span>{activeProvider.model}</span>
-                  <span>·</span>
-                  <span
-                    style={{
-                      padding: '1px 5px',
-                      borderRadius: 3,
-                      fontSize: 10,
-                      background: isLocal ? 'rgba(39,174,96,0.12)' : 'rgba(41,128,185,0.12)',
-                      color: isLocal ? '#27ae60' : '#2980b9',
-                    }}
-                  >
-                    {isLocal ? t('settings:ai_local') : t('settings:ai_cloud')}
-                  </span>
-                  <span>·</span>
-                  {checkingOnline ? (
-                    <span style={{ color: 'var(--text-tertiary)' }}>
-                      <RefreshCw size={10} style={{ verticalAlign: 'middle' }} />{' '}
-                      {t('settings:ai_checking')}
-                    </span>
-                  ) : isOnline === true ? (
-                    <span
-                      style={{ color: '#27ae60', display: 'flex', alignItems: 'center', gap: 2 }}
-                    >
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          background: '#27ae60',
-                          display: 'inline-block',
-                        }}
-                      />
-                      {t('settings:ai_online')}
-                    </span>
-                  ) : isOnline === false ? (
-                    <span
-                      style={{ color: '#e74c3c', display: 'flex', alignItems: 'center', gap: 2 }}
-                    >
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: '50%',
-                          background: '#e74c3c',
-                          display: 'inline-block',
-                        }}
-                      />
-                      {t('settings:ai_offline')}
-                      <button
-                        onClick={checkOnline}
-                        style={{
-                          padding: 0,
-                          border: 'none',
-                          background: 'transparent',
-                          cursor: 'pointer',
-                          color: '#e74c3c',
-                        }}
-                      >
-                        <RotateCw size={10} />
-                      </button>
-                    </span>
-                  ) : null}
-                </>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                placeholder={t('settings:ai_chat_input_placeholder')}
-                disabled={isSending}
-                rows={2}
-                style={{
-                  flex: 1,
-                  padding: '8px 12px',
-                  fontSize: 14,
-                  lineHeight: 1.5,
-                  fontFamily: 'inherit',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 10,
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                  resize: 'none',
-                  outline: 'none',
-                }}
-              />
-              <button
-                onClick={sendMessage}
-                disabled={isSending || !input.trim() || isOnline === false}
-                title={isOnline === false ? t('settings:ai_model_offline') : ''}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 10,
-                  border: 'none',
-                  height: 40,
-                  background:
-                    isSending || !input.trim() || isOnline === false
-                      ? 'var(--border-subtle)'
-                      : 'var(--accent-primary)',
-                  color:
-                    isSending || !input.trim() || isOnline === false
-                      ? 'var(--text-tertiary)'
-                      : 'white',
-                  cursor: 'pointer',
-                }}
-              >
-                {isSending ? <span style={{ display: 'flex', gap: 2 }} /> : <Send size={16} />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Floating card for trash conversation ── */}
-        {floatingConv && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 2000,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(0,0,0,0.25)',
-            }}
-            onClick={() => setFloatingConv(null)}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: 600,
-                maxHeight: 400,
-                background: 'var(--bg-elevated)',
-                borderRadius: 16,
-                boxShadow: 'var(--shadow-lg)',
-                border: '1px solid var(--border-subtle)',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 16px',
-                  borderBottom: '1px solid var(--border-subtle)',
-                }}
-              >
-                <span style={{ fontSize: 14, fontWeight: 600 }}>
-                  {floatingConv.name || t('settings:ai_deleted_conv')}
-                </span>
-                <button
-                  onClick={() => setFloatingConv(null)}
-                  style={{
-                    padding: 4,
-                    borderRadius: 4,
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    color: 'var(--text-tertiary)',
-                  }}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
-                {floatingConv.messages.map((msg, i) => (
-                  <ChatMessageBubble
-                    key={i}
-                    msg={msg}
-                    variant="compact"
-                    isCopied={copiedIndex === i}
-                    onCopy={() => handleCopy(msg.content, i)}
-                    copyLabel={t('settings:ai_copy')}
-                    copiedLabel={t('settings:ai_copied')}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        <TrashConversationCard
+          floatingConv={floatingConv}
+          copiedIndex={copiedIndex}
+          onClose={() => setFloatingConv(null)}
+          onCopy={handleCopy}
+        />
       </div>
 
       <style>{`

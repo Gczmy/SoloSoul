@@ -3,19 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import {
-  MessageSquare,
-  Settings,
-  Send,
-  Plus,
-  X,
-  ArrowUpRight,
-  History,
-  Copy,
-  Check,
-} from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import rehypeHighlight from 'rehype-highlight';
+import { MessageSquare, Plus, History, ArrowUpRight, X } from 'lucide-react';
 import { markConversationPending, setQuickChatOpen } from '@/lib/notification';
 import {
   buildSystemPrompt,
@@ -23,10 +11,13 @@ import {
 } from '@/lib/llm/systemPromptBuilder';
 import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
 import i18n from '@/lib/i18n';
-import { formatRelative, formatTimestamp } from '@/lib/time';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { useAuthStore } from '@/stores/authStore';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { ChatMessageList }  from '@/components/llm/ChatMessageList';
+import { ChatInputBar }  from '@/components/llm/ChatInputBar';
+import { ConversationHistory }  from '@/components/llm/ConversationHistory';
+import { UnconfiguredHint } from '@/components/llm/UnconfiguredHint';
 
 // ── AI Quick Chat types & helpers ───────────────────────────────────────────
 interface ChatMsg {
@@ -172,10 +163,8 @@ export function AiQuickChatPopover({
         } else {
           setIsConfigured(false);
         }
-        // Load conversation list
         const list = await invoke<ConversationSummary[]>('llm_list_conversations', { accountId });
         setConversations(list);
-        // Restore last open conversation from localStorage
         const savedConvId = quickChatStorageKey ? localStorage.getItem(quickChatStorageKey) : null;
         if (savedConvId) {
           try {
@@ -270,11 +259,8 @@ export function AiQuickChatPopover({
           invoke('llm_save_conversation', { accountId: accId, conversation: finalConv })
             .then(() => {
               if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
-              // Refresh conversation list
               invoke<ConversationSummary[]>('llm_list_conversations', { accountId: accId })
-                .then((list) => {
-                  setConversations(list);
-                })
+                .then((list) => setConversations(list))
                 .catch(() => {});
             })
             .catch(() => {});
@@ -303,20 +289,6 @@ export function AiQuickChatPopover({
     };
   }, [isConfigured, t, quickChatStorageKey]);
 
-  // Scroll to bottom: instant on first mount/load, smooth on subsequent updates
-  const hasScrolledRef = useRef(false);
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    if (!hasScrolledRef.current) {
-      // First render (e.g. reopening card) — set scrollTop directly, absolutely no animation
-      container.scrollTop = container.scrollHeight;
-      hasScrolledRef.current = true;
-    } else {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }
-  }, [messages]);
-
   // Close history dropdown on outside click within card
   useEffect(() => {
     if (!showHistory) return;
@@ -339,7 +311,7 @@ export function AiQuickChatPopover({
     };
     outsideClickTimeoutRef.current = setTimeout(
       () => document.addEventListener('mousedown', handler),
-      0
+      1
     );
     return () => {
       if (outsideClickTimeoutRef.current) {
@@ -374,7 +346,6 @@ export function AiQuickChatPopover({
     setCurrentConvId(convId);
     if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
 
-    // Save user message immediately
     const firstUser = updatedMessages.find((m) => m.role === 'user');
     const convName = firstUser ? firstUser.content.slice(0, 30) : '';
     const partialConv = {
@@ -395,7 +366,6 @@ export function AiQuickChatPopover({
         providerId: activeProvider.id,
       });
 
-      // Build system prompt and help doc chunks (RAG vector search)
       const systemPrompt = buildSystemPrompt();
       const chunks = await searchGuideChunks(text, i18n.language || 'zh-CN');
       const docPrompt = formatChunksAsSystemMessage(chunks);
@@ -482,309 +452,6 @@ export function AiQuickChatPopover({
   };
 
   const isLocal = activeProvider ? isOllama(activeProvider.baseUrl) : false;
-
-  const cardContent = (() => {
-    if (loading) {
-      return <LoadingPlaceholder variant="elevated" />;
-    }
-
-    if (!isAiEnabled || !isConfigured) {
-      return (
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-            gap: 12,
-          }}
-        >
-          <MessageSquare size={36} style={{ opacity: 0.3, color: 'var(--text-tertiary)' }} />
-          <p
-            style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', margin: 0 }}
-          >
-            {t('settings:ai_quick_chat_configure_hint')}
-          </p>
-          <button
-            onClick={() => {
-              onClose();
-              navigate('/settings/llm');
-            }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: 'none',
-              background: 'var(--accent-primary)',
-              color: 'white',
-              fontSize: 13,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <Settings size={14} /> {t('settings:ai_chat_configure')}
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <>
-        {/* Messages */}
-        <div
-          ref={scrollContainerRef}
-          style={{ flex: 1, overflowY: 'auto', padding: '8px 0', minHeight: 0 }}
-        >
-          {messages.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-              <MessageSquare
-                size={28}
-                style={{ marginBottom: 8, opacity: 0.25, color: 'var(--text-tertiary)' }}
-              />
-              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: 0 }}>
-                {t('settings:ai_chat_start')} · {activeProvider?.name}
-              </p>
-            </div>
-          )}
-          {messages.map((msg, i) => (
-            <div key={i} style={{ marginBottom: 6 }}>
-              <div
-                style={{
-                  textAlign: 'center',
-                  fontSize: 10,
-                  color: 'var(--text-tertiary)',
-                  padding: '4px 0 1px',
-                }}
-              >
-                {formatTimestamp(msg.createdAt)}
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  padding: '0 10px',
-                }}
-              >
-                <div
-                  style={{
-                    maxWidth: msg.role === 'user' ? '75%' : '90%',
-                    padding: '8px 10px',
-                    borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                    background:
-                      msg.role === 'user'
-                        ? 'var(--accent-primary)'
-                        : msg.content.startsWith(t('settings:ai_chat_error_prefix'))
-                          ? 'rgba(231,76,60,0.12)'
-                          : 'var(--bg-toolbar)',
-                    color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
-                    fontSize: 13,
-                    lineHeight: 1.55,
-                  }}
-                >
-                  {msg.role === 'user' ? (
-                    <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-                  ) : msg.content.startsWith(t('settings:ai_chat_error_prefix')) ? (
-                    <div style={{ color: '#e74c3c', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-                  ) : (
-                    <div className="quick-chat-markdown">
-                      <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{msg.content}</ReactMarkdown>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {msg.role !== 'user' && (
-                <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '2px 14px' }}>
-                  <button
-                    onClick={() => handleCopy(msg.content, i)}
-                    style={{
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                      fontSize: 11,
-                      color: copiedIndex === i ? '#27ae60' : 'var(--text-tertiary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 3,
-                    }}
-                  >
-                    {copiedIndex === i ? (
-                      <>
-                        <Check size={11} /> {t('settings:ai_copied')}
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={11} /> {t('settings:ai_copy')}
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-          {isSending && (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-start',
-                padding: '0 10px',
-                marginTop: 4,
-              }}
-            >
-              <div
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: '12px 12px 12px 2px',
-                  background: 'var(--bg-toolbar)',
-                  fontSize: 13,
-                }}
-              >
-                <span className="typing-animation">
-                  <span className="dot">·</span>
-                  <span className="dot">·</span>
-                  <span className="dot">·</span>
-                </span>
-              </div>
-            </div>
-          )}
-          <div ref={chatEndRef} />
-        </div>
-
-        {/* Input */}
-        <div
-          style={{
-            borderTop: '1px solid var(--border-subtle)',
-            padding: '6px 10px 8px',
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 10,
-              color: 'var(--text-tertiary)',
-              marginBottom: 4,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            {activeProvider && (
-              <>
-                <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
-                  {activeProvider.name}
-                </span>
-                <span>·</span>
-                <span>{activeProvider.model}</span>
-                <span>·</span>
-                <span
-                  style={{
-                    padding: '0 4px',
-                    borderRadius: 3,
-                    fontSize: 9,
-                    background: isLocal ? 'rgba(39,174,96,0.12)' : 'rgba(41,128,185,0.12)',
-                    color: isLocal ? '#27ae60' : '#2980b9',
-                  }}
-                >
-                  {isLocal ? t('settings:ai_local') : t('settings:ai_cloud')}
-                </span>
-                <span>·</span>
-                {checkingOnline ? (
-                  <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:ai_checking')}</span>
-                ) : isOnline === true ? (
-                  <span style={{ color: '#27ae60', display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <span
-                      style={{
-                        width: 5,
-                        height: 5,
-                        borderRadius: '50%',
-                        background: '#27ae60',
-                        display: 'inline-block',
-                      }}
-                    />
-                    {t('settings:ai_online')}
-                  </span>
-                ) : isOnline === false ? (
-                  <span style={{ color: '#e74c3c', display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <span
-                      style={{
-                        width: 5,
-                        height: 5,
-                        borderRadius: '50%',
-                        background: '#e74c3c',
-                        display: 'inline-block',
-                      }}
-                    />
-                    {t('settings:ai_offline')}
-                  </span>
-                ) : null}
-              </>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
-            <textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
-              placeholder={t('settings:ai_chat_input_placeholder')}
-              disabled={isSending}
-              rows={2}
-              style={{
-                flex: 1,
-                padding: '6px 10px',
-                fontSize: 13,
-                lineHeight: 1.5,
-                fontFamily: 'inherit',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 8,
-                background: 'var(--bg-elevated)',
-                color: 'var(--text-primary)',
-                resize: 'none',
-                outline: 'none',
-              }}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={isSending || !input.trim() || isOnline === false}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                border: 'none',
-                height: 36,
-                background:
-                  isSending || !input.trim() || isOnline === false
-                    ? 'var(--border-subtle)'
-                    : 'var(--accent-primary)',
-                color:
-                  isSending || !input.trim() || isOnline === false
-                    ? 'var(--text-tertiary)'
-                    : 'white',
-                cursor: 'pointer',
-              }}
-            >
-              {isSending ? (
-                <span className="typing-animation">
-                  <span className="dot">·</span>
-                  <span className="dot">·</span>
-                  <span className="dot">·</span>
-                </span>
-              ) : (
-                <Send size={14} />
-              )}
-            </button>
-          </div>
-        </div>
-      </>
-    );
-  })();
 
   const isFloating = placement === 'bottom' || placement === 'top';
   const isRight = placement === 'right';
@@ -917,72 +584,46 @@ export function AiQuickChatPopover({
             padding: '6px 0',
           }}
         >
-          {conversations.length === 0 ? (
-            <p
-              style={{
-                fontSize: 12,
-                color: 'var(--text-tertiary)',
-                textAlign: 'center',
-                padding: '16px 12px',
-                margin: 0,
-              }}
-            >
-              {t('settings:ai_no_convs')}
-            </p>
-          ) : (
-            conversations.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => {
-                  loadConversation(conv.id);
-                  setShowHistory(false);
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '7px 12px',
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  background: currentConvId === conv.id ? 'rgba(91,124,153,0.08)' : 'transparent',
-                }}
-              >
-                <MessageSquare size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                  <div
-                    style={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      color: 'var(--text-primary)',
-                      fontWeight: currentConvId === conv.id ? 500 : 400,
-                    }}
-                  >
-                    {conv.name || t('settings:ai_untitled')}
-                  </div>
-                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 1 }}>
-                    {formatRelative(conv.updatedAt)} · {conv.messageCount}{' '}
-                    {t('settings:ai_messages')}
-                  </div>
-                </div>
-                {currentConvId === conv.id && (
-                  <span
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: '50%',
-                      background: 'var(--accent-primary)',
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
-              </div>
-            ))
-          )}
+          <ConversationHistory
+            conversations={conversations}
+            currentConvId={currentConvId}
+            onSelect={(id) => {
+              loadConversation(id);
+              setShowHistory(false);
+            }}
+          />
         </div>
       )}
 
-      {cardContent}
+      {/* Body */}
+      {loading ? (
+        <LoadingPlaceholder variant="elevated" />
+      ) : !isAiEnabled || !isConfigured ? (
+        <UnconfiguredHint onClose={onClose} />
+      ) : (
+        <>
+          <ChatMessageList
+            messages={messages}
+            isSending={isSending}
+            copiedIndex={copiedIndex}
+            onCopy={handleCopy}
+            errorPrefix={t('settings:ai_chat_error_prefix')}
+            activeProviderName={activeProvider?.name ?? ''}
+            scrollContainerRef={scrollContainerRef}
+            chatEndRef={chatEndRef}
+          />
+          <ChatInputBar
+            input={input}
+            onInputChange={setInput}
+            isSending={isSending}
+            onSend={sendMessage}
+            activeProvider={activeProvider ? { name: activeProvider.name, model: activeProvider.model, baseUrl: activeProvider.baseUrl } : null}
+            checkingOnline={checkingOnline}
+            isOnline={isOnline}
+            isLocal={isLocal}
+          />
+        </>
+      )}
 
       <style>{`
         @keyframes quickChatSlideIn {

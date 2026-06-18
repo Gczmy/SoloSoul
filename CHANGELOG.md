@@ -4,7 +4,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
-## [2.4.0] - 2026-06-18
+## [2.4.1] - 2026-06-19
 
 ### Added
 
@@ -15,7 +15,14 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Changed
 
-- **版本号统一** — 全平台版本号同步升级到 `2.4.0`。
+- **版本号统一** — 全平台版本号同步升级到 `2.4.1`。
+- **大组件拆分 Round 2 (P056–P059)** — 拆分 4 个大型前端组件为独立子组件，降低维护成本：
+  - `SideNavigation.tsx` (1026 行) → `PrimaryNavZone` / `SecondaryActionBar` / `RenameableNavButton` / `AddPageButton`
+  - `AiQuickChatPopover.tsx` (1009 行) → `ChatMessageList` / `ChatInputBar` / `ConversationHistory` / `UnconfiguredHint`
+  - `LlmConfigPage.tsx` (929 行) → `AiFeaturesCard` / `SystemPromptCard` / `ProviderManagerPanel` / `LocalEmbeddingsPanel` / `KnowledgeBaseCard` / `RiskAcceptanceDialog`
+  - `OcrQuickScanPopover.tsx` (789 行) → `OcrPopoverHeader` / `OcrHistoryTrashDropdown` / `OcrScanControls` / `OcrResultPanel`
+- **大组件拆分 Round 1 (P052–P055)** — 拆分 `TrashPage`、`LlmChatPage`、`TemplateManagerPage`、`ExportImportPage` 为独立子组件与自定义 hook。
+- **代码审计 P060–P062** — 修复 `lib.rs:491` `.expect()` 为优雅退出；提取 `TemplateTypeSelect`、`TemplatePageSelect`；提取 `useExportEstimate` hook 替代复杂 `useMemo`。`CODE_ANALYSIS_REPORT.md` 全部 20 项 P2 问题已修复。
 - **代码格式化清理** — 对 `migration.rs` 中 Stage 3 测试区块与 Stage 1 落库时 `lib.rs` 中 `#[serde(...)]` 属性的 rustfmt 漂移进行规范化 (`cargo fmt --all`)。
 
 ### Fixed
@@ -1159,8 +1166,8 @@ All notable changes to SoloSoul are documented in this file.
 - Multi-account support with independent vault directories
 - Comprehensive test suite
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.4.0...HEAD
-[2.4.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.4.0
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.4.1...HEAD
+[2.4.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.4.1
 [1.7.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.7.1
 [1.7.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.7.0
 [1.6.6]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.6.6
