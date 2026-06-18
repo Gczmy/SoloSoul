@@ -1,5 +1,23 @@
 ## [Released]
 
+## [2.4.1] - 2026-06-19
+
+### Added
+
+- **Plugin template system Stage 3 - v17 idempotency + partial-state tests** - Added idempotency and partial-state tests for the v17 database migration that introduces contract_type_id columns.
+- **Oversized component split (Round 2, P056-P059)** - Refactored four large frontend components into smaller sub-components:
+  - SideNavigation.tsx (1026 lines) -> PrimaryNavZone / SecondaryActionBar / RenameableNavButton / AddPageButton
+  - AiQuickChatPopover.tsx (1009 lines) -> ChatMessageList / ChatInputBar / ConversationHistory / UnconfiguredHint
+  - LlmConfigPage.tsx (929 lines) -> AiFeaturesCard / SystemPromptCard / ProviderManagerPanel / LocalEmbeddingsPanel / KnowledgeBaseCard / RiskAcceptanceDialog
+  - OcrQuickScanPopover.tsx (789 lines) -> OcrPopoverHeader / OcrHistoryTrashDropdown / OcrScanControls / OcrResultPanel
+- **Oversized component split (Round 1, P052-P055)** - Split TrashPage, LlmChatPage, TemplateManagerPage, and ExportImportPage into sub-components and custom hooks.
+
+### Changed
+
+- **Version bump** - Unified version to 2.4.1 across all platforms (package.json, tauri.conf.json, Cargo.toml).
+- **Code audit (P060-P062)** - Fixed lib.rs:491 .expect() to graceful exit; extracted TemplateTypeSelect / TemplatePageSelect components; replaced complex useMemo with useExportEstimate hook. All 20 P2 issues in CODE_ANALYSIS_REPORT.md are now resolved.
+- **Code formatting cleanup** - Applied cargo fmt to migration tests and serde attributes.
+
 ## [2.3.3] - 2026-06-18
 
 ### Added
