@@ -283,40 +283,53 @@ impl FieldResolver {
             return self.resolve_typed(field_id, vault, account_id);
         }
 
-        // Legacy 路径：尝试 <typeId>[<index>].<prop>
-        if let Some((type_id, index, prop_path)) = parse_indexed_field(field_id) {
-            let objects = vault
-                .list_objects(account_id, Some(&type_id), None, None, false, false)
-                .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
-
-            let mut objects = objects;
-            objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-
-            let record = objects
-                .get(index)
-                .ok_or_else(|| PluginError::InvalidField(format!("索引越界: {}", field_id)))?;
-
-            return Ok(extract_property(&record.properties, &prop_path));
+        // Stage 4-D：legacy_field_parse feature gate
+        // 当 feature 关闭时，拒绝未声明 contracts 的插件走 legacy 路径
+        #[cfg(not(feature = "legacy_field_parse"))]
+        {
+            return Err(PluginError::InvalidField(
+                "Legacy field parsing is disabled. Plugins must declare contracts for typed-lookup access.".into(),
+            ));
         }
 
-        // Legacy 路径：尝试 <typeId>.<prop>（默认取第一个对象）
-        if let Some((type_id, prop_path)) = parse_type_property(field_id) {
-            let objects = vault
-                .list_objects(account_id, Some(&type_id), None, None, false, false)
-                .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
+        // Legacy 路径（仅在 legacy_field_parse feature 启用时编译）
+        #[cfg(feature = "legacy_field_parse")]
+        {
+            // 尝试 <typeId>[<index>].<prop>
+            if let Some((type_id, index, prop_path)) = parse_indexed_field(field_id) {
+                let objects = vault
+                    .list_objects(account_id, Some(&type_id), None, None, false, false)
+                    .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
 
-            if objects.is_empty() {
-                return Ok(String::new());
+                let mut objects = objects;
+                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+
+                let record = objects
+                    .get(index)
+                    .ok_or_else(|| PluginError::InvalidField(format!("索引越界: {}", field_id)))?;
+
+                return Ok(extract_property(&record.properties, &prop_path));
             }
-            let mut objects = objects;
-            objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-            return Ok(extract_property(&objects[0].properties, &prop_path));
-        }
 
-        Err(PluginError::InvalidField(format!(
-            "不支持的字段路径: {}",
-            field_id
-        )))
+            // 尝试 <typeId>.<prop>（默认取第一个对象）
+            if let Some((type_id, prop_path)) = parse_type_property(field_id) {
+                let objects = vault
+                    .list_objects(account_id, Some(&type_id), None, None, false, false)
+                    .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
+
+                if objects.is_empty() {
+                    return Ok(String::new());
+                }
+                let mut objects = objects;
+                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+                return Ok(extract_property(&objects[0].properties, &prop_path));
+            }
+
+            Err(PluginError::InvalidField(format!(
+                "不支持的字段路径: {}",
+                field_id
+            )))
+        }
     }
 
     fn is_allowed(&self, normalized: &str) -> bool {
@@ -354,49 +367,60 @@ impl FieldResolver {
             return self.field_metadata_typed(field_id, vault, account_id);
         }
 
-        // Legacy 路径
-        let (type_id, prop_path) =
-            if let Some((type_id, _, prop_path)) = parse_indexed_field(field_id) {
-                (type_id, prop_path)
-            } else if let Some((type_id, prop_path)) = parse_type_property(field_id) {
-                (type_id, prop_path)
-            } else {
-                return Err(PluginError::InvalidField(format!(
-                    "无法解析字段元数据路径: {}",
-                    field_id
-                )));
-            };
-
-        let prop_first = prop_path.split('.').next().unwrap_or("").to_string();
-        if prop_first.is_empty() {
-            return Err(PluginError::InvalidField(format!(
-                "字段路径缺少属性名: {}",
-                field_id
-            )));
+        // Stage 4-D：legacy_field_parse feature gate
+        #[cfg(not(feature = "legacy_field_parse"))]
+        {
+            return Err(PluginError::InvalidField(
+                "Legacy field parsing is disabled. Plugins must declare contracts for typed-lookup access.".into(),
+            ));
         }
 
-        let templates = vault
-            .list_user_templates(account_id)
-            .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?;
+        // Legacy 路径（仅在 legacy_field_parse feature 启用时编译）
+        #[cfg(feature = "legacy_field_parse")]
+        {
+            let (type_id, prop_path) =
+                if let Some((type_id, _, prop_path)) = parse_indexed_field(field_id) {
+                    (type_id, prop_path)
+                } else if let Some((type_id, prop_path)) = parse_type_property(field_id) {
+                    (type_id, prop_path)
+                } else {
+                    return Err(PluginError::InvalidField(format!(
+                        "无法解析字段元数据路径: {}",
+                        field_id
+                    )));
+                };
 
-        let template = templates
-            .into_iter()
-            .find(|t| t.id == type_id)
-            .ok_or_else(|| PluginError::InvalidField(format!("未找到类型: {}", type_id)))?;
+            let prop_first = prop_path.split('.').next().unwrap_or("").to_string();
+            if prop_first.is_empty() {
+                return Err(PluginError::InvalidField(format!(
+                    "字段路径缺少属性名: {}",
+                    field_id
+                )));
+            }
 
-        let property = template
-            .properties
-            .into_iter()
-            .find(|p| p.id == prop_first)
-            .ok_or_else(|| {
-                PluginError::InvalidField(format!("类型 {} 中未找到属性: {}", type_id, prop_first))
-            })?;
+            let templates = vault
+                .list_user_templates(account_id)
+                .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?;
 
-        let label = property.name;
-        let sensitivity = property
-            .sensitivity_level
-            .unwrap_or_else(|| "internal".to_string());
-        Ok((label, sensitivity))
+            let template = templates
+                .into_iter()
+                .find(|t| t.id == type_id)
+                .ok_or_else(|| PluginError::InvalidField(format!("未找到类型: {}", type_id)))?;
+
+            let property = template
+                .properties
+                .into_iter()
+                .find(|p| p.id == prop_first)
+                .ok_or_else(|| {
+                    PluginError::InvalidField(format!("类型 {} 中未找到属性: {}", type_id, prop_first))
+                })?;
+
+            let label = property.name;
+            let sensitivity = property
+                .sensitivity_level
+                .unwrap_or_else(|| "internal".to_string());
+            Ok((label, sensitivity))
+        }
     }
 
     /// 构建用户数据结构树（仅元数据，不含字段值）
@@ -562,6 +586,7 @@ mod tests {
         (tmp, Arc::new(vault))
     }
 
+    #[cfg(feature = "legacy_field_parse")]
     #[test]
     fn test_field_metadata() {
         let account_id = "acc_test_meta";
@@ -870,6 +895,7 @@ mod tests {
     }
 
     /// Legacy 路径不受 typed-lookup 影响
+    #[cfg(feature = "legacy_field_parse")]
     #[test]
     fn test_resolve_legacy_unchanged() {
         let account_id = "acc_legacy_unchanged";

@@ -283,6 +283,7 @@ impl FieldResolver {
             return self.resolve_typed(field_id, vault, account_id);
         }
 
+
         // Legacy 路径：尝试 <typeId>[<index>].<prop>
         if let Some((type_id, index, prop_path)) = parse_indexed_field(field_id) {
             let objects = vault
@@ -353,6 +354,7 @@ impl FieldResolver {
         if !self.contracts.is_empty() {
             return self.field_metadata_typed(field_id, vault, account_id);
         }
+
 
         // Legacy 路径
         let (type_id, prop_path) =
