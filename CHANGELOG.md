@@ -1,5 +1,22 @@
 ## [Released]
 
+## [2.3.3] - 2026-06-18
+
+### Added
+
+- **Plugin template system Stage 1** — Added plugin-compatible template schema and database v17 migration.
+- **Windows silent auto-updates** — Enabled silent download and installation of updates on Windows.
+- **CLI settings phase** — Replaced the raw `/setting` card with a `SettingsMenu` screen.
+- **CLI extended commands** — Added `/sync`, `/ocr`, and `/embed_model`; CLI supports `--ocr scan --mrz` arguments and now builds CLI release artifacts.
+- **Template gallery filtering** — Keeps card height stable and places visible cards first when filtering.
+- **OCR history interaction** — Clicking an OCR history entry loads its scan result; added `active_model_series` i18n and series name display.
+- **Sidebar search active state** — Search nav button now appears active while its popover is open.
+
+### Changed
+
+- **Log noise reduction** — Silenced ONNX Runtime (`ort` crate) INFO spam during `npm run tauri dev`.
+- **Code formatting cleanup** — Applied rustfmt to `llm/service.rs`, `cipher.rs`, and related files.
+
 ## [2.3.2] - 2026-06-17
 
 ### Added
