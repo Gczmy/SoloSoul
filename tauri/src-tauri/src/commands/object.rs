@@ -180,6 +180,7 @@ pub async fn object_create(
     }
 
     let record = ObjectRecord {
+        contract_type_id: None,
         id: id.clone(),
         account_id: input.account_id.clone(),
         type_id: input.collection_type.clone(),
@@ -451,6 +452,7 @@ pub async fn object_restore(
 
     let now = chrono::Utc::now().to_rfc3339();
     let record = solosoul_vault::ObjectRecord {
+        contract_type_id: None,
         id: new_id.clone(),
         account_id: record_data["account_id"]
             .as_str()
@@ -750,6 +752,7 @@ pub async fn page_restore(
                 if let Ok(record_data) = serde_json::from_slice::<serde_json::Value>(&trash.data) {
                     let now = chrono::Utc::now().to_rfc3339();
                     let record = solosoul_vault::ObjectRecord {
+                        contract_type_id: None,
                         id: new_id.clone(),
                         account_id: record_data["account_id"]
                             .as_str()
@@ -1227,6 +1230,7 @@ mod tests {
     #[test]
     fn test_record_to_data_conversion() {
         let record = ObjectRecord {
+            contract_type_id: None,
             id: "obj-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1320,6 +1324,7 @@ mod tests {
     fn test_vault_object_save_and_load() {
         let (vault, _dir) = setup_vault();
         let record = ObjectRecord {
+            contract_type_id: None,
             id: "obj-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1351,6 +1356,7 @@ mod tests {
         let (vault, _dir) = setup_vault();
         for i in 0..3 {
             let record = ObjectRecord {
+                contract_type_id: None,
                 id: format!("obj-{}", i),
                 account_id: "acc-1".to_string(),
                 type_id: "note".to_string(),
@@ -1403,6 +1409,7 @@ mod tests {
     fn test_object_create_with_parent() {
         let (vault, _dir) = setup_vault();
         let parent = ObjectRecord {
+            contract_type_id: None,
             id: "parent-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1426,6 +1433,7 @@ mod tests {
         vault.save_object(&parent).unwrap();
 
         let child = ObjectRecord {
+            contract_type_id: None,
             id: "child-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1493,6 +1501,7 @@ mod tests {
     fn test_object_soft_delete_with_trash_item() {
         let (vault, _dir) = setup_vault();
         let record = ObjectRecord {
+            contract_type_id: None,
             id: "obj-del-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1559,6 +1568,7 @@ mod tests {
     fn test_hard_delete_purges_object() {
         let (vault, _dir) = setup_vault();
         let record = ObjectRecord {
+            contract_type_id: None,
             id: "obj-purge-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1609,6 +1619,7 @@ mod tests {
     fn test_trash_permanent_delete_flow() {
         let (vault, _dir) = setup_vault();
         let record = ObjectRecord {
+            contract_type_id: None,
             id: "obj-perm-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1663,6 +1674,7 @@ mod tests {
     fn test_snapshot_operations() {
         let (vault, _dir) = setup_vault();
         let record = ObjectRecord {
+            contract_type_id: None,
             id: "obj-snap-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1719,6 +1731,7 @@ mod tests {
     fn test_copy_snapshots() {
         let (vault, _dir) = setup_vault();
         let record = ObjectRecord {
+            contract_type_id: None,
             id: "obj-copy-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1762,6 +1775,7 @@ mod tests {
     fn test_snapshot_rollback_via_vault() {
         let (vault, _dir) = setup_vault();
         let record = ObjectRecord {
+            contract_type_id: None,
             id: "obj-roll-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -1852,6 +1866,7 @@ mod tests {
         let section = "work";
         for i in 0..3 {
             let record = ObjectRecord {
+                contract_type_id: None,
                 id: format!("obj-page-{}", i),
                 account_id: "acc-1".to_string(),
                 type_id: "note".to_string(),
@@ -1933,6 +1948,7 @@ mod tests {
         let section = "finance";
         for i in 0..2 {
             let record = ObjectRecord {
+                contract_type_id: None,
                 id: format!("obj-fin-{}", i),
                 account_id: "acc-1".to_string(),
                 type_id: "note".to_string(),
@@ -2030,6 +2046,7 @@ mod tests {
                     {
                         let now = chrono::Utc::now().to_rfc3339();
                         let record = ObjectRecord {
+                            contract_type_id: None,
                             id: new_id.clone(),
                             account_id: record_data["account_id"]
                                 .as_str()

@@ -580,6 +580,7 @@ mod tests {
     fn test_build_static_prompt_with_public_object() {
         let (vault, _dir) = setup_vault();
         let obj = solosoul_vault::ObjectRecord {
+            contract_type_id: None,
             id: "obj-1".to_string(),
             account_id: "test_account".to_string(),
             type_id: "note".to_string(),

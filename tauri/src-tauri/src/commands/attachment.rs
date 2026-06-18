@@ -431,6 +431,7 @@ mod tests {
         let account_id = "acc-1";
 
         let record1 = ObjectRecord {
+            contract_type_id: None,
             id: "obj-1".to_string(),
             account_id: account_id.to_string(),
             type_id: "note".to_string(),
@@ -479,6 +480,7 @@ mod tests {
         vault.save_object(&record1).unwrap();
 
         let record2 = ObjectRecord {
+            contract_type_id: None,
             id: "obj-2".to_string(),
             account_id: account_id.to_string(),
             type_id: "note".to_string(),
@@ -526,6 +528,7 @@ mod tests {
     fn test_vault_attachment_filtering() {
         let (vault, _dir) = setup_vault();
         let mut record = ObjectRecord {
+            contract_type_id: None,
             id: "obj-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),

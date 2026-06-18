@@ -1384,6 +1384,7 @@ impl VaultStore {
                     let props: serde_json::Value =
                         serde_json::from_str(&decrypted_props).unwrap_or_default();
                     let obj = crate::ObjectRecord {
+                        contract_type_id: None,
                         id: row.get(0)?,
                         account_id: row.get(1)?,
                         type_id: row.get(2)?,
@@ -1463,6 +1464,7 @@ impl VaultStore {
                     let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
                         .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
                     let tpl = crate::UserTemplate {
+                        contract_type_id: None,
                         id: row.get(0)?,
                         account_id: row.get(1)?,
                         name: row.get(2)?,
@@ -1856,6 +1858,7 @@ impl VaultStore {
                     )
                 })?;
                 Ok(ObjectRecord {
+                    contract_type_id: None,
                     id: row.get(0)?,
                     account_id: row.get(1)?,
                     type_id: row.get(2)?,
@@ -1991,6 +1994,7 @@ impl VaultStore {
                 let tags_str: String = row.get(9)?;
                 let decrypted_props = decrypt_text_field(&key, &props_str).unwrap_or_default();
                 Ok(ObjectSummary {
+                    contract_type_id: None,
                     id: row.get(0)?,
                     name: row.get(1)?,
                     collection_type: row.get(2)?,
@@ -2109,6 +2113,7 @@ impl VaultStore {
                     )
                 })?;
                 Ok(ObjectRecord {
+                    contract_type_id: None,
                     id: row.get(0)?,
                     account_id: row.get(1)?,
                     type_id: row.get(2)?,
@@ -2760,6 +2765,7 @@ impl VaultStore {
             let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
                 .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
             Ok(crate::UserTemplate {
+                contract_type_id: None,
                 id: row.get(0)?,
                 account_id: row.get(1)?,
                 name: row.get(2)?,
@@ -2807,6 +2813,7 @@ impl VaultStore {
                 let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
                     .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
                 Ok(crate::UserTemplate {
+                    contract_type_id: None,
                     id: row.get(0)?,
                     account_id: row.get(1)?,
                     name: row.get(2)?,
@@ -3042,6 +3049,7 @@ mod tests {
         assert!(vault.stats().is_err());
 
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3095,6 +3103,7 @@ mod tests {
     fn test_object_crud_with_special_characters() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-special".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3128,6 +3137,7 @@ mod tests {
     fn test_object_soft_delete_and_restore() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-del".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3174,6 +3184,7 @@ mod tests {
     fn test_object_hard_delete() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-hard".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3204,6 +3215,7 @@ mod tests {
         let (vault, _dir) = setup();
         for i in 0..5 {
             let obj = ObjectRecord {
+                contract_type_id: None,
                 id: format!("obj-{}", i),
                 account_id: "acc-1".to_string(),
                 type_id: if i % 2 == 0 { "note" } else { "task" }.to_string(),
@@ -3287,6 +3299,7 @@ mod tests {
     fn test_save_load_delete_object() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3322,6 +3335,7 @@ mod tests {
     fn test_save_object_upsert() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-upsert".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3367,6 +3381,7 @@ mod tests {
     fn test_list_objects_include_deleted() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-del-1".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3410,6 +3425,7 @@ mod tests {
     fn test_list_objects_keyword_unicode() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-unicode".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3447,6 +3463,7 @@ mod tests {
     fn test_search_objects_basic() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-search".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3490,6 +3507,7 @@ mod tests {
     fn test_search_objects_excludes_deleted() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-s-del".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3528,6 +3546,7 @@ mod tests {
     fn test_restore_object_already_active() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-active".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3559,6 +3578,7 @@ mod tests {
     fn test_object_with_unicode_name() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-uni".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3590,6 +3610,7 @@ mod tests {
     fn test_object_template_fields_roundtrip() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-tpl".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "passport".to_string(),
@@ -3636,6 +3657,7 @@ mod tests {
             }
         });
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-long".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -3666,6 +3688,7 @@ mod tests {
     fn test_object_with_empty_name() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-empty-name".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -4127,6 +4150,7 @@ mod tests {
         vault.save_profile(&profile).unwrap();
 
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-stats".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -4177,12 +4201,14 @@ mod tests {
 
     fn make_test_template(account_id: &str, name: &str) -> crate::UserTemplate {
         crate::UserTemplate {
+            contract_type_id: None,
             id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
             account_id: account_id.to_string(),
             name: name.to_string(),
             icon_id: Some("document".to_string()),
             properties: vec![
                 crate::TemplateProperty {
+                    contract_field: None,
                     id: "full_name".to_string(),
                     name: "姓名".to_string(),
                     prop_type: crate::PropertyType::Text,
@@ -4192,6 +4218,7 @@ mod tests {
                     deprecated_at: None,
                 },
                 crate::TemplateProperty {
+                    contract_field: None,
                     id: "passport_number".to_string(),
                     name: "护照号码".to_string(),
                     prop_type: crate::PropertyType::Text,
@@ -4201,6 +4228,7 @@ mod tests {
                     deprecated_at: None,
                 },
                 crate::TemplateProperty {
+                    contract_field: None,
                     id: "expiry_date".to_string(),
                     name: "过期日期".to_string(),
                     prop_type: crate::PropertyType::Date,
@@ -4257,6 +4285,7 @@ mod tests {
         tpl.name = "新名称".to_string();
         tpl.icon_id = Some("passport".to_string());
         tpl.properties.push(crate::TemplateProperty {
+            contract_field: None,
             id: "new_field".to_string(),
             name: "新字段".to_string(),
             prop_type: crate::PropertyType::Boolean,
@@ -4348,11 +4377,13 @@ mod tests {
 
         // 1. Create a user template
         let template = crate::UserTemplate {
+            contract_type_id: None,
             id: "tpl_test_001".to_string(),
             account_id: "test_account".to_string(),
             name: "Test Template".to_string(),
             icon_id: Some("document".to_string()),
             properties: vec![crate::TemplateProperty {
+                contract_field: None,
                 id: "field1".to_string(),
                 name: "field1".to_string(),
                 prop_type: crate::PropertyType::Text,
@@ -4441,6 +4472,7 @@ mod tests {
     fn test_object_properties_encryption_roundtrip() {
         let (vault, _dir) = setup();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-enc".to_string(),
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
@@ -4634,6 +4666,7 @@ mod tests {
         let profile = Profile::new_with_id("reenc", "ReEnc", b"data".to_vec());
         vault.save_profile(&profile).unwrap();
         let obj = ObjectRecord {
+            contract_type_id: None,
             id: "obj-reenc".to_string(),
             account_id: "acc".to_string(),
             type_id: "note".to_string(),

@@ -198,6 +198,9 @@ pub struct ObjectRecord {
     pub template_id: Option<String>,
     #[serde(rename = "templateType")]
     pub template_type: Option<String>,
+    /// 插件合约类型 ID（用于 plugin-template 兼容）。旧记录缺失时由 `default` 填充为 `None`。
+    #[serde(rename = "contractTypeId", default, skip_serializing_if = "Option::is_none")]
+    pub contract_type_id: Option<String>,
     pub created_at: String,
     pub updated_at: String,
     pub version: u32,
@@ -224,6 +227,9 @@ pub struct ObjectSummary {
     pub template_id: Option<String>,
     #[serde(rename = "templateType")]
     pub template_type: Option<String>,
+    /// 插件合约类型 ID（用于 plugin-template 兼容）。旧记录缺失时由 `default` 填充为 `None`。
+    #[serde(rename = "contractTypeId", default, skip_serializing_if = "Option::is_none")]
+    pub contract_type_id: Option<String>,
     #[serde(rename = "iconName")]
     pub icon_name: String,
     /// First few property key-value pairs for card previews
@@ -367,6 +373,10 @@ pub struct TemplateProperty {
     /// Deprecated timestamp — if set, the field is soft-deleted but retained for old objects.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub deprecated_at: Option<String>,
+    /// 当此属性映射到插件合约中的字段时为 true（用于 plugin-template 兼容）。
+    /// 旧记录缺失时由 `default` 填充为 `None`。
+    #[serde(rename = "contractField", default, skip_serializing_if = "Option::is_none")]
+    pub contract_field: Option<bool>,
 }
 
 /// A user-defined object template stored in the vault.
@@ -384,4 +394,7 @@ pub struct UserTemplate {
     pub created_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<String>,
+    /// 插件合约类型 ID（用于 plugin-template 兼容）。旧记录缺失时由 `default` 填充为 `None`。
+    #[serde(rename = "contractTypeId", default, skip_serializing_if = "Option::is_none")]
+    pub contract_type_id: Option<String>,
 }

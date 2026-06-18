@@ -786,6 +786,7 @@ pub async fn import_decrypt_preview(
             arr.iter()
                 .filter_map(|o| {
                     Some(ObjectSummary {
+                        contract_type_id: None,
                         id: o["id"].as_str()?.to_string(),
                         name: o["name"].as_str()?.to_string(),
                         collection_type: o["type_id"].as_str()?.to_string(),
@@ -973,6 +974,7 @@ async fn import_execute_internal(
         resolve_cross_scope_references(&mut properties, &package_ids);
 
         let record = solosoul_vault::ObjectRecord {
+            contract_type_id: None,
             id: id.to_string(),
             account_id: account_id.clone(),
             type_id: obj_val["type_id"].as_str().unwrap_or("note").to_string(),

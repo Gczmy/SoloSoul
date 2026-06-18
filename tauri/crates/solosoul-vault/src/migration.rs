@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 16;
+pub const CURRENT_SCHEMA_VERSION: u32 = 17;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -156,6 +156,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
                 name TEXT NOT NULL,
                 icon_id TEXT,
                 properties_json TEXT NOT NULL,
+                contract_type_id TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT
             );
@@ -327,6 +328,57 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
              );",
             "Add sync tombstones table",
         )?;
+    }
+    if current < 17 {
+        // §17 — plugin-template compat: add contract_type_id to objects and user_templates.
+        // Use two independent `pragma_table_info` booleans so the upgrade path is idempotent
+        // for users with partially-migrated DBs. Each ALTER is only issued for the table
+        // that does not yet have the column.
+        let mut sql_parts: Vec<&str> = Vec::new();
+        let has_utpl_ctid: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('user_templates') WHERE name = 'contract_type_id'",
+                [],
+                |r| r.get::<_, i32>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_utpl_ctid {
+            sql_parts.push("ALTER TABLE user_templates ADD COLUMN contract_type_id TEXT;");
+        }
+        let has_objects_ctid: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'contract_type_id'",
+                [],
+                |r| r.get::<_, i32>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_objects_ctid {
+            sql_parts.push("ALTER TABLE objects ADD COLUMN contract_type_id TEXT;");
+        }
+        let tx = conn
+            .transaction()
+            .map_err(|e| format!("Begin tx for v17: {}", e))?;
+        let now = Utc::now().timestamp();
+        if sql_parts.is_empty() {
+            tx.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![17, now, "contract_type_id already present on objects/user_templates (no-op)"],
+            )
+            .map_err(|e| format!("Record v17 (no-op): {}", e))?;
+        } else {
+            let combined = sql_parts.join("\n");
+            tx.execute_batch(&combined)
+                .map_err(|e| format!("v17 ALTER failed: {}", e))?;
+            tx.execute(
+                "INSERT INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![17, now, "Add contract_type_id to objects and user_templates (plugin-template compat)"],
+            )
+            .map_err(|e| format!("Record v17: {}", e))?;
+        }
+        set_schema_version(&tx, 17)?;
+        tx.commit().map_err(|e| format!("Commit v17: {}", e))?;
     }
     Ok(())
 }

@@ -68,6 +68,7 @@ fn migrate_legacy_templates_if_needed(
                         // Legacy templates forced everything to "text"; preserve that
                         // so existing templates don't break.
                         Some(TemplateProperty {
+                            contract_field: None,
                             id,
                             name,
                             prop_type: PropertyType::Text,
@@ -88,6 +89,7 @@ fn migrate_legacy_templates_if_needed(
             .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
 
         let template = UserTemplate {
+            contract_type_id: None,
             id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
             account_id: account_id.to_string(),
             name,
@@ -152,6 +154,7 @@ pub async fn template_create(
     migrate_legacy_templates_if_needed(&vault, &account_id)?;
 
     let template = UserTemplate {
+        contract_type_id: None,
         id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
         account_id: account_id.clone(),
         name,
@@ -404,6 +407,7 @@ pub async fn template_save_from_object(
                 .map(|(key, value)| {
                     let prop_type = PropertyType::infer_from_value(value, key);
                     TemplateProperty {
+                        contract_field: None,
                         id: key.clone(),
                         name: key.clone(),
                         prop_type,
@@ -419,6 +423,7 @@ pub async fn template_save_from_object(
         };
 
     let template = UserTemplate {
+        contract_type_id: None,
         id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
         account_id: account_id.clone(),
         name: template_name,

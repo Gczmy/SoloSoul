@@ -133,6 +133,7 @@ pub fn seed_default_templates(
             .properties
             .iter()
             .map(|p| solosoul_vault::TemplateProperty {
+                contract_field: None,
                 id: p.id.clone(),
                 name: p.name_fallback.clone(),
                 prop_type: solosoul_vault::PropertyType::parse(&p.prop_type)
@@ -146,6 +147,7 @@ pub fn seed_default_templates(
 
         let now = chrono::Utc::now().to_rfc3339();
         let user_template = solosoul_vault::UserTemplate {
+            contract_type_id: None,
             id: st.key.clone(),
             account_id: account_id.to_string(),
             name: st.name_fallback.clone(),
@@ -230,12 +232,14 @@ mod tests {
     fn test_detect_for_object() {
         // Build a fake user template list to test detection
         let user_tpls = vec![solosoul_vault::UserTemplate {
+            contract_type_id: None,
             id: "passport".to_string(),
             account_id: "acc_1".to_string(),
             name: "Passport".to_string(),
             icon_id: None,
             properties: vec![
                 solosoul_vault::TemplateProperty {
+                    contract_field: None,
                     id: "fullName".to_string(),
                     name: "Full Name".to_string(),
                     prop_type: solosoul_vault::PropertyType::Text,
@@ -245,6 +249,7 @@ mod tests {
                     deprecated_at: None,
                 },
                 solosoul_vault::TemplateProperty {
+                    contract_field: None,
                     id: "passportNumber".to_string(),
                     name: "Passport Number".to_string(),
                     prop_type: solosoul_vault::PropertyType::Text,
@@ -254,6 +259,7 @@ mod tests {
                     deprecated_at: None,
                 },
                 solosoul_vault::TemplateProperty {
+                    contract_field: None,
                     id: "nationality".to_string(),
                     name: "Nationality".to_string(),
                     prop_type: solosoul_vault::PropertyType::Text,
@@ -263,6 +269,7 @@ mod tests {
                     deprecated_at: None,
                 },
                 solosoul_vault::TemplateProperty {
+                    contract_field: None,
                     id: "dateOfBirth".to_string(),
                     name: "Date of Birth".to_string(),
                     prop_type: solosoul_vault::PropertyType::Text,

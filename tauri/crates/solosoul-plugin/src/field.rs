@@ -356,12 +356,14 @@ mod tests {
 
         let now = chrono::Utc::now().to_rfc3339();
         let template = UserTemplate {
+            contract_type_id: None,
             id: "address".to_string(),
             account_id: account_id.to_string(),
             name: "地址".to_string(),
             icon_id: Some("map-pin".to_string()),
             properties: vec![
                 TemplateProperty {
+                    contract_field: None,
                     id: "street".to_string(),
                     name: "街道".to_string(),
                     prop_type: PropertyType::Text,
@@ -371,6 +373,7 @@ mod tests {
                     deprecated_at: None,
                 },
                 TemplateProperty {
+                    contract_field: None,
                     id: "country".to_string(),
                     name: "国家".to_string(),
                     prop_type: PropertyType::Text,
@@ -411,12 +414,14 @@ mod tests {
 
         let now = chrono::Utc::now().to_rfc3339();
         let template = UserTemplate {
+            contract_type_id: None,
             id: "address".to_string(),
             account_id: account_id.to_string(),
             name: "地址".to_string(),
             icon_id: Some("map-pin".to_string()),
             properties: vec![
                 TemplateProperty {
+                    contract_field: None,
                     id: "street".to_string(),
                     name: "街道".to_string(),
                     prop_type: PropertyType::Text,
@@ -426,6 +431,7 @@ mod tests {
                     deprecated_at: None,
                 },
                 TemplateProperty {
+                    contract_field: None,
                     id: "country".to_string(),
                     name: "国家".to_string(),
                     prop_type: PropertyType::Text,
@@ -443,6 +449,7 @@ mod tests {
 
         // 写入一条地址对象，验证 count 统计
         let record = ObjectRecord {
+            contract_type_id: None,
             id: "addr_0".to_string(),
             account_id: account_id.to_string(),
             type_id: "address".to_string(),

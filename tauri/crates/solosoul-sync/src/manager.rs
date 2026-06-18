@@ -915,6 +915,7 @@ mod tests {
         file_name: &str,
     ) -> ObjectRecord {
         ObjectRecord {
+            contract_type_id: None,
             id: object_id.to_string(),
             account_id: account_id.to_string(),
             type_id: "note".to_string(),

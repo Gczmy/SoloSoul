@@ -30,6 +30,7 @@ fn open_test_vault(path: &std::path::Path, account_id: &str) -> VaultStore {
 fn create_address_record(account_id: &str, idx: usize) -> ObjectRecord {
     let now = chrono::Utc::now().to_rfc3339();
     ObjectRecord {
+        contract_type_id: None,
         id: format!("addr_{}", idx),
         account_id: account_id.to_string(),
         type_id: "address".to_string(),
