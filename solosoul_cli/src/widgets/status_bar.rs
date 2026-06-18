@@ -51,6 +51,16 @@ pub fn render(app: &App) -> Paragraph<'_> {
         AppPhase::SyncStatus { .. } => "设备同步".to_string(),
         AppPhase::OcrResult { .. } => "OCR".to_string(),
         AppPhase::EmbedModelList { .. } => "Embedding 模型".to_string(),
+        AppPhase::SettingsMenu {
+            current_language,
+            current_theme,
+            ..
+        } => {
+            format!("设置 · 语={} · 主={}", current_language, current_theme)
+        }
+        AppPhase::SettingsLanguageSelect { .. } => "设置 · 语言选择".to_string(),
+        AppPhase::SettingsThemeSelect { .. } => "设置 · 主题选择".to_string(),
+        AppPhase::SettingsPreferenceEdit => "设置 · 自定义偏好".to_string(),
         AppPhase::Quit => "退出中".to_string(),
     };
 
@@ -86,6 +96,14 @@ pub fn render(app: &App) -> Paragraph<'_> {
             "↑↓ 选择 · Enter 确认 · Esc 取消",
             theme.style_cream(),
         ));
+    }
+
+    // 成功 toast（5 秒自动过期）。在 phase_text 之后追加，避免与锁定倒计时重叠。
+    if let Some((text, ts)) = &app.success_message {
+        if ts.elapsed() < std::time::Duration::from_secs(5) {
+            spans.push(Span::styled(" | ", theme.style_muted()));
+            spans.push(Span::styled(text.clone(), theme.style_success()));
+        }
     }
 
     Paragraph::new(Line::from(spans)).style(theme.style_text())

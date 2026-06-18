@@ -38,7 +38,10 @@ pub const SHORTCUTS: &[OptionItem] = &[
         label: "设置",
         command: Some("/setting"),
         desc: "账户偏好设置",
-        action: ClickAction::Command("/setting"),
+        // 直接打开 SettingsMenu 而不再走 raw `/setting`（避免再次触发
+        // "用法: /setting <key> <value>" 错误）；命令行键入 `/setting`
+        // 仍由 `execute_command` 的无参分支进入菜单。
+        action: ClickAction::OpenSettingsMenu,
     },
     OptionItem {
         label: "帮助",

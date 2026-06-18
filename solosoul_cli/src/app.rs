@@ -7,6 +7,7 @@ use std::time::{Duration, Instant};
 use color_eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::style::Stylize;
 use ratatui::Frame;
 use solosoul_core::llm::config::{ConversationSummary, LlmConfig, LlmUsageStats};
 use solosoul_core::llm::service::LlmService;
@@ -48,6 +49,15 @@ pub enum ClickAction {
     Command(&'static str),
     /// 进入首次创建账户向导。
     StartOnboarding,
+    /// 进入设置菜单（替代原先 `Command("/setting")`，避免点击触发
+    /// "用法: /setting <key> <value>" 错误）。
+    OpenSettingsMenu,
+    /// 设置菜单中的某一项被点击；0 = 语言, 1 = 主题, 2 = 自定义键值, 3 = 调试包。
+    SettingItem(usize),
+    /// 选中某个语言候选项直接应用。
+    ApplyLanguage(String),
+    /// 选中某个主题候选项直接应用。
+    ApplyTheme(String),
 }
 
 /// 可点击区域。
@@ -203,6 +213,19 @@ pub enum AppPhase {
         models: Vec<crate::screens::embed_model::EmbedModelEntry>,
         info: String,
     },
+    /// 设置菜单顶层：语言 / 主题 / 自定义偏好键值 / 导出调试包 4 项。
+    /// 缓存 current_language / current_theme 供 render 直接展示，避免每次进入读盘。
+    SettingsMenu {
+        selected: usize,
+        current_language: String,
+        current_theme: String,
+    },
+    /// 设置 → 语言选择列表（候选固定为 zh-CN / en-US / ja-JP）。
+    SettingsLanguageSelect { selected: usize },
+    /// 设置 → 主题选择列表（候选固定为 system / light / dark）。
+    SettingsThemeSelect { selected: usize },
+    /// 设置 → 自定义偏好键值向导（prompt cascade 期间的占位 phase）。
+    SettingsPreferenceEdit,
     /// 安全退出
     Quit,
 }
@@ -301,7 +324,12 @@ pub enum ExternalEditRequest {
 
 pub struct App {
     pub phase: AppPhase,
-    /// 返回 `Locked` 或 `Welcome` 时恢复此上一屏
+    /// 上一屏备份，供 `commands::core::back` 在 Esc / /back 时还原 phase。
+    ///
+    /// 设计上为**单槽**，能正确表达"Single step 跳入 → popup 复原"语义。
+    /// 但在 `apply_language` / `apply_theme` / `trigger_debug_log_export` 成功路径上会被
+    /// 显式置 `None`，表达"phase 本身即为自然终点"，此时 Esc 在顶层 phase 内走 fallback → Home。
+    /// 这是与"单槽 pop"语义的偏离——修改遵循 Settings 邻接 phase 时请勿误会此字段的契约。
     pub previous_phase: Option<AppPhase>,
     pub vault_service: Arc<VaultService>,
     pub llm_service: LlmService,
@@ -344,6 +372,9 @@ pub struct App {
     pub drag_start: Option<(u16, u16)>,
     /// 待通过 inquire 在外部编辑的字段请求。
     pub external_edit: Option<ExternalEditRequest>,
+    /// 设置成功后的绿色 toast（带 Instant 戳）；status_bar.rs 在 5 秒内渲染过期。
+    /// apply_language / apply_theme / trigger_debug_log_export 中设置。
+    pub success_message: Option<(String, Instant)>,
 }
 
 impl App {
@@ -393,6 +424,7 @@ impl App {
             welcome_selected: 0,
             drag_start: None,
             external_edit: None,
+            success_message: None,
             llm_service: LlmService::new(),
             chat_state: None,
             plugin_run_pending: None,
@@ -661,6 +693,13 @@ impl App {
             .sheen_offset
             .wrapping_add(crate::screens::logo::SHEEN_STEP);
 
+        // 设置成功 toast 过期清理（5 秒后让位给后续消息）。
+        if let Some((_, ts)) = self.success_message {
+            if ts.elapsed() > Duration::from_secs(5) {
+                self.success_message = None;
+            }
+        }
+
         // LLM chat streaming poll
         if matches!(self.phase, AppPhase::LlmChat) {
             if let Some(ref mut state) = self.chat_state {
@@ -723,6 +762,12 @@ impl App {
             AppPhase::LlmChat => self.handle_llm_chat_key(key),
             AppPhase::PluginList { .. } => self.handle_plugin_list_key(key),
             AppPhase::PluginDetail { .. } => self.handle_plugin_detail_key(key),
+            AppPhase::SettingsMenu { .. } => self.handle_settings_menu_key(key),
+            AppPhase::SettingsLanguageSelect { .. } => {
+                self.handle_settings_language_select_key(key)
+            }
+            AppPhase::SettingsThemeSelect { .. } => self.handle_settings_theme_select_key(key),
+            AppPhase::SettingsPreferenceEdit => self.handle_settings_preference_edit_key(key),
             AppPhase::Locked => self.handle_locked_key(key),
             AppPhase::Welcome => self.handle_welcome_key(key),
             _ => self.handle_command_key(key),
@@ -823,6 +868,22 @@ impl App {
                     self.phase = AppPhase::Onboarding {
                         step: OnboardingStep::EnterName,
                     };
+                    Ok(false)
+                }
+                ClickAction::OpenSettingsMenu => {
+                    commands::settings::open_menu(self);
+                    Ok(false)
+                }
+                ClickAction::SettingItem(idx) => {
+                    commands::settings::dispatch_item(self, idx);
+                    Ok(false)
+                }
+                ClickAction::ApplyLanguage(code) => {
+                    commands::settings::apply_language(self, &code);
+                    Ok(false)
+                }
+                ClickAction::ApplyTheme(name) => {
+                    commands::settings::apply_theme(self, &name);
                     Ok(false)
                 }
             }
@@ -999,6 +1060,11 @@ impl App {
                 };
                 Ok(false)
             }
+            // 欢迎页不可能出现设置类动作，但 match 必须穷尽以编译：
+            ClickAction::OpenSettingsMenu
+            | ClickAction::SettingItem(_)
+            | ClickAction::ApplyLanguage(_)
+            | ClickAction::ApplyTheme(_) => Ok(false),
         }
     }
 
@@ -1476,7 +1542,12 @@ impl App {
             "/export" => commands::export_import::handle(self, &parts)?,
             "/import" => commands::export_import::handle(self, &parts)?,
             "/language" | "/theme" | "/setting" | "/debug_log" => {
-                commands::settings::handle(self, &parts)?
+                if base == "/setting" && parts.len() == 1 {
+                    // 无参 `/setting` 打开设置菜单，不再报"用法: <key> <value>"。
+                    commands::settings::open_menu(self);
+                } else {
+                    commands::settings::handle(self, &parts)?
+                }
             }
             "/security" => commands::security::handle(self, &parts)?,
             "/profile" => commands::profile::handle(self, &parts)?,
@@ -2361,6 +2432,128 @@ impl App {
         Ok(false)
     }
 
+    /// 处理设置菜单页（语言 / 主题 / 自定义偏好键值 / 导出调试包 4 项）的键盘事件。
+    fn handle_settings_menu_key(&mut self, key: KeyEvent) -> Result<bool> {
+        let (mut selected, current_language, current_theme) = match &self.phase {
+            AppPhase::SettingsMenu {
+                selected,
+                current_language,
+                current_theme,
+            } => (*selected, current_language.clone(), current_theme.clone()),
+            _ => return Ok(false),
+        };
+        let num_items = crate::screens::settings_menu::NUM_ITEMS;
+        match key.code {
+            KeyCode::Esc | KeyCode::Char('q') => {
+                // SettingsMenu 是顶层菜单：Esc 约定俗成 = 退出整个菜单。
+                // previous_phase=None 会在 apply_* 成功路径上发生（为避免栈死循环手动清栈）；
+                // 此时 Esc 不走 core::back（避免返回 Home/Locked 路径上丢失选中状态）。
+                // 显式设回 Home，获取 vault 当前账户。
+                if self.previous_phase.is_none() {
+                    if let Some(account_id) = self.vault_service.get_current_account() {
+                        self.phase = AppPhase::Home { account_id };
+                        self.selected_shortcut = 0;
+                    } else {
+                        self.phase = AppPhase::Locked;
+                    }
+                } else {
+                    commands::core::back(self);
+                }
+                return Ok(false);
+            }
+            KeyCode::Up if selected > 0 => selected -= 1,
+            KeyCode::Down if selected + 1 < num_items => selected += 1,
+            KeyCode::Enter => {
+                commands::settings::dispatch_item(self, selected);
+                return Ok(false);
+            }
+            _ => {}
+        }
+        self.phase = AppPhase::SettingsMenu {
+            selected,
+            current_language,
+            current_theme,
+        };
+        Ok(false)
+    }
+
+    fn handle_settings_language_select_key(&mut self, key: KeyEvent) -> Result<bool> {
+        let mut selected = match &self.phase {
+            AppPhase::SettingsLanguageSelect { selected } => *selected,
+            _ => return Ok(false),
+        };
+        let count = crate::screens::settings_language_select::OPTIONS.len();
+        match key.code {
+            KeyCode::Esc | KeyCode::Char('q') => {
+                commands::core::back(self);
+                return Ok(false);
+            }
+            KeyCode::Up if selected > 0 => selected -= 1,
+            KeyCode::Down if selected + 1 < count => selected += 1,
+            KeyCode::Enter => {
+                if let Some((code, _)) =
+                    crate::screens::settings_language_select::OPTIONS.get(selected)
+                {
+                    commands::settings::apply_language(self, code);
+                }
+                return Ok(false);
+            }
+            _ => {}
+        }
+        self.phase = AppPhase::SettingsLanguageSelect { selected };
+        Ok(false)
+    }
+
+    fn handle_settings_theme_select_key(&mut self, key: KeyEvent) -> Result<bool> {
+        let mut selected = match &self.phase {
+            AppPhase::SettingsThemeSelect { selected } => *selected,
+            _ => return Ok(false),
+        };
+        let count = crate::screens::settings_theme_select::OPTIONS.len();
+        match key.code {
+            KeyCode::Esc | KeyCode::Char('q') => {
+                commands::core::back(self);
+                return Ok(false);
+            }
+            KeyCode::Up if selected > 0 => selected -= 1,
+            KeyCode::Down if selected + 1 < count => selected += 1,
+            KeyCode::Enter => {
+                if let Some((name, _)) =
+                    crate::screens::settings_theme_select::OPTIONS.get(selected)
+                {
+                    commands::settings::apply_theme(self, name);
+                }
+                return Ok(false);
+            }
+            _ => {}
+        }
+        self.phase = AppPhase::SettingsThemeSelect { selected };
+        Ok(false)
+    }
+
+    /// SettingsPreferenceEdit 是 prompt cascade 期间的占位 phase；
+    /// 真正的人机交互在 prompt 中完成；这里只消费 Esc 返回上一屏。
+    /// 若 `previous_phase` 被 apply_* 成功路径清为 None，Esc fallback 到 Home / Locked：
+    /// 与 handle_settings_menu_key::Esc 保持一致。
+    fn handle_settings_preference_edit_key(&mut self, key: KeyEvent) -> Result<bool> {
+        match key.code {
+            KeyCode::Esc | KeyCode::Char('q') => {
+                if self.previous_phase.is_none() {
+                    if let Some(account_id) = self.vault_service.get_current_account() {
+                        self.phase = AppPhase::Home { account_id };
+                        self.selected_shortcut = 0;
+                    } else {
+                        self.phase = AppPhase::Locked;
+                    }
+                } else {
+                    commands::core::back(self);
+                }
+            }
+            _ => {}
+        }
+        Ok(false)
+    }
+
     /// 渲染一帧。
     pub fn render(&mut self, frame: &mut Frame) {
         self.clickable_regions.clear();
@@ -2559,6 +2752,50 @@ impl App {
             AppPhase::EmbedModelList { models, info } => {
                 crate::screens::embed_model::render(frame, layout[1], models, info)
             }
+            AppPhase::SettingsMenu {
+                selected,
+                current_language,
+                current_theme,
+            } => crate::screens::settings_menu::render(
+                frame,
+                layout[1],
+                *selected,
+                current_language,
+                current_theme,
+                &mut self.clickable_regions,
+                self.mouse_pos,
+            ),
+            AppPhase::SettingsLanguageSelect { selected } => {
+                let current = crate::commands::settings::current_language(self);
+                crate::screens::settings_language_select::render(
+                    frame,
+                    layout[1],
+                    *selected,
+                    &current,
+                    &mut self.clickable_regions,
+                    self.mouse_pos,
+                )
+            }
+            AppPhase::SettingsThemeSelect { selected } => {
+                let current = crate::commands::settings::current_theme(self);
+                crate::screens::settings_theme_select::render(
+                    frame,
+                    layout[1],
+                    *selected,
+                    &current,
+                    &mut self.clickable_regions,
+                    self.mouse_pos,
+                )
+            }
+            AppPhase::SettingsPreferenceEdit => {
+                // 自定义偏好向导：提示框覆盖整个 TUI，这里只渲染中性占位
+                // （仅在被 prompt 关闭后才可见）。
+                let para = ratatui::widgets::Paragraph::new(
+                    ratatui::text::Line::from("正在编辑自定义偏好...").italic(),
+                )
+                .alignment(ratatui::layout::Alignment::Center);
+                frame.render_widget(para, layout[1]);
+            }
             AppPhase::Quit => {}
         }
 
@@ -2661,6 +2898,10 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
             "/embed_model",
         ],
         AppPhase::UnlockWizard { .. } => &["/back"],
+        AppPhase::SettingsMenu { .. }
+        | AppPhase::SettingsLanguageSelect { .. }
+        | AppPhase::SettingsThemeSelect { .. }
+        | AppPhase::SettingsPreferenceEdit => &["/back"],
         AppPhase::NewObjectWizard { .. } | AppPhase::EditObjectWizard { .. } => {
             // 向导内部仅提供不会丢失未保存数据的命令
             &["/cancel", "/save", "/back"]
@@ -3161,5 +3402,138 @@ mod tests {
         assert_eq!(app.selected_shortcut, 0);
         press_key(&mut app, KeyCode::Up);
         assert_eq!(app.selected_shortcut, 0);
+    }
+
+    // === Phase 方案 C：设置菜单 / 语言选择 / 主题选择 phase 测试 ===
+
+    #[test]
+    fn test_open_menu_from_home_phase() {
+        // locked_app() 仅创建账户不解锁；这里调 unlock_secure + 设 phase=Home␊
+        // 让 open_menu snapshot Home 为 previous_phase。
+        let (mut app, account_id, _dir) = locked_app();
+        app.vault_service
+            .unlock_secure(&account_id, &Zeroizing::new("password123".to_string()))
+            .unwrap();
+        app.phase = AppPhase::Home {
+            account_id: account_id.clone(),
+        };
+        crate::commands::settings::open_menu(&mut app);
+        match &app.phase {
+            AppPhase::SettingsMenu {
+                selected,
+                current_language,
+                current_theme,
+            } => {
+                assert_eq!(*selected, 0);
+                assert_eq!(current_theme, "system");
+                assert!(current_language.is_empty() || current_language == "zh-CN");
+            }
+            other => panic!("expected SettingsMenu, got {:?}", other),
+        }
+        assert!(matches!(app.previous_phase, Some(AppPhase::Home { .. })));
+    }
+
+    #[test]
+    fn test_apply_language_writes_and_refreshes_menu() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        crate::commands::settings::open_menu(&mut app);
+        crate::commands::settings::apply_language(&mut app, "en-US");
+
+        let path = app.vault_service.base_path().join("ui_preferences.json");
+        let content = std::fs::read_to_string(&path).unwrap();
+        let prefs: serde_json::Value = serde_json::from_str(&content).unwrap();
+        assert_eq!(prefs["language"], "en-US");
+
+        assert!(app.success_message.is_some());
+        match &app.phase {
+            AppPhase::SettingsMenu {
+                current_language, ..
+            } => assert_eq!(current_language, "en-US"),
+            other => panic!(
+                "expected SettingsMenu after apply_language, got {:?}",
+                other
+            ),
+        }
+    }
+
+    #[test]
+    fn test_apply_theme_writes_and_refreshes_menu() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        crate::commands::settings::open_menu(&mut app);
+        crate::commands::settings::apply_theme(&mut app, "dark");
+
+        let path = app.vault_service.base_path().join("ui_preferences.json");
+        let content = std::fs::read_to_string(&path).unwrap();
+        let prefs: serde_json::Value = serde_json::from_str(&content).unwrap();
+        assert_eq!(prefs["theme"], "dark");
+
+        assert!(app.success_message.is_some());
+        match &app.phase {
+            AppPhase::SettingsMenu { current_theme, .. } => assert_eq!(current_theme, "dark"),
+            other => panic!("expected SettingsMenu after apply_theme, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_execute_command_setting_no_args_opens_menu() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        app.command_input.set_value("/setting".to_string());
+        app.execute_command().unwrap();
+        assert!(matches!(app.phase, AppPhase::SettingsMenu { .. }));
+        assert!(
+            app.error_message.is_none(),
+            "无参 /setting 不应再报错，got {:?}",
+            app.error_message
+        );
+    }
+
+    #[test]
+    fn test_execute_command_setting_with_two_args_still_works() {
+        // 解锁 vault 后调用 /setting (key value)，期望与 原始脚本调用兼容。
+        // 使用 locked_app() 则调用 auth::unlock 仅进入向导，不会真正解锁；这里直接调用 unlock_secure。
+        let (mut app, account_id, _dir) = locked_app();
+        app.vault_service
+            .unlock_secure(&account_id, &Zeroizing::new("password123".to_string()))
+            .unwrap();
+        app.command_input
+            .set_value("/setting notifications true".to_string());
+        app.execute_command().unwrap();
+
+        let vault = app.vault_service.get_vault_store().unwrap();
+        let profile = vault.load_profile(&account_id).unwrap().unwrap();
+        let data: serde_json::Value = serde_json::from_slice(&profile.data).unwrap();
+        assert_eq!(
+            data["preferences"]["notifications"],
+            serde_json::Value::Bool(true)
+        );
+    }
+
+    #[test]
+    fn test_open_language_select_selected_from_current() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        crate::commands::settings::open_menu(&mut app);
+        crate::commands::settings::apply_language(&mut app, "en-US");
+        crate::commands::settings::open_language_select(&mut app);
+        match &app.phase {
+            AppPhase::SettingsLanguageSelect { selected } => assert_eq!(*selected, 1),
+            other => panic!("expected SettingsLanguageSelect, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_open_theme_select_selected_from_current() {
+        let (mut app, _id, _dir) = locked_app();
+        commands::auth::unlock(&mut app).unwrap();
+        crate::commands::settings::open_menu(&mut app);
+        crate::commands::settings::apply_theme(&mut app, "dark");
+        crate::commands::settings::open_theme_select(&mut app);
+        match &app.phase {
+            AppPhase::SettingsThemeSelect { selected } => assert_eq!(*selected, 2),
+            other => panic!("expected SettingsThemeSelect, got {:?}", other),
+        }
     }
 }

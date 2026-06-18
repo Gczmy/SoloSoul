@@ -1,11 +1,18 @@
 //! 设置与诊断命令：/language、/theme、/setting、/debug_log。
+//!
+//! Phase 方案 C：本模块除了 4 个原始命令（保持脚本兼容），还导出
+//! `open_menu` / `open_language_select` / `open_theme_select` /
+//! `apply_language` / `apply_theme` / `start_settings_preference_edit` /
+//! `trigger_debug_log_export` / `dispatch_item`，驱动 TUI 设置菜单 phase。
 
 use std::path::Path;
+use std::time::Instant;
 
 use color_eyre::Result;
 use serde_json::{Map, Value};
 
-use crate::app::App;
+use crate::app::{App, AppPhase};
+use crate::widgets::prompt::{PromptResult, PromptSpec};
 
 fn map_err(e: String) -> color_eyre::Report {
     color_eyre::eyre::eyre!(e)
@@ -24,6 +31,198 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
             Ok(())
         }
     }
+}
+
+// === 通用 helper ===
+
+/// 当前生效语言（从 ui_preferences.json 读取，缺失返回空串）。
+pub fn current_language(app: &App) -> String {
+    load_ui_prefs(app)
+        .get("language")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string()
+}
+
+/// 当前生效主题（从 ui_preferences.json 读取）。
+pub fn current_theme(app: &App) -> String {
+    load_ui_prefs(app)
+        .get("theme")
+        .and_then(|v| v.as_str())
+        .unwrap_or("system")
+        .to_string()
+}
+
+// === Phase 方案 C：设置菜单入口 ===
+
+/// 打开设置菜单顶层（无论 Home 点击还是键入无参 `/setting` 都会调用）。
+///
+/// 单槽 `previous_phase`：把当前 phase 压栈，新 phase 为 SettingsMenu。
+pub fn open_menu(app: &mut App) {
+    let prefs = load_ui_prefs(app);
+    let language = prefs
+        .get("language")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let theme = prefs
+        .get("theme")
+        .and_then(|v| v.as_str())
+        .unwrap_or("system")
+        .to_string();
+    app.previous_phase = Some(app.phase.clone());
+    app.phase = AppPhase::SettingsMenu {
+        selected: 0,
+        current_language: language,
+        current_theme: theme,
+    };
+}
+
+/// 通过菜单项 index 进入对应子 phase（与 mouse::execute_click 共享）。
+///
+/// `idx`：0=语言 / 1=主题 / 2=自定义键值 / 3=导出调试包。
+pub fn dispatch_item(app: &mut App, idx: usize) {
+    match idx {
+        0 => open_language_select(app),
+        1 => open_theme_select(app),
+        2 => start_settings_preference_edit(app),
+        3 => trigger_debug_log_export(app),
+        _ => {}
+    }
+}
+
+/// 进入语言选择列表。
+pub fn open_language_select(app: &mut App) {
+    let selected = crate::screens::settings_language_select::OPTIONS
+        .iter()
+        .position(|(c, _)| *c == current_language(app))
+        .unwrap_or(0);
+    app.previous_phase = Some(app.phase.clone());
+    app.phase = AppPhase::SettingsLanguageSelect { selected };
+}
+
+/// 进入主题选择列表。
+pub fn open_theme_select(app: &mut App) {
+    let selected = crate::screens::settings_theme_select::OPTIONS
+        .iter()
+        .position(|(c, _)| *c == current_theme(app))
+        .unwrap_or(0);
+    app.previous_phase = Some(app.phase.clone());
+    app.phase = AppPhase::SettingsThemeSelect { selected };
+}
+
+/// 应用新语言：写入 ui_preferred，并显示 success toast，回退到 SettingsMenu。
+pub fn apply_language(app: &mut App, code: &str) {
+    let mut prefs = load_ui_prefs(app);
+    prefs.insert("language".to_string(), Value::String(code.to_string()));
+    if let Err(e) = save_ui_prefs(app, &prefs) {
+        app.error_message = Some(format!("写入语言偏好失败: {}", e));
+        crate::commands::core::back(app);
+        return;
+    }
+    app.success_message = Some((format!("语言已设置为: {}", code), Instant::now()));
+    // 显式抹为 SettingsMenu + 刷新 current_language；不调 core::back 让 phase 能覆盖为当前 phase (Home/Locked)。
+    let current_theme = current_theme(app);
+    app.phase = AppPhase::SettingsMenu {
+        selected: 0,
+        current_language: code.to_string(),
+        current_theme,
+    };
+    if let Some(AppPhase::SettingsMenu { .. }) = app.previous_phase.as_ref() {
+        app.previous_phase = None;
+    }
+}
+
+/// 应用新主题：写入 ui_prefs，并显示 success toast，回退到 SettingsMenu。
+pub fn apply_theme(app: &mut App, name: &str) {
+    let mut prefs = load_ui_prefs(app);
+    prefs.insert("theme".to_string(), Value::String(name.to_string()));
+    if let Err(e) = save_ui_prefs(app, &prefs) {
+        app.error_message = Some(format!("写入主题偏好失败: {}", e));
+        crate::commands::core::back(app);
+        return;
+    }
+    app.success_message = Some((format!("主题已设置为: {}", name), Instant::now()));
+    let current_language = current_language(app);
+    app.phase = AppPhase::SettingsMenu {
+        selected: 0,
+        current_language,
+        current_theme: name.to_string(),
+    };
+    if let Some(AppPhase::SettingsMenu { .. }) = app.previous_phase.as_ref() {
+        app.previous_phase = None;
+    }
+}
+
+/// 进入「自定义偏好键值」向导：phase 设为 SettingsPreferenceEdit 并弹出键名 prompt。
+pub fn start_settings_preference_edit(app: &mut App) {
+    app.previous_phase = Some(app.phase.clone());
+    app.phase = AppPhase::SettingsPreferenceEdit;
+    open_preference_key_prompt(app);
+}
+
+/// 弹出键名输入 prompt；用户在 prompt 中确认 → 链入 open_preference_value_prompt。
+fn open_preference_key_prompt(app: &mut App) {
+    crate::widgets::prompt::open(
+        app,
+        PromptSpec::Text {
+            label: "偏好键名（例：notifications）".to_string(),
+            initial: String::new(),
+            mask: false,
+            allow_toggle_mask: false,
+        },
+        Box::new(|app, result| match result {
+            PromptResult::Text(raw) => {
+                let key = raw.trim().to_string();
+                if key.is_empty() {
+                    app.error_message = Some("键名不能为空".to_string());
+                    crate::commands::core::back(app);
+                } else {
+                    open_preference_value_prompt(app, key);
+                }
+            }
+            PromptResult::Cancel => {
+                crate::commands::core::back(app);
+            }
+            _ => {}
+        }),
+    );
+}
+
+/// 弹出偏好值输入 prompt；用户在 prompt 中确认 → 复用 `handle({/setting, key, value})` 写入。
+fn open_preference_value_prompt(app: &mut App, key: String) {
+    use crate::widgets::prompt::PromptCallback;
+    let label = format!("偏好值（键={}，JSON 会被尝试解析，否则按字符串保存）", key);
+    let code = key.clone();
+    let on_done: PromptCallback = Box::new(move |app, result| match result {
+        PromptResult::Text(value) => {
+            let _ = handle(app, &["/setting", &code, &value]);
+            crate::commands::core::back(app);
+        }
+        PromptResult::Cancel => {
+            crate::commands::core::back(app);
+        }
+        _ => {}
+    });
+    crate::widgets::prompt::open(
+        app,
+        PromptSpec::Text {
+            label,
+            initial: String::new(),
+            mask: false,
+            allow_toggle_mask: false,
+        },
+        on_done,
+    );
+}
+
+/// 在 SettingsMenu 中点击「导出调试包」时调用。
+///
+/// 等价于无参 `/debug_log`。成功路径由 `debug_log` 内部直接写入
+/// `success_message`（绿色 toast），失败保留在 `error_message`（红色 overlay）。
+/// 调用方无需再做任何字符串转译，从而避免脆性文案检测。
+pub fn trigger_debug_log_export(app: &mut App) {
+    let _ = debug_log(app, None);
 }
 
 /// UI 偏好设置文件路径。
@@ -188,7 +387,8 @@ fn setting(app: &mut App, key: Option<&str>, value: Option<&str>) -> Result<()> 
     Ok(())
 }
 
-/// 执行 `/debug_log [file_name]`：导出诊断包。
+/// 执行 `/debug_log [file_name]`：导出诊断包。\n///
+/// 成功时写入 `success_message`（绿色 toast，5 秒过期），失败保留 `error_message`（红色 overlay）。\n/// 设计目标：调用方不再依赖字符串前缀判定成败，避免诊包路径文案变更引起静默兼容性问题。
 fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
     let account_id = require_unlocked(app)?;
 
@@ -239,7 +439,10 @@ fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
         color_eyre::eyre::eyre!(e)
     })?;
 
-    app.error_message = Some(format!("诊断包已导出至: {}", path.display()));
+    app.success_message = Some((
+        format!("诊断包已导出至: {}", path.display()),
+        Instant::now(),
+    ));
     Ok(())
 }
 
@@ -248,6 +451,7 @@ mod tests {
     use super::*;
     use solosoul_core::VaultService;
     use std::sync::Arc;
+    use zeroize::Zeroizing;
 
     fn unlocked_app() -> (App, String, tempfile::TempDir) {
         let _guard = crate::VAULT_TEST_LOCK
@@ -328,5 +532,128 @@ mod tests {
         assert!(parsed["auditLog"].is_array());
         assert!(!content.to_lowercase().contains("password"));
         assert!(!content.to_lowercase().contains("sessionkey"));
+    }
+
+    // === Phase 方案 C：菜单/语言/主题 dispatch 测试 ===
+
+    #[test]
+    fn test_open_menu_sets_settings_menu_phase() {
+        let (mut app, _id, _dir) = unlocked_app();
+        // 模拟 home → 进入 menu：设置 app.phase=Home，让 open_menu snapshot 为 previous_phase。
+        app.phase = crate::app::AppPhase::Home {
+            account_id: "acc".to_string(),
+        };
+        open_menu(&mut app);
+
+        match &app.phase {
+            AppPhase::SettingsMenu {
+                selected,
+                current_theme,
+                ..
+            } => {
+                assert_eq!(*selected, 0);
+                assert!(current_theme == "system"); // 默认主题
+            }
+            _ => panic!("expected SettingsMenu, got {:?}", app.phase),
+        }
+        assert!(matches!(app.previous_phase, Some(AppPhase::Home { .. })));
+    }
+
+    #[test]
+    fn test_apply_language_writes_preferences_and_refreshes_menu() {
+        let (mut app, _id, _dir) = unlocked_app();
+        // 直接走 open_menu → 模拟 phase 跳转
+        open_menu(&mut app);
+
+        // 切语言
+        apply_language(&mut app, "en-US");
+
+        // 验证写入
+        let path = app.vault_service.base_path().join("ui_preferences.json");
+        let content = std::fs::read_to_string(&path).unwrap();
+        let prefs: Value = serde_json::from_str(&content).unwrap();
+        assert_eq!(prefs["language"], "en-US");
+
+        // success_message 应设置
+        assert!(
+            app.success_message.is_some(),
+            "apply_language 应设置 success_message"
+        );
+
+        // phase 应回 SettingsMenu 且 current_language 已刷新
+        match &app.phase {
+            AppPhase::SettingsMenu {
+                current_language, ..
+            } => assert_eq!(current_language, "en-US"),
+            _ => panic!(
+                "expected SettingsMenu after apply_language, got {:?}",
+                app.phase
+            ),
+        }
+    }
+
+    #[test]
+    fn test_apply_theme_writes_preferences_and_refreshes_menu() {
+        let (mut app, _id, _dir) = unlocked_app();
+        open_menu(&mut app);
+
+        apply_theme(&mut app, "dark");
+
+        let path = app.vault_service.base_path().join("ui_preferences.json");
+        let content = std::fs::read_to_string(&path).unwrap();
+        let prefs: Value = serde_json::from_str(&content).unwrap();
+        assert_eq!(prefs["theme"], "dark");
+
+        assert!(app.success_message.is_some());
+        if let AppPhase::SettingsMenu { current_theme, .. } = &app.phase {
+            assert_eq!(current_theme, "dark");
+        } else {
+            panic!("expected SettingsMenu after apply_theme");
+        }
+    }
+
+    #[test]
+    fn test_handle_setting_with_two_args_still_writes_profile() {
+        // 兼容性：直接键入 `/setting <key> <value>` 仍走 handle 路径（走加密 profile preferences）。
+        let (mut app, account_id, _dir) = unlocked_app();
+        // 脚本式调用要求 Vault 已解锁；unlocked_app() 仅创建不解锁。
+        app.vault_service
+            .unlock_secure(&account_id, &Zeroizing::new("password123".to_string()))
+            .unwrap();
+        handle(&mut app, &["/setting", "ui.theme", "\"dark\""]).unwrap();
+        let vault = app.vault_service.get_vault_store().unwrap();
+        let profile = vault.load_profile(&account_id).unwrap().unwrap();
+        let data: Value = serde_json::from_slice(&profile.data).unwrap();
+        assert_eq!(data["preferences"]["ui.theme"], "dark");
+    }
+
+    #[test]
+    fn test_open_language_select_populates_selected_from_current() {
+        let (mut app, _id, _dir) = unlocked_app();
+        open_menu(&mut app);
+        apply_language(&mut app, "en-US");
+        // 现在 phase 是 SettingsMenu，selected=0, current_language=en-US。
+        // 重入 language select，selected 应定位到 en-US 的索引 (1)。
+        open_language_select(&mut app);
+        match &app.phase {
+            AppPhase::SettingsLanguageSelect { selected } => {
+                assert_eq!(*selected, 1);
+            }
+            _ => panic!("expected SettingsLanguageSelect, got {:?}", app.phase),
+        }
+    }
+
+    #[test]
+    fn test_open_theme_select_populates_selected_from_current() {
+        let (mut app, _id, _dir) = unlocked_app();
+        open_menu(&mut app);
+        apply_theme(&mut app, "dark");
+        open_theme_select(&mut app);
+        match &app.phase {
+            AppPhase::SettingsThemeSelect { selected } => {
+                assert_eq!(*selected, 2); // ("dark" 是位置的索引 2)
+            }
+            _ => panic!("expected SettingsThemeSelect, got {:?}", app.phase),
+        }
     }
 }

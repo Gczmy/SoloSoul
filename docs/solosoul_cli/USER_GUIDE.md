@@ -121,8 +121,9 @@ CLI 启动时：
 
 | 命令 | 说明 |
 |------|------|
-| `/language`            | 切换 CLI 语言 |
-| `/theme`               | 切换主题 |
+| `/language`            | 切换 CLI 语言（写入 `ui_preferences.json`，无参时显示当前） |
+| `/theme`               | 切换主题（写入 `ui_preferences.json`，无参时显示当前） |
+| `/setting`（无参）     | **打开设置菜单**（等价于首页点击『设置』） |
 | `/setting <key> <val>` | 修改加密的账户偏好 |
 | `/security`            | 修改主密码 / 提示词 / 回收站保留天数 / 删除账户 |
 | `/debug_log`           | 导出诊断包 |
@@ -203,6 +204,19 @@ CLI 启动时：
 环境变量 `SOLOSOUL_EMBED_REGISTRY=https://...embed-registry.json` 覆盖默认 URL。
 本地目录：`{SOLOSOUL_DATA_DIR}/embed_models/<model_id>/model.bin`。
 激活的 embedding model 仍由 **GUI** 的 LlmConfig 设置，CLI 当前不修改。
+
+### 4.14 设置菜单  ← *本期新增*
+
+首页『设置』或键入 `/setting`（无参）打开此菜单，包含 4 项；每项支持鼠标点击 + 键盘上下选择。
+
+| 菜单项 | 功能 | 是否需解锁 |
+|------|------|----------|
+| 语言 | 弹列表（简体中文 / English / 日本語），回车即写 `ui_preferences.json` + 绿色 toast | 否 |
+| 主题 | 弹列表（跟随系统 / 浅色 / 深色），同上 | 否 |
+| 自定义偏好键值 | 连续 prompt 输入键名 + 值，写入当前账户加密 profile preferences；JSON 尝试解析，否则按字符串 | 是 |
+| 导出调试包 | 等价于 `/debug_log`，导出至 `~/.solosoul/logs/` | 是 |
+
+退出请按 Esc。命令行兼容：`/language <code>`、`/theme <主题>`、`/setting <key> <value>`、`/debug_log [文件名]` 仍保留以兼容脚本。
 
 ## 5. 进程锁与并发
 
