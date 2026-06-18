@@ -91,6 +91,18 @@ pub struct ObjectFilter {
     pub include_deleted: Option<bool>,
 }
 
+/// 从模板继承 contract_type_id。
+/// 若创建对象时指定了模板 ID，且对应模板存在 `contract_type_id`，则自动复制到对象上。
+fn inherit_contract_type_id(vault: &solosoul_vault::VaultStore, template_id: Option<&str>) -> Option<String> {
+    template_id.and_then(|tid| {
+        vault
+            .load_user_template(tid)
+            .ok()
+            .flatten()
+            .and_then(|t| t.contract_type_id)
+    })
+}
+
 fn record_to_data(record: &ObjectRecord) -> ObjectData {
     ObjectData {
         id: record.id.clone(),
@@ -179,8 +191,11 @@ pub async fn object_create(
         }
     }
 
+    // §13.10.3: 从模板继承 contract_type_id
+    let contract_type_id = inherit_contract_type_id(&vault, input.template_id.as_deref());
+
     let record = ObjectRecord {
-        contract_type_id: None,
+        contract_type_id,
         id: id.clone(),
         account_id: input.account_id.clone(),
         type_id: input.collection_type.clone(),
@@ -450,9 +465,13 @@ pub async fn object_restore(
         trash.name_snapshot.clone()
     };
 
+    // §13.10.3: 从模板继承 contract_type_id
+    let restore_contract_type_id =
+        inherit_contract_type_id(&vault, record_data["template_id"].as_str());
+
     let now = chrono::Utc::now().to_rfc3339();
     let record = solosoul_vault::ObjectRecord {
-        contract_type_id: None,
+        contract_type_id: restore_contract_type_id,
         id: new_id.clone(),
         account_id: record_data["account_id"]
             .as_str()
@@ -1216,7 +1235,7 @@ fn retention_ms(period: &str) -> i64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use solosoul_vault::{ObjectRecord, Profile, TrashItem, VaultConfig, VaultStore};
+    use solosoul_vault::{ObjectRecord, Profile, TrashItem, UserTemplate, VaultConfig, VaultStore};
     use tempfile::TempDir;
 
     fn setup_vault() -> (VaultStore, TempDir) {
@@ -1225,6 +1244,56 @@ mod tests {
             VaultConfig::new("test_account", dir.path().to_path_buf()).with_data_key([0x42u8; 32]);
         let vault = VaultStore::open(config).unwrap();
         (vault, dir)
+    }
+
+    #[test]
+    fn test_inherit_contract_type_id() {
+        let (vault, _dir) = setup_vault();
+
+        // Missing template_id → None
+        assert_eq!(inherit_contract_type_id(&vault, None), None);
+
+        // Non-existent template → None (graceful fallback)
+        assert_eq!(
+            inherit_contract_type_id(&vault, Some("nonexistent")),
+            None
+        );
+
+        // Template with contract_type_id → Some
+        let tpl = UserTemplate {
+            contract_type_id: Some("com.solosoul.address/v1".to_string()),
+            id: "addr-template".to_string(),
+            account_id: "acc-1".to_string(),
+            name: "Address".to_string(),
+            icon_id: None,
+            properties: vec![],
+            category: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: None,
+        };
+        vault.save_user_template(&tpl).unwrap();
+        assert_eq!(
+            inherit_contract_type_id(&vault, Some("addr-template")),
+            Some("com.solosoul.address/v1".to_string())
+        );
+
+        // Template without contract_type_id → None
+        let tpl2 = UserTemplate {
+            contract_type_id: None,
+            id: "plain-template".to_string(),
+            account_id: "acc-1".to_string(),
+            name: "Plain".to_string(),
+            icon_id: None,
+            properties: vec![],
+            category: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: None,
+        };
+        vault.save_user_template(&tpl2).unwrap();
+        assert_eq!(
+            inherit_contract_type_id(&vault, Some("plain-template")),
+            None
+        );
     }
 
     #[test]
@@ -2040,22 +2109,22 @@ mod tests {
                         format!("{}{}", trash.name_snapshot, restored_suffix("en-US"))
                     } else {
                         trash.name_snapshot.clone()
-                    };
-                    if let Ok(record_data) =
-                        serde_json::from_slice::<serde_json::Value>(&trash.data)
-                    {
-                        let now = chrono::Utc::now().to_rfc3339();
-                        let record = ObjectRecord {
-                            contract_type_id: None,
-                            id: new_id.clone(),
-                            account_id: record_data["account_id"]
-                                .as_str()
-                                .unwrap_or("imported")
-                                .to_string(),
-                            type_id: record_data["type_id"]
-                                .as_str()
-                                .unwrap_or("note")
-                                .to_string(),
+                    };                if let Ok(record_data) = serde_json::from_slice::<serde_json::Value>(&trash.data) {
+                    // §13.10.3: 从模板继承 contract_type_id
+                    let page_restore_ctid =
+                        inherit_contract_type_id(&vault, record_data["template_id"].as_str());
+                    let now = chrono::Utc::now().to_rfc3339();
+                    let record = ObjectRecord {
+                        contract_type_id: page_restore_ctid,
+                        id: new_id.clone(),
+                        account_id: record_data["account_id"]
+                            .as_str()
+                            .unwrap_or("imported")
+                            .to_string(),
+                        type_id: record_data["type_id"]
+                            .as_str()
+                            .unwrap_or("note")
+                            .to_string(),
                             section_type: section.to_string(),
                             name: new_name,
                             icon_name: record_data["icon_name"]
