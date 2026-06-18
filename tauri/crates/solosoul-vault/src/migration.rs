@@ -454,7 +454,6 @@ CREATE TABLE IF NOT EXISTS objects (
 );
 "#;
 
-
     fn setup_conn() -> (Connection, TempDir) {
         let dir = TempDir::new().unwrap();
         let db_path = dir.path().join("test.db");
@@ -611,15 +610,23 @@ CREATE TABLE IF NOT EXISTS objects (
     ) -> (Connection, TempDir) {
         let dir = TempDir::new().unwrap();
         let db_path = dir.path().join("test_v17.db");
-        let mut conn = Connection::open(&db_path).unwrap();
+        let conn = Connection::open(&db_path).unwrap();
         let sql = HELPERS_PARTIAL_V16_SQL
             .replace(
                 "/*UTPL_CTID*/",
-                if has_utpl_ctid { "    contract_type_id TEXT,\n" } else { "" },
+                if has_utpl_ctid {
+                    "    contract_type_id TEXT,\n"
+                } else {
+                    ""
+                },
             )
             .replace(
                 "/*OBJECTS_CTID*/",
-                if has_objects_ctid { "    contract_type_id TEXT,\n" } else { "" },
+                if has_objects_ctid {
+                    "    contract_type_id TEXT,\n"
+                } else {
+                    ""
+                },
             );
         conn.execute_batch(&sql).unwrap();
         set_schema_version(&conn, 16).unwrap();
@@ -676,10 +683,10 @@ CREATE TABLE IF NOT EXISTS objects (
     #[test]
     fn test_migration_v17_partial_state() {
         let facets: &[(&str, bool, bool)] = &[
-            ("both missing (fresh install)",         false, false),
-            ("user_templates has, objects missing",   true,  false),
-            ("user_templates missing, objects has",   false, true),
-            ("both columns already present",          true,  true),
+            ("both missing (fresh install)", false, false),
+            ("user_templates has, objects missing", true, false),
+            ("user_templates missing, objects has", false, true),
+            ("both columns already present", true, true),
         ];
         for (label, has_utpl, has_objects) in facets.iter() {
             let (mut conn, _dir) = setup_v16_partial_state(*has_utpl, *has_objects);
