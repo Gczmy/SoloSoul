@@ -1340,7 +1340,8 @@ impl VaultStore {
                 .prepare(
                     "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                      children_ids, properties, property_labels, sensitivity_level,
-                     is_deleted, deleted_at, tags_json, template_id, template_type, created_at, updated_at, version
+                     is_deleted, deleted_at, tags_json, template_id, template_type,
+                     contract_type_id, created_at, updated_at, version
                      FROM objects WHERE account_id = ?1",
                 )
                 .map_err(|e| format!("list_object_changes: {}", e))?;
@@ -1384,7 +1385,6 @@ impl VaultStore {
                     let props: serde_json::Value =
                         serde_json::from_str(&decrypted_props).unwrap_or_default();
                     let obj = crate::ObjectRecord {
-                        contract_type_id: None,
                         id: row.get(0)?,
                         account_id: row.get(1)?,
                         type_id: row.get(2)?,
@@ -1401,9 +1401,10 @@ impl VaultStore {
                         tags_json: tags,
                         template_id: row.get(14)?,
                         template_type: row.get(15)?,
-                        created_at: row.get(16)?,
-                        updated_at: row.get(17)?,
-                        version: row.get(18)?,
+                        contract_type_id: row.get(16)?,
+                        created_at: row.get(17)?,
+                        updated_at: row.get(18)?,
+                        version: row.get(19)?,
                     };
                     Ok(obj)
                 })
@@ -1790,8 +1791,9 @@ impl VaultStore {
         conn.execute(
             "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name, parent_id,
              children_ids, properties, property_labels, sensitivity_level,
-             is_deleted, deleted_at, tags_json, template_id, template_type, created_at, updated_at, version)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19)
+             is_deleted, deleted_at, tags_json, template_id, template_type,
+             contract_type_id, created_at, updated_at, version)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20)
              ON CONFLICT(id) DO UPDATE SET
                type_id=excluded.type_id, section_type=excluded.section_type, name=excluded.name, icon_name=excluded.icon_name,
                parent_id=excluded.parent_id, children_ids=excluded.children_ids,
@@ -1800,12 +1802,14 @@ impl VaultStore {
                is_deleted=excluded.is_deleted, deleted_at=excluded.deleted_at,
                tags_json=excluded.tags_json,
                template_id=excluded.template_id, template_type=excluded.template_type,
+               contract_type_id=excluded.contract_type_id,
                updated_at=excluded.updated_at, version=excluded.version",
             params![
                 obj.id, obj.account_id, obj.type_id, obj.section_type, obj.name, obj.icon_name,
                 obj.parent_id, children_json, encrypted_props, encrypted_labels,
                 obj.sensitivity_level, obj.is_deleted as i32, obj.deleted_at,
                 tags_str, obj.template_id, obj.template_type,
+                obj.contract_type_id.clone(),
                 obj.created_at, obj.updated_at, obj.version,
             ],
         )
@@ -1821,7 +1825,8 @@ impl VaultStore {
             .prepare(
                 "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
-                 is_deleted, deleted_at, tags_json, template_id, template_type, created_at, updated_at, version
+                 is_deleted, deleted_at, tags_json, template_id, template_type,
+                 contract_type_id, created_at, updated_at, version
                  FROM objects WHERE id = ?1",
             )
             .map_err(|e| format!("load_object: {}", e))?;
@@ -1858,7 +1863,6 @@ impl VaultStore {
                     )
                 })?;
                 Ok(ObjectRecord {
-                    contract_type_id: None,
                     id: row.get(0)?,
                     account_id: row.get(1)?,
                     type_id: row.get(2)?,
@@ -1880,9 +1884,10 @@ impl VaultStore {
                     tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
                     template_id: row.get(14)?,
                     template_type: row.get(15)?,
-                    created_at: row.get(16)?,
-                    updated_at: row.get(17)?,
-                    version: row.get(18)?,
+                    contract_type_id: row.get(16)?,
+                    created_at: row.get(17)?,
+                    updated_at: row.get(18)?,
+                    version: row.get(19)?,
                 })
             })
             .ok();
@@ -1953,7 +1958,7 @@ impl VaultStore {
 
         let lower_kw = keyword.map(|k| k.to_lowercase());
         let mut sql = String::from(
-            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, icon_name
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, contract_type_id, icon_name
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
@@ -1994,7 +1999,6 @@ impl VaultStore {
                 let tags_str: String = row.get(9)?;
                 let decrypted_props = decrypt_text_field(&key, &props_str).unwrap_or_default();
                 Ok(ObjectSummary {
-                    contract_type_id: None,
                     id: row.get(0)?,
                     name: row.get(1)?,
                     collection_type: row.get(2)?,
@@ -2005,7 +2009,8 @@ impl VaultStore {
                     is_deleted: deleted_int != 0,
                     template_id: row.get(10)?,
                     template_type: row.get(11)?,
-                    icon_name: row.get(12)?,
+                    contract_type_id: row.get(12)?,
+                    icon_name: row.get(13)?,
                     properties: serde_json::from_str(&decrypted_props)
                         .unwrap_or(serde_json::Value::Null),
                     tags: serde_json::from_str(&tags_str).unwrap_or_default(),
@@ -2075,7 +2080,8 @@ impl VaultStore {
             .prepare(
                 "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
-                 is_deleted, deleted_at, tags_json, template_id, template_type, created_at, updated_at, version
+                 is_deleted, deleted_at, tags_json, template_id, template_type,
+                 contract_type_id, created_at, updated_at, version
                  FROM objects
                  WHERE account_id = ?1 AND is_deleted = 0
                  ORDER BY updated_at DESC",
@@ -2113,7 +2119,6 @@ impl VaultStore {
                     )
                 })?;
                 Ok(ObjectRecord {
-                    contract_type_id: None,
                     id: row.get(0)?,
                     account_id: row.get(1)?,
                     type_id: row.get(2)?,
@@ -2135,9 +2140,10 @@ impl VaultStore {
                     tags_json: serde_json::from_str(&row.get::<_, String>(13)?).unwrap_or_default(),
                     template_id: row.get(14)?,
                     template_type: row.get(15)?,
-                    created_at: row.get(16)?,
-                    updated_at: row.get(17)?,
-                    version: row.get(18)?,
+                    contract_type_id: row.get(16)?,
+                    created_at: row.get(17)?,
+                    updated_at: row.get(18)?,
+                    version: row.get(19)?,
                 })
             })
             .map_err(|e| format!("search_objects query: {}", e))?
@@ -4800,4 +4806,233 @@ mod tests {
         let loaded = vault.load_profile("p1").unwrap().unwrap();
         assert_eq!(loaded.name, "Newer");
     }
-}
+
+    // ── §30 plugin-template Stage 2 — contract_type_id roundtrip ─────────
+    //
+    // Stage 1 deliberately left SELECT closures reading contract_type_id as `None`.
+    // Stage 2 widens the SELECTs / INSERT so a plugin-declared contract_type_id
+    // survives a save → load round-trip. This is the acceptance test for that
+    // contract — if it ever regresses, plugins will lose their attach point on
+    // every read.
+    #[test]
+    fn test_contract_type_id_roundtrip() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            contract_type_id: Some("com.test.plugin/v1".to_string()),
+            id: "obj-contract-rt".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Contract Test".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: Vec::new(),
+            properties: serde_json::json!({"key": "value"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: Vec::new(),
+            template_id: None,
+            template_type: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        let loaded = vault
+            .load_object("obj-contract-rt")
+            .unwrap()
+            .expect("round-tripped object must exist");
+        assert_eq!(
+            loaded.contract_type_id,
+            Some("com.test.plugin/v1".to_string()),
+            "Stage 2 widening must persist contract_type_id across save → load",
+        );
+
+        // list_objects surface (ObjectSummary) should also see it.
+        let summaries = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
+        let summary = summaries
+            .iter()
+            .find(|s| s.id == "obj-contract-rt")
+            .expect("list_objects must surface round-tripped object");
+        assert_eq!(
+            summary.contract_type_id,
+            Some("com.test.plugin/v1".to_string()),
+            "list_objects SELECT closure must surface contract_type_id",
+        );
+        assert_eq!(
+            summary.icon_name, "doc",
+            "icon_name column (index 13 after widening) must round-trip too",
+        );
+    }
+
+    // ── Test helper (matches inline-struct-fill project style; closure-free) ──
+    fn make_ctid_obj(id: &str, contract_type_id: Option<&str>, name: &str) -> ObjectRecord {
+        ObjectRecord {
+            contract_type_id: contract_type_id.map(str::to_string),
+            id: id.to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: name.to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: Vec::new(),
+            properties: serde_json::json!({}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: Vec::new(),
+            template_id: None,
+            template_type: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        }
+    }
+
+    /// Boundary: `contract_type_id = None` must round-trip as `None` across
+    /// all read paths. Non-contract columns are pinned so the test stays
+    /// differential — a regression in the INSERT widening surfaces via
+    /// `name` / `account_id` / `icon_name` / `version` mismatches rather than
+    /// silently absorbing through None-defaulting.
+    #[test]
+    fn test_contract_type_id_none_roundtrip() {
+        let (vault, _dir) = setup();
+        let obj = make_ctid_obj("obj-ct-none", None, "no-contract");
+        vault.save_object(&obj).unwrap();
+
+        let loaded = vault
+            .load_object("obj-ct-none")
+            .unwrap()
+            .expect("round-tripped object must exist");
+        assert!(
+            loaded.contract_type_id.is_none(),
+            "None contract_type_id must survive save -> load (Stage 2 widening)",
+        );
+        // Pin adjacent columns so this test catches column-shift / INSERT
+        // regressions that None-defaulting would silently absorb.
+        assert_eq!(loaded.name, "no-contract", "name must round-trip");
+        assert_eq!(loaded.account_id, "acc-1", "account_id must round-trip");
+        assert_eq!(loaded.icon_name, "doc", "icon_name must round-trip");
+        assert_eq!(loaded.version, 1, "version (col 19) must round-trip");
+
+        let summaries = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
+        let summary = summaries
+            .iter()
+            .find(|s| s.id == "obj-ct-none")
+            .expect("list_objects must surface round-tripped object");
+        assert!(
+            summary.contract_type_id.is_none(),
+            "list_objects SELECT closure must preserve None (no literal injection)",
+        );
+        assert_eq!(
+            summary.icon_name, "doc",
+            "ObjectSummary.icon_name (index 13 after widening) must round-trip too",
+        );
+    }
+
+    /// Boundary: UPSERT via `ON CONFLICT(id) DO UPDATE SET` must overwrite
+    /// `contract_type_id` on every save, in both `Some(v1) -> Some(v2)` and
+    /// `Some(v1) -> None` directions. Non-mutating fields (`created_at`,
+    /// primary key, `version`) are pinned so a future column-shift regression
+    /// can't silently rewrite them.
+    #[test]
+    fn test_contract_type_id_upsert_mutation() {
+        let (vault, _dir) = setup();
+
+        // v1 first save locks created_at + version to values we pin across UPSERTs.
+        vault
+            .save_object(&make_ctid_obj(
+                "obj-ct-up",
+                Some("com.test.plugin/v1"),
+                "v1 name",
+            ))
+            .unwrap();
+        let loaded_v1 = vault
+            .load_object("obj-ct-up")
+            .unwrap()
+            .expect("v1 must persist");
+        assert_eq!(
+            loaded_v1.contract_type_id,
+            Some("com.test.plugin/v1".to_string()),
+            "initial Some(v1) save should be readable as Some(v1)",
+        );
+        let pinned_created_at = loaded_v1.created_at.clone();
+
+        // v2 UPSERT -- contract_type_id overwritten via the widening
+        // `ON CONFLICT(id) DO UPDATE SET contract_type_id = excluded.contract_type_id`.
+        vault
+            .save_object(&make_ctid_obj(
+                "obj-ct-up",
+                Some("com.test.plugin/v2"),
+                "v2 name",
+            ))
+            .unwrap();
+        let loaded_v2 = vault
+            .load_object("obj-ct-up")
+            .unwrap()
+            .expect("v2 UPSERT must persist");
+        assert_eq!(
+            loaded_v2.contract_type_id,
+            Some("com.test.plugin/v2".to_string()),
+            "UPSERT must overwrite contract_type_id from v1 -> v2",
+        );
+        assert_eq!(loaded_v2.name, "v2 name", "UPSERT must overwrite name");
+        assert_eq!(
+            loaded_v2.created_at, pinned_created_at,
+            "created_at must NOT mutate across UPSERTs",
+        );
+        assert_eq!(
+            loaded_v2.id, "obj-ct-up",
+            "primary key must stay pinned across UPSERTs",
+        );
+        assert_eq!(
+            loaded_v2.version, 1,
+            "version (col 19) must NOT mutate across UPSERTs",
+        );
+
+        // Some -> None backdown -- UPSERT must accept the literal NULL.
+        vault
+            .save_object(&make_ctid_obj("obj-ct-up", None, "v3 detached"))
+            .unwrap();
+        let loaded_v3 = vault
+            .load_object("obj-ct-up")
+            .unwrap()
+            .expect("None UPSERT must persist");
+        assert!(
+            loaded_v3.contract_type_id.is_none(),
+            "UPSERT must allow overwriting Some -> None",
+        );
+        assert_eq!(
+            loaded_v3.created_at, pinned_created_at,
+            "created_at must still stay pinned after Some -> None UPSERT",
+        );
+        assert_eq!(
+            loaded_v3.version, 1,
+            "version (col 19) must stay pinned after Some -> None UPSERT",
+        );
+
+        // list_objects surface reflects the latest state across every read path.
+        let summaries = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
+        let summary = summaries
+            .iter()
+            .find(|s| s.id == "obj-ct-up")
+            .expect("list_objects must surface upserted object");
+        assert!(
+            summary.contract_type_id.is_none(),
+            "list_objects must reflect Some -> None UPSERT on read",
+        );
+        assert_eq!(
+            summary.icon_name, "doc",
+            "ObjectSummary.icon_name must stay pinned across UPSERTs",
+        );
+    }
