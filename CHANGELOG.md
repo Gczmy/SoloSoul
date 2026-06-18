@@ -4,6 +4,21 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **插件模板系统 Stage 3 — v17 幂等性 + 部分 DB 状态测试** — 为 Stage 1 落地的 v17 migration 在 `solosoul-vault/src/migration.rs::tests` 内新增两条验收测试:
+  - `test_migration_v17_idempotent_run_twice` —— 两次顺序执行 `run_migrations()` 后断言 `schema_migrations.version = 17` 仅 1 行,证实 gate `current < 17` 在第二次调用中正确 skip;且两表 `contract_type_id` 均 `notnull = 0` 且 `(dflt_value IS NULL OR dflt_value = '')` (Option B 合约 — NULL 与空串都是「无合约」合法表述)。
+  - `test_migration_v17_partial_state` —— 4 个阶梯 mod 内 for-loop 覆盖 `(user_templates.contract_type_id, objects.contract_type_id)` 四种「有/无」组合: 双列均无 (fresh install), 仅 `user_templates` 有, 仅 `objects` 有, 双列已有 (no-op path)。每个阶梯结尾都验证两表都有列 + `schema_migrations.version=17` 仅 1 行 + `data_version == 17`。
+  - 新增 `setup_v16_partial_state(has_utpl_ctid, has_objects_ctid) -> (Connection, TempDir)` 辅助,内嵌 `HELPERS_PARTIAL_V16_SQL` 常量与 `/*UTPL_CTID*/` / `/*OBJECTS_CTID*/` 站位标记,以 `.replace()` 条件投送 `contract_type_id TEXT,` 行为。
+
+### Changed
+
+- **代码格式化清理** — 对 `migration.rs` 中 Stage 3 测试区块与 Stage 1 落库时 `lib.rs` 中 `#[serde(...)]` 属性的 rustfmt 漂移进行规范化 (`cargo fmt --all`)。
+
+### Fixed
+
+- **`cargo clippy --workspace --all-targets -- -D warnings` 警告** — 修复 `migration.rs::tests::setup_v16_partial_state` 中 `let mut conn = Connection::open(...)` 的 `unused_mut` 警告 (`Connection::open` / `execute_batch` / `set_schema_version` 均只需 `&self`)。
+
 ## [2.3.3] - 2026-06-18
 
 ### Added

@@ -10,14 +10,14 @@
 
 | 项 | 值 |
 |----|----|
-| 当前阶段 | **Stage 1 + Stage 2 已落库 · Stage 3 本地已 commit · 未 push** |
+| 当前阶段 | **Stage 1 + Stage 2 已落库 · Stage 3 本地 4 条 commit (test/fix/doc/audit) · 未 push** |
 | 工作分支 | `feat/plugin-template-stage3-v17-idempotency` (fork point = `master` @ `8b18965a`) |
 | Stage 1 commit (origin/master) | **`382f0cc5`** — `feat(plugin-template): stage 1 schema + v17 migration` |
 | Stage 2 commit (origin/master) | **`cf12e7ff`** — `feat(plugin-template): stage 2 SELECT widening — roundtrip contract_type_id` (+ doc-sync `e5320dcd`) |
-| Stage 3 commit (本分支顶端) | **`b89e221c`** — `feat(plugin-template): stage 3 v17 idempotency + partial-state tests` |
-| 推送状态 | ✅ Stage 1/2 在 `origin/master`;⚠️ Stage 3 还在本机分支,**待 push `feat/plugin-template-stage3-v17-idempotency` 并开 PR** |
-| 未提交工作区残留 | `tauri/crates/solosoul-vault/src/lib.rs`(rustfmt 重新展开 `#[serde(...)]` 至多行;cargo fmt 副作用) + §4.4 原 line `service.rs` / `cipher.rs` 残留 — 与 Stage 本任务无关,会独立 `chore(fmt)` commit |
-| 最近无历史 stage | 前 3 条相邻 commit (`cf12e7ff`/`e5320dcd`/`b89e221c`) 同属当前 story line |
+| Stage 3 commits (本分支顶端) | **`b89e221c`** — `feat(plugin-template): stage 3 v17 idempotency + partial-state tests` (主 commit)<br>**`fe2c7436`** — `docs(plugin-template): mark Stage 3 done and update 着陆点` (Stage 3 doc-sync)<br>**`23fe4d2a`** — `fix(plugin-template): drop unused_mut on conn + apply rustfmt` (review blocker)<br>**`dc8493b5`** — `fix(plugin-template): rustfmt vault lib serde attributes` (Stage 1 遗留 rustfmt 收 lib.rs) |
+| 推送状态 | ✅ Stage 1/2 在 `origin/master`;⚠️ Stage 3 仍在本机分支 (4 条 commit),**待 push `feat/plugin-template-stage3-v17-idempotency` 并开 PR** |
+| 未提交工作区残留 | §4.4 原 line `service.rs` / `cipher.rs` 残留 — 与 Stage 本任务无关,会独立 `chore(fmt)` commit (Stage 3 fix `dc8493b5` 已收 `lib.rs`,lib.rs 不再漂移) |
+| 最近无历史 stage | 前 4 条相邻 commit (`b89e221c`/`fe2c7436`/`23fe4d2a`/`dc8493b5`) 同属当前 Stage-3 story line |
 
 > **重启指示**:重启时优先读 `§2 已完成` 确认不要重做已做的事,然后跳到 `§4 待办` 选下一个 stage。
 
@@ -157,6 +157,12 @@
 | `cargo check --workspace --all-targets` (cd `tauri`) | **0 errors** |
 | `cargo test --package solosoul-vault --lib` | **89 / 89 passed** = 87 pre-Stage-3(含 Stage 2 `test_contract_type_id_roundtrip`)+ 2 Stage-3 |
 
+Stage 3 review fix 落地 (`23fe4d2a` + `dc8493b5`):
+
+- `23fe4d2a` — `migration.rs` `let mut conn` → `let conn`,`cargo fmt --all` 收 `migration.rs` Stage 3 测试区空格。修复 `cargo clippy --workspace --all-targets -- -D warnings` 在 vault 子包的 `unused_mut` 警告 与 `cargo fmt --check` 漂移。
+- `dc8493b5` — `cargo fmt --all` 收 `lib.rs` 头 4 处 `#[serde(rename = "contractTypeId", default, skip_serializing_if = "Option::is_none")]` 多行展开,Stage 1 rustfmt 漂移到此收尾。
+- 验证门: `cargo check --workspace --all-targets` 0 errors;`cargo test --package solosoul-vault --lib` 89 / 89;`cargo fmt --all --check` 0 差异;`cargo clippy --package solosoul-vault --all-targets -- -D warnings` 0 warnings。
+
 设计上限 (未覆盖):
 
 - `if current <= 17` gate 退化**绕过完整测试体** — `schema_migrations.version INTEGER PRIMARY KEY` + `INSERT OR IGNORE`
@@ -217,6 +223,9 @@
 ### 5.4 最近 commit 历史(围绕插件模板)
 
 ```
+23fe4d2a fix(plugin-template): drop unused_mut on conn + apply rustfmt (Stage 3 fix)    ← Stage 3 review blocker
+dc8493b5 fix(plugin-template): rustfmt vault lib serde attributes (Stage 1 leftover)   ← Stage 3 review blocker
+fe2c7436 docs(plugin-template): mark Stage 3 done and update 着陆点 in TODO tracking    ← Stage 3 doc-sync
 b89e221c feat(plugin-template): stage 3 v17 idempotency + partial-state tests         ← Stage 3 (本地 commit,待 push)
 e5320dcd docs(plugin-template): mark Stage 2 done and update 着陆点 in TODO tracking    ← Stage 2 doc-sync
 cf12e7ff feat(plugin-template): stage 2 SELECT widening — roundtrip contract_type_id  ← Stage 2 master
@@ -245,4 +254,4 @@ a4f49d11 feat(cli): settings phase — replace raw /setting card with SettingsMe
 
 ## 7. 一句话 TL;DR
 
-> **Stage 1 + Stage 2 已落库 (`382f0cc5` + `cf12e7ff` on `origin/master`);Stage 3 本地已 commit `b89e221c` on 分支 `feat/plugin-template-stage3-v17-idempotency`,但未 push。重启 Session 首要任务:`git push origin feat/plugin-template-stage3-v17-idempotency` 并开 PR (标题 `Stage 3 plugin-template: v17 idempotency tests`);待审核 + merge 后再走 §4.3 / §4.4 / §4.5。**
+> **Stage 1 + Stage 2 已落库 (`382f0cc5` + `cf12e7ff` on `origin/master`);Stage 3 本地已 commit 4 条 (`b89e221c` / `fe2c7436` / `23fe4d2a` / `dc8493b5`) on 分支 `feat/plugin-template-stage3-v17-idempotency`,但未 push。重启 Session 首要任务:`git push origin feat/plugin-template-stage3-v17-idempotency` 并开 PR (标题 `Stage 3 plugin-template: v17 idempotency tests`,内容含 4 条 commit + CHANGELOG `[Unreleased]` Stage 3 条目);待审核 + merge 后再走 §4.3 / §4.4 / §4.5。**
