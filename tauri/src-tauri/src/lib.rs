@@ -498,10 +498,13 @@ pub fn run() {
     if let Err(e) = result {
         let err_msg = format!("{:#}", e);
         tracing::error!("[fatal] Tauri 应用启动失败: {}", e);
-        eprintln!("SoloSoul 启动失败: {}
+        eprintln!(
+            "SoloSoul 启动失败: {}
 
 请将以下信息发送给开发团队：
-{}", e, err_msg);
+{}",
+            e, err_msg
+        );
         std::process::exit(1);
     }
 }
