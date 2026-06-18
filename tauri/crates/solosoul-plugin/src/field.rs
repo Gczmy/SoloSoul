@@ -8,6 +8,7 @@
 //! 属性支持嵌套路径，如 `primary_passport.number`。
 
 use super::PluginError;
+use super::manifest::PluginContractBinding;
 use solosoul_vault::VaultStore;
 use std::sync::Arc;
 
@@ -17,6 +18,9 @@ pub struct FieldResolver {
     vault: Option<Arc<VaultStore>>,
     account_id: Option<String>,
     allowed_patterns: Vec<String>,
+    /// Stage 4 typed-lookup 契约绑定锚点（由 PluginManager::run 在构造时填充）
+    #[allow(dead_code)] // Stage 4-B typed-lookup 运行时将使用此字段
+    contracts: Vec<PluginContractBinding>,
 }
 
 impl FieldResolver {
@@ -35,6 +39,32 @@ impl FieldResolver {
             vault: Some(vault),
             account_id: Some(account_id),
             allowed_patterns,
+            contracts: Vec::new(),
+        }
+    }
+
+    /// Stage 4-B：minimal-injection（仅 contracts；vault 由后续 with_vault 注入）
+    pub fn with_contracts(contracts: Vec<PluginContractBinding>) -> Self {
+        Self {
+            vault: None,
+            account_id: None,
+            allowed_patterns: Vec::new(),
+            contracts,
+        }
+    }
+
+    /// Stage 4-B：combined inject（vault + contracts 一次性；PluginManager::run 主力路径）
+    pub fn with_vault_and_contracts(
+        vault: Arc<VaultStore>,
+        account_id: String,
+        allowed_patterns: Vec<String>,
+        contracts: Vec<PluginContractBinding>,
+    ) -> Self {
+        Self {
+            vault: Some(vault),
+            account_id: Some(account_id),
+            allowed_patterns,
+            contracts,
         }
     }
 

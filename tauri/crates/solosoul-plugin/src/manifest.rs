@@ -127,6 +127,41 @@ impl PluginTier {
     }
 }
 
+/// 插件绑定的契约类型。空 vec 表示走 legacy `parse_type_property` 路径。
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginContractBinding {
+    /// UserTemplate.contract_type_id 锚点
+    pub type_id: String,
+    #[serde(default = "default_contract_version")]
+    pub version: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+    /// 是否启用 contract_field strict-gate（默认 false，兼容 legacy 路径）。
+    /// 严格模式下，若请求的属性未标记 contract_field，则返回 InvalidField。
+    #[serde(default)]
+    pub strict_contract_gate: bool,
+    /// 别名表：允许以短名（如 "address"）作为 typed 入口
+    #[serde(default)]
+    pub type_id_aliases: Vec<String>,
+}
+
+fn default_contract_version() -> u32 {
+    1
+}
+
+/// 插件显式需要的 contract 字段。typed-lookup 时 host gate 入口。
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginFieldBinding {
+    pub contract_type_id: String,
+    pub property_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub abi_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sensitivity: Option<String>,
+}
+
 /// 本地已安装插件 manifest
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -157,6 +192,12 @@ pub struct PluginManifest {
     pub category: String,
     #[serde(default)]
     pub params: Vec<PluginParam>,
+    /// Stage 4 typed-lookup 契约绑定（#[serde(default)] 兼容旧 manifest）
+    #[serde(default)]
+    pub contracts: Vec<PluginContractBinding>,
+    /// Stage 4 typed-lookup 字段绑定
+    #[serde(default)]
+    pub field_bindings: Vec<PluginFieldBinding>,
 }
 
 fn default_ttl() -> u64 {
@@ -210,6 +251,12 @@ pub struct RegistryEntry {
     pub category: String,
     #[serde(default)]
     pub params: Vec<PluginParam>,
+    /// Stage 4 typed-lookup 契约绑定（#[serde(default)] 兼容旧 registry）
+    #[serde(default)]
+    pub contracts: Vec<PluginContractBinding>,
+    /// Stage 4 typed-lookup 字段绑定
+    #[serde(default)]
+    pub field_bindings: Vec<PluginFieldBinding>,
 }
 
 /// 返回给前端的市场插件信息（JSON 使用 camelCase）
@@ -268,6 +315,14 @@ pub fn matches_domain(domain: &str, pattern: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_deserialize_legacy_manifest_without_contracts() {
+        let json = r#"{"id":"test","name":"Test","version":"1.0.0","description":"desc","permissions":[],"data_ttl_seconds":300,"network_policy":{"block_all_outbound":true,"allowed_domains":[]},"require_user_confirmation":true,"tier":"p3","category":"test","params":[]}"#;
+        let m: PluginManifest = serde_json::from_str(json).unwrap();
+        assert!(m.contracts.is_empty());
+        assert!(m.field_bindings.is_empty());
+    }
 
     #[test]
     fn test_matches_domain_exact() {

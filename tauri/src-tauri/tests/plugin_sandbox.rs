@@ -52,6 +52,8 @@ async fn test_hello_world_plugin_runs() {
         tier: Default::default(),
         category: Default::default(),
         params: vec![],
+        contracts: vec![],
+        field_bindings: vec![],
     };
 
     let host = SoloHostFunctions::new(
@@ -120,6 +122,8 @@ async fn test_plugin_trap_is_isolated() {
         tier: Default::default(),
         category: Default::default(),
         params: vec![],
+        contracts: vec![],
+        field_bindings: vec![],
     };
 
     let host = SoloHostFunctions::new(
