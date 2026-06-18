@@ -199,7 +199,11 @@ pub struct ObjectRecord {
     #[serde(rename = "templateType")]
     pub template_type: Option<String>,
     /// 插件合约类型 ID（用于 plugin-template 兼容）。旧记录缺失时由 `default` 填充为 `None`。
-    #[serde(rename = "contractTypeId", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "contractTypeId",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub contract_type_id: Option<String>,
     pub created_at: String,
     pub updated_at: String,
@@ -228,7 +232,11 @@ pub struct ObjectSummary {
     #[serde(rename = "templateType")]
     pub template_type: Option<String>,
     /// 插件合约类型 ID（用于 plugin-template 兼容）。旧记录缺失时由 `default` 填充为 `None`。
-    #[serde(rename = "contractTypeId", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "contractTypeId",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub contract_type_id: Option<String>,
     #[serde(rename = "iconName")]
     pub icon_name: String,
@@ -375,7 +383,11 @@ pub struct TemplateProperty {
     pub deprecated_at: Option<String>,
     /// 当此属性映射到插件合约中的字段时为 true（用于 plugin-template 兼容）。
     /// 旧记录缺失时由 `default` 填充为 `None`。
-    #[serde(rename = "contractField", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "contractField",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub contract_field: Option<bool>,
 }
 
@@ -395,6 +407,10 @@ pub struct UserTemplate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<String>,
     /// 插件合约类型 ID（用于 plugin-template 兼容）。旧记录缺失时由 `default` 填充为 `None`。
-    #[serde(rename = "contractTypeId", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "contractTypeId",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub contract_type_id: Option<String>,
 }
