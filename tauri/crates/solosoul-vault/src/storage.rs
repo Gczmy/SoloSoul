@@ -4807,65 +4807,232 @@ mod tests {
         assert_eq!(loaded.name, "Newer");
     }
 
-        // ── §30 plugin-template Stage 2 — contract_type_id roundtrip ─────────
-        //
-        // Stage 1 deliberately left SELECT closures reading contract_type_id as `None`.
-        // Stage 2 widens the SELECTs / INSERT so a plugin-declared contract_type_id
-        // survives a save → load round-trip. This is the acceptance test for that
-        // contract — if it ever regresses, plugins will lose their attach point on
-        // every read.
-        #[test]
-        fn test_contract_type_id_roundtrip() {
-                let (vault, _dir) = setup();
-                let obj = ObjectRecord {
-                        contract_type_id: Some("com.test.plugin/v1".to_string()),
-                        id: "obj-contract-rt".to_string(),
-                        account_id: "acc-1".to_string(),
-                        type_id: "note".to_string(),
-                        section_type: "identity".to_string(),
-                        name: "Contract Test".to_string(),
-                        icon_name: "doc".to_string(),
-                        parent_id: None,
-                        children_ids: Vec::new(),
-                        properties: serde_json::json!({"key": "value"}),
-                        property_labels: None,
-                        sensitivity_level: "internal".to_string(),
-                        is_deleted: false,
-                        deleted_at: None,
-                        tags_json: Vec::new(),
-                        template_id: None,
-                        template_type: None,
-                        created_at: chrono::Utc::now().to_rfc3339(),
-                        updated_at: chrono::Utc::now().to_rfc3339(),
-                        version: 1,
-                };
-                vault.save_object(&obj).unwrap();
-                let loaded = vault
-                        .load_object("obj-contract-rt")
-                        .unwrap()
-                        .expect("round-tripped object must exist");
-                assert_eq!(
-                        loaded.contract_type_id,
-                        Some("com.test.plugin/v1".to_string()),
-                        "Stage 2 widening must persist contract_type_id across save → load",
-                );
+    // ── §30 plugin-template Stage 2 — contract_type_id roundtrip ─────────
+    //
+    // Stage 1 deliberately left SELECT closures reading contract_type_id as `None`.
+    // Stage 2 widens the SELECTs / INSERT so a plugin-declared contract_type_id
+    // survives a save → load round-trip. This is the acceptance test for that
+    // contract — if it ever regresses, plugins will lose their attach point on
+    // every read.
+    #[test]
+    fn test_contract_type_id_roundtrip() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            contract_type_id: Some("com.test.plugin/v1".to_string()),
+            id: "obj-contract-rt".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Contract Test".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: Vec::new(),
+            properties: serde_json::json!({"key": "value"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: Vec::new(),
+            template_id: None,
+            template_type: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+        let loaded = vault
+            .load_object("obj-contract-rt")
+            .unwrap()
+            .expect("round-tripped object must exist");
+        assert_eq!(
+            loaded.contract_type_id,
+            Some("com.test.plugin/v1".to_string()),
+            "Stage 2 widening must persist contract_type_id across save → load",
+        );
 
-                // list_objects surface (ObjectSummary) should also see it.
-                let summaries = vault
-                        .list_objects("acc-1", None, None, None, false, false)
-                        .unwrap();
-                let summary = summaries
-                        .iter()
-                        .find(|s| s.id == "obj-contract-rt")
-                        .expect("list_objects must surface round-tripped object");
-                assert_eq!(
-                        summary.contract_type_id,
-                        Some("com.test.plugin/v1".to_string()),
-                        "list_objects SELECT closure must surface contract_type_id",
-                );
-                assert_eq!(
-                        summary.icon_name, "doc",
-                        "icon_name column (index 13 after widening) must round-trip too",
-                );
+        // list_objects surface (ObjectSummary) should also see it.
+        let summaries = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
+        let summary = summaries
+            .iter()
+            .find(|s| s.id == "obj-contract-rt")
+            .expect("list_objects must surface round-tripped object");
+        assert_eq!(
+            summary.contract_type_id,
+            Some("com.test.plugin/v1".to_string()),
+            "list_objects SELECT closure must surface contract_type_id",
+        );
+        assert_eq!(
+            summary.icon_name, "doc",
+            "icon_name column (index 13 after widening) must round-trip too",
+        );
+    }
+
+    // ── Test helper (matches inline-struct-fill project style; closure-free) ──
+    fn make_ctid_obj(id: &str, contract_type_id: Option<&str>, name: &str) -> ObjectRecord {
+        ObjectRecord {
+            contract_type_id: contract_type_id.map(str::to_string),
+            id: id.to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: name.to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: Vec::new(),
+            properties: serde_json::json!({}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: Vec::new(),
+            template_id: None,
+            template_type: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
         }
-}
+    }
+
+    /// Boundary: `contract_type_id = None` must round-trip as `None` across
+    /// all read paths. Non-contract columns are pinned so the test stays
+    /// differential — a regression in the INSERT widening surfaces via
+    /// `name` / `account_id` / `icon_name` / `version` mismatches rather than
+    /// silently absorbing through None-defaulting.
+    #[test]
+    fn test_contract_type_id_none_roundtrip() {
+        let (vault, _dir) = setup();
+        let obj = make_ctid_obj("obj-ct-none", None, "no-contract");
+        vault.save_object(&obj).unwrap();
+
+        let loaded = vault
+            .load_object("obj-ct-none")
+            .unwrap()
+            .expect("round-tripped object must exist");
+        assert!(
+            loaded.contract_type_id.is_none(),
+            "None contract_type_id must survive save -> load (Stage 2 widening)",
+        );
+        // Pin adjacent columns so this test catches column-shift / INSERT
+        // regressions that None-defaulting would silently absorb.
+        assert_eq!(loaded.name, "no-contract", "name must round-trip");
+        assert_eq!(loaded.account_id, "acc-1", "account_id must round-trip");
+        assert_eq!(loaded.icon_name, "doc", "icon_name must round-trip");
+        assert_eq!(loaded.version, 1, "version (col 19) must round-trip");
+
+        let summaries = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
+        let summary = summaries
+            .iter()
+            .find(|s| s.id == "obj-ct-none")
+            .expect("list_objects must surface round-tripped object");
+        assert!(
+            summary.contract_type_id.is_none(),
+            "list_objects SELECT closure must preserve None (no literal injection)",
+        );
+        assert_eq!(
+            summary.icon_name, "doc",
+            "ObjectSummary.icon_name (index 13 after widening) must round-trip too",
+        );
+    }
+
+    /// Boundary: UPSERT via `ON CONFLICT(id) DO UPDATE SET` must overwrite
+    /// `contract_type_id` on every save, in both `Some(v1) -> Some(v2)` and
+    /// `Some(v1) -> None` directions. Non-mutating fields (`created_at`,
+    /// primary key, `version`) are pinned so a future column-shift regression
+    /// can't silently rewrite them.
+    #[test]
+    fn test_contract_type_id_upsert_mutation() {
+        let (vault, _dir) = setup();
+
+        // v1 first save locks created_at + version to values we pin across UPSERTs.
+        vault
+            .save_object(&make_ctid_obj(
+                "obj-ct-up",
+                Some("com.test.plugin/v1"),
+                "v1 name",
+            ))
+            .unwrap();
+        let loaded_v1 = vault
+            .load_object("obj-ct-up")
+            .unwrap()
+            .expect("v1 must persist");
+        assert_eq!(
+            loaded_v1.contract_type_id,
+            Some("com.test.plugin/v1".to_string()),
+            "initial Some(v1) save should be readable as Some(v1)",
+        );
+        let pinned_created_at = loaded_v1.created_at.clone();
+
+        // v2 UPSERT -- contract_type_id overwritten via the widening
+        // `ON CONFLICT(id) DO UPDATE SET contract_type_id = excluded.contract_type_id`.
+        vault
+            .save_object(&make_ctid_obj(
+                "obj-ct-up",
+                Some("com.test.plugin/v2"),
+                "v2 name",
+            ))
+            .unwrap();
+        let loaded_v2 = vault
+            .load_object("obj-ct-up")
+            .unwrap()
+            .expect("v2 UPSERT must persist");
+        assert_eq!(
+            loaded_v2.contract_type_id,
+            Some("com.test.plugin/v2".to_string()),
+            "UPSERT must overwrite contract_type_id from v1 -> v2",
+        );
+        assert_eq!(loaded_v2.name, "v2 name", "UPSERT must overwrite name");
+        assert_eq!(
+            loaded_v2.created_at, pinned_created_at,
+            "created_at must NOT mutate across UPSERTs",
+        );
+        assert_eq!(
+            loaded_v2.id, "obj-ct-up",
+            "primary key must stay pinned across UPSERTs",
+        );
+        assert_eq!(
+            loaded_v2.version, 1,
+            "version (col 19) must NOT mutate across UPSERTs",
+        );
+
+        // Some -> None backdown -- UPSERT must accept the literal NULL.
+        vault
+            .save_object(&make_ctid_obj("obj-ct-up", None, "v3 detached"))
+            .unwrap();
+        let loaded_v3 = vault
+            .load_object("obj-ct-up")
+            .unwrap()
+            .expect("None UPSERT must persist");
+        assert!(
+            loaded_v3.contract_type_id.is_none(),
+            "UPSERT must allow overwriting Some -> None",
+        );
+        assert_eq!(
+            loaded_v3.created_at, pinned_created_at,
+            "created_at must still stay pinned after Some -> None UPSERT",
+        );
+        assert_eq!(
+            loaded_v3.version, 1,
+            "version (col 19) must stay pinned after Some -> None UPSERT",
+        );
+
+        // list_objects surface reflects the latest state across every read path.
+        let summaries = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
+        let summary = summaries
+            .iter()
+            .find(|s| s.id == "obj-ct-up")
+            .expect("list_objects must surface upserted object");
+        assert!(
+            summary.contract_type_id.is_none(),
+            "list_objects must reflect Some -> None UPSERT on read",
+        );
+        assert_eq!(
+            summary.icon_name, "doc",
+            "ObjectSummary.icon_name must stay pinned across UPSERTs",
+        );
+    }
