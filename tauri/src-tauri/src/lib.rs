@@ -180,7 +180,7 @@ pub fn run() {
     tracing::info!("[init] 目标平台: {}", std::env::consts::OS);
 
     // ── 第 2 步：构建 Tauri 应用 ──
-    tauri::Builder::default()
+    let result = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -493,6 +493,15 @@ pub fn run() {
             // Window chrome commands
             commands::window::set_titlebar_color,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .run(tauri::generate_context!());
+
+    if let Err(e) = result {
+        let err_msg = format!("{:#}", e);
+        tracing::error!("[fatal] Tauri 应用启动失败: {}", e);
+        eprintln!("SoloSoul 启动失败: {}
+
+请将以下信息发送给开发团队：
+{}", e, err_msg);
+        std::process::exit(1);
+    }
 }

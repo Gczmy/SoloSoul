@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/lib/i18n';
@@ -6,30 +6,26 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
-import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+
+
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
-import { Settings, Plus, BarChart3, Download, Trash2, Cpu } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
+import { AiFeaturesCard } from '@/components/llm-config/AiFeaturesCard';
+import { SystemPromptCard } from '@/components/llm-config/SystemPromptCard';
+import { ProviderManagerPanel, type ProviderConfig } from '@/components/llm-config/ProviderManagerPanel';
+import { LocalEmbeddingsPanel } from '@/components/llm-config/LocalEmbeddingsPanel';
+import { KnowledgeBaseCard } from '@/components/llm-config/KnowledgeBaseCard';
+import { RiskAcceptanceDialog } from '@/components/llm-config/RiskAcceptanceDialog';
 
-interface ProviderConfig {
-  id: string;
-  name: string;
-  baseUrl: string;
-  model: string;
-  isEnabled: boolean;
-  isBuiltIn: boolean;
-  apiKey: string;
-  apiType: 'openAI' | 'anthropic';
-}
 interface AiFeatures {
   chat: boolean;
   smartFill: boolean;
   commandGen: boolean;
   naturalLanguageSearch: boolean;
 }
+
 interface EmbedModelInfo {
   id: string;
   name: string;
@@ -39,6 +35,7 @@ interface EmbedModelInfo {
   downloadUrl: string;
   checksum: string;
 }
+
 interface EmbedModelWithStatus {
   info: EmbedModelInfo;
   installed: boolean;
@@ -65,11 +62,6 @@ export function LlmConfigPage() {
   const [hasAcceptedRisk, setHasAcceptedRisk] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showRiskDialog, setShowRiskDialog] = useState(false);
-  const [riskChecked, setRiskChecked] = useState(false);
-  const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(null);
-  const [testResult, setTestResult] = useState<string | null>(null);
-  const [testing, setTesting] = useState(false);
-  const [savingProvider, setSavingProvider] = useState(false);
   const [rebuilding, setRebuilding] = useState(false);
   const [embeddingAvailable, setEmbeddingAvailable] = useState<boolean | null>(null);
   const [embedModels, setEmbedModels] = useState<EmbedModelWithStatus[]>([]);
@@ -104,15 +96,12 @@ export function LlmConfigPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
 
-    // Check embedding availability
     invoke<boolean>('llm_check_embedding_available', { accountId })
       .then((avail) => setEmbeddingAvailable(avail))
       .catch(() => setEmbeddingAvailable(false));
 
-    // Load embedding models
     loadEmbedModels();
 
-    // Listen for download progress
     let unlisten: (() => void) | undefined;
     listen<{ modelId: string; progress: number }>('embed-download-progress', (event) => {
       if (event.payload.modelId === downloadingId) {
@@ -133,7 +122,7 @@ export function LlmConfigPage() {
       const models = await invoke<EmbedModelWithStatus[]>('llm_get_embed_models');
       setEmbedModels(models);
     } catch {
-      // silently ignore
+      /* silently ignore */
     } finally {
       setModelsLoading(false);
     }
@@ -146,7 +135,6 @@ export function LlmConfigPage() {
       await invoke('llm_download_embed_model', { modelId });
       onSuccess(t('settings:llm_model_downloaded'));
       await loadEmbedModels();
-      // Auto-select if none selected
       if (!localModelId) {
         setLocalModelId(modelId);
         if (accountId) {
@@ -244,7 +232,6 @@ export function LlmConfigPage() {
     const next = { ...features, [key]: !features[key] };
     if (!hasAcceptedRisk && next[key]) {
       setShowRiskDialog(true);
-      setRiskChecked(false);
       return;
     }
     setFeatures(next);
@@ -269,54 +256,20 @@ export function LlmConfigPage() {
       await invoke('llm_set_system_prompt_switch', { accountId, enabled: next }).catch(() => {});
   };
 
-  const handleSaveProvider = async () => {
-    if (!editingProvider || !accountId) return;
-    setSavingProvider(true);
-    try {
-      await invoke('llm_save_provider', { accountId, provider: editingProvider });
-      setProviders((prev) => {
-        const idx = prev.findIndex((p) => p.id === editingProvider.id);
-        const updated = { ...editingProvider, apiKey: editingProvider.apiKey ? '••••••••' : '' };
-        if (idx >= 0) {
-          const n = [...prev];
-          n[idx] = updated;
-          return n;
-        }
-        return [...prev, updated];
-      });
-      setEditingProvider(null);
-      onSuccess(t('common:success'));
-    } catch (e) {
-      onError(e, t('common:error'));
-    } finally {
-      setSavingProvider(false);
-    }
-  };
-
-  const handleTestConnection = async () => {
-    if (!editingProvider) return;
-    setTesting(true);
-    setTestResult(null);
-    try {
-      let key = editingProvider.apiKey;
-      if (key === '••••••••' && accountId) {
-        key = await invoke<string>('llm_get_api_key', {
-          accountId,
-          providerId: editingProvider.id,
-        });
+  const handleSaveProvider = async (provider: ProviderConfig) => {
+    if (!accountId) return;
+    await invoke('llm_save_provider', { accountId, provider }).catch(() => {});
+    setProviders((prev) => {
+      const idx = prev.findIndex((p) => p.id === provider.id);
+      const updated = { ...provider, apiKey: provider.apiKey ? '••••••••' : '' };
+      if (idx >= 0) {
+        const n = [...prev];
+        n[idx] = updated;
+        return n;
       }
-      const result = await invoke<string>('llm_test_provider', {
-        baseUrl: editingProvider.baseUrl,
-        apiKey: key,
-        model: editingProvider.model,
-        apiType: editingProvider.apiType,
-      });
-      setTestResult(t('settings:llm_test_ok') + ' "' + result.slice(0, 80) + '"');
-    } catch (e) {
-      setTestResult(t('settings:llm_test_fail') + ' ' + String(e).slice(0, 120));
-    } finally {
-      setTesting(false);
-    }
+      return [...prev, updated];
+    });
+    onSuccess(t('common:success'));
   };
 
   const handleDeleteProvider = (id: string) => {
@@ -333,25 +286,22 @@ export function LlmConfigPage() {
     );
   };
 
-  const handleAddCustom = () => {
-    setEditingProvider({
-      id: 'custom_' + Date.now(),
-      name: '',
-      baseUrl: '',
-      model: '',
-      isEnabled: false,
-      isBuiltIn: false,
-      apiKey: '',
-      apiType: 'openAI',
-    });
-  };
-
-  const providerFormRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (editingProvider && providerFormRef.current) {
-      providerFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const handleTestConnection = async (provider: ProviderConfig, accId: string): Promise<string> => {
+    let key = provider.apiKey;
+    if (key === '••••••••') {
+      key = await invoke<string>('llm_get_api_key', {
+        accountId: accId,
+        providerId: provider.id,
+      });
     }
-  }, [editingProvider]);
+    const result = await invoke<string>('llm_test_provider', {
+      baseUrl: provider.baseUrl,
+      apiKey: key,
+      model: provider.model,
+      apiType: provider.apiType,
+    });
+    return t('settings:llm_test_ok') + ' "' + result.slice(0, 80) + '"';
+  };
 
   return (
     <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
@@ -373,446 +323,43 @@ export function LlmConfigPage() {
           </Card>
         )}
 
-        <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-            {t('settings:ai_features')}
-          </h3>
-          {(['chat', 'smartFill', 'commandGen', 'naturalLanguageSearch'] as const).map((key) => (
-            <label
-              key={key}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '6px 0',
-                cursor: key === 'chat' ? 'pointer' : 'not-allowed',
-                fontSize: 13,
-                opacity: key === 'chat' ? 1 : 0.5,
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={features[key]}
-                onChange={() => key === 'chat' && handleFeatureToggle(key)}
-                disabled={key !== 'chat'}
-                style={{ accentColor: 'var(--accent-primary)' }}
-              />
-              {t('settings:ai_' + key)}
-              {key !== 'chat' && (
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 4 }}>
-                  ({t('settings:ai_in_development')})
-                </span>
-              )}
-            </label>
-          ))}
-        </Card>
+        <AiFeaturesCard
+          features={features}
 
-        <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-            {t('settings:ai_system_prompt_title')}
-          </h3>
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '6px 0',
-              cursor: 'pointer',
-              fontSize: 13,
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={includeSystemPrompt}
-              onChange={handleSystemPromptToggle}
-              style={{ accentColor: 'var(--accent-primary)' }}
-            />
-            {t('settings:ai_system_prompt_software')}
-          </label>
-          <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4, paddingLeft: 26 }}>
-            {t('settings:ai_system_prompt_desc')}
-          </p>
-        </Card>
+          onToggle={handleFeatureToggle}
+        />
 
-        <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-            {t('settings:ai_service_providers')}
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {loading ? (
-              <LoadingPlaceholder variant="elevated" minHeight={60} />
-            ) : (
-              providers.map((p) => (
-                <div
-                  key={p.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    padding: '8px 10px',
-                    borderRadius: 8,
-                    background: activeId === p.id ? 'rgba(91,124,153,0.08)' : 'var(--bg-toolbar)',
-                    border:
-                      activeId === p.id
-                        ? '1px solid var(--accent-primary)'
-                        : '1px solid var(--border-subtle)',
-                    cursor: 'pointer',
-                    fontSize: 13,
-                  }}
-                  onClick={() => handleSetActive(p.id)}
-                >
-                  <input
-                    type="radio"
-                    checked={activeId === p.id}
-                    onChange={() => handleSetActive(p.id)}
-                    style={{ accentColor: 'var(--accent-primary)' }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <span style={{ fontWeight: 500 }}>{p.name}</span>
-                    <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--text-tertiary)' }}>
-                      {p.model}
-                    </span>
-                    {p.isBuiltIn && (
-                      <span
-                        style={{
-                          marginLeft: 4,
-                          fontSize: 10,
-                          padding: '1px 4px',
-                          borderRadius: 3,
-                          background: 'var(--bg-elevated)',
-                          color: 'var(--text-tertiary)',
-                        }}
-                      >
-                        {t('settings:llm_builtin_badge')}
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingProvider({ ...p });
-                    }}
-                    style={{
-                      padding: 4,
-                      borderRadius: 4,
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                      color: 'var(--text-tertiary)',
-                    }}
-                  >
-                    <Settings size={14} />
-                  </button>
-                  {!p.isBuiltIn && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteProvider(p.id);
-                      }}
-                      style={{
-                        padding: 4,
-                        borderRadius: 4,
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        color: '#e74c3c',
-                        fontSize: 14,
-                      }}
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-          <Button variant="secondary" size="sm" onClick={handleAddCustom} style={{ marginTop: 10 }}>
-            <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:llm_add_custom')}
-          </Button>
-        </Card>
+        <SystemPromptCard checked={includeSystemPrompt} onToggle={handleSystemPromptToggle} />
 
-        {editingProvider && (
-          <div ref={providerFormRef}>
-            <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-                {editingProvider.isBuiltIn
-                  ? t('settings:llm_configure') + ' ' + editingProvider.name
-                  : t('settings:llm_custom_provider')}
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <Input
-                  label={t('settings:llm_provider_name')}
-                  value={editingProvider.name}
-                  onChange={(e) =>
-                    setEditingProvider((p) => (p ? { ...p, name: e.target.value } : null))
-                  }
-                  disabled={editingProvider.isBuiltIn}
-                />
-                <Input
-                  label={t('settings:llm_base_url')}
-                  value={editingProvider.baseUrl}
-                  onChange={(e) =>
-                    setEditingProvider((p) => (p ? { ...p, baseUrl: e.target.value } : null))
-                  }
-                />
-                <Input
-                  label={t('settings:llm_model')}
-                  value={editingProvider.model}
-                  onChange={(e) =>
-                    setEditingProvider((p) => (p ? { ...p, model: e.target.value } : null))
-                  }
-                />
-                <div>
-                  <label
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: 'var(--text-secondary)',
-                      marginBottom: 4,
-                      display: 'block',
-                    }}
-                  >
-                    {t('settings:llm_api_type')}
-                  </label>
-                  <select
-                    value={editingProvider.apiType}
-                    onChange={(e) =>
-                      setEditingProvider((p) =>
-                        p ? { ...p, apiType: e.target.value as 'openAI' | 'anthropic' } : null,
-                      )
-                    }
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      fontSize: 14,
-                      border: '1px solid var(--border-subtle)',
-                      borderRadius: 8,
-                      background: 'var(--bg-elevated)',
-                      color: 'var(--text-primary)',
-                      fontFamily: 'inherit',
-                      outline: 'none',
-                    }}
-                  >
-                    <option value="openAI">OpenAI Compatible</option>
-                    <option value="anthropic">Anthropic</option>
-                  </select>
-                </div>
-                <Input
-                  label={t('settings:llm_api_key')}
-                  type="password"
-                  value={editingProvider.apiKey}
-                  onChange={(e) =>
-                    setEditingProvider((p) => (p ? { ...p, apiKey: e.target.value } : null))
-                  }
-                  placeholder={
-                    editingProvider.apiKey === '••••••••'
-                      ? t('settings:llm_api_key_unchanged')
-                      : t('settings:llm_api_key_enter')
-                  }
-                />
-                {testResult && (
-                  <div
-                    style={{
-                      fontSize: 12,
-                      padding: '6px 10px',
-                      borderRadius: 6,
-                      background: 'rgba(128,128,128,0.08)',
-                      color: testResult.startsWith(t('settings:llm_test_ok'))
-                        ? '#27ae60'
-                        : '#e74c3c',
-                    }}
-                  >
-                    {testResult}
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Button variant="secondary" onClick={handleTestConnection} loading={testing}>
-                    {t('settings:llm_test_connection')}
-                  </Button>
-                  <Button onClick={handleSaveProvider} loading={savingProvider}>
-                    {t('common:save')}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setEditingProvider(null);
-                      setTestResult(null);
-                    }}
-                  >
-                    {t('common:cancel')}
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          </div>
-        )}
+        <ProviderManagerPanel
+          providers={providers}
+          activeId={activeId}
+          loading={loading}
+          accountId={accountId}
+          onSetActive={handleSetActive}
+          onSaveProvider={handleSaveProvider}
+          onDeleteProvider={handleDeleteProvider}
+          onTestConnection={handleTestConnection}
+        />
 
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <Cpu size={18} color="var(--accent-primary)" />
-            <h3 style={{ fontSize: 14, fontWeight: 600 }}>
-              {t('settings:llm_embed_models_title')}
-            </h3>
-          </div>
-          <p
-            style={{
-              fontSize: 12,
-              color: 'var(--text-tertiary)',
-              marginBottom: 12,
-              lineHeight: 1.5,
-            }}
-          >
-            {t('settings:llm_embed_models_desc')}
-          </p>
+        <LocalEmbeddingsPanel
+          useLocalEmbedding={useLocalEmbedding}
+          localModelId={localModelId}
+          embedModels={embedModels}
+          downloadingId={downloadingId}
+          downloadProgress={downloadProgress}
+          modelsLoading={modelsLoading}
+          onToggle={handleToggleLocalEmbedding}
+          onSelectModel={handleSelectLocalModel}
+          onDownload={handleDownloadModel}
+          onDelete={handleDeleteModel}
+        />
 
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '6px 0',
-              cursor: 'pointer',
-              fontSize: 13,
-              marginBottom: 12,
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={useLocalEmbedding}
-              onChange={(e) => handleToggleLocalEmbedding(e.target.checked)}
-              style={{ accentColor: 'var(--accent-primary)' }}
-            />
-            <span>{t('settings:llm_use_local_embedding')}</span>
-          </label>
-
-          {modelsLoading ? (
-            <LoadingPlaceholder variant="base" minHeight={80} />
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {embedModels.map((m) => (
-                <div
-                  key={m.info.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background:
-                      localModelId === m.info.id && useLocalEmbedding
-                        ? 'rgba(91,124,153,0.08)'
-                        : 'var(--bg-toolbar)',
-                    border:
-                      localModelId === m.info.id && useLocalEmbedding
-                        ? '1px solid var(--accent-primary)'
-                        : '1px solid var(--border-subtle)',
-                    fontSize: 13,
-                  }}
-                >
-                  <input
-                    type="radio"
-                    checked={localModelId === m.info.id}
-                    onChange={() => handleSelectLocalModel(m.info.id)}
-                    disabled={!m.installed}
-                    style={{ accentColor: 'var(--accent-primary)' }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 500 }}>{m.info.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                      {m.info.description} · {m.info.dimensions}
-                      {t('settings:llm_dimensions')} · {m.info.diskSize}
-                    </div>
-                    {downloadingId === m.info.id && (
-                      <div style={{ marginTop: 6 }}>
-                        <div
-                          style={{
-                            height: 4,
-                            background: 'var(--bg-elevated)',
-                            borderRadius: 2,
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${downloadProgress}%`,
-                              height: '100%',
-                              background: 'var(--accent-primary)',
-                              transition: 'width 0.3s',
-                            }}
-                          />
-                        </div>
-                        <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 2 }}>
-                          {downloadProgress}%
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  {m.installed ? (
-                    <button
-                      onClick={() => handleDeleteModel(m.info.id)}
-                      style={{
-                        padding: 6,
-                        borderRadius: 6,
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        color: '#e74c3c',
-                      }}
-                      title={t('settings:llm_delete_model')}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleDownloadModel(m.info.id)}
-                      loading={downloadingId === m.info.id}
-                      disabled={downloadingId !== null && downloadingId !== m.info.id}
-                    >
-                      <Download size={14} style={{ marginRight: 4 }} />
-                      {t('settings:llm_download')}
-                    </Button>
-                  )}
-                </div>
-              ))}
-              {embedModels.length === 0 && (
-                <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                  {t('settings:llm_no_models')}
-                </p>
-              )}
-            </div>
-          )}
-        </Card>
-
-        <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-            {t('settings:llm_knowledge_base_title')}
-          </h3>
-          <p
-            style={{
-              fontSize: 12,
-              color: 'var(--text-tertiary)',
-              marginBottom: 12,
-              lineHeight: 1.5,
-            }}
-          >
-            {embeddingAvailable === true
-              ? t('settings:llm_kb_embedding_supported')
-              : embeddingAvailable === false
-                ? t('settings:llm_kb_embedding_unsupported')
-                : t('settings:llm_kb_embedding_checking')}
-          </p>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleRebuildEmbeddings}
-            loading={rebuilding}
-            disabled={embeddingAvailable === false}
-          >
-            {rebuilding ? t('settings:llm_rebuilding') : t('settings:llm_rebuild_kb')}
-          </Button>
-        </Card>
+        <KnowledgeBaseCard
+          embeddingAvailable={embeddingAvailable}
+          rebuilding={rebuilding}
+          onRebuild={handleRebuildEmbeddings}
+        />
 
         <Card
           interactive
@@ -834,95 +381,11 @@ export function LlmConfigPage() {
           </div>
         </Card>
 
-        {showRiskDialog && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 3000,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(0,0,0,0.45)',
-              backdropFilter: 'blur(6px)',
-            }}
-          >
-            <div
-              style={{
-                background: 'var(--bg-elevated)',
-                borderRadius: 16,
-                padding: '28px 32px',
-                maxWidth: 400,
-                width: '90%',
-                boxShadow: 'var(--shadow-lg)',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: 17,
-                  fontWeight: 600,
-                  marginBottom: 12,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
-              >
-                <span style={{ fontSize: 20 }}>⚠</span> {t('settings:ai_risk_title')}
-              </h3>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.6,
-                  marginBottom: 16,
-                }}
-              >
-                {t('settings:ai_risk_desc')}
-              </p>
-              <ul
-                style={{
-                  fontSize: 12,
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.8,
-                  paddingLeft: 16,
-                  marginBottom: 16,
-                }}
-              >
-                <li>{t('settings:ai_risk_li1')}</li>
-                <li>{t('settings:ai_risk_li2')}</li>
-                <li>{t('settings:ai_risk_li3')}</li>
-                <li>{t('settings:ai_risk_li4')}</li>
-              </ul>
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  cursor: 'pointer',
-                  marginBottom: 16,
-                  fontSize: 13,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={riskChecked}
-                  onChange={() => setRiskChecked(!riskChecked)}
-                  style={{ accentColor: 'var(--accent-primary)' }}
-                />
-                {t('settings:ai_risk_agree')}
-              </label>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <Button variant="secondary" onClick={() => setShowRiskDialog(false)}>
-                  {t('common:cancel')}
-                </Button>
-                <Button onClick={handleAcceptRisk} disabled={!riskChecked}>
-                  {t('settings:ai_enable')}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <RiskAcceptanceDialog
+          open={showRiskDialog}
+          onClose={() => setShowRiskDialog(false)}
+          onAccept={handleAcceptRisk}
+        />
       </div>
     </AppShell>
   );

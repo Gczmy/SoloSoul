@@ -67,11 +67,10 @@ impl LlmService {
         let obj = data
             .as_object_mut()
             .ok_or_else(|| "profile data must be object".to_string())?;
-        Ok(obj
-            .entry("preferences".to_string())
+        obj.entry("preferences".to_string())
             .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()))
             .as_object_mut()
-            .ok_or_else(|| "preferences must be object".to_string())?)
+            .ok_or_else(|| "preferences must be object".to_string())
     }
 
     // ── LLM Configuration ─────────────────────────────────────────

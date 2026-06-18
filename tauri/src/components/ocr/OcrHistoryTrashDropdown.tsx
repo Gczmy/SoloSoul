@@ -1,0 +1,274 @@
+import { useTranslation } from 'react-i18next';
+import { FileText, Trash2, RotateCcw } from 'lucide-react';
+import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
+
+interface OcrHistoryTrashDropdownProps {
+  showTrash: boolean;
+  onShowTrashChange: (v: boolean) => void;
+  activeHistory: OcrScanEntry[];
+  trash: OcrScanEntry[];
+  currentEntryId: string | null;
+  onSelectEntry: (entry: OcrScanEntry) => void;
+}
+
+export function OcrHistoryTrashDropdown({
+  showTrash,
+  onShowTrashChange,
+  activeHistory,
+  trash,
+  currentEntryId,
+  onSelectEntry,
+}: OcrHistoryTrashDropdownProps) {
+  const { t } = useTranslation(['ocr', 'common']);
+  const store = useOcrScanStore();
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 44,
+        left: 8,
+        right: 8,
+        maxHeight: 260,
+        background: 'var(--bg-elevated)',
+        borderRadius: 10,
+        border: '1px solid var(--border-subtle)',
+        boxShadow: 'var(--shadow-lg)',
+        zIndex: 10,
+        overflowY: 'auto',
+        padding: '6px 2px',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Tabs */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 4,
+          padding: '0 10px 6px',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
+        <button
+          onClick={() => onShowTrashChange(false)}
+          style={{
+            fontSize: 12,
+            padding: '4px 8px',
+            borderRadius: 6,
+            border: 'none',
+            background: !showTrash ? 'var(--bg-toolbar)' : 'transparent',
+            color: !showTrash ? 'var(--text-primary)' : 'var(--text-tertiary)',
+            cursor: 'pointer',
+          }}
+        >
+          {t('ocr:history_tab')} ({activeHistory.length})
+        </button>
+        <button
+          onClick={() => onShowTrashChange(true)}
+          style={{
+            fontSize: 12,
+            padding: '4px 8px',
+            borderRadius: 6,
+            border: 'none',
+            background: showTrash ? 'var(--bg-toolbar)' : 'transparent',
+            color: showTrash ? 'var(--text-primary)' : 'var(--text-tertiary)',
+            cursor: 'pointer',
+          }}
+        >
+          {t('ocr:trash_tab')} ({trash.length})
+        </button>
+      </div>
+
+      {!showTrash ? (
+        activeHistory.length === 0 ? (
+          <p
+            style={{
+              fontSize: 12,
+              color: 'var(--text-tertiary)',
+              textAlign: 'center',
+              padding: '16px 12px',
+              margin: 0,
+            }}
+          >
+            {t('ocr:no_history')}
+          </p>
+        ) : (
+          <>
+            {activeHistory.map((entry) => {
+              const isSelected = currentEntryId === entry.id;
+              const hasError = !!entry.error;
+              return (
+                <div
+                  key={entry.id}
+                  className={isSelected ? 'ocr-history-item ocr-history-item--selected' : 'ocr-history-item'}
+                  onClick={() => onSelectEntry(entry)}
+                  title={entry.fileName}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '7px 12px',
+                    cursor: 'pointer',
+                    fontSize: 12,
+                  }}
+                >
+                  <FileText
+                    size={12}
+                    style={{
+                      color: hasError ? '#e74c3c' : 'var(--text-tertiary)',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        color: 'var(--text-primary)',
+                        fontWeight: isSelected ? 500 : 400,
+                      }}
+                    >
+                      {entry.fileName}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: hasError ? '#e74c3c' : 'var(--text-tertiary)',
+                        marginTop: 1,
+                      }}
+                    >
+                      {new Date(entry.timestamp).toLocaleString()} · {entry.mode === 'mrz' ? 'MRZ' : 'OCR'}
+                      {hasError ? ` · ${t('common:error')}` : ''}
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: 'var(--accent-primary)',
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      store.softDeleteEntry(entry.id);
+                    }}
+                    title={t('common:delete')}
+                    className="ocr-history-item__btn"
+                    style={{
+                      padding: 2,
+                      borderRadius: 4,
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      color: 'var(--text-tertiary)',
+                      flexShrink: 1,
+                    }}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              );
+            })}
+          </>
+        )
+      ) : trash.length === 0 ? (
+        <p
+          style={{
+            fontSize: 12,
+            color: 'var(--text-tertiary)',
+            textAlign: 'center',
+            padding: '16px 12px',
+            margin: 0,
+          }}
+        >
+          {t('ocr:trash_empty')}
+        </p>
+      ) : (
+        <>
+          {trash.map((entry) => (
+            <div
+              key={entry.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '7px 12px',
+                fontSize: 12,
+              }}
+            >
+              <FileText size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <div
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  {entry.fileName}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 1 }}>
+                  {new Date(entry.timestamp).toLocaleString()}
+                </div>
+              </div>
+              <button
+                onClick={() => store.restoreEntry(entry.id)}
+                title={t('ocr:restore')}
+                style={{
+                  padding: 2,
+                  borderRadius: 4,
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  color: 'var(--accent-primary)',
+                }}
+              >
+                <RotateCcw size={12} />
+              </button>
+              <button
+                onClick={() => store.permanentlyDeleteEntry(entry.id)}
+                title={t('ocr:permanently_delete')}
+                style={{
+                  padding: 2,
+                  borderRadius: 4,
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  color: '#e74c3c',
+                }}
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+          {trash.length > 1 && (
+            <button
+              onClick={() => store.clearTrash()}
+              style={{
+                margin: '6px 12px',
+                padding: '6px 10px',
+                borderRadius: 6,
+                border: '1px solid #e74c3c',
+                background: 'transparent',
+                color: '#e74c3c',
+                fontSize: 12,
+                cursor: 'pointer',
+                textAlign: 'center',
+              }}
+            >
+              {t('ocr:clear_trash')}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

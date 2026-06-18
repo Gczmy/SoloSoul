@@ -209,6 +209,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            contract_type_id: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,

@@ -714,6 +714,7 @@ pub(crate) fn import_execute(
                         .collect()
                 })
                 .unwrap_or_default(),
+            contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
             template_id: obj_val["template_id"].as_str().map(String::from),
             template_type: obj_val["template_type"].as_str().map(String::from),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
@@ -1075,6 +1076,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            contract_type_id: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
