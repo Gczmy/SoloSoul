@@ -10,12 +10,14 @@
 
 | 项 | 值 |
 |----|----|
-| 当前阶段 | **Stage 1 完成 · Stage 2 未启动** |
-| 工作分支 | `master` (latest = `origin/master`) |
-| Stage 1 commit | **`382f0cc5`** — `feat(plugin-template): stage 1 schema + v17 migration` |
-| 推送状态 | ✅ 已推送,本地与 `origin/master` 完全同步 |
-| 未提交工作区残留 | `tauri/crates/solosoul-core/src/llm/service.rs` (rustfmt-only) + `tauri/crates/solosoul-crypto/src/cipher.rs` (rustfmt-only) — 与 Stage 无关,留作独立 `chore(fmt)` commit |
-| 最近无历史 stage | 本仓库为本功能首次落库,此前无相关历史 commit |
+| 当前阶段 | **Stage 1 + Stage 2 已落库 · Stage 3 本地已 commit · 未 push** |
+| 工作分支 | `feat/plugin-template-stage3-v17-idempotency` (fork point = `master` @ `8b18965a`) |
+| Stage 1 commit (origin/master) | **`382f0cc5`** — `feat(plugin-template): stage 1 schema + v17 migration` |
+| Stage 2 commit (origin/master) | **`cf12e7ff`** — `feat(plugin-template): stage 2 SELECT widening — roundtrip contract_type_id` (+ doc-sync `e5320dcd`) |
+| Stage 3 commit (本分支顶端) | **`b89e221c`** — `feat(plugin-template): stage 3 v17 idempotency + partial-state tests` |
+| 推送状态 | ✅ Stage 1/2 在 `origin/master`;⚠️ Stage 3 还在本机分支,**待 push `feat/plugin-template-stage3-v17-idempotency` 并开 PR** |
+| 未提交工作区残留 | `tauri/crates/solosoul-vault/src/lib.rs`(rustfmt 重新展开 `#[serde(...)]` 至多行;cargo fmt 副作用) + §4.4 原 line `service.rs` / `cipher.rs` 残留 — 与 Stage 本任务无关,会独立 `chore(fmt)` commit |
+| 最近无历史 stage | 前 3 条相邻 commit (`cf12e7ff`/`e5320dcd`/`b89e221c`) 同属当前 story line |
 
 > **重启指示**:重启时优先读 `§2 已完成` 确认不要重做已做的事,然后跳到 `§4 待办` 选下一个 stage。
 
@@ -126,14 +128,47 @@
 
 ### 4.2 v17 幂等性 · 部分 DB 状态测试 · 必须
 
-> 现有 `migration.rs::tests` 缺两条:
+> ✅ **[done]** — 落地于 branch `feat/plugin-template-stage3-v17-idempotency` commit **`b89e221c`**。重启后本项不再需要重做。
 
-- `test_migration_v17_idempotent_run_twice`:连调 `run_migrations(&mut conn)` 两次,断言:
-  - `migration_history` 中 v17 行仅 **1** 条(不重复)。
-  - `audit_log` 中 v17 entry 仅 **1** 条(关键:验证 no-op 分支也只在第一次 commit)。
-- `test_migration_v17_partial_state`:手工 `ALTER TABLE … DROP COLUMN contract_type_id`(仅 `user_templates`),再调 migrations,断言仅缺失表被补列;`objects` 表保持 `pragma_table_info=1` 不被二次 ALTER。
+完成点:
 
-副带核查:`run_migrations` 主循环是否**对已 apply 的版本跳过事务**(防止 fresh-DB 启动每次都 commit 一条 no-op audit,长期审计表膨胀)。
+- `test_migration_v17_idempotent_run_twice`(走 `setup_conn()` 从 v1 经过 v2–v16 全部落到 v17):
+  - 验证两次 `run_migrations` 后 `schema_migrations` 中 `version=17` 仅 1 条
+    (证实 gate `current < 17` 第二次正确 skip)。
+  - 两表 `contract_type_id` 均 `notnull=0` 且 `(dflt_value IS NULL OR dflt_value = '')` 返回 1
+    (Option B 合约 — NULL 与空字符串都是「无合约」合法表述)。
+  - `data_version` 第二次调用后仍为 17。
+- `test_migration_v17_partial_state`(4 个阶梯 mod 内 for-loop):
+  - (false, false) — 双列均无,fresh-install 路径走 2 个 ALTER。
+  - (true,  false) — 仅 `user_templates` 已有,`objects` 补列。
+  - (false, true)  — 仅 `objects` 已有,`user_templates` 补列。
+  - (true,  true)  — 双列已存在,空 `sql_parts` 走 `INSERT OR IGNORE` no-op 路径。
+  - 4 个阶梯结尾都验证:两表都有 `contract_type_id` 列 + `schema_migrations.version=17` 仅 1 行 + `data_version == 17`。
+- 辅助基础设施(同步落在同一 commit):
+  - `setup_v16_partial_state(has_utpl_ctid, has_objects_ctid) -> (Connection, TempDir)`
+    手动限定 v16 状阶梯 (skip v1–v15)。
+  - `HELPERS_PARTIAL_V16_SQL: &str` 常量内嵌 `/*UTPL_CTID*/` / `/*OBJECTS_CTID*/` 立场标记,
+    `setup_v16_partial_state` 以 `.replace()` 条件输送「`contract_type_id TEXT,`」行。
+
+验证门 (commit `b89e221c`):
+
+| 命令 | 结果 |
+|------|------|
+| `cargo check --workspace --all-targets` (cd `tauri`) | **0 errors** |
+| `cargo test --package solosoul-vault --lib` | **89 / 89 passed** = 87 pre-Stage-3(含 Stage 2 `test_contract_type_id_roundtrip`)+ 2 Stage-3 |
+
+设计上限 (未覆盖):
+
+- `if current <= 17` gate 退化**绕过完整测试体** — `schema_migrations.version INTEGER PRIMARY KEY` + `INSERT OR IGNORE`
+  静默吸收重试插入,行 `description` 与 `applied_at` 都不变。本 test 区分不了「被 skip」与「走 no-op 路径被舍弃」。
+  **gate 任务交程序员 code review 维护。**
+- 4 阶梯均假定列 default 为 NULL 或空字符串(Option B 严格合规表述)。若 legacy DB 的 default 为 ` ` (单空格)
+  或其他非空字符串,本 test 仍会侦为「违约」(`(dflt_value IS NULL OR dflt_value = '')` 返回 0)。
+- 不覆盖 `pragma_table_info` 表格收集所隐含的 v8/v9 列(`template_id` / `template_type` / `category`) —
+  这些已在 helper DDL 中加进模拟 v16 状,避免 v18+ 倒退误在。
+- `setup_v16_partial_state` 与 `VaultStore::init_schema` 的 real schema 在隐式约束上可能有细微差异
+  (例如 `init_schema` 在 user_templates `properties_json` 内嵌入 v7 inlined `contract_type_id`,helper 走 v17 ALTER)。
+  这对 v17 本身可达性并无影响 (v17 ALTER 屏蔽差异),但 v18+ 倒退误测的可能需要另面分析。
 
 ### 4.3 文档回填 · 必做 before next merge
 
@@ -182,7 +217,10 @@
 ### 5.4 最近 commit 历史(围绕插件模板)
 
 ```
-382f0cc5 feat(plugin-template): stage 1 schema + v17 migration   ← Stage 1 (本次)
+b89e221c feat(plugin-template): stage 3 v17 idempotency + partial-state tests         ← Stage 3 (本地 commit,待 push)
+e5320dcd docs(plugin-template): mark Stage 2 done and update 着陆点 in TODO tracking    ← Stage 2 doc-sync
+cf12e7ff feat(plugin-template): stage 2 SELECT widening — roundtrip contract_type_id  ← Stage 2 master
+382f0cc5 feat(plugin-template): stage 1 schema + v17 migration                       ← Stage 1 master
 cc9f5eb1 feat(updater): enable silent Windows auto-updates and sync Cargo.lock version
 a4f49d11 feat(cli): settings phase — replace raw /setting card with SettingsMenu
 1c233ddf feat(cli): add /sync /ocr /embed_model; --ocr scan --mrz; CLI release artifacts
@@ -207,4 +245,4 @@ a4f49d11 feat(cli): settings phase — replace raw /setting card with SettingsMe
 
 ## 7. 一句话 TL;DR
 
-> **Stage 1 schema + v17 migration 已落库 (`382f0cc5`,origin/master,197/197 tests pass);Stage 2 (SELECT widening + roundtrip测试) 是首要重启任务。**
+> **Stage 1 + Stage 2 已落库 (`382f0cc5` + `cf12e7ff` on `origin/master`);Stage 3 本地已 commit `b89e221c` on 分支 `feat/plugin-template-stage3-v17-idempotency`,但未 push。重启 Session 首要任务:`git push origin feat/plugin-template-stage3-v17-idempotency` 并开 PR (标题 `Stage 3 plugin-template: v17 idempotency tests`);待审核 + merge 后再走 §4.3 / §4.4 / §4.5。**
