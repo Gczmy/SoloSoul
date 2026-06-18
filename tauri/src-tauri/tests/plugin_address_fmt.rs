@@ -131,6 +131,8 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
         tier: solo_soul::plugin::PluginTier::P0,
         category: "formatter".to_string(),
         params: vec![],
+        contracts: vec![],
+        field_bindings: vec![],
     };
 
     let host = SoloHostFunctions::new(

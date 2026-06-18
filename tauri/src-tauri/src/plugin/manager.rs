@@ -62,6 +62,12 @@ struct MarketManifestRaw {
     category: String,
     #[serde(default)]
     params: Vec<super::manifest::PluginParam>,
+    /// Stage 4 typed-lookup 契约绑定（市场 manifest 可选字段）
+    #[serde(default)]
+    contracts: Vec<super::manifest::PluginContractBinding>,
+    /// Stage 4 typed-lookup 字段绑定
+    #[serde(default)]
+    field_bindings: Vec<super::manifest::PluginFieldBinding>,
 }
 
 /// 插件管理器
@@ -180,6 +186,8 @@ impl PluginManager {
             tier: manifest_raw.tier,
             category: manifest_raw.category,
             params: manifest_raw.params,
+            contracts: manifest_raw.contracts,
+            field_bindings: manifest_raw.field_bindings,
         };
 
         self.store.save_plugin(&manifest, &wasm_bytes)?;
@@ -240,10 +248,11 @@ impl PluginManager {
         );
 
         let field_resolver = match (vault_store, account_id) {
-            (Some(vault), Some(account)) => Arc::new(super::FieldResolver::with_vault(
+            (Some(vault), Some(account)) => Arc::new(super::FieldResolver::with_vault_and_contracts(
                 vault,
                 account,
                 manifest.permissions.clone(),
+                manifest.contracts.clone(),
             )),
             _ => self.field_resolver.clone(),
         };
