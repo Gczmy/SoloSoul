@@ -4,6 +4,23 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.3.3] - 2026-06-18
+
+### Added
+
+- **插件模板系统 Stage 1** — 新增插件兼容模板 Schema 与数据库 v17 migration，为插件市场模板化能力奠定基础。
+- **Windows 静默自动更新** — 启用 Windows 端静默下载与安装更新，减少用户手动干预。
+- **CLI 设置阶段重构** — `/setting` 命令从原始卡片替换为 `SettingsMenu`，提升终端设置体验。
+- **CLI 扩展命令** — 新增 `/sync`、`/ocr`、`/embed_model` 命令；CLI 支持 `--ocr scan --mrz` 等参数，并补齐 CLI Release 产物构建。
+- **模板库过滤优化** — 过滤时保持卡片高度稳定，并将可见卡片优先排列。
+- **OCR 历史记录交互** — 点击 OCR 历史条目可直接加载扫描结果；补充 `active_model_series` 国际化并显示模型系列名称。
+- **侧边栏搜索激活态** — 搜索弹窗打开时，侧边栏搜索导航按钮显示为激活状态。
+
+### Changed
+
+- **日志降噪** — 在 `npm run tauri dev` 期间静默 ONNX Runtime（`ort` crate）的 INFO 级别日志 spam。
+- **代码格式化清理** — 对 `llm/service.rs`、`cipher.rs` 等文件进行 rustfmt 规范化整理。
+
 ## [2.3.2] - 2026-06-17
 
 ### Added
