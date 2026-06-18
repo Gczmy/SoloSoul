@@ -218,7 +218,11 @@ pub fn decrypt_chunked_from_bytes(
 
     let mut base_nonce = [0u8; 12];
     base_nonce.copy_from_slice(&ciphertext[..12]);
-    let chunk_count = u64::from_be_bytes(ciphertext[12..20].try_into().map_err(|_| CipherError::InvalidCiphertext)?) as usize;
+    let chunk_count = u64::from_be_bytes(
+        ciphertext[12..20]
+            .try_into()
+            .map_err(|_| CipherError::InvalidCiphertext)?,
+    ) as usize;
 
     let mut result = Vec::new();
     let mut offset = 20;

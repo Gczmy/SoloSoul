@@ -61,8 +61,11 @@ impl LlmService {
     }
 
     /// Get or create the preferences sub-object within profile data.
-    fn prefs_mut(data: &mut serde_json::Value) -> LlmResult<&mut serde_json::Map<String, serde_json::Value>> {
-        let obj = data.as_object_mut()
+    fn prefs_mut(
+        data: &mut serde_json::Value,
+    ) -> LlmResult<&mut serde_json::Map<String, serde_json::Value>> {
+        let obj = data
+            .as_object_mut()
             .ok_or_else(|| "profile data must be object".to_string())?;
         Ok(obj
             .entry("preferences".to_string())
