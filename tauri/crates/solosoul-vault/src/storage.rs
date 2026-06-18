@@ -5036,3 +5036,4 @@ mod tests {
             "ObjectSummary.icon_name must stay pinned across UPSERTs",
         );
     }
+}

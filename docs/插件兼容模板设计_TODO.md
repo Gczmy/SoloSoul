@@ -145,7 +145,7 @@
 
 注意:
 
-- PR #8 boundary tests 后,`storage.rs::tests` 总计 89 项 Roundtrip family 测试已全部落地,
+- PR #8 boundary tests 后,`storage.rs::tests` 累计 3 项 Roundtrip family 测试(Stage 2 主 roundtrip 1 项 + Stage 2 boundary 2 项)落地,
   后续 v17 migration 测试 (Stage 3) 不依赖 `storage.rs` 列位调整列索引。
 - 后续 Stage 3 code 变动仍必须 走同一个「挨着 `template_type`」列位,避免重做一遍
   row.get 索引映射。
@@ -262,6 +262,7 @@ c6eac2ef fix(plugin-template): stage 2 boundary tests + cargo fmt               
 e5320dcd docs(plugin-template): mark Stage 2 done and update 着陆点 in TODO tracking   ← Stage 2 doc-sync
 cf12e7ff feat(plugin-template): stage 2 SELECT widening — roundtrip contract_type_id  ← Stage 2 (PR #8 主 commit)
 f3e55664 docs: update CHANGELOG.md for v2.3.3                                          ↑ Stage 1 + v2.3.3 bump
+8b18965a chore: bump version to 2.3.3                                                  ← v2.3.3 bump
 382f0cc5 feat(plugin-template): stage 1 schema + v17 migration                         ← Stage 1 (已 push origin/master)
 cc9f5eb1 feat(updater): enable silent Windows auto-updates and sync Cargo.lock version
 a4f49d11 feat(cli): settings phase — replace raw /setting card with SettingsMenu
