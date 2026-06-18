@@ -10,12 +10,12 @@
 
 | 项 | 值 |
 |----|----|
-| 当前阶段 | **Stage 1 完成 · Stage 2 未启动** |
-| 工作分支 | `master` (latest = `origin/master`) |
-| Stage 1 commit | **`382f0cc5`** — `feat(plugin-template): stage 1 schema + v17 migration` |
-| 推送状态 | ✅ 已推送,本地与 `origin/master` 完全同步 |
+| 当前阶段 | **Stage 1 + Stage 2 完成;后续 follow-up 还剩 v17 幂等测试 / 文档回填 / rustfmt 清理** |
+| 工作分支 | `master` (Stage 1 已推) + `feat/plugin-template-stage2-select-widening` (Stage 2 本地未推) |
+| Stage 1 commit | **`382f0cc5`** — `feat(plugin-template): stage 1 schema + v17 migration`(已 push origin/master) |
+| Stage 2 commit | **`cf12e7ff`** — `feat(plugin-template): stage 2 SELECT widening — roundtrip contract_type_id`(branch 本地) |
+| 推送状态 | 🟡 分阶段:Stage 1 在 `origin/master`;Stage 2 在本地新建未推送,需要时 `git push origin feat/plugin-template-stage2-select-widening` |
 | 未提交工作区残留 | `tauri/crates/solosoul-core/src/llm/service.rs` (rustfmt-only) + `tauri/crates/solosoul-crypto/src/cipher.rs` (rustfmt-only) — 与 Stage 无关,留作独立 `chore(fmt)` commit |
-| 最近无历史 stage | 本仓库为本功能首次落库,此前无相关历史 commit |
 
 > **重启指示**:重启时优先读 `§2 已完成` 确认不要重做已做的事,然后跳到 `§4 待办` 选下一个 stage。
 
@@ -113,16 +113,34 @@
 
 ### 4.1 Stage 2 — SELECT Widening · 必须
 
-> 优先级最高。Stage 2 必做,没有它 `contract_type_id` 列实际是死列。
+> ✅ **[done]** — 落地于 branch `feat/plugin-template-stage2-select-widening` commit **`cf12e7ff`**。
+> 选择策略:`contract_type_id` 放在 `template_type` 之后(语义上与「模板相关」字段贴合),
+> 不是末尾追加。这迫使所有后续 `row.get(N)?` 的 N≥16 都需 shift +1,迁移文档保留作为 Stage 3+ 维护参考。
 
-- 选定**单一列位置**(建议 `template_type` 之后),所有涉及 `objects` 表的 SELECT 均在该位引入 `contract_type_id`。
-- 4 个目标 closure(在 `tauri/crates/solosoul-vault/src/storage.rs`):
-  - `load_object` (单条读)
-  - `search_objects` (列表搜索)
-  - `list_objects` / `load_objects_or_all` (页/全量)
-  - `list_object_changes_since` (增量同步)
-- 仅在该 4 处**移除** `contract_type_id: None` 并**保留 `column_type_id: row.get(N)?`** 的列读取(其它 82 处注入位保留 `None` 不动)。
-- 加 roundtrip 测试:`vault.save_object(&obj_with_contract) → vault.load_object(...)`,断言 `contract_type_id == Some("...")`。
+完成点:
+
+- 5 个 SQL 路径都加了 `contract_type_id` 列(SQL + 闭包双处透传):
+  - `VaultStore::save_object` 的 `INSERT INTO objects` 现在含 20 列,`params!`
+    含 `obj.contract_type_id.clone()`;`ON CONFLICT` UPDATE 写
+    `contract_type_id = excluded.contract_type_id`,兼容 `Some` / `None` 两状态。
+  - `load_object` / `list_object_changes_since` / `search_objects` 三个 ObjectRecord
+    SELECT closure 现都从 `row.get(16)?` 读 `contract_type_id`;`created_at` /
+    `updated_at` / `version` 索引从 16/17/18 顺推到 17/18/19。
+  - `list_objects`(返回 `Vec<ObjectSummary>`)的 SELECT 现以 `row.get(12)?`
+    取 `contract_type_id`;`icon_name` 索引从 12 顺推到 13。
+- 新增验收测试 `tauri/crates/solosoul-vault/src/storage.rs::tests::test_contract_type_id_roundtrip`:
+  - `save_object(...Some("com.test.plugin/v1")) → load_object(...)` 断言
+    `contract_type_id == Some(...)`。
+  - 同测调用 `list_objects("acc-1", ...)` 断言 ObjectSummary 返回
+    `contract_type_id == Some(...)` 且 `icon_name == "doc"`(植验
+    `icon_name` 列 shift +1 后仍正确读取)。
+- 验证: `cargo check --workspace --all-targets` 0 errors;
+  `cargo test --package solosoul-vault --lib` **88 / 88 passed**(87 现状 + 1 新增)。
+
+注意:
+
+- 后续 Stage 3 code 变动仍必须 走同一个「挨着 `template_type`」列位,避免重做一遍
+  row.get 索引映射。
 
 ### 4.2 v17 幂等性 · 部分 DB 状态测试 · 必须
 
@@ -182,11 +200,17 @@
 ### 5.4 最近 commit 历史(围绕插件模板)
 
 ```
-382f0cc5 feat(plugin-template): stage 1 schema + v17 migration   ← Stage 1 (本次)
+cf12e7ff feat(plugin-template): stage 2 SELECT widening — roundtrip contract_type_id   ← Stage 2 (branch 本地未推)
+8b18965a chore: bump version to 2.3.3                                                  ↑
+f3e55664 docs: update CHANGELOG.md for v2.3.3                                         ↑ (master 上 v2.3.3 bump 之上)
+382f0cc5 feat(plugin-template): stage 1 schema + v17 migration   ← Stage 1 (已推 origin/master)
 cc9f5eb1 feat(updater): enable silent Windows auto-updates and sync Cargo.lock version
 a4f49d11 feat(cli): settings phase — replace raw /setting card with SettingsMenu
 1c233ddf feat(cli): add /sync /ocr /embed_model; --ocr scan --mrz; CLI release artifacts
 ```
+**(注)** 实测两条 commit 头补插是 `docs: update CHANGELOG.md for v2.3.3` 与 `chore: bump version to 2.3.3`
+(原本从 v2.3.2 → v2.3.3,这些是 Stage 1 推送后某次会话动过的)。Stage 2 分支 创建于
+`f3e55664`(= `master`) 之上,原因了 v2.3.3 与 Stage 1&#x201C;打包同推&#x201D; 被压在一块。
 
 ---
 
@@ -207,4 +231,7 @@ a4f49d11 feat(cli): settings phase — replace raw /setting card with SettingsMe
 
 ## 7. 一句话 TL;DR
 
-> **Stage 1 schema + v17 migration 已落库 (`382f0cc5`,origin/master,197/197 tests pass);Stage 2 (SELECT widening + roundtrip测试) 是首要重启任务。**
+> **Stage 1 + Stage 2 均已落库:Stage 1 commit `382f0cc5` 在 origin/master;Stage 2
+> commit `cf12e7ff` 在本地 `feat/plugin-template-stage2-select-widening` 未推,插件
+> 现在 save → load 后可以用 `contract_type_id` 读到明确的 contract 类型,不再是隐死列。
+> 重启时下一项重点是 §4.2 的 v17 幂等/部分 DB 测试补完。**
