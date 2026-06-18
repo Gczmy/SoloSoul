@@ -409,6 +409,52 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
 
+    /// Reusable v16-ish DDL template; `contract_type_id TEXT,` placeholder
+    /// slots are conditionally filled by `setup_v16_partial_state` to build
+    /// each of the 4 partial-state facets.
+    ///
+    /// Two comment lines (`/*UTPL_CTID*/`, `/*OBJECTS_CTID*/`) mark where the
+    /// `contract_type_id TEXT,` line is conditionally inserted.
+    const HELPERS_PARTIAL_V16_SQL: &str = r#"CREATE TABLE IF NOT EXISTS sys_config (
+    key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL, description TEXT
+);
+CREATE TABLE IF NOT EXISTS user_templates (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    icon_id TEXT,
+    properties_json TEXT NOT NULL,
+/*UTPL_CTID*/    created_at TEXT NOT NULL,
+    updated_at TEXT,
+    category TEXT DEFAULT 'identity'
+);
+CREATE TABLE IF NOT EXISTS objects (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL,
+    type_id TEXT NOT NULL DEFAULT 'note',
+    section_type TEXT NOT NULL DEFAULT 'identity',
+    name TEXT NOT NULL,
+    icon_name TEXT NOT NULL DEFAULT 'document',
+    parent_id TEXT,
+    children_ids TEXT NOT NULL DEFAULT '[]',
+    properties TEXT NOT NULL DEFAULT '{}',
+    property_labels TEXT DEFAULT '{}',
+    sensitivity_level TEXT NOT NULL DEFAULT 'internal',
+    is_deleted INTEGER NOT NULL DEFAULT 0,
+    deleted_at TEXT,
+    tags_json TEXT NOT NULL DEFAULT '[]',
+    template_id TEXT,
+    template_type TEXT CHECK(template_type IN ('system', 'user')),
+/*OBJECTS_CTID*/    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    version INTEGER DEFAULT 1
+);
+"#;
+
+
     fn setup_conn() -> (Connection, TempDir) {
         let dir = TempDir::new().unwrap();
         let db_path = dir.path().join("test.db");
@@ -548,5 +594,135 @@ mod tests {
             )
             .unwrap();
         assert_eq!(count, 1);
+    }
+
+    // ── §30 plugin-template Stage 3 — v17 idempotency + partial-state ───
+    //
+    // Stage 3 backfills the missing acceptance tests for the v17 idempotent
+    // ALTER block. These tests guarantee Stage 1+2 will not silently regress
+    // if a future migration accidentally lets v17 re-execute on every
+    // VaultStore::open() and re-emit duplicate schema_migrations rows.
+
+    /// Build a v16-ish connection with independent control over whether
+    /// `objects` and `user_templates` already carry `contract_type_id`.
+    fn setup_v16_partial_state(
+        has_utpl_ctid: bool,
+        has_objects_ctid: bool,
+    ) -> (Connection, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let db_path = dir.path().join("test_v17.db");
+        let mut conn = Connection::open(&db_path).unwrap();
+        let sql = HELPERS_PARTIAL_V16_SQL
+            .replace(
+                "/*UTPL_CTID*/",
+                if has_utpl_ctid { "    contract_type_id TEXT,\n" } else { "" },
+            )
+            .replace(
+                "/*OBJECTS_CTID*/",
+                if has_objects_ctid { "    contract_type_id TEXT,\n" } else { "" },
+            );
+        conn.execute_batch(&sql).unwrap();
+        set_schema_version(&conn, 16).unwrap();
+        (conn, dir)
+    }
+
+    #[test]
+    fn test_migration_v17_idempotent_run_twice() {
+        let (mut conn, _dir) = setup_conn();
+        run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
+
+        let v17_rows_1: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM schema_migrations WHERE version = 17",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(v17_rows_1, 1, "first run must record exactly one v17 row");
+
+        for tbl in &["objects", "user_templates"] {
+            let sql = format!(
+                r#"SELECT "notnull", ((dflt_value IS NULL) OR (dflt_value = '')) FROM pragma_table_info('{}') WHERE name = 'contract_type_id'"#,
+                tbl
+            );
+            let (notnull, dflt_null): (i64, i64) = conn
+                .query_row(&sql, [], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, i64>(1)?)))
+                .unwrap();
+            assert_eq!(notnull, 0, "{}.contract_type_id must be nullable", tbl);
+            assert_eq!(
+                dflt_null, 1,
+                "{}.contract_type_id must have NULL-or-empty default (Option B contract)",
+                tbl
+            );
+        }
+
+        run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
+        let v17_rows_2: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM schema_migrations WHERE version = 17",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            v17_rows_2, 1,
+            "second run_migrations MUST NOT add a duplicate v17 schema_migrations row (got {})",
+            v17_rows_2
+        );
+    }
+
+    #[test]
+    fn test_migration_v17_partial_state() {
+        let facets: &[(&str, bool, bool)] = &[
+            ("both missing (fresh install)",         false, false),
+            ("user_templates has, objects missing",   true,  false),
+            ("user_templates missing, objects has",   false, true),
+            ("both columns already present",          true,  true),
+        ];
+        for (label, has_utpl, has_objects) in facets.iter() {
+            let (mut conn, _dir) = setup_v16_partial_state(*has_utpl, *has_objects);
+            assert_eq!(
+                get_schema_version(&conn).unwrap(),
+                16,
+                "facet `{}`: helper must leave conn at v16 before run_migrations",
+                label
+            );
+
+            run_migrations(&mut conn).unwrap();
+            assert_eq!(
+                get_schema_version(&conn).unwrap(),
+                CURRENT_SCHEMA_VERSION,
+                "facet `{}`: run_migrations must end at v17",
+                label
+            );
+
+            for tbl in &["objects", "user_templates"] {
+                let sql = format!(
+                    "SELECT COUNT(*) FROM pragma_table_info('{}') WHERE name = 'contract_type_id'",
+                    tbl
+                );
+                let present: i64 = conn.query_row(&sql, [], |r| r.get(0)).unwrap();
+                assert_eq!(
+                    present, 1,
+                    "facet `{}`: {}.contract_type_id must exist after v17",
+                    label, tbl
+                );
+            }
+
+            let v17_rows: i64 = conn
+                .query_row(
+                    "SELECT COUNT(*) FROM schema_migrations WHERE version = 17",
+                    [],
+                    |r| r.get(0),
+                )
+                .unwrap();
+            assert_eq!(
+                v17_rows, 1,
+                "facet `{}`: schema_migrations must have exactly one v17 row (got {})",
+                label, v17_rows
+            );
+        }
     }
 }
