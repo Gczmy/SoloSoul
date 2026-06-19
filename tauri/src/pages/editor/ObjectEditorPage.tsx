@@ -443,7 +443,7 @@ export function ObjectEditorPage() {
                             return (
                               <div key={key}>
                                 <Input
-                                  label={t(`editor:fields.${key}`, key)}
+                                  label={tplField?.name || key}
                                   icon={<FieldTypeIcon type="text" />}
                                   value={String(val ?? '')}
                                   onChange={(e) =>
@@ -457,7 +457,7 @@ export function ObjectEditorPage() {
                           })
                       : displayFields.map((field) => {
                           const sensitivity = getSensitivity(field.key, field.sensitivityLevel);
-                          const fieldLabel = t(`editor:fields.${field.key}`, field.label);
+                          const fieldLabel = field.label;
                           // Map legacy frontend type names to PropertyType
                           const propType: PropertyType =
                             field.type === 'tel'

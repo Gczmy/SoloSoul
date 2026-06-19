@@ -347,7 +347,7 @@ export function ObjectDetailModal({
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <PAGE_ICON_MAP.custom size={24} />
                   <div>
-                    <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{obj.name}</h2>
+                    <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{obj.name}</h2>
                     <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                       {resolveCollectionLabelLocal(obj.collectionType)} · {t('common:created')}:{' '}
                       {obj.createdAt?.slice(0, 10) || '—'} · {t('common:updated')}:{' '}
