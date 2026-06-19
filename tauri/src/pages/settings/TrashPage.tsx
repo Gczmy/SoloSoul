@@ -169,6 +169,7 @@ export function TrashPage() {
           placeholder={t('settings:search_trash')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onClear={() => setSearchQuery('')}
         />
 
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

@@ -9,7 +9,7 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
-import { Search, Download } from 'lucide-react';
+import { Search, Download, X } from 'lucide-react';
 import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { useSettingsStore } from '@/stores/settingsStore';
 
@@ -198,6 +198,38 @@ export function OperationLogPage() {
                 fontFamily: 'inherit',
               }}
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                aria-label={t('common:clear')}
+                tabIndex={-1}
+                style={{
+                  flexShrink: 0,
+                  width: 22,
+                  height: 22,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: 'none',
+                  borderRadius: 4,
+                  background: 'transparent',
+                  color: 'var(--text-tertiary)',
+                  cursor: 'pointer',
+                  padding: 0,
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'var(--text-tertiary)';
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
           <Button variant="secondary" size="sm" onClick={handleExport}>
             <Download size={14} />

@@ -303,6 +303,21 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
               }}
             />
             <div className={styles.rightControl}>
+              {query && (
+                <button
+                  className={styles.clearBtn}
+                  onClick={() => {
+                    setQuery('');
+                    setResults([]);
+                    setHasSearched(false);
+                    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                  }}
+                  aria-label={t('common:clear')}
+                  tabIndex={-1}
+                >
+                  <X size={14} />
+                </button>
+              )}
               <button className={styles.closeBtn} onClick={onClose} aria-label={t('common:cancel')}>
                 <X size={16} />
               </button>

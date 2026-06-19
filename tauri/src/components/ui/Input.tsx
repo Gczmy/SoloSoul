@@ -1,4 +1,5 @@
 import React, { InputHTMLAttributes, forwardRef, useState, useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 import styles from './Input.module.css';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -6,10 +7,12 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   icon?: React.ReactNode;
   badge?: React.ReactNode;
+  /** When provided, shows a clear (X) button at the right side of the input. */
+  onClear?: () => void;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, icon, badge, className, ...props }, ref) => {
+  ({ label, error, icon, badge, onClear, className, ...props }, ref) => {
     const [shouldShake, setShouldShake] = useState(false);
     const prevErrorRef = useRef(error);
 
@@ -23,6 +26,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       prevErrorRef.current = error;
     }, [error]);
 
+    const hasValue =
+      props.value !== undefined && props.value !== null && props.value !== '';
+    const showClear = onClear && hasValue;
+
     return (
       <div className={styles.wrapper}>
         {label && (
@@ -34,18 +41,32 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </span>
           </label>
         )}
-        <input
-          ref={ref}
-          className={[
-            styles.input,
-            error ? styles.hasError : '',
-            shouldShake ? styles.shake : '',
-            className || '',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-          {...props}
-        />
+        <div className={styles.inputWrap}>
+          <input
+            ref={ref}
+            className={[
+              styles.input,
+              showClear ? styles.hasClear : '',
+              error ? styles.hasError : '',
+              shouldShake ? styles.shake : '',
+              className || '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            {...props}
+          />
+          {showClear && (
+            <button
+              type="button"
+              className={styles.clearBtn}
+              onClick={onClear}
+              tabIndex={-1}
+              aria-label="Clear"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
         {error && <span className={styles.error} key={error}>{error}</span>}
       </div>
     );

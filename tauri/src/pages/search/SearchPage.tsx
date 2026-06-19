@@ -154,6 +154,7 @@ export function SearchPage() {
           placeholder={t('common:search_placeholder')}
           value={query}
           onChange={(e) => handleChange(e.target.value)}
+          onClear={() => { setQuery(''); setResults([]); setHasSearched(false); }}
           autoFocus
         />
 

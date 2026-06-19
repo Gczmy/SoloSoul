@@ -187,6 +187,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             placeholder={t('settings:search_sample_templates') || '搜索示例模板...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onClear={() => setSearchQuery('')}
           />
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {pageOptions.map((opt) => (

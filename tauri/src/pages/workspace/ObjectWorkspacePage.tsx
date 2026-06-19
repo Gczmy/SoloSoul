@@ -455,6 +455,7 @@ export function ObjectWorkspacePage() {
           placeholder={t('search_objects_placeholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onClear={() => setSearchQuery('')}
         />
 
         {isLoading && (

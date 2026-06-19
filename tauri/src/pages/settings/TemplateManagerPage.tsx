@@ -366,6 +366,7 @@ export function TemplateManagerPage() {
               placeholder={t('settings:search_templates') || '搜索模板...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onClear={() => setSearchQuery('')}
             />
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {pageOptions.map((opt) => {
