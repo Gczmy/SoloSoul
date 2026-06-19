@@ -184,6 +184,7 @@ export function DatePicker({
                 value={getYear(viewDate)}
                 onChange={(e) => handleYearChange(Number(e.target.value))}
                 aria-label="年份"
+                size={6}
               >
                 {yearOptions.map((y) => (
                   <option key={y} value={y}>
