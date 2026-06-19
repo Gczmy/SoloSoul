@@ -27,7 +27,10 @@ export function Dialog({ isOpen, onClose, children, title }: DialogProps) {
       ref={overlayRef}
       className={styles.overlay}
       onClick={(e) => {
-        if (e.target === overlayRef.current) onClose();
+        if (e.target === overlayRef.current) {
+          e.stopPropagation();
+          onClose();
+        }
       }}
     >
       <div className={styles.dialog}>
