@@ -106,7 +106,7 @@ export function WorkspaceObjectCard({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', minWidth: 0 }}>
           <PAGE_ICON_MAP.custom size={22} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
             <PluginBadge contractTypeId={obj.contractTypeId} size="sm" />
             <span
@@ -117,6 +117,8 @@ export function WorkspaceObjectCard({
                 padding: '1px 5px',
                 borderRadius: 4,
                 background: 'var(--bg-elevated)',
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
               }}
             >
               {collectionLabel}
