@@ -306,7 +306,7 @@ export function ObjectDetailModal({
   };
 
   const onActionBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = 'var(--bg-toolbar)';
+    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
     e.currentTarget.style.borderColor = 'var(--accent-primary)';
     e.currentTarget.style.color = 'var(--accent-primary)';
   };
@@ -393,7 +393,7 @@ export function ObjectDetailModal({
                     transition: 'all 0.15s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                     e.currentTarget.style.color = 'var(--accent-primary)';
                   }}
                   onMouseLeave={(e) => {
@@ -505,7 +505,7 @@ export function ObjectDetailModal({
                                 if (sens === 'critical') {
                                   e.currentTarget.style.background = 'rgba(220,38,38,0.12)';
                                 } else {
-                                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                                   e.currentTarget.style.color = 'var(--accent-primary)';
                                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                                 }
@@ -546,7 +546,7 @@ export function ObjectDetailModal({
                             }}
                             onMouseEnter={(e) => {
                               if (copiedField !== f.key) {
-                                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                                 e.currentTarget.style.color = 'var(--accent-primary)';
                                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
                               }
