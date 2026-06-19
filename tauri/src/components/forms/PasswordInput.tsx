@@ -40,6 +40,7 @@ export function SecurePasswordInput({
   const [isHintHovered, setIsHintHovered] = useState(false);
   const [hintCardPos, setHintCardPos] = useState<{ top: number; left: number } | null>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
   const prevErrorRef = useRef(error);
   const hintBtnRef = useRef<HTMLButtonElement>(null);
@@ -117,6 +118,8 @@ export function SecurePasswordInput({
       `}</style>
       <div
         className={className}
+        onMouseEnter={() => !disabled && setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         style={{
           position: 'relative',
           display: 'flex',
@@ -125,13 +128,18 @@ export function SecurePasswordInput({
             ? '1px solid var(--accent-danger, #dc2626)'
             : isFocused
               ? '1px solid var(--accent-primary)'
-              : '1px solid var(--border-subtle)',
+              : isHovered && !disabled
+                ? '1px solid var(--accent-primary)'
+                : '1px solid var(--border-subtle)',
           borderRadius: 8,
           boxShadow: isFocused
             ? '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)'
-            : 'none',
+            : isHovered && !disabled
+              ? '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+              : 'none',
           transition: 'border-color 0.2s, box-shadow 0.2s',
           backgroundColor: 'var(--bg-input)',
+          cursor: disabled ? 'not-allowed' : undefined,
           animation: shouldShake ? 'shake 0.3s ease-in-out' : 'none',
         }}
       >
