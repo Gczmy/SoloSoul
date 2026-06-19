@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
@@ -81,6 +81,8 @@ export function TemplateEditor({
   onSave,
   onClose,
 }: TemplateEditorProps) {
+  const [showIconPicker, setShowIconPicker] = useState(false);
+
   const { t } = useTranslation(['settings', 'common', 'editor']);
 
   return (
@@ -96,33 +98,54 @@ export function TemplateEditor({
         label={t('settings:template_category') || '所属页面'}
       />
 
-      {/* Icon picker */}
+      {/* Icon picker — collapsible, default collapsed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
-          {t('settings:template_icon') || '模板图标'}
-        </span>
-        <div
+        <button
+          type="button"
+          onClick={() => setShowIconPicker((v) => !v)}
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
+            gap: 6,
             padding: '6px 10px',
             borderRadius: 8,
             border: '1px solid var(--border-subtle)',
             background: 'var(--bg-toolbar)',
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 500,
+            color: 'var(--text-secondary)',
+            fontFamily: 'inherit',
+            textAlign: 'left',
+            width: '100%',
           }}
         >
+          <span
+            style={{
+              transform: showIconPicker ? 'rotate(90deg)' : 'rotate(0deg)',
+              transition: 'transform 0.15s ease',
+              display: 'inline-flex',
+              flexShrink: 0,
+            }}
+          >
+            <ChevronRight size={14} />
+          </span>
           {React.createElement(
             editIconId && editIconId in CUSTOM_ICON_MAP
               ? CUSTOM_ICON_MAP[editIconId as CustomIconId]
               : resolveCustomIcon(editIconId),
-            { size: 20, style: { color: 'var(--accent-primary)', flexShrink: 0 } },
+            { size: 18, style: { color: 'var(--accent-primary)', flexShrink: 0 } },
           )}
-          <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>
-            {t('settings:click_to_change_icon') || '点击选择图标'}
+          <span style={{ flex: 1 }}>
+            {t('settings:template_icon') || '模板图标'}
           </span>
-        </div>
-        <IconPicker value={editIconId} onChange={onEditIconIdChange} />
+          <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+            {showIconPicker
+              ? (t('common:collapse') || '收起')
+              : (t('settings:click_to_change_icon') || '点击选择图标')}
+          </span>
+        </button>
+        {showIconPicker && <IconPicker value={editIconId} onChange={onEditIconIdChange} />}
       </div>
 
       <div>

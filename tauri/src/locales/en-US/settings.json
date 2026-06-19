@@ -600,6 +600,8 @@
   "sample_templates_desc": "Use these examples to quickly create common templates.",
   "use_sample_template": "Create from this template",
   "sample_templates": "Sample Templates",
+  "template_icon": "Template Icon",
+  "click_to_change_icon": "Click to change icon",
   "plugin_badge_label": "Plugin Bound",
   "plugin_badge_tooltip": "This template is bound to the {{pluginName}} plugin; field data can be read by the plugin",
   "sync": "Device Sync",

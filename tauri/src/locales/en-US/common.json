@@ -195,6 +195,7 @@
   "ocr_desc": "Scan images for text, quickly extract and create objects",
   "search_desc": "Globally search objects, profiles, and help docs",
   "settings_desc": "Manage account, theme, security, and preferences",
+  "collapse": "Collapse",
   "ai_chat_desc": "Chat with the AI assistant for suggestions and help",
   "quick_access": "Quick Access",
   "data_sections": "Data Sections"
