@@ -78,14 +78,19 @@ pub fn render(app: &App) -> Paragraph<'_> {
         Span::styled(lock_text, theme.style_muted()),
     ];
 
-    // 已登录时显示剩余锁定时间
+    // 已登录时显示剩余锁定时间（<60 秒时橘红色强调提醒）
     if app.vault_service.is_unlocked() {
         let idle = Instant::now().duration_since(app.last_activity);
         let remaining = app.auto_lock_duration.saturating_sub(idle).as_secs();
+        let countdown_style = if remaining < 60 {
+            theme.style_error() // 橘红色强调
+        } else {
+            theme.style_muted()
+        };
         spans.push(Span::styled(" | ", theme.style_muted()));
         spans.push(Span::styled(
             format!("锁定倒计时: {}s", remaining),
-            theme.style_muted(),
+            countdown_style,
         ));
     }
 

@@ -134,7 +134,10 @@ pub enum AppPhase {
     /// 关于页
     About { info: commands::system::AboutInfo },
     /// 帮助页
-    Help { topic: Option<String> },
+    Help {
+        topic: Option<String>,
+        scroll_offset: usize,
+    },
     /// 附件列表页
     AttachmentList {
         object_id: String,
@@ -847,7 +850,10 @@ impl App {
     fn has_scrollable_options(&self) -> bool {
         matches!(
             self.phase,
-            AppPhase::Locked | AppPhase::Welcome | AppPhase::Home { .. }
+            AppPhase::Locked
+                | AppPhase::Welcome
+                | AppPhase::Home { .. }
+                | AppPhase::Help { .. }
         )
     }
 
@@ -909,6 +915,17 @@ impl App {
                 let count = crate::screens::home::shortcut_count() as i32;
                 self.selected_shortcut =
                     (self.selected_shortcut as i32 + steps).clamp(0, count - 1) as usize;
+            }
+            AppPhase::Help {
+                ref mut scroll_offset,
+                ..
+            } => {
+                // scroll_offset 为非负整数，最多滚动到不会让内容完全为空
+                if steps > 0 {
+                    *scroll_offset = scroll_offset.saturating_add(steps as usize);
+                } else {
+                    *scroll_offset = scroll_offset.saturating_sub(steps.unsigned_abs() as usize);
+                }
             }
             _ => {}
         }
@@ -2656,7 +2673,10 @@ impl App {
                 entries, selected, ..
             } => crate::screens::operation_log::render(frame, layout[1], entries, *selected),
             AppPhase::About { info } => crate::screens::about::render(frame, layout[1], info),
-            AppPhase::Help { topic } => crate::screens::help::render(frame, layout[1], topic),
+            AppPhase::Help {
+                topic,
+                scroll_offset,
+            } => crate::screens::help::render(frame, layout[1], topic, *scroll_offset),
             AppPhase::AttachmentList {
                 object_id,
                 items,

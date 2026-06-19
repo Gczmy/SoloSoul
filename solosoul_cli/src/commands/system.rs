@@ -30,83 +30,195 @@ pub fn about(app: &mut App) -> Result<()> {
     Ok(())
 }
 
+/// 帮助条目（命令 + 描述）。
+#[derive(Debug, Clone, Copy)]
+pub struct HelpEntry {
+    pub command: &'static str,
+    pub description: &'static str,
+}
+
 /// 执行 `/help [command]`：显示命令帮助。
 pub fn help(app: &mut App, topic: Option<&str>) -> Result<()> {
     let topic = topic.map(|s| s.to_lowercase());
     app.previous_phase = Some(app.phase.clone());
-    app.phase = AppPhase::Help { topic };
+    app.phase = AppPhase::Help {
+        topic,
+        scroll_offset: 0,
+    };
     Ok(())
 }
 
 /// 分组命令列表（用于无参数 /help）。
-pub const HELP_GROUPS: &[(&str, &[&str])] = &[
+pub const HELP_GROUPS: &[(&str, &[HelpEntry])] = &[
     (
         "账户与会话",
         &[
-            "/account_list",
-            "/unlock (或 /login)",
-            "/lock (或 /logout)",
-            "/exit",
-            "Ctrl+L 手动锁定",
+            HelpEntry {
+                command: "/account_list",
+                description: "显示本地所有账户",
+            },
+            HelpEntry {
+                command: "/unlock (或 /login)",
+                description: "启动登录向导解锁 Vault",
+            },
+            HelpEntry {
+                command: "/lock (或 /logout)",
+                description: "锁定 Vault 并清除会话密钥",
+            },
+            HelpEntry {
+                command: "/exit",
+                description: "锁定 Vault 并退出 CLI",
+            },
+            HelpEntry {
+                command: "Ctrl+L",
+                description: "手动锁定 Vault",
+            },
         ],
     ),
     (
         "Vault 读取",
         &[
-            "/list [页面名]",
-            "/open <对象ID>",
-            "/size (或 /status /state)",
-            "/search <关键词>",
-            "/history <对象ID>",
+            HelpEntry {
+                command: "/list [页面名]",
+                description: "列出页面或对象",
+            },
+            HelpEntry {
+                command: "/open <对象ID>",
+                description: "查看对象详情",
+            },
+            HelpEntry {
+                command: "/size (或 /status)",
+                description: "显示账户统计信息",
+            },
+            HelpEntry {
+                command: "/search <关键词>",
+                description: "全局搜索对象与属性",
+            },
+            HelpEntry {
+                command: "/history <对象ID>",
+                description: "查看对象历史快照",
+            },
         ],
     ),
     (
         "Vault 写入",
         &[
-            "/newpage <名称>",
-            "/newobject [页面名]",
-            "/edit <对象ID>",
-            "/delete <对象ID>",
-            "/rollback <对象ID> <快照ID>",
+            HelpEntry {
+                command: "/newpage <名称>",
+                description: "创建新页面",
+            },
+            HelpEntry {
+                command: "/newobject [页面名]",
+                description: "创建新对象（向导）",
+            },
+            HelpEntry {
+                command: "/edit <对象ID>",
+                description: "编辑对象字段",
+            },
+            HelpEntry {
+                command: "/delete <对象ID>",
+                description: "移入回收站",
+            },
+            HelpEntry {
+                command: "/rollback <ID> <快照ID>",
+                description: "恢复到指定历史版本",
+            },
         ],
     ),
     (
         "回收站",
         &[
-            "/trash (或 /bin)",
-            "/restore <trash_id>",
-            "/purge <trash_id>",
+            HelpEntry {
+                command: "/trash (或 /bin)",
+                description: "列出回收站项目",
+            },
+            HelpEntry {
+                command: "/restore <trash_id>",
+                description: "从回收站恢复",
+            },
+            HelpEntry {
+                command: "/purge <trash_id>",
+                description: "彻底删除（不可恢复）",
+            },
         ],
     ),
     (
         "审计与诊断",
         &[
-            "/operation_log [条数]",
-            "/export_log [文件名]",
-            "/debug_log [文件名]",
-            "/doctor",
-            "/about (或 /version)",
-            "/help [命令]",
+            HelpEntry {
+                command: "/operation_log [条数]",
+                description: "查看审计日志",
+            },
+            HelpEntry {
+                command: "/export_log [文件名]",
+                description: "导出审计日志到文件",
+            },
+            HelpEntry {
+                command: "/debug_log [文件名]",
+                description: "导出诊断包",
+            },
+            HelpEntry {
+                command: "/doctor",
+                description: "健康诊断报告",
+            },
+            HelpEntry {
+                command: "/about (或 /version)",
+                description: "应用信息与版本",
+            },
+            HelpEntry {
+                command: "/help [命令]",
+                description: "查看命令帮助",
+            },
         ],
     ),
     (
         "数据可移植性",
         &[
-            "/attach list [对象ID] | add <文件> | rename <id> <新名> | delete <id> | restore <id> | purge <id> | cleanup",
-            "/backup list | create <名称> | restore <id> | delete <id>",
-            "/template | show <id> | delete <id>",
-            "/export [文件] --full | --pages a,b | --objects id1,id2 [--include-attachments]",
-            "/import [文件] --preview | --strategy skip|overwrite|merge",
+            HelpEntry {
+                command: "/attach <子命令>",
+                description: "管理对象附件",
+            },
+            HelpEntry {
+                command: "/backup <子命令>",
+                description: "备份与恢复 Vault",
+            },
+            HelpEntry {
+                command: "/template <子命令>",
+                description: "对象模板管理",
+            },
+            HelpEntry {
+                command: "/export [文件] [选项]",
+                description: "加密导出 .solosoul 包",
+            },
+            HelpEntry {
+                command: "/import [文件] [选项]",
+                description: "从 .solosoul 包导入",
+            },
         ],
     ),
     (
         "设置与安全",
         &[
-            "/language [语言]",
-            "/theme [主题]",
-            "/setting <键> <值>",
-            "/profile | rename <名称> | set <路径> <值>",
-            "/security password|hint|trash-retention|delete-account|biometric",
+            HelpEntry {
+                command: "/language [语言]",
+                description: "切换界面语言",
+            },
+            HelpEntry {
+                command: "/theme [主题]",
+                description: "切换界面主题",
+            },
+            HelpEntry {
+                command: "/setting <键> <值>",
+                description: "修改加密偏好设置",
+            },
+            HelpEntry {
+                command: "/security <子命令>",
+                description: "密码/保留期/删除账户",
+            },
+            HelpEntry {
+                command: "/profile [子命令]",
+                description: "查看或编辑 Profile",
+            },
         ],
     ),
 ];
@@ -218,7 +330,7 @@ mod tests {
         let (mut app, _dir) = app_with_temp_dir();
         help(&mut app, None).unwrap();
         match &app.phase {
-            AppPhase::Help { topic } => assert!(topic.is_none()),
+            AppPhase::Help { topic, .. } => assert!(topic.is_none()),
             _ => panic!("expected Help phase"),
         }
     }
