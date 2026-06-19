@@ -143,8 +143,8 @@ export function WorkspaceObjectCard({
             title="Edit"
             style={iconButtonStyle}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(128,128,128,0.08)';
-              e.currentTarget.style.color = 'var(--text-primary)';
+              e.currentTarget.style.background = 'var(--bg-elevated-hover)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
@@ -283,8 +283,8 @@ function CountButton({
           transition: 'all 0.15s ease',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(128,128,128,0.08)';
-          e.currentTarget.style.color = 'var(--text-primary)';
+          e.currentTarget.style.background = 'var(--bg-elevated-hover)';
+          e.currentTarget.style.color = 'var(--accent-primary)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.background = 'transparent';

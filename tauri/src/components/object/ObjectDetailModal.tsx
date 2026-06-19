@@ -302,6 +302,28 @@ export function ObjectDetailModal({
     cursor: 'pointer',
     fontSize: 13,
     fontWeight: 500,
+    transition: 'all 0.15s ease',
+  };
+
+  const onActionBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'var(--bg-toolbar)';
+    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+    e.currentTarget.style.color = 'var(--accent-primary)';
+  };
+  const onActionBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'var(--bg-toolbar)';
+    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+    e.currentTarget.style.color = 'var(--text-secondary)';
+  };
+  const onDeleteBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
+    e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
+    e.currentTarget.style.color = '#e74c3c';
+  };
+  const onDeleteBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'var(--bg-toolbar)';
+    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+    e.currentTarget.style.color = '#e74c3c';
   };
 
   return (
@@ -368,6 +390,15 @@ export function ObjectDetailModal({
                     background: 'transparent',
                     cursor: 'pointer',
                     color: 'var(--text-tertiary)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'var(--text-tertiary)';
                   }}
                 >
                   <X size={20} />
@@ -468,6 +499,25 @@ export function ObjectDetailModal({
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 4,
+                                transition: 'all 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => {
+                                if (sens === 'critical') {
+                                  e.currentTarget.style.background = 'rgba(220,38,38,0.12)';
+                                } else {
+                                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                                  e.currentTarget.style.color = 'var(--accent-primary)';
+                                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (sens === 'critical') {
+                                  e.currentTarget.style.background = 'rgba(220,38,38,0.06)';
+                                } else {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.color = 'var(--text-tertiary)';
+                                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                                }
                               }}
                             >
                               {sens === 'critical' ? <Lock size={12} /> : <Eye size={12} />}{' '}
@@ -492,6 +542,21 @@ export function ObjectDetailModal({
                               display: 'flex',
                               alignItems: 'center',
                               gap: 4,
+                              transition: 'all 0.15s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (copiedField !== f.key) {
+                                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                                e.currentTarget.style.color = 'var(--accent-primary)';
+                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (copiedField !== f.key) {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-tertiary)';
+                                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                              }
                             }}
                           >
                             {copiedField === f.key ? t('common:copied') : t('common:copy')}
@@ -544,6 +609,8 @@ export function ObjectDetailModal({
                     }
                   }}
                   style={actionBtnStyle}
+                  onMouseEnter={onActionBtnEnter}
+                  onMouseLeave={onActionBtnLeave}
                 >
                   <Clock size={14} /> {t('common:history')}
                 </button>
@@ -556,11 +623,18 @@ export function ObjectDetailModal({
                     }
                   }}
                   style={actionBtnStyle}
+                  onMouseEnter={onActionBtnEnter}
+                  onMouseLeave={onActionBtnLeave}
                 >
                   <Paperclip size={14} /> {t('common:attachments')}
                 </button>
                 {onEdit && (
-                  <button onClick={onEdit} style={actionBtnStyle}>
+                  <button
+                    onClick={onEdit}
+                    style={actionBtnStyle}
+                    onMouseEnter={onActionBtnEnter}
+                    onMouseLeave={onActionBtnLeave}
+                  >
                     <Pencil size={14} /> {t('common:edit')}
                   </button>
                 )}
@@ -576,6 +650,8 @@ export function ObjectDetailModal({
                     ...actionBtnStyle,
                     color: '#e74c3c',
                   }}
+                  onMouseEnter={onDeleteBtnEnter}
+                  onMouseLeave={onDeleteBtnLeave}
                 >
                   <Trash2 size={14} /> {t('common:delete')}
                 </button>
@@ -640,6 +716,15 @@ export function ObjectDetailModal({
                   fontSize: 13,
                   fontWeight: 500,
                   cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#c0392b';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(231,76,60,0.35)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#e74c3c';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
                 {t('common:delete')}
