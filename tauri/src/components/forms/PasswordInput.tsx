@@ -174,12 +174,14 @@ export function SecurePasswordInput({
                 display: 'flex',
                 alignItems: 'center',
                 color: 'var(--text-tertiary)',
-                transition: 'color 0.15s',
+                transition: 'all 0.15s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--text-secondary)';
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
               }}
               onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'none';
                 e.currentTarget.style.color = 'var(--text-tertiary)';
               }}
             >
@@ -208,7 +210,15 @@ export function SecurePasswordInput({
                   display: 'flex',
                   alignItems: 'center',
                   color: isHintHovered ? 'var(--accent-primary)' : 'var(--text-tertiary)',
-                  transition: 'color 0.15s',
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'none';
+                  e.currentTarget.style.color = 'var(--text-tertiary)';
                 }}
               >
                 <HelpCircle size={16} />
