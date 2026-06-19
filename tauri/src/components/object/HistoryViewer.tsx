@@ -111,7 +111,7 @@ function SnapshotCard({
       {/* Version badge */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <SnapshotVersionBadge index={index} total={total} />
-        <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{snapName}</div>
+        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{snapName}</div>
       </div>
       {/* Properties — like detail panel, with sensitivity */}
       {fields.length > 0 && (
