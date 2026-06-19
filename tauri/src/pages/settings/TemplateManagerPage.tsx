@@ -85,6 +85,7 @@ export function TemplateManagerPage() {
   const [selectedSample, setSelectedSample] = useState<SampleTemplate | null>(null);
   const [pageFilter, setPageFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [hoveredFilter, setHoveredFilter] = useState<string | null>(null);
 
   useEffect(() => {
     loadTemplates().catch(() => {});
@@ -367,47 +368,65 @@ export function TemplateManagerPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {pageOptions.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setPageFilter(opt.id)}
-                  aria-pressed={pageFilter === opt.id}
-                  onMouseEnter={(e) => {
-                    if (pageFilter !== opt.id) {
-                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                      e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                      e.currentTarget.style.color = 'var(--accent-primary)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (pageFilter !== opt.id) {
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.color = 'var(--text-secondary)';
+              {pageOptions.map((opt) => {
+                const isActive = pageFilter === opt.id;
+                const isHovered = hoveredFilter === opt.id;
+
+                let borderColor: string;
+                let boxShadow: string;
+                let bg: string;
+                let textColor: string;
+
+                if (isActive) {
+                  borderColor = 'var(--accent-primary)';
+                  boxShadow = 'none';
+                  bg = 'var(--accent-primary)';
+                  textColor = 'white';
+                } else if (isHovered) {
+                  borderColor = 'var(--accent-primary)';
+                  boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  bg = 'transparent';
+                  textColor = 'var(--accent-primary)';
+                } else {
+                  borderColor = 'var(--border-subtle)';
+                  boxShadow = 'none';
+                  bg = 'transparent';
+                  textColor = 'var(--text-secondary)';
+                }
+
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setPageFilter(opt.id)}
+                    aria-pressed={isActive}
+                    onMouseEnter={() => setHoveredFilter(opt.id)}
+                    onMouseLeave={(e) => {
+                      setHoveredFilter(null);
                       e.currentTarget.style.transform = 'scale(1)';
-                    }
-                  }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.transform = 'scale(0.96)';
-                  }}
-                  onMouseUp={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--border-subtle)',
-                    background: pageFilter === opt.id ? 'var(--accent-primary)' : 'transparent',
-                    color: pageFilter === opt.id ? 'white' : 'var(--text-secondary)',
-                    fontSize: 12,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
+                    }}
+                    onMouseDown={(e) => {
+                      e.currentTarget.style.transform = 'scale(0.96)';
+                    }}
+                    onMouseUp={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: 6,
+                      border: `1px solid ${borderColor}`,
+                      boxShadow,
+                      background: bg,
+                      color: textColor,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
