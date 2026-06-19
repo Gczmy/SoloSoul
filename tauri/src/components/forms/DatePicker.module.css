@@ -76,7 +76,7 @@
 
 .header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 10px;
@@ -101,7 +101,7 @@
 
 .selects {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   flex: 1;
 }
