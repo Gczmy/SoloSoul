@@ -15,7 +15,12 @@
   cursor: pointer;
   text-align: left;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.trigger:hover:not(:focus):not(:disabled) {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 .trigger:focus {

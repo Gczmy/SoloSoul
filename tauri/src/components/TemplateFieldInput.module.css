@@ -32,14 +32,22 @@
   font-size: 14px;
   background: var(--bg-elevated);
   color: var(--text-primary);
-  transition: border-color 0.15s ease;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:hover:not(:disabled),
+.textarea:hover:not(:disabled),
+.select:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 .input:focus,
 .textarea:focus,
 .select:focus {
   outline: none;
-  border-color: var(--accent-color, #5b7c99);
+  border-color: var(--accent-primary, #5b7c99);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 .textarea {
