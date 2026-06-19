@@ -50,8 +50,10 @@ export function DatePicker({
   const [viewDate, setViewDate] = useState<Date>(() => parseValue(value) || new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => parseValue(value));
   const [yearOpen, setYearOpen] = useState(false);
+  const [monthOpen, setMonthOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const yearListRef = useRef<HTMLDivElement>(null);
+  const monthListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const d = parseValue(value);
@@ -69,6 +71,17 @@ export function DatePicker({
       }
     }
   }, [yearOpen, viewDate]);
+
+  // Auto-scroll month list to current month when opened
+  useEffect(() => {
+    if (monthOpen && monthListRef.current) {
+      const currentMonth = getMonth(viewDate);
+      const item = monthListRef.current.querySelector(`[data-month="${currentMonth}"]`);
+      if (item) {
+        item.scrollIntoView({ block: 'center' });
+      }
+    }
+  }, [monthOpen, viewDate]);
 
   const handleSelect = useCallback(
     (day: Date) => {
@@ -102,6 +115,7 @@ export function DatePicker({
 
   const handleMonthChange = useCallback((month: number) => {
     setViewDate((prev) => setMonth(prev, month));
+    setMonthOpen(false);
   }, []);
 
   const goToPrevMonth = useCallback(() => {
@@ -138,6 +152,7 @@ export function DatePicker({
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
         setYearOpen(false);
+        setMonthOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -192,12 +207,15 @@ export function DatePicker({
               aria-label="上个月"
             >
               ‹
-            </button>
-            <div className={styles.selects} onMouseDown={(e) => {
-                // Close year popup when clicking outside year area
+            </button>                <div className={styles.selects} onMouseDown={(e) => {
+                // Close popups when clicking outside their area
                 const yearArea = e.currentTarget.querySelector('[data-year-area]');
                 if (yearArea && !yearArea.contains(e.target as Node)) {
                   setYearOpen(false);
+                }
+                const monthArea = e.currentTarget.querySelector('[data-month-area]');
+                if (monthArea && !monthArea.contains(e.target as Node)) {
+                  setMonthOpen(false);
                 }
               }}>
               {/* Custom scrollable year dropdown */}
@@ -205,19 +223,20 @@ export function DatePicker({
                 <button
                   type="button"
                   onClick={() => setYearOpen((v) => !v)}
-                  className={styles.yearTrigger}
+                  className={styles.dropdownTrigger}
+                  aria-label="选择年份"
                 >
                   {getYear(viewDate)}
                   <ChevronDown size={12} />
                 </button>
                 {yearOpen && (
-                  <div className={styles.yearPopover} ref={yearListRef}>
+                  <div className={styles.dropdownPopover} ref={yearListRef}>
                     {yearOptions.map((y) => (
                       <button
                         key={y}
                         type="button"
                         data-year={y}
-                        className={`${styles.yearItem} ${y === getYear(viewDate) ? styles.yearItemActive : ''}`}
+                        className={`${styles.dropdownItem} ${y === getYear(viewDate) ? styles.dropdownItemActive : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleYearChange(y);
@@ -229,18 +248,35 @@ export function DatePicker({
                   </div>
                 )}
               </div>
-              <select
-                className={styles.select}
-                value={getMonth(viewDate)}
-                onChange={(e) => handleMonthChange(Number(e.target.value))}
-                aria-label="月份"
-              >
-                {Array.from({ length: 12 }, (_, i) => (
-                  <option key={i} value={i}>
-                    {format(setMonth(new Date(2020, 0, 1), i), 'MMM', { locale })}
-                  </option>
-                ))}
-              </select>
+              <div data-month-area style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setMonthOpen((v) => !v)}
+                  className={styles.dropdownTrigger}
+                  aria-label="选择月份"
+                >
+                  {format(viewDate, 'MMM', { locale })}
+                  <ChevronDown size={12} />
+                </button>
+                {monthOpen && (
+                  <div className={styles.dropdownPopover} ref={monthListRef}>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        data-month={i}
+                        className={`${styles.dropdownItem} ${i === getMonth(viewDate) ? styles.dropdownItemActive : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMonthChange(i);
+                        }}
+                      >
+                        {format(setMonth(new Date(2020, 0, 1), i), 'MMM', { locale })}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <button
               type="button"
