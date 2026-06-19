@@ -90,15 +90,7 @@ export function applyAccentColor(accent: AccentPreset, customHex?: string) {
 
 /** Full theme application: mode (data-theme attr) + accent color + active scheme */
 export function applyTheme(config: ThemeConfig) {
-  const root = document.documentElement;
-  // Set theme data attribute for CSS selectors
-  if (config.preset === 'warm-stone-light') {
-    root.setAttribute('data-theme', 'light');
-  } else if (config.preset === 'warm-stone-dark') {
-    root.setAttribute('data-theme', 'dark');
-  } else {
-    root.setAttribute('data-theme', 'system');
-  }
+  const root = document.documentElement;  // Set theme data attribute for CSS selectors  // When preset is 'system', resolve to actual light/dark so all compound  // [data-theme] CSS selectors (e.g. [data-theme='dark'][data-accent='ocean'])  // match correctly. Relying on @media (prefers-color-scheme) for  // [data-theme='system'] leaves gaps for accent colors and other overrides.  if (config.preset === 'warm-stone-light') {    root.setAttribute('data-theme', 'light');  } else if (config.preset === 'warm-stone-dark') {    root.setAttribute('data-theme', 'dark');  } else {    const isDark = window.matchMedia(SYSTEM_DARK_MQ).matches;    root.setAttribute('data-theme', isDark ? 'dark' : 'light');  }
   // Apply accent color
   applyAccentColor(
     config.accentColor as AccentPreset,
