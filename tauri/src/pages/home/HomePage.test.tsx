@@ -73,6 +73,6 @@ describe('HomePage', () => {
 
     const helpCard = screen.getByText('navigation:help').closest('[role="button"]') as HTMLElement;
     fireEvent.click(helpCard);
-    expect(navigate).toHaveBeenCalledWith('/help');
+    expect(navigate).toHaveBeenCalledWith('/help', { state: { fromHome: true } });
   });
 });

@@ -1,10 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { AppShell } from '@/components/layout/AppShell';
-import { Button } from '@/components/ui/Button';
-import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
 import { useCancellable } from '@/hooks/useCancellable';
@@ -15,18 +10,11 @@ import {
   buildMessagesWithSystemPromptAndChunks,
 } from '@/lib/llm/systemPromptBuilder';
 import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
-import {
-  MessageSquare,
-  Settings,
-  BarChart3,
-} from 'lucide-react';
 import { markConversationPending, setAiPageOpen } from '@/lib/notification';
-import type { ChatMsg } from './ChatMessageBubble';
-import { ConversationSidebar } from '@/components/llm/ConversationSidebar';
-import { MessageArea } from '@/components/llm/MessageArea';
-import { TrashConversationCard } from '@/components/llm/TrashConversationCard';
+import { useTranslation } from 'react-i18next';
+import type { ChatMsg }    from '../ChatMessageBubble';
 
-interface Conversation {
+export interface Conversation {
   id: string;
   name: string;
   isTemporary: boolean;
@@ -35,7 +23,7 @@ interface Conversation {
   deletedAt?: string;
 }
 
-interface ConversationSummary {
+export interface ConversationSummary {
   id: string;
   name: string;
   updatedAt: string;
@@ -44,7 +32,9 @@ interface ConversationSummary {
 }
 
 function isOllama(baseUrl: string): boolean {
-  return baseUrl.toLowerCase().includes('localhost') || baseUrl.toLowerCase().includes('127.0.0.1');
+  return (
+    baseUrl.toLowerCase().includes('localhost') || baseUrl.toLowerCase().includes('127.0.0.1')
+  );
 }
 
 function nowISO(): string {
@@ -55,8 +45,49 @@ function generateId(): string {
   return 'conv_' + crypto.randomUUID();
 }
 
-export function LlmChatPage() {
-  const navigate = useNavigate();
+export interface UseLlmChatReturn {
+  activeProvider: {
+    id: string;
+    name: string;
+    model: string;
+    baseUrl: string;
+    apiType: string;
+  } | null;
+  isConfigured: boolean;
+  isAiEnabled: boolean;
+  includeSystemPrompt: boolean;
+  loading: boolean;
+  conversations: ConversationSummary[];
+  trashList: ConversationSummary[];
+  showTrash: boolean;
+  currentConvId: string | null;
+  currentConv: Conversation | null;
+  messages: ChatMsg[];
+  input: string;
+  isSending: boolean;
+  isOnline: boolean | null;
+  checkingOnline: boolean;
+  copiedIndex: number | null;
+  floatingConv: Conversation | null;
+  confirmPermanentDelete: string | null;
+  isLocal: boolean;
+  setInput: (v: string) => void;
+  setShowTrash: (v: boolean) => void;
+  setConfirmPermanentDelete: (v: string | null) => void;
+  setFloatingConv: (v: Conversation | null) => void;
+  sendMessage: () => Promise<void>;
+  handleNewConversation: () => void;
+  loadConversation: (convId: string) => Promise<void>;
+  handleRename: (convId: string, newName: string) => Promise<void>;
+  handleSoftDelete: (convId: string) => Promise<void>;
+  handleRestore: (convId: string) => Promise<void>;
+  handlePermanentDelete: (convId: string) => Promise<void>;
+  handleViewTrashConv: (convId: string) => Promise<void>;
+  handleCopy: (content: string, index: number) => Promise<void>;
+  checkOnline: () => void;
+}
+
+export function useLlmChat(): UseLlmChatReturn {
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const makeCancellable = useCancellable();
@@ -100,7 +131,7 @@ export function LlmChatPage() {
     return () => setAiPageOpen(false);
   }, []);
 
-  // Load providers and config
+  /* Load provider + config */
   useEffect(() => {
     if (!accountId) return;
     (async () => {
@@ -141,7 +172,7 @@ export function LlmChatPage() {
     })();
   }, [accountId]);
 
-  // Load conversations & trash
+  /* Load conversation & trash lists */
   const loadAllLists = useCallback(() => {
     if (!accountId || !isAiEnabled || !isConfigured) return;
     const { isCancelled } = makeCancellable();
@@ -165,7 +196,7 @@ export function LlmChatPage() {
     loadAllLists();
   }, [loadAllLists]);
 
-  // Check online status
+  /* Online status */
   const checkOnline = useCallback(() => {
     if (!activeProvider || !accountId) return;
     const { isCancelled } = makeCancellable();
@@ -174,7 +205,10 @@ export function LlmChatPage() {
       try {
         let key = '';
         try {
-          key = await invoke<string>('llm_get_api_key', { accountId, providerId: activeProvider.id });
+          key = await invoke<string>('llm_get_api_key', {
+            accountId,
+            providerId: activeProvider.id,
+          });
         } catch {
           /* may not have key */
         }
@@ -203,19 +237,21 @@ export function LlmChatPage() {
     return () => clearInterval(interval);
   }, [activeProvider, checkOnline]);
 
-  // Scroll to bottom
+  /* Scroll to bottom */
   const lastMessageKey = messages.length > 0 ? messages[messages.length - 1].createdAt : null;
   useEffect(() => {
     const el = document.querySelector('[data-chat-end]');
     el?.scrollIntoView({ behavior: 'auto' });
   }, [lastMessageKey]);
 
+  /* Cleanup copy timeout */
   useEffect(() => {
     return () => {
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
     };
   }, []);
 
+  /* Load single conversation */
   const loadConversation = useCallback(
     async (convId: string) => {
       if (!accountId) return;
@@ -234,16 +270,16 @@ export function LlmChatPage() {
     [accountId],
   );
 
-  const handleNewConversation = () => {
+  const handleNewConversation = useCallback(() => {
     const id = generateId();
     setCurrentConvId(id);
     setCurrentConv({ id, name: '', isTemporary: true, messages: [], updatedAt: nowISO() });
     setMessages([]);
-  };
+  }, []);
 
   const llmStore = useLlmStore();
 
-  // Stream listeners
+  /* Stream: update assistant message buffer */
   useEffect(() => {
     if (!llmStore.isStreaming || !llmStore.streamingConvId) return;
     setMessages((prev) => {
@@ -256,6 +292,7 @@ export function LlmChatPage() {
     });
   }, [llmStore.streamBuffer, llmStore.isStreaming, llmStore.streamingConvId]);
 
+  /* Stream: finalize after done */
   useEffect(() => {
     if (!llmStore.isStreaming && llmStore.streamingConvId && llmStore.streamBuffer) {
       const convId = llmStore.streamingConvId;
@@ -280,6 +317,7 @@ export function LlmChatPage() {
     }
   }, [llmStore, llmStore.isStreaming, llmStore.streamingConvId, llmStore.streamBuffer]);
 
+  /* Stream: error handling */
   useEffect(() => {
     if (llmStore.streamError) {
       const errMsg = llmStore.streamError;
@@ -300,7 +338,8 @@ export function LlmChatPage() {
     }
   }, [llmStore, llmStore.streamError, t]);
 
-  const sendMessage = async () => {
+  /* Send message */
+  const sendMessage = useCallback(async () => {
     const text = input.trim();
     if (!text || !activeProvider || !accountId) return;
 
@@ -407,58 +446,84 @@ export function LlmChatPage() {
       }
       setIsSending(false);
     }
-  };
+  }, [
+    input,
+    activeProvider,
+    accountId,
+    messages,
+    currentConv,
+    currentConvId,
+    includeSystemPrompt,
+    llmStore,
+    loadAllLists,
+    t,
+  ]);
 
-  const handleRename = async (convId: string, newName: string) => {
-    if (!accountId || !newName.trim()) return;
-    await invoke('llm_rename_conversation', {
-      accountId,
-      conversationId: convId,
-      name: newName.trim(),
-    });
-    setConversations((prev) =>
-      prev.map((c) => (c.id === convId ? { ...c, name: newName.trim() } : c)),
-    );
-    if (currentConv?.id === convId)
-      setCurrentConv((prev) => (prev ? { ...prev, name: newName.trim() } : prev));
-  };
-
-  const handleSoftDelete = async (convId: string) => {
-    if (!accountId) return;
-    await invoke('llm_soft_delete_conversation', { accountId, conversationId: convId });
-    setConversations((prev) => prev.filter((c) => c.id !== convId));
-    if (currentConvId === convId) handleNewConversation();
-    loadAllLists();
-  };
-
-  const handleRestore = async (convId: string) => {
-    if (!accountId) return;
-    await invoke('llm_restore_conversation', { accountId, conversationId: convId });
-    loadAllLists();
-  };
-
-  const handlePermanentDelete = async (convId: string) => {
-    if (!accountId) return;
-    await invoke('llm_permanent_delete', { accountId, conversationId: convId });
-    setTrashList((prev) => prev.filter((c) => c.id !== convId));
-    setConfirmPermanentDelete(null);
-    setFloatingConv((prev) => (prev?.id === convId ? null : prev));
-  };
-
-  const handleViewTrashConv = async (convId: string) => {
-    if (!accountId) return;
-    try {
-      const conv = await invoke<Conversation>('llm_get_conversation', {
+  const handleRename = useCallback(
+    async (convId: string, newName: string) => {
+      if (!accountId || !newName.trim()) return;
+      await invoke('llm_rename_conversation', {
         accountId,
         conversationId: convId,
+        name: newName.trim(),
       });
-      setFloatingConv(floatingConv?.id === convId ? null : conv);
-    } catch {
-      /* ignore */
-    }
-  };
+      setConversations((prev) =>
+        prev.map((c) => (c.id === convId ? { ...c, name: newName.trim() } : c)),
+      );
+      if (currentConv?.id === convId)
+        setCurrentConv((prev) => (prev ? { ...prev, name: newName.trim() } : prev));
+    },
+    [accountId, currentConv],
+  );
 
-  const handleCopy = async (content: string, index: number) => {
+  const handleSoftDelete = useCallback(
+    async (convId: string) => {
+      if (!accountId) return;
+      await invoke('llm_soft_delete_conversation', { accountId, conversationId: convId });
+      setConversations((prev) => prev.filter((c) => c.id !== convId));
+      if (currentConvId === convId) handleNewConversation();
+      loadAllLists();
+    },
+    [accountId, currentConvId, handleNewConversation, loadAllLists],
+  );
+
+  const handleRestore = useCallback(
+    async (convId: string) => {
+      if (!accountId) return;
+      await invoke('llm_restore_conversation', { accountId, conversationId: convId });
+      loadAllLists();
+    },
+    [accountId, loadAllLists],
+  );
+
+  const handlePermanentDelete = useCallback(
+    async (convId: string) => {
+      if (!accountId) return;
+      await invoke('llm_permanent_delete', { accountId, conversationId: convId });
+      setTrashList((prev) => prev.filter((c) => c.id !== convId));
+      setConfirmPermanentDelete(null);
+      setFloatingConv((prev) => (prev?.id === convId ? null : prev));
+    },
+    [accountId],
+  );
+
+  const handleViewTrashConv = useCallback(
+    async (convId: string) => {
+      if (!accountId) return;
+      try {
+        const conv = await invoke<Conversation>('llm_get_conversation', {
+          accountId,
+          conversationId: convId,
+        });
+        setFloatingConv((prev) => (prev?.id === convId ? null : conv));
+      } catch {
+        /* ignore */
+      }
+    },
+    [accountId],
+  );
+
+  const handleCopy = useCallback(async (content: string, index: number) => {
     try {
       await navigator.clipboard.writeText(content);
       setCopiedIndex(index);
@@ -467,232 +532,43 @@ export function LlmChatPage() {
     } catch {
       /* fallback */
     }
-  };
+  }, []);
 
   const isLocal = activeProvider ? isOllama(activeProvider.baseUrl) : false;
 
-  if (loading) {
-    return (
-      <AppShell title={t('settings:ai_chat')} onBack={() => navigate('/home')}>
-        <div
-          style={{
-            position: 'fixed',
-            top: 56,
-            left: 48,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              width: 220,
-              minWidth: 180,
-              maxWidth: 360,
-              borderRight: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-            }}
-          />
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minWidth: 0,
-            }}
-          >
-            <LoadingPlaceholder variant="base" />
-          </div>
-        </div>
-      </AppShell>
-    );
-  }
-
-  if (!isAiEnabled || !isConfigured) {
-    return (
-      <AppShell
-        title={t('settings:ai_chat')}
-        onBack={() => navigate('/home')}
-        actions={
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
-          >
-            <Settings size={14} style={{ marginRight: 4 }} /> {t('settings:ai_chat_configure')}
-          </Button>
-        }
-      >
-        <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '48px 24px' }}>
-          <MessageSquare
-            size={48}
-            style={{ marginBottom: 16, opacity: 0.3, color: 'var(--text-tertiary)' }}
-          />
-          <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px' }}>
-            {t('settings:ai_chat')}
-          </h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
-            {t('settings:ai_chat_disabled')}
-          </p>
-          <Button onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}>
-            {t('settings:ai_chat_configure')}
-          </Button>
-        </div>
-      </AppShell>
-    );
-  }
-
-  return (
-    <AppShell
-      title={t('settings:ai_chat')}
-      onBack={() => navigate('/home')}
-      actions={
-        <div style={{ display: 'flex', gap: 8 }}>
-          <span className="tooltip-btn" data-tooltip={t('settings:llm_stats_title')}>
-            <button
-              onClick={() => navigate('/settings/llm/stats', { state: { from: '/llm-chat' } })}
-              style={{
-                padding: 8,
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                cursor: 'pointer',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <BarChart3 size={16} />
-            </button>
-          </span>
-          <span className="tooltip-btn" data-tooltip={t('settings:llm_config')}>
-            <button
-              onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
-              style={{
-                padding: 8,
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                cursor: 'pointer',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <Settings size={16} />
-            </button>
-          </span>
-        </div>
-      }
-    >
-      <div
-        style={{
-          position: 'fixed',
-          top: 56,
-          left: 48,
-          right: 0,
-          bottom: 0,
-          display: 'flex',
-          overflow: 'hidden',
-        }}
-      >
-        <ConversationSidebar
-          conversations={conversations}
-          trashList={trashList}
-          currentConvId={currentConvId}
-          showTrash={showTrash}
-          onNewConversation={handleNewConversation}
-          onLoadConversation={loadConversation}
-          onSoftDelete={handleSoftDelete}
-          onRename={handleRename}
-          onToggleTrash={() => setShowTrash(!showTrash)}
-          onRestore={handleRestore}
-          confirmPermanentDeleteId={confirmPermanentDelete}
-          onRequestPermanentDelete={(id) => {
-            if (confirmPermanentDelete === id) {
-              handlePermanentDelete(id);
-            } else {
-              setConfirmPermanentDelete(id);
-            }
-          }}
-          onViewTrashConv={handleViewTrashConv}
-        />
-
-        <MessageArea
-          messages={messages}
-          input={input}
-          isSending={isSending}
-          isOnline={isOnline}
-          checkingOnline={checkingOnline}
-          activeProvider={activeProvider}
-          isLocal={isLocal}
-          copiedIndex={copiedIndex}
-          onInputChange={setInput}
-          onSend={sendMessage}
-          onCopy={handleCopy}
-          onCheckOnline={checkOnline}
-        />
-
-        <TrashConversationCard
-          floatingConv={floatingConv}
-          copiedIndex={copiedIndex}
-          onClose={() => setFloatingConv(null)}
-          onCopy={handleCopy}
-        />
-      </div>
-
-      <style>{`
-        .sidebar-action-btn { transition: opacity 0.1s; }
-        .sidebar-action-btn:hover { opacity: 1 !important; }
-        div[style*="cursor: pointer"]:hover .sidebar-action-btn { opacity: 0.5; }
-        .markdown-content pre {
-          background: var(--bg-toolbar); border: 1px solid var(--border-subtle); border-radius: 8px;
-          padding: 10px 14px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 8px 0;
-        }
-        .markdown-content code { font-family: 'Menlo', 'Monaco', 'Courier New', monospace; font-size: 13px; }
-        .markdown-content p > code, .markdown-content li > code { background: rgba(128,128,128,0.1); padding: 1px 4px; border-radius: 3px; }
-        .markdown-content p { margin: 0 0 6px; }
-        .markdown-content p:last-child { margin-bottom: 0; }
-        .markdown-content ul, .markdown-content ol { margin: 4px 0; padding-left: 20px; }
-        .markdown-content blockquote { border-left: 3px solid var(--accent-primary); margin: 6px 0; padding-left: 10px; color: var(--text-secondary); }
-        .markdown-content table { border-collapse: collapse; margin: 6px 0; font-size: 13px; }
-        .markdown-content th, .markdown-content td { border: 1px solid var(--border-subtle); padding: 4px 8px; text-align: left; }
-        .markdown-content th { background: var(--bg-toolbar); font-weight: 600; }
-        .typing-animation .dot:nth-child(1) { animation: blink 1.4s infinite 0s; }
-        .typing-animation .dot:nth-child(2) { animation: blink 1.4s infinite 0.2s; }
-        .typing-animation .dot:nth-child(3) { animation: blink 1.4s infinite 0.4s; }
-        .tooltip-btn { position: relative; display: inline-flex; }
-        .tooltip-btn::after {
-          content: attr(data-tooltip);
-          position: absolute;
-          top: calc(100% + 6px);
-          left: 50%;
-          transform: translateX(-50%);
-          padding: 4px 8px;
-          border-radius: 6px;
-          background: var(--bg-elevated);
-          color: var(--text-secondary);
-          border: 1px solid var(--border-subtle);
-          font-size: 11px;
-          white-space: nowrap;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.12s ease;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-          z-index: 10;
-        }
-        .tooltip-btn:hover::after { opacity: 1; }
-        .conv-item {
-          border: 1px solid transparent;
-          border-radius: 8px;
-          margin: 2px 8px;
-          transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-        }
-        .conv-item:hover {
-          transform: translateY(-2px);
-          border-color: var(--accent-primary);
-          box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-        }
-        @keyframes blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
-      `}</style>
-    </AppShell>
-  );
+  return {
+    activeProvider,
+    isConfigured,
+    isAiEnabled,
+    includeSystemPrompt,
+    loading,
+    conversations,
+    trashList,
+    showTrash,
+    currentConvId,
+    currentConv,
+    messages,
+    input,
+    isSending,
+    isOnline,
+    checkingOnline,
+    copiedIndex,
+    floatingConv,
+    confirmPermanentDelete,
+    isLocal,
+    setInput,
+    setShowTrash,
+    setConfirmPermanentDelete,
+    setFloatingConv,
+    sendMessage,
+    handleNewConversation,
+    loadConversation,
+    handleRename,
+    handleSoftDelete,
+    handleRestore,
+    handlePermanentDelete,
+    handleViewTrashConv,
+    handleCopy,
+    checkOnline,
+  };
 }

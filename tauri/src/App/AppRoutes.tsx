@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
-import { invoke } from '@tauri-apps/api/core';
-import type { AccountInfo } from '@/lib/ipc';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -12,36 +10,10 @@ import { applyTheme, listenForSystemTheme, stopListeningForSystemTheme } from '@
 import { useWindowSize } from '@/hooks/useWindowSize';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { confirm } from '@tauri-apps/plugin-dialog';
-import { BootstrapPage } from '@/pages/auth/BootstrapPage';
-import { LoginPage } from '@/pages/auth/LoginPage';
-import { HomePage } from '@/pages/home/HomePage';
-import { SettingsPage } from '@/pages/settings/SettingsPage';
-import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
-import { DataManagementPage } from '@/pages/settings/DataManagementPage';
-import { TrashPage } from '@/pages/settings/TrashPage';
-import { ObjectWorkspacePage } from '@/pages/workspace/ObjectWorkspacePage';
-import { ObjectEditorPage } from '@/pages/editor/ObjectEditorPage';
-import { ExportImportPage } from '@/pages/settings/ExportImportPage';
-import { SearchPage } from '@/pages/search/SearchPage';
-import { ToastContainer } from '@/components/ui/ToastContainer';
-import { OperationLogPage } from '@/pages/settings/OperationLogPage';
-import { AboutPage } from '@/pages/system/AboutPage';
-import { DebugLogPage } from '@/pages/system/DebugLogPage';
-import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage';
-import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
-import { PluginGatePage } from '@/pages/ai/PluginGatePage';
-import { LlmChatPage } from '@/pages/ai/LlmChatPage';
-import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
-import { TemplateManagerPage } from '@/pages/settings/TemplateManagerPage';
-import { OcrSettingsPage } from '@/pages/settings/OcrSettingsPage';
-import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
-import { HelpPage } from '@/pages/help/HelpPage';
 import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
 import { OcrInstallBanner } from '@/components/ui/OcrInstallBanner';
 import { relaunch } from '@tauri-apps/plugin-process';
 import type { Update } from '@tauri-apps/plugin-updater';
-import { OcrScanNotificationListener } from '@/components/layout/OcrScanNotificationListener';
-import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { checkForUpdate } from '@/lib/updater';
 import {
   useOcrInstallStore,
@@ -49,18 +21,11 @@ import {
   markOcrFirstInstallDone,
 } from '@/stores/ocrInstallStore';
 import { commands } from '@/lib/ipc';
-import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
-import { OcrPage } from '@/pages/scan/OcrPage';
-import { HistoryPage } from '@/pages/editor/HistoryPage';
-import { SyncPage } from '@/pages/sync/SyncPage';
+import { protectedRoutes, AuthGuard } from './routes';
+import { BootstrapPage }  from '@/pages/auth/BootstrapPage';
+import { LoginPage }  from '@/pages/auth/LoginPage';
 
-function AuthGuard({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-}
-
-function AppRoutes() {
+export function AppRoutes() {
   const navigate = useNavigate();
   const { t } = useTranslation('ocr');
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
@@ -410,292 +375,12 @@ function AppRoutes() {
             )
           }
         />
-        <Route
-          path="/"
-          element={
-            <AuthGuard>
-              <HomePage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/search"
-          element={
-            <AuthGuard>
-              <SearchPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <AuthGuard>
-              <SettingsPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/appearance"
-          element={
-            <AuthGuard>
-              <AppearanceSettingsPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/security"
-          element={
-            <AuthGuard>
-              <SecuritySettingsPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/export-import"
-          element={
-            <AuthGuard>
-              <ExportImportPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/data"
-          element={
-            <AuthGuard>
-              <DataManagementPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/trash"
-          element={
-            <AuthGuard>
-              <TrashPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/operation-log"
-          element={
-            <AuthGuard>
-              <OperationLogPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/backup"
-          element={
-            <AuthGuard>
-              <BackupConfigPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <AuthGuard>
-              <AboutPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/debug-log"
-          element={
-            <AuthGuard>
-              <DebugLogPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/plugins"
-          element={
-            <AuthGuard>
-              <PluginGatePage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/templates"
-          element={
-            <AuthGuard>
-              <TemplateManagerPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/ocr"
-          element={
-            <AuthGuard>
-              <OcrSettingsPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/llm"
-          element={
-            <AuthGuard>
-              <LlmConfigPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/settings/llm/stats"
-          element={
-            <AuthGuard>
-              <LlmStatsPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/llm-chat"
-          element={
-            <AuthGuard>
-              <LlmChatPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/local-import"
-          element={
-            <AuthGuard>
-              <ScanLocalPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/history"
-          element={
-            <AuthGuard>
-              <HistoryPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/ocr"
-          element={
-            <AuthGuard>
-              <OcrPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/sync"
-          element={
-            <AuthGuard>
-              <SyncPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/help"
-          element={
-            <AuthGuard>
-              <HelpPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/workspace"
-          element={
-            <AuthGuard>
-              <ObjectWorkspacePage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/editor"
-          element={
-            <AuthGuard>
-              <ObjectEditorPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/editor/:objectId"
-          element={
-            <AuthGuard>
-              <ObjectEditorPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/workspace/custom/:pageId"
-          element={
-            <AuthGuard>
-              <ObjectWorkspacePage />
-            </AuthGuard>
-          }
-        />
+        {protectedRoutes.map((r) => (
+          <Route key={r.path} path={r.path} element={<AuthGuard>{r.element}</AuthGuard>} />
+        ))}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );
 }
 
-function App() {
-  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
-    try {
-      return localStorage.getItem('solosoul_onboarding_seen') === 'true';
-    } catch {
-      return true;
-    }
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([
-      invoke<{ hasSeenOnboarding?: boolean }>('ui_get_preferences').catch(() => ({
-        hasSeenOnboarding: false,
-      })),
-      invoke<AccountInfo[]>('vault_list_accounts').catch(() => [] as AccountInfo[]),
-    ])
-      .then(([prefs, accounts]) => {
-        if (cancelled) return;
-        // If the user already has at least one account, they have clearly completed
-        // onboarding before — hide the tutorial regardless of the UI pref flag.
-        if (accounts.length > 0) {
-          setHasSeenOnboarding(true);
-          return;
-        }
-        const ipcSeen = prefs.hasSeenOnboarding === true;
-        if (ipcSeen) {
-          setHasSeenOnboarding(true);
-          return;
-        }
-        // IPC is authoritative: if it says not seen, ignore stale localStorage
-        setHasSeenOnboarding(false);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        // Fallback to localStorage already applied in initial state
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const finishOnboarding = () => {
-    try {
-      localStorage.setItem('solosoul_onboarding_seen', 'true');
-    } catch {
-      /* ignore */
-    }
-    invoke('ui_update_preference', { key: 'hasSeenOnboarding', value: 'true' }).catch(() => {
-      /* ignore persistence errors; localStorage fallback is already set */
-    });
-    setHasSeenOnboarding(true);
-  };
-
-  return (
-    <BrowserRouter>
-      <AppRoutes />
-      <ToastContainer />
-      <OcrScanNotificationListener />
-      {!hasSeenOnboarding && (
-        <OnboardingDialog onComplete={finishOnboarding} onSkip={finishOnboarding} />
-      )}
-    </BrowserRouter>
-  );
-}
-
-export default App;
