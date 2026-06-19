@@ -8,6 +8,7 @@ import { AiQuickChatPopover }  from './AiQuickChatPopover';
 import { OcrQuickScanPopover }  from './OcrQuickScanPopover';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { useBoundNavActions, useAiQuickChat, useOcrQuickScan } from './useNavigationItems';
+import styles from './SideNavigation.module.css';
 import type { NavPosition } from './NavButton';
 
 interface SecondaryActionBarProps {
@@ -33,7 +34,7 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal }: SecondaryA
 
   return (
     <div
-      className="nav-secondary"
+      className={styles.navSecondary}
       style={{ ...zoneStyle, flexShrink: 1, marginTop: isHorizontal ? 0 : 4 }}
     >
       {items.map((item, i) => {

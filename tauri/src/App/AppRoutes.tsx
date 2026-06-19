@@ -238,33 +238,11 @@ export function AppRoutes() {
     // Skip here to avoid overriding correct detection with DEFAULT_SETTINGS on first launch.
 
     // Listen for system theme changes
-    const config = {
-      preset: (settings.theme === 'dark'
-        ? 'warm-stone-dark'
-        : settings.theme === 'light'
-          ? 'warm-stone-light'
-          : 'system') as import('@/types').ThemePreset,
-      accentColor: settings.accentColor as
-        | 'ocean'
-        | 'amber'
-        | 'forest'
-        | 'rose'
-        | 'purple'
-        | 'custom',
-      backgroundType: settings.backgroundType as 'solid' | 'gradient' | 'image',
-      backgroundValue: settings.backgroundValue,
-      defaultLightTheme: settings.defaultLightTheme,
-      defaultDarkTheme: settings.defaultDarkTheme,
-    };
-    listenForSystemTheme(config, () => {
+    listenForSystemTheme((mode) => {
       const s = useSettingsStore.getState().settings;
+      if (s.theme !== 'system') return;
       applyTheme({
-        preset:
-          s.theme === 'dark'
-            ? 'warm-stone-dark'
-            : s.theme === 'light'
-              ? 'warm-stone-light'
-              : 'system',
+        preset: 'system',
         accentColor: s.accentColor,
         backgroundType: s.backgroundType,
         backgroundValue: s.backgroundValue,

@@ -116,27 +116,16 @@ export function applyTheme(config: ThemeConfig) {
   void syncTitleBarColor(config);
 }
 
-/** Listen for system theme changes (4.3.5) */
-export function listenForSystemTheme(
-  config: ThemeConfig,
-  onThemeChange: (mode: 'light' | 'dark') => void,
-) {
+/** Listen for system theme changes (4.3.5).
+ *  The callback receives the new mode; callers should check their own settings
+ *  (e.g. settings.theme === 'system') before applying changes. */
+export function listenForSystemTheme(onThemeChange: (mode: 'light' | 'dark') => void) {
   if (systemMediaQuery && systemListener) {
     systemMediaQuery.removeEventListener('change', systemListener);
   }
   systemMediaQuery = window.matchMedia(SYSTEM_DARK_MQ);
   systemListener = (e: MediaQueryListEvent) => {
-    if (config.preset === 'system') {
-      onThemeChange(e.matches ? 'dark' : 'light');
-      // Re-apply the default scheme for the new system mode
-      const activeScheme = resolveActiveScheme(
-        config.preset,
-        config.defaultLightTheme || 'warm-stone',
-        config.defaultDarkTheme || 'warm-stone-dark',
-      );
-      applyScheme(activeScheme);
-      void syncTitleBarColor(config);
-    }
+    onThemeChange(e.matches ? 'dark' : 'light');
   };
   systemMediaQuery.addEventListener('change', systemListener);
 }

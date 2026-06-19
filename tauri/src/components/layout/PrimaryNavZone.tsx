@@ -6,6 +6,7 @@ import { AddPageButton } from './AddPageButton';
 import { NavButton } from './NavButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { useActiveCustomPages, primaryItems } from './useNavigationItems';
+import styles from './SideNavigation.module.css';
 
 import type { NavPosition } from './NavButton';
 import type { CustomPage } from '@/stores/settingsStore';
@@ -87,7 +88,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
       />
 
       {isHorizontal ? (
-        <div className="nav-primary-horizontal-wrapper" style={{ overflow: 'hidden', flex: 1 }}>
+        <div className={styles.navPrimaryHorizontalWrapper} style={{ overflow: 'hidden', flex: 1 }}>
           <div
             ref={horizontalNavRef}
             onWheel={handleHorizontalWheel}
@@ -95,7 +96,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
-            className="nav-primary nav-primary-horizontal"
+            className={`${styles.navPrimary} ${styles.navPrimaryHorizontal}`}
             style={{
               display: 'flex',
               flexDirection: 'row',
@@ -129,7 +130,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
         </div>
       ) : (
         <div
-          className="nav-primary"
+          className={styles.navPrimary}
           style={{ ...zoneStyle, flex: 1, overflowX: 'hidden', overflowY: 'auto' }}
         >
           {primaryItems.slice(1).map((item) => (
