@@ -180,7 +180,7 @@ export function SearchPage() {
                 onClick={() => setDetailObjectId(item.objectId)}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <PAGE_ICON_MAP.custom size={18} />
+                  <span style={{ flexShrink: 0, display: 'flex' }}><PAGE_ICON_MAP.custom size={18} /></span>
                   <div style={{ overflow: 'hidden' }}>
                     <div style={{ fontSize: 14, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
                     <div
