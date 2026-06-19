@@ -223,13 +223,19 @@ export function ObjectWorkspacePage() {
     if (ids.length === 0) return cancel;
     invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
       .then((counts) => {
-        if (!isCancelled()) setSnapshotCounts(counts);
+        if (!isCancelled()) {
+          // Ensure every visible object has a snapshot count (default 0)
+          const full: Record<string, number> = {};
+          for (const id of ids) full[id] = counts[id] ?? 0;
+          setSnapshotCounts(full);
+        }
       })
       .catch((e) => {
         // eslint-disable-next-line no-console
         console.error('snapshot_count_batch failed:', e);
       });
-    return cancel;  }, [visibleObjects, makeCancellable]);
+    return cancel;
+  }, [visibleObjects, makeCancellable]);
 
   // Load attachment counts for visible objects
   const refreshAttachmentCounts = useCallback(() => {

@@ -8,12 +8,15 @@ import { NavButton } from './NavButton';
 import { RenameableNavButton, AddPageButton } from './SideNavigation';
 import { AiQuickChatPopover } from './AiQuickChatPopover';
 import { SearchPopover } from './SearchPopover';
+import { OcrQuickScanPopover } from './OcrQuickScanPopover';
 import {
   useActiveCustomPages,
   useBoundNavActions,
   useAiQuickChat,
+  useOcrQuickScan,
   primaryItems,
 } from './useNavigationItems';
+import { useOcrScanStore } from '@/stores/ocrScanStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import type { CustomPage } from '@/stores/settingsStore';
 
@@ -30,6 +33,8 @@ export function TopFunctionBar() {
     520,
     'bottom',
   );
+  const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, 'bottom');
+  const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);
 
   const isWorkspaceSectionActive = (sectionPath: string): boolean => {
     if (location.pathname.startsWith('/workspace/custom/')) return false;
@@ -114,20 +119,44 @@ export function TopFunctionBar() {
         {items.map((item, i) => {
           if (item.type === 'action') {
             const isSearch = item.iconKey === 'search';
+            const isOcr = item.iconKey === 'ocr';
             return (
               <div key={`action-${i}`} style={{ position: 'relative' }}>
-                <NavButton
-                  Icon={PAGE_ICON_MAP[item.iconKey]}
-                  label={t(item.labelKey)}
-                  onClick={item.action}
-                  position={POSITION}
-                />
-                {isSearch &&
-                  showSearch &&
-                  createPortal(
-                    <SearchPopover onClose={() => setShowSearch(false)} />,
-                    document.body,
-                  )}
+                {isOcr ? (
+                  <div ref={ocrButtonRef} data-ocr-button="true">
+                    <NavButton
+                      Icon={PAGE_ICON_MAP[item.iconKey]}
+                      label={t(item.labelKey)}
+                      isActive={isOcrCardOpen}
+                      onClick={item.action}
+                      position={POSITION}
+                    />
+                    {isOcrCardOpen &&
+                      createPortal(
+                        <OcrQuickScanPopover
+                          position={quickScanPos}
+                          onClose={() => useOcrScanStore.getState().setCardOpen(false)}
+                          placement="bottom"
+                        />,
+                        document.body,
+                      )}
+                  </div>
+                ) : (
+                  <>
+                    <NavButton
+                      Icon={PAGE_ICON_MAP[item.iconKey]}
+                      label={t(item.labelKey)}
+                      onClick={item.action}
+                      position={POSITION}
+                    />
+                    {isSearch &&
+                      showSearch &&
+                      createPortal(
+                        <SearchPopover onClose={() => setShowSearch(false)} />,
+                        document.body,
+                      )}
+                  </>
+                )}
               </div>
             );
           }

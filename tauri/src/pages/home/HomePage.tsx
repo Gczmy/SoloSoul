@@ -44,6 +44,12 @@ type QuickCard = {
 
 const quickCards: QuickCard[] = [
   {
+    path: '/settings',
+    labelKey: 'settings',
+    icon: PAGE_ICON_MAP.settings,
+    descKey: 'settings_desc',
+  },
+  {
     path: '/settings/trash',
     labelKey: 'trash',
     icon: PAGE_ICON_MAP.trash,
