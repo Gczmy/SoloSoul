@@ -75,5 +75,6 @@
   "validation_failed": "字段类型填写错误，请检查后重试",
   "no_template_for_section": "此页面暂无模板，",
   "go_create_template": "前往模板管理新建",
-  "manage_templates": "管理模板"
+  "manage_templates": "管理模板",
+  "no_properties": "无属性数据"
 }
