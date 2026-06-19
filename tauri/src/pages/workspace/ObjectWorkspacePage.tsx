@@ -486,7 +486,7 @@ export function ObjectWorkspacePage() {
                   lineHeight: 1.5,
                 }}
               >
-                {t('object_delete_confirm_body', { name: customPage.name })}
+                {t('object_delete_confirm_body', { name: customPage.name.length > 28 ? customPage.name.slice(0, 27) + '…' : customPage.name })}
               </p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <Button variant="secondary" onClick={() => setConfirmPageDelete(false)}>
@@ -585,7 +585,7 @@ export function ObjectWorkspacePage() {
                   lineHeight: 1.5,
                 }}
               >
-                {t('object_delete_confirm_body', { name: confirmDelete.name })}
+                {t('object_delete_confirm_body', { name: confirmDelete.name.length > 28 ? confirmDelete.name.slice(0, 27) + '…' : confirmDelete.name })}
               </p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <Button variant="secondary" onClick={() => setConfirmDelete(null)}>
