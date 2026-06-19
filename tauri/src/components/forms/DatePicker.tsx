@@ -19,8 +19,7 @@ import {
   setMinutes,
 } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
-import { Calendar, X, ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, X } from 'lucide-react';
 import styles from './DatePicker.module.css';
 
 interface DatePickerProps {
@@ -50,11 +49,7 @@ export function DatePicker({
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(() => parseValue(value) || new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => parseValue(value));
-  const [yearOpen, setYearOpen] = useState(false);
-  const [monthOpen, setMonthOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const yearListRef = useRef<HTMLDivElement>(null);
-  const monthListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const d = parseValue(value);
@@ -62,27 +57,6 @@ export function DatePicker({
     if (d) setViewDate(d);
   }, [value]);
 
-  // Auto-scroll year list to current year when opened
-  useEffect(() => {
-    if (yearOpen && yearListRef.current) {
-      const currentYear = getYear(viewDate);
-      const item = yearListRef.current.querySelector(`[data-year="${currentYear}"]`);
-      if (item) {
-        item.scrollIntoView({ block: 'center' });
-      }
-    }
-  }, [yearOpen, viewDate]);
-
-  // Auto-scroll month list to current month when opened
-  useEffect(() => {
-    if (monthOpen && monthListRef.current) {
-      const currentMonth = getMonth(viewDate);
-      const item = monthListRef.current.querySelector(`[data-month="${currentMonth}"]`);
-      if (item) {
-        item.scrollIntoView({ block: 'center' });
-      }
-    }
-  }, [monthOpen, viewDate]);
 
   const handleSelect = useCallback(
     (day: Date) => {
@@ -111,12 +85,10 @@ export function DatePicker({
 
   const handleYearChange = useCallback((year: number) => {
     setViewDate((prev) => setYear(prev, year));
-    setYearOpen(false);
   }, []);
 
   const handleMonthChange = useCallback((month: number) => {
     setViewDate((prev) => setMonth(prev, month));
-    setMonthOpen(false);
   }, []);
 
   const goToPrevMonth = useCallback(() => {
@@ -141,7 +113,8 @@ export function DatePicker({
   const currentYear = getYear(viewDate);
   const yearOptions = useMemo(() => {
     const years: number[] = [];
-    for (let y = currentYear - 100; y <= currentYear + 10; y++) {
+    // Reasonable range for native select: covers 1900s to future
+    for (let y = currentYear - 80; y <= currentYear + 10; y++) {
       years.push(y);
     }
     return years;
@@ -152,8 +125,6 @@ export function DatePicker({
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
-        setYearOpen(false);
-        setMonthOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -208,96 +179,31 @@ export function DatePicker({
               aria-label="上个月"
             >
               ‹
-            </button>                <div className={styles.selects} onMouseDown={(e) => {
-                // Close popups when clicking outside their area
-                const yearArea = e.currentTarget.querySelector('[data-year-area]');
-                if (yearArea && !yearArea.contains(e.target as Node)) {
-                  setYearOpen(false);
-                }
-                const monthArea = e.currentTarget.querySelector('[data-month-area]');
-                if (monthArea && !monthArea.contains(e.target as Node)) {
-                  setMonthOpen(false);
-                }
-              }}>
-              {/* Custom scrollable year dropdown */}
-              <div data-year-area style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  onClick={() => setYearOpen((v) => !v)}
-                  className={styles.dropdownTrigger}
-                  aria-label="选择年份"
-                >
-                  {getYear(viewDate)}
-                  <ChevronDown size={12} />
-                </button>
-                <AnimatePresence>
-                  {yearOpen && (
-                    <motion.div
-                      className={styles.dropdownPopover}
-                      ref={yearListRef}
-                      initial={{ opacity: 0, y: -6, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                      transition={{ duration: 0.15, ease: 'easeOut' }}
-                      style={{ transformOrigin: 'top' }}
-                    >
-                      {yearOptions.map((y) => (
-                        <button
-                          key={y}
-                          type="button"
-                          data-year={y}
-                          className={`${styles.dropdownItem} ${y === getYear(viewDate) ? styles.dropdownItemActive : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleYearChange(y);
-                          }}
-                        >
-                          {y}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-              <div data-month-area style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  onClick={() => setMonthOpen((v) => !v)}
-                  className={styles.dropdownTrigger}
-                  aria-label="选择月份"
-                >
-                  {format(viewDate, 'MMM', { locale })}
-                  <ChevronDown size={12} />
-                </button>
-                <AnimatePresence>
-                  {monthOpen && (
-                    <motion.div
-                      className={styles.dropdownPopover}
-                      ref={monthListRef}
-                      initial={{ opacity: 0, y: -6, scale: 0.96 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                      transition={{ duration: 0.15, ease: 'easeOut' }}
-                      style={{ transformOrigin: 'top' }}
-                    >
-                      {Array.from({ length: 12 }, (_, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          data-month={i}
-                          className={`${styles.dropdownItem} ${i === getMonth(viewDate) ? styles.dropdownItemActive : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleMonthChange(i);
-                          }}
-                        >
-                          {format(setMonth(new Date(2020, 0, 1), i), 'MMM', { locale })}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+            </button>                <div className={styles.selects}>
+              <select
+                className={styles.select}
+                value={getYear(viewDate)}
+                onChange={(e) => handleYearChange(Number(e.target.value))}
+                aria-label="选择年份"
+              >
+                {yearOptions.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+              <select
+                className={styles.select}
+                value={getMonth(viewDate)}
+                onChange={(e) => handleMonthChange(Number(e.target.value))}
+                aria-label="选择月份"
+              >
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i} value={i}>
+                    {format(setMonth(new Date(2020, 0, 1), i), 'MMM', { locale })}
+                  </option>
+                ))}
+              </select>
             </div>
             <button
               type="button"
