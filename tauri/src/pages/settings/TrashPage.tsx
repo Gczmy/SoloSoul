@@ -11,7 +11,7 @@ import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashS
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
-import { Trash2, RotateCcw, FileText, Info, Loader2 } from 'lucide-react';
+import { Trash2, RotateCcw, FileText, Info, Loader2, Folder, LayoutTemplate } from 'lucide-react';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import type { UserTemplate } from '@/types/template';
 import { TrashDetailPanel } from '@/components/trash/TrashDetailPanel';
@@ -320,10 +320,10 @@ export function TrashPage() {
                         minWidth: 0,
                       }}
                     >
-                      <FileText
-                        size={18}
-                        style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
-                      />
+                      {(() => {
+                        const Icon = item.itemType === 'template' ? LayoutTemplate : item.itemType === 'page' ? Folder : FileText;
+                        return <Icon size={18} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />;
+                      })()}
                       <div style={{ minWidth: 0 }}>
                         <div
                           style={{
