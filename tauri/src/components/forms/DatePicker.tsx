@@ -20,6 +20,7 @@ import {
 } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
 import { Calendar, X, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from './DatePicker.module.css';
 
 interface DatePickerProps {
@@ -229,24 +230,34 @@ export function DatePicker({
                   {getYear(viewDate)}
                   <ChevronDown size={12} />
                 </button>
-                {yearOpen && (
-                  <div className={styles.dropdownPopover} ref={yearListRef}>
-                    {yearOptions.map((y) => (
-                      <button
-                        key={y}
-                        type="button"
-                        data-year={y}
-                        className={`${styles.dropdownItem} ${y === getYear(viewDate) ? styles.dropdownItemActive : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleYearChange(y);
-                        }}
-                      >
-                        {y}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <AnimatePresence>
+                  {yearOpen && (
+                    <motion.div
+                      className={styles.dropdownPopover}
+                      ref={yearListRef}
+                      initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      style={{ transformOrigin: 'top' }}
+                    >
+                      {yearOptions.map((y) => (
+                        <button
+                          key={y}
+                          type="button"
+                          data-year={y}
+                          className={`${styles.dropdownItem} ${y === getYear(viewDate) ? styles.dropdownItemActive : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleYearChange(y);
+                          }}
+                        >
+                          {y}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               <div data-month-area style={{ position: 'relative' }}>
                 <button
@@ -258,24 +269,34 @@ export function DatePicker({
                   {format(viewDate, 'MMM', { locale })}
                   <ChevronDown size={12} />
                 </button>
-                {monthOpen && (
-                  <div className={styles.dropdownPopover} ref={monthListRef}>
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        data-month={i}
-                        className={`${styles.dropdownItem} ${i === getMonth(viewDate) ? styles.dropdownItemActive : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMonthChange(i);
-                        }}
-                      >
-                        {format(setMonth(new Date(2020, 0, 1), i), 'MMM', { locale })}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <AnimatePresence>
+                  {monthOpen && (
+                    <motion.div
+                      className={styles.dropdownPopover}
+                      ref={monthListRef}
+                      initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      style={{ transformOrigin: 'top' }}
+                    >
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          data-month={i}
+                          className={`${styles.dropdownItem} ${i === getMonth(viewDate) ? styles.dropdownItemActive : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMonthChange(i);
+                          }}
+                        >
+                          {format(setMonth(new Date(2020, 0, 1), i), 'MMM', { locale })}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
             <button
