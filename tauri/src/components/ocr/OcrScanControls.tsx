@@ -111,10 +111,8 @@ export function OcrScanControls({
             }
           }}
           onMouseLeave={(e) => {
-            if (scanMode !== 'general') {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }
+            e.currentTarget.style.background = '';
+            e.currentTarget.style.color = '';
           }}
           style={{
             padding: '6px 14px',
@@ -141,10 +139,8 @@ export function OcrScanControls({
             }
           }}
           onMouseLeave={(e) => {
-            if (scanMode !== 'mrz') {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }
+            e.currentTarget.style.background = '';
+            e.currentTarget.style.color = '';
           }}
           style={{
             padding: '6px 14px',
