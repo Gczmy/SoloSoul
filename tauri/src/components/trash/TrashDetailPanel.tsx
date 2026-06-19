@@ -100,7 +100,7 @@ export function TrashDetailPanel({
           }}
         >
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>{detailItem.name}</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{detailItem.name}</h3>
             <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
               {t(`settings:trash_type_${detailItem.itemType}`)}
             </span>
@@ -576,7 +576,7 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {snapName && (
-        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'right' }}>
+        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'right', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
           {snapName}
         </div>
       )}

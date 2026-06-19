@@ -12,6 +12,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
 import { Trash2, RotateCcw, FileText, Info, Loader2 } from 'lucide-react';
+import { PluginBadge } from '@/components/template/PluginBadge';
 import type { UserTemplate } from '@/types/template';
 import { TrashDetailPanel } from '@/components/trash/TrashDetailPanel';
 import { TrashConfirmDialog } from '@/components/trash/TrashConfirmDialog';
@@ -335,10 +336,19 @@ export function TrashPage() {
                         >
                           {item.name}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            fontSize: 11,
+                            color: 'var(--text-tertiary)',
+                          }}
+                        >
                           {t(`settings:trash_type_${item.itemType}`)} · {timeAgo(item.deletedAt, t)}
                           {item.expiresAt &&
                             ` · ${t('settings:trash_expires_in', { days: Math.max(0, Math.floor((item.expiresAt - Date.now()) / 86400000)) })}`}
+                          <PluginBadge contractTypeId={item.contractTypeId} size="sm" />
                         </div>
                       </div>
                     </div>

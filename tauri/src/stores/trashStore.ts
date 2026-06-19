@@ -14,6 +14,7 @@ export interface TrashItemSummary {
   expiresAt?: number;
   originalParentName?: string;
   originalSectionType?: string;
+  contractTypeId?: string;
 }
 
 export type TrashTimeFilter = 'all' | '1d' | '3d' | '7d' | '30d' | 'half_year';

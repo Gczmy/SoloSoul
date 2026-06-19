@@ -362,6 +362,7 @@ fn test_object_soft_delete_with_trash_item() {
         "properties": record.properties, "property_labels": record.property_labels,
         "sensitivity_level": record.sensitivity_level, "tags": record.tags_json,
         "created_at": record.created_at, "updated_at": record.updated_at, "version": record.version,
+        "contract_type_id": None::<String>,
     });
     let trash_id = format!("trash_{}", uuid::Uuid::new_v4());
     let trash = TrashItem {
@@ -813,6 +814,7 @@ fn test_page_restore_from_trash_reconstruction() {
             "children_ids": rec.children_ids, "property_labels": rec.property_labels,
             "sensitivity_level": rec.sensitivity_level, "tags": rec.tags_json,
             "created_at": rec.created_at, "updated_at": rec.updated_at, "version": rec.version,
+            "contract_type_id": None::<String>,
         });
         let trash = TrashItem {
             id: format!("trash_fin_{}", i),

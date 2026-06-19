@@ -138,6 +138,7 @@ pub struct TrashItemSummary {
     pub expires_at: Option<i64>,
     pub original_parent_name: Option<String>,
     pub original_section_type: Option<String>,
+    pub contract_type_id: Option<String>,
 }
 /// Structured audit log entry
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

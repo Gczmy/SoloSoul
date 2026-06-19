@@ -332,6 +332,7 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
             "sensitivity_level": rec.sensitivity_level, "tags": rec.tags_json,
             "created_at": rec.created_at, "updated_at": rec.updated_at, "version": rec.version,
             "template_id": rec.template_id, "template_type": rec.template_type,
+            "contract_type_id": rec.contract_type_id,
         });
         let trash = solosoul_vault::TrashItem {
             id: format!("trash_{}", uuid::Uuid::new_v4()),

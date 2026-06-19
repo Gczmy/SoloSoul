@@ -2198,10 +2198,11 @@ impl VaultStore {
         item_type: Option<&str>,
         since: Option<i64>,
     ) -> Result<Vec<TrashItemSummary>, String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut sql = String::from(
-            "SELECT id, item_type, name_snapshot, icon_snapshot, deleted_at, expires_at, original_parent_id, original_section_type
+            "SELECT id, item_type, name_snapshot, icon_snapshot, deleted_at, expires_at, original_parent_id, original_section_type, data
              FROM trash_items WHERE 1=1"
         );
         let mut params: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
@@ -2218,6 +2219,11 @@ impl VaultStore {
         let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
         let items = stmt
             .query_map(p.as_slice(), |row| {
+                let raw_data: Vec<u8> = row.get(8)?;
+                let decrypted = decrypt_field(&key, &raw_data).ok();
+                let contract_type_id = decrypted
+                    .and_then(|d| serde_json::from_slice::<serde_json::Value>(&d).ok())
+                    .and_then(|v| v.get("contract_type_id").and_then(|c| c.as_str().map(String::from)));
                 Ok(TrashItemSummary {
                     id: row.get(0)?,
                     item_type: row.get(1)?,
@@ -2227,6 +2233,7 @@ impl VaultStore {
                     expires_at: row.get(5)?,
                     original_parent_name: row.get(6)?,
                     original_section_type: row.get(7)?,
+                    contract_type_id,
                 })
             })
             .map_err(|e| e.to_string())?
