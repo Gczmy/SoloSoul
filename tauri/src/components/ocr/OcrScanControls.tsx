@@ -111,8 +111,8 @@ export function OcrScanControls({
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = scanMode === 'general' ? 'var(--bg-elevated)' : 'transparent';
-            e.currentTarget.style.color = 'var(--text-primary)';
+            e.currentTarget.style.background = scanMode === 'general' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent';
+            e.currentTarget.style.color = scanMode === 'general' ? 'var(--accent-primary)' : 'var(--text-primary)';
             e.currentTarget.style.fontWeight = scanMode === 'general' ? '600' : '400';
           }}
           style={{
@@ -121,8 +121,8 @@ export function OcrScanControls({
             border: 'none',
             fontSize: 13,
             cursor: 'pointer',
-            background: scanMode === 'general' ? 'var(--bg-elevated)' : 'transparent',
-            color: 'var(--text-primary)',
+            background: scanMode === 'general' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent',
+            color: scanMode === 'general' ? 'var(--accent-primary)' : 'var(--text-primary)',
             fontWeight: scanMode === 'general' ? 600 : 400,
             opacity: isScanning ? 0.6 : 1,
             transition: 'background 0.15s, color 0.15s',
@@ -140,8 +140,8 @@ export function OcrScanControls({
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = scanMode === 'mrz' ? 'var(--bg-elevated)' : 'transparent';
-            e.currentTarget.style.color = 'var(--text-primary)';
+            e.currentTarget.style.background = scanMode === 'mrz' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent';
+            e.currentTarget.style.color = scanMode === 'mrz' ? 'var(--accent-primary)' : 'var(--text-primary)';
             e.currentTarget.style.fontWeight = scanMode === 'mrz' ? '600' : '400';
           }}
           style={{
@@ -150,8 +150,8 @@ export function OcrScanControls({
             border: 'none',
             fontSize: 13,
             cursor: 'pointer',
-            background: scanMode === 'mrz' ? 'var(--bg-elevated)' : 'transparent',
-            color: 'var(--text-primary)',
+            background: scanMode === 'mrz' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent',
+            color: scanMode === 'mrz' ? 'var(--accent-primary)' : 'var(--text-primary)',
             fontWeight: scanMode === 'mrz' ? 600 : 400,
             opacity: isScanning ? 0.6 : 1,
             transition: 'background 0.15s, color 0.15s',
