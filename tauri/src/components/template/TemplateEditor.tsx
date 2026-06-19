@@ -1,10 +1,16 @@
 
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SensitivityBadge as UiSensitivityBadge } from '@/components/ui/SensitivityBadge';
+import {
+  CUSTOM_ICON_MAP,
+  resolveCustomIcon,
+  type CustomIconId,
+} from '@/lib/pageIcons';
 import type {
   UserTemplate,
   TemplateProperty,
@@ -13,6 +19,7 @@ import type {
 } from '@/types/template';
 import { TemplateTypeSelect } from './TemplateTypeSelect';
 import { TemplatePageSelect } from './TemplatePageSelect';
+import { IconPicker } from './IconPicker';
 import { OptionsEditor }  from './OptionsEditor';
 
 interface FieldUsage {
@@ -25,12 +32,14 @@ interface TemplateEditorProps {
 
   editName: string;
   editCategory: string;
+  editIconId: string;
   editProperties: TemplateProperty[];
   newFieldType: PropertyType;
   showDeprecated: boolean;
   fieldUsageMap: Record<string, FieldUsage>;
   onEditNameChange: (v: string) => void;
   onEditCategoryChange: (v: string) => void;
+  onEditIconIdChange: (v: string) => void;
   onNewFieldTypeChange: (v: PropertyType) => void;
   onAddProperty: () => void;
   onUpdatePropertyName: (index: number, name: string) => void;
@@ -51,12 +60,14 @@ export function TemplateEditor({
 
   editName,
   editCategory,
+  editIconId,
   editProperties,
   newFieldType,
   showDeprecated,
   fieldUsageMap,
   onEditNameChange,
   onEditCategoryChange,
+  onEditIconIdChange,
   onNewFieldTypeChange,
   onAddProperty,
   onUpdatePropertyName,
@@ -84,6 +95,35 @@ export function TemplateEditor({
         onChange={onEditCategoryChange}
         label={t('settings:template_category') || '所属页面'}
       />
+
+      {/* Icon picker */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+          {t('settings:template_icon') || '模板图标'}
+        </span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '6px 10px',
+            borderRadius: 8,
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-toolbar)',
+          }}
+        >
+          {React.createElement(
+            editIconId && editIconId in CUSTOM_ICON_MAP
+              ? CUSTOM_ICON_MAP[editIconId as CustomIconId]
+              : resolveCustomIcon(editIconId),
+            { size: 20, style: { color: 'var(--accent-primary)', flexShrink: 0 } },
+          )}
+          <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>
+            {t('settings:click_to_change_icon') || '点击选择图标'}
+          </span>
+        </div>
+        <IconPicker value={editIconId} onChange={onEditIconIdChange} />
+      </div>
 
       <div>
         <div

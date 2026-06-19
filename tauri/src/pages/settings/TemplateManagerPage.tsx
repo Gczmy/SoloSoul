@@ -71,6 +71,7 @@ export function TemplateManagerPage() {
   const [isNewTemplate, setIsNewTemplate] = useState(false);
   const [editName, setEditName] = useState('');
   const [editCategory, setEditCategory] = useState<string>('identity');
+  const [editIconId, setEditIconId] = useState<string>('document');
   const [editProperties, setEditProperties] = useState<TemplateProperty[]>([]);
 
   const [newFieldType, setNewFieldType] = useState<PropertyType>('text');
@@ -186,6 +187,7 @@ export function TemplateManagerPage() {
     setEditingTemplate(tpl);
     setEditName(tpl.name);
     setEditCategory(tpl.category || 'identity');
+    setEditIconId(tpl.iconId || 'document');
     setEditProperties([...tpl.properties]);
   };
 
@@ -201,6 +203,7 @@ export function TemplateManagerPage() {
     } as UserTemplate);
     setEditName('');
     setEditCategory('identity');
+    setEditIconId('document');
     setEditProperties([]);
   };
 
@@ -209,6 +212,7 @@ export function TemplateManagerPage() {
     setEditingTemplate(null);
     setEditName('');
     setEditCategory('identity');
+    setEditIconId('document');
     setEditProperties([]);
   };
 
@@ -220,12 +224,13 @@ export function TemplateManagerPage() {
     }
     try {
       if (isNewTemplate) {
-        await createTemplate(name, undefined, editCategory, editProperties);
+        await createTemplate(name, editIconId, editCategory, editProperties);
         await loadTemplates();
         closeEdit();
       } else if (editingTemplate) {
         await updateTemplate(editingTemplate.id, {
           name: name || editingTemplate.name,
+          iconId: editIconId,
           category: editCategory,
           properties: editProperties,
         });
@@ -494,12 +499,14 @@ export function TemplateManagerPage() {
 
           editName={editName}
           editCategory={editCategory}
+          editIconId={editIconId}
           editProperties={editProperties}
           newFieldType={newFieldType}
           showDeprecated={showDeprecated}
           fieldUsageMap={fieldUsageMap}
           onEditNameChange={setEditName}
           onEditCategoryChange={setEditCategory}
+          onEditIconIdChange={setEditIconId}
           onNewFieldTypeChange={setNewFieldType}
           onAddProperty={addProperty}
           onUpdatePropertyName={updatePropertyName}

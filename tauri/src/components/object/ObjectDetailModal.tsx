@@ -13,7 +13,7 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
-import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -285,6 +285,8 @@ export function ObjectDetailModal({
   };
 
 
+  const detailTpl = obj?.templateId ? templates.find((t) => t.id === obj.templateId) : undefined;
+  const ObjectDetailIcon = detailTpl?.iconId ? resolveCustomIcon(detailTpl.iconId) : PAGE_ICON_MAP.custom;
   const fieldOrder = templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id);
   const fields = flattenProperties(obj?.properties, fieldOrder);
 
@@ -345,7 +347,9 @@ export function ObjectDetailModal({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ flexShrink: 0, display: 'flex' }}><PAGE_ICON_MAP.custom size={24} /></span>
+                  <span style={{ flexShrink: 0, display: 'flex' }}>
+                    <ObjectDetailIcon size={24} />
+                  </span>
                   <div>
                     <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{obj.name}</h2>
                     <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>

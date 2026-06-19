@@ -1,5 +1,5 @@
 import { Card } from '@/components/ui/Card';
-import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { Clock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
@@ -70,6 +70,8 @@ export function WorkspaceObjectCard({
     fieldOrder,
   );
 
+  const TemplateIcon = tpl?.iconId ? resolveCustomIcon(tpl.iconId) : PAGE_ICON_MAP.custom;
+
   const getFieldProperty = (fieldKey: string) =>
     tpl?.properties.find((p) => p.id === fieldKey);
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel =>
@@ -105,7 +107,9 @@ export function WorkspaceObjectCard({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', minWidth: 0 }}>
-          <span style={{ flexShrink: 0, display: 'flex' }}><PAGE_ICON_MAP.custom size={22} /></span>
+          <span style={{ flexShrink: 0, display: 'flex' }}>
+            <TemplateIcon size={22} />
+          </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
             <PluginBadge contractTypeId={obj.contractTypeId} size="sm" />
