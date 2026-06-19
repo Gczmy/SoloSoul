@@ -146,6 +146,16 @@ export function PasswordVerificationDialog({
                 transition: 'all 0.15s',
               }}
               title={t('settings:biometric_test_button', { type: biometricType })}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--text-secondary)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              }}
             >
               <Fingerprint size={16} />
               {bioLoading ? '…' : biometricType}
