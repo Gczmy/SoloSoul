@@ -19,6 +19,22 @@ export interface AttachmentItem {
   vaultPath?: string | null;
 }
 
+/** Truncate a file name preserving its extension: "abcdefg…-.pdf" instead of "abcdefg…" */
+function truncateFileName(fileName: string, maxLen: number = 28): string {
+  const dotIndex = fileName.lastIndexOf('.');
+  if (dotIndex <= 0) {
+    // No extension or hidden file like ".gitignore"
+    if (fileName.length <= maxLen) return fileName;
+    return fileName.slice(0, maxLen - 1) + '…';
+  }
+  const baseName = fileName.slice(0, dotIndex);
+  const ext = fileName.slice(dotIndex); // includes the dot, e.g. ".pdf"
+  if (fileName.length <= maxLen) return fileName;
+  const available = maxLen - ext.length - 2; // 2 for "…-"
+  if (available <= 1) return fileName.slice(0, maxLen - 1) + '…';
+  return baseName.slice(0, available) + '…-' + ext;
+}
+
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -393,7 +409,7 @@ export function AttachmentViewer({
                       opacity: showTrash ? 0.5 : 1,
                     }}
                   >
-                    {item.fileName}
+                    {truncateFileName(item.fileName)}
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
                     {formatSize(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
