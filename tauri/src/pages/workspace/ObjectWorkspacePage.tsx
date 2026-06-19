@@ -140,7 +140,6 @@ export function ObjectWorkspacePage() {
     e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
   }, []);
   const onTabLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (e.currentTarget.dataset.active === 'true') return;
     e.currentTarget.style.borderColor = 'var(--border-subtle)';
     e.currentTarget.style.boxShadow = 'none';
   }, []);
