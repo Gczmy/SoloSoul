@@ -53,6 +53,7 @@ const pgBtn: React.CSSProperties = {
   cursor: 'pointer',
   color: 'var(--text-secondary)',
   fontSize: 14,
+  transition: 'background 0.15s, color 0.15s',
 };
 
 const miniBtn: React.CSSProperties = {
@@ -67,6 +68,22 @@ const miniBtn: React.CSSProperties = {
   cursor: 'pointer',
   fontSize: 12,
   color: 'var(--text-secondary)',
+  transition: 'background 0.15s, color 0.15s',
+};
+
+const btnHoverEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+  e.currentTarget.style.color = 'var(--accent-primary)';
+};
+const btnHoverLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.currentTarget.style.background = 'transparent';
+  e.currentTarget.style.color = 'var(--text-secondary)';
+};
+const btnDelEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
+};
+const btnDelLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.currentTarget.style.background = 'transparent';
 };
 
 export interface AttachmentViewerProps {
@@ -322,6 +339,14 @@ export function AttachmentViewer({
             <div style={{ display: 'flex', gap: 4 }}>
               <button
                 onClick={() => setShowTrash(false)}
+                onMouseEnter={!showTrash ? undefined : (e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
+                }}
+                onMouseLeave={!showTrash ? undefined : (e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.background = 'transparent';
+                }}
                 style={{
                   padding: '3px 8px',
                   borderRadius: 6,
@@ -330,12 +355,21 @@ export function AttachmentViewer({
                   background: !showTrash ? 'var(--accent-primary)' : 'transparent',
                   color: !showTrash ? 'white' : 'var(--text-secondary)',
                   cursor: 'pointer',
+                  transition: 'background 0.15s, border-color 0.15s, color 0.15s',
                 }}
               >
                 {t('common:attachments_active', { n: items.length })}
               </button>
               <button
                 onClick={() => setShowTrash(true)}
+                onMouseEnter={showTrash ? undefined : (e) => {
+                  e.currentTarget.style.borderColor = '#e74c3c';
+                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 8%, transparent)';
+                }}
+                onMouseLeave={showTrash ? undefined : (e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.background = 'transparent';
+                }}
                 style={{
                   padding: '3px 8px',
                   borderRadius: 6,
@@ -344,6 +378,7 @@ export function AttachmentViewer({
                   background: showTrash ? '#e74c3c' : 'transparent',
                   color: showTrash ? 'white' : 'var(--text-secondary)',
                   cursor: 'pointer',
+                  transition: 'background 0.15s, border-color 0.15s, color 0.15s',
                 }}
               >
                 {t('common:attachments_trash', { n: trashItems.length })}
@@ -353,12 +388,14 @@ export function AttachmentViewer({
           {!showTrash && (
             <button
               onClick={handleAdd}
+              onMouseEnter={btnHoverEnter}
+              onMouseLeave={btnHoverLeave}
               style={{ ...pgBtn, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
             >
               + {t('common:create')}
             </button>
           )}
-          <button onClick={onClose} style={pgBtn}>
+          <button onClick={onClose} onMouseEnter={btnHoverEnter} onMouseLeave={btnHoverLeave} style={pgBtn}>
             <X size={16} />
           </button>
         </div>
@@ -420,6 +457,8 @@ export function AttachmentViewer({
                   <>
                     <button
                       onClick={() => handleRestore(item)}
+                      onMouseEnter={btnHoverEnter}
+                      onMouseLeave={btnHoverLeave}
                       style={miniBtn}
                       title={t('common:restore')}
                     >
@@ -427,6 +466,8 @@ export function AttachmentViewer({
                     </button>
                     <button
                       onClick={() => setPermDeleteItem(item)}
+                      onMouseEnter={btnDelEnter}
+                      onMouseLeave={btnDelLeave}
                       style={{ ...miniBtn, color: '#e74c3c' }}
                       title={t('common:delete_permanently')}
                     >
@@ -458,12 +499,20 @@ export function AttachmentViewer({
                       />
                     ) : (
                       <>
-                        <button onClick={() => handlePreview(item)} style={miniBtn} title="Preview">
+                        <button
+                          onClick={() => handlePreview(item)}
+                          onMouseEnter={btnHoverEnter}
+                          onMouseLeave={btnHoverLeave}
+                          style={miniBtn}
+                          title="Preview"
+                        >
                           <Eye size={12} />
                         </button>
                         {item.mimeType.startsWith('image/') && (
                           <button
                             onClick={() => handleOcr(item)}
+                            onMouseEnter={btnHoverEnter}
+                            onMouseLeave={btnHoverLeave}
                             style={miniBtn}
                             title={t('common:ocr') || 'OCR'}
                           >
@@ -472,6 +521,8 @@ export function AttachmentViewer({
                         )}
                         <button
                           onClick={() => handleStartRename(item)}
+                          onMouseEnter={btnHoverEnter}
+                          onMouseLeave={btnHoverLeave}
                           style={miniBtn}
                           title={t('common:rename')}
                         >
@@ -481,6 +532,8 @@ export function AttachmentViewer({
                     )}
                     <button
                       onClick={() => handleDelete(item)}
+                      onMouseEnter={btnDelEnter}
+                      onMouseLeave={btnDelLeave}
                       style={{ ...miniBtn, color: '#e74c3c' }}
                       title={t('common:delete')}
                     >

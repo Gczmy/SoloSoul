@@ -60,6 +60,16 @@ const pgBtn: React.CSSProperties = {
   cursor: 'pointer',
   color: 'var(--text-secondary)',
   fontSize: 14,
+  transition: 'background 0.15s, color 0.15s',
+};
+
+const pgBtnHoverEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+  e.currentTarget.style.color = 'var(--accent-primary)';
+};
+const pgBtnHoverLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.currentTarget.style.background = 'transparent';
+  e.currentTarget.style.color = 'var(--text-secondary)';
 };
 
 function SnapshotCard({
@@ -381,6 +391,8 @@ export function HistoryViewer({
             <button
               onClick={goPrev}
               disabled={isOldest || loading}
+              onMouseEnter={!isOldest && !loading ? pgBtnHoverEnter : undefined}
+              onMouseLeave={!isOldest && !loading ? pgBtnHoverLeave : undefined}
               style={{ ...pgBtn, opacity: isOldest || loading ? 0.3 : 1 }}
             >
               <ChevronLeft size={16} />
@@ -388,11 +400,18 @@ export function HistoryViewer({
             <button
               onClick={goNext}
               disabled={isLatest || loading}
+              onMouseEnter={!isLatest && !loading ? pgBtnHoverEnter : undefined}
+              onMouseLeave={!isLatest && !loading ? pgBtnHoverLeave : undefined}
               style={{ ...pgBtn, opacity: isLatest || loading ? 0.3 : 1 }}
             >
               <ChevronRight size={16} />
             </button>
-            <button onClick={onClose} style={{ ...pgBtn, marginLeft: 4 }}>
+            <button
+              onClick={onClose}
+              onMouseEnter={pgBtnHoverEnter}
+              onMouseLeave={pgBtnHoverLeave}
+              style={{ ...pgBtn, marginLeft: 4 }}
+            >
               <X size={16} />
             </button>
           </div>

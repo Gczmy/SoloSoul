@@ -172,43 +172,67 @@ export function TrashPage() {
         />
 
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {TIME_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setTimeFilter(opt.value)}
-              style={{
-                padding: '5px 12px',
-                borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: timeFilter === opt.value ? 'var(--accent-primary)' : 'transparent',
-                color: timeFilter === opt.value ? 'white' : 'var(--text-secondary)',
-                fontSize: 12,
-                cursor: 'pointer',
-              }}
-            >
-              {t(`settings:${opt.labelKey}`, opt.labelKey)}
-            </button>
-          ))}
+          {TIME_OPTIONS.map((opt) => {
+            const isActive = timeFilter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => setTimeFilter(opt.value)}
+                onMouseEnter={!isActive ? (e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                } : undefined}
+                onMouseLeave={!isActive ? (e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                } : undefined}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border-subtle)',
+                  background: isActive ? 'var(--accent-primary)' : 'transparent',
+                  color: isActive ? 'white' : 'var(--text-secondary)',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+                }}
+              >
+                {t(`settings:${opt.labelKey}`, opt.labelKey)}
+              </button>
+            );
+          })}
         </div>
 
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {TYPE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setTypeFilter(opt.value)}
-              style={{
-                padding: '5px 12px',
-                borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: typeFilter === opt.value ? 'var(--accent-primary)' : 'transparent',
-                color: typeFilter === opt.value ? 'white' : 'var(--text-secondary)',
-                fontSize: 12,
-                cursor: 'pointer',
-              }}
-            >
-              {t(`settings:trash_type_${opt.value}`)}
-            </button>
-          ))}
+          {TYPE_OPTIONS.map((opt) => {
+            const isActive = typeFilter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => setTypeFilter(opt.value)}
+                onMouseEnter={!isActive ? (e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                } : undefined}
+                onMouseLeave={!isActive ? (e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                } : undefined}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border-subtle)',
+                  background: isActive ? 'var(--accent-primary)' : 'transparent',
+                  color: isActive ? 'white' : 'var(--text-secondary)',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+                }}
+              >
+                {t(`settings:trash_type_${opt.value}`)}
+              </button>
+            );
+          })}
         </div>
 
         {filtered.length > 0 && (
@@ -378,12 +402,22 @@ export function TrashPage() {
                         e.stopPropagation();
                         openDetail(item.id);
                       }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = 'var(--accent-primary)';
+                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = 'var(--text-tertiary)';
+                        e.currentTarget.style.background = 'none';
+                      }}
                       style={{
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
                         padding: 4,
+                        borderRadius: 4,
                         color: 'var(--text-tertiary)',
+                        transition: 'background 0.15s, color 0.15s',
                       }}
                       title={t('common:details')}
                     >
