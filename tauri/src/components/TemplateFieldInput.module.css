@@ -65,12 +65,20 @@
   gap: 8px;
   font-size: 14px;
   cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.checkboxLabel:hover {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
 }
 
 .checkbox {
   width: 16px;
   height: 16px;
   cursor: pointer;
+  accent-color: var(--accent-primary);
 }
 
 .multiSelect {

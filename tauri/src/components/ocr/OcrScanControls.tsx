@@ -47,6 +47,26 @@ export function OcrScanControls({
           value={activeTier}
           onChange={(e) => onTierChange(e.target.value)}
           disabled={loadingStatus || isScanning}
+          onMouseEnter={(e) => {
+            if (!e.currentTarget.disabled) {
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (document.activeElement !== e.currentTarget) {
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.boxShadow = 'none';
+            }
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = 'var(--accent-primary)';
+            e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = 'var(--border-subtle)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
           style={{
             width: '100%',
             padding: '8px 10px',
@@ -55,6 +75,7 @@ export function OcrScanControls({
             border: '1px solid var(--border-subtle)',
             background: 'var(--bg-elevated)',
             color: 'var(--text-primary)',
+            transition: 'border-color 0.2s, box-shadow 0.2s',
           }}
         >
           {tiers.map((tier) => {
@@ -83,6 +104,18 @@ export function OcrScanControls({
         <button
           onClick={() => onScanModeChange('general')}
           disabled={isScanning}
+          onMouseEnter={(e) => {
+            if (scanMode !== 'general' && !isScanning) {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (scanMode !== 'general') {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }
+          }}
           style={{
             padding: '6px 14px',
             borderRadius: 6,
@@ -93,6 +126,7 @@ export function OcrScanControls({
             color: 'var(--text-primary)',
             fontWeight: scanMode === 'general' ? 600 : 400,
             opacity: isScanning ? 0.6 : 1,
+            transition: 'background 0.15s, color 0.15s',
           }}
         >
           {t('ocr:scan_mode_general')}
@@ -100,6 +134,18 @@ export function OcrScanControls({
         <button
           onClick={() => onScanModeChange('mrz')}
           disabled={isScanning}
+          onMouseEnter={(e) => {
+            if (scanMode !== 'mrz' && !isScanning) {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (scanMode !== 'mrz') {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }
+          }}
           style={{
             padding: '6px 14px',
             borderRadius: 6,
@@ -110,6 +156,7 @@ export function OcrScanControls({
             color: 'var(--text-primary)',
             fontWeight: scanMode === 'mrz' ? 600 : 400,
             opacity: isScanning ? 0.6 : 1,
+            transition: 'background 0.15s, color 0.15s',
           }}
         >
           {t('ocr:scan_mode_mrz')}

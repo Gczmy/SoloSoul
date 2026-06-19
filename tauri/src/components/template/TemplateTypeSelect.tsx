@@ -32,6 +32,24 @@ export const TemplateTypeSelect = memo(function TemplateTypeSelect({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as PropertyType)}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'var(--accent-primary)';
+        e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+      }}
+      onMouseLeave={(e) => {
+        if (document.activeElement !== e.currentTarget) {
+          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+          e.currentTarget.style.boxShadow = 'none';
+        }
+      }}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = 'var(--accent-primary)';
+        e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+        e.currentTarget.style.boxShadow = 'none';
+      }}
       style={{
         height: 36,
         padding: '0 10px',
@@ -42,6 +60,7 @@ export const TemplateTypeSelect = memo(function TemplateTypeSelect({
         fontSize: 13,
         cursor: 'pointer',
         boxSizing: 'border-box',
+        transition: 'border-color 0.2s, box-shadow 0.2s',
       }}
     >
       {PROPERTY_TYPES.map((pt) => (

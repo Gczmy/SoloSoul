@@ -47,8 +47,8 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
           }}
           onMouseEnter={(e) => {
             if (currentId !== id) {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--text-tertiary)';
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
             }
           }}
           onMouseLeave={(e) => {
