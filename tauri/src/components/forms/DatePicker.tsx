@@ -19,7 +19,7 @@ import {
   setMinutes,
 } from 'date-fns';
 import { zhCN, enUS } from 'date-fns/locale';
-import { Calendar, X } from 'lucide-react';
+import { Calendar, X, ChevronDown } from 'lucide-react';
 import styles from './DatePicker.module.css';
 
 interface DatePickerProps {
@@ -49,13 +49,26 @@ export function DatePicker({
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(() => parseValue(value) || new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => parseValue(value));
+  const [yearOpen, setYearOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const yearListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const d = parseValue(value);
     setSelectedDate(d);
     if (d) setViewDate(d);
   }, [value]);
+
+  // Auto-scroll year list to current year when opened
+  useEffect(() => {
+    if (yearOpen && yearListRef.current) {
+      const currentYear = getYear(viewDate);
+      const item = yearListRef.current.querySelector(`[data-year="${currentYear}"]`);
+      if (item) {
+        item.scrollIntoView({ block: 'center' });
+      }
+    }
+  }, [yearOpen, viewDate]);
 
   const handleSelect = useCallback(
     (day: Date) => {
@@ -84,6 +97,7 @@ export function DatePicker({
 
   const handleYearChange = useCallback((year: number) => {
     setViewDate((prev) => setYear(prev, year));
+    setYearOpen(false);
   }, []);
 
   const handleMonthChange = useCallback((month: number) => {
@@ -112,7 +126,7 @@ export function DatePicker({
   const currentYear = getYear(viewDate);
   const yearOptions = useMemo(() => {
     const years: number[] = [];
-    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+    for (let y = currentYear - 100; y <= currentYear + 10; y++) {
       years.push(y);
     }
     return years;
@@ -123,6 +137,7 @@ export function DatePicker({
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setYearOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -178,19 +193,42 @@ export function DatePicker({
             >
               ‹
             </button>
-            <div className={styles.selects}>
-              <select
-                className={styles.select}
-                value={getYear(viewDate)}
-                onChange={(e) => handleYearChange(Number(e.target.value))}
-                aria-label="年份"
-              >
-                {yearOptions.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
+            <div className={styles.selects} onMouseDown={(e) => {
+                // Close year popup when clicking outside year area
+                const yearArea = e.currentTarget.querySelector('[data-year-area]');
+                if (yearArea && !yearArea.contains(e.target as Node)) {
+                  setYearOpen(false);
+                }
+              }}>
+              {/* Custom scrollable year dropdown */}
+              <div data-year-area style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setYearOpen((v) => !v)}
+                  className={styles.yearTrigger}
+                >
+                  {getYear(viewDate)}
+                  <ChevronDown size={12} />
+                </button>
+                {yearOpen && (
+                  <div className={styles.yearPopover} ref={yearListRef}>
+                    {yearOptions.map((y) => (
+                      <button
+                        key={y}
+                        type="button"
+                        data-year={y}
+                        className={`${styles.yearItem} ${y === getYear(viewDate) ? styles.yearItemActive : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleYearChange(y);
+                        }}
+                      >
+                        {y}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <select
                 className={styles.select}
                 value={getMonth(viewDate)}
