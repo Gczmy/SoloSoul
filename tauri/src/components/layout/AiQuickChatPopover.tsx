@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion, AnimatePresence } from 'framer-motion';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { MessageSquare, Plus, History, ArrowUpRight, X } from 'lucide-react';
@@ -566,34 +567,41 @@ export function AiQuickChatPopover({
       </div>
 
       {/* History dropdown */}
-      {showHistory && (
-        <div
-          ref={historyRef}
-          style={{
-            position: 'absolute',
-            top: 44,
-            left: 8,
-            right: 8,
-            maxHeight: 220,
-            background: 'var(--bg-elevated)',
-            borderRadius: 10,
-            border: '1px solid var(--border-subtle)',
-            boxShadow: 'var(--shadow-lg)',
-            zIndex: 10,
-            overflowY: 'auto',
-            padding: '6px 0',
-          }}
-        >
-          <ConversationHistory
-            conversations={conversations}
-            currentConvId={currentConvId}
-            onSelect={(id) => {
-              loadConversation(id);
-              setShowHistory(false);
+      <AnimatePresence>
+        {showHistory && (
+          <motion.div
+            ref={historyRef}
+            initial={{ opacity: 0, y: -6, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.96 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            style={{
+              position: 'absolute',
+              top: 44,
+              left: 8,
+              right: 8,
+              maxHeight: 220,
+              background: 'var(--bg-elevated)',
+              borderRadius: 10,
+              border: '1px solid var(--border-subtle)',
+              boxShadow: 'var(--shadow-lg)',
+              zIndex: 10,
+              overflowY: 'auto',
+              padding: '6px 0',
+              transformOrigin: 'top',
             }}
-          />
-        </div>
-      )}
+          >
+            <ConversationHistory
+              conversations={conversations}
+              currentConvId={currentConvId}
+              onSelect={(id) => {
+                loadConversation(id);
+                setShowHistory(false);
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Body */}
       {loading ? (

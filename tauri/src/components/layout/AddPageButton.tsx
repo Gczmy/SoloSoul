@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -200,176 +201,182 @@ export function AddPageButton({
           <Plus size={20} />
         </button>
         {createPortal(nameCard, document.body)}
-      </div>
-
-      {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
-      {isCreating &&
-        createPortal(
-          <div
-            ref={popoverRef}
-            style={{
-              position: 'fixed',
-              left: isHorizontal
-                ? buttonRect
-                  ? buttonRect.left
-                  : 56
-                : isRight
+      </div>      {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
+      {createPortal(
+        <AnimatePresence>
+          {isCreating && (
+            <motion.div
+              ref={popoverRef}
+              initial={{ opacity: 0, y: -6, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.96 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              style={{
+                position: 'fixed',
+                left: isHorizontal
+                  ? buttonRect
+                    ? buttonRect.left
+                    : 56
+                  : isRight
+                    ? 'auto'
+                    : buttonRect
+                      ? buttonRect.right + 8
+                      : 56,
+                right: isRight
+                  ? buttonRect
+                    ? window.innerWidth - buttonRect.left + 8
+                    : 56
+                  : 'auto',
+                top: isBottom
                   ? 'auto'
                   : buttonRect
-                    ? buttonRect.right + 8
-                    : 56,
-              right: isRight
-                ? buttonRect
-                  ? window.innerWidth - buttonRect.left + 8
-                  : 56
-                : 'auto',
-              top: isBottom
-                ? 'auto'
-                : buttonRect
-                  ? isHorizontal
-                    ? buttonRect.bottom + 8
-                    : buttonRect.top
-                  : '50%',
-              bottom: isBottom
-                ? buttonRect
-                  ? window.innerHeight - buttonRect.top + 8
-                  : 56
-                : 'auto',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-              padding: '10px 12px',
-              background: 'var(--bg-elevated)',
-              borderRadius: 8,
-              boxShadow: 'var(--shadow-lg)',
-              zIndex: 300,
-              border: '1px solid var(--border-subtle)',
-            }}
-          >
-            {/* Name input */}
-            <input
-              ref={inputRef}
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value.slice(0, 20));
-                setNameError(false);
+                    ? isHorizontal
+                      ? buttonRect.bottom + 8
+                      : buttonRect.top
+                    : '50%',
+                bottom: isBottom
+                  ? buttonRect
+                    ? window.innerHeight - buttonRect.top + 8
+                    : 56
+                  : 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                padding: '10px 12px',
+                background: 'var(--bg-elevated)',
+                borderRadius: 8,
+                boxShadow: 'var(--shadow-lg)',
+                zIndex: 300,
+                border: '1px solid var(--border-subtle)',
+                transformOrigin: 'top',
               }}
-              onBlur={(e) => {
-                // Only confirm if the blur is not caused by clicking inside the popover
-                if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
-                  handleConfirm();
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleConfirm();
-                if (e.key === 'Escape') handleCancel();
-              }}
-              placeholder={t('add_page_placeholder')}
-              maxLength={20}
-              autoFocus
-              aria-label={t('add_page_placeholder')}
-              style={{
-                padding: '6px 10px',
-                fontSize: 14,
-                border: nameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
-                borderRadius: 6,
-                background: 'transparent',
-                color: 'var(--text-primary)',
-                fontFamily: 'inherit',
-                outline: 'none',
-                width: '100%',
-                boxSizing: 'border-box',
-                animation: nameError ? 'shake 0.4s ease' : 'none',
-              }}
-            />
-            {nameError && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 8,
+            >
+              {/* Name input */}
+              <input
+                ref={inputRef}
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value.slice(0, 20));
+                  setNameError(false);
                 }}
-              >
-                <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
-                  {t('page_name_exists')}
-                </span>
-                <button
-                  onClick={handleCancel}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = 'var(--accent-primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = 'var(--text-tertiary)';
-                  }}
+                onBlur={(e) => {
+                  // Only confirm if the blur is not caused by clicking inside the popover
+                  if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
+                    handleConfirm();
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleConfirm();
+                  if (e.key === 'Escape') handleCancel();
+                }}
+                placeholder={t('add_page_placeholder')}
+                maxLength={20}
+                autoFocus
+                aria-label={t('add_page_placeholder')}
+                style={{
+                  padding: '6px 10px',
+                  fontSize: 14,
+                  border: nameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
+                  borderRadius: 6,
+                  background: 'transparent',
+                  color: 'var(--text-primary)',
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  animation: nameError ? 'shake 0.4s ease' : 'none',
+                }}
+              />
+              {nameError && (
+                <div
                   style={{
-                    fontSize: 11,
-                    color: 'var(--text-tertiary)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    transition: 'color 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 8,
                   }}
                 >
-                  {t('common:cancel')}
-                </button>
-              </div>
-            )}
+                  <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
+                    {t('page_name_exists')}
+                  </span>
+                  <button
+                    onClick={handleCancel}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--accent-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--text-tertiary)';
+                    }}
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--text-tertiary)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      transition: 'color 0.15s ease',
+                    }}
+                  >
+                    {t('common:cancel')}
+                  </button>
+                </div>
+              )}
 
-            {/* Icon picker grid — always visible for quick selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{t('select_icon')}</span>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(6, 1fr)',
-                  gap: 4,
-                }}
-              >
-                {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
-                  ([id, IconComp]) => (
-                    <button
-                      key={id}
-                      onMouseDown={(e) => e.preventDefault()} // prevent input blur so selectedIconId updates before confirm
-                      onClick={() => setSelectedIconId(id)}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 6,
-                        border:
-                          id === selectedIconId
-                            ? '2px solid var(--accent-primary)'
-                            : '1px solid transparent',
-                        background:
-                          id === selectedIconId
-                            ? 'var(--accent-primary-transparent, rgba(91,124,153,0.1))'
-                            : 'transparent',
-                        cursor: 'pointer',
-                      }}
-                      title={id}
-                      aria-label={id}
-                    >
-                      <IconComp
-                        size={16}
+              {/* Icon picker grid — always visible for quick selection */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{t('select_icon')}</span>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(6, 1fr)',
+                    gap: 4,
+                  }}
+                >
+                  {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
+                    ([id, IconComp]) => (
+                      <button
+                        key={id}
+                        onMouseDown={(e) => e.preventDefault()} // prevent input blur so selectedIconId updates before confirm
+                        onClick={() => setSelectedIconId(id)}
                         style={{
-                          color:
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 6,
+                          border:
                             id === selectedIconId
-                              ? 'var(--accent-primary)'
-                              : 'var(--text-secondary)',
+                              ? '2px solid var(--accent-primary)'
+                              : '1px solid transparent',
+                          background:
+                            id === selectedIconId
+                              ? 'var(--accent-primary-transparent, rgba(91,124,153,0.1))'
+                              : 'transparent',
+                          cursor: 'pointer',
                         }}
-                      />
-                    </button>
-                  ),
-                )}
+                        title={id}
+                        aria-label={id}
+                      >
+                        <IconComp
+                          size={16}
+                          style={{
+                            color:
+                              id === selectedIconId
+                                ? 'var(--accent-primary)'
+                                : 'var(--text-secondary)',
+                          }}
+                        />
+                      </button>
+                    ),
+                  )}
+                </div>
               </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   );
 }

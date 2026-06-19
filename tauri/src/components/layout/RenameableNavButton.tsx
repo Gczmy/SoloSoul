@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import type { LucideIcon } from 'lucide-react';
@@ -152,49 +153,55 @@ export function RenameableNavButton({
         onClick={onClick}
         position={position}
       />
-      {isRenaming &&
-        createPortal(
-          <div
-            ref={popoverRef}
-            style={{
-              position: 'fixed',
-              left: isHorizontal
-                ? renameCardRect
-                  ? renameCardRect.left
-                  : 56
-                : isRight
+      {createPortal(
+        <AnimatePresence>
+          {isRenaming && (
+            <motion.div
+              ref={popoverRef}
+              initial={{ opacity: 0, y: -6, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.96 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              style={{
+                position: 'fixed',
+                left: isHorizontal
+                  ? renameCardRect
+                    ? renameCardRect.left
+                    : 56
+                  : isRight
+                    ? 'auto'
+                    : renameCardRect
+                      ? renameCardRect.right + 8
+                      : 56,
+                right: isRight
+                  ? renameCardRect
+                    ? window.innerWidth - renameCardRect.left + 8
+                    : 56
+                  : 'auto',
+                top: isBottom
                   ? 'auto'
                   : renameCardRect
-                    ? renameCardRect.right + 8
-                    : 56,
-              right: isRight
-                ? renameCardRect
-                  ? window.innerWidth - renameCardRect.left + 8
-                  : 56
-                : 'auto',
-              top: isBottom
-                ? 'auto'
-                : renameCardRect
-                  ? isHorizontal
-                    ? renameCardRect.bottom + 8
-                    : renameCardRect.top
-                  : '50%',
-              bottom: isBottom
-                ? renameCardRect
-                  ? window.innerHeight - renameCardRect.top + 8
-                  : 56
-                : 'auto',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-              padding: '6px 10px',
-              background: 'var(--bg-elevated)',
-              borderRadius: 8,
-              boxShadow: 'var(--shadow-lg)',
-              zIndex: 300,
-              border: '1px solid var(--border-subtle)',
-            }}
-          >
+                    ? isHorizontal
+                      ? renameCardRect.bottom + 8
+                      : renameCardRect.top
+                    : '50%',
+                bottom: isBottom
+                  ? renameCardRect
+                    ? window.innerHeight - renameCardRect.top + 8
+                    : 56
+                  : 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                padding: '6px 10px',
+                background: 'var(--bg-elevated)',
+                borderRadius: 8,
+                boxShadow: 'var(--shadow-lg)',
+                zIndex: 300,
+                border: '1px solid var(--border-subtle)',
+                transformOrigin: 'top',
+              }}
+            >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
               {/* Icon picker trigger */}
               <button
@@ -330,9 +337,11 @@ export function RenameableNavButton({
                 )}
               </div>
             )}
-          </div>,
-          document.body,
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   );
 }
