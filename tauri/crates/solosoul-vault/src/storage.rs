@@ -2340,6 +2340,9 @@ impl VaultStore {
     ) -> Result<std::collections::HashMap<String, usize>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        if object_ids.is_empty() {
+            return Ok(std::collections::HashMap::new());
+        }
         let placeholders: Vec<String> = object_ids
             .iter()
             .enumerate()
@@ -2351,13 +2354,17 @@ impl VaultStore {
             .map(|s| s as &dyn rusqlite::types::ToSql)
             .collect();
         let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
-        let map = stmt
+        let mut map: std::collections::HashMap<String, usize> = stmt
             .query_map(params.as_slice(), |row| {
                 Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)? as usize))
             })
             .map_err(|e| e.to_string())?
             .collect::<Result<std::collections::HashMap<String, usize>, _>>()
             .map_err(|e| e.to_string())?;
+        // Ensure every requested object_id appears in the result (0 for those without snapshots)
+        for id in object_ids {
+            map.entry(id.clone()).or_insert(0);
+        }
         Ok(map)
     }
 

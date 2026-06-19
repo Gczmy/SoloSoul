@@ -13,7 +13,27 @@ pub async fn snapshot_count_batch(
     object_ids: Vec<String>,
 ) -> Result<std::collections::HashMap<String, usize>, String> {
     let vault = vault_handle(&state)?;
-    vault.count_snapshots_batch(&object_ids)
+    let mut map = vault.count_snapshots_batch(&object_ids)?;
+
+    // Backfill: create an initial snapshot for any object that has none.
+    // This ensures objects created before snapshot-on-create was added still
+    // show a count badge (e.g. "1" for the backfilled snapshot).
+    for id in &object_ids {
+        if map.get(id) == Some(&0) {
+            if let Ok(Some(obj)) = vault.load_object(id) {
+                let snapshot_data = serde_json::to_vec(&serde_json::json!({
+                    "name": obj.name,
+                    "tags": obj.tags_json,
+                    "properties": obj.properties,
+                }))
+                .unwrap_or_default();
+                let _ = vault.save_snapshot(id, "backfill", &snapshot_data, "Auto-created initial snapshot");
+                map.insert(id.clone(), 1);
+            }
+        }
+    }
+
+    Ok(map)
 }
 
 // ── Snapshot / History commands (§25.5) ─────────────────────
