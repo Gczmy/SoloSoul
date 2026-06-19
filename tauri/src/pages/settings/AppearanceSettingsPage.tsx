@@ -83,7 +83,7 @@ export function AppearanceSettingsPage() {
     updateSetting(accountId, 'theme', preset);
     invoke('ui_update_preference', { key: 'theme', value: preset }).catch(() => {});
     const resolvedSystemTheme = preset === 'system' ? await getSystemTheme() : undefined;
-    applyTheme({
+    await applyTheme({
       preset:
         preset === 'dark' ? 'warm-stone-dark' : preset === 'light' ? 'warm-stone-light' : 'system',
       accentColor: settings.accentColor as AccentPreset,
@@ -100,7 +100,7 @@ export function AppearanceSettingsPage() {
     updateSetting(accountId, 'accentColor', accent);
     invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch(() => {});
     const resolvedSystemTheme = settings.theme === 'system' ? await getSystemTheme() : undefined;
-    applyTheme({
+    await applyTheme({
       preset:
         settings.theme === 'dark'
           ? 'warm-stone-dark'
