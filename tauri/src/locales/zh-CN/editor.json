@@ -29,12 +29,12 @@
     "streetAddress": "具体街道地址",
     "district": "县/区",
     "city": "城市",
-    "province": "省/州",
+    "province": "省/自治区/直辖市/特别行政区",
     "postalCode": "邮政编码",
     "street": "具体街道地址",
     "district": "县/区",
     "city": "城市",
-    "province": "省/州",
+    "province": "省/自治区/直辖市/特别行政区",
     "title": "标题"
   },
   "templates": {

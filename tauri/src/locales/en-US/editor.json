@@ -29,12 +29,12 @@
     "streetAddress": "Street Address",
     "district": "District",
     "city": "City",
-    "province": "Province",
+    "province": "Province / State",
     "postalCode": "Postal Code",
     "street": "Street Address",
     "district": "District",
     "city": "City",
-    "province": "Province",
+    "province": "Province / State",
     "title": "Title"
   },
   "templates": {
