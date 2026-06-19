@@ -92,25 +92,6 @@
   transform: scale(0.88);
 }
 
-.closeBtn {
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  display: flex;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-.closeBtn:hover {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-primary);
-}
-.closeBtn:active {
-  transform: scale(0.94);
-}
-
 /* Filter bar */
 .filterBar {
   display: flex;
@@ -124,14 +105,12 @@
 .filterBar::-webkit-scrollbar {
   display: none;
 }
-.leftControl,
-.rightControl {
+.leftControl {
   min-width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   flex-shrink: 0;
 }
 .filterBtn {
