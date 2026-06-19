@@ -33,7 +33,7 @@ export function Dialog({ isOpen, onClose, children, title }: DialogProps) {
         }
       }}
     >
-      <div className={styles.dialog}>
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         {title && <h2 className={styles.title}>{title}</h2>}
         {children}
       </div>
