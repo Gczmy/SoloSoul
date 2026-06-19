@@ -6,7 +6,7 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
-import { X, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, RotateCcw, ChevronLeft, ChevronRight, Image, FileText, Paperclip } from 'lucide-react';
 import { formatBytes } from '@/lib/format';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, SnapshotEntry, TrashAttachment } from './types';
@@ -122,12 +122,22 @@ export function TrashDetailPanel({
           </div>
           <button
             onClick={onClose}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--accent-primary)';
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--text-tertiary)';
+              e.currentTarget.style.background = 'none';
+            }}
             style={{
               background: 'none',
               border: 'none',
+              borderRadius: 6,
               cursor: 'pointer',
               padding: 4,
               color: 'var(--text-tertiary)',
+              transition: 'background 0.15s, color 0.15s',
             }}
           >
             <X size={18} />
@@ -255,6 +265,16 @@ export function TrashDetailPanel({
                     <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
                       <button
                         onClick={() => setShowTrashAttachments(false)}
+                        onMouseEnter={showTrashAttachments ? (e) => {
+                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                          e.currentTarget.style.color = 'var(--accent-primary)';
+                          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
+                        } : undefined}
+                        onMouseLeave={showTrashAttachments ? (e) => {
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                          e.currentTarget.style.color = 'var(--text-secondary)';
+                          e.currentTarget.style.background = 'transparent';
+                        } : undefined}
                         style={{
                           padding: '3px 10px',
                           borderRadius: 4,
@@ -265,12 +285,23 @@ export function TrashDetailPanel({
                             ? 'var(--accent-primary)'
                             : 'transparent',
                           color: !showTrashAttachments ? 'white' : 'var(--text-secondary)',
+                          transition: 'background 0.15s, color 0.15s, border-color 0.15s',
                         }}
                       >
                         {t('common:active')} ({activeAttachments.length})
                       </button>
                       <button
                         onClick={() => setShowTrashAttachments(true)}
+                        onMouseEnter={!showTrashAttachments ? (e) => {
+                          e.currentTarget.style.borderColor = '#e74c3c';
+                          e.currentTarget.style.color = '#e74c3c';
+                          e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 8%, transparent)';
+                        } : undefined}
+                        onMouseLeave={!showTrashAttachments ? (e) => {
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                          e.currentTarget.style.color = 'var(--text-secondary)';
+                          e.currentTarget.style.background = 'transparent';
+                        } : undefined}
                         style={{
                           padding: '3px 10px',
                           borderRadius: 4,
@@ -281,6 +312,7 @@ export function TrashDetailPanel({
                             ? 'var(--accent-primary)'
                             : 'transparent',
                           color: showTrashAttachments ? 'white' : 'var(--text-secondary)',
+                          transition: 'background 0.15s, color 0.15s, border-color 0.15s',
                         }}
                       >
                         {t('common:trash')} ({deletedAttachments.length})
@@ -299,31 +331,76 @@ export function TrashDetailPanel({
                     </p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {(showTrashAttachments ? deletedAttachments : activeAttachments).map((a) => (
-                        <div
-                          key={a.id}
-                          style={{
-                            fontSize: 12,
-                            padding: '6px 8px',
-                            background: 'var(--bg-elevated-hover)',
-                            borderRadius: 6,
-                          }}
-                        >
+                      {(showTrashAttachments ? deletedAttachments : activeAttachments).map((a) => {
+                        const ext = a.fileName.split('.').pop()?.toLowerCase() || '';
+                        const isImage = a.mimeType.startsWith('image/') || ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
+                        const isPdf = a.mimeType === 'application/pdf' || ext === 'pdf';
+                        const AttachIcon = isImage ? Image : isPdf ? FileText : Paperclip;
+                        const iconColor = isImage ? 'var(--accent-primary)' : isPdf ? '#e74c3c' : 'var(--text-tertiary)';
+                        return (
                           <div
+                            key={a.id}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
+                              e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'var(--bg-elevated-hover)';
+                              e.currentTarget.style.borderColor = 'transparent';
+                            }}
                             style={{
-                              fontWeight: 500,
-                              marginBottom: 2,
-                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 12,
+                              padding: '8px 10px',
+                              background: 'var(--bg-elevated-hover)',
+                              borderRadius: 6,
+                              border: '1px solid transparent',
+                              cursor: 'default',
+                              transition: 'background 0.15s, border-color 0.15s',
+                              textDecoration: showTrashAttachments ? 'line-through' : 'none',
+                              opacity: showTrashAttachments ? 0.7 : 1,
                             }}
                           >
-                            {truncateFileName(a.fileName)}
+                            <AttachIcon size={16} style={{ color: iconColor, flexShrink: 0 }} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div
+                                style={{
+                                  fontWeight: 500,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {truncateFileName(a.fileName)}
+                              </div>
+                              <div style={{ color: 'var(--text-tertiary)', fontSize: 10 }}>
+                                {formatBytes(a.sizeBytes)} ·{' '}
+                                {new Date(a.createdAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <span
+                              style={{
+                                fontSize: 10,
+                                padding: '2px 6px',
+                                borderRadius: 4,
+                                fontWeight: 500,
+                                background: isImage
+                                  ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                                  : isPdf
+                                    ? 'color-mix(in srgb, #e74c3c 10%, transparent)'
+                                    : 'color-mix(in srgb, var(--text-tertiary) 10%, transparent)',
+                                color: iconColor,
+                                flexShrink: 0,
+                                textDecoration: 'none',
+                              }}
+                            >
+                              {ext.toUpperCase() || 'FILE'}
+                            </span>
                           </div>
-                          <div style={{ color: 'var(--text-tertiary)', fontSize: 11 }}>
-                            {formatBytes(a.sizeBytes)} ·{' '}
-                            {new Date(a.createdAt).toLocaleDateString()}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
