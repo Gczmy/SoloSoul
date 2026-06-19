@@ -236,10 +236,11 @@ export function AttachmentViewer({
   };
 
   const handleDelete = (item: AttachmentItem) => {
+    const truncatedName = truncateFileName(item.fileName);
     requestConfirm(
       t('common:confirm_delete_title', 'Delete attachment'),
-      t('common:confirm_delete_body', { name: item.fileName }) ||
-        `Delete "${item.fileName}"? It will be moved to trash.`,
+      t('common:confirm_delete_body', { name: truncatedName }) ||
+        `Delete "${truncatedName}"? It will be moved to trash.`,
       async () => {
         await invoke('attachment_soft_delete', { objectId, attachmentId: item.id }).catch((e) => {
           showToast({
@@ -651,7 +652,7 @@ export function AttachmentViewer({
                 lineHeight: 1.5,
               }}
             >
-              {t('common:perm_delete_body', { name: permDeleteItem.fileName })}
+              {t('common:perm_delete_body', { name: truncateFileName(permDeleteItem.fileName) })}
             </p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button
