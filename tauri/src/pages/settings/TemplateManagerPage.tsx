@@ -373,6 +373,27 @@ export function TemplateManagerPage() {
                   type="button"
                   onClick={() => setPageFilter(opt.id)}
                   aria-pressed={pageFilter === opt.id}
+                  onMouseEnter={(e) => {
+                    if (pageFilter !== opt.id) {
+                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                      e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                      e.currentTarget.style.color = 'var(--accent-primary)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (pageFilter !== opt.id) {
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.boxShadow = 'none';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.transform = 'scale(0.96)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
                   style={{
                     padding: '5px 12px',
                     borderRadius: 6,
@@ -381,6 +402,7 @@ export function TemplateManagerPage() {
                     color: pageFilter === opt.id ? 'white' : 'var(--text-secondary)',
                     fontSize: 12,
                     cursor: 'pointer',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   {opt.label}
