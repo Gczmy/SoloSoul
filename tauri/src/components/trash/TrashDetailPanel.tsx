@@ -6,7 +6,7 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
-import { X, RotateCcw } from 'lucide-react';
+import { X, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatBytes } from '@/lib/format';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, SnapshotEntry, TrashAttachment } from './types';
@@ -416,41 +416,88 @@ function SnapshotContent({
   return (
     <div style={{ marginTop: 8, fontSize: 12 }}>
       {snapshots.length > 1 && (
-        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <button
             disabled={currentSnapIdx >= snapshots.length - 1}
             onClick={() => onChangeSnapshot(currentSnapIdx + 1)}
             style={{
-              padding: '3px 8px',
+              width: 28,
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               border: '1px solid var(--border-subtle)',
-              borderRadius: 4,
-              cursor: 'pointer',
+              borderRadius: 6,
+              cursor: currentSnapIdx >= snapshots.length - 1 ? 'default' : 'pointer',
               fontSize: 11,
-              background: 'var(--bg-subtle)',
-              color: 'var(--text-secondary)',
-              opacity: currentSnapIdx >= snapshots.length - 1 ? 0.4 : 1,
+              background: 'transparent',
+              color: currentSnapIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
+              opacity: currentSnapIdx >= snapshots.length - 1 ? 0.35 : 1,
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (currentSnapIdx < snapshots.length - 1) {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.color = currentSnapIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
             }}
           >
-            ‹ {t('common:previous')}
+            <ChevronLeft size={14} />
           </button>
-          <span style={{ padding: '3px 0', color: 'var(--text-tertiary)' }}>
-            {currentSnapIdx + 1} / {snapshots.length}
-          </span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 11,
+              fontWeight: 500,
+              color: 'var(--text-secondary)',
+            }}
+          >
+            <span style={{ color: 'var(--accent-primary)', fontWeight: 600, minWidth: 14, textAlign: 'center' }}>
+              {currentSnapIdx + 1}
+            </span>
+            <span style={{ color: 'var(--text-tertiary)' }}>/</span>
+            <span style={{ color: 'var(--text-tertiary)' }}>{snapshots.length}</span>
+          </div>
           <button
             disabled={currentSnapIdx <= 0}
             onClick={() => onChangeSnapshot(Math.max(0, currentSnapIdx - 1))}
             style={{
-              padding: '3px 8px',
+              width: 28,
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               border: '1px solid var(--border-subtle)',
-              borderRadius: 4,
-              cursor: 'pointer',
+              borderRadius: 6,
+              cursor: currentSnapIdx <= 0 ? 'default' : 'pointer',
               fontSize: 11,
-              background: 'var(--bg-subtle)',
-              color: 'var(--text-secondary)',
-              opacity: currentSnapIdx <= 0 ? 0.4 : 1,
+              background: 'transparent',
+              color: currentSnapIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
+              opacity: currentSnapIdx <= 0 ? 0.35 : 1,
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (currentSnapIdx > 0) {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.color = currentSnapIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
             }}
           >
-            {t('common:next')} ›
+            <ChevronRight size={14} />
           </button>
         </div>
       )}
