@@ -221,10 +221,6 @@ export function SearchPage() {
             setDetailObjectId(null);
             navigate(`/editor/${detailObjectId}`);
           }}
-          onAttachments={() => {
-            setAttachmentObjId(detailObjectId);
-            setDetailObjectId(null);
-          }}
         />
       )}
 

@@ -581,19 +581,6 @@ export function ObjectWorkspacePage() {
           <ObjectDetailModal
             object={detailObj}
             onClose={() => setDetailObj(null)}
-            onHistory={() => {
-              setHistoryObj({
-                id: detailObj.id,
-                name: detailObj.name,
-                collectionType: detailObj.collectionType,
-                templateId: detailObj.templateId || undefined,
-              });
-              setDetailObj(null);
-            }}
-            onAttachments={() => {
-              setAttachmentObjId(detailObj.id);
-              setDetailObj(null);
-            }}
             onEdit={() => {
               navigate(`/editor/${detailObj.id}`);
               setDetailObj(null);
