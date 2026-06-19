@@ -181,8 +181,8 @@ export function SearchPage() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <PAGE_ICON_MAP.custom size={18} />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{item.name}</div>
+                  <div style={{ overflow: 'hidden' }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
                     <div
                       style={{
                         fontSize: 11,
