@@ -55,6 +55,12 @@ export function AppearanceSettingsPage() {
   const { t } = useTranslation(['settings', 'common']);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
+  const isHorizontal =
+    settings.sidebarPosition === 'top' || settings.sidebarPosition === 'bottom';
+  const contentHeight = isHorizontal
+    ? 'calc(100vh - 48px - 56px - 32px)'
+    : 'calc(100vh - 56px - 32px)';
+
   const lightSchemeName = t(
     getSchemeById(settings.defaultLightTheme)?.nameKey.replace('settings:', '') as string,
   );
@@ -150,7 +156,7 @@ export function AppearanceSettingsPage() {
       <div
         style={{
           display: 'flex',
-          height: 'calc(100vh - 56px - 32px)',
+          height: contentHeight,
           margin: '-16px',
         }}
       >
@@ -166,7 +172,6 @@ export function AppearanceSettingsPage() {
         <div
           style={{
             flex: 1,
-            overflowY: 'auto',
             padding: 16,
           }}
         >
