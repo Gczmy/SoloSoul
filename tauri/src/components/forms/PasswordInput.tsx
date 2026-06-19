@@ -39,14 +39,30 @@ export function SecurePasswordInput({
   const [visible, setVisible] = useState(false);
   const [isHintHovered, setIsHintHovered] = useState(false);
   const [hintCardPos, setHintCardPos] = useState<{ top: number; left: number } | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [shouldShake, setShouldShake] = useState(false);
+  const prevErrorRef = useRef(error);
   const hintBtnRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation(['common', 'auth']);
 
-  // Blur resets visibility
+  // Focus change handler — sync to state
+  const handleFocus = useCallback(() => setIsFocused(true), []);
   const handleBlur = useCallback(() => {
     setVisible(false);
+    setIsFocused(false);
   }, []);
+
+  // Shake on new error
+  useEffect(() => {
+    if (error && error !== prevErrorRef.current) {
+      setShouldShake(true);
+      const timer = setTimeout(() => setShouldShake(false), 300);
+      prevErrorRef.current = error;
+      return () => clearTimeout(timer);
+    }
+    prevErrorRef.current = error;
+  }, [error]);
 
   const updateHintCardPos = useCallback(() => {
     if (hintBtnRef.current) {
@@ -86,6 +102,19 @@ export function SecurePasswordInput({
           {label}
         </label>
       )}
+      <style>{`
+        @keyframes fadeInSlideDown {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%      { transform: translateX(-4px); }
+          40%      { transform: translateX(4px); }
+          60%      { transform: translateX(-4px); }
+          80%      { transform: translateX(4px); }
+        }
+      `}</style>
       <div
         className={className}
         style={{
@@ -94,10 +123,16 @@ export function SecurePasswordInput({
           alignItems: 'center',
           border: error
             ? '1px solid var(--accent-danger, #dc2626)'
-            : '1px solid var(--border-subtle)',
+            : isFocused
+              ? '1px solid var(--accent-primary)'
+              : '1px solid var(--border-subtle)',
           borderRadius: 8,
-          transition: 'border-color 0.2s',
+          boxShadow: isFocused
+            ? '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)'
+            : 'none',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
           backgroundColor: 'var(--bg-input)',
+          animation: shouldShake ? 'shake 0.3s ease-in-out' : 'none',
         }}
       >
         <Lock
@@ -121,6 +156,7 @@ export function SecurePasswordInput({
               onEnter();
             }
           }}
+          onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder={t(placeholder)}
           disabled={disabled}
@@ -257,7 +293,15 @@ export function SecurePasswordInput({
         </div>
       </div>
       {error && (
-        <span role="alert" style={{ fontSize: 12, color: 'var(--accent-danger, #dc2626)' }}>
+        <span
+          role="alert"
+          key={error}
+          style={{
+            fontSize: 12,
+            color: 'var(--accent-danger, #dc2626)',
+            animation: 'fadeInSlideDown 0.25s ease-out',
+          }}
+        >
           {error}
         </span>
       )}
