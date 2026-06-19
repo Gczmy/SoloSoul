@@ -16,6 +16,9 @@ export type AccentPreset = 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'c
 export type BackgroundType = 'solid' | 'gradient' | 'image';
 
 export interface ThemeConfig {
+  /** When preset is 'system', the actual OS theme detected by Rust backend.
+   *  This avoids relying on WebView window.matchMedia which may not work. */
+  resolvedSystemTheme?: 'light' | 'dark';
   preset: ThemePreset;
   accentColor: AccentPreset;
   customAccentHex?: string;

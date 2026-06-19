@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
-import { applyTheme, listenForSystemTheme, stopListeningForSystemTheme } from '@/lib/theme';
+import { applyTheme, getSystemTheme, listenForSystemTheme, stopListeningForSystemTheme } from '@/lib/theme';
 import { useWindowSize } from '@/hooks/useWindowSize';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { confirm } from '@tauri-apps/plugin-dialog';
@@ -183,33 +183,36 @@ export function AppRoutes() {
     const account = useAuthStore.getState().currentAccount;
     if (isAuthenticated && account) {
       useProfileStore.getState().loadProfile(account.id);
-      useSettingsStore
-        .getState()
-        .loadSettings(account.id)
-        .then(() => {
-          // Re-apply theme with loaded settings (otherwise stays at defaults)
-          const s = useSettingsStore.getState().settings;
-          applyTheme({
-            preset:
-              s.theme === 'dark'
-                ? 'warm-stone-dark'
-                : s.theme === 'light'
-                  ? 'warm-stone-light'
-                  : 'system',
-            accentColor: s.accentColor,
-            backgroundType: s.backgroundType,
-            backgroundValue: s.backgroundValue,
-            defaultLightTheme: s.defaultLightTheme,
-            defaultDarkTheme: s.defaultDarkTheme,
-          });
-          // Language is correctly set by initI18n() via Rust IPC.
-          // User changes via settings are handled in settingsStore.
-          // Skip here — vault-stored locale may be stale (navigator.language fallback).
-          // P0-1: Load custom pages from objects table (separate from profile preferences)
-          // Must run AFTER loadSettings finishes to avoid race condition where
-          // loadSettings overwrites customPages with DEFAULT_SETTINGS.
-          useSettingsStore.getState().loadCustomPages(account.id);
+      useSettingsStore.getState().loadSettings(account.id).then(async () => {
+        // Re-apply theme with loaded settings (otherwise stays at defaults)
+        const s = useSettingsStore.getState().settings;
+        const resolvedSystemTheme =
+          s.theme === 'system'
+            ? await getSystemTheme()
+            : undefined;
+        await applyTheme({
+          preset:
+            s.theme === 'dark'
+              ? 'warm-stone-dark'
+              : s.theme === 'light'
+                ? 'warm-stone-light'
+                : 'system',
+          accentColor: s.accentColor,
+          backgroundType: s.backgroundType,
+          backgroundValue: s.backgroundValue,
+          defaultLightTheme: s.defaultLightTheme,
+          defaultDarkTheme: s.defaultDarkTheme,
+          resolvedSystemTheme:
+            typeof resolvedSystemTheme === 'string' ? resolvedSystemTheme : undefined,
         });
+        // Language is correctly set by initI18n() via Rust IPC.
+        // User changes via settings are handled in settingsStore.
+        // Skip here — vault-stored locale may be stale (navigator.language fallback).
+        // P0-1: Load custom pages from objects table (separate from profile preferences)
+        // Must run AFTER loadSettings finishes to avoid race condition where
+        // loadSettings overwrites customPages with DEFAULT_SETTINGS.
+        useSettingsStore.getState().loadCustomPages(account.id);
+      });
     }
   }, [isAuthenticated]);
 
@@ -218,36 +221,39 @@ export function AppRoutes() {
 
   // Apply theme on mount (4.3.5 — instant, no refresh needed)
   useEffect(() => {
-    const settings = useSettingsStore.getState().settings;
-    applyTheme({
-      preset:
-        settings.theme === 'dark'
-          ? 'warm-stone-dark'
-          : settings.theme === 'light'
-            ? 'warm-stone-light'
-            : 'system',
-      accentColor: settings.accentColor,
-      backgroundType: settings.backgroundType,
-      backgroundValue: settings.backgroundValue,
-      defaultLightTheme: settings.defaultLightTheme,
-      defaultDarkTheme: settings.defaultDarkTheme,
-    });
+    (async () => {
+      const settings = useSettingsStore.getState().settings;
+      await applyTheme({
+        preset:
+          settings.theme === 'dark'
+            ? 'warm-stone-dark'
+            : settings.theme === 'light'
+              ? 'warm-stone-light'
+              : 'system',
+        accentColor: settings.accentColor,
+        backgroundType: settings.backgroundType,
+        backgroundValue: settings.backgroundValue,
+        defaultLightTheme: settings.defaultLightTheme,
+        defaultDarkTheme: settings.defaultDarkTheme,
+      });
 
-    // Language is already set by initI18n() via IPC (authoritative).
-    // User-saved preferences are applied in the isAuthenticated effect (line 69-72).
-    // Skip here to avoid overriding correct detection with DEFAULT_SETTINGS on first launch.
+      // Language is already set by initI18n() via IPC (authoritative).
+      // User-saved preferences are applied in the isAuthenticated effect (line 69-72).
+      // Skip here to avoid overriding correct detection with DEFAULT_SETTINGS on first launch.
+    })();
 
     // Listen for system theme changes
     listenForSystemTheme((mode) => {
       const s = useSettingsStore.getState().settings;
       if (s.theme !== 'system') return;
-      applyTheme({
+      void applyTheme({
         preset: 'system',
         accentColor: s.accentColor,
         backgroundType: s.backgroundType,
         backgroundValue: s.backgroundValue,
         defaultLightTheme: s.defaultLightTheme,
         defaultDarkTheme: s.defaultDarkTheme,
+        resolvedSystemTheme: mode,
       });
     });
 
@@ -372,4 +378,3 @@ export function AppRoutes() {
     </>
   );
 }
-

@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { invoke } from '@tauri-apps/api/core';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
-import { applyTheme } from '@/lib/theme';
+import { applyTheme, getSystemTheme } from '@/lib/theme';
 import { applyScheme, getSchemeById } from '@/lib/themeSchemes';
 import { useTranslation } from 'react-i18next';
 import { ThemeSchemePanel } from '@/components/settings/ThemeSchemePanel';
@@ -79,9 +79,10 @@ export function AppearanceSettingsPage() {
     }
   };
 
-  const handlePresetChange = (preset: 'light' | 'dark' | 'system') => {
+  const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
     invoke('ui_update_preference', { key: 'theme', value: preset }).catch(() => {});
+    const resolvedSystemTheme = preset === 'system' ? await getSystemTheme() : undefined;
     applyTheme({
       preset:
         preset === 'dark' ? 'warm-stone-dark' : preset === 'light' ? 'warm-stone-light' : 'system',
@@ -90,13 +91,15 @@ export function AppearanceSettingsPage() {
       backgroundValue: '',
       defaultLightTheme: settings.defaultLightTheme,
       defaultDarkTheme: settings.defaultDarkTheme,
+      resolvedSystemTheme,
     });
     syncUiCache();
   };
 
-  const handleAccentChange = (accent: AccentPreset) => {
+  const handleAccentChange = async (accent: AccentPreset) => {
     updateSetting(accountId, 'accentColor', accent);
     invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch(() => {});
+    const resolvedSystemTheme = settings.theme === 'system' ? await getSystemTheme() : undefined;
     applyTheme({
       preset:
         settings.theme === 'dark'
@@ -109,25 +112,21 @@ export function AppearanceSettingsPage() {
       backgroundValue: '',
       defaultLightTheme: settings.defaultLightTheme,
       defaultDarkTheme: settings.defaultDarkTheme,
+      resolvedSystemTheme,
     });
     syncUiCache();
   };
 
-  const handleSelectScheme = (scheme: ThemeScheme) => {
+
+  const handleSelectScheme = async (scheme: ThemeScheme) => {
+    const currentMode = settings.theme === 'system' ? await getSystemTheme() : settings.theme;
     // If the selected scheme's mode differs from the current theme setting,
     // automatically switch to match so the UI state reflects the selected theme.
-    if (
-      scheme.mode !==
-      (settings.theme === 'system'
-        ? window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light'
-        : settings.theme)
-    ) {
+    if (scheme.mode !== currentMode) {
       const newTheme = scheme.mode;
       updateSetting(accountId, 'theme', newTheme);
       invoke('ui_update_preference', { key: 'theme', value: newTheme }).catch(() => {});
-      applyTheme({
+      await applyTheme({
         preset: newTheme === 'dark' ? 'warm-stone-dark' : 'warm-stone-light',
         accentColor: settings.accentColor as AccentPreset,
         backgroundType: 'solid',

@@ -155,7 +155,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             // Do not mirror back to solosoul_window_size here; restoreWindowSize()
             // owns that key and it may be newer than the ui_prefs snapshot.
           }
-          applyTheme({
+          await applyTheme({
             preset:
               p.theme === 'dark'
                 ? 'warm-stone-dark'
@@ -209,7 +209,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           }
         }
       }
-      applyTheme({
+      await applyTheme({
         preset:
           parsed.theme === 'dark'
             ? 'warm-stone-dark'

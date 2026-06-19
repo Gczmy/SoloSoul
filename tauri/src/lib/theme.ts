@@ -61,6 +61,7 @@ async function syncTitleBarColor(config: ThemeConfig) {
       config.preset,
       config.defaultLightTheme || 'warm-stone',
       config.defaultDarkTheme || 'warm-stone-dark',
+      config.resolvedSystemTheme,
     );
     const scheme = getSchemeById(schemeId);
     const bg = scheme?.variables['--bg-base'] || '#1c1c1e';
@@ -92,9 +93,23 @@ export function applyAccentColor(accent: AccentPreset, customHex?: string) {
   root.style.removeProperty('--accent-hover');
 }
 
+/** Query the Rust backend for the actual OS theme.
+ *  This is the fallback when window.matchMedia('prefers-color-scheme') does not
+ *  work correctly inside the Tauri WebView (e.g. on macOS). */
+export async function getSystemTheme(): Promise<'light' | 'dark'> {
+  try {
+    const mode = await invoke<string>('get_system_theme');
+    return mode === 'dark' ? 'dark' : 'light';
+  } catch {
+    // Fallback to window.matchMedia if IPC fails
+    return window.matchMedia(SYSTEM_DARK_MQ).matches ? 'dark' : 'light';
+  }
+}
+
 /** Full theme application: mode (data-theme attr) + accent color + active scheme */
-export function applyTheme(config: ThemeConfig) {
+export async function applyTheme(config: ThemeConfig) {
   const root = document.documentElement;
+
   // When preset is 'system', resolve to actual light/dark so all compound
   // [data-theme] CSS selectors (e.g. [data-theme='dark'][data-accent='ocean'])
   // match correctly. Relying on @media (prefers-color-scheme) for
@@ -104,19 +119,25 @@ export function applyTheme(config: ThemeConfig) {
   } else if (config.preset === 'warm-stone-dark') {
     root.setAttribute('data-theme', 'dark');
   } else {
-    const isDark = window.matchMedia(SYSTEM_DARK_MQ).matches;
-    root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    // preset === 'system' — resolve to actual OS mode
+    // Use backend-provided resolvedSystemTheme if available (more reliable on macOS),
+    // otherwise fall back to window.matchMedia.
+    const resolved = config.resolvedSystemTheme ?? (await getSystemTheme());
+    root.setAttribute('data-theme', resolved === 'dark' ? 'dark' : 'light');
   }
+
   // Apply accent color
   applyAccentColor(
     config.accentColor as AccentPreset,
     (config as { customAccentHex?: string }).customAccentHex,
   );
+
   // Apply active scheme variables
   const activeScheme = resolveActiveScheme(
     config.preset,
     config.defaultLightTheme || 'warm-stone',
     config.defaultDarkTheme || 'warm-stone-dark',
+    config.resolvedSystemTheme,
   );
   applyScheme(activeScheme);
 

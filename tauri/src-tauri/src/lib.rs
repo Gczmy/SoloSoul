@@ -390,6 +390,7 @@ pub fn run() {
             commands::discovery::mdns_discover,
             // System commands
             commands::system::get_app_info,
+            commands::system::get_system_theme,
             commands::system::get_system_locale,
             // Log commands
             commands::log::log_write,

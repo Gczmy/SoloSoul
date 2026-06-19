@@ -526,14 +526,21 @@ export function clearScheme() {
   });
 }
 
-/** Resolve which scheme should currently be active. */
+/** Resolve which scheme should currently be active.
+ *  When themePreset is 'system', use the provided systemTheme if available
+ *  (detected by Rust backend), otherwise fall back to matchMedia. */
+
 export function resolveActiveScheme(
   themePreset: ThemePreset,
   defaultLightTheme: string,
   defaultDarkTheme: string,
+  resolvedSystemTheme?: 'light' | 'dark',
 ): string {
   if (themePreset === 'system') {
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark =
+      resolvedSystemTheme !== undefined
+        ? resolvedSystemTheme === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
     return isDark ? defaultDarkTheme : defaultLightTheme;
   }
   return themePreset === 'warm-stone-dark' ? defaultDarkTheme : defaultLightTheme;
