@@ -66,11 +66,11 @@
 | P074 | P2 | 代码质量 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx` | 645 行，工作区页面职责过重 | `[ ]` 待修复 |
 | P075 | P2 | 代码质量 | `tauri/src/components/trash/TrashDetailPanel.tsx` | 626 行，回收站详情面板职责过重 | `[ ]` 待修复 |
 | P076 | P2 | 代码质量 | `tauri/src/pages/settings/SecuritySettingsPage.tsx` | 605 行，安全设置页面职责过重 | `[ ]` 待修复 |
-| P077 | P2 | 代码质量 | `tauri/src-tauri/src/commands/llm.rs` | 3323 行，LLM 命令模块过大 | `[ ]` 待修复 |
-| P078 | P2 | 代码质量 | `tauri/src-tauri/src/commands/object.rs` | 2249 行，对象命令模块过大 | `[ ]` 待修复 |
-| P079 | P2 | 代码质量 | `tauri/src-tauri/src/commands/export_import.rs` | 1632 行，导入导出命令模块过大 | `[ ]` 待修复 |
-| P080 | P2 | 代码质量 | `tauri/src-tauri/src/plugin/host.rs` | 1061 行，插件宿主逻辑过重 | `[ ]` 待修复 |
-| P081 | P2 | 代码质量 | `tauri/src-tauri/src/plugin/field.rs` | 1013 行，字段解析逻辑过重 | `[ ]` 待修复 |
+| P077 | P2 | 代码质量 | `tauri/src-tauri/src/commands/llm.rs` | 3323 行，LLM 命令模块过大 | `[x]` 已修复 |
+| P078 | P2 | 代码质量 | `tauri/src-tauri/src/commands/object.rs` | 2249 行，对象命令模块过大 | `[x]` 已修复 |
+| P079 | P2 | 代码质量 | `tauri/src-tauri/src/commands/export_import.rs` | 1632 行 → 拆分为 `commands/export_import/` (mod/export/import/helpers/tests.rs) | `[x]` 已修复 |
+| P080 | P2 | 代码质量 | `tauri/src-tauri/src/plugin/host.rs` | 1061 行 → 拆分为 `plugin/host/` (mod/register/memory/http/tests.rs) | `[x]` 已修复 |
+| P081 | P2 | 代码质量 | `tauri/src-tauri/src/plugin/field.rs` | 1013 行 → 拆分为 `plugin/field/` (mod/helpers/typed/tests.rs) | `[x]` 已修复 |
 | P082 | P2 | 代码规范 | 多文件 | `#[allow(dead_code)]` 标注清理 — 从 22 处清理至 9 处 | `[x]` 已修复 |
 | P083 | P2 | 代码规范 | 3 处 TODO | `doctor.rs`、`vault_write.rs` 已修复；`useRevealState.ts` 待产品规格 | `[x]` 已修复 |
 
@@ -102,8 +102,8 @@
 | `commands/llm.rs` | 3323 | LLM provider/model/chat/context 命令聚合，可按子模块拆分 |
 | `commands/object.rs` | 2249 | 对象 CRUD/关联/过滤命令聚合，可按子模块拆分 |
 | `commands/export_import.rs` | 1632 | 导入导出/加密/预览命令聚合，可按子模块拆分 |
-| `plugin/host.rs` | 1061 | WASM 插件生命周期/通信/HTTP 代理，可按生命周期/通信拆分 |
-| `plugin/field.rs` | 1013 | 字段解析/结构树/类型推断，可按解析/树构建拆分 |
+| `plugin/host.rs` | 1061 | ✅ 已拆分为 `plugin/host/mod.rs`(154) + `register.rs`(643) + `memory.rs`(155) + `http.rs`(65) + `tests.rs`(48) |
+| `plugin/field.rs` | 1013 | ✅ 已拆分为 `plugin/field/mod.rs`(447) + `helpers.rs`(97) + `typed.rs`(158) + `tests.rs`(470) |
 
 ### C. `#[allow(dead_code)]` 分布
 
