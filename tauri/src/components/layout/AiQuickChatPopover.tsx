@@ -452,6 +452,15 @@ export function AiQuickChatPopover({
     }
   };
 
+  const hoverBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+    e.currentTarget.style.color = 'var(--accent-primary)';
+  };
+  const hoverBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'transparent';
+    e.currentTarget.style.color = 'var(--text-secondary)';
+  };
+
   const isLocal = activeProvider ? isOllama(activeProvider.baseUrl) : false;
 
   const isFloating = placement === 'bottom' || placement === 'top';
@@ -505,6 +514,8 @@ export function AiQuickChatPopover({
               <button
                 onClick={handleNewConversation}
                 title={t('settings:ai_new_conv')}
+                onMouseEnter={hoverBtnEnter}
+                onMouseLeave={hoverBtnLeave}
                 style={{
                   padding: 4,
                   borderRadius: 6,
@@ -512,6 +523,7 @@ export function AiQuickChatPopover({
                   background: 'transparent',
                   cursor: 'pointer',
                   color: 'var(--text-secondary)',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <Plus size={14} />
@@ -519,6 +531,14 @@ export function AiQuickChatPopover({
               <button
                 onClick={() => setShowHistory((prev) => !prev)}
                 title={t('settings:ai_history')}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  if (!showHistory) e.currentTarget.style.color = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  if (!showHistory) e.currentTarget.style.color = 'var(--text-secondary)';
+                }}
                 style={{
                   padding: 4,
                   borderRadius: 6,
@@ -526,6 +546,7 @@ export function AiQuickChatPopover({
                   background: 'transparent',
                   cursor: 'pointer',
                   color: showHistory ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <History size={14} />
@@ -538,6 +559,8 @@ export function AiQuickChatPopover({
               navigate('/llm-chat');
             }}
             title={t('settings:ai_quick_chat_go_full')}
+            onMouseEnter={hoverBtnEnter}
+            onMouseLeave={hoverBtnLeave}
             style={{
               padding: 4,
               borderRadius: 6,
@@ -545,6 +568,7 @@ export function AiQuickChatPopover({
               background: 'transparent',
               cursor: 'pointer',
               color: 'var(--text-secondary)',
+              transition: 'all 0.15s ease',
             }}
           >
             <ArrowUpRight size={14} />
@@ -552,6 +576,14 @@ export function AiQuickChatPopover({
           <button
             onClick={onClose}
             title={t('common:close')}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-tertiary)';
+            }}
             style={{
               padding: 4,
               borderRadius: 6,
@@ -559,6 +591,7 @@ export function AiQuickChatPopover({
               background: 'transparent',
               cursor: 'pointer',
               color: 'var(--text-tertiary)',
+              transition: 'all 0.15s ease',
             }}
           >
             <X size={14} />

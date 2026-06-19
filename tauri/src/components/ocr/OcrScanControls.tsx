@@ -168,6 +168,16 @@ export function OcrScanControls({
         <button
           onClick={onSelectFile}
           disabled={isScanning}
+          onMouseEnter={(e) => {
+            if (!isScanning) {
+              e.currentTarget.style.filter = 'brightness(1.1)';
+              e.currentTarget.style.boxShadow = '0 4px 12px color-mix(in srgb, var(--accent-primary) 30%, transparent)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.filter = 'none';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
           style={{
             padding: '10px 20px',
             borderRadius: 10,
@@ -181,6 +191,7 @@ export function OcrScanControls({
             alignItems: 'center',
             gap: 8,
             opacity: isScanning ? 0.7 : 1,
+            transition: 'filter 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease',
           }}
         >
           <FileText size={16} />

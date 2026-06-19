@@ -78,10 +78,14 @@
   border-radius: 4px;
   display: flex;
   flex-shrink: 0;
+  transition: all 0.15s ease;
 }
 .closeBtn:hover {
-  background: var(--state-hover);
-  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
+}
+.closeBtn:active {
+  transform: scale(0.94);
 }
 
 /* Filter bar */
@@ -124,8 +128,12 @@
     border-color 0.12s ease;
 }
 .filterBtn:hover {
-  background: var(--state-hover);
-  border-color: var(--border-default);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.filterBtn:active {
+  transform: scale(0.96);
 }
 .filterBtnActive {
   background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
@@ -196,7 +204,10 @@
   transition: background 0.1s ease;
 }
 .resultItem:hover {
-  background: var(--state-hover);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+.resultItem:active {
+  transform: scale(0.97);
 }
 .resultText {
   min-width: 0;
@@ -258,8 +269,11 @@
   transition: background 0.1s ease;
 }
 .recentItem:hover {
-  background: var(--state-hover);
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
+}
+.recentItem:active {
+  transform: scale(0.97);
 }
 .settingsItem {
   display: flex;
@@ -278,8 +292,11 @@
   transition: background 0.1s ease;
 }
 .settingsItem:hover {
-  background: var(--state-hover);
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
+}
+.settingsItem:active {
+  transform: scale(0.97);
 }
 
 /* Footer — 始终固定在卡片底部 */

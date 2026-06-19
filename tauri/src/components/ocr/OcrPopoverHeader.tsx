@@ -12,6 +12,15 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
   const { t } = useTranslation(['ocr', 'common']);
   const navigate = useNavigate();
 
+  const hoverEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+    e.currentTarget.style.color = 'var(--accent-primary)';
+  };
+  const hoverLeaveDefault = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'transparent';
+    e.currentTarget.style.color = 'var(--text-secondary)';
+  };
+
   return (
     <div
       style={{
@@ -33,6 +42,14 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
         <button
           onClick={onToggleHistory}
           title={t('ocr:scan_history')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            if (!showHistory) e.currentTarget.style.color = 'var(--accent-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            if (!showHistory) e.currentTarget.style.color = 'var(--text-secondary)';
+          }}
           style={{
             padding: 4,
             borderRadius: 6,
@@ -40,6 +57,7 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
             background: 'transparent',
             cursor: 'pointer',
             color: showHistory ? 'var(--accent-primary)' : 'var(--text-secondary)',
+            transition: 'all 0.15s ease',
           }}
         >
           <History size={14} />
@@ -50,6 +68,8 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
             navigate('/ocr');
           }}
           title={t('ocr:go_to_full_page')}
+          onMouseEnter={hoverEnter}
+          onMouseLeave={hoverLeaveDefault}
           style={{
             padding: 4,
             borderRadius: 6,
@@ -57,6 +77,7 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
             background: 'transparent',
             cursor: 'pointer',
             color: 'var(--text-secondary)',
+            transition: 'all 0.15s ease',
           }}
         >
           <ArrowUpRight size={14} />
@@ -64,6 +85,14 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
         <button
           onClick={onClose}
           title={t('common:close')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            e.currentTarget.style.color = 'var(--accent-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--text-tertiary)';
+          }}
           style={{
             padding: 4,
             borderRadius: 6,
@@ -71,6 +100,7 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
             background: 'transparent',
             cursor: 'pointer',
             color: 'var(--text-tertiary)',
+            transition: 'all 0.15s ease',
           }}
         >
           <X size={14} />

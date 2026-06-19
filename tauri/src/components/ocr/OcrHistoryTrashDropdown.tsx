@@ -52,6 +52,18 @@ export function OcrHistoryTrashDropdown({
       >
         <button
           onClick={() => onShowTrashChange(false)}
+          onMouseEnter={(e) => {
+            if (showTrash) {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (showTrash) {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-tertiary)';
+            }
+          }}
           style={{
             fontSize: 12,
             padding: '4px 8px',
@@ -60,12 +72,25 @@ export function OcrHistoryTrashDropdown({
             background: !showTrash ? 'var(--bg-toolbar)' : 'transparent',
             color: !showTrash ? 'var(--text-primary)' : 'var(--text-tertiary)',
             cursor: 'pointer',
+            transition: 'all 0.15s ease',
           }}
         >
           {t('ocr:history_tab')} ({activeHistory.length})
         </button>
         <button
           onClick={() => onShowTrashChange(true)}
+          onMouseEnter={(e) => {
+            if (!showTrash) {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!showTrash) {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-tertiary)';
+            }
+          }}
           style={{
             fontSize: 12,
             padding: '4px 8px',
@@ -74,6 +99,7 @@ export function OcrHistoryTrashDropdown({
             background: showTrash ? 'var(--bg-toolbar)' : 'transparent',
             color: showTrash ? 'var(--text-primary)' : 'var(--text-tertiary)',
             cursor: 'pointer',
+            transition: 'all 0.15s ease',
           }}
         >
           {t('ocr:trash_tab')} ({trash.length})
@@ -154,25 +180,34 @@ export function OcrHistoryTrashDropdown({
                       }}
                     />
                   )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      store.softDeleteEntry(entry.id);
-                    }}
-                    title={t('common:delete')}
-                    className="ocr-history-item__btn"
-                    style={{
-                      padding: 2,
-                      borderRadius: 4,
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                      color: 'var(--text-tertiary)',
-                      flexShrink: 1,
-                    }}
-                  >
-                    <Trash2 size={12} />
-                  </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  store.softDeleteEntry(entry.id);
+                }}
+                title={t('common:delete')}
+                className="ocr-history-item__btn"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
+                  e.currentTarget.style.color = '#e74c3c';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'var(--text-tertiary)';
+                }}
+                style={{
+                  padding: 2,
+                  borderRadius: 4,
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  color: 'var(--text-tertiary)',
+                  flexShrink: 1,
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Trash2 size={12} />
+              </button>
                 </div>
               );
             })}
@@ -222,6 +257,12 @@ export function OcrHistoryTrashDropdown({
               <button
                 onClick={() => store.restoreEntry(entry.id)}
                 title={t('ocr:restore')}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
                 style={{
                   padding: 2,
                   borderRadius: 4,
@@ -229,6 +270,7 @@ export function OcrHistoryTrashDropdown({
                   background: 'transparent',
                   cursor: 'pointer',
                   color: 'var(--accent-primary)',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <RotateCcw size={12} />
@@ -236,6 +278,12 @@ export function OcrHistoryTrashDropdown({
               <button
                 onClick={() => store.permanentlyDeleteEntry(entry.id)}
                 title={t('ocr:permanently_delete')}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
                 style={{
                   padding: 2,
                   borderRadius: 4,
@@ -243,6 +291,7 @@ export function OcrHistoryTrashDropdown({
                   background: 'transparent',
                   cursor: 'pointer',
                   color: '#e74c3c',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <Trash2 size={12} />
@@ -252,6 +301,14 @@ export function OcrHistoryTrashDropdown({
           {trash.length > 1 && (
             <button
               onClick={() => store.clearTrash()}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#e74c3c';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = '#e74c3c';
+              }}
               style={{
                 margin: '6px 12px',
                 padding: '6px 10px',
@@ -262,6 +319,7 @@ export function OcrHistoryTrashDropdown({
                 fontSize: 12,
                 cursor: 'pointer',
                 textAlign: 'center',
+                transition: 'all 0.15s ease',
               }}
             >
               {t('ocr:clear_trash')}
