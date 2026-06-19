@@ -15,7 +15,6 @@ use crate::app::App;
 use color_eyre::Result;
 use rand::rngs::OsRng;
 use rand::RngCore;
-use std::path::Path;
 use std::sync::Arc;
 
 use solosoul_core::VaultService;
@@ -256,6 +255,3 @@ fn sync_identity(vault: &Arc<solosoul_vault::VaultStore>) -> (String, NoiseKeys)
 
     (node_id, keys)
 }
-
-#[allow(dead_code)]
-pub fn ensure_path(_p: &Path) {}

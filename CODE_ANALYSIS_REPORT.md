@@ -71,7 +71,7 @@
 | P079 | P2 | 代码质量 | `tauri/src-tauri/src/commands/export_import.rs` | 1632 行，导入导出命令模块过大 | `[ ]` 待修复 |
 | P080 | P2 | 代码质量 | `tauri/src-tauri/src/plugin/host.rs` | 1061 行，插件宿主逻辑过重 | `[ ]` 待修复 |
 | P081 | P2 | 代码质量 | `tauri/src-tauri/src/plugin/field.rs` | 1013 行，字段解析逻辑过重 | `[ ]` 待修复 |
-| P082 | P2 | 代码规范 | 多文件 | 22 处 `#[allow(dead_code)]` 标注（含测试、CLI WIP、Plugin SDK） | `[ ]` 待修复 |
+| P082 | P2 | 代码规范 | 多文件 | `#[allow(dead_code)]` 标注清理 — 从 22 处清理至 9 处 | `[x]` 已修复 |
 | P083 | P2 | 代码规范 | 3 处 TODO | `useRevealState.ts:90`、`doctor.rs:76`、`vault_write.rs:39` 含待办注释 | `[ ]` 待修复 |
 
 ---
@@ -161,7 +161,32 @@
 ## 修复进度
 
 - 历史已完成：20 / 20（P048–P067）
-- 本轮新增 P2：0 个（P068–P083 为观察项，非阻塞）
+- 本轮新增 P2：0 个；P082 已清理（22 → 9 处）
+- 本轮完成：P082 ✅
+
+### P082 `#[allow(dead_code)]` 清理详情
+
+**改动文件（8 个）**：
+- `solosoul_cli/src/commands/ocr.rs` — 移除 `bundled_models_dir()` 死代码函数（CLI 使用系统级模型路径，不依赖 bundled resources）
+- `solosoul_cli/src/commands/sync.rs` — 移除 `ensure_path()` 空实现及未使用的 `Path` 导入
+- `solosoul_cli/src/screens/settings_menu.rs` — 移除 `_color_marker()` 占位函数及未使用的 `Color` 导入
+- `solosoul_cli/src/screens/sync_status.rs` — 移除 `render_dummy()` 上的 `#[allow(dead_code)]`（该函数被 `mod.rs` 显式引用）
+- `solosoul_cli/src/commands/backup.rs` — `RestoreManifest` 3 个字段级 `#[allow(dead_code)]` → 1 个结构体级
+- `tauri/src-tauri/src/commands/backup.rs` — 同上
+- `tauri/crates/solosoul-vault/src/storage.rs` — 移除 `config` 字段及 `read_metadata`/`write_metadata` 函数上的标注（`delete_metadata` 保留，确为预留接口）
+
+**剩余 9 处（合理保留）**：
+| 位置 | 说明 |
+|------|------|
+| `solosoul-sync/manager.rs` | `PeerSession` WIP，待同步协议完成 |
+| `solosoul-plugin/host.rs` (×2) | `mod code` 错误码注册表，非全部常量被本地使用 |
+| `solosoul-vault/storage.rs` | `delete_metadata` 预留加密 blob 元数据接口 |
+| `solosoul-core/process_lock.rs` | `file` 字段必须持有以维持 fcntl 进程锁 |
+| `solosoul-core/biometric/mod.rs` | `macos_keychain` 仅 macOS 构建有效 |
+| `commands/backup.rs` (×2) | `RestoreManifest` 仅部分字段被反序列化使用 |
+| `services/llm_context.rs` | `created_at` 缓存元数据，预留 |
+
+**验证**：`cargo clippy --workspace --all-targets -- -D warnings` ✅ | `cargo test --lib` (162+72+18+22+22 passed) ✅ | `cargo test` (CLI, 139 passed) ✅ | `cargo fmt --check` ✅
 - 当前处理：无
 
 ---
@@ -171,7 +196,7 @@
 1. **基线完全健康**：TypeScript、ESLint、Clippy、测试、格式化全部通过，无 P1/P0 问题。
 2. **历史债务清零**：P048–P067 全部修复，包括 Rust 错误处理、前端 lint、大组件拆分、Stage 4 编译兼容性。
 3. **剩余优化方向**：P068–P083 均为 P2 级代码质量观察项，建议按以下优先级逐步处理：
-   - **高优先级**：清理 `#[allow(dead_code)]` 和 TODO（P082、P083）
+   - **高优先级**：清理 TODO（P083）
    - **中优先级**：Rust 大模块拆分（P077–P081），降低单文件维护成本
    - **低优先级**：前端剩余大组件拆分（P068–P076），大部分已在前两轮中拆分，剩余部分影响较小
 4. **安全评估**：所有 `unsafe` 均为必要 FFI，无新增漏洞；无硬编码密钥；无命令注入风险。

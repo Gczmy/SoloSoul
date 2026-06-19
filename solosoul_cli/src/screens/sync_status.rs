@@ -84,5 +84,4 @@ pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str)
 }
 
 /// 满足 mod.rs 中 crates 需要的占位函数（真实 render 在 render()）。
-#[allow(dead_code)]
 pub fn render_dummy() {}

@@ -200,12 +200,10 @@ pub async fn backup_restore(
     let content = fs::read_to_string(&backup_path).map_err(|e| e.to_string())?;
 
     #[derive(Deserialize)]
+    #[allow(dead_code)]
     struct RestoreManifest {
-        #[allow(dead_code)]
         version: String,
-        #[allow(dead_code)]
         created_at: String,
-        #[allow(dead_code)]
         profile_count: usize,
         profiles: Vec<RestoreProfileEntry>,
     }

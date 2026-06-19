@@ -40,12 +40,10 @@ struct BackupProfileEntry {
 
 /// 恢复时读取的清单结构。
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct RestoreManifest {
-    #[allow(dead_code)]
     version: String,
-    #[allow(dead_code)]
     created_at: String,
-    #[allow(dead_code)]
     profile_count: usize,
     profiles: Vec<RestoreProfileEntry>,
 }

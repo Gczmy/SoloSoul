@@ -59,25 +59,6 @@ pub fn models_dir(app: &App) -> PathBuf {
     app.vault_service.base_path().join("models")
 }
 
-/// 计算 bundled model 目录（由打包脚本写入 resources/）。
-#[allow(dead_code)]
-pub fn bundled_models_dir() -> PathBuf {
-    let exe_dir = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-        .unwrap_or_else(|| PathBuf::from("."));
-    let candidates = [
-        exe_dir.join("resources/models"),
-        exe_dir.join("../resources/models"),
-        exe_dir.join("../../resources/models"),
-        PathBuf::from("./resources/models"),
-    ];
-    candidates
-        .into_iter()
-        .find(|p| p.exists())
-        .unwrap_or_else(|| exe_dir.join("resources/models"))
-}
-
 fn tiers(app: &mut App) {
     let base = models_dir(app);
     let entries = build_tiers(&base);

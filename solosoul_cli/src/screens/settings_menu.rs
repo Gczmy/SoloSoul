@@ -5,7 +5,7 @@
 //! "用法: /setting <key> <value>" 错误。
 
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use ratatui::style::{Color, Modifier, Style, Stylize};
+use ratatui::style::{Modifier, Style, Stylize};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
@@ -201,12 +201,6 @@ fn display_theme_value(current: &str) -> String {
         "dark" => "深色".to_string(),
         other => other.to_string(),
     }
-}
-
-#[allow(dead_code)]
-fn _color_marker() -> Color {
-    // 占位保持 Color 被使用，避免 clippy unused。
-    Color::Reset
 }
 
 #[cfg(test)]

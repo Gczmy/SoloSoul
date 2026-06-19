@@ -17,7 +17,6 @@ use crate::{
 /// Vault store with SQLite backing
 pub struct VaultStore {
     conn: Mutex<Option<Connection>>,
-    #[allow(dead_code)]
     config: VaultConfig, // reserved for future path-based vault operations
     state: Mutex<VaultState>,
     data_key: Mutex<Option<DataEncryptionKey>>,
@@ -2540,7 +2539,6 @@ impl VaultStore {
     }
 
     // Metadata helpers for encrypted blob storage (reserved)
-    #[allow(dead_code)]
     fn read_metadata(&self, key: &str, prefix: &str) -> Result<Option<Vec<u8>>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
@@ -2565,7 +2563,6 @@ impl VaultStore {
         }
     }
 
-    #[allow(dead_code)]
     fn write_metadata(&self, key: &str, prefix: &str, data: &[u8]) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
