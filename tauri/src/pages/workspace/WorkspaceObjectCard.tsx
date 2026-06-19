@@ -105,7 +105,7 @@ export function WorkspaceObjectCard({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', minWidth: 0 }}>
-          <PAGE_ICON_MAP.custom size={22} />
+          <span style={{ flexShrink: 0, display: 'flex' }}><PAGE_ICON_MAP.custom size={22} /></span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
             <PluginBadge contractTypeId={obj.contractTypeId} size="sm" />
