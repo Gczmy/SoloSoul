@@ -25,7 +25,15 @@
     "startDate": "开始日期",
     "endDate": "结束日期",
     "company": "公司",
-    "position": "职位"
+    "position": "职位",
+    "streetAddress": "具体街道地址",
+    "district": "县/区",
+    "city": "城市",
+    "province": "省/州",
+    "postalCode": "邮政编码"
+  },
+  "templates": {
+    "address": "地址"
   },
   "in_section": "位于{{section}}",
   "field_types": {

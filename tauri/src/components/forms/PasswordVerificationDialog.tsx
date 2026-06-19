@@ -115,6 +115,7 @@ export function PasswordVerificationDialog({
           error={error}
           autoComplete="current-password"
           hint={hint}
+          onEnter={handleConfirm}
         />
         <div
           style={{

@@ -148,6 +148,7 @@ export function ImportSection({
               onChange={(v) => onSetImportPw(v)}
               placeholder={t('common:password_placeholder')}
               showHintButton={false}
+              onEnter={onDecrypt}
             />
           </div>
           {!decryptedPreview && (

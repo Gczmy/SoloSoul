@@ -549,6 +549,7 @@ export function ExportSection({
           }}
           placeholder={t('common:password_placeholder')}
           showHintButton={false}
+          onEnter={onExport}
         />
         <div style={{ marginTop: 8 }}>
           <SecurePasswordInput
@@ -556,6 +557,7 @@ export function ExportSection({
             onChange={(v) => onSetExportPasswordConfirm(v)}
             placeholder={t('settings:confirm_password')}
             showHintButton={false}
+            onEnter={onExport}
           />
         </div>
         {exportPassword &&

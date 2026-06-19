@@ -76,5 +76,7 @@
   "permanently_delete": "永久删除",
   "clear_trash": "清空回收站",
   "quick_scan_hint": "点击上方按钮选择文件开始扫描",
-  "scan_complete_notification": "扫描完成"
+  "scan_complete_notification": "扫描完成",
+  "first_install_completed": "OCR 模型安装完成",
+  "auto_close_countdown": "{{seconds}} 秒后自动关闭"
 }

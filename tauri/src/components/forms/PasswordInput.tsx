@@ -13,6 +13,8 @@ interface SecurePasswordInputProps {
   label?: string | ReactNode;
   error?: string | null;
   autoComplete?: string;
+  /** Enter key callback for form submission without mouse */
+  onEnter?: () => void;
   /** Password hint shown via the hint button tooltip */
   hint?: string | null;
   /** Whether to show the hint button. Defaults to true.
@@ -31,6 +33,7 @@ export function SecurePasswordInput({
   autoComplete,
   hint,
   showHintButton = true,
+  onEnter,
 }: SecurePasswordInputProps) {
   const inputId = useId();
   const [visible, setVisible] = useState(false);
@@ -112,6 +115,12 @@ export function SecurePasswordInput({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && onEnter) {
+              e.preventDefault();
+              onEnter();
+            }
+          }}
           onBlur={handleBlur}
           placeholder={t(placeholder)}
           disabled={disabled}

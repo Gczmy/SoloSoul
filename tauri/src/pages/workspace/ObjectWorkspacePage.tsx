@@ -225,9 +225,11 @@ export function ObjectWorkspacePage() {
       .then((counts) => {
         if (!isCancelled()) setSnapshotCounts(counts);
       })
-      .catch(() => {});
-    return cancel;
-  }, [visibleObjects, makeCancellable]);
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.error('snapshot_count_batch failed:', e);
+      });
+    return cancel;  }, [visibleObjects, makeCancellable]);
 
   // Load attachment counts for visible objects
   const refreshAttachmentCounts = useCallback(() => {

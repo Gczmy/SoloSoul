@@ -76,5 +76,7 @@
   "permanently_delete": "Permanently Delete",
   "clear_trash": "Empty Trash",
   "quick_scan_hint": "Click the button above to select a file and start scanning",
-  "scan_complete_notification": "Scan complete"
+  "scan_complete_notification": "Scan complete",
+  "first_install_completed": "OCR model installation complete",
+  "auto_close_countdown": "Auto-closing in {{seconds}}s"
 }

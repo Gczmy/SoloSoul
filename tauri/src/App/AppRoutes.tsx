@@ -11,7 +11,7 @@ import { useWindowSize } from '@/hooks/useWindowSize';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { confirm } from '@tauri-apps/plugin-dialog';
 import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
-import { OcrInstallBanner } from '@/components/ui/OcrInstallBanner';
+import { OcrInstallBanner, type OcrInstallPhase } from '@/components/ui/OcrInstallBanner';
 import { relaunch } from '@tauri-apps/plugin-process';
 import type { Update } from '@tauri-apps/plugin-updater';
 import { checkForUpdate } from '@/lib/updater';
@@ -42,6 +42,13 @@ export function AppRoutes() {
   >({ kind: 'hidden' });
   const [showOcrBanner, setShowOcrBanner] = useState(false);
   const { isInstalling, progress, error, startListening } = useOcrInstallStore();
+
+  // Derive OCR banner phase from store state for the new banner component.
+  const ocrPhase: OcrInstallPhase = error
+    ? 'error'
+    : isInstalling
+      ? 'installing'
+      : 'completed';
 
   // 启动时检查更新并显示非侵入式横幅
   useEffect(() => {
@@ -137,12 +144,7 @@ export function AppRoutes() {
     triggerOcrFirstInstall();
   }, [triggerOcrFirstInstall]);
 
-  // 安装完成或出错后，若已不在安装中且已完成，隐藏 banner。
-  useEffect(() => {
-    if (!isInstalling && isOcrFirstInstallDone()) {
-      setShowOcrBanner(false);
-    }
-  }, [isInstalling]);
+  // Banner auto-dismiss is now handled inside OcrInstallBanner component.
 
   // OCR 模型安装期间拦截窗口关闭，提示用户避免退出导致安装不完整。
   useEffect(() => {
@@ -326,7 +328,16 @@ export function AppRoutes() {
             />
           )}
           {showOcrBanner && (
-            <OcrInstallBanner progress={progress} error={error} onRetry={retryOcrInstall} />
+            <OcrInstallBanner
+              phase={ocrPhase}
+              progress={progress}
+              error={error}
+              onRetry={retryOcrInstall}
+              onClose={() => {
+                setShowOcrBanner(false);
+                markOcrFirstInstallDone();
+              }}
+            />
           )}
         </div>
       )}

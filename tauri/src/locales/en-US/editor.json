@@ -25,7 +25,15 @@
     "startDate": "Start Date",
     "endDate": "End Date",
     "company": "Company",
-    "position": "Position"
+    "position": "Position",
+    "streetAddress": "Street Address",
+    "district": "District",
+    "city": "City",
+    "province": "Province",
+    "postalCode": "Postal Code"
+  },
+  "templates": {
+    "address": "Address"
   },
   "in_section": "in {{section}}",
   "field_types": {

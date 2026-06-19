@@ -17,8 +17,8 @@ export function BootstrapPage() {
   const [passwordHint, setPasswordHint] = useState('');
   const { t } = useTranslation(['auth', 'common']);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (password !== confirm) return;
     // Use the language currently active in i18next (detected via Rust IPC),
     // NOT navigator.language (which is unreliable on Windows WebView2)
@@ -70,6 +70,7 @@ export function BootstrapPage() {
             onChange={(v) => setPassword(v)}
             placeholder={t('common:password_placeholder')}
             autoComplete="new-password"
+            onEnter={handleSubmit}
           />
           <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: -12 }}>
             {t('auth:password_rule_hint')}
@@ -80,6 +81,7 @@ export function BootstrapPage() {
             onChange={(v) => setConfirm(v)}
             placeholder={t('common:password_placeholder')}
             autoComplete="new-password"
+            onEnter={handleSubmit}
           />
           <Input
             label={t('auth:password_hint')}

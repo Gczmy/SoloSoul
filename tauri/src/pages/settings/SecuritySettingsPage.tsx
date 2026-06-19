@@ -391,6 +391,7 @@ export function SecuritySettingsPage() {
               placeholder={t('common:password_placeholder')}
               autoComplete="current-password"
               hint={currentAccount?.passwordHint || null}
+              onEnter={handleChangePassword}
             />
 
             {/* 10.1 — 新密码 + 10.2 密码要求提示 */}
@@ -577,6 +578,7 @@ export function SecuritySettingsPage() {
               autoComplete="current-password"
               showHintButton={true}
               hint={currentAccount?.passwordHint || null}
+              onEnter={handleBioConfirm}
             />
             {error && (
               <div style={{ color: '#dc2626', fontSize: 13, padding: '4px 0', marginTop: 8 }}>

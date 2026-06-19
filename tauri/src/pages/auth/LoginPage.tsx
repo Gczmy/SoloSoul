@@ -168,8 +168,8 @@ export function LoginPage() {
     }
   }, [selectedAccountId, bioLoading, t, navigate, biometryTypeRaw]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     clearError();
     setBioError(null);
     setSubmitError(null);
@@ -330,6 +330,7 @@ export function LoginPage() {
               placeholder={t('common:password_placeholder')}
               hint={selectedAccount?.passwordHint || null}
               autoComplete="current-password"
+              onEnter={handleSubmit}
             />
             {(error || bioError || submitError) && (
               <div style={{ color: '#e74c3c', fontSize: 13 }}>
