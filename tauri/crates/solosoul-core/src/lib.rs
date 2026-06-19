@@ -17,6 +17,9 @@ pub mod process_lock;
 pub mod template_service;
 pub mod vault_service;
 
+/// Crate version (from Cargo.toml at compile time).
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 //  Convenience re-exports for callers that only need the public types.
 pub use vault_service::{AccountConfig, AccountSummary, VaultService};
 

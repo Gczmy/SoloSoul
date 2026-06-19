@@ -72,7 +72,7 @@
 | P080 | P2 | 代码质量 | `tauri/src-tauri/src/plugin/host.rs` | 1061 行，插件宿主逻辑过重 | `[ ]` 待修复 |
 | P081 | P2 | 代码质量 | `tauri/src-tauri/src/plugin/field.rs` | 1013 行，字段解析逻辑过重 | `[ ]` 待修复 |
 | P082 | P2 | 代码规范 | 多文件 | `#[allow(dead_code)]` 标注清理 — 从 22 处清理至 9 处 | `[x]` 已修复 |
-| P083 | P2 | 代码规范 | 3 处 TODO | `useRevealState.ts:90`、`doctor.rs:76`、`vault_write.rs:39` 含待办注释 | `[ ]` 待修复 |
+| P083 | P2 | 代码规范 | 3 处 TODO | `doctor.rs`、`vault_write.rs` 已修复；`useRevealState.ts` 待产品规格 | `[x]` 已修复 |
 
 ---
 
@@ -162,7 +162,20 @@
 
 - 历史已完成：20 / 20（P048–P067）
 - 本轮新增 P2：0 个；P082 已清理（22 → 9 处）
-- 本轮完成：P082 ✅
+- 本轮完成：P082 ✅ / P083 ✅
+
+### P083 TODO 清理详情
+
+**修复说明**：
+- `solosoul_cli/src/commands/doctor.rs`：在 `solosoul-core` 和 `solosoul-vault` 的 `lib.rs` 中各添加 `pub const VERSION: &str = env!("CARGO_PKG_VERSION");`，CLI 诊断报告改为引用 crate 真实版本而非 CLI 自身版本
+- `solosoul_cli/src/commands/vault_write.rs`：
+  - 实现 `load_trash_retention(vault, account_id)` 从 profile.data 的 `/preferences/trashRetention` 读取保留期
+  - 实现 `parse_retention_ms(period)` 支持 `7d`/`30d`/`60d`/`half_year`/`6m` 及任意天数格式
+  - 移除 `trash_retention_ms()` 死代码（结果此前即未被使用）
+  - `move_object_to_trash()` 改为接收 `retention_ms: i64` 参数，避免页面级联删除时对每个子对象重复读取 profile（消除 N+1）
+- `tauri/src/hooks/useRevealState.ts`：TODO 不可本轮修复 — 字段类型感知掩码需要产品规格定义字段类型注册表和掩码规则 DSL。注释已更新为明确的 `NOTE: Product spec needed...`
+
+**验证**：`cargo clippy --workspace --all-targets -- -D warnings` ✅ | `cargo test --lib` (162+72+18+22+22 passed) ✅ | `cargo test` (CLI, 139 passed) ✅ | `cargo fmt --check` ✅
 
 ### P082 `#[allow(dead_code)]` 清理详情
 

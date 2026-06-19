@@ -72,9 +72,9 @@ fn build_report(app: &App) -> Result<DoctorReport> {
         data_dir_writable,
         account_count,
         account_errors,
-        core_version: env!("CARGO_PKG_VERSION").to_string(),
-        // TODO: 从 solosoul-core / solosoul-vault 的 Cargo.toml 读取真实版本
-        vault_version: env!("CARGO_PKG_VERSION").to_string(),
+        core_version: solosoul_core::VERSION.to_string(),
+        // solosoul-vault crate version at CLI compile time
+        vault_version: solosoul_vault::VERSION.to_string(),
         platform: format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH),
         lock_acquired,
         log_path: app.log_path.display().to_string(),

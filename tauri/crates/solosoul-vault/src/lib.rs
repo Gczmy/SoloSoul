@@ -1,9 +1,14 @@
 //! SoloSoul Vault 存储库
 //!
+//! Crate version: see [`VERSION`].
+//!
 //! 提供：
 //! - SQLite 存储 (profiles / metadata / audit_log)
 //! - Vault 生命周期管理（open / lock）
 //! - 原子文件写入（safe_storage）
+
+/// Crate version (from Cargo.toml at compile time).
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub mod encryption;
 pub mod migration;

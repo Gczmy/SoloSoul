@@ -35,9 +35,36 @@ use std::sync::Arc;
 
 const DEFAULT_TRASH_RETENTION_MS: i64 = 30 * 24 * 3600 * 1000;
 
-fn trash_retention_ms(_app: &App, _account_id: &str) -> i64 {
-    // TODO: 从 profile preferences 读取 trashRetention，当前使用默认值 30 天。
+fn load_trash_retention(vault: &solosoul_core::VaultStore, account_id: &str) -> i64 {
+    if let Ok(Some(profile)) = vault.load_profile(account_id) {
+        if !profile.data.is_empty() {
+            if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
+                if let Some(ret) = data
+                    .pointer("/preferences/trashRetention")
+                    .and_then(|v| v.as_str())
+                {
+                    return parse_retention_ms(ret);
+                }
+            }
+        }
+    }
     DEFAULT_TRASH_RETENTION_MS
+}
+
+fn parse_retention_ms(period: &str) -> i64 {
+    match period {
+        "7d" => 7 * 24 * 3600 * 1000,
+        "30d" => 30 * 24 * 3600 * 1000,
+        "60d" => 60 * 24 * 3600 * 1000,
+        "half_year" | "half-year" | "6m" => 180 * 24 * 3600 * 1000,
+        _ => {
+            if let Ok(days) = period.trim_end_matches('d').parse::<i64>() {
+                days * 24 * 3600 * 1000
+            } else {
+                DEFAULT_TRASH_RETENTION_MS
+            }
+        }
+    }
 }
 
 // ============================================================================
@@ -395,7 +422,8 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
         );
     } else {
         // 普通对象直接软删除。
-        move_object_to_trash(&vault, &record, "object", None)?;
+        let retention_ms = load_trash_retention(&vault, &record.account_id);
+        move_object_to_trash(&vault, &record, "object", None, retention_ms)?;
         vault.delete_object(&record.id, true).map_err(map_err)?;
         let _ = vault.log_structured(
             "object_delete",
@@ -415,19 +443,24 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
 fn delete_page(app: &mut App, page: &ObjectRecord, children: &[ObjectSummary]) -> Result<()> {
     let account_id = page.account_id.clone();
     let vault = vault(app)?;
-    let _now_ms = chrono::Utc::now().timestamp_millis();
-    let _retention_ms = trash_retention_ms(app, &account_id);
+    let retention_ms = load_trash_retention(&vault, &account_id);
 
     // 1. 先将子对象移入回收站并软删除。
     for child_summary in children {
         if let Ok(Some(child)) = vault.load_object(&child_summary.id) {
-            let _ = move_object_to_trash(&vault, &child, "object", Some(page.id.clone()));
+            let _ = move_object_to_trash(
+                &vault,
+                &child,
+                "object",
+                Some(page.id.clone()),
+                retention_ms,
+            );
             let _ = vault.delete_object(&child.id, true);
         }
     }
 
     // 2. 将页面本身移入回收站并软删除。
-    move_object_to_trash(&vault, page, "page", None)?;
+    move_object_to_trash(&vault, page, "page", None, retention_ms)?;
     vault.delete_object(&page.id, true).map_err(map_err)?;
 
     let _ = vault.log_structured(
@@ -453,9 +486,9 @@ fn move_object_to_trash(
     record: &ObjectRecord,
     item_type: &str,
     original_parent_id: Option<String>,
+    retention_ms: i64,
 ) -> Result<()> {
     let now_ms = chrono::Utc::now().timestamp_millis();
-    let retention_ms = DEFAULT_TRASH_RETENTION_MS;
     let full_record = serde_json::json!({
         "id": record.id,
         "account_id": record.account_id,

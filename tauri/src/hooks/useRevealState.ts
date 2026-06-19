@@ -87,8 +87,9 @@ export function useRevealState() {
   const maskValue = useCallback(
     (value: string, fieldId: string, sensitivity: SensitivityLevel): string => {
       if (!shouldMask(fieldId, sensitivity)) return value;
-      // Full mask for all non-public levels. TODO: support field-type-aware
-      // partial masking (e.g. bank card: show last 4 digits, date: show year only).
+      // NOTE: Product spec needed — implement field-type-aware partial masking.
+      // Requires field type registry + mask rule DSL (see §09 对象规范).
+      // Examples: bank card → show last 4 digits; date → show year only.
       return '••••••••';
     },
     [shouldMask],
