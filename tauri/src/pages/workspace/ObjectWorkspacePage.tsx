@@ -237,11 +237,13 @@ export function ObjectWorkspacePage() {
     [objects, searchQuery],
   );
 
+  const snapshotReqRef = useRef(0);
+
   // Load snapshot counts for visible objects
   useEffect(() => {
-    const { isCancelled, cancel } = makeCancellable();
     const ids = visibleObjects.map((o) => o.id);
-    if (ids.length === 0) return cancel;
+    if (ids.length === 0) return;
+    const reqId = ++snapshotReqRef.current;
     // Initialize with 0 immediately so badges render without waiting for the invoke
     const initial: Record<string, number> = {};
     for (const id of ids) initial[id] = 0;
@@ -249,19 +251,20 @@ export function ObjectWorkspacePage() {
 
     invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
       .then((counts) => {
-        if (!isCancelled()) {
-          // Ensure every visible object has a snapshot count (default 0)
-          const full: Record<string, number> = {};
-          for (const id of ids) full[id] = counts[id] ?? 0;
-          setSnapshotCounts(full);
-        }
+        if (snapshotReqRef.current !== reqId) return; // stale response, discard
+        // Ensure every visible object has a snapshot count (default 0)
+        const full: Record<string, number> = {};
+        for (const id of ids) full[id] = counts[id] ?? 0;
+        setSnapshotCounts(full);
       })
       .catch((e) => {
+        if (snapshotReqRef.current !== reqId) return; // stale error, discard
         // eslint-disable-next-line no-console
         console.error('snapshot_count_batch failed:', e);
       });
-    return cancel;
-  }, [visibleObjects, makeCancellable]);
+    // Increment ref on cleanup so in-flight responses become stale (handles Strict Mode + unmount)
+    return () => { snapshotReqRef.current++; };
+  }, [visibleObjects]);
 
   // Load attachment counts for visible objects
   const refreshAttachmentCounts = useCallback(() => {

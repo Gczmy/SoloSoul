@@ -295,6 +295,7 @@ function CountButton({
       </button>
       {count !== undefined && count > 0 && (
         <span
+          data-testid={`count-badge-${title.toLowerCase()}`}
           style={{
             position: 'absolute',
             top: -2,

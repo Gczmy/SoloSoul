@@ -47,6 +47,12 @@ impl VaultStore {
         // Migrate plaintext legacy data to encrypted format on first open.
         store.migrate_to_encrypted_format()?;
 
+        // 一次性补齐旧对象缺失的初始 snapshot，使历史 badge 能正常显示。
+        // 仅在 Vault 已解锁（有 data_key）时执行；已标记过的 Vault 会自动跳过。
+        if store.data_key().is_ok() {
+            let _ = store.backfill_missing_snapshots();
+        }
+
         Ok(store)
     }
 
@@ -2223,7 +2229,10 @@ impl VaultStore {
                 let decrypted = decrypt_field(&key, &raw_data).ok();
                 let contract_type_id = decrypted
                     .and_then(|d| serde_json::from_slice::<serde_json::Value>(&d).ok())
-                    .and_then(|v| v.get("contract_type_id").and_then(|c| c.as_str().map(String::from)));
+                    .and_then(|v| {
+                        v.get("contract_type_id")
+                            .and_then(|c| c.as_str().map(String::from))
+                    });
                 Ok(TrashItemSummary {
                     id: row.get(0)?,
                     item_type: row.get(1)?,
@@ -2361,18 +2370,71 @@ impl VaultStore {
             .map(|s| s as &dyn rusqlite::types::ToSql)
             .collect();
         let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
-        let mut map: std::collections::HashMap<String, usize> = stmt
+        let map: std::collections::HashMap<String, usize> = stmt
             .query_map(params.as_slice(), |row| {
                 Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)? as usize))
             })
             .map_err(|e| e.to_string())?
             .collect::<Result<std::collections::HashMap<String, usize>, _>>()
             .map_err(|e| e.to_string())?;
-        // Ensure every requested object_id appears in the result (0 for those without snapshots)
-        for id in object_ids {
-            map.entry(id.clone()).or_insert(0);
-        }
         Ok(map)
+    }
+
+    /// 一次性迁移：为当前 Vault 中没有 snapshot 的活跃对象补一条初始 snapshot。
+    /// 通过 sys_config 标记避免重复执行。
+    pub fn backfill_missing_snapshots(&self) -> Result<usize, String> {
+        const BACKFILL_FLAG: &str = "snapshot_backfill_v1";
+        if self
+            .get_sys_config(BACKFILL_FLAG)?
+            .map(|v| v == "1")
+            .unwrap_or(false)
+        {
+            return Ok(0);
+        }
+
+        let object_ids: Vec<String> = {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            let mut stmt = conn
+                .prepare(
+                    "SELECT o.id FROM objects o
+                     LEFT JOIN object_snapshots s ON o.id = s.object_id
+                     WHERE o.is_deleted = 0 AND s.object_id IS NULL",
+                )
+                .map_err(|e| e.to_string())?;
+            let ids: Vec<String> = stmt
+                .query_map([], |row| row.get::<_, String>(0))
+                .map_err(|e| e.to_string())?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| e.to_string())?;
+            ids
+        };
+
+        let mut created = 0;
+        for id in &object_ids {
+            if let Ok(Some(obj)) = self.load_object(id) {
+                let snapshot_data = serde_json::to_vec(&serde_json::json!({
+                    "name": obj.name,
+                    "tags": obj.tags_json,
+                    "properties": obj.properties,
+                }))
+                .unwrap_or_default();
+                if self
+                    .save_snapshot(
+                        id,
+                        "backfill",
+                        &snapshot_data,
+                        "Auto-created initial snapshot",
+                    )
+                    .is_ok()
+                {
+                    created += 1;
+                }
+            }
+        }
+
+        let _ = self.set_sys_config(BACKFILL_FLAG, "1");
+        Ok(created)
     }
 
     /// §25.5 — Save an object snapshot for history
@@ -3928,6 +3990,7 @@ mod tests {
             .unwrap();
         assert_eq!(counts.get("obj-a"), Some(&2));
         assert_eq!(counts.get("obj-b"), Some(&1));
+        // 纯计数：没有 snapshot 的对象不会出现在结果中
         assert_eq!(counts.get("obj-c"), None);
     }
 
@@ -3936,6 +3999,50 @@ mod tests {
         let (vault, _dir) = setup();
         let counts = vault.count_snapshots_batch(&[]).unwrap();
         assert!(counts.is_empty());
+    }
+
+    #[test]
+    fn test_backfill_missing_snapshots() {
+        let (vault, _dir) = setup();
+        let now = chrono::Utc::now().to_rfc3339();
+        let record = ObjectRecord {
+            id: "obj-no-snap".to_string(),
+            account_id: "test_account".to_string(),
+            type_id: "identity".to_string(),
+            section_type: "identity".to_string(),
+            name: "No Snapshot".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"note": "initial"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            contract_type_id: None,
+            created_at: now.clone(),
+            updated_at: now,
+            version: 1,
+        };
+        vault.save_object(&record).unwrap();
+
+        // setup() 已触发过一次 backfill 并设置了标记，先重置标记以测试本次迁移
+        vault.set_sys_config("snapshot_backfill_v1", "0").unwrap();
+
+        // 首次 backfill 应为无 snapshot 的对象创建一条初始 snapshot
+        let created = vault.backfill_missing_snapshots().unwrap();
+        assert_eq!(created, 1);
+        let counts = vault
+            .count_snapshots_batch(&["obj-no-snap".to_string()])
+            .unwrap();
+        assert_eq!(counts.get("obj-no-snap"), Some(&1));
+
+        // 再次调用应被标记跳过
+        let created2 = vault.backfill_missing_snapshots().unwrap();
+        assert_eq!(created2, 0);
     }
 
     #[test]
