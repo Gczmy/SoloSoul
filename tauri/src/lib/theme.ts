@@ -36,7 +36,11 @@ function hexToRgb(hex: string): [number, number, number] | null {
 
 function rgbToHex(r: number, g: number, b: number): string {
   return `#${[r, g, b]
-    .map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0'))
+    .map((v) =>
+      Math.max(0, Math.min(255, Math.round(v)))
+        .toString(16)
+        .padStart(2, '0'),
+    )
     .join('')}`;
 }
 
@@ -90,7 +94,19 @@ export function applyAccentColor(accent: AccentPreset, customHex?: string) {
 
 /** Full theme application: mode (data-theme attr) + accent color + active scheme */
 export function applyTheme(config: ThemeConfig) {
-  const root = document.documentElement;  // Set theme data attribute for CSS selectors  // When preset is 'system', resolve to actual light/dark so all compound  // [data-theme] CSS selectors (e.g. [data-theme='dark'][data-accent='ocean'])  // match correctly. Relying on @media (prefers-color-scheme) for  // [data-theme='system'] leaves gaps for accent colors and other overrides.  if (config.preset === 'warm-stone-light') {    root.setAttribute('data-theme', 'light');  } else if (config.preset === 'warm-stone-dark') {    root.setAttribute('data-theme', 'dark');  } else {    const isDark = window.matchMedia(SYSTEM_DARK_MQ).matches;    root.setAttribute('data-theme', isDark ? 'dark' : 'light');  }
+  const root = document.documentElement;
+  // When preset is 'system', resolve to actual light/dark so all compound
+  // [data-theme] CSS selectors (e.g. [data-theme='dark'][data-accent='ocean'])
+  // match correctly. Relying on @media (prefers-color-scheme) for
+  // [data-theme='system'] leaves gaps for accent colors and other overrides.
+  if (config.preset === 'warm-stone-light') {
+    root.setAttribute('data-theme', 'light');
+  } else if (config.preset === 'warm-stone-dark') {
+    root.setAttribute('data-theme', 'dark');
+  } else {
+    const isDark = window.matchMedia(SYSTEM_DARK_MQ).matches;
+    root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  }
   // Apply accent color
   applyAccentColor(
     config.accentColor as AccentPreset,
