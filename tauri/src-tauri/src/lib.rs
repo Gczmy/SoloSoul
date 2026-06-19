@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use std::sync::OnceLock;
+use tauri::Emitter;
 use tauri::Manager;
 
 pub mod commands;
@@ -301,6 +302,24 @@ pub fn run() {
                         }
                     }
                 }
+            }
+
+            // 8. 启动系统主题轮询任务，当检测到主题变化时通过 Tauri Event 通知前端
+            {
+                let app_handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    use std::time::Duration;
+                    let mut last_theme = String::new();
+                    loop {
+                        tokio::time::sleep(Duration::from_secs(1)).await;
+                        if let Ok(theme) = commands::system::get_system_theme() {
+                            if theme != last_theme {
+                                last_theme = theme.clone();
+                                let _ = app_handle.emit("system-theme-changed", theme);
+                            }
+                        }
+                    }
+                });
             }
 
             Ok(())

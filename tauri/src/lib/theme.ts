@@ -16,8 +16,6 @@ const ACCENT_COLORS: Record<AccentPreset, string> = {
 };
 
 const SYSTEM_DARK_MQ = '(prefers-color-scheme: dark)';
-let systemMediaQuery: MediaQueryList | null = null;
-let systemListener: ((e: MediaQueryListEvent) => void) | null = null;
 
 function hexToRgb(hex: string): [number, number, number] | null {
   const cleaned = hex.replace('#', '');
@@ -145,24 +143,34 @@ export async function applyTheme(config: ThemeConfig) {
   void syncTitleBarColor(config);
 }
 
-/** Listen for system theme changes (4.3.5).
- *  The callback receives the new mode; callers should check their own settings
- *  (e.g. settings.theme === 'system') before applying changes. */
-export function listenForSystemTheme(onThemeChange: (mode: 'light' | 'dark') => void) {
-  if (systemMediaQuery && systemListener) {
-    systemMediaQuery.removeEventListener('change', systemListener);
+/** Listen for system theme changes (4.3.5) via Tauri Event from Rust backend.
+ *  The Rust side polls dark-light::detect() every second and emits
+ *  'system-theme-changed' when the OS theme changes.
+ *  Returns an unlisten function that should be called on cleanup.
+ *  Falls back to window.matchMedia in non-Tauri environments.
+ *  Callers should check their own settings (e.g. settings.theme === 'system')
+ *  before applying changes. */
+export async function listenForSystemTheme(
+  onThemeChange: (mode: 'light' | 'dark') => void,
+): Promise<() => void> {
+  try {
+    const { listen } = await import('@tauri-apps/api/event');
+    const unlisten = await listen<string>('system-theme-changed', (event) => {
+      const mode = event.payload === 'dark' ? 'dark' : 'light';
+      onThemeChange(mode);
+    });
+    return unlisten;
+  } catch {
+    // Fallback for non-Tauri environments (browser, Storybook, tests)
+    const mq = window.matchMedia(SYSTEM_DARK_MQ);
+    const listener = (e: MediaQueryListEvent) => onThemeChange(e.matches ? 'dark' : 'light');
+    mq.addEventListener('change', listener);
+    return () => mq.removeEventListener('change', listener);
   }
-  systemMediaQuery = window.matchMedia(SYSTEM_DARK_MQ);
-  systemListener = (e: MediaQueryListEvent) => {
-    onThemeChange(e.matches ? 'dark' : 'light');
-  };
-  systemMediaQuery.addEventListener('change', systemListener);
 }
 
+/** Legacy no-op; unlisten is now returned by listenForSystemTheme. Kept for
+ *  backward compatibility with existing call sites that may still invoke it. */
 export function stopListeningForSystemTheme() {
-  if (systemMediaQuery && systemListener) {
-    systemMediaQuery.removeEventListener('change', systemListener);
-    systemMediaQuery = null;
-    systemListener = null;
-  }
+  // No-op: the unlisten function is returned by listenForSystemTheme.
 }

@@ -242,23 +242,26 @@ export function AppRoutes() {
       // Skip here to avoid overriding correct detection with DEFAULT_SETTINGS on first launch.
     })();
 
-    // Listen for system theme changes
-    listenForSystemTheme((mode) => {
-      const s = useSettingsStore.getState().settings;
-      if (s.theme !== 'system') return;
-      void applyTheme({
-        preset: 'system',
-        accentColor: s.accentColor,
-        backgroundType: s.backgroundType,
-        backgroundValue: s.backgroundValue,
-        defaultLightTheme: s.defaultLightTheme,
-        defaultDarkTheme: s.defaultDarkTheme,
-        resolvedSystemTheme: mode,
+    // Listen for system theme changes (via Tauri Event from Rust backend)
+    let unlistenSystemTheme: (() => void) | undefined;
+    (async () => {
+      unlistenSystemTheme = await listenForSystemTheme((mode) => {
+        const s = useSettingsStore.getState().settings;
+        if (s.theme !== 'system') return;
+        void applyTheme({
+          preset: 'system',
+          accentColor: s.accentColor,
+          backgroundType: s.backgroundType,
+          backgroundValue: s.backgroundValue,
+          defaultLightTheme: s.defaultLightTheme,
+          defaultDarkTheme: s.defaultDarkTheme,
+          resolvedSystemTheme: mode,
+        });
       });
-    });
+    })();
 
     return () => {
-      stopListeningForSystemTheme();
+      unlistenSystemTheme?.();
     };
   }, []);
 
