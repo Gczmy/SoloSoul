@@ -38,7 +38,13 @@
   padding: 6px;
   border-radius: 6px;
   display: flex;
+  transition: all 0.15s ease;
 }
 .backButton:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+}
+
+.backButton:active {
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  transform: scale(0.94);
 }
