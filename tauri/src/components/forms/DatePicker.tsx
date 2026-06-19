@@ -114,7 +114,7 @@ export function DatePicker({
   const yearOptions = useMemo(() => {
     const years: number[] = [];
     // Reasonable range for native select: covers 1900s to future
-    for (let y = currentYear - 80; y <= currentYear + 10; y++) {
+    for (let y = currentYear - 10; y <= currentYear + 10; y++) {
       years.push(y);
     }
     return years;
