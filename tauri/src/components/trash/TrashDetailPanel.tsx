@@ -11,6 +11,21 @@ import { formatBytes } from '@/lib/format';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, SnapshotEntry, TrashAttachment } from './types';
 
+/** Truncate long file names preserving extension: 'abcdefg…-.pdf' */
+function truncateFileName(fileName: string, maxLen: number = 28): string {
+  const dotIndex = fileName.lastIndexOf('.');
+  if (dotIndex <= 0) {
+    if (fileName.length <= maxLen) return fileName;
+    return fileName.slice(0, maxLen - 1) + '…';
+  }
+  const baseName = fileName.slice(0, dotIndex);
+  const ext = fileName.slice(dotIndex);
+  if (fileName.length <= maxLen) return fileName;
+  const available = maxLen - ext.length - 2;
+  if (available <= 1) return fileName.slice(0, maxLen - 1) + '…';
+  return baseName.slice(0, available) + '…-' + ext;
+}
+
 interface TrashDetailPanelProps {
   detailItem: TrashDetail;
   detailTemplate: UserTemplate | null;
@@ -299,11 +314,9 @@ export function TrashDetailPanel({
                               fontWeight: 500,
                               marginBottom: 2,
                               overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
                             }}
                           >
-                            {a.fileName}
+                            {truncateFileName(a.fileName)}
                           </div>
                           <div style={{ color: 'var(--text-tertiary)', fontSize: 11 }}>
                             {formatBytes(a.sizeBytes)} ·{' '}
