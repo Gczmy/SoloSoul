@@ -133,6 +133,28 @@ export function ObjectWorkspacePage() {
   /** Unlock the current account with the master password — used by PasswordVerificationDialog
    *  before revealing critical fields. This ensures the vault is open so the subsequent
    *  critical-field audit log can be written. */
+  // Hover handlers for workspace tab buttons
+  const onTabEnter = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (e.currentTarget.dataset.active === 'true') return;
+    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+    e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+  }, []);
+  const onTabLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (e.currentTarget.dataset.active === 'true') return;
+    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+    e.currentTarget.style.boxShadow = 'none';
+  }, []);
+  const onClearEnter = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+    e.currentTarget.style.color = 'var(--text-primary)';
+    e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+  }, []);
+  const onClearLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+    e.currentTarget.style.color = 'var(--text-tertiary)';
+    e.currentTarget.style.boxShadow = 'none';
+  }, []);
+
   const verifyVaultPassword = useCallback(
     async (password: string): Promise<boolean> => {
       if (!accountId) return false;
@@ -284,6 +306,14 @@ export function ObjectWorkspacePage() {
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={() => navigate(newObjectUrl)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.filter = 'brightness(1.12)';
+              e.currentTarget.style.boxShadow = '0 2px 8px color-mix(in srgb, var(--accent-primary) 30%, transparent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.filter = 'none';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
             style={{
               padding: '8px 16px',
               borderRadius: 8,
@@ -293,6 +323,7 @@ export function ObjectWorkspacePage() {
               fontSize: 13,
               fontWeight: 500,
               cursor: 'pointer',
+              transition: 'filter 0.2s, box-shadow 0.2s',
             }}
           >
             + {t('create')}
@@ -301,6 +332,16 @@ export function ObjectWorkspacePage() {
             <button
               onClick={() => setConfirmPageDelete(true)}
               title={t('delete')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#e74c3c';
+                e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
+                e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, #e74c3c 15%, transparent)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
               style={{
                 padding: '8px 12px',
                 borderRadius: 8,
@@ -312,6 +353,7 @@ export function ObjectWorkspacePage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 4,
+                transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
               }}
             >
               <Trash size={14} /> {t('delete')} {customPage?.name || t('objects')}
@@ -333,52 +375,67 @@ export function ObjectWorkspacePage() {
         }}
       >
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {CATEGORY_TYPES.map((catType) => (
-            <button
-              key={catType}
-              onClick={() => navigate(`/workspace?section=${catType}`)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background:
-                  !pageId && sectionFilter === catType ? 'var(--accent-primary)' : 'transparent',
-                color: !pageId && sectionFilter === catType ? 'white' : 'var(--text-primary)',
-                fontSize: 13,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              {React.createElement(CATEGORY_ICONS[catType], { size: 16 })}
-              {t(`navigation:${catType}`, catType)}
-            </button>
-          ))}
-          {activeCustomPages.map((page) => (
-            <button
-              key={page.id}
-              onClick={() => navigate(`/workspace/custom/${page.id}`)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: pageId === page.id ? 'var(--accent-primary)' : 'transparent',
-                color: pageId === page.id ? 'white' : 'var(--text-primary)',
-                fontSize: 13,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <FileText size={16} />
-              {page.name}
-            </button>
-          ))}
+          {CATEGORY_TYPES.map((catType) => {
+            const isActive = !pageId && sectionFilter === catType;
+            return (
+              <button
+                key={catType}
+                data-active={isActive ? 'true' : 'false'}
+                onClick={() => navigate(`/workspace?section=${catType}`)}
+                onMouseEnter={onTabEnter}
+                onMouseLeave={onTabLeave}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: isActive ? 'var(--accent-primary)' : 'transparent',
+                  color: isActive ? 'white' : 'var(--text-primary)',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s',
+                }}
+              >
+                {React.createElement(CATEGORY_ICONS[catType], { size: 16 })}
+                {t(`navigation:${catType}`, catType)}
+              </button>
+            );
+          })}
+          {activeCustomPages.map((page) => {
+            const isActive = pageId === page.id;
+            return (
+              <button
+                key={page.id}
+                data-active={isActive ? 'true' : 'false'}
+                onClick={() => navigate(`/workspace/custom/${page.id}`)}
+                onMouseEnter={onTabEnter}
+                onMouseLeave={onTabLeave}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: isActive ? 'var(--accent-primary)' : 'transparent',
+                  color: isActive ? 'white' : 'var(--text-primary)',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s',
+                }}
+              >
+                <FileText size={16} />
+                {page.name}
+              </button>
+            );
+          })}
           {(sectionFilter || pageId) && (
             <button
               onClick={() => navigate('/workspace')}
+              onMouseEnter={onClearEnter}
+              onMouseLeave={onClearLeave}
               style={{
                 padding: '6px 14px',
                 borderRadius: 8,
@@ -387,6 +444,7 @@ export function ObjectWorkspacePage() {
                 color: 'var(--text-tertiary)',
                 fontSize: 13,
                 cursor: 'pointer',
+                transition: 'border-color 0.2s, box-shadow 0.2s, color 0.2s',
               }}
             >
               {t('clear')}
