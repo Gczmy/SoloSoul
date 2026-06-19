@@ -15,6 +15,8 @@ export interface ObjectSummary {
   tags?: string[];
   templateId?: string;
   templateType?: 'system' | 'user';
+  /** 插件合约类型 ID — 继承自模板的插件绑定标识。 */
+  contractTypeId?: string;
 }
 
 export interface ObjectData {
@@ -30,6 +32,8 @@ export interface ObjectData {
   updatedAt: string;
   deletedAt?: string;
   tags?: string[];
+  /** 插件合约类型 ID — 继承自模板的插件绑定标识。 */
+  contractTypeId?: string;
 }
 
 interface ObjectState {
@@ -108,6 +112,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
             sensitivityLevel: obj.sensitivityLevel,
             createdAt: obj.createdAt,
             updatedAt: obj.updatedAt,
+            contractTypeId: obj.contractTypeId,
           },
         ],
         isLoading: false,

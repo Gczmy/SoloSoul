@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { PluginBadge } from './PluginBadge';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
 import type { SensitivityLevel } from '@/types/template';
 
@@ -115,7 +116,10 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
           </button>
         </div>
 
-        <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 4px' }}>{template.name}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 4px' }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin:  0 }}>{template.name}</h2>
+          <PluginBadge contractTypeId={template.contractTypeId} />
+        </div>
         <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 20 }}>
           {t(`navigation:${template.category}`, template.category)} · {template.properties.length}{' '}
           {t('settings:template_fields')}
@@ -145,6 +149,20 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                 <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
                   {prop.name}
                 </span>
+                {prop.contractField && (
+                  <span
+                    title={t('settings:plugin_badge_tooltip', { pluginName: '插件' })}
+                    style={{
+                      fontSize: 10,
+                      padding: '1px 4px',
+                      borderRadius: 3,
+                      background: 'var(--accent-primary-soft, rgba(99,102,241,0.12))',
+                      color: 'var(--accent-primary, #6366f1)',
+                    }}
+                  >
+                    {t('settings:plugin_badge_label')}
+                  </span>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                 <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>

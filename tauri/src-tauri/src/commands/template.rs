@@ -146,6 +146,7 @@ pub async fn template_create(
     icon_id: Option<String>,
     category: Option<String>,
     properties: Vec<TemplateProperty>,
+    contract_type_id: Option<String>,
 ) -> Result<String, String> {
     let vault = vault_handle(&state)?;
 
@@ -154,7 +155,7 @@ pub async fn template_create(
     migrate_legacy_templates_if_needed(&vault, &account_id)?;
 
     let template = UserTemplate {
-        contract_type_id: None,
+        contract_type_id,
         id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
         account_id: account_id.clone(),
         name,

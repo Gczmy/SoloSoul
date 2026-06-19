@@ -8,6 +8,7 @@ import {
   type SampleTemplateLocale,
 } from '@/lib/sampleTemplates';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { PluginBadge } from './PluginBadge';
 import { Input } from '@/components/ui/Input';
 import type { SensitivityLevel } from '@/types/template';
 
@@ -263,8 +264,9 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <LayoutTemplate size={22} style={{ color: 'var(--accent-primary)' }} />
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                         {tpl.name}
+                        <PluginBadge contractTypeId={tpl.contractTypeId} size="sm" />
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
                         {t(`navigation:${tpl.category}`, tpl.category)} · {tpl.properties.length}{' '}

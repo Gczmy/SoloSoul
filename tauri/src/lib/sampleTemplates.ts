@@ -9,6 +9,8 @@ export interface SampleTemplateProperty {
   sensitivityLevel: SensitivityLevel;
   required?: boolean;
   options?: string[];
+  /** 插件合约字段映射 — 当此属性映射到插件合约中的字段时为 true。 */
+  contractField?: boolean;
 }
 
 export interface SampleTemplate {
@@ -18,6 +20,8 @@ export interface SampleTemplate {
   icon: string;
   name: string;
   properties: SampleTemplateProperty[];
+  /** 插件合约类型 ID — 绑定到插件合约的模板类型标识。 */
+  contractTypeId?: string;
 }
 
 export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
@@ -136,6 +140,23 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
       { id: 'position', name: '职位', type: 'text', sensitivityLevel: 'public' },
       { id: 'startDate', name: '开始日期', type: 'date', sensitivityLevel: 'public' },
       { id: 'endDate', name: '结束日期', type: 'date', sensitivityLevel: 'public' },
+    ],
+  },
+  {
+    key: 'zh_address',
+    locale: 'zh',
+    category: 'identity',
+    icon: 'address',
+    name: '地址',
+    contractTypeId: 'com.solosoul.official.address-fmt/v1',
+    properties: [
+      { id: 'street', name: '具体街道地址', type: 'text', sensitivityLevel: 'sensitive', contractField: true },
+      { id: 'district', name: '县/区', type: 'text', sensitivityLevel: 'internal', contractField: true },
+      { id: 'city', name: '城市', type: 'text', sensitivityLevel: 'public', contractField: true },
+      { id: 'province', name: '省/自治区/直辖市/特别行政区', type: 'text', sensitivityLevel: 'public', contractField: true },
+      { id: 'country', name: '国家', type: 'text', sensitivityLevel: 'public', contractField: true },
+      { id: 'postalCode', name: '邮编', type: 'text', sensitivityLevel: 'internal', contractField: true },
+      { id: 'title', name: '标题', type: 'text', sensitivityLevel: 'public', required: true, contractField: true },
     ],
   },
 ];
@@ -274,6 +295,23 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
       { id: 'position', name: 'Position', type: 'text', sensitivityLevel: 'public' },
       { id: 'startDate', name: 'Start Date', type: 'date', sensitivityLevel: 'public' },
       { id: 'endDate', name: 'End Date', type: 'date', sensitivityLevel: 'public' },
+    ],
+  },
+  {
+    key: 'en_address',
+    locale: 'en',
+    category: 'identity',
+    icon: 'address',
+    name: 'Address',
+    contractTypeId: 'com.solosoul.official.address-fmt/v1',
+    properties: [
+      { id: 'street', name: 'Street address', type: 'text', sensitivityLevel: 'sensitive', contractField: true },
+      { id: 'district', name: 'District / County', type: 'text', sensitivityLevel: 'internal', contractField: true },
+      { id: 'city', name: 'City', type: 'text', sensitivityLevel: 'public', contractField: true },
+      { id: 'province', name: 'Province / State', type: 'text', sensitivityLevel: 'public', contractField: true },
+      { id: 'country', name: 'Country', type: 'text', sensitivityLevel: 'public', contractField: true },
+      { id: 'postalCode', name: 'Postal code', type: 'text', sensitivityLevel: 'internal', contractField: true },
+      { id: 'title', name: 'Title', type: 'text', sensitivityLevel: 'public', required: true, contractField: true },
     ],
   },
 ];

@@ -30,7 +30,12 @@
     "district": "District",
     "city": "City",
     "province": "Province",
-    "postalCode": "Postal Code"
+    "postalCode": "Postal Code",
+    "street": "Street Address",
+    "district": "District",
+    "city": "City",
+    "province": "Province",
+    "title": "Title"
   },
   "templates": {
     "address": "Address"

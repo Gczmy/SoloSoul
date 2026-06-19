@@ -28,6 +28,9 @@ pub struct SystemTemplateProperty {
     pub sensitive: Option<bool>,
     pub required: Option<bool>,
     pub options: Option<Vec<String>>,
+    /// 插件合约字段映射 — 当此属性映射到插件合约中的字段时为 true。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub contract_field: Option<bool>,
 }
 
 impl SystemTemplateProperty {
@@ -52,6 +55,8 @@ pub struct SystemTemplate {
     pub name_i18n_key: String,
     pub name_fallback: String,
     pub properties: Vec<SystemTemplateProperty>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contract_type_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -133,7 +138,7 @@ pub fn seed_default_templates(
             .properties
             .iter()
             .map(|p| solosoul_vault::TemplateProperty {
-                contract_field: None,
+                contract_field: p.contract_field,
                 id: p.id.clone(),
                 name: p.name_fallback.clone(),
                 prop_type: solosoul_vault::PropertyType::parse(&p.prop_type)
@@ -147,7 +152,7 @@ pub fn seed_default_templates(
 
         let now = chrono::Utc::now().to_rfc3339();
         let user_template = solosoul_vault::UserTemplate {
-            contract_type_id: None,
+            contract_type_id: st.contract_type_id.clone(),
             id: st.key.clone(),
             account_id: account_id.to_string(),
             name: st.name_fallback.clone(),

@@ -30,7 +30,12 @@
     "district": "县/区",
     "city": "城市",
     "province": "省/州",
-    "postalCode": "邮政编码"
+    "postalCode": "邮政编码",
+    "street": "具体街道地址",
+    "district": "县/区",
+    "city": "城市",
+    "province": "省/州",
+    "title": "标题"
   },
   "templates": {
     "address": "地址"

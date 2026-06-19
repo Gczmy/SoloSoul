@@ -4,6 +4,7 @@ import { Clock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
+import { PluginBadge } from '@/components/template/PluginBadge';
 
 /** Extract displayable key-value pairs from object properties (filters internal __ fields). */
 function flattenProperties(
@@ -105,13 +106,14 @@ export function WorkspaceObjectCard({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <PAGE_ICON_MAP.custom size={22} />
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 14, fontWeight: 600 }}>{obj.name}</span>
+            <PluginBadge contractTypeId={obj.contractTypeId} size="sm" />
             <span
               style={{
                 fontSize: 10,
                 color: 'var(--text-tertiary)',
-                marginLeft: 8,
+                marginLeft: 2,
                 padding: '1px 5px',
                 borderRadius: 4,
                 background: 'var(--bg-elevated)',

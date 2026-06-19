@@ -600,6 +600,8 @@
   "sample_templates_desc": "参考以下示例快速创建常用模板。",
   "use_sample_template": "以此模板创建",
   "sample_templates": "模板示例",
+  "plugin_badge_label": "插件绑定",
+  "plugin_badge_tooltip": "此模板与插件「{{pluginName}}」绑定，字段数据可被插件读取",
   "sync": "设备同步",
   "sync_enabled": "同步已启用",
   "sync_disabled": "同步已禁用",

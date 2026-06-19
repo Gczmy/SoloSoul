@@ -31,6 +31,7 @@ import { TemplateEditor } from '@/components/template/TemplateEditor';
 import { TemplateDetailModal } from '@/components/template/TemplateDetailModal';
 import { DeleteConfirmDialog } from '@/components/template/DeleteConfirmDialog';
 import { SensitivityBadges } from '@/components/template/SensitivityBadges';
+import { PluginBadge } from '@/components/template/PluginBadge';
 
 const SYSTEM_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;
 
@@ -416,6 +417,10 @@ export function TemplateManagerPage() {
                     }}
                   >
                     {tpl.name}
+                    <PluginBadge
+                      contractTypeId={templates.find((u) => u.id === tpl.id)?.contractTypeId}
+                      size="sm"
+                    />
                   </div>
                   <div
                     style={{
@@ -549,7 +554,9 @@ export function TemplateManagerPage() {
                   type: p.type,
                   sensitivityLevel: p.sensitivityLevel,
                   options: p.options,
+                  contractField: p.contractField,
                 })),
+                selectedSample.contractTypeId,
               );
               setSelectedSample(null);
               setShowSampleGallery(false);

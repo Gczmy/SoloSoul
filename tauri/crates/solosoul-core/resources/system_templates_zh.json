@@ -342,14 +342,16 @@
             "icon": "address",
             "nameI18nKey": "editor:templates.address",
             "nameFallback": "地址",
+            "contractTypeId": "com.solosoul.official.address-fmt/v1",
             "properties": [
                 {
-                    "id": "streetAddress",
-                    "nameI18nKey": "editor:fields.streetAddress",
+                    "id": "street",
+                    "nameI18nKey": "editor:fields.street",
                     "nameFallback": "具体街道地址",
                     "type": "text",
                     "sensitivityLevel": "sensitive",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
                     "id": "district",
@@ -357,7 +359,8 @@
                     "nameFallback": "县/区",
                     "type": "text",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
                     "id": "city",
@@ -365,7 +368,8 @@
                     "nameFallback": "城市",
                     "type": "text",
                     "sensitivityLevel": "public",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
                     "id": "province",
@@ -373,7 +377,8 @@
                     "nameFallback": "省/自治区/直辖市/特别行政区",
                     "type": "text",
                     "sensitivityLevel": "public",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
                     "id": "country",
@@ -381,7 +386,8 @@
                     "nameFallback": "国家",
                     "type": "text",
                     "sensitivityLevel": "public",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
                     "id": "postalCode",
@@ -389,7 +395,17 @@
                     "nameFallback": "邮编",
                     "type": "text",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true
+                },
+                {
+                    "id": "title",
+                    "nameI18nKey": "editor:fields.title",
+                    "nameFallback": "标题",
+                    "type": "text",
+                    "sensitivityLevel": "public",
+                    "required": true,
+                    "contractField": true
                 }
             ]
         }

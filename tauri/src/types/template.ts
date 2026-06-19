@@ -30,6 +30,8 @@ export interface TemplateProperty {
   options?: string[]; // for select / multiselect
   /** ISO 8601 timestamp; if set, the field is soft-deleted but retained for old objects. */
   deprecatedAt?: string;
+  /** 插件合约字段映射 — 当此属性映射到插件合约中的字段时为 true。 */
+  contractField?: boolean;
 }
 
 export interface UserTemplate {
@@ -41,6 +43,8 @@ export interface UserTemplate {
   category?: string;
   createdAt: string;
   updatedAt?: string;
+  /** 插件合约类型 ID — 绑定到插件合约的模板类型标识。 */
+  contractTypeId?: string;
 }
 
 /** Frontend-only helper: map from backend snake_case to frontend camelCase */

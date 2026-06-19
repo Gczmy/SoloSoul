@@ -342,30 +342,25 @@
             "icon": "address",
             "nameI18nKey": "editor:templates.address",
             "nameFallback": "Address",
+            "contractTypeId": "com.solosoul.official.address-fmt/v1",
             "properties": [
                 {
-                    "id": "addressLine1",
-                    "nameI18nKey": "editor:fields.addressLine1",
-                    "nameFallback": "Address line 1",
+                    "id": "street",
+                    "nameI18nKey": "editor:fields.street",
+                    "nameFallback": "Street address",
                     "type": "text",
                     "sensitivityLevel": "sensitive",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
-                    "id": "addressLine2",
-                    "nameI18nKey": "editor:fields.addressLine2",
-                    "nameFallback": "Address line 2",
-                    "type": "text",
-                    "sensitivityLevel": "sensitive",
-                    "required": false
-                },
-                {
-                    "id": "county",
-                    "nameI18nKey": "editor:fields.county",
-                    "nameFallback": "County",
+                    "id": "district",
+                    "nameI18nKey": "editor:fields.district",
+                    "nameFallback": "District / County",
                     "type": "text",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
                     "id": "city",
@@ -373,15 +368,17 @@
                     "nameFallback": "City",
                     "type": "text",
                     "sensitivityLevel": "public",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
                     "id": "province",
                     "nameI18nKey": "editor:fields.province",
-                    "nameFallback": "Province/State",
+                    "nameFallback": "Province / State",
                     "type": "text",
                     "sensitivityLevel": "public",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
                     "id": "country",
@@ -389,15 +386,26 @@
                     "nameFallback": "Country",
                     "type": "text",
                     "sensitivityLevel": "public",
-                    "required": false
+                    "required": false,
+                    "contractField": true
                 },
                 {
                     "id": "postalCode",
                     "nameI18nKey": "editor:fields.postalCode",
-                    "nameFallback": "Post Code",
+                    "nameFallback": "Postal code",
                     "type": "text",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true
+                },
+                {
+                    "id": "title",
+                    "nameI18nKey": "editor:fields.title",
+                    "nameFallback": "Title",
+                    "type": "text",
+                    "sensitivityLevel": "public",
+                    "required": true,
+                    "contractField": true
                 }
             ]
         }
