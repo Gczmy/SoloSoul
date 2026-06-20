@@ -138,10 +138,15 @@ impl PluginManager {
 
     /// 从市场注册表安装指定版本插件
     ///
+    /// 分离原则：已安装插件的 manifest/WASM 只从应用数据目录（`PluginStore`）读写；
+    /// `market_dir`（bundled 资源目录）仅在远程不可达时作为离线回退。
+    ///
+    /// 流程：
     /// 1. 读取注册表获取目标版本元数据
-    /// 2. 若本地 manifest 版本与目标不一致或不存在，从远程下载 manifest.json
-    /// 3. 若本地 WASM hash 与注册表不匹配或不存在，从 `download_url` / `raw_url` 远程下载
-    /// 4. 校验通过后保存到 PluginStore
+    /// 2. 检查应用数据目录中是否已安装该版本且 SHA-256 匹配 → 直接返回
+    /// 3. 未安装或 hash 不匹配 → 优先从远程下载 manifest.json + plugin.wasm
+    /// 4. 远程失败 → 回退到 bundled `market_dir`
+    /// 5. 校验通过后保存到 PluginStore
     pub async fn install_from_registry(
         &self,
         plugin_id: &str,
@@ -157,64 +162,90 @@ impl PluginManager {
             return Err(PluginError::IncompatibleVersion(version.to_string()));
         }
 
-        // 插件实际目录位于市场根目录下的 plugins/{plugin_id}/
         validate_plugin_id(plugin_id)?;
-        let plugin_dir = self.market_dir.join("plugins").join(plugin_id);
-        let manifest_path = plugin_dir.join("manifest.json");
-        let wasm_path = plugin_dir.join("plugin.wasm");
 
-        // 尝试读取本地 manifest；若不存在或版本不匹配，则从远程下载
-        let manifest_raw = match std::fs::read_to_string(&manifest_path) {
-            Ok(text) => {
-                let local: MarketManifestRaw = serde_json::from_str(&text).map_err(|e| {
-                    PluginError::InvalidManifest(format!("本地 manifest 解析失败: {}", e))
-                })?;
-                if local.version == version {
-                    local
-                } else {
-                    tracing::info!(
-                        "本地 manifest 版本 {} 与目标版本 {} 不一致，从远程下载",
-                        local.version,
-                        version
-                    );
-                    match self.fetch_manifest(version_info).await {
-                        Ok(m) => m,
-                        Err(e) => {
-                            tracing::warn!(
-                                "远程下载 manifest 失败: {}，回退到本地 manifest",
-                                e
-                            );
-                            local
-                        }
-                    }
-                }
-            }
-            Err(_) => {
-                tracing::info!("本地 manifest 不存在，从远程下载");
-                self.fetch_manifest(version_info).await?
-            }
-        };
-
-        // 尝试从本地读取 WASM；若缺失或 hash 不匹配则远程下载
-        let wasm_bytes = if let Ok(bytes) = std::fs::read(&wasm_path) {
-            let local_hash = compute_sha256(&bytes);
-            if local_hash == version_info.sha256 {
-                bytes
-            } else {
-                tracing::warn!(
-                    "Local WASM hash mismatch for {} {} (expected {}, got {}), downloading from remote",
-                    plugin_id, version, version_info.sha256, local_hash
+        // ── 2. 检查应用数据目录中是否已安装且版本/hash 完全匹配 ──
+        let already_ok = (|| {
+            let installed = self.store.load_manifest(plugin_id).ok()?;
+            if installed.version != version {
+                tracing::info!(
+                    "Installed plugin {} version {} does not match target {}, will re-install",
+                    plugin_id, installed.version, version
                 );
-                self.fetch_wasm(version_info).await?
+                return None;
             }
-        } else {
-            tracing::info!(
-                "Local WASM not found for {} {}, downloading from remote",
-                plugin_id, version
-            );
-            self.fetch_wasm(version_info).await?
+            let wasm = self.store.load_wasm(plugin_id).ok()?;
+            let actual_hash = compute_sha256(&wasm);
+            if actual_hash != version_info.sha256 {
+                tracing::warn!(
+                    "Installed plugin {} hash mismatch (expected {}, got {}), will re-download",
+                    plugin_id, version_info.sha256, actual_hash
+                );
+                return None;
+            }
+            Some(())
+        })();
+
+        if already_ok.is_some() {
+            tracing::info!("Plugin {} {} already installed and hash matches", plugin_id, version);
+            return Ok(PluginInstallResult {
+                plugin_id: plugin_id.to_string(),
+                version: version.to_string(),
+                installed_at: chrono::Utc::now().timestamp_millis(),
+            });
+        }
+
+        // ── 3. 优先从远程下载 manifest ──
+        let manifest_raw = match self.fetch_manifest(version_info).await {
+            Ok(m) => m,
+            Err(remote_err) => {
+                tracing::warn!(
+                    "Remote manifest download failed: {}, falling back to bundled market_dir",
+                    remote_err
+                );
+                // ── 4. 回退到 bundled 资源 ──
+                let bundled_dir = self.market_dir.join("plugins").join(plugin_id);
+                let bundled_manifest = bundled_dir.join("manifest.json");
+                let text = std::fs::read_to_string(&bundled_manifest).map_err(|_| {
+                    PluginError::NetworkError(format!(
+                        "无法下载 manifest 且 bundled 资源不存在: {}",
+                        remote_err
+                    ))
+                })?;
+                let local: MarketManifestRaw = serde_json::from_str(&text).map_err(|e| {
+                    PluginError::InvalidManifest(format!("bundled manifest 解析失败: {}", e))
+                })?;
+                if local.version != version {
+                    return Err(PluginError::NetworkError(format!(
+                        "远程 manifest 下载失败且 bundled 版本 {} 与目标 {} 不匹配",
+                        local.version, version
+                    )));
+                }
+                local
+            }
         };
 
+        // ── 3. 优先从远程下载 WASM ──
+        let wasm_bytes = match self.fetch_wasm(version_info).await {
+            Ok(bytes) => bytes,
+            Err(remote_err) => {
+                tracing::warn!(
+                    "Remote WASM download failed: {}, falling back to bundled market_dir",
+                    remote_err
+                );
+                // ── 4. 回退到 bundled 资源 ──
+                let bundled_dir = self.market_dir.join("plugins").join(plugin_id);
+                let bundled_wasm = bundled_dir.join("plugin.wasm");
+                std::fs::read(&bundled_wasm).map_err(|_| {
+                    PluginError::NetworkError(format!(
+                        "无法下载 WASM 且 bundled 资源不存在: {}",
+                        remote_err
+                    ))
+                })?
+            }
+        };
+
+        // ── 5. 校验 ──
         let actual_hash = compute_sha256(&wasm_bytes);
         if actual_hash != version_info.sha256 {
             return Err(PluginError::ChecksumMismatch);
