@@ -20,12 +20,14 @@ describe('DatePicker', () => {
     fireEvent.click(screen.getByRole('button', { expanded: false }));
 
     // Open year dropdown and pick 2020
-    const yearSelect = screen.getByLabelText('年份');
-    fireEvent.change(yearSelect, { target: { value: '2020' } });
+    const yearSelect = screen.getByLabelText('选择年份');
+    fireEvent.click(yearSelect);
+    fireEvent.click(screen.getByText('2020'));
 
     // Open month dropdown and pick February (1)
-    const monthSelect = screen.getByLabelText('月份');
-    fireEvent.change(monthSelect, { target: { value: '1' } });
+    const monthSelect = screen.getByLabelText('选择月份');
+    fireEvent.click(monthSelect);
+    fireEvent.click(screen.getByText('Feb'));
 
     // Click day 15
     const dayButton = screen.getByLabelText('2020-02-15');
@@ -41,9 +43,12 @@ describe('DatePicker', () => {
     render(<DatePicker onChange={onChange} includeTime />);
     fireEvent.click(screen.getByRole('button', { expanded: false }));
 
-    fireEvent.change(screen.getByLabelText('年份'), { target: { value: '2021' } });
-    fireEvent.change(screen.getByLabelText('月份'), { target: { value: '5' } });
-    fireEvent.click(screen.getByLabelText('2021-06-10'));
+    fireEvent.click(screen.getByLabelText('选择年份'));
+    fireEvent.click(screen.getByText('2021'));
+    // Use a month whose label doesn't collide with the trigger's current month
+    fireEvent.click(screen.getByLabelText('选择月份'));
+    fireEvent.click(screen.getByText('Aug'));
+    fireEvent.click(screen.getByLabelText('2021-08-10'));
 
     // Time inputs should now be visible
     const hourInput = screen.getByLabelText('小时');
@@ -52,7 +57,7 @@ describe('DatePicker', () => {
     fireEvent.change(minuteInput, { target: { value: '5' } });
 
     await waitFor(() => {
-      expect(onChange).toHaveBeenLastCalledWith('2021-06-10T08:05');
+      expect(onChange).toHaveBeenLastCalledWith('2021-08-10T08:05');
     });
   });
 
@@ -76,7 +81,8 @@ describe('DatePicker', () => {
     render(<DatePicker value="2020-01-01T12:30" onChange={onChange} includeTime />);
     fireEvent.click(screen.getByRole('button', { expanded: false }));
 
-    fireEvent.change(screen.getByLabelText('年份'), { target: { value: '2022' } });
+    fireEvent.click(screen.getByLabelText('选择年份'));
+    fireEvent.click(screen.getByText('2022'));
     fireEvent.click(screen.getByLabelText('2022-01-01'));
 
     await waitFor(() => {

@@ -23,6 +23,9 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mock scrollIntoView (not available in jsdom)
+Element.prototype.scrollIntoView = vi.fn();
+
 // Mock react-i18next for component tests
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
