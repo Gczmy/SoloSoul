@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
-import { applyTheme, getSystemTheme, listenForSystemTheme, stopListeningForSystemTheme } from '@/lib/theme';
+import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
 import { useWindowSize } from '@/hooks/useWindowSize';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { confirm } from '@tauri-apps/plugin-dialog';
