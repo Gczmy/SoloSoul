@@ -335,12 +335,15 @@ export function LoginPage() {
             {(error || bioError || submitError) && (
               <div style={{ color: '#e74c3c', fontSize: 13 }}>
                 {submitError || bioError || (error
-                  ? error.toLowerCase().includes('password') ||
-                    error.toLowerCase().includes('invalid')
-                    ? t('auth:incorrect_password')
-                    : error.toLowerCase().includes('required')
-                      ? t('auth:password_required')
-                      : error
+                  ? error.toLowerCase().includes('8 characters') ||
+                    error.toLowerCase().includes('至少')
+                    ? t('auth:password_too_short')
+                    : error.toLowerCase().includes('password') ||
+                      error.toLowerCase().includes('invalid')
+                      ? t('auth:incorrect_password')
+                      : error.toLowerCase().includes('required')
+                        ? t('auth:password_required')
+                        : error
                   : '')}
               </div>
             )}
