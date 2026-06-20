@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
-import { Button } from '@/components/ui/Button';
+
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import {
   MessageSquare,
@@ -66,13 +66,37 @@ export function LlmChatPage() {
         title={t('settings:ai_chat')}
         onBack={() => navigate('/home')}
         actions={
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
+            type="button"
             onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
+            style={{
+              fontSize: 12,
+              padding: '6px 12px',
+              borderRadius: 6,
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-toolbar)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontWeight: 500,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
           >
-            <Settings size={14} style={{ marginRight: 4 }} /> {t('settings:ai_chat_configure')}
-          </Button>
+            <Settings size={14} /> {t('settings:ai_chat_configure')}
+          </button>
         }
       >
         <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '48px 24px' }}>
@@ -86,9 +110,34 @@ export function LlmChatPage() {
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
             {t('settings:ai_chat_disabled')}
           </p>
-          <Button onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}>
+          <button
+            type="button"
+            onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
+            style={{
+              fontSize: 12,
+              padding: '6px 12px',
+              borderRadius: 6,
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-toolbar)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontWeight: 500,
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
+          >
             {t('settings:ai_chat_configure')}
-          </Button>
+          </button>
         </div>
       </AppShell>
     );
