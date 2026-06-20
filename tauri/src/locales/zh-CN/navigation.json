@@ -15,6 +15,7 @@
   "templates": "模板管理",
   "import_export": "导入导出",
   "ocr": "OCR 扫描",
+  "plugins": "插件",
   "add_page": "添加页面",
   "add_page_placeholder": "页面名称",
   "custom_page": "我的项目",

@@ -74,14 +74,24 @@ impl FieldResolver {
             })?
             .clone();
 
-        // 3. 按 template.id 反查 ObjectRecord
-        let objects = vault
-            .list_objects(account_id, Some(&template.id), None, None, false, false)
+        // 3. 按 template.contract_type_id 反查对象（不依赖 type_id，因为对象
+        //    type_id 可能为 section/category 而非模板 ID）
+        let target_ctid = template.contract_type_id.clone();
+        let target_tpl_id = template.id.clone();
+        let all_objects = vault
+            .list_objects(account_id, None, None, None, false, false)
             .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?;
+        let mut objects: Vec<_> = all_objects
+            .into_iter()
+            .filter(|o| {
+                o.contract_type_id.as_deref() == target_ctid.as_deref()
+                    || o.template_id.as_deref() == Some(&target_tpl_id)
+                    || o.collection_type == alias
+            })
+            .collect();
         if objects.is_empty() {
             return Ok(String::new());
         }
-        let mut objects = objects;
         objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
 
         // 4. contract_field gate：仅标记了 contract_field=true 的属性可读

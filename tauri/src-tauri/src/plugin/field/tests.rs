@@ -374,8 +374,97 @@ fn test_resolve_legacy_unchanged() {
     let result = resolver.resolve("address.street").unwrap();
     assert_eq!(result, "长安街1号");
 
-    let count = resolver.resolve("address.count").unwrap();
-    assert_eq!(count, "1");
+    // list_objects 替代 .count
+    let json = resolver.list_objects("address").unwrap();
+    let items: Vec<serde_json::Value> = serde_json::from_str(&json).unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["name"].as_str().unwrap(), "家");
+    assert_eq!(
+        items[0]["properties"]["street"].as_str().unwrap(),
+        "长安街1号"
+    );
+}
+
+/// 精确复现用户场景：带 contracts (typed-lookup) + legacy 对象 (contract_type_id=None, template_id=None)
+/// 验证 collection_type 回退能正确匹配
+#[test]
+fn test_list_objects_typed_lookup_with_legacy_objects() {
+    let account_id = "acc_list_legacy_in_typed";
+    let (_tmp, vault) = test_vault(account_id);
+
+    let now = chrono::Utc::now().to_rfc3339();
+    // 模板无 contract_type_id（legacy 模板）
+    let template = UserTemplate {
+        contract_type_id: None,
+        id: "address".to_string(),
+        account_id: account_id.to_string(),
+        name: "地址".to_string(),
+        icon_id: Some("map-pin".to_string()),
+        properties: vec![TemplateProperty {
+            contract_field: None,
+            id: "street".to_string(),
+            name: "街道".to_string(),
+            prop_type: PropertyType::Text,
+            sensitivity_level: Some("internal".to_string()),
+            sensitive: None,
+            options: None,
+            deprecated_at: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: now.clone(),
+        updated_at: Some(now.clone()),
+    };
+    vault.save_user_template(&template).unwrap();
+
+    // legacy 对象：contract_type_id=None, template_id=None
+    let record = ObjectRecord {
+        contract_type_id: None,
+        id: "addr_1".to_string(),
+        account_id: account_id.to_string(),
+        type_id: "address".to_string(),
+        section_type: "identity".to_string(),
+        name: "家".to_string(),
+        icon_name: "map-pin".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({"street": "长安街1号"}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        created_at: now.clone(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+    vault.save_object(&record).unwrap();
+
+    // 带 contracts（模拟地址格式化器的 manifest 声明）
+    let contracts = vec![PluginContractBinding {
+        type_id: "com.solosoul.address/v1".to_string(),
+        version: 1,
+        type_id_aliases: vec!["address".to_string()],
+        ..Default::default()
+    }];
+    let resolver = FieldResolver::with_vault_and_contracts(
+        vault,
+        account_id.to_string(),
+        vec!["address.*".to_string()],
+        contracts,
+    );
+
+    // list_objects 走 typed-lookup 路径，应通过 collection_type 回退找到 legacy 对象
+    let json = resolver.list_objects("address").unwrap();
+    assert_ne!(json, "[]", "Should NOT be empty - should find legacy objects via collection_type fallback");
+    let items: Vec<serde_json::Value> = serde_json::from_str(&json).unwrap();
+    assert_eq!(items.len(), 1, "Should find 1 legacy address object via collection_type fallback");
+    assert_eq!(items[0]["name"].as_str().unwrap(), "家");
+    assert_eq!(
+        items[0]["properties"]["street"].as_str().unwrap(),
+        "长安街1号"
+    );
 }
 
 /// parse_typed_field SECONDARY alias 路径（无 vault 模式）

@@ -33,5 +33,12 @@
   "copy_json": "Copy as JSON",
   "copy_json_short": "JSON",
   "copy_markdown": "Copy as Markdown",
-  "copy_markdown_short": "Markdown"
+  "copy_markdown_short": "Markdown",
+  "inline_output": "Plugin Log",
+  "inline_result": "Plugin Result",
+  "copy": "Copy",
+  "copied": "Copied",
+  "copy_readable": "Copy readable text",
+  "copy_entry": "Copy this entry",
+  "run_complete": "「{{pluginName}}」plugin run completed"
 }

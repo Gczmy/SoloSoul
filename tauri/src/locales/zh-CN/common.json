@@ -191,6 +191,7 @@
   "onboarding_done": "完成",
   "tutorial": "新手教程",
   "trash_desc": "查看并管理已删除的对象，支持恢复或永久清理",
+  "plugins_desc": "管理本地插件市场",
   "ocr_desc": "扫描图片中的文字，快速提取并创建对象",
   "search_desc": "全局搜索对象、资料、帮助文档",
   "settings_desc": "管理账户、主题、安全与偏好设置",

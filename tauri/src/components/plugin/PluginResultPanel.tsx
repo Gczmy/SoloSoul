@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileJson, FileText } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 import styles from './PluginResultPanel.module.css';
 import type { PluginResultPayload } from '@/lib/plugin';
 
@@ -20,7 +21,6 @@ export function PluginResultPanel({ results }: PluginResultPanelProps) {
     <div className={styles.container}>
       {results.map((result, index) => (
         <div key={index} className={styles.resultCard}>
-          <ResultToolbar payload={result} />
           <ResultContent payload={result} />
         </div>
       ))}
@@ -28,46 +28,32 @@ export function PluginResultPanel({ results }: PluginResultPanelProps) {
   );
 }
 
-function ResultToolbar({ payload }: { payload: PluginResultPayload }) {
+function PerPairCopyRow({ pair }: { pair: { key: string; value: string } }) {
   const { t } = useTranslation('plugin');
+  const [copied, setCopied] = useState(false);
 
-  const copyJson = async () => {
+  const copyPair = async () => {
     try {
-      await navigator.clipboard.writeText(payloadToJson(payload));
+      await navigator.clipboard.writeText(`${pair.key}: ${pair.value}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
     } catch {
-      // 剪贴板写入失败时静默忽略，避免打断用户。
-    }
-  };
-
-  const copyMarkdown = async () => {
-    try {
-      await navigator.clipboard.writeText(payloadToMarkdown(payload));
-    } catch {
-      // 同上。
+      // 静默忽略
     }
   };
 
   return (
-    <div className={styles.toolbar}>
+    <div className={styles.pairRow}>
+      <span className={styles.pairKey}>{pair.key}</span>
+      <span className={styles.pairValue}>{pair.value}</span>
       <button
         type="button"
-        className={styles.toolbarButton}
-        onClick={copyJson}
-        title={t('copy_json', { defaultValue: 'Copy as JSON' })}
-        aria-label={t('copy_json', { defaultValue: 'Copy as JSON' })}
+        className={`${styles.pairCopyBtn} ${copied ? styles.pairCopyBtnActive : ''}`}
+        onClick={copyPair}
+        title={t('copy_entry', { defaultValue: 'Copy this entry' })}
+        aria-label={t('copy_entry', { defaultValue: 'Copy this entry' })}
       >
-        <FileJson size={14} />
-        <span>{t('copy_json_short', { defaultValue: 'JSON' })}</span>
-      </button>
-      <button
-        type="button"
-        className={styles.toolbarButton}
-        onClick={copyMarkdown}
-        title={t('copy_markdown', { defaultValue: 'Copy as Markdown' })}
-        aria-label={t('copy_markdown', { defaultValue: 'Copy as Markdown' })}
-      >
-        <FileText size={14} />
-        <span>{t('copy_markdown_short', { defaultValue: 'Markdown' })}</span>
+        {copied ? <Check size={12} /> : <Copy size={12} />}
       </button>
     </div>
   );
@@ -82,17 +68,11 @@ function ResultContent({ payload }: { payload: PluginResultPayload }) {
 
     case 'key_value':
       return (
-        <>
-          {payload.title && <h5 className={styles.title}>{payload.title}</h5>}
-          <dl className={styles.keyValue}>
-            {payload.pairs.map((pair, idx) => (
-              <div key={idx} className={styles.kvRow}>
-                <dt>{pair.key}</dt>
-                <dd>{pair.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </>
+        <div className={styles.keyValueList}>
+          {payload.pairs.map((pair, idx) => (
+            <PerPairCopyRow key={idx} pair={pair} />
+          ))}
+        </div>
       );
 
     case 'table':
@@ -131,41 +111,4 @@ function ResultContent({ payload }: { payload: PluginResultPayload }) {
   }
 }
 
-function payloadToJson(payload: PluginResultPayload): string {
-  return JSON.stringify(payload, null, 2);
-}
 
-function escapeMarkdownCell(value: string): string {
-  // 将表格单元格中的管道符替换为全角字符，避免破坏 Markdown 表格结构。
-  return value.replace(/\|/g, '｜').replace(/\n/g, ' ');
-}
-
-function payloadToMarkdown(payload: PluginResultPayload): string {
-  switch (payload.type) {
-    case 'text':
-      return payload.content;
-
-    case 'key_value': {
-      const header = payload.title ? `### ${payload.title}\n\n` : '';
-      const rows = payload.pairs
-        .map((pair) => `| ${escapeMarkdownCell(pair.key)} | ${escapeMarkdownCell(pair.value)} |`)
-        .join('\n');
-      return `${header}| Key | Value |\n| --- | --- |\n${rows}`;
-    }
-
-    case 'table': {
-      const header = `| ${payload.headers.map(escapeMarkdownCell).join(' | ')} |`;
-      const divider = `| ${payload.headers.map(() => '---').join(' | ')} |`;
-      const rows = payload.rows
-        .map((row) => `| ${row.map(escapeMarkdownCell).join(' | ')} |`)
-        .join('\n');
-      return `${header}\n${divider}\n${rows}`;
-    }
-
-    case 'markdown':
-      return payload.content;
-
-    default:
-      return '```json\n' + JSON.stringify(payload, null, 2) + '\n```';
-  }
-}

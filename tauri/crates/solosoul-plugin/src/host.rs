@@ -194,6 +194,42 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
+    // solosoul_list_objects —— 列出指定类型的所有对象（Phase 5，替代 .count）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_list_objects",
+            |mut caller: Caller<'_, SoloHostState>,
+             type_id_ptr: i32,
+             type_id_len: i32,
+             out_ptr: i32,
+             out_cap: i32|
+             -> i32 {
+                let type_id = match read_string(&mut caller, type_id_ptr, type_id_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let (plugin_id, session_id) = {
+                    let host = &caller.data().host;
+                    if !host.rate_limiter.check(&host.plugin_id, "list_objects") {
+                        return code::RATE_LIMITED;
+                    }
+                    (host.plugin_id.clone(), host.session_id.clone())
+                };
+                let result = caller.data().host.field_resolver.list_objects(&type_id);
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+                match result {
+                    Ok(json) => write_buffer(&mut caller, out_ptr, out_cap, &json, -1),
+                    Err(e) => plugin_error_code(&e),
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
     // solosoul_post_data —— 代理 HTTP POST 请求
     linker
         .func_wrap(

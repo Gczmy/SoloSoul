@@ -97,8 +97,6 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
     let consent_manager = Arc::new(ConsentManager::new());
 
     let permissions = vec![
-        "address.count".to_string(),
-        "address.title".to_string(),
         "address.street".to_string(),
         "address.district".to_string(),
         "address.city".to_string(),

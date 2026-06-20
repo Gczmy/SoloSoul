@@ -381,7 +381,7 @@ export function AppearanceSettingsPage() {
                           flexShrink: 0,
                         }}
                       >
-                        {t('settings:position')} {index + 1}
+                        {t('settings:sidebar_bottom_button')} {index + 1}
                       </span>
                       <select
                         value={selectedId}

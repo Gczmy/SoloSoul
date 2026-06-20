@@ -92,6 +92,20 @@
 
 .actions {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actionsLeft {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actionsRight {
+  display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
@@ -155,6 +169,16 @@
   border-color: var(--success);
 }
 
+.clearActionBtn {
+  color: var(--text-secondary);
+}
+
+.clearActionBtn:hover:not(:disabled) {
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-color: transparent;
+}
+
 .spin {
   animation: spin 1s linear infinite;
 }
@@ -166,6 +190,221 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.inlineResults {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inlineHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding: 0;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  border-radius: 6px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: background 0.15s ease;
+}
+
+.inlineHeader:hover {
+  background: var(--bg-hover);
+}
+
+.inlineHeader:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.inlineTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chevron {
+  color: var(--text-tertiary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+}
+
+.chevronOpen {
+  transform: rotate(0deg);
+}
+
+.inlineTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.logCount {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-hover);
+  color: var(--text-tertiary);
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.inlineActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapsible {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.collapsibleOpen {
+  max-height: 9999px;
+  opacity: 1;
+  overflow: visible;
+}
+
+.completedStatus {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.success {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.failed {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+.stopBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-toolbar);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.stopBtn:hover {
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-color: transparent;
+}
+
+.copyLogBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-toolbar);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.copyLogBtn:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: transparent;
+}
+
+.copyGlow {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent);
+  color: var(--accent-primary);
+}
+
+.inlineLogs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.logLine {
+  display: flex;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.logLevel {
+  flex-shrink: 0;
+  font-weight: 600;
+  min-width: 36px;
+  text-transform: uppercase;
+}
+
+.logLevel[data-level="info"] {
+  color: var(--accent);
+}
+
+.logLevel[data-level="error"] {
+  color: var(--danger);
+}
+
+.logLevel[data-level="warn"] {
+  color: var(--warning);
+}
+
+.logMessage {
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+
+.inlineError {
+  font-size: 12px;
+  color: var(--danger);
+  padding: 6px 8px;
+  background: var(--danger-subtle);
+  border-radius: 6px;
 }
 
 .hint {

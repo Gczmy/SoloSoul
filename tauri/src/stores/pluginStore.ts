@@ -9,6 +9,8 @@ import {
   PluginTier,
   pluginCommands,
 } from '@/lib/plugin';
+import { useUiStore } from '@/stores/uiStore';
+import i18next from '@/lib/i18n';
 
 export interface PluginLogLine {
   id: string;
@@ -246,8 +248,16 @@ export const usePluginStore = create<PluginState>()(
           set((state) => {
             const next = { ...state.runningPlugins[pluginId], completed: true };
             next.exitCode = result.exitCode;
-            next.results = [...next.results, ...result.results];
+            // 结果已通过事件通道实时累积，此处不重复添加。
+            // 事件通道 + 最终 result.results 是同一份数据，再加会重复。
             return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+          });
+
+          // Toast 通知
+          useUiStore.getState().showToast({
+            type: 'success',
+            message: i18next.t('plugin:run_complete', { pluginName, defaultValue: `「${pluginName}」plugin run completed` }),
+            duration: 3000,
           });
         } catch (err) {
           set((state) => {

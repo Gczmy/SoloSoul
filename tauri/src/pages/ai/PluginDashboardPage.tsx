@@ -5,11 +5,11 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { PluginCard } from '@/components/plugin/PluginCard';
 import { PluginConsentDialog } from '@/components/plugin/PluginConsentDialog';
-import { PluginResultPanel } from '@/components/plugin/PluginResultPanel';
 import { PluginDialog } from '@/components/plugin/PluginDialog';
 import { PluginRunParamsDialog } from '@/components/plugin/PluginRunParamsDialog';
 import { usePluginStore } from '@/stores/pluginStore';
 import { pluginCommands, PluginParam, PluginTier } from '@/lib/plugin';
+import { isDevOrDebug } from '@/lib/env';
 import { useToastError } from '@/hooks/useToastError';
 import styles from './PluginDashboardPage.module.css';
 
@@ -47,11 +47,6 @@ export function PluginDashboardPage() {
     resolveDialog,
     clearError,
   } = usePluginStore();
-
-  const pluginOutputs = useMemo(
-    () => Object.entries(runningPlugins).sort(([, a], [, b]) => b.startTime - a.startTime),
-    [runningPlugins],
-  );
 
   const { onError } = useToastError();
 
@@ -94,16 +89,24 @@ export function PluginDashboardPage() {
   }, [runningPlugins]);
 
   const displayedPlugins = useMemo(() => {
+    // 发布版本仅显示地址格式化器，开发/调试版本始终显示全部
+    let filtered = marketPlugins;
+    if (!isDevOrDebug()) {
+      filtered = filtered.filter(
+        (p) => p.pluginId === 'com.solosoul.official.address-fmt',
+      );
+    }
+
     switch (activeTab) {
       case 'installed':
-        return marketPlugins.filter((p) => p.installedVersion);
+        return filtered.filter((p) => p.installedVersion);
       case 'running':
-        return marketPlugins.filter(
+        return filtered.filter(
           (p) => runningPlugins[p.pluginId] && !runningPlugins[p.pluginId].completed,
         );
       case 'all':
       default: {
-        let list = marketPlugins;
+        let list = filtered;
         if (selectedTier !== 'all') {
           list = list.filter((p) => p.tier === selectedTier);
         } else {
@@ -117,6 +120,10 @@ export function PluginDashboardPage() {
   const handleRun = async (pluginId: string) => {
     const info = marketPlugins.find((p) => p.pluginId === pluginId);
     if (!info) return;
+    // 在「全部」tab 点击运行时自动切换到「已安装」tab，避免出现旧样式卡片
+    if (activeTab === 'all') {
+      setActiveTab('installed');
+    }
     const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
     const name = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
     const params = info.registryEntry.params?.length
@@ -224,53 +231,20 @@ export function PluginDashboardPage() {
                   isRunning={
                     !!runningPlugins[info.pluginId] && !runningPlugins[info.pluginId].completed
                   }
+                  runningPlugin={runningPlugins[info.pluginId]}
+                  showResults={activeTab === 'installed' || activeTab === 'running'}
                   onInstall={() => installPlugin(info.pluginId, info.registryEntry.latestVersion)}
                   onUpdate={() => updatePlugin(info.pluginId)}
                   onUninstall={() => uninstallPlugin(info.pluginId)}
                   onRun={() => handleRun(info.pluginId)}
+                  onStop={() => stopPlugin(info.pluginId)}
+                  onClear={() => clearPluginOutput(info.pluginId)}
                 />
               ))
             )}
           </div>
         )}
 
-        {pluginOutputs.map(([pluginId, plugin]) => (
-          <Card key={pluginId} className={styles.outputCard}>
-            <div className={styles.outputHeader}>
-              <h4>{plugin.pluginName}</h4>
-              <div className={styles.outputActions}>
-                {plugin.completed ? (
-                  <>
-                    <span className={styles.completedStatus}>
-                      {plugin.error
-                        ? t('plugin:status_failed', { defaultValue: 'Failed' })
-                        : t('plugin:status_completed', { defaultValue: 'Completed' })}
-                    </span>
-                    <button className={styles.clearBtn} onClick={() => clearPluginOutput(pluginId)}>
-                      {t('plugin:clear', { defaultValue: 'Clear' })}
-                    </button>
-                  </>
-                ) : (
-                  <button className={styles.stopBtn} onClick={() => stopPlugin(pluginId)}>
-                    {t('plugin:stop', { defaultValue: 'Stop' })}
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className={styles.logs}>
-              {plugin.logs.slice(-10).map((log) => (
-                <div key={log.id} className={styles.logLine}>
-                  <span className={styles.logLevel} data-level={log.level}>
-                    {log.level}
-                  </span>
-                  <span className={styles.logMessage}>{log.message}</span>
-                </div>
-              ))}
-            </div>
-            {plugin.error && <div className={styles.errorHint}>{plugin.error}</div>}
-            <PluginResultPanel results={plugin.results} />
-          </Card>
-        ))}
       </div>
 
       {pendingConsents.length > 0 && (

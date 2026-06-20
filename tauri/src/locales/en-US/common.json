@@ -192,6 +192,7 @@
   "onboarding_done": "Done",
   "tutorial": "Tutorial",
   "trash_desc": "View and manage deleted objects, restore or permanently purge",
+  "plugins_desc": "Manage local plugin marketplace",
   "ocr_desc": "Scan images for text, quickly extract and create objects",
   "search_desc": "Globally search objects, profiles, and help docs",
   "settings_desc": "Manage account, theme, security, and preferences",

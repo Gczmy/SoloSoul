@@ -33,5 +33,12 @@
   "copy_json": "复制为 JSON",
   "copy_json_short": "JSON",
   "copy_markdown": "复制为 Markdown",
-  "copy_markdown_short": "Markdown"
+  "copy_markdown_short": "Markdown",
+  "inline_output": "插件日志",
+  "inline_result": "插件结果",
+  "copy": "复制",
+  "copied": "已复制",
+  "copy_readable": "复制可读文本",
+  "copy_entry": "复制此条目",
+  "run_complete": "「{{pluginName}}」插件运行完成"
 }

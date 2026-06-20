@@ -56,6 +56,12 @@ const quickCards: QuickCard[] = [
     descKey: 'trash_desc',
   },
   {
+    path: '/plugins',
+    labelKey: 'plugins',
+    icon: PAGE_ICON_MAP.plugins,
+    descKey: 'plugins_desc',
+  },
+  {
     path: '/ocr',
     labelKey: 'ocr',
     icon: PAGE_ICON_MAP.ocr,

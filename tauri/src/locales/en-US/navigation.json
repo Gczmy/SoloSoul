@@ -15,6 +15,7 @@
   "templates": "Templates",
   "import_export": "Import / Export",
   "ocr": "OCR",
+  "plugins": "Plugins",
   "add_page": "Add Page",
   "add_page_placeholder": "Page name",
   "custom_page": "My Projects",

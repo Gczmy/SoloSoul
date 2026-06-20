@@ -1,9 +1,13 @@
 //! 字段解析器 — 插件读取 Vault 字段的真实实现
 //!
 //! 支持字段路径：
-//! - `<typeId>.count`              返回该类型对象数量
 //! - `<typeId>[<index>].<prop>`    返回指定对象的属性值
 //! - `<typeId>.<prop>`             返回第一个对象的属性值（便捷写法）
+//!
+//! ## Phase 5：count 移至插件侧
+//!
+//! `.count` 已从软件侧删除。插件应通过 SDK `list_objects()` 批量获取指定类型的
+//! 所有对象（返回 JSON 数组），在插件内部完成计数和属性提取。详见 `list_objects()` 方法。
 //!
 //! 属性支持嵌套路径，如 `primary_passport.number`。
 //!
@@ -101,20 +105,48 @@ impl FieldResolver {
             )));
         }
 
-        // .count 始终走 legacy 路径
-        if let Some(type_id) = field_id.strip_suffix(".count") {
-            if type_id.is_empty() {
-                return Err(PluginError::InvalidField("类型 ID 为空".to_string()));
-            }
-            let objects = vault
-                .list_objects(account_id, Some(type_id), None, None, false, false)
-                .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
-            return Ok(objects.len().to_string());
-        }
-
         // __name__ 特殊路径：返回对象名称（系统字段，非 properties 内的自定义属性）
-        if let Some((type_id, index, prop_path)) = parse_indexed_field(field_id) {
-            if prop_path == "__name__" {
+        if is_name_field(field_id) {
+            // Stage 4-B typed-lookup：当插件声明 contracts 时，同 .count 一样需要
+            // 通过 contract_type_id 查询对象，而非 type_id。
+            if !self.contracts.is_empty() {
+                let alias = field_id.find('.').map(|dot| &field_id[..dot]).unwrap_or("");
+                if let Some((ctid, _)) =
+                    self.parse_typed_field(&format!("{}.dummy", alias))?
+                {
+                    let all = vault
+                        .list_objects(account_id, None, None, None, false, false)
+                        .map_err(|e| {
+                            PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e))
+                        })?;
+                let mut objects: Vec<_> = all
+                    .into_iter()
+                    .filter(|o| {
+                        o.contract_type_id.as_deref() == Some(&ctid)
+                            || o.template_id.as_deref() == Some(alias)
+                            || o.collection_type == alias
+                    })
+                    .collect();
+                if objects.is_empty() {
+                    return Ok(String::new());
+                }
+                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+
+                if let Some((_, index, _)) = parse_indexed_field(field_id) {
+                    return Ok(objects
+                        .get(index)
+                        .ok_or_else(|| {
+                            PluginError::InvalidField(format!("索引越界: {}", field_id))
+                        })?
+                        .name
+                        .clone());
+                }
+                return Ok(objects[0].name.clone());
+                }
+            }
+
+            // Legacy __name__ 路径
+            if let Some((type_id, index, _)) = parse_indexed_field(field_id) {
                 let objects = vault
                     .list_objects(account_id, Some(&type_id), None, None, false, false)
                     .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
@@ -125,10 +157,7 @@ impl FieldResolver {
                     .ok_or_else(|| PluginError::InvalidField(format!("索引越界: {}", field_id)))?;
                 return Ok(record.name.clone());
             }
-        }
-        // __name__ 快捷写法（无下标，取第一个对象）
-        if let Some((type_id, prop_path)) = parse_type_property(field_id) {
-            if prop_path == "__name__" {
+            if let Some((type_id, _)) = parse_type_property(field_id) {
                 let objects = vault
                     .list_objects(account_id, Some(&type_id), None, None, false, false)
                     .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
@@ -322,6 +351,71 @@ impl FieldResolver {
 
         let tree = serde_json::json!({ "types": types });
         Ok(tree.to_string())
+    }
+    /// 列出指定类型的所有对象，返回 JSON 数组（Phase 5，替代 .count）
+    ///
+    /// 插件通过 SDK `list_objects()` 调用此方法。返回的 JSON 数组每个元素包含：
+    /// - `id`: 对象 ID
+    /// - `name`: 对象名称
+    /// - `properties`: 对象属性 JSON 对象
+    ///
+    /// 插件在本地完成计数（`objects.len()`）和属性提取，不再需要 .count 字段。
+    pub fn list_objects(&self, type_id: &str) -> Result<String, PluginError> {
+        let vault = self
+            .vault
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+        let account_id = self
+            .account_id
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+
+        // typed-lookup：当插件声明 contracts 时，通过 contract_type_id/template_id 匹配对象
+        if !self.contracts.is_empty() {
+            if let Some((ctid, _)) = self.parse_typed_field(&format!("{}.dummy", type_id))? {
+                let all = vault
+                    .list_objects(account_id, None, None, None, false, false)
+                    .map_err(|e| {
+                        PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e))
+                    })?;
+                let mut objects: Vec<_> = all
+                    .into_iter()
+                    .filter(|o| {
+                        o.contract_type_id.as_deref() == Some(&ctid)
+                            || o.template_id.as_deref() == Some(type_id)
+                            || o.collection_type == type_id
+                    })
+                    .collect();
+                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+                let items: Vec<serde_json::Value> = objects
+                    .iter()
+                    .map(|o| {
+                        serde_json::json!({
+                            "id": o.id,
+                            "name": o.name,
+                            "properties": o.properties,
+                        })
+                    })
+                    .collect();
+                return Ok(serde_json::to_string(&items).unwrap_or_else(|_| "[]".to_string()));
+            }
+        }
+
+        // Legacy 路径：按 type_id 直接查询
+        let objects = vault
+            .list_objects(account_id, Some(type_id), None, None, false, false)
+            .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
+        let items: Vec<serde_json::Value> = objects
+            .iter()
+            .map(|o| {
+                serde_json::json!({
+                    "id": o.id,
+                    "name": o.name,
+                    "properties": o.properties,
+                })
+            })
+            .collect();
+        Ok(serde_json::to_string(&items).unwrap_or_else(|_| "[]".to_string()))
     }
 }
 

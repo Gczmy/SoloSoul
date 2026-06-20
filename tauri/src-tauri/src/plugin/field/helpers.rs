@@ -75,6 +75,17 @@ pub(crate) fn parse_type_property(field_id: &str) -> Option<(String, String)> {
     Some((type_id, prop_path))
 }
 
+/// 判断 field_id 是否为 `__name__` 路径
+pub(crate) fn is_name_field(field_id: &str) -> bool {
+    if let Some((_, _, prop_path)) = parse_indexed_field(field_id) {
+        return prop_path == "__name__";
+    }
+    if let Some((_, prop_path)) = parse_type_property(field_id) {
+        return prop_path == "__name__";
+    }
+    false
+}
+
 /// 从 JSON 属性中提取标量值（嵌套路径用 '.' 分隔）
 pub(crate) fn extract_property(props: &serde_json::Value, prop_path: &str) -> String {
     let mut value = props;

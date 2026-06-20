@@ -596,6 +596,7 @@
   "sidebar_bottom_actions": "Sidebar Bottom Buttons",
   "sidebar_bottom_actions_desc": "Customize the 3 shortcut buttons at the bottom of the sidebar. Lock and Settings are always fixed at the end.",
   "position": "Position",
+  "sidebar_bottom_button": "Button",
   "sample_templates_title": "Sample Templates",
   "sample_templates_desc": "Use these examples to quickly create common templates.",
   "use_sample_template": "Create from this template",
