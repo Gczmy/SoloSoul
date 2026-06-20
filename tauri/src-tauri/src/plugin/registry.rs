@@ -84,9 +84,15 @@ impl PluginRegistry {
     pub async fn update_from_remote(&self) -> Result<(), PluginError> {
         let url = std::env::var("SOLOSOUL_REGISTRY_URL")
             .unwrap_or_else(|_| DEFAULT_REGISTRY_URL.to_string());
-        let pubkey_b64 = std::env::var("SOLOSOUL_REGISTRY_PUBKEY").map_err(|_| {
-            PluginError::RegistryError("未配置 SOLOSOUL_REGISTRY_PUBKEY".to_string())
-        })?;
+        let pubkey_b64 = match std::env::var("SOLOSOUL_REGISTRY_PUBKEY") {
+            Ok(k) => k,
+            Err(_) => {
+                tracing::warn!(
+                    "SOLOSOUL_REGISTRY_PUBKEY 未配置，跳过注册表远程更新，使用本地 bundled 注册表"
+                );
+                return Ok(());
+            }
+        };
         let public_key = PublicKey::from_base64(&pubkey_b64)
             .map_err(|e| PluginError::RegistryError(format!("注册表公钥解析失败: {}", e)))?;
 

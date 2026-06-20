@@ -216,10 +216,74 @@ impl PluginManager {
                     PluginError::InvalidManifest(format!("bundled manifest 解析失败: {}", e))
                 })?;
                 if local.version != version {
-                    return Err(PluginError::NetworkError(format!(
-                        "远程 manifest 下载失败且 bundled 版本 {} 与目标 {} 不匹配",
+                    // Bundled version mismatches the target — try installing the bundled version
+                    // by looking it up in the registry. This handles the common case where
+                    // the registry has been updated but the bundled WASM is still the old version.
+                    tracing::warn!(
+                        "Bundled version {} != target {}, attempting fallback install of bundled version",
                         local.version, version
-                    )));
+                    );
+                    let bunded_version = local.version.clone();
+                    // Look up the bundled version in the registry to get its hash
+                    let bundled_version_info = entry
+                        .versions
+                        .get(&bunded_version)
+                        .ok_or_else(|| {
+                            PluginError::NetworkError(format!(
+                                "远程 manifest 下载失败且 bundled 版本 {} 在注册表中不存在，无法降级安装",
+                                bunded_version
+                            ))
+                        })?;
+                    // Read bundled WASM
+                    let bundled_wasm = bundled_dir.join("plugin.wasm");
+                    let wasm_bytes = std::fs::read(&bundled_wasm).map_err(|_| {
+                        PluginError::NetworkError(
+                            "无法下载 WASM 且 bundled 资源不存在".to_string(),
+                        )
+                    })?;
+                    // Verify bundled WASM against the registry hash for its own version
+                    let actual_hash = compute_sha256(&wasm_bytes);
+                    if actual_hash != bundled_version_info.sha256 {
+                        return Err(PluginError::ChecksumMismatch);
+                    }
+                    // Install the bundled version instead
+                    let perm = {
+                        let mut p = local.required_fields.clone();
+                        p.extend(local.optional_fields.clone());
+                        p
+                    };
+                    let manifest = PluginManifest {
+                        id: local.plugin_id,
+                        name: local.name,
+                        version: bunded_version.clone(),
+                        description: local.description,
+                        author: local.publisher,
+                        homepage: local.homepage,
+                        permissions: perm,
+                        required_core_version: local.plugin_api_version,
+                        wasm_hash_sha256: Some(bundled_version_info.sha256.clone()),
+                        data_ttl_seconds: local.data_ttl_seconds.unwrap_or(300),
+                        network_policy: local.network_policy,
+                        require_user_confirmation: local.require_user_confirmation,
+                        tier: local.tier,
+                        category: local.category,
+                        params: local.params,
+                        contracts: local.contracts,
+                        field_bindings: local.field_bindings,
+                    };
+                    self.store.save_plugin(&manifest, &wasm_bytes)?;
+                    self.audit.log(
+                        plugin_id,
+                        None::<String>,
+                        PluginAuditAction::PluginInstalled {
+                            version: bunded_version.clone(),
+                        },
+                    );
+                    return Ok(PluginInstallResult {
+                        plugin_id: plugin_id.to_string(),
+                        version: bunded_version,
+                        installed_at: chrono::Utc::now().timestamp_millis(),
+                    });
                 }
                 local
             }
