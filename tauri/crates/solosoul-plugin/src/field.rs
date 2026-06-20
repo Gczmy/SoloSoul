@@ -280,9 +280,9 @@ impl FieldResolver {
                     .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
                 let mut objects = objects;
                 objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
-                let record = objects.get(index).ok_or_else(|| {
-                    PluginError::InvalidField(format!("索引越界: {}", field_id))
-                })?;
+                let record = objects
+                    .get(index)
+                    .ok_or_else(|| PluginError::InvalidField(format!("索引越界: {}", field_id)))?;
                 return Ok(record.name.clone());
             }
         }

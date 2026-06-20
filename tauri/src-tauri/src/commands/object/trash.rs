@@ -316,12 +316,12 @@ pub async fn page_delete(
                 page_name = section_type.clone();
             }
             if let Ok(Some(rec)) = vault.load_object(&obj.id) {
-            let full_record = serde_json::json!({
-                "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
-                "section_type": rec.section_type, "name": rec.name, "icon_name": rec.icon_name,
-                "properties": rec.properties,
-                "contract_type_id": rec.contract_type_id,
-            });
+                let full_record = serde_json::json!({
+                    "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
+                    "section_type": rec.section_type, "name": rec.name, "icon_name": rec.icon_name,
+                    "properties": rec.properties,
+                    "contract_type_id": rec.contract_type_id,
+                });
                 let trash = solosoul_vault::TrashItem {
                     id: format!("trash_{}", uuid::Uuid::new_v4()),
                     item_type: "object".to_string(),

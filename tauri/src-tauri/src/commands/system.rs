@@ -36,8 +36,7 @@ pub fn get_ui_language() -> Option<String> {
 #[tauri::command]
 pub fn get_system_theme() -> Result<String, String> {
     use dark_light::Mode;
-    let mode = dark_light::detect()
-        .map_err(|e| format!("Failed to detect system theme: {}", e))?;
+    let mode = dark_light::detect().map_err(|e| format!("Failed to detect system theme: {}", e))?;
     match mode {
         Mode::Dark => Ok("dark".to_string()),
         Mode::Light => Ok("light".to_string()),
