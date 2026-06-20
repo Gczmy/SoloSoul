@@ -28,9 +28,14 @@ export function PluginResultPanel({ results }: PluginResultPanelProps) {
   );
 }
 
-function PerPairCopyRow({ pair }: { pair: { key: string; value: string } }) {
-  const { t } = useTranslation('plugin');
+function PerPairCopyRow({
+  pair,
+}: {
+  pair: { key: string; value: string; tag?: string; tagCode?: string };
+}) {
+  const { t, i18n } = useTranslation('plugin');
   const [copied, setCopied] = useState(false);
+  const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
 
   const copyPair = async () => {
     try {
@@ -42,8 +47,15 @@ function PerPairCopyRow({ pair }: { pair: { key: string; value: string } }) {
     }
   };
 
+  const badgeLabel = pair.tag || pair.tagCode;
+
   return (
     <div className={styles.pairRow}>
+      {badgeLabel && (
+        <span className={styles.countryBadge} title={pair.tag || pair.tagCode}>
+          {locale === 'zh' ? pair.tag || pair.tagCode : pair.tagCode || pair.tag}
+        </span>
+      )}
       <span className={styles.pairKey}>{pair.key}</span>
       <span className={styles.pairValue}>{pair.value}</span>
       <button

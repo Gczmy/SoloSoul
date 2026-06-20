@@ -1,23 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import {
-  X,
-  ArrowLeft,
-  Type,
-  AlignLeft,
-  Hash,
-  Calendar,
-  Clock,
-  CheckSquare,
-  List,
-  ListChecks,
-  Link,
-  Mail,
-  Phone,
-  File,
-} from 'lucide-react';
+import { X, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { PluginBadge } from './PluginBadge';
+import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
 import type { SensitivityLevel } from '@/types/template';
 
@@ -26,21 +12,6 @@ interface SampleTemplateDetailProps {
   onBack: () => void;
   onUse: () => void;
 }
-
-const iconMap: Record<string, React.ReactNode> = {
-  text: <Type size={14} />,
-  multiline: <AlignLeft size={14} />,
-  number: <Hash size={14} />,
-  date: <Calendar size={14} />,
-  datetime: <Clock size={14} />,
-  boolean: <CheckSquare size={14} />,
-  select: <List size={14} />,
-  multiselect: <ListChecks size={14} />,
-  url: <Link size={14} />,
-  email: <Mail size={14} />,
-  phone: <Phone size={14} />,
-  file: <File size={14} />,
-};
 
 export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplateDetailProps) {
   const { t } = useTranslation(['settings', 'editor', 'navigation']);
@@ -144,7 +115,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                 <span
                   style={{ color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' }}
                 >
-                  {iconMap[prop.type] || iconMap.text}
+                  <FieldTypeIcon type={prop.type as any} size={14} />
                 </span>
                 <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
                   {prop.name}

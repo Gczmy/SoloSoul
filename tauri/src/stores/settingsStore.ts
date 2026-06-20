@@ -128,7 +128,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultLightTheme: 'warm-stone',
   defaultDarkTheme: 'warm-stone-dark',
   sidebarPosition: 'left',
-  sidebarBottomActions: ['search', 'plugins', 'ai_chat'],
+  sidebarBottomActions: ['search', 'templates', 'help'],
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -267,7 +267,23 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
       if (prefs.sidebarPosition) parsed.sidebarPosition = prefs.sidebarPosition;
-      if (prefs.sidebarBottomActions) parsed.sidebarBottomActions = prefs.sidebarBottomActions;
+      if (prefs.sidebarBottomActions) {
+        const oldDefault = JSON.stringify(['search', 'plugins', 'ai_chat']);
+        const stored = JSON.stringify(prefs.sidebarBottomActions);
+        if (stored === oldDefault) {
+          // Migrate old default to new default (user never customized)
+          parsed.sidebarBottomActions = ['search', 'templates', 'help'];
+          // Persist the new default back to account preferences
+          invoke('user_data_update_preference', {
+            payload: {
+              accountId,
+              preferences: { sidebarBottomActions: parsed.sidebarBottomActions },
+            },
+          }).catch(() => {});
+        } else {
+          parsed.sidebarBottomActions = prefs.sidebarBottomActions;
+        }
+      }
       // Load old-format customPages from preferences for migration.
       // Once loaded, also try the new objects-table source via loadCustomPages().
       if (prefs.customPages) parsed.customPages = prefs.customPages;

@@ -20,5 +20,18 @@
   "add_page_placeholder": "Page name",
   "custom_page": "My Projects",
   "page_name_exists": "Page name already exists",
-  "select_icon": "Choose Icon"
+  "select_icon": "Choose Icon",
+  "icon_category_all": "All",
+  "icon_category_general": "General",
+  "icon_category_security": "Security",
+  "icon_category_identity": "Identity",
+  "icon_category_finance": "Finance",
+  "icon_category_travel": "Travel",
+  "icon_category_work": "Work",
+  "icon_category_communication": "Communication",
+  "icon_category_health": "Health",
+  "icon_category_education": "Education",
+  "icon_category_life": "Life",
+  "icon_category_nature": "Nature",
+  "icon_category_special": "Special"
 }

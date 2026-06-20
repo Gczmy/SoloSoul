@@ -359,7 +359,7 @@ export function AddPageButton({
                             marginBottom: 4,
                           }}
                         >
-                          {CATEGORY_LABELS[cat]}
+                          {t(`navigation:icon_category_${cat}`, CATEGORY_LABELS[cat])}
                         </div>
                         <div
                           style={{

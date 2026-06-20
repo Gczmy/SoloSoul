@@ -21,6 +21,7 @@ import { TemplateTypeSelect } from './TemplateTypeSelect';
 import { TemplatePageSelect } from './TemplatePageSelect';
 import { IconPicker } from './IconPicker';
 import { OptionsEditor }  from './OptionsEditor';
+import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 
 interface FieldUsage {
   active: number;
@@ -390,21 +391,6 @@ function DeprecatedFieldsSection({
 }: DeprecatedFieldsSectionProps) {
   const { t } = useTranslation(['settings', 'common']);
 
-  const fieldTypeIcons: Record<string, React.ReactNode> = {
-    text: <span style={{ fontSize: 10 }}>T</span>,
-    multiline: <span style={{ fontSize: 10 }}>¶</span>,
-    number: <span style={{ fontSize: 10 }}>#</span>,
-    date: <span style={{ fontSize: 10 }}>📅</span>,
-    datetime: <span style={{ fontSize: 10 }}>🕐</span>,
-    boolean: <span style={{ fontSize: 10 }}>☑</span>,
-    select: <span style={{ fontSize: 10 }}>▼</span>,
-    multiselect: <span style={{ fontSize: 10 }}>☑☑</span>,
-    url: <span style={{ fontSize: 10 }}>🔗</span>,
-    email: <span style={{ fontSize: 10 }}>✉</span>,
-    phone: <span style={{ fontSize: 10 }}>📞</span>,
-    file: <span style={{ fontSize: 10 }}>📄</span>,
-  };
-
   const deprecatedFields = editProperties
     .map((prop, idx) => ({ prop, idx }))
     .filter(({ prop }) => prop.deprecatedAt);
@@ -470,9 +456,7 @@ function DeprecatedFieldsSection({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ color: 'var(--text-tertiary)' }}>
-                    {fieldTypeIcons[prop.type] || fieldTypeIcons.text}
-                  </span>
+                  <FieldTypeIcon type={prop.type as any} size={14} />
                   <span
                     style={{
                       fontSize: 14,

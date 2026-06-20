@@ -20,5 +20,18 @@
   "add_page_placeholder": "页面名称",
   "custom_page": "我的项目",
   "page_name_exists": "页面名称已存在",
-  "select_icon": "选择图标"
+  "select_icon": "选择图标",
+  "icon_category_all": "全部",
+  "icon_category_general": "通用",
+  "icon_category_security": "安全",
+  "icon_category_identity": "身份/证件",
+  "icon_category_finance": "财务",
+  "icon_category_travel": "旅行/交通",
+  "icon_category_work": "工作/技术",
+  "icon_category_communication": "沟通",
+  "icon_category_health": "医疗/健康",
+  "icon_category_education": "教育",
+  "icon_category_life": "生活",
+  "icon_category_nature": "自然/生物",
+  "icon_category_special": "特色"
 }

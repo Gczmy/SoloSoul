@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { LucideIcon } from 'lucide-react';
 import {
   CUSTOM_ICON_MAP,
@@ -16,6 +17,7 @@ interface IconPickerProps {
 const CATEGORY_ORDER = ['all', 'general', 'security', 'identity', 'finance', 'travel', 'work', 'communication', 'health', 'education', 'life', 'nature', 'special'] as const;
 
 export function IconPicker({ value, onChange }: IconPickerProps) {
+  const { t } = useTranslation('navigation');
   const currentId = (value && value in CUSTOM_ICON_MAP ? value : DEFAULT_CUSTOM_ICON) as CustomIconId;
   const [categoryFilter, setCategoryFilter] = useState('all');
 
@@ -65,7 +67,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
                 whiteSpace: 'nowrap',
               }}
             >
-              {CATEGORY_LABELS[cat]}
+              {t(`icon_category_${cat}`, CATEGORY_LABELS[cat])}
             </button>
           );
         })}

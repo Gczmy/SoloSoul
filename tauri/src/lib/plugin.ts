@@ -69,7 +69,11 @@ export interface PluginLogLine {
 
 export type PluginResultPayload =
   | { type: 'text'; content: string }
-  | { type: 'key_value'; title: string; pairs: Array<{ key: string; value: string }> }
+  | {
+      type: 'key_value';
+      title: string;
+      pairs: Array<{ key: string; value: string; tag?: string; tagCode?: string }>;
+    }
   | { type: 'table'; headers: string[]; rows: string[][] }
   | { type: 'markdown'; content: string };
 

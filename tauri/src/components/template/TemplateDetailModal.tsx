@@ -1,27 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { X, Pencil, LayoutTemplate, Calendar, Clock }  from 'lucide-react';
+import { X, Pencil, LayoutTemplate } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SensitivityBadges } from './SensitivityBadges';
+import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { SensitivityLevel } from '@/types/template';
 import type { UserTemplate } from '@/types/template';
-
-// F023: shared field-type icon map
-const FIELD_TYPE_ICONS: Record<string, React.ReactNode> = {
-  text: <span style={{ fontSize: 10 }}>T</span>,
-  multiline: <span style={{ fontSize: 10 }}>¶</span>,
-  number: <span style={{ fontSize: 10 }}>#</span>,
-  date: <Calendar size={12} />,
-  datetime: <Clock size={12} />,
-  boolean: <span style={{ fontSize: 10 }}>☑</span>,
-  select: <span style={{ fontSize: 10 }}>▼</span>,
-  multiselect: <span style={{ fontSize: 10 }}>☑☑</span>,
-  url: <span style={{ fontSize: 10 }}>🔗</span>,
-  email: <span style={{ fontSize: 10 }}>✉</span>,
-  phone: <span style={{ fontSize: 10 }}>📞</span>,
-  file: <span style={{ fontSize: 10 }}>📄</span>,
-};
 
 interface DetailProperty {
   id: string;
@@ -190,7 +175,7 @@ export function TemplateDetailModal({
                       alignItems: 'center',
                     }}
                   >
-                    {FIELD_TYPE_ICONS[prop.type] || FIELD_TYPE_ICONS.text}
+                    <FieldTypeIcon type={prop.type as any} size={14} />
                   </span>
                   <span
                     style={{
