@@ -21,7 +21,10 @@ struct RegistryFile {
 
 /// 插件注册表
 pub struct PluginRegistry {
-    path: PathBuf,
+    /// 打包的原始注册表路径（Release 时为只读资源目录）
+    bundled_path: PathBuf,
+    /// 可写的缓存注册表路径（应用数据目录）
+    cache_path: PathBuf,
 }
 
 impl Default for PluginRegistry {
@@ -33,22 +36,41 @@ impl Default for PluginRegistry {
 impl PluginRegistry {
     /// 创建注册表加载器（开发模式回退到源码路径）
     pub fn new() -> Self {
-        let path = super::paths::default_market_dir().join("registry.json");
-        Self { path }
+        let bundled = super::paths::default_market_dir().join("registry.json");
+        let cache = super::PluginStore::data_dir()
+            .unwrap_or_else(|_| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")))
+            .join("registry.json");
+        Self {
+            bundled_path: bundled,
+            cache_path: cache,
+        }
     }
 
     /// 使用 Tauri 应用句柄创建注册表加载器（Release 优先读取资源目录）
     pub fn new_with_app_handle(app_handle: &tauri::AppHandle) -> Result<Self, PluginError> {
         let market_dir = super::paths::resolve_market_dir(Some(app_handle))?;
+        let cache = super::PluginStore::data_dir()?.join("registry.json");
         Ok(Self {
-            path: market_dir.join("registry.json"),
+            bundled_path: market_dir.join("registry.json"),
+            cache_path: cache,
         })
     }
 
-    /// 从指定路径加载注册表
+    /// 从指定路径加载注册表（测试用）
     pub fn from_path(path: impl AsRef<Path>) -> Self {
+        let p = path.as_ref().to_path_buf();
         Self {
-            path: path.as_ref().to_path_buf(),
+            bundled_path: p.clone(),
+            cache_path: p,
+        }
+    }
+
+    /// 获取当前实际使用的注册表路径（优先缓存，其次 bundled）
+    fn active_path(&self) -> &PathBuf {
+        if self.cache_path.exists() {
+            &self.cache_path
+        } else {
+            &self.bundled_path
         }
     }
 
@@ -103,11 +125,14 @@ impl PluginRegistry {
         let _: RegistryFile = serde_json::from_slice(&registry_bytes)
             .map_err(|e| PluginError::RegistryError(format!("注册表 JSON 非法: {}", e)))?;
 
-        // 原子写入本地文件
-        let tmp_path = self.path.with_extension("tmp");
+        // 原子写入缓存路径（数据目录，可写）
+        if let Some(parent) = self.cache_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let tmp_path = self.cache_path.with_extension("tmp");
         std::fs::write(&tmp_path, &registry_bytes)
             .map_err(|e| PluginError::StoreError(format!("写入注册表临时文件失败: {}", e)))?;
-        std::fs::rename(&tmp_path, &self.path)
+        std::fs::rename(&tmp_path, &self.cache_path)
             .map_err(|e| PluginError::StoreError(format!("替换注册表文件失败: {}", e)))?;
 
         Ok(())
@@ -115,7 +140,8 @@ impl PluginRegistry {
 
     /// 加载注册表并转换为前端可用的市场插件信息列表
     pub fn load(&self, installed: &[PluginManifest]) -> Result<Vec<MarketPluginInfo>, PluginError> {
-        let content = std::fs::read_to_string(&self.path)
+        let path = self.active_path();
+        let content = std::fs::read_to_string(path)
             .map_err(|e| PluginError::RegistryError(format!("读取注册表失败: {}", e)))?;
         let file: RegistryFile = serde_json::from_str(&content)?;
         let app_version = current_app_version()?;
@@ -156,7 +182,8 @@ impl PluginRegistry {
 
     /// 获取某个插件的注册表条目
     pub fn get_entry(&self, plugin_id: &str) -> Result<RegistryEntry, PluginError> {
-        let content = std::fs::read_to_string(&self.path)
+        let path = self.active_path();
+        let content = std::fs::read_to_string(path)
             .map_err(|e| PluginError::RegistryError(format!("读取注册表失败: {}", e)))?;
         let file: RegistryFile = serde_json::from_str(&content)?;
         file.plugins

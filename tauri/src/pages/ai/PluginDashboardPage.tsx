@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { RefreshCw } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { PluginCard } from '@/components/plugin/PluginCard';
@@ -46,6 +47,7 @@ export function PluginDashboardPage() {
     clearPluginOutput,
     resolveDialog,
     clearError,
+    refreshRegistry,
   } = usePluginStore();
 
   const { onError } = useToastError();
@@ -159,8 +161,9 @@ export function PluginDashboardPage() {
       onBack={() => navigate('/settings')}
     >
       <div className={styles.container}>
-        <Card className={styles.tabsCard}>
-          <div className={styles.tabs}>
+        <div className={styles.header}>
+          <Card className={styles.tabsCard}>
+            <div className={styles.tabs}>
             {(['all', 'installed', 'running', 'logs'] as Tab[]).map((tab) => (
               <button
                 key={tab}
@@ -178,6 +181,20 @@ export function PluginDashboardPage() {
             ))}
           </div>
         </Card>
+        <button
+          className={styles.refreshBtn}
+          onClick={() => refreshRegistry()}
+          disabled={isLoadingMarket}
+          aria-busy={isLoadingMarket}
+          title={t('plugin:refresh', { defaultValue: 'Refresh registry' })}
+        >
+          <RefreshCw
+            size={16}
+            className={`${styles.refreshIcon} ${isLoadingMarket ? styles.spinning : ''}`}
+          />
+          <span>{t('plugin:refresh', { defaultValue: 'Refresh' })}</span>
+        </button>
+        </div>
 
         {activeTab === 'all' && (
           <Card className={styles.tierCard}>

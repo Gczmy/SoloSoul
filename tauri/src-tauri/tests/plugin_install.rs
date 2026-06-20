@@ -1,7 +1,7 @@
 use solo_soul::plugin::PluginManager;
 
-#[test]
-fn test_install_plugin_from_market() {
+#[tokio::test]
+async fn test_install_plugin_from_market() {
     let manager = PluginManager::new().expect("创建 PluginManager 失败");
 
     // 任选一个 P0 官方插件
@@ -20,7 +20,7 @@ fn test_install_plugin_from_market() {
     // 先卸载，确保测试可重复
     let _ = manager.uninstall(plugin_id);
 
-    let result = manager.install_from_registry(plugin_id, &version);
+    let result = manager.install_from_registry(plugin_id, &version).await;
     assert!(result.is_ok(), "安装失败: {:?}", result.err());
 
     // 安装后应出现在已安装列表

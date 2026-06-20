@@ -43,6 +43,7 @@ pub async fn plugin_install(
     state
         .plugin_manager
         .install_from_registry(&plugin_id, &version)
+        .await
         .map_err(|e| e.to_string())
 }
 
@@ -54,6 +55,7 @@ pub async fn plugin_update(
     state
         .plugin_manager
         .update(&plugin_id)
+        .await
         .map_err(|e| e.to_string())
 }
 

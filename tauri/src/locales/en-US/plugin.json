@@ -46,5 +46,8 @@
   "log_level_debug": "Debug",
   "log_level_info": "Info",
   "log_level_warn": "Warn",
-  "log_level_error": "Error"
+  "log_level_error": "Error",
+  "refresh": "Refresh",
+  "refresh_success": "Plugin registry updated",
+  "refresh_failed": "Failed to refresh plugin registry"
 }

@@ -46,5 +46,8 @@
   "log_level_debug": "调试",
   "log_level_info": "信息",
   "log_level_warn": "警告",
-  "log_level_error": "错误"
+  "log_level_error": "错误",
+  "refresh": "刷新",
+  "refresh_success": "插件注册表已更新",
+  "refresh_failed": "插件注册表刷新失败"
 }

@@ -137,7 +137,12 @@ impl PluginManager {
     }
 
     /// 从市场注册表安装指定版本插件
-    pub fn install_from_registry(
+    ///
+    /// 1. 读取注册表获取目标版本元数据
+    /// 2. 若本地 manifest 版本与目标不一致或不存在，从远程下载 manifest.json
+    /// 3. 若本地 WASM hash 与注册表不匹配或不存在，从 `download_url` / `raw_url` 远程下载
+    /// 4. 校验通过后保存到 PluginStore
+    pub async fn install_from_registry(
         &self,
         plugin_id: &str,
         version: &str,
@@ -158,9 +163,57 @@ impl PluginManager {
         let manifest_path = plugin_dir.join("manifest.json");
         let wasm_path = plugin_dir.join("plugin.wasm");
 
-        let manifest_raw: MarketManifestRaw =
-            serde_json::from_str(&std::fs::read_to_string(&manifest_path)?)?;
-        let wasm_bytes = std::fs::read(&wasm_path)?;
+        // 尝试读取本地 manifest；若不存在或版本不匹配，则从远程下载
+        let manifest_raw = match std::fs::read_to_string(&manifest_path) {
+            Ok(text) => {
+                let local: MarketManifestRaw = serde_json::from_str(&text).map_err(|e| {
+                    PluginError::InvalidManifest(format!("本地 manifest 解析失败: {}", e))
+                })?;
+                if local.version == version {
+                    local
+                } else {
+                    tracing::info!(
+                        "本地 manifest 版本 {} 与目标版本 {} 不一致，从远程下载",
+                        local.version,
+                        version
+                    );
+                    match self.fetch_manifest(version_info).await {
+                        Ok(m) => m,
+                        Err(e) => {
+                            tracing::warn!(
+                                "远程下载 manifest 失败: {}，回退到本地 manifest",
+                                e
+                            );
+                            local
+                        }
+                    }
+                }
+            }
+            Err(_) => {
+                tracing::info!("本地 manifest 不存在，从远程下载");
+                self.fetch_manifest(version_info).await?
+            }
+        };
+
+        // 尝试从本地读取 WASM；若缺失或 hash 不匹配则远程下载
+        let wasm_bytes = if let Ok(bytes) = std::fs::read(&wasm_path) {
+            let local_hash = compute_sha256(&bytes);
+            if local_hash == version_info.sha256 {
+                bytes
+            } else {
+                tracing::warn!(
+                    "Local WASM hash mismatch for {} {} (expected {}, got {}), downloading from remote",
+                    plugin_id, version, version_info.sha256, local_hash
+                );
+                self.fetch_wasm(version_info).await?
+            }
+        } else {
+            tracing::info!(
+                "Local WASM not found for {} {}, downloading from remote",
+                plugin_id, version
+            );
+            self.fetch_wasm(version_info).await?
+        };
 
         let actual_hash = compute_sha256(&wasm_bytes);
         if actual_hash != version_info.sha256 {
@@ -207,12 +260,84 @@ impl PluginManager {
     }
 
     /// 更新插件到注册表最新版本
-    pub fn update(&self, plugin_id: &str) -> Result<PluginInstallResult, PluginError> {
+    pub async fn update(&self, plugin_id: &str) -> Result<PluginInstallResult, PluginError> {
         let entry = self.registry.get_entry(plugin_id)?;
         let latest = entry
             .latest_version
             .ok_or_else(|| PluginError::RegistryError("缺少最新版本信息".to_string()))?;
-        self.install_from_registry(plugin_id, &latest)
+        self.install_from_registry(plugin_id, &latest).await
+    }
+
+    /// 从远程 URL 下载插件 manifest
+    async fn fetch_manifest(
+        &self,
+        version_info: &super::RegistryVersion,
+    ) -> Result<MarketManifestRaw, PluginError> {
+        let url = version_info
+            .raw_url
+            .as_ref()
+            .or(version_info.download_url.as_ref())
+            .ok_or_else(|| {
+                PluginError::NetworkError("注册表中缺少 download_url / raw_url".to_string())
+            })?;
+
+        let manifest_url = if url.ends_with("plugin.wasm") {
+            let base = &url[..url.len() - "plugin.wasm".len()];
+            format!("{}manifest.json", base)
+        } else {
+            return Err(PluginError::NetworkError(
+                "无法从 download_url 推导 manifest URL".to_string(),
+            ));
+        };
+
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(30))
+            .build()
+            .map_err(|e| PluginError::NetworkError(format!("HTTP 客户端创建失败: {}", e)))?;
+
+        let text = client
+            .get(&manifest_url)
+            .send()
+            .await
+            .map_err(|e| PluginError::NetworkError(format!("下载 manifest 失败: {}", e)))?
+            .text()
+            .await
+            .map_err(|e| PluginError::NetworkError(format!("读取 manifest 响应失败: {}", e)))?;
+
+        let manifest: MarketManifestRaw = serde_json::from_str(&text)
+            .map_err(|e| PluginError::InvalidManifest(format!("manifest JSON 解析失败: {}", e)))?;
+
+        Ok(manifest)
+    }
+
+    /// 从远程 URL 下载插件 WASM 二进制
+    async fn fetch_wasm(
+        &self,
+        version_info: &super::RegistryVersion,
+    ) -> Result<Vec<u8>, PluginError> {
+        let url = version_info
+            .download_url
+            .as_ref()
+            .or(version_info.raw_url.as_ref())
+            .ok_or_else(|| {
+                PluginError::NetworkError("注册表中缺少 download_url / raw_url".to_string())
+            })?;
+
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(60))
+            .build()
+            .map_err(|e| PluginError::NetworkError(format!("HTTP 客户端创建失败: {}", e)))?;
+
+        let bytes = client
+            .get(url)
+            .send()
+            .await
+            .map_err(|e| PluginError::NetworkError(format!("下载插件失败: {}", e)))?
+            .bytes()
+            .await
+            .map_err(|e| PluginError::NetworkError(format!("读取下载响应失败: {}", e)))?;
+
+        Ok(bytes.to_vec())
     }
 
     /// 卸载插件

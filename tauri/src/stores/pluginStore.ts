@@ -101,6 +101,7 @@ interface PluginState {
   clearPluginOutput: (pluginId: string) => void;
   resolveDialog: (pluginId: string, requestId: string, value?: string) => Promise<void>;
   clearError: () => void;
+  refreshRegistry: () => Promise<void>;
 }
 
 export const usePluginStore = create<PluginState>()(
@@ -314,6 +315,27 @@ export const usePluginStore = create<PluginState>()(
           next.dialogRequests = next.dialogRequests.filter((r) => r.requestId !== requestId);
           return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
         });
+      },
+
+      refreshRegistry: async () => {
+        set({ isLoadingMarket: true, error: null });
+        try {
+          await pluginCommands.updateRegistry();
+          await get().loadMarket();
+          await get().loadInstalled();
+          useUiStore.getState().showToast({
+            type: 'success',
+            message: i18next.t('plugin:refresh_success', { defaultValue: 'Plugin registry updated' }),
+            duration: 3000,
+          });
+        } catch (err) {
+          set({ error: String(err), isLoadingMarket: false });
+          useUiStore.getState().showToast({
+            type: 'error',
+            message: i18next.t('plugin:refresh_failed', { defaultValue: 'Failed to refresh plugin registry' }),
+            duration: 5000,
+          });
+        }
       },
     }),
     {

@@ -260,7 +260,48 @@ pub fn run() {
                 tracing::error!("[setup] ❌ 无法获取 resource_dir，RESOURCE_DIR 未设置");
             }
 
-            // 6. 检测系统 locale 并注入前端
+            // 6. 应用启动时后台静默刷新插件注册表（不阻塞启动，失败仅记录日志）
+            {
+                let app_handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    // 若未配置公钥则跳过，避免每次启动都报错
+                    if std::env::var("SOLOSOUL_REGISTRY_PUBKEY").is_err() {
+                        tracing::debug!("[plugin] SOLOSOUL_REGISTRY_PUBKEY 未配置，跳过启动时注册表刷新");
+                        return;
+                    }
+                    // 若 1 小时内已刷新过则跳过
+                    let data_dir = dirs::data_dir()
+                        .unwrap_or_else(std::env::temp_dir)
+                        .join("com.solosoul.app");
+                    let last_update_path = data_dir.join(".last_registry_update");
+                    let should_refresh = if let Ok(meta) = std::fs::metadata(&last_update_path) {
+                        meta.modified()
+                            .ok()
+                            .and_then(|t| t.elapsed().ok())
+                            .map(|d| d.as_secs() > 3600)
+                            .unwrap_or(true)
+                    } else {
+                        true
+                    };
+                    if !should_refresh {
+                        tracing::debug!("[plugin] 注册表 1 小时内已刷新过，跳过");
+                        return;
+                    }
+                    if let Some(state) = app_handle.try_state::<AppState>() {
+                        match state.plugin_manager.update_registry().await {
+                            Ok(()) => {
+                                tracing::info!("[plugin] 注册表后台刷新成功");
+                                let _ = std::fs::write(&last_update_path, b"");
+                            }
+                            Err(e) => {
+                                tracing::warn!("[plugin] 注册表后台刷新失败（将在下次手动刷新时重试）: {}", e)
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 7. 检测系统 locale 并注入前端
             let locale =
                 commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
             let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") {
@@ -281,7 +322,7 @@ pub fn run() {
                 ));
             }
 
-            // 7. 恢复窗口大小
+            // 8. 恢复窗口大小
             let managed_state = app.state::<AppState>();
             if let Ok(svc) = managed_state.vault_service.read() {
                 let prefs_path = svc.base_path().join("ui_preferences.json");

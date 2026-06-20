@@ -54,6 +54,10 @@ pub enum PluginError {
     /// 注册表错误
     #[error("插件注册表错误: {0}")]
     RegistryError(String),
+
+    /// 网络错误
+    #[error("网络错误: {0}")]
+    NetworkError(String),
 }
 
 impl From<std::io::Error> for PluginError {
