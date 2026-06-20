@@ -4,6 +4,32 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-06-20
+
+### Added
+
+- **插件注册表后台自动刷新** — 应用启动时后台自动调用 `update_registry`，带 1 小时速率限制，失败不阻塞启动。
+- **插件手动刷新按钮** — 插件仪表盘页新增手动刷新注册表按钮，带加载旋转动画。
+- **远程插件安装** — `install_from_registry` 现在从远程下载最新的 manifest + WASM，使插件更新与软件版本真正分离。
+- **注册表缓存分离** — `registry.json` 写入可写应用数据目录（`~/.solosoul/`），而非只读资源目录。
+- **地址格式化器国家徽章** — 插件结果中每条地址左侧显示国家徽章（中文环境显示国家名如「中国」，英文显示代码如「CN」）。
+- **图标分类国际化** — 侧边栏新建页面、重命名页面、新建模板的图标选择器分类名支持中英文切换。
+
+### Changed
+
+- **版本号统一** — 全平台版本号同步升级到 `2.5.1`。
+- **已安装插件存储分离** — WASM 文件存储路径从 `PluginStore` 独立为应用数据目录，bundled 资源仅作离线回退。
+- **默认侧边栏按钮** — 新用户默认侧边栏底部按钮调整为「搜索」「模板管理」「帮助文档」；检测到旧默认值自动迁移。
+- **地址格式化器 v1.0.5** — 日志与结果支持国际化（通过 `locale` 参数）。
+
+### Fixed
+
+- **模板详情卡片图标** — `TemplateDetailModal`、`SampleTemplateDetail`、`TemplateEditor` 的字段类型图标统一使用 `FieldTypeIcon` 组件（Lucide 图标），与对象编辑器保持一致。
+- **PluginCard 国际化** — 日志级别、JSON/Markdown 标签、复制按钮支持中英文。
+- **pluginStore Toast 错误处理** — 插件运行失败时显示红色错误 Toast。
+- **BootstrapPage 密码提示** — 两次密码不一致时显示错误提示。
+- **BootstrapPage 密码不匹配** — 修复 BootstrapPage 中密码验证不一致的问题。
+
 ## [2.5.0] - 2026-06-20
 
 ### Added
