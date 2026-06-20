@@ -202,7 +202,7 @@ export function PluginCard({
               {runningPlugin.logs.slice(-10).map((log) => (
                 <div key={log.id} className={styles.logLine}>
                   <span className={styles.logLevel} data-level={log.level}>
-                    {log.level}
+                    {t(`log_level_${log.level}`, { defaultValue: log.level })}
                   </span>
                   <span className={styles.logMessage}>{log.message}</span>
                 </div>
@@ -248,7 +248,7 @@ export function PluginCard({
                     }}
                   >
                     <FileJson size={12} />
-                    {jsonCopied ? t('copied', { defaultValue: 'Copied' }) : 'JSON'}
+                    {jsonCopied ? t('copied', { defaultValue: 'Copied' }) : t('copy_json_short', { defaultValue: 'JSON' })}
                   </button>
                   <button
                     className={`${styles.copyLogBtn} ${mdCopied ? styles.copyGlow : ''}`}
@@ -274,7 +274,7 @@ export function PluginCard({
                     }}
                   >
                     <FileText size={12} />
-                    {mdCopied ? t('copied', { defaultValue: 'Copied' }) : 'Markdown'}
+                    {mdCopied ? t('copied', { defaultValue: 'Copied' }) : t('copy_markdown_short', { defaultValue: 'Markdown' })}
                   </button>
                 </>
               )}

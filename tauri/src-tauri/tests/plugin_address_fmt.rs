@@ -133,12 +133,14 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
         field_bindings: vec![],
     };
 
+    let mut params = HashMap::new();
+    params.insert("locale".to_string(), "en-US".to_string());
     let host = SoloHostFunctions::new(
         "com.solosoul.official.address-fmt",
         "Address Formatter",
         &session.id,
         manifest,
-        HashMap::new(),
+        params,
         audit,
         rate_limiter,
         consent_manager,
@@ -155,13 +157,13 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
         result
             .logs
             .iter()
-            .any(|l| l.message.contains("发现 2 条地址")),
+            .any(|l| l.message.contains("Found 2 addresses")),
         "日志中应报告两条地址"
     );
     assert!(
         result.results.iter().any(|r| {
             let text = r.0.to_string();
-            text.contains("北京市海淀区长安街1号")
+            text.contains("Chang'an Street No.1") || text.contains("海淀区") || text.contains("北京市")
         }),
         "结果中应包含中国地址"
     );
@@ -171,5 +173,13 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
             text.contains("1600 Pennsylvania Avenue NW")
         }),
         "结果中应包含美国地址"
+    );
+    // 验证结果标题已国际化
+    assert!(
+        result.results.iter().any(|r| {
+            let text = r.0.to_string();
+            text.contains("Address Formatting Results")
+        }),
+        "结果标题应为英文"
     );
 }

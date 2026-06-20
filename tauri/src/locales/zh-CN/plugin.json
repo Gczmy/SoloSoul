@@ -40,5 +40,11 @@
   "copied": "已复制",
   "copy_readable": "复制可读文本",
   "copy_entry": "复制此条目",
-  "run_complete": "「{{pluginName}}」插件运行完成"
+  "run_complete": "「{{pluginName}}」插件运行完成",
+  "run_failed": "「{{pluginName}}」插件运行失败",
+  "run_error": "「{{pluginName}}」插件运行出错",
+  "log_level_debug": "调试",
+  "log_level_info": "信息",
+  "log_level_warn": "警告",
+  "log_level_error": "错误"
 }

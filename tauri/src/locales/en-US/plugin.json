@@ -40,5 +40,11 @@
   "copied": "Copied",
   "copy_readable": "Copy readable text",
   "copy_entry": "Copy this entry",
-  "run_complete": "「{{pluginName}}」plugin run completed"
+  "run_complete": "「{{pluginName}}」plugin run completed",
+  "run_failed": "「{{pluginName}}」plugin run failed",
+  "run_error": "「{{pluginName}}」plugin run error",
+  "log_level_debug": "Debug",
+  "log_level_info": "Info",
+  "log_level_warn": "Warn",
+  "log_level_error": "Error"
 }

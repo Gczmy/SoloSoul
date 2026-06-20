@@ -275,7 +275,7 @@ impl PluginManager {
 
         let _ = channel.send(PluginEvent::log(
             "info",
-            format!("开始运行插件: {}", manifest.name),
+            format!("Starting plugin: {}", manifest.name),
         ));
 
         let sandbox = self.sandbox;

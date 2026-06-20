@@ -15,11 +15,16 @@ export function BootstrapPage() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [passwordHint, setPasswordHint] = useState('');
-  const { t } = useTranslation(['auth', 'common']);
+  const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const { t } = useTranslation(['auth', 'common', 'settings']);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (password !== confirm) return;
+    if (password !== confirm) {
+      setPasswordMismatch(true);
+      return;
+    }
+    setPasswordMismatch(false);
     // Use the language currently active in i18next (detected via Rust IPC),
     // NOT navigator.language (which is unreliable on Windows WebView2)
     const locale = i18next.language?.startsWith('zh') ? 'zh' : 'en';
@@ -78,18 +83,23 @@ export function BootstrapPage() {
           <SecurePasswordInput
             label={t('auth:confirm_password')}
             value={confirm}
-            onChange={(v) => setConfirm(v)}
+            onChange={(v) => { setConfirm(v); setPasswordMismatch(false); }}
             placeholder={t('common:password_placeholder')}
             autoComplete="new-password"
             onEnter={handleSubmit}
           />
+          {passwordMismatch && (
+            <div style={{ color: '#e74c3c', fontSize: 13, marginTop: -8 }}>
+              {t('settings:password_mismatch')}
+            </div>
+          )}
           <Input
             label={t('auth:password_hint')}
             value={passwordHint}
             onChange={(e) => setPasswordHint(e.target.value)}
             placeholder={t('auth:password_hint_placeholder')}
           />
-          {error && (
+          {error && !passwordMismatch && (
             <div style={{ color: '#e74c3c', fontSize: 13 }}>
               {error.toLowerCase().includes('password') || error.toLowerCase().includes('invalid')
                 ? t('auth:incorrect_password')

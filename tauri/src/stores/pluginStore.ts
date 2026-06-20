@@ -174,6 +174,11 @@ export const usePluginStore = create<PluginState>()(
       },
 
       runPlugin: async (pluginId: string, pluginName: string, params?: Record<string, string>) => {
+        // 注入当前 UI locale，供插件国际化使用
+        const mergedParams: Record<string, string> = {
+          locale: i18next.language || 'en',
+          ...params,
+        };
         const startTime = Date.now();
         const running: RunningPlugin = {
           pluginId,
@@ -190,7 +195,7 @@ export const usePluginStore = create<PluginState>()(
         }));
 
         try {
-          const result = await pluginCommands.run(pluginId, params ?? {}, (event) => {
+          const result = await pluginCommands.run(pluginId, mergedParams, (event) => {
             set((state) => {
               const next = { ...state.runningPlugins[pluginId] };
               if (!next) return state;
@@ -253,16 +258,31 @@ export const usePluginStore = create<PluginState>()(
             return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
           });
 
-          // Toast 通知
-          useUiStore.getState().showToast({
-            type: 'success',
-            message: i18next.t('plugin:run_complete', { pluginName, defaultValue: `「${pluginName}」plugin run completed` }),
-            duration: 3000,
-          });
+          // 根据运行结果决定 Toast 类型
+          const finalPlugin = get().runningPlugins[pluginId];
+          const hasError = result.exitCode !== 0 || !!finalPlugin?.error;
+          if (hasError) {
+            useUiStore.getState().showToast({
+              type: 'error',
+              message: i18next.t('plugin:run_failed', { pluginName, defaultValue: `「${pluginName}」plugin run failed` }),
+              duration: 5000,
+            });
+          } else {
+            useUiStore.getState().showToast({
+              type: 'success',
+              message: i18next.t('plugin:run_complete', { pluginName, defaultValue: `「${pluginName}」plugin run completed` }),
+              duration: 3000,
+            });
+          }
         } catch (err) {
           set((state) => {
             const next = { ...state.runningPlugins[pluginId], completed: true, error: String(err) };
             return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+          });
+          useUiStore.getState().showToast({
+            type: 'error',
+            message: i18next.t('plugin:run_error', { pluginName, defaultValue: `「${pluginName}」plugin run error` }),
+            duration: 5000,
           });
         }
       },
