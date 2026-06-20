@@ -2,12 +2,14 @@ import { createPortal } from 'react-dom';
 import { useLocation, useNavigate }  from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useOcrScanStore } from '@/stores/ocrScanStore';
+import { usePluginQuickStore } from '@/stores/pluginQuickStore';
 import { NavButton } from './NavButton';
 import { SearchPopover } from './SearchPopover';
 import { AiQuickChatPopover }  from './AiQuickChatPopover';
 import { OcrQuickScanPopover }  from './OcrQuickScanPopover';
+import { PluginQuickPanel }  from '@/components/plugin/PluginQuickPanel';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
-import { useBoundNavActions, useAiQuickChat, useOcrQuickScan } from './useNavigationItems';
+import { useBoundNavActions, useAiQuickChat, useOcrQuickScan, usePluginQuickPanel } from './useNavigationItems';
 import styles from './SideNavigation.module.css';
 import type { NavPosition } from './NavButton';
 
@@ -23,9 +25,12 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal }: SecondaryA
 
   const { items, showSearch, setShowSearch } = useBoundNavActions();
   const ocrQuickScanPlacement = sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
+  const pluginQuickPanelPlacement = sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
   const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, ocrQuickScanPlacement);
+  const { pluginButtonRef, quickPanelPos } = usePluginQuickPanel(560, pluginQuickPanelPlacement);
   const aiQuickChatPlacement = sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
   const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);
+  const isPluginPanelOpen = usePluginQuickStore((s) => s.isOpen);
   const { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos } = useAiQuickChat(520, aiQuickChatPlacement);
 
   const zoneStyle: React.CSSProperties = isHorizontal
@@ -39,6 +44,28 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal }: SecondaryA
     >
       {items.map((item, i) => {
         if (item.type === 'action') {
+          if (item.iconKey === 'plugins') {
+            return (
+              <div ref={pluginButtonRef} key="plugins" data-plugin-button="true">
+                <NavButton
+                  Icon={PAGE_ICON_MAP[item.iconKey]}
+                  label={t(item.labelKey)}
+                  isActive={isPluginPanelOpen}
+                  onClick={item.action}
+                  position={sidebarPosition}
+                />
+                {isPluginPanelOpen &&
+                  createPortal(
+                    <PluginQuickPanel
+                      position={quickPanelPos}
+                      onClose={() => usePluginQuickStore.getState().setOpen(false)}
+                      placement={pluginQuickPanelPlacement}
+                    />,
+                    document.body,
+                  )}
+              </div>
+            );
+          }
           if (item.iconKey === 'ocr') {
             return (
               <div ref={ocrButtonRef} key="ocr" data-ocr-button="true">

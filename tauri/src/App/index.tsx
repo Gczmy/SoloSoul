@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { AccountInfo } from '@/lib/ipc';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { OcrScanNotificationListener } from '@/components/layout/OcrScanNotificationListener';
+import { PluginQuickNotificationListener } from '@/components/plugin/PluginQuickNotificationListener';
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { AppRoutes } from './AppRoutes';
 
@@ -66,6 +67,7 @@ function App() {
       <AppRoutes />
       <ToastContainer />
       <OcrScanNotificationListener />
+      <PluginQuickNotificationListener />
       {!hasSeenOnboarding && (
         <OnboardingDialog onComplete={finishOnboarding} onSkip={finishOnboarding} />
       )}

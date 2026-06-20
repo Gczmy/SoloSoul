@@ -3,6 +3,7 @@ import type { RefObject } from 'react';
 import { useVaultStore } from '@/stores/vaultStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useOcrScanStore } from '@/stores/ocrScanStore';
+import { usePluginQuickStore } from '@/stores/pluginQuickStore';
 import type { PageIconKey } from '@/lib/pageIcons';
 
 export interface NavLink {
@@ -60,10 +61,9 @@ export type CustomizableActionId = (typeof CUSTOMIZABLE_ACTION_IDS)[number];
  *  lock / settings 永远固定，不在这里定义。
  *  search 与 ocr 是动作型按钮，不在这里定义路由。 */
 export const CUSTOMIZABLE_LINKS: Record<
-  Exclude<CustomizableActionId, 'search' | 'ocr'>,
+  Exclude<CustomizableActionId, 'search' | 'ocr' | 'plugins'>,
   { path: string; iconKey: PageIconKey; labelKey: string }
 > = {
-  plugins: { path: '/plugins', iconKey: 'plugins', labelKey: 'plugin' },
   ai_chat: { path: '/llm-chat', iconKey: 'ai_chat', labelKey: 'ai_chat' },
   trash: { path: '/settings/trash', iconKey: 'trash', labelKey: 'trash' },
   help: { path: '/help', iconKey: 'help', labelKey: 'help' },
@@ -111,7 +111,18 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
         },
       } as NavAction;
     }
-    const link = CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search' | 'ocr'>];
+    if (id === 'plugins') {
+      return {
+        type: 'action',
+        iconKey: 'plugins',
+        labelKey: 'plugin',
+        action: () => {
+          const s = usePluginQuickStore.getState();
+          s.toggleOpen();
+        },
+      } as NavAction;
+    }
+    const link = CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search' | 'ocr' | 'plugins'>];
     if (!link) {
       // 未知 ID 回退为搜索，避免渲染错误
       return {
@@ -239,4 +250,52 @@ export function useOcrQuickScan(
   }, [isCardOpen, updateQuickScanPos]);
 
   return { ocrButtonRef, quickScanPos, updateQuickScanPos };
+}
+
+export type PluginQuickPanelPlacement = 'left' | 'right' | 'bottom' | 'top';
+
+interface UsePluginQuickPanelResult {
+  pluginButtonRef: RefObject<HTMLDivElement | null>;
+  quickPanelPos: { top: number } | null;
+  updateQuickPanelPos: () => void;
+}
+
+export function usePluginQuickPanel(
+  cardHeight = 560,
+  placement: PluginQuickPanelPlacement = 'left',
+): UsePluginQuickPanelResult {
+  const isOpen = usePluginQuickStore((s) => s.isOpen);
+  const pluginButtonRef = useRef<HTMLDivElement>(null);
+  const [quickPanelPos, setQuickPanelPos] = useState<{ top: number } | null>(null);
+
+  const updateQuickPanelPos = useCallback(() => {
+    if (pluginButtonRef.current) {
+      const rect = pluginButtonRef.current.getBoundingClientRect();
+      let top: number;
+      if (placement === 'bottom') {
+        top = rect.bottom + 8;
+      } else if (placement === 'top') {
+        top = Math.max(rect.top - cardHeight - 8, 8);
+      } else {
+        top = Math.min(
+          Math.max(rect.top + rect.height / 2 - cardHeight / 2, 8),
+          window.innerHeight - cardHeight - 8,
+        );
+      }
+      setQuickPanelPos({ top });
+    }
+  }, [cardHeight, placement]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    updateQuickPanelPos();
+    window.addEventListener('scroll', updateQuickPanelPos, true);
+    window.addEventListener('resize', updateQuickPanelPos);
+    return () => {
+      window.removeEventListener('scroll', updateQuickPanelPos, true);
+      window.removeEventListener('resize', updateQuickPanelPos);
+    };
+  }, [isOpen, updateQuickPanelPos]);
+
+  return { pluginButtonRef, quickPanelPos, updateQuickPanelPos };
 }
