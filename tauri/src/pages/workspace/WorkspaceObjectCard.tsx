@@ -112,7 +112,6 @@ export function WorkspaceObjectCard({
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
-            <PluginBadge contractTypeId={obj.contractTypeId} size="sm" />
             <span
               style={{
                 fontSize: 10,
@@ -127,6 +126,9 @@ export function WorkspaceObjectCard({
             >
               {collectionLabel}
             </span>
+            {obj.contractTypeId && (
+              <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
+            )}
           </div>
         </div>
         {/* Edit + Delete + History actions */}
@@ -178,6 +180,8 @@ export function WorkspaceObjectCard({
             const deprecated = isFieldDeprecated(f.key);
             const isMasked = sens !== 'public';
             const fieldLabel = getFieldName(f.key);
+            const fieldProp = getFieldProperty(f.key);
+            const isContractField = fieldProp?.contractField === true;
             const s = getSensitivityStyle(sens);
             return (
               <span
@@ -205,6 +209,7 @@ export function WorkspaceObjectCard({
                     textDecoration: deprecated ? 'line-through' : 'none',
                   }}
                 >
+                  {isContractField && <span style={{ marginRight: 4 }}><PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="icon" /></span>}
                   {fieldLabel}
                 </span>
                 <span style={{ margin: '0 3px' }}>:</span>
@@ -305,8 +310,9 @@ function CountButton({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'var(--accent-primary)',
-            color: 'white',
+            background: 'transparent',
+            border: '1px solid var(--accent-primary)',
+            color: 'var(--accent-primary)',
             fontSize: 9,
             fontWeight: 700,
             borderRadius: 7,

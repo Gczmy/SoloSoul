@@ -11,6 +11,7 @@ import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
+import { PluginBadge } from '@/components/template/PluginBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
@@ -462,6 +463,7 @@ export function ObjectDetailModal({
                               {getFieldName(f.key)}
                             </span>
                             <SensitivityBadge level={sens} />
+                            {obj.contractTypeId && <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />}
                             {deprecated && <DeprecatedBadge />}
                           </div>
                           <div

@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
+import { PluginBadge } from '@/components/template/PluginBadge';
 import { useToastError } from '@/hooks/useToastError';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import { LayoutTemplate } from 'lucide-react';
@@ -66,6 +67,7 @@ export function ObjectEditorPage() {
         sensitivityLevel?: string;
         required?: boolean;
         deprecatedAt?: string;
+        contractField?: boolean;
       }[]
     > = {};
     for (const tpl of userTemplates) {
@@ -77,6 +79,7 @@ export function ObjectEditorPage() {
         sensitivityLevel: p.sensitivityLevel || 'internal',
         required: false,
         deprecatedAt: p.deprecatedAt,
+        contractField: p.contractField,
       }));
     }
     return map;
@@ -117,6 +120,8 @@ export function ObjectEditorPage() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const fields = objectTemplates[selectedType] || [];
+  const selectedTemplate = userTemplates.find((t) => t.id === selectedType);
+  const contractTypeId = currentObject?.contractTypeId || selectedTemplate?.contractTypeId;
 
   const activeFields = fields.filter((f) => !f.deprecatedAt);
   const deprecatedFields = isNew
@@ -322,22 +327,44 @@ export function ObjectEditorPage() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {visibleTemplates.map((type) => {
                 const label = templateMeta[type]?.label || type;
+                const tpl = userTemplates.find((t) => t.id === type);
                 return (
                   <button
                     key={type}
                     onClick={() => setSelectedType(type)}
+                    onMouseEnter={(e) => {
+                      if (selectedType !== type) {
+                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedType !== type) {
+                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        e.currentTarget.style.background = 'var(--bg-elevated)';
+                      }
+                    }}
                     style={{
                       padding: '10px 16px',
                       borderRadius: 8,
-                      border: '1px solid var(--border-subtle)',
-                      background:
-                        selectedType === type ? 'var(--accent-primary)' : 'var(--bg-elevated)',
-                      color: selectedType === type ? 'white' : 'var(--text-primary)',
+                      border:
+                        selectedType === type
+                          ? '1px solid var(--accent-primary)'
+                          : '1px solid var(--border-subtle)',
+                      background: 'var(--bg-elevated)',
+                      color:
+                        selectedType === type ? 'var(--accent-primary)' : 'var(--text-primary)',
                       fontSize: 13,
                       cursor: 'pointer',
+                      transition: 'all 0.15s ease',
                     }}
                   >
                     {label}
+                    {tpl?.contractTypeId && (
+                      <span style={{ marginLeft: 6 }}>
+                        <PluginBadge contractTypeId={tpl.contractTypeId} size="sm" variant="full" />
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -347,6 +374,18 @@ export function ObjectEditorPage() {
                     state: { from: location.pathname + location.search },
                   })
                 }
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.borderStyle = 'solid';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-strong)';
+                  e.currentTarget.style.borderStyle = 'dashed';
+                  e.currentTarget.style.color = 'var(--text-secondary)';
+                  e.currentTarget.style.background = 'transparent';
+                }}
                 style={{
                   marginLeft: 'auto',
                   display: 'flex',
@@ -359,6 +398,7 @@ export function ObjectEditorPage() {
                   color: 'var(--text-secondary)',
                   fontSize: 12,
                   cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
                 title={t('editor:manage_templates')}
               >
@@ -405,6 +445,9 @@ export function ObjectEditorPage() {
               >
                 {resolveCollectionLabel(collectionType, customPages, t)}
               </span>
+              {contractTypeId && (
+                <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
+              )}
               {selectedType && (
                 <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                   · {templateMeta[selectedType]?.label || selectedType}
@@ -478,6 +521,9 @@ export function ObjectEditorPage() {
                                 badge={
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                     <SensitivityBadge level={sensitivity} />
+                                    {field.contractField && contractTypeId && (
+                                      <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
+                                    )}
                                     {isDeprecated && <DeprecatedBadge />}
                                   </div>
                                 }
@@ -511,7 +557,7 @@ export function ObjectEditorPage() {
                   <Button variant="secondary" onClick={() => navigate(-1)}>
                     {t('common:cancel')}
                   </Button>
-                  <Button onClick={handleSave} loading={isSaving}>
+                  <Button variant="secondary" onClick={handleSave} loading={isSaving}>
                     {t('common:save')}
                   </Button>
                 </div>

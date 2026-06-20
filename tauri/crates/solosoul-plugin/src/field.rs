@@ -272,6 +272,35 @@ impl FieldResolver {
             return Ok(objects.len().to_string());
         }
 
+        // __name__ 特殊路径：返回对象名称（系统字段，非 properties 内的自定义属性）
+        if let Some((type_id, index, prop_path)) = parse_indexed_field(field_id) {
+            if prop_path == "__name__" {
+                let objects = vault
+                    .list_objects(account_id, Some(&type_id), None, None, false, false)
+                    .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
+                let mut objects = objects;
+                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+                let record = objects.get(index).ok_or_else(|| {
+                    PluginError::InvalidField(format!("索引越界: {}", field_id))
+                })?;
+                return Ok(record.name.clone());
+            }
+        }
+        // __name__ 快捷写法（无下标，取第一个对象）
+        if let Some((type_id, prop_path)) = parse_type_property(field_id) {
+            if prop_path == "__name__" {
+                let objects = vault
+                    .list_objects(account_id, Some(&type_id), None, None, false, false)
+                    .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
+                if objects.is_empty() {
+                    return Ok(String::new());
+                }
+                let mut objects = objects;
+                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+                return Ok(objects[0].name.clone());
+            }
+        }
+
         // Stage 4-B：typed lookup（当 manifest 声明了 contracts 时）
         if !self.contracts.is_empty() {
             return self.resolve_typed(field_id, vault, account_id);
@@ -354,6 +383,18 @@ impl FieldResolver {
 
         if field_id.is_empty() {
             return Err(PluginError::InvalidField("字段路径为空".to_string()));
+        }
+
+        // __name__ 元数据
+        if let Some((_, _, prop_path)) = parse_indexed_field(field_id) {
+            if prop_path == "__name__" {
+                return Ok(("名称".to_string(), "public".to_string()));
+            }
+        }
+        if let Some((_, prop_path)) = parse_type_property(field_id) {
+            if prop_path == "__name__" {
+                return Ok(("名称".to_string(), "public".to_string()));
+            }
         }
 
         // Stage 4-B：typed lookup

@@ -29,7 +29,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     key: 'zh_identity',
     locale: 'zh',
     category: 'identity',
-    icon: 'identity',
+    icon: 'user',
     name: '身份信息',
     properties: [
       { id: 'fullName', name: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
@@ -44,7 +44,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     key: 'zh_id_card',
     locale: 'zh',
     category: 'identity',
-    icon: 'idCard',
+    icon: 'id_card',
     name: '身份证',
     properties: [
       { id: 'fullName', name: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
@@ -58,7 +58,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     key: 'zh_passport',
     locale: 'zh',
     category: 'travel',
-    icon: 'passport',
+    icon: 'bookmarked',
     name: '护照',
     properties: [
       { id: 'fullName', name: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
@@ -79,7 +79,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     key: 'zh_visa',
     locale: 'zh',
     category: 'travel',
-    icon: 'visa',
+    icon: 'ticket',
     name: '签证',
     properties: [
       { id: 'country', name: '国家', type: 'text', sensitivityLevel: 'public' },
@@ -93,7 +93,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     key: 'zh_bank_account',
     locale: 'zh',
     category: 'financial',
-    icon: 'bank',
+    icon: 'landmark',
     name: '银行账户',
     properties: [
       { id: 'bankName', name: '银行名称', type: 'text', sensitivityLevel: 'public' },
@@ -106,7 +106,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     key: 'zh_bank_card',
     locale: 'zh',
     category: 'financial',
-    icon: 'card',
+    icon: 'credit_card',
     name: '银行卡',
     properties: [
       { id: 'cardNumber', name: '卡号', type: 'text', sensitivityLevel: 'critical' },
@@ -119,7 +119,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     key: 'zh_education',
     locale: 'zh',
     category: 'professional',
-    icon: 'education',
+    icon: 'graduation',
     name: '教育经历',
     properties: [
       { id: 'institution', name: '院校', type: 'text', sensitivityLevel: 'public' },
@@ -133,7 +133,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     key: 'zh_employment',
     locale: 'zh',
     category: 'professional',
-    icon: 'employment',
+    icon: 'briefcase',
     name: '工作经历',
     properties: [
       { id: 'company', name: '公司', type: 'text', sensitivityLevel: 'public' },
@@ -146,7 +146,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     key: 'zh_address',
     locale: 'zh',
     category: 'identity',
-    icon: 'address',
+    icon: 'home',
     name: '地址',
     contractTypeId: 'com.solosoul.official.address-fmt/v1',
     properties: [
@@ -156,7 +156,6 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
       { id: 'province', name: '省/自治区/直辖市/特别行政区', type: 'text', sensitivityLevel: 'public', contractField: true },
       { id: 'country', name: '国家', type: 'text', sensitivityLevel: 'public', contractField: true },
       { id: 'postalCode', name: '邮编', type: 'text', sensitivityLevel: 'internal', contractField: true },
-      { id: 'title', name: '标题', type: 'text', sensitivityLevel: 'public', required: true, contractField: true },
     ],
   },
 ];
@@ -166,7 +165,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     key: 'en_identity',
     locale: 'en',
     category: 'identity',
-    icon: 'identity',
+    icon: 'user',
     name: 'Identity',
     properties: [
       {
@@ -187,7 +186,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     key: 'en_id_card',
     locale: 'en',
     category: 'identity',
-    icon: 'idCard',
+    icon: 'id_card',
     name: 'ID Card',
     properties: [
       {
@@ -207,7 +206,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     key: 'en_passport',
     locale: 'en',
     category: 'travel',
-    icon: 'passport',
+    icon: 'bookmarked',
     name: 'Passport',
     properties: [
       {
@@ -234,7 +233,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     key: 'en_visa',
     locale: 'en',
     category: 'travel',
-    icon: 'visa',
+    icon: 'ticket',
     name: 'Visa',
     properties: [
       { id: 'country', name: 'Country', type: 'text', sensitivityLevel: 'public' },
@@ -248,7 +247,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     key: 'en_bank_account',
     locale: 'en',
     category: 'financial',
-    icon: 'bank',
+    icon: 'landmark',
     name: 'Bank Account',
     properties: [
       { id: 'bankName', name: 'Bank Name', type: 'text', sensitivityLevel: 'public' },
@@ -261,7 +260,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     key: 'en_credit_card',
     locale: 'en',
     category: 'financial',
-    icon: 'card',
+    icon: 'credit_card',
     name: 'Credit Card',
     properties: [
       { id: 'cardNumber', name: 'Card Number', type: 'text', sensitivityLevel: 'critical' },
@@ -274,7 +273,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     key: 'en_education',
     locale: 'en',
     category: 'professional',
-    icon: 'education',
+    icon: 'graduation',
     name: 'Education',
     properties: [
       { id: 'institution', name: 'Institution', type: 'text', sensitivityLevel: 'public' },
@@ -288,7 +287,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     key: 'en_employment',
     locale: 'en',
     category: 'professional',
-    icon: 'employment',
+    icon: 'briefcase',
     name: 'Employment',
     properties: [
       { id: 'company', name: 'Company', type: 'text', sensitivityLevel: 'public' },
@@ -301,7 +300,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     key: 'en_address',
     locale: 'en',
     category: 'identity',
-    icon: 'address',
+    icon: 'home',
     name: 'Address',
     contractTypeId: 'com.solosoul.official.address-fmt/v1',
     properties: [
@@ -311,7 +310,6 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
       { id: 'province', name: 'Province / State', type: 'text', sensitivityLevel: 'public', contractField: true },
       { id: 'country', name: 'Country', type: 'text', sensitivityLevel: 'public', contractField: true },
       { id: 'postalCode', name: 'Postal code', type: 'text', sensitivityLevel: 'internal', contractField: true },
-      { id: 'title', name: 'Title', type: 'text', sensitivityLevel: 'public', required: true, contractField: true },
     ],
   },
 ];

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, LayoutTemplate } from 'lucide-react';
+import { X } from 'lucide-react';
 import {
   SAMPLE_TEMPLATES_BY_LOCALE,
   getDefaultLocaleTab,
   type SampleTemplate,
   type SampleTemplateLocale,
 } from '@/lib/sampleTemplates';
+import { resolveCustomIcon } from '@/lib/pageIcons';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { PluginBadge } from './PluginBadge';
 import { Input } from '@/components/ui/Input';
@@ -147,16 +148,26 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             data-testid="locale-tab-zh"
             aria-pressed={localeTab === 'zh'}
             onClick={() => switchLocale('zh')}
+            onMouseEnter={localeTab !== 'zh' ? (e) => {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+            } : undefined}
+            onMouseLeave={localeTab !== 'zh' ? (e) => {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+            } : undefined}
             style={{
               flex: 1,
               padding: '8px 12px',
               borderRadius: 8,
-              border: '1px solid var(--border-subtle)',
-              background: localeTab === 'zh' ? 'var(--accent-primary)' : 'transparent',
-              color: localeTab === 'zh' ? 'white' : 'var(--text-secondary)',
+              border: localeTab === 'zh' ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+              background: localeTab === 'zh' ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+              color: localeTab === 'zh' ? 'var(--accent-primary)' : 'var(--text-primary)',
+              boxShadow: localeTab === 'zh' ? '0 0 0 1px var(--accent-primary)' : 'none',
               fontSize: 13,
               fontWeight: 500,
               cursor: 'pointer',
+              transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
             }}
           >
             {t('settings:locale_zh')}
@@ -166,16 +177,26 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             data-testid="locale-tab-en"
             aria-pressed={localeTab === 'en'}
             onClick={() => switchLocale('en')}
+            onMouseEnter={localeTab !== 'en' ? (e) => {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+            } : undefined}
+            onMouseLeave={localeTab !== 'en' ? (e) => {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+            } : undefined}
             style={{
               flex: 1,
               padding: '8px 12px',
               borderRadius: 8,
-              border: '1px solid var(--border-subtle)',
-              background: localeTab === 'en' ? 'var(--accent-primary)' : 'transparent',
-              color: localeTab === 'en' ? 'white' : 'var(--text-secondary)',
+              border: localeTab === 'en' ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+              background: localeTab === 'en' ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+              color: localeTab === 'en' ? 'var(--accent-primary)' : 'var(--text-primary)',
+              boxShadow: localeTab === 'en' ? '0 0 0 1px var(--accent-primary)' : 'none',
               fontSize: 13,
               fontWeight: 500,
               cursor: 'pointer',
+              transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
             }}
           >
             {t('settings:locale_en')}
@@ -190,26 +211,39 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             onClear={() => setSearchQuery('')}
           />
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {pageOptions.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                data-testid={`page-filter-${opt.id}`}
-                onClick={() => setPageFilter(opt.id)}
-                aria-pressed={pageFilter === opt.id}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 6,
-                  border: '1px solid var(--border-subtle)',
-                  background: pageFilter === opt.id ? 'var(--accent-primary)' : 'transparent',
-                  color: pageFilter === opt.id ? 'white' : 'var(--text-secondary)',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
+            {pageOptions.map((opt) => {
+              const isActive = pageFilter === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  data-testid={`page-filter-${opt.id}`}
+                  onClick={() => setPageFilter(opt.id)}
+                  aria-pressed={isActive}
+                  onMouseEnter={!isActive ? (e) => {
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  } : undefined}
+                  onMouseLeave={!isActive ? (e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  } : undefined}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 6,
+                    border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                    background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                    color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                    boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -226,6 +260,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
               const visible = isSampleMatch(tpl);
               const present = new Set(tpl.properties.map((p) => p.sensitivityLevel));
               const ordered = SENSITIVITY_ORDER.filter((l) => present.has(l));
+              const SampleIcon = resolveCustomIcon(tpl.icon);
               return (
                 <button
                   key={tpl.key}
@@ -263,7 +298,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <LayoutTemplate size={22} style={{ color: 'var(--accent-primary)' }} />
+                    <SampleIcon size={22} style={{ color: 'var(--accent-primary)' }} />
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                         {tpl.name}

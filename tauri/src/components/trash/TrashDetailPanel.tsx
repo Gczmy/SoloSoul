@@ -71,7 +71,7 @@ export function TrashDetailPanel({
     }
   };
 
-  const currentSnapIdx = historySnapIndex[detailItem.id] ?? 5;
+  const currentSnapIdx = historySnapIndex[detailItem.id] ?? 0;
 
   // Load first snapshot when panel opens; skip if already cached for this item
   useEffect(() => {
@@ -458,6 +458,11 @@ export function TrashDetailPanel({
         <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
           <Button
             size="sm"
+            variant="secondary"
+            style={{
+              border: '1px solid var(--accent-primary)',
+              color: 'var(--accent-primary)',
+            }}
             onClick={() => {
               onRequestRestore(detailItem.id);
               onClose();
@@ -468,6 +473,18 @@ export function TrashDetailPanel({
           <Button
             size="sm"
             variant="secondary"
+            style={{
+              color: '#e74c3c',
+              border: '1px solid rgba(231,76,60,0.3)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
+              e.currentTarget.style.borderColor = 'rgba(231,76,60,0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
+            }}
             onClick={() => {
               onRequestDelete(detailItem.id);
               onClose();
@@ -501,15 +518,17 @@ function SnapshotContent({
   onChangeSnapshot,
 }: SnapshotContentProps) {
   const { t } = useTranslation(['settings', 'common', 'editor']);
-  const currentSnap = snapshots[currentSnapIdx];
+  // Clamp index to prevent out-of-bounds when snapshots array changes after mount
+  const clampedIdx = Math.min(currentSnapIdx, Math.max(0, snapshots.length - 1));
+  const currentSnap = snapshots[clampedIdx];
 
   return (
     <div style={{ marginTop: 8, fontSize: 12 }}>
       {snapshots.length > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <button
-            disabled={currentSnapIdx >= snapshots.length - 1}
-            onClick={() => onChangeSnapshot(currentSnapIdx + 1)}
+            disabled={clampedIdx >= snapshots.length - 1}
+            onClick={() => onChangeSnapshot(clampedIdx + 1)}
             style={{
               width: 28,
               height: 28,
@@ -518,15 +537,15 @@ function SnapshotContent({
               justifyContent: 'center',
               border: '1px solid var(--border-subtle)',
               borderRadius: 6,
-              cursor: currentSnapIdx >= snapshots.length - 1 ? 'default' : 'pointer',
+              cursor: clampedIdx >= snapshots.length - 1 ? 'default' : 'pointer',
               fontSize: 11,
               background: 'transparent',
-              color: currentSnapIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
-              opacity: currentSnapIdx >= snapshots.length - 1 ? 0.35 : 1,
+              color: clampedIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
+              opacity: clampedIdx >= snapshots.length - 1 ? 0.35 : 1,
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              if (currentSnapIdx < snapshots.length - 1) {
+              if (clampedIdx < snapshots.length - 1) {
                 e.currentTarget.style.background = 'var(--bg-toolbar)';
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
@@ -535,7 +554,7 @@ function SnapshotContent({
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
               e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = currentSnapIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
+              e.currentTarget.style.color = clampedIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
             }}
           >
             <ChevronLeft size={14} />
@@ -551,14 +570,14 @@ function SnapshotContent({
             }}
           >
             <span style={{ color: 'var(--accent-primary)', fontWeight: 600, minWidth: 14, textAlign: 'center' }}>
-              {currentSnapIdx + 1}
+              {clampedIdx + 1}
             </span>
             <span style={{ color: 'var(--text-tertiary)' }}>/</span>
             <span style={{ color: 'var(--text-tertiary)' }}>{snapshots.length}</span>
           </div>
           <button
-            disabled={currentSnapIdx <= 0}
-            onClick={() => onChangeSnapshot(Math.max(0, currentSnapIdx - 1))}
+            disabled={clampedIdx <= 0}
+            onClick={() => onChangeSnapshot(Math.max(0, clampedIdx - 1))}
             style={{
               width: 28,
               height: 28,
@@ -567,15 +586,15 @@ function SnapshotContent({
               justifyContent: 'center',
               border: '1px solid var(--border-subtle)',
               borderRadius: 6,
-              cursor: currentSnapIdx <= 0 ? 'default' : 'pointer',
+              cursor: clampedIdx <= 0 ? 'default' : 'pointer',
               fontSize: 11,
               background: 'transparent',
-              color: currentSnapIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
-              opacity: currentSnapIdx <= 0 ? 0.35 : 1,
+              color: clampedIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
+              opacity: clampedIdx <= 0 ? 0.35 : 1,
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              if (currentSnapIdx > 0) {
+              if (clampedIdx > 0) {
                 e.currentTarget.style.background = 'var(--bg-toolbar)';
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
@@ -584,7 +603,7 @@ function SnapshotContent({
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
               e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = currentSnapIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
+              e.currentTarget.style.color = clampedIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
             }}
           >
             <ChevronRight size={14} />
@@ -609,7 +628,7 @@ function SnapshotContent({
               {currentSnap.diffSummary &&
                 !(
                   snapshots.length > 2 &&
-                  currentSnapIdx === snapshots.length - 1 &&
+                  clampedIdx === snapshots.length - 1 &&
                   currentSnap.diffSummary === 'Created'
                 ) && (
                   <span

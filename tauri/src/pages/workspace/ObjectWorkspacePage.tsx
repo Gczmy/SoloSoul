@@ -17,10 +17,10 @@ import { type TemplateProperty } from '@/types/template';
 import { type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
-import { Trash, FileText } from 'lucide-react';
+import { Trash } from 'lucide-react';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
-import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 
 // Labels resolved at render time via t() so they support i18n
@@ -136,12 +136,13 @@ export function ObjectWorkspacePage() {
   // Hover handlers for workspace tab buttons
   const onTabEnter = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     if (e.currentTarget.dataset.active === 'true') return;
+    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
     e.currentTarget.style.borderColor = 'var(--accent-primary)';
-    e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
   }, []);
   const onTabLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (e.currentTarget.dataset.active === 'true') return;
+    e.currentTarget.style.background = 'var(--bg-toolbar)';
     e.currentTarget.style.borderColor = 'var(--border-subtle)';
-    e.currentTarget.style.boxShadow = 'none';
   }, []);
   const onClearEnter = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.style.borderColor = 'var(--accent-primary)';
@@ -309,23 +310,23 @@ export function ObjectWorkspacePage() {
           <button
             onClick={() => navigate(newObjectUrl)}
             onMouseEnter={(e) => {
-              e.currentTarget.style.filter = 'brightness(1.12)';
-              e.currentTarget.style.boxShadow = '0 2px 8px color-mix(in srgb, var(--accent-primary) 30%, transparent)';
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.filter = 'none';
-              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
             }}
             style={{
               padding: '8px 16px',
               borderRadius: 8,
-              border: 'none',
-              background: 'var(--accent-primary)',
-              color: 'white',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-toolbar)',
+              color: 'var(--text-primary)',
               fontSize: 13,
               fontWeight: 500,
               cursor: 'pointer',
-              transition: 'filter 0.2s, box-shadow 0.2s',
+              transition: 'background 0.2s, border-color 0.2s',
             }}
           >
             + {t('create')}
@@ -358,7 +359,7 @@ export function ObjectWorkspacePage() {
                 transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
               }}
             >
-              <Trash size={14} /> {t('delete')} {customPage?.name || t('objects')}
+              <Trash size={14} /> {t('delete')}
             </button>
           )}
         </div>
@@ -385,27 +386,27 @@ export function ObjectWorkspacePage() {
                 data-active={isActive ? 'true' : 'false'}
                 onClick={() => navigate(`/workspace?section=${catType}`)}
                 onMouseEnter={onTabEnter}
-                onMouseLeave={onTabLeave}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: isActive ? 'var(--accent-primary)' : 'transparent',
-                  color: isActive ? 'white' : 'var(--text-primary)',
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s',
-                }}
-              >
-                {React.createElement(CATEGORY_ICONS[catType], { size: 16 })}
-                {t(`navigation:${catType}`, catType)}
-              </button>
-            );
-          })}
-          {activeCustomPages.map((page) => {
+                onMouseLeave={onTabLeave}                  style={{
+                      padding: '6px 14px',
+                      borderRadius: 8,
+                      border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                      background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                      color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                      boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
+                    }}
+                  >
+                    {React.createElement(CATEGORY_ICONS[catType], { size: 16 })}
+                    {t(`navigation:${catType}`, catType)}
+                  </button>
+                );
+              })}
+              {activeCustomPages.map((page) => {
             const isActive = pageId === page.id;
             return (
               <button
@@ -417,18 +418,19 @@ export function ObjectWorkspacePage() {
                 style={{
                   padding: '6px 14px',
                   borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: isActive ? 'var(--accent-primary)' : 'transparent',
-                  color: isActive ? 'white' : 'var(--text-primary)',
+                  border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                  background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                   fontSize: 13,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 4,
-                  transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s',
+                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
               >
-                <FileText size={16} />
+                {React.createElement(resolveCustomIcon(page.iconId), { size: 16 })}
                 {page.name}
               </button>
             );

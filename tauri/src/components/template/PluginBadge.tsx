@@ -4,6 +4,11 @@ import { useTranslation } from 'react-i18next';
 interface PluginBadgeProps {
   contractTypeId?: string;
   size?: 'sm' | 'md';
+  /**
+   * 'full' (默认): 图标 + 文本标签
+   * 'icon': 仅显示图标（紧凑场景，如卡片内的字段级别）
+   */
+  variant?: 'full' | 'icon';
 }
 
 const PLUGIN_NAME_MAP: Record<string, string> = {
@@ -14,7 +19,7 @@ const PLUGIN_NAME_MAP_EN: Record<string, string> = {
   'com.solosoul.official.address-fmt/v1': 'Address Formatter',
 };
 
-export function PluginBadge({ contractTypeId, size = 'sm' }: PluginBadgeProps) {
+export function PluginBadge({ contractTypeId, size = 'sm', variant = 'full' }: PluginBadgeProps) {
   const { t, i18n } = useTranslation(['settings']);
   if (!contractTypeId) return null;
 
@@ -23,6 +28,22 @@ export function PluginBadge({ contractTypeId, size = 'sm' }: PluginBadgeProps) {
     : PLUGIN_NAME_MAP_EN[contractTypeId] || contractTypeId;
 
   const isSmall = size === 'sm';
+
+  if (variant === 'icon') {
+    return (
+      <span
+        title={t('settings:plugin_badge_tooltip', { pluginName })}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          color: 'var(--accent-primary, #6366f1)',
+          flexShrink: 0,
+        }}
+      >
+        <Puzzle size={isSmall ? 10 : 12} />
+      </span>
+    );
+  }
 
   return (
     <span

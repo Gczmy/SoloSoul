@@ -178,7 +178,9 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
           <Button variant="secondary" onClick={onBack}>
             {t('common:close')}
           </Button>
-          <Button onClick={onUse}>{t('settings:use_sample_template')}</Button>
+          <Button variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={onUse}>
+            {t('settings:use_sample_template')}
+          </Button>
         </div>
       </div>
     </div>

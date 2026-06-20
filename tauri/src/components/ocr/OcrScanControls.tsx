@@ -168,20 +168,20 @@ export function OcrScanControls({
           disabled={isScanning}
           onMouseEnter={(e) => {
             if (!isScanning) {
-              e.currentTarget.style.filter = 'brightness(1.1)';
-              e.currentTarget.style.boxShadow = '0 4px 12px color-mix(in srgb, var(--accent-primary) 30%, transparent)';
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.filter = 'none';
-            e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.background = 'var(--bg-toolbar)';
+            e.currentTarget.style.borderColor = 'var(--border-subtle)';
           }}
           style={{
             padding: '10px 20px',
             borderRadius: 10,
-            border: 'none',
-            background: 'var(--accent-primary)',
-            color: 'white',
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-toolbar)',
+            color: 'var(--text-primary)',
             fontSize: 14,
             fontWeight: 500,
             cursor: isScanning ? 'not-allowed' : 'pointer',
@@ -189,7 +189,7 @@ export function OcrScanControls({
             alignItems: 'center',
             gap: 8,
             opacity: isScanning ? 0.7 : 1,
-            transition: 'filter 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease',
+            transition: 'background 0.2s, border-color 0.2s, opacity 0.15s ease',
           }}
         >
           <FileText size={16} />

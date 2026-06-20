@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { X, Pencil, LayoutTemplate }  from 'lucide-react';
+import { X, Pencil, LayoutTemplate, Calendar, Clock }  from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
@@ -12,8 +12,8 @@ const FIELD_TYPE_ICONS: Record<string, React.ReactNode> = {
   text: <span style={{ fontSize: 10 }}>T</span>,
   multiline: <span style={{ fontSize: 10 }}>¶</span>,
   number: <span style={{ fontSize: 10 }}>#</span>,
-  date: <span style={{ fontSize: 10 }}>📅</span>,
-  datetime: <span style={{ fontSize: 10 }}>🕐</span>,
+  date: <Calendar size={12} />,
+  datetime: <Clock size={12} />,
   boolean: <span style={{ fontSize: 10 }}>☑</span>,
   select: <span style={{ fontSize: 10 }}>▼</span>,
   multiselect: <span style={{ fontSize: 10 }}>☑☑</span>,
@@ -220,6 +220,8 @@ export function TemplateDetailModal({
             {t('common:close') || '关闭'}
           </Button>
           <Button
+            variant="secondary"
+            style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
             onClick={() => {
               const ut = templates.find((u) => u.id === detailTemplate.id);
               if (ut) {

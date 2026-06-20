@@ -2875,7 +2875,7 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn.prepare(
             "SELECT id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at
-             FROM user_templates WHERE account_id = ?1 ORDER BY created_at DESC"
+             FROM user_templates WHERE account_id = ?1 ORDER BY created_at ASC"
         ).map_err(|e| format!("prepare list_user_templates: {}", e))?;
 
         let rows = stmt
@@ -4398,8 +4398,8 @@ mod tests {
 
         let list = vault.list_user_templates("acc-1").unwrap();
         assert_eq!(list.len(), 2);
-        // DESC order: a2 should be first (created later)
-        assert_eq!(list[0].name, "模板B");
+        // ASC order: a1 should be first (created earlier)
+        assert_eq!(list[0].name, "模板A");
     }
 
     #[test]

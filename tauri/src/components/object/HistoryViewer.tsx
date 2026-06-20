@@ -119,9 +119,9 @@ function SnapshotCard({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {/* Version badge */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <SnapshotVersionBadge index={index} total={total} />
-        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', overflowWrap: 'break-word', wordBreak: 'break-word', textAlign: 'right', maxWidth: '70%' }}>{snapName}</div>
+        <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-tertiary)', overflowWrap: 'break-word', wordBreak: 'break-word', textAlign: 'right', maxWidth: '70%' }}>{snapName}</div>
       </div>
       {/* Properties — like detail panel, with sensitivity */}
       {fields.length > 0 && (

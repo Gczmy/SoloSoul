@@ -335,7 +335,7 @@ export function DataManagementPage() {
             {t('settings:backup_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Button size="sm" variant="primary" onClick={() => navigate('/settings/backup')}>
+            <Button size="sm" variant="secondary" onClick={() => navigate('/settings/backup')}>
               {t('settings:create_backup')}
             </Button>
             <Button size="sm" variant="secondary" onClick={() => navigate('/settings/backup')}>
@@ -352,7 +352,7 @@ export function DataManagementPage() {
             {t('settings:export_import_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Button size="sm" variant="primary" onClick={() => navigate('/settings/export-import')}>
+            <Button size="sm" variant="secondary" onClick={() => navigate('/settings/export-import')}>
               {t('settings:export')}
             </Button>
             <Button

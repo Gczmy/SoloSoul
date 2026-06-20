@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
@@ -11,6 +11,8 @@ import styles from './SideNavigation.module.css';
 import {
   CUSTOM_ICON_MAP,
   DEFAULT_CUSTOM_ICON,
+  ICON_CATEGORIES,
+  CATEGORY_LABELS,
   type CustomIconId,
 } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
@@ -38,6 +40,20 @@ export function AddPageButton({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Compute max height for icon picker scroll area based on available viewport space
+  const scrollMaxHeight = useMemo(() => {
+    if (!buttonRect) return 280;
+    const nonInputHeight = 72; // input(~40) + gap/padding(~18) + label(~14)
+    if (isBottom) {
+      // Opens upward from button bottom
+      return Math.max(120, Math.min(280, buttonRect.top - 80));
+    }
+    // Opens downward: horizontal (below button) or side (aligned to top)
+    const topEdge = isHorizontal ? buttonRect.bottom + 8 : buttonRect.top;
+    const available = window.innerHeight - topEdge - 16 - nonInputHeight;
+    return Math.max(120, Math.min(280, available));
+  }, [buttonRect, isHorizontal, isBottom]);
+
   const { t } = useTranslation(['navigation', 'common']);
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const addCustomPage = useSettingsStore((s) => s.addCustomPage);
@@ -322,54 +338,89 @@ export function AddPageButton({
                 </div>
               )}
 
-              {/* Icon picker grid — always visible for quick selection */}
+              {/* Icon picker with category sections (scrollable) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{t('select_icon')}</span>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(6, 1fr)',
-                    gap: 4,
-                  }}
-                >
-                  {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
-                    ([id, IconComp]) => (
-                      <button
-                        key={id}
-                        onMouseDown={(e) => e.preventDefault()} // prevent input blur so selectedIconId updates before confirm
-                        onClick={() => setSelectedIconId(id)}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 6,
-                          border:
-                            id === selectedIconId
-                              ? '2px solid var(--accent-primary)'
-                              : '1px solid transparent',
-                          background:
-                            id === selectedIconId
-                              ? 'var(--accent-primary-transparent, rgba(91,124,153,0.1))'
-                              : 'transparent',
-                          cursor: 'pointer',
-                        }}
-                        title={id}
-                        aria-label={id}
-                      >
-                        <IconComp
-                          size={16}
+                <div style={{ maxHeight: scrollMaxHeight, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {['general','security','identity','finance','travel','work','communication','health','education','life','nature','special'].map((cat) => {
+                    const categoryIcons = (Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).filter(
+                      ([id]) => ICON_CATEGORIES[id] === cat
+                    );
+                    if (categoryIcons.length === 0) return null;
+                    return (
+                      <div key={cat}>
+                        <div
                           style={{
-                            color:
-                              id === selectedIconId
-                                ? 'var(--accent-primary)'
-                                : 'var(--text-secondary)',
+                            fontSize: 11,
+                            fontWeight: 500,
+                            color: 'var(--text-tertiary)',
+                            padding: '2px 0 4px',
+                            borderBottom: '1px solid var(--border-subtle)',
+                            marginBottom: 4,
                           }}
-                        />
-                      </button>
-                    ),
-                  )}
+                        >
+                          {CATEGORY_LABELS[cat]}
+                        </div>
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(6, 1fr)',
+                            gap: 4,
+                          }}
+                        >
+                          {categoryIcons.map(([id, IconComp]) => (
+                            <button
+                              key={id}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => setSelectedIconId(id)}
+                              onMouseEnter={(e) => {
+                                if (id !== selectedIconId) {
+                                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (id !== selectedIconId) {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.borderColor = 'transparent';
+                                }
+                              }}
+                              style={{
+                                width: 32,
+                                height: 32,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: 6,
+                                border:
+                                  id === selectedIconId
+                                    ? '2px solid var(--accent-primary)'
+                                    : '1px solid transparent',
+                                background:
+                                  id === selectedIconId
+                                    ? 'var(--accent-primary-transparent, rgba(91,124,153,0.1))'
+                                    : 'transparent',
+                                cursor: 'pointer',
+                                transition: 'all 0.1s ease',
+                              }}
+                              title={id}
+                              aria-label={id}
+                            >
+                              <IconComp
+                                size={16}
+                                style={{
+                                  color:
+                                    id === selectedIconId
+                                      ? 'var(--accent-primary)'
+                                      : 'var(--text-secondary)',
+                                }}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>

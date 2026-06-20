@@ -34,8 +34,8 @@
   color: var(--text-primary);
 }
 .secondary:hover:not(:disabled) {
-  background: var(--bg-hover, rgba(0, 0, 0, 0.04));
-  border-color: var(--text-tertiary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--accent-primary);
 }
 
 .tertiary {

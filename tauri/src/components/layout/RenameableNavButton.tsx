@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { invoke } from '@tauri-apps/api/core';
@@ -11,6 +11,8 @@ import { NavButton } from './NavButton';
 import {
   CUSTOM_ICON_MAP,
   resolveCustomIcon,
+  ICON_CATEGORIES,
+  CATEGORY_LABELS,
   type CustomIconId,
 } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
@@ -45,6 +47,18 @@ export function RenameableNavButton({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Compute max height for icon grid based on available viewport space
+  const scrollMaxHeight = useMemo(() => {
+    if (!renameCardRect) return 280;
+    const nonInputHeight = 72;
+    if (isBottom) {
+      return Math.max(120, Math.min(280, renameCardRect.top - 80));
+    }
+    const topEdge = isHorizontal ? renameCardRect.bottom + 8 : renameCardRect.top;
+    const available = window.innerHeight - topEdge - 16 - nonInputHeight;
+    return Math.max(120, Math.min(280, available));
+  }, [renameCardRect, isHorizontal, isBottom]);
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -289,52 +303,95 @@ export function RenameableNavButton({
               </div>
             </div>
 
-            {/* Icon picker grid */}
+            {/* Icon picker grid — category sections (scrollable) */}
             {showIconPicker && (
               <div
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(6, 1fr)',
-                  gap: 4,
-                  padding: '4px 0',
+                  maxHeight: scrollMaxHeight,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
                 }}
               >
-                {(Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).map(
-                  ([id, IconComp]) => (
-                    <button
-                      key={id}
-                      onClick={() => {
-                        setSelectedIconId(id);
-                        setShowIconPicker(false);
-                      }}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 6,
-                        border:
-                          selectedIconId === id
-                            ? '1px solid var(--accent-primary)'
-                            : '1px solid transparent',
-                        background:
-                          selectedIconId === id ? 'rgba(91,124,153,0.08)' : 'transparent',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <IconComp
-                        size={18}
+                {['general','security','identity','finance','travel','work','communication','health','education','life','nature','special'].map((cat) => {
+                  const categoryIcons = (Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).filter(
+                    ([id]) => ICON_CATEGORIES[id] === cat
+                  );
+                  if (categoryIcons.length === 0) return null;
+                  return (
+                    <div key={cat}>
+                      <div
                         style={{
-                          color:
-                            selectedIconId === id
-                              ? 'var(--accent-primary)'
-                              : 'var(--text-secondary)',
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: 'var(--text-tertiary)',
+                          padding: '2px 0 4px',
+                          borderBottom: '1px solid var(--border-subtle)',
+                          marginBottom: 4,
                         }}
-                      />
-                    </button>
-                  ),
-                )}
+                      >
+                        {CATEGORY_LABELS[cat]}
+                      </div>
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(6, 1fr)',
+                          gap: 4,
+                        }}
+                      >
+                        {categoryIcons.map(([id, IconComp]) => (
+                          <button
+                            key={id}
+                            onClick={() => {
+                              setSelectedIconId(id);
+                              setShowIconPicker(false);
+                            }}
+                            onMouseEnter={(e) => {
+                              if (id !== selectedIconId) {
+                                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (id !== selectedIconId) {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.borderColor = 'transparent';
+                              }
+                            }}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: 6,
+                              border:
+                                selectedIconId === id
+                                  ? '2px solid var(--accent-primary)'
+                                  : '1px solid transparent',
+                              background:
+                                selectedIconId === id ? 'rgba(91,124,153,0.08)' : 'transparent',
+                              cursor: 'pointer',
+                              transition: 'all 0.1s ease',
+                            }}
+                          >
+                            <IconComp
+                              size={18}
+                              style={{
+                                color:
+                                  selectedIconId === id
+                                    ? 'var(--accent-primary)'
+                                    : 'var(--text-secondary)',
+                              }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
             </motion.div>

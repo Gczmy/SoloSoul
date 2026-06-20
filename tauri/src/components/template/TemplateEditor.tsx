@@ -329,19 +329,28 @@ export function TemplateEditor({
           <button
             type="button"
             onClick={onAddProperty}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+            }}
             style={{
               height: 36,
               padding: '0 14px',
               borderRadius: 6,
-              border: 'none',
-              background: 'var(--accent-primary)',
-              color: 'white',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-toolbar)',
+              color: 'var(--text-primary)',
               fontSize: 13,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: 6,
               whiteSpace: 'nowrap',
+              transition: 'background 0.2s, border-color 0.2s',
             }}
           >
             <Plus size={14} />
@@ -354,7 +363,7 @@ export function TemplateEditor({
         <Button variant="secondary" onClick={onClose}>
           {t('common:cancel') || '取消'}
         </Button>
-        <Button onClick={onSave}>
+        <Button variant="secondary" onClick={onSave}>
           {t('common:save') || '保存'}
         </Button>
       </div>

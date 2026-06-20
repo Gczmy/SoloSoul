@@ -24,6 +24,7 @@ import type {
   TemplateProperty,
   PropertyType,
 } from '@/types/template';
+import { resolveCustomIcon } from '@/lib/pageIcons';
 import { SampleTemplateGallery } from '@/components/template/SampleTemplateGallery';
 import { SampleTemplateDetail } from '@/components/template/SampleTemplateDetail';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
@@ -85,7 +86,6 @@ export function TemplateManagerPage() {
   const [selectedSample, setSelectedSample] = useState<SampleTemplate | null>(null);
   const [pageFilter, setPageFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [hoveredFilter, setHoveredFilter] = useState<string | null>(null);
 
   useEffect(() => {
     loadTemplates().catch(() => {});
@@ -341,7 +341,7 @@ export function TemplateManagerPage() {
             <BookOpen size={16} style={{ marginRight: 4 }} />
             {t('settings:sample_templates') || '模板示例'}
           </Button>
-          <Button onClick={openCreate}>
+          <Button variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={openCreate}>
             <Plus size={16} style={{ marginRight: 4 }} />
             {t('settings:new_template') || '新建模板'}
           </Button>
@@ -371,57 +371,30 @@ export function TemplateManagerPage() {
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {pageOptions.map((opt) => {
                 const isActive = pageFilter === opt.id;
-                const isHovered = hoveredFilter === opt.id;
-
-                let borderColor: string;
-                let boxShadow: string;
-                let bg: string;
-                let textColor: string;
-
-                if (isActive) {
-                  borderColor = 'var(--accent-primary)';
-                  boxShadow = 'none';
-                  bg = 'var(--accent-primary)';
-                  textColor = 'white';
-                } else if (isHovered) {
-                  borderColor = 'var(--accent-primary)';
-                  boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                  bg = 'transparent';
-                  textColor = 'var(--accent-primary)';
-                } else {
-                  borderColor = 'var(--border-subtle)';
-                  boxShadow = 'none';
-                  bg = 'transparent';
-                  textColor = 'var(--text-secondary)';
-                }
-
                 return (
                   <button
                     key={opt.id}
                     type="button"
                     onClick={() => setPageFilter(opt.id)}
                     aria-pressed={isActive}
-                    onMouseEnter={() => setHoveredFilter(opt.id)}
-                    onMouseLeave={(e) => {
-                      setHoveredFilter(null);
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                    onMouseDown={(e) => {
-                      e.currentTarget.style.transform = 'scale(0.96)';
-                    }}
-                    onMouseUp={(e) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
+                    onMouseEnter={!isActive ? (e) => {
+                      e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    } : undefined}
+                    onMouseLeave={!isActive ? (e) => {
+                      e.currentTarget.style.background = 'var(--bg-toolbar)';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    } : undefined}
                     style={{
                       padding: '5px 12px',
                       borderRadius: 6,
-                      border: `1px solid ${borderColor}`,
-                      boxShadow,
-                      background: bg,
-                      color: textColor,
+                      border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                      background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                      color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                      boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                       fontSize: 12,
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
+                      transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                     }}
                   >
                     {opt.label}
@@ -448,11 +421,14 @@ export function TemplateManagerPage() {
           </div>
         )}
 
-        {filteredTemplates.map((tpl) => (
+        {filteredTemplates.map((tpl) => {
+          const ut = templates.find((u) => u.id === tpl.id);
+          const TemplateIcon = ut?.iconId ? resolveCustomIcon(ut.iconId) : LayoutTemplate;
+          return (
           <Card key={tpl.id} interactive onClick={() => setDetailTemplate(tpl)}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <LayoutTemplate size={20} />
+                <TemplateIcon size={20} />
                 <div>
                   <div
                     style={{
@@ -523,7 +499,8 @@ export function TemplateManagerPage() {
               </div>
             </div>
           </Card>
-        ))}
+        );}
+        )}
       </div>
 
       {/* Edit / Create Dialog */}

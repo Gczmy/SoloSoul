@@ -397,15 +397,6 @@
                     "sensitivityLevel": "internal",
                     "required": false,
                     "contractField": true
-                },
-                {
-                    "id": "title",
-                    "nameI18nKey": "editor:fields.title",
-                    "nameFallback": "Title",
-                    "type": "text",
-                    "sensitivityLevel": "public",
-                    "required": true,
-                    "contractField": true
                 }
             ]
         }

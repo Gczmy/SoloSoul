@@ -180,22 +180,23 @@ export function TrashPage() {
                 key={opt.value}
                 onClick={() => setTimeFilter(opt.value)}
                 onMouseEnter={!isActive ? (e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
                 } : undefined}
                 onMouseLeave={!isActive ? (e) => {
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
                   e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-secondary)';
                 } : undefined}
                 style={{
                   padding: '5px 12px',
                   borderRadius: 6,
-                  border: '1px solid var(--border-subtle)',
-                  background: isActive ? 'var(--accent-primary)' : 'transparent',
-                  color: isActive ? 'white' : 'var(--text-secondary)',
+                  border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                  background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                   fontSize: 12,
                   cursor: 'pointer',
-                  transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
               >
                 {t(`settings:${opt.labelKey}`, opt.labelKey)}
@@ -212,22 +213,23 @@ export function TrashPage() {
                 key={opt.value}
                 onClick={() => setTypeFilter(opt.value)}
                 onMouseEnter={!isActive ? (e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
                 } : undefined}
                 onMouseLeave={!isActive ? (e) => {
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
                   e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-secondary)';
                 } : undefined}
                 style={{
                   padding: '5px 12px',
                   borderRadius: 6,
-                  border: '1px solid var(--border-subtle)',
-                  background: isActive ? 'var(--accent-primary)' : 'transparent',
-                  color: isActive ? 'white' : 'var(--text-secondary)',
+                  border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                  background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                   fontSize: 12,
                   cursor: 'pointer',
-                  transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
               >
                 {t(`settings:trash_type_${opt.value}`)}
@@ -379,24 +381,41 @@ export function TrashPage() {
                     </div>
                     <Button
                       size="sm"
+                      variant="secondary"
+                      style={{
+                        border: '1px solid var(--accent-primary)',
+                        color: 'var(--accent-primary)',
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         doRestore([item.id]);
                       }}
                       title={t('common:restore')}
                     >
-                      <RotateCcw size={13} />
+                      <RotateCcw size={13} style={{ color: 'var(--accent-primary)' }} />
                     </Button>
                     <Button
                       size="sm"
                       variant="secondary"
+                      style={{
+                        color: '#e74c3c',
+                        border: '1px solid rgba(231,76,60,0.3)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(231,76,60,0.5)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'var(--bg-toolbar)';
+                        e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         doDelete([item.id]);
                       }}
                       title={t('common:delete_permanently')}
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={13} style={{ color: '#e74c3c' }} />
                     </Button>
                     <button
                       onClick={(e) => {
@@ -449,10 +468,26 @@ export function TrashPage() {
             <span style={{ fontSize: 13, color: 'var(--text-secondary)', marginRight: 'auto' }}>
               {selectedIds.size} {t('settings:selected')}
             </span>
-            <Button size="sm" onClick={() => doRestore(Array.from(selectedIds))}>
+            <Button size="sm" variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={() => doRestore(Array.from(selectedIds))}>
               <RotateCcw size={13} style={{ marginRight: 4 }} /> {t('common:restore')}
             </Button>
-            <Button size="sm" variant="secondary" onClick={() => doDelete(Array.from(selectedIds))}>
+            <Button
+              size="sm"
+              variant="secondary"
+              style={{
+                color: '#e74c3c',
+                border: '1px solid rgba(231,76,60,0.3)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
+                e.currentTarget.style.borderColor = 'rgba(231,76,60,0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
+              }}
+              onClick={() => doDelete(Array.from(selectedIds))}
+            >
               {t('common:delete_permanently')}
             </Button>
           </div>
