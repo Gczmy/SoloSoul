@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+
 import { HardDrive, PieChart, X } from 'lucide-react';
 import { formatBytes } from '@/lib/format';
 
@@ -335,12 +335,62 @@ export function DataManagementPage() {
             {t('settings:backup_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Button size="sm" variant="secondary" onClick={() => navigate('/settings/backup')}>
+            <button
+              type="button"
+              onClick={() => navigate('/settings/backup')}
+              style={{
+                fontSize: 12,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
+            >
               {t('settings:create_backup')}
-            </Button>
-            <Button size="sm" variant="secondary" onClick={() => navigate('/settings/backup')}>
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/settings/backup')}
+              style={{
+                fontSize: 12,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
+            >
               {t('settings:restore')}
-            </Button>
+            </button>
           </div>
         </Card>
 
@@ -352,16 +402,62 @@ export function DataManagementPage() {
             {t('settings:export_import_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
-            <Button size="sm" variant="secondary" onClick={() => navigate('/settings/export-import')}>
-              {t('settings:export')}
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
+            <button
+              type="button"
               onClick={() => navigate('/settings/export-import')}
+              style={{
+                fontSize: 12,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
+            >
+              {t('settings:export')}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/settings/export-import')}
+              style={{
+                fontSize: 12,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
             >
               {t('settings:import')}
-            </Button>
+            </button>
           </div>
         </Card>
 
@@ -370,9 +466,34 @@ export function DataManagementPage() {
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
             {t('settings:trash_empty')}
           </p>
-          <Button size="sm" variant="secondary" onClick={() => navigate('/settings/trash')}>
+          <button
+            type="button"
+            onClick={() => navigate('/settings/trash')}
+            style={{
+              fontSize: 12,
+              padding: '6px 12px',
+              borderRadius: 6,
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-toolbar)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontWeight: 500,
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
+          >
             {t('settings:trash')}
-          </Button>
+          </button>
         </Card>
 
         {/* Snapshot retention config */}

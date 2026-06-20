@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
@@ -126,10 +125,47 @@ export function BackupConfigPage() {
               placeholder={t('settings:backup_name_placeholder')}
               style={{ flex: 1 }}
             />
-            <Button onClick={handleCreate} loading={isCreating} disabled={!backupName.trim()}>
-              <Plus size={14} />
-              {t('settings:create')}
-            </Button>
+            <button
+              onClick={handleCreate}
+              disabled={!backupName.trim() || isCreating}
+              onMouseEnter={(e) => {
+                if (backupName.trim() && !isCreating) {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (backupName.trim() && !isCreating) {
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: !backupName.trim() || isCreating ? 'default' : 'pointer',
+                opacity: !backupName.trim() || isCreating ? 0.5 : 1,
+                transition: 'all 0.15s ease',
+                fontFamily: 'inherit',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isCreating ? (
+                t('common:loading', { defaultValue: '...' })
+              ) : (
+                <><Plus size={14} />{t('settings:create')}</>
+              )}
+            </button>
           </div>
         </Card>
 
@@ -169,24 +205,72 @@ export function BackupConfigPage() {
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <Button
-                      variant="secondary"
-                      size="sm"
+                    <button
                       onClick={() => handleRestore(backup.id)}
-                      loading={restoringId === backup.id}
+                      disabled={restoringId === backup.id}
                       title={t('settings:restore_title')}
+                      onMouseEnter={(e) => {
+                        if (restoringId !== backup.id) {
+                          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                          e.currentTarget.style.color = 'var(--accent-primary)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (restoringId !== backup.id) {
+                          e.currentTarget.style.background = 'var(--bg-toolbar)';
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                          e.currentTarget.style.color = 'var(--text-secondary)';
+                        }
+                      }}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 8,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-toolbar)',
+                        color: 'var(--text-secondary)',
+                        cursor: restoringId === backup.id ? 'default' : 'pointer',
+                        opacity: restoringId === backup.id ? 0.5 : 1,
+                        transition: 'all 0.15s ease',
+                        padding: 0,
+                      }}
                     >
                       <RotateCcw size={14} />
-                    </Button>
-                    <Button
-                      variant="tertiary"
-                      size="sm"
+                    </button>
+                    <button
                       onClick={() => handleDelete(backup.id)}
                       title={t('settings:delete_title')}
-                      style={{ color: 'var(--accent-danger, #ef4444)' }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
+                        e.currentTarget.style.color = '#e74c3c';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'var(--bg-toolbar)';
+                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        e.currentTarget.style.color = 'var(--accent-danger, #ef4444)';
+                      }}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 8,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-toolbar)',
+                        color: 'var(--accent-danger, #ef4444)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        padding: 0,
+                      }}
                     >
                       <Trash2 size={14} />
-                    </Button>
+                    </button>
                   </div>
                 </div>
               ))}

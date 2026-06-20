@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/Button';
+
 import { Sparkles, PlusSquare, LayoutTemplate, ShieldCheck, CheckCircle } from 'lucide-react';
 
 interface OnboardingDialogProps {
@@ -102,26 +102,66 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button
+            type="button"
             onClick={onSkip}
             style={{
-              padding: '8px 12px',
-              borderRadius: 8,
-              border: 'none',
-              background: 'transparent',
+              fontSize: 12,
+              padding: '6px 12px',
+              borderRadius: 6,
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-toolbar)',
               color: 'var(--text-tertiary)',
-              fontSize: 13,
               cursor: 'pointer',
+              fontFamily: 'inherit',
+              fontWeight: 500,
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.color = 'var(--text-tertiary)';
             }}
           >
             {t('onboarding_skip')}
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
             {step > 0 && (
-              <Button variant="secondary" onClick={() => setStep((s) => s - 1)}>
+              <button
+                type="button"
+                onClick={() => setStep((s) => s - 1)}
+                style={{
+                  fontSize: 12,
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 500,
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }}
+              >
                 {t('onboarding_back')}
-              </Button>
+              </button>
             )}
-            <Button
+            <button
+              type="button"
               onClick={() => {
                 if (isLast) {
                   onComplete();
@@ -129,9 +169,31 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
                   setStep((s) => s + 1);
                 }
               }}
+              style={{
+                fontSize: 12,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
             >
               {isLast ? t('onboarding_done') : t('onboarding_next')}
-            </Button>
+            </button>
           </div>
         </div>
       </div>

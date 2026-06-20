@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
@@ -67,8 +66,8 @@ export function ImportSection({
         <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>
           {importPath || t('settings:no_file_selected')}
         </div>
-        <Button
-          size="sm"
+        <button
+          type="button"
           onClick={async () => {
             const { open } = await import('@tauri-apps/plugin-dialog');
             const selected = await open({
@@ -83,19 +82,67 @@ export function ImportSection({
               onSetShowStrategySelector(false);
             }
           }}
+          style={{
+            fontSize: 12,
+            padding: '6px 12px',
+            borderRadius: 6,
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-toolbar)',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            fontWeight: 500,
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            e.currentTarget.style.borderColor = 'var(--accent-primary)';
+            e.currentTarget.style.color = 'var(--accent-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--bg-toolbar)';
+            e.currentTarget.style.borderColor = 'var(--border-subtle)';
+            e.currentTarget.style.color = 'var(--text-primary)';
+          }}
         >
           {t('settings:select_file')}
-        </Button>
+        </button>
         {importPath && !importPreview && (
           <div style={{ marginTop: 8 }}>
-            <Button
-              size="sm"
+            <button
+              type="button"
               onClick={onPreview}
-              loading={isPreviewing}
               disabled={isPreviewing}
+              style={{
+                fontSize: 12,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid var(--border-subtle)',
+                background: isPreviewing ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                color: isPreviewing ? 'var(--accent-primary)' : 'var(--text-primary)',
+                cursor: isPreviewing ? 'default' : 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                opacity: isPreviewing ? 0.6 : 1,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!isPreviewing) {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isPreviewing) {
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }
+              }}
             >
-              {t('settings:preview')}
-            </Button>
+              {isPreviewing ? t('common:loading', { defaultValue: '...' }) : t('settings:preview')}
+            </button>
           </div>
         )}
       </Card>
@@ -153,13 +200,40 @@ export function ImportSection({
           </div>
           {!decryptedPreview && (
             <div style={{ marginTop: 8 }}>
-              <Button
+              <button
+                type="button"
                 onClick={onDecrypt}
-                loading={isDecrypting}
                 disabled={!importPw || isDecrypting}
+                style={{
+                  fontSize: 12,
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border-subtle)',
+                  background: isDecrypting ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                  color: isDecrypting ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  cursor: !importPw || isDecrypting ? 'default' : 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 500,
+                  opacity: !importPw || isDecrypting ? 0.5 : 1,
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (importPw && !isDecrypting) {
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (importPw && !isDecrypting) {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }
+                }}
               >
-                {t('settings:decrypt_and_preview')}
-              </Button>
+                {isDecrypting ? t('common:loading', { defaultValue: '...' }) : t('settings:decrypt_and_preview')}
+              </button>
             </div>
           )}
 
@@ -199,7 +273,7 @@ export function ImportSection({
                           onChange={() => onToggleSelection(obj.id)}
                           style={{ accentColor: 'var(--accent-primary)' }}
                         />
-                        <span style={{ flex: 1 }}>{obj.name}</span>
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
                         <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
                         {isConflict && (
                           <span
@@ -238,22 +312,69 @@ export function ImportSection({
               </div>
 
               {!showStrategySelector ? (
-                <div style={{ marginTop: 8 }}>
-                  <Button
+                <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
                     onClick={() => onSetShowStrategySelector(true)}
-                    size="sm"
-                    variant="secondary"
-                    style={{ marginRight: 8 }}
+                    style={{
+                      fontSize: 12,
+                      padding: '6px 12px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-toolbar)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      fontWeight: 500,
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                      e.currentTarget.style.color = 'var(--accent-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'var(--bg-toolbar)';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.color = 'var(--text-primary)';
+                    }}
                   >
                     {t('settings:advanced_import')}
-                  </Button>
-                  <Button
+                  </button>
+                  <button
+                    type="button"
                     onClick={onImport}
-                    loading={isImporting}
                     disabled={!importPw || isImporting}
+                    style={{
+                      fontSize: 12,
+                      padding: '6px 12px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-subtle)',
+                      background: isImporting ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                      color: isImporting ? 'var(--accent-primary)' : 'var(--text-primary)',
+                      cursor: !importPw || isImporting ? 'default' : 'pointer',
+                      fontFamily: 'inherit',
+                      fontWeight: 500,
+                      opacity: !importPw || isImporting ? 0.5 : 1,
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (importPw && !isImporting) {
+                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                        e.currentTarget.style.color = 'var(--accent-primary)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (importPw && !isImporting) {
+                        e.currentTarget.style.background = 'var(--bg-toolbar)';
+                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        e.currentTarget.style.color = 'var(--text-primary)';
+                      }
+                    }}
                   >
-                    {t('settings:quick_import')}
-                  </Button>
+                    {isImporting ? t('common:loading', { defaultValue: '...' }) : t('settings:quick_import')}
+                  </button>
                 </div>
               ) : (
                 <div
@@ -294,20 +415,68 @@ export function ImportSection({
                     </label>
                   ))}
                   <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                    <Button
-                      size="sm"
-                      variant="secondary"
+                    <button
+                      type="button"
                       onClick={() => onSetShowStrategySelector(false)}
+                      style={{
+                        fontSize: 12,
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-toolbar)',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        fontWeight: 500,
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                        e.currentTarget.style.color = 'var(--accent-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'var(--bg-toolbar)';
+                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        e.currentTarget.style.color = 'var(--text-primary)';
+                      }}
                     >
                       {t('common:cancel')}
-                    </Button>
-                    <Button
+                    </button>
+                    <button
+                      type="button"
                       onClick={onImport}
-                      loading={isImporting}
                       disabled={!importPw || isImporting}
+                      style={{
+                        fontSize: 12,
+                        padding: '6px 12px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-subtle)',
+                        background: isImporting ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                        color: isImporting ? 'var(--accent-primary)' : 'var(--text-primary)',
+                        cursor: !importPw || isImporting ? 'default' : 'pointer',
+                        fontFamily: 'inherit',
+                        fontWeight: 500,
+                        opacity: !importPw || isImporting ? 0.5 : 1,
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (importPw && !isImporting) {
+                          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                          e.currentTarget.style.color = 'var(--accent-primary)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (importPw && !isImporting) {
+                          e.currentTarget.style.background = 'var(--bg-toolbar)';
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                          e.currentTarget.style.color = 'var(--text-primary)';
+                        }
+                      }}
                     >
-                      {t('settings:import_action')} ({importSelections.size})
-                    </Button>
+                      {isImporting ? t('common:loading', { defaultValue: '...' }) : `${t('settings:import_action')} (${importSelections.size})`}
+                    </button>
                   </div>
                 </div>
               )}

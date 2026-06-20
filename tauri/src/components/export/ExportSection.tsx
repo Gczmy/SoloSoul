@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Paperclip } from 'lucide-react';
@@ -201,7 +200,9 @@ export function ExportSection({
                       >
                         ▶
                       </span>
-                      {t(`navigation:${group.sectionType}`, group.pageName)}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {t(`navigation:${group.sectionType}`, group.pageName)}
+                      </span>
                     </span>
                     <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                       {t('common:object_count', { n: group.objectCount })}
@@ -227,7 +228,7 @@ export function ExportSection({
                             onChange={() => onToggleObject(obj.id, group.sectionType, allIds)}
                             style={{ accentColor: 'var(--accent-primary)' }}
                           />
-                          <span style={{ fontSize: 13, flex: 1 }}>{obj.name}</span>
+                          <span style={{ fontSize: 13, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
                           <SensitivityBadge
                             level={obj.sensitivityLevel as SensitivityLevel}
                           />
@@ -503,9 +504,8 @@ export function ExportSection({
         <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>
           {savePath || t('settings:no_file_selected')}
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
+        <button
+          type="button"
           onClick={async () => {
             const { save } = await import('@tauri-apps/plugin-dialog');
             const fp = await save({
@@ -514,9 +514,31 @@ export function ExportSection({
             });
             if (fp) onSetSavePath(fp);
           }}
+          style={{
+            fontSize: 12,
+            padding: '6px 12px',
+            borderRadius: 6,
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-toolbar)',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            fontWeight: 500,
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            e.currentTarget.style.borderColor = 'var(--accent-primary)';
+            e.currentTarget.style.color = 'var(--accent-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'var(--bg-toolbar)';
+            e.currentTarget.style.borderColor = 'var(--border-subtle)';
+            e.currentTarget.style.color = 'var(--text-primary)';
+          }}
         >
           {t('common:browse')}
-        </Button>
+        </button>
       </Card>
 
       {/* Encryption */}
@@ -631,12 +653,30 @@ export function ExportSection({
             <WarningCancelButton onClick={() => onSetShowHintWarning(false)}>
               {t('common:cancel')}
             </WarningCancelButton>
-            <Button
-              size="sm"
+            <button
+              type="button"
               onClick={onSetShowHintWarningAndExport}
+              style={{
+                fontSize: 12,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid #ffcc80',
+                background: 'rgba(255, 255, 255, 0.85)',
+                color: '#663c00',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.85)';
+              }}
             >
               {t('settings:export_anyway')}
-            </Button>
+            </button>
           </div>
         </div>
       )}
@@ -661,23 +701,68 @@ export function ExportSection({
             <WarningCancelButton onClick={() => onSetShowWeakWarning(false)}>
               {t('common:cancel')}
             </WarningCancelButton>
-            <Button
-              size="sm"
+            <button
+              type="button"
               onClick={onSetShowWeakWarningAndExport}
+              style={{
+                fontSize: 12,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid #ffcc80',
+                background: 'rgba(255, 255, 255, 0.85)',
+                color: '#663c00',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.85)';
+              }}
             >
               {t('settings:export_anyway')}
-            </Button>
+            </button>
           </div>
         </div>
       )}
 
-      <Button
+      <button
+        type="button"
         onClick={onExport}
-        loading={isExporting}
         disabled={totalSelected === 0 || !exportPassword || !savePath}
+        style={{
+          fontSize: 12,
+          padding: '6px 12px',
+          borderRadius: 6,
+          border: '1px solid var(--border-subtle)',
+          background: isExporting ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+          color: isExporting ? 'var(--accent-primary)' : 'var(--text-primary)',
+          cursor: totalSelected === 0 || !exportPassword || !savePath ? 'default' : 'pointer',
+          fontFamily: 'inherit',
+          fontWeight: 500,
+          opacity: totalSelected === 0 || !exportPassword || !savePath ? 0.5 : 1,
+          transition: 'all 0.15s ease',
+        }}
+        onMouseEnter={(e) => {
+          if (totalSelected > 0 && exportPassword && savePath && !isExporting) {
+            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            e.currentTarget.style.borderColor = 'var(--accent-primary)';
+            e.currentTarget.style.color = 'var(--accent-primary)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (totalSelected > 0 && exportPassword && savePath && !isExporting) {
+            e.currentTarget.style.background = 'var(--bg-toolbar)';
+            e.currentTarget.style.borderColor = 'var(--border-subtle)';
+            e.currentTarget.style.color = 'var(--text-primary)';
+          }
+        }}
       >
-        {t('settings:export_selected')} ({totalSelected})
-      </Button>
+        {isExporting ? t('common:loading', { defaultValue: '...' }) : `${t('settings:export_selected')} (${totalSelected})`}
+      </button>
     </>
   );
 }

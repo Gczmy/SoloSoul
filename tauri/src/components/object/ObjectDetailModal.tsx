@@ -376,7 +376,13 @@ export function ObjectDetailModal({
                   <div>
                     <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{obj.name}</h2>
                     <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                      {resolveCollectionLabelLocal(obj.collectionType)} · {t('common:created')}:{' '}
+                      {resolveCollectionLabelLocal(obj.collectionType)}
+                      {obj.contractTypeId && (
+                        <span style={{ marginLeft: 4, display: 'inline-flex', verticalAlign: 'middle' }}>
+                          <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
+                        </span>
+                      )}
+                      {' · '}{t('common:created')}:{' '}
                       {obj.createdAt?.slice(0, 10) || '—'} · {t('common:updated')}:{' '}
                       {obj.updatedAt?.slice(0, 10) || '—'}
                     </span>

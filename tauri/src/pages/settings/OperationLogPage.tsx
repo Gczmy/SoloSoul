@@ -237,41 +237,48 @@ export function OperationLogPage() {
           </Button>
         </div>
 
-        {/* Row 2: Entity type filter */}
+        {/* Row 2: Entity type filter — workspace style */}
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setEntityTypeFilter(null)}
-            style={{
-              padding: '5px 10px',
-              borderRadius: 6,
-              border: '1px solid var(--border-subtle)',
-              background: entityTypeFilter === null ? 'var(--accent-primary)' : 'transparent',
-              color: entityTypeFilter === null ? 'white' : 'var(--text-primary)',
-              cursor: 'pointer',
-              fontSize: 12,
-              fontWeight: 500,
-            }}
-          >
-            {t('settings:all')}
-          </button>
-          {ALL_ENTITY_TYPES.map((type) => (
-            <button
-              key={type}
-              onClick={() => setEntityTypeFilter(type === entityTypeFilter ? null : type)}
-              style={{
-                padding: '5px 10px',
-                borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: entityTypeFilter === type ? 'var(--accent-primary)' : 'transparent',
-                color: entityTypeFilter === type ? 'white' : 'var(--text-primary)',
-                cursor: 'pointer',
-                fontSize: 12,
-                fontWeight: 500,
-              }}
-            >
-              {t(`settings:log.entity.${type}`, type)}
-            </button>
-          ))}
+          {[null, ...ALL_ENTITY_TYPES].map((type) => {
+            const isActive = entityTypeFilter === type;
+            const label = type === null ? t('settings:all') : t(`settings:log.entity.${type}`, type);
+            return (
+              <button
+                key={type ?? 'all'}
+                onClick={() => setEntityTypeFilter(type === entityTypeFilter ? null : type)}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  }
+                }}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 8,
+                  border: isActive
+                    ? '1px solid var(--accent-primary)'
+                    : '1px solid var(--border-subtle)',
+                  background: isActive
+                    ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                    : 'var(--bg-toolbar)',
+                  color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Log entries */}

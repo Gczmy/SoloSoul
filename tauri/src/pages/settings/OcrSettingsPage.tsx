@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import { useToastError } from '@/hooks/useToastError';
 import { commands, type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
 import { getTierLabel } from '@/lib/ocr';
@@ -109,8 +108,9 @@ export function OcrSettingsPage() {
               fontSize: 13,
               borderRadius: 8,
               border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-elevated)',
+              background: 'var(--bg-toolbar)',
               color: 'var(--text-primary)',
+              transition: 'border-color 0.15s ease',
             }}
           >
             {tiers.map((tier) => {
@@ -168,23 +168,91 @@ export function OcrSettingsPage() {
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {status?.bundled && !status?.installed && (
-                      <Button
-                        size="sm"
+                      <button
                         onClick={() => handleInstallBundled(tier.tier)}
-                        loading={isInstalling}
+                        disabled={isInstalling}
+                        onMouseEnter={(e) => {
+                          if (!isInstalling) {
+                            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                            e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                            e.currentTarget.style.color = 'var(--accent-primary)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isInstalling) {
+                            e.currentTarget.style.background = 'var(--bg-toolbar)';
+                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-toolbar)',
+                          color: 'var(--text-primary)',
+                          fontSize: 12,
+                          fontWeight: 500,
+                          cursor: isInstalling ? 'default' : 'pointer',
+                          opacity: isInstalling ? 0.6 : 1,
+                          transition: 'all 0.15s ease',
+                          fontFamily: 'inherit',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          whiteSpace: 'nowrap',
+                        }}
                       >
-                        {t('ocr:install')}
-                      </Button>
+                        {isInstalling
+                          ? t('common:loading', { defaultValue: '...' })
+                          : t('ocr:install')}
+                      </button>
                     )}
                     {!status?.bundled && !status?.installed && (
-                      <Button
-                        size="sm"
+                      <button
                         onClick={() => handleDownload(tier.tier)}
-                        loading={isDownloading}
+                        disabled={isDownloading}
+                        onMouseEnter={(e) => {
+                          if (!isDownloading) {
+                            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                            e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                            e.currentTarget.style.color = 'var(--accent-primary)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isDownloading) {
+                            e.currentTarget.style.background = 'var(--bg-toolbar)';
+                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-toolbar)',
+                          color: 'var(--text-primary)',
+                          fontSize: 12,
+                          fontWeight: 500,
+                          cursor: isDownloading ? 'default' : 'pointer',
+                          opacity: isDownloading ? 0.6 : 1,
+                          transition: 'all 0.15s ease',
+                          fontFamily: 'inherit',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          whiteSpace: 'nowrap',
+                        }}
                       >
-                        <Download size={14} style={{ marginRight: 4 }} />
-                        {t('ocr:download')}
-                      </Button>
+                        {isDownloading ? (
+                          t('common:loading', { defaultValue: '...' })
+                        ) : (
+                          <>
+                            <Download size={14} />
+                            {t('ocr:download')}
+                          </>
+                        )}
+                      </button>
                     )}
                   </div>
                 </div>
@@ -215,8 +283,9 @@ export function OcrSettingsPage() {
                   fontSize: 13,
                   borderRadius: 8,
                   border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
+                  background: 'var(--bg-toolbar)',
                   color: 'var(--text-primary)',
+                  transition: 'border-color 0.15s ease',
                 }}
               />
             </div>

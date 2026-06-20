@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { useCancellable } from '@/hooks/useCancellable';
-import { Button } from '@/components/ui/Button';
+
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Fingerprint } from 'lucide-react';
@@ -344,9 +344,40 @@ export function LoginPage() {
                   : '')}
               </div>
             )}
-            <Button type="submit" loading={isLoading} style={{ width: '100%' }}>
-              {t('auth:login_button')}
-            </Button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: isLoading ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                color: isLoading ? 'var(--accent-primary)' : 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                cursor: isLoading ? 'default' : 'pointer',
+                opacity: isLoading ? 0.6 : 1,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isLoading) {
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }
+              }}
+            >
+              {isLoading ? t('common:loading', { defaultValue: '...' }) : t('auth:login_button')}
+            </button>
             {bioAvailable && (
               <button
                 onClick={() => {

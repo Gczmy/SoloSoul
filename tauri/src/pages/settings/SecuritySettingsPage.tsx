@@ -236,12 +236,13 @@ export function SecuritySettingsPage() {
               }}
               style={{
                 padding: '6px 10px',
-                borderRadius: 6,
+                borderRadius: 8,
                 border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-elevated)',
+                background: 'var(--bg-toolbar)',
                 color: 'var(--text-primary)',
                 fontFamily: 'inherit',
                 fontSize: 13,
+                transition: 'border-color 0.15s ease',
               }}
             >
               <option value="1">
@@ -461,12 +462,32 @@ export function SecuritySettingsPage() {
                       setError(null);
                     }
                   }}
+                  onMouseEnter={(e) => {
+                    if (hintCleared) {
+                      e.currentTarget.style.background = '#c0392b';
+                      e.currentTarget.style.boxShadow = '0 1px 4px rgba(231,76,60,0.35)';
+                    } else {
+                      e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                      e.currentTarget.style.color = 'var(--accent-primary)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (hintCleared) {
+                      e.currentTarget.style.background = '#e74c3c';
+                      e.currentTarget.style.boxShadow = 'none';
+                    } else {
+                      e.currentTarget.style.background = 'var(--bg-toolbar)';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      e.currentTarget.style.color = 'var(--text-tertiary)';
+                    }
+                  }}
                   style={{
                     padding: '3px 10px',
-                    borderRadius: 4,
+                    borderRadius: 6,
                     border: '1px solid',
                     borderColor: hintCleared ? '#e74c3c' : 'var(--border-subtle)',
-                    background: hintCleared ? '#e74c3c' : 'transparent',
+                    background: hintCleared ? '#e74c3c' : 'var(--bg-toolbar)',
                     cursor: 'pointer',
                     fontSize: 11,
                     fontWeight: 500,
@@ -512,15 +533,42 @@ export function SecuritySettingsPage() {
               <div style={{ color: '#dc2626', fontSize: 13, padding: '4px 0' }}>{error}</div>
             )}
 
-            <Button
-              size="sm"
-              style={{ alignSelf: 'flex-start' }}
+            <button
               onClick={handleChangePassword}
-              loading={loading}
               disabled={shouldDisableSave}
+              onMouseEnter={(e) => {
+                if (!shouldDisableSave) {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!shouldDisableSave) {
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: shouldDisableSave ? 'default' : 'pointer',
+                opacity: shouldDisableSave ? 0.5 : 1,
+                transition: 'all 0.15s ease',
+                fontFamily: 'inherit',
+                alignSelf: 'flex-end',
+              }}
             >
-              {t('common:save')}
-            </Button>
+              {loading
+                ? t('common:loading', { defaultValue: '...' })
+                : t('common:save')}
+            </button>
           </div>
         </Card>
       </div>

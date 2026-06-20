@@ -25,26 +25,26 @@
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--border-subtle);
-  background: var(--bg-base);
-  color: var(--text-secondary);
+  background: var(--bg-toolbar);
+  color: var(--text-tertiary);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s,
-    border-color 0.15s;
+  transition: all 0.15s ease;
 }
 
 .tierChip:hover:not(:disabled) {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .tierChipActive {
-  background: var(--accent-primary);
-  color: white;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
   border-color: var(--accent-primary);
+  font-weight: 600;
 }
 
 .tierChipDisabled {
@@ -64,27 +64,27 @@
   border-radius: 10px;
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   font-size: 13px;
   font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition:
-    background 0.15s,
-    color 0.15s;
+  transition: all 0.15s ease;
 }
 
 .tab:hover {
-  background: var(--bg-hover);
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
   color: var(--text-primary);
 }
 
 .tabActive {
-  background: var(--bg-active);
-  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
+  font-weight: 600;
 }
 
 .tabBadge {
@@ -95,8 +95,8 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 999px;
-  background: var(--accent-primary);
-  color: white;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
   font-size: 10px;
   font-weight: 600;
 }

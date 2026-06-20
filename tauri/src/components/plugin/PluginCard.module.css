@@ -100,59 +100,59 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 12px;
-  border-radius: 8px;
-  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-toolbar);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  transition:
-    filter 0.15s,
-    background 0.15s;
+  transition: all 0.15s ease;
 }
 
 .actions button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+  opacity: 0.5;
+  cursor: default;
 }
 
 .installBtn {
-  background: var(--accent-primary);
-  color: white;
+  color: var(--text-primary);
 }
 
-.installBtn:hover:not(:disabled) {
-  background: var(--accent-hover);
+.installBtn:hover:not(:disabled),
+.updateBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .updateBtn {
-  background: var(--warning-subtle);
-  color: var(--warning);
-}
-
-.updateBtn:hover:not(:disabled) {
-  background: var(--warning);
-  color: white;
+  color: var(--text-primary);
 }
 
 .uninstallBtn {
-  background: var(--bg-hover);
-  color: var(--text-secondary);
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-color: transparent;
 }
 
 .uninstallBtn:hover:not(:disabled) {
-  background: var(--danger-subtle);
-  color: var(--danger);
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
 }
 
 .runBtn {
   background: var(--success-subtle);
   color: var(--success);
+  border-color: transparent;
 }
 
 .runBtn:hover:not(:disabled) {
   background: var(--success);
   color: white;
+  border-color: var(--success);
 }
 
 .spin {

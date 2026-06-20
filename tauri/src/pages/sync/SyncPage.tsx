@@ -119,15 +119,43 @@ export function SyncPage() {
                 </div>
               </div>
             </div>
-            <Button
-              variant={store.syncEnabled ? 'secondary' : 'primary'}
+            <button
               onClick={handleToggleSync}
-              loading={store.isLoading}
+              disabled={store.isLoading}
+              onMouseEnter={(e) => {
+                if (!store.isLoading) {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!store.isLoading) {
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = store.syncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)';
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: store.syncEnabled
+                  ? '1px solid var(--accent-primary)'
+                  : '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: store.syncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: store.isLoading ? 'default' : 'pointer',
+                opacity: store.isLoading ? 0.6 : 1,
+                transition: 'all 0.15s ease',
+                fontFamily: 'inherit',
+              }}
             >
               {store.syncEnabled
                 ? t('settings:sync_disable', { defaultValue: 'Disable' })
                 : t('settings:sync_enable', { defaultValue: 'Enable' })}
-            </Button>
+            </button>
           </div>
 
           {store.localFingerprint && (
@@ -167,13 +195,42 @@ export function SyncPage() {
               onChange={(e) => setManualAddr(e.target.value)}
               style={{ flex: 1 }}
             />
-            <Button
+            <button
               onClick={() => handleSyncWithDevice(manualAddr)}
-              loading={store.isLoading}
-              disabled={!manualAddr.trim()}
+              disabled={!manualAddr.trim() || store.isLoading}
+              onMouseEnter={(e) => {
+                if (manualAddr.trim() && !store.isLoading) {
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (manualAddr.trim() && !store.isLoading) {
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: !manualAddr.trim() || store.isLoading ? 'default' : 'pointer',
+                opacity: !manualAddr.trim() || store.isLoading ? 0.5 : 1,
+                transition: 'all 0.15s ease',
+                fontFamily: 'inherit',
+                whiteSpace: 'nowrap',
+              }}
             >
-              {t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
-            </Button>
+              {store.isLoading
+                ? t('common:loading', { defaultValue: 'Loading...' })
+                : t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
+            </button>
           </div>
           {store.lastResult && (
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
@@ -191,6 +248,12 @@ export function SyncPage() {
             <button
               type="button"
               onClick={() => setActivityOpen((v) => !v)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'inherit';
+              }}
               style={{
                 width: '100%',
                 display: 'flex',
@@ -198,9 +261,10 @@ export function SyncPage() {
                 justifyContent: 'space-between',
                 background: 'none',
                 border: 'none',
-                padding: 0,
+                padding: '4px 0',
                 cursor: 'pointer',
                 color: 'inherit',
+                transition: 'color 0.15s ease',
               }}
             >
               <h3 style={{ fontSize: 14, fontWeight: 600 }}>

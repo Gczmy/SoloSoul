@@ -282,14 +282,17 @@ export function AboutPage() {
                         </div>
                       ) : (
                         <button
+                          type="button"
                           onClick={handleUpdate}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                             e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                            e.currentTarget.style.color = 'var(--accent-primary)';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.background = 'var(--bg-toolbar)';
                             e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
                           }}
                           style={{
                             padding: '8px 16px',
@@ -299,12 +302,13 @@ export function AboutPage() {
                             color: 'var(--text-primary)',
                             fontSize: 13,
                             fontWeight: 500,
+                            fontFamily: 'inherit',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             gap: 6,
                             alignSelf: 'flex-start',
-                            transition: 'background 0.2s, border-color 0.2s',
+                            transition: 'all 0.15s ease',
                           }}
                         >
                           <Download size={14} />
