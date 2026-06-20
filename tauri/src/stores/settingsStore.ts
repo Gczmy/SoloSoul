@@ -40,6 +40,8 @@ export interface AppSettings {
   defaultDarkTheme: string;
   sidebarPosition: 'left' | 'right' | 'top' | 'bottom';
   sidebarBottomActions: [string, string, string];
+  /** Per-button mode: 'card' (floating panel) or 'page' (navigate to dedicated page) */
+  sidebarButtonModes: Record<string, 'card' | 'page'>;
   windowSize?: WindowSize;
 }
 
@@ -129,6 +131,12 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultDarkTheme: 'warm-stone-dark',
   sidebarPosition: 'left',
   sidebarBottomActions: ['search', 'templates', 'help'],
+  sidebarButtonModes: {
+    ocr: 'card',
+    plugins: 'card',
+    ai_chat: 'card',
+    search: 'card',
+  },
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -282,6 +290,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           }).catch(() => {});
         } else {
           parsed.sidebarBottomActions = prefs.sidebarBottomActions;
+        }
+      }
+      // sidebarButtonModes is stored in preferences; load it if present
+      const storedModes = (raw as Record<string, unknown>)?.sidebarButtonModes;
+      if (storedModes && typeof storedModes === 'object') {
+        for (const [key, val] of Object.entries(storedModes)) {
+          if (val === 'card' || val === 'page') {
+            parsed.sidebarButtonModes[key] = val;
+          }
         }
       }
       // Load old-format customPages from preferences for migration.
@@ -526,6 +543,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         defaultDarkTheme: state.settings.defaultDarkTheme,
         sidebarPosition: state.settings.sidebarPosition,
         sidebarBottomActions: state.settings.sidebarBottomActions,
+        sidebarButtonModes: state.settings.sidebarButtonModes,
         windowSize: state.settings.windowSize,
       },
       isLoading: false,

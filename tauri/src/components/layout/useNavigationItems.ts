@@ -90,38 +90,81 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
   const vaultLock = useVaultStore((s) => s.lock);
   const [showSearch, setShowSearch] = useState(false);
   const sidebarBottomActions = useSettingsStore((s) => s.settings.sidebarBottomActions);
+  const sidebarButtonModes = useSettingsStore((s) => s.settings.sidebarButtonModes);
+
+  const CARD_ACTION_IDS = ['ocr', 'plugins', 'ai_chat', 'search'] as const;
+
+  /** Check if a card-supporting button is in 'card' mode */
+  function isCardMode(id: string): boolean {
+    return sidebarButtonModes[id] !== 'page';
+  }
+
+  /** Get the full-page path for a card-supporting button */
+  function getPagePath(id: string): string | undefined {
+    const pageMap: Record<string, string> = {
+      ocr: '/settings/ocr',
+      plugins: '/plugins',
+      ai_chat: '/llm-chat',
+      search: '/search',
+    };
+    return pageMap[id];
+  }
 
   const items: NavItem[] = sidebarBottomActions.map((id) => {
-    if (id === 'search') {
-      return {
-        type: 'action',
-        iconKey: 'search',
-        labelKey: 'search',
-        action: () => setShowSearch(true),
-      } as NavAction;
+    // Check if this button supports card/page toggle
+    if ((CARD_ACTION_IDS as readonly string[]).includes(id)) {
+      if (isCardMode(id)) {
+        // Card mode: return NavAction (floating panel)
+        if (id === 'search') {
+          return {
+            type: 'action',
+            iconKey: 'search',
+            labelKey: 'search',
+            action: () => setShowSearch(true),
+          } as NavAction;
+        }
+        if (id === 'ocr') {
+          return {
+            type: 'action',
+            iconKey: 'ocr',
+            labelKey: 'ocr',
+            action: () => {
+              const s = useOcrScanStore.getState();
+              s.setCardOpen(!s.isCardOpen);
+            },
+          } as NavAction;
+        }
+        if (id === 'plugins') {
+          return {
+            type: 'action',
+            iconKey: 'plugins',
+            labelKey: 'plugin',
+            action: () => {
+              const s = usePluginQuickStore.getState();
+              s.toggleOpen();
+            },
+          } as NavAction;
+        }
+        // ai_chat in card mode: still return NavLink but handle in SecondaryActionBar
+        return {
+          type: 'link',
+          path: '/llm-chat',
+          iconKey: 'ai_chat',
+          labelKey: 'ai_chat',
+        } as NavLink;
+      }
+      // Page mode: return NavLink to the dedicated page
+      const path = getPagePath(id);
+      if (path) {
+        return {
+          type: 'link',
+          path,
+          iconKey: id as 'ocr' | 'plugins' | 'ai_chat' | 'search',
+          labelKey: id,
+        } as NavLink;
+      }
     }
-    if (id === 'ocr') {
-      return {
-        type: 'action',
-        iconKey: 'ocr',
-        labelKey: 'ocr',
-        action: () => {
-          const s = useOcrScanStore.getState();
-          s.setCardOpen(!s.isCardOpen);
-        },
-      } as NavAction;
-    }
-    if (id === 'plugins') {
-      return {
-        type: 'action',
-        iconKey: 'plugins',
-        labelKey: 'plugin',
-        action: () => {
-          const s = usePluginQuickStore.getState();
-          s.toggleOpen();
-        },
-      } as NavAction;
-    }
+
     const link = CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search' | 'ocr' | 'plugins'>];
     if (!link) {
       // 未知 ID 回退为搜索，避免渲染错误

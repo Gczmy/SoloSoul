@@ -53,6 +53,12 @@ describe('settingsStore', () => {
         defaultDarkTheme: 'warm-stone-dark',
         sidebarPosition: 'left',
         sidebarBottomActions: ['search', 'plugins', 'ai_chat'],
+        sidebarButtonModes: {
+          ocr: 'card',
+          plugins: 'card',
+          ai_chat: 'card',
+          search: 'card',
+        },
       },
       isLoading: false,
     });

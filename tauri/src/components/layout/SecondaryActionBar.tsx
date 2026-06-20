@@ -3,6 +3,7 @@ import { useLocation, useNavigate }  from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useOcrScanStore } from '@/stores/ocrScanStore';
 import { usePluginQuickStore } from '@/stores/pluginQuickStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { NavButton } from './NavButton';
 import { SearchPopover } from './SearchPopover';
 import { AiQuickChatPopover }  from './AiQuickChatPopover';
@@ -108,6 +109,22 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal }: SecondaryA
           );
         }
         if (item.path === '/llm-chat') {
+          const aiChatMode = useSettingsStore.getState().settings.sidebarButtonModes['ai_chat'];
+          if (aiChatMode === 'page') {
+            // Page mode: navigate to full page
+            return (
+              <NavButton
+                key={item.path}
+                path={item.path}
+                Icon={PAGE_ICON_MAP[item.iconKey]}
+                label={t(item.labelKey)}
+                isActive={location.pathname.startsWith(item.path)}
+                onClick={() => navigate(item.path)}
+                position={sidebarPosition}
+              />
+            );
+          }
+          // Card mode: show popover
           return (
             <div ref={aiButtonRef} key={item.path} data-ai-button="true">
               <NavButton

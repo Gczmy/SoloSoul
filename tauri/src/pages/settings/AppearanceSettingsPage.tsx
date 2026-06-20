@@ -425,6 +425,69 @@ export function AppearanceSettingsPage() {
                 })}
               </div>
             </Card>
+
+            {/* Sidebar button mode: card vs page */}
+            <Card>
+              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
+                {t('settings:sidebar_button_mode')}
+              </h3>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
+                {t('settings:sidebar_button_mode_desc')}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {(['ocr', 'plugins', 'ai_chat', 'search'] as const).map((id) => {
+                  const currentMode = settings.sidebarButtonModes[id] || 'card';
+                  const Icon = PAGE_ICON_MAP[id];
+                  const label = t(`navigation:${id}`);
+                  return (
+                    <label
+                      key={id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 10px',
+                        borderRadius: 8,
+                        background: 'var(--bg-toolbar)',
+                        cursor: 'pointer',
+                        transition: 'background 0.12s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--bg-hover)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'var(--bg-toolbar)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Icon size={16} style={{ color: 'var(--text-secondary)' }} />
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>{label}</span>
+                      </div>
+                      <select
+                        value={currentMode}
+                        onChange={(e) => {
+                          const newModes: Record<string, 'card' | 'page'> = { ...settings.sidebarButtonModes, [id]: e.target.value as 'card' | 'page' };
+                          updateSetting(accountId, 'sidebarButtonModes', newModes);
+                        }}
+                        style={{
+                          padding: '4px 8px',
+                          fontSize: 12,
+                          borderRadius: 6,
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-elevated)',
+                          color: 'var(--text-primary)',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        <option value="card">{t('settings:button_mode_card')}</option>
+                        <option value="page">{t('settings:button_mode_page')}</option>
+                      </select>
+                    </label>
+                  );
+                })}
+              </div>
+            </Card>
           </div>
         </div>
       </div>
