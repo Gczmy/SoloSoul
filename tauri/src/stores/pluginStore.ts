@@ -296,7 +296,7 @@ export const usePluginStore = create<PluginState>()(
 
       stopPlugin: (pluginId: string) => {
         set((state) => {
-          const next = { ...state.runningPlugins[pluginId], completed: true };
+          const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true };
           return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
         });
       },
