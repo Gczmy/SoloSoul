@@ -218,14 +218,7 @@ mod tests {
         // Write 3 log entries
         for i in 0..3 {
             vault
-                .log_structured(
-                    &format!("action{}", i),
-                    "test",
-                    None,
-                    None,
-                    "user",
-                    None,
-                )
+                .log_structured(&format!("action{}", i), "test", None, None, "user", None)
                 .unwrap();
         }
         // list_audit_log with limit 2

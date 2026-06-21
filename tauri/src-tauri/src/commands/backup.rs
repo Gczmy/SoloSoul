@@ -88,7 +88,8 @@ pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, 
             size_bytes: metadata.len(),
             object_count: 0,
         });
-    }        backups.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+    }
+    backups.sort_by(|a, b| b.created_at.cmp(&a.created_at));
     Ok(backups)
 }
 

@@ -157,11 +157,12 @@ impl FieldResolver {
             .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?;
         let mut objects: Vec<_> = all_objects
             .into_iter()
-            .filter(|o| {                    o.contract_type_id.as_deref() == target_ctid.as_deref()
-                        || o.template_id.as_deref() == Some(&target_tpl_id)
-                        || o.collection_type == alias
-                })
-                .collect();
+            .filter(|o| {
+                o.contract_type_id.as_deref() == target_ctid.as_deref()
+                    || o.template_id.as_deref() == Some(&target_tpl_id)
+                    || o.collection_type == alias
+            })
+            .collect();
         if objects.is_empty() {
             return Ok(String::new());
         }
@@ -280,21 +281,20 @@ impl FieldResolver {
             // 通过 contract_type_id 查询对象，而非 type_id。
             if !self.contracts.is_empty() {
                 let alias = field_id.find('.').map(|dot| &field_id[..dot]).unwrap_or("");
-                if let Some((ctid, _)) =
-                    self.parse_typed_field(&format!("{}.dummy", alias))?
-                {
+                if let Some((ctid, _)) = self.parse_typed_field(&format!("{}.dummy", alias))? {
                     let all = vault
                         .list_objects(account_id, None, None, None, false, false)
                         .map_err(|e| {
                             PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e))
-                        })?;                    let mut objects: Vec<_> = all
-                    .into_iter()
-                    .filter(|o| {
-                        o.contract_type_id.as_deref() == Some(&ctid)
-                            || o.template_id.as_deref() == Some(alias)
-                            || o.collection_type == alias
-                    })
-                    .collect();
+                        })?;
+                    let mut objects: Vec<_> = all
+                        .into_iter()
+                        .filter(|o| {
+                            o.contract_type_id.as_deref() == Some(&ctid)
+                                || o.template_id.as_deref() == Some(alias)
+                                || o.collection_type == alias
+                        })
+                        .collect();
                     if objects.is_empty() {
                         return Ok(String::new());
                     }
@@ -305,10 +305,7 @@ impl FieldResolver {
                         return Ok(objects
                             .get(index)
                             .ok_or_else(|| {
-                                PluginError::InvalidField(format!(
-                                    "索引越界: {}",
-                                    field_id
-                                ))
+                                PluginError::InvalidField(format!("索引越界: {}", field_id))
                             })?
                             .name
                             .clone());
@@ -588,9 +585,7 @@ impl FieldResolver {
             if let Some((ctid, _)) = self.parse_typed_field(&format!("{}.dummy", type_id))? {
                 let all = vault
                     .list_objects(account_id, None, None, None, false, false)
-                    .map_err(|e| {
-                        PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e))
-                    })?;
+                    .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
                 let mut objects: Vec<_> = all
                     .into_iter()
                     .filter(|o| {
@@ -1109,22 +1104,22 @@ mod tests {
         };
         vault.save_object(&record).unwrap();
 
-    // 不传 contracts → 走 legacy 路径
-    let resolver = FieldResolver::with_vault(vault, account_id.to_string(), vec![]);
+        // 不传 contracts → 走 legacy 路径
+        let resolver = FieldResolver::with_vault(vault, account_id.to_string(), vec![]);
 
-    let result = resolver.resolve("address.street").unwrap();
-    assert_eq!(result, "长安街1号");
+        let result = resolver.resolve("address.street").unwrap();
+        assert_eq!(result, "长安街1号");
 
-    // list_objects 替代 .count
-    let json = resolver.list_objects("address").unwrap();
-    let items: Vec<serde_json::Value> = serde_json::from_str(&json).unwrap();
-    assert_eq!(items.len(), 1);
-    assert_eq!(items[0]["name"].as_str().unwrap(), "家");
-    assert_eq!(
-        items[0]["properties"]["street"].as_str().unwrap(),
-        "长安街1号"
-    );
-}
+        // list_objects 替代 .count
+        let json = resolver.list_objects("address").unwrap();
+        let items: Vec<serde_json::Value> = serde_json::from_str(&json).unwrap();
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0]["name"].as_str().unwrap(), "家");
+        assert_eq!(
+            items[0]["properties"]["street"].as_str().unwrap(),
+            "长安街1号"
+        );
+    }
 
     /// parse_typed_field SECONDARY alias 路径（无 vault 模式）
     #[test]

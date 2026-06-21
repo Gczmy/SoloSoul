@@ -526,7 +526,9 @@ mod tests {
             "preferences": {"trashRetention": "60d"}
         });
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 
@@ -539,7 +541,9 @@ mod tests {
         let (vault, _dir) = setup_vault();
         let data = serde_json::json!({"preferences": {}});
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 
@@ -550,9 +554,7 @@ mod tests {
     #[test]
     fn test_load_trash_retention_default_when_empty_data() {
         let (vault, _dir) = setup_vault();
-        let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", vec![],
-        );
+        let profile = solosoul_vault::Profile::new_with_id("acc-1", "Test", vec![]);
         vault.save_profile(&profile).unwrap();
 
         let result = load_trash_retention(&vault, "acc-1");
@@ -571,7 +573,9 @@ mod tests {
             }
         });
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 
@@ -588,7 +592,9 @@ mod tests {
         let (vault, _dir) = setup_vault();
         let data = serde_json::json!({"preferences": {"other": "value"}});
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 
@@ -604,7 +610,9 @@ mod tests {
         let (vault, _dir) = setup_vault();
         let data = serde_json::json!({"other": "value"});
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 
@@ -622,7 +630,9 @@ mod tests {
             "preferences": {"userTemplates": [{"name": "T"}]}
         });
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 
@@ -649,7 +659,9 @@ mod tests {
             }
         });
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 
@@ -672,7 +684,9 @@ mod tests {
             }
         });
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 
@@ -690,7 +704,9 @@ mod tests {
         let (vault, _dir) = setup_vault();
         let data = serde_json::json!({"preferences": {}});
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 
@@ -709,7 +725,9 @@ mod tests {
             }
         });
         let profile = solosoul_vault::Profile::new_with_id(
-            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+            "acc-1",
+            "Test",
+            serde_json::to_vec(&data).unwrap(),
         );
         vault.save_profile(&profile).unwrap();
 

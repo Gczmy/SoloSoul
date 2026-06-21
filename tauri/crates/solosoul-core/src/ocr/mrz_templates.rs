@@ -7,13 +7,12 @@
 //! 只有约 10-15px 高，rec 模型的 48×320 输入会导致文字过度压缩。
 
 use ab_glyph::{point, Font, FontRef, PxScale};
-use image::{GrayImage, Luma, imageops::FilterType};
+use image::{imageops::FilterType, GrayImage, Luma};
 
 /// MRZ 字符集：A-Z, 0-9, <
 const MRZ_CHARS: &[char] = &[
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '<',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+    'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '<',
 ];
 
 /// 模板渲染尺寸（像素）
@@ -76,8 +75,7 @@ fn extract_first_from_ttc(data: &[u8]) -> Result<Vec<u8>, String> {
 
     // 第一个字体的长度：到文件末尾或到下一个字体偏移
     let size = if num_fonts > 1 {
-        let next_offset =
-            u32::from_be_bytes([data[16], data[17], data[18], data[19]]) as usize;
+        let next_offset = u32::from_be_bytes([data[16], data[17], data[18], data[19]]) as usize;
         next_offset.min(data.len()).saturating_sub(offset)
     } else {
         data.len().saturating_sub(offset)
@@ -88,8 +86,7 @@ fn extract_first_from_ttc(data: &[u8]) -> Result<Vec<u8>, String> {
 
 /// 用 ab_glyph 渲染单个字符为灰度图
 fn render_char(font_data: &[u8], ch: char, px_size: f32) -> Result<GrayImage, String> {
-    let font = FontRef::try_from_slice(font_data)
-        .map_err(|e| format!("加载字体失败: {e}"))?;
+    let font = FontRef::try_from_slice(font_data).map_err(|e| format!("加载字体失败: {e}"))?;
 
     let scale = PxScale::from(px_size);
     // 在 64x64 画布中央渲染，outline_glyph 需要 PxScaleGlyph
@@ -161,12 +158,8 @@ impl MrzTemplates {
         }
 
         // 将 segment resize 到模板尺寸
-        let seg_resized = image::imageops::resize(
-            segment,
-            TEMPLATE_SIZE,
-            TEMPLATE_SIZE,
-            FilterType::Nearest,
-        );
+        let seg_resized =
+            image::imageops::resize(segment, TEMPLATE_SIZE, TEMPLATE_SIZE, FilterType::Nearest);
 
         let seg_f32: Vec<f32> = seg_resized.pixels().map(|p| p.0[0] as f32).collect();
 

@@ -111,37 +111,35 @@ impl FieldResolver {
             // 通过 contract_type_id 查询对象，而非 type_id。
             if !self.contracts.is_empty() {
                 let alias = field_id.find('.').map(|dot| &field_id[..dot]).unwrap_or("");
-                if let Some((ctid, _)) =
-                    self.parse_typed_field(&format!("{}.dummy", alias))?
-                {
+                if let Some((ctid, _)) = self.parse_typed_field(&format!("{}.dummy", alias))? {
                     let all = vault
                         .list_objects(account_id, None, None, None, false, false)
                         .map_err(|e| {
                             PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e))
                         })?;
-                let mut objects: Vec<_> = all
-                    .into_iter()
-                    .filter(|o| {
-                        o.contract_type_id.as_deref() == Some(&ctid)
-                            || o.template_id.as_deref() == Some(alias)
-                            || o.collection_type == alias
-                    })
-                    .collect();
-                if objects.is_empty() {
-                    return Ok(String::new());
-                }
-                objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
+                    let mut objects: Vec<_> = all
+                        .into_iter()
+                        .filter(|o| {
+                            o.contract_type_id.as_deref() == Some(&ctid)
+                                || o.template_id.as_deref() == Some(alias)
+                                || o.collection_type == alias
+                        })
+                        .collect();
+                    if objects.is_empty() {
+                        return Ok(String::new());
+                    }
+                    objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
 
-                if let Some((_, index, _)) = parse_indexed_field(field_id) {
-                    return Ok(objects
-                        .get(index)
-                        .ok_or_else(|| {
-                            PluginError::InvalidField(format!("索引越界: {}", field_id))
-                        })?
-                        .name
-                        .clone());
-                }
-                return Ok(objects[0].name.clone());
+                    if let Some((_, index, _)) = parse_indexed_field(field_id) {
+                        return Ok(objects
+                            .get(index)
+                            .ok_or_else(|| {
+                                PluginError::InvalidField(format!("索引越界: {}", field_id))
+                            })?
+                            .name
+                            .clone());
+                    }
+                    return Ok(objects[0].name.clone());
                 }
             }
 
@@ -375,9 +373,7 @@ impl FieldResolver {
             if let Some((ctid, _)) = self.parse_typed_field(&format!("{}.dummy", type_id))? {
                 let all = vault
                     .list_objects(account_id, None, None, None, false, false)
-                    .map_err(|e| {
-                        PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e))
-                    })?;
+                    .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
                 let mut objects: Vec<_> = all
                     .into_iter()
                     .filter(|o| {

@@ -632,7 +632,10 @@ mod tests {
         assert_eq!(OcrModelTier::Medium.to_string(), "medium");
 
         assert_eq!("tiny".parse::<OcrModelTier>().unwrap(), OcrModelTier::Tiny);
-        assert_eq!("small".parse::<OcrModelTier>().unwrap(), OcrModelTier::Small);
+        assert_eq!(
+            "small".parse::<OcrModelTier>().unwrap(),
+            OcrModelTier::Small
+        );
         assert_eq!(
             "medium".parse::<OcrModelTier>().unwrap(),
             OcrModelTier::Medium

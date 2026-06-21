@@ -1,95 +1,88 @@
 # 代码分析修复报告
 
-> 最后更新：2026-06-20 12:00:00
+> 最后更新：2026-06-21 22:00:00
 > 当前分支：`master`
-> 修复轮次：1（初始分析）
+> 修复轮次：2（OCR MRZ 重构 + Clippy 清理）
 
 ---
 
-## 阶段 0 基线检查结果
+## 阶段 0 基线检查结果（2026-06-21）
 
 | 检查项 | 结果 |
 |--------|------|
 | TypeScript 类型检查 (`npx tsc --noEmit`) | ✅ 0 错误 |
-| ESLint (`npm run lint`) | ⚠️ 2 警告 |
+| ESLint (`npm run lint`) | ⚠️ 6 errors / 5 warnings（预存问题） |
 | Rust Clippy (`cargo clippy -- -D warnings`) | ✅ 通过 |
-| Rust 格式化 (`cargo fmt --check`) | ❌ 4 个文件需格式化 |
-| Rust 单元测试 (Tauri) | ✅ 通过 |
-| 前端单元测试 (Vitest) | ❌ 3 个测试失败 (DatePicker.test.tsx) |
-| CLI 单元测试 (solosoul_cli) | ✅ 2/2 通过 |
+| Rust 格式化 (`cargo fmt --check`) | ✅ 通过 |
+| Rust OCR 单元测试 | ✅ 31/31 通过 |
+| 前端单元测试 (Vitest) | ✅ 372/372 通过 |
+| CLI 单元测试 (solosoul_cli) | ✅ 测试通过 |
 
 ---
 
 ## 问题清单（按优先级 P0 > P1 > P2）
 
+### 轮次 1 已修复问题（2026-06-20）
+
 | ID   | 优先级 | 类别       | 文件位置                                          | 描述                                                   | 状态      |
 |------|--------|------------|--------------------------------------------------|--------------------------------------------------------|-----------|
-| P001 | P0     | 测试失败   | `tauri/src/components/forms/DatePicker.test.tsx:79` | `screen.getByLabelText('年份')` 找不到元素，3 个测试失败 | `[x]` 已修复 |
-| P002 | P0     | 格式规范   | `tauri/crates/solosoul-plugin/src/field.rs:280`   | Rust 格式化：`.ok_or_else` 闭包调用需重新排版            | `[x]` 已修复 |
-| P003 | P0     | 格式规范   | `tauri/src-tauri/src/commands/object/trash.rs:316` | Rust 格式化：`serde_json::json!` 缩进需调整              | `[x]` 已修复 |
-| P004 | P0     | 格式规范   | `tauri/src-tauri/src/commands/system.rs:36`        | Rust 格式化：`dark_light::detect()` 多行调用需合并       | `[x]` 已修复 |
-| P005 | P0     | 格式规范   | `tauri/src-tauri/src/plugin/field/mod.rs:120`      | Rust 格式化：`.ok_or_else` 闭包调用需重新排版            | `[x]` 已修复 |
-| P006 | P1     | 死代码     | `tauri/src/App/AppRoutes.tsx:9`                   | `stopListeningForSystemTheme` 定义但未使用               | `[x]` 已修复 |
-| P007 | P1     | 代码规范   | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:267` | `snapshotReqRef.current` 在 React hook deps 中，违反 exhaustive-deps 规则 | `[x]` 已修复 |
-| P008 | P2     | UI 统一    | 多文件（26 处）                                     | 仍有 26 个文件导入 `<Button>` 组件，后续可统一为 workspace 风格 | `[ ]` 待修复 |
+| P001 | P0     | 测试失败   | `tauri/src/components/forms/DatePicker.test.tsx:79` | `screen.getByLabelText('年份')` 找不到元素            | `[x]` 已修复 |
+| P002 | P0     | 格式规范   | `tauri/crates/solosoul-plugin/src/field.rs:280`   | Rust 格式化需排版                                       | `[x]` 已修复 |
+| P003 | P0     | 格式规范   | `tauri/src-tauri/src/commands/object/trash.rs:316` | Rust 格式化需排版                                       | `[x]` 已修复 |
+| P004 | P0     | 格式规范   | `tauri/src-tauri/src/commands/system.rs:36`        | Rust 格式化需排版                                       | `[x]` 已修复 |
+| P005 | P0     | 格式规范   | `tauri/src-tauri/src/plugin/field/mod.rs:120`      | Rust 格式化需排版                                       | `[x]` 已修复 |
+| P006 | P1     | 死代码     | `tauri/src/App/AppRoutes.tsx:9`                   | `stopListeningForSystemTheme` 定义但未使用              | `[x]` 已修复 |
+| P007 | P1     | 代码规范   | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:267` | React hook 依赖违反 exhaustive-deps 规则               | `[x]` 已修复 |
+| P008 | P2     | UI 统一    | 多文件（26 处）                                     | 旧 Button 组件未统一替换                                 | `[ ]` 待修复 |
+
+### 轮次 2 新发现问题（2026-06-21 OCR 重构引入的 Clippy 问题）
+
+| ID   | 优先级 | 类别       | 文件位置                                          | 描述                                                   | 状态      |
+|------|--------|------------|--------------------------------------------------|--------------------------------------------------------|-----------|
+| P009 | P1     | Rust Clippy | `tauri/crates/solosoul-core/src/ocr/mrz.rs` (10处) | `unnecessary-map-or`, `needless-range-loop`, `manual-range-contains`(5), `unnecessary-sort-by`, `let-and-return`(2) | `[x]` 已修复 |
+| P010 | P1     | Rust Clippy | `tauri/crates/solosoul-core/src/ocr/postprocess.rs` (1处) | `needless-range-loop` 在 `binary_segmentation`（已 supress, 4D ndarray 索引需坐标） | `[x]` 已修复 |
+
+### 预存 ESLint 问题（非本次引入，待后续修复）
+
+| ID   | 优先级 | 类别       | 文件位置                                          | 描述                                                   | 状态      |
+|------|--------|------------|--------------------------------------------------|--------------------------------------------------------|-----------|
+| E001 | P1     | ESLint     | `src/pages/template/SampleTemplateDetail.tsx`    | `no-explicit-any`                                       | `[ ]` 待修复 |
+| E002 | P1     | ESLint     | `src/pages/template/TemplateDetailModal.tsx`      | `no-explicit-any`                                       | `[ ]` 待修复 |
+| E003 | P1     | ESLint     | `src/pages/template/TemplateEditor.tsx`            | `no-explicit-any`                                       | `[ ]` 待修复 |
+| E004 | P1     | ESLint     | `src/lib/i18n.test.ts`                            | `no-explicit-any`                                       | `[ ]` 待修复 |
+| E005 | P1     | ESLint     | `src/lib/theme.test.ts`                           | `no-explicit-any`                                       | `[ ]` 待修复 |
+| E006 | P1     | ESLint     | `src/stores/llmStore.test.ts`                     | `prefer-const`                                          | `[ ]` 待修复 |
+| E007 | P2     | ESLint     | 多文件                                             | 5 处 `no-unused-vars`                                   | `[ ]` 待修复 |
 
 ---
 
 ## 修复进度
 
-- 已完成：7 / 8
-- 当前处理：最终复审（Phase 4）
+- 已完成：9 / 16（轮次1: 7 + 轮次2: 2）
+- 当前处理：轮次2 Clippy 修复已全部完成
 
-> ⚠️ P008 为 P2 优先级（UI 统一），剩余 26 个文件仍在使用旧 `Button` 组件。建议在后续迭代中逐步替换。
+> ⚠️ P008（UI 统一）为 P2 优先级，建议在后续迭代中逐步替换。
+> ⚠️ E001-E007 为 ESLint 预存问题，非本次 OCR 改动引入。
 
 ---
 
 ## 详细问题描述与修复指引
 
-### P001 — DatePicker 测试失败
+### P009-P010 — OCR Clippy 修复（11 处）
 
-- **文件**: `tauri/src/components/forms/DatePicker.test.tsx:79`
-- **问题**: `screen.getByLabelText('年份')` 找不到对应的 label 元素，3 个测试用例因此失败。
-- **影响**: 前端 CI 卡断，无法通过测试流水线。
-- **可能原因**: 组件渲染时可能没有正确渲染年份选择输入框，或 label 关联属性缺失。
-- **建议修复方案**:
-  1. 检查组件的条件渲染逻辑，确认年份输入始终渲染。
-  2. 或检查 `getByLabelText` 的匹配是否精确（中文字符、空格等）。
-  3. 或改用 `getByRole` 配合 `aria-label` 定位。
-
-### P002–P005 — Rust 格式化问题
-
-- **文件**:
-  - `tauri/crates/solosoul-plugin/src/field.rs:280`
-  - `tauri/src-tauri/src/commands/object/trash.rs:316`
-  - `tauri/src-tauri/src/commands/system.rs:36`
-  - `tauri/src-tauri/src/plugin/field/mod.rs:120`
-- **问题**: 以上文件不符合 `cargo fmt` 格式化规范。
-- **影响**: CI 中 `cargo fmt --check` 会失败。
-- **修复方案**: 执行 `cd tauri && cargo fmt` 自动修复。
-
-### P006 — 未使用的变量 `stopListeningForSystemTheme`
-
-- **文件**: `tauri/src/App/AppRoutes.tsx:9`
-- **问题**: 变量 `stopListeningForSystemTheme` 被定义但从未被调用。
-- **影响**: ESLint 警告，可能表示缺少清理逻辑（如 `useEffect` 返回清理函数）。
-- **建议修复方案**:
-  1. 如果确实不需要 → 删除变量声明。
-  2. 如果需要清理但忘记调用 → 在 `useEffect` 返回函数中调用。
-
-### P007 — React hook 依赖安全警告
-
-- **文件**: `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:267`
-- **问题**: `snapshotReqRef.current` 出现在 hook 依赖数组中，但 ref 的 `.current` 变化不会触发重新渲染。
-- **影响**: ESLint 警告，可能导致闭包中读取过时的值。
-- **建议修复方案**: 将 `snapshotReqRef` 本身（而非 `.current`）移出依赖数组，或改用 `useState` 替代 ref。
-
-### P008 — 未统一的 Button 组件
-
-- **文件**: 26 个文件仍在使用 `import { Button } from '@/components/ui/Button'`
-- **问题**: 已有部分文件替换为 workspace 风格 inline button，但仍有 26 个文件使用旧 Button 组件。
-- **影响**: UI 风格不统一。
-- **建议修复方案**: 参考已完成替换的文件模式（`bg-toolbar` + `border-subtle` + accent-tint hover），逐步替换。
+- **文件**: `tauri/crates/solosoul-core/src/ocr/mrz.rs`, `postprocess.rs`
+- **问题**: 新 MRZ 检测代码引入的 11 个 Clippy 警告（以 `-D warnings` 报错）
+- **影响**: CI 中 `cargo clippy` 失败
+- **修复方案**:
+  1. `map_or(true, ...)` → `is_none_or(...)`（Rust 1.82+）
+  2. `let-and-return` → 直接返回表达式 ×2
+  3. `sort_by` → `sort_unstable_by` with `total_cmp`（f32 排序）
+  4. `manual-range-contains` → `.contains()` ×5
+  5. `needless-range-loop` → `binary.pixels().enumerate()`
+  6. `needless-range-loop` → `hist.iter().enumerate()`
+  7. `sort_by` → `sort_by_key(Reverse)`
+  8. `for j in .. { push(chars[j]) }` → `result.extend(chars[..].iter())`
+  9. `binary_segmentation` 增加 `#[allow]`（4D ndarray 无法迭代）
 
 ---
 
@@ -97,21 +90,20 @@
 
 | 优先级 | 数量 |
 |--------|------|
-| P0     | 5    |
-| P1     | 2    |
-| P2     | 1    |
-| **合计** | **8** |
+| P0     | 0    |
+| P1     | 7（均为 ESLint 预存） |
+| P2     | 8（P008 + E007 ×7） |
+| **合计** | **15** |
 
-## 最终复审结果（Phase 4）
+## 最终复审结果（轮次 2）
 
 | 检查项 | 结果 |
 |--------|------|
 | TypeScript 类型检查 | ✅ 0 错误 |
-| ESLint | ✅ 0 错误 0 警告 |
-| Rust 格式化 | ✅ 已通过 |
+| ESLint | ⚠️ 6 errors / 5 warnings（预存问题，非本次引入） |
+| Rust 格式化 | ✅ 通过 |
 | Rust Clippy | ✅ 通过 |
-| 前端单元测试 | ✅ 171/171 通过 |
-| Rust 单元测试 | ✅ 通过 |
-| CLI 单元测试 | ✅ 2/2 通过 |
+| 前端单元测试 | ✅ 372/372 通过 |
+| Rust OCR 单元测试 | ✅ 31/31 通过 |
 
-**结论：** 所有 P0/P1 问题已修复。仅剩 P2 级别（UI 统一）待后续迭代。
+**结论：** 轮次2 全部 Clippy 问题已修复。ESLint 问题为预存，非本次改动引入。

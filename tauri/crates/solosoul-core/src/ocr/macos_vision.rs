@@ -133,8 +133,7 @@ if let jsonData = try? JSONSerialization.data(withJSONObject: ["results": result
 /// 获取或编译 Vision Framework CLI 二进制路径。
 fn ensure_vision_cli() -> Result<PathBuf, String> {
     let tmp_dir = std::env::temp_dir().join("solosoul-ocr-vision");
-    std::fs::create_dir_all(&tmp_dir)
-        .map_err(|e| format!("创建 Vision CLI 缓存目录失败: {e}"))?;
+    std::fs::create_dir_all(&tmp_dir).map_err(|e| format!("创建 Vision CLI 缓存目录失败: {e}"))?;
 
     let binary_path = tmp_dir.join("ocr_vision_cli");
     let source_path = tmp_dir.join("ocr_vision_cli.swift");
@@ -144,20 +143,25 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
         .map_err(|e| format!("写入 Swift 源码失败: {e}"))?;
 
     // 诊断：验证源码文件已落地
-    let src_meta = std::fs::metadata(&source_path)
-        .map_err(|e| format!("验证 Swift 源码写入失败: {e}"))?;
+    let src_meta =
+        std::fs::metadata(&source_path).map_err(|e| format!("验证 Swift 源码写入失败: {e}"))?;
     let src_size = src_meta.len();
     if src_size == 0 {
         return Err("Swift 源码写入成功但文件大小为 0".to_string());
     }
-    tracing::debug!("Vision CLI 源码已写入: {} ({} bytes)", source_path.display(), src_size);
+    tracing::debug!(
+        "Vision CLI 源码已写入: {} ({} bytes)",
+        source_path.display(),
+        src_size
+    );
 
     // 判断是否需要重新编译
     let needs_compile = if !binary_path.exists() {
         true
-    } else if let (Ok(src_meta), Ok(bin_meta)) =
-        (std::fs::metadata(&source_path), std::fs::metadata(&binary_path))
-    {
+    } else if let (Ok(src_meta), Ok(bin_meta)) = (
+        std::fs::metadata(&source_path),
+        std::fs::metadata(&binary_path),
+    ) {
         src_meta
             .modified()
             .ok()
@@ -186,8 +190,8 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
         }
 
         // 诊断：验证编译产物
-        let bin_meta = std::fs::metadata(&binary_path)
-            .map_err(|e| format!("编译成功但找不到二进制: {e}"))?;
+        let bin_meta =
+            std::fs::metadata(&binary_path).map_err(|e| format!("编译成功但找不到二进制: {e}"))?;
         tracing::debug!(
             "Vision CLI 编译成功: {} ({} bytes)",
             binary_path.display(),
@@ -196,8 +200,8 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
     }
 
     // 诊断：输出二进制绝对路径
-    let canonical = std::fs::canonicalize(&binary_path)
-        .map_err(|e| format!("获取二进制绝对路径失败: {e}"))?;
+    let canonical =
+        std::fs::canonicalize(&binary_path).map_err(|e| format!("获取二进制绝对路径失败: {e}"))?;
     tracing::info!("Vision CLI 路径: {}", canonical.display());
 
     Ok(binary_path)
@@ -209,7 +213,11 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
 pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
     let binary_path = ensure_vision_cli()?;
 
-    tracing::debug!("Vision CLI 执行: {} {}", binary_path.display(), image_path.display());
+    tracing::debug!(
+        "Vision CLI 执行: {} {}",
+        binary_path.display(),
+        image_path.display()
+    );
 
     let output = Command::new(&binary_path)
         .arg(image_path)
@@ -262,7 +270,12 @@ pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
         let by = (1.0 - b.bbox.y - b.bbox.height) as f32;
         ay.partial_cmp(&by)
             .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| a.bbox.x.partial_cmp(&b.bbox.x).unwrap_or(std::cmp::Ordering::Equal))
+            .then_with(|| {
+                a.bbox
+                    .x
+                    .partial_cmp(&b.bbox.x)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
     });
 
     let mut lines = Vec::new();
@@ -275,7 +288,11 @@ pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
     let text = lines.join("\n");
     let avg_conf = total_conf / sorted_blocks.len() as f64;
 
-    tracing::debug!("Vision CLI 返回 {} 个文本块, 平均置信度 {:.2}", sorted_blocks.len(), avg_conf);
+    tracing::debug!(
+        "Vision CLI 返回 {} 个文本块, 平均置信度 {:.2}",
+        sorted_blocks.len(),
+        avg_conf
+    );
 
     Ok((text, avg_conf))
 }
@@ -290,10 +307,17 @@ mod tests {
         let result = ensure_vision_cli();
         match result {
             Ok(path) => {
-                assert!(path.exists(), "Vision CLI binary should exist at: {}", path.display());
+                assert!(
+                    path.exists(),
+                    "Vision CLI binary should exist at: {}",
+                    path.display()
+                );
                 // 用空路径调用应返回错误（不是崩溃）
                 let scan = scan_image(Path::new("/nonexistent/image.png"));
-                assert!(scan.is_err(), "Vision scan with nonexistent path should fail");
+                assert!(
+                    scan.is_err(),
+                    "Vision scan with nonexistent path should fail"
+                );
             }
             Err(e) => {
                 // macOS 上没有 swiftc 的可能性很低，但 Ci 服务器可能没有

@@ -457,9 +457,16 @@ fn test_list_objects_typed_lookup_with_legacy_objects() {
 
     // list_objects 走 typed-lookup 路径，应通过 collection_type 回退找到 legacy 对象
     let json = resolver.list_objects("address").unwrap();
-    assert_ne!(json, "[]", "Should NOT be empty - should find legacy objects via collection_type fallback");
+    assert_ne!(
+        json, "[]",
+        "Should NOT be empty - should find legacy objects via collection_type fallback"
+    );
     let items: Vec<serde_json::Value> = serde_json::from_str(&json).unwrap();
-    assert_eq!(items.len(), 1, "Should find 1 legacy address object via collection_type fallback");
+    assert_eq!(
+        items.len(),
+        1,
+        "Should find 1 legacy address object via collection_type fallback"
+    );
     assert_eq!(items[0]["name"].as_str().unwrap(), "家");
     assert_eq!(
         items[0]["properties"]["street"].as_str().unwrap(),

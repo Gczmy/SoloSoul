@@ -3,12 +3,9 @@
 use super::model::{
     load_det_postprocess_config, load_recognition_dict, resolve_model_bundle, OcrModelBundle,
 };
-use super::postprocess::{
-    build_ocr_result, ctc_decode_enhanced, extract_text_boxes,
-};
+use super::postprocess::{build_ocr_result, ctc_decode_enhanced, extract_text_boxes};
 use super::preprocess::{
-    load_rgb_image, perspective_crop, preprocess_for_detection,
-    preprocess_for_recognition,
+    load_rgb_image, perspective_crop, preprocess_for_detection, preprocess_for_recognition,
 };
 use super::types::{MrzResult, OcrModelTier, OcrResult};
 use ort::session::Session;
@@ -136,7 +133,10 @@ impl OcrEngine {
 
     /// 对单行文字图直接运行 rec 模型（跳过 det 模型）。
     /// 输入应为包含单行文字的 RGB 图像（如 MRZ 行切分后的图像）。
-    pub fn recognize_line_rgb(&mut self, line_img: &image::RgbImage) -> Result<(String, f64), String> {
+    pub fn recognize_line_rgb(
+        &mut self,
+        line_img: &image::RgbImage,
+    ) -> Result<(String, f64), String> {
         let rec_input = preprocess_for_recognition(line_img);
         let rec_tensor = ndarray_to_ort_tensor(&rec_input.tensor.view())?;
         let rec_outputs = self
@@ -249,22 +249,16 @@ impl OcrEngine {
     /// 注意：旧策略（A/B/C 多级裁剪+PP-OCR/模板匹配）已在此分支禁用，
     /// 代码保留在 master 分支历史中。
     pub fn scan_mrz(&mut self, image_path: &Path) -> Result<Option<MrzResult>, String> {
-        use super::mrz::{
-            icao_normalize, locate_mrz_region, preprocess_for_mrz,
-            split_text_lines,
-        };
+        use super::mrz::{icao_normalize, locate_mrz_region, preprocess_for_mrz, split_text_lines};
 
         let img = load_rgb_image(image_path)?;
-
 
         // ── 1. 预处理：缩放 + 灰度 + 高斯模糊 ──
         let gray = preprocess_for_mrz(&img);
 
         // ── 2. 定位（直接在灰度图上，不用 Sauvola）──
         let region = match locate_mrz_region(&gray, &img) {
-            Some(r) => {
-                r
-            }
+            Some(r) => r,
             None => {
                 tracing::warn!("[MRZ] ❌ 四遍定位均失败");
                 return Ok(None);
@@ -273,7 +267,6 @@ impl OcrEngine {
 
         // ── 4. 行切分（在灰度图上做投影，比二值化图更稳定）──
         let line_imgs = split_text_lines(&gray, &region);
-
 
         if line_imgs.len() < 2 {
             tracing::warn!("[MRZ] 行数不足 2, 跳过");
@@ -306,15 +299,18 @@ impl OcrEngine {
 
             for seg_idx in 0..2 {
                 let seg_x = seg_idx * half_w;
-                let seg_w = if seg_idx == 0 { half_w } else { line_w - half_w };
+                let seg_w = if seg_idx == 0 {
+                    half_w
+                } else {
+                    line_w - half_w
+                };
                 if seg_w < 10 {
                     continue;
                 }
 
                 let seg = image::imageops::crop_imm(line_gray, seg_x, 0, seg_w, line_h).to_image();
-                let resized = image::imageops::resize(
-                    &seg, 320, 48, image::imageops::FilterType::Triangle,
-                );
+                let resized =
+                    image::imageops::resize(&seg, 320, 48, image::imageops::FilterType::Triangle);
                 let seg_rgb = image::RgbImage::from_fn(320, 48, |x, y| {
                     let val = resized.get_pixel(x, y).0[0];
                     image::Rgb([val, val, val])

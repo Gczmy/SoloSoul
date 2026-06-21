@@ -170,7 +170,9 @@ impl PluginManager {
             if installed.version != version {
                 tracing::info!(
                     "Installed plugin {} version {} does not match target {}, will re-install",
-                    plugin_id, installed.version, version
+                    plugin_id,
+                    installed.version,
+                    version
                 );
                 return None;
             }
@@ -179,7 +181,9 @@ impl PluginManager {
             if actual_hash != version_info.sha256 {
                 tracing::warn!(
                     "Installed plugin {} hash mismatch (expected {}, got {}), will re-download",
-                    plugin_id, version_info.sha256, actual_hash
+                    plugin_id,
+                    version_info.sha256,
+                    actual_hash
                 );
                 return None;
             }
@@ -187,7 +191,11 @@ impl PluginManager {
         })();
 
         if already_ok.is_some() {
-            tracing::info!("Plugin {} {} already installed and hash matches", plugin_id, version);
+            tracing::info!(
+                "Plugin {} {} already installed and hash matches",
+                plugin_id,
+                version
+            );
             return Ok(PluginInstallResult {
                 plugin_id: plugin_id.to_string(),
                 version: version.to_string(),
@@ -237,9 +245,7 @@ impl PluginManager {
                     // Read bundled WASM
                     let bundled_wasm = bundled_dir.join("plugin.wasm");
                     let wasm_bytes = std::fs::read(&bundled_wasm).map_err(|_| {
-                        PluginError::NetworkError(
-                            "无法下载 WASM 且 bundled 资源不存在".to_string(),
-                        )
+                        PluginError::NetworkError("无法下载 WASM 且 bundled 资源不存在".to_string())
                     })?;
                     // Verify bundled WASM against the registry hash for its own version
                     let actual_hash = compute_sha256(&wasm_bytes);

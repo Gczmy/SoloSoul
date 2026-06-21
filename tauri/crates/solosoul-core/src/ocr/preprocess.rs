@@ -136,7 +136,11 @@ pub fn apply_adaptive_threshold(img: &RgbImage, block_size: u32) -> RgbImage {
 
             // 局部均值 - 常数偏移作为阈值
             let threshold = mean.saturating_sub(10);
-            let val = if (pixel as u64) < threshold { 0u8 } else { 255u8 };
+            let val = if (pixel as u64) < threshold {
+                0u8
+            } else {
+                255u8
+            };
             output.put_pixel(x, y, Rgb([val, val, val]));
         }
     }
@@ -169,8 +173,6 @@ pub fn perspective_crop(img: &RgbImage, points: &[(f32, f32); 4]) -> RgbImage {
 
     image::imageops::crop_imm(img, x, y, w, h).to_image()
 }
-
-
 
 #[cfg(test)]
 mod tests {

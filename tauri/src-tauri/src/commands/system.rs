@@ -66,7 +66,11 @@ mod tests {
     async fn test_get_app_info_version_is_semver() {
         let info = get_app_info().await.unwrap();
         let version = info["version"].as_str().unwrap();
-        assert!(version.contains('.'), "version should be semver: {}", version);
+        assert!(
+            version.contains('.'),
+            "version should be semver: {}",
+            version
+        );
     }
 
     #[tokio::test]
@@ -89,8 +93,11 @@ mod tests {
         // Sync command — no await needed
         if let Ok(l) = &locale {
             assert!(!l.is_empty());
-            assert!(l.contains('-') || l.contains('_'),
-                "expected locale like en-US or en_US, got: {}", l);
+            assert!(
+                l.contains('-') || l.contains('_'),
+                "expected locale like en-US or en_US, got: {}",
+                l
+            );
         }
     }
 

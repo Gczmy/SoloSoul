@@ -35,9 +35,10 @@ pub fn detect_mrz_region(image: &RgbImage) -> Option<[(f32, f32); 4]> {
 
     for &bottom_ratio in &windows {
         for &offset in &offsets {
-            if let Some((region, score)) = try_detect_mrz_scored(&enhanced_rgb, bottom_ratio, offset)
+            if let Some((region, score)) =
+                try_detect_mrz_scored(&enhanced_rgb, bottom_ratio, offset)
             {
-                if best_region.as_ref().map_or(true, |(_, s)| score > *s) {
+                if best_region.as_ref().is_none_or(|(_, s)| score > *s) {
                     best_region = Some((region, score));
                 }
             }
@@ -69,7 +70,7 @@ fn compute_candidate_score(num_lines: usize, centers: &[f32]) -> f32 {
     // 1. 行数得分：3 行 > 2 行 > 其他
     // BRP (TD-1) 有 3 行，护照 (TD-3) 有 2 行。
     let row_score = match num_lines {
-        3 => 1.05,  // 3 行略高，优先选择完整 MRZ 块
+        3 => 1.05, // 3 行略高，优先选择完整 MRZ 块
         2 => 1.0,
         4 => 0.6,
         1 => 0.3,
@@ -83,18 +84,18 @@ fn compute_candidate_score(num_lines: usize, centers: &[f32]) -> f32 {
     if centers.len() == 2 {
         // 只有 1 个间距，无法计算均匀度。使用中性间距分。
         let gap = centers[1] - centers[0];
-        let gap_ok = if (8.0..=40.0).contains(&gap) { 1.0 } else { 0.3 };
+        let gap_ok = if (8.0..=40.0).contains(&gap) {
+            1.0
+        } else {
+            0.3
+        };
         return row_score * 0.40 + 0.5 * 0.35 + gap_ok * 0.25;
     }
 
     // 3+ 个中心点：计算间距均匀度
     let gaps: Vec<f32> = centers.windows(2).map(|w| w[1] - w[0]).collect();
     let mean_gap = gaps.iter().sum::<f32>() / gaps.len() as f32;
-    let var = gaps
-        .iter()
-        .map(|&g| (g - mean_gap).powi(2))
-        .sum::<f32>()
-        / gaps.len() as f32;
+    let var = gaps.iter().map(|&g| (g - mean_gap).powi(2)).sum::<f32>() / gaps.len() as f32;
     let cv = var.sqrt() / mean_gap.max(1.0);
     let spacing_score = 1.0 / (1.0 + cv * 5.0);
 
@@ -251,15 +252,19 @@ pub fn otsu_binarize(img: &image::GrayImage, offset: i32) -> image::GrayImage {
     let total_f = total as f64;
     let mut sum_b = 0f64;
     let mut w_b = 0f64;
-    let sum: f64 = hist.iter().enumerate().map(|(i, &c)| (i as f64) * (c as f64)).sum();
+    let sum: f64 = hist
+        .iter()
+        .enumerate()
+        .map(|(i, &c)| (i as f64) * (c as f64))
+        .sum();
 
-    for t in 0..256 {
-        w_b += hist[t] as f64;
+    for (t, &h_val) in hist.iter().enumerate() {
+        w_b += h_val as f64;
         if w_b == 0.0 || w_b >= total_f {
             continue;
         }
         let w_f = total_f - w_b;
-        sum_b += (t as f64) * (hist[t] as f64);
+        sum_b += (t as f64) * (h_val as f64);
         let mean_b = sum_b / w_b;
         let mean_f = (sum - sum_b) / w_f;
         let var = w_b * w_f * (mean_b - mean_f).powi(2);
@@ -380,8 +385,16 @@ pub fn apply_clahe(
             (0..grid_cols).map(move |tx| {
                 let x_start = tx * tile_w;
                 let y_start = ty * tile_h;
-                let x_end = if tx == grid_cols - 1 { w } else { (tx + 1) * tile_w };
-                let y_end = if ty == grid_rows - 1 { h } else { (ty + 1) * tile_h };
+                let x_end = if tx == grid_cols - 1 {
+                    w
+                } else {
+                    (tx + 1) * tile_w
+                };
+                let y_end = if ty == grid_rows - 1 {
+                    h
+                } else {
+                    (ty + 1) * tile_h
+                };
                 let tile_pixels = (x_end - x_start) * (y_end - y_start);
 
                 // 计算直方图
@@ -394,8 +407,7 @@ pub fn apply_clahe(
                 }
 
                 // 裁剪
-                let clip_value =
-                    ((clip_limit * tile_pixels as f32) / 256.0).ceil() as u32;
+                let clip_value = ((clip_limit * tile_pixels as f32) / 256.0).ceil() as u32;
                 let mut total_clipped = 0u32;
                 for v in hist.iter_mut() {
                     if *v > clip_value {
@@ -439,7 +451,7 @@ pub fn apply_clahe(
             let ty_f = y as f32 / tile_h as f32 - 0.5;
 
             let get_cdf = |tx: i32, ty: i32| -> f32 {
-                if tx >= 0 && tx < grid_cols as i32 && ty >= 0 && ty < grid_rows as i32 {
+                if (0..grid_cols as i32).contains(&tx) && (0..grid_rows as i32).contains(&ty) {
                     let idx = (ty * grid_cols as i32 + tx) as usize;
                     tile_cdfs[idx][val] * 255.0
                 } else {
@@ -500,7 +512,10 @@ pub fn parse_mrz(lines_raw: &[String]) -> Result<MrzResult, String> {
     let lines: Vec<String> = lines_raw.iter().map(|l| sanitize_mrz_line(l)).collect();
 
     // 检查是否全是非 MRZ 内容（< 占比 > 80%）
-    let filler_count: usize = lines.iter().map(|l| l.chars().filter(|&c| c == '<').count()).sum();
+    let filler_count: usize = lines
+        .iter()
+        .map(|l| l.chars().filter(|&c| c == '<').count())
+        .sum();
     let total_chars: usize = lines.iter().map(|l| l.len()).sum();
     if total_chars > 0 && filler_count as f64 / total_chars as f64 > 0.8 {
         return Err("MRZ 行无效（大部分字符被替换为填充符）".to_string());
@@ -527,7 +542,7 @@ pub fn parse_mrz(lines_raw: &[String]) -> Result<MrzResult, String> {
         let total = line.len();
 
         // TD-3: 2 × 44 = 88 字符
-        if total >= 78 && total <= 92 {
+        if (78..=92).contains(&total) {
             let split = if total >= 86 { 44usize } else { total / 2 };
             if split < total {
                 let l1: String = line[..split].iter().collect();
@@ -542,7 +557,7 @@ pub fn parse_mrz(lines_raw: &[String]) -> Result<MrzResult, String> {
         }
 
         // TD-1: 3 × 30 = 90 字符
-        if total >= 85 && total <= 95 {
+        if (85..=95).contains(&total) {
             let split1 = 30usize.min(total / 3);
             let split2 = 60usize.min(total * 2 / 3);
             if split1 < split2 && split2 < total {
@@ -564,7 +579,7 @@ pub fn parse_mrz(lines_raw: &[String]) -> Result<MrzResult, String> {
     // 策略：取最长的 2 条（TD-3）或 3 条（TD-1）作为候选
     if lines.len() >= 2 {
         let mut sorted: Vec<&String> = lines.iter().collect();
-        sorted.sort_by(|a, b| b.len().cmp(&a.len()));
+        sorted.sort_by_key(|a| std::cmp::Reverse(a.len()));
 
         // 尝试最长 2 行（TD-3）
         if sorted.len() >= 2 && sorted[0].len() >= 40 && sorted[1].len() >= 40 {
@@ -749,8 +764,6 @@ pub fn verify_checksums_lenient(mrz: &MrzResult) -> bool {
     doc_ok && dob_ok && expiry_ok
 }
 
-
-
 /// MRZ 校验位算法。
 fn mrz_checksum(s: &str) -> char {
     let weights = [7, 3, 1];
@@ -785,8 +798,7 @@ pub fn preprocess_for_mrz(img: &RgbImage) -> image::GrayImage {
         let scale = 2048.0 / max_side as f32;
         let new_w = (w as f32 * scale) as u32;
         let new_h = (h as f32 * scale) as u32;
-        let resized = image::imageops::resize(img, new_w.max(1), new_h.max(1), FilterType::Lanczos3);
-        resized
+        image::imageops::resize(img, new_w.max(1), new_h.max(1), FilterType::Lanczos3)
     } else {
         // Clone to RgbImage if it's already small enough
         image::imageops::crop_imm(img, 0, 0, w, h).to_image()
@@ -796,9 +808,7 @@ pub fn preprocess_for_mrz(img: &RgbImage) -> image::GrayImage {
     let gray = image::imageops::grayscale(&img);
 
     // 高斯模糊（σ=1.0）
-    let blurred = image::imageops::blur(&gray, 3.0);
-
-    blurred
+    image::imageops::blur(&gray, 3.0)
 }
 
 /// 连通域：BFS 找到所有满足尺寸条件的白色像素区域
@@ -812,53 +822,61 @@ fn find_connected_components(
     let mut visited = vec![false; (w * h) as usize];
     let mut components = Vec::new();
 
-    let dirs = [(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)];
+    let dirs = [
+        (1, 0),
+        (0, 1),
+        (-1, 0),
+        (0, -1),
+        (1, 1),
+        (-1, -1),
+        (1, -1),
+        (-1, 1),
+    ];
 
-    for y in 0..h {
-        for x in 0..w {
-            let idx = (y * w + x) as usize;
-            if visited[idx] || binary.get_pixel(x, y).0[0] >= 128 {
-                // 跳过背景（白色）
-                continue;
-            }
-            visited[idx] = true;
+    for (idx, pixel) in binary.pixels().enumerate() {
+        let x = idx as u32 % w;
+        let y = idx as u32 / w;
+        if visited[idx] || pixel.0[0] >= 128 {
+            // 跳过背景（白色）
+            continue;
+        }
+        visited[idx] = true;
 
-            // BFS
-            let mut min_x = x as i32;
-            let mut max_x = x as i32;
-            let mut min_y = y as i32;
-            let mut max_y = y as i32;
-            let mut stack = vec![(x as i32, y as i32)];
+        // BFS
+        let mut min_x = x as i32;
+        let mut max_x = x as i32;
+        let mut min_y = y as i32;
+        let mut max_y = y as i32;
+        let mut stack = vec![(x as i32, y as i32)];
 
-            while let Some((cx, cy)) = stack.pop() {
-                for &(dx, dy) in &dirs {
-                    let nx = cx + dx;
-                    let ny = cy + dy;
-                    if nx < 0 || nx >= w as i32 || ny < 0 || ny >= h as i32 {
-                        continue;
-                    }
-                    let nidx = (ny as u32 * w + nx as u32) as usize;
-                    if visited[nidx] {
-                        continue;
-                    }
-                    let nval = binary.get_pixel(nx as u32, ny as u32).0[0];
-                    if nval >= 128 {
-                        continue;
-                    }
-                    visited[nidx] = true;
-                    stack.push((nx, ny));
-                    min_x = min_x.min(nx);
-                    max_x = max_x.max(nx);
-                    min_y = min_y.min(ny);
-                    max_y = max_y.max(ny);
+        while let Some((cx, cy)) = stack.pop() {
+            for &(dx, dy) in &dirs {
+                let nx = cx + dx;
+                let ny = cy + dy;
+                if nx < 0 || nx >= w as i32 || ny < 0 || ny >= h as i32 {
+                    continue;
                 }
+                let nidx = (ny as u32 * w + nx as u32) as usize;
+                if visited[nidx] {
+                    continue;
+                }
+                let nval = binary.get_pixel(nx as u32, ny as u32).0[0];
+                if nval >= 128 {
+                    continue;
+                }
+                visited[nidx] = true;
+                stack.push((nx, ny));
+                min_x = min_x.min(nx);
+                max_x = max_x.max(nx);
+                min_y = min_y.min(ny);
+                max_y = max_y.max(ny);
             }
+        }
 
-            let cw = (max_x - min_x + 1) as u32;
-            let ch = (max_y - min_y + 1) as u32;
-            if cw >= min_width && ch >= min_height {
-                components.push((min_x, min_y, max_x, max_y));
-            }
+        let cw = (max_x - min_x + 1) as u32;
+        let ch = (max_y - min_y + 1) as u32;
+        if cw >= min_width && ch >= min_height {
+            components.push((min_x, min_y, max_x, max_y));
         }
     }
 
@@ -982,10 +1000,15 @@ fn locate_by_connected_components(binary: &image::GrayImage) -> Option<(u32, u32
     }
 
     // 选分数最高的候选
-    candidates.sort_by(|a, b| b.4.partial_cmp(&a.4).unwrap_or(std::cmp::Ordering::Equal));
+    candidates.sort_unstable_by(|a, b| b.4.total_cmp(&a.4));
     let (x1, y1, x2, y2, _) = candidates[0];
 
-    Some((x1.max(0) as u32, y1.max(0) as u32, x2.max(0) as u32, y2.max(0) as u32))
+    Some((
+        x1.max(0) as u32,
+        y1.max(0) as u32,
+        x2.max(0) as u32,
+        y2.max(0) as u32,
+    ))
 }
 
 /// 策略 B：投影法定位
@@ -1031,7 +1054,7 @@ fn locate_by_projection(binary: &image::GrayImage) -> Option<(u32, u32, u32, u32
     // 对每个合并后的行带，检查垂直投影的均匀间距
     for &(ys, ye) in &merged {
         let roi_h = ye - ys;
-        if roi_h < 15 || roi_h > 100 {
+        if !(15..=100).contains(&roi_h) {
             continue;
         }
 
@@ -1097,8 +1120,8 @@ fn locate_by_fixed_layout(img: &RgbImage) -> Option<(u32, u32, u32, u32)> {
     let aspect = w as f32 / h.max(1) as f32;
 
     // 标准证件比例：护照（~1.4），身份证（~0.7）
-    let is_portrait = aspect >= 0.6 && aspect <= 0.9;
-    let is_landscape = aspect >= 1.2 && aspect <= 1.6;
+    let is_portrait = (0.6..=0.9).contains(&aspect);
+    let is_landscape = (1.2..=1.6).contains(&aspect);
 
     if !is_portrait && !is_landscape {
         return None;
@@ -1129,15 +1152,29 @@ pub fn locate_mrz_region(binary: &image::GrayImage, img: &RgbImage) -> Option<[(
         let bottom_ratio = region_bottom / img_h;
         // 阈值 85%：MRZ 通常在底部 85-100% 区域
         if bottom_ratio >= 0.85 {
-            tracing::info!("[MRZ] 策略 D (滑窗扫描) 成功, bottom={:.1}/{:.1}", region_bottom, img_h);
+            tracing::info!(
+                "[MRZ] 策略 D (滑窗扫描) 成功, bottom={:.1}/{:.1}",
+                region_bottom,
+                img_h
+            );
             return Some(region);
         }
-        tracing::info!("[MRZ] 策略 D 区域不在底部 (bottom={:.1}/{:.1}), 走下一策略", region_bottom, img_h);
+        tracing::info!(
+            "[MRZ] 策略 D 区域不在底部 (bottom={:.1}/{:.1}), 走下一策略",
+            region_bottom,
+            img_h
+        );
     }
 
     // 策略 A：连通域
     if let Some((x1, y1, x2, y2)) = locate_by_connected_components(binary) {
-        tracing::info!("[MRZ] 策略 A (连通域) 成功: ({},{})-({},{})", x1, y1, x2, y2);
+        tracing::info!(
+            "[MRZ] 策略 A (连通域) 成功: ({},{})-({},{})",
+            x1,
+            y1,
+            x2,
+            y2
+        );
         return Some([
             (x1 as f32, y1 as f32),
             (x2 as f32, y1 as f32),
@@ -1148,7 +1185,13 @@ pub fn locate_mrz_region(binary: &image::GrayImage, img: &RgbImage) -> Option<[(
 
     // 策略 B：投影法
     if let Some((x1, y1, x2, y2)) = locate_by_projection(binary) {
-        tracing::info!("[MRZ] 策略 B (投影法) 成功: ({},{})-({},{})", x1, y1, x2, y2);
+        tracing::info!(
+            "[MRZ] 策略 B (投影法) 成功: ({},{})-({},{})",
+            x1,
+            y1,
+            x2,
+            y2
+        );
         return Some([
             (x1 as f32, y1 as f32),
             (x2 as f32, y1 as f32),
@@ -1159,7 +1202,13 @@ pub fn locate_mrz_region(binary: &image::GrayImage, img: &RgbImage) -> Option<[(
 
     // 策略 C：固定布局（兜底）
     if let Some((x1, y1, x2, y2)) = locate_by_fixed_layout(img) {
-        tracing::info!("[MRZ] 策略 C (固定布局) 成功: ({},{})-({},{})", x1, y1, x2, y2);
+        tracing::info!(
+            "[MRZ] 策略 C (固定布局) 成功: ({},{})-({},{})",
+            x1,
+            y1,
+            x2,
+            y2
+        );
         return Some([
             (x1 as f32, y1 as f32),
             (x2 as f32, y1 as f32),
@@ -1172,7 +1221,10 @@ pub fn locate_mrz_region(binary: &image::GrayImage, img: &RgbImage) -> Option<[(
 }
 
 /// 在 MRZ 区域内按水平投影切分为单行文本图像
-pub fn split_text_lines(binary: &image::GrayImage, region: &[(f32, f32); 4]) -> Vec<image::GrayImage> {
+pub fn split_text_lines(
+    binary: &image::GrayImage,
+    region: &[(f32, f32); 4],
+) -> Vec<image::GrayImage> {
     let (bw, bh) = (binary.width(), binary.height());
 
     // 计算 ROI 边界
@@ -1356,8 +1408,6 @@ mod tests {
         assert_eq!(icao_normalize("P<UT0ER1KSS0N<<ANNA"), "P<UT0ER1KSS0N<<ANNA");
         assert_eq!(icao_normalize(" "), "<");
     }
-
-
 
     #[test]
     fn test_split_text_lines_empty() {

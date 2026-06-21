@@ -287,19 +287,13 @@ mod tests {
 
     #[test]
     fn test_map_bio_error_other_save_operation() {
-        let err = map_bio_error(
-            BiometricError::Other("disk full".to_string()),
-            "save",
-        );
+        let err = map_bio_error(BiometricError::Other("disk full".to_string()), "save");
         assert_eq!(err, "__BIO_ERR__:save_failed");
     }
 
     #[test]
     fn test_map_bio_error_other_unlock_operation() {
-        let err = map_bio_error(
-            BiometricError::Other("timeout".to_string()),
-            "unlock",
-        );
+        let err = map_bio_error(BiometricError::Other("timeout".to_string()), "unlock");
         assert_eq!(err, "__BIO_ERR__:unlock_failed");
     }
 

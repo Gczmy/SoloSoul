@@ -80,6 +80,7 @@ pub fn extract_text_boxes(
 }
 
 /// 对概率图做阈值分割。
+#[allow(clippy::needless_range_loop)]
 fn binary_segmentation(scores: &ArrayView4<f32>, thresh: f32) -> Vec<Vec<u8>> {
     let (_, _, h, w) = scores.dim();
     let mut seg = vec![vec![0u8; w]; h];
@@ -346,9 +347,7 @@ pub fn correct_ocr_b_mrz(text: &str) -> String {
                 }
             } else {
                 // 单个或两个 C/E：保留原样（可能是有效 MRZ 内容）
-                for j in block_start..i {
-                    result.push(chars[j]);
-                }
+                result.extend(chars[block_start..i].iter());
             }
         } else {
             result.push(chars[i]);

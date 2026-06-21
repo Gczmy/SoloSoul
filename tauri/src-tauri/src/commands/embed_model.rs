@@ -321,17 +321,15 @@ mod tests {
     #[test]
     fn test_embed_registry_serde() {
         let registry = EmbedRegistry {
-            models: vec![
-                EmbedModelInfo {
-                    id: "m1".to_string(),
-                    name: "M1".to_string(),
-                    description: String::new(),
-                    disk_size: "10MB".to_string(),
-                    dimensions: 128,
-                    download_url: String::new(),
-                    checksum: String::new(),
-                },
-            ],
+            models: vec![EmbedModelInfo {
+                id: "m1".to_string(),
+                name: "M1".to_string(),
+                description: String::new(),
+                disk_size: "10MB".to_string(),
+                dimensions: 128,
+                download_url: String::new(),
+                checksum: String::new(),
+            }],
         };
         let json = serde_json::to_string(&registry).unwrap();
         let restored: EmbedRegistry = serde_json::from_str(&json).unwrap();
@@ -487,4 +485,3 @@ mod tests {
         Ok(())
     }
 }
-

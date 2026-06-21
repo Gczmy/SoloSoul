@@ -118,14 +118,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_derive_key_rejects_excessive_memory() {
-        let result = derive_key(
-            "pwd".to_string(),
-            vec![0u8; 16],
-            MAX_MEMORY_KB + 1,
-            1,
-            1,
-        )
-        .await;
+        let result = derive_key("pwd".to_string(), vec![0u8; 16], MAX_MEMORY_KB + 1, 1, 1).await;
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("memory_kb exceeds maximum"));
     }
@@ -181,15 +174,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_derive_key_accepts_valid_params() {
-        let result = derive_key(
-            "test_password".to_string(),
-            vec![0u8; 16],
-            8,
-            1,
-            1,
-        )
-        .await;
-        assert!(result.is_ok(), "Expected OK with minimal params: {:?}", result.err());
+        let result = derive_key("test_password".to_string(), vec![0u8; 16], 8, 1, 1).await;
+        assert!(
+            result.is_ok(),
+            "Expected OK with minimal params: {:?}",
+            result.err()
+        );
         let key = result.unwrap();
         assert_eq!(key.len(), 32, "Derived key must be 32 bytes");
     }
@@ -210,7 +200,10 @@ mod tests {
     async fn test_generate_salt_valid_length() {
         let result = generate_salt(32).await;
         assert_eq!(result.len(), 32);
-        assert!(result.iter().any(|&b| b != 0), "salt should have non-zero bytes");
+        assert!(
+            result.iter().any(|&b| b != 0),
+            "salt should have non-zero bytes"
+        );
     }
 
     #[tokio::test]
@@ -262,7 +255,9 @@ mod tests {
         let key = vec![0xABu8; 32];
         let plaintext = b"Hello, encrypted world!".to_vec();
 
-        let ciphertext = encrypt_with_key(key.clone(), plaintext.clone()).await.unwrap();
+        let ciphertext = encrypt_with_key(key.clone(), plaintext.clone())
+            .await
+            .unwrap();
         assert!(!ciphertext.is_empty());
         assert_ne!(ciphertext, plaintext);
 

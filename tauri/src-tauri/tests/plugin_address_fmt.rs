@@ -163,7 +163,9 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
     assert!(
         result.results.iter().any(|r| {
             let text = r.0.to_string();
-            text.contains("Chang'an Street No.1") || text.contains("海淀区") || text.contains("北京市")
+            text.contains("Chang'an Street No.1")
+                || text.contains("海淀区")
+                || text.contains("北京市")
         }),
         "结果中应包含中国地址"
     );
