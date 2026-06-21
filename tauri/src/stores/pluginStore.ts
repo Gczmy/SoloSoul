@@ -19,7 +19,7 @@ export interface PluginLogLine {
   timestamp: number;
 }
 
-function isPluginLogLine(value: unknown): value is PluginLogLine {
+export function isPluginLogLine(value: unknown): value is PluginLogLine {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
   return (
@@ -30,7 +30,7 @@ function isPluginLogLine(value: unknown): value is PluginLogLine {
   );
 }
 
-function isPluginResultPayload(value: unknown): value is PluginResultPayload {
+export function isPluginResultPayload(value: unknown): value is PluginResultPayload {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
   switch (v.type) {
@@ -46,7 +46,7 @@ function isPluginResultPayload(value: unknown): value is PluginResultPayload {
   }
 }
 
-function isConsentRequestEvent(event: unknown): event is ConsentRequestEvent {
+export function isConsentRequestEvent(event: unknown): event is ConsentRequestEvent {
   const e = event as Record<string, unknown>;
   return (
     e?.eventType === 'consent_request' &&
@@ -54,7 +54,7 @@ function isConsentRequestEvent(event: unknown): event is ConsentRequestEvent {
   );
 }
 
-function isDialogRequestEvent(event: unknown): event is DialogRequestEvent {
+export function isDialogRequestEvent(event: unknown): event is DialogRequestEvent {
   const e = event as Record<string, unknown>;
   return (
     e?.eventType === 'dialog_request' &&
