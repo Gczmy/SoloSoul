@@ -73,6 +73,8 @@ export interface RunningPlugin {
   completed: boolean;
   exitCode?: number;
   error?: string;
+  /** 标记 runPlugin 已显示 Toast，供 PluginQuickNotificationListener 去重 */
+  toastShown?: boolean;
 }
 
 export const DEFAULT_ENABLED_TIERS: PluginTier[] = ['p0', 'p1', 'p2'];
@@ -251,15 +253,8 @@ export const usePluginStore = create<PluginState>()(
             });
           });
 
-          set((state) => {
-            const next = { ...state.runningPlugins[pluginId], completed: true };
-            next.exitCode = result.exitCode;
-            // 结果已通过事件通道实时累积，此处不重复添加。
-            // 事件通道 + 最终 result.results 是同一份数据，再加会重复。
-            return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
-          });
-
-          // 根据运行结果决定 Toast 类型
+          // 根据运行结果决定 Toast 类型（在同一个 set 中同时标记 completed + toastShown，
+          // 避免 PluginQuickNotificationListener 在两次 set 之间误触发重复 Toast）
           const finalPlugin = get().runningPlugins[pluginId];
           const hasError = result.exitCode !== 0 || !!finalPlugin?.error;
           if (hasError) {
@@ -275,6 +270,13 @@ export const usePluginStore = create<PluginState>()(
               duration: 3000,
             });
           }
+          set((state) => {
+            const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true };
+            next.exitCode = result.exitCode;
+            // 结果已通过事件通道实时累积，此处不重复添加。
+            // 事件通道 + 最终 result.results 是同一份数据，再加会重复。
+            return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+          });
         } catch (err) {
           set((state) => {
             const next = { ...state.runningPlugins[pluginId], completed: true, error: String(err) };
@@ -284,6 +286,10 @@ export const usePluginStore = create<PluginState>()(
             type: 'error',
             message: i18next.t('plugin:run_error', { pluginName, defaultValue: `「${pluginName}」plugin run error` }),
             duration: 5000,
+          });
+          set((state) => {
+            const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true, error: String(err) };
+            return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
           });
         }
       },
