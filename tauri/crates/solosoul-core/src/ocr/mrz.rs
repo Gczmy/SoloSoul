@@ -37,14 +37,6 @@ pub fn detect_mrz_region(image: &RgbImage) -> Option<[(f32, f32); 4]> {
         for &offset in &offsets {
             if let Some((region, score)) = try_detect_mrz_scored(&enhanced_rgb, bottom_ratio, offset)
             {
-                tracing::info!(
-                    "[MRZ-Detect] 滑窗 bottom={:.0}% offset={} score={:.3} 区域 y=[{:.0}, {:.0}]",
-                    bottom_ratio * 100.0,
-                    offset,
-                    score,
-                    region[0].1,
-                    region[2].1,
-                );
                 if best_region.as_ref().map_or(true, |(_, s)| score > *s) {
                     best_region = Some((region, score));
                 }
@@ -54,14 +46,12 @@ pub fn detect_mrz_region(image: &RgbImage) -> Option<[(f32, f32); 4]> {
 
     if let Some((region, score)) = best_region {
         if score >= 0.5 {
-            tracing::info!("[MRZ-Detect] ✅ 选中区域 score={:.3} y=[{:.0}, {:.0}]", score, region[0].1, region[2].1);
             Some(region)
         } else {
-            tracing::info!("[MRZ-Detect] ❌ 最佳评分 {:.3} < 0.5，放弃", score);
+            tracing::debug!("[MRZ-Detect] 最佳评分 {:.3} < 0.5，放弃", score);
             None
         }
     } else {
-        tracing::info!("[MRZ-Detect] ❌ 所有滑窗均无候选");
         None
     }
 }
@@ -366,154 +356,6 @@ fn find_text_lines_from_bands(
     }
 
     best_centers
-}
-
-/// 对 MRZ 区域裁剪图做增强：去倾斜 + CLAHE 对比度增强 + 放大。
-pub fn enhance_mrz_crop(img: &RgbImage) -> RgbImage {
-    // 1. 灰度
-    let gray = image::imageops::grayscale(img);
-
-    // 2. 去倾斜（检测文本旋转角并校正）
-    let deskewed = deskew(&gray);
-
-    // 3. CLAHE 对比度增强
-    let enhanced = apply_clahe(&deskewed, 3.0, 4, 12);
-
-    // 4. 放大 2x（双三次插值更平滑）
-    let scaled = image::imageops::resize(
-        &enhanced,
-        enhanced.width() * 2,
-        enhanced.height() * 2,
-        FilterType::CatmullRom,
-    );
-
-    RgbImage::from_fn(scaled.width(), scaled.height(), |x, y| {
-        let p = scaled.get_pixel(x, y).0[0];
-        Rgb([p, p, p])
-    })
-}
-
-// ─── 去倾斜（Deskew）────────────────────────────────────────────
-
-/// 检测文本倾斜角度并校正。
-/// 通过水平投影方差最大化找到最佳旋转角（范围 -8° ~ +8°）。
-fn deskew(img: &image::GrayImage) -> image::GrayImage {
-    let angle = find_skew_angle(img);
-    if angle.abs() < 0.3 {
-        // 倾斜很小时返回原图避免质量损失
-        return image::GrayImage::from_fn(img.width(), img.height(), |x, y| *img.get_pixel(x, y));
-    }
-    rotate_about_center(img, angle)
-}
-
-/// 在 -8° 到 +8° 范围内搜索最优倾斜角（步长 0.5°）。
-fn find_skew_angle(img: &image::GrayImage) -> f32 {
-    let mut best_angle = 0.0f32;
-    let mut best_variance = 0.0f32;
-
-    // 缩小图像加速角度搜索
-    let small = image::imageops::resize(img, img.width().min(320), 0, FilterType::Triangle);
-
-    let mut angle = -8.0;
-    while angle <= 8.0 {
-        let rotated = rotate_about_center(&small, angle);
-        let projection: Vec<f32> = (0..rotated.height())
-            .map(|y| {
-                (0..rotated.width())
-                    .map(|x| 255.0 - rotated.get_pixel(x, y).0[0] as f32)
-                    .sum()
-            })
-            .collect();
-
-        let mean = projection.iter().sum::<f32>() / projection.len().max(1) as f32;
-        let variance = projection
-            .iter()
-            .map(|&p| (p - mean).powi(2))
-            .sum::<f32>()
-            / projection.len().max(1) as f32;
-
-        if variance > best_variance {
-            best_variance = variance;
-            best_angle = angle;
-        }
-
-        angle += 0.5;
-    }
-
-    best_angle
-}
-
-/// 绕图像中心旋转指定角度（双线性插值）。
-fn rotate_about_center(img: &image::GrayImage, angle_deg: f32) -> image::GrayImage {
-    let (w, h) = (img.width() as f32, img.height() as f32);
-    let cx = w / 2.0;
-    let cy = h / 2.0;
-    let rad = angle_deg.to_radians();
-    let cos_a = rad.cos();
-    let sin_a = rad.sin();
-
-    // 计算新边界
-    let corners = [(-cx, -cy), (w - cx, -cy), (w - cx, h - cy), (-cx, h - cy)];
-    let new_corners: Vec<(f32, f32)> = corners
-        .iter()
-        .map(|&(x, y)| (x * cos_a - y * sin_a, x * sin_a + y * cos_a))
-        .collect();
-
-    let min_x = new_corners
-        .iter()
-        .map(|&(x, _)| x)
-        .fold(f32::INFINITY, f32::min);
-    let max_x = new_corners
-        .iter()
-        .map(|&(x, _)| x)
-        .fold(f32::NEG_INFINITY, f32::max);
-    let min_y = new_corners
-        .iter()
-        .map(|&(_, y)| y)
-        .fold(f32::INFINITY, f32::min);
-    let max_y = new_corners
-        .iter()
-        .map(|&(_, y)| y)
-        .fold(f32::NEG_INFINITY, f32::max);
-
-    let new_w = (max_x - min_x).ceil() as u32;
-    let new_h = (max_y - min_y).ceil() as u32;
-    let new_cx = -min_x;
-    let new_cy = -min_y;
-
-    let mut output = image::GrayImage::new(new_w.max(1), new_h.max(1));
-
-    for out_y in 0..output.height() {
-        for out_x in 0..output.width() {
-            let dx = out_x as f32 - new_cx;
-            let dy = out_y as f32 - new_cy;
-            let src_x = dx * cos_a + dy * sin_a + cx;
-            let src_y = -dx * sin_a + dy * cos_a + cy;
-
-            if src_x >= 0.0 && src_x < w - 1.0 && src_y >= 0.0 && src_y < h - 1.0 {
-                let x0 = (src_x.floor() as u32).min(img.width() - 1);
-                let y0 = (src_y.floor() as u32).min(img.height() - 1);
-                let x1 = (x0 + 1).min(img.width() - 1);
-                let y1 = (y0 + 1).min(img.height() - 1);
-                let fx = src_x - x0 as f32;
-                let fy = src_y - y0 as f32;
-
-                let p00 = img.get_pixel(x0, y0).0[0] as f32;
-                let p10 = img.get_pixel(x1, y0).0[0] as f32;
-                let p01 = img.get_pixel(x0, y1).0[0] as f32;
-                let p11 = img.get_pixel(x1, y1).0[0] as f32;
-
-                let val = (1.0 - fx) * (1.0 - fy) * p00
-                    + fx * (1.0 - fy) * p10
-                    + (1.0 - fx) * fy * p01
-                    + fx * fy * p11;
-
-                output.put_pixel(out_x, out_y, Luma([(val.round().clamp(0.0, 255.0)) as u8]));
-            }
-        }
-    }
-
-    output
 }
 
 // ─── CLAHE 对比度增强 ──────────────────────────────────────────
@@ -907,127 +749,7 @@ pub fn verify_checksums_lenient(mrz: &MrzResult) -> bool {
     doc_ok && dob_ok && expiry_ok
 }
 
-/// 从二值化 MRZ 区域图（白字黑底）中按水平投影切分每一行。
-/// 返回 Vec<GrayImage>，每个元素是一行文本的灰度图。
-pub fn split_mrz_lines(binary: &image::GrayImage) -> Vec<image::GrayImage> {
-    let (w, h) = (binary.width(), binary.height());
-    if h == 0 || w == 0 {
-        return Vec::new();
-    }
 
-    // 水平投影：统计每行白色像素（文字）数
-    let projection: Vec<u32> = (0..h)
-        .map(|y| {
-            (0..w)
-                .filter(|&x| binary.get_pixel(x, y).0[0] > 0)
-                .count() as u32
-        })
-        .collect();
-
-    let max_val = *projection.iter().max().unwrap_or(&0);
-    if max_val == 0 {
-        return Vec::new();
-    }
-
-    // 使用较低阈值（max/8）检测行间隙，CLAHE 增强后间隙仍有少量噪声
-    let gap_threshold = max_val / 8;
-    // 使用较高阈值（max/3）检测真正的文字行，排除微弱噪声
-    let line_threshold = max_val / 3;
-    let min_line_h = 8u32;
-
-    // 第一遍：用低阈值找所有文本区域（含行间噪声）
-    let mut bands: Vec<(u32, u32)> = Vec::new();
-    let mut in_region = false;
-    let mut start = 0u32;
-    for (y, &val) in projection.iter().enumerate() {
-        let y = y as u32;
-        if val > gap_threshold && !in_region {
-            in_region = true;
-            start = y;
-        } else if val <= gap_threshold && in_region {
-            in_region = false;
-            bands.push((start, y));
-        }
-    }
-    if in_region {
-        bands.push((start, h));
-    }
-
-    // 第二遍：在每个 band 内找真正的文字行（高投影值区域），间隙为低投影值区域
-    // 如果 band 高度 > 50px，说明可能包含多行，按高投影值聚类
-    let mut lines = Vec::new();
-    for &(bs, be) in &bands {
-        if be - bs < min_line_h {
-            continue;
-        }
-
-        // 在该 band 内再次扫描：用 line_threshold 分割文字行
-        let mut in_line = false;
-        let mut ls = 0u32;
-        for y in bs..be {
-            let val = projection[y as usize];
-            if val > line_threshold && !in_line {
-                in_line = true;
-                ls = y;
-            } else if val <= line_threshold && in_line {
-                in_line = false;
-                if y - ls >= min_line_h {
-                    let line_img =
-                        image::imageops::crop_imm(binary, 0, ls, w, y - ls).to_image();
-                    lines.push(line_img);
-                }
-            }
-        }
-        if in_line && be - ls >= min_line_h {
-            let line_img =
-                image::imageops::crop_imm(binary, 0, ls, w, be - ls).to_image();
-            lines.push(line_img);
-        }
-    }
-
-    // 第三遍：如果仍然只有 1 行但高度 > 50（可能两行粘连未分开），
-    // 在 band 内找投影值最低的行作为强制切分点
-    if lines.len() == 1 && lines[0].height() > 50 {
-        let single_img = lines[0].clone(); // clone 避免后续 borrow 冲突
-        let (sw, sh) = (single_img.width(), single_img.height());
-        // 对单行重新算投影
-        let sub_proj: Vec<u32> = (0..sh)
-            .map(|y| {
-                (0..sw)
-                    .filter(|&x| single_img.get_pixel(x, y).0[0] > 0)
-                    .count() as u32
-            })
-            .collect();
-
-        // 找最低点（行间间隙）
-        let min_val = *sub_proj.iter().min().unwrap_or(&0);
-        if min_val < max_val / 6 {
-            // 找到最低点所在行
-            let split_y = sub_proj
-                .iter()
-                .position(|&v| v == min_val)
-                .unwrap_or(sh as usize / 2) as u32;
-
-            // 确保切分点在中间区域，不在顶部或底部
-            if split_y > sh / 4 && split_y < sh * 3 / 4 {
-                lines.clear();
-                let top_line =
-                    image::imageops::crop_imm(&single_img, 0, 0, sw, split_y).to_image();
-                let bot_line = image::imageops::crop_imm(&single_img, 0, split_y, sw, sh - split_y)
-                    .to_image();
-                if top_line.height() >= min_line_h && bot_line.height() >= min_line_h {
-                    lines.push(top_line);
-                    lines.push(bot_line);
-                } else {
-                    // 切分不合理，恢复原状
-                    lines.push(single_img);
-                }
-            }
-        }
-    }
-
-    lines
-}
 
 /// MRZ 校验位算法。
 fn mrz_checksum(s: &str) -> char {
@@ -1051,105 +773,6 @@ fn mrz_char_value(c: char) -> u32 {
         'a'..='z' => (c as u32 - 'a' as u32) + 10,
         _ => 1,
     }
-}
-
-// ════════════════════════════════════════════════════════════════════
-// 方案：三遍二值化 + 连通域定位 + 投影验证 + 固定布局回退
-// ════════════════════════════════════════════════════════════════════
-
-/// Sauvola 自适应二值化（比 Otsu 更抗光照不均）。
-/// 输出：黑字白底（text=0, bg=255）
-/// - k: 敏感度参数（0.2 典型）
-/// - window_size: 局部窗口大小（奇数值，典型 30）
-pub fn sauvola_binarize(img: &image::GrayImage, k: f32, window_size: u32) -> image::GrayImage {
-    let (w, h) = (img.width(), img.height());
-    if w == 0 || h == 0 {
-        return image::GrayImage::new(w, h);
-    }
-
-    let half = (window_size / 2) as i32;
-
-    // 构建积分图加速均值与方差计算
-    let mut integral = vec![0u64; ((w + 1) * (h + 1)) as usize];
-    let mut integral_sq = vec![0u64; ((w + 1) * (h + 1)) as usize];
-
-    for y in 0..h {
-        let row_off = (y * (w + 1)) as usize;
-        let prev_off = ((y + 1) * (w + 1)) as usize;
-        let mut sum: u64 = 0;
-        let mut sum_sq: u64 = 0;
-
-        for x in 0..w {
-            let val = img.get_pixel(x, y).0[0] as u64;
-            sum += val;
-            sum_sq += val * val;
-            integral[prev_off + (x + 1) as usize] = sum + integral[row_off + (x + 1) as usize];
-            integral_sq[prev_off + (x + 1) as usize] =
-                sum_sq + integral_sq[row_off + (x + 1) as usize];
-        }
-    }
-
-    let get_sum = |x1: i32, y1: i32, x2: i32, y2: i32| -> u64 {
-        let x1 = x1.clamp(0, w as i32) as usize;
-        let y1 = y1.clamp(0, h as i32) as usize;
-        let x2 = x2.clamp(0, w as i32) as usize;
-        let y2 = y2.clamp(0, h as i32) as usize;
-        let stride = (w + 1) as usize;
-        integral[y2 * stride + x2] as u64
-            + integral[y1 * stride + x1] as u64
-            - integral[y1 * stride + x2] as u64
-            - integral[y2 * stride + x1] as u64
-    };
-
-    let get_sum_sq = |x1: i32, y1: i32, x2: i32, y2: i32| -> u64 {
-        let x1 = x1.clamp(0, w as i32) as usize;
-        let y1 = y1.clamp(0, h as i32) as usize;
-        let x2 = x2.clamp(0, w as i32) as usize;
-        let y2 = y2.clamp(0, h as i32) as usize;
-        let stride = (w + 1) as usize;
-        integral_sq[y2 * stride + x2] as u64
-            + integral_sq[y1 * stride + x1] as u64
-            - integral_sq[y1 * stride + x2] as u64
-            - integral_sq[y2 * stride + x1] as u64
-    };
-
-    let r = 128.0; // 标准偏差动态范围
-
-    let mut output = image::GrayImage::new(w, h);
-
-    for y in 0..h {
-        for x in 0..w {
-            let x1 = (x as i32 - half).max(0);
-            let y1 = (y as i32 - half).max(0);
-            let x2 = (x as i32 + half + 1).min(w as i32);
-            let y2 = (y as i32 + half + 1).min(h as i32);
-            let area = ((x2 - x1) * (y2 - y1)) as u64;
-
-            if area == 0 {
-                output.put_pixel(x, y, Luma([255]));
-                continue;
-            }
-
-            let sum = get_sum(x1, y1, x2, y2);
-            let sum_sq = get_sum_sq(x1, y1, x2, y2);
-            let mean = sum as f64 / area as f64;
-            let variance = (sum_sq as f64 / area as f64) - mean * mean;
-            let std_dev = variance.abs().sqrt();
-
-            // Sauvola 阈值
-            let threshold = mean * (1.0 + k as f64 * ((std_dev / r) - 1.0));
-            let val = img.get_pixel(x, y).0[0] as f64;
-
-            // 黑字白底：文字像素 = 0，背景 = 255
-            if val <= threshold {
-                output.put_pixel(x, y, Luma([0]));
-            } else {
-                output.put_pixel(x, y, Luma([255]));
-            }
-        }
-    }
-
-    output
 }
 
 /// MRZ 预处理：缩放到长边 ≤ 2048 → 灰度 → 高斯模糊
@@ -1273,19 +896,6 @@ fn horizontal_projection(binary: &image::GrayImage) -> Vec<u32> {
         .map(|y| {
             (0..w)
                 .filter(|&x| binary.get_pixel(x, y).0[0] < 128) // 黑色像素
-                .count() as u32
-        })
-        .collect()
-}
-
-/// 垂直投影
-#[allow(dead_code)]
-fn vertical_projection(binary: &image::GrayImage) -> Vec<u32> {
-    let (w, h) = (binary.width(), binary.height());
-    (0..w)
-        .map(|x| {
-            (0..h)
-                .filter(|&y| binary.get_pixel(x, y).0[0] < 128) // 黑色像素
                 .count() as u32
         })
         .collect()
@@ -1746,16 +1356,7 @@ mod tests {
         assert_eq!(icao_normalize(" "), "<");
     }
 
-    #[test]
-    fn test_sauvola_binarize_basic() {
-        // 全白图像（背景）应输出全白（背景=255）
-        let white = image::GrayImage::from_pixel(100, 50, Luma([255]));
-        let binary = sauvola_binarize(&white, 0.2, 30);
-        assert_eq!(binary.width(), 100);
-        assert_eq!(binary.height(), 50);
-        let white_count = binary.pixels().filter(|p| p.0[0] == 255).count();
-        assert_eq!(white_count, 100 * 50, "all-white input should produce all-white output");
-    }
+
 
     #[test]
     fn test_split_text_lines_empty() {

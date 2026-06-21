@@ -240,12 +240,11 @@ impl OcrEngine {
     ///
     /// 使用启发式定位 + rec 模型跳 det：
     /// 1. preprocess_for_mrz: 缩放 → 灰度 → 高斯模糊
-    /// 2. sauvola_binarize: 自适应二值化
-    /// 3. locate_mrz_region: 四遍定位（滑窗扫描 → 连通域 → 投影法 → 固定布局）
-    /// 4. split_text_lines: 水平投影切分
-    /// 5. recognize_line_rgb: 每行单独 rec（跳过 det）
-    /// 6. icao_normalize: ICAO 字符标准化
-    /// 7. 按长度过滤 + parse_mrz 解析
+    /// 2. locate_mrz_region: 四遍定位（滑窗扫描 → 连通域 → 投影法 → 固定布局）
+    /// 3. split_text_lines: 水平投影切分
+    /// 4. recognize_line_rgb: 每行单独 rec（跳过 det）
+    /// 5. icao_normalize: ICAO 字符标准化
+    /// 6. 按长度过滤 + parse_mrz 解析
     ///
     /// 注意：旧策略（A/B/C 多级裁剪+PP-OCR/模板匹配）已在此分支禁用，
     /// 代码保留在 master 分支历史中。
@@ -256,8 +255,7 @@ impl OcrEngine {
         };
 
         let img = load_rgb_image(image_path)?;
-        let (img_w, img_h) = (img.width(), img.height());
-        tracing::info!("[MRZ] === 扫描开始 === 图像 {}x{}", img_w, img_h);
+
 
         // ── 1. 预处理：缩放 + 灰度 + 高斯模糊 ──
         let gray = preprocess_for_mrz(&img);
@@ -265,22 +263,20 @@ impl OcrEngine {
         // ── 2. 定位（直接在灰度图上，不用 Sauvola）──
         let region = match locate_mrz_region(&gray, &img) {
             Some(r) => {
-                tracing::info!("[MRZ] 区域 top={:.0} bottom={:.0} left={:.0} right={:.0}",
-                    r[0].1, r[2].1, r[0].0, r[2].0);
                 r
             }
             None => {
-                tracing::info!("[MRZ] ❌ 四遍定位均失败");
+                tracing::warn!("[MRZ] ❌ 四遍定位均失败");
                 return Ok(None);
             }
         };
 
         // ── 4. 行切分（在灰度图上做投影，比二值化图更稳定）──
         let line_imgs = split_text_lines(&gray, &region);
-        tracing::info!("[MRZ] 行切分 → {} 行", line_imgs.len());
+
 
         if line_imgs.len() < 2 {
-            tracing::info!("[MRZ] 行数不足 2, 跳过");
+            tracing::warn!("[MRZ] 行数不足 2, 跳过");
             return Ok(None);
         }
 
@@ -343,21 +339,16 @@ impl OcrEngine {
             };
 
             if avg_conf < 0.05 || recognized.trim().len() < 5 {
-                tracing::info!("[MRZ]   行[{}] conf={:.3} text={:?} — 太短/置信度低，跳过",
-                    i, avg_conf, &recognized.chars().take(20).collect::<String>());
                 continue;
             }
 
             let normalized = icao_normalize(&recognized);
-            let preview: String = normalized.chars().take(50).collect();
-            tracing::info!("[MRZ]   行[{}] conf={:.3} text={:?} (拼接, {} 段)",
-                i, avg_conf, preview, seg_count);
             raw_texts.push(normalized);
             total_conf += avg_conf;
         }
 
         if raw_texts.is_empty() {
-            tracing::info!("[MRZ] ❌ 所有行识别均失败");
+            tracing::warn!("[MRZ] ❌ 所有行识别均失败");
             return Ok(None);
         }
 
@@ -377,13 +368,8 @@ impl OcrEngine {
             .collect();
 
         if valid_texts.len() < 2 {
-            tracing::info!("[MRZ] ❌ 有效 MRZ 行不足 2 (仅 {} 行)", valid_texts.len());
+            tracing::warn!("[MRZ] ❌ 有效 MRZ 行不足 2 (仅 {} 行)", valid_texts.len());
             return Ok(None);
-        }
-
-        tracing::info!("[MRZ] 尝试解析 {} 行, avg_conf={:.3}", valid_texts.len(), avg_conf);
-        for (i, t) in valid_texts.iter().enumerate() {
-            tracing::info!("[MRZ]   候选[{}] ({} chars): {:?}", i, t.len(), t);
         }
 
         // ── 7. 尝试解析（parse_mrz 内部会 padding + checksum 校验）──
@@ -418,7 +404,7 @@ impl OcrEngine {
             }
         }
 
-        tracing::info!("[MRZ] ❌ 所有解析尝试均失败");
+        tracing::warn!("[MRZ] ❌ 所有解析尝试均失败");
         Err("无法识别 MRZ 格式".to_string())
     }
 }
