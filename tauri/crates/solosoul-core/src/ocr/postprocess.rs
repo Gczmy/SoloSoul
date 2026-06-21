@@ -306,30 +306,57 @@ pub fn filter_low_confidence_chars(text: &str, confidences: &[f64], threshold: f
 
 /// OCR-B 字符集校正（MRZ 上下文）。
 ///
-/// MRZ（ICAO 9303）排除 O、I、Q 三个字母以消除与数字的混淆。
-/// 对 PP-OCR 的常见混淆做确定性修正：
-/// - O → 0（O 不是有效 MRZ 字符）
-/// - I → 1（I 不是有效 MRZ 字符）
-/// - Q → 0（Q 不是有效 MRZ 字符，且 BGR 文本中 O 与 Q 相似）
+/// 修正规则：
+/// - O → 0（O 不是有效 MRZ 字符，仅用 0）
 /// - l → 1（小写 l 在 MRZ 中视为 1）
-/// - D → 0（PP-OCR 常将 0 上半部缺损识别为 D）
-/// - S → 5（PP-OCR 常将 5 顶部弯曲识别为 S）
-/// - B → 8（PP-OCR 常将 8 下半部缺损识别为 B）
-/// - Z → 2（PP-OCR 常将 2 写得太直识别为 Z）
+/// - 连续 3+ 个 C 或 E → 对应量的 <（PP-OCRv6 常将 MRZ 填充符 `<` 识别为 C/E）
+///
+/// 注意：I、Z、S、B 等字母都是有效的 MRZ 字符（姓名、证件号），
+/// 不做全局替换。校验位级别的修正由 verify_checksums_lenient 处理。
 pub fn correct_ocr_b_mrz(text: &str) -> String {
-    text.chars()
+    // 第一遍：字符级修正
+    let corrected: String = text
+        .chars()
         .map(|c| match c {
-            'O' => '0', // O excluded from MRZ → must be 0
-            'I' => '1', // I excluded from MRZ → must be 1
-            'Q' => '0', // Q excluded from MRZ → likely 0
-            'l' => '1', // lowercase l → digit 1
-            'D' => '0', // D common PP-OCR confusion with 0
-            'S' => '5', // S common confusion with 5
-            'B' => '8', // B common confusion with 8
-            'Z' => '2', // Z common confusion with 2
+            'O' => '0',
+            'l' => '1',
             _ => c,
         })
-        .collect()
+        .collect();
+
+    // 第二遍：连续 3+ 个 C/E（混合也可） → <（MRZ 填充符误识）
+    // PP-OCRv6 常将 `<`（左尖括号）误识别为 C 或 E。
+    // 在有效 MRZ 文本中，连续 3+ 个 C/E 不会出现
+    // （CHN 只有 1 个 C，MCCARTHY 有 2 个 C），所以整个 C/E 块都可安全转换。
+    let chars: Vec<char> = corrected.chars().collect();
+    let mut result = String::with_capacity(chars.len());
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i] == 'C' || chars[i] == 'E' {
+            // 找连续 C/E 块（不要求相同字符，C 和 E 可以交替出现）
+            let block_start = i;
+            while i < chars.len() && (chars[i] == 'C' || chars[i] == 'E') {
+                i += 1;
+            }
+            let block_len = i - block_start;
+            if block_len >= 3 {
+                // 连续 3+ 个 C/E → 替换为同等数量的 <
+                for _ in 0..block_len {
+                    result.push('<');
+                }
+            } else {
+                // 单个或两个 C/E：保留原样（可能是有效 MRZ 内容）
+                for j in block_start..i {
+                    result.push(chars[j]);
+                }
+            }
+        } else {
+            result.push(chars[i]);
+            i += 1;
+        }
+    }
+
+    result
 }
 
 /// 增强型 CTC 解码：解码 + 置信度过滤 + OCR-B 校正。
@@ -453,5 +480,26 @@ mod tests {
         let cfg = DetPostProcessConfig::default();
         let boxes = extract_text_boxes(&scores.view(), 1.0, (4, 4), &cfg);
         assert!(boxes.is_empty());
+    }
+
+    #[test]
+    fn test_correct_ocr_b_mrz_ce_block() {
+        // BRP 行: 连续 14 个 C/E → 全部转为 <
+        assert_eq!(
+            correct_ocr_b_mrz("IRGBRRU01146795CCCCCCCCCCCCCE"),
+            "IRGBRRU01146795<<<<<<<<<<<<<<"
+        );
+        // 混合 CECE 块 (5个) → 全部转为 <
+        assert_eq!(correct_ocr_b_mrz("CECEC"), "<<<<<");
+        // 单个 C 保持不变（有效 MRZ 字符）
+        assert_eq!(correct_ocr_b_mrz("CHN"), "CHN");
+        // 双 C 保持不变（可能出现在姓名中）
+        assert_eq!(correct_ocr_b_mrz("MCCARTHY"), "MCCARTHY");
+        // 三个 E 连续 → 转为 <
+        assert_eq!(correct_ocr_b_mrz("EEENAME"), "<<<NAME");
+        // 空输入
+        assert_eq!(correct_ocr_b_mrz(""), "");
+        // O→0, l→1 仍然生效
+        assert_eq!(correct_ocr_b_mrz("Ol"), "01");
     }
 }

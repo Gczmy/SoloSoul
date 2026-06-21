@@ -3,47 +3,128 @@
 use super::types::MrzResult;
 use image::{imageops::FilterType, Luma, Rgb, RgbImage};
 
-/// 在图像中检测 MRZ 区域。
+/// 在图像中检测 MRZ 区域（多窗口滑窗扫描 + 评分）。
 ///
-/// 改进算法（v2）：
-/// 1. Otsu 阈值二值化（比固定阈值更健壮）
-/// 2. 水平形态学膨胀合并断裂笔画
-/// 3. 支持 TD-1（3 行）和 TD-3（2 行）
-/// 4. 宽度验证过滤非 MRZ 文本
-/// 5. 多策略回退（不同搜索区域/阈值）
+/// 算法：
+/// 1. CLAHE 对比度增强，提升复杂光照下的二值化效果
+/// 2. 从底部 40%~100% 以 15% 步长滑窗扫描
+/// 3. 每个窗口：Otsu 二值化 + 水平膨胀 + 投影分析
+/// 4. 对每个候选按行数/间距均匀度/行高评分
+/// 5. 返回最佳候选（评分 >= 0.5），否则 None 触发下游兜底
 pub fn detect_mrz_region(image: &RgbImage) -> Option<[(f32, f32); 4]> {
     let (w, h) = (image.width(), image.height());
     if h < 100 || w < 300 {
         return None;
     }
 
-    // 定义搜索策略：(底部区域占比, 阈值偏移)
-    // 策略 1: 底部 55%（标准护照/身份证 MRZ 位置）
-    // 策略 2: 底部 65%（位置略偏上）
-    // 策略 3: 整图搜索（兜底）
-    let strategies: [(f32, i32); 5] = [
-        (0.55, 0),   // 底部 55%, Otsu
-        (0.55, -15), // 底部 55%, Otsu-15
-        (0.65, 0),   // 底部 65%, Otsu
-        (1.0, 0),    // 整图, Otsu
-        (1.0, -15),  // 整图, Otsu-15
-    ];
+    // CLAHE 增强：提升暗光/反光场景的二值化效果
+    let gray = to_grayscale(image);
+    let enhanced = apply_clahe(&gray, 3.0, 4, 12);
+    // 转回 RGB（try_detect_mrz_scored 接收 RgbImage）
+    let enhanced_rgb = RgbImage::from_fn(enhanced.width(), enhanced.height(), |x, y| {
+        let p = enhanced.get_pixel(x, y).0[0];
+        Rgb([p, p, p])
+    });
 
-    for &(bottom_ratio, thresh_offset) in &strategies {
-        if let Some(region) = try_detect_mrz(image, bottom_ratio, thresh_offset) {
-            return Some(region);
+    // 滑窗：从底部 40% 到 100%，步长约 15%
+    // 覆盖护照底部(85-95%)、BRP(60-90%)、身份证(70-85%) 等不同证件类型
+    let windows = [0.40, 0.55, 0.70, 0.85, 1.00];
+    let offsets = [0, -15];
+
+    let mut best_region: Option<([(f32, f32); 4], f32)> = None;
+
+    for &bottom_ratio in &windows {
+        for &offset in &offsets {
+            if let Some((region, score)) = try_detect_mrz_scored(&enhanced_rgb, bottom_ratio, offset)
+            {
+                tracing::info!(
+                    "[MRZ-Detect] 滑窗 bottom={:.0}% offset={} score={:.3} 区域 y=[{:.0}, {:.0}]",
+                    bottom_ratio * 100.0,
+                    offset,
+                    score,
+                    region[0].1,
+                    region[2].1,
+                );
+                if best_region.as_ref().map_or(true, |(_, s)| score > *s) {
+                    best_region = Some((region, score));
+                }
+            }
         }
     }
 
-    None
+    if let Some((region, score)) = best_region {
+        if score >= 0.5 {
+            tracing::info!("[MRZ-Detect] ✅ 选中区域 score={:.3} y=[{:.0}, {:.0}]", score, region[0].1, region[2].1);
+            Some(region)
+        } else {
+            tracing::info!("[MRZ-Detect] ❌ 最佳评分 {:.3} < 0.5，放弃", score);
+            None
+        }
+    } else {
+        tracing::info!("[MRZ-Detect] ❌ 所有滑窗均无候选");
+        None
+    }
 }
 
-/// 使用给定参数尝试检测 MRZ 区域。
-fn try_detect_mrz(
+/// 对候选 MRZ 进行评分。
+///
+/// 评分维度：
+/// - 行数：3 行 > 2 行 > 其他（BRP/TD-1 有 3 行，护照/TD-3 有 2 行）
+/// - 行间距均匀度：CV 越小越均匀
+/// - 行间距大小：在 8-40px 合理范围内得高分
+///
+/// 注意：2 行时只有 1 个间距，CV=0 会得到完美间距分。为
+/// 避免 2 行候选反超正确的 3 行候选，2 行时使用中性间距分。
+fn compute_candidate_score(num_lines: usize, centers: &[f32]) -> f32 {
+    // 1. 行数得分：3 行 > 2 行 > 其他
+    // BRP (TD-1) 有 3 行，护照 (TD-3) 有 2 行。
+    let row_score = match num_lines {
+        3 => 1.05,  // 3 行略高，优先选择完整 MRZ 块
+        2 => 1.0,
+        4 => 0.6,
+        1 => 0.3,
+        _ => 0.0,
+    };
+
+    if centers.len() < 2 {
+        return row_score * 0.5;
+    }
+
+    if centers.len() == 2 {
+        // 只有 1 个间距，无法计算均匀度。使用中性间距分。
+        let gap = centers[1] - centers[0];
+        let gap_ok = if (8.0..=40.0).contains(&gap) { 1.0 } else { 0.3 };
+        return row_score * 0.40 + 0.5 * 0.35 + gap_ok * 0.25;
+    }
+
+    // 3+ 个中心点：计算间距均匀度
+    let gaps: Vec<f32> = centers.windows(2).map(|w| w[1] - w[0]).collect();
+    let mean_gap = gaps.iter().sum::<f32>() / gaps.len() as f32;
+    let var = gaps
+        .iter()
+        .map(|&g| (g - mean_gap).powi(2))
+        .sum::<f32>()
+        / gaps.len() as f32;
+    let cv = var.sqrt() / mean_gap.max(1.0);
+    let spacing_score = 1.0 / (1.0 + cv * 5.0);
+
+    // 3. 平均行间距在合理范围内
+    let gap_ok = if (8.0..=40.0).contains(&mean_gap) {
+        1.0
+    } else {
+        0.3
+    };
+
+    row_score * 0.40 + spacing_score * 0.35 + gap_ok * 0.25
+}
+
+/// 尝试用给定参数检测 MRZ 区域，并返回评分。
+/// 与旧的 `try_detect_mrz` 逻辑相同，只是额外计算评分。
+fn try_detect_mrz_scored(
     image: &RgbImage,
     bottom_ratio: f32,
     thresh_offset: i32,
-) -> Option<[(f32, f32); 4]> {
+) -> Option<([(f32, f32); 4], f32)> {
     let (w, h) = (image.width(), image.height());
 
     // 计算搜索区域
@@ -123,14 +204,17 @@ fn try_detect_mrz(
         })
         .collect();
 
-    // 尝试找 2 行或 3 行文本
-    let centers = find_text_lines_from_bands(&wide_bands, 2, &projection)
-        .or_else(|| find_text_lines_from_bands(&wide_bands, 3, &projection))?;
+    // 尝试找 3 行或 2 行文本
+    // BRP (TD-1) 有 3 行 MRZ；护照 (TD-3) 有 2 行。优先 3 行确保 BRP 完整捕获。
+    let centers = find_text_lines_from_bands(&wide_bands, 3, &projection)
+        .or_else(|| find_text_lines_from_bands(&wide_bands, 2, &projection))?;
+
+    // 评分
+    let score = compute_candidate_score(centers.len(), &centers);
 
     // 映射回原图坐标
     let pad_y = 14.0;
     // 计算 MRZ 区域边界：覆盖所有行的宽度 + padding
-    // 左边界使用行内最左白色像素（兼顾全宽）
     let region_left: f32 = 0.0; // 使用全宽，确保包含所有 MRZ 字符
     let region_right = (w - 1) as f32;
 
@@ -139,12 +223,15 @@ fn try_detect_mrz(
     let region_top = (y_start as f32 + first_center - pad_y).max(0.0);
     let region_bottom = (y_start as f32 + last_center + pad_y).min((h - 1) as f32);
 
-    Some([
-        (region_left, region_top),
-        (region_right, region_top),
-        (region_right, region_bottom),
-        (region_left, region_bottom),
-    ])
+    Some((
+        [
+            (region_left, region_top),
+            (region_right, region_top),
+            (region_right, region_bottom),
+            (region_left, region_bottom),
+        ],
+        score,
+    ))
 }
 
 pub fn to_grayscale(img: &RgbImage) -> image::GrayImage {
@@ -578,11 +665,18 @@ pub fn parse_mrz(lines_raw: &[String]) -> Result<MrzResult, String> {
     }
 
     // ---------- 标准路径 ----------
-    if lines.len() == 2 && lines[0].len() >= 40 && lines[1].len() >= 40 {
-        return parse_td3(&lines);
+    // CTC 解码可能折叠尾部连续 <（填充符），导致行长度 < 40。
+    // parse_td3/parse_td1 内部会 padding 到 44/30 字符，
+    // 这里只需确保行有足够的有效内容即可。
+    if lines.len() == 2 && lines[0].len() >= 10 && lines[1].len() >= 10 {
+        if let Ok(result) = parse_td3(&lines) {
+            return Ok(result);
+        }
     }
-    if lines.len() == 3 && lines.iter().all(|l| l.len() >= 25) {
-        return parse_td1(&lines);
+    if lines.len() == 3 && lines.iter().all(|l| l.len() >= 10) {
+        if let Ok(result) = parse_td1(&lines) {
+            return Ok(result);
+        }
     }
 
     // ---------- 容错：Vision 将整个 MRZ 合并为 1 个 Observation ----------
@@ -959,6 +1053,619 @@ fn mrz_char_value(c: char) -> u32 {
     }
 }
 
+// ════════════════════════════════════════════════════════════════════
+// 方案：三遍二值化 + 连通域定位 + 投影验证 + 固定布局回退
+// ════════════════════════════════════════════════════════════════════
+
+/// Sauvola 自适应二值化（比 Otsu 更抗光照不均）。
+/// 输出：黑字白底（text=0, bg=255）
+/// - k: 敏感度参数（0.2 典型）
+/// - window_size: 局部窗口大小（奇数值，典型 30）
+pub fn sauvola_binarize(img: &image::GrayImage, k: f32, window_size: u32) -> image::GrayImage {
+    let (w, h) = (img.width(), img.height());
+    if w == 0 || h == 0 {
+        return image::GrayImage::new(w, h);
+    }
+
+    let half = (window_size / 2) as i32;
+
+    // 构建积分图加速均值与方差计算
+    let mut integral = vec![0u64; ((w + 1) * (h + 1)) as usize];
+    let mut integral_sq = vec![0u64; ((w + 1) * (h + 1)) as usize];
+
+    for y in 0..h {
+        let row_off = (y * (w + 1)) as usize;
+        let prev_off = ((y + 1) * (w + 1)) as usize;
+        let mut sum: u64 = 0;
+        let mut sum_sq: u64 = 0;
+
+        for x in 0..w {
+            let val = img.get_pixel(x, y).0[0] as u64;
+            sum += val;
+            sum_sq += val * val;
+            integral[prev_off + (x + 1) as usize] = sum + integral[row_off + (x + 1) as usize];
+            integral_sq[prev_off + (x + 1) as usize] =
+                sum_sq + integral_sq[row_off + (x + 1) as usize];
+        }
+    }
+
+    let get_sum = |x1: i32, y1: i32, x2: i32, y2: i32| -> u64 {
+        let x1 = x1.clamp(0, w as i32) as usize;
+        let y1 = y1.clamp(0, h as i32) as usize;
+        let x2 = x2.clamp(0, w as i32) as usize;
+        let y2 = y2.clamp(0, h as i32) as usize;
+        let stride = (w + 1) as usize;
+        integral[y2 * stride + x2] as u64
+            + integral[y1 * stride + x1] as u64
+            - integral[y1 * stride + x2] as u64
+            - integral[y2 * stride + x1] as u64
+    };
+
+    let get_sum_sq = |x1: i32, y1: i32, x2: i32, y2: i32| -> u64 {
+        let x1 = x1.clamp(0, w as i32) as usize;
+        let y1 = y1.clamp(0, h as i32) as usize;
+        let x2 = x2.clamp(0, w as i32) as usize;
+        let y2 = y2.clamp(0, h as i32) as usize;
+        let stride = (w + 1) as usize;
+        integral_sq[y2 * stride + x2] as u64
+            + integral_sq[y1 * stride + x1] as u64
+            - integral_sq[y1 * stride + x2] as u64
+            - integral_sq[y2 * stride + x1] as u64
+    };
+
+    let r = 128.0; // 标准偏差动态范围
+
+    let mut output = image::GrayImage::new(w, h);
+
+    for y in 0..h {
+        for x in 0..w {
+            let x1 = (x as i32 - half).max(0);
+            let y1 = (y as i32 - half).max(0);
+            let x2 = (x as i32 + half + 1).min(w as i32);
+            let y2 = (y as i32 + half + 1).min(h as i32);
+            let area = ((x2 - x1) * (y2 - y1)) as u64;
+
+            if area == 0 {
+                output.put_pixel(x, y, Luma([255]));
+                continue;
+            }
+
+            let sum = get_sum(x1, y1, x2, y2);
+            let sum_sq = get_sum_sq(x1, y1, x2, y2);
+            let mean = sum as f64 / area as f64;
+            let variance = (sum_sq as f64 / area as f64) - mean * mean;
+            let std_dev = variance.abs().sqrt();
+
+            // Sauvola 阈值
+            let threshold = mean * (1.0 + k as f64 * ((std_dev / r) - 1.0));
+            let val = img.get_pixel(x, y).0[0] as f64;
+
+            // 黑字白底：文字像素 = 0，背景 = 255
+            if val <= threshold {
+                output.put_pixel(x, y, Luma([0]));
+            } else {
+                output.put_pixel(x, y, Luma([255]));
+            }
+        }
+    }
+
+    output
+}
+
+/// MRZ 预处理：缩放到长边 ≤ 2048 → 灰度 → 高斯模糊
+pub fn preprocess_for_mrz(img: &RgbImage) -> image::GrayImage {
+    let (w, h) = (img.width(), img.height());
+
+    // 缩放到长边 ≤ 2048
+    let max_side = w.max(h);
+    let img = if max_side > 2048 {
+        let scale = 2048.0 / max_side as f32;
+        let new_w = (w as f32 * scale) as u32;
+        let new_h = (h as f32 * scale) as u32;
+        let resized = image::imageops::resize(img, new_w.max(1), new_h.max(1), FilterType::Lanczos3);
+        resized
+    } else {
+        // Clone to RgbImage if it's already small enough
+        image::imageops::crop_imm(img, 0, 0, w, h).to_image()
+    };
+
+    // 灰度
+    let gray = image::imageops::grayscale(&img);
+
+    // 高斯模糊（σ=1.0）
+    let blurred = image::imageops::blur(&gray, 3.0);
+
+    blurred
+}
+
+/// 连通域：BFS 找到所有满足尺寸条件的白色像素区域
+/// Sauvola 输出为黑字白底（text=0, bg=255），所以找黑色像素（值 < 128）
+fn find_connected_components(
+    binary: &image::GrayImage,
+    min_width: u32,
+    min_height: u32,
+) -> Vec<(i32, i32, i32, i32)> {
+    let (w, h) = (binary.width(), binary.height());
+    let mut visited = vec![false; (w * h) as usize];
+    let mut components = Vec::new();
+
+    let dirs = [(1, 0), (0, 1), (-1, 0), (0, -1), (1, 1), (-1, -1), (1, -1), (-1, 1)];
+
+    for y in 0..h {
+        for x in 0..w {
+            let idx = (y * w + x) as usize;
+            if visited[idx] || binary.get_pixel(x, y).0[0] >= 128 {
+                // 跳过背景（白色）
+                continue;
+            }
+            visited[idx] = true;
+
+            // BFS
+            let mut min_x = x as i32;
+            let mut max_x = x as i32;
+            let mut min_y = y as i32;
+            let mut max_y = y as i32;
+            let mut stack = vec![(x as i32, y as i32)];
+
+            while let Some((cx, cy)) = stack.pop() {
+                for &(dx, dy) in &dirs {
+                    let nx = cx + dx;
+                    let ny = cy + dy;
+                    if nx < 0 || nx >= w as i32 || ny < 0 || ny >= h as i32 {
+                        continue;
+                    }
+                    let nidx = (ny as u32 * w + nx as u32) as usize;
+                    if visited[nidx] {
+                        continue;
+                    }
+                    let nval = binary.get_pixel(nx as u32, ny as u32).0[0];
+                    if nval >= 128 {
+                        continue;
+                    }
+                    visited[nidx] = true;
+                    stack.push((nx, ny));
+                    min_x = min_x.min(nx);
+                    max_x = max_x.max(nx);
+                    min_y = min_y.min(ny);
+                    max_y = max_y.max(ny);
+                }
+            }
+
+            let cw = (max_x - min_x + 1) as u32;
+            let ch = (max_y - min_y + 1) as u32;
+            if cw >= min_width && ch >= min_height {
+                components.push((min_x, min_y, max_x, max_y));
+            }
+        }
+    }
+
+    components
+}
+
+/// 计算字符密度：黑色像素占比
+fn compute_char_density(binary: &image::GrayImage, x1: i32, y1: i32, x2: i32, y2: i32) -> f32 {
+    let x1 = x1.max(0) as u32;
+    let y1 = y1.max(0) as u32;
+    let x2 = (x2 as u32).min(binary.width().saturating_sub(1));
+    let y2 = (y2 as u32).min(binary.height().saturating_sub(1));
+
+    let area = (x2 - x1 + 1) * (y2 - y1 + 1);
+    if area == 0 {
+        return 0.0;
+    }
+
+    let mut black_count = 0u32;
+    for y in y1..=y2 {
+        for x in x1..=x2 {
+            if binary.get_pixel(x, y).0[0] < 128 {
+                black_count += 1;
+            }
+        }
+    }
+
+    black_count as f32 / area as f32
+}
+
+/// 水平投影
+fn horizontal_projection(binary: &image::GrayImage) -> Vec<u32> {
+    let (w, h) = (binary.width(), binary.height());
+    (0..h)
+        .map(|y| {
+            (0..w)
+                .filter(|&x| binary.get_pixel(x, y).0[0] < 128) // 黑色像素
+                .count() as u32
+        })
+        .collect()
+}
+
+/// 垂直投影
+#[allow(dead_code)]
+fn vertical_projection(binary: &image::GrayImage) -> Vec<u32> {
+    let (w, h) = (binary.width(), binary.height());
+    (0..w)
+        .map(|x| {
+            (0..h)
+                .filter(|&y| binary.get_pixel(x, y).0[0] < 128) // 黑色像素
+                .count() as u32
+        })
+        .collect()
+}
+
+/// 检查字符间距是否均匀（CV < 0.5 为均匀）
+fn is_uniform_spacing(vertical_proj: &[u32], min_gap: u32) -> bool {
+    // 找到投影值的峰值位置（字符间间隙）
+    let mut peaks = Vec::new();
+    let threshold = vertical_proj.iter().max().copied().unwrap_or(0) / 3;
+
+    for (x, &val) in vertical_proj.iter().enumerate() {
+        if val > threshold {
+            // 局部峰值
+            let left = if x > 0 { vertical_proj[x - 1] } else { 0 };
+            let right = vertical_proj.get(x + 1).copied().unwrap_or(0);
+            if val >= left && val >= right {
+                peaks.push(x as f32);
+            }
+        }
+    }
+
+    if peaks.len() < 5 {
+        return false;
+    }
+
+    // 计算间距的变异系数
+    let gaps: Vec<f32> = peaks.windows(2).map(|w| w[1] - w[0]).collect();
+    let mean_gap = gaps.iter().sum::<f32>() / gaps.len() as f32;
+    if mean_gap < min_gap as f32 {
+        return false;
+    }
+
+    let variance = gaps.iter().map(|g| (g - mean_gap).powi(2)).sum::<f32>() / gaps.len() as f32;
+    let std_dev = variance.sqrt();
+    let cv = std_dev / mean_gap;
+
+    cv < 0.5 // CV < 0.5 表示间距均匀
+}
+
+// ─── 三遍定位 ───────────────────────────────────────────────
+
+/// 策略 A：连通域定位
+/// 过滤条件：宽高比 5:1 ~ 30:1，面积占比 3% ~ 35%，字符密度 10% ~ 50%
+fn locate_by_connected_components(binary: &image::GrayImage) -> Option<(u32, u32, u32, u32)> {
+    let (bw, bh) = (binary.width(), binary.height());
+    let img_area = (bw * bh) as f32;
+
+    let components = find_connected_components(binary, 20, 5);
+
+    let mut candidates: Vec<(i32, i32, i32, i32, f32)> = Vec::new();
+
+    for &(x1, y1, x2, y2) in &components {
+        let cw = (x2 - x1 + 1) as u32;
+        let ch = (y2 - y1 + 1) as u32;
+        let aspect_ratio = cw as f32 / ch.max(1) as f32;
+
+        // 宽高比 5:1 ~ 30:1（MRZ 行特征）
+        if !(5.0..=30.0).contains(&aspect_ratio) {
+            continue;
+        }
+
+        let area = (cw * ch) as f32;
+        let area_ratio = area / img_area;
+        // 面积占比 3% ~ 35%
+        if !(0.03..=0.35).contains(&area_ratio) {
+            continue;
+        }
+
+        let density = compute_char_density(binary, x1, y1, x2, y2);
+        // 字符密度 10% ~ 50%
+        if !(0.10..=0.50).contains(&density) {
+            continue;
+        }
+
+        // 分数：面积大 + 密度高 = 更可能是 MRZ
+        let score = area * density;
+        candidates.push((x1, y1, x2, y2, score));
+    }
+
+    if candidates.is_empty() {
+        return None;
+    }
+
+    // 选分数最高的候选
+    candidates.sort_by(|a, b| b.4.partial_cmp(&a.4).unwrap_or(std::cmp::Ordering::Equal));
+    let (x1, y1, x2, y2, _) = candidates[0];
+
+    Some((x1.max(0) as u32, y1.max(0) as u32, x2.max(0) as u32, y2.max(0) as u32))
+}
+
+/// 策略 B：投影法定位
+/// 用水平投影找高密度文本行，垂直投影验证均匀间距
+fn locate_by_projection(binary: &image::GrayImage) -> Option<(u32, u32, u32, u32)> {
+    let (bw, bh) = (binary.width(), binary.height());
+
+    let h_proj = horizontal_projection(binary);
+    let max_val = *h_proj.iter().max()?;
+    if max_val == 0 {
+        return None;
+    }
+
+    // 找高密度行（投影值 > max/4）
+    let threshold = max_val / 4;
+    let mut bands: Vec<(u32, u32)> = Vec::new();
+    let mut in_band = false;
+    let mut start = 0u32;
+
+    for (y, &val) in h_proj.iter().enumerate() {
+        let y = y as u32;
+        if val > threshold && !in_band {
+            in_band = true;
+            start = y;
+        } else if val <= threshold && in_band {
+            in_band = false;
+            if y - start >= 8 {
+                bands.push((start, y));
+            }
+        }
+    }
+    if in_band {
+        bands.push((start, bh));
+    }
+
+    if bands.is_empty() {
+        return None;
+    }
+
+    // 合并相近的行带
+    let merged = merge_rows(&bands, 4);
+
+    // 对每个合并后的行带，检查垂直投影的均匀间距
+    for &(ys, ye) in &merged {
+        let roi_h = ye - ys;
+        if roi_h < 15 || roi_h > 100 {
+            continue;
+        }
+
+        // 取该 ROI 的垂直投影
+        // 裁剪垂直投影范围（整个宽度，从 ys 到 ye）
+        let v_proj = vertical_projection_on_roi(binary, 0, bw, ys, ye);
+        if is_uniform_spacing(&v_proj, 5) {
+            return Some((0, ys, bw, ye));
+        }
+    }
+
+    None
+}
+
+/// 在 ROI 内计算垂直投影
+fn vertical_projection_on_roi(
+    binary: &image::GrayImage,
+    x_start: u32,
+    x_end: u32,
+    y_start: u32,
+    y_end: u32,
+) -> Vec<u32> {
+    let x_end = x_end.min(binary.width());
+    let y_end = y_end.min(binary.height());
+
+    (x_start..x_end)
+        .map(|x| {
+            (y_start..y_end)
+                .filter(|&y| binary.get_pixel(x, y).0[0] < 128)
+                .count() as u32
+        })
+        .collect()
+}
+
+/// 合并相邻行带（间隔 < 4px）
+fn merge_rows(bands: &[(u32, u32)], gap_threshold: u32) -> Vec<(u32, u32)> {
+    if bands.is_empty() {
+        return Vec::new();
+    }
+
+    let mut merged = Vec::new();
+    let mut cur_start = bands[0].0;
+    let mut cur_end = bands[0].1;
+
+    for &(s, e) in &bands[1..] {
+        if s - cur_end <= gap_threshold {
+            cur_end = e;
+        } else {
+            merged.push((cur_start, cur_end));
+            cur_start = s;
+            cur_end = e;
+        }
+    }
+    merged.push((cur_start, cur_end));
+
+    merged
+}
+
+/// 策略 C：固定布局定位（兜底）
+/// 对标准证件比例，假设 MRZ 在底部 25-35%
+fn locate_by_fixed_layout(img: &RgbImage) -> Option<(u32, u32, u32, u32)> {
+    let (w, h) = (img.width(), img.height());
+    let aspect = w as f32 / h.max(1) as f32;
+
+    // 标准证件比例：护照（~1.4），身份证（~0.7）
+    let is_portrait = aspect >= 0.6 && aspect <= 0.9;
+    let is_landscape = aspect >= 1.2 && aspect <= 1.6;
+
+    if !is_portrait && !is_landscape {
+        return None;
+    }
+
+    // MRZ 在证件最底部（护照最后 2 行，身份证最后 2-3 行）。
+    // 覆盖底部 20%，确保在所有证件上都能捕获 MRZ 区域。
+    let y_start = (h as f32 * 0.80) as u32;
+    let y_end = h;
+
+    if y_end <= y_start || y_start >= h {
+        return None;
+    }
+
+    Some((0, y_start, w, y_end))
+}
+
+/// 四遍定位主函数
+/// 依次尝试：滑窗扫描(推荐) → 连通域 → 投影法 → 固定布局
+pub fn locate_mrz_region(binary: &image::GrayImage, img: &RgbImage) -> Option<[(f32, f32); 4]> {
+    // 策略 D：滑窗扫描（优先推荐）
+    // CLAHE + Otsu + 多窗口评分，覆盖各种证件类型
+    if let Some(region) = detect_mrz_region(img) {
+        // MRZ 应在图像底部附近。如果滑窗找到的区域远离底部（如非 MRZ 文本），
+        // 则跳过滑窗结果，让连通域/投影法/固定布局来捕获真正的底部 MRZ。
+        let img_h = img.height() as f32;
+        let region_bottom = region[2].1;
+        let bottom_ratio = region_bottom / img_h;
+        // 阈值 85%：MRZ 通常在底部 85-100% 区域
+        if bottom_ratio >= 0.85 {
+            tracing::info!("[MRZ] 策略 D (滑窗扫描) 成功, bottom={:.1}/{:.1}", region_bottom, img_h);
+            return Some(region);
+        }
+        tracing::info!("[MRZ] 策略 D 区域不在底部 (bottom={:.1}/{:.1}), 走下一策略", region_bottom, img_h);
+    }
+
+    // 策略 A：连通域
+    if let Some((x1, y1, x2, y2)) = locate_by_connected_components(binary) {
+        tracing::info!("[MRZ] 策略 A (连通域) 成功: ({},{})-({},{})", x1, y1, x2, y2);
+        return Some([
+            (x1 as f32, y1 as f32),
+            (x2 as f32, y1 as f32),
+            (x2 as f32, y2 as f32),
+            (x1 as f32, y2 as f32),
+        ]);
+    }
+
+    // 策略 B：投影法
+    if let Some((x1, y1, x2, y2)) = locate_by_projection(binary) {
+        tracing::info!("[MRZ] 策略 B (投影法) 成功: ({},{})-({},{})", x1, y1, x2, y2);
+        return Some([
+            (x1 as f32, y1 as f32),
+            (x2 as f32, y1 as f32),
+            (x2 as f32, y2 as f32),
+            (x1 as f32, y2 as f32),
+        ]);
+    }
+
+    // 策略 C：固定布局（兜底）
+    if let Some((x1, y1, x2, y2)) = locate_by_fixed_layout(img) {
+        tracing::info!("[MRZ] 策略 C (固定布局) 成功: ({},{})-({},{})", x1, y1, x2, y2);
+        return Some([
+            (x1 as f32, y1 as f32),
+            (x2 as f32, y1 as f32),
+            (x2 as f32, y2 as f32),
+            (x1 as f32, y2 as f32),
+        ]);
+    }
+
+    None
+}
+
+/// 在 MRZ 区域内按水平投影切分为单行文本图像
+pub fn split_text_lines(binary: &image::GrayImage, region: &[(f32, f32); 4]) -> Vec<image::GrayImage> {
+    let (bw, bh) = (binary.width(), binary.height());
+
+    // 计算 ROI 边界
+    let x1 = (region[0].0.max(0.0) as u32).min(bw.saturating_sub(1));
+    let y1 = (region[0].1.max(0.0) as u32).min(bh.saturating_sub(1));
+    let x2 = (region[2].0 as u32).min(bw.saturating_sub(1));
+    let y2 = (region[2].1 as u32).min(bh.saturating_sub(1));
+
+    if x2 <= x1 || y2 <= y1 {
+        return Vec::new();
+    }
+
+    // 在 ROI 内计算水平投影（黑色像素）
+    let h_proj: Vec<u32> = (y1..y2)
+        .map(|y| {
+            (x1..x2)
+                .filter(|&x| binary.get_pixel(x, y).0[0] < 128)
+                .count() as u32
+        })
+        .collect();
+
+    let max_val = *h_proj.iter().max().unwrap_or(&0);
+    if max_val == 0 {
+        return Vec::new();
+    }
+
+    // 检测行峰值（固定阈值 5，灰度图文字行投影值远高于此）
+    let line_peaks = detect_line_peaks(&h_proj, 5, 3);
+
+    // 裁剪每行
+    let mut lines = Vec::new();
+    for &(ys, ye) in &line_peaks {
+        let roi = image::imageops::crop_imm(binary, x1, y1 + ys, x2 - x1, ye - ys).to_image();
+        lines.push(roi);
+    }
+
+    lines
+}
+
+/// 检测行峰值：在投影数组中找连续的文字行区域。
+///
+/// 使用固定阈值（5），灰度图中文字行投影值远高于 5，
+/// 而行间间隙（高斯模糊后背景平滑）投影值接近 0，可清晰分离。
+/// `min_peak_height`: 峰值最小高度（像素），默认 5
+/// `min_gap`: 行间最小间隔（像素），默认 3
+fn detect_line_peaks(proj: &[u32], min_peak_height: u32, min_gap: u32) -> Vec<(u32, u32)> {
+    let mut peaks = Vec::new();
+    let mut in_line = false;
+    let mut start = 0u32;
+
+    for (y, &val) in proj.iter().enumerate() {
+        let y = y as u32;
+        if val > min_peak_height && !in_line {
+            in_line = true;
+            start = y;
+        } else if val <= min_peak_height && in_line {
+            in_line = false;
+            if y - start >= min_gap {
+                peaks.push((start, y));
+            }
+        }
+    }
+    if in_line && proj.len() as u32 - start >= min_gap {
+        peaks.push((start, proj.len() as u32));
+    }
+
+    // 合并间隙小的相邻行
+    if peaks.len() >= 2 {
+        let mut merged = Vec::new();
+        let mut cur = peaks[0];
+        for &(s, e) in &peaks[1..] {
+            if s - cur.1 <= min_gap {
+                cur.1 = e;
+            } else {
+                merged.push(cur);
+                cur = (s, e);
+            }
+        }
+        merged.push(cur);
+        merged
+    } else {
+        peaks
+    }
+}
+
+/// ICAO 字符标准化
+/// - O → 0, I → 1, 空格 → <
+/// - 小写转大写，非法字符 → <
+pub fn icao_normalize(text: &str) -> String {
+    text.chars()
+        .map(|c| match c {
+            // O 不是有效 MRZ 字符（ICAO 9303），常见 OCR 混淆 → 转 0
+            'O' => '0',
+            // I 在某些证件姓名中有效，保留原样
+            'A'..='Z' => c,
+            '0'..='9' => c,
+            '<' => c,
+            'a'..='z' => c.to_ascii_uppercase(),
+            ' ' => '<',
+            _ => '<',
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1024,5 +1731,38 @@ mod tests {
         assert_eq!(result.expiry_date, "120415");
         assert_eq!(result.check_digit_expiry, '9');
         assert!(result.checksum_valid);
+    }
+
+    #[test]
+    fn test_icao_normalize() {
+        // O→0（ICAO 标准）
+        assert_eq!(icao_normalize("O"), "0");
+        // I 是有效 MRZ 字符，保留
+        assert_eq!(icao_normalize("I"), "I");
+        // 小写→大写, 空格→<, 非法字符→<
+        assert_eq!(icao_normalize("hello"), "HELLO");
+        assert_eq!(icao_normalize("abc 123"), "ABC<123");
+        assert_eq!(icao_normalize("P<UT0ER1KSS0N<<ANNA"), "P<UT0ER1KSS0N<<ANNA");
+        assert_eq!(icao_normalize(" "), "<");
+    }
+
+    #[test]
+    fn test_sauvola_binarize_basic() {
+        // 全白图像（背景）应输出全白（背景=255）
+        let white = image::GrayImage::from_pixel(100, 50, Luma([255]));
+        let binary = sauvola_binarize(&white, 0.2, 30);
+        assert_eq!(binary.width(), 100);
+        assert_eq!(binary.height(), 50);
+        let white_count = binary.pixels().filter(|p| p.0[0] == 255).count();
+        assert_eq!(white_count, 100 * 50, "all-white input should produce all-white output");
+    }
+
+    #[test]
+    fn test_split_text_lines_empty() {
+        // 全白图像（无黑色像素）应返回空
+        let binary = image::GrayImage::from_pixel(100, 50, Luma([255]));
+        let region = [(0.0, 0.0), (99.0, 0.0), (99.0, 49.0), (0.0, 49.0)];
+        let lines = split_text_lines(&binary, &region);
+        assert!(lines.is_empty(), "no text should produce no lines");
     }
 }

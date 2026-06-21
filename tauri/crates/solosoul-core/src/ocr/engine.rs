@@ -7,7 +7,7 @@ use super::postprocess::{
     build_ocr_result, ctc_decode_enhanced, extract_text_boxes,
 };
 use super::preprocess::{
-    apply_adaptive_threshold, load_rgb_image, perspective_crop, preprocess_for_detection,
+    load_rgb_image, perspective_crop, preprocess_for_detection,
     preprocess_for_recognition,
 };
 use super::types::{MrzResult, OcrModelTier, OcrResult};
@@ -238,369 +238,215 @@ impl OcrEngine {
 
     /// 扫描图片中的 MRZ 区域并解析。
     ///
-    /// 策略：
-    /// 1. 优先使用 PP-OCR 在整图上做文本检测 → 过滤底部文本 → 按行分组 → 解析 MRZ
-    ///    （利用 PP-OCR 的神经网络检测模型，比投影法更健壮）
-    /// 2. 回退到投影法检测区域 → 裁剪 → OCR
+    /// 使用启发式定位 + rec 模型跳 det：
+    /// 1. preprocess_for_mrz: 缩放 → 灰度 → 高斯模糊
+    /// 2. sauvola_binarize: 自适应二值化
+    /// 3. locate_mrz_region: 四遍定位（滑窗扫描 → 连通域 → 投影法 → 固定布局）
+    /// 4. split_text_lines: 水平投影切分
+    /// 5. recognize_line_rgb: 每行单独 rec（跳过 det）
+    /// 6. icao_normalize: ICAO 字符标准化
+    /// 7. 按长度过滤 + parse_mrz 解析
+    ///
+    /// 注意：旧策略（A/B/C 多级裁剪+PP-OCR/模板匹配）已在此分支禁用，
+    /// 代码保留在 master 分支历史中。
     pub fn scan_mrz(&mut self, image_path: &Path) -> Result<Option<MrzResult>, String> {
         use super::mrz::{
-            detect_mrz_region, otsu_binarize, split_mrz_lines, to_grayscale,
-            verify_checksums_lenient,
+            icao_normalize, locate_mrz_region, preprocess_for_mrz,
+            split_text_lines,
         };
-        use image::imageops::FilterType;
 
         let img = load_rgb_image(image_path)?;
         let (img_w, img_h) = (img.width(), img.height());
         tracing::info!("[MRZ] === 扫描开始 === 图像 {}x{}", img_w, img_h);
 
-        // ── 辅助函数：裁剪底部区域 → 放大 → OCR → 行分组 → MRZ 解析 ──
-        fn run_mrz_ocr(
-            engine: &mut OcrEngine,
-            img: &image::RgbImage,
-            bottom_ratio: f32,
-            upscale_factor: u32,
-            label: &str,
-        ) -> Result<Option<MrzResult>, String> {
-            let (img_w, img_h) = (img.width(), img.height());
-            let crop_h = (img_h as f32 * bottom_ratio) as u32;
-            let crop_y = img_h.saturating_sub(crop_h);
-            if crop_h < 40 || crop_y >= img_h {
-                return Ok(None);
-            }
-            tracing::info!("[MRZ] 策略 A-{}: 裁剪底部 {}% (y={}, h={}), {}x 放大 → {}x{}",
-                label, (bottom_ratio * 100.0) as u32, crop_y, crop_h,
-                upscale_factor, img_w * upscale_factor, crop_h * upscale_factor);
+        // ── 1. 预处理：缩放 + 灰度 + 高斯模糊 ──
+        let gray = preprocess_for_mrz(&img);
 
-            let bottom_crop = image::imageops::crop_imm(img, 0, crop_y, img_w, crop_h).to_image();
-            let upscaled = image::imageops::resize(
-                &bottom_crop,
-                img_w * upscale_factor,
-                crop_h * upscale_factor,
-                FilterType::CatmullRom,
-            );
-
-            let ocr_result = engine.scan_rgb_with_threshold(&upscaled, 0.1)?;
-            tracing::info!("[MRZ] 策略 A-{}: PP-OCR 检测到 {} 个文本框, 平均置信度 {:.2}",
-                label, ocr_result.boxes.len(), ocr_result.confidence);
-
-            if ocr_result.boxes.is_empty() {
-                tracing::info!("[MRZ] 策略 A-{}: 未检测到任何文本框", label);
-                return Ok(None);
-            }
-
-            // 打印每个框
-            for (i, b) in ocr_result.boxes.iter().enumerate() {
-                let y_c = (b.points[0].1 + b.points[2].1) / 2.0;
-                let x_c = (b.points[0].0 + b.points[2].0) / 2.0;
-                let preview: String = b.text.chars().take(40).collect();
-                tracing::info!("[MRZ]   框[{}] y={:.0} x={:.0} conf={:.2} text={:?}",
-                    i, y_c, x_c, b.confidence, preview);
-            }
-
-            // 行分组
-            let mut boxes_sorted: Vec<&super::types::OcrBox> = ocr_result.boxes.iter().collect();
-            boxes_sorted.sort_by(|a, b| {
-                let ay = (a.points[0].1 + a.points[2].1) / 2.0;
-                let by = (b.points[0].1 + b.points[2].1) / 2.0;
-                ay.partial_cmp(&by).unwrap_or(std::cmp::Ordering::Equal)
-            });
-
-            let mut rows: Vec<Vec<(f32, &String)>> = Vec::new();
-            let mut cur: Vec<(f32, &String)> = Vec::new();
-            let mut prev_y = 0.0f32;
-
-            for bx in &boxes_sorted {
-                let yc = (bx.points[0].1 + bx.points[2].1) / 2.0;
-                let h = (bx.points[2].1 - bx.points[0].1).abs();
-                let xc = (bx.points[0].0 + bx.points[2].0) / 2.0;
-
-                if cur.is_empty() {
-                    cur.push((xc, &bx.text));
-                    prev_y = yc;
-                } else if (yc - prev_y).abs() < h.max(10.0) * 0.6 {
-                    cur.push((xc, &bx.text));
-                    prev_y = yc;
-                } else {
-                    if cur.len() >= 2 {
-                        rows.push(std::mem::take(&mut cur));
-                    }
-                    cur.push((xc, &bx.text));
-                    prev_y = yc;
-                }
-            }
-            if cur.len() >= 2 {
-                rows.push(cur);
-            }
-
-            tracing::info!("[MRZ] 策略 A-{}: 行分组 → {} 行", label, rows.len());
-            if rows.len() < 2 {
-                return Ok(None);
-            }
-
-            let row_texts: Vec<String> = rows
-                .iter_mut()
-                .map(|row| {
-                    row.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
-                    row.iter().map(|(_, t)| t.as_str()).collect::<Vec<&str>>().concat()
-                })
-                .collect();
-
-            for (i, rt) in row_texts.iter().enumerate() {
-                let preview: String = rt.chars().take(60).collect();
-                tracing::info!("[MRZ]   行[{}] ({} chars): {:?}", i, rt.len(), preview);
-            }
-
-            // 解析 + checksum 校验（支持宽松校验）
-            let try_parse = |cands: &[String]| -> Option<MrzResult> {
-                if let Ok(mrz) = direct_mrz_parse(cands, ocr_result.confidence) {
-                    if mrz.checksum_valid {
-                        return Some(mrz);
-                    }
-                    tracing::info!("[MRZ]     ✓ 解析成功但 checksum 无效, 尝试 lenient 校验");
-                    if verify_checksums_lenient(&mrz) {
-                        tracing::info!("[MRZ]     ✓ lenient 校验通过");
-                        return Some(mrz);
-                    }
-                }
-                for tgt in [2usize, 3] {
-                    if cands.len() >= tgt {
-                        let top: Vec<String> = cands[..tgt].to_vec();
-                        let merged = greedy_merge_lines(&top, tgt);
-                        if let Ok(mrz) = direct_mrz_parse(&merged, ocr_result.confidence) {
-                            if mrz.checksum_valid {
-                                return Some(mrz);
-                            }
-                        }
-                    }
-                }
-                None
-            };
-
-            // A1: 底部 y 顺序
-            let bottom: Vec<String> = row_texts[row_texts.len().saturating_sub(3)..].to_vec();
-            let preview: Vec<String> = bottom.iter().map(|l| l.chars().take(30).collect()).collect();
-            tracing::info!("[MRZ]   A1(底部y顺序): {:?}", preview);
-            if let Some(mrz) = try_parse(&bottom) {
-                tracing::info!("[MRZ] ✅ A-{} A1 成功", label);
-                return Ok(Some(mrz));
-            }
-
-            // A2: 最长行
-            let row_sorted = {
-                let mut v = row_texts.clone();
-                v.sort_by(|a, b| b.len().cmp(&a.len()));
-                v
-            };
-            let longest: Vec<String> = row_sorted[..row_sorted.len().min(3)].to_vec();
-            let preview: Vec<String> = longest.iter().map(|l| l.chars().take(30).collect()).collect();
-            tracing::info!("[MRZ]   A2(最长行): {:?}", preview);
-            if let Some(mrz) = try_parse(&longest) {
-                tracing::info!("[MRZ] ✅ A-{} A2 成功", label);
-                return Ok(Some(mrz));
-            }
-
-            // A3: 暴力所有连续组合
-            let row_y_order = row_texts; // still in y-order (not sorted)
-            tracing::info!("[MRZ]   A3(暴力尝试 {}-1 个组合)...", row_y_order.len());
-            for i in 0..row_y_order.len().saturating_sub(1) {
-                for n in [2usize, 3] {
-                    if i + n <= row_y_order.len() {
-                        let group: Vec<String> = row_y_order[i..i + n].to_vec();
-                        let preview: Vec<String> = group.iter().map(|l| l.chars().take(30).collect()).collect();
-                        tracing::info!("[MRZ]     A3 [{i}..+{n}]: {:?}", preview);
-                        if let Some(mrz) = try_parse(&group) {
-                            tracing::info!("[MRZ] ✅ A-{} A3 成功", label);
-                            return Ok(Some(mrz));
-                        }
-                    }
-                }
-            }
-
-            Ok(None)
-        }
-
-        // ── 策略 A：多级裁剪+放大 → PP-OCR 检测 → 分组解析 ──
-        // MRZ 字很小（~3mm），在全图上缩小后难以检测。
-        // 从紧到松尝试多个裁剪比例和放大倍数：
-        //   先试底部 12% + 4x（精确命中 MRZ，避开字段标签）
-        //   回退到底部 35% + 2x（包含上下文）
-        for &(ratio, upscale) in &[(0.12f32, 4u32), (0.35f32, 2u32), (0.50f32, 2u32)] {
-            if let Some(mrz) = run_mrz_ocr(self, &img, ratio, upscale, &format!("{}-{}", (ratio * 100.0) as u32, upscale))? {
-                return Ok(Some(mrz));
-            }
-        }
-
-        // ── 策略 C：投影法定位 → 行切分 → 模板匹配识别 ──
-        // 用 NCC 模板匹配替换 PP-OCR rec 模型，避免 rec 模型 48×320 缩放导致文字过小。
-        // 模板在原始分辨率下逐字符匹配，精度更高。
-        tracing::info!("[MRZ] === 策略 C: 行切分 + 模板匹配 ===");
-        if let Some(region) = detect_mrz_region(&img) {
-            tracing::info!("[MRZ] 策略 C: 检测到 MRZ 区域 top={:.0} bottom={:.0}", region[0].1, region[2].1);
-            let crop = perspective_crop(&img, &region);
-            tracing::info!("[MRZ] 策略 C: 裁剪区域 {}x{}", crop.width(), crop.height());
-
-            // 增强 → 灰度 → 二值化 → 行切分（不使用 enhance_mrz_crop 的 2x 放大，
-            // 因为 template matching 在原始分辨率工作）
-            let gray = to_grayscale(&crop);
-            let binary = otsu_binarize(&gray, 0);
-            let line_imgs = split_mrz_lines(&binary);
-            tracing::info!("[MRZ] 策略 C: 行切分 → {} 行", line_imgs.len());
-
-            if line_imgs.len() >= 2 {
-                // 加载模板（lazy static，仅首次加载字体）
-                let templates = match super::mrz_templates::MrzTemplates::load() {
-                    Ok(t) => t,
-                    Err(e) => {
-                        tracing::warn!("[MRZ] 策略 C: 加载模板失败: {e}, 回退到策略 B");
-                        return Ok(None); // 降级到策略 B
-                    }
-                };
-
-                let mut line_texts = Vec::new();
-                let mut total_conf = 0.0f64;
-
-                for (i, line_gray) in line_imgs.iter().enumerate() {
-                    // MRZ TD-3 每行 44 字符
-                    let num_chars = 44usize;
-                    let (text, avg_conf) =
-                        super::mrz_templates::recognize_mrz_line(&templates, line_gray, num_chars);
-                    let preview: String = text.chars().take(50).collect();
-                    tracing::info!("[MRZ]   行[{}] conf={:.3} text={:?}", i, avg_conf, preview);
-                    line_texts.push(text);
-                    total_conf += avg_conf as f64;
-                }
-
-                let avg_conf = total_conf / line_texts.len() as f64;
-
-                // 尝试直接解析
-                if let Ok(mrz) = direct_mrz_parse(&line_texts, avg_conf) {
-                    if mrz.checksum_valid {
-                        tracing::info!("[MRZ] ✅ 策略 C 成功");
-                        return Ok(Some(mrz));
-                    }
-                    tracing::info!("[MRZ] 策略 C: strict checksum 无效, 尝试 lenient");
-                    if verify_checksums_lenient(&mrz) {
-                        tracing::info!("[MRZ] ✅ 策略 C lenient 校验通过");
-                        return Ok(Some(mrz));
-                    }
-                }
-
-                // 尝试贪心合并
-                for tgt in [2usize, 3] {
-                    if line_texts.len() >= tgt {
-                        let merged = greedy_merge_lines(&line_texts, tgt);
-                        if let Ok(mrz) = direct_mrz_parse(&merged, avg_conf) {
-                            if mrz.checksum_valid || verify_checksums_lenient(&mrz) {
-                                tracing::info!("[MRZ] ✅ 策略 C 合并后成功");
-                                return Ok(Some(mrz));
-                            }
-                        }
-                    }
-                }
-            } else {
-                tracing::info!("[MRZ] 策略 C: 行不足 2 行, 跳过");
-            }
-        } else {
-            tracing::info!("[MRZ] ❌ 策略 C: 未检测到 MRZ 区域");
-        }
-
-        // ── 策略 B：投影法检测区域 → 裁剪 → OCR（回退） ──
-        tracing::info!("[MRZ] === 策略 B: 投影法检测 ===");
-        let region = match detect_mrz_region(&img) {
+        // ── 2. 定位（直接在灰度图上，不用 Sauvola）──
+        let region = match locate_mrz_region(&gray, &img) {
             Some(r) => {
-                tracing::info!("[MRZ] 策略 B: 检测到 MRZ 区域 top={:.0} bottom={:.0}", r[0].1, r[2].1);
+                tracing::info!("[MRZ] 区域 top={:.0} bottom={:.0} left={:.0} right={:.0}",
+                    r[0].1, r[2].1, r[0].0, r[2].0);
                 r
             }
             None => {
-                tracing::info!("[MRZ] ❌ 策略 B: 投影法未检测到 MRZ 区域, 返回 None");
+                tracing::info!("[MRZ] ❌ 四遍定位均失败");
                 return Ok(None);
             }
         };
 
-        let crop = perspective_crop(&img, &region);
-        tracing::info!("[MRZ] 策略 B: 裁剪区域 {}x{}", crop.width(), crop.height());
+        // ── 4. 行切分（在灰度图上做投影，比二值化图更稳定）──
+        let line_imgs = split_text_lines(&gray, &region);
+        tracing::info!("[MRZ] 行切分 → {} 行", line_imgs.len());
 
-        let ocr_text: String;
-        let ocr_confidence: f64;
+        if line_imgs.len() < 2 {
+            tracing::info!("[MRZ] 行数不足 2, 跳过");
+            return Ok(None);
+        }
 
-        #[cfg(target_os = "macos")]
-        {
-            // Vision Framework：使用原始裁剪图
-            let tmp_dir = std::env::temp_dir().join(format!(
-                "solosoul-mrz-{}",
-                uuid::Uuid::new_v4()
-            ));
-            std::fs::create_dir_all(&tmp_dir)
-                .map_err(|e| format!("创建临时 MRZ 目录失败: {e}"))?;
-            let tmp_path = tmp_dir.join("mrz_crop.png");
-            crop
-                .save(&tmp_path)
-                .map_err(|e| format!("保存裁剪图像失败: {e}"))?;
+        // ── 5. 逐行 rec-only 识别 ──
+        // 取最多 4 行（优先底部行）
+        let max_lines = 4usize;
+        let lines_to_process: Vec<&image::GrayImage> = if line_imgs.len() > max_lines {
+            line_imgs[line_imgs.len() - max_lines..].iter().collect()
+        } else {
+            line_imgs.iter().collect()
+        };
 
-            match super::macos_vision::scan_image(&tmp_path) {
-                Ok((vision_text, vision_conf)) => {
-                    ocr_text = vision_text;
-                    ocr_confidence = vision_conf;
+        let mut raw_texts = Vec::new();
+        let mut total_conf = 0.0f64;
+
+        for (i, &line_gray) in lines_to_process.iter().enumerate() {
+            // ── 将 MRZ 行一分为二分别 rec，再拼接结果 ──
+            // 行图像约 852×30px，若直接压缩到 320px 则每字符仅 7px 宽，无法识别。
+            // 拆为 2 段（各 ~426px），每段压缩到 320px（1.33x），字符 ~14px 宽，可识别。
+            let line_w = line_gray.width();
+            let line_h = line_gray.height();
+            let half_w = line_w / 2;
+
+            let mut recognized = String::new();
+            let mut seg_sum_conf = 0.0f64;
+            let mut seg_count = 0u32;
+
+            for seg_idx in 0..2 {
+                let seg_x = seg_idx * half_w;
+                let seg_w = if seg_idx == 0 { half_w } else { line_w - half_w };
+                if seg_w < 10 {
+                    continue;
                 }
-                Err(e) => {
-                    tracing::warn!(
-                        "Vision Framework MRZ 失败，回退到 PP-OCR: {e}"
-                    );
-                    let thresholded = apply_adaptive_threshold(&crop, 31);
-                    let fallback = self.scan_rgb_with_threshold(&thresholded, 0.1)?;
-                    ocr_text = fallback.text;
-                    ocr_confidence = fallback.confidence;
+
+                let seg = image::imageops::crop_imm(line_gray, seg_x, 0, seg_w, line_h).to_image();
+                let resized = image::imageops::resize(
+                    &seg, 320, 48, image::imageops::FilterType::Triangle,
+                );
+                let seg_rgb = image::RgbImage::from_fn(320, 48, |x, y| {
+                    let val = resized.get_pixel(x, y).0[0];
+                    image::Rgb([val, val, val])
+                });
+
+                match self.recognize_line_rgb(&seg_rgb) {
+                    Ok((text, conf)) => {
+                        recognized.push_str(&text);
+                        seg_sum_conf += conf;
+                        seg_count += 1;
+                    }
+                    Err(e) => {
+                        tracing::warn!("[MRZ]   行[{}] 段[{}] 识别失败: {}", i, seg_idx, e);
+                    }
                 }
             }
 
-            let _ = std::fs::remove_file(&tmp_path);
-            let _ = std::fs::remove_dir(&tmp_dir);
+            let avg_conf = if seg_count > 0 {
+                seg_sum_conf / seg_count as f64
+            } else {
+                0.0
+            };
+
+            if avg_conf < 0.05 || recognized.trim().len() < 5 {
+                tracing::info!("[MRZ]   行[{}] conf={:.3} text={:?} — 太短/置信度低，跳过",
+                    i, avg_conf, &recognized.chars().take(20).collect::<String>());
+                continue;
+            }
+
+            let normalized = icao_normalize(&recognized);
+            let preview: String = normalized.chars().take(50).collect();
+            tracing::info!("[MRZ]   行[{}] conf={:.3} text={:?} (拼接, {} 段)",
+                i, avg_conf, preview, seg_count);
+            raw_texts.push(normalized);
+            total_conf += avg_conf;
         }
 
-        #[cfg(not(target_os = "macos"))]
-        {
-            use super::mrz::enhance_mrz_crop;
-            let enhanced = enhance_mrz_crop(&crop);
-            let pp_result = self.scan_rgb_with_threshold(&enhanced, 0.1)?;
-            ocr_text = pp_result.text;
-            ocr_confidence = pp_result.confidence;
+        if raw_texts.is_empty() {
+            tracing::info!("[MRZ] ❌ 所有行识别均失败");
+            return Ok(None);
         }
 
-        let raw_lines: Vec<String> = ocr_text
-            .lines()
-            .map(|s| s.trim().to_string())
-            .filter(|s| !s.is_empty())
+        let avg_conf = total_conf / raw_texts.len() as f64;
+
+        // ── 6. 宽松过滤 ──
+        // 只过滤掉明显非 MRZ 的行（纯填充符或太短），
+        // 真正的验证交给 parse_mrz（它会自动 padding + checksum 校验）
+        let is_plausible_mrz = |s: &str| -> bool {
+            let len = s.len();
+            len >= 5 && !s.chars().all(|c| c == '<')
+        };
+
+        let valid_texts: Vec<String> = raw_texts
+            .into_iter()
+            .filter(|t| is_plausible_mrz(t))
             .collect();
 
-        let mut last_error = "OCR 未返回任何文本".to_string();
+        if valid_texts.len() < 2 {
+            tracing::info!("[MRZ] ❌ 有效 MRZ 行不足 2 (仅 {} 行)", valid_texts.len());
+            return Ok(None);
+        }
 
-        if !raw_lines.is_empty() {
-            match direct_mrz_parse(&raw_lines, ocr_confidence) {
-                Ok(mrz) => return Ok(Some(mrz)),
-                Err(e) => last_error = e,
-            }
+        tracing::info!("[MRZ] 尝试解析 {} 行, avg_conf={:.3}", valid_texts.len(), avg_conf);
+        for (i, t) in valid_texts.iter().enumerate() {
+            tracing::info!("[MRZ]   候选[{}] ({} chars): {:?}", i, t.len(), t);
+        }
 
-            for target_lines in [2usize, 3] {
-                let merged = greedy_merge_lines(&raw_lines, target_lines);
-                match direct_mrz_parse(&merged, ocr_confidence) {
-                    Ok(mrz) => return Ok(Some(mrz)),
-                    Err(e) => last_error = e,
-                }
+        // ── 7. 尝试解析（parse_mrz 内部会 padding + checksum 校验）──
+        // 尝试用底部 2 行
+        let bottom_2: Vec<String> = valid_texts[valid_texts.len().saturating_sub(2)..].to_vec();
+        if let Ok(mrz) = parse_mrz_fallback(&bottom_2, avg_conf) {
+            tracing::info!("[MRZ] ✅ 底部 2 行解析成功");
+            return Ok(Some(mrz));
+        }
+
+        // 尝试底部 3 行（TD-1）
+        if valid_texts.len() >= 3 {
+            let bottom_3: Vec<String> = valid_texts[valid_texts.len().saturating_sub(3)..].to_vec();
+            if let Ok(mrz) = parse_mrz_fallback(&bottom_3, avg_conf) {
+                tracing::info!("[MRZ] ✅ 底部 3 行解析成功");
+                return Ok(Some(mrz));
             }
         }
 
-        Err(last_error)
+        // 贪心合并尝试
+        let merged_2 = greedy_merge_lines(&valid_texts, 2);
+        if let Ok(mrz) = parse_mrz_fallback(&merged_2, avg_conf) {
+            tracing::info!("[MRZ] ✅ 合并 2 行解析成功");
+            return Ok(Some(mrz));
+        }
+
+        if valid_texts.len() >= 3 {
+            let merged_3 = greedy_merge_lines(&valid_texts, 3);
+            if let Ok(mrz) = parse_mrz_fallback(&merged_3, avg_conf) {
+                tracing::info!("[MRZ] ✅ 合并 3 行解析成功");
+                return Ok(Some(mrz));
+            }
+        }
+
+        tracing::info!("[MRZ] ❌ 所有解析尝试均失败");
+        Err("无法识别 MRZ 格式".to_string())
     }
 }
 
 // ─── MRZ 行重建辅助函数 ────────────────────────────────────────
 
 /// 尝试用给定的行列表直接解析 MRZ。成功时设置 confidence。
-fn direct_mrz_parse(lines: &[String], confidence: f64) -> Result<MrzResult, String> {
-    use super::mrz::parse_mrz;
-    let mut mrz = parse_mrz(lines)?;
-    mrz.confidence = confidence;
-    Ok(mrz)
+fn parse_mrz_fallback(lines: &[String], confidence: f64) -> Result<MrzResult, String> {
+    use super::mrz::{parse_mrz, verify_checksums_lenient};
+    match parse_mrz(lines) {
+        Ok(mut mrz) => {
+            mrz.confidence = confidence;
+            if mrz.checksum_valid {
+                return Ok(mrz);
+            }
+            tracing::info!("[MRZ]     strict checksum 无效, 尝试 lenient");
+            if verify_checksums_lenient(&mrz) {
+                tracing::info!("[MRZ]     ✓ lenient 校验通过");
+                return Ok(mrz);
+            }
+            tracing::info!("[MRZ]     lenient 也无效, 返回 None");
+            Err("checksum 校验失败".to_string())
+        }
+        Err(e) => {
+            tracing::info!("[MRZ]     parse_mrz 失败: {e}");
+            Err(e)
+        }
+    }
 }
 
 /// 贪心合并相邻行，直到只剩 `target_count` 行。
