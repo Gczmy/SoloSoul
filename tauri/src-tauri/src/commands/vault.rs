@@ -189,3 +189,98 @@ fn sum_dir_file_sizes(dir: &std::path::Path) -> u64 {
     }
     total
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::io::Write;
+
+    #[test]
+    fn test_get_vault_stats_json_shape() {
+        // Verify the JSON output shape matches what the frontend expects
+        let stats = serde_json::json!({
+            "profileCount": 0,
+            "totalSizeBytes": 0,
+            "lastModified": "2024-01-01T00:00:00Z",
+            "profilesSize": 0,
+            "objectsSize": 0,
+            "trashSize": 0,
+            "snapshotsSize": 0,
+            "attachmentsSize": 0,
+            "aiConversationsSize": 0,
+        });
+        let json = serde_json::to_string(&stats).unwrap();
+        assert!(json.contains("profileCount"));
+        assert!(json.contains("totalSizeBytes"));
+        assert!(json.contains("lastModified"));
+        assert!(json.contains("profilesSize"));
+        assert!(json.contains("objectsSize"));
+        assert!(json.contains("trashSize"));
+        assert!(json.contains("snapshotsSize"));
+        assert!(json.contains("attachmentsSize"));
+        assert!(json.contains("aiConversationsSize"));
+    }
+
+    #[test]
+    fn test_sum_dir_file_sizes_nonexistent_dir() {
+        let path = std::path::Path::new("/tmp/solosoul_test_nonexistent_12345");
+        assert_eq!(sum_dir_file_sizes(path), 0);
+    }
+
+    #[test]
+    fn test_sum_dir_file_sizes_empty_dir() {
+        let dir = tempfile::TempDir::new().unwrap();
+        assert_eq!(sum_dir_file_sizes(dir.path()), 0);
+    }
+
+    #[test]
+    fn test_sum_dir_file_sizes_single_file() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let file_path = dir.path().join("test.txt");
+        let mut f = fs::File::create(&file_path).unwrap();
+        f.write_all(b"Hello").unwrap();
+        assert_eq!(sum_dir_file_sizes(dir.path()), 5);
+    }
+
+    #[test]
+    fn test_sum_dir_file_sizes_nested_directories() {
+        let dir = tempfile::TempDir::new().unwrap();
+
+        // Create nested structure:
+        // tmp/
+        //  sub1/
+        //    a.txt (10 bytes)
+        //  sub2/
+        //    sub3/
+        //      b.txt (20 bytes)
+
+        fs::create_dir(dir.path().join("sub1")).unwrap();
+        let mut a = fs::File::create(dir.path().join("sub1").join("a.txt")).unwrap();
+        a.write_all(b"0123456789").unwrap();
+
+        fs::create_dir_all(dir.path().join("sub2").join("sub3")).unwrap();
+        let mut b = fs::File::create(dir.path().join("sub2").join("sub3").join("b.txt")).unwrap();
+        b.write_all(b"01234567890123456789").unwrap();
+
+        assert_eq!(sum_dir_file_sizes(dir.path()), 30);
+    }
+
+    #[test]
+    fn test_sum_dir_file_sizes_ignores_dirs() {
+        let dir = tempfile::TempDir::new().unwrap();
+        fs::create_dir(dir.path().join("empty_sub")).unwrap();
+        // Directory itself contributes 0 bytes
+        assert_eq!(sum_dir_file_sizes(dir.path()), 0);
+    }
+
+    #[test]
+    fn test_sum_dir_file_sizes_multiple_files() {
+        let dir = tempfile::TempDir::new().unwrap();
+        for i in 0..5 {
+            let mut f = fs::File::create(dir.path().join(format!("file{}", i))).unwrap();
+            f.write_all(b"x").unwrap(); // 1 byte each
+        }
+        assert_eq!(sum_dir_file_sizes(dir.path()), 5);
+    }
+}

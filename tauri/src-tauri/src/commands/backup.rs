@@ -88,10 +88,81 @@ pub async fn backup_list(state: State<'_, AppState>) -> Result<Vec<BackupInfo>, 
             size_bytes: metadata.len(),
             object_count: 0,
         });
+    }        backups.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+    Ok(backups)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_backup_info_serde_roundtrip() {
+        let info = BackupInfo {
+            id: "backup-20240601_120000".to_string(),
+            name: "My Backup".to_string(),
+            created_at: "2024-06-01T12:00:00Z".to_string(),
+            size_bytes: 4096,
+            object_count: 5,
+        };
+        let json = serde_json::to_string(&info).unwrap();
+        assert!(json.contains("\"id\":\"backup-20240601_120000\""));
+        assert!(json.contains("\"name\":\"My Backup\""));
+        // Struct uses default serde (snake_case, no rename_all)
+        assert!(json.contains("\"size_bytes\":4096"));
+
+        let restored: BackupInfo = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.id, info.id);
+        assert_eq!(restored.name, info.name);
+        assert_eq!(restored.size_bytes, info.size_bytes);
+        assert_eq!(restored.object_count, info.object_count);
     }
 
-    backups.sort_by(|a, b| b.created_at.cmp(&a.created_at));
-    Ok(backups)
+    #[test]
+    fn test_sanitize_backup_name_replaces_special_chars() {
+        assert_eq!(sanitize_backup_name("hello world").unwrap(), "hello_world");
+        assert_eq!(sanitize_backup_name("a/b/c").unwrap(), "a_b_c");
+        assert_eq!(sanitize_backup_name("my.backup@2").unwrap(), "my_backup_2");
+        assert_eq!(
+            sanitize_backup_name("../../etc/passwd").unwrap(),
+            "______etc_passwd"
+        );
+    }
+
+    #[test]
+    fn test_sanitize_backup_name_preserves_allowed_chars() {
+        let result = sanitize_backup_name("My-Backup_2024").unwrap();
+        assert_eq!(result, "My-Backup_2024");
+    }
+
+    #[test]
+    fn test_sanitize_backup_name_preserves_alphanumeric() {
+        let result = sanitize_backup_name("Backup42").unwrap();
+        assert_eq!(result, "Backup42");
+    }
+
+    #[test]
+    fn test_sanitize_backup_name_empty_fails() {
+        assert!(sanitize_backup_name("").is_err());
+        assert_eq!(
+            sanitize_backup_name("").unwrap_err(),
+            "Backup name cannot be empty"
+        );
+    }
+
+    #[test]
+    fn test_sanitize_backup_name_all_spaces_becomes_underscores() {
+        // All chars get replaced by '_', name is non-empty so it passes
+        let result = sanitize_backup_name("   ").unwrap();
+        assert_eq!(result, "___");
+    }
+
+    #[test]
+    fn test_backups_dir_joins_path() {
+        let base = std::path::Path::new("/tmp/solosoul_test");
+        let dir = backups_dir(base);
+        assert_eq!(dir, std::path::PathBuf::from("/tmp/solosoul_test/backups"));
+    }
 }
 
 #[tauri::command]
