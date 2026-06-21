@@ -15,7 +15,7 @@ describe('PluginResultPanel', () => {
     expect(screen.getByText('Hello world')).toBeInTheDocument();
   });
 
-  it('renders key_value result', () => {
+  it('renders key_value result with title and per-pair copy', () => {
     const results: PluginResultPayload[] = [
       {
         type: 'key_value',
@@ -51,7 +51,7 @@ describe('PluginResultPanel', () => {
     expect(screen.getByText('# Title')).toBeInTheDocument();
   });
 
-  describe('export toolbar', () => {
+  describe('per-pair copy', () => {
     const originalClipboard = navigator.clipboard;
     let writeText: ReturnType<typeof vi.fn>;
 
@@ -70,16 +70,7 @@ describe('PluginResultPanel', () => {
       });
     });
 
-    it('copies text result as JSON', () => {
-      const results: PluginResultPayload[] = [{ type: 'text', content: 'Hello world' }];
-      render(<PluginResultPanel results={results} />);
-      fireEvent.click(screen.getByRole('button', { name: /copy as json/i }));
-      expect(writeText).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'text', content: 'Hello world' }, null, 2),
-      );
-    });
-
-    it('copies key_value result as Markdown table', () => {
+    it('copies key_value pair entry to clipboard', () => {
       const results: PluginResultPayload[] = [
         {
           type: 'key_value',
@@ -88,15 +79,9 @@ describe('PluginResultPanel', () => {
         },
       ];
       render(<PluginResultPanel results={results} />);
-      fireEvent.click(screen.getByRole('button', { name: /copy as markdown/i }));
-      const expected = [
-        '### Summary',
-        '',
-        '| Key | Value |',
-        '| --- | --- |',
-        '| Name | Alice |',
-      ].join('\n');
-      expect(writeText).toHaveBeenCalledWith(expected);
+      const copyBtn = screen.getByRole('button', { name: /copy this entry/i });
+      fireEvent.click(copyBtn);
+      expect(writeText).toHaveBeenCalledWith('Name: Alice');
     });
   });
 });

@@ -81,6 +81,7 @@ function ResultContent({ payload }: { payload: PluginResultPayload }) {
     case 'key_value':
       return (
         <div className={styles.keyValueList}>
+          {payload.title && <div className={styles.keyValueTitle}>{payload.title}</div>}
           {payload.pairs.map((pair, idx) => (
             <PerPairCopyRow key={idx} pair={pair} />
           ))}
