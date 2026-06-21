@@ -75,3 +75,51 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_titlebar_color_deserialization() {
+        let json = r#"{"red": 255, "green": 128, "blue": 64}"#;
+        let color: TitlebarColor = serde_json::from_str(json).unwrap();
+        assert_eq!(color.red, 255);
+        assert_eq!(color.green, 128);
+        assert_eq!(color.blue, 64);
+    }
+
+    #[test]
+    fn test_titlebar_color_black() {
+        let json = r#"{"red": 0, "green": 0, "blue": 0}"#;
+        let color: TitlebarColor = serde_json::from_str(json).unwrap();
+        assert_eq!(color.red, 0);
+        assert_eq!(color.green, 0);
+        assert_eq!(color.blue, 0);
+    }
+
+    #[test]
+    fn test_titlebar_color_white() {
+        let json = r#"{"red": 255, "green": 255, "blue": 255}"#;
+        let color: TitlebarColor = serde_json::from_str(json).unwrap();
+        assert_eq!(color.red, 255);
+        assert_eq!(color.green, 255);
+        assert_eq!(color.blue, 255);
+    }
+
+    #[test]
+    fn test_titlebar_color_rejects_negative() {
+        let json = r#"{"red": -1, "green": 0, "blue": 0}"#;
+        let result = serde_json::from_str::<TitlebarColor>(json);
+        // u8 deserialization rejects negative values
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_titlebar_color_rejects_above_255() {
+        let json = r#"{"red": 256, "green": 0, "blue": 0}"#;
+        let result = serde_json::from_str::<TitlebarColor>(json);
+        // u8 deserialization rejects values > 255
+        assert!(result.is_err());
+    }
+}

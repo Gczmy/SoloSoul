@@ -123,3 +123,129 @@ pub async fn log_export(
 
     Ok(path.to_string_lossy().to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_log_request_camelcase_serde() {
+        let req = WriteLogRequest {
+            action_type: "export".to_string(),
+            entity_type: "vault".to_string(),
+            entity_id: Some("acc-1".to_string()),
+            entity_name: None,
+            details: Some("exported 10 objects".to_string()),
+        };
+        let json = serde_json::to_string(&req).unwrap();
+        // Verify camelCase field names (has rename_all = "camelCase")
+        assert!(json.contains("actionType"));
+        assert!(json.contains("entityType"));
+        assert!(json.contains("entityId"));
+        assert!(!json.contains("action_type"), "should use camelCase");
+
+        // Roundtrip
+        let restored: WriteLogRequest = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.action_type, "export");
+        assert_eq!(restored.details.as_deref(), Some("exported 10 objects"));
+        assert!(restored.entity_name.is_none());
+    }
+
+    #[test]
+    fn test_audit_log_response_camelcase_serde() {
+        let resp = AuditLogResponse {
+            id: 42,
+            timestamp: "2024-06-01T12:00:00Z".to_string(),
+            action_type: "login".to_string(),
+            entity_type: "auth".to_string(),
+            entity_id: Some("acc-1".to_string()),
+            entity_name: Some("Alice".to_string()),
+            performed_by: "user".to_string(),
+            details: None,
+        };
+        let json = serde_json::to_string(&resp).unwrap();
+        assert!(json.contains("\"actionType\""));
+        assert!(json.contains("\"performedBy\""));
+        assert!(json.contains("\"entityName\""));
+
+        let restored: AuditLogResponse = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.id, 42);
+        assert_eq!(restored.action_type, "login");
+        assert!(restored.details.is_none());
+    }
+
+    #[test]
+    fn test_to_response_conversion() {
+        let entry = solosoul_vault::AuditLogEntry {
+            id: 1,
+            timestamp: "2024-01-01T00:00:00Z".to_string(),
+            action_type: "create".to_string(),
+            entity_type: "object".to_string(),
+            entity_id: Some("obj-1".to_string()),
+            entity_name: Some("My Object".to_string()),
+            performed_by: "user".to_string(),
+            details: Some("name=test".to_string()),
+        };
+        let resp = to_response(entry);
+        assert_eq!(resp.id, 1);
+        assert_eq!(resp.action_type, "create");
+        assert_eq!(resp.entity_id.as_deref(), Some("obj-1"));
+        assert_eq!(resp.details.as_deref(), Some("name=test"));
+    }
+
+    #[test]
+    fn test_to_response_handles_none_fields() {
+        let entry = solosoul_vault::AuditLogEntry {
+            id: 2,
+            timestamp: "2024-01-01T00:00:00Z".to_string(),
+            action_type: "login".to_string(),
+            entity_type: "auth".to_string(),
+            entity_id: None,
+            entity_name: None,
+            performed_by: "system".to_string(),
+            details: None,
+        };
+        let resp = to_response(entry);
+        assert!(resp.entity_id.is_none());
+        assert!(resp.entity_name.is_none());
+        assert!(resp.details.is_none());
+        assert_eq!(resp.performed_by, "system");
+    }
+
+    #[test]
+    fn test_get_recent_respects_limit() {
+        let (vault, _dir) = setup_vault();
+        // Write 3 log entries
+        for i in 0..3 {
+            vault
+                .log_structured(
+                    &format!("action{}", i),
+                    "test",
+                    None,
+                    None,
+                    "user",
+                    None,
+                )
+                .unwrap();
+        }
+        // list_audit_log with limit 2
+        let entries = vault.list_audit_log(2).unwrap();
+        assert_eq!(entries.len(), 2);
+    }
+
+    #[test]
+    fn test_get_recent_respects_default_limit() {
+        let (vault, _dir) = setup_vault();
+        // list_audit_log with default (100) on empty vault returns 0
+        let entries = vault.list_audit_log(100).unwrap();
+        assert_eq!(entries.len(), 0);
+    }
+
+    fn setup_vault() -> (solosoul_vault::VaultStore, tempfile::TempDir) {
+        let dir = tempfile::TempDir::new().unwrap();
+        let config = solosoul_vault::VaultConfig::new("test", dir.path().to_path_buf())
+            .with_data_key([0x42u8; 32]);
+        let vault = solosoul_vault::VaultStore::open(config).unwrap();
+        (vault, dir)
+    }
+}
