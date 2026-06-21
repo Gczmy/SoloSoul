@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { RefObject } from 'react';
-import { useVaultStore } from '@/stores/vaultStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useOcrScanStore } from '@/stores/ocrScanStore';
 import { usePluginQuickStore } from '@/stores/pluginQuickStore';
@@ -45,14 +44,14 @@ export const primaryItems: NavLink[] = [
 /** 下方功能按钮的可选 ID（侧边栏 3 个可变位置 + 固定的锁定/设置）。
  *  ID 同时也是 PAGE_ICON_MAP 的 key 和 i18n navigation 命名空间的 key。 */
 export const CUSTOMIZABLE_ACTION_IDS = [
-  'plugins',
-  'ai_chat',
   'search',
   'trash',
-  'help',
   'templates',
-  'import_export',
+  'plugins',
   'ocr',
+  'import_export',
+  'help',
+  'ai_chat',
 ] as const;
 
 export type CustomizableActionId = (typeof CUSTOMIZABLE_ACTION_IDS)[number];
@@ -80,40 +79,56 @@ export function useActiveCustomPages() {
   return customPages.filter((p) => !p.deletedAt);
 }
 
+export const LOCK_ITEM: NavAction = {
+  type: 'action',
+  iconKey: 'lock',
+  labelKey: 'lock_vault',
+  action: () => {},
+};
+
+export const SETTINGS_ITEM: NavLink = {
+  type: 'link',
+  path: '/settings',
+  iconKey: 'settings',
+  labelKey: 'settings',
+};
+
+/**
+ * All customizable function-button IDs shown in the foldable sidebar area.
+ * ID is also the PAGE_ICON_MAP key and i18n navigation namespace key.
+ */
+export const CARD_ACTION_IDS = ['ocr', 'plugins', 'ai_chat', 'search'] as const;
+
+/** Check if a card-supporting button is in 'card' mode */
+function isCardMode(sidebarButtonModes: Record<string, 'card' | 'page'>, id: string): boolean {
+  return sidebarButtonModes[id] !== 'page';
+}
+
+/** Get the full-page path for a card-supporting button */
+function getPagePath(id: string): string | undefined {
+  const pageMap: Record<string, string> = {
+    ocr: '/settings/ocr',
+    plugins: '/plugins',
+    ai_chat: '/llm-chat',
+    search: '/search',
+  };
+  return pageMap[id];
+}
+
 interface UseBoundNavActionsResult {
   items: NavItem[];
   showSearch: boolean;
   setShowSearch: (value: boolean) => void;
 }
 
+/** Build NavItems for all customizable function buttons (no lock/settings appended). */
 export function useBoundNavActions(): UseBoundNavActionsResult {
-  const vaultLock = useVaultStore((s) => s.lock);
   const [showSearch, setShowSearch] = useState(false);
-  const sidebarBottomActions = useSettingsStore((s) => s.settings.sidebarBottomActions);
   const sidebarButtonModes = useSettingsStore((s) => s.settings.sidebarButtonModes);
 
-  const CARD_ACTION_IDS = ['ocr', 'plugins', 'ai_chat', 'search'] as const;
-
-  /** Check if a card-supporting button is in 'card' mode */
-  function isCardMode(id: string): boolean {
-    return sidebarButtonModes[id] !== 'page';
-  }
-
-  /** Get the full-page path for a card-supporting button */
-  function getPagePath(id: string): string | undefined {
-    const pageMap: Record<string, string> = {
-      ocr: '/settings/ocr',
-      plugins: '/plugins',
-      ai_chat: '/llm-chat',
-      search: '/search',
-    };
-    return pageMap[id];
-  }
-
-  const items: NavItem[] = sidebarBottomActions.map((id) => {
-    // Check if this button supports card/page toggle
+  const items: NavItem[] = CUSTOMIZABLE_ACTION_IDS.map((id) => {
     if ((CARD_ACTION_IDS as readonly string[]).includes(id)) {
-      if (isCardMode(id)) {
+      if (isCardMode(sidebarButtonModes, id)) {
         // Card mode: return NavAction (floating panel)
         if (id === 'search') {
           return {
@@ -145,7 +160,7 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
             },
           } as NavAction;
         }
-        // ai_chat in card mode: still return NavLink but handle in SecondaryActionBar
+        // ai_chat in card mode: still return NavLink but handle in consumer
         return {
           type: 'link',
           path: '/llm-chat',
@@ -167,7 +182,7 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
 
     const link = CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search' | 'ocr' | 'plugins'>];
     if (!link) {
-      // 未知 ID 回退为搜索，避免渲染错误
+      // Fallback for unknown ID
       return {
         type: 'action',
         iconKey: 'search',
@@ -177,22 +192,6 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
     }
     return { type: 'link', ...link } as NavLink;
   });
-
-  // 锁定按钮永远倒数第二
-  items.push({
-    type: 'action',
-    iconKey: 'lock',
-    labelKey: 'lock_vault',
-    action: vaultLock,
-  } as NavAction);
-
-  // 设置按钮永远在最底部
-  items.push({
-    type: 'link',
-    path: '/settings',
-    iconKey: 'settings',
-    labelKey: 'settings',
-  } as NavLink);
 
   return { items, showSearch, setShowSearch };
 }

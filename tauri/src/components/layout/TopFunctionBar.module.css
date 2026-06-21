@@ -35,6 +35,72 @@
 
 .rightZone {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Horizontal foldable function button area ──────── */
+.horizontalFoldableWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: visible;
+}
+
+.horizontalArrowToggle {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  color: var(--text-tertiary);
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+
+.horizontalArrowToggle:hover {
+  color: var(--accent-primary);
+  background: rgba(128, 128, 128, 0.06);
+}
+
+.horizontalArrowIcon {
+  transition: transform 0.15s ease;
+}
+
+.horizontalArrowIconExpanded {
+  transform: rotate(180deg);
+}
+
+.horizontalButtonArea {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  transition: max-width 0.18s ease, opacity 0.12s ease;
+  max-width: 0;
+  opacity: 0;
+}
+
+.horizontalButtonAreaOpen {
+  max-width: 480px;
+  opacity: 1;
+}
+
+.horizontalButtonScroll {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  white-space: nowrap;
+}
+
+.horizontalButtonScroll::-webkit-scrollbar {
+  display: none;
 }
 
 .logo {

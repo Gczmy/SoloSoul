@@ -39,7 +39,6 @@ export interface AppSettings {
   defaultLightTheme: string;
   defaultDarkTheme: string;
   sidebarPosition: 'left' | 'right' | 'top' | 'bottom';
-  sidebarBottomActions: [string, string, string];
   /** Per-button mode: 'card' (floating panel) or 'page' (navigate to dedicated page) */
   sidebarButtonModes: Record<string, 'card' | 'page'>;
   windowSize?: WindowSize;
@@ -107,7 +106,6 @@ const accountPrefsSchema = z
     biometricEnabled: z.boolean().optional(),
     confirmDelete: z.boolean().optional(),
     sidebarPosition: z.enum(['left', 'right', 'top', 'bottom']).optional(),
-    sidebarBottomActions: z.tuple([z.string(), z.string(), z.string()]).optional(),
     customPages: z.array(customPageSchema).optional(),
     windowSize: windowSizeSchema.optional(),
   })
@@ -130,7 +128,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultLightTheme: 'warm-stone',
   defaultDarkTheme: 'warm-stone-dark',
   sidebarPosition: 'left',
-  sidebarBottomActions: ['search', 'templates', 'help'],
   sidebarButtonModes: {
     ocr: 'card',
     plugins: 'card',
@@ -275,23 +272,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
       if (prefs.sidebarPosition) parsed.sidebarPosition = prefs.sidebarPosition;
-      if (prefs.sidebarBottomActions) {
-        const oldDefault = JSON.stringify(['search', 'plugins', 'ai_chat']);
-        const stored = JSON.stringify(prefs.sidebarBottomActions);
-        if (stored === oldDefault) {
-          // Migrate old default to new default (user never customized)
-          parsed.sidebarBottomActions = ['search', 'templates', 'help'];
-          // Persist the new default back to account preferences
-          invoke('user_data_update_preference', {
-            payload: {
-              accountId,
-              preferences: { sidebarBottomActions: parsed.sidebarBottomActions },
-            },
-          }).catch(() => {});
-        } else {
-          parsed.sidebarBottomActions = prefs.sidebarBottomActions;
-        }
-      }
       // sidebarButtonModes is stored in preferences; load it if present
       const storedModes = (raw as Record<string, unknown>)?.sidebarButtonModes;
       if (storedModes && typeof storedModes === 'object') {
@@ -542,7 +522,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         defaultLightTheme: state.settings.defaultLightTheme,
         defaultDarkTheme: state.settings.defaultDarkTheme,
         sidebarPosition: state.settings.sidebarPosition,
-        sidebarBottomActions: state.settings.sidebarBottomActions,
         sidebarButtonModes: state.settings.sidebarButtonModes,
         windowSize: state.settings.windowSize,
       },

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type CSSProperties } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
@@ -9,7 +9,7 @@ import { useCancellable } from '@/hooks/useCancellable';
 
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
-import { Fingerprint } from 'lucide-react';
+import { Fingerprint, Loader2 } from 'lucide-react';
 import styles from './LoginPage.module.css';
 
 export function LoginPage() {
@@ -180,21 +180,14 @@ export function LoginPage() {
     await login(selectedAccountId, password);
   };
 
-  // Prevent password→biometric flash: show nothing until bio check completes
-  if (!bioChecked) {
-    return <div style={{ height: '100vh', background: 'var(--bg-base)' } as CSSProperties} />;
-  }
-
   return (
     <div
-      style={
-        {
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-        } as CSSProperties
-      }
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+      }}
     >
       <div
         style={{
@@ -212,8 +205,15 @@ export function LoginPage() {
           {t('auth:login_subtitle')}
         </p>
 
+        {/* Loading state while bio check runs — same layout, no layout jump */}
+        {!bioChecked && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
+            <Loader2 size={24} className={styles.loadingSpinner} style={{ color: 'var(--text-tertiary)' }} />
+          </div>
+        )}
+
         {/* Account selector / name — visible for both biometric and password login */}
-        {accounts.length > 0 && (
+        {bioChecked && accounts.length > 0 && (
           <div style={{ marginBottom: 20, width: '100%' }}>
             {accounts.length > 1 ? (
               <select
@@ -319,7 +319,7 @@ export function LoginPage() {
         )}
 
         {/* Password input — always shown when bio not available or user chose password */}
-        {(showPasswordInput || !bioAvailable) && (
+        {bioChecked && (showPasswordInput || !bioAvailable) && (
           <form
             onSubmit={handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: 16 }}

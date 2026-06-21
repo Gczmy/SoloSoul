@@ -68,6 +68,73 @@
   cursor: default;
 }
 
+/* ── Foldable Function Button Area (Vertical) ──────── */
+.foldableWrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Arrow toggle — normal button size */
+.arrowToggle {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  color: var(--text-tertiary);
+  transition: all 0.12s ease;
+  flex-shrink: 0;
+  border-radius: 12px;
+}
+
+.arrowToggle:hover {
+  color: var(--accent-primary);
+  background: rgba(128, 128, 128, 0.06);
+}
+
+.arrowIcon {
+  transition: transform 0.15s ease;
+}
+
+.arrowIconExpanded {
+  transform: rotate(180deg);
+}
+
+/* Collapsible container */
+.foldableArea {
+  width: 100%;
+  overflow: hidden;
+  transition: max-height 0.18s ease;
+  max-height: 0;
+}
+
+.foldableAreaOpen {
+  max-height: 210px;
+}
+
+/* Inner scrollable button list */
+.foldableContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 4px 0;
+}
+
+.foldableContent::-webkit-scrollbar {
+  display: none;
+}
+
 .navSecondary {
   display: flex;
   flex-direction: column;

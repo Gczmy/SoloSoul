@@ -1,9 +1,14 @@
+import { useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useVaultStore } from '@/stores/vaultStore';
 import styles from './SideNavigation.module.css';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { PrimaryNavZone } from './PrimaryNavZone';
 import { SecondaryActionBar } from './SecondaryActionBar';
+import { NavButton } from './NavButton';
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 export { RenameableNavButton } from './RenameableNavButton';
 export { AddPageButton } from './AddPageButton';
 
@@ -12,9 +17,14 @@ export { AddPageButton } from './AddPageButton';
 // =============================================================================
 
 export function SideNavigation() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('navigation');
+  const vaultLock = useVaultStore((s) => s.lock);
+
+  const handleLock = useCallback(() => vaultLock(), [vaultLock]);
 
   const navStyle: React.CSSProperties = isHorizontal
     ? {
@@ -48,7 +58,26 @@ export function SideNavigation() {
 
       <PrimaryNavZone sidebarPosition={sidebarPosition} isHorizontal={isHorizontal} />
 
+      {/* Foldable function button area */}
       <SecondaryActionBar sidebarPosition={sidebarPosition} isHorizontal={isHorizontal} />
+
+      {/* Lock — always fixed, outside foldable area */}
+      <NavButton
+        Icon={PAGE_ICON_MAP.lock}
+        label={t('lock_vault')}
+        onClick={handleLock}
+        position={sidebarPosition}
+      />
+
+      {/* Settings — always fixed at the bottom */}
+      <NavButton
+        path="/settings"
+        Icon={PAGE_ICON_MAP.settings}
+        label={t('settings')}
+        isActive={location.pathname.startsWith('/settings')}
+        onClick={() => navigate('/settings')}
+        position={sidebarPosition}
+      />
     </nav>
   );
 }
