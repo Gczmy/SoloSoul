@@ -1,3 +1,28 @@
+## [2.5.3] - 2026-06-21
+
+### Added
+
+- **侧边栏功能按钮区折叠展开** — 垂直/水平模式均支持 hover 展开/离开折叠，按钮区可滚动。展开过渡期间 `pointer-events: none` 防止 tooltip 闪烁。
+- **Lock/Settings 按钮固定在折叠区外部** — 不受折叠影响，始终可访问。
+- **Zustand store 持久化展开/滚动状态** — 跨页面导航保持展开状态和滚动条位置。
+- **鼠标离开窗口自动折叠** — `document.documentElement` mouseleave 兜底。
+
+### Fixed
+
+- 折叠区域箭头方向翻转
+- 底部（bottom）侧边栏不显示水平折叠（CSS position:fixed 覆盖 flex 布局）
+- 展开后按钮无法点击（onTransitionEnd 不触发导致 pointer-events 永久关闭）
+- 跨页面导航滚动条闪烁（useLayoutEffect）
+- Settings 按钮无高亮状态
+- LoginPage 生物识别闪烁（取消 bare div 早期返回）
+- 展开过渡期间 name card 闪烁
+
+### Changed
+
+- 版本号统一升级到 2.5.3
+- 按钮顺序：搜索→回收站→模板→插件→OCR→导入导出→帮助→AI
+- 移除 sidebar_bottom_actions 配置项
+
 # Changelog
 
 All notable changes to SoloSoul are documented in this file.
