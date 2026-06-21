@@ -36,7 +36,8 @@ export function PluginQuickNotificationListener() {
 
         // If this plugin just completed while panel is closed
         if (!prevCompletedRef.current.has(id) && !isOpen) {
-          if (plugin.error) {
+          const hasFailed = !!plugin.error || (typeof plugin.exitCode === 'number' && plugin.exitCode !== 0);
+          if (hasFailed) {
             showToast({
               type: 'error',
               message: t('plugin:run_failed', {
