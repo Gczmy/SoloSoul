@@ -93,6 +93,57 @@ pub fn load_rgb_image(path: &std::path::Path) -> Result<RgbImage, String> {
     Ok(img.to_rgb8())
 }
 
+/// 自适应阈值二值化（用于 PP-OCR MRZ 输入增强）。
+///
+/// 使用局部均值作为阈值，增强 OCR-B 字体在光照不均下的对比度。
+/// `block_size` 必须为奇数，表示局部窗口大小。
+pub fn apply_adaptive_threshold(img: &RgbImage, block_size: u32) -> RgbImage {
+    let gray = image::imageops::grayscale(img);
+    let (w, h) = (gray.width(), gray.height());
+    let half = (block_size / 2) as i32;
+
+    // 积分图加速均值计算
+    let mut integral = vec![0u64; ((w + 1) * (h + 1)) as usize];
+    for y in 0..h {
+        let row_off = (y * (w + 1)) as usize;
+        let prev_row_off = ((y + 1) * (w + 1)) as usize;
+        let mut sum: u64 = 0;
+        for x in 0..w {
+            sum += gray.get_pixel(x, y).0[0] as u64;
+            integral[prev_row_off + (x + 1) as usize] = sum + integral[row_off + (x + 1) as usize];
+        }
+    }
+
+    let get_integral = |x: i32, y: i32| -> u64 {
+        let cx = x.clamp(0, w as i32) as usize;
+        let cy = y.clamp(0, h as i32) as usize;
+        integral[cy * (w as usize + 1) + cx]
+    };
+
+    let mut output = RgbImage::new(w, h);
+    for y in 0..h {
+        for x in 0..w {
+            let x1 = (x as i32 - half).max(0);
+            let y1 = (y as i32 - half).max(0);
+            let x2 = (x as i32 + half + 1).min(w as i32);
+            let y2 = (y as i32 + half + 1).min(h as i32);
+            let area = ((x2 - x1) * (y2 - y1)) as u64;
+
+            let sum = (get_integral(x2, y2) + get_integral(x1, y1))
+                .saturating_sub(get_integral(x1, y2) + get_integral(x2, y1));
+            let mean = sum / area.max(1);
+            let pixel = gray.get_pixel(x, y).0[0];
+
+            // 局部均值 - 常数偏移作为阈值
+            let threshold = mean.saturating_sub(10);
+            let val = if (pixel as u64) < threshold { 0u8 } else { 255u8 };
+            output.put_pixel(x, y, Rgb([val, val, val]));
+        }
+    }
+
+    output
+}
+
 /// 使用给定角点从原图中裁剪出文字块。
 ///
 /// 当前实现基于所有点的外接矩形做轴对齐裁剪。OCR 检测阶段返回的框
@@ -119,20 +170,7 @@ pub fn perspective_crop(img: &RgbImage, points: &[(f32, f32); 4]) -> RgbImage {
     image::imageops::crop_imm(img, x, y, w, h).to_image()
 }
 
-/// 对 MRZ 裁剪区域做增强：灰度、放大 2x。
-pub fn enhance_mrz_crop(img: &RgbImage) -> RgbImage {
-    let gray = image::imageops::grayscale(img);
-    let scaled = image::imageops::resize(
-        &gray,
-        gray.width() * 2,
-        gray.height() * 2,
-        FilterType::Triangle,
-    );
-    RgbImage::from_fn(scaled.width(), scaled.height(), |x, y| {
-        let p = scaled.get_pixel(x, y).0[0];
-        Rgb([p, p, p])
-    })
-}
+
 
 #[cfg(test)]
 mod tests {

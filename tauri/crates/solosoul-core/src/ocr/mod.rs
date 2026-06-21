@@ -5,10 +5,14 @@
 pub mod engine;
 pub mod model;
 pub mod mrz;
+pub mod mrz_templates;
 pub mod pdf;
 pub mod postprocess;
 pub mod preprocess;
 pub mod types;
+
+#[cfg(target_os = "macos")]
+pub mod macos_vision;
 
 pub use engine::OcrEngine;
 pub use model::{resolve_model_bundle, OcrModelBundle};

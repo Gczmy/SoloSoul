@@ -247,7 +247,19 @@ fn box_size(points: &[(f32, f32); 4]) -> (f32, f32) {
 /// CTC 解码识别模型输出。
 ///
 /// `pred` 形状为 `[T, C]`。索引 0 为 blank，最后一个索引通常忽略。
+/// 返回 (text, 平均置信度)。
 pub fn ctc_decode(pred: &ndarray::ArrayView2<f32>, char_list: &[String]) -> (String, f64) {
+    let (text, _, avg) = ctc_decode_detailed(pred, char_list);
+    (text, avg)
+}
+
+/// CTC 解码，返回每个字符的置信度。
+///
+/// 返回 (decoded_text, per_char_confidences, average_confidence)。
+pub fn ctc_decode_detailed(
+    pred: &ndarray::ArrayView2<f32>,
+    char_list: &[String],
+) -> (String, Vec<f64>, f64) {
     let idxs: Vec<usize> = pred
         .rows()
         .into_iter()
@@ -265,23 +277,71 @@ pub fn ctc_decode(pred: &ndarray::ArrayView2<f32>, char_list: &[String]) -> (Str
         .collect();
 
     let mut text = String::new();
-    let mut scores = Vec::new();
+    let mut char_confs = Vec::new();
     let mut prev = 0usize;
 
     for (t, &idx) in idxs.iter().enumerate() {
         if idx != prev && idx != 0 && idx <= char_list.len() {
             text.push_str(&char_list[idx - 1]);
-            scores.push(pred[[t, idx]] as f64);
+            char_confs.push(pred[[t, idx]] as f64);
         }
         prev = idx;
     }
 
-    let confidence = if scores.is_empty() {
+    let avg = if char_confs.is_empty() {
         0.0
     } else {
-        scores.iter().sum::<f64>() / scores.len() as f64
+        char_confs.iter().sum::<f64>() / char_confs.len() as f64
     };
-    (text, confidence)
+    (text, char_confs, avg)
+}
+
+/// 置信度阈值过滤：低于 `threshold` 的字符替换为 `?`。
+pub fn filter_low_confidence_chars(text: &str, confidences: &[f64], threshold: f64) -> String {
+    text.chars()
+        .zip(confidences.iter().copied())
+        .map(|(c, conf)| if conf < threshold { '?' } else { c })
+        .collect()
+}
+
+/// OCR-B 字符集校正（MRZ 上下文）。
+///
+/// MRZ（ICAO 9303）排除 O、I、Q 三个字母以消除与数字的混淆。
+/// 对 PP-OCR 的常见混淆做确定性修正：
+/// - O → 0（O 不是有效 MRZ 字符）
+/// - I → 1（I 不是有效 MRZ 字符）
+/// - Q → 0（Q 不是有效 MRZ 字符，且 BGR 文本中 O 与 Q 相似）
+/// - l → 1（小写 l 在 MRZ 中视为 1）
+/// - D → 0（PP-OCR 常将 0 上半部缺损识别为 D）
+/// - S → 5（PP-OCR 常将 5 顶部弯曲识别为 S）
+/// - B → 8（PP-OCR 常将 8 下半部缺损识别为 B）
+/// - Z → 2（PP-OCR 常将 2 写得太直识别为 Z）
+pub fn correct_ocr_b_mrz(text: &str) -> String {
+    text.chars()
+        .map(|c| match c {
+            'O' => '0', // O excluded from MRZ → must be 0
+            'I' => '1', // I excluded from MRZ → must be 1
+            'Q' => '0', // Q excluded from MRZ → likely 0
+            'l' => '1', // lowercase l → digit 1
+            'D' => '0', // D common PP-OCR confusion with 0
+            'S' => '5', // S common confusion with 5
+            'B' => '8', // B common confusion with 8
+            'Z' => '2', // Z common confusion with 2
+            _ => c,
+        })
+        .collect()
+}
+
+/// 增强型 CTC 解码：解码 + 置信度过滤 + OCR-B 校正。
+pub fn ctc_decode_enhanced(
+    pred: &ndarray::ArrayView2<f32>,
+    char_list: &[String],
+    confidence_threshold: f64,
+) -> (String, f64) {
+    let (mut text, char_confs, avg) = ctc_decode_detailed(pred, char_list);
+    text = filter_low_confidence_chars(&text, &char_confs, confidence_threshold);
+    text = correct_ocr_b_mrz(&text);
+    (text, avg)
 }
 
 /// 构建最终的 `OcrResult`。
