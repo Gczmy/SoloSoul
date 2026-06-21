@@ -476,3 +476,257 @@ fn retention_ms(period: &str) -> i64 {
         _ => 30 * 24 * 3600 * 1000i64,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ── retention_ms ──────────────────────────────────────────────
+
+    #[test]
+    fn test_retention_ms_default_30d() {
+        assert_eq!(retention_ms(""), 30 * 24 * 3600 * 1000);
+        assert_eq!(retention_ms("invalid"), 30 * 24 * 3600 * 1000);
+        assert_eq!(retention_ms("30d"), 30 * 24 * 3600 * 1000);
+    }
+
+    #[test]
+    fn test_retention_ms_60d() {
+        assert_eq!(retention_ms("60d"), 60 * 24 * 3600 * 1000);
+    }
+
+    #[test]
+    fn test_retention_ms_half_year() {
+        assert_eq!(retention_ms("half_year"), 180 * 24 * 3600 * 1000);
+    }
+
+    #[test]
+    fn test_retention_ms_one_year() {
+        assert_eq!(retention_ms("one_year"), 365 * 24 * 3600 * 1000);
+    }
+
+    #[test]
+    fn test_retention_ms_never() {
+        assert_eq!(retention_ms("never"), i64::MAX);
+    }
+
+    // ── load_trash_retention ──────────────────────────────────────
+
+    #[test]
+    fn test_load_trash_retention_default_when_no_profile() {
+        let (vault, _dir) = setup_vault();
+        let result = load_trash_retention(&vault, "nonexistent");
+        assert_eq!(result, "30d");
+    }
+
+    #[test]
+    fn test_load_trash_retention_from_profile() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({
+            "preferences": {"trashRetention": "60d"}
+        });
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        let result = load_trash_retention(&vault, "acc-1");
+        assert_eq!(result, "60d");
+    }
+
+    #[test]
+    fn test_load_trash_retention_default_when_missing_key() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({"preferences": {}});
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        let result = load_trash_retention(&vault, "acc-1");
+        assert_eq!(result, "30d");
+    }
+
+    #[test]
+    fn test_load_trash_retention_default_when_empty_data() {
+        let (vault, _dir) = setup_vault();
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", vec![],
+        );
+        vault.save_profile(&profile).unwrap();
+
+        let result = load_trash_retention(&vault, "acc-1");
+        assert_eq!(result, "30d");
+    }
+
+    // ── cleanup_legacy_json ───────────────────────────────────────
+
+    #[test]
+    fn test_cleanup_legacy_json_removes_user_templates() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({
+            "preferences": {
+                "userTemplates": [{"name": "Old"}],
+                "other": "value"
+            }
+        });
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        cleanup_legacy_json(&vault, "acc-1").unwrap();
+
+        let loaded = vault.load_profile("acc-1").unwrap().unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&loaded.data).unwrap();
+        assert!(parsed["preferences"]["userTemplates"].is_null());
+        assert_eq!(parsed["preferences"]["other"], "value");
+    }
+
+    #[test]
+    fn test_cleanup_legacy_json_no_op_when_no_templates() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({"preferences": {"other": "value"}});
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        cleanup_legacy_json(&vault, "acc-1").unwrap();
+
+        let loaded = vault.load_profile("acc-1").unwrap().unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&loaded.data).unwrap();
+        assert_eq!(parsed["preferences"]["other"], "value");
+    }
+
+    #[test]
+    fn test_cleanup_legacy_json_no_op_when_no_preferences() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({"other": "value"});
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        cleanup_legacy_json(&vault, "acc-1").unwrap();
+
+        let loaded = vault.load_profile("acc-1").unwrap().unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&loaded.data).unwrap();
+        assert_eq!(parsed["other"], "value");
+    }
+
+    #[test]
+    fn test_cleanup_legacy_json_idempotent() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({
+            "preferences": {"userTemplates": [{"name": "T"}]}
+        });
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        // Run twice
+        cleanup_legacy_json(&vault, "acc-1").unwrap();
+        cleanup_legacy_json(&vault, "acc-1").unwrap();
+
+        let loaded = vault.load_profile("acc-1").unwrap().unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&loaded.data).unwrap();
+        assert!(parsed["preferences"]["userTemplates"].is_null());
+    }
+
+    // ── migrate_legacy_templates_if_needed ────────────────────────
+
+    #[test]
+    fn test_migrate_legacy_templates_if_needed_creates_templates() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({
+            "preferences": {
+                "userTemplates": [
+                    {"name": "Contact", "iconId": "user",
+                     "properties": [{"id": "f1", "name": "Name", "type": "text"}]}
+                ]
+            }
+        });
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        migrate_legacy_templates_if_needed(&vault, "acc-1").unwrap();
+
+        let templates = vault.list_user_templates("acc-1").unwrap();
+        assert_eq!(templates.len(), 1);
+        assert_eq!(templates[0].name, "Contact");
+        assert_eq!(templates[0].icon_id.as_deref(), Some("user"));
+        assert_eq!(templates[0].properties.len(), 1);
+        assert_eq!(templates[0].properties[0].id, "f1");
+    }
+
+    #[test]
+    fn test_migrate_legacy_templates_idempotent() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({
+            "preferences": {
+                "userTemplates": [{"name": "Card", "properties": []}]
+            }
+        });
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        // First run: migrates
+        migrate_legacy_templates_if_needed(&vault, "acc-1").unwrap();
+        // Second run: idempotent — already has templates, skips migration
+        migrate_legacy_templates_if_needed(&vault, "acc-1").unwrap();
+
+        let templates = vault.list_user_templates("acc-1").unwrap();
+        assert_eq!(templates.len(), 1, "Should not create duplicate templates");
+    }
+
+    #[test]
+    fn test_migrate_legacy_templates_no_op_when_no_legacy() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({"preferences": {}});
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        migrate_legacy_templates_if_needed(&vault, "acc-1").unwrap();
+
+        let templates = vault.list_user_templates("acc-1").unwrap();
+        assert_eq!(templates.len(), 0);
+    }
+
+    #[test]
+    fn test_migrate_legacy_templates_handles_empty_properties() {
+        let (vault, _dir) = setup_vault();
+        let data = serde_json::json!({
+            "preferences": {
+                "userTemplates": [{"name": "Empty", "properties": null}]
+            }
+        });
+        let profile = solosoul_vault::Profile::new_with_id(
+            "acc-1", "Test", serde_json::to_vec(&data).unwrap(),
+        );
+        vault.save_profile(&profile).unwrap();
+
+        migrate_legacy_templates_if_needed(&vault, "acc-1").unwrap();
+
+        let templates = vault.list_user_templates("acc-1").unwrap();
+        assert_eq!(templates.len(), 1);
+        assert_eq!(templates[0].properties.len(), 0);
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────
+
+    fn setup_vault() -> (solosoul_vault::VaultStore, tempfile::TempDir) {
+        let dir = tempfile::TempDir::new().unwrap();
+        let config = solosoul_vault::VaultConfig::new("test", dir.path().to_path_buf())
+            .with_data_key([0x42u8; 32]);
+        let vault = solosoul_vault::VaultStore::open(config).unwrap();
+        (vault, dir)
+    }
+}

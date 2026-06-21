@@ -98,3 +98,53 @@ pub async fn mdns_advertise(
         .map_err(|e| format!("Register: {}", e))?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_discovered_device_serialization() {
+        let device = DiscoveredDevice {
+            name: "Alice-MacBook".to_string(),
+            host: "Alice-MacBook.local.".to_string(),
+            port: 42069,
+            addresses: vec!["192.168.1.5".to_string(), "fe80::1".to_string()],
+        };
+        let json = serde_json::to_string(&device).unwrap();
+        assert!(json.contains("\"Alice-MacBook\""));
+        assert!(json.contains("\"192.168.1.5\""));
+        // Verify camelCase field naming
+        assert!(json.contains("\"name\":\"Alice-MacBook\""));
+        assert!(json.contains("\"addresses\""));
+    }
+
+    #[test]
+    fn test_discovered_device_empty_addresses() {
+        let device = DiscoveredDevice {
+            name: "Headless".to_string(),
+            host: String::new(),
+            port: 0,
+            addresses: vec![],
+        };
+        let json = serde_json::to_string(&device).unwrap();
+        // Should still serialize correctly with empty arrays
+        assert!(json.contains("\"addresses\":[]"));
+        assert!(json.contains("\"port\":0"));
+    }
+
+    #[test]
+    fn test_mdns_constants_defined() {
+        assert_eq!(MDNS_SERVICE_TYPE, "_solosoul._tcp.local.");
+        assert_eq!(MDNS_MAX_TIMEOUT_MS, 30_000);
+        assert_eq!(MDNS_POLL_INTERVAL_MS, 200);
+    }
+
+    #[test]
+    fn test_shared_daemon_default_constructs() {
+        let daemon = SharedDaemon::default();
+        drop(daemon); // verify no panic on drop
+        let daemon2 = SharedDaemon::new();
+        drop(daemon2);
+    }
+}

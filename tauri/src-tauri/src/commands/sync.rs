@@ -132,3 +132,157 @@ pub async fn sync_forget_peer(
 ) -> Result<(), String> {
     state.sync_service.forget_peer(peer_node_id).await
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use solosoul_sync::delta::{ApplyStats, TableStats};
+    use std::collections::HashMap;
+
+    #[test]
+    fn test_sync_peer_serialization() {
+        let peer = SyncPeer {
+            id: "node-1".to_string(),
+            name: "My Mac".to_string(),
+            addr: "192.168.1.5:42069".to_string(),
+            fingerprint: "ab:cd:ef:01".to_string(),
+            trusted: true,
+            last_seen: "2024-06-01T12:00:00Z".to_string(),
+        };
+        let json = serde_json::to_string(&peer).unwrap();
+        // Structs use default serde (snake_case, no rename_all)
+        assert!(json.contains("last_seen"));
+        assert!(json.contains("\"node-1\""));
+    }
+
+    #[test]
+    fn test_sync_status_serialization() {
+        let status = SyncStatus {
+            is_discovering: true,
+            sync_enabled: false,
+            local_fingerprint: "fp-001".to_string(),
+            connected_peers: vec![],
+        };
+        let json = serde_json::to_string(&status).unwrap();
+        assert!(json.contains("is_discovering"));
+        assert!(json.contains("sync_enabled"));
+    }
+
+    #[test]
+    fn test_table_result_serialization() {
+        let tr = TableResult {
+            table: "objects".to_string(),
+            examined: 100,
+            applied: 50,
+            skipped: 50,
+        };
+        let json = serde_json::to_string(&tr).unwrap();
+        assert!(json.contains("\"examined\":100"));
+        assert!(json.contains("\"table\":\"objects\""));
+    }
+
+    #[test]
+    fn test_sync_result_from_apply_stats_empty() {
+        let stats = ApplyStats {
+            examined: 0,
+            applied: 0,
+            skipped: 0,
+            errors: vec![],
+            conflicts: vec![],
+            per_table: HashMap::new(),
+        };
+        let result = SyncResult::from(&stats);
+        assert_eq!(result.examined, 0);
+        assert_eq!(result.applied, 0);
+        assert!(result.conflicts.is_empty());
+        assert!(result.per_table.is_empty());
+        assert!(result.summary.contains("examined=0"));
+    }
+
+    #[test]
+    fn test_sync_result_from_apply_stats_with_data() {
+        let mut per_table = HashMap::new();
+        per_table.insert(
+            "profiles".to_string(),
+            TableStats {
+                examined: 10,
+                applied: 5,
+                skipped: 5,
+            },
+        );
+        let stats = ApplyStats {
+            examined: 10,
+            applied: 5,
+            skipped: 5,
+            errors: vec![],
+            conflicts: vec![ConflictRecord {
+                table: "profiles".to_string(),
+                id: "obj-1".to_string(),
+                local_hlc: solosoul_sync::hlc::Hlc::new(0, 0, "test"),
+                remote_hlc: solosoul_sync::hlc::Hlc::new(1, 0, "test"),
+                winner: "local".to_string(),
+            }],
+            per_table,
+        };
+        let result = SyncResult::from(&stats);
+        assert_eq!(result.examined, 10);
+        assert_eq!(result.applied, 5);
+        assert_eq!(result.conflicts.len(), 1);
+        assert_eq!(result.per_table.len(), 1);
+        assert_eq!(result.per_table[0].table, "profiles");
+        assert_eq!(result.per_table[0].applied, 5);
+        assert!(result.summary.contains("conflicts=1"));
+    }
+
+    #[test]
+    fn test_sync_result_serialization() {
+        let result = SyncResult {
+            summary: "examined=1, applied=1, skipped=0, conflicts=0".to_string(),
+            examined: 1,
+            applied: 1,
+            skipped: 0,
+            conflicts: vec![],
+            per_table: vec![TableResult {
+                table: "objects".to_string(),
+                examined: 1,
+                applied: 1,
+                skipped: 0,
+            }],
+        };
+        let json = serde_json::to_string(&result).unwrap();
+        assert!(json.contains("\"examined\":1"));
+        assert!(json.contains("\"summary\""));
+        assert!(json.contains("per_table"));
+    }
+
+    #[test]
+    fn test_sync_peer_untrusted_serialization() {
+        let peer = SyncPeer {
+            id: "n2".to_string(),
+            name: "Phone".to_string(),
+            addr: "10.0.0.2:42069".to_string(),
+            fingerprint: "02:03:04".to_string(),
+            trusted: false,
+            last_seen: String::new(),
+        };
+        let json = serde_json::to_string(&peer).unwrap();
+        assert!(json.contains("\"trusted\":false"));
+        assert!(json.contains("\"last_seen\":\"\""));
+    }
+
+    #[test]
+    fn test_sync_peer_serialization_matches_snake_case() {
+        let peer = SyncPeer {
+            id: "p1".to_string(),
+            name: "Device".to_string(),
+            addr: "0.0.0.0:0".to_string(),
+            fingerprint: "fp".to_string(),
+            trusted: true,
+            last_seen: "now".to_string(),
+        };
+        let json = serde_json::to_string(&peer).unwrap();
+        // Default serde uses snake_case (no rename_all on these structs)
+        assert!(json.contains("last_seen"));
+        assert!(!json.contains("lastSeen"), "should not contain camelCase");
+    }
+}
