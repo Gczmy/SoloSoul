@@ -17,7 +17,7 @@ const ACCENT_COLORS: Record<AccentPreset, string> = {
 
 const SYSTEM_DARK_MQ = '(prefers-color-scheme: dark)';
 
-function hexToRgb(hex: string): [number, number, number] | null {
+export function hexToRgb(hex: string): [number, number, number] | null {
   const cleaned = hex.replace('#', '');
   if (cleaned.length !== 3 && cleaned.length !== 6) return null;
   const full =
@@ -32,7 +32,7 @@ function hexToRgb(hex: string): [number, number, number] | null {
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 }
 
-function rgbToHex(r: number, g: number, b: number): string {
+export function rgbToHex(r: number, g: number, b: number): string {
   return `#${[r, g, b]
     .map((v) =>
       Math.max(0, Math.min(255, Math.round(v)))
@@ -43,7 +43,7 @@ function rgbToHex(r: number, g: number, b: number): string {
 }
 
 /** Generate a slightly darker hover variant for a custom accent hex. */
-function adjustAccentHover(hex: string): string {
+export function adjustAccentHover(hex: string): string {
   const rgb = hexToRgb(hex);
   if (!rgb) return hex;
   const factor = -0.12;
