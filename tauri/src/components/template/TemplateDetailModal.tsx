@@ -5,8 +5,7 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SensitivityBadges } from './SensitivityBadges';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
-import type { SensitivityLevel } from '@/types/template';
-import type { UserTemplate } from '@/types/template';
+import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 
 interface DetailProperty {
   id: string;
@@ -175,7 +174,7 @@ export function TemplateDetailModal({
                       alignItems: 'center',
                     }}
                   >
-                    <FieldTypeIcon type={prop.type as any} size={14} />
+                    <FieldTypeIcon type={prop.type as PropertyType} size={14} />
                   </span>
                   <span
                     style={{

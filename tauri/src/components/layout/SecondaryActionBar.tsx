@@ -29,7 +29,7 @@ interface SecondaryActionBarProps {
   isHorizontal: boolean;
 }
 
-export function SecondaryActionBar({ sidebarPosition, isHorizontal }: SecondaryActionBarProps) {
+export function SecondaryActionBar({ sidebarPosition, isHorizontal: _isHorizontal }: SecondaryActionBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation('navigation');

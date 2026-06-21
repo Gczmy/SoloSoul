@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import type { AccentPreset } from '@/types';
 
 // Mock Tauri invoke (imported but unused by pure functions)
 vi.mock('@tauri-apps/api/core', () => ({
@@ -153,7 +154,7 @@ describe('applyAccentColor', () => {
 
   it('falls back to ocean for unknown preset', async () => {
     const { applyAccentColor } = await import('./theme');
-    applyAccentColor('nonexistent' as any);
+    applyAccentColor('nonexistent' as AccentPreset);
     expect(document.documentElement.getAttribute('data-accent')).toBe('ocean');
   });
 

@@ -42,27 +42,32 @@
 | P009 | P1     | Rust Clippy | `tauri/crates/solosoul-core/src/ocr/mrz.rs` (10处) | `unnecessary-map-or`, `needless-range-loop`, `manual-range-contains`(5), `unnecessary-sort-by`, `let-and-return`(2) | `[x]` 已修复 |
 | P010 | P1     | Rust Clippy | `tauri/crates/solosoul-core/src/ocr/postprocess.rs` (1处) | `needless-range-loop` 在 `binary_segmentation`（已 supress, 4D ndarray 索引需坐标） | `[x]` 已修复 |
 
-### 预存 ESLint 问题（非本次引入，待后续修复）
+### 轮次 3 已修复问题（ESLint）
 
 | ID   | 优先级 | 类别       | 文件位置                                          | 描述                                                   | 状态      |
 |------|--------|------------|--------------------------------------------------|--------------------------------------------------------|-----------|
-| E001 | P1     | ESLint     | `src/pages/template/SampleTemplateDetail.tsx`    | `no-explicit-any`                                       | `[ ]` 待修复 |
-| E002 | P1     | ESLint     | `src/pages/template/TemplateDetailModal.tsx`      | `no-explicit-any`                                       | `[ ]` 待修复 |
-| E003 | P1     | ESLint     | `src/pages/template/TemplateEditor.tsx`            | `no-explicit-any`                                       | `[ ]` 待修复 |
-| E004 | P1     | ESLint     | `src/lib/i18n.test.ts`                            | `no-explicit-any`                                       | `[ ]` 待修复 |
-| E005 | P1     | ESLint     | `src/lib/theme.test.ts`                           | `no-explicit-any`                                       | `[ ]` 待修复 |
-| E006 | P1     | ESLint     | `src/stores/llmStore.test.ts`                     | `prefer-const`                                          | `[ ]` 待修复 |
-| E007 | P2     | ESLint     | 多文件                                             | 5 处 `no-unused-vars`                                   | `[ ]` 待修复 |
+| E001 | P1     | ESLint     | `src/pages/template/SampleTemplateDetail.tsx`    | `no-explicit-any`: `prop.type as any` → `prop.type` (type is already `PropertyType`) | `[x]` 已修复 |
+| E002 | P1     | ESLint     | `src/pages/template/TemplateDetailModal.tsx`      | `no-explicit-any`: `prop.type as any` → `prop.type as PropertyType` + 添加 import | `[x]` 已修复 |
+| E003 | P1     | ESLint     | `src/pages/template/TemplateEditor.tsx`            | `no-explicit-any`: `prop.type as any` → `prop.type` (type is already `PropertyType`) | `[x]` 已修复 |
+| E004 | P1     | ESLint     | `src/lib/i18n.test.ts`                            | `no-explicit-any`: `window as any` → `window as unknown as Record<string, unknown>` | `[x]` 已修复 |
+| E005 | P1     | ESLint     | `src/lib/theme.test.ts`                           | `no-explicit-any`: `'nonexistent' as any` → `as AccentPreset` + import | `[x]` 已修复 |
+| E006 | P1     | ESLint     | `src/stores/llmStore.test.ts`                     | `prefer-const`: `let state` → `const state` | `[x]` 已修复 |
+| E007 | P2     | ESLint     | 多文件（5 处）                                       | `no-unused-vars`: 删除未使用 import/变量，前缀 _ 标记 | `[x]` 已修复 |
+
+### 仍然未解决的问题
+
+| ID   | 优先级 | 类别       | 文件位置                                          | 描述                                                   | 状态      |
+|------|--------|------------|--------------------------------------------------|--------------------------------------------------------|-----------|
+| P008 | P2     | UI 统一    | 多文件（26 处）                                     | 旧 Button 组件未统一替换                                 | `[ ]` 待修复 |
 
 ---
 
 ## 修复进度
 
-- 已完成：9 / 16（轮次1: 7 + 轮次2: 2）
-- 当前处理：轮次2 Clippy 修复已全部完成
+- 已完成：16 / 17（轮次1: 7 + 轮次2: 2 + 轮次3: 7）
+- 当前处理：轮次3 ESLint 修复已全部完成
 
 > ⚠️ P008（UI 统一）为 P2 优先级，建议在后续迭代中逐步替换。
-> ⚠️ E001-E007 为 ESLint 预存问题，非本次 OCR 改动引入。
 
 ---
 
@@ -91,19 +96,19 @@
 | 优先级 | 数量 |
 |--------|------|
 | P0     | 0    |
-| P1     | 7（均为 ESLint 预存） |
-| P2     | 8（P008 + E007 ×7） |
-| **合计** | **15** |
+| P1     | 0    |
+| P2     | 1（P008 - UI 统一） |
+| **合计** | **1** |
 
-## 最终复审结果（轮次 2）
+## 最终复审结果（轮次 3）
 
 | 检查项 | 结果 |
 |--------|------|
+| ESLint | ✅ 0 errors / 0 warnings |
 | TypeScript 类型检查 | ✅ 0 错误 |
-| ESLint | ⚠️ 6 errors / 5 warnings（预存问题，非本次引入） |
+| 前端单元测试 | ✅ 372/372 通过 |
 | Rust 格式化 | ✅ 通过 |
 | Rust Clippy | ✅ 通过 |
-| 前端单元测试 | ✅ 372/372 通过 |
 | Rust OCR 单元测试 | ✅ 31/31 通过 |
 
-**结论：** 轮次2 全部 Clippy 问题已修复。ESLint 问题为预存，非本次改动引入。
+**结论：** 所有 P0/P1 问题已清零，仅剩一个 P2 问题。符合终版标准。

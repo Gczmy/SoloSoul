@@ -456,7 +456,7 @@ function DeprecatedFieldsSection({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <FieldTypeIcon type={prop.type as any} size={14} />
+                    <FieldTypeIcon type={prop.type} size={14} />
                   <span
                     style={{
                       fontSize: 14,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -83,14 +83,6 @@ export function PluginQuickPanel({
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
-
-  const installedMap = useMemo(() => {
-    const map: Record<string, (typeof installedPlugins)[number]> = {};
-    for (const p of installedPlugins) {
-      map[p.id] = p;
-    }
-    return map;
-  }, [installedPlugins]);
 
   const displayedPlugins = useMemo(() => {
     let filtered = marketPlugins;
@@ -306,7 +298,7 @@ export function PluginQuickPanel({
 }
 
 function QuickRunningInfo({
-  pluginId,
+  pluginId: _pluginId,
   running,
   onStop,
   onClear,

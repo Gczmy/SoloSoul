@@ -26,7 +26,7 @@ describe('llmStore', () => {
       useLlmStore.getState().startStream('conv-1');
 
       // 立即状态：流开始，buffer 清空
-      let state = useLlmStore.getState();
+      const state = useLlmStore.getState();
       expect(state.isStreaming).toBe(true);
       expect(state.streamingConvId).toBe('conv-1');
       expect(state.streamBuffer).toBe('');

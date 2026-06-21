@@ -111,7 +111,7 @@ describe('initI18n', () => {
 
     // Reset DOM/storage state
     localStorage.clear();
-    delete (window as any).__SOLOSOUL_LOCALE__;
+    delete (window as unknown as Record<string, unknown>)['__SOLOSOUL_LOCALE__'];
 
     // Default navigator.language = en-US
     Object.defineProperty(navigator, 'language', {

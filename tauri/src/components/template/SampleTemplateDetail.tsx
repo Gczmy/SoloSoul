@@ -115,7 +115,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                 <span
                   style={{ color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' }}
                 >
-                  <FieldTypeIcon type={prop.type as any} size={14} />
+                  <FieldTypeIcon type={prop.type} size={14} />
                 </span>
                 <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
                   {prop.name}
