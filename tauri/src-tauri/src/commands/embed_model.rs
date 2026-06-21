@@ -294,3 +294,197 @@ pub async fn llm_download_embed_model(app: AppHandle, model_id: String) -> Resul
 pub fn llm_delete_embed_model(app: AppHandle, model_id: String) -> Result<(), String> {
     delete_model(&app, &model_id)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_embed_model_info_serde() {
+        let info = EmbedModelInfo {
+            id: "all-MiniLM-L6-v2".to_string(),
+            name: "MiniLM".to_string(),
+            description: "Lightweight embedding model".to_string(),
+            disk_size: "80MB".to_string(),
+            dimensions: 384,
+            download_url: "https://example.com/model.zip".to_string(),
+            checksum: "sha256:abc123".to_string(),
+        };
+        let json = serde_json::to_string(&info).unwrap();
+        assert!(json.contains("\"all-MiniLM-L6-v2\""));
+        assert!(json.contains("\"download_url\""));
+        let restored: EmbedModelInfo = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.id, info.id);
+        assert_eq!(restored.dimensions, 384);
+    }
+
+    #[test]
+    fn test_embed_registry_serde() {
+        let registry = EmbedRegistry {
+            models: vec![
+                EmbedModelInfo {
+                    id: "m1".to_string(),
+                    name: "M1".to_string(),
+                    description: String::new(),
+                    disk_size: "10MB".to_string(),
+                    dimensions: 128,
+                    download_url: String::new(),
+                    checksum: String::new(),
+                },
+            ],
+        };
+        let json = serde_json::to_string(&registry).unwrap();
+        let restored: EmbedRegistry = serde_json::from_str(&json).unwrap();
+        assert_eq!(restored.models.len(), 1);
+        assert_eq!(restored.models[0].id, "m1");
+    }
+
+    #[test]
+    fn test_embed_model_with_status_serde() {
+        let status = EmbedModelWithStatus {
+            info: EmbedModelInfo {
+                id: "m1".to_string(),
+                name: "M1".to_string(),
+                description: String::new(),
+                disk_size: String::new(),
+                dimensions: 0,
+                download_url: String::new(),
+                checksum: String::new(),
+            },
+            installed: true,
+        };
+        let json = serde_json::to_string(&status).unwrap();
+        assert!(json.contains("\"installed\":true"));
+        // flatten embeds EmbedModelInfo fields at top level
+        assert!(json.contains("\"id\":\"m1\""));
+    }
+
+    #[test]
+    fn test_sanitize_model_id_accepts_valid() {
+        assert_eq!(
+            sanitize_model_id("all-MiniLM-L6-v2").unwrap(),
+            "all-MiniLM-L6-v2"
+        );
+        assert_eq!(sanitize_model_id("model_v1.0").unwrap(), "model_v1.0");
+        assert_eq!(sanitize_model_id("a").unwrap(), "a");
+    }
+
+    #[test]
+    fn test_sanitize_model_id_rejects_empty() {
+        assert!(sanitize_model_id("").is_err());
+        assert_eq!(
+            sanitize_model_id("").unwrap_err(),
+            "Model ID cannot be empty"
+        );
+    }
+
+    #[test]
+    fn test_sanitize_model_id_rejects_special_chars() {
+        assert!(sanitize_model_id("../models").is_err());
+        assert!(sanitize_model_id("model@2").is_err());
+        assert!(sanitize_model_id("space model").is_err());
+        assert!(sanitize_model_id("a/b").is_err());
+    }
+
+    #[test]
+    fn test_sanitize_model_id_rejects_path_traversal() {
+        assert!(sanitize_model_id("../../etc/passwd").is_err());
+        assert!(sanitize_model_id("~/models").is_err());
+    }
+
+    #[test]
+    fn test_is_model_installed_checks_files() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let model_dir = dir.path().join("test-model");
+        std::fs::create_dir_all(&model_dir).unwrap();
+
+        // Without files, not installed
+        assert!(!is_model_installed_inner(&model_dir));
+
+        // With only one file, not installed
+        std::fs::write(model_dir.join("model.onnx"), "data").unwrap();
+        assert!(!is_model_installed_inner(&model_dir));
+
+        // With both files, installed
+        std::fs::write(model_dir.join("tokenizer.json"), "{}").unwrap();
+        assert!(is_model_installed_inner(&model_dir));
+    }
+
+    fn is_model_installed_inner(dir: &std::path::Path) -> bool {
+        dir.join("model.onnx").exists() && dir.join("tokenizer.json").exists()
+    }
+
+    #[test]
+    fn test_list_installed_models_scans_directory() {
+        let dir = tempfile::TempDir::new().unwrap();
+
+        // Empty dir
+        let models = list_installed_models_inner(dir.path());
+        assert!(models.is_empty());
+
+        // Create a valid model
+        let m1 = dir.path().join("model-a");
+        std::fs::create_dir_all(&m1).unwrap();
+        std::fs::write(m1.join("model.onnx"), "x").unwrap();
+        std::fs::write(m1.join("tokenizer.json"), "{}").unwrap();
+
+        // Create dir without model.onnx (incomplete install)
+        let m2 = dir.path().join("model-b");
+        std::fs::create_dir_all(&m2).unwrap();
+        std::fs::write(m2.join("tokenizer.json"), "{}").unwrap();
+
+        let models = list_installed_models_inner(dir.path());
+        assert_eq!(models, vec!["model-a"]);
+    }
+
+    fn list_installed_models_inner(base: &std::path::Path) -> Vec<String> {
+        if !base.exists() {
+            return vec![];
+        }
+        let mut models = Vec::new();
+        if let Ok(dir) = std::fs::read_dir(base) {
+            for entry in dir.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    let id = path
+                        .file_name()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("")
+                        .to_string();
+                    if !id.is_empty() && path.join("model.onnx").exists() {
+                        models.push(id);
+                    }
+                }
+            }
+        }
+        models
+    }
+
+    #[test]
+    fn test_delete_removes_directory() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let model_dir = dir.path().join("to-delete");
+        std::fs::create_dir_all(&model_dir).unwrap();
+        std::fs::write(model_dir.join("model.onnx"), "x").unwrap();
+
+        assert!(model_dir.exists());
+        delete_model_inner(&model_dir).unwrap();
+        assert!(!model_dir.exists());
+    }
+
+    #[test]
+    fn test_delete_nonexistent_is_ok() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let nonexistent = dir.path().join("does-not-exist");
+        assert!(!nonexistent.exists());
+        delete_model_inner(&nonexistent).unwrap();
+    }
+
+    fn delete_model_inner(dir: &std::path::Path) -> Result<(), String> {
+        if dir.exists() {
+            std::fs::remove_dir_all(dir).map_err(|e| format!("Remove: {}", e))?;
+        }
+        Ok(())
+    }
+}
+

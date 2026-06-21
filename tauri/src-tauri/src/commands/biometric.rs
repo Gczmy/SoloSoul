@@ -241,3 +241,131 @@ pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
         .map_err(|e| map_bio_error(e, "test"))?;
     Ok(true)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bio_err_format() {
+        let err = bio_err("not_configured");
+        assert_eq!(err, "__BIO_ERR__:not_configured");
+    }
+
+    #[test]
+    fn test_map_bio_error_platform_not_supported() {
+        let err = map_bio_error(BiometricError::PlatformNotSupported, "save");
+        assert_eq!(err, "__BIO_ERR__:platform_not_supported");
+    }
+
+    #[test]
+    fn test_map_bio_error_cancelled() {
+        let err = map_bio_error(BiometricError::UserPresenceCancelled, "unlock");
+        assert_eq!(err, "__BIO_ERR__:cancelled");
+    }
+
+    #[test]
+    fn test_map_bio_error_unavailable() {
+        let err = map_bio_error(BiometricError::UserPresenceUnavailable, "save");
+        assert_eq!(err, "__BIO_ERR__:user_presence_unavailable");
+    }
+
+    #[test]
+    fn test_map_bio_error_not_configured() {
+        let err = map_bio_error(BiometricError::KeychainItemNotFound, "unlock");
+        assert_eq!(err, "__BIO_ERR__:not_configured");
+    }
+
+    #[test]
+    fn test_map_bio_error_other_invalid_password() {
+        let err = map_bio_error(
+            BiometricError::Other("Invalid password".to_string()),
+            "unlock",
+        );
+        assert_eq!(err, "__BIO_ERR__:invalid_password");
+    }
+
+    #[test]
+    fn test_map_bio_error_other_save_operation() {
+        let err = map_bio_error(
+            BiometricError::Other("disk full".to_string()),
+            "save",
+        );
+        assert_eq!(err, "__BIO_ERR__:save_failed");
+    }
+
+    #[test]
+    fn test_map_bio_error_other_unlock_operation() {
+        let err = map_bio_error(
+            BiometricError::Other("timeout".to_string()),
+            "unlock",
+        );
+        assert_eq!(err, "__BIO_ERR__:unlock_failed");
+    }
+
+    #[test]
+    fn test_map_bio_error_other_delete_operation() {
+        let err = map_bio_error(
+            BiometricError::Other("permission denied".to_string()),
+            "delete",
+        );
+        assert_eq!(err, "__BIO_ERR__:delete_failed");
+    }
+
+    #[test]
+    fn test_map_bio_error_other_unknown_operation() {
+        let err = map_bio_error(
+            BiometricError::Other("something else".to_string()),
+            "unknown_op",
+        );
+        assert_eq!(err, "__BIO_ERR__:unknown");
+    }
+
+    #[test]
+    fn test_map_bio_error_keychain_write_failed_save() {
+        let err = map_bio_error(
+            BiometricError::KeychainWriteFailed("write error".to_string()),
+            "save",
+        );
+        assert_eq!(err, "__BIO_ERR__:keychain_write_failed");
+    }
+
+    #[test]
+    fn test_map_bio_error_keychain_write_failed_delete() {
+        let err = map_bio_error(
+            BiometricError::KeychainWriteFailed("write error".to_string()),
+            "delete",
+        );
+        assert_eq!(err, "__BIO_ERR__:delete_failed");
+    }
+
+    #[test]
+    fn test_map_bio_error_keychain_read_failed() {
+        let err = map_bio_error(
+            BiometricError::KeychainReadFailed("read error".to_string()),
+            "unlock",
+        );
+        assert_eq!(err, "__BIO_ERR__:keychain_read_failed");
+    }
+
+    #[test]
+    fn test_map_bio_error_legacy_migration_failed() {
+        let err = map_bio_error(
+            BiometricError::LegacyMigrationFailed("mig error".to_string()),
+            "save",
+        );
+        assert_eq!(err, "__BIO_ERR__:stale_credential");
+    }
+
+    #[test]
+    fn test_map_bio_error_invalid_key_format() {
+        let err = map_bio_error(BiometricError::InvalidKeyFormat, "save");
+        assert_eq!(err, "__BIO_ERR__:invalid_key_format");
+    }
+
+    #[test]
+    fn test_map_bio_error_missing_keychain_entitlement() {
+        let err = map_bio_error(BiometricError::MissingKeychainEntitlement, "save");
+        assert_eq!(err, "__BIO_ERR__:keychain_write_failed");
+    }
+}
