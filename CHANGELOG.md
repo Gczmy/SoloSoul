@@ -4,6 +4,34 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.3] - 2026-06-21
+
+### Added
+
+- **侧边栏功能按钮区折叠展开（SecondaryActionBar）** — 垂直模式下 hover 折叠区域箭头展开/离开自动折叠，支持 200px 可滚动按钮区，隐藏滚动条。展开过渡期间 `pointer-events: none` 防止 tooltip 闪烁。
+- **侧边栏功能按钮区折叠展开（TopFunctionBar）** — 水平模式（top/bottom）同样支持 hover 展开/折叠，使用 ChevronRight 箭头指示方向，按钮区水平滚动。
+- **Lock/Settings 按钮固定在折叠区外部** — 锁定账户和设置按钮始终固定在侧边栏底部（垂直模式）或功能条右侧（水平模式），不受折叠影响。
+- **Zustand store 持久化展开/滚动状态** — `useSidebarHoverStore` 跨页面导航持久化 `isHovering`、滚动条位置（`verticalScrollTop`/`horizontalScrollLeft`），消除路由切换时状态丢失。
+- **`document.documentElement` mouseleave 兜底** — 鼠标离开窗口时自动折叠功能区域。
+
+### Fixed
+
+- **折叠区域箭头方向** — 水平模式（top/bottom）箭头方向翻转：折叠时显示 ChevronLeft（←），展开时显示 ChevronRight（→），符合用户直觉。
+- **底部（bottom）侧边栏不显示水平折叠** — `AppShell.tsx` 将 `{isTop ? <TopFunctionBar /> : <SideNavigation />}` 改为 `{isHorizontal ? ...}`，bottom 模式正确渲染 TopFunctionBar 并添加 `paddingBottom`。
+- **底部 bar 位置错误** — TopFunctionBar CSS `position: fixed; top: 0` 覆盖了 flex 布局，新增动态 `bottom: 0` + `borderTop`。
+- **展开后按钮无法点击** — `onTransitionEnd` 在 React 重渲染时可能不触发导致 `pointer-events: none` 永久生效，改为 `useEffect` + `setTimeout`（200ms）兜底。
+- **卡片/页面按钮导航后折叠** — 关闭卡片或点击页面按钮后，如果鼠标仍在功能区域内保持展开。
+- **跨页面导航滚动条闪烁** — `useLayoutEffect` 替代 `useEffect` 消除 `scrollTop`/`scrollLeft` 恢复时的视觉闪烁。
+- **Settings 按钮无高亮状态** — 添加 `isActive={location.pathname.startsWith('/settings')}`。
+- **LoginPage 生物识别闪烁** — 移除早期返回 bare `<div>`，始终渲染完整卡片布局，bio check 期间显示 Loader2 加载动画。
+- **展开过渡期间 name card 闪烁** — 按钮容器在过渡期间 `pointer-events: none` 防止 tooltip 随移动按钮闪烁。
+
+### Changed
+
+- **版本号统一** — 全平台版本号同步升级到 `2.5.3`。
+- **按钮顺序调整** — 功能按钮区顺序为：搜索→回收站→模板管理→插件→OCR→导入导出→帮助文档→AI 对话。
+- **底部按钮自定义配置移除** — `sidebar_bottom_actions` 相关配置项删除，按钮改为固定 8 个功能按钮 + Lock + Settings。
+
 ## [2.5.2] - 2026-06-21
 
 ### Added
