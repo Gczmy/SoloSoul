@@ -1,21 +1,11 @@
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';import { Puzzle,
-  RefreshCw,
-  X,
-  Play,
-  Download,
-  Trash2,
-  Loader2,
-  ArrowUpRight,
-  ChevronDown,
-  Copy,
-  Check,
-} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';import { Puzzle, RefreshCw, X, Play, Download, Trash2, Loader2, ArrowUpRight } from 'lucide-react';
 import { usePluginStore, type RunningPlugin } from '@/stores/pluginStore';
 import { usePluginQuickStore, type QuickPanelTab } from '@/stores/pluginQuickStore';
 import { useConfirm } from '@/hooks/useConfirm';
-import { PluginResultPanel } from './PluginResultPanel';
+import { PluginLogSection } from './shared/PluginLogSection';
+import { PluginResultSection } from './shared/PluginResultSection';
 import { isDevOrDebug } from '@/lib/env';
 import styles from './PluginQuickPanel.module.css';
 
@@ -318,124 +308,22 @@ function QuickRunningInfo({
   onStop: () => void;
   onClear: () => void;
 }) {
-  const { t } = useTranslation('plugin');
-  const [logExpanded, setLogExpanded] = useState(false);
-  const [resultExpanded, setResultExpanded] = useState(true);
-  const [logCopied, setLogCopied] = useState(false);
-
-  const handleCopyLogs = async () => {
-    try {
-      const text = running.logs
-        .map((log) => `[${log.level}] ${log.message}`)
-        .join('\n');
-      await navigator.clipboard.writeText(text);
-      setLogCopied(true);
-      setTimeout(() => setLogCopied(false), 1500);
-    } catch {
-      // 静默忽略
-    }
-  };
-
-  const statusBadge = running.completed
-    ? { className: running.error ? styles.statusError : styles.statusCompleted, label: running.error ? t('plugin:status_failed', { defaultValue: 'Failed' }) : t('plugin:status_completed', { defaultValue: 'Completed' }) }
-    : { className: styles.statusRunning, label: t('plugin:status_running', { defaultValue: 'Running' }) };
-
   return (
     <div className={styles.runningInfo}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-        }}
-      >
-        <span className={statusBadge.className}>
-          {statusBadge.label}
-        </span>
-        {running.completed ? (
-          <button className={styles.actionBtn} onClick={onClear} style={{ fontSize: 10, padding: '2px 6px' }}>
-            <X size={10} />
-            {t('plugin:clear', { defaultValue: 'Clear' })}
-          </button>
-        ) : (
-          <button className={styles.actionBtn} onClick={onStop}>
-            {t('plugin:stop', { defaultValue: 'Stop' })}
-          </button>
-        )}
-      </div>
-
-      {running.error && (
-        <div className={styles.errorText}>{running.error}</div>
-      )}
-
-      {/* Logs section - collapsible */}
-      {running.logs.length > 0 && (
-        <>
-          <button
-            className={styles.inlineHeader}
-            onClick={() => setLogExpanded(!logExpanded)}
-          >
-            <div className={styles.inlineTitleRow}>
-              <ChevronDown
-                size={12}
-                className={`${styles.chevron} ${logExpanded ? styles.chevronOpen : ''}`}
-              />
-              <span className={styles.inlineTitle}>
-                {t('plugin:inline_output', { defaultValue: 'Plugin Log' })}
-              </span>
-              <span className={styles.logCount}>{running.logs.length}</span>
-            </div>
-            <div className={styles.inlineActions} onClick={(e) => e.stopPropagation()}>
-              {running.completed && logExpanded && (
-                <button
-                  className={`${styles.copyLogBtn} ${logCopied ? styles.copyGlow : ''}`}
-                  onClick={handleCopyLogs}
-                >
-                  {logCopied ? <Check size={10} /> : <Copy size={10} />}
-                  {logCopied ? t('copied', { defaultValue: 'Copied' }) : t('copy', { defaultValue: 'Copy' })}
-                </button>
-              )}
-            </div>
-          </button>
-          <div className={`${styles.collapsible} ${logExpanded ? styles.collapsibleOpen : ''}`}>
-            <div className={styles.inlineLogs}>
-              {running.logs.map((log) => (
-                <div key={log.id} className={styles.logLine}>
-                  <span className={styles.logLevel} data-level={log.level}>
-                    {t(`plugin:log_level_${log.level}`, {
-                      defaultValue: log.level,
-                    })}
-                  </span>
-                  <span className={styles.logMessage}>{log.message}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Results section - collapsible */}
+      <PluginLogSection
+        logs={running.logs}
+        error={running.error}
+        completed={running.completed}
+        onStop={onStop}
+        onClear={onClear}
+        variant="sidebar"
+      />
       {running.results.length > 0 && (
-        <>
-          <button
-            className={styles.inlineHeader}
-            onClick={() => setResultExpanded(!resultExpanded)}
-          >
-            <div className={styles.inlineTitleRow}>
-              <ChevronDown
-                size={12}
-                className={`${styles.chevron} ${resultExpanded ? styles.chevronOpen : ''}`}
-              />
-              <span className={styles.inlineTitle}>
-                {t('plugin:inline_result', { defaultValue: 'Plugin Result' })}
-              </span>
-            </div>
-          </button>
-          <div className={`${styles.collapsible} ${resultExpanded ? styles.collapsibleOpen : ''}`}>
-            <PluginResultPanel results={running.results} />
-          </div>
-        </>
+        <PluginResultSection
+          results={running.results}
+          defaultExpanded
+          variant="sidebar"
+        />
       )}
     </div>
   );

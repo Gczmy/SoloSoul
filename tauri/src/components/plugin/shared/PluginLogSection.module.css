@@ -1,0 +1,173 @@
+/* ─── Status row (sidebar variant) ─────────────────────────────────── */
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.statusRunning {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.statusCompleted {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.statusFailed {
+  background: color-mix(in srgb, #e74c3c 10%, transparent);
+  color: #e74c3c;
+}
+
+/* ─── Inline completed/failed status (page variant) ───────────────── */
+.completedStatus {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.success {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.failed {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+/* ─── Action buttons ──────────────────────────────────────────────── */
+.stopBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-toolbar);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.stopBtn:hover {
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-color: transparent;
+}
+
+.clearBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-toolbar);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.clearBtn:hover {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+/* ─── Log content ─────────────────────────────────────────────────── */
+.inlineLogs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.logLine {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: 11px;
+  line-height: 1.4;
+  font-family: var(--font-mono, monospace);
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.12s ease;
+}
+
+.logLine:hover {
+  background: var(--bg-hover);
+}
+
+.logLevel {
+  flex-shrink: 0;
+  font-weight: 600;
+  min-width: 36px;
+  text-transform: uppercase;
+  font-size: 9px;
+}
+
+.logLevel[data-level='info'] {
+  color: var(--accent);
+}
+
+.logLevel[data-level='error'] {
+  color: var(--danger);
+}
+
+.logLevel[data-level='warn'] {
+  color: var(--warning);
+}
+
+.logMessage {
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.errorText {
+  color: #e74c3c;
+  font-size: 11px;
+  word-break: break-word;
+}
+
+.inlineError {
+  font-size: 12px;
+  color: var(--danger);
+  padding: 6px 8px;
+  background: var(--danger-subtle);
+  border-radius: 6px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
