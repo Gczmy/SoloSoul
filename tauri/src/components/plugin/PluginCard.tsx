@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, RefreshCw, Trash2, Play, Loader2, X, ChevronDown, Copy, Check, FileJson, FileText } from 'lucide-react';
 import { PluginResultPanel } from './PluginResultPanel';
+import { useConfirm } from '@/hooks/useConfirm';
 import styles from './PluginCard.module.css';
 import type { MarketPluginInfo, PluginManifest } from '@/lib/plugin';
 import type { RunningPlugin } from '@/stores/pluginStore';
@@ -34,6 +35,7 @@ export function PluginCard({
   onClear,
 }: PluginCardProps) {
   const { t, i18n } = useTranslation('plugin');
+  const { requestConfirm, dialog } = useConfirm();
   const [expanded, setExpanded] = useState(false);
   const [resultExpanded, setResultExpanded] = useState(true);
   const [logCopied, setLogCopied] = useState(false);
@@ -43,37 +45,42 @@ export function PluginCard({
   const installed = !!info.installedVersion;
   const latestVersion = info.registryEntry.latestVersion;
 
-  const status = (() => {
+  const statuses = (() => {
+    const result: Array<{ label: string; className: string }> = [];
     if (!info.isCompatible) {
-      return {
+      result.push({
         label: t('status_incompatible', { defaultValue: 'Incompatible' }),
         className: styles.statusIncompatible,
-      };
+      });
+      return result;
+    }
+    if (installed) {
+      result.push({
+        label: t('status_installed', { defaultValue: 'Installed' }),
+        className: styles.statusInstalled,
+      });
     }
     if (isRunning) {
-      return {
+      result.push({
         label: t('status_running', { defaultValue: 'Running' }),
         className: styles.statusRunning,
-      };
+      });
     }
-    if (info.hasUpdate) {
-      return {
+    if (installed && info.hasUpdate) {
+      result.push({
         label: t('status_update', {
           defaultValue: `Update: ${info.installedVersion} → ${latestVersion}`,
         }),
         className: styles.statusUpdate,
-      };
+      });
     }
-    if (installed) {
-      return {
-        label: t('status_installed', { defaultValue: 'Installed' }),
-        className: styles.statusInstalled,
-      };
+    if (!installed) {
+      result.push({
+        label: t('status_not_installed', { defaultValue: 'Not Installed' }),
+        className: styles.statusNotInstalled,
+      });
     }
-    return {
-      label: t('status_not_installed', { defaultValue: 'Not Installed' }),
-      className: styles.statusNotInstalled,
-    };
+    return result;
   })();
 
   const displayName = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
@@ -85,7 +92,11 @@ export function PluginCard({
       <div className={styles.header}>
         <div className={styles.nameRow}>
           <h3 className={styles.name}>{displayName}</h3>
-          <span className={`${styles.status} ${status.className}`}>{status.label}</span>
+          <div className={styles.badgeGroup}>
+            {statuses.map((s) => (
+              <span key={s.className} className={`${styles.status} ${s.className}`}>{s.label}</span>
+            ))}
+          </div>
         </div>
         <p className={styles.description}>{displayDesc}</p>
         <div className={styles.meta}>
@@ -130,7 +141,11 @@ export function PluginCard({
         </div>
         {installed && (
           <div className={styles.actionsRight}>
-            <button className={styles.uninstallBtn} onClick={onUninstall}>
+            <button className={styles.uninstallBtn} onClick={() => requestConfirm(
+                t('uninstall_confirm_title', { defaultValue: 'Uninstall Plugin' }),
+                t('uninstall_confirm_message', { defaultValue: 'Are you sure you want to uninstall "{{name}}"? This action will remove the plugin and its local data.', name: displayName }),
+                onUninstall,
+              )}>
               <Trash2 size={14} />
               {t('uninstall', { defaultValue: 'Uninstall' })}
             </button>
@@ -291,6 +306,7 @@ export function PluginCard({
           {t('incompatible_hint', { defaultValue: 'Update SoloSoul to use this plugin' })}
         </p>
       )}
+      {dialog}
     </div>
   );
 }

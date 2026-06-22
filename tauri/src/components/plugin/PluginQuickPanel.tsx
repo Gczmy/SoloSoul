@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import {
-  Puzzle,
+import { useNavigate } from 'react-router-dom';import { Puzzle,
   RefreshCw,
   X,
   Play,
@@ -13,6 +11,7 @@ import {
 } from 'lucide-react';
 import { usePluginStore, type RunningPlugin } from '@/stores/pluginStore';
 import { usePluginQuickStore, type QuickPanelTab } from '@/stores/pluginQuickStore';
+import { useConfirm } from '@/hooks/useConfirm';
 import { isDevOrDebug } from '@/lib/env';
 import styles from './PluginQuickPanel.module.css';
 
@@ -32,6 +31,7 @@ export function PluginQuickPanel({
   const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
 
   const { activeTab, setActiveTab } = usePluginQuickStore();
+  const { requestConfirm, dialog: uninstallDialog } = useConfirm();
 
   const {
     marketPlugins,
@@ -264,7 +264,11 @@ export function PluginQuickPanel({
                     {installed && (
                       <button
                         className={styles.uninstallBtn}
-                        onClick={() => uninstallPlugin(info.pluginId)}
+                        onClick={() => requestConfirm(
+                          t('plugin:uninstall_confirm_title', { defaultValue: 'Uninstall Plugin' }),
+                          t('plugin:uninstall_confirm_message', { defaultValue: 'Are you sure you want to uninstall "{{name}}"? This action will remove the plugin and its local data.', name: displayName }),
+                          () => uninstallPlugin(info.pluginId),
+                        )}
                       >
                         <Trash2 size={12} />
                       </button>
@@ -286,6 +290,8 @@ export function PluginQuickPanel({
           })
         )}
       </div>
+
+      {uninstallDialog}
 
       <style>{`
         @keyframes pluginQuickPulse {

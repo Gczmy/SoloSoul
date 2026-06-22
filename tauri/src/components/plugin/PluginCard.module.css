@@ -21,6 +21,13 @@
   gap: 12px;
 }
 
+.badgeGroup {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .name {
   margin: 0;
   font-size: 15px;
