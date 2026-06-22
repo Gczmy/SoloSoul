@@ -70,7 +70,7 @@
 }
 
 .pairValue {
-  flex: 1 0 auto;
+  flex: auto;
   min-width: 0;
   color: var(--text-secondary);
   word-break: break-word;
