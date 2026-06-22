@@ -67,7 +67,7 @@ const COUNTRY_NAME_TO_CODE: Record<string, string> = {
 
 // ─── ISO 代码 → 多语言短标签 ──────────────────────────────────────────────
 const COUNTRY_CODE_TO_LABEL: Record<string, { zh: string; en: string }> = {
-  GB: { zh: '英国', en: 'GB' },
+  GB: { zh: '英国', en: 'UK' },
   US: { zh: '美国', en: 'US' },
   CN: { zh: '中国', en: 'CN' },
   JP: { zh: '日本', en: 'JP' },
@@ -114,7 +114,7 @@ const COUNTRY_CODE_TO_LABEL: Record<string, { zh: string; en: string }> = {
   HU: { zh: '匈牙利', en: 'HU' },
   RO: { zh: '罗马尼亚', en: 'RO' },
   IL: { zh: '以色列', en: 'IL' },
-  AE: { zh: '阿联酋', en: 'AE' },
+  AE: { zh: '阿联酋', en: 'UAE' },
   SA: { zh: '沙特', en: 'SA' },
   CO: { zh: '哥伦比亚', en: 'CO' },
   CL: { zh: '智利', en: 'CL' },
