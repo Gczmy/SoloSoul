@@ -35,10 +35,6 @@
 }
 
 .keyValueTitle {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 4em;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -77,9 +73,18 @@
 
 .pairValue {
   flex: 1;
+  min-width: 0;
   color: var(--text-secondary);
   word-break: break-word;
   line-height: 1.5;
+}
+
+.pairValueCompact {
+  composes: pairValue;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 4em;
 }
 
 .pairCopyBtn {

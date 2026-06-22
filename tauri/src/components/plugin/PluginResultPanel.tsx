@@ -195,6 +195,8 @@ function PerPairCopyRow({
   };
 
     const badgeLabel = resolveCountryLabel(pair.tag, pair.tagCode, locale);
+    // 检测是否为对象名称字段（如 "名称"、"Name"、"对象名称"），侧边栏窄场景下截断显示
+    const isObjectName = /^(名称|Name|对象名称|Object Name)$/i.test(pair.key.trim());
 
   return (
     <div className={styles.pairRow}>
@@ -204,7 +206,7 @@ function PerPairCopyRow({
         </span>
       )}
       <span className={styles.pairKey}>{pair.key}</span>
-      <span className={styles.pairValue}>{pair.value}</span>
+      <span className={isObjectName ? styles.pairValueCompact : styles.pairValue} title={isObjectName ? pair.value : undefined}>{pair.value}</span>
       <button
         type="button"
         className={`${styles.pairCopyBtn} ${copied ? styles.pairCopyBtnActive : ''}`}
