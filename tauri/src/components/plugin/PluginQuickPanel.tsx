@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';import { Puzzle,
 import { usePluginStore, type RunningPlugin } from '@/stores/pluginStore';
 import { usePluginQuickStore, type QuickPanelTab } from '@/stores/pluginQuickStore';
 import { useConfirm } from '@/hooks/useConfirm';
+import { PluginResultPanel } from './PluginResultPanel';
 import { isDevOrDebug } from '@/lib/env';
 import styles from './PluginQuickPanel.module.css';
 
@@ -380,15 +381,7 @@ function QuickRunningInfo({
             <span className={styles.resultTitle}>
               {t('plugin:inline_result', { defaultValue: 'Plugin Result' })}
             </span>
-            {running.results.map((r, i) => (
-              <div key={i} className={styles.resultItem}>
-                {r.type === 'text' || r.type === 'markdown'
-                  ? r.content
-                  : r.type === 'key_value'
-                    ? r.pairs.map((p) => `${p.key}: ${p.value}`).join(', ')
-                    : JSON.stringify(r)}
-              </div>
-            ))}
+            <PluginResultPanel results={running.results} />
           </div>
         )}
       </div>
