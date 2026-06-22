@@ -217,15 +217,15 @@ export function PluginQuickPanel({
                     </span>
                   </div>
                   <div className={styles.pluginActions}>
+                    {installed && (
+                      <span className={styles.statusInstalled}>
+                        {t('plugin:status_installed', { defaultValue: 'Installed' })}
+                      </span>
+                    )}
                     {isRunning && (
                       <span className={styles.statusRunning}>
                         <Loader2 size={10} />
                         {t('plugin:status_running', { defaultValue: 'Running' })}
-                      </span>
-                    )}
-                    {installed && !isRunning && (
-                      <span className={styles.statusInstalled}>
-                        {t('plugin:status_installed', { defaultValue: 'Installed' })}
                       </span>
                     )}
                     {installed && info.isCompatible && (

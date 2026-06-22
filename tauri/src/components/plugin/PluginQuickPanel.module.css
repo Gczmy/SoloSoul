@@ -257,8 +257,8 @@
 
 .statusCompleted {
   composes: statusBadge;
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  color: var(--text-tertiary);
+  background: color-mix(in srgb, #2ecc71 10%, transparent);
+  color: #2ecc71;
 }
 
 .statusError {
