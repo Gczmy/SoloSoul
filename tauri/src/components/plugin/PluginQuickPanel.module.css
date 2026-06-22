@@ -210,27 +210,39 @@
 
 .runBtn {
   composes: actionBtn;
-  color: var(--accent-primary);
-  border-color: color-mix(in srgb, var(--accent-primary) 30%, var(--border-subtle));
+  background: var(--success-subtle);
+  color: var(--success);
+  border-color: transparent;
 }
 
 .runBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  border-color: var(--accent-primary);
+  background: var(--success);
+  color: white;
+  border-color: var(--success);
 }
 
 .installBtn {
   composes: actionBtn;
+  color: var(--text-primary);
+}
+
+.installBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .uninstallBtn {
   composes: actionBtn;
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-color: transparent;
 }
 
 .uninstallBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, #e74c3c 8%, transparent);
-  border-color: #e74c3c;
-  color: #e74c3c;
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
 }
 
 .statusBadge {
@@ -245,20 +257,20 @@
 
 .statusInstalled {
   composes: statusBadge;
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-primary);
+  background: var(--success-subtle);
+  color: var(--success);
 }
 
 .statusRunning {
   composes: statusBadge;
-  background: color-mix(in srgb, #2ecc71 10%, transparent);
-  color: #2ecc71;
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .statusCompleted {
   composes: statusBadge;
-  background: color-mix(in srgb, #2ecc71 10%, transparent);
-  color: #2ecc71;
+  background: var(--success-subtle);
+  color: var(--success);
 }
 
 .statusError {
@@ -318,19 +330,141 @@
   word-break: break-word;
 }
 
-.resultSection {
+.inlineHeader {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 4px;
+  margin: 0 -4px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  border-radius: 6px;
+  transition: background 0.15s ease;
 }
 
-.resultTitle {
+.inlineHeader:hover {
+  background: var(--bg-hover);
+}
+
+.inlineTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chevron {
+  color: var(--text-tertiary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+}
+
+.chevronOpen {
+  transform: rotate(0deg);
+}
+
+.inlineTitle {
   font-size: 10px;
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.logCount {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-hover);
+  color: var(--text-tertiary);
+  min-width: 16px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.inlineActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inlineLogs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-input);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.collapsible {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.collapsibleOpen {
+  max-height: 9999px;
+  opacity: 1;
+  overflow: visible;
+}
+
+.copyLogBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-toolbar);
+  font-size: 10px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.12s ease;
+}
+
+.copyLogBtn:hover {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: transparent;
+}
+
+.copyGlow {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent);
+  color: var(--accent-primary);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.resultSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
 }
 
 .resultItem {

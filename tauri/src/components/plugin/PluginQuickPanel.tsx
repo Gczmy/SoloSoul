@@ -8,6 +8,9 @@ import { useNavigate } from 'react-router-dom';import { Puzzle,
   Trash2,
   Loader2,
   ArrowUpRight,
+  ChevronDown,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { usePluginStore, type RunningPlugin } from '@/stores/pluginStore';
 import { usePluginQuickStore, type QuickPanelTab } from '@/stores/pluginQuickStore';
@@ -316,79 +319,27 @@ function QuickRunningInfo({
   onClear: () => void;
 }) {
   const { t } = useTranslation('plugin');
-  const [expanded, setExpanded] = useState(false);
+  const [logExpanded, setLogExpanded] = useState(false);
+  const [resultExpanded, setResultExpanded] = useState(false);
+  const [logCopied, setLogCopied] = useState(false);
 
-  if (running.completed) {
-    return (
-      <div className={styles.runningInfo}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 8,
-          }}
-        >
-          <span
-            className={
-              running.error ? styles.statusError : styles.statusCompleted
-            }
-          >
-            {running.error
-              ? t('plugin:status_failed', { defaultValue: 'Failed' })
-              : t('plugin:status_completed', { defaultValue: 'Completed' })}
-          </span>
-          <button
-            className={styles.actionBtn}
-            onClick={onClear}
-            style={{ fontSize: 10, padding: '2px 6px' }}
-          >
-            <X size={10} />
-            {t('plugin:clear', { defaultValue: 'Clear' })}
-          </button>
-        </div>
-        {running.error && (
-          <div className={styles.errorText}>{running.error}</div>
-        )}
-        {running.logs.length > 0 && (
-          <>
-            <div
-              className={styles.resultTitle}
-              onClick={() => setExpanded(!expanded)}
-              style={{ cursor: 'pointer', userSelect: 'none' }}
-            >
-              {t('plugin:inline_output', { defaultValue: 'Plugin Log' })}{' '}
-              ({running.logs.length})
-            </div>
-            {expanded && (
-              <div>
-                {running.logs.slice(-5).map((log) => (
-                  <div key={log.id} className={styles.logLine}>
-                    <span className={styles.logLevel} data-level={log.level}>
-                      {t(`plugin:log_level_${log.level}`, {
-                        defaultValue: log.level,
-                      })}
-                    </span>
-                    <span className={styles.logMessage}>{log.message}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-        {running.results.length > 0 && (
-          <div className={styles.resultSection}>
-            <span className={styles.resultTitle}>
-              {t('plugin:inline_result', { defaultValue: 'Plugin Result' })}
-            </span>
-            <PluginResultPanel results={running.results} />
-          </div>
-        )}
-      </div>
-    );
-  }
+  const handleCopyLogs = async () => {
+    try {
+      const text = running.logs
+        .map((log) => `[${log.level}] ${log.message}`)
+        .join('\n');
+      await navigator.clipboard.writeText(text);
+      setLogCopied(true);
+      setTimeout(() => setLogCopied(false), 1500);
+    } catch {
+      // 静默忽略
+    }
+  };
 
-  // Still running
+  const statusBadge = running.completed
+    ? { className: running.error ? styles.statusError : styles.statusCompleted, label: running.error ? t('plugin:status_failed', { defaultValue: 'Failed' }) : t('plugin:status_completed', { defaultValue: 'Completed' }) }
+    : { className: styles.statusRunning, label: t('plugin:status_running', { defaultValue: 'Running' }) };
+
   return (
     <div className={styles.runningInfo}>
       <div
@@ -396,28 +347,95 @@ function QuickRunningInfo({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: 8,
         }}
       >
-        <span className={styles.statusRunning}>
-          {t('plugin:status_running', { defaultValue: 'Running' })}
+        <span className={statusBadge.className}>
+          {statusBadge.label}
         </span>
-        <button className={styles.actionBtn} onClick={onStop}>
-          {t('plugin:stop', { defaultValue: 'Stop' })}
-        </button>
+        {running.completed ? (
+          <button className={styles.actionBtn} onClick={onClear} style={{ fontSize: 10, padding: '2px 6px' }}>
+            <X size={10} />
+            {t('plugin:clear', { defaultValue: 'Clear' })}
+          </button>
+        ) : (
+          <button className={styles.actionBtn} onClick={onStop}>
+            {t('plugin:stop', { defaultValue: 'Stop' })}
+          </button>
+        )}
       </div>
+
+      {running.error && (
+        <div className={styles.errorText}>{running.error}</div>
+      )}
+
+      {/* Logs section - collapsible */}
       {running.logs.length > 0 && (
-        <div>
-          {running.logs.slice(-3).map((log) => (
-            <div key={log.id} className={styles.logLine}>
-              <span className={styles.logLevel} data-level={log.level}>
-                {t(`plugin:log_level_${log.level}`, {
-                  defaultValue: log.level,
-                })}
+        <>
+          <button
+            className={styles.inlineHeader}
+            onClick={() => setLogExpanded(!logExpanded)}
+          >
+            <div className={styles.inlineTitleRow}>
+              <ChevronDown
+                size={12}
+                className={`${styles.chevron} ${logExpanded ? styles.chevronOpen : ''}`}
+              />
+              <span className={styles.inlineTitle}>
+                {t('plugin:inline_output', { defaultValue: 'Plugin Log' })}
               </span>
-              <span className={styles.logMessage}>{log.message}</span>
+              <span className={styles.logCount}>{running.logs.length}</span>
             </div>
-          ))}
-        </div>
+            <div className={styles.inlineActions} onClick={(e) => e.stopPropagation()}>
+              {running.completed && logExpanded && (
+                <button
+                  className={`${styles.copyLogBtn} ${logCopied ? styles.copyGlow : ''}`}
+                  onClick={handleCopyLogs}
+                >
+                  {logCopied ? <Check size={10} /> : <Copy size={10} />}
+                  {logCopied ? t('copied', { defaultValue: 'Copied' }) : t('copy', { defaultValue: 'Copy' })}
+                </button>
+              )}
+            </div>
+          </button>
+          <div className={`${styles.collapsible} ${logExpanded ? styles.collapsibleOpen : ''}`}>
+            <div className={styles.inlineLogs}>
+              {running.logs.slice(-10).map((log) => (
+                <div key={log.id} className={styles.logLine}>
+                  <span className={styles.logLevel} data-level={log.level}>
+                    {t(`plugin:log_level_${log.level}`, {
+                      defaultValue: log.level,
+                    })}
+                  </span>
+                  <span className={styles.logMessage}>{log.message}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Results section - collapsible */}
+      {running.results.length > 0 && (
+        <>
+          <button
+            className={styles.inlineHeader}
+            onClick={() => setResultExpanded(!resultExpanded)}
+          >
+            <div className={styles.inlineTitleRow}>
+              <ChevronDown
+                size={12}
+                className={`${styles.chevron} ${resultExpanded ? styles.chevronOpen : ''}`}
+              />
+              <span className={styles.inlineTitle}>
+                {t('plugin:inline_result', { defaultValue: 'Plugin Result' })}
+              </span>
+            </div>
+          </button>
+          <div className={`${styles.collapsible} ${resultExpanded ? styles.collapsibleOpen : ''}`}>
+            <PluginResultPanel results={running.results} />
+          </div>
+        </>
       )}
     </div>
   );
