@@ -34,6 +34,15 @@
   font-size: 13px;
 }
 
+.keyValueTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 4em;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .pairRow {
   display: flex;
   align-items: flex-start;
