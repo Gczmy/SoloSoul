@@ -320,7 +320,7 @@ function QuickRunningInfo({
 }) {
   const { t } = useTranslation('plugin');
   const [logExpanded, setLogExpanded] = useState(false);
-  const [resultExpanded, setResultExpanded] = useState(false);
+  const [resultExpanded, setResultExpanded] = useState(true);
   const [logCopied, setLogCopied] = useState(false);
 
   const handleCopyLogs = async () => {
