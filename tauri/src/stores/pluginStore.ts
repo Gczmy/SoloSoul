@@ -235,6 +235,7 @@ export const usePluginStore = create<PluginState>()(
                   break;
                 case 'completed':
                   next.completed = true;
+                  next.toastShown = true;
                   try {
                     const completed = JSON.parse(event.jsonData) as { exitCode: number };
                     if (typeof completed.exitCode === 'number') {
@@ -246,6 +247,7 @@ export const usePluginStore = create<PluginState>()(
                   break;
                 case 'error':
                   next.completed = true;
+                  next.toastShown = true;
                   next.error = event.jsonData;
                   break;
               }
