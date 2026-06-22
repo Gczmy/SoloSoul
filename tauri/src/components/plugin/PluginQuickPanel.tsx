@@ -400,7 +400,7 @@ function QuickRunningInfo({
           </button>
           <div className={`${styles.collapsible} ${logExpanded ? styles.collapsibleOpen : ''}`}>
             <div className={styles.inlineLogs}>
-              {running.logs.slice(-10).map((log) => (
+              {running.logs.map((log) => (
                 <div key={log.id} className={styles.logLine}>
                   <span className={styles.logLevel} data-level={log.level}>
                     {t(`plugin:log_level_${log.level}`, {
