@@ -36,7 +36,6 @@
 
 .pairRow {
   display: flex;
-  flex-wrap: wrap;
   align-items: flex-start;
   gap: 8px;
   padding: 6px 8px;
@@ -71,7 +70,7 @@
 }
 
 .pairValue {
-  flex: 1 0 0%;
+  flex: 1 1 auto;
   min-width: 0;
   color: var(--text-secondary);
   word-break: break-word;
