@@ -282,11 +282,10 @@
 .runningInfo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 6px 8px;
-  margin-top: 4px;
-  border-radius: 6px;
-  background: var(--bg-inset);
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: 6px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .logLine {
@@ -296,6 +295,13 @@
   font-size: 11px;
   line-height: 1.4;
   font-family: var(--font-mono, monospace);
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.12s ease;
+}
+
+.logLine:hover {
+  background: var(--bg-hover);
 }
 
 .logLevel {
