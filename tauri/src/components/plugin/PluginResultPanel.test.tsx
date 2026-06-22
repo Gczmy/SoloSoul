@@ -27,7 +27,6 @@ describe('PluginResultPanel', () => {
       },
     ];
     render(<PluginResultPanel results={results} />);
-    expect(screen.getByText('Summary')).toBeInTheDocument();
     expect(screen.getByText('Name')).toBeInTheDocument();
     expect(screen.getByText('Alice')).toBeInTheDocument();
   });

@@ -34,11 +34,6 @@
   font-size: 13px;
 }
 
-.keyValueTitle {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .pairRow {
   display: flex;
   align-items: flex-start;
@@ -72,7 +67,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 6em;
+  max-width: 3em;
 }
 
 .pairValue {
