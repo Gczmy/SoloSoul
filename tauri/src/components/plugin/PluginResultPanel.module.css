@@ -34,16 +34,6 @@
   font-size: 13px;
 }
 
-.pairRow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  transition: background 0.15s ease;
-}
-
 .countryBadge {
   flex-shrink: 0;
   font-size: 10px;
@@ -60,20 +50,33 @@
   background: var(--bg-hover);
 }
 
+.pairRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.pairRowHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .pairKey {
-  flex: 0 0 auto;
-  max-width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--text-tertiary);
   font-weight: 500;
-  min-width: 3em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .pairValue {
-  flex: 1 0 0%;
-  min-width: 0;
   color: var(--text-secondary);
   word-break: break-word;
   line-height: 1.5;
