@@ -26,6 +26,17 @@ Object.defineProperty(window, 'matchMedia', {
 // Mock scrollIntoView (not available in jsdom)
 Element.prototype.scrollIntoView = vi.fn();
 
+// Mock ResizeObserver (not available in jsdom)
+class MockResizeObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+Object.defineProperty(window, 'ResizeObserver', {
+  writable: true,
+  value: MockResizeObserver,
+});
+
 // Mock react-i18next for component tests
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({

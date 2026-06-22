@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check } from 'lucide-react';
 import styles from './PluginResultPanel.module.css';
@@ -184,6 +184,57 @@ function PerPairCopyRow({
   const [copied, setCopied] = useState(false);
   const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
 
+  const rowRef = useRef<HTMLDivElement>(null);
+  const keyRef = useRef<HTMLSpanElement>(null);
+  const valueRef = useRef<HTMLSpanElement>(null);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const row = rowRef.current;
+    const key = keyRef.current;
+    const valueNode = valueRef.current;
+    if (!row || !key || !valueNode) return;
+
+    const updateKeyWidth = () => {
+      const rowWidth = row.offsetWidth;
+      if (rowWidth <= 0) return;
+
+      const children = Array.from(row.children);
+      // gap: 8px × (children - 1)
+      const gapPx = 8;
+      const totalGaps = (children.length - 1) * gapPx;
+
+      // Sum offsetWidth of all children except key and value
+      let fixedWidth = 0;
+      for (const child of children) {
+        if (child === key) continue;
+        if (child === valueNode) continue;
+        fixedWidth += (child as HTMLElement).offsetWidth;
+      }
+
+      // Available space for key + value combined
+      const available = rowWidth - fixedWidth - totalGaps;
+      if (available <= 0) return;
+
+      // Measure value's natural content width (fallback ~5em = 65px at 13px)
+      const valueNaturalWidth = valueNode.scrollWidth || 65;
+
+      // Key gets whatever's available after reserving value's natural width.
+      // Minimum: 3em (36px at 13px font-size).
+      const keyMaxWidth = Math.max(available - valueNaturalWidth, 36);
+
+      const newValue = `${Math.round(keyMaxWidth)}px`;
+      if (key.style.maxWidth !== newValue) {
+        key.style.maxWidth = newValue;
+      }
+    };
+
+    updateKeyWidth();
+    const observer = new ResizeObserver(updateKeyWidth);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, []);
+
   const copyPair = async () => {
     try {
       await navigator.clipboard.writeText(`${pair.key}: ${pair.value}`);
@@ -197,14 +248,14 @@ function PerPairCopyRow({
     const badgeLabel = resolveCountryLabel(pair.tag, pair.tagCode, locale);
 
   return (
-    <div className={styles.pairRow}>
+    <div ref={rowRef} className={styles.pairRow}>
       {badgeLabel && (
         <span className={styles.countryBadge} title={pair.tag || pair.tagCode || ''}>
           {badgeLabel}
         </span>
       )}
-      <span className={styles.pairKey} title={pair.key}>{pair.key}</span>
-      <span className={styles.pairValue}>{pair.value}</span>
+      <span ref={keyRef} className={styles.pairKey} title={pair.key}>{pair.key}</span>
+      <span ref={valueRef} className={styles.pairValue}>{pair.value}</span>
       <button
         type="button"
         className={`${styles.pairCopyBtn} ${copied ? styles.pairCopyBtnActive : ''}`}
