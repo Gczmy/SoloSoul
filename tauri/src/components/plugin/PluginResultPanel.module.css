@@ -60,7 +60,7 @@
 }
 
 .pairKey {
-  flex: 0 10 auto;
+  flex: 0 100 auto;
   color: var(--text-tertiary);
   font-weight: 500;
   min-width: 3em;
