@@ -4,6 +4,37 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.4] - 2026-06-24
+
+### Added
+
+- **附件批量操作** — 附件管理页面支持批量选择、批量删除与恢复，抽离 `useBatchSelect`/`useAttachmentPageSort` hooks，支持附件重命名。
+- **插件自适应 Key 截断** — 插件结果区 Key 不再硬编码 3em max-width，改为根据内容自适应截断，避免长 Key 过早换行。
+- **插件国家徽章本地化** — 地址格式化器结果中的国家徽章根据界面 locale 显示本地化名称（中文环境显示「中国」，英文显示代码「CN」）。
+- **侧边栏插件结果 UI 统一** — `QuickRunningInfo` 改用 `PluginResultPanel`，与插件页面共享同一套结果渲染组件。
+- **OCR MRZ 模板匹配 Strategy C** — 新增 MRZ 模板匹配策略 C，改进 `split_mrz_lines` 方法，提升 MRZ 识别准确率。
+
+### Fixed
+
+- **附件/快照徽章溢出** — 数量超过 99 时显示 `99+`，避免徽章宽度溢出。
+- **插件 UI 修复集** — 修复徽章布局（已安装始终可见、Completed 使用绿色）、Key/Value 截断与换行、侧边栏结果区 UI 与插件页面对齐、日志默认展开、Toast 重复防止等 10+ 项 UI 问题。
+- **ESLint 问题修复** — 解决 E001-E007 共 7 个 ESLint 警告。
+- **Clippy 警告修复** — 解决 P009-P010 共 11 个 OCR 代码中的 clippy 警告。
+
+### Changed
+
+- **版本号统一** — 全平台版本号同步升级到 `2.5.4`。
+
+### Refactored
+
+- **插件共享可折叠组件提取** — 提取统一的可折叠日志/结果组件，消除插件页面与侧边栏的重复实现。
+- **OCR 函数重命名** — `locate_mrz_region_flutter` 重命名为 `locate_mrz_region`，清除 Flutter 遗留引用。
+
+### Chores
+
+- 移除遗留的 `CODE_ANALYSIS_REPORT.md`。
+- 更新过时注释，清理旧死代码。
+
 ## [2.5.3] - 2026-06-21
 
 ### Added
