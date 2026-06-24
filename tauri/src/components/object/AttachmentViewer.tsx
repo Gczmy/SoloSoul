@@ -575,17 +575,19 @@ export function AttachmentViewer({
                 <button
                   onClick={() => setBatchDeleteConfirm(true)}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#c0392b';
+                    e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
+                    e.currentTarget.style.borderColor = '#e74c3c';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#e74c3c';
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
                   }}
                   style={{
                     padding: '4px 12px',
                     borderRadius: 6,
-                    border: 'none',
-                    background: '#e74c3c',
-                    color: 'white',
+                    border: '1px solid var(--border-subtle)',
+                    background: 'transparent',
+                    color: '#e74c3c',
                     fontSize: 12,
                     fontWeight: 500,
                     cursor: 'pointer',
@@ -600,6 +602,31 @@ export function AttachmentViewer({
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={() => setBatchRestoreConfirm(true)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 6,
+                    border: '1px solid var(--accent-primary)',
+                    background: 'transparent',
+                    color: 'var(--accent-primary)',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <RotateCw size={12} /> {t('common:restore')}
+                </button>
                 <button
                   onClick={() => setBatchPermanentDeleteConfirm(true)}
                   onMouseEnter={(e) => {
@@ -626,31 +653,6 @@ export function AttachmentViewer({
                   }}
                 >
                   <Trash2 size={12} /> {t('common:delete_permanently')}
-                </button>
-                <button
-                  onClick={() => setBatchRestoreConfirm(true)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--accent-primary)',
-                    background: 'transparent',
-                    color: 'var(--accent-primary)',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
-                  <RotateCw size={12} /> {t('common:restore')}
                 </button>
               </div>
             )}
