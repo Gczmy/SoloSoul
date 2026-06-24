@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { uploadAttachmentsSequentially } from '@/lib/attachmentUpload';
 import { useUiStore } from '@/stores/uiStore';
+import i18n from '@/lib/i18n';
 
 export interface DragUploadState {
   /** 文件正拖拽到目标区域上方 */
@@ -129,7 +130,7 @@ export function useDragToAttach(
       console.error('Drag-drop upload failed:', e);
       useUiStore.getState().showToast({
         type: 'error',
-        message: 'Upload failed, please try again',
+        message: i18n.t('upload_failed'),
       });
     } finally {
       // 检查队列中是否有下一个批次

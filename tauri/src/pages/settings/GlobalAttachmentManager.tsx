@@ -279,7 +279,7 @@ export function GlobalAttachmentManager() {
         });
         await loadData();
       } catch (e) {
-        showToast({ type: 'error', message: `Rename failed: ${e}` });
+        showToast({ type: 'error', message: `${t('common:rename_failed')}: ${e}` });
       }
     }
     setRenamingId(null);
@@ -293,7 +293,7 @@ export function GlobalAttachmentManager() {
         await uploadSingleAttachment(filePath, objectId);
         await loadData();
       } catch (e) {
-        showToast({ type: 'error', message: `Upload failed: ${e}` });
+        showToast({ type: 'error', message: `${t('common:upload_failed')}: ${e}` });
       }
     }
   };
@@ -308,7 +308,7 @@ export function GlobalAttachmentManager() {
           await invoke('attachment_soft_delete', { objectId, attachmentId: item.id });
           await loadData();
         } catch (e) {
-          showToast({ type: 'error', message: `Delete failed: ${e}` });
+          showToast({ type: 'error', message: `${t('common:delete_failed')}: ${e}` });
         }
       },
       { confirmLabel: t('common:delete'), cancelLabel: t('common:cancel') },
@@ -320,7 +320,7 @@ export function GlobalAttachmentManager() {
       await invoke('attachment_restore', { objectId, attachmentId: item.id });
       await loadData();
     } catch (e) {
-      showToast({ type: 'error', message: `Restore failed: ${e}` });
+      showToast({ type: 'error', message: `${t('common:restore_failed')}: ${e}` });
     }
   };
 
@@ -337,7 +337,7 @@ export function GlobalAttachmentManager() {
       await invoke('attachment_delete', { objectId: permDeleteItem._objectId, attachmentId: permDeleteItem.id });
       await loadData();
     } catch (e) {
-      showToast({ type: 'error', message: `Permanent delete failed: ${e}` });
+      showToast({ type: 'error', message: `${t('common:perm_delete_failed')}: ${e}` });
     }
     setPermDeleteItem(null);
   };
