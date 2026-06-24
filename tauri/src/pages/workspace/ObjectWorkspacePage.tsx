@@ -259,10 +259,8 @@ export function ObjectWorkspacePage() {
         for (const id of ids) full[id] = counts[id] ?? 0;
         setSnapshotCounts(full);
       })
-      .catch((e) => {
+      .catch(() => {
         if (snapshotReqRef.current !== reqId) return; // stale error, discard
-        // eslint-disable-next-line no-console
-        console.error('snapshot_count_batch failed:', e);
       });
     // Increment ref on cleanup so in-flight responses become stale (handles Strict Mode + unmount)
     return () => { snapshotReqRef.current++; };

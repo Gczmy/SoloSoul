@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { uploadAttachmentsSequentially } from '@/lib/attachmentUpload';
+import { useUiStore } from '@/stores/uiStore';
 
 export interface DragUploadState {
   /** 文件正拖拽到目标区域上方 */
@@ -123,7 +124,13 @@ export function useDragToAttach(
         },
       );
     } catch (e) {
+      // 保留 console.error 用于调试追溯（错误对象 e 仅在 catch 作用域内）
+      // eslint-disable-next-line no-console
       console.error('Drag-drop upload failed:', e);
+      useUiStore.getState().showToast({
+        type: 'error',
+        message: 'Upload failed, please try again',
+      });
     } finally {
       // 检查队列中是否有下一个批次
       const nextBatch = pendingQueueRef.current.shift();
