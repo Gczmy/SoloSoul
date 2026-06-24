@@ -19,6 +19,8 @@ import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
+import { useDragToAttach } from '@/hooks/useDragToAttach';
+import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 
 interface ObjectDetailModalProps {
   /** 已加载的对象摘要/完整数据。与 objectId 二选一，优先使用此值。 */
@@ -104,6 +106,7 @@ export function ObjectDetailModal({
   const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
   const obj = useMemo(() => object || fetchedObj, [object, fetchedObj]);
+  const { ref: detailDragRef, dragState: detailDragState } = useDragToAttach(obj?.id || null);
 
   useEffect(() => {
     loadTemplates().catch(() => {});
@@ -343,6 +346,7 @@ export function ObjectDetailModal({
         onClick={onClose}
       >
         <div
+          ref={detailDragRef}
           onClick={(e) => e.stopPropagation()}
           style={{
             background: 'var(--bg-elevated)',
@@ -354,6 +358,7 @@ export function ObjectDetailModal({
             overflowY: 'auto',
             boxShadow: 'var(--shadow-lg)',
             border: '1px solid var(--border-subtle)',
+            position: 'relative',
           }}
         >
           {loading || !obj ? (
@@ -575,6 +580,9 @@ export function ObjectDetailModal({
                   })}
                 </div>
               )}
+
+              {/* 拖拽上传覆盖层 */}
+              <DragUploadOverlay dragState={detailDragState} borderRadius={16} />
 
               {/* Tags */}
               {obj.tags && obj.tags.length > 0 && (

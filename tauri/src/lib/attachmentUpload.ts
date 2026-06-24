@@ -1,0 +1,105 @@
+import { invoke } from '@tauri-apps/api/core';
+
+/** MIME 类型映射表（扩展名 → MIME type） */
+export const MIME_MAP: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  svg: 'image/svg+xml',
+  pdf: 'application/pdf',
+  txt: 'text/plain',
+  md: 'text/markdown',
+  json: 'application/json',
+  xml: 'application/xml',
+  csv: 'text/csv',
+};
+
+/** 从文件路径中提取文件名 */
+export function getFileName(filePath: string): string {
+  return filePath.split('/').pop() || filePath.split('\\').pop() || 'file';
+}
+
+/** 从文件名获取 MIME type */
+export function getMimeType(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  return MIME_MAP[ext] || 'application/octet-stream';
+}
+
+/** 获取文件大小（字节），失败时返回 0 */
+export async function getFileSize(filePath: string): Promise<number> {
+  return invoke<number>('fs_get_file_size', { path: filePath }).catch(() => 0);
+}
+
+/** 读取文件对话框，返回选中的文件路径或 null */
+export async function pickFileToAttach(): Promise<string | null> {
+  try {
+    const { open } = await import('@tauri-apps/plugin-dialog');
+    const filePath = await open({ multiple: false, title: 'Select file to attach' });
+    if (filePath && typeof filePath === 'string') return filePath;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 上传单个附件到指定对象。
+ *
+ * 完整流程：解析文件名 → 获取文件大小 → 生成 UUID → 复制到 Vault → 写入数据库。
+ *
+ * @param filePath  - 源文件的绝对路径
+ * @param objectId  - 目标对象 ID
+ * @returns 新创建的附件 ID
+ */
+export async function uploadSingleAttachment(
+  filePath: string,
+  objectId: string,
+): Promise<string> {
+  const fileName = getFileName(filePath);
+  const sizeBytes = await getFileSize(filePath);
+  const id = crypto.randomUUID();
+
+  const vaultPath = await invoke<string>('attachment_copy_to_vault', {
+    srcPath: filePath,
+    objectId,
+    attachmentId: id,
+    fileName,
+  }).catch(() => filePath);
+
+  await invoke('attachment_save', {
+    objectId,
+    meta: {
+      id,
+      objectId,
+      fileName,
+      mimeType: getMimeType(fileName),
+      sizeBytes,
+      createdAt: new Date().toISOString(),
+      srcPath: filePath,
+      vaultPath,
+    },
+  });
+
+  return id;
+}
+
+/**
+ * 依次上传多个附件，每完成一个调用 onProgress。
+ *
+ * @param paths     - 源文件路径数组
+ * @param objectId  - 目标对象 ID
+ * @param onProgress - 每完成一个文件后的回调 (currentIndex, total, fileName)
+ */
+export async function uploadAttachmentsSequentially(
+  paths: string[],
+  objectId: string,
+  onProgress?: (currentIndex: number, total: number, fileName: string) => void,
+): Promise<void> {
+  for (let i = 0; i < paths.length; i++) {
+    const fileName = getFileName(paths[i]);
+    onProgress?.(i, paths.length, fileName);
+    await uploadSingleAttachment(paths[i], objectId);
+  }
+}

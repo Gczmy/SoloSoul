@@ -18,6 +18,7 @@ import { LlmChatPage } from "@/pages/ai/LlmChatPage";
 import { LlmConfigPage } from "@/pages/ai/LlmConfigPage";
 import { TemplateManagerPage } from "@/pages/settings/TemplateManagerPage";
 import { OcrSettingsPage } from "@/pages/settings/OcrSettingsPage";
+import { GlobalAttachmentManager } from "@/pages/settings/GlobalAttachmentManager";
 import { LlmStatsPage } from "@/pages/ai/LlmStatsPage";
 import { HelpPage } from "@/pages/help/HelpPage";
 import { ScanLocalPage } from "@/pages/scan/ScanLocalPage";
@@ -55,6 +56,7 @@ export const protectedRoutes: RouteConfig[] = [
   { path: '/debug-log', element: <DebugLogPage /> },
   { path: '/plugins', element: <PluginGatePage /> },
   { path: '/settings/templates', element: <TemplateManagerPage /> },
+  { path: '/settings/attachments', element: <GlobalAttachmentManager /> },
   { path: '/settings/ocr', element: <OcrSettingsPage /> },
   { path: '/settings/llm', element: <LlmConfigPage /> },
   { path: '/settings/llm/stats', element: <LlmStatsPage /> },

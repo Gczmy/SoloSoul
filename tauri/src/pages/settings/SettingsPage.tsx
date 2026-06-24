@@ -21,6 +21,7 @@ import {
   Puzzle,
   Smartphone,
   Scan,
+  Paperclip,
 } from 'lucide-react';
 
 export function SettingsPage() {
@@ -90,6 +91,12 @@ export function SettingsPage() {
           icon: ClipboardList,
           path: '/settings/operation-log',
           desc: t('settings:desc.operation_log'),
+        },
+        {
+          label: t('settings:items.global_attachments'),
+          icon: Paperclip,
+          path: '/settings/attachments',
+          desc: t('settings:desc.global_attachments'),
         },
         {
           label: t('settings:items.templates') || '模板管理',

@@ -24,7 +24,9 @@
     "templates": "Template Manager",
     "plugins": "Plugins",
     "sync": "Device Sync",
-    "ocr": "OCR"
+    "ocr": "OCR",
+    "attachments": "Attachments",
+    "global_attachments": "Global Attachment Manager"
   },
   "auto_lock": "Auto Lock",
   "auto_lock_description": "Set how long of inactivity before the vault auto-locks and wipes sensitive state from memory.",
@@ -514,7 +516,9 @@
     "templates": "Manage custom object templates",
     "plugins": "Manage local plugin marketplace",
     "sync": "Sync profiles, objects and templates across devices",
-    "ocr": "Manage OCR models and preferences"
+    "ocr": "Manage OCR models and preferences",
+    "attachments": "Preview all attachments across pages and objects",
+    "global_attachments": "Browse all attachments organized by page and object"
   },
   "ai_quick_chat_title": "Quick Chat",
   "ai_quick_chat_configure_hint": "Please configure an LLM to use AI chat",

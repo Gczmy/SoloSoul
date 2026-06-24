@@ -199,6 +199,93 @@ pub async fn attachment_soft_delete(
     vault.save_object(&record)
 }
 
+/// Batch soft-delete multiple attachments on the same object in a single transaction.
+/// Significantly faster than N sequential `attachment_soft_delete` calls.
+#[tauri::command]
+pub async fn attachment_batch_soft_delete(
+    state: State<'_, AppState>,
+    object_id: String,
+    attachment_ids: Vec<String>,
+) -> Result<(), String> {
+    let vault = vault_handle(&state)?;
+    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
+    let mut atts = load_attachments(&record.properties);
+    let ids_set: std::collections::HashSet<&str> =
+        attachment_ids.iter().map(|s| s.as_str()).collect();
+    let now = chrono::Utc::now().to_rfc3339();
+    for att in atts.iter_mut().filter(|a| ids_set.contains(a.id.as_str())) {
+        att.deleted_at = Some(now.clone());
+    }
+    save_attachments(&mut record.properties, &atts);
+    record.updated_at = chrono::Utc::now().to_rfc3339();
+    record.version += 1;
+    vault.save_object(&record)
+}
+
+/// Batch restore multiple soft-deleted attachments on the same object in a single transaction.
+/// Significantly faster than N sequential `attachment_restore` calls.
+#[tauri::command]
+pub async fn attachment_batch_restore(
+    state: State<'_, AppState>,
+    object_id: String,
+    attachment_ids: Vec<String>,
+) -> Result<(), String> {
+    let vault = vault_handle(&state)?;
+    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
+    let mut atts = load_attachments(&record.properties);
+    let ids_set: std::collections::HashSet<&str> =
+        attachment_ids.iter().map(|s| s.as_str()).collect();
+    for att in atts.iter_mut().filter(|a| ids_set.contains(a.id.as_str())) {
+        att.deleted_at = None;
+    }
+    save_attachments(&mut record.properties, &atts);
+    record.updated_at = chrono::Utc::now().to_rfc3339();
+    record.version += 1;
+    vault.save_object(&record)
+}
+
+/// Batch permanent-delete multiple attachments on the same object in a single transaction.
+/// Removes metadata entries AND deletes physical files from disk.
+#[tauri::command]
+pub async fn attachment_batch_delete(
+    state: State<'_, AppState>,
+    object_id: String,
+    attachment_ids: Vec<String>,
+) -> Result<(), String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let vault = svc
+        .get_vault_store()
+        .ok_or_else(|| "Vault not unlocked".to_string())?;
+    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
+    let ids_set: std::collections::HashSet<&str> =
+        attachment_ids.iter().map(|s| s.as_str()).collect();
+
+    // Collect physical paths before removing metadata
+    let paths_to_remove: Vec<std::path::PathBuf> = load_attachments(&record.properties)
+        .iter()
+        .filter(|a| ids_set.contains(a.id.as_str()))
+        .filter_map(|a| attachment_dir(svc.base_path(), &object_id, &a.id).ok())
+        .collect();
+
+    let atts: Vec<AttachmentMeta> = load_attachments(&record.properties)
+        .into_iter()
+        .filter(|a| !ids_set.contains(a.id.as_str()))
+        .collect();
+
+    // Delete physical files
+    for dir in &paths_to_remove {
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    save_attachments(&mut record.properties, &atts);
+    record.updated_at = chrono::Utc::now().to_rfc3339();
+    record.version += 1;
+    vault.save_object(&record)
+}
+
 #[tauri::command]
 pub async fn attachment_count_batch(
     state: State<'_, AppState>,
@@ -270,6 +357,185 @@ fn load_all_referenced_attachment_ids(
         }
     }
     Ok(active_ids)
+}
+
+// ── Types for global attachment tree ────────────────────────────
+
+/// One object in the attachment tree, containing its attachments.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AttachmentTreeObject {
+    pub object_id: String,
+    pub object_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub template_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub attachments: Vec<AttachmentMeta>,
+}
+
+/// One page (section type or custom page) in the attachment tree.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AttachmentTreePage {
+    #[serde(default)]
+    pub page_id: Option<String>,
+    pub page_name: String,
+    #[serde(default)]
+    pub page_icon: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub objects: Vec<AttachmentTreeObject>,
+}
+
+/// Result of listing all attachments across all objects, grouped by page.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AttachmentListAllResult {
+    /// Pages with active (non-deleted) attachments.
+    pub pages: Vec<AttachmentTreePage>,
+    /// Pages with deleted attachments (for trash view).
+    pub trash_pages: Vec<AttachmentTreePage>,
+}
+
+/// List all attachments across all objects, grouped by page.
+/// Custom pages use parent_id to find child objects;
+/// remaining objects are grouped by section_type (built-in sections).
+#[tauri::command]
+pub async fn attachment_list_all(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<AttachmentListAllResult, String> {
+    let vault = vault_handle(&state)?;
+    let objects = vault.list_objects(&account_id, None, None, None, false, false)?;
+
+    // Separate page objects from other objects
+    let mut page_objects: Vec<solosoul_vault::ObjectSummary> = Vec::new();
+    let mut section_groups: std::collections::BTreeMap<String, Vec<solosoul_vault::ObjectSummary>> =
+        std::collections::BTreeMap::new();
+
+    for obj in &objects {
+        if obj.collection_type == "page" {
+            page_objects.push(obj.clone());
+        } else {
+            section_groups
+                .entry(obj.section_type.clone())
+                .or_default()
+                .push(obj.clone());
+        }
+    }
+
+    // Helper: build tree from a list of objects, with template name lookup cache
+    let template_cache: std::cell::RefCell<std::collections::HashMap<String, Option<String>>> =
+        std::cell::RefCell::new(std::collections::HashMap::new());
+    let build_objects_with_attachments = |objs: &[solosoul_vault::ObjectSummary], only_deleted: bool| -> Vec<AttachmentTreeObject> {
+        objs.iter().filter_map(|summary| {
+            let record = vault.load_object(&summary.id).ok()??;
+            let all_atts = load_attachments(&record.properties);
+            let filtered: Vec<AttachmentMeta> = all_atts.into_iter()
+                .filter(|a| if only_deleted { a.deleted_at.is_some() } else { a.deleted_at.is_none() })
+                .collect();
+            if filtered.is_empty() {
+                None
+            } else {
+                let template_name = record.template_id.as_ref().and_then(|tid| {
+                    let mut cache = template_cache.borrow_mut();
+                    cache.get(tid).cloned().unwrap_or_else(|| {
+                        let name = vault.load_user_template(tid)
+                            .ok()
+                            .flatten()
+                            .map(|t| t.name.clone());
+                        cache.insert(tid.clone(), name.clone());
+                        name
+                    })
+                });
+                Some(AttachmentTreeObject {
+                    object_id: summary.id.clone(),
+                    object_name: summary.name.clone(),
+                    template_name,
+                    attachments: filtered,
+                })
+            }
+        }).collect()
+    };
+
+    // ── Build active pages ─────────────────────────────────────
+    let mut pages: Vec<AttachmentTreePage> = Vec::new();
+    let mut child_ids_assigned: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+    // For custom pages: find children via parent_id
+    for page_obj in &page_objects {
+        let children = vault.list_objects(&account_id, None, Some(&page_obj.id), None, false, false)?;
+        for child in &children {
+            child_ids_assigned.insert(child.id.clone());
+        }
+        let objects_with_attachments = build_objects_with_attachments(&children, false);
+        if !objects_with_attachments.is_empty() {
+            pages.push(AttachmentTreePage {
+                page_id: Some(page_obj.id.clone()),
+                page_name: page_obj.name.clone(),
+                page_icon: Some(page_obj.icon_name.clone()),
+                objects: objects_with_attachments,
+            });
+        }
+    }
+
+    // For remaining objects: group by section_type (built-in sections)
+    for (section, objs) in &section_groups {
+        let unassigned: Vec<_> = objs.iter()
+            .filter(|o| !child_ids_assigned.contains(&o.id))
+            .cloned()
+            .collect();
+        if unassigned.is_empty() {
+            continue;
+        }
+        let objects_with_attachments = build_objects_with_attachments(&unassigned, false);
+        if !objects_with_attachments.is_empty() {
+            pages.push(AttachmentTreePage {
+                page_id: None,
+                page_name: section.clone(),
+                // Pass section name as icon key so frontend can look up in PAGE_ICON_MAP
+                page_icon: Some(section.clone()),
+                objects: objects_with_attachments,
+            });
+        }
+    }
+
+    // ── Build trash pages ──────────────────────────────────────
+    let mut trash_pages: Vec<AttachmentTreePage> = Vec::new();
+    for page_obj in &page_objects {
+        let children = vault.list_objects(&account_id, None, Some(&page_obj.id), None, false, false)?;
+        for child in &children {
+            child_ids_assigned.insert(child.id.clone());
+        }
+        let objects_with_trash = build_objects_with_attachments(&children, true);
+        if !objects_with_trash.is_empty() {
+            trash_pages.push(AttachmentTreePage {
+                page_id: Some(page_obj.id.clone()),
+                page_name: page_obj.name.clone(),
+                page_icon: Some(page_obj.icon_name.clone()),
+                objects: objects_with_trash,
+            });
+        }
+    }
+    for (section, objs) in &section_groups {
+        let unassigned: Vec<_> = objs.iter()
+            .filter(|o| !child_ids_assigned.contains(&o.id))
+            .cloned()
+            .collect();
+        if unassigned.is_empty() {
+            continue;
+        }
+        let objects_with_trash = build_objects_with_attachments(&unassigned, true);
+        if !objects_with_trash.is_empty() {
+            trash_pages.push(AttachmentTreePage {
+                page_id: None,
+                page_name: section.clone(),
+                page_icon: Some(section.clone()),
+                objects: objects_with_trash,
+            });
+        }
+    }
+
+    Ok(AttachmentListAllResult { pages, trash_pages })
 }
 
 /// Scan attachments directory and remove files not referenced in any object's metadata.

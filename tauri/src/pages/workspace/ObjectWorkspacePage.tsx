@@ -507,6 +507,7 @@ export function ObjectWorkspacePage() {
                   templateId: obj.templateId || undefined,
                 })
               }
+              onUploadComplete={refreshAttachmentCounts}
               onAttachments={() => setAttachmentObjId(obj.id)}
               onEdit={() => navigate(`/editor/${obj.id}`)}
               onDelete={() => setConfirmDelete({ id: obj.id, name: obj.name })}

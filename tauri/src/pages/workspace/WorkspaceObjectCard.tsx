@@ -5,6 +5,8 @@ import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/Sens
 import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
 import { PluginBadge } from '@/components/template/PluginBadge';
+import { useDragToAttach } from '@/hooks/useDragToAttach';
+import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 
 /** Extract displayable key-value pairs from object properties (filters internal __ fields). */
 function flattenProperties(
@@ -49,6 +51,8 @@ interface WorkspaceObjectCardProps {
   onAttachments: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  /** 拖拽文件上传完成后的回调，用于刷新附件计数 */
+  onUploadComplete?: () => void;
 }
 
 export function WorkspaceObjectCard({
@@ -62,6 +66,7 @@ export function WorkspaceObjectCard({
   onAttachments,
   onEdit,
   onDelete,
+  onUploadComplete,
 }: WorkspaceObjectCardProps) {
   const tpl = userTemplates.find((t) => t.id === obj.templateId);
   const fieldOrder = tpl?.properties.map((p) => p.id);
@@ -95,7 +100,12 @@ export function WorkspaceObjectCard({
     transition: 'all 0.15s ease',
   };
 
+  const { ref: dragRef, dragState } = useDragToAttach(obj.id, {
+    onComplete: onUploadComplete,
+  });
+
   return (
+    <div ref={dragRef} style={{ position: 'relative' }}>
     <Card interactive onClick={onClick}>
       {/* Header row */}
       <div
@@ -255,6 +265,8 @@ export function WorkspaceObjectCard({
         </div>
       )}
     </Card>
+      <DragUploadOverlay dragState={dragState} borderRadius={12} />
+    </div>
   );
 }
 

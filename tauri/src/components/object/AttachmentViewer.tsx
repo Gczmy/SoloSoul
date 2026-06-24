@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
@@ -6,6 +6,11 @@ import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2, Scan } fro
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
+import { useDragToAttach } from '@/hooks/useDragToAttach';
+import { useBatchSelect } from '@/hooks/useBatchSelect';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
+import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
+import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 
 export interface AttachmentItem {
   id: string;
@@ -187,46 +192,9 @@ export function AttachmentViewer({
   }, [loadAttachments]);
 
   const handleAdd = async () => {
-    const { open } = await import('@tauri-apps/plugin-dialog');
-    const filePath = await open({ multiple: false, title: 'Select file to attach' });
-    if (filePath && typeof filePath === 'string') {
-      const fileName = filePath.split('/').pop() || filePath.split('\\').pop() || 'file';
-      const sizeBytes = await invoke<number>('fs_get_file_size', { path: filePath }).catch(() => 0);
-      const ext = fileName.split('.').pop()?.toLowerCase() || '';
-      const mimeMap: Record<string, string> = {
-        jpg: 'image/jpeg',
-        jpeg: 'image/jpeg',
-        png: 'image/png',
-        gif: 'image/gif',
-        webp: 'image/webp',
-        svg: 'image/svg+xml',
-        pdf: 'application/pdf',
-        txt: 'text/plain',
-        md: 'text/markdown',
-        json: 'application/json',
-        xml: 'application/xml',
-        csv: 'text/csv',
-      };
-      const id = crypto.randomUUID();
-      const vaultPath = await invoke<string>('attachment_copy_to_vault', {
-        srcPath: filePath,
-        objectId,
-        attachmentId: id,
-        fileName,
-      }).catch(() => filePath);
-      await invoke('attachment_save', {
-        objectId,
-        meta: {
-          id,
-          objectId,
-          fileName,
-          mimeType: mimeMap[ext] || 'application/octet-stream',
-          sizeBytes,
-          createdAt: new Date().toISOString(),
-          srcPath: filePath,
-          vaultPath,
-        },
-      });
+    const filePath = await pickFileToAttach();
+    if (filePath) {
+      await uploadSingleAttachment(filePath, objectId);
       await loadAttachments();
       onCountChange?.();
     }
@@ -287,6 +255,95 @@ export function AttachmentViewer({
 
   const displayItems = showTrash ? trashItems : items;
 
+  const allVisibleKeys = useMemo(
+    () => displayItems.map((item) => `${objectId}::${item.id}`),
+    [displayItems, objectId],
+  );
+
+  const {
+    selectedIds,
+    batchDeleteConfirm,
+    batchRestoreConfirm,
+    batchPermanentDeleteConfirm,
+    allSelected,
+    toggleSelect,
+    handleSelectAll,
+    clearSelection,
+    setBatchDeleteConfirm,
+    setBatchRestoreConfirm,
+    setBatchPermanentDeleteConfirm,
+  } = useBatchSelect(allVisibleKeys);
+
+  const handleBatchDelete = async () => {
+    setBatchDeleteConfirm(false);
+    const keys = Array.from(selectedIds);
+    const attachmentIds = keys.map((k) => k.split('::')[1]);
+    try {
+      await invoke('attachment_batch_soft_delete', { objectId, attachmentIds });
+      showToast({
+        type: 'success',
+        message: t('common:batch_delete_result', { success: keys.length, total: keys.length }),
+      });
+    } catch {
+      showToast({
+        type: 'warning',
+        message: t('common:batch_delete_result', { success: 0, total: keys.length }),
+      });
+    }
+    clearSelection();
+    await loadAttachments();
+    onCountChange?.();
+  };
+
+  const handleBatchRestore = async () => {
+    setBatchRestoreConfirm(false);
+    const keys = Array.from(selectedIds);
+    const attachmentIds = keys.map((k) => k.split('::')[1]);
+    try {
+      await invoke('attachment_batch_restore', { objectId, attachmentIds });
+      showToast({
+        type: 'success',
+        message: t('common:batch_restore_result', { success: keys.length, total: keys.length }),
+      });
+    } catch {
+      showToast({
+        type: 'warning',
+        message: t('common:batch_restore_result', { success: 0, total: keys.length }),
+      });
+    }
+    clearSelection();
+    await loadAttachments();
+    onCountChange?.();
+  };
+
+  const handleBatchPermanentDelete = async () => {
+    setBatchPermanentDeleteConfirm(false);
+    const keys = Array.from(selectedIds);
+    const attachmentIds = keys.map((k) => k.split('::')[1]);
+    try {
+      await invoke('attachment_batch_delete', { objectId, attachmentIds });
+      showToast({
+        type: 'success',
+        message: t('common:batch_perm_delete_result', { success: keys.length, total: keys.length }),
+      });
+    } catch {
+      showToast({
+        type: 'warning',
+        message: t('common:batch_perm_delete_result', { success: 0, total: keys.length }),
+      });
+    }
+    clearSelection();
+    await loadAttachments();
+    onCountChange?.();
+  };
+
+  const { ref: dragRef, dragState } = useDragToAttach(objectId, {
+    onComplete: () => {
+      loadAttachments();
+      onCountChange?.();
+    },
+  });
+
   return (
     <div
       style={{
@@ -302,18 +359,19 @@ export function AttachmentViewer({
       onClick={onClose}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 500,
-          maxHeight: '80vh',
-          display: 'flex',
-          flexDirection: 'column',
-          background: 'var(--bg-elevated)',
-          borderRadius: 16,
-          boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
-          border: '1px solid var(--border-subtle)',
-        }}
-      >
+        onClick={(e) => e.stopPropagation()}          ref={dragRef}
+          style={{
+            width: 500,
+            maxHeight: '80vh',
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'var(--bg-elevated)',
+            borderRadius: 16,
+            boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
+            border: '1px solid var(--border-subtle)',
+            position: 'relative',
+          }}
+        >
         {/* Header */}
         <div
           style={{
@@ -338,7 +396,7 @@ export function AttachmentViewer({
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
               <button
-                onClick={() => setShowTrash(false)}
+                onClick={() => { setShowTrash(false); clearSelection(); }}
                 onMouseEnter={!showTrash ? undefined : (e) => {
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                   e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
@@ -361,7 +419,7 @@ export function AttachmentViewer({
                 {t('common:attachments_active', { n: items.length })}
               </button>
               <button
-                onClick={() => setShowTrash(true)}
+                onClick={() => { setShowTrash(true); clearSelection(); }}
                 onMouseEnter={showTrash ? undefined : (e) => {
                   e.currentTarget.style.borderColor = '#e74c3c';
                   e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 8%, transparent)';
@@ -399,6 +457,112 @@ export function AttachmentViewer({
             <X size={16} />
           </button>
         </div>
+        {/* 批量操作工具栏 */}
+        {selectedIds.size > 0 && displayItems.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '8px 12px',
+              borderBottom: '1px solid var(--border-subtle)',
+              background: 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
+              fontSize: 13,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <SelectCheckbox
+                checked={allSelected}
+                onClick={() => handleSelectAll(allVisibleKeys)}
+              />
+              <span style={{ color: 'var(--text-secondary)' }}>
+                {t('common:selected_count', { n: selectedIds.size })}
+              </span>
+            </div>
+            {!showTrash ? (
+              <button
+                onClick={() => setBatchDeleteConfirm(true)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#c0392b';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#e74c3c';
+                }}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: '#e74c3c',
+                  color: 'white',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <Trash2 size={12} /> {t('common:delete')}
+              </button>
+            ) : (
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={() => setBatchPermanentDeleteConfirm(true)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 20%, transparent)';
+                    e.currentTarget.style.borderColor = '#e74c3c';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  }}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'transparent',
+                    color: '#e74c3c',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <Trash2 size={12} /> {t('common:delete_permanently')}
+                </button>
+                <button
+                  onClick={() => setBatchRestoreConfirm(true)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 6,
+                    border: '1px solid var(--accent-primary)',
+                    background: 'transparent',
+                    color: 'var(--accent-primary)',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <RotateCw size={12} /> {t('common:restore')}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         {/* List */}
         <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
           {loading ? (
@@ -415,7 +579,10 @@ export function AttachmentViewer({
               {showTrash ? t('common:attachments_trash_empty') : t('common:no_attachments')}
             </div>
           ) : (
-            displayItems.map((item) => (
+            displayItems.map((item) => {
+              const compositeKey = `${objectId}::${item.id}`;
+              const checked = selectedIds.has(compositeKey);
+              return (
               <div
                 key={item.id}
                 style={{
@@ -427,6 +594,10 @@ export function AttachmentViewer({
                   fontSize: 13,
                 }}
               >
+                <SelectCheckbox
+                  checked={checked}
+                  onClick={(e) => { e.stopPropagation(); toggleSelect(compositeKey); }}
+                />
                 {showTrash ? (
                   <Trash2 size={14} style={{ color: '#e74c3c', flexShrink: 0 }} />
                 ) : item.mimeType.startsWith('image/') ? (
@@ -542,9 +713,11 @@ export function AttachmentViewer({
                   </>
                 )}
               </div>
-            ))
-          )}
+            );            })
+           )}
         </div>
+        {/* 拖拽上传覆盖层 */}
+        <DragUploadOverlay dragState={dragState} borderRadius={16} />
       </div>
       {/* Preview: image */}
       {previewItem && previewItem.mimeType.startsWith('image/') && (
@@ -668,6 +841,234 @@ export function AttachmentViewer({
         </div>
       )}
       {confirmDialog}
+      {/* Batch delete confirmation */}
+      {batchDeleteConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.4)',
+          }}
+          onClick={() => setBatchDeleteConfirm(false)}
+        >
+          <div
+            style={{
+              background: 'var(--bg-elevated)',
+              borderRadius: 12,
+              padding: '24px 28px',
+              maxWidth: 360,
+              width: '90%',
+              boxShadow: 'var(--shadow-lg)',
+              border: '1px solid var(--border-subtle)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
+              {t('common:batch_delete_title')}
+            </h3>
+            <p
+              style={{
+                margin: '0 0 20px',
+                fontSize: 14,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5,
+              }}
+            >
+              {t('common:batch_delete_body', { n: selectedIds.size })}
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setBatchDeleteConfirm(false)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-elevated)',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {t('common:cancel')}
+              </button>
+              <button
+                onClick={handleBatchDelete}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#e74c3c',
+                  color: 'white',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#c0392b'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#e74c3c'; }}
+              >
+                {t('common:delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Batch restore confirmation */}
+      {batchRestoreConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.4)',
+          }}
+          onClick={() => setBatchRestoreConfirm(false)}
+        >
+          <div
+            style={{
+              background: 'var(--bg-elevated)',
+              borderRadius: 12,
+              padding: '24px 28px',
+              maxWidth: 360,
+              width: '90%',
+              boxShadow: 'var(--shadow-lg)',
+              border: '1px solid var(--border-subtle)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
+              {t('common:batch_restore_title')}
+            </h3>
+            <p
+              style={{
+                margin: '0 0 20px',
+                fontSize: 14,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5,
+              }}
+            >
+              {t('common:batch_restore_body', { n: selectedIds.size })}
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setBatchRestoreConfirm(false)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-elevated)',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {t('common:cancel')}
+              </button>
+              <button
+                onClick={handleBatchRestore}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: '1px solid var(--accent-primary)',
+                  background: 'var(--accent-primary)',
+                  color: 'white',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+              >
+                {t('common:restore')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Batch permanent delete confirmation */}
+      {batchPermanentDeleteConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.4)',
+          }}
+          onClick={() => setBatchPermanentDeleteConfirm(false)}
+        >
+          <div
+            style={{
+              background: 'var(--bg-elevated)',
+              borderRadius: 12,
+              padding: '24px 28px',
+              maxWidth: 360,
+              width: '90%',
+              boxShadow: 'var(--shadow-lg)',
+              border: '1px solid var(--border-subtle)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
+              {t('common:batch_perm_delete_title')}
+            </h3>
+            <p
+              style={{
+                margin: '0 0 20px',
+                fontSize: 14,
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5,
+              }}
+            >
+              {t('common:batch_perm_delete_body', { n: selectedIds.size })}
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setBatchPermanentDeleteConfirm(false)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-elevated)',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {t('common:cancel')}
+              </button>
+              <button
+                onClick={handleBatchPermanentDelete}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#e74c3c',
+                  color: 'white',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#c0392b'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#e74c3c'; }}
+              >
+                {t('common:delete_permanently')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Permanent delete confirmation */}
       {permDeleteItem && (
         <div
