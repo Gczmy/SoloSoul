@@ -426,44 +426,57 @@ pub async fn attachment_list_all(
     // Helper: build tree from a list of objects, with template name lookup cache
     let template_cache: std::cell::RefCell<std::collections::HashMap<String, Option<String>>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
-    let build_objects_with_attachments = |objs: &[solosoul_vault::ObjectSummary], only_deleted: bool| -> Vec<AttachmentTreeObject> {
-        objs.iter().filter_map(|summary| {
-            let record = vault.load_object(&summary.id).ok()??;
-            let all_atts = load_attachments(&record.properties);
-            let filtered: Vec<AttachmentMeta> = all_atts.into_iter()
-                .filter(|a| if only_deleted { a.deleted_at.is_some() } else { a.deleted_at.is_none() })
-                .collect();
-            if filtered.is_empty() {
-                None
-            } else {
-                let template_name = record.template_id.as_ref().and_then(|tid| {
-                    let mut cache = template_cache.borrow_mut();
-                    cache.get(tid).cloned().unwrap_or_else(|| {
-                        let name = vault.load_user_template(tid)
-                            .ok()
-                            .flatten()
-                            .map(|t| t.name.clone());
-                        cache.insert(tid.clone(), name.clone());
-                        name
-                    })
-                });
-                Some(AttachmentTreeObject {
-                    object_id: summary.id.clone(),
-                    object_name: summary.name.clone(),
-                    template_name,
-                    attachments: filtered,
+    let build_objects_with_attachments =
+        |objs: &[solosoul_vault::ObjectSummary], only_deleted: bool| -> Vec<AttachmentTreeObject> {
+            objs.iter()
+                .filter_map(|summary| {
+                    let record = vault.load_object(&summary.id).ok()??;
+                    let all_atts = load_attachments(&record.properties);
+                    let filtered: Vec<AttachmentMeta> = all_atts
+                        .into_iter()
+                        .filter(|a| {
+                            if only_deleted {
+                                a.deleted_at.is_some()
+                            } else {
+                                a.deleted_at.is_none()
+                            }
+                        })
+                        .collect();
+                    if filtered.is_empty() {
+                        None
+                    } else {
+                        let template_name = record.template_id.as_ref().and_then(|tid| {
+                            let mut cache = template_cache.borrow_mut();
+                            cache.get(tid).cloned().unwrap_or_else(|| {
+                                let name = vault
+                                    .load_user_template(tid)
+                                    .ok()
+                                    .flatten()
+                                    .map(|t| t.name.clone());
+                                cache.insert(tid.clone(), name.clone());
+                                name
+                            })
+                        });
+                        Some(AttachmentTreeObject {
+                            object_id: summary.id.clone(),
+                            object_name: summary.name.clone(),
+                            template_name,
+                            attachments: filtered,
+                        })
+                    }
                 })
-            }
-        }).collect()
-    };
+                .collect()
+        };
 
     // ── Build active pages ─────────────────────────────────────
     let mut pages: Vec<AttachmentTreePage> = Vec::new();
-    let mut child_ids_assigned: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut child_ids_assigned: std::collections::HashSet<String> =
+        std::collections::HashSet::new();
 
     // For custom pages: find children via parent_id
     for page_obj in &page_objects {
-        let children = vault.list_objects(&account_id, None, Some(&page_obj.id), None, false, false)?;
+        let children =
+            vault.list_objects(&account_id, None, Some(&page_obj.id), None, false, false)?;
         for child in &children {
             child_ids_assigned.insert(child.id.clone());
         }
@@ -480,7 +493,8 @@ pub async fn attachment_list_all(
 
     // For remaining objects: group by section_type (built-in sections)
     for (section, objs) in &section_groups {
-        let unassigned: Vec<_> = objs.iter()
+        let unassigned: Vec<_> = objs
+            .iter()
             .filter(|o| !child_ids_assigned.contains(&o.id))
             .cloned()
             .collect();
@@ -502,7 +516,8 @@ pub async fn attachment_list_all(
     // ── Build trash pages ──────────────────────────────────────
     let mut trash_pages: Vec<AttachmentTreePage> = Vec::new();
     for page_obj in &page_objects {
-        let children = vault.list_objects(&account_id, None, Some(&page_obj.id), None, false, false)?;
+        let children =
+            vault.list_objects(&account_id, None, Some(&page_obj.id), None, false, false)?;
         for child in &children {
             child_ids_assigned.insert(child.id.clone());
         }
@@ -517,7 +532,8 @@ pub async fn attachment_list_all(
         }
     }
     for (section, objs) in &section_groups {
-        let unassigned: Vec<_> = objs.iter()
+        let unassigned: Vec<_> = objs
+            .iter()
             .filter(|o| !child_ids_assigned.contains(&o.id))
             .cloned()
             .collect();
