@@ -21,6 +21,7 @@ import {
   ChevronRight,
   ChevronDown,
   Search,
+  Download,
 } from 'lucide-react';
 import { DEFAULT_CUSTOM_ICON, PAGE_ICON_MAP, CUSTOM_ICON_MAP } from '@/lib/pageIcons';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
@@ -315,6 +316,25 @@ export function GlobalAttachmentManager() {
     );
   };
 
+  const handleDownload = async (item: AttachmentMeta) => {
+    const filePath = item.vaultPath || item.srcPath;
+    if (!filePath) {
+      showToast({ type: 'error', message: 'No file path available' });
+      return;
+    }
+    try {
+      const { save } = await import('@tauri-apps/plugin-dialog');
+      const destPath = await save({
+        defaultPath: item.fileName,
+      });
+      if (!destPath) return;
+      await invoke('attachment_download', { srcPath: filePath, destPath });
+      showToast({ type: 'success', message: t('common:download_result') || 'Downloaded successfully' });
+    } catch (e) {
+      showToast({ type: 'error', message: `${t('common:download_failed')}: ${e}` });
+    }
+  };
+
   const handleRestore = async (item: AttachmentMeta, objectId: string) => {
     try {
       await invoke('attachment_restore', { objectId, attachmentId: item.id });
@@ -394,6 +414,52 @@ export function GlobalAttachmentManager() {
   } = useBatchSelect(allVisibleKeys);
 
   // ── Batch operations ───────────────────────────────────────
+
+  /** 根据选中的复合键批量下载附件 */
+  const handleBatchDownload = async () => {
+    const entries = [...selectedIds];
+    if (entries.length === 0) return;
+
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const dirPath = await open({ directory: true, multiple: false, title: t('common:select_download_directory') || 'Select download directory' });
+      if (!dirPath) return;
+
+      // Map entries to actual attachment items
+      const selectedItems: AttachmentMeta[] = [];
+      for (const page of displayPages) {
+        for (const obj of page.objects) {
+          for (const att of obj.attachments) {
+            if (entries.includes(`${obj.objectId}::${att.id}`)) {
+              selectedItems.push(att);
+            }
+          }
+        }
+      }
+
+      let successCount = 0;
+      for (const item of selectedItems) {
+        const filePath = item.vaultPath || item.srcPath;
+        if (!filePath) continue;
+        const destPath = `${dirPath}/${item.fileName}`;
+        try {
+          await invoke('attachment_download', { srcPath: filePath, destPath });
+          successCount++;
+        } catch {
+          // continue with next file
+        }
+      }
+
+      showToast({
+        type: successCount === selectedItems.length ? 'success' : 'warning',
+        message: t('common:batch_download_result', { success: successCount, total: selectedItems.length }) ||
+          `Downloaded ${successCount}/${selectedItems.length} files`,
+      });
+      clearSelection();
+    } catch {
+      // dialog cancelled
+    }
+  };
 
   /** 根据选中的复合键批量软删除附件 */
   const handleBatchDelete = async () => {
@@ -651,6 +717,15 @@ export function GlobalAttachmentManager() {
                   title={t('common:rename')}
                 >
                   <Edit2 size={10} />
+                </button>
+                <button
+                  onClick={() => handleDownload(item)}
+                  onMouseEnter={btnHoverEnter}
+                  onMouseLeave={btnHoverLeave}
+                  style={btnMini}
+                  title={t('common:download')}
+                >
+                  <Download size={10} />
                 </button>
                 <button
                   onClick={() => handleSoftDelete(item, objectId)}
@@ -939,33 +1014,62 @@ export function GlobalAttachmentManager() {
               </span>
 
               {!showTrash ? (
-                <button
-                  onClick={() => setBatchDeleteConfirm(true)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
-                    e.currentTarget.style.borderColor = '#e74c3c';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    padding: '4px 10px',
-                    borderRadius: 6,
-                    border: '1px solid var(--border-subtle)',
-                    background: 'transparent',
-                    color: '#e74c3c',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <Trash2 size={12} /> {t('common:delete')}
-                </button>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button
+                    onClick={handleBatchDownload}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '4px 10px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <Download size={12} /> {t('common:download')}
+                  </button>
+                  <button
+                    onClick={() => setBatchDeleteConfirm(true)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
+                      e.currentTarget.style.borderColor = '#e74c3c';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '4px 10px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'transparent',
+                      color: '#e74c3c',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <Trash2 size={12} /> {t('common:delete')}
+                  </button>
+                </div>
               ) : (
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button

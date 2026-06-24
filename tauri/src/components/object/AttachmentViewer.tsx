@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2, Upload } from 'lucide-react';
+import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2, Upload, Download } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -207,6 +207,25 @@ export function AttachmentViewer({
     setRenamingId(null);
   };
 
+  const handleDownload = async (item: AttachmentItem) => {
+    const filePath = item.vaultPath || item.srcPath;
+    if (!filePath) {
+      showToast({ type: 'error', message: 'No file path available' });
+      return;
+    }
+    try {
+      const { save } = await import('@tauri-apps/plugin-dialog');
+      const destPath = await save({
+        defaultPath: item.fileName,
+      });
+      if (!destPath) return;
+      await invoke('attachment_download', { srcPath: filePath, destPath });
+      showToast({ type: 'success', message: t('common:download_result') || 'Downloaded successfully' });
+    } catch (e) {
+      showToast({ type: 'error', message: `${t('common:download_failed')}: ${e}` });
+    }
+  };
+
   const handleDelete = (item: AttachmentItem) => {
     const truncatedName = truncateFileName(item.fileName);
     requestConfirm(
@@ -301,6 +320,41 @@ export function AttachmentViewer({
     clearSelection();
     await loadAttachments();
     onCountChange?.();
+  };
+
+  const handleBatchDownload = async () => {
+    const keys = Array.from(selectedIds);
+    const attachmentIds = keys.map((k) => k.split('::')[1]);
+    const selectedItems = displayItems.filter((item) => attachmentIds.includes(item.id));
+    if (selectedItems.length === 0) return;
+
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const dirPath = await open({ directory: true, multiple: false, title: t('common:select_download_directory') || 'Select download directory' });
+      if (!dirPath) return;
+
+      let successCount = 0;
+      for (const item of selectedItems) {
+        const filePath = item.vaultPath || item.srcPath;
+        if (!filePath) continue;
+        const destPath = `${dirPath}/${item.fileName}`;
+        try {
+          await invoke('attachment_download', { srcPath: filePath, destPath });
+          successCount++;
+        } catch {
+          // continue with next file
+        }
+      }
+
+      showToast({
+        type: successCount === selectedItems.length ? 'success' : 'warning',
+        message: t('common:batch_download_result', { success: successCount, total: selectedItems.length }) ||
+          `Downloaded ${successCount}/${selectedItems.length} files`,
+      });
+      clearSelection();
+    } catch {
+      // dialog cancelled
+    }
   };
 
   const handleBatchPermanentDelete = async () => {
@@ -490,31 +544,60 @@ export function AttachmentViewer({
               </span>
             </div>
             {!showTrash ? (
-              <button
-                onClick={() => setBatchDeleteConfirm(true)}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#c0392b';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#e74c3c';
-                }}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: '#e74c3c',
-                  color: 'white',
-                  fontSize: 12,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <Trash2 size={12} /> {t('common:delete')}
-              </button>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={handleBatchDownload}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'transparent',
+                    color: 'var(--text-secondary)',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <Download size={12} /> {t('common:download')}
+                </button>
+                <button
+                  onClick={() => setBatchDeleteConfirm(true)}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#c0392b';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#e74c3c';
+                  }}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: '#e74c3c',
+                    color: 'white',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <Trash2 size={12} /> {t('common:delete')}
+                </button>
+              </div>
             ) : (
               <div style={{ display: 'flex', gap: 6 }}>
                 <button
@@ -695,6 +778,15 @@ export function AttachmentViewer({
                           title={t('common:rename')}
                         >
                           <Edit2 size={12} />
+                        </button>
+                        <button
+                          onClick={() => handleDownload(item)}
+                          onMouseEnter={btnHoverEnter}
+                          onMouseLeave={btnHoverLeave}
+                          style={miniBtn}
+                          title={t('common:download')}
+                        >
+                          <Download size={12} />
                         </button>
                       </>
                     )}

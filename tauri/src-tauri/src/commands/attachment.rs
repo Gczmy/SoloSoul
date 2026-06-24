@@ -554,6 +554,40 @@ pub async fn attachment_list_all(
     Ok(AttachmentListAllResult { pages, trash_pages })
 }
 
+/// Download an attachment file to a user-chosen destination path.
+/// Copies the file from vault storage to the specified destination.
+#[tauri::command]
+pub async fn attachment_download(
+    state: State<'_, AppState>,
+    src_path: String,
+    dest_path: String,
+) -> Result<(), String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let vault_base = svc.base_path().canonicalize()
+        .map_err(|_| "Invalid vault base path".to_string())?;
+
+    // Security: ensure the source path is within vault storage
+    let src = std::path::Path::new(&src_path).canonicalize()
+        .map_err(|e| format!("Invalid source path: {}", e))?;
+    if !src.starts_with(&vault_base) {
+        return Err("Source path must be within vault storage".to_string());
+    }
+
+    // Create parent directory and copy the file
+    let dest = std::path::Path::new(&dest_path);
+    if let Some(parent) = dest.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create destination directory: {}", e))?;
+    }
+    std::fs::copy(&src, &dest)
+        .map_err(|e| format!("Failed to copy file: {}", e))?;
+
+    Ok(())
+}
+
 /// Scan attachments directory and remove files not referenced in any object's metadata.
 #[tauri::command]
 pub async fn attachment_cleanup_orphans(

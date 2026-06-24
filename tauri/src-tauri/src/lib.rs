@@ -537,6 +537,7 @@ pub fn run() {
             commands::attachment::attachment_copy_to_vault,
             commands::attachment::attachment_list_all,
             commands::attachment::attachment_cleanup_orphans,
+            commands::attachment::attachment_download,
             // Sync commands
             commands::sync::sync_discover,
             commands::sync::sync_get_status,
