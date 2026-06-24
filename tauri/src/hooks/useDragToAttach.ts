@@ -83,6 +83,27 @@ export function useDragToAttach(
   const isUploadingRef = useRef(false);
   /** 排队等待上传的批次队列，每个元素是一组文件路径 */
   const pendingQueueRef = useRef<string[][]>([]);
+  /**
+   * 用于去重的最近 drop 签名（路径列表的 JSON 字符串）。
+   * Tauri v2 的 onDragDropEvent 在某些场景下会触发重复 drop 事件。
+   * 保存最近 1 秒内的签名以避免重复处理。
+   */
+  const recentDropSignaturesRef = useRef<{ sig: string; timer: ReturnType<typeof setTimeout> }[]>([]);
+
+  /** 检查并记录 drop 签名，重复时返回 true */
+  const isDuplicateDrop = useRef((paths: string[]): boolean => {
+    const sig = JSON.stringify([...paths].sort());
+    if (recentDropSignaturesRef.current.some((entry) => entry.sig === sig)) {
+      return true;
+    }
+    const timer = setTimeout(() => {
+      recentDropSignaturesRef.current = recentDropSignaturesRef.current.filter(
+        (e) => e.timer !== timer,
+      );
+    }, 1000);
+    recentDropSignaturesRef.current.push({ sig, timer });
+    return false;
+  }).current;
 
   /** 处理一个批次的上传（包含队列调度） */
   const processBatch = useRef(async (paths: string[], objId: string) => {
@@ -152,9 +173,20 @@ export function useDragToAttach(
         const currentObjectId = objectIdRef.current;
         if (!el || !currentObjectId) return;
 
-        const rect = el.getBoundingClientRect();
         const pos = payload.position;
-        const isOverBounds =
+
+        // ── 视觉层级检测：使用 elementFromPoint 确认当前组件是视觉顶层接收者 ──
+        // 由于 useDragToAttach 注册的是窗口级全局监听器，所有实例都会收到每次 drop 事件。
+        // 当弹窗（如 AttachmentViewer/ObjectDetailModal）覆盖在工作区卡片上方时，
+        // 被覆盖的卡片虽然 getBoundingClientRect() 仍然有效，但实际上不应接收 drop。
+        // elementFromPoint(x, y) 返回视觉上最顶层的元素，检查它是否属于当前 ref 的子树。
+        const topEl = pos !== undefined
+          ? document.elementFromPoint(pos.x, pos.y)
+          : null;
+        const isTopReceiver = topEl !== null && (topEl === el || el.contains(topEl));
+
+        const rect = el.getBoundingClientRect();
+        const isOverBounds = isTopReceiver &&
           pos !== undefined &&
           pos.x >= rect.left &&
           pos.x <= rect.right &&
@@ -173,6 +205,8 @@ export function useDragToAttach(
             const paths = payload.paths;
             if (!paths || paths.length === 0) break;
             if (!isOverBounds) break;
+            // 去重：Tauri v2 onDragDropEvent 可能触发重复 drop 事件
+            if (isDuplicateDrop(paths)) break;
 
             if (isUploadingRef.current) {
               // ── 正在上传中，将新批次加入队列 ──
@@ -214,6 +248,11 @@ export function useDragToAttach(
     return () => {
       mountedRef.current = false;
       pendingQueueRef.current = []; // 卸载时丢弃队列
+      // 清理去重定时器
+      for (const entry of recentDropSignaturesRef.current) {
+        clearTimeout(entry.timer);
+      }
+      recentDropSignaturesRef.current = [];
       unlisten?.();
     };
     // 只在 mount/unmount 时注册/注销监听器

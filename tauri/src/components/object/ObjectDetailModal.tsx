@@ -32,6 +32,8 @@ interface ObjectDetailModalProps {
   onAttachments?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** 附件增删后的回调，用于外部（workspace）刷新计数 badge */
+  onAttachmentsChange?: () => void;
 }
 
 function flattenProperties(
@@ -73,6 +75,7 @@ export function ObjectDetailModal({
   onAttachments,
   onEdit,
   onDelete,
+  onAttachmentsChange,
 }: ObjectDetailModalProps) {
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
@@ -106,7 +109,9 @@ export function ObjectDetailModal({
   const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
   const obj = useMemo(() => object || fetchedObj, [object, fetchedObj]);
-  const { ref: detailDragRef, dragState: detailDragState } = useDragToAttach(obj?.id || null);
+  const { ref: detailDragRef, dragState: detailDragState } = useDragToAttach(obj?.id || null, {
+    onComplete: onAttachmentsChange,
+  });
 
   useEffect(() => {
     loadTemplates().catch(() => {});
@@ -768,6 +773,7 @@ export function ObjectDetailModal({
         <AttachmentViewer
           objectId={obj.id}
           onClose={() => setShowAttachments(false)}
+          onCountChange={onAttachmentsChange}
           zIndex={3100}
         />
       )}

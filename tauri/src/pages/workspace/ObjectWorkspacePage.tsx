@@ -598,6 +598,7 @@ export function ObjectWorkspacePage() {
               setConfirmDelete({ id: detailObj.id, name: detailObj.name });
               setDetailObj(null);
             }}
+            onAttachmentsChange={refreshAttachmentCounts}
           />
         )}
 
