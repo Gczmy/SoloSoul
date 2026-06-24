@@ -1092,6 +1092,80 @@ AI 对话拥有独立的回收站系统，专用于对话的软删除和永久�
 
 从对话页右上角齿轮图标点击进入 LLM 配置页（§4），或从设置 → AI 与智能助手 → AI 对话开关 + Provider 选择进入。
 
+### 9.7 实现补充（LlmChatPage 实际组件结构）
+
+以下实现细节基于 `LlmChatPage` 的实际代码落地规范，补充 §9.1-§9.3 中蓝图型描述。
+
+#### 9.7.1 组件树
+
+```
+LlmChatPage
+├── AppShell
+│   ├── ConversationSidebar                    ← 左侧对话列表
+│   │   ├── 新建对话按钮
+│   │   ├── 对话列表（按最后更新时间倒序）
+│   │   └── 回收站入口（TrashConversationCard）
+│   └── MessageArea                             ← 右侧主区域
+│       ├── ChatMessageList                    ← 消息列表（含滚动）
+│       │   └── ChatMessageBubble              ← 每条消息的气泡
+│       └── ChatInputBar                       ← 底部固定输入栏
+├── 未配置状态：UnconfiguredHint                ← 无 Provider/API Key 时的引导提示
+└── AI 未开启状态：配置引导按钮                   ← 跳转 LLM 设置页
+```
+
+#### 9.7.2 未配置引导（UnconfiguredHint）
+
+当 AI 功能未开启或 LLM 未配置时，页面不显示对话 UI，改为：
+
+| 状态 | 展示 |
+|------|------|
+| **AI 功能未开启** | 提示"AI 功能未开启，请前往设置开启"，提供"前往配置"按钮（跳转 `/settings/ai`） |
+| **LLM 未配置** | 显示 `UnconfiguredHint` 组件，引导用户配置 Provider |
+
+#### 9.7.3 对话侧边栏（ConversationSidebar）
+
+实际实现采用独立组件，包含：
+
+| 区域 | 组件 | 说明 |
+|------|------|------|
+| 新建对话 | 顶部按钮 | 点击创建临时对话，光标聚焦输入框 |
+| 对话列表 | 可滚动列表 | 每项显示对话名称 + 时间戳，当前活跃项高亮 |
+| 回收站 | 侧边栏底部 | 点击展开 `TrashConversationCard`，展示已软删除对话 |
+
+#### 9.7.4 消息气泡（ChatMessageBubble）
+
+每条消息的实际渲染规则：
+
+| 角色 | 对齐 | 样式 |
+|------|------|------|
+| `user` | 右侧 | `background: var(--accent-primary)`，白色文字 |
+| `assistant` | 左侧 | `background: var(--bg-elevated)`，`var(--text-primary)` 文字，支持 Markdown 渲染 |
+| `system` | 居中 | 灰色小字，用于提示信息（如"AI 正在思考..."） |
+
+- 每条消息带时间戳（气泡底部，`fontSize: 11`）
+- 复制按钮：悬停时出现在气泡右下方
+- 加载态：AI 生成中显示打字动画（跳动圆点）
+
+#### 9.7.5 输入栏（ChatInputBar）
+
+固定于 MessageArea 底部：
+
+| 元素 | 规范 |
+|------|------|
+| 模型信息 | 输入框上方一行，显示当前 `Provider名称 · 模型名称 · 类型标签 · 在线状态` |
+| 输入框 | 多行 textarea，支持 Shift+Enter 换行，Enter 发送 |
+| 发送按钮 | 右侧圆形按钮，输入为空时禁用（灰色） |
+| 加载态 | 等待 AI 回复时，输入框 disabled，发送按钮显示 Loader 动画 |
+| 离线提示 | 模型离线时输入框置灰并 tooltip"模型离线，无法发送" |
+
+#### 9.7.6 状态管理
+
+LLM 对话使用 `useLlmChat` 自定义 hook 管理状态，核心逻辑包括：
+- 对话 CRUD（创建、切换、重命名、软删除、恢复、永久删除）
+- 消息发送与 SSE 流式接收（通过 Zustand Store 层 `llmStore` 管理流订阅）
+- Provider 配置检查
+- 对话持久化（debounce 保存）
+
 ---
 
 ## 10. 使用统计
