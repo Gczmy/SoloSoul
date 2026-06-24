@@ -89,7 +89,7 @@ export function AttachmentLimitsInfo() {
                 </tr>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                   <td style={{ padding: '4px 8px' }}>{t('attachment_limit_single_count')}</td>
-                  <td style={{ padding: '4px 8px' }}>50</td>
+                  <td style={{ padding: '4px 8px' }}>200</td>
                   <td style={{ padding: '4px 8px' }}>
                     {t('attachment_limit_single_count_behavior')}
                   </td>

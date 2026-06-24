@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use tauri::State;
 
 /// 单个对象最多允许的活跃附件数量。
-const MAX_ACTIVE_ATTACHMENTS: usize = 50;
+const MAX_ACTIVE_ATTACHMENTS: usize = 200;
 
 /// 附件 ID 与对象 ID 允许使用的字符集，防止路径遍历。
 fn validate_attachment_id(id: &str) -> Result<(), String> {

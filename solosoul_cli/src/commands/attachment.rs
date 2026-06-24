@@ -11,7 +11,7 @@ use crate::app::{App, AppPhase};
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 单对象最大活跃附件数（与 GUI 保持一致）。
-const MAX_ACTIVE_ATTACHMENTS: usize = 50;
+const MAX_ACTIVE_ATTACHMENTS: usize = 200;
 
 /// 附件元数据结构，字段与 GUI `AttachmentMeta` 完全一致。
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -182,7 +182,7 @@ fn add(app: &mut App, file_path: Option<&str>) -> Result<()> {
     let mut atts = load_attachments(&record.properties);
     let active_count = atts.iter().filter(|a| a.deleted_at.is_none()).count();
     if active_count >= MAX_ACTIVE_ATTACHMENTS {
-        app.error_message = Some("单个对象最多保留 50 个活跃附件".to_string());
+        app.error_message = Some(format!("单个对象最多保留 {} 个活跃附件", MAX_ACTIVE_ATTACHMENTS));
         return Ok(());
     }
 
