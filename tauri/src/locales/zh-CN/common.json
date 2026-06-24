@@ -301,5 +301,5 @@
   "attachment_limit_single_size_behavior": "该附件不会被导出",
   "attachment_limit_single_count_behavior": "超出数量的附件不会被保存",
   "attachment_limit_total_size_behavior": "请减少附件或分批导出",
-  "dialog_subtitle": ""
+  "dialog_subtitle": "{{pluginName}} 请求："
 }

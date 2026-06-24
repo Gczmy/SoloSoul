@@ -302,5 +302,5 @@
   "attachment_limit_single_size_behavior": "The oversized attachment will not be exported",
   "attachment_limit_single_count_behavior": "Excess attachments will not be saved",
   "attachment_limit_total_size_behavior": "Reduce attachments or export in batches",
-  "dialog_subtitle": ""
+  "dialog_subtitle": "{{pluginName}} is asking:"
 }
