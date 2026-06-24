@@ -4,6 +4,36 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.5] - 2026-06-24
+
+### Added
+
+- **附件下载功能** — AttachmentViewer 和 GlobalAttachmentManager 支持单个附件下载（系统 `save` 对话框）和批量下载（目录选择器），点击后复制 Vault 文件到用户选择的目标路径。新增 i18n key：`download_result`、`download_failed`、`batch_download_result`、`select_download_directory`。
+- **附件下载文件名 bug 修复** — 移除 `save()` 对话框的 `filters` 配置，避免系统对话框自动给文件名追加 `.*` 后缀。
+
+### Fixed
+
+- **附件文件名 `.*` 后缀 bug** — 移除 `save()` 对话框的 `filters: [{name:'All Files', extensions:['*']}]`，避免系统对话框自动给文件名追加 `.*`。
+- **附件拖拽穿透与事件重复** — 修复拖拽上传时多层元素穿透、计数刷新不及时、Tauri 重复事件去重问题。
+- **回收站附件按钮顺序** — 附件卡片回收站批量工具栏恢复按钮与永久删除按钮对调。
+- **回收站附件删除线** — 软删除附件行仅文件名有删除线，图标、大小日期、格式标签正常显示。
+- **代码审查修复** — useDragToAttach 错误处理、清除过期 console.error。
+
+### Changed
+
+- **附件 UI 统一** — TrashPage 附件标签按钮改为 pill 样式；附件图标和格式标签颜色统一为 `var(--text-tertiary)`，消除 PDF 红色、图片强调色的差异。
+
+### i18n
+
+- **81 条新 i18n key** — 包括 `fs_is_dir`、文件夹拖拽过滤、`cannot_open_file` 等。
+- **HistoryPage 和 GlobalAttachmentManager 国际化** — Toast 消息全面支持中英文。
+- **`dialog_subtitle` 修复** — 从空字符串改为正确的占位符文本。
+
+### Chores
+
+- 版本号同步升级到 2.5.5。
+- `cargo fmt` 格式化及代码清理。
+
 ## [2.5.4] - 2026-06-24
 
 ### Added
@@ -1290,7 +1320,7 @@ All notable changes to SoloSoul are documented in this file.
 - Multi-account support with independent vault directories
 - Comprehensive test suite
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.4.1...HEAD
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.5.5...HEAD
 [2.4.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.4.1
 [1.7.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.7.1
 [1.7.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.7.0
@@ -1318,3 +1348,4 @@ All notable changes to SoloSoul are documented in this file.
 [1.0.0-pre.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0-pre.1
 [1.0.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0
 [0.1.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v0.1.0
+[2.5.5]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.5
