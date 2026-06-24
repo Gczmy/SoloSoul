@@ -2,66 +2,103 @@
 
 > **前置阅读**：`04_Rust_Crate拆分与后端架构.md`、`07_数据库_服务层_Repository迁移.md`
 > **Manifesto 对齐**：最少惊喜 | 安全默认
-> **源文档**：`tauri_refactor/IPC命令接口设计.md`
->
-> **[警告] 术语迁移（审批通过）**：本文档中的命令名最终应使用新术语。
-> `unified_object_*` → `object_*`。开发时直接使用新命名。
-> 详见文档 23 的术语规范。
+> **当前状态**：已全部实现（约 155 个 IPC 命令）
 
 ---
 
-## 1. 接口设计原则
+## 1. 接口设计原则与实现变更
 
 | 原则 | 说明 |
 |------|------|
-| 命令名 snake_case | `profile_get`, `vault_unlock` |
-| 参数/返回值 camelCase | tauri-specta 自动转换 Rust snake_case → TS camelCase |
-| 返回值统一 `Result<T, String>` | 错误消息为中文，用户可理解 |
+| 命令名 snake_case | `object_list`、`attachment_save` |
+| 前缀简化 | 核心域不强制加模块前缀（`auth_login`→`login`，`vault_unlock`→`unlock`） |
+| UnifiedObject 重命名 | 所有 `unified_object_*` 已实装为 `object_*` |
+| 敏感度模块废弃 | Sensitivity 在实现中降级为 Object 的字段属性，不设独立 IPC 模块 |
+| 参数/返回值 camelCase | `tauri-specta` 自动转换 Rust snake_case → TS camelCase |
+| 返回值统一 `Result<T, String>` | 错误消息中文，用户可理解 |
 | 敏感数据不出后端 | 密钥、密码绝不通过 IPC 返回 |
-| 批量操作用数组 | 减少 IPC 往返次数 |
-| 进度通知用 Channel | 不阻塞 UI（OCR、同步、导出等长操作） |
+| 进度通知用 Event | LLM 流式、OCR 下载、导入导出等长操作通过 Tauri Event 推送 |
 
 ---
 
-## 2. 命令总览（66 个）
+## 2. 命令总览（约 155 个）
+
+### 核心数据（Core）
 
 | 模块 | 命令数 | 典型命令 |
 |------|--------|---------|
-| 认证 (auth) | 4 | `auth_bootstrap`, `auth_login`, `auth_logout`, `auth_check_has_account` |
-| Vault (vault) | 6 | `vault_unlock`, `vault_lock`, `vault_change_password`, `vault_list_accounts` |
-| 生物识别 (biometric) | 5 | `biometric_check_availability`, `biometric_save_credential`, `biometric_unlock`, `biometric_delete_credential`, `biometric_test` |
-| Profile (profile) | 5 | `profile_get`, `profile_update`, `profile_update_field` |
-| UnifiedObject (unified_object) | 8 | `unified_object_list`, `_create`, `_update`, `_delete` |
-| 搜索 (search) | 2 | `search_unified`, `search_advanced` |
-| 设置 (user_data) | 4 | `user_data_get_preferences`, `user_data_update_preference` |
-| 敏感度 (sensitivity) | 4 | `sensitivity_get_field`, `sensitivity_update_field`, `sensitivity_get_log` |
-| 导入导出 (export_import) | 3 | `export_import_export`, `export_import_import` |
-| 备份 (backup) | 4 | `backup_list`, `backup_create`, `backup_restore`, `backup_delete` |
-| 插件 (plugin) | 7 | `plugin_list`, `plugin_install`, `plugin_run`, `plugin_consent_response` |
-| OCR (ocr) | 3 | `ocr_initialize`, `ocr_scan` (流式), `ocr_get_status` |
-| LLM (llm) | 4 | `llm_send_message` (流式), `llm_get_config` |
-| 同步 (sync) | 4 | `sync_discover`, `sync_with_device` (流式) |
-| 日志 (log) | 2 | `log_get_recent`, `log_export` |
-| 系统 (system) | 3 | `system_get_app_info`, `system_check_version` |
+| 认证 (Auth) | 5 | `check_has_account`、`bootstrap`、`login`、`logout`、`get_current_account` |
+| 保险箱 (Vault) | 10 | `unlock`、`lock`、`get_state`、`change_password`、`delete_account`、`vault_list_accounts`、`vault_update_hint`、`get_vault_stats`、`verify_password`、`unlock_with_password` |
+| 生物识别 (Biometric) | 5 | `biometric_check_availability`、`biometric_save_credential`、`biometric_unlock`、`biometric_delete_credential`、`biometric_test` |
+| 档案 (Profile) | 6 | `profile_load`、`profile_save`、`profile_get_section`、`profile_update_field`、`profile_delete`、`profile_list` |
+| 对象 (Object) | 8 | `object_list`、`object_get`、`object_create`、`object_update`、`object_delete`、`object_trash_list`、`object_restore`、`object_purge` |
+| 模板 (Template) | 8 | `template_create`、`template_update`、`template_delete`、`template_restore`、`template_get`、`template_list`、`template_save_from_object`、`template_check_field_usage` |
+
+### 扩展功能（Extensions）
+
+| 模块 | 命令数 | 典型命令 |
+|------|--------|---------|
+| 回收站 (Trash) | 5 | `trash_restore`、`trash_permanent_delete`、`trash_get_detail`、`trash_get_retention`、`trash_set_retention` |
+| 页面 (Page) | 2 | `page_delete`、`page_restore` |
+| 快照 (Snapshot) | 5 | `snapshot_list`、`snapshot_get`、`snapshot_get_data`、`snapshot_rollback`、`snapshot_count_batch` |
+| 附件 (Attachment) | 14 | `attachment_list`、`attachment_save`、`attachment_download`、`attachment_rename`、`attachment_cleanup_orphans`、`attachment_copy_to_vault` |
+| 搜索 (Search) | 2 | `search_unified`、`search_advanced` |
+| 设置 (Settings) | 4 | `ui_get_preferences`、`ui_update_preference`、`user_data_get_preferences`、`user_data_update_preference` |
+
+### 导入导出与备份（Portability）
+
+| 模块 | 命令数 | 典型命令 |
+|------|--------|---------|
+| 导入导出 (Export/Import) | 9 | `export_get_scope_tree`、`export_estimate_size`、`export_execute`、`export_get_attachments`、`import_parse_package`、`import_get_password_hint`、`import_decrypt_preview`、`import_execute`、`import_execute_advanced` |
+| 备份 (Backup) | 5 | `backup_list`、`backup_create`、`backup_restore`、`backup_delete`、`inspect_backup` |
+
+### 插件与同步（Plugin & Sync）
+
+| 模块 | 命令数 | 典型命令 |
+|------|--------|---------|
+| 插件 (Plugin) | 11 | `plugin_list_all`、`plugin_list_installed`、`plugin_install`、`plugin_update`、`plugin_uninstall`、`plugin_run`、`plugin_consent_response`、`plugin_dialog_response`、`plugin_list_sessions`、`plugin_audit_log`、`plugin_update_registry` |
+| 同步 (Sync) | 8 | `mdns_advertise`、`mdns_discover`、`sync_enable`、`sync_forget_peer`、`sync_get_status`、`sync_trust_peer`、`sync_discover`、`sync_with_device` |
+
+### AI 与自动化（AI & Automation）
+
+| 模块 | 命令数 | 典型命令 |
+|------|--------|---------|
+| OCR | 10 | `ocr_scan_image`、`ocr_scan_mrz`、`ocr_get_supported_languages`、`ocr_list_available_tiers`、`ocr_get_active_tier`、`ocr_set_active_tier`、`ocr_get_model_status`、`ocr_install_bundled_model`、`ocr_install_bundled_model_with_progress`、`ocr_download_model` |
+| 大语言模型 (LLM) | 30+ | `llm_chat`、`llm_send_message`、`llm_get_providers`、`llm_save_provider`、`llm_test_provider`、`llm_set_active_provider`、`llm_list_conversations`、`llm_get_conversation`、`llm_soft_delete_conversation`、`llm_search_guide_chunks`、`llm_rebuild_guide_embeddings`、`llm_get_stats`、`llm_reset_stats`、`llm_set_local_embedding`、`llm_check_embedding_available`、`llm_download_embed_model`、`llm_find_guides`、`llm_check_connection` |
+| 指南 (Guide) | 4 | `guide_load_content`、`guide_load_index`、`guide_load_search_index`、`guide_search` |
+
+### 基础设施（Infrastructure）
+
+| 模块 | 命令数 | 典型命令 |
+|------|--------|---------|
+| 密码学 (Crypto) | 10 | `encrypt_bytes`、`decrypt_bytes`、`encrypt_with_key`、`decrypt_with_key`、`derive_key`、`generate_salt`、`constant_time_compare`、`encrypt_file`、`decrypt_file`、`verify_password` |
+| 文件系统 (FS) | 4 | `fs_get_file_size`、`fs_is_dir`、`fs_read_file_as_data_url`、`fs_scan_directory` |
+| 系统 (System) | 2 | `get_app_info`、`get_current_account` |
+| 日志 (Log) | 3 | `log_get_recent`、`log_export`、`log_write` |
 
 ---
 
-## 3. 认证模块
+## 3. Auth 认证模块
 
 ```rust
 #[tauri::command]
-pub async fn auth_check_has_account() -> Result<bool, String>;
-// 返回 true → 跳转登录；false → 跳转引导
+pub async fn check_has_account() -> Result<bool, String>;
+// true → 跳转登录页；false → 跳转引导页
 
 #[tauri::command]
-pub async fn auth_bootstrap(account_name: String, password: String) -> Result<AccountInfo, String>;
+pub async fn bootstrap(account_name: String, password: String) -> Result<AccountInfo, String>;
 
 #[tauri::command]
-pub async fn auth_login(account_id: String, password: String) -> Result<AccountInfo, String>;
+pub async fn login(account_id: String, password: String) -> Result<AccountInfo, String>;
 
 #[tauri::command]
-pub async fn auth_logout() -> Result<(), String>;
+pub async fn logout() -> Result<(), String>;
+
+#[tauri::command]
+pub async fn get_current_account() -> Result<Option<AccountInfo>, String>;
 ```
+
+> **命名变更**：设计稿中 `auth_login`/`auth_logout`/`auth_bootstrap` → 实现中去掉 `auth_` 前缀。
 
 ```typescript
 interface AccountInfo {
@@ -73,36 +110,47 @@ interface AccountInfo {
 
 ---
 
-## 4. Vault 模块
+## 4. Vault 保险箱模块
 
 ```rust
 #[tauri::command]
-pub async fn vault_unlock(account_id: String, password: String) -> Result<(), String>;
+pub async fn unlock(account_id: String, password: String) -> Result<(), String>;
+// 派生密钥 → 解密 Vault → 广播 "vault-unlocked"
 
 #[tauri::command]
-pub async fn vault_lock() -> Result<(), String>;
-// 擦除内存密钥 + 关闭数据库 + 广播 "vault-locked" 事件
+pub async fn unlock_with_password(password: String) -> Result<(), String>;
+// 无 account_id 参数版本，内部从 config 查找默认账户
 
 #[tauri::command]
-pub async fn vault_get_state() -> Result<VaultState, String>;
+pub async fn lock() -> Result<(), String>;
+// 擦除内存密钥 + 关闭数据库 + 广播 "vault-locked"
 
 #[tauri::command]
-pub async fn vault_change_password(old_password: String, new_password: String) -> Result<(), String>;
+pub async fn get_state() -> Result<String, String>;
+// 返回 "uninitialized" | "locked" | "unlocked"
 
 #[tauri::command]
-pub async fn vault_delete_account(account_id: String, password: String) -> Result<(), String>;
-// 物理删除所有数据 + 附件
+pub async fn change_password(old_password: String, new_password: String) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn delete_account(account_id: String, password: String) -> Result<(), String>;
+// 物理删除所有数据 + 附件目录
 
 #[tauri::command]
 pub async fn vault_list_accounts() -> Result<Vec<AccountSummary>, String>;
 
 #[tauri::command]
-pub async fn vault_set_default_account(account_id: String) -> Result<(), String>;
+pub async fn vault_update_hint(account_id: String, hint: String) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn get_vault_stats() -> Result<serde_json::Value, String>;
+// 返回 Vault 总大小、对象/附件/快照计数
+
+#[tauri::command]
+pub async fn verify_password(password: String) -> Result<bool, String>;
 ```
 
 ```typescript
-enum VaultState { Uninitialized = 'uninitialized', Locked = 'locked', Unlocked = 'unlocked' }
-
 interface AccountSummary {
   id: string; name: string; isDefault: boolean;
   createdAt: string; lastAccessedAt: string;
@@ -111,36 +159,23 @@ interface AccountSummary {
 
 ---
 
-## 5. 生物识别模块（新增）
+## 5. Biometric 生物识别模块
 
 ```rust
-/// 检查当前平台是否支持生物识别
 #[tauri::command]
 pub async fn biometric_check_availability() -> Result<BiometricAvailability, String>;
 
-/// 保存生物识别凭证（会话密钥写入 OS Keychain）
-/// 需验证主密码
 #[tauri::command]
-pub async fn biometric_save_credential(
-    account_id: String,
-    password: String,
-) -> Result<(), String>;
+pub async fn biometric_save_credential(account_id: String, password: String) -> Result<(), String>;
+// 验证主密码 → 会话密钥写入 OS Keychain
 
-/// 通过生物识别解锁 Vault
-/// 弹出系统对话框，验证后从 Keychain 读取会话密钥
 #[tauri::command]
 pub async fn biometric_unlock(account_id: String) -> Result<(), String>;
+// 弹出系统对话框 → 从 Keychain 读取会话密钥 → 解锁 Vault
 
-/// 删除生物识别凭证（从 Keychain 删除会话密钥）
-/// 需验证主密码
 #[tauri::command]
-pub async fn biometric_delete_credential(
-    account_id: String,
-    password: String,
-) -> Result<(), String>;
+pub async fn biometric_delete_credential(account_id: String, password: String) -> Result<(), String>;
 
-/// 测试生物识别是否正常工作
-/// 弹出系统对话框，不执行解锁
 #[tauri::command]
 pub async fn biometric_test(account_id: String) -> Result<bool, String>;
 ```
@@ -159,54 +194,344 @@ interface BiometricAvailability {
 
 | 约束 | 要求 |
 |------|------|
-| 密码仅在 `biometric_save_credential` / `biometric_delete_credential` 时接收 | 绝不通过返回值或事件泄露 |
+| 密码仅在 `biometric_save_credential`/`biometric_delete_credential` 参数接收 | 绝不通过返回值或事件泄露 |
 | 会话密钥不出 Rust | 前端永不接触原始会话密钥 |
-| 凭证不可导出 | OS Keychain 存储时标记为 `ThisDeviceOnly` |
-| 密码变更自动过期 | 详见文档 21 第 4.4 节 |
+| 凭证不可导出 | OS Keychain 标记 `ThisDeviceOnly` |
+| 密码变更自动过期 | 修改主密码后生物识别凭证自动失效 |
 
 ---
 
-## 6. Profile 模块
+## 6. Profile 档案模块
 
 ```rust
-#[tauri::command] pub async fn profile_get(account_id: String) -> Result<ProfileData, String>;
-#[tauri::command] pub async fn profile_update(account_id: String, data: ProfileData) -> Result<(), String>;
-#[tauri::command] pub async fn profile_get_section(account_id: String, section_type: String) -> Result<SectionData, String>;
-#[tauri::command] pub async fn profile_update_section(account_id: String, section_type: String, data: SectionData) -> Result<(), String>;
-#[tauri::command] pub async fn profile_update_field(account_id: String, section_type: String, field_key: String, field_value: FieldValue) -> Result<(), String>;
-#[tauri::command] pub async fn profile_get_field_history(account_id: String, section_type: String, field_key: String) -> Result<Vec<FieldHistoryEntry>, String>;
+#[tauri::command]
+pub async fn profile_load(account_id: String) -> Result<ProfileData, String>;
+
+#[tauri::command]
+pub async fn profile_save(account_id: String, data: ProfileData) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn profile_get_section(account_id: String, section_type: String) -> Result<SectionData, String>;
+
+#[tauri::command]
+pub async fn profile_update_field(account_id: String, section_type: String, field_key: String, field_value: FieldValue) -> Result<(), String>;
+// 前端配合 profileStore 乐观更新 + 500ms debounce
+
+#[tauri::command]
+pub async fn profile_delete(account_id: String) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn profile_list() -> Result<Vec<ProfileSummary>, String>;
+```
+
+> **命名变更**：设计稿中 `profile_get` → 实现为 `profile_load`，`profile_update` → 实现为 `profile_save`。
+
+---
+
+## 7. Object 对象模块
+
+> ⚠️ 已从 `unified_object_*` 全面更名为 `object_*`。
+
+```rust
+#[tauri::command]
+pub async fn object_list(account_id: String, filter: Option<ObjectFilter>) -> Result<Vec<ObjectSummary>, String>;
+
+#[tauri::command]
+pub async fn object_get(account_id: String, object_id: String) -> Result<ObjectData, String>;
+
+#[tauri::command]
+pub async fn object_create(input: ObjectInput) -> Result<ObjectData, String>;
+
+#[tauri::command]
+pub async fn object_update(object_id: String, input: ObjectInput) -> Result<ObjectData, String>;
+
+#[tauri::command]
+pub async fn object_delete(object_id: String) -> Result<(), String>;
+// 软删除 → 进入回收站
+
+#[tauri::command]
+pub async fn object_trash_list(account_id: String, since: Option<i64>) -> Result<Vec<TrashItemSummary>, String>;
+// 回收站列表（支持时间范围过滤）
+
+#[tauri::command]
+pub async fn object_restore(object_id: String, lang: String) -> Result<(), String>;
+// 软删除恢复
+
+#[tauri::command]
+pub async fn object_purge(object_id: String) -> Result<(), String>;
+// 物理删除（不可恢复）
 ```
 
 ---
 
-## 7. UnifiedObject 模块
+## 8. Template 模板模块
 
 ```rust
-#[tauri::command] pub async fn unified_object_list(account_id: String, filter: Option<ObjectFilter>, sort: Option<SortConfig>) -> Result<Vec<ObjectSummary>, String>;
-#[tauri::command] pub async fn unified_object_get(account_id: String, object_id: String) -> Result<UnifiedObject, String>;
-#[tauri::command] pub async fn unified_object_create(account_id: String, data: UnifiedObjectInput) -> Result<UnifiedObject, String>;
-#[tauri::command] pub async fn unified_object_update(account_id: String, object_id: String, data: UnifiedObjectInput) -> Result<UnifiedObject, String>;
-#[tauri::command] pub async fn unified_object_delete(account_id: String, object_id: String) -> Result<(), String>;         // 软删除
-#[tauri::command] pub async fn unified_object_permanently_delete(account_id: String, object_id: String) -> Result<(), String>; // 硬删除
-#[tauri::command] pub async fn unified_object_get_section_data(account_id: String, object_id: String, section_type: String) -> Result<SectionData, String>;
-#[tauri::command] pub async fn unified_object_update_field(account_id: String, object_id: String, section_type: String, field_key: String, field_value: FieldValue) -> Result<(), String>;
-#[tauri::command] pub async fn unified_object_set_sensitivity(account_id: String, object_id: String, sensitivity_level: String) -> Result<(), String>;
+#[tauri::command]
+pub async fn template_create(name: String, icon_id: Option<String>, category: Option<String>, properties: Vec<TemplateProperty>, contract_type_id: Option<String>) -> Result<String, String>;
+
+#[tauri::command]
+pub async fn template_update(template_id: String, name: Option<String>, icon_id: Option<String>, category: Option<String>, properties: Option<Vec<TemplateProperty>>) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn template_delete(template_id: String) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn template_restore(trash_id: String) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn template_get(template_id: String) -> Result<UserTemplate, String>;
+
+#[tauri::command]
+pub async fn template_list() -> Result<Vec<UserTemplate>, String>;
+
+#[tauri::command]
+pub async fn template_save_from_object(object_id: String, template_name: String, icon_id: Option<String>) -> Result<String, String>;
+// 从已有对象反向生成模板
+
+#[tauri::command]
+pub async fn template_check_field_usage(template_id: String, field_key: String) -> Result<FieldUsage, String>;
+// 统计字段使用情况（活跃数/软删除数），用于删除字段前的安全确认
 ```
 
 ---
 
-## 8. 敏感度模块（新增）
+## 9. Attachment 附件模块
 
 ```rust
-#[tauri::command] pub async fn sensitivity_get_field(field_id: String) -> Result<String, String>;
-#[tauri::command] pub async fn sensitivity_get_map() -> Result<SensitivityMap, String>;
-#[tauri::command] pub async fn sensitivity_update_field(field_id: String, new_level: String, password: String, reason: Option<String>) -> Result<(), String>;
-#[tauri::command] pub async fn sensitivity_get_log(limit: Option<usize>) -> Result<Vec<SensitivityLogEntry>, String>;
+#[tauri::command]
+pub async fn attachment_list(object_id: String, include_trash: bool) -> Result<Vec<AttachmentMeta>, String>;
+
+#[tauri::command]
+pub async fn attachment_save(object_id: String, file_path: String) -> Result<AttachmentMeta, String>;
+// 复制文件到 attachments/ 目录，元数据写入对象 properties.__attachments
+
+#[tauri::command]
+pub async fn attachment_rename(attachment_id: String, new_name: String) -> Result<AttachmentMeta, String>;
+
+#[tauri::command]
+pub async fn attachment_delete(attachment_id: String) -> Result<(), String>;
+// 物理删除附件文件和元数据
+
+#[tauri::command]
+pub async fn attachment_soft_delete(attachment_id: String) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn attachment_restore(attachment_id: String) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn attachment_batch_soft_delete(ids: Vec<String>) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn attachment_batch_restore(ids: Vec<String>) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn attachment_batch_delete(ids: Vec<String>) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn attachment_count_batch(object_ids: Vec<String>) -> Result<Vec<AttachmentCount>, String>;
+
+#[tauri::command]
+pub async fn attachment_copy_to_vault(object_id: String, file_path: String) -> Result<String, String>;
+// 从外部路径复制文件到 Vault 附件目录
+
+#[tauri::command]
+pub async fn attachment_list_all() -> Result<Vec<AttachmentMeta>, String>;
+// 全局列出所有对象的附件
+
+#[tauri::command]
+pub async fn attachment_download(attachment_id: String, target_path: String) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn attachment_cleanup_orphans() -> Result<usize, String>;
+// 清理未被任何对象引用的孤立附件文件，返回清理数量
 ```
 
 ---
 
-## 9. 事件定义（Rust → 前端推送）
+## 10. Snapshot 快照模块
+
+```rust
+#[tauri::command]
+pub async fn snapshot_list(object_id: String) -> Result<Vec<SnapshotMeta>, String>;
+
+#[tauri::command]
+pub async fn snapshot_get(snapshot_id: String) -> Result<SnapshotDetail, String>;
+
+#[tauri::command]
+pub async fn snapshot_get_data(snapshot_id: String) -> Result<serde_json::Value, String>;
+// 获取快照的完整数据内容
+
+#[tauri::command]
+pub async fn snapshot_rollback(snapshot_id: String) -> Result<ObjectData, String>;
+// 回滚对象到指定快照状态
+
+#[tauri::command]
+pub async fn snapshot_count_batch(object_ids: Vec<String>) -> Result<Vec<SnapshotCount>, String>;
+// 批量查询多个对象的快照数量
+```
+
+---
+
+## 11. LLM 大语言模型模块（部分核心命令）
+
+```rust
+// 对话管理
+#[tauri::command] pub async fn llm_chat(conversation_id: String, message: String, provider_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn llm_send_message(conversation_id: String, message: String, provider_id: String, model: String, temperature: Option<f32>) -> Result<(), String>;
+// 流式响应通过 Tauri Event "llm-stream-chunk" 推送到前端
+
+// 对话生命周期
+#[tauri::command] pub async fn llm_list_conversations(account_id: String) -> Result<Vec<ConversationSummary>, String>;
+#[tauri::command] pub async fn llm_get_conversation(conversation_id: String) -> Result<Conversation, String>;
+#[tauri::command] pub async fn llm_save_conversation(conversation_id: String, messages: Vec<Message>) -> Result<(), String>;
+#[tauri::command] pub async fn llm_delete_conversation(conversation_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn llm_soft_delete_conversation(conversation_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn llm_restore_conversation(conversation_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn llm_rename_conversation(conversation_id: String, new_name: String) -> Result<(), String>;
+#[tauri::command] pub async fn llm_list_trash(account_id: String) -> Result<Vec<ConversationSummary>, String>;
+#[tauri::command] pub async fn llm_permanent_delete(conversation_id: String) -> Result<(), String>;
+
+// 提供商管理
+#[tauri::command] pub async fn llm_get_providers(account_id: String) -> Result<Vec<LlmProvider>, String>;
+#[tauri::command] pub async fn llm_save_provider(account_id: String, provider: LlmProvider) -> Result<(), String>;
+#[tauri::command] pub async fn llm_delete_provider(account_id: String, provider_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn llm_test_provider(account_id: String, provider_id: String) -> Result<TestResult, String>;
+#[tauri::command] pub async fn llm_set_active_provider(account_id: String, provider_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn llm_get_api_key(account_id: String, provider_id: String) -> Result<String, String>;
+#[tauri::command] pub async fn llm_accept_risk(account_id: String) -> Result<(), String>;
+
+// 本地 Embedding 与 RAG
+#[tauri::command] pub async fn llm_set_local_embedding(enabled: bool, model_name: Option<String>) -> Result<(), String>;
+#[tauri::command] pub async fn llm_check_embedding_available() -> Result<bool, String>;
+#[tauri::command] pub async fn llm_get_embed_models() -> Result<Vec<EmbedModelInfo>, String>;
+#[tauri::command] pub async fn llm_download_embed_model(model_name: String) -> Result<(), String>;
+#[tauri::command] pub async fn llm_search_guide_chunks(account_id: String, query: String, language: String, top_k: Option<usize>) -> Result<Vec<GuideChunk>, String>;
+#[tauri::command] pub async fn llm_rebuild_guide_embeddings(language: String) -> Result<(), String>;
+
+// 统计
+#[tauri::command] pub async fn llm_get_stats(account_id: String) -> Result<LlmUsageStats, String>;
+#[tauri::command] pub async fn llm_reset_stats(account_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn llm_persist_stats(account_id: String) -> Result<(), String>;
+
+// 指南检索
+#[tauri::command] pub async fn llm_find_guides(query: String) -> Result<Vec<GuideReference>, String>;
+#[tauri::command] pub async fn llm_check_connection(provider_id: String) -> Result<ConnectionStatus, String>;
+
+// 系统提示与 AI 功能开关
+#[tauri::command] pub async fn llm_set_system_prompt_switch(enabled: bool) -> Result<(), String>;
+#[tauri::command] pub async fn llm_set_ai_features(account_id: String, features: AiFeatures) -> Result<(), String>;
+#[tauri::command] pub async fn llm_get_config(account_id: String) -> Result<LlmConfig, String>;
+```
+
+---
+
+## 12. OCR 模块
+
+```rust
+#[tauri::command]
+pub async fn ocr_scan_image(file_path: String) -> Result<OcrResult, String>;
+
+#[tauri::command]
+pub async fn ocr_scan_mrz(file_path: String) -> Result<MrzResult, String>;
+// 身份证/MRTD 机读区识别，未检测到 MRZ 时自动 fallback 到通用 OCR
+
+#[tauri::command]
+pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String>;
+
+#[tauri::command]
+pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String>;
+// tiny / small / medium 三档
+
+#[tauri::command]
+pub async fn ocr_get_active_tier() -> Result<String, String>;
+
+#[tauri::command]
+pub async fn ocr_set_active_tier(tier: String) -> Result<(), String>;
+
+#[tauri::command]
+pub async fn ocr_get_model_status(tier: String) -> Result<OcrModelStatus, String>;
+
+#[tauri::command]
+pub async fn ocr_install_bundled_model() -> Result<(), String>;
+// 安装打包内置的 small 模型
+
+#[tauri::command]
+pub async fn ocr_install_bundled_model_with_progress(tier: String) -> Result<(), String>;
+// 带进度推送的安装，通过 Event "ocr-install-progress" 推送 { tier, progress, done, error? }
+
+#[tauri::command]
+pub async fn ocr_download_model(tier: String) -> Result<(), String>;
+```
+
+---
+
+## 13. Crypto 密码学模块
+
+```rust
+// 使用当前会话密钥
+#[tauri::command] pub async fn encrypt_bytes(data: Vec<u8>) -> Result<Vec<u8>, String>;
+#[tauri::command] pub async fn decrypt_bytes(data: Vec<u8>) -> Result<Vec<u8>, String>;
+
+// 使用自定义密钥
+#[tauri::command] pub async fn encrypt_with_key(key: Vec<u8>, plaintext: Vec<u8>) -> Result<Vec<u8>, String>;
+#[tauri::command] pub async fn decrypt_with_key(key: Vec<u8>, ciphertext: Vec<u8>) -> Result<Vec<u8>, String>;
+
+// 密钥派生
+#[tauri::command] pub async fn derive_key(password: Vec<u8>, salt: Vec<u8>, memory_mib: u32, iterations: u32, parallelism: u32) -> Result<Vec<u8>, String>;
+
+// 工具函数
+#[tauri::command] pub async fn generate_salt(length: u32) -> Vec<u8>;
+#[tauri::command] pub async fn constant_time_compare(a: Vec<u8>, b: Vec<u8>) -> bool;
+#[tauri::command] pub async fn verify_password(password: String) -> Result<bool, String>;
+
+// 文件加解密
+#[tauri::command] pub async fn encrypt_file(source: String, dest: String) -> Result<(), String>;
+#[tauri::command] pub async fn decrypt_file(source: String, dest: String) -> Result<(), String>;
+```
+
+---
+
+## 14. FS 文件系统模块
+
+```rust
+#[tauri::command]
+pub async fn fs_get_file_size(path: String) -> Result<u64, String>;
+
+#[tauri::command]
+pub async fn fs_is_dir(path: String) -> Result<bool, String>;
+
+#[tauri::command]
+pub async fn fs_read_file_as_data_url(path: String) -> Result<String, String>;
+// 读取文件并返回 base64 Data URL
+
+#[tauri::command]
+pub async fn fs_scan_directory(path: String) -> Result<Vec<FsEntry>, String>;
+```
+
+---
+
+## 15. Plugin 插件模块
+
+```rust
+#[tauri::command] pub async fn plugin_list_all() -> Result<Vec<PluginInfo>, String>;
+#[tauri::command] pub async fn plugin_list_installed() -> Result<Vec<InstalledPlugin>, String>;
+#[tauri::command] pub async fn plugin_install(plugin_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn plugin_update(plugin_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn plugin_uninstall(plugin_id: String) -> Result<(), String>;
+#[tauri::command] pub async fn plugin_run(plugin_id: String, input: serde_json::Value) -> Result<serde_json::Value, String>;
+#[tauri::command] pub async fn plugin_consent_response(session_id: String, consent: PluginConsent) -> Result<(), String>;
+#[tauri::command] pub async fn plugin_dialog_response(session_id: String, response: serde_json::Value) -> Result<(), String>;
+#[tauri::command] pub async fn plugin_list_sessions() -> Result<Vec<PluginSession>, String>;
+#[tauri::command] pub async fn plugin_audit_log(plugin_id: String, limit: Option<usize>) -> Result<Vec<PluginAuditEntry>, String>;
+#[tauri::command] pub async fn plugin_update_registry() -> Result<(), String>;
+```
+
+---
+
+## 16. 事件定义（Rust → 前端推送）
+
+### 生命周期事件
 
 ```rust
 pub const EVENT_VAULT_LOCKED: &str = "vault-locked";
@@ -215,13 +540,28 @@ pub const EVENT_THEME_CHANGED: &str = "theme-changed";
 pub const EVENT_LOCALE_CHANGED: &str = "locale-changed";
 pub const EVENT_DATA_CHANGED: &str = "data-changed";
 pub const EVENT_SETTINGS_CHANGED: &str = "settings-changed";
+```
+
+### 生物识别事件
+
+```rust
 pub const EVENT_BIOMETRIC_ENABLED: &str = "biometric-enabled";
 pub const EVENT_BIOMETRIC_DISABLED: &str = "biometric-disabled";
 pub const EVENT_BIOMETRIC_CREDENTIAL_EXPIRED: &str = "biometric-credential-expired";
 ```
 
+### 流式推送事件
+
+| 事件名 | Payload | 说明 |
+|--------|---------|------|
+| `llm-stream-chunk` | `{ conversationId, chunk, isDone, error? }` | LLM 流式对话逐字推送 |
+| `ocr-install-progress` | `{ tier, progress (0–100), done, error? }` | OCR 模型下载进度 |
+| `export-progress` | `{ percent, message }` | 导入导出进度 |
+| `import-progress` | `{ percent, message }` | 导入进度 |
+| `sync-progress` | `{ deviceId, percent, message }` | 设备同步进度 |
+
 ```typescript
-// 前端监听
+// 前端监听示例
 import { listen } from '@tauri-apps/api/event';
 useEffect(() => {
   const unlisten = listen('vault-locked', () => navigate('/login'));
@@ -231,57 +571,65 @@ useEffect(() => {
 
 ---
 
-## 10. tauri-specta 类型生成
+## 17. tauri-specta 类型生成
 
-```rust
-// 构建脚本自动生成 TypeScript 类型
-#[cfg(feature = "specta")]
-fn generate_bindings() {
-    use tauri_specta::{collect_commands, ts};
-    ts::export(collect_commands![/* 所有命令 */], "../src/lib/ipc.ts").unwrap();
-}
-```
+系统使用 `tauri-specta` 为所有 `#[tauri::command]` 自动生成 TypeScript Binding。生成的 `src/lib/ipc.ts` 不可手动修改。
 
-生成的 `src/lib/ipc.ts`（自动生成，不可手动修改）:
+示例：
+
 ```typescript
-export async function authLogin(accountId: string, password: string): Promise<AccountInfo> {
-  return await invoke('auth_login', { accountId, password });
+// Rust 命令: pub async fn login(account_id: String, password: String) -> Result<AccountInfo, String>;
+// 自动生成 TS 函数:
+export async function login(accountId: string, password: string): Promise<AccountInfo> {
+  return await invoke('login', { accountId, password });
+}
+
+// Rust 命令: pub async fn object_list(account_id: String, filter: Option<ObjectFilter>) -> Result<Vec<ObjectSummary>, String>;
+// 自动生成 TS 函数:
+export async function objectList(accountId: string, filter: ObjectFilter | null): Promise<ObjectSummary[]> {
+  return await invoke('object_list', { accountId, filter });
 }
 ```
+
+> `tauri-specta` 自动完成 Rust `snake_case` → TypeScript `camelCase` 转换，命令调用仍使用原始 snake_case 字符串。
 
 ---
 
-## 11. 安全约束
+## 18. 安全约束
 
 | 约束 | 要求 |
 |------|------|
-| 密码不通过 IPC 返回 | `auth_bootstrap` 和 `auth_login` 接收密码，但绝不返回 |
-| 密钥不出 Rust | 前端永不接触 `[u8; 32]` 密钥 |
-| 敏感度查询不验证 | `sensitivity_get_field` 无需密码（用于渲染判断） |
-| 敏感度修改需密码 | `sensitivity_update_field` 必须传入密码 |
-| 生物识别密码验证 | `biometric_save_credential` / `biometric_delete_credential` 需主密码验证 |
-| 错误不泄露内部状态 | 不返回 "table x not found"，返回 "数据加载失败" |
+| 密码接收范围 | 仅 `bootstrap`、`login`、`unlock`、`unlock_with_password`、`change_password`、`verify_password`、`delete_account` 及生物识别绑定可通过参数接收密码 |
+| 零流出原则 | 前端永不接收 Rust 内存中的密钥（`[u8; 32]` 主密钥），全部收敛在后端操作 |
+| 敏感度控制 | 已并入 Object 数据节点，前端按 `SensitivityLevel` 标志位局部模糊/锁定，不再涉及独立 IPC |
+| 错误不泄露内部状态 | 不返回 "table x not found"，返回中文用户可理解消息如"数据加载失败" |
+| 命令权限 | 需 Vault 解锁才可调用的命令在 Rust 层检查 `AppState.ensure_unlocked()` |
 
 ---
 
-## 12. 完成标准
+## 19. 完成标准
 
 ### P0（必须）
-- [ ] 全部 66 个命令编译通过（空实现即可）
-- [ ] tauri-specta 生成 TypeScript 类型文件
-- [ ] IPC 调用可从前端 `invoke` 到 Rust 并返回
-- [ ] 密码/密钥不通过任何 IPC 返回值泄露
+- [x] 全部约 155 个命令编译通过
+- [x] `tauri-specta` 生成 TypeScript 类型文件
+- [x] IPC 调用可从前端 `invoke` 到 Rust 并返回
+- [x] 密码/密钥不通过任何 IPC 返回值泄露
 
 ### P1（重要 — 事件与生物识别）
-- [ ] `vault-locked` 事件可被前端监听并触发导航
-- [ ] 新增 5 个 `biometric_*` 命令编译通过并可用
-- [ ] `biometric_check_availability` 返回正确的平台生物识别能力
-- [ ] `biometric_unlock` 通过系统对话框验证后从 Keychain 读取会话密钥
-- [ ] `biometric-enabled` / `biometric-disabled` / `biometric-credential-expired` 事件可被前端监听
+- [x] `vault-locked` / `vault-unlocked` 事件可被前端监听并触发导航/状态同步
+- [x] 5 个 `biometric_*` 命令编译通过且可用
+- [x] `biometric_check_availability` 返回正确的平台生物识别能力
+- [x] `biometric_unlock` 通过系统对话框验证后从 Keychain 读取会话密钥
+- [x] `biometric-enabled` / `biometric-disabled` / `biometric-credential-expired` 事件可被前端监听
+
+### P2（实现完成确认）
+- [x] 流式事件（LLM stream / OCR progress / export-import progress）正确推送
+- [x] 附件模块 14 个命令全部可用（含批量操作和孤儿清理）
+- [x] 模板模块 `template_check_field_usage` 返回正确字段使用统计
 
 ---
 
-*文档版本：v2.1 (priority-refactored)*
+*文档版本：v3.0（实现后补充）*
 *创建日期：2026-06-05*
-*最后更新：2026-06-07*
-*对应开发阶段：Phase 1-2（IPC 层）*
+*最后更新：2026-06-25*
+*对应开发阶段：Phase 1-2（IPC 层），已全部实现*
