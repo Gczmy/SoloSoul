@@ -332,7 +332,7 @@ function CountButton({
             lineHeight: 1,
           }}
         >
-          {count}
+          {count > 99 ? '99+' : count}
         </span>
       )}
     </div>
