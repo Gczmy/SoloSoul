@@ -263,6 +263,13 @@ pub async fn fs_get_file_size(path: String) -> Result<u64, String> {
 }
 
 #[tauri::command]
+pub async fn fs_is_dir(path: String) -> Result<bool, String> {
+    let p = resolve_allowed_path(&path)?;
+    let meta = std::fs::metadata(&p).map_err(|e| format!("Read: {}", e))?;
+    Ok(meta.is_dir())
+}
+
+#[tauri::command]
 pub async fn fs_read_file_as_data_url(path: String) -> Result<String, String> {
     use std::io::Read;
     let p = resolve_allowed_path(&path)?;

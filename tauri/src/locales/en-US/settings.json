@@ -633,5 +633,9 @@
   "sync_pairing_trust": "Trust & Pair",
   "sync_activity_title": "Sync Activity",
   "sync_conflicts": "Conflicts",
-  "sync_winner": "winner"
+  "sync_winner": "winner",
+  "llm_delete_model_title": "Delete Model",
+  "llm_delete_provider_body": "Are you sure you want to delete this provider?",
+  "llm_delete_provider_title": "Delete Provider",
+  "local_import": "Local Import"
 }

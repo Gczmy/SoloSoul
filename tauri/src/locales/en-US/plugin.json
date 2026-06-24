@@ -49,5 +49,10 @@
   "log_level_error": "Error",
   "refresh": "Refresh",
   "refresh_success": "Plugin registry updated",
-  "refresh_failed": "Failed to refresh plugin registry"
+  "refresh_failed": "Failed to refresh plugin registry",
+  "go_full": "View All",
+  "tier_all": "All Tiers",
+  "tier_coming_soon": "Coming Soon",
+  "uninstall_confirm_message": "Are you sure you want to uninstall this plugin?",
+  "uninstall_confirm_title": "Uninstall Plugin"
 }

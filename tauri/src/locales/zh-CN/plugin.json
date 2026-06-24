@@ -49,5 +49,10 @@
   "log_level_error": "错误",
   "refresh": "刷新",
   "refresh_success": "插件注册表已更新",
-  "refresh_failed": "插件注册表刷新失败"
+  "refresh_failed": "插件注册表刷新失败",
+  "go_full": "查看全部",
+  "tier_all": "全部层级",
+  "tier_coming_soon": "即将上线",
+  "uninstall_confirm_message": "确定要卸载此插件吗？",
+  "uninstall_confirm_title": "卸载插件"
 }

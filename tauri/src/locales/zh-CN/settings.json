@@ -633,5 +633,9 @@
   "sync_pairing_trust": "信任并配对",
   "sync_activity_title": "同步活动",
   "sync_conflicts": "冲突",
-  "sync_winner": "胜出方"
+  "sync_winner": "胜出方",
+  "llm_delete_model_title": "删除模型",
+  "llm_delete_provider_body": "确定要删除此提供商吗？",
+  "llm_delete_provider_title": "删除提供商",
+  "local_import": "本地导入"
 }

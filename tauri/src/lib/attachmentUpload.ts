@@ -32,6 +32,49 @@ export async function getFileSize(filePath: string): Promise<number> {
   return invoke<number>('fs_get_file_size', { path: filePath }).catch(() => 0);
 }
 
+/**
+ * 检查指定路径是否为目录。
+ * 通过 Tauri 命令 fs_is_dir 查询文件系统元数据。
+ */
+export async function checkPathIsDir(filePath: string): Promise<boolean> {
+  return invoke<boolean>('fs_is_dir', { path: filePath }).catch(() => false);
+}
+
+/**
+ * 将路径数组过滤为文件和目录两组。
+ * 所有检测并行执行后统一分类。
+ *
+ * @returns { files: 文件路径数组, dirs: 目录路径数组 }
+ */
+export async function filterOutDirectories(
+  paths: string[],
+): Promise<{ files: string[]; dirs: string[] }> {
+  if (paths.length === 0) return { files: [], dirs: [] };
+
+  // 并行检测所有路径
+  const results = await Promise.allSettled(
+    paths.map(async (p) => ({ path: p, isDir: await checkPathIsDir(p) })),
+  );
+
+  const files: string[] = [];
+  const dirs: string[] = [];
+
+  for (const r of results) {
+    if (r.status === 'rejected') {
+      // 检测失败时保守处理，当作文件让其正常走上传（后端会报错）
+      files.push((r.reason as { path?: string })?.path || '');
+      continue;
+    }
+    if (r.value.isDir) {
+      dirs.push(r.value.path);
+    } else {
+      files.push(r.value.path);
+    }
+  }
+
+  return { files, dirs };
+}
+
 /** 读取文件对话框，返回选中的文件路径或 null */
 export async function pickFileToAttach(): Promise<string | null> {
   try {
