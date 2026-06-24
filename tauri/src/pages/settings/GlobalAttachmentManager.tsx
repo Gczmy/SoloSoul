@@ -969,33 +969,6 @@ export function GlobalAttachmentManager() {
               ) : (
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button
-                    onClick={() => setBatchPermanentDeleteConfirm(true)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
-                      e.currentTarget.style.borderColor = '#e74c3c';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      background: 'transparent',
-                      color: '#e74c3c',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <Trash2 size={12} /> {t('common:delete_permanently')}
-                  </button>
-                  <button
                     onClick={() => setBatchRestoreConfirm(true)}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
@@ -1021,6 +994,33 @@ export function GlobalAttachmentManager() {
                     }}
                   >
                     <RotateCcw size={12} /> {t('common:restore')}
+                  </button>
+                  <button
+                    onClick={() => setBatchPermanentDeleteConfirm(true)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
+                      e.currentTarget.style.borderColor = '#e74c3c';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '4px 10px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'transparent',
+                      color: '#e74c3c',
+                      fontSize: 12,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <Trash2 size={12} /> {t('common:delete_permanently')}
                   </button>
                 </div>
               )}

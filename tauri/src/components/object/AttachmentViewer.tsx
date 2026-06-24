@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
-import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2, Scan } from 'lucide-react';
+import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2, Upload } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -115,21 +114,9 @@ export function AttachmentViewer({
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const { t } = useTranslation(['common', 'editor']);
-  const navigate = useNavigate();
   const showToast = useUiStore((s) => s.showToast);
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
 
-  const handleOcr = (item: AttachmentItem) => {
-    const filePath = item.vaultPath || item.srcPath;
-    if (!filePath) {
-      showToast({
-        type: 'error',
-        message: t('common:ocr_no_path') || 'Cannot locate attachment file for OCR',
-      });
-      return;
-    }
-    navigate('/ocr', { state: { filePath } });
-  };
 
   const openWithDefault = async (path: string) => {
     try {
@@ -399,21 +386,23 @@ export function AttachmentViewer({
                 onClick={() => { setShowTrash(false); clearSelection(); }}
                 onMouseEnter={!showTrash ? undefined : (e) => {
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
+                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                 }}
                 onMouseLeave={!showTrash ? undefined : (e) => {
                   e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
                 }}
                 style={{
-                  padding: '3px 8px',
+                  padding: '5px 12px',
                   borderRadius: 6,
-                  fontSize: 11,
-                  border: '1px solid var(--border-subtle)',
-                  background: !showTrash ? 'var(--accent-primary)' : 'transparent',
-                  color: !showTrash ? 'white' : 'var(--text-secondary)',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  border: !showTrash ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                  background: !showTrash ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                  color: !showTrash ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  boxShadow: !showTrash ? '0 0 0 1px var(--accent-primary)' : 'none',
                   cursor: 'pointer',
-                  transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
               >
                 {t('common:attachments_active', { n: items.length })}
@@ -422,21 +411,23 @@ export function AttachmentViewer({
                 onClick={() => { setShowTrash(true); clearSelection(); }}
                 onMouseEnter={showTrash ? undefined : (e) => {
                   e.currentTarget.style.borderColor = '#e74c3c';
-                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 8%, transparent)';
+                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
                 }}
                 onMouseLeave={showTrash ? undefined : (e) => {
                   e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
                 }}
                 style={{
-                  padding: '3px 8px',
+                  padding: '5px 12px',
                   borderRadius: 6,
-                  fontSize: 11,
-                  border: '1px solid var(--border-subtle)',
-                  background: showTrash ? '#e74c3c' : 'transparent',
-                  color: showTrash ? 'white' : 'var(--text-secondary)',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  border: showTrash ? '1px solid #e74c3c' : '1px solid var(--border-subtle)',
+                  background: showTrash ? 'color-mix(in srgb, #e74c3c 10%, transparent)' : 'var(--bg-toolbar)',
+                  color: showTrash ? '#e74c3c' : 'var(--text-primary)',
+                  boxShadow: showTrash ? '0 0 0 1px #e74c3c' : 'none',
                   cursor: 'pointer',
-                  transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
               >
                 {t('common:attachments_trash', { n: trashItems.length })}
@@ -446,11 +437,30 @@ export function AttachmentViewer({
           {!showTrash && (
             <button
               onClick={handleAdd}
-              onMouseEnter={btnHoverEnter}
-              onMouseLeave={btnHoverLeave}
-              style={{ ...pgBtn, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--accent-primary)';
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-secondary)';
+                e.currentTarget.style.background = 'transparent';
+              }}
+              style={{
+                width: 28,
+                height: 28,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                borderRadius: 6,
+                background: 'transparent',
+                cursor: 'pointer',
+                color: 'var(--text-secondary)',
+                transition: 'background 0.15s, color 0.15s',
+              }}
+              title={t('common:upload') || 'Upload'}
             >
-              + {t('common:create')}
+              <Upload size={14} />
             </button>
           )}
           <button onClick={onClose} onMouseEnter={btnHoverEnter} onMouseLeave={btnHoverLeave} style={pgBtn}>
@@ -598,14 +608,12 @@ export function AttachmentViewer({
                   checked={checked}
                   onClick={(e) => { e.stopPropagation(); toggleSelect(compositeKey); }}
                 />
-                {showTrash ? (
-                  <Trash2 size={14} style={{ color: '#e74c3c', flexShrink: 0 }} />
-                ) : item.mimeType.startsWith('image/') ? (
-                  <Image size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                {item.mimeType.startsWith('image/') ? (
+                  <Image size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
                 ) : item.mimeType === 'application/pdf' ? (
-                  <FileText size={14} style={{ color: '#e74c3c', flexShrink: 0 }} />
+                  <FileText size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
                 ) : (
-                  <Paperclip size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                  <Paperclip size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
@@ -679,17 +687,6 @@ export function AttachmentViewer({
                         >
                           <Eye size={12} />
                         </button>
-                        {item.mimeType.startsWith('image/') && (
-                          <button
-                            onClick={() => handleOcr(item)}
-                            onMouseEnter={btnHoverEnter}
-                            onMouseLeave={btnHoverLeave}
-                            style={miniBtn}
-                            title={t('common:ocr') || 'OCR'}
-                          >
-                            <Scan size={12} />
-                          </button>
-                        )}
                         <button
                           onClick={() => handleStartRename(item)}
                           onMouseEnter={btnHoverEnter}
