@@ -262,57 +262,53 @@ export function TrashDetailPanel({
               {expandedSections.attachments && (
                 <div style={{ marginTop: 8 }}>
                   {deletedAttachments.length > 0 && (
-                    <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
                       <button
                         onClick={() => setShowTrashAttachments(false)}
-                        onMouseEnter={showTrashAttachments ? (e) => {
+                        onMouseEnter={!showTrashAttachments ? undefined : (e) => {
                           e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                          e.currentTarget.style.color = 'var(--accent-primary)';
-                          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
-                        } : undefined}
-                        onMouseLeave={showTrashAttachments ? (e) => {
+                          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                        }}
+                        onMouseLeave={!showTrashAttachments ? undefined : (e) => {
                           e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                          e.currentTarget.style.color = 'var(--text-secondary)';
-                          e.currentTarget.style.background = 'transparent';
-                        } : undefined}
+                          e.currentTarget.style.background = 'var(--bg-toolbar)';
+                        }}
                         style={{
-                          padding: '3px 10px',
-                          borderRadius: 4,
-                          border: '1px solid var(--border-subtle)',
-                          cursor: 'pointer',
+                          padding: '4px 10px',
+                          borderRadius: 6,
                           fontSize: 11,
-                          background: !showTrashAttachments
-                            ? 'var(--accent-primary)'
-                            : 'transparent',
-                          color: !showTrashAttachments ? 'white' : 'var(--text-secondary)',
-                          transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+                          fontWeight: 500,
+                          border: showTrashAttachments ? '1px solid var(--border-subtle)' : '1px solid var(--accent-primary)',
+                          background: showTrashAttachments ? 'var(--bg-toolbar)' : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                          color: showTrashAttachments ? 'var(--text-primary)' : 'var(--accent-primary)',
+                          boxShadow: showTrashAttachments ? 'none' : '0 0 0 1px var(--accent-primary)',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                         }}
                       >
                         {t('common:active')} ({activeAttachments.length})
                       </button>
                       <button
                         onClick={() => setShowTrashAttachments(true)}
-                        onMouseEnter={!showTrashAttachments ? (e) => {
+                        onMouseEnter={showTrashAttachments ? undefined : (e) => {
                           e.currentTarget.style.borderColor = '#e74c3c';
-                          e.currentTarget.style.color = '#e74c3c';
-                          e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 8%, transparent)';
-                        } : undefined}
-                        onMouseLeave={!showTrashAttachments ? (e) => {
+                          e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
+                        }}
+                        onMouseLeave={showTrashAttachments ? undefined : (e) => {
                           e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                          e.currentTarget.style.color = 'var(--text-secondary)';
-                          e.currentTarget.style.background = 'transparent';
-                        } : undefined}
+                          e.currentTarget.style.background = 'var(--bg-toolbar)';
+                        }}
                         style={{
-                          padding: '3px 10px',
-                          borderRadius: 4,
-                          border: '1px solid var(--border-subtle)',
-                          cursor: 'pointer',
+                          padding: '4px 10px',
+                          borderRadius: 6,
                           fontSize: 11,
-                          background: showTrashAttachments
-                            ? 'var(--accent-primary)'
-                            : 'transparent',
-                          color: showTrashAttachments ? 'white' : 'var(--text-secondary)',
-                          transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+                          fontWeight: 500,
+                          border: showTrashAttachments ? '1px solid #e74c3c' : '1px solid var(--border-subtle)',
+                          background: showTrashAttachments ? 'color-mix(in srgb, #e74c3c 10%, transparent)' : 'var(--bg-toolbar)',
+                          color: showTrashAttachments ? '#e74c3c' : 'var(--text-primary)',
+                          boxShadow: showTrashAttachments ? '0 0 0 1px #e74c3c' : 'none',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                         }}
                       >
                         {t('common:trash')} ({deletedAttachments.length})
@@ -336,7 +332,7 @@ export function TrashDetailPanel({
                         const isImage = a.mimeType.startsWith('image/') || ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
                         const isPdf = a.mimeType === 'application/pdf' || ext === 'pdf';
                         const AttachIcon = isImage ? Image : isPdf ? FileText : Paperclip;
-                        const iconColor = isImage ? 'var(--accent-primary)' : isPdf ? '#e74c3c' : 'var(--text-tertiary)';
+                        const iconColor = 'var(--text-tertiary)';
                         return (
                           <div
                             key={a.id}
@@ -359,8 +355,6 @@ export function TrashDetailPanel({
                               border: '1px solid transparent',
                               cursor: 'default',
                               transition: 'background 0.15s, border-color 0.15s',
-                              textDecoration: showTrashAttachments ? 'line-through' : 'none',
-                              opacity: showTrashAttachments ? 0.7 : 1,
                             }}
                           >
                             <AttachIcon size={16} style={{ color: iconColor, flexShrink: 0 }} />
@@ -371,6 +365,7 @@ export function TrashDetailPanel({
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap',
+                                  textDecoration: showTrashAttachments ? 'line-through' : 'none',
                                 }}
                               >
                                 {truncateFileName(a.fileName)}
@@ -386,12 +381,8 @@ export function TrashDetailPanel({
                                 padding: '2px 6px',
                                 borderRadius: 4,
                                 fontWeight: 500,
-                                background: isImage
-                                  ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                                  : isPdf
-                                    ? 'color-mix(in srgb, #e74c3c 10%, transparent)'
-                                    : 'color-mix(in srgb, var(--text-tertiary) 10%, transparent)',
-                                color: iconColor,
+                                background: 'color-mix(in srgb, var(--text-tertiary) 10%, transparent)',
+                                color: 'var(--text-tertiary)',
                                 flexShrink: 0,
                                 textDecoration: 'none',
                               }}
