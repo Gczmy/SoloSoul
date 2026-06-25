@@ -566,11 +566,14 @@ pub async fn attachment_download(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let vault_base = svc.base_path().canonicalize()
+    let vault_base = svc
+        .base_path()
+        .canonicalize()
         .map_err(|_| "Invalid vault base path".to_string())?;
 
     // Security: ensure the source path is within vault storage
-    let src = std::path::Path::new(&src_path).canonicalize()
+    let src = std::path::Path::new(&src_path)
+        .canonicalize()
         .map_err(|e| format!("Invalid source path: {}", e))?;
     if !src.starts_with(&vault_base) {
         return Err("Source path must be within vault storage".to_string());
@@ -582,8 +585,7 @@ pub async fn attachment_download(
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("Failed to create destination directory: {}", e))?;
     }
-    std::fs::copy(&src, &dest)
-        .map_err(|e| format!("Failed to copy file: {}", e))?;
+    std::fs::copy(&src, dest).map_err(|e| format!("Failed to copy file: {}", e))?;
 
     Ok(())
 }

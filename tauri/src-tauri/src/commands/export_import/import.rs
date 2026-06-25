@@ -253,7 +253,8 @@ async fn import_execute_internal(
     // ── Rebuild referenced templates ─────────────────────────────
     if let Some(templates) = payload["templates"].as_array() {
         for tpl_val in templates {
-            if let Ok(tpl) = serde_json::from_value::<solosoul_vault::UserTemplate>(tpl_val.clone()) {
+            if let Ok(tpl) = serde_json::from_value::<solosoul_vault::UserTemplate>(tpl_val.clone())
+            {
                 if vault.load_user_template(&tpl.id).ok().flatten().is_none() {
                     let mut new_tpl = tpl;
                     new_tpl.account_id = account_id.clone();
@@ -467,10 +468,10 @@ async fn import_execute_internal(
         // Replace each imported object's __attachments with the newly imported list
         for (obj_id, atts) in &imported_atts {
             let mut obj = vault
-                .load_object(&obj_id)
+                .load_object(obj_id)
                 .map_err(|e| format!("get object: {}", e))?
                 .ok_or_else(|| format!("object {} not found", obj_id))?;
-            let att_json = serde_json::to_value(&atts).map_err(|e| e.to_string())?;
+            let att_json = serde_json::to_value(atts).map_err(|e| e.to_string())?;
             match &mut obj.properties {
                 serde_json::Value::Object(map) => {
                     map.insert("__attachments".to_string(), att_json);

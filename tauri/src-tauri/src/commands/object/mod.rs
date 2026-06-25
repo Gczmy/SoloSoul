@@ -149,13 +149,29 @@ fn inherit_property_fields(
     let mut map = serde_json::Map::new();
     for prop in &tpl.properties {
         let mut field_def = serde_json::Map::new();
-        field_def.insert("name".to_string(), serde_json::Value::String(prop.name.clone()));
-        field_def.insert("type".to_string(), serde_json::Value::String(prop.prop_type.as_str().to_string()));
+        field_def.insert(
+            "name".to_string(),
+            serde_json::Value::String(prop.name.clone()),
+        );
+        field_def.insert(
+            "type".to_string(),
+            serde_json::Value::String(prop.prop_type.as_str().to_string()),
+        );
         if let Some(ref opts) = prop.options {
-            field_def.insert("options".to_string(), serde_json::Value::Array(opts.iter().map(|o| serde_json::Value::String(o.clone())).collect()));
+            field_def.insert(
+                "options".to_string(),
+                serde_json::Value::Array(
+                    opts.iter()
+                        .map(|o| serde_json::Value::String(o.clone()))
+                        .collect(),
+                ),
+            );
         }
         if let Some(ref da) = prop.deprecated_at {
-            field_def.insert("deprecatedAt".to_string(), serde_json::Value::String(da.clone()));
+            field_def.insert(
+                "deprecatedAt".to_string(),
+                serde_json::Value::String(da.clone()),
+            );
         }
         if let Some(ref cf) = prop.contract_field {
             field_def.insert("contractField".to_string(), serde_json::Value::Bool(*cf));
@@ -170,10 +186,7 @@ fn inherit_property_fields(
 }
 
 /// 将 `__fields` 注入到 properties JSON 对象中。
-fn inject_property_fields(
-    properties: &mut serde_json::Value,
-    fields: &serde_json::Value,
-) {
+fn inject_property_fields(properties: &mut serde_json::Value, fields: &serde_json::Value) {
     if fields.is_null() {
         return;
     }
@@ -190,9 +203,14 @@ fn inject_template_meta(
     properties: &mut serde_json::Value,
 ) {
     let Some(tid) = template_id else { return };
-    let Some(tpl) = vault.load_user_template(tid).ok().flatten() else { return };
+    let Some(tpl) = vault.load_user_template(tid).ok().flatten() else {
+        return;
+    };
     if let Some(obj) = properties.as_object_mut() {
-        obj.insert("__templateName".to_string(), serde_json::Value::String(tpl.name.clone()));
+        obj.insert(
+            "__templateName".to_string(),
+            serde_json::Value::String(tpl.name.clone()),
+        );
     }
 }
 
@@ -393,7 +411,11 @@ pub async fn object_update(
             inject_property_fields(&mut record.properties, &f);
         }
         // §Bugfix: 更新模板名称（模板已删除时保留旧值）
-        inject_template_meta(&vault, record.template_id.as_deref(), &mut record.properties);
+        inject_template_meta(
+            &vault,
+            record.template_id.as_deref(),
+            &mut record.properties,
+        );
         if record.properties.get("__templateName").is_none() {
             if let Some(name) = old_tpl_name {
                 if let Some(obj) = record.properties.as_object_mut() {
@@ -467,10 +489,7 @@ pub async fn object_backfill_property_labels(
             count += 1;
         }
     }
-    tracing::info!(
-        "[migrate] backfilled property_labels for {} objects",
-        count
-    );
+    tracing::info!("[migrate] backfilled property_labels for {} objects", count);
     Ok(count)
 }
 
@@ -501,17 +520,18 @@ pub async fn object_backfill_property_fields(
         if !fields.is_null() {
             inject_property_fields(&mut record.properties, &fields);
             // §Bugfix: 同时补齐 __templateName
-            inject_template_meta(&vault, record.template_id.as_deref(), &mut record.properties);
+            inject_template_meta(
+                &vault,
+                record.template_id.as_deref(),
+                &mut record.properties,
+            );
             record.updated_at = chrono::Utc::now().to_rfc3339();
             record.version += 1;
             vault.save_object(&record)?;
             count += 1;
         }
     }
-    tracing::info!(
-        "[migrate] backfilled __fields for {} objects",
-        count
-    );
+    tracing::info!("[migrate] backfilled __fields for {} objects", count);
     Ok(count)
 }
 

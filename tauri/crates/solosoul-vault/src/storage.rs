@@ -2010,12 +2010,11 @@ impl VaultStore {
                     decrypt_text_field(&key, &labels_str)
                 }
                 .unwrap_or_default();
-                let property_labels: Option<serde_json::Value> =
-                    if decrypted_labels.is_empty() {
-                        None
-                    } else {
-                        serde_json::from_str(&decrypted_labels).ok()
-                    };
+                let property_labels: Option<serde_json::Value> = if decrypted_labels.is_empty() {
+                    None
+                } else {
+                    serde_json::from_str(&decrypted_labels).ok()
+                };
                 Ok(ObjectSummary {
                     id: row.get(0)?,
                     name: row.get(1)?,

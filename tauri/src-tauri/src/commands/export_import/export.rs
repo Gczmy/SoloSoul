@@ -19,16 +19,13 @@ pub async fn export_get_scope_tree(
         std::collections::HashMap::new();
     let mut custom_page_order: Vec<String> = Vec::new();
     for obj in &objects {
-        if obj.collection_type == "page" {
-            if !custom_pages.contains_key(&obj.id) {
-                custom_pages.insert(obj.id.clone(), (obj.name.clone(), obj.icon_name.clone()));
-                custom_page_order.push(obj.id.clone());
-            }
+        if obj.collection_type == "page" && !custom_pages.contains_key(&obj.id) {
+            custom_pages.insert(obj.id.clone(), (obj.name.clone(), obj.icon_name.clone()));
+            custom_page_order.push(obj.id.clone());
         }
     }
 
-    let custom_page_ids: std::collections::HashSet<String> =
-        custom_pages.keys().cloned().collect();
+    let custom_page_ids: std::collections::HashSet<String> = custom_pages.keys().cloned().collect();
 
     let mut groups: std::collections::HashMap<String, Vec<ObjectSummary>> =
         std::collections::HashMap::new();
@@ -52,7 +49,12 @@ pub async fn export_get_scope_tree(
 
     // System page display names (sidebar order)
     let system_sections: &[&str] = &[
-        "identity", "travel", "financial", "professional", "note", "document",
+        "identity",
+        "travel",
+        "financial",
+        "professional",
+        "note",
+        "document",
     ];
     let page_names: std::collections::HashMap<&str, &str> = [
         ("identity", "Identity"),
@@ -225,8 +227,7 @@ pub async fn export_execute(
                 .load_user_template(tid)
                 .ok()
                 .flatten()
-                .map(|tpl| serde_json::to_value(&tpl).ok())
-                .flatten()
+                .and_then(|tpl| serde_json::to_value(&tpl).ok())
         })
         .collect();
 

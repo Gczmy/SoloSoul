@@ -65,10 +65,9 @@ pub fn render(
                 // Top border with category title
                 let title_prefix = format!("─[{}]─", group_name);
                 let title_fill = inner_width.saturating_sub(title_prefix.len() as u16 + 2);
-                let top_line = format!("┌{}", title_prefix) + &"─".repeat(title_fill as usize) + "┐";
-                all_lines.push(
-                    Line::from(top_line).style(theme.style_brand()),
-                );
+                let top_line =
+                    format!("┌{}", title_prefix) + &"─".repeat(title_fill as usize) + "┐";
+                all_lines.push(Line::from(top_line).style(theme.style_brand()));
 
                 // Commands
                 for entry in *entries {
@@ -82,19 +81,21 @@ pub fn render(
                     } else {
                         desc.to_string()
                     };
-                    let line_str = format!("│{} {} {}", cmd_padded, desc_trunc, " ".repeat(
-                        (inner_width as usize).saturating_sub(cmd_len + desc_trunc.chars().count() + 3)
-                    ));
-                    all_lines.push(
-                        Line::from(line_str).style(theme.style_text()),
+                    let line_str = format!(
+                        "│{} {} {}",
+                        cmd_padded,
+                        desc_trunc,
+                        " ".repeat(
+                            (inner_width as usize)
+                                .saturating_sub(cmd_len + desc_trunc.chars().count() + 3)
+                        )
                     );
+                    all_lines.push(Line::from(line_str).style(theme.style_text()));
                 }
 
                 // Bottom border
                 let bottom_line = "└".to_string() + &"─".repeat(inner_width as usize - 2) + "┘";
-                all_lines.push(
-                    Line::from(bottom_line).style(theme.style_brand()),
-                );
+                all_lines.push(Line::from(bottom_line).style(theme.style_brand()));
                 all_lines.push(Line::from(""));
             }
 

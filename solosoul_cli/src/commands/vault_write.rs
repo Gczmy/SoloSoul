@@ -1191,6 +1191,7 @@ mod tests {
                 contract_type_id: child.contract_type_id.clone(),
                 icon_name: child.icon_name.clone(),
                 properties: child.properties.clone(),
+                property_labels: None,
                 tags: child.tags_json.clone(),
             };
             super::delete_page(&mut app, &page_record, &[child_summary]).unwrap();

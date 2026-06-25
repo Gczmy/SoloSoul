@@ -850,10 +850,7 @@ impl App {
     fn has_scrollable_options(&self) -> bool {
         matches!(
             self.phase,
-            AppPhase::Locked
-                | AppPhase::Welcome
-                | AppPhase::Home { .. }
-                | AppPhase::Help { .. }
+            AppPhase::Locked | AppPhase::Welcome | AppPhase::Home { .. } | AppPhase::Help { .. }
         )
     }
 

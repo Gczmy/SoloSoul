@@ -182,7 +182,10 @@ fn add(app: &mut App, file_path: Option<&str>) -> Result<()> {
     let mut atts = load_attachments(&record.properties);
     let active_count = atts.iter().filter(|a| a.deleted_at.is_none()).count();
     if active_count >= MAX_ACTIVE_ATTACHMENTS {
-        app.error_message = Some(format!("单个对象最多保留 {} 个活跃附件", MAX_ACTIVE_ATTACHMENTS));
+        app.error_message = Some(format!(
+            "单个对象最多保留 {} 个活跃附件",
+            MAX_ACTIVE_ATTACHMENTS
+        ));
         return Ok(());
     }
 
