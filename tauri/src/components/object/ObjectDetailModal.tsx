@@ -248,11 +248,23 @@ export function ObjectDetailModal({
     return new Map<string, TemplateProperty>(tpl?.properties.map((p) => [p.id, p]) ?? []);
   }, [templates, obj?.templateId]);
 
+  // 从 properties 中提取 __fields（即使模板被删除，字段定义仍保留在对象上）
+  const objFieldDefs = useMemo(() => {
+    const raw = (obj?.properties as Record<string, unknown>)?.__fields;
+    return raw as Record<string, { name: string; type: string }> | undefined;
+  }, [obj?.properties]);
+
   const getFieldProperty = (fieldKey: string): TemplateProperty | undefined => {
     return fieldMap.get(fieldKey);
   };
 
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
+    // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
+    const labels = obj?.propertyLabels as Record<string, string> | undefined;
+    if (labels?.[fieldKey]) {
+      return labels[fieldKey] as SensitivityLevel;
+    }
+    // 2. 回退到模板定义
     return (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public';
   };
 
@@ -261,7 +273,7 @@ export function ObjectDetailModal({
   };
 
   const getFieldName = (fieldKey: string): string => {
-    return getFieldProperty(fieldKey)?.name || fieldKey;
+    return getFieldProperty(fieldKey)?.name || objFieldDefs?.[fieldKey]?.name || fieldKey;
   };
 
   const handleCopy = async (value: string, key: string) => {
@@ -325,14 +337,14 @@ export function ObjectDetailModal({
     e.currentTarget.style.color = 'var(--text-secondary)';
   };
   const onDeleteBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
-    e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
-    e.currentTarget.style.color = '#e74c3c';
+    e.currentTarget.style.background = 'color-mix(in srgb, var(--danger) 10%, transparent)';
+    e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--danger) 30%, transparent)';
+    e.currentTarget.style.color = 'var(--danger)';
   };
   const onDeleteBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.style.background = 'var(--bg-toolbar)';
     e.currentTarget.style.borderColor = 'var(--border-subtle)';
-    e.currentTarget.style.color = '#e74c3c';
+    e.currentTarget.style.color = 'var(--danger)';
   };
 
   return (
@@ -345,7 +357,7 @@ export function ObjectDetailModal({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'rgba(0,0,0,0.35)',
+          background: 'var(--bg-overlay)',
           backdropFilter: 'blur(4px)',
         }}
         onClick={onClose}
@@ -392,6 +404,20 @@ export function ObjectDetailModal({
                           <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
                         </span>
                       )}
+                      {/* 模板名 — 模板已删除时显示删除线 */}
+                      {obj.templateId && (() => {
+                        const tplExists = !!detailTpl;
+                        const tplName = (obj.properties as Record<string, unknown>)?.__templateName as string | undefined;
+                        const tid = obj.templateId || '';
+                        const label = tplExists
+                          ? (detailTpl?.name || tid)
+                          : (tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid);
+                        return (
+                          <span style={{ textDecoration: tplExists ? 'none' : 'line-through' }}>
+                            {' · '}{label}
+                          </span>
+                        );
+                      })()}
                       {' · '}{t('common:created')}:{' '}
                       {obj.createdAt?.slice(0, 10) || '—'} · {t('common:updated')}:{' '}
                       {obj.updatedAt?.slice(0, 10) || '—'}
@@ -669,7 +695,7 @@ export function ObjectDetailModal({
                   }}
                   style={{
                     ...actionBtnStyle,
-                    color: '#e74c3c',
+                    color: 'var(--danger)',
                   }}
                   onMouseEnter={onDeleteBtnEnter}
                   onMouseLeave={onDeleteBtnLeave}
@@ -691,7 +717,7 @@ export function ObjectDetailModal({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(0,0,0,0.4)',
+            background: 'var(--bg-overlay)',
             backdropFilter: 'blur(4px)',
           }}
           onClick={() => setConfirmDelete(false)}
@@ -732,7 +758,7 @@ export function ObjectDetailModal({
                   padding: '8px 16px',
                   borderRadius: 8,
                   border: 'none',
-                  background: '#e74c3c',
+                  background: 'var(--danger)',
                   color: 'white',
                   fontSize: 13,
                   fontWeight: 500,
@@ -740,11 +766,11 @@ export function ObjectDetailModal({
                   transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#c0392b';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(231,76,60,0.35)';
+                  e.currentTarget.style.background = 'var(--accent-danger-hover)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px color-mix(in srgb, var(--danger) 35%, transparent)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#e74c3c';
+                  e.currentTarget.style.background = 'var(--danger)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >

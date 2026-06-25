@@ -170,7 +170,10 @@ export function ObjectEditorPage() {
     let matchedType = '';
     if (currentObject.templateId) {
       if (objectTemplates[currentObject.templateId]) {
-        matchedType = currentObject.templateId;
+        // 确保模板与对象属于同一页面。若模板被恢复（重新创建）但页面不同，不认为是匹配的模板
+        if (templateMeta[currentObject.templateId]?.category === currentObject.collectionType) {
+          matchedType = currentObject.templateId;
+        }
       }
       // Backward compat: old user-template objects used utpl_ prefix
       if (!matchedType) {
@@ -180,7 +183,10 @@ export function ObjectEditorPage() {
         }
       }
     }
-    if (!matchedType) {
+    // 仅当对象没有 templateId（旧版对象）时才模糊匹配其他模板。
+    // 如果有 templateId 但模板不存在（已删除），不匹配到其他模板，
+    // 而是走 __fields 回退路径，避免匹配到同字段 ID 的不同语言模板。
+    if (!matchedType && !currentObject.templateId) {
       const propKeys = Object.keys(vals);
       let bestScore = 0;
       for (const [tplName, tplFields] of Object.entries(objectTemplates)) {
@@ -194,6 +200,9 @@ export function ObjectEditorPage() {
     }
     if (matchedType) {
       setSelectedType(matchedType);
+    } else {
+      // 模板已删除 — 清空 selectedType，触发回退渲染路径
+      setSelectedType('');
     }
     setDataLoaded(true);
   }, [currentObject, isNew, dataLoaded, objectId, objectTemplates]);
@@ -448,9 +457,19 @@ export function ObjectEditorPage() {
               {contractTypeId && (
                 <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
               )}
-              {selectedType && (
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-                  · {templateMeta[selectedType]?.label || selectedType}
+              {(selectedType || currentObject?.templateId) && (
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--text-tertiary)',
+                    textDecoration: selectedType ? 'none' : 'line-through',
+                  }}
+                >
+                  · {selectedType ? (templateMeta[selectedType]?.label || selectedType) : (() => {
+                            const tplName = (currentObject?.properties as Record<string, unknown>)?.__templateName as string | undefined;
+                            const tplId = currentObject?.templateId || '';
+                            return tplName ? `${tplName} (${tplId.slice(0, 8)}…)` : tplId;
+                          })()}
                 </span>
               )}
             </div>
@@ -475,26 +494,62 @@ export function ObjectEditorPage() {
                   </h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {fields.length === 0
-                      ? // Fallback: render raw properties as generic text inputs when no template matches
+                      ? // Fallback: 模板已删除，使用 __fields 渲染类型感知的输入
                         Object.entries(values)
                           .filter(([k]) => !k.startsWith('__'))
                           .map(([key, val]) => {
-                            const tplField = userTemplates
-                              .find((t) => t.id === selectedType)
-                              ?.properties.find((p) => p.id === key);
-                            const isDeprecated = !!tplField?.deprecatedAt;
+                            const fieldDefs = (currentObject?.properties as Record<string, unknown>)?.__fields as
+                              | Record<string, { name: string; type: string; options?: string[]; deprecatedAt?: string; contractField?: boolean }>
+                              | undefined;
+                            const fieldDef = fieldDefs?.[key];
+                            const fieldName = fieldDef?.name || key;
+                            const propType: PropertyType =
+                              (fieldDef?.type as PropertyType) || 'text';
+                            const isDeprecated = !!fieldDef?.deprecatedAt;
+                            const objLabels = currentObject?.propertyLabels as Record<string, string> | undefined;
+                            const sensitivity: SensitivityLevel =
+                              (objLabels?.[key] as SensitivityLevel) || 'public';
+                            const isContractField = fieldDef?.contractField === true;
+                            const objContractTypeId = currentObject?.contractTypeId;
                             return (
                               <div key={key}>
-                                <Input
-                                  label={tplField?.name || key}
-                                  icon={<FieldTypeIcon type="text" />}
-                                  value={String(val ?? '')}
-                                  onChange={(e) =>
-                                    setValues((v) => ({ ...v, [key]: e.target.value }))
+                                <TemplateFieldInput
+                                  propertyId={key}
+                                  label={fieldName}
+                                  type={propType}
+                                  options={fieldDef?.options}
+                                  value={values[key]}
+                                  icon={<FieldTypeIcon type={propType} />}
+                                  badge={
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                      <SensitivityBadge level={sensitivity} />
+                                      {isContractField && objContractTypeId && (
+                                        <PluginBadge contractTypeId={objContractTypeId} size="sm" variant="full" />
+                                      )}
+                                      {isDeprecated && <DeprecatedBadge />}
+                                    </div>
                                   }
-                                  placeholder={key}
-                                  badge={isDeprecated ? <DeprecatedBadge /> : undefined}
+                                  hint={
+                                    ['email', 'url', 'phone', 'date', 'number'].includes(propType)
+                                      ? t(`editor:validation_hint_${propType}`)
+                                      : undefined
+                                  }
+                                  onChange={(val) => {
+                                    setValues((v) => ({ ...v, [key]: val }));
+                                    if (validationErrors[key]) {
+                                      setValidationErrors((err) => {
+                                        const next = { ...err };
+                                        delete next[key];
+                                        return next;
+                                      });
+                                    }
+                                  }}
                                 />
+                                {validationErrors[key] && (
+                                  <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>
+                                    {validationErrors[key]}
+                                  </div>
+                                )}
                               </div>
                             );
                           })

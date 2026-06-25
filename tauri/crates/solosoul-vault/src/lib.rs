@@ -248,6 +248,9 @@ pub struct ObjectSummary {
     pub icon_name: String,
     /// First few property key-value pairs for card previews
     pub properties: serde_json::Value,
+    /// Per-field sensitivity overrides: field_name -> sensitivity_level
+    #[serde(rename = "propertyLabels", skip_serializing_if = "Option::is_none")]
+    pub property_labels: Option<serde_json::Value>,
     pub tags: Vec<String>,
 }
 

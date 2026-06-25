@@ -100,6 +100,8 @@ fn test_object_data_serde_roundtrip() {
         collection_type: "note".to_string(),
         properties: serde_json::json!({"foo": "bar"}),
         sensitivity_level: "public".to_string(),
+        property_labels: None,
+        contract_type_id: None,
         created_at: "2024-01-01T00:00:00Z".to_string(),
         updated_at: "2024-01-01T00:00:00Z".to_string(),
         deleted_at: Some("2024-02-01T00:00:00Z".to_string()),

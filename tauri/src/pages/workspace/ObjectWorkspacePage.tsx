@@ -205,7 +205,13 @@ export function ObjectWorkspacePage() {
   const getFieldSensitivity = (
     templateId: string | undefined,
     fieldKey: string,
+    propertyLabels?: Record<string, string>,
   ): SensitivityLevel => {
+    // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
+    if (propertyLabels?.[fieldKey]) {
+      return propertyLabels[fieldKey] as SensitivityLevel;
+    }
+    // 2. 回退到模板定义
     return (getFieldProperty(templateId, fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public';
   };
 
@@ -213,8 +219,14 @@ export function ObjectWorkspacePage() {
     return !!getFieldProperty(templateId, fieldKey)?.deprecatedAt;
   };
 
-  const getFieldName = (templateId: string | undefined, fieldKey: string): string => {
-    return getFieldProperty(templateId, fieldKey)?.name || fieldKey;
+  const getFieldName = (
+    templateId: string | undefined,
+    fieldKey: string,
+    propertyFields?: Record<string, { name: string }>,
+  ): string => {
+    return getFieldProperty(templateId, fieldKey)?.name
+      || propertyFields?.[fieldKey]?.name
+      || fieldKey;
   };
 
   useEffect(() => {
@@ -663,21 +675,32 @@ export function ObjectWorkspacePage() {
           </div>
         )}
       </div>
-      {historyObj && (
-        <HistoryViewer
-          objectId={historyObj.id}
-          objectName={historyObj.name}
-          collectionType={historyObj.collectionType}
-          onClose={() => setHistoryObj(null)}
-          passwordVerify={passwordVerify}
-          getFieldSensitivity={(fieldKey) => getFieldSensitivity(historyObj.templateId, fieldKey)}
-          isFieldDeprecated={(fieldKey) => isFieldDeprecated(historyObj.templateId, fieldKey)}
-          getFieldName={(fieldKey) => getFieldName(historyObj.templateId, fieldKey)}
-          fieldOrder={userTemplates
-            .find((t) => t.id === historyObj.templateId)
-            ?.properties.map((p) => p.id)}
-        />
-      )}
+      {historyObj && (() => {
+        const historyObjData = objects.find((o) => o.id === historyObj.id);
+        const historyLabels = historyObjData?.propertyLabels;
+        const historyFields = (historyObjData?.properties as Record<string, unknown>)?.__fields as
+          | Record<string, { name: string }>
+          | undefined;
+        return (
+          <HistoryViewer
+            objectId={historyObj.id}
+            objectName={historyObj.name}
+            collectionType={historyObj.collectionType}
+            onClose={() => setHistoryObj(null)}
+            passwordVerify={passwordVerify}
+            getFieldSensitivity={(fieldKey) =>
+              getFieldSensitivity(historyObj.templateId, fieldKey, historyLabels)
+            }
+            isFieldDeprecated={(fieldKey) => isFieldDeprecated(historyObj.templateId, fieldKey)}
+            getFieldName={(fieldKey) =>
+              getFieldName(historyObj.templateId, fieldKey, historyFields)
+            }
+            fieldOrder={userTemplates
+              .find((t) => t.id === historyObj.templateId)
+              ?.properties.map((p) => p.id)}
+          />
+        );
+      })()}
       {attachmentObjId && (
         <AttachmentViewer
           objectId={attachmentObjId}

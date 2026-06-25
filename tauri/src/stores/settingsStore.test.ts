@@ -58,6 +58,7 @@ describe('settingsStore', () => {
           ai_chat: 'card',
           search: 'card',
         },
+        trashRetention: '30d',
       },
       isLoading: false,
     });

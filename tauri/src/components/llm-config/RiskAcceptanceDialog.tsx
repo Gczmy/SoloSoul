@@ -15,15 +15,14 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
   if (!open) return null;
 
   return (
-    <div
-      style={{
+    <div        style={{
         position: 'fixed',
         inset: 0,
         zIndex: 3000,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'rgba(0,0,0,0.45)',
+        background: 'var(--bg-overlay)',
         backdropFilter: 'blur(6px)',
       }}
     >

@@ -13,27 +13,52 @@ pub async fn export_get_scope_tree(
         .list_objects(&account_id, None, None, None, false, false)
         .map_err(|e| format!("list_objects: {}", e))?;
 
-    let mut groups: std::collections::BTreeMap<String, Vec<ObjectSummary>> =
-        std::collections::BTreeMap::new();
-    for obj in objects {
-        let st = if obj.section_type.is_empty() {
-            if obj.collection_type.is_empty() {
-                "uncategorized".to_string()
-            } else {
-                obj.collection_type.clone()
+    // Collect custom page-defining objects (type_id = "page") into a lookup
+    // page_id -> (page_name, icon_name)
+    let mut custom_pages: std::collections::HashMap<String, (String, String)> =
+        std::collections::HashMap::new();
+    let mut custom_page_order: Vec<String> = Vec::new();
+    for obj in &objects {
+        if obj.collection_type == "page" {
+            if !custom_pages.contains_key(&obj.id) {
+                custom_pages.insert(obj.id.clone(), (obj.name.clone(), obj.icon_name.clone()));
+                custom_page_order.push(obj.id.clone());
             }
-        } else {
-            obj.section_type.clone()
-        };
-        groups.entry(st).or_default().push(obj);
+        }
     }
 
+    let custom_page_ids: std::collections::HashSet<String> =
+        custom_pages.keys().cloned().collect();
+
+    let mut groups: std::collections::HashMap<String, Vec<ObjectSummary>> =
+        std::collections::HashMap::new();
+
+    for obj in objects {
+        let group_key = if obj.collection_type == "page" {
+            // Page definition object — group under its own ID so it merges with children
+            obj.id.clone()
+        } else if !obj.section_type.is_empty() && custom_page_ids.contains(&obj.section_type) {
+            // Object belongs to a custom page — use page ID as group key
+            obj.section_type.clone()
+        } else if !obj.section_type.is_empty() {
+            obj.section_type.clone()
+        } else if !obj.collection_type.is_empty() {
+            obj.collection_type.clone()
+        } else {
+            "uncategorized".to_string()
+        };
+        groups.entry(group_key).or_default().push(obj);
+    }
+
+    // System page display names (sidebar order)
+    let system_sections: &[&str] = &[
+        "identity", "travel", "financial", "professional", "note", "document",
+    ];
     let page_names: std::collections::HashMap<&str, &str> = [
         ("identity", "Identity"),
         ("travel", "Travel"),
         ("financial", "Financial"),
         ("professional", "Professional"),
-        ("page", "Pages"),
         ("note", "Notes"),
         ("document", "Documents"),
     ]
@@ -41,23 +66,47 @@ pub async fn export_get_scope_tree(
     .cloned()
     .collect();
 
-    Ok(groups
-        .into_iter()
-        .map(|(st, objs)| {
-            let display = page_names
-                .get(st.as_str())
-                .copied()
-                .unwrap_or(&st)
-                .to_string();
-            let count = objs.len();
-            PageGroup {
-                section_type: st,
+    let mut result = Vec::new();
+
+    // 1. System sections in sidebar order
+    for key in system_sections {
+        if let Some(objs) = groups.remove(*key) {
+            let display = page_names.get(key).copied().unwrap_or(key).to_string();
+            result.push(PageGroup {
+                section_type: key.to_string(),
                 page_name: display,
-                object_count: count,
+                object_count: objs.len(),
                 objects: objs,
-            }
-        })
-        .collect())
+            });
+        }
+    }
+
+    // 2. Custom page groups in order they appear from list_objects
+    for page_id in &custom_page_order {
+        if let Some(objs) = groups.remove(page_id.as_str()) {
+            let page_name = &custom_pages[page_id].0;
+            result.push(PageGroup {
+                section_type: page_id.clone(),
+                page_name: page_name.clone(),
+                object_count: objs.len(),
+                objects: objs,
+            });
+        }
+    }
+
+    // 3. Any remaining groups (uncategorized, etc.)
+    let mut remaining: Vec<(String, Vec<ObjectSummary>)> = groups.into_iter().collect();
+    remaining.sort_by(|a, b| a.0.cmp(&b.0));
+    for (st, objs) in remaining {
+        result.push(PageGroup {
+            section_type: st.clone(),
+            page_name: st,
+            object_count: objs.len(),
+            objects: objs,
+        });
+    }
+
+    Ok(result)
 }
 
 #[tauri::command]
@@ -164,6 +213,23 @@ pub async fn export_execute(
         return Err(export_err("NO_OBJECTS_SELECTED"));
     }
 
+    // ── Collect referenced templates ────────────────────────────
+    let template_ids: std::collections::BTreeSet<String> = records
+        .iter()
+        .filter_map(|r| r.template_id.clone())
+        .collect();
+    let templates: Vec<serde_json::Value> = template_ids
+        .iter()
+        .filter_map(|tid| {
+            vault
+                .load_user_template(tid)
+                .ok()
+                .flatten()
+                .map(|tpl| serde_json::to_value(&tpl).ok())
+                .flatten()
+        })
+        .collect();
+
     // ── Serialise payload ──────────────────────────────────────
     let payload = serde_json::json!({
         "objects": records.iter().map(|r| serde_json::json!({
@@ -182,7 +248,10 @@ pub async fn export_execute(
             "created_at": r.created_at,
             "updated_at": r.updated_at,
             "version": r.version,
+            "template_id": r.template_id,
+            "template_type": r.template_type,
         })).collect::<Vec<_>>(),
+        "templates": templates,
     });
     let payload_bytes = serde_json::to_vec(&payload).map_err(|e| format!("serialize: {}", e))?;
 

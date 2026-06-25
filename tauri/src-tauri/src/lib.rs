@@ -316,10 +316,6 @@ pub fn run() {
             );
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.eval(format!("window.__SOLOSOUL_LOCALE__='{}'", locale_flag));
-                let _ = window.eval(format!(
-                    "try{{localStorage.setItem('i18nextLng','{}')}}catch(e){{}}",
-                    locale_flag
-                ));
             }
 
             // 8. 恢复窗口大小
@@ -384,6 +380,8 @@ pub fn run() {
             commands::object::object_create,
             commands::object::object_update,
             commands::object::object_delete,
+            commands::object::object_backfill_property_labels,
+            commands::object::object_backfill_property_fields,
             commands::object::object_trash_list,
             commands::object::object_restore,
             commands::object::object_purge,

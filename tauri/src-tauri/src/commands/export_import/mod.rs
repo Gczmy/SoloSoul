@@ -188,6 +188,13 @@ pub struct AdvancedImportRequest {
     pub password: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportResult {
+    pub object_count: usize,
+    pub attachment_count: usize,
+}
+
 // ── Helpers ────────────────────────────────────────────────────
 
 pub(crate) fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32], String> {

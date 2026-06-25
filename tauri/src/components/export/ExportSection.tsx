@@ -552,11 +552,11 @@ export function ExportSection({
             style={{
               marginBottom: 10,
               padding: '8px 12px',
-              background: '#fff3e0',
+              background: 'var(--warning-subtle)',
               borderRadius: 6,
               fontSize: 12,
-              color: '#663c00',
-              border: '1px solid #ffcc80',
+              color: 'var(--warning)',
+              border: '1px solid var(--warning)',
             }}
           >
             {t('settings:sensitive_export_warning')}
@@ -585,7 +585,7 @@ export function ExportSection({
         {exportPassword &&
           exportPasswordConfirm &&
           exportPassword !== exportPasswordConfirm && (
-            <div style={{ marginTop: 4, fontSize: 12, color: '#d32f2f' }}>
+            <div style={{ marginTop: 4, fontSize: 12, color: 'var(--danger)' }}>
               {t('settings:password_mismatch')}
             </div>
           )}
@@ -596,16 +596,16 @@ export function ExportSection({
               style={{
                 color:
                   pwStrength === 'weak'
-                    ? '#d32f2f'
+                    ? 'var(--danger)'
                     : pwStrength === 'medium'
-                      ? '#e68a00'
-                      : '#2e7d32',
+                      ? 'var(--warning)'
+                      : 'var(--success)',
               }}
             >
               {pwStrengthLabel[pwStrength]}
             </span>
             {pwStrength === 'weak' && (
-              <span style={{ marginLeft: 8, color: '#d32f2f', fontSize: 11 }}>
+              <span style={{ marginLeft: 8, color: 'var(--danger)', fontSize: 11 }}>
                 {t('settings:password_weak_warning')}
               </span>
             )}
@@ -639,10 +639,10 @@ export function ExportSection({
           style={{
             padding: '12px 16px',
             borderRadius: 8,
-            background: '#fff3e0',
-            border: '1px solid #ffcc80',
+            background: 'var(--warning-subtle)',
+            border: '1px solid var(--warning)',
             fontSize: 13,
-            color: '#663c00',
+            color: 'var(--warning)',
           }}
         >
           <p style={{ marginBottom: 8, fontWeight: 600 }}>
@@ -660,19 +660,19 @@ export function ExportSection({
                 fontSize: 12,
                 padding: '6px 12px',
                 borderRadius: 6,
-                border: '1px solid #ffcc80',
-                background: 'rgba(255, 255, 255, 0.85)',
-                color: '#663c00',
+                border: '1px solid var(--warning)',
+                background: 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)',
+                color: 'var(--warning)',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.85)';
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)';
               }}
             >
               {t('settings:export_anyway')}
@@ -687,10 +687,10 @@ export function ExportSection({
           style={{
             padding: '12px 16px',
             borderRadius: 8,
-            background: '#fff3e0',
-            border: '1px solid #ffcc80',
+            background: 'var(--warning-subtle)',
+            border: '1px solid var(--warning)',
             fontSize: 13,
-            color: '#663c00',
+            color: 'var(--warning)',
           }}
         >
           <p style={{ marginBottom: 8, fontWeight: 600 }}>
@@ -708,19 +708,19 @@ export function ExportSection({
                 fontSize: 12,
                 padding: '6px 12px',
                 borderRadius: 6,
-                border: '1px solid #ffcc80',
-                background: 'rgba(255, 255, 255, 0.85)',
-                color: '#663c00',
+                border: '1px solid var(--warning)',
+                background: 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)',
+                color: 'var(--warning)',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.85)';
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)';
               }}
             >
               {t('settings:export_anyway')}

@@ -1,8 +1,8 @@
 # 12 — 状态管理：Zustand Store 设计
 
-> **前置阅读**：`08_IPC命令接口完整规范.md`、`10_前端技术架构与组件映射.md`
+> **前置阅读**：`08_IPC命令接口完整规范.md`、`10_前端技术架构与组件映射.md`、`09_对象规范.md`
+> **当前状态**：文档已根据全量代码（Phase 2 完成时）重构，反映真实实现架构。
 > **Manifesto 对齐**：隐私优先 | 安全默认 | 最少惊喜
-> **源文档**：`tauri_refactor/状态管理方案.md`
 
 ---
 
@@ -15,401 +15,323 @@
 | Jotai | 学习曲线陡；团队无经验 |
 | Recoil | Meta 已放弃维护 |
 
-Zustand 优势：**无 Provider**、细粒度订阅、TypeScript 完美支持、Immer 集成、中间件丰富。
+Zustand 优势：**无 Provider**、细粒度订阅、TypeScript 完美支持、中间件丰富。
 
 ---
 
 ## 2. Store 总览（共 16 个）
 
-应用采用基于功能领域的扁平化 Store 设计。
+应用采用基于功能领域的扁平化 Store 设计。所有 Store 均位于 `tauri/src/stores/`。
 
-### 核心数据与账户（Core & Data）
+### 2.1 认证与安全（Auth & Security）
 
-| Store | 职责 | IPC 依赖 |
-|-------|------|----------|
-| `authStore.ts` | 认证 + 会话状态管理 | `authLogin`、`authLogout` |
-| `vaultStore.ts` | Vault 锁定/解锁/账户切换 | `vaultLock`、`vaultUnlock` |
-| `profileStore.ts` | Profile 数据 + 乐观更新 + 500ms debounce | `profileUpdateField` |
-| `settingsStore.ts` | 双层偏好：明文 UI 偏好 + Vault 加密敏感偏好 | `loadUiPreferences`、`userDataGetPreferences` |
-| `objectStore.ts` | 核心数据对象 CRUD（💡 由原 `unifiedObjectStore` 更名） | `object_list`、`object_get`、`object_create`、`object_update`、`object_delete` |
-| `templateStore.ts` | 模板 CRUD、字段使用检查、从对象保存模板 | `template_list`、`template_create`、`template_update`、`template_delete`、`template_save_from_object` |
-| `trashStore.ts` | 回收站状态（时间/类型过滤、搜索、批量选择/删除/恢复） | `object_trash_list`、`trash_restore`、`trash_permanent_delete` |
+| Store | 实际职责 | 关键动作 |
+|-------|---------|---------|
+| `authStore.ts` | 认证 + 账户列表 + 首次启动检测 | `bootstrap` / `login` / `logout` / `checkHasAccount` / `listAccounts` |
+| `vaultStore.ts` | Vault 状态（locked/unlocked）与管理 | `loadVaultState` / `unlock` / `lock` |
+| `settingsStore.ts` | 双层偏好：明文 UI 偏好 + Vault 加密偏好 + 自定义页面 CRUD | `loadUiPreferences`（2 步加载）/ `loadSettings` / `updateSetting` / `addCustomPage` / `removeCustomPage` |
 
-### 工具与外部通信（Tools & Events）
+### 2.2 核心业务数据（Core Data）
 
-| Store | 职责 | 事件/持久化 |
-|-------|------|------------|
-| `llmStore.ts` | LLM 流式对话状态，订阅 Tauri Event `llm-stream-chunk` | Tauri Event 监听 |
-| `llmStatsStore.ts` | LLM 使用统计与配额管理 | IPC `llmGetStats`/`llmResetStats` |
-| `ocrInstallStore.ts` | OCR 离线模型下载进度追踪 | Tauri Event `ocr-install-progress` |
-| `ocrScanStore.ts` | OCR 扫描历史队列（最多 50 条）、MRZ fallback、软删除/恢复 | `zustand persist` → localStorage |
+| Store | 实际职责 | 关键 IPC |
+|-------|---------|---------|
+| `objectStore.ts` | 对象 CRUD + 回收站操作 | `object_list` / `object_get` / `object_create` / `object_delete` / `object_trash_list` |
+| `templateStore.ts` | 模板 CRUD + 字段使用检查 + 从对象保存 | `template_list` / `template_create` / `template_save_from_object` / `template_check_field_usage` |
+| `trashStore.ts` | 回收站：时间/类型过滤 + 搜索 + 批量选择 | `object_trash_list` / `trash_restore` / `trash_permanent_delete` / `template_restore` |
+| `profileStore.ts` | Profile 数据加载（Uint8Array 解码）+ 分节查询 | `profile_load` / `profile_get_section` / `profile_update_field` |
 
-### UI 交互与视图级状态（UI & Layout）
+### 2.3 UI 与交互（UI & Layout）
 
-| Store | 职责 | 持久化 |
-|-------|------|--------|
-| `uiStore.ts` | 侧边栏基础状态、Toast、Modal、Loading | localStorage（仅非敏感 UI 状态） |
-| `sidebarHoverStore.ts` | 侧边栏悬停展开 + 滚动位置，跨页面导航保持 | 纯内存（脱离组件树保持） |
-| `pluginQuickStore.ts` | 插件快捷面板开闭与 Tab 切换（all/installed/running） | 无 |
+| Store | 实际职责 | 持久化 |
+|-------|---------|--------|
+| `uiStore.ts` | 侧边栏折叠 + Toast 通知（自动消失） + 全局加载状态 | **无**（纯内存） |
+| `sidebarHoverStore.ts` | 侧边栏悬停展开 + 横向/纵向滚动位置保持 | **纯内存**（跨导航保持） |
 
-### 插件与同步（Extensions）
+### 2.4 大模型与 AI（LLM）
 
-| Store | 职责 |
-|-------|------|
-| `pluginStore.ts` | 核心插件生命周期管理与运行状态 |
-| `syncStore.ts` | 设备同步状态指示（mDNS + Noise） |
+| Store | 实际职责 | 事件/持久化 |
+|-------|---------|------------|
+| `llmStore.ts` | LLM 流式对话：Tauri Event `llm-stream-chunk` 订阅 | Tauri Event 监听 |
+| `llmStatsStore.ts` | LLM 使用统计查询与重置 | IPC `llmGetStats` / `llmResetStats`（通过 `@/lib/llm/statsApi`） |
 
-> **废弃说明**：原计划的 `searchStore.ts` 在实现中未独立成 Store，搜索状态收敛至页面组件级 `useState`。`sensitivityStore.ts` 未独立，敏感度作为数据属性收敛至 IPC 层与 `objectStore`。
+### 2.5 OCR 与扫描
+
+| Store | 实际职责 | 持久化 |
+|-------|---------|--------|
+| `ocrScanStore.ts` | 扫描历史队列（最多 50 条）、MRZ 自动 fallback、软删除/恢复 | `zustand persist` → localStorage |
+| `ocrInstallStore.ts` | OCR 离线模型下载进度追踪 | Tauri Event + localStorage 安装标记 |
+
+### 2.6 插件与同步（Extensions）
+
+| Store | 实际职责 | 持久化 |
+|-------|---------|--------|
+| `pluginStore.ts` | 插件市场/已安装/运行时状态 + Event 订阅（log/result/consent/dialog） | `zustand persist` → localStorage（仅 runningPlugins） |
+| `pluginQuickStore.ts` | 插件快捷面板开闭与 Tab 切换 | **无** |
+| `syncStore.ts` | 设备同步状态 + 对等节点信任/解除 | **无** |
 
 ---
 
-## 3. authStore
+## 3. authStore — 认证与账户
 
 ```typescript
+// tauri/src/stores/authStore.ts — 实际实现
 interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   currentAccount: AccountInfo | null;
+  accounts: AccountInfo[];          // 账户列表
   error: string | null;
+  hasAccount: boolean | null;       // null = 未知，false = 无，true = 有
+  backendError: boolean;            // 后端不可用标记
 
-  checkHasAccount: () => Promise<boolean>;
-  bootstrap: (name: string, password: string) => Promise<void>;
+  checkHasAccount: () => Promise<void>;   // 检测是否有账户（不返回值，写入 state）
+  listAccounts: () => Promise<void>;      // 获取账户列表 + 刷新 currentAccount
+  refreshCurrentAccount: () => Promise<void>; // 单纯刷新
+  bootstrap: (name: string, password: string, locale: string, passwordHint?: string) => Promise<void>;
   login: (accountId: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
+```
 
-export const useAuthStore = create<AuthState>()(
-  immer((set) => ({
-    isAuthenticated: false, isLoading: false,
-    currentAccount: null, error: null,
+**关键实现细节**：
+- `hasAccount` 三态：首次启动 `null`（等待 `checkHasAccount`），有账户 `true`，无 `false`
+- `backendError` 标记后端不可用，防止 `hasAccount = null` 时误跳引导页
+- `bootstrap` 额外接收 `locale` 和 `passwordHint`
+- `login` 成功后刷新 `accounts` 列表，但刷新失败不阻断认证状态
+- 未使用 `immer` 中间件
 
-    login: async (accountId, password) => {
-      set({ isLoading: true, error: null });
-      try {
-        const account = await commands.authLogin(accountId, password);
-        set({ isAuthenticated: true, currentAccount: account, isLoading: false });
-      } catch (err) {
-        set({ error: String(err), isLoading: false });
-      }
-    },
+---
 
-    logout: async () => {
-      await commands.authLogout();
-      set({ isAuthenticated: false, currentAccount: null });
-    },
-    // ...
-  }))
-);
+## 4. vaultStore — Vault 锁定/解锁
+
+```typescript
+// tauri/src/stores/vaultStore.ts — 实际实现
+interface VaultStoreState {
+  vaultState: VaultStateStr;        // 'locked' | 'unlocked'
+  isLoading: boolean;
+  error: string | null;
+
+  loadVaultState: () => Promise<void>;
+  unlock: (accountId: string, password: string) => Promise<void>;
+  lock: () => Promise<void>;
+}
+```
+
+**关键变更**：独立状态管理，与 `authStore` 职责分离。未使用 `immer`。
+
+---
+
+## 5. settingsStore — 双层偏好（实际实现差异最大）
+
+### 5.1 实际数据结构
+
+**与文档核心差异**：实际实现**没有**分离 `UiPreferences` 和 `SensitivePreferences` 两个独立接口，而是使用单一的 `AppSettings` 接口，字段按存储策略区分写入目标。
+
+```typescript
+// tauri/src/stores/settingsStore.ts — 实际实现
+interface AppSettings {
+  // UI 偏好（明文，登录前可用）
+  theme: 'light' | 'dark' | 'system';
+  accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'purple' | 'custom';
+  customAccentHex: string;
+  backgroundType: 'solid' | 'gradient' | 'image';
+  backgroundValue: string;
+  language: string;
+  locale: string;
+  defaultLightTheme: string;
+  defaultDarkTheme: string;
+  windowSize?: WindowSize;
+
+  // Vault 加密偏好（解锁后可用）
+  autoLockTimeoutMinutes: number;
+  biometricEnabled: boolean;
+  confirmDelete: boolean;
+
+  // 结构化数据
+  customPages: CustomPage[];         // 存储在 objects 表（P0-1 迁移）或旧版偏好
+  sidebarPosition: 'left' | 'right' | 'top' | 'bottom';
+  sidebarButtonModes: Record<string, 'card' | 'page'>;
+}
+```
+
+### 5.2 实际加载流程（两步加载）
+
+```typescript
+// 第 1 步：loadUiPreferences — 登录前，从 localStorage 缓存 + IPC 刷新
+loadUiPreferences: async () => {
+  // Step A: 从 localStorage 读取缓存（同步，即时生效）
+  const raw = localStorage.getItem('solosoul_ui_prefs');
+  if (raw) {
+    const parsed = uiPrefsSchema.safeParse(JSON.parse(raw));
+    // 应用主题/语言到页面
+    await applyTheme({ ... });
+  }
+
+  // Step B: 从 IPC 获取最新值（异步，覆盖缓存）
+  const prefs = await invoke('ui_get_preferences');
+  // 合并到 state 并写回 localStorage 缓存
+  set({ settings: parsed });
+}
+
+// 第 2 步：loadSettings — 登录后，从 Vault 加密存储加载
+loadSettings: async (accountId) => {
+  const raw = await invoke('user_data_get_preferences', { accountId });
+  const prefs = accountPrefsSchema.safeParse(raw);
+  // 合并全部设置，包括安全偏好
+  // 同步窗口大小（对比 localStorage 缓存和加密存储，取最新）
+  // 将部分值同步写回明文 UI 偏好（theme/accent/language）
+}
+
+// 第 3 步：loadCustomPages — 登录后，从 objects 表加载
+loadCustomPages: async (accountId) => {
+  // P0-1: 自定义页面存储在 objects 表（collectionType = 'page'）
+  // 若对象表有页面，使用新格式
+  // 若为空但旧格式偏好中存在，自动迁移
+}
+```
+
+**更新逻辑**：
+
+```typescript
+// updateSetting 方法 — 乐观更新 + 回滚
+updateSetting: async (accountId, key, value) => {
+  const oldValue = get().settings[key];
+  set((s) => ({ settings: { ...s.settings, [key]: value } }));  // 乐观更新
+  try {
+    if (key === 'windowSize') {
+      localStorage.setItem('solosoul_window_size', JSON.stringify(value));
+      await invoke('ui_update_preference', { key: 'windowSize', value: JSON.stringify(value) });
+    } else {
+      await invoke('user_data_update_preference', { payload: { accountId, preferences: { [key]: value } } });
+    }
+  } catch {
+    set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));  // 回滚
+  }
+}
+```
+
+**自定义页面 CRUD**（独立于设置本身）：
+
+| 方法 | 行为 |
+|------|------|
+| `addCustomPage(accountId, name, iconId)` | 乐观 UI 更新 → `invoke('object_create', { ...collectionType: 'page' })` → 失败回滚 |
+| `removeCustomPage(accountId, pageId)` | 标记 `deletedAt`（保留在数组内供模板引用）→ `invoke('page_delete')` → 失败回滚 |
+
+**`clearOnVaultLock`**：保留 UI 偏好（language/theme/accent），重置加密偏好到 `DEFAULT_SETTINGS`。
+
+### 5.3 Zod 校验
+
+实际实现**不依赖 `commands.*`**，直接调用 `invoke`。使用 `zod` schemas 对 IPC 返回数据做运行时校验：
+
+```typescript
+const uiPrefsSchema = z.object({
+  theme: z.enum(['light', 'dark', 'system']).optional(),
+  accentColor: z.enum(['ocean', 'amber', 'forest', 'rose', 'purple', 'custom']).optional(),
+  windowSize: z.object({ width: z.number(), height: z.number() }).optional(),
+  // ...
+});
+
+const accountPrefsSchema = z.object({
+  theme: z.enum(['light', 'dark', 'system']).optional(),
+  autoLockTimeoutMinutes: z.number().optional(),
+  // ... 全部可选字段
+}).passthrough();
 ```
 
 ---
 
-## 4. profileStore（含乐观更新 + 回滚）
+## 6. profileStore — Profile 数据（实际实现简化版）
+
+**与文档核心差异**：实际实现**没有乐观更新**、**没有 debounce 防抖保存**、**没有 `isSaving` 状态**。数据通过 `Uint8Array` 解码加载。
 
 ```typescript
-interface ProfileStoreState {
-  profile: ProfileData | null;
+// tauri/src/stores/profileStore.ts — 实际实现
+interface ProfileState {
+  accountId: string | null;
+  sections: ProfileSectionData[];
   isLoading: boolean;
-  isSaving: boolean;
   error: string | null;
 
-  loadProfile: (accountId: string) => Promise<void>;
-  updateField: (sectionType: string, fieldKey: string, value: FieldValue) => Promise<void>;
-  clearOnVaultLock: () => void;  // [正确] Vault 锁定时清空
+  loadProfile: (accountId: string) => Promise<void>;   // 加载全部（Uint8Array 解码）
+  loadSection: (accountId: string, sectionType: string) => Promise<ProfileSectionData | null>;
+  updateField: (accountId: string, sectionType: string, fieldKey: string, value: unknown) => Promise<void>;
+  clear: () => void;                                     // Vault 锁定时调用
 }
+```
 
-// 乐观更新模式
-updateField: async (sectionType, fieldKey, value) => {
-  const current = get().profile;  // 快照当前状态
-  if (!current) return;
+**加载实现**（设计文档中的 `commands.profileLoad` 不存在，实际为原始 IPC）：
 
-  // 1. 乐观更新（立即更新 UI）
-  set((state) => {
-    state.profile!.sectionData[sectionType][fieldKey] = value;
-    state.isSaving = true;
-  });
-
-  try {
-    // 2. 通过 IPC 持久化到 Rust
-    await commands.profileUpdateField(accountId, sectionType, fieldKey, value);
-    set({ isSaving: false });
-  } catch (err) {
-    // 3. 失败时回滚
-    set((state) => {
-      state.profile = current;  // 恢复到快照
-      state.isSaving = false;
-      state.error = String(err);
-    });
+```typescript
+loadProfile: async (accountId) => {
+  const profile = await invoke<{ accountId: string; data: number[] } | null>('profile_load', { accountId });
+  if (profile?.data) {
+    // Rust 返回 Uint8Array，需手动解码
+    const json = new TextDecoder().decode(new Uint8Array(profile.data));
+    const parsed = JSON.parse(json);
+    // 映射 sections[...fields...]
   }
 }
 ```
 
 ---
 
-## 5. settingsStore（关键变更）
+## 7. uiStore — UI 状态（实际不持久化）
 
-### 5.1 双层存储设计
-
-settingsStore 同时管理**非敏感 UI 偏好**（明文存储，登录前可读）和**敏感偏好**（Vault 加密存储，解锁后可读）。
+**与文档核心差异**：文档声称 uiStore 使用 `localStorage` 持久化，但**实际实现无持久化**。仅管理侧边栏 + Toast + 全局加载状态。
 
 ```typescript
-// 非敏感 UI 偏好：明文存储于 ui_preferences.json，登录前即可读取
-interface UiPreferences {
-  language: 'zh-CN' | 'en-US';
-  theme: ThemeConfig;
-  accentColor: 'ocean' | 'amber' | 'forest' | 'rose' | 'custom';
-  customAccentHex?: string;
-  sidebarWidth: number;
+// tauri/src/stores/uiStore.ts — 实际实现
+interface UiState {
   sidebarCollapsed: boolean;
-  windowSize: { width: number; height: number };
-}
+  toasts: Toast[];           // 含 type/duration/timeoutId 自动消失
+  globalLoading: boolean;    // 全局加载指示
 
-// 敏感偏好：加密存储于 Vault 内的 preferences.enc
-interface SensitivePreferences {
-  autoLockTimeout: number;           // 自动锁定超时（秒）
-  biometricEnabled: boolean;         // 生物识别启用状态
-  trashRetentionPeriod: TrashRetentionPeriod;
-  historyRetentionPolicy: HistoryRetentionPolicy;
-  passwordHint?: string;             // 密码提示词
-  // ... 其他安全相关偏好
-}
-
-interface SettingsState {
-  uiPreferences: UiPreferences;
-  sensitivePreferences: SensitivePreferences | null;  // null = Vault 未解锁
-  isLoading: boolean;
+  toggleSidebar: () => void;
+  showToast: (toast: Omit<Toast, 'id'>) => void;
+  dismissToast: (id: string) => void;
+  setGlobalLoading: (loading: boolean) => void;
 }
 ```
 
-### 5.2 启动加载流程（修复 Bug 2 时序问题）
-
-```typescript
-export const useSettingsStore = create<SettingsState>()(
-  immer((set, get) => ({
-    uiPreferences: DEFAULT_UI_PREFERENCES,
-    sensitivePreferences: null,
-    isLoading: false,
-
-    // 第 1 步：应用启动时立即加载（登录前）
-    loadUiPreferences: async () => {
-      try {
-        const prefs = await commands.loadUiPreferences();
-        set({ uiPreferences: { ...DEFAULT_UI_PREFERENCES, ...prefs } });
-        // 立即应用主题和语言
-        applyTheme(prefs.theme);
-        await i18next.changeLanguage(prefs.language || detectSystemLanguage());
-      } catch {
-        // 首次启动：ui_preferences.json 不存在，使用系统检测
-        const systemLang = detectSystemLanguage();
-        set({
-          uiPreferences: { ...DEFAULT_UI_PREFERENCES, language: systemLang }
-        });
-        applyTheme(DEFAULT_UI_PREFERENCES.theme);
-        await i18next.changeLanguage(systemLang);
-      }
-    },
-
-    // 第 2 步：用户登录后加载（Vault 解锁后）
-    loadSensitivePreferences: async () => {
-      const prefs = await commands.userDataGetPreferences();
-      set({ sensitivePreferences: prefs });
-    },
-
-    // 更新非敏感 UI 偏好
-    updateUiPreference: async (key, value) => {
-      const oldValue = get().uiPreferences[key];
-      set((state) => { state.uiPreferences[key] = value; });
-      try {
-        await commands.saveUiPreference(key, value);
-        // 即时生效
-        if (key === 'language') await i18next.changeLanguage(value);
-        if (key === 'theme') applyTheme(value);
-      } catch (err) {
-        set((state) => { state.uiPreferences[key] = oldValue; });
-        throw err;
-      }
-    },
-
-    // 更新敏感偏好
-    updateSensitivePreference: async (key, value) => {
-      const oldValue = get().sensitivePreferences?.[key];
-      set((state) => { if (state.sensitivePreferences) state.sensitivePreferences[key] = value; });
-      try {
-        await commands.userDataUpdatePreference(key, value);
-      } catch (err) {
-        set((state) => { if (state.sensitivePreferences) state.sensitivePreferences[key] = oldValue; });
-        throw err;
-      }
-    },
-
-    clearOnVaultLock: () => {
-      set({ sensitivePreferences: null });  // 仅清空敏感偏好，UI 偏好保留
-    },
-  }))
-);
-```
-
-### 5.3 [错误] 禁止：localStorage 持久化用户偏好
-
-```typescript
-// [错误] 错误：所有偏好都存 localStorage
-export const useSettingsStore = create(
-  persist(immer(...), {
-    name: 'solosoul-settings',
-    storage: createJSONStorage(() => localStorage),  // 敏感偏好明文暴露！
-  })
-);
-
-// [错误] 错误：所有偏好都存 Vault（导致登录页无法读取主题/语言）
-loadSettings: async () => {
-  const settings = await commands.userDataGetPreferences(); // ❌ 需要 Vault 解锁
-  applyTheme(settings.theme);  // ❌ 登录页主题无法应用
-}
-
-// [正确] 正确：非敏感偏好明文存储，敏感偏好 Vault 加密
-loadUiPreferences: async () => {
-  const prefs = await commands.loadUiPreferences();  // ✅ 无需解锁 Vault
-  applyTheme(prefs.theme);  // ✅ 登录页即可正确显示主题
-}
-```
+**Toast 自动消失机制**：`showToast` 创建 `setTimeout`（默认 3000ms），超时自动从 `toasts` 数组移除。`dismissToast` 清除对应 timeout。无 `persist` 中间件。
 
 ---
 
-## 6. 持久化策略
-
-所有 Store 根据数据敏感度采用严格分级的持久化策略：
-
-| Store | 持久化方式 | 理由与规范 |
-|-------|-----------|------|
-| `authStore` / `vaultStore` | **不持久化** | 极度敏感状态，每次启动或锁定后重置 |
-| `profileStore` / `objectStore` / `templateStore` / `trashStore` / `llmStatsStore` | **不持久化到前端** | 数据实时经过 Rust IPC；Vault 锁定时通过 `clearOnVaultLock` 清理前端内存快照 |
-| `settingsStore` | **双架构存储** | 非敏感（语言/主题）→ `ui_preferences.json`；敏感偏好（自动锁定超时/生物识别/回收站保留期）→ Vault 加密；Zustand 本身禁用中间件持久化 |
-| `uiStore` | `localStorage` | 保存侧边栏折叠等纯 UI 状态（非敏感） |
-| `ocrScanStore` | `localStorage`（`zustand persist`） | `solosoul-ocr-scan-history`：仅保存最多 50 条本地扫描历史，非敏感数据 |
-| `ocrInstallStore` | `localStorage`（原生 API） | 仅存标记位 `solosoul_ocr_first_install_done` 判别首次下载，不完整持久化状态 |
-| `llmStore` / `ocrInstallStore` | **不持久化** | 事件流状态（streaming/progress）会话级别临时数据，重启后无需恢复 |
-| `sidebarHoverStore` | **纯内存保持** | 不写入磁盘；利用 Zustand Store 脱离 React 组件树的特性，跨页面导航时保留悬停与滚动位置 |
-| `pluginQuickStore` / `syncStore` / `pluginStore` | **不持久化** | 运行时状态，会话级别临时数据 |
-
----
-
-## 7. Vault 锁定事件处理
+## 8. sidebarHoverStore — 侧边栏悬停 & 滚动位置
 
 ```typescript
-// App.tsx
-useEffect(() => {
-  const unsubscribe = listen('vault-locked', () => {
-    // 清空所有敏感 Store 的内存状态
-    useSettingsStore.getState().clearOnVaultLock();
-    useProfileStore.getState().clearOnVaultLock();
-    useObjectStore.getState().clearOnVaultLock();
-    useTrashStore.getState().clearOnVaultLock();
-    useLlmStatsStore.getState().clear();
-    navigate('/login');
-  });
-  return () => { unsubscribe.then(f => f()); };
-}, []);
-```
-
-## 8. 事件流与长连接 Store（LLM / OCR 安装）
-
-`llmStore` 和 `ocrInstallStore` 通过 Tauri Event 订阅后端推送，是事件驱动的特殊 Store 模式。
-
-### 8.1 核心模式：安全取消订阅
-
-Event 订阅必须同时管理 `unlistenFn`（同步句柄）和 `unlistenPromise`（异步 Promise），防止热重载或重复调用导致监听器叠加：
-
-```typescript
-interface EventStreamState {
-  isStreaming: boolean;
-  unlisten: UnlistenFn | null;        // 已 resolve 的取消句柄
-  unlistenPromise: Promise<UnlistenFn> | null;  // 尚未 resolve 的 Promise
-
-  startListening: () => void;
-  stopListening: () => void;
-}
-
-// startStream 必须先取消旧监听再订阅新监听
-startStream: (convId) => {
-  const state = get();
-  state.unlisten?.();                   // 取消已 resolve 的
-  state.unlistenPromise?.then(fn => fn());  // 取消未 resolve 的
-  
-  const pending = listen<T>('event-name', handler);
-  set({ unlistenPromise: pending });
-  pending.then(fn => set({ unlisten: fn, unlistenPromise: null }));
+// tauri/src/stores/sidebarHoverStore.ts — 实际实现
+interface SidebarHoverState {
+  isHovering: boolean;
+  setHovering: (hovering: boolean) => void;
+  verticalScrollTop: number;          // 垂直模式滚动位置
+  setVerticalScrollTop: (scrollTop: number) => void;
+  horizontalScrollLeft: number;       // 水平模式滚动位置
+  setHorizontalScrollLeft: (scrollLeft: number) => void;
 }
 ```
 
-### 8.2 llmStore — 流式 AI 对话
-
-```typescript
-interface LlmState {
-  isStreaming: boolean;
-  streamingConvId: string | null;
-  streamBuffer: string;          // 累积的流式文本
-  streamError: string | null;
-
-  startStream: (conversationId: string) => void;
-  onChunk: (payload: LlmStreamPayload) => void;
-  stopStream: () => void;
-  reset: () => void;
-}
-```
-
-- 订阅 Tauri Event `llm-stream-chunk`，payload 携带 `{ conversationId, chunk, isDone, error? }`
-- `onChunk` 校验 `conversationId` 匹配后追加 chunk 或处理 error/done
-- `stopStream`/`reset` 均需显式调用 `unlisten?.()` 清理监听器
-
-### 8.3 llmStatsStore — 使用统计
-
-```typescript
-interface LlmStatsState {
-  stats: LlmUsageStats | null;
-  loading: boolean;
-  loadStats: (accountId: string) => Promise<void>;
-  resetStats: (accountId: string) => Promise<void>;
-  clear: () => void;  // Vault 锁定时调用
-}
-```
-
-### 8.4 ocrInstallStore — 模型下载进度
-
-```typescript
-interface OcrInstallState {
-  isInstalling: boolean;
-  progress: number;  // 0–100
-  error: string | null;
-  startListening: () => void;
-  stopListening: () => void;
-  reset: () => void;
-}
-```
-
-- 订阅 Tauri Event `ocr-install-progress`，payload 携带 `{ tier, progress, done, error? }`
-- 下载完成时 `markOcrFirstInstallDone()` 写入 localStorage 标记位，供首次启动引导判断
-- 辅助函数 `isOcrFirstInstallDone()` / `markOcrFirstInstallDone()` 直接从 localStorage 读取（不经过 Zustand）
+**关键特性**：纯内存保持，利用 Zustand Store 脱离 React 组件树的特性，跨页面导航时保留悬停与滚动位置。支持垂直和水平两种布局模式。
 
 ---
 
 ## 9. 业务对象 Store（Object / Template / Trash）
 
-### 9.1 objectStore — 核心数据对象 CRUD
-
-> ⚠️ 由原 `unifiedObjectStore` 更名而来。
+### 9.1 objectStore
 
 ```typescript
+// tauri/src/stores/objectStore.ts — 实际实现
 interface ObjectState {
-  objects: ObjectSummary[];        // 列表视图摘要
-  currentObject: ObjectData | null; // 当前打开的完整对象
-  trashObjects: ObjectSummary[];   // 回收站列表
+  objects: ObjectSummary[];
+  currentObject: ObjectData | null;
+  trashObjects: ObjectSummary[];    // 回收站列表
   isLoading: boolean;
   error: string | null;
 
   loadObjects: (accountId, filter?) => Promise<void>;
   getObject: (accountId, objectId) => Promise<void>;
-  createObject: (input) => Promise<ObjectData>;
+  createObject: (input) => Promise<ObjectData>;  // 乐观追加到列表
   updateObject: (objectId, input) => Promise<void>;
   deleteObject: (objectId) => Promise<void>;
   loadTrashObjects: (accountId) => Promise<void>;
@@ -419,13 +341,12 @@ interface ObjectState {
 }
 ```
 
-- `createObject` 采用乐观插入：返回新对象后立即追加到 `objects` 列表头
-- `clearOnVaultLock` 清空 `objects`、`trashObjects`、`currentObject`、`error`
-- 对象摘要 `ObjectSummary` 包含 `contractTypeId`（插件合约类型 ID）
+**与 doc 差异**：未使用 `immer`。`createObject` 返回 `Promise<ObjectData>`（前端可直接获取新对象数据）。`ObjectSummary` 包含 `contractTypeId`（来自 `ObjectData`）。`clearOnVaultLock` 清空全部。
 
-### 9.2 templateStore — 模板 CRUD 与字段检查
+### 9.2 templateStore
 
 ```typescript
+// tauri/src/stores/templateStore.ts — 实际实现
 interface TemplateState {
   templates: UserTemplate[];
   isLoading: boolean;
@@ -436,84 +357,292 @@ interface TemplateState {
   updateTemplate: (id, updates) => Promise<void>;
   deleteTemplate: (id) => Promise<void>;
   getTemplate: (id) => Promise<UserTemplate | null>;
-  saveFromObject: (objectId, name) => Promise<string>;  // 从已有对象反生成模板
+  saveFromObject: (objectId, name) => Promise<string>;  // 从对象创建模板
   checkFieldUsage: (templateId, fieldKey) => Promise<{ active: number; softDeleted: number }>;
 }
 ```
 
-- CRUD 操作后自动调用 `loadTemplates()` 刷新列表（除 `deleteTemplate` 用乐观删除）
-- `checkFieldUsage` 统计字段在活跃对象和软删除对象中的使用次数，用于安全删除字段前的确认提示
-- 模板属性 `TemplateProperty` 定义字段类型（text/number/date/select/multiselect/url/email/phone/file）、是否必填、选项列表等
+**与 doc 差异**：`updateTemplate` 调用后自动 `loadTemplates()` 刷新全量列表（非乐观更新）。`saveFromObject` 通过 IPC `template_save_from_object` 实现。
 
-### 9.3 trashStore — 回收站管理
+### 9.3 trashStore
 
 ```typescript
+// tauri/src/stores/trashStore.ts — 实际实现
 interface TrashState {
   items: TrashItemSummary[];
-  timeFilter: TrashTimeFilter;      // 'all' | '1d' | '3d' | '7d' | '30d' | 'half_year'
-  typeFilter: TrashTypeFilter;      // 'all' | 'page' | 'object' | 'template'
+  timeFilter: TrashTimeFilter;         // 'all' | '1d' | '3d' | '7d' | '30d' | 'half_year'
+  typeFilter: TrashTypeFilter;         // 'all' | 'page' | 'object' | 'template'
   searchQuery: string;
-  selectedIds: Set<string>;         // Zustand 管理批量选择集
+  selectedIds: Set<string>;
   isLoading: boolean;
+  error: string | null;
 
-  loadItems: (accountId) => Promise<void>;
-  restoreItem: (trashId) => Promise<void>;
-  permanentDelete: (trashIds: string[]) => Promise<void>;
-  toggleSelection: (id) => void;
+  loadItems: (accountId) => Promise<void>;       // 携带 since 参数按时间过滤
+  setTimeFilter: (f) => void;
+  setTypeFilter: (f) => void;
+  setSearchQuery: (q) => void;
+  restoreItem: (trashId) => Promise<void>;        // 根据 itemType 走不同 IPC
+  permanentDelete: (trashIds: string[]) => Promise<void>;  // 逐条调用
+  toggleSelection: (id) => void;                   // Set 实现 O(1) 选择/取消
   selectAll: (ids: string[]) => void;
   clearSelection: () => void;
   clearOnVaultLock: () => void;
 }
 ```
 
-- `selectedIds` 使用 `Set<string>` 实现 O(1) 选择/取消，由 Zustand `set()` 创建新 Set 实例触发重渲染
-- `restoreItem` 根据 `itemType` 走不同 IPC：`template_restore` 或 `trash_restore`
+**与 doc 差异**：`loadItems` 接受 `since` 参数（基于 `timeFilter` 计算毫秒偏移）。`restoreItem` 根据 `itemType` 区分调用 `template_restore` 或 `trash_restore`。`permanentDelete` 逐条调用 `trash_permanent_delete`。`clearOnVaultLock` 重置全部状态。
 
 ---
 
-## 10. Store 间通信
+## 10. 事件流 Store — LLM 流式对话 & OCR 安装
+
+### 10.1 核心模式：安全取消订阅
+
+（与设计文档一致）
 
 ```typescript
-// [错误] 禁止循环依赖：authStore import profileStore，profileStore import authStore
-// [正确] 正确：在 App.tsx 中协调
-useEffect(() => {
-  if (isAuthenticated && currentAccount) {
-    useProfileStore.getState().loadProfile(currentAccount.id);
-    useSettingsStore.getState().loadSettings();
-  }
-}, [isAuthenticated, currentAccount]);
+// 标准 Event 订阅模式
+startStream: (convId) => {
+  get().unlisten?.();              // 取消已 resolve 的
+  get().unlistenPromise?.then(fn => fn());  // 取消未 resolve 的
+  // 订阅新 Event
+  const pending = listen<T>('event-name', handler);
+  set({ unlistenPromise: pending });
+  pending.then(fn => set({ unlisten: fn, unlistenPromise: null }));
+}
+```
+
+### 10.2 llmStore
+
+（与实际实现一致）订阅 `llm-stream-chunk` Event，`onChunk` 方法校验 `conversationId` 匹配后处理 chunk/error/done。
+
+### 10.3 llmStatsStore
+
+```typescript
+// tauri/src/stores/llmStatsStore.ts — 实际实现
+interface LlmStatsState {
+  stats: LlmUsageStats | null;
+  loading: boolean;
+  error: string | null;
+
+  loadStats: (accountId) => Promise<void>;
+  resetStats: (accountId) => Promise<void>;
+  clear: () => void;
+}
+```
+
+**差异**：通过 `@/lib/llm/statsApi`（非直接 IPC）调用 `llmGetStats`/`llmResetStats`。有 `error` 状态。
+
+### 10.4 ocrInstallStore
+
+（与实际实现一致）订阅 `ocr-install-progress` Event。`isOcrFirstInstallDone()` / `markOcrFirstInstallDone()` 作为独立辅助函数直接读写 localStorage，不经过 Zustand。
+
+### 10.5 ocrScanStore
+
+```typescript
+// tauri/src/stores/ocrScanStore.ts — 实际实现
+interface OcrScanState {
+  isCardOpen: boolean;
+  scanMode: 'general' | 'mrz';
+  scanHistory: OcrScanEntry[];        // 最多 50 条
+  currentScanId: string | null;
+  isScanning: boolean;
+  activeTier: string;
+  lastScanError: string | null;
+
+  setCardOpen: (open) => void;
+  setScanMode: (mode) => void;
+  setActiveTier: (tier) => void;
+  performScan: (filePath) => Promise<void>;   // MRZ 自动 fallback 到 general
+  softDeleteEntry: (id) => void;
+  restoreEntry: (id) => void;
+  permanentlyDeleteEntry: (id) => void;
+  clearTrash: () => void;
+  getActiveHistory: () => OcrScanEntry[];
+  getTrash: () => OcrScanEntry[];
+  getCurrentEntry: () => OcrScanEntry | null;
+}
+```
+
+**与 doc 差异**：MRZ 扫描失败自动 fallback 到通用 OCR。`performScan` 内置完整的状态管理（isScanning + 历史追加 + 错误处理）。`partialize` 只持久化 `scanHistory`、`activeTier`、`scanMode`。
+
+---
+
+## 11. 插件 Store
+
+### 11.1 pluginStore
+
+实际实现远比设计文档描述的复杂。使用 `persist` 中间件持久化运行状态。
+
+```typescript
+// tauri/src/stores/pluginStore.ts — 实际实现
+interface PluginState {
+  marketPlugins: MarketPluginInfo[];
+  installedPlugins: PluginManifest[];
+  runningPlugins: Record<string, RunningPlugin>;
+  selectedTier: 'all' | PluginTier;
+  enabledTiers: PluginTier[];
+  isLoadingMarket: boolean;
+  isLoadingInstalled: boolean;
+  error: string | null;
+
+  loadMarket: () => Promise<void>;
+  loadInstalled: () => Promise<void>;
+  installPlugin: (pluginId, version) => Promise<void>;
+  updatePlugin: (pluginId) => Promise<void>;
+  uninstallPlugin: (pluginId) => Promise<void>;
+  runPlugin: (pluginId, pluginName, params?) => Promise<void>;  // 事件通信主逻辑
+  stopPlugin: (pluginId) => void;
+  clearPluginOutput: (pluginId) => void;
+  resolveDialog: (pluginId, requestId, value?) => Promise<void>;
+  setSelectedTier: (tier) => void;
+  refreshRegistry: () => Promise<void>;
+  clearError: () => void;
+}
+
+// RunningPlugin 运行时状态
+interface RunningPlugin {
+  pluginId: string;
+  pluginName: string;
+  startTime: number;
+  logs: PluginLogLine[];            // debug/info/warn/error
+  results: PluginResultPayload[];   // text/markdown/key_value/table
+  consentRequests: ConsentRequestEvent[];
+  dialogRequests: DialogRequestEvent[];
+  completed: boolean;
+  exitCode?: number;
+  error?: string;
+  toastShown?: boolean;             // 去重标记
+}
+```
+
+**事件通信**：`runPlugin` 订阅 `log`、`result`、`consent_request`、`dialog_request`、`completed`、`error` 事件。每个事件通过 `JSON.parse(event.jsonData)` 解析后更新 `runningPlugins` 状态。
+
+**持久化**：`persist` 中间件，`name: 'solosoul-plugin-store'`，`partialize` 仅保存 `runningPlugins`。
+
+### 11.2 pluginQuickStore
+
+简单的面板开关/Tab 切换。（与实际一致）
+
+---
+
+## 12. syncStore — 设备同步
+
+```typescript
+// tauri/src/stores/syncStore.ts — 实际实现
+interface SyncStoreState extends SyncStatus {
+  isLoading: boolean;
+  error: string | null;
+  lastResult: SyncResult | null;
+  recentResults: SyncResult[];      // 最多 10 条
+
+  loadStatus: () => Promise<void>;
+  enable: (enabled: boolean) => Promise<void>;
+  syncWithDevice: (deviceId: string) => Promise<void>;
+  trustPeer: (peerNodeId, trusted) => Promise<void>;
+  forgetPeer: (peerNodeId) => Promise<void>;
+}
+
+interface SyncStatus {
+  isDiscovering: boolean;
+  syncEnabled: boolean;
+  localFingerprint: string;
+  connectedPeers: SyncPeer[];
+}
+```
+
+**与 doc 差异**：包含完整的状态管理（发现中/已启用/指纹/对等节点列表/同步结果历史）。调用 `commands.syncGetStatus` / `commands.syncEnable` / `commands.syncWithDevice` / `commands.syncTrustPeer` / `commands.syncForgetPeer`（通过 `@/lib/ipc`）。
+
+---
+
+## 13. 持久化策略（实际实现）
+
+| Store | 实际持久化方式 | 说明 |
+|-------|--------------|------|
+| `authStore` | **不持久化** | 极度敏感，启动/锁定后重置 |
+| `vaultStore` | **不持久化** | 运行时状态 |
+| `settingsStore` | **双架构写入**：明文→`ui_update_preference`+localStorage；加密→`user_data_update_preference` | 主题/语言/窗口大小：明文 + localStorage；安全偏好：Vault 加密 |
+| `profileStore` | **不持久化到前端** | 数据实时通过 IPC 从 Rust 加载 |
+| `objectStore` | **不持久化到前端** | 同上 |
+| `templateStore` | **不持久化到前端** | 同上 |
+| `trashStore` | **不持久化到前端** | 同上 |
+| `uiStore` | **不持久化**（文档原声称 localStorage，实际无） | 纯内存状态 |
+| `sidebarHoverStore` | **纯内存** | 利用 Zustand 跨导航保持 |
+| `llmStore` | **不持久化** | 会话级事件流 |
+| `llmStatsStore` | **不持久化到前端** | 数据通过 IPC 从 Rust 加载 |
+| `ocrInstallStore` | localStorage 仅存标记位 `solosoul_ocr_first_install_done` | 运行时状态不持久化 |
+| `ocrScanStore` | `zustand persist` → localStorage | `solosoul-ocr-scan-history`，partialize 仅持久化扫描历史 |
+| `pluginStore` | `zustand persist` → localStorage | `solosoul-plugin-store`，partialize 仅持久化 runningPlugins |
+| `pluginQuickStore` | **不持久化** | 运行时状态 |
+| `syncStore` | **不持久化** | 运行时状态 |
+
+---
+
+## 14. Vault 锁定事件处理
+
+```typescript
+// 各 Store 的 clearOnVaultLock/clear 方法（在 App.tsx 中由 vault-locked 事件协调调用）
+// authStore:   无（由 login/logout 管理）
+// vaultStore:  无（状态 naturally 切换为 locked）
+// settingsStore: clearOnVaultLock() — 保留 UI 偏好，重置加密偏好到默认
+// profileStore:  clear() — 清空 sections
+// objectStore:   clearOnVaultLock() — 清空 objects/trashObjects/currentObject/error
+// templateStore: 无（模板不受 vault 锁定影响）
+// trashStore:   clearOnVaultLock() — 重置全部（含 selectedIds/new Set()）
+// llmStatsStore: clear() — 清空 stats/loading/error
+```
+
+**注意**：实际未使用 Tauri Event `listen('vault-locked')`，而是通过组件的 React 生命周期和路由守卫在 `login`/`logout`/`lock` 操作后手动调用清理方法。
+
+---
+
+## 15. Store 间通信
+
+```typescript
+// [正确] 禁止循环依赖：通过 App.tsx 或页面级组件协调
+// [正确] pluginStore → uiStore：在 runPlugin 中调用 useUiStore.getState().showToast()
 ```
 
 ---
 
-## 11. Flutter Riverpod → Zustand 映射
+## 16. 实际 Store 对比（与 Flutter Riverpod 映射）
 
-| Riverpod | Zustand |
-|----------|---------|
-| `StateNotifier` | `create()` + `immer` |
-| `StateNotifierProvider` | `useStore` hook |
-| `ref.watch(provider)` | `useStore(selector)` |
+| Riverpod | Zustand（实际使用） |
+|----------|-------------------|
+| `StateNotifier` | `create()` — **未使用 `immer` 中间件**（文档原声称使用，实际无） |
+| `StateNotifierProvider` | `useStore(selector)` |
+| `ref.watch(provider)` | `useStore(selector)` / `shallow` |
 | `ref.read(provider)` | `useStore.getState()` |
 | `ProviderScope` | 无需包裹（Zustand 无 Provider） |
 
----
-
-## 12. 完成标准
-
-### P0（必须）
-- [ ] Vault 锁定事件触发所有敏感 Store 清空（settingsStore/profileStore/objectStore/trashStore/llmStatsStore）
-- [ ] 无 Store 间循环依赖
-- [ ] `llmStore`/`ocrInstallStore` Event 订阅有正确的 `unlisten` 清理，无内存泄漏
-
-### P1（重要）
-- [ ] 所有 16 个 Store 单元测试通过
-- [ ] 乐观更新 + 回滚逻辑正确（模拟 IPC 失败）
-- [ ] profileStore 的防抖保存正确（500ms delay）
-- [ ] `ocrScanStore` persist 到 localStorage 的 partialize 正确（不持久化运行时状态）
+> **重要**：实际 16 个 Store 中**没有使用 `immer` 中间件**。文档 §3 中的 `immer((set) => ...)` 写法与实际不符。实际采用直接 `set()` 或 `set((state) => ({ ...state, ... }))` 模式。
 
 ---
 
-*文档版本：v2.0 (实现后补充)*
+## 17. 完成标准（实际状态）
+
+### ✅ P0（已完成）
+- [x] Vault 锁定事件触发所有敏感 Store 清空（settingsStore/profileStore/objectStore/trashStore/llmStatsStore）
+- [x] 无 Store 间循环依赖
+- [x] `llmStore`/`ocrInstallStore` Event 订阅有正确的 `unlisten` 清理，无内存泄漏
+
+### ✅ P1（已完成 — 部分实现风格有差异）
+- [x] 所有 16 个 Store 已实现
+- [x] profileStore 的 `clear()` 在 Vault 锁定时正确调用
+- [x] `ocrScanStore` persist 到 localStorage 的 `partialize` 正确（不持久化运行时状态）
+- [x] `pluginStore` persist 正确（仅持久化 runningPlugins）
+
+### ❌ 未按原设计实现
+- [ ] **profileStore 乐观更新 + 回滚**：实际实现为简单 CRUD，无乐观更新、无 debounce
+- [ ] **profileStore 防抖保存**：不存在
+- [ ] **settingsStore 双层接口**：实际使用单一 `AppSettings` 接口，非独立的 `UiPreferences` + `SensitivePreferences`
+- [ ] **uiStore localStorage 持久化**：实际无持久化
+- [ ] **Store 单元测试**：尚未编写
+
+---
+
+*文档版本：v2.0（实际实现反映）*
 *创建日期：2026-06-05*
 *最后更新：2026-06-25*
 *对应开发阶段：Phase 2（状态管理），已全部实现*
+*差异说明：本文档已从蓝图设计重构为实际实现记录。与实际代码的主要差异包括：profileStore 无乐观更新、settingsStore 合并为单一 AppSettings 接口、uiStore 无持久化、全程未使用 immer 中间件。*

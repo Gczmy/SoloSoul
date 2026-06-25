@@ -1963,7 +1963,7 @@ impl VaultStore {
 
         let lower_kw = keyword.map(|k| k.to_lowercase());
         let mut sql = String::from(
-            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, contract_type_id, icon_name
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, contract_type_id, icon_name, property_labels
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
@@ -2003,6 +2003,19 @@ impl VaultStore {
                 let props_str: String = row.get(8)?;
                 let tags_str: String = row.get(9)?;
                 let decrypted_props = decrypt_text_field(&key, &props_str).unwrap_or_default();
+                let labels_str: String = row.get::<_, String>(14).unwrap_or_default();
+                let decrypted_labels = if labels_str.is_empty() {
+                    Ok(String::new())
+                } else {
+                    decrypt_text_field(&key, &labels_str)
+                }
+                .unwrap_or_default();
+                let property_labels: Option<serde_json::Value> =
+                    if decrypted_labels.is_empty() {
+                        None
+                    } else {
+                        serde_json::from_str(&decrypted_labels).ok()
+                    };
                 Ok(ObjectSummary {
                     id: row.get(0)?,
                     name: row.get(1)?,
@@ -2018,6 +2031,7 @@ impl VaultStore {
                     icon_name: row.get(13)?,
                     properties: serde_json::from_str(&decrypted_props)
                         .unwrap_or(serde_json::Value::Null),
+                    property_labels,
                     tags: serde_json::from_str(&tags_str).unwrap_or_default(),
                 })
             })

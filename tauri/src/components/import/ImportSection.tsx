@@ -279,8 +279,8 @@ export function ImportSection({
                           <span
                             style={{
                               fontSize: 11,
-                              color: '#e68a00',
-                              border: '1px solid #e68a00',
+                              color: 'var(--warning)',
+                              border: '1px solid var(--warning)',
                               borderRadius: 3,
                               padding: '0 4px',
                             }}
@@ -298,10 +298,10 @@ export function ImportSection({
                     style={{
                       marginTop: 8,
                       padding: '8px 12px',
-                      background: '#fff3e0',
+                      background: 'var(--warning-subtle)',
                       borderRadius: 6,
                       fontSize: 12,
-                      color: '#663c00',
+                      color: 'var(--warning)',
                     }}
                   >
                     {t('settings:conflict_warning', {

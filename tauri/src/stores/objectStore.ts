@@ -17,6 +17,8 @@ export interface ObjectSummary {
   templateType?: 'system' | 'user';
   /** 插件合约类型 ID — 继承自模板的插件绑定标识。 */
   contractTypeId?: string;
+  /** 字段级敏感度覆盖：fieldName -> sensitivityLevel。即使模板被删除，对象仍保留自己的敏感度副本。 */
+  propertyLabels?: Record<string, string>;
 }
 
 export interface ObjectData {
@@ -34,6 +36,8 @@ export interface ObjectData {
   tags?: string[];
   /** 插件合约类型 ID — 继承自模板的插件绑定标识。 */
   contractTypeId?: string;
+  /** 字段级敏感度覆盖：fieldName -> sensitivityLevel。即使模板被删除，对象仍保留自己的敏感度副本。 */
+  propertyLabels?: Record<string, string>;
 }
 
 interface ObjectState {

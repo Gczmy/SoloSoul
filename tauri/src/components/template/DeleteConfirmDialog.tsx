@@ -19,16 +19,15 @@ export function DeleteConfirmDialog({
   const { t } = useTranslation(['common']);
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(0,0,0,0.4)',
-      }}
+    <div        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--bg-overlay)',
+        }}
       onClick={onCancel}
     >
       <div
@@ -58,10 +57,7 @@ export function DeleteConfirmDialog({
           <Button variant="secondary" onClick={onCancel}>
             {t('common:cancel') || '取消'}
           </Button>
-          <Button
-            onClick={onConfirm}
-            style={{ background: '#e74c3c', color: 'white', borderColor: '#e74c3c' }}
-          >
+          <Button variant="danger" onClick={onConfirm}>
             {t('common:delete') || '删除'}
           </Button>
         </div>

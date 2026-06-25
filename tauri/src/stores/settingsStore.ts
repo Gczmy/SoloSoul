@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { PhysicalSize } from '@tauri-apps/api/dpi';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
+import type { TrashRetentionPeriod } from '@/stores/trashStore';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
 
@@ -42,6 +43,7 @@ export interface AppSettings {
   /** Per-button mode: 'card' (floating panel) or 'page' (navigate to dedicated page) */
   sidebarButtonModes: Record<string, 'card' | 'page'>;
   windowSize?: WindowSize;
+  trashRetention: TrashRetentionPeriod;
 }
 
 interface SettingsState {
@@ -106,6 +108,7 @@ const accountPrefsSchema = z
     biometricEnabled: z.boolean().optional(),
     confirmDelete: z.boolean().optional(),
     sidebarPosition: z.enum(['left', 'right', 'top', 'bottom']).optional(),
+    trashRetention: z.enum(['30d', '60d', 'half_year', 'one_year', 'never']).optional(),
     customPages: z.array(customPageSchema).optional(),
     windowSize: windowSizeSchema.optional(),
   })
@@ -134,6 +137,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     ai_chat: 'card',
     search: 'card',
   },
+  trashRetention: '30d',
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -269,6 +273,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.locale) parsed.locale = prefs.locale;
       if (typeof prefs.autoLockTimeoutMinutes === 'number')
         parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
+      if (prefs.trashRetention) parsed.trashRetention = prefs.trashRetention;
       if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
       if (prefs.sidebarPosition) parsed.sidebarPosition = prefs.sidebarPosition;

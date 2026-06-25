@@ -113,6 +113,7 @@ pub async fn import_decrypt_preview(
                         template_type: o["template_type"].as_str().map(String::from),
                         icon_name: o["icon_name"].as_str().unwrap_or("document").to_string(),
                         properties: o["properties"].clone(),
+                        property_labels: None,
                         tags: o["tags"]
                             .as_array()
                             .map(|t| {
@@ -178,7 +179,7 @@ pub async fn import_execute(
     account_id: String,
     file_path: String,
     password: String,
-) -> Result<usize, String> {
+) -> Result<ImportResult, String> {
     import_execute_internal(
         state,
         account_id,
@@ -196,7 +197,7 @@ pub async fn import_execute_advanced(
     state: State<'_, AppState>,
     account_id: String,
     req: AdvancedImportRequest,
-) -> Result<usize, String> {
+) -> Result<ImportResult, String> {
     import_execute_internal(
         state,
         account_id,
@@ -215,7 +216,7 @@ async fn import_execute_internal(
     password: String,
     strategy: ImportStrategy,
     selections: Option<Vec<ImportSelection>>,
-) -> Result<usize, String> {
+) -> Result<ImportResult, String> {
     let svc = state
         .vault_service
         .read()
@@ -249,6 +250,19 @@ async fn import_execute_internal(
         .as_array()
         .ok_or("No objects array in payload")?;
     let package_ids = build_package_ids(&payload);
+    // ── Rebuild referenced templates ─────────────────────────────
+    if let Some(templates) = payload["templates"].as_array() {
+        for tpl_val in templates {
+            if let Ok(tpl) = serde_json::from_value::<solosoul_vault::UserTemplate>(tpl_val.clone()) {
+                if vault.load_user_template(&tpl.id).ok().flatten().is_none() {
+                    let mut new_tpl = tpl;
+                    new_tpl.account_id = account_id.clone();
+                    let _ = vault.save_user_template(&new_tpl);
+                }
+            }
+        }
+    }
+
     let mut imported = 0usize;
     let mut imported_object_ids: std::collections::HashSet<String> =
         std::collections::HashSet::new();
@@ -340,6 +354,8 @@ async fn import_execute_internal(
         imported += 1;
         imported_object_ids.insert(id.to_string());
     }
+
+    let mut imported_attachments_count = 0usize;
 
     // ── P1: Import attachments (encrypted) ─────────────────────
     if manifest.has_attachments {
@@ -449,7 +465,7 @@ async fn import_execute_internal(
         }
 
         // Replace each imported object's __attachments with the newly imported list
-        for (obj_id, atts) in imported_atts {
+        for (obj_id, atts) in &imported_atts {
             let mut obj = vault
                 .load_object(&obj_id)
                 .map_err(|e| format!("get object: {}", e))?
@@ -467,6 +483,8 @@ async fn import_execute_internal(
             }
             vault.save_object(&obj).map_err(|e| e.to_string())?;
         }
+
+        imported_attachments_count = imported_atts.values().map(|v| v.len()).sum();
     }
 
     // ── P2: Import preferences if present ──────────────────────
@@ -502,10 +520,13 @@ async fn import_execute_internal(
         None,
         "user",
         Some(&format!(
-            "imported {} objects from {} (strategy: {:?})",
-            imported, file_path, strategy
+            "imported {} objects ({} attachments) from {} (strategy: {:?})",
+            imported, imported_attachments_count, file_path, strategy
         )),
     );
 
-    Ok(imported)
+    Ok(ImportResult {
+        object_count: imported,
+        attachment_count: imported_attachments_count,
+    })
 }

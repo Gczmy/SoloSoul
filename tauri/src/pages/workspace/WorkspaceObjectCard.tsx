@@ -79,12 +79,25 @@ export function WorkspaceObjectCard({
 
   const getFieldProperty = (fieldKey: string) =>
     tpl?.properties.find((p) => p.id === fieldKey);
-  const getFieldSensitivity = (fieldKey: string): SensitivityLevel =>
-    (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public';
+  const objLabels = obj.propertyLabels as Record<string, string> | undefined;
+  // 从 properties 中提取 __fields（即使模板被删除，字段定义仍保留在对象上）
+  const objFieldDefs = (obj.properties as Record<string, unknown>)?.__fields as
+    | Record<string, { name: string; type: string; options?: string[]; contractField?: boolean }>
+    | undefined;
+  const getFieldDef = (fieldKey: string) =>
+    objFieldDefs?.[fieldKey] || getFieldProperty(fieldKey);
+  const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
+    // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
+    if (objLabels?.[fieldKey]) {
+      return objLabels[fieldKey] as SensitivityLevel;
+    }
+    // 2. 回退到模板定义
+    return (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public';
+  };
   const isFieldDeprecated = (fieldKey: string): boolean =>
     !!getFieldProperty(fieldKey)?.deprecatedAt;
   const getFieldName = (fieldKey: string): string =>
-    getFieldProperty(fieldKey)?.name || fieldKey;
+    getFieldProperty(fieldKey)?.name || objFieldDefs?.[fieldKey]?.name || fieldKey;
 
   const iconButtonStyle: React.CSSProperties = {
     width: 32,
@@ -139,6 +152,27 @@ export function WorkspaceObjectCard({
             {obj.contractTypeId && (
               <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
             )}
+            {/* 模板名 — 模板已删除时显示删除线 */}
+            {obj.templateId && (
+              <span
+                style={{
+                  fontSize: 10,
+                  color: 'var(--text-tertiary)',
+                  textDecoration: tpl ? 'none' : 'line-through',
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tpl
+                  ? tpl.name
+                  : (() => {
+                      const tplName = (obj.properties as Record<string, unknown>)?.__templateName as string | undefined;
+                      const tid = obj.templateId || '';
+                      return tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid;
+                    })()
+                }
+              </span>
+            )}
           </div>
         </div>
         {/* Edit + Delete + History actions */}
@@ -191,7 +225,7 @@ export function WorkspaceObjectCard({
             const isMasked = sens !== 'public';
             const fieldLabel = getFieldName(f.key);
             const fieldProp = getFieldProperty(f.key);
-            const isContractField = fieldProp?.contractField === true;
+            const isContractField = fieldProp?.contractField === true || objFieldDefs?.[f.key]?.contractField === true;
             const s = getSensitivityStyle(sens);
             return (
               <span

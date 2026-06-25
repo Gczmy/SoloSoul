@@ -60,6 +60,11 @@ export interface ImportSelection {
   selected: boolean;
 }
 
+export interface ImportResult {
+  objectCount: number;
+  attachmentCount: number;
+}
+
 export type PasswordStrength = 'none' | 'weak' | 'medium' | 'strong';
 
 export function assessPasswordStrength(pw: string): PasswordStrength {

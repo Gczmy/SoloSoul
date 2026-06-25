@@ -15,6 +15,7 @@ import type {
   ImportPreview,
   DecryptedImportPreview,
   ImportStrategy,
+  ImportResult,
   PasswordStrength,
 } from '@/types/exportImport';
 import { assessPasswordStrength } from '@/types/exportImport';
@@ -50,6 +51,7 @@ export function ExportImportPage() {
   const [showWeakWarning, setShowWeakWarning] = useState(false);
   const [showHintWarning, setShowHintWarning] = useState(false);
   const skipHintCheckRef = useRef(false);
+  const skipWeakCheckRef = useRef(false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [includeAttachments, setIncludeAttachments] = useState(false);
   const [selectedAttachmentIds, setSelectedAttachmentIds] = useState<Set<string>>(new Set());
@@ -330,12 +332,14 @@ export function ExportImportPage() {
         return;
       }
     }
-    skipHintCheckRef.current = false;
-
-    if (pwStrength === 'weak' && !showWeakWarning) {
+    if (pwStrength === 'weak' && !skipWeakCheckRef.current && !showWeakWarning) {
       setShowWeakWarning(true);
       return;
     }
+
+    // Both checks passed — reset skip flags for next export attempt
+    skipHintCheckRef.current = false;
+    skipWeakCheckRef.current = false;
 
     setIsExporting(true);
     try {
@@ -410,7 +414,7 @@ export function ExportImportPage() {
         const selections = Array.from(importSelections.entries()).map(
           ([objectId, selected]) => ({ objectId, selected }),
         );
-        const count = await invoke<number>('import_execute_advanced', {
+        const result = await invoke<ImportResult>('import_execute_advanced', {
           accountId,
           req: {
             selections,
@@ -419,14 +423,20 @@ export function ExportImportPage() {
             password: importPw,
           },
         });
-        onSuccess(t('settings:import_success', { count }));
+        onSuccess(t('settings:import_success_with_attachments', {
+          count: result.objectCount,
+          attachments: result.attachmentCount,
+        }));
       } else {
-        const count = await invoke<number>('import_execute', {
+        const result = await invoke<ImportResult>('import_execute', {
           accountId,
           filePath: importPath,
           password: importPw,
         });
-        onSuccess(t('settings:import_success', { count }));
+        onSuccess(t('settings:import_success_with_attachments', {
+          count: result.objectCount,
+          attachments: result.attachmentCount,
+        }));
       }
       setImportPreview(null);
       setDecryptedPreview(null);
@@ -555,6 +565,7 @@ export function ExportImportPage() {
             onSetIncludePreferences={setIncludePreferences}
             onSetIncludeBehavioral={setIncludeBehavioral}
             onSetShowWeakWarningAndExport={() => {
+              skipWeakCheckRef.current = true;
               setShowWeakWarning(false);
               handleExport();
             }}

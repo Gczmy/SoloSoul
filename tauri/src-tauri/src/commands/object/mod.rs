@@ -39,12 +39,16 @@ pub struct ObjectData {
     pub template_id: Option<String>,
     #[serde(rename = "templateType")]
     pub template_type: Option<String>,
+    #[serde(rename = "propertyLabels")]
+    pub property_labels: Option<serde_json::Value>,
     #[serde(rename = "createdAt")]
     pub created_at: String,
     #[serde(rename = "updatedAt")]
     pub updated_at: String,
     #[serde(rename = "deletedAt")]
     pub deleted_at: Option<String>,
+    #[serde(rename = "contractTypeId")]
+    pub contract_type_id: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -106,6 +110,92 @@ pub fn inherit_contract_type_id(
     })
 }
 
+/// 从模板继承字段级敏感度映射。
+/// 返回 `{ "fieldId": "sensitive|critical|internal|public" }` 的 JSON 对象。
+/// 此映射保存在对象的 `property_labels` 中，即使模板被删除，对象仍保留自己的敏感度副本。
+pub fn inherit_property_labels(
+    vault: &solosoul_vault::VaultStore,
+    template_id: Option<&str>,
+) -> Option<serde_json::Value> {
+    template_id.and_then(|tid| {
+        let tpl = vault.load_user_template(tid).ok().flatten()?;
+        let mut map = serde_json::Map::new();
+        for prop in &tpl.properties {
+            if let Some(ref sl) = prop.sensitivity_level {
+                map.insert(prop.id.clone(), serde_json::Value::String(sl.clone()));
+            }
+        }
+        if map.is_empty() {
+            None
+        } else {
+            Some(serde_json::Value::Object(map))
+        }
+    })
+}
+
+/// 从模板继承字段定义（字段名 + 类型等），嵌入到 `properties` 的 `__fields` 键中。
+/// 即使模板被删除，对象仍保留字段定义副本。
+fn inherit_property_fields(
+    vault: &solosoul_vault::VaultStore,
+    template_id: Option<&str>,
+) -> serde_json::Value {
+    let Some(tid) = template_id else {
+        return serde_json::Value::Null;
+    };
+    let tpl = match vault.load_user_template(tid).ok().flatten() {
+        Some(t) => t,
+        None => return serde_json::Value::Null,
+    };
+    let mut map = serde_json::Map::new();
+    for prop in &tpl.properties {
+        let mut field_def = serde_json::Map::new();
+        field_def.insert("name".to_string(), serde_json::Value::String(prop.name.clone()));
+        field_def.insert("type".to_string(), serde_json::Value::String(prop.prop_type.as_str().to_string()));
+        if let Some(ref opts) = prop.options {
+            field_def.insert("options".to_string(), serde_json::Value::Array(opts.iter().map(|o| serde_json::Value::String(o.clone())).collect()));
+        }
+        if let Some(ref da) = prop.deprecated_at {
+            field_def.insert("deprecatedAt".to_string(), serde_json::Value::String(da.clone()));
+        }
+        if let Some(ref cf) = prop.contract_field {
+            field_def.insert("contractField".to_string(), serde_json::Value::Bool(*cf));
+        }
+        map.insert(prop.id.clone(), serde_json::Value::Object(field_def));
+    }
+    if map.is_empty() {
+        serde_json::Value::Null
+    } else {
+        serde_json::Value::Object(map)
+    }
+}
+
+/// 将 `__fields` 注入到 properties JSON 对象中。
+fn inject_property_fields(
+    properties: &mut serde_json::Value,
+    fields: &serde_json::Value,
+) {
+    if fields.is_null() {
+        return;
+    }
+    if let Some(obj) = properties.as_object_mut() {
+        obj.insert("__fields".to_string(), fields.clone());
+    }
+}
+
+/// 将模板元信息（名称、图标等）注入到 properties JSON 对象中，
+/// 即使模板被删除，对象仍能显示模板名称。
+fn inject_template_meta(
+    vault: &solosoul_vault::VaultStore,
+    template_id: Option<&str>,
+    properties: &mut serde_json::Value,
+) {
+    let Some(tid) = template_id else { return };
+    let Some(tpl) = vault.load_user_template(tid).ok().flatten() else { return };
+    if let Some(obj) = properties.as_object_mut() {
+        obj.insert("__templateName".to_string(), serde_json::Value::String(tpl.name.clone()));
+    }
+}
+
 pub fn record_to_data(record: &ObjectRecord) -> ObjectData {
     ObjectData {
         id: record.id.clone(),
@@ -116,6 +206,8 @@ pub fn record_to_data(record: &ObjectRecord) -> ObjectData {
         sensitivity_level: record.sensitivity_level.clone(),
         template_id: record.template_id.clone(),
         template_type: record.template_type.clone(),
+        property_labels: record.property_labels.clone(),
+        contract_type_id: record.contract_type_id.clone(),
         created_at: record.created_at.clone(),
         updated_at: record.updated_at.clone(),
         deleted_at: record.deleted_at.clone(),
@@ -196,6 +288,14 @@ pub async fn object_create(
 
     // §13.10.3: 从模板继承 contract_type_id
     let contract_type_id = inherit_contract_type_id(&vault, input.template_id.as_deref());
+    // §Bugfix: 从模板继承字段级敏感度，确保模板删除后对象仍保留敏感度信息
+    let property_labels = inherit_property_labels(&vault, input.template_id.as_deref());
+    // §Bugfix: 从模板继承字段定义（名称+类型），确保模板删除后对象仍保留字段名和类型
+    let property_fields = inherit_property_fields(&vault, input.template_id.as_deref());
+    let mut properties = input.properties.clone();
+    inject_property_fields(&mut properties, &property_fields);
+    // §Bugfix: 保存模板名称，模板删除后仍可显示
+    inject_template_meta(&vault, input.template_id.as_deref(), &mut properties);
 
     let record = ObjectRecord {
         contract_type_id,
@@ -207,8 +307,8 @@ pub async fn object_create(
         icon_name: input.icon_name.unwrap_or_else(|| "document".to_string()),
         parent_id: input.parent_id.clone(),
         children_ids: vec![],
-        properties: input.properties.clone(),
-        property_labels: None,
+        properties,
+        property_labels,
         sensitivity_level: "internal".to_string(),
         is_deleted: false,
         deleted_at: None,
@@ -268,6 +368,9 @@ pub async fn object_update(
         .ok_or("Object not found".to_string())?;
 
     let old_sensitivity = record.sensitivity_level.clone();
+    // Preserve old __fields and __templateName before overwriting properties (前端不发送这两项)
+    let old_fields = record.properties.get("__fields").cloned();
+    let old_tpl_name = record.properties.get("__templateName").cloned();
     record.name = input.name;
     record.properties = input.properties;
     if let Some(sl) = input.sensitivity_level {
@@ -275,6 +378,29 @@ pub async fn object_update(
     }
     if let Some(icon_name) = input.icon_name {
         record.icon_name = icon_name;
+    }
+    // §Bugfix: 更新时重新从模板同步字段敏感度
+    if record.template_id.is_some() {
+        if let Some(labels) = inherit_property_labels(&vault, record.template_id.as_deref()) {
+            record.property_labels = Some(labels);
+        }
+        // §Bugfix: 重新注入 __fields（前端不发送 __fields，需从模板重新继承）
+        let fields = inherit_property_fields(&vault, record.template_id.as_deref());
+        if !fields.is_null() {
+            inject_property_fields(&mut record.properties, &fields);
+        } else if let Some(f) = old_fields {
+            // 模板已被删除 — 保留已有的 __fields
+            inject_property_fields(&mut record.properties, &f);
+        }
+        // §Bugfix: 更新模板名称（模板已删除时保留旧值）
+        inject_template_meta(&vault, record.template_id.as_deref(), &mut record.properties);
+        if record.properties.get("__templateName").is_none() {
+            if let Some(name) = old_tpl_name {
+                if let Some(obj) = record.properties.as_object_mut() {
+                    obj.insert("__templateName".to_string(), name);
+                }
+            }
+        }
     }
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
@@ -308,6 +434,85 @@ pub async fn object_update(
         Some(&format!("section={}", record.section_type)),
     );
     Ok(record_to_data(&record))
+}
+
+/// 为已有对象补齐 `property_labels`（适用于模板删除前创建的对象）。
+/// 扫描所有活跃对象，若其有 `template_id` 但 `property_labels` 为 None，
+/// 则从模板继承字段敏感度。
+#[tauri::command]
+pub async fn object_backfill_property_labels(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<usize, String> {
+    let vault = vault_handle(&state)?;
+    let objects = vault.list_objects(&account_id, None, None, None, false, false)?;
+    let mut count = 0usize;
+    for obj in &objects {
+        // 只处理有 template_id 但缺少 property_labels 的对象
+        if obj.template_id.is_none() {
+            continue;
+        }
+        let mut record = match vault.load_object(&obj.id)? {
+            Some(r) => r,
+            None => continue,
+        };
+        if record.property_labels.is_some() {
+            continue;
+        }
+        if let Some(labels) = inherit_property_labels(&vault, record.template_id.as_deref()) {
+            record.property_labels = Some(labels);
+            record.updated_at = chrono::Utc::now().to_rfc3339();
+            record.version += 1;
+            vault.save_object(&record)?;
+            count += 1;
+        }
+    }
+    tracing::info!(
+        "[migrate] backfilled property_labels for {} objects",
+        count
+    );
+    Ok(count)
+}
+
+/// 为已有对象补齐 `__fields`（适用于模板删除前创建的对象，或 __fields 功能上线前创建的对象）。
+/// 扫描所有活跃对象，若其有 `template_id` 但 `properties` 中缺少 `__fields` 键，
+/// 则从模板继承字段定义并注入。
+#[tauri::command]
+pub async fn object_backfill_property_fields(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<usize, String> {
+    let vault = vault_handle(&state)?;
+    let objects = vault.list_objects(&account_id, None, None, None, false, false)?;
+    let mut count = 0usize;
+    for obj in &objects {
+        if obj.template_id.is_none() {
+            continue;
+        }
+        let mut record = match vault.load_object(&obj.id)? {
+            Some(r) => r,
+            None => continue,
+        };
+        // 已有 __fields 则跳过
+        if record.properties.get("__fields").is_some() {
+            continue;
+        }
+        let fields = inherit_property_fields(&vault, record.template_id.as_deref());
+        if !fields.is_null() {
+            inject_property_fields(&mut record.properties, &fields);
+            // §Bugfix: 同时补齐 __templateName
+            inject_template_meta(&vault, record.template_id.as_deref(), &mut record.properties);
+            record.updated_at = chrono::Utc::now().to_rfc3339();
+            record.version += 1;
+            vault.save_object(&record)?;
+            count += 1;
+        }
+    }
+    tracing::info!(
+        "[migrate] backfilled __fields for {} objects",
+        count
+    );
+    Ok(count)
 }
 
 #[tauri::command]

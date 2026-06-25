@@ -33,6 +33,7 @@ import { TemplateDetailModal } from '@/components/template/TemplateDetailModal';
 import { DeleteConfirmDialog } from '@/components/template/DeleteConfirmDialog';
 import { SensitivityBadges } from '@/components/template/SensitivityBadges';
 import { PluginBadge } from '@/components/template/PluginBadge';
+import { retentionPeriodDays } from '@/stores/trashStore';
 
 const SYSTEM_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;
 
@@ -64,6 +65,7 @@ export function TemplateManagerPage() {
     checkFieldUsage,
   } = useTemplateStore();
   const { settings, loadCustomPages } = useSettingsStore();
+  const trashRetention = settings.trashRetention;
   const accountId = useAuthStore((s) => s.currentAccount?.id) || '';
   const showToast = useUiStore((s) => s.showToast);
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
@@ -596,15 +598,24 @@ export function TemplateManagerPage() {
       {confirmDialog}
 
       {/* Delete confirmation dialog */}
-      {confirmDelete && (
-        <DeleteConfirmDialog
-          name={confirmDelete.name}
-          title={t('settings:template_delete_confirm_title')}
-          body={t('settings:template_delete_confirm_body')}
-          onCancel={() => setConfirmDelete(null)}
-          onConfirm={doDelete}
-        />
-      )}
+      {confirmDelete && (() => {
+        const retentionDays = retentionPeriodDays(trashRetention);
+        const bodyKey = retentionDays > 0
+          ? 'settings:template_delete_confirm_body'
+          : 'settings:template_delete_confirm_body_never';
+        return (
+          <DeleteConfirmDialog
+            name={confirmDelete.name}
+            title={t('settings:template_delete_confirm_title')}
+            body={t(bodyKey, {
+              name: confirmDelete.name,
+              days: retentionDays > 0 ? String(retentionDays) : '',
+            })}
+            onCancel={() => setConfirmDelete(null)}
+            onConfirm={doDelete}
+          />
+        );
+      })()}
     </AppShell>
   );
 }

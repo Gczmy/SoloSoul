@@ -29,8 +29,8 @@ export function PairingDialog({ isOpen, peer, onTrust, onIgnore }: PairingDialog
             gap: 12,
             padding: 12,
             borderRadius: 10,
-            background: 'rgba(231,76,60,0.08)',
-            color: '#c0392b',
+            background: 'var(--danger-subtle)',
+            color: 'var(--danger)',
           }}
         >
           <ShieldAlert size={22} />

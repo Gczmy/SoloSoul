@@ -65,22 +65,22 @@ export function detectSystemLanguage(): SupportedLang {
  * Initialize i18next.
  *
  * Detection priority:
- *  1. window.__SOLOSOUL_LOCALE__ — set by Rust setup eval before page loads
- *  2. localStorage — written by Rust setup eval or previous sessions
+ *  1. localStorage — user's explicit manual preference (set via /language setting)
+ *  2. window.__SOLOSOUL_LOCALE__ — system locale injected by Rust before page loads (first launch)
  *  3. IPC get_system_locale — Rust backend via OS API (authoritative on desktop)
  *  4. navigator.language — last resort
  */
 export async function initI18n(): Promise<typeof i18next> {
   let detectedLng: SupportedLang | null = null;
 
-  // Layer 1: Rust setup eval (injects before page loads)
-  const winLocale = window.__SOLOSOUL_LOCALE__;
-  if (winLocale === 'zh-CN' || winLocale === 'en-US') detectedLng = winLocale;
+  // Layer 1: localStorage — user's explicit preference (most authoritative)
+  const stored = localStorage.getItem(LANG_KEY);
+  if (stored === 'zh-CN' || stored === 'en-US') detectedLng = stored;
 
-  // Layer 2: localStorage
+  // Layer 2: Rust setup eval (injects before page loads; first-launch fallback)
   if (!detectedLng) {
-    const stored = localStorage.getItem(LANG_KEY);
-    if (stored === 'zh-CN' || stored === 'en-US') detectedLng = stored;
+    const winLocale = window.__SOLOSOUL_LOCALE__;
+    if (winLocale === 'zh-CN' || winLocale === 'en-US') detectedLng = winLocale;
   }
 
   // Layer 3: Rust IPC
