@@ -307,6 +307,8 @@ export function ObjectDetailModal({
 
 
   const detailTpl = obj?.templateId ? templates.find((t) => t.id === obj.templateId) : undefined;
+  // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
+  const detailTplMatch = detailTpl && (detailTpl.category || 'identity') === obj?.collectionType;
   const ObjectDetailIcon = detailTpl?.iconId ? resolveCustomIcon(detailTpl.iconId) : PAGE_ICON_MAP.custom;
   const fieldOrder = templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id);
   const fields = flattenProperties(obj?.properties, fieldOrder);
@@ -404,16 +406,15 @@ export function ObjectDetailModal({
                           <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
                         </span>
                       )}
-                      {/* 模板名 — 模板已删除时显示删除线 */}
+                      {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
                       {obj.templateId && (() => {
-                        const tplExists = !!detailTpl;
                         const tplName = (obj.properties as Record<string, unknown>)?.__templateName as string | undefined;
                         const tid = obj.templateId || '';
-                        const label = tplExists
+                        const label = detailTplMatch
                           ? (detailTpl?.name || tid)
                           : (tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid);
                         return (
-                          <span style={{ textDecoration: tplExists ? 'none' : 'line-through' }}>
+                          <span style={{ textDecoration: detailTplMatch ? 'none' : 'line-through' }}>
                             {' · '}{label}
                           </span>
                         );

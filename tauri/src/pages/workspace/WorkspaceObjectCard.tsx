@@ -69,6 +69,8 @@ export function WorkspaceObjectCard({
   onUploadComplete,
 }: WorkspaceObjectCardProps) {
   const tpl = userTemplates.find((t) => t.id === obj.templateId);
+  // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
+  const tplMatch = tpl && (tpl.category || 'identity') === obj.collectionType;
   const fieldOrder = tpl?.properties.map((p) => p.id);
   const fields = flattenProperties(
     obj.properties as Record<string, unknown> | undefined,
@@ -152,19 +154,19 @@ export function WorkspaceObjectCard({
             {obj.contractTypeId && (
               <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
             )}
-            {/* 模板名 — 模板已删除时显示删除线 */}
+            {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
             {obj.templateId && (
               <span
                 style={{
                   fontSize: 10,
                   color: 'var(--text-tertiary)',
-                  textDecoration: tpl ? 'none' : 'line-through',
+                  textDecoration: tplMatch ? 'none' : 'line-through',
                   flexShrink: 0,
                   whiteSpace: 'nowrap',
                 }}
               >
-                {tpl
-                  ? tpl.name
+                {tplMatch
+                  ? tpl!.name
                   : (() => {
                       const tplName = (obj.properties as Record<string, unknown>)?.__templateName as string | undefined;
                       const tid = obj.templateId || '';
