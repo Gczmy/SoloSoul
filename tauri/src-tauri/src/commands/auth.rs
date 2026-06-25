@@ -175,6 +175,9 @@ mod tests {
             last_operation_at: None,
             last_operation_desc: None,
             biometric_enabled: false,
+            kdf_memory_kb: None,
+            kdf_iterations: None,
+            kdf_parallelism: None,
         }
     }
 

@@ -4519,7 +4519,7 @@ dependencies = [
  "solosoul-vault",
  "sys-locale",
  "tempfile",
- "thiserror 2.0.18",
+ "thiserror 1.0.69",
  "tokio",
  "tracing",
  "tracing-appender",

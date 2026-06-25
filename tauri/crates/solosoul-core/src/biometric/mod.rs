@@ -410,7 +410,7 @@ fn derive_master_key(
         .as_slice()
         .try_into()
         .map_err(|_| BiometricError::Other("Bad salt len".into()))?;
-    let k = solosoul_crypto::kdf::KdfConfig::balanced();
+    let k = cfg.kdf_config();
     let mk = solosoul_crypto::kdf::derive_key(password, &salt, &k)
         .map_err(|_| BiometricError::Other("KDF failed".into()))?;
     Ok(hex::encode(mk.as_slice()))
@@ -559,6 +559,9 @@ mod tests {
             last_operation_at: None,
             last_operation_desc: None,
             biometric_enabled: false,
+            kdf_memory_kb: None,
+            kdf_iterations: None,
+            kdf_parallelism: None,
         };
         (cfg, master_key_hex)
     }

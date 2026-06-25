@@ -10,6 +10,7 @@ pub struct KdfConfig {
 }
 
 impl KdfConfig {
+    /// 开发模式：低开销，适合本地开发（8 MiB / 2 iter / 4 par）
     pub fn development() -> Self {
         Self {
             memory_kb: 8 * 1024,
@@ -18,11 +19,33 @@ impl KdfConfig {
         }
     }
 
+    /// 平衡模式：旧有账户的默认参数，兼顾安全与性能（16 MiB / 3 iter / 4 par）
+    /// 用于向后兼容未存储 KDF 参数的旧账户。
     pub fn balanced() -> Self {
         Self {
             memory_kb: 16 * 1024,
             iterations: 3,
             parallelism: 4,
+        }
+    }
+
+    /// 生产模式：OWASP 推荐参数（64 MiB / 3 iter / 4 par）
+    pub fn production() -> Self {
+        Self {
+            memory_kb: 64 * 1024,
+            iterations: 3,
+            parallelism: 4,
+        }
+    }
+
+    /// 根据环境变量选择 KDF 参数：
+    /// - `SOLOSOUL_SECURE=1` → production (64 MiB / 3 iter)
+    /// - 未设置或为其他值 → development (8 MiB / 2 iter)
+    pub fn from_env() -> Self {
+        if std::env::var("SOLOSOUL_SECURE").as_deref() == Ok("1") {
+            Self::production()
+        } else {
+            Self::development()
         }
     }
 }

@@ -14,7 +14,7 @@ pub fn verify_password_core(password: &str, config: &AccountConfig) -> Result<bo
         .try_into()
         .map_err(|_| "Bad salt".to_string())?;
 
-    let kdf_config = KdfConfig::balanced();
+    let kdf_config = config.kdf_config();
     let master_key =
         derive_key(password, &salt_arr, &kdf_config).map_err(|_| "KDF failed".to_string())?;
 
@@ -57,6 +57,9 @@ mod tests {
             last_operation_at: None,
             last_operation_desc: None,
             biometric_enabled: false,
+            kdf_memory_kb: None,
+            kdf_iterations: None,
+            kdf_parallelism: None,
         }
     }
 

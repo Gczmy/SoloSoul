@@ -58,6 +58,27 @@ pub struct AccountConfig {
     #[serde(default)]
     #[serde(rename = "biometricEnabled")]
     pub biometric_enabled: bool,
+    /// KDF 参数：存储的 memory_kb，None 表示使用 KdfConfig::balanced() 向后兼容
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kdf_memory_kb: Option<u32>,
+    /// KDF 参数：存储的 iterations
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kdf_iterations: Option<u32>,
+    /// KDF 参数：存储的 parallelism
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kdf_parallelism: Option<u32>,
+}
+
+impl AccountConfig {
+    /// 读取账户配置中存储的 KDF 参数。
+    /// 对于旧账户（无存储字段），回退到 `KdfConfig::balanced()` 保证向后兼容。
+    pub fn kdf_config(&self) -> KdfConfig {
+        KdfConfig {
+            memory_kb: self.kdf_memory_kb.unwrap_or(16 * 1024),
+            iterations: self.kdf_iterations.unwrap_or(3),
+            parallelism: self.kdf_parallelism.unwrap_or(4),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -275,8 +296,8 @@ impl VaultService {
             &uuid::Uuid::new_v4().to_string().replace("-", "")[..16]
         );
         let salt = generate_salt();
-        let config = KdfConfig::balanced();
-        let master_key = derive_key(password, &salt, &config)
+        let kdf_config = KdfConfig::from_env();
+        let master_key = derive_key(password, &salt, &kdf_config)
             .map_err(|e| format!("Key derivation failed: {}", e))?;
 
         let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
@@ -308,6 +329,9 @@ impl VaultService {
             created_at: now.clone(),
             crypto_version: 2,
             biometric_enabled: false,
+            kdf_memory_kb: Some(kdf_config.memory_kb),
+            kdf_iterations: Some(kdf_config.iterations),
+            kdf_parallelism: Some(kdf_config.parallelism),
             password_hint: password_hint.map(|s| s.to_string()),
             last_login_at: Some(now.clone()),
             last_operation_at: None,
@@ -381,7 +405,7 @@ impl VaultService {
             .try_into()
             .map_err(|_| "Invalid salt length".to_string())?;
 
-        let kdf_config = KdfConfig::balanced();
+        let kdf_config = config.kdf_config();
         let master_key = derive_key(password, &salt_arr, &kdf_config)
             .map_err(|_| "Key derivation failed".to_string())?;
 
@@ -476,7 +500,7 @@ impl VaultService {
             .try_into()
             .map_err(|_| "Invalid salt length".to_string())?;
 
-        let kdf_config = KdfConfig::balanced();
+        let kdf_config = config.kdf_config();
         let master_key = derive_key(password, &salt_arr, &kdf_config)
             .map_err(|_| "Key derivation failed".to_string())?;
 
@@ -544,8 +568,8 @@ impl VaultService {
 
         // Generate new salt and derive new key.
         let salt = generate_salt();
-        let kdf_config = KdfConfig::balanced();
-        let new_key = derive_key(new_password, &salt, &kdf_config)
+        let new_kdf_config = KdfConfig::from_env();
+        let new_key = derive_key(new_password, &salt, &new_kdf_config)
             .map_err(|e| format!("New key derivation failed: {}", e))?;
         let new_key_arr: [u8; 32] = new_key
             .as_slice()
@@ -585,6 +609,9 @@ impl VaultService {
         config.salt =
             base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt.as_slice());
         config.verify_hash = verify_hash;
+        config.kdf_memory_kb = Some(new_kdf_config.memory_kb);
+        config.kdf_iterations = Some(new_kdf_config.iterations);
+        config.kdf_parallelism = Some(new_kdf_config.parallelism);
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
         fs::write(&config_path, config_json).map_err(|e| e.to_string())?;
 
