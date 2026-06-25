@@ -35,7 +35,8 @@ export function ObjectEditorPage() {
   const isNew = !objectId;
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
-  const { getObject, createObject, updateObject, currentObject } = useObjectStore();
+  const { getObject, createObject, updateObject, currentObjectCache } = useObjectStore();
+  const currentObject = objectId ? currentObjectCache[objectId] ?? null : null;
   const { onError, onSuccess } = useToastError();
   const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
   const customPages = useSettingsStore((s) => s.settings.customPages);
@@ -205,7 +206,7 @@ export function ObjectEditorPage() {
       setSelectedType('');
     }
     setDataLoaded(true);
-  }, [currentObject, isNew, dataLoaded, objectId, objectTemplates, templateMeta]);
+  }, [currentObject, isNew, dataLoaded, objectId, objectTemplates, templateMeta, currentObjectCache]);
 
   const validateFields = (): boolean => {
     const errors: Record<string, string> = {};

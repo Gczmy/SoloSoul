@@ -147,7 +147,7 @@ export function ObjectDetailModal({
       .getState()
       .getObject(accountId, objectId)
       .then(() => {
-        setFetchedObj(useObjectStore.getState().currentObject);
+        setFetchedObj(useObjectStore.getState().currentObjectCache[objectId] ?? null);
       })
       .catch(() => setFetchedObj(null))
       .finally(() => setLoading(false));

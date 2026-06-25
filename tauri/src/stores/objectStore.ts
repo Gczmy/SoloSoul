@@ -42,7 +42,8 @@ export interface ObjectData {
 
 interface ObjectState {
   objects: ObjectSummary[];
-  currentObject: ObjectData | null;
+  /** 对象缓存，以 objectId 为键。每个组件读取自己的缓存槽，避免全局 currentObject 竞态。 */
+  currentObjectCache: Record<string, ObjectData>;
   isLoading: boolean;
   error: string | null;
 
@@ -75,7 +76,7 @@ interface ObjectState {
 
 export const useObjectStore = create<ObjectState>((set) => ({
   objects: [],
-  currentObject: null,
+  currentObjectCache: {},
   isLoading: false,
   error: null,
 
@@ -93,10 +94,15 @@ export const useObjectStore = create<ObjectState>((set) => ({
   },
 
   getObject: async (accountId, objectId) => {
-    set({ currentObject: null, isLoading: true, error: null });
+    set({ isLoading: true, error: null });
     try {
       const obj = await invoke<ObjectData | null>('object_get', { accountId, objectId });
-      set({ currentObject: obj, isLoading: false });
+      set((s) => ({
+        currentObjectCache: obj
+          ? { ...s.currentObjectCache, [objectId]: obj }
+          : s.currentObjectCache,
+        isLoading: false,
+      }));
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }
@@ -132,7 +138,10 @@ export const useObjectStore = create<ObjectState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const obj = await invoke<ObjectData>('object_update', { objectId, input });
-      set({ currentObject: obj, isLoading: false });
+      set((s) => ({
+        currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
+        isLoading: false,
+      }));
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }
@@ -142,7 +151,10 @@ export const useObjectStore = create<ObjectState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await invoke('object_delete', { objectId });
-      set((s) => ({ objects: s.objects.filter((o) => o.id !== objectId), isLoading: false }));
+      set((s) => ({
+        objects: s.objects.filter((o) => o.id !== objectId),
+        isLoading: false,
+      }));
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }
@@ -186,5 +198,5 @@ export const useObjectStore = create<ObjectState>((set) => ({
     }
   },
 
-  clearOnVaultLock: () => set({ objects: [], trashObjects: [], currentObject: null, error: null }),
+  clearOnVaultLock: () => set({ objects: [], trashObjects: [], currentObjectCache: {}, error: null }),
 }));

@@ -66,7 +66,7 @@ describe('objectStore', () => {
       await useObjectStore.getState().getObject('acc-1', '1');
 
       expect(mockInvoke).toHaveBeenCalledWith('object_get', { accountId: 'acc-1', objectId: '1' });
-      expect(useObjectStore.getState().currentObject).toEqual(obj);
+      expect(useObjectStore.getState().currentObjectCache['1']).toEqual(obj);
     });
 
     it('获取失败时设置 error', async () => {
@@ -76,7 +76,7 @@ describe('objectStore', () => {
       await useObjectStore.getState().getObject('acc-1', '999');
 
       expect(useObjectStore.getState().error).toBe('Error: Not found');
-      expect(useObjectStore.getState().currentObject).toBeNull();
+      expect(useObjectStore.getState().currentObjectCache['999']).toBeUndefined();
     });
   });
 
@@ -132,7 +132,7 @@ describe('objectStore', () => {
       await useObjectStore.getState().updateObject('1', { name: 'Updated', properties: { street: 'New St' } });
 
       expect(mockInvoke).toHaveBeenCalledWith('object_update', { objectId: '1', input: { name: 'Updated', properties: { street: 'New St' } } });
-      expect(useObjectStore.getState().currentObject).toEqual(updated);
+      expect(useObjectStore.getState().currentObjectCache['1']).toEqual(updated);
     });
   });
 
@@ -203,7 +203,7 @@ describe('objectStore', () => {
       useObjectStore.setState({
         objects: [{ id: '1', name: 'X', collectionType: 'x', sensitivityLevel: 'public', createdAt: '', updatedAt: '' }],
         trashObjects: [{ id: '2', name: 'Y', collectionType: 'x', sensitivityLevel: 'public', createdAt: '', updatedAt: '' }],
-        currentObject: { id: '3', accountId: 'a', name: 'Z', collectionType: 'x', properties: {}, sensitivityLevel: 'public', createdAt: '', updatedAt: '' },
+        currentObjectCache: { '3': { id: '3', accountId: 'a', name: 'Z', collectionType: 'x', properties: {}, sensitivityLevel: 'public', createdAt: '', updatedAt: '' } },
         error: 'some error',
       });
 
@@ -212,7 +212,7 @@ describe('objectStore', () => {
       const state = useObjectStore.getState();
       expect(state.objects).toHaveLength(0);
       expect(state.trashObjects).toHaveLength(0);
-      expect(state.currentObject).toBeNull();
+      expect(state.currentObjectCache).toEqual({});
       expect(state.error).toBeNull();
     });
   });
