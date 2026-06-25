@@ -6215,7 +6215,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-plugin"
-version = "0.1.0"
+version = "2.5.5"
 dependencies = [
  "anyhow",
  "chrono",

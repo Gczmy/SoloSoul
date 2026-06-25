@@ -336,24 +336,24 @@
 
 | ID | 原始判定 | 复核 |
 |----|----------|------|
-| P2-001 Clippy 风格警告 | ✅ 真实 | 约 30+ 处，与 clippy 输出一致 |
+| P2-001 Clippy 风格警告 | ✅ 已修复 | `cargo clippy -- -D warnings` 干净，`cargo clippy --fix` 无新变更 |
 | P2-002 过长函数 | ✅ 真实 | 需配合组件拆分 |
 | P2-003 unsafe 缺少注释 | ✅ 真实 | 需逐文件补充 `// SAFETY:` |
-| P2-004 solosoul-plugin 版本未接入 workspace | ✅ 真实 | 应使用 `version.workspace = true` |
-| P2-005 solosoul-vault 缺少 license/repository | ✅ 真实 | 应补 `license.workspace = true` |
+| P2-004 solosoul-plugin 版本未接入 workspace | ✅ 已修复 | 已改用 `version.workspace = true`，补充 edition/authors/license/repository |
+| P2-005 solosoul-vault 缺少 license/repository | ✅ 已修复 | 已补充 `license.workspace = true` 和 `repository.workspace = true` |
 | P2-006 Cargo 与 README 许可证冲突 | ✅ 真实 | MIT vs Private |
 | P2-007 AGENTS.md 过时路径 | ✅ 真实 | 引用了已不存在的文件路径 |
 | P2-008 OCR 版本/敏感度分级文档冲突 | ✅ 真实 | PP-OCRv4 vs v6 等 |
-| P2-009 rust-cache workspaces 路径 | ✅ 真实 | 应改为 `tauri` |
+| P2-009 rust-cache workspaces 路径 | ✅ 已修复 | CI 中已有 `tauri/src-tauri`, `solosoul_cli`, `tauri` 三个路径 |
 | P2-010 验证令牌建议改用 HKDF | ⚠️ 建议性 | 真实安全思考，非 Bug |
 | P2-011 ort 候选版本风险 | ✅ 真实 | `2.0.0-rc.12` |
 | P2-012 attachment_copy_to_vault 路径遍历 | ✅ 真实 | 用户传入 src_path 无目录限制 |
 | P2-013 TypeOrEntryType untagged 歧义 | ⚠️ 待核实 | 需阅读具体代码 |
 | P2-014 OCR macOS swiftc 安全问题 | ✅ 真实 | 运行时编译并执行临时二进制 |
-| P2-015 死代码 | ✅ 真实 | CachedPrompt.created_at, PeerSession |
-| P2-016 OCR langs 未使用 | ✅ 确认 | 与 clippy 输出一致 |
+| P2-015 死代码 | ❌ 误报 | `CachedPrompt.created_at` 和 `PeerSession` 均有活跃引用，非死代码 |
+| P2-016 OCR langs 未使用 | ❌ 误报 | 当前代码中未找到 `ocr_langs` 字段 |
 | P2-017 std::mem::forget 资源泄漏 | ✅ 真实 | 可改用 Box::leak / OnceLock |
-| P2-018 RestoreManifest dead_code | ✅ 真实 | 字段未消费 |
+| P2-018 RestoreManifest dead_code | ❌ 误报 | `RestoreManifest` 在 `backup.rs:276` 定义、`292` 使用，非死代码 |
 | P2-019 ~ P2-025 前端性能 | ✅ 真实 | 均为合理优化建议 |
 
 ---
