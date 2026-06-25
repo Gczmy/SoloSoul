@@ -119,3 +119,182 @@ jobs:
             git diff SoloSoul_plugin_market
             exit 1
           fi
+
+  # ============================================================
+  # Job 3: SoloSoul CLI Checks
+  # ============================================================
+  cli-check:
+    name: SoloSoul CLI (Rust Format, Clippy & Tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: solosoul_cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Cache cargo (solosoul_cli)
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: solosoul_cli
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Run CLI Tests
+        run: cargo test --verbose --no-fail-fast
+
+  # ============================================================
+  # Job 4: Build macOS Release (master push only)
+  # ============================================================
+  build-macos:
+    name: Build macOS Release
+    runs-on: macos-latest
+    if: github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tauri/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tauri
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install create-dmg (for DMG bundle)
+        run: brew install create-dmg
+
+      - name: Build Tauri app
+        run: npm run tauri build
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: |
+            tauri/src-tauri/target/release/bundle/dmg/*.dmg
+            tauri/src-tauri/target/release/bundle/macos/*.app.tar.gz*
+
+  # ============================================================
+  # Job 5: Build Windows Release (master push only)
+  # ============================================================
+  build-windows:
+    name: Build Windows Release
+    runs-on: windows-latest
+    if: github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tauri/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tauri
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build Tauri app
+        run: npm run tauri build
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            tauri/src-tauri/target/release/bundle/nsis/*.exe
+            tauri/src-tauri/target/release/bundle/nsis/*.exe.sig
+
+  # ============================================================
+  # Job 6: Create Release Draft (master push only, after builds)
+  # ============================================================
+  release:
+    name: Create Release Draft
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [build-macos, build-windows]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-release
+          path: release-artifacts/
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+          path: release-artifacts/
+
+      - name: Generate release tag
+        id: tag
+        run: |
+          VERSION=$(jq -r '.version' tauri/src-tauri/tauri.conf.json 2>/dev/null || echo "0.0.0")
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "TAG=v${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Check release notes existence
+        id: notes
+        run: |
+          NOTES="SoloSoul-Releases/release-notes-v${{ steps.tag.outputs.VERSION }}.md"
+          if [ -f "$NOTES" ]; then
+            echo "path=$NOTES" >> $GITHUB_OUTPUT
+            echo "Found release notes: $NOTES"
+          else
+            echo "No release notes found for v${{ steps.tag.outputs.VERSION }}, creating release without body"
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG }}
+          name: SoloSoul v${{ steps.tag.outputs.VERSION }}
+          body_path: ${{ steps.notes.outputs.path != '' && steps.notes.outputs.path || '' }}
+          draft: true
+          prerelease: false
+          files: release-artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
