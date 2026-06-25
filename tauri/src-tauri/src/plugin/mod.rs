@@ -1,36 +1,39 @@
 //! SoloSoul 插件系统核心
 //!
-//! 提供插件安装、更新、卸载、沙箱执行、审计与授权管理。
+//! 共享类型从 `solosoul-plugin` crate 重新导出，
+//! Tauri 特有模块保持本地实现。
 
-pub mod audit;
-pub mod consent;
-pub mod error;
+// 从 crate 重新导出已删除的共享模块（保持 super::xxx 路径兼容）
+pub use solosoul_plugin::{audit, consent, error, manifest, rate_limiter, session, store};
+
+// 从 crate 重新导出的类型（无本地副本）
+pub use solosoul_plugin::audit::PluginAuditLogger;
+pub use solosoul_plugin::consent::ConsentManager;
+pub use solosoul_plugin::error::PluginError;
+
+// PluginEvent、FieldResolver、PluginRegistry、WasmSandbox 使用本地模块（Tauri 特有）
+pub use solosoul_plugin::manifest::{
+    MarketPluginInfo, PluginAuditAction, PluginAuditEntry, PluginInstallResult, PluginLogLine,
+    PluginManifest, PluginNetworkPolicy, PluginParam, PluginContractBinding, PluginFieldBinding,
+    PluginResult, PluginResultPayload, PluginTier, RegistryEntry, RegistryVersion,
+};
+pub use solosoul_plugin::rate_limiter::{RateLimiter, RateLimiterMap};
+pub use solosoul_plugin::session::{PluginSession, PluginSessionInfo, PluginSessionManager};
+pub use solosoul_plugin::store::{compute_sha256, PluginStore};
+
+// Tauri 特有本地模块
 pub mod event;
 pub mod field;
 pub mod host;
 pub mod manager;
-pub mod manifest;
 pub mod paths;
-pub mod rate_limiter;
 pub mod registry;
 pub mod sandbox;
-pub mod session;
-pub mod store;
 
-pub use audit::PluginAuditLogger;
-pub use consent::ConsentManager;
-pub use error::PluginError;
+// 从本地模块重新导出（保持 super::xxx 兼容）
+pub use manager::PluginManager;
 pub use event::PluginEvent;
 pub use field::FieldResolver;
 pub use host::{register_host_functions, SoloHostFunctions, SoloHostState};
-pub use manager::PluginManager;
-pub use manifest::{
-    MarketPluginInfo, PluginAuditAction, PluginAuditEntry, PluginInstallResult, PluginLogLine,
-    PluginManifest, PluginNetworkPolicy, PluginResult, PluginResultPayload, PluginTier,
-    RegistryEntry, RegistryVersion,
-};
-pub use rate_limiter::{RateLimiter, RateLimiterMap};
 pub use registry::PluginRegistry;
 pub use sandbox::WasmSandbox;
-pub use session::{PluginSession, PluginSessionInfo, PluginSessionManager};
-pub use store::{compute_sha256, PluginStore};

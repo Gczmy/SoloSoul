@@ -24,6 +24,7 @@ solosoul-crypto = { path = "../crates/solosoul-crypto" }
 solosoul-vault = { path = "../crates/solosoul-vault" }
 solosoul-sync = { path = "../crates/solosoul-sync" }
 solosoul-core = { path = "../crates/solosoul-core" }
+solosoul-plugin = { path = "../crates/solosoul-plugin" }
 
 # 序列化
 serde = { workspace = true }

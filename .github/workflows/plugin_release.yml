@@ -1,12 +1,15 @@
 name: Plugin Release
 
+# 策略：本地预编译 + 预生成 registry.json → CI 仅验证一致性与按计划发布。
+# 参考 AGENTS.md「插件市场子模块提交规则」章节。
+
 on:
   push:
-    branches: [main]
+    branches: [master, main]
     paths: ['SoloSoul_plugin_market/**']
 
 jobs:
-  build-and-deploy:
+  validate-and-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -16,9 +19,9 @@ jobs:
           submodules: recursive
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-wasi
+          targets: wasm32-wasip1
 
       - name: Validate manifest.json files
         run: |
@@ -43,65 +46,56 @@ jobs:
             if [ -f "$dir/Cargo.toml" ]; then
               echo "Building $dir"
               cd "$dir"
-              cargo build --target wasm32-wasi --release
+              cargo build --target wasm32-wasip1 --release
               # 产物统一重命名为 plugin.wasm
-              cp target/wasm32-wasi/release/*.wasm plugin.wasm || true
+              cp target/wasm32-wasip1/release/*.wasm plugin.wasm || true
               cd -
             fi
           done
 
-      - name: Compute SHA-256 hashes
+      - name: Validate registry.json against built plugins
         run: |
           cd SoloSoul_plugin_market
           python3 << 'EOF'
-          import hashlib, json, os
+          import hashlib, json, os, sys
 
-          registry = {"version": "1", "updated_at": "", "plugins": {}}
+          with open("registry.json") as f:
+              registry = json.load(f)
 
-          for plugin_dir in sorted(os.listdir("plugins")):
-            path = os.path.join("plugins", plugin_dir)
-            if not os.path.isdir(path):
-              continue
-            wasm_path = os.path.join(path, "plugin.wasm")
-            manifest_path = os.path.join(path, "manifest.json")
-            if not os.path.exists(wasm_path) or not os.path.exists(manifest_path):
-              continue
+          errors = []
 
-            with open(wasm_path, "rb") as f:
-              sha256 = hashlib.sha256(f.read()).hexdigest()
-            with open(manifest_path) as f:
-              manifest = json.load(f)
+          for plugin_id, entry in registry.get("plugins", {}).items():
+              for version, ver_info in entry.get("versions", {}).items():
+                  expected_sha = ver_info.get("sha256", "")
+                  # Find matching plugins/ dir by looking for manifest with matching plugin_id + version
+                  found = False
+                  for plugin_dir in os.listdir("plugins"):
+                      wasm_path = os.path.join("plugins", plugin_dir, "plugin.wasm")
+                      manifest_path = os.path.join("plugins", plugin_dir, "manifest.json")
+                      if not os.path.exists(wasm_path) or not os.path.exists(manifest_path):
+                          continue
+                      with open(manifest_path) as f:
+                          m = json.load(f)
+                      if m.get("plugin_id") == plugin_id and m.get("version") == version:
+                          found = True
+                          with open(wasm_path, "rb") as f:
+                              actual_sha = hashlib.sha256(f.read()).hexdigest()
+                          if actual_sha != expected_sha:
+                              errors.append(
+                                  f"SHA256 mismatch for {plugin_id} v{version}: "
+                                  f"expected {expected_sha}, got {actual_sha}"
+                              )
 
-            plugin_id = manifest["plugin_id"]
-            version = manifest["version"]
+                  if not found:
+                      # Plugin may not exist locally (e.g., published from another machine) — skip
+                      print(f"Skipping {plugin_id} v{version}: not found in local plugins/")
 
-            if plugin_id not in registry["plugins"]:
-              registry["plugins"][plugin_id] = {
-                "name": manifest["name"],
-                "publisher": manifest["publisher"],
-                "latest_version": version,
-                "versions": {}
-              }
-
-            registry["plugins"][plugin_id]["versions"][version] = {
-              "sha256": sha256,
-              "plugin_api_version": manifest["plugin_api_version"],
-              "min_app_version": manifest["min_app_version"],
-              "max_app_version": manifest["max_app_version"],
-              "download_url": f"https://plugins.solosoul.dev/{plugin_id}/{version}/",
-              "released_at": ""
-            }
-
-            # 更新 latest_version
-            versions = registry["plugins"][plugin_id]["versions"]
-            latest = max(versions.keys(), key=lambda v: [int(x) for x in v.split(".")])
-            registry["plugins"][plugin_id]["latest_version"] = latest
-
-          from datetime import datetime, timezone
-          registry["updated_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-
-          with open("registry.json", "w") as f:
-            json.dump(registry, f, indent=2, ensure_ascii=False)
+          if errors:
+              for e in errors:
+                  print(f"❌ {e}")
+              sys.exit(1)
+          else:
+              print("✅ All registry.json SHA-256 hashes match built plugins.")
           EOF
 
       - name: Upload to CDN (mock)

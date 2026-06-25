@@ -180,8 +180,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           set({ settings: p });
         }
       }
-    } catch {
-      /* ignore */
+    } catch (e) {
+      console.warn('[settingsStore] Failed to load cached UI prefs:', e);
     }
 
     // Step 2: fetch fresh prefs from IPC (slow, async)
@@ -210,12 +210,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         // at least as fresh as the debounced disk write.
         const hasCachedSize = !!localStorage.getItem('solosoul_window_size');
         if (!hasCachedSize) {
-          parsed.windowSize = prefs.windowSize;
-          try {
-            localStorage.setItem('solosoul_window_size', JSON.stringify(prefs.windowSize));
-          } catch {
-            /* ignore */
-          }
+          parsed.windowSize = prefs.windowSize;            try {
+              localStorage.setItem('solosoul_window_size', JSON.stringify(prefs.windowSize));
+            } catch (e) {
+              console.warn('[settingsStore] Failed to cache window size:', e);
+            }
         }
       }
       await applyTheme({
@@ -243,15 +242,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             windowSize: parsed.windowSize,
           }),
         );
-      } catch {
-        /* ignore */
+      } catch (e) {
+        console.warn('[settingsStore] Failed to cache UI prefs:', e);
       }
       // Language is set by initI18n() via Rust IPC (confirmed working = zh-CN).
       // User changes via settings are applied in updateSetting() — skip here to avoid
       // overwriting correct IPC detection with stale/stored values from vault.
       // Theme/accent/bg are safe to apply immediately.
-    } catch {
-      /* no ui_preferences file yet */
+    } catch (e) {
+      console.warn('[settingsStore] No ui_preferences file yet:', e);
     }
   },
 
@@ -299,8 +298,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           const cached = windowSizeSchema.safeParse(JSON.parse(cachedRaw));
           if (cached.success) effectiveWindowSize = cached.data;
         }
-      } catch {
-        /* ignore */
+      } catch (e) {
+        console.warn('[settingsStore] Failed to parse cached window size:', e);
       }
       if (!effectiveWindowSize) {
         effectiveWindowSize = prefs.windowSize;
@@ -320,8 +319,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           ) {
             await window.setSize(new PhysicalSize(effectiveWindowSize));
           }
-        } catch {
-          /* ignore */
+        } catch (e) {
+          console.warn('[settingsStore] Failed to restore window size:', e);
         }
         // Sync the effective size back to encrypted account prefs if it differs from what was stored.
         const encryptedWindowSize = prefs.windowSize as WindowSize | undefined;
@@ -332,30 +331,29 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         ) {
           invoke('user_data_update_preference', {
             payload: { accountId, preferences: { windowSize: effectiveWindowSize } },
-          }).catch(() => {});
+          }).catch((e) =>
+            console.warn('[settingsStore] Failed to sync window size:', e),
+          );
         }
       }
       set({ settings: parsed, isLoading: false });
       // Sync UI prefs to plaintext file so next startup shows correct theme
-      if (parsed.theme)
-        invoke('ui_update_preference', { key: 'theme', value: parsed.theme }).catch(() => {});
-      if (parsed.accentColor)
-        invoke('ui_update_preference', { key: 'accentColor', value: parsed.accentColor }).catch(
-          () => {},
-        );
-      if (parsed.language)
-        invoke('ui_update_preference', { key: 'language', value: parsed.language }).catch(() => {});
-      if (parsed.defaultLightTheme)
-        invoke('ui_update_preference', {
-          key: 'defaultLightTheme',
-          value: parsed.defaultLightTheme,
-        }).catch(() => {});
-      if (parsed.defaultDarkTheme)
-        invoke('ui_update_preference', {
-          key: 'defaultDarkTheme',
-          value: parsed.defaultDarkTheme,
-        }).catch(() => {});
-    } catch {
+      try {
+        if (parsed.theme)
+          await invoke('ui_update_preference', { key: 'theme', value: parsed.theme });
+        if (parsed.accentColor)
+          await invoke('ui_update_preference', { key: 'accentColor', value: parsed.accentColor });
+        if (parsed.language)
+          await invoke('ui_update_preference', { key: 'language', value: parsed.language });
+        if (parsed.defaultLightTheme)
+          await invoke('ui_update_preference', { key: 'defaultLightTheme', value: parsed.defaultLightTheme });
+        if (parsed.defaultDarkTheme)
+          await invoke('ui_update_preference', { key: 'defaultDarkTheme', value: parsed.defaultDarkTheme });
+      } catch (e) {
+        console.warn('[settingsStore] Failed to sync UI prefs:', e);
+      }
+    } catch (e) {
+      console.error('[settingsStore] Failed to load settings:', e);
       set({ isLoading: false });
     }
   },
@@ -408,8 +406,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
               },
             });
             migrated.push(p);
-          } catch {
-            // If migration fails for one, skip it but continue
+          } catch (e) {
+            console.warn('[settingsStore] Failed to migrate custom page:', p.name, e);
           }
         }
         if (migrated.length > 0) {
@@ -419,13 +417,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             await invoke('user_data_update_preference', {
               payload: { accountId, preferences: { customPages: [] } },
             });
-          } catch {
-            /* silent */
+          } catch (e) {
+            console.warn('[settingsStore] Failed to clear old-format custom pages:', e);
           }
         }
       }
-    } catch {
-      // objects table might be empty — keep whatever loadSettings found
+    } catch (e) {
+      console.warn('[settingsStore] Failed to load custom pages:', e);
     }
   },
 
@@ -437,8 +435,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (key === 'windowSize') {
         try {
           localStorage.setItem('solosoul_window_size', JSON.stringify(value));
-        } catch {
-          /* ignore */
+        } catch (e) {
+          console.warn('[settingsStore] Failed to cache window size:', e);
         }
         await invoke('ui_update_preference', {
           key: 'windowSize',
@@ -452,15 +450,18 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (key === 'language' && typeof value === 'string') {
         await i18next.changeLanguage(value);
         // Sync to plaintext UI prefs so backend can read the current language immediately
-        invoke('ui_update_preference', { key: 'language', value }).catch(() => {});
+        invoke('ui_update_preference', { key: 'language', value }).catch((e) =>
+          console.warn('[settingsStore] Failed to sync language:', e),
+        );
         // Persist to localStorage for next cold launch
         try {
           localStorage.setItem('i18nextLng', value);
-        } catch {
-          /* ignore */
+        } catch (e) {
+          console.warn('[settingsStore] Failed to cache language:', e);
         }
       }
-    } catch {
+    } catch (e) {
+      console.warn('[settingsStore] Failed to update setting:', key, e);
       set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));
     }
   },
@@ -490,7 +491,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           id,
         },
       });
-    } catch {
+    } catch (e) {
+      console.warn('[settingsStore] Failed to add custom page:', name, e);
       // Rollback
       set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
     }
@@ -506,7 +508,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     try {
       // P0-1: Use page_delete to create a "page" type trash item
       await invoke('page_delete', { accountId, sectionType: 'custom', pageObjectId: pageId });
-    } catch {
+    } catch (e) {
+      console.warn('[settingsStore] Failed to remove custom page:', pageId, e);
       set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
     }
   },

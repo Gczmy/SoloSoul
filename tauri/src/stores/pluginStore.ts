@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import {
   ConsentRequestEvent,
   DialogRequestEvent,
@@ -106,9 +105,7 @@ interface PluginState {
   refreshRegistry: () => Promise<void>;
 }
 
-export const usePluginStore = create<PluginState>()(
-  persist(
-    (set, get) => ({
+export const usePluginStore = create<PluginState>()((set, get) => ({
       marketPlugins: [],
       installedPlugins: [],
       runningPlugins: {},
@@ -345,11 +342,4 @@ export const usePluginStore = create<PluginState>()(
           });
         }
       },
-    }),
-    {
-      name: 'solosoul-plugin-store',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ runningPlugins: state.runningPlugins }),
-    },
-  ),
-);
+    }));
