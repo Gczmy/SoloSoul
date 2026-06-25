@@ -112,7 +112,7 @@ export function ObjectEditorPage() {
       setSelectedType(visibleTemplates[0]);
       hasAutoSelectedRef.current = true;
     }
-  }, [visibleTemplates, selectedType]);
+  }, [visibleTemplates, selectedType, templateMeta]);
   const [name, setName] = useState('');
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -205,7 +205,7 @@ export function ObjectEditorPage() {
       setSelectedType('');
     }
     setDataLoaded(true);
-  }, [currentObject, isNew, dataLoaded, objectId, objectTemplates]);
+  }, [currentObject, isNew, dataLoaded, objectId, objectTemplates, templateMeta]);
 
   const validateFields = (): boolean => {
     const errors: Record<string, string> = {};
@@ -518,7 +518,7 @@ export function ObjectEditorPage() {
                                   label={fieldName}
                                   type={propType}
                                   options={fieldDef?.options}
-                                  value={values[key]}
+                                  value={val}
                                   icon={<FieldTypeIcon type={propType} />}
                                   badge={
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

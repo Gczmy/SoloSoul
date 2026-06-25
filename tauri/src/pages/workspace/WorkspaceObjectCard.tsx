@@ -86,8 +86,6 @@ export function WorkspaceObjectCard({
   const objFieldDefs = (obj.properties as Record<string, unknown>)?.__fields as
     | Record<string, { name: string; type: string; options?: string[]; contractField?: boolean }>
     | undefined;
-  const getFieldDef = (fieldKey: string) =>
-    objFieldDefs?.[fieldKey] || getFieldProperty(fieldKey);
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
     // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
     if (objLabels?.[fieldKey]) {
