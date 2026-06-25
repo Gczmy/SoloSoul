@@ -1,36 +1,30 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useCancellable } from '@/hooks/useCancellable';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
-import { type TemplateProperty } from '@/types/template';
-import { type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import type { TemplateProperty } from '@/types/template';
+import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
+
+// Labels resolved at render time via t() so they support i18n
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { Trash } from 'lucide-react';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
-import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
-import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 
-// Labels resolved at render time via t() so they support i18n
-const CATEGORY_TYPES = ['identity', 'travel', 'financial', 'professional'] as const;
-const CATEGORY_ICONS: Record<string, typeof PAGE_ICON_MAP.profile> = {
-  identity: PAGE_ICON_MAP.profile,
-  travel: PAGE_ICON_MAP.travel,
-  financial: PAGE_ICON_MAP.financial,
-  professional: PAGE_ICON_MAP.professional,
-};
+import { WorkspaceObjectCard } from './WorkspaceObjectCard';
+import { WorkspaceCategoryTabs } from '@/components/workspace/WorkspaceCategoryTabs';
+import { ConfirmDeleteDialog } from '@/components/workspace/ConfirmDeleteDialog';
+import { useWorkspacePasswordGuard } from '@/hooks/useWorkspacePasswordGuard';
 
 export function ObjectWorkspacePage() {
   const navigate = useNavigate();
@@ -88,103 +82,17 @@ export function ObjectWorkspacePage() {
     ? t(`navigation:${sectionFilter}`, sectionFilter)
     : null;
 
-  /** Password dialog state — shared between detail panel and history viewer. */
-  const [showPwDialog, setShowPwDialog] = useState(false);
-  const pwResolveRef = useRef<
-    ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null
-  >(null);
-  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
-    available: false,
-  });
-  const [passwordHint, setPasswordHint] = useState<string | null>(null);
-
-  // Check biometric availability on mount + load password hint
-  useEffect(() => {
-    invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
-      'biometric_check_availability',
-      { accountId: accountId || '' },
-    )
-      .then((r) =>
-        setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
-      )
-      .catch(() => {});
-    if (accountId) {
-      invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
-        .then((accounts) => {
-          const acc = accounts.find((a) => a.id === accountId);
-          setPasswordHint(acc?.passwordHint || null);
-        })
-        .catch(() => {
-          /* ignore */
-        });
-    }
-  }, [accountId]);
-
-  const passwordVerify = useCallback(async (): Promise<{
-    ok: boolean;
-    method: 'password' | 'touchId' | 'faceId';
-  }> => {
-    return new Promise((resolve) => {
-      pwResolveRef.current = resolve;
-      setShowPwDialog(true);
-    });
-  }, []);
-
-  /** Unlock the current account with the master password — used by PasswordVerificationDialog
-   *  before revealing critical fields. This ensures the vault is open so the subsequent
-   *  critical-field audit log can be written. */
-  // Hover handlers for workspace tab buttons
-  const onTabEnter = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (e.currentTarget.dataset.active === 'true') return;
-    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-  }, []);
-  const onTabLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (e.currentTarget.dataset.active === 'true') return;
-    e.currentTarget.style.background = 'var(--bg-toolbar)';
-    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-  }, []);
-  const onClearEnter = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-    e.currentTarget.style.color = 'var(--text-primary)';
-    e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-  }, []);
-  const onClearLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-    e.currentTarget.style.color = 'var(--text-tertiary)';
-    e.currentTarget.style.boxShadow = 'none';
-  }, []);
-
-  const verifyVaultPassword = useCallback(
-    async (password: string): Promise<boolean> => {
-      if (!accountId) return false;
-      try {
-        await invoke('unlock_with_password', { accountId, password });
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [accountId],
-  );
-
-  /** Biometric unlock handler — used by PasswordVerificationDialog. */
-  const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
-    if (!accountId) return false;
-    try {
-      await invoke('biometric_unlock', {
-        accountId,
-        location: 'critical_data_access',
-        action: 'unlock',
-        biometryType: bioAvailable.biometryType,
-      });
-      const method = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
-      pwResolveRef.current?.({ ok: true, method });
-      return true;
-    } catch {
-      return false;
-    }
-  }, [accountId, bioAvailable.biometryType]);
+  // Password guard state — shared between detail panel and history viewer.
+  const {
+    showPwDialog,
+    setShowPwDialog,
+    pwResolveRef,
+    bioAvailable,
+    passwordHint,
+    passwordVerify,
+    verifyVaultPassword,
+    handleBiometricUnlock,
+  } = useWorkspacePasswordGuard();
 
   // F011: cache template field metadata so lookups are O(1) instead of O(n²).
   const templateFieldMap = useMemo(() => {
@@ -387,86 +295,13 @@ export function ObjectWorkspacePage() {
         }}
         onMouseDown={(e) => {
           if (e.detail > 1) e.preventDefault();
-        }}
-      >
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {CATEGORY_TYPES.map((catType) => {
-            const isActive = !pageId && sectionFilter === catType;
-            return (
-              <button
-                key={catType}
-                data-active={isActive ? 'true' : 'false'}
-                onClick={() => navigate(`/workspace?section=${catType}`)}
-                onMouseEnter={onTabEnter}
-                onMouseLeave={onTabLeave}                  style={{
-                      padding: '6px 14px',
-                      borderRadius: 8,
-                      border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                      background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
-                      color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-                      boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                      fontSize: 13,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                    }}
-                  >
-                    {React.createElement(CATEGORY_ICONS[catType], { size: 16 })}
-                    {t(`navigation:${catType}`, catType)}
-                  </button>
-                );
-              })}
-              {activeCustomPages.map((page) => {
-            const isActive = pageId === page.id;
-            return (
-              <button
-                key={page.id}
-                data-active={isActive ? 'true' : 'false'}
-                onClick={() => navigate(`/workspace/custom/${page.id}`)}
-                onMouseEnter={onTabEnter}
-                onMouseLeave={onTabLeave}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 8,
-                  border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                  background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
-                  color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                }}
-              >
-                {React.createElement(resolveCustomIcon(page.iconId), { size: 16 })}
-                {page.name}
-              </button>
-            );
-          })}
-          {(sectionFilter || pageId) && (
-            <button
-              onClick={() => navigate('/workspace')}
-              onMouseEnter={onClearEnter}
-              onMouseLeave={onClearLeave}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                color: 'var(--text-tertiary)',
-                fontSize: 13,
-                cursor: 'pointer',
-                transition: 'border-color 0.2s, box-shadow 0.2s, color 0.2s',
-              }}
-            >
-              {t('clear')}
-            </button>
-          )}
-        </div>
+        }}        >
+          <WorkspaceCategoryTabs
+            sectionFilter={sectionFilter}
+            pageId={pageId}
+            customPages={customPages}
+            activeCustomPages={activeCustomPages}
+          />
 
         <Input
           placeholder={t('search_objects_placeholder')}
@@ -525,74 +360,21 @@ export function ObjectWorkspacePage() {
           ))}
 
         {/* Page delete confirmation dialog */}
-        {confirmPageDelete && pageId && customPage && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 1000,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(0,0,0,0.4)',
-              backdropFilter: 'blur(4px)',
-            }}
-            onClick={() => setConfirmPageDelete(false)}
-          >
-            <div
-              style={{
-                background: 'var(--bg-elevated)',
-                borderRadius: 12,
-                padding: '24px 28px',
-                maxWidth: 360,
-                width: '90%',
-                boxShadow: 'var(--shadow-lg)',
-                border: '1px solid var(--border-subtle)',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
-                {t('object_delete_confirm_title')}
-              </h3>
-              <p
-                style={{
-                  margin: '0 0 20px',
-                  fontSize: 14,
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.5,
-                }}
-              >
-                {t('object_delete_confirm_body', { name: customPage.name.length > 28 ? customPage.name.slice(0, 27) + '…' : customPage.name })}
-              </p>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <Button variant="secondary" onClick={() => setConfirmPageDelete(false)}>
-                  {t('cancel')}
-                </Button>
-                <button
-                  onClick={async () => {
-                    setConfirmPageDelete(false);
-                    if (accountId) {
-                      await removeCustomPage(accountId, pageId);
-                      navigate('/');
-                    }
-                  }}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#e74c3c',
-                    color: 'white',
-                    fontSize: 13,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {t('delete')}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmDeleteDialog
+          isOpen={confirmPageDelete && !!pageId && !!customPage}
+          title={t('object_delete_confirm_title')}
+          body={t('object_delete_confirm_body', { name: (customPage?.name || '').length > 28 ? (customPage?.name || '').slice(0, 27) + '…' : (customPage?.name || '') })}
+          confirmLabel={t('delete')}
+          cancelLabel={t('cancel')}
+          onCancel={() => setConfirmPageDelete(false)}
+          onConfirm={async () => {
+            setConfirmPageDelete(false);
+            if (accountId && pageId) {
+              await removeCustomPage(accountId, pageId);
+              navigate('/');
+            }
+          }}
+        />
 
         {/* Delete confirmation dialog */}
         {/* Object detail modal */}
@@ -612,68 +394,17 @@ export function ObjectWorkspacePage() {
           />
         )}
 
-        {confirmDelete && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 1000,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(0,0,0,0.4)',
-              backdropFilter: 'blur(4px)',
-            }}
-            onClick={() => setConfirmDelete(null)}
-          >
-            <div
-              style={{
-                background: 'var(--bg-elevated)',
-                borderRadius: 12,
-                padding: '24px 28px',
-                maxWidth: 360,
-                width: '90%',
-                boxShadow: 'var(--shadow-lg)',
-                border: '1px solid var(--border-subtle)',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
-                {t('object_delete_confirm_title')}
-              </h3>
-              <p
-                style={{
-                  margin: '0 0 20px',
-                  fontSize: 14,
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.5,
-                }}
-              >
-                {t('object_delete_confirm_body', { name: confirmDelete.name.length > 28 ? confirmDelete.name.slice(0, 27) + '…' : confirmDelete.name })}
-              </p>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <Button variant="secondary" onClick={() => setConfirmDelete(null)}>
-                  {t('cancel')}
-                </Button>
-                <button
-                  onClick={() => handleDelete(confirmDelete.id)}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: 8,
-                    border: 'none',
-                    background: '#e74c3c',
-                    color: 'white',
-                    fontSize: 13,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {t('delete')}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmDeleteDialog
+          isOpen={!!confirmDelete}
+          title={t('object_delete_confirm_title')}
+          body={t('object_delete_confirm_body', { name: (confirmDelete?.name || '').length > 28 ? (confirmDelete?.name || '').slice(0, 27) + '…' : (confirmDelete?.name || '') })}
+          confirmLabel={t('delete')}
+          cancelLabel={t('cancel')}
+          onCancel={() => setConfirmDelete(null)}
+          onConfirm={() => {
+            if (confirmDelete) handleDelete(confirmDelete.id);
+          }}
+        />
       </div>
       {historyObj && (() => {
         const historyObjData = objects.find((o) => o.id === historyObj.id);
