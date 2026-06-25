@@ -14,11 +14,9 @@ const LEGACY_XOR_KEY: &[u8; 32] = b"Solosoul_biometric_obfuscate_v1!";
 const TEST_FILE_KEY_SALT: &[u8] = b"test-only-biometric-file-key-salt";
 const LEGACY_KEY_HEX_LEN: usize = 64;
 
-/// 用于加密生物识别备份文件的确定性 HKDF 参数。
-#[cfg(not(test))]
-const BIO_FILE_KEY_INFO: &[u8] = b"solosoul:biometric:filekey:v1";
-#[cfg(not(test))]
-const BIO_FILE_KEY_SECRET: &[u8; 32] = b"Solosoul_biometric_file_key_v1!!";
+// 注：不再使用静态密钥 BIO_FILE_KEY_SECRET。生产环境的文件加密密钥
+// 通过 account_id 派生（见下方 file_encryption_key），每个账户密钥不同。
+// 主要安全防护依赖于 OS 文件权限（0o600）。
 
 pub struct FileBiometricStorage {
     base_path: PathBuf,
@@ -69,10 +67,16 @@ impl BiometricStorage for FileBiometricStorage {
 
 #[cfg(not(test))]
 fn file_encryption_key(account_id: &str) -> Result<Zeroizing<Vec<u8>>, BiometricError> {
+    use sha2::{Digest, Sha256};
+    // 移除硬编码静态密钥。用 SHA-256 将 account_id 哈希为 32 字节后
+    // 通过 HKDF 派生文件加密密钥。每个账户的密钥唯一，
+    // 避免单一二进制泄漏威胁所有账户。
+    // 主要安全防护：OS 文件权限 0o600（仅当前用户可读写）。
+    let ikm: [u8; 32] = Sha256::digest(account_id.as_bytes()).into();
     let key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
-        BIO_FILE_KEY_SECRET,
-        account_id.as_bytes(),
-        BIO_FILE_KEY_INFO,
+        &ikm,
+        b"solosoul:biometric:file",
+        b"solosoul:biometric:filekey:v1",
     )
     .map_err(|e| BiometricError::Other(format!("Failed to derive file key: {e}")))?;
     Ok(Zeroizing::new(key.to_vec()))

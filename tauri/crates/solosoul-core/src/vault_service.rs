@@ -15,6 +15,10 @@ use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 use zeroize::{Zeroize, Zeroizing};
 
+// ── Platform‑specific private file/directory permissions ──────────
+// Unix: chmod 0700/0600
+// Windows: icacls — remove inheritance, grant Full‑Control to current user only
+
 #[cfg(unix)]
 fn set_private_dir(path: &Path) -> Result<(), String> {
     use std::os::unix::fs::PermissionsExt;
@@ -33,13 +37,49 @@ fn set_private_file(path: &Path) -> Result<(), String> {
     fs::set_permissions(path, perms).map_err(|e| e.to_string())
 }
 
-#[cfg(not(unix))]
-fn set_private_dir(_path: &Path) -> Result<(), String> {
+#[cfg(windows)]
+fn set_private_dir(path: &Path) -> Result<(), String> {
+    let path_str = path.to_string_lossy();
+    let username = std::env::var("USERNAME")
+        .map_err(|_| "USERNAME environment variable not found".to_string())?;
+    let status = std::process::Command::new("icacls")
+        .args([
+            path_str.as_ref(),
+            "/inheritance:r",
+            "/grant",
+            &format!("{username}:(OI)(CI)F"),
+        ])
+        .status()
+        .map_err(|e| format!("icacls failed to start: {e}"))?;
+    if !status.success() {
+        return Err(format!(
+            "icacls returned exit code {:?} when setting permissions on {path_str}",
+            status.code()
+        ));
+    }
     Ok(())
 }
 
-#[cfg(not(unix))]
-fn set_private_file(_path: &Path) -> Result<(), String> {
+#[cfg(windows)]
+fn set_private_file(path: &Path) -> Result<(), String> {
+    let path_str = path.to_string_lossy();
+    let username = std::env::var("USERNAME")
+        .map_err(|_| "USERNAME environment variable not found".to_string())?;
+    let status = std::process::Command::new("icacls")
+        .args([
+            path_str.as_ref(),
+            "/inheritance:r",
+            "/grant",
+            &format!("{username}:F"),
+        ])
+        .status()
+        .map_err(|e| format!("icacls failed to start: {e}"))?;
+    if !status.success() {
+        return Err(format!(
+            "icacls returned exit code {:?} when setting permissions on {path_str}",
+            status.code()
+        ));
+    }
     Ok(())
 }
 
