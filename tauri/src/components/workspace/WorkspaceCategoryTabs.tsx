@@ -23,7 +23,7 @@ interface WorkspaceCategoryTabsProps {
 export function WorkspaceCategoryTabs({
   sectionFilter,
   pageId,
-  customPages,
+  customPages: _customPages,
   activeCustomPages,
 }: WorkspaceCategoryTabsProps) {
   const navigate = useNavigate();

@@ -8,10 +8,11 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { ExportSection } from '@/components/export/ExportSection';
 import { ImportSection } from '@/components/import/ImportSection';
+import { ExportImportTabBar } from '@/components/settings/ExportImportTabBar';
 import { useExportEstimate } from '@/hooks/useExportEstimate';
+import { useExportScope } from '@/hooks/useExportScope';
 import type {
   PageGroup,
-  AttachmentInfo,
   ImportPreview,
   DecryptedImportPreview,
   ImportStrategy,
@@ -32,17 +33,21 @@ export function ExportImportPage() {
 
   // Export state
   const [pageGroups, setPageGroups] = useState<PageGroup[]>([]);
-  const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set());
-  const [selectedObjectIds, setSelectedObjectIds] = useState<Set<string>>(new Set());
-  const [expandedPages, setExpandedPages] = useState<Set<string>>(new Set());
-  const toggleExpandedPage = (sectionType: string) => {
-    setExpandedPages((prev) => {
-      const next = new Set(prev);
-      if (next.has(sectionType)) next.delete(sectionType);
-      else next.add(sectionType);
-      return next;
-    });
-  };
+  const [includeAttachments, setIncludeAttachments] = useState(false);
+  const {
+    selectedPageIds,
+    selectedObjectIds,
+    expandedPages,
+    selectedAttachmentIds,
+    objectAttachments,
+    expandedObjects,
+    togglePage,
+    toggleObject,
+    toggleObjectExpanded,
+    toggleAttachment,
+    toggleExpandedPage,
+    totalSelected,
+  } = useExportScope({ accountId, includeAttachments });
   const [exportPassword, setExportPassword] = useState('');
   const [exportPasswordConfirm, setExportPasswordConfirm] = useState('');
   const [exportHint, setExportHint] = useState('');
@@ -53,12 +58,6 @@ export function ExportImportPage() {
   const skipHintCheckRef = useRef(false);
   const skipWeakCheckRef = useRef(false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-  const [includeAttachments, setIncludeAttachments] = useState(false);
-  const [selectedAttachmentIds, setSelectedAttachmentIds] = useState<Set<string>>(new Set());
-  const [objectAttachments, setObjectAttachments] = useState<Map<string, AttachmentInfo[]>>(
-    new Map(),
-  );
-  const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
   const [includePreferences, setIncludePreferences] = useState(false);
   const [includeBehavioral, setIncludeBehavioral] = useState(false);
 
@@ -86,160 +85,7 @@ export function ExportImportPage() {
     loadScope();
   }, [loadScope]);
 
-  // Page / object / attachment toggles
-  const togglePage = (sectionType: string, objectIds: string[]) => {
-    setSelectedPageIds((prev) => {
-      const next = new Set(prev);
-      const isAdding = !next.has(sectionType);
-      if (isAdding) next.add(sectionType);
-      else next.delete(sectionType);
-
-      setSelectedObjectIds((oPrev) => {
-        const oNext = new Set(oPrev);
-        for (const id of objectIds) {
-          if (isAdding) oNext.add(id);
-          else oNext.delete(id);
-        }
-        return oNext;
-      });
-
-      setSelectedAttachmentIds((attPrev) => {
-        const attNext = new Set(attPrev);
-        for (const id of objectIds) {
-          const atts = objectAttachments.get(id) || [];
-          for (const att of atts) {
-            if (isAdding) attNext.add(att.id);
-            else attNext.delete(att.id);
-          }
-        }
-        return attNext;
-      });
-
-      if (isAdding && includeAttachments) {
-        const unloadedIds = objectIds.filter((id) => !objectAttachments.has(id));
-        if (unloadedIds.length > 0) {
-          Promise.all(
-            unloadedIds.map((id) =>
-              invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
-                .then((atts) => ({ id, atts }))
-                .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
-            ),
-          ).then((results) => {
-            setObjectAttachments((prev) => {
-              const n = new Map(prev);
-              for (const { id, atts } of results) n.set(id, atts);
-              return n;
-            });
-            setSelectedAttachmentIds((prev) => {
-              const n = new Set(prev);
-              for (const { atts } of results) for (const att of atts) n.add(att.id);
-              return n;
-            });
-          });
-        }
-      }
-      return next;
-    });
-  };
-
-  const toggleObject = (id: string, sectionType: string, allIdsInGroup: string[]) => {
-    setSelectedObjectIds((prev) => {
-      const next = new Set(prev);
-      const isAdding = !next.has(id);
-      if (isAdding) next.add(id);
-      else next.delete(id);
-
-      setSelectedPageIds((pPrev) => {
-        const pNext = new Set(pPrev);
-        const allSelectedNow = allIdsInGroup.every((oid) => next.has(oid));
-        if (allSelectedNow) pNext.add(sectionType);
-        else pNext.delete(sectionType);
-        return pNext;
-      });
-
-      setSelectedAttachmentIds((attPrev) => {
-        const attNext = new Set(attPrev);
-        const atts = objectAttachments.get(id) || [];
-        for (const att of atts) {
-          if (isAdding) attNext.add(att.id);
-          else attNext.delete(att.id);
-        }
-        return attNext;
-      });
-
-      if (isAdding && includeAttachments && !objectAttachments.has(id)) {
-        invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
-          .then((atts) => {
-            setObjectAttachments((prev) => {
-              const n = new Map(prev);
-              n.set(id, atts);
-              return n;
-            });
-            setSelectedAttachmentIds((prev) => {
-              const n = new Set(prev);
-              for (const att of atts) n.add(att.id);
-              return n;
-            });
-          })
-          .catch(() => {});
-      }
-      return next;
-    });
-  };
-
-  const toggleObjectExpanded = (objectId: string) => {
-    setExpandedObjects((prev) => {
-      const next = new Set(prev);
-      if (next.has(objectId)) {
-        next.delete(objectId);
-        return next;
-      }
-      next.add(objectId);
-      if (!objectAttachments.has(objectId)) {
-        invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId })
-          .then((atts) => {
-            setObjectAttachments((p) => {
-              const n = new Map(p);
-              n.set(objectId, atts);
-              return n;
-            });
-          })
-          .catch(() => {});
-      }
-      return next;
-    });
-  };
-
-  const toggleAttachment = (
-    attId: string,
-    objectId: string,
-    sectionType: string,
-    allIdsInGroup: string[],
-  ) => {
-    setSelectedAttachmentIds((prev) => {
-      const next = new Set(prev);
-      const isAdding = !next.has(attId);
-      if (isAdding) next.add(attId);
-      else next.delete(attId);
-      return next;
-    });
-
-    setSelectedObjectIds((prev) => {
-      const next = new Set(prev);
-      if (!next.has(objectId)) {
-        next.add(objectId);
-        setSelectedPageIds((pagePrev) => {
-          const pageNext = new Set(pagePrev);
-          const allSelectedNow = allIdsInGroup.every((oid) => next.has(oid));
-          if (allSelectedNow) pageNext.add(sectionType);
-          return pageNext;
-        });
-      }
-      return next;
-    });
-  };
-
-  const totalSelected = selectedObjectIds.size;
+  // Page / object / attachment toggles — managed via useExportScope
 
   // Export estimate via dedicated hook (P062 fix)
   const scopeState = useMemo(
@@ -470,57 +316,7 @@ export function ExportImportPage() {
           gap: 16,
         }}
       >
-        {/* Tab bar */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 0,
-            borderRadius: 8,
-            overflow: 'hidden',
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-toolbar)',
-          }}
-        >
-          {(['export', 'import'] as const).map((tabKey) => {
-            const isActive = tab === tabKey;
-            return (
-              <button
-                key={tabKey}
-                onClick={() => setTab(tabKey)}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  background: isActive
-                    ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                    : 'transparent',
-                  color: isActive ? 'var(--accent-primary)' : 'var(--text-tertiary)',
-                  fontSize: 14,
-                  fontWeight: isActive ? 600 : 500,
-                  fontFamily: 'inherit',
-                  borderRadius: 6,
-                  margin: 3,
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-                    e.currentTarget.style.color = 'var(--text-primary)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--text-tertiary)';
-                  }
-                }}
-              >
-                {tabKey === 'export' ? t('settings:export') : t('settings:import')}
-              </button>
-            );
-          })}
-        </div>
+        <ExportImportTabBar tab={tab} onChange={setTab} />
 
         {tab === 'export' ? (
           <ExportSection

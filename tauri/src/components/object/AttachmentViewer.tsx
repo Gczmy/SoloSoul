@@ -10,85 +10,11 @@ import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
+import { truncateFileName, formatSize, pgBtn, miniBtn, btnHoverEnter, btnHoverLeave, btnDelEnter, btnDelLeave, isImageMime, type AttachmentItem } from '@/lib/attachmentUtils';
+import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
+import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 
-export interface AttachmentItem {
-  id: string;
-  objectId: string;
-  fileName: string;
-  mimeType: string;
-  sizeBytes: number;
-  createdAt: string;
-  deletedAt?: string | null;
-  srcPath?: string | null;
-  vaultPath?: string | null;
-}
-
-/** Truncate a file name preserving its extension: "abcdefg…-.pdf" instead of "abcdefg…" */
-function truncateFileName(fileName: string, maxLen: number = 28): string {
-  const dotIndex = fileName.lastIndexOf('.');
-  if (dotIndex <= 0) {
-    // No extension or hidden file like ".gitignore"
-    if (fileName.length <= maxLen) return fileName;
-    return fileName.slice(0, maxLen - 1) + '…';
-  }
-  const baseName = fileName.slice(0, dotIndex);
-  const ext = fileName.slice(dotIndex); // includes the dot, e.g. ".pdf"
-  if (fileName.length <= maxLen) return fileName;
-  const available = maxLen - ext.length - 2; // 2 for "…-"
-  if (available <= 1) return fileName.slice(0, maxLen - 1) + '…';
-  return baseName.slice(0, available) + '…-' + ext;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-const pgBtn: React.CSSProperties = {
-  width: 30,
-  height: 30,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: 'none',
-  borderRadius: 6,
-  background: 'transparent',
-  cursor: 'pointer',
-  color: 'var(--text-secondary)',
-  fontSize: 14,
-  transition: 'background 0.15s, color 0.15s',
-};
-
-const miniBtn: React.CSSProperties = {
-  width: 28,
-  height: 28,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: 'none',
-  borderRadius: 6,
-  background: 'transparent',
-  cursor: 'pointer',
-  fontSize: 12,
-  color: 'var(--text-secondary)',
-  transition: 'background 0.15s, color 0.15s',
-};
-
-const btnHoverEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-  e.currentTarget.style.color = 'var(--accent-primary)';
-};
-const btnHoverLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-  e.currentTarget.style.background = 'transparent';
-  e.currentTarget.style.color = 'var(--text-secondary)';
-};
-const btnDelEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
-};
-const btnDelLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-  e.currentTarget.style.background = 'transparent';
-};
+export type { AttachmentItem } from '@/lib/attachmentUtils';
 
 export interface AttachmentViewerProps {
   objectId: string;
@@ -112,7 +38,6 @@ export function AttachmentViewer({
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
   const { t } = useTranslation(['common', 'editor']);
   const showToast = useUiStore((s) => s.showToast);
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
@@ -132,24 +57,10 @@ export function AttachmentViewer({
   };
 
   const handlePreview = async (item: AttachmentItem) => {
-    const ext = item.fileName.split('.').pop()?.toLowerCase() || '';
-    const isImage =
-      item.mimeType.startsWith('image/') ||
-      ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext);
-    const isPdf = item.mimeType === 'application/pdf' || ext === 'pdf';
-    const isText =
-      item.mimeType.startsWith('text/') || ['json', 'xml', 'csv', 'md', 'txt'].includes(ext);
-
+    const isImg = isImageMime(item.mimeType, item.fileName);
     const filePath = item.vaultPath || item.srcPath;
-    if (filePath && (isImage || isPdf || isText)) {
+    if (isImg) {
       setPreviewItem(item);
-      setPreviewUrl('');
-      try {
-        const url = await invoke<string>('fs_read_file_as_data_url', { path: filePath });
-        setPreviewUrl(url);
-      } catch {
-        setPreviewUrl('error');
-      }
     } else if (filePath) {
       openWithDefault(filePath);
     } else {
@@ -809,430 +720,50 @@ export function AttachmentViewer({
         </div>
         {/* 拖拽上传覆盖层 */}
         <DragUploadOverlay dragState={dragState} borderRadius={16} />
-      </div>
-      {/* Preview: image */}
-      {previewItem && previewItem.mimeType.startsWith('image/') && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(12px)',
-          }}
-          onClick={() => setPreviewItem(null)}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 18px',
-              background: 'var(--bg-toolbar)',
-            }}
-          >
-            <span style={{ fontSize: 13, fontWeight: 500 }}>{previewItem.fileName}</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setPreviewItem(null);
-              }}
-              style={{
-                color: 'var(--text-secondary)',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <X size={18} />
-            </button>
-          </div>
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 24,
-            }}
-          >
-            {previewUrl === 'error' ? (
-              <div style={{ color: '#e74c3c', padding: 24 }}>Failed to load preview.</div>
-            ) : previewUrl ? (
-              <img
-                src={previewUrl}
-                alt={previewItem.fileName}
-                style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', borderRadius: 8 }}
-              />
-            ) : (
-              <LoadingPlaceholder variant="toolbar" minHeight={120} />
-            )}
-          </div>
-        </div>
-      )}
-      {/* Preview: PDF */}
-      {previewItem && previewItem.mimeType === 'application/pdf' && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(12px)',
-          }}
-          onClick={() => setPreviewItem(null)}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 18px',
-              background: 'var(--bg-toolbar)',
-            }}
-          >
-            <span style={{ fontSize: 13, fontWeight: 500 }}>{previewItem.fileName}</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setPreviewItem(null);
-              }}
-              style={{
-                color: 'var(--text-secondary)',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <X size={18} />
-            </button>
-          </div>
-          <div style={{ flex: 1, padding: 24 }}>
-            {previewUrl === 'error' ? (
-              <div style={{ color: '#e74c3c', padding: 24 }}>Failed to load preview.</div>
-            ) : previewUrl ? (
-              <iframe
-                src={previewUrl}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                  borderRadius: 8,
-                  background: 'white',
-                }}
-              />
-            ) : (
-              <LoadingPlaceholder variant="toolbar" minHeight={120} />
-            )}
-          </div>
-        </div>
-      )}
+      </div>      {/* Preview overlay */}
+      <AttachmentPreviewOverlay item={previewItem} onClose={() => setPreviewItem(null)} />
       {confirmDialog}
-      {/* Batch delete confirmation */}
-      {batchDeleteConfirm && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.4)',
-          }}
-          onClick={() => setBatchDeleteConfirm(false)}
-        >
-          <div
-            style={{
-              background: 'var(--bg-elevated)',
-              borderRadius: 12,
-              padding: '24px 28px',
-              maxWidth: 360,
-              width: '90%',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-subtle)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
-              {t('common:batch_delete_title')}
-            </h3>
-            <p
-              style={{
-                margin: '0 0 20px',
-                fontSize: 14,
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5,
-              }}
-            >
-              {t('common:batch_delete_body', { n: selectedIds.size })}
-            </p>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setBatchDeleteConfirm(false)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {t('common:cancel')}
-              </button>
-              <button
-                onClick={handleBatchDelete}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: '#e74c3c',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#c0392b'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#e74c3c'; }}
-              >
-                {t('common:delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Batch restore confirmation */}
-      {batchRestoreConfirm && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.4)',
-          }}
-          onClick={() => setBatchRestoreConfirm(false)}
-        >
-          <div
-            style={{
-              background: 'var(--bg-elevated)',
-              borderRadius: 12,
-              padding: '24px 28px',
-              maxWidth: 360,
-              width: '90%',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-subtle)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
-              {t('common:batch_restore_title')}
-            </h3>
-            <p
-              style={{
-                margin: '0 0 20px',
-                fontSize: 14,
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5,
-              }}
-            >
-              {t('common:batch_restore_body', { n: selectedIds.size })}
-            </p>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setBatchRestoreConfirm(false)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {t('common:cancel')}
-              </button>
-              <button
-                onClick={handleBatchRestore}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid var(--accent-primary)',
-                  background: 'var(--accent-primary)',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
-              >
-                {t('common:restore')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Batch permanent delete confirmation */}
-      {batchPermanentDeleteConfirm && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.4)',
-          }}
-          onClick={() => setBatchPermanentDeleteConfirm(false)}
-        >
-          <div
-            style={{
-              background: 'var(--bg-elevated)',
-              borderRadius: 12,
-              padding: '24px 28px',
-              maxWidth: 360,
-              width: '90%',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-subtle)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
-              {t('common:batch_perm_delete_title')}
-            </h3>
-            <p
-              style={{
-                margin: '0 0 20px',
-                fontSize: 14,
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5,
-              }}
-            >
-              {t('common:batch_perm_delete_body', { n: selectedIds.size })}
-            </p>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setBatchPermanentDeleteConfirm(false)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {t('common:cancel')}
-              </button>
-              <button
-                onClick={handleBatchPermanentDelete}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: '#e74c3c',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#c0392b'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#e74c3c'; }}
-              >
-                {t('common:delete_permanently')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Permanent delete confirmation */}
-      {permDeleteItem && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.4)',
-          }}
-          onClick={() => setPermDeleteItem(null)}
-        >
-          <div
-            style={{
-              background: 'var(--bg-elevated)',
-              borderRadius: 12,
-              padding: '24px 28px',
-              maxWidth: 360,
-              width: '90%',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-subtle)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
-              {t('common:perm_delete_title')}
-            </h3>
-            <p
-              style={{
-                margin: '0 0 20px',
-                fontSize: 14,
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5,
-              }}
-            >
-              {t('common:perm_delete_body', { name: truncateFileName(permDeleteItem.fileName) })}
-            </p>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setPermDeleteItem(null)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {t('common:cancel')}
-              </button>
-              <button
-                onClick={() => handlePermanentDelete(permDeleteItem)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: '#e74c3c',
-                  color: 'white',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
-              >
-                {t('common:delete_permanently')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Confirmation dialogs */}
+      <ConfirmDialog
+        open={batchDeleteConfirm}
+        title={t('common:batch_delete_title')}
+        body={t('common:batch_delete_body', { n: selectedIds.size })}
+        confirmLabel={t('common:delete')}
+        cancelLabel={t('common:cancel')}
+        confirmStyle="danger"
+        onConfirm={handleBatchDelete}
+        onCancel={() => setBatchDeleteConfirm(false)}
+      />
+      <ConfirmDialog
+        open={batchRestoreConfirm}
+        title={t('common:batch_restore_title')}
+        body={t('common:batch_restore_body', { n: selectedIds.size })}
+        confirmLabel={t('common:restore')}
+        cancelLabel={t('common:cancel')}
+        confirmStyle="primary"
+        onConfirm={handleBatchRestore}
+        onCancel={() => setBatchRestoreConfirm(false)}
+      />
+      <ConfirmDialog
+        open={batchPermanentDeleteConfirm}
+        title={t('common:batch_perm_delete_title')}
+        body={t('common:batch_perm_delete_body', { n: selectedIds.size })}
+        confirmLabel={t('common:delete_permanently')}
+        cancelLabel={t('common:cancel')}
+        confirmStyle="danger"
+        onConfirm={handleBatchPermanentDelete}
+        onCancel={() => setBatchPermanentDeleteConfirm(false)}
+      />
+      <ConfirmDialog
+        open={!!permDeleteItem}
+        title={t('common:perm_delete_title')}
+        body={t('common:perm_delete_body', { name: permDeleteItem ? truncateFileName(permDeleteItem.fileName) : '' })}
+        confirmLabel={t('common:delete_permanently')}
+        cancelLabel={t('common:cancel')}
+        confirmStyle="danger"
+        onConfirm={() => permDeleteItem && handlePermanentDelete(permDeleteItem)}
+        onCancel={() => setPermDeleteItem(null)}
+      />
     </div>
   );
 }

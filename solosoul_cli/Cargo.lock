@@ -4554,6 +4554,7 @@ dependencies = [
  "security-framework-sys",
  "serde",
  "serde_json",
+ "sha2",
  "solosoul-crypto",
  "solosoul-vault",
  "thiserror 1.0.69",

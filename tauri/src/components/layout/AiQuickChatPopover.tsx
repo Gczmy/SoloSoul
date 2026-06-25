@@ -2,61 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { MessageSquare, Plus, History, ArrowUpRight, X } from 'lucide-react';
-import { markConversationPending, setQuickChatOpen } from '@/lib/notification';
-import {
-  buildSystemPrompt,
-  buildMessagesWithSystemPromptAndChunks,
-} from '@/lib/llm/systemPromptBuilder';
-import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
-import i18n from '@/lib/i18n';
-import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
+import { setQuickChatOpen } from '@/lib/notification';
 import { useAuthStore } from '@/stores/authStore';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
-import { ChatMessageList }  from '@/components/llm/ChatMessageList';
-import { ChatInputBar }  from '@/components/llm/ChatInputBar';
-import { ConversationHistory }  from '@/components/llm/ConversationHistory';
+import { ChatMessageList } from '@/components/llm/ChatMessageList';
+import { ChatInputBar } from '@/components/llm/ChatInputBar';
+import { ConversationHistory } from '@/components/llm/ConversationHistory';
 import { UnconfiguredHint } from '@/components/llm/UnconfiguredHint';
-
-// ── AI Quick Chat types & helpers ───────────────────────────────────────────
-interface ChatMsg {
-  role: string;
-  content: string;
-  createdAt: string;
-}
-interface ConversationSummary {
-  id: string;
-  name: string;
-  updatedAt: string;
-  messageCount: number;
-  deletedAt?: string;
-}
-interface Conversation {
-  id: string;
-  name: string;
-  isTemporary: boolean;
-  messages: ChatMsg[];
-  updatedAt: string;
-  deletedAt?: string;
-}
-interface LlmStreamPayload {
-  conversationId: string;
-  chunk: string;
-  isDone: boolean;
-  error?: string;
-}
-
-function nowISO(): string {
-  return new Date().toISOString();
-}
-function isOllama(baseUrl: string): boolean {
-  return baseUrl.toLowerCase().includes('localhost') || baseUrl.toLowerCase().includes('127.0.0.1');
-}
-function generateId(): string {
-  return 'conv_' + crypto.randomUUID();
-}
+import { useLlmChatCore } from '@/hooks/useLlmChatCore';
 
 // =============================================================================
 // AiQuickChatPopover — quick AI chat floating card beside sidebar
@@ -75,220 +29,46 @@ export function AiQuickChatPopover({
   const navigate = useNavigate();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
 
-  const [loading, setLoading] = useState(true);
-  const [isConfigured, setIsConfigured] = useState(false);
-  const [isAiEnabled, setIsAiEnabled] = useState(false);
-  const [activeProvider, setActiveProvider] = useState<{
-    id: string;
-    name: string;
-    model: string;
-    baseUrl: string;
-    apiType: string;
-  } | null>(null);
-  const [isOnline, setIsOnline] = useState<boolean | null>(null);
-  const [checkingOnline, setCheckingOnline] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setQuickChatOpen(true);
     return () => setQuickChatOpen(false);
   }, []);
 
-  const [messages, setMessages] = useState<ChatMsg[]>([]);
-  const [input, setInput] = useState('');
-  const [isSending, setIsSending] = useState(false);
-  const [streamBuffer, setStreamBuffer] = useState('');
-  const [currentConvId, setCurrentConvId] = useState<string | null>(null);
-  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const historyRef = useRef<HTMLDivElement>(null);
-  const unlistenRef = useRef<UnlistenFn | null>(null);
-  const messagesRef = useRef<ChatMsg[]>([]);
-  const streamBufferRef = useRef('');
-  const currentConvIdRef = useRef<string | null>(null);
-  const accountIdRef = useRef(accountId);
-
-  messagesRef.current = messages;
-  streamBufferRef.current = streamBuffer;
-  currentConvIdRef.current = currentConvId;
-
-  useEffect(() => {
-    accountIdRef.current = accountId;
-  }, [accountId]);
-
-  useEffect(() => {
-    return () => {
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-    };
-  }, []);
-
   const quickChatStorageKey = accountId ? `solosoul_quick_chat_conv_${accountId}` : null;
 
-  // Load config & restore previous conversation
+  const core = useLlmChatCore({
+    includeSystemPrompt: true,
+  });
+
+  // Restore previous conversation from localStorage
   useEffect(() => {
-    if (!accountId) {
-      setLoading(false);
-      return;
+    if (!core.loading && quickChatStorageKey) {
+      const savedConvId = localStorage.getItem(quickChatStorageKey);
+      if (savedConvId) {
+        core.loadConversation(savedConvId).catch(() => {
+          localStorage.removeItem(quickChatStorageKey!);
+        });
+      }
     }
-    (async () => {
-      try {
-        const cfg = await invoke<{
-          activeProviderId?: string;
-          aiFeaturesEnabled?: { chat: boolean };
-        }>('llm_get_config', { accountId });
-        setIsAiEnabled(cfg.aiFeaturesEnabled?.chat ?? false);
-        if (!cfg.activeProviderId) {
-          setIsConfigured(false);
-          setLoading(false);
-          return;
-        }
-        const providers = await invoke<
-          Array<{ id: string; name: string; model: string; baseUrl: string; apiType: string }>
-        >('llm_get_providers', { accountId });
-        const active = providers.find((p) => p.id === cfg.activeProviderId);
-        if (active) {
-          setActiveProvider({
-            id: active.id,
-            name: active.name,
-            model: active.model,
-            baseUrl: active.baseUrl,
-            apiType: active.apiType,
-          });
-          setIsConfigured(true);
-        } else {
-          setIsConfigured(false);
-        }
-        const list = await invoke<ConversationSummary[]>('llm_list_conversations', { accountId });
-        setConversations(list);
-        const savedConvId = quickChatStorageKey ? localStorage.getItem(quickChatStorageKey) : null;
-        if (savedConvId) {
-          try {
-            const conv = await invoke<Conversation>('llm_get_conversation', {
-              accountId,
-              conversationId: savedConvId,
-            });
-            setCurrentConvId(conv.id);
-            setMessages(conv.messages);
-          } catch {
-            localStorage.removeItem(quickChatStorageKey!);
-          }
-        }
-      } catch {
-        setIsConfigured(false);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [accountId, quickChatStorageKey]);
+    // Only run on mount / when loading completes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [core.loading]);
 
-  // Check online
+  // Save conv ID to localStorage when it changes
+  const prevConvIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!activeProvider || !accountId || !isConfigured) return;
-    (async () => {
-      setCheckingOnline(true);
-      try {
-        let key = '';
-        try {
-          key = await invoke<string>('llm_get_api_key', {
-            accountId,
-            providerId: activeProvider.id,
-          });
-        } catch {
-          /* ignore */
-        }
-        const online = await invoke<boolean>('llm_check_connection', {
-          baseUrl: activeProvider.baseUrl,
-          apiKey: key,
-          model: activeProvider.model,
-          apiType: activeProvider.apiType,
-        });
-        setIsOnline(online);
-      } catch {
-        setIsOnline(false);
-      } finally {
-        setCheckingOnline(false);
-      }
-    })();
-  }, [activeProvider, accountId, isConfigured]);
-
-  // Subscribe to stream
-  useEffect(() => {
-    if (!isConfigured) return;
-    listen<LlmStreamPayload>('llm-stream-chunk', (event) => {
-      const payload = event.payload;
-      const msgs = messagesRef.current;
-      const convId = currentConvIdRef.current;
-      const accId = accountIdRef.current;
-
-      if (payload.error) {
-        setIsSending(false);
-        setMessages((prev) => {
-          if (prev.length === 0) return prev;
-          const lastIdx = prev.length - 1;
-          if (prev[lastIdx].role !== 'assistant') return prev;
-          const updated = [...prev];
-          updated[lastIdx] = {
-            ...updated[lastIdx],
-            content: `${t('settings:ai_chat_error_prefix')}: ${payload.error}`,
-          };
-          return updated;
-        });
-        return;
-      }
-      if (payload.isDone) {
-        setIsSending(false);
-        if (convId && accId) {
-          const finalMsgs = msgs.map((m, i) =>
-            i === msgs.length - 1 && m.role === 'assistant'
-              ? { ...m, content: streamBufferRef.current }
-              : m,
-          );
-          const firstUser = finalMsgs.find((m) => m.role === 'user');
-          const finalConv = {
-            id: convId,
-            name: firstUser ? firstUser.content.slice(0, 30) : '',
-            isTemporary: false,
-            messages: finalMsgs,
-            updatedAt: nowISO(),
-          };
-          invoke('llm_save_conversation', { accountId: accId, conversation: finalConv })
-            .then(() => {
-              if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
-              invoke<ConversationSummary[]>('llm_list_conversations', { accountId: accId })
-                .then((list) => setConversations(list))
-                .catch(() => {});
-            })
-            .catch(() => {});
-        }
-        return;
-      }
-      setStreamBuffer((prev) => prev + payload.chunk);
-      setMessages((prev) => {
-        if (prev.length === 0) return prev;
-        const lastIdx = prev.length - 1;
-        if (prev[lastIdx].role !== 'assistant') return prev;
-        const updated = [...prev];
-        updated[lastIdx] = {
-          ...updated[lastIdx],
-          content: streamBufferRef.current + payload.chunk,
-        };
-        return updated;
-      });
-    })
-      .then((fn) => {
-        unlistenRef.current = fn;
-      })
-      .catch(() => {});
-    return () => {
-      unlistenRef.current?.();
-    };
-  }, [isConfigured, t, quickChatStorageKey]);
+    if (core.currentConvId && core.currentConvId !== prevConvIdRef.current && quickChatStorageKey) {
+      prevConvIdRef.current = core.currentConvId;
+      localStorage.setItem(quickChatStorageKey, core.currentConvId);
+    }
+  }, [core.currentConvId, quickChatStorageKey]);
 
   // Close history dropdown on outside click within card
   useEffect(() => {
@@ -312,7 +92,7 @@ export function AiQuickChatPopover({
     };
     outsideClickTimeoutRef.current = setTimeout(
       () => document.addEventListener('mousedown', handler),
-      1
+      1,
     );
     return () => {
       if (outsideClickTimeoutRef.current) {
@@ -331,137 +111,32 @@ export function AiQuickChatPopover({
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const sendMessage = async () => {
-    const text = input.trim();
-    if (!text || !activeProvider || !accountId || isOnline === false) return;
-
-    const ts = nowISO();
-    const userMsg: ChatMsg = { role: 'user', content: text, createdAt: ts };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
-    setInput('');
-    setIsSending(true);
-    setStreamBuffer('');
-
-    const convId = currentConvId || generateId();
-    setCurrentConvId(convId);
-    if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
-
-    const firstUser = updatedMessages.find((m) => m.role === 'user');
-    const convName = firstUser ? firstUser.content.slice(0, 30) : '';
-    const partialConv = {
-      id: convId,
-      name: convName,
-      isTemporary: false,
-      messages: updatedMessages,
-      updatedAt: nowISO(),
-    };
-    invoke('llm_save_conversation', { accountId, conversation: partialConv }).catch(() => {});
-
-    const assistantMsg: ChatMsg = { role: 'assistant', content: '', createdAt: nowISO() };
-    setMessages((prev) => [...prev, assistantMsg]);
-
-    try {
-      const apiKey = await invoke<string>('llm_get_api_key', {
-        accountId,
-        providerId: activeProvider.id,
-      });
-
-      const systemPrompt = buildSystemPrompt();
-      const chunks = await searchGuideChunks(text, i18n.language || 'zh-CN');
-      const docPrompt = formatChunksAsSystemMessage(chunks);
-      const allMessages = buildMessagesWithSystemPromptAndChunks(
-        text,
-        updatedMessages,
-        systemPrompt,
-        docPrompt,
-      );
-
-      markConversationPending(convId);
-      invoke('llm_send_message_stream', {
-        accountId,
-        conversationId: convId,
-        baseUrl: activeProvider.baseUrl,
-        apiKey,
-        model: activeProvider.model,
-        apiType: activeProvider.apiType,
-        messages: allMessages,
-      }).catch((err) => {
-        setIsSending(false);
-        setMessages((prev) => {
-          if (prev.length === 0) return prev;
-          const lastIdx = prev.length - 1;
-          if (prev[lastIdx].role !== 'assistant') return prev;
-          const updated = [...prev];
-          updated[lastIdx] = {
-            ...updated[lastIdx],
-            content: `${t('settings:ai_chat_error_prefix')}: ${String(err)}`,
-          };
-          return updated;
-        });
-      });
-    } catch (e) {
-      const errMsg = typeof e === 'string' ? e : e instanceof Error ? e.message : String(e);
-      setIsSending(false);
-      setMessages((prev) => {
-        if (prev.length === 0) return prev;
-        const lastIdx = prev.length - 1;
-        if (prev[lastIdx].role !== 'assistant') return prev;
-        const updated = [...prev];
-        updated[lastIdx] = {
-          ...updated[lastIdx],
-          content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}`,
-        };
-        return updated;
-      });
-    }
-  };
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'auto' });
+  }, [core.messages.length]);
 
   const handleNewConversation = () => {
-    setMessages([]);
-    setInput('');
-    setIsSending(false);
-    setStreamBuffer('');
-    setCurrentConvId(null);
+    core.setMessages([]);
+    core.setInput('');
+    core.setCurrentConvId(null);
     if (quickChatStorageKey) localStorage.removeItem(quickChatStorageKey);
   };
 
   const loadConversation = async (convId: string) => {
-    if (!accountId) return;
-    try {
-      const conv = await invoke<Conversation>('llm_get_conversation', {
-        accountId,
-        conversationId: convId,
-      });
-      setCurrentConvId(conv.id);
-      setMessages(conv.messages);
-      if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, conv.id);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const handleCopy = async (content: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopiedIndex(index);
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), COPY_FEEDBACK_DURATION_MS);
-    } catch {
-      /* ignore */
-    }
+    await core.loadConversation(convId);
+    if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
   };
 
   const hoverBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+    e.currentTarget.style.background =
+      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
     e.currentTarget.style.color = 'var(--accent-primary)';
   };
   const hoverBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.style.background = 'transparent';
     e.currentTarget.style.color = 'var(--text-secondary)';
   };
-
-  const isLocal = activeProvider ? isOllama(activeProvider.baseUrl) : false;
 
   const isFloating = placement === 'bottom' || placement === 'top';
   const isRight = placement === 'right';
@@ -509,7 +184,7 @@ export function AiQuickChatPopover({
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {isConfigured && isAiEnabled && (
+          {core.isConfigured && core.isAiEnabled && (
             <>
               <button
                 onClick={handleNewConversation}
@@ -532,7 +207,8 @@ export function AiQuickChatPopover({
                 onClick={() => setShowHistory((prev) => !prev)}
                 title={t('settings:ai_history')}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                   if (!showHistory) e.currentTarget.style.color = 'var(--accent-primary)';
                 }}
                 onMouseLeave={(e) => {
@@ -577,7 +253,8 @@ export function AiQuickChatPopover({
             onClick={onClose}
             title={t('common:close')}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               e.currentTarget.style.color = 'var(--accent-primary)';
             }}
             onMouseLeave={(e) => {
@@ -625,8 +302,8 @@ export function AiQuickChatPopover({
             }}
           >
             <ConversationHistory
-              conversations={conversations}
-              currentConvId={currentConvId}
+              conversations={core.conversations}
+              currentConvId={core.currentConvId}
               onSelect={(id) => {
                 loadConversation(id);
                 setShowHistory(false);
@@ -637,31 +314,39 @@ export function AiQuickChatPopover({
       </AnimatePresence>
 
       {/* Body */}
-      {loading ? (
+      {core.loading ? (
         <LoadingPlaceholder variant="elevated" />
-      ) : !isAiEnabled || !isConfigured ? (
+      ) : !core.isAiEnabled || !core.isConfigured ? (
         <UnconfiguredHint onClose={onClose} />
       ) : (
         <>
           <ChatMessageList
-            messages={messages}
-            isSending={isSending}
-            copiedIndex={copiedIndex}
-            onCopy={handleCopy}
+            messages={core.messages}
+            isSending={core.isSending}
+            copiedIndex={core.copiedIndex}
+            onCopy={core.handleCopy}
             errorPrefix={t('settings:ai_chat_error_prefix')}
-            activeProviderName={activeProvider?.name ?? ''}
+            activeProviderName={core.activeProvider?.name ?? ''}
             scrollContainerRef={scrollContainerRef}
             chatEndRef={chatEndRef}
           />
           <ChatInputBar
-            input={input}
-            onInputChange={setInput}
-            isSending={isSending}
-            onSend={sendMessage}
-            activeProvider={activeProvider ? { name: activeProvider.name, model: activeProvider.model, baseUrl: activeProvider.baseUrl } : null}
-            checkingOnline={checkingOnline}
-            isOnline={isOnline}
-            isLocal={isLocal}
+            input={core.input}
+            onInputChange={core.setInput}
+            isSending={core.isSending}
+            onSend={core.sendMessage}
+            activeProvider={
+              core.activeProvider
+                ? {
+                    name: core.activeProvider.name,
+                    model: core.activeProvider.model,
+                    baseUrl: core.activeProvider.baseUrl,
+                  }
+                : null
+            }
+            checkingOnline={core.checkingOnline}
+            isOnline={core.isOnline}
+            isLocal={core.isLocal}
           />
         </>
       )}

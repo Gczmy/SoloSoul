@@ -86,6 +86,7 @@ export function ObjectDetailModal({
   const [loading, setLoading] = useState(!object && !!objectId);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fetchIdRef = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -142,15 +143,23 @@ export function ObjectDetailModal({
       if (!object && !objectId) setLoading(false);
       return;
     }
+    const id = ++fetchIdRef.current;
     setLoading(true);
     useObjectStore
       .getState()
       .getObject(accountId, objectId)
       .then(() => {
+        // Discard stale responses: if a newer fetch started while this one
+        // was in-flight, don't overwrite fetchedObj with potentially stale data.
+        if (fetchIdRef.current !== id) return;
         setFetchedObj(useObjectStore.getState().currentObjectCache[objectId] ?? null);
       })
-      .catch(() => setFetchedObj(null))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (fetchIdRef.current === id) setFetchedObj(null);
+      })
+      .finally(() => {
+        if (fetchIdRef.current === id) setLoading(false);
+      });
   }, [object, objectId, accountId]);
 
   const unlockVaultWithPassword = useCallback(

@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -7,17 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
-import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
-import { PluginBadge } from '@/components/template/PluginBadge';
+import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { useToastError } from '@/hooks/useToastError';
-import { TemplateFieldInput } from '@/components/TemplateFieldInput';
-import { LayoutTemplate } from 'lucide-react';
-import type { PropertyType } from '@/types/template';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
-import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { ObjectTemplateSelector } from '@/components/editor/ObjectTemplateSelector';
+import { ObjectFieldList } from '@/components/editor/ObjectFieldList';
 
 // Each template belongs to a workspace section.
 // collectionType is the section (for filtering), not the template name.
@@ -26,7 +21,6 @@ type TemplateCategory = 'identity' | 'travel' | 'financial' | 'professional';
 export function ObjectEditorPage() {
   const { objectId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams] = useSearchParams();
   // Read section and parentId from URL params
   const sectionParam = searchParams.get('section') || '';
@@ -40,6 +34,18 @@ export function ObjectEditorPage() {
   const { onError, onSuccess } = useToastError();
   const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
   const customPages = useSettingsStore((s) => s.settings.customPages);
+
+  const handleFieldChange = useCallback((key: string, val: unknown) => {
+    setValues((v) => ({ ...v, [key]: val }));
+  }, []);
+
+  const handleClearError = useCallback((key: string) => {
+    setValidationErrors((err) => {
+      const next = { ...err };
+      delete next[key];
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     loadUserTemplates().catch(() => {});
@@ -118,6 +124,7 @@ export function ObjectEditorPage() {
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const loadingObjRef = useRef(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const fields = objectTemplates[selectedType] || [];
@@ -145,16 +152,21 @@ export function ObjectEditorPage() {
   useEffect(() => {
     if (!isNew && objectId && accountId) {
       // Reset form state before fetching so stale store data doesn't get locked in
+      loadingObjRef.current = true;
       setDataLoaded(false);
       setName('');
       setValues({});
-      getObject(accountId, objectId).catch((e) => onError(e, t('common:object_load_failed')));
+      getObject(accountId, objectId)
+        .catch((e) => onError(e, t('common:object_load_failed')))
+        .finally(() => { loadingObjRef.current = false; });
     }
   }, [objectId, accountId, getObject, isNew, onError, t]);
 
   // When currentObject loads (for editing), populate the form
+  // Guard: skip if a fresh fetch is in-flight (prevents stale cache data from
+  // populating the form before the most recent getObject resolves).
   useEffect(() => {
-    if (isNew || !currentObject || dataLoaded || currentObject.id !== objectId) return;
+    if (isNew || !currentObject || dataLoaded || currentObject.id !== objectId || loadingObjRef.current) return;
     setName(currentObject.name || '');
     // Populate property values
     const vals: Record<string, unknown> = {};
@@ -315,167 +327,19 @@ export function ObjectEditorPage() {
           gap: 16,
         }}
       >
-        {isNew && (
-          <Card>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-              {t('common:object_type')}
-              {sectionParam && (
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: 'var(--text-tertiary)',
-                    marginLeft: 8,
-                    fontWeight: 400,
-                  }}
-                >
-                  {t('editor:in_section', {
-                    section: resolveCollectionLabel(sectionParam, customPages, t),
-                  })}
-                </span>
-              )}
-            </h3>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {visibleTemplates.map((type) => {
-                const label = templateMeta[type]?.label || type;
-                const tpl = userTemplates.find((t) => t.id === type);
-                return (
-                  <button
-                    key={type}
-                    onClick={() => setSelectedType(type)}
-                    onMouseEnter={(e) => {
-                      if (selectedType !== type) {
-                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedType !== type) {
-                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                        e.currentTarget.style.background = 'var(--bg-elevated)';
-                      }
-                    }}
-                    style={{
-                      padding: '10px 16px',
-                      borderRadius: 8,
-                      border:
-                        selectedType === type
-                          ? '1px solid var(--accent-primary)'
-                          : '1px solid var(--border-subtle)',
-                      background: 'var(--bg-elevated)',
-                      color:
-                        selectedType === type ? 'var(--accent-primary)' : 'var(--text-primary)',
-                      fontSize: 13,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    {label}
-                    {tpl?.contractTypeId && (
-                      <span style={{ marginLeft: 6 }}>
-                        <PluginBadge contractTypeId={tpl.contractTypeId} size="sm" variant="full" />
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() =>
-                  navigate('/settings/templates', {
-                    state: { from: location.pathname + location.search },
-                  })
-                }
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.borderStyle = 'solid';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-strong)';
-                  e.currentTarget.style.borderStyle = 'dashed';
-                  e.currentTarget.style.color = 'var(--text-secondary)';
-                  e.currentTarget.style.background = 'transparent';
-                }}
-                style={{
-                  marginLeft: 'auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  border: '1px dashed var(--border-strong)',
-                  background: 'transparent',
-                  color: 'var(--text-secondary)',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                title={t('editor:manage_templates')}
-              >
-                <LayoutTemplate size={14} /> {t('editor:manage_templates')}
-              </button>
-              {visibleTemplates.length === 0 && (
-                <div style={{ fontSize: 13, color: 'var(--text-tertiary)', padding: '8px 0' }}>
-                  {t('editor:no_template_for_section') || '此页面暂无模板，'}
-                  <span
-                    onClick={() =>
-                      navigate('/settings/templates', {
-                        state: { from: location.pathname + location.search },
-                      })
-                    }
-                    style={{
-                      color: 'var(--accent-primary)',
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    {t('editor:go_create_template') || '前往模板管理新建'}
-                  </span>
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
-
-        {!isNew && collectionType && (
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                {t('common:object_type')}:
-              </span>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  padding: '2px 8px',
-                  borderRadius: 4,
-                  background: 'rgba(91,124,153,0.08)',
-                  color: 'var(--accent-primary)',
-                }}
-              >
-                {resolveCollectionLabel(collectionType, customPages, t)}
-              </span>
-              {contractTypeId && (
-                <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
-              )}
-              {(selectedType || currentObject?.templateId) && (
-                <span
-                  style={{
-                    fontSize: 11,
-                    color: 'var(--text-tertiary)',
-                    textDecoration: selectedType ? 'none' : 'line-through',
-                  }}
-                >
-                  · {selectedType ? (templateMeta[selectedType]?.label || selectedType) : (() => {
-                            const tplName = (currentObject?.properties as Record<string, unknown>)?.__templateName as string | undefined;
-                            const tplId = currentObject?.templateId || '';
-                            return tplName ? `${tplName} (${tplId.slice(0, 8)}…)` : tplId;
-                          })()}
-                </span>
-              )}
-            </div>
-          </Card>
-        )}
+        <ObjectTemplateSelector
+          isNew={isNew}
+          visibleTemplates={visibleTemplates}
+          selectedType={selectedType}
+          onSelect={setSelectedType}
+          templateMeta={templateMeta}
+          userTemplates={userTemplates}
+          collectionType={collectionType}
+          currentObject={currentObject}
+          contractTypeId={contractTypeId}
+          customPages={customPages}
+          sectionParam={sectionParam}
+        />
 
         {!isNew && !dataLoaded
           ? null
@@ -489,126 +353,18 @@ export function ObjectEditorPage() {
                     placeholder={t('common:object_name_placeholder')}
                   />
                 </Card>
-                <Card>
-                  <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-                    {t('common:properties')}
-                  </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {fields.length === 0
-                      ? // Fallback: 模板已删除，使用 __fields 渲染类型感知的输入
-                        Object.entries(values)
-                          .filter(([k]) => !k.startsWith('__'))
-                          .map(([key, val]) => {
-                            const fieldDefs = (currentObject?.properties as Record<string, unknown>)?.__fields as
-                              | Record<string, { name: string; type: string; options?: string[]; deprecatedAt?: string; contractField?: boolean }>
-                              | undefined;
-                            const fieldDef = fieldDefs?.[key];
-                            const fieldName = fieldDef?.name || key;
-                            const propType: PropertyType =
-                              (fieldDef?.type as PropertyType) || 'text';
-                            const isDeprecated = !!fieldDef?.deprecatedAt;
-                            const objLabels = currentObject?.propertyLabels as Record<string, string> | undefined;
-                            const sensitivity: SensitivityLevel =
-                              (objLabels?.[key] as SensitivityLevel) || 'public';
-                            const isContractField = fieldDef?.contractField === true;
-                            const objContractTypeId = currentObject?.contractTypeId;
-                            return (
-                              <div key={key}>
-                                <TemplateFieldInput
-                                  propertyId={key}
-                                  label={fieldName}
-                                  type={propType}
-                                  options={fieldDef?.options}
-                                  value={val}
-                                  icon={<FieldTypeIcon type={propType} />}
-                                  badge={
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                      <SensitivityBadge level={sensitivity} />
-                                      {isContractField && objContractTypeId && (
-                                        <PluginBadge contractTypeId={objContractTypeId} size="sm" variant="full" />
-                                      )}
-                                      {isDeprecated && <DeprecatedBadge />}
-                                    </div>
-                                  }
-                                  hint={
-                                    ['email', 'url', 'phone', 'date', 'number'].includes(propType)
-                                      ? t(`editor:validation_hint_${propType}`)
-                                      : undefined
-                                  }
-                                  onChange={(val) => {
-                                    setValues((v) => ({ ...v, [key]: val }));
-                                    if (validationErrors[key]) {
-                                      setValidationErrors((err) => {
-                                        const next = { ...err };
-                                        delete next[key];
-                                        return next;
-                                      });
-                                    }
-                                  }}
-                                />
-                                {validationErrors[key] && (
-                                  <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>
-                                    {validationErrors[key]}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })
-                      : displayFields.map((field) => {
-                          const sensitivity = getSensitivity(field.key, field.sensitivityLevel);
-                          const fieldLabel = field.label;
-                          // Map legacy frontend type names to PropertyType
-                          const propType: PropertyType =
-                            field.type === 'tel'
-                              ? 'phone'
-                              : field.type === 'datetime-local'
-                                ? 'datetime'
-                                : (field.type as PropertyType) || 'text';
-                          const isDeprecated = !!field.deprecatedAt;
-                          return (
-                            <div key={field.key}>
-                              <TemplateFieldInput
-                                propertyId={field.key}
-                                label={fieldLabel}
-                                type={propType}
-                                options={field.options}
-                                value={values[field.key]}
-                                icon={<FieldTypeIcon type={propType} />}
-                                badge={
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                    <SensitivityBadge level={sensitivity} />
-                                    {field.contractField && contractTypeId && (
-                                      <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
-                                    )}
-                                    {isDeprecated && <DeprecatedBadge />}
-                                  </div>
-                                }
-                                hint={
-                                  ['email', 'url', 'phone', 'date', 'number'].includes(propType)
-                                    ? t(`editor:validation_hint_${propType}`)
-                                    : undefined
-                                }
-                                onChange={(val) => {
-                                  setValues((v) => ({ ...v, [field.key]: val }));
-                                  if (validationErrors[field.key]) {
-                                    setValidationErrors((err) => {
-                                      const next = { ...err };
-                                      delete next[field.key];
-                                      return next;
-                                    });
-                                  }
-                                }}
-                              />
-                              {validationErrors[field.key] && (
-                                <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>
-                                  {validationErrors[field.key]}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                  </div>
-                </Card>
+                <ObjectFieldList
+                  fields={fields}
+                  displayFields={displayFields}
+                  values={values}
+                  onChange={handleFieldChange}
+                  validationErrors={validationErrors}
+                  onClearError={handleClearError}
+                  currentObject={currentObject}
+                  contractTypeId={contractTypeId}
+                  getSensitivity={getSensitivity}
+                  isNew={isNew}
+                />
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <Button variant="secondary" onClick={() => navigate(-1)}>
                     {t('common:cancel')}
