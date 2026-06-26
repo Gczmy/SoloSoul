@@ -68,21 +68,9 @@ export function ConfirmDeleteDialog({
           <Button variant="secondary" onClick={onCancel}>
             {cancelLabel || 'Cancel'}
           </Button>
-          <button
-            onClick={onConfirm}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: 'none',
-              background: '#e74c3c',
-              color: 'white',
-              fontSize: 'var(--text-body-sm)',
-              fontWeight: 500,
-              cursor: 'pointer',
-            }}
-          >
+          <Button variant="danger-outline" onClick={onConfirm}>
             {confirmLabel || 'Delete'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

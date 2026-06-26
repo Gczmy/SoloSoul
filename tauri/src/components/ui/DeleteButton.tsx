@@ -5,8 +5,8 @@ import { BadgeIconButton } from './BadgeIconButton';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 interface DeleteButtonProps {
-  /** Click handler */
-  onClick: () => void;
+  /** Click handler — receives the mouse event for e.stopPropagation */
+  onClick: React.MouseEventHandler<HTMLButtonElement>;
   /** Tooltip / aria label. Required for icon-only mode. */
   title: string;
   /** Render as a 28×28 icon-only button. Default false. */

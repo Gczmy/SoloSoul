@@ -15,7 +15,6 @@ import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import {
   LayoutTemplate,
-  Trash2,
   Pencil,
   Plus,
   BookOpen,
@@ -29,6 +28,7 @@ import { resolveCustomIcon } from '@/lib/pageIcons';
 import { SampleTemplateGallery } from '@/components/template/SampleTemplateGallery';
 import { SampleTemplateDetail } from '@/components/template/SampleTemplateDetail';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { TemplateEditor } from '@/components/template/TemplateEditor';
 import { TemplateDetailModal } from '@/components/template/TemplateDetailModal';
 import { DeleteConfirmDialog } from '@/components/template/DeleteConfirmDialog';
@@ -486,14 +486,7 @@ export function TemplateManagerPage() {
                 >
                   <Pencil size={ICON_SIZE.md} />
                 </Button>
-                <Button
-                  variant="tertiary"
-                  size="sm"
-                  onClick={() => handleDelete(tpl.id, tpl.name)}
-                  style={{ color: '#e74c3c' }}
-                >
-                  <Trash2 size={ICON_SIZE.md} />
-                </Button>
+                <DeleteButton onClick={() => handleDelete(tpl.id, tpl.name)} title={t('common:delete')} iconOnly />
               </div>
             </div>
           </Card>

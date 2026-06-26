@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { X, Clock, Paperclip, Pencil, Trash2, Lock, Eye, Copy, Check } from 'lucide-react';
+import { X, Clock, Paperclip, Pencil, Lock, Eye, Copy, Check } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
 import { useRevealState } from '@/hooks/useRevealState';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
@@ -350,16 +351,7 @@ export function ObjectDetailModal({
     e.currentTarget.style.borderColor = 'var(--border-subtle)';
     e.currentTarget.style.color = 'var(--text-secondary)';
   };
-  const onDeleteBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = 'color-mix(in srgb, var(--danger) 10%, transparent)';
-    e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--danger) 30%, transparent)';
-    e.currentTarget.style.color = 'var(--danger)';
-  };
-  const onDeleteBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = 'var(--bg-toolbar)';
-    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-    e.currentTarget.style.color = 'var(--danger)';
-  };
+  // Removed onDeleteBtnEnter/onDeleteBtnLeave — now using DeleteButton
 
   return (
     <>
@@ -696,7 +688,7 @@ export function ObjectDetailModal({
                     <Pencil size={ICON_SIZE.sm} /> {t('common:edit')}
                   </button>
                 )}
-                <button
+                <DeleteButton
                   onClick={() => {
                     if (onDelete) {
                       onDelete();
@@ -704,15 +696,10 @@ export function ObjectDetailModal({
                       setConfirmDelete(true);
                     }
                   }}
-                  style={{
-                    ...actionBtnStyle,
-                    color: 'var(--danger)',
-                  }}
-                  onMouseEnter={onDeleteBtnEnter}
-                  onMouseLeave={onDeleteBtnLeave}
+                  title={t('common:delete')}
                 >
-                  <Trash2 size={ICON_SIZE.sm} /> {t('common:delete')}
-                </button>
+                  {t('common:delete')}
+                </DeleteButton>
               </div>
             </>
           )}
@@ -762,31 +749,9 @@ export function ObjectDetailModal({
               <Button variant="secondary" onClick={() => setConfirmDelete(false)}>
                 {t('common:cancel')}
               </Button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: 'var(--danger)',
-                  color: 'white',
-                  fontSize: 'var(--text-body-sm)',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--accent-danger-hover)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px color-mix(in srgb, var(--danger) 35%, transparent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--danger)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
+              <Button variant="danger-outline" onClick={handleDelete} disabled={deleting}>
                 {t('common:delete')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

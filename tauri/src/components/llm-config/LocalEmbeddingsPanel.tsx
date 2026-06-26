@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Cpu, Download, Trash2 } from 'lucide-react';
+import { DeleteButton } from '@/components/ui/DeleteButton';
+import { Cpu, Download } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -146,20 +147,11 @@ export function LocalEmbeddingsPanel({
                 )}
               </div>
               {m.installed ? (
-                <button
+                <DeleteButton
                   onClick={() => onDelete(m.info.id)}
-                  style={{
-                    padding: 6,
-                    borderRadius: 6,
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    color: '#e74c3c',
-                  }}
                   title={t('settings:llm_delete_model')}
-                >
-                  <Trash2 size={ICON_SIZE.sm} />
-                </button>
+                  iconOnly
+                />
               ) : (
                 <Button
                   variant="secondary"

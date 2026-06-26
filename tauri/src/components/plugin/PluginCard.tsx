@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, RefreshCw, Trash2, Play, Loader2, X } from 'lucide-react';
+import { Download, RefreshCw, Play, Loader2, X } from 'lucide-react';
 import { PluginLogSection } from './shared/PluginLogSection';
 import { PluginResultSection } from './shared/PluginResultSection';
 import { useConfirm } from '@/hooks/useConfirm';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import styles from './PluginCard.module.css';
 import type { MarketPluginInfo, PluginManifest } from '@/lib/plugin';
 import type { RunningPlugin } from '@/stores/pluginStore';
@@ -140,14 +141,13 @@ export function PluginCard({
         </div>
         {installed && (
           <div className={styles.actionsRight}>
-            <button className={styles.uninstallBtn} onClick={() => requestConfirm(
+            <DeleteButton onClick={() => requestConfirm(
                 t('uninstall_confirm_title', { defaultValue: 'Uninstall Plugin' }),
                 t('uninstall_confirm_message', { defaultValue: 'Are you sure you want to uninstall "{{name}}"? This action will remove the plugin and its local data.', name: displayName }),
                 onUninstall,
-              )}>
-              <Trash2 size={ICON_SIZE.sm} />
+              )} title={t('uninstall', { defaultValue: 'Uninstall' })}>
               {t('uninstall', { defaultValue: 'Uninstall' })}
-            </button>
+            </DeleteButton>
           </div>
         )}
       </div>

@@ -11,6 +11,7 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { useAuthStore } from '@/stores/authStore';
 import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
 import { Trash2, RotateCcw, FileText, Info, Loader2, Folder, LayoutTemplate } from 'lucide-react';
@@ -383,29 +384,13 @@ export function TrashPage() {
                     >
                       <RotateCcw size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      style={{
-                        color: '#e74c3c',
-                        border: '1px solid rgba(231,76,60,0.3)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
-                        e.currentTarget.style.borderColor = 'rgba(231,76,60,0.5)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-toolbar)';
-                        e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
-                      }}
+                    <DeleteButton
                       onClick={(e) => {
                         e.stopPropagation();
                         doDelete([item.id]);
                       }}
                       title={t('common:delete_permanently')}
-                    >
-                      <Trash2 size={ICON_SIZE.sm} style={{ color: '#e74c3c' }} />
-                    </Button>
+                    />
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -460,25 +445,9 @@ export function TrashPage() {
             <Button size="sm" variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={() => doRestore(Array.from(selectedIds))}>
               <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} /> {t('common:restore')}
             </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              style={{
-                color: '#e74c3c',
-                border: '1px solid rgba(231,76,60,0.3)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
-                e.currentTarget.style.borderColor = 'rgba(231,76,60,0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
-              }}
-              onClick={() => doDelete(Array.from(selectedIds))}
-            >
+            <DeleteButton onClick={() => doDelete(Array.from(selectedIds))} title={t('common:delete_permanently')}>
               {t('common:delete_permanently')}
-            </Button>
+            </DeleteButton>
           </div>
         )}
 

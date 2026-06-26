@@ -13,11 +13,11 @@ import {
   WifiOff,
   RefreshCw,
   ShieldOff,
-  Trash2,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
 import { useSyncStore } from '@/stores/syncStore';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import type { SyncConflict } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
@@ -403,14 +403,7 @@ export function SyncPage() {
                         <ShieldOff size={ICON_SIZE.sm} />
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => store.forgetPeer(peer.id)}
-                      title={t('settings:sync_forget', { defaultValue: 'Forget' })}
-                    >
-                      <Trash2 size={ICON_SIZE.sm} />
-                    </Button>
+                    <DeleteButton onClick={() => store.forgetPeer(peer.id)} title={t('settings:sync_forget', { defaultValue: 'Forget' })} iconOnly />
                   </div>
                 </div>
               ))}

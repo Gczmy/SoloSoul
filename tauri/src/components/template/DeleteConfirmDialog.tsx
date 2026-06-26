@@ -57,7 +57,7 @@ export function DeleteConfirmDialog({
           <Button variant="secondary" onClick={onCancel}>
             {t('common:cancel') || '取消'}
           </Button>
-          <Button variant="danger" onClick={onConfirm}>
+          <Button variant="danger-outline" onClick={onConfirm}>
             {t('common:delete') || '删除'}
           </Button>
         </div>

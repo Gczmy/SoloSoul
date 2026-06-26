@@ -232,19 +232,6 @@
   color: var(--accent-primary);
 }
 
-.uninstallBtn {
-  composes: actionBtn;
-  background: var(--danger-subtle);
-  color: var(--danger);
-  border-color: transparent;
-}
-
-.uninstallBtn:hover:not(:disabled) {
-  background: var(--danger);
-  color: white;
-  border-color: var(--danger);
-}
-
 .statusBadge {
   display: inline-flex;
   align-items: center;

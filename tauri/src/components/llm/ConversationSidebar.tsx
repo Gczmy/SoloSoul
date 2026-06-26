@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { Button } from '@/components/ui/Button';
-import { Plus, Pencil, Trash2, Undo2, Delete } from 'lucide-react';
+import { Plus, Pencil, Trash2, Undo2 } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
@@ -186,25 +187,14 @@ export function ConversationSidebar({
             >
               <Pencil size={ICON_SIZE.xs} />
             </button>
-            <button
+            <DeleteButton
               onClick={(e) => {
                 e.stopPropagation();
                 onSoftDelete(conv.id);
               }}
               title={t('common:delete')}
-              style={{
-                padding: 3,
-                borderRadius: 4,
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                color: '#e74c3c',
-                opacity: 0,
-              }}
-              className="sidebar-action-btn"
-            >
-              <Trash2 size={ICON_SIZE.xs} />
-            </button>
+              iconOnly
+            />
           </div>
         ))}
       </div>
@@ -323,20 +313,11 @@ export function ConversationSidebar({
                       {t('settings:ai_confirm_btn')}
                     </button>
                   ) : (
-                    <button
+                    <DeleteButton
                       onClick={() => onRequestPermanentDelete(conv.id)}
                       title="永久删除"
-                      style={{
-                        padding: 3,
-                        borderRadius: 4,
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        color: '#e74c3c',
-                      }}
-                    >
-                      <Delete size={ICON_SIZE.xs} />
-                    </button>
+                      iconOnly
+                    />
                   )}
                 </div>
               ))

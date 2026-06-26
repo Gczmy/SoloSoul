@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/Button';
 import type { ReactNode } from 'react';
 
 export interface ConfirmDialogProps {
@@ -28,8 +29,7 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   if (!open) return null;
 
-  const confirmBg = confirmStyle === 'danger' ? '#e74c3c' : 'var(--accent-primary)';
-  const confirmHoverBg = confirmStyle === 'danger' ? '#c0392b' : undefined;
+  // Remove unused confirmBg/confirmHoverBg — now using Button variant="danger-outline" or "primary"
 
   return (
     <div
@@ -68,44 +68,12 @@ export function ConfirmDialog({
           {body}
         </div>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button
-            onClick={onCancel}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-elevated)',
-              cursor: 'pointer',
-              fontSize: 'var(--text-body-sm)',
-              color: 'var(--text-primary)',
-            }}
-          >
+          <Button variant="secondary" onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button
-            onClick={onConfirm}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: 'none',
-              background: confirmBg,
-              color: 'white',
-              fontSize: 'var(--text-body-sm)',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (confirmHoverBg) e.currentTarget.style.background = confirmHoverBg;
-              else e.currentTarget.style.opacity = '0.85';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = confirmBg;
-              e.currentTarget.style.opacity = '1';
-            }}
-          >
+          </Button>
+          <Button variant={confirmStyle === 'danger' ? 'danger-outline' : 'primary'} onClick={onConfirm}>
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

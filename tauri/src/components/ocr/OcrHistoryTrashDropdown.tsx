@@ -1,5 +1,6 @@
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTranslation } from 'react-i18next';
-import { FileText, Trash2, RotateCcw } from 'lucide-react';
+import { FileText, RotateCcw } from 'lucide-react';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
@@ -182,34 +183,14 @@ export function OcrHistoryTrashDropdown({
                       }}
                     />
                   )}
-              <button
+              <DeleteButton
                 onClick={(e) => {
                   e.stopPropagation();
                   store.softDeleteEntry(entry.id);
                 }}
                 title={t('common:delete')}
-                className="ocr-history-item__btn"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
-                  e.currentTarget.style.color = '#e74c3c';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'var(--text-tertiary)';
-                }}
-                style={{
-                  padding: 2,
-                  borderRadius: 4,
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  color: 'var(--text-tertiary)',
-                  flexShrink: 1,
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <Trash2 size={ICON_SIZE.xs} />
-              </button>
+                iconOnly
+              />
                 </div>
               );
             })}
@@ -277,55 +258,17 @@ export function OcrHistoryTrashDropdown({
               >
                 <RotateCcw size={ICON_SIZE.xs} />
               </button>
-              <button
+              <DeleteButton
                 onClick={() => store.permanentlyDeleteEntry(entry.id)}
                 title={t('ocr:permanently_delete')}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
-                style={{
-                  padding: 2,
-                  borderRadius: 4,
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  color: '#e74c3c',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <Trash2 size={ICON_SIZE.xs} />
-              </button>
+                iconOnly
+              />
             </div>
           ))}
           {trash.length > 1 && (
-            <button
-              onClick={() => store.clearTrash()}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#e74c3c';
-                e.currentTarget.style.color = 'white';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = '#e74c3c';
-              }}
-              style={{
-                margin: '6px 12px',
-                padding: '6px 10px',
-                borderRadius: 6,
-                border: '1px solid #e74c3c',
-                background: 'transparent',
-                color: '#e74c3c',
-                fontSize: 'var(--text-caption)',
-                cursor: 'pointer',
-                textAlign: 'center',
-                transition: 'all 0.15s ease',
-              }}
-            >
+            <DeleteButton onClick={() => store.clearTrash()} title={t('ocr:clear_trash')}>
               {t('ocr:clear_trash')}
-            </button>
+            </DeleteButton>
           )}
         </>
       )}

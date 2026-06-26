@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
@@ -463,28 +464,15 @@ export function TrashDetailPanel({
           >
             <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} /> {t('common:restore')}
           </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            style={{
-              color: '#e74c3c',
-              border: '1px solid rgba(231,76,60,0.3)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
-              e.currentTarget.style.borderColor = 'rgba(231,76,60,0.5)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
-            }}
+          <DeleteButton
             onClick={() => {
               onRequestDelete(detailItem.id);
               onClose();
             }}
+            title={t('common:delete_permanently')}
           >
             {t('common:delete_permanently')}
-          </Button>
+          </DeleteButton>
         </div>
       </div>
     </>

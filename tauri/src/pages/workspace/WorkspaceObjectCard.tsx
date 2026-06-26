@@ -200,7 +200,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             Icon={Trash2}
             onClick={onDelete}
             title="Move to trash"
-            danger
+            dangerOutline
           />
         </div>
       </div>

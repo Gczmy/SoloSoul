@@ -8,6 +8,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -263,35 +264,9 @@ export function ObjectWorkspacePage() {
             + {t('create')}
           </button>
           {pageId && customPage && (
-            <button
-              onClick={() => setConfirmPageDelete(true)}
-              title={t('delete')}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#e74c3c';
-                e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
-                e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, #e74c3c 15%, transparent)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                color: '#e74c3c',
-                cursor: 'pointer',
-                fontSize: 'var(--text-body-sm)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
-              }}
-            >
+            <Button variant="danger-outline" size="sm" onClick={() => setConfirmPageDelete(true)} title={t('delete')}>
               <Trash size={ICON_SIZE.sm} /> {t('delete')}
-            </button>
+            </Button>
           )}
         </div>
       }

@@ -12,6 +12,7 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import { truncateFileName, formatSize, isImageMime, type AttachmentItem } from '@/lib/attachmentUtils';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
@@ -422,18 +423,18 @@ export function AttachmentViewer({
                 <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
                   <Download size={ICON_SIZE.xs} /> {t('common:download')}
                 </Button>
-                <Button variant="danger" size="sm" onClick={() => setBatchDeleteConfirm(true)}>
-                  <Trash2 size={ICON_SIZE.xs} /> {t('common:delete')}
-                </Button>
+                <DeleteButton onClick={() => setBatchDeleteConfirm(true)} title={t('common:delete')}>
+                  {t('common:delete')}
+                </DeleteButton>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 6 }}>
                 <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
                   <RotateCw size={ICON_SIZE.xs} /> {t('common:restore')}
                 </Button>
-                <Button variant="danger" size="sm" onClick={() => setBatchPermanentDeleteConfirm(true)}>
-                  <Trash2 size={ICON_SIZE.xs} /> {t('common:delete_permanently')}
-                </Button>
+                <DeleteButton onClick={() => setBatchPermanentDeleteConfirm(true)} title={t('common:delete_permanently')}>
+                  {t('common:delete_permanently')}
+                </DeleteButton>
               </div>
             )}
           </div>
@@ -509,7 +510,7 @@ export function AttachmentViewer({
                       Icon={Trash2}
                       onClick={() => setPermDeleteItem(item)}
                       title={t('common:delete_permanently')}
-                      danger
+                      dangerOutline
                       iconSize={ICON_SIZE.xs}
                     />
                   </>
@@ -562,7 +563,7 @@ export function AttachmentViewer({
                       Icon={Trash2}
                       onClick={() => handleDelete(item)}
                       title={t('common:delete')}
-                      danger
+                      dangerOutline
                       iconSize={ICON_SIZE.xs}
                     />
                   </>

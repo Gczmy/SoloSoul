@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, ChevronRight } from 'lucide-react';
+import { DeleteButton } from '@/components/ui/DeleteButton';
+import { Plus, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
@@ -290,26 +291,11 @@ export function TemplateEditor({
                       </option>
                     ))}
                   </select>
-                  <button
-                    type="button"
+                  <DeleteButton
                     onClick={() => onRemoveProperty(idx)}
                     title={t('settings:remove_field') || '删除'}
-                    style={{
-                      height: 36,
-                      width: 36,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      background: 'transparent',
-                      color: '#e74c3c',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Trash2 size={ICON_SIZE.sm} />
-                  </button>
+                    iconOnly
+                  />
                 </div>
               ))}
           </div>

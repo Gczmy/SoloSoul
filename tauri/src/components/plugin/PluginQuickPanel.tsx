@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';import { Puzzle, RefreshCw, X, Play, Download, Trash2, Loader2, ArrowUpRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';import { Puzzle, RefreshCw, X, Play, Download, Loader2, ArrowUpRight } from 'lucide-react';
 import { usePluginStore, type RunningPlugin } from '@/stores/pluginStore';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { usePluginQuickStore, type QuickPanelTab } from '@/stores/pluginQuickStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { PluginLogSection } from './shared/PluginLogSection';
@@ -258,16 +259,15 @@ export function PluginQuickPanel({
                       </button>
                     )}
                     {installed && (
-                      <button
-                        className={styles.uninstallBtn}
+                      <DeleteButton
                         onClick={() => requestConfirm(
                           t('plugin:uninstall_confirm_title', { defaultValue: 'Uninstall Plugin' }),
                           t('plugin:uninstall_confirm_message', { defaultValue: 'Are you sure you want to uninstall "{{name}}"? This action will remove the plugin and its local data.', name: displayName }),
                           () => uninstallPlugin(info.pluginId),
                         )}
-                      >
-                        <Trash2 size={ICON_SIZE.xs} />
-                      </button>
+                        title={t('plugin:uninstall', { defaultValue: 'Uninstall' })}
+                        iconOnly
+                      />
                     )}
                   </div>
                 </div>

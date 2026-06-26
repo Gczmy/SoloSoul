@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
-import { HardDrive, RotateCcw, Trash2, Plus } from 'lucide-react';
+import { HardDrive, RotateCcw, Plus } from 'lucide-react';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -236,36 +237,7 @@ export function BackupConfigPage() {
                     >
                       <RotateCcw size={ICON_SIZE.sm} />
                     </button>
-                    <button
-                      onClick={() => handleDelete(backup.id)}
-                      title={t('settings:delete_title')}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
-                        e.currentTarget.style.borderColor = 'rgba(231,76,60,0.3)';
-                        e.currentTarget.style.color = '#e74c3c';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-toolbar)';
-                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                        e.currentTarget.style.color = 'var(--accent-danger, #ef4444)';
-                      }}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: 8,
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-toolbar)',
-                        color: 'var(--accent-danger, #ef4444)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                        padding: 0,
-                      }}
-                    >
-                      <Trash2 size={ICON_SIZE.sm} />
-                    </button>
+                    <DeleteButton onClick={() => handleDelete(backup.id)} title={t('settings:delete_title')} iconOnly />
                   </div>
                 </div>
               ))}

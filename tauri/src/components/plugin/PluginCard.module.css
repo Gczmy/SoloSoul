@@ -152,18 +152,6 @@
   color: var(--text-primary);
 }
 
-.uninstallBtn {
-  background: var(--danger-subtle);
-  color: var(--danger);
-  border-color: transparent;
-}
-
-.uninstallBtn:hover:not(:disabled) {
-  background: var(--danger);
-  color: white;
-  border-color: var(--danger);
-}
-
 .runBtn {
   background: var(--success-subtle);
   color: var(--success);
