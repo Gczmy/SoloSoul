@@ -18,6 +18,8 @@ import type { UserTemplate } from '@/types/template';
 import { TrashDetailPanel } from '@/components/trash/TrashDetailPanel';
 import { TrashConfirmDialog } from '@/components/trash/TrashConfirmDialog';
 import type { TrashDetail, TrashConfirmAction } from '@/components/trash/types';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 const TIME_OPTIONS: { value: TrashTimeFilter; labelKey: string }[] = [
   { value: 'all', labelKey: 'all' },
@@ -187,7 +189,7 @@ export function TrashPage() {
                   background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
                   color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                   boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                  fontSize: 'var(--text-caption)',
+                  fontSize: 'var(--text-sm)',
                   cursor: 'pointer',
                   transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
@@ -220,7 +222,7 @@ export function TrashPage() {
                   background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
                   color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                   boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                  fontSize: 'var(--text-caption)',
+                  fontSize: 'var(--text-sm)',
                   cursor: 'pointer',
                   transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
@@ -237,7 +239,7 @@ export function TrashPage() {
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              fontSize: 'var(--text-caption)',
+              fontSize: 'var(--text-sm)',
               color: 'var(--text-secondary)',
               padding: '4px 0',
             }}
@@ -277,7 +279,7 @@ export function TrashPage() {
             <LoadingPlaceholder variant="elevated" minHeight={120} />
           </Card>
         ) : (
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
             {isLoading && hasLoaded && (
               <div
                 style={{
@@ -293,7 +295,7 @@ export function TrashPage() {
                 }}
               >
                 <Loader2
-                  size={24}
+                  size={ICON_SIZE['2xl']}
                   style={{ animation: 'spin 1s linear infinite', color: 'var(--accent-primary)' }}
                 />
               </div>
@@ -302,7 +304,7 @@ export function TrashPage() {
               <Card>
                 <div style={{ textAlign: 'center', padding: '48px 24px' }}>
                   <Trash2
-                    size={48}
+                    size={ICON_SIZE['5xl']}
                     style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
                   />
                   <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
@@ -342,12 +344,12 @@ export function TrashPage() {
                     >
                       {(() => {
                         const Icon = item.itemType === 'template' ? LayoutTemplate : item.itemType === 'page' ? Folder : FileText;
-                        return <Icon size={18} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />;
+                        return <Icon size={ICON_SIZE.xl} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />;
                       })()}
                       <div style={{ minWidth: 0 }}>
                         <div
                           style={{
-                            fontSize: 'var(--text-body-sm)',
+                            fontSize: 'var(--text-body)',
                             fontWeight: 500,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -361,7 +363,7 @@ export function TrashPage() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: 4,
-                            fontSize: 'var(--text-badge)',
+                            fontSize: 'var(--text-caption)',
                             color: 'var(--text-tertiary)',
                           }}
                         >
@@ -385,7 +387,7 @@ export function TrashPage() {
                       }}
                       title={t('common:restore')}
                     >
-                      <RotateCcw size={13} style={{ color: 'var(--accent-primary)' }} />
+                      <RotateCcw size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
                     </Button>
                     <Button
                       size="sm"
@@ -408,7 +410,7 @@ export function TrashPage() {
                       }}
                       title={t('common:delete_permanently')}
                     >
-                      <Trash2 size={13} style={{ color: '#e74c3c' }} />
+                      <Trash2 size={ICON_SIZE.sm} style={{ color: '#e74c3c' }} />
                     </Button>
                     <button
                       onClick={(e) => {
@@ -434,7 +436,7 @@ export function TrashPage() {
                       }}
                       title={t('common:details')}
                     >
-                      <Info size={16} />
+                      <Info size={ICON_SIZE.lg} />
                     </button>
                   </div>
                 </Card>
@@ -462,7 +464,7 @@ export function TrashPage() {
               {selectedIds.size} {t('settings:selected')}
             </span>
             <Button size="sm" variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={() => doRestore(Array.from(selectedIds))}>
-              <RotateCcw size={13} style={{ marginRight: 4 }} /> {t('common:restore')}
+              <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} /> {t('common:restore')}
             </Button>
             <Button
               size="sm"

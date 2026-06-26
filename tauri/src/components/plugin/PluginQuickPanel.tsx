@@ -8,6 +8,8 @@ import { PluginLogSection } from './shared/PluginLogSection';
 import { PluginResultSection } from './shared/PluginResultSection';
 import { isDevOrDebug } from '@/lib/env';
 import styles from './PluginQuickPanel.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PluginQuickPanelProps {
   position: { top: number } | null;
@@ -131,7 +133,7 @@ export function PluginQuickPanel({
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Puzzle size={16} style={{ color: 'var(--accent-primary)' }} />
+          <Puzzle size={ICON_SIZE.md} style={{ color: 'var(--accent-primary)' }} />
           <span className={styles.headerTitle}>
             {t('common:plugins', { defaultValue: 'Plugins' })}
           </span>
@@ -144,7 +146,7 @@ export function PluginQuickPanel({
             title={t('plugin:refresh', { defaultValue: 'Refresh registry' })}
           >
             <RefreshCw
-              size={14}
+              size={ICON_SIZE.sm}
               className={isLoadingMarket ? undefined : undefined}
             />
           </button>
@@ -153,14 +155,14 @@ export function PluginQuickPanel({
             onClick={handleGoFull}
             title={t('plugin:go_full', { defaultValue: 'Open full page' })}
           >
-            <ArrowUpRight size={14} />
+            <ArrowUpRight size={ICON_SIZE.sm} />
           </button>
           <button
             className={styles.headerBtn}
             onClick={onClose}
             title={t('common:close')}
           >
-            <X size={14} />
+            <X size={ICON_SIZE.sm} />
           </button>
         </div>
       </div>
@@ -218,7 +220,7 @@ export function PluginQuickPanel({
                     )}
                     {isRunning && (
                       <span className={styles.statusRunning}>
-                        <Loader2 size={10} />
+                        <Loader2 size={ICON_SIZE['2xs']} />
                         {t('plugin:status_running', { defaultValue: 'Running' })}
                       </span>
                     )}
@@ -234,9 +236,9 @@ export function PluginQuickPanel({
                         disabled={isRunning}
                       >
                         {isRunning ? (
-                          <Loader2 size={12} />
+                          <Loader2 size={ICON_SIZE.xs} />
                         ) : (
-                          <Play size={12} />
+                          <Play size={ICON_SIZE.xs} />
                         )}
                         {t('plugin:run', { defaultValue: 'Run' })}
                       </button>
@@ -251,7 +253,7 @@ export function PluginQuickPanel({
                           )
                         }
                       >
-                        <Download size={12} />
+                        <Download size={ICON_SIZE.xs} />
                         {t('plugin:install', { defaultValue: 'Install' })}
                       </button>
                     )}
@@ -264,7 +266,7 @@ export function PluginQuickPanel({
                           () => uninstallPlugin(info.pluginId),
                         )}
                       >
-                        <Trash2 size={12} />
+                        <Trash2 size={ICON_SIZE.xs} />
                       </button>
                     )}
                   </div>

@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { MouseEventHandler } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
 import styles from './BadgeIconButton.module.css';
 
 interface BadgeIconButtonProps {
@@ -16,7 +17,7 @@ interface BadgeIconButtonProps {
   danger?: boolean;
   /** If true, the button is disabled */
   disabled?: boolean;
-  /** Icon size in pixels. Default 14. */
+  /** Icon size. Default ICON_SIZE.sm (14px). */
   iconSize?: number;
   /** Custom className */
   className?: string;
@@ -39,7 +40,7 @@ export const BadgeIconButton = memo(function BadgeIconButton({
   title,
   danger = false,
   disabled = false,
-  iconSize = 14,
+  iconSize = ICON_SIZE.sm,
   className = '',
 }: BadgeIconButtonProps) {
   const hasBadge = count !== undefined && count > 0;

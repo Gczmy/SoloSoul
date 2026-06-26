@@ -5,6 +5,8 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { useToastError } from '@/hooks/useToastError';
 import { Fingerprint } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PasswordVerificationDialogProps {
   open: boolean;
@@ -157,7 +159,7 @@ export function PasswordVerificationDialog({
                 e.currentTarget.style.borderColor = 'var(--border-subtle)';
               }}
             >
-              <Fingerprint size={16} />
+              <Fingerprint size={ICON_SIZE.md} />
               {bioLoading ? '…' : biometricType}
             </button>
           ) : (

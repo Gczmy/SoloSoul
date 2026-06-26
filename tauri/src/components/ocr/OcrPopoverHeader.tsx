@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Scan, History, ArrowUpRight, X } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface OcrPopoverHeaderProps {
   showHistory: boolean;
@@ -33,7 +35,7 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <Scan size={16} style={{ color: 'var(--accent-primary)' }} />
+        <Scan size={ICON_SIZE.md} style={{ color: 'var(--accent-primary)' }} />
         <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
           {t('ocr:quick_scan_title')}
         </span>
@@ -60,7 +62,7 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
             transition: 'all 0.15s ease',
           }}
         >
-          <History size={14} />
+          <History size={ICON_SIZE.sm} />
         </button>
         <button
           onClick={() => {
@@ -80,7 +82,7 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
             transition: 'all 0.15s ease',
           }}
         >
-          <ArrowUpRight size={14} />
+          <ArrowUpRight size={ICON_SIZE.sm} />
         </button>
         <button
           onClick={onClose}
@@ -103,7 +105,7 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
             transition: 'all 0.15s ease',
           }}
         >
-          <X size={14} />
+          <X size={ICON_SIZE.sm} />
         </button>
       </div>
     </div>

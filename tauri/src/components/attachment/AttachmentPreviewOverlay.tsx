@@ -3,6 +3,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface AttachmentPreviewOverlayProps {
   item: AttachmentItem | null;
@@ -129,7 +131,7 @@ export function AttachmentPreviewOverlay({ item, onClose }: AttachmentPreviewOve
             cursor: 'pointer',
           }}
         >
-          <X size={18} />
+          <X size={ICON_SIZE.lg} />
         </button>
       </div>
 
@@ -216,7 +218,7 @@ export function AttachmentPreviewOverlay({ item, onClose }: AttachmentPreviewOve
             alignItems: 'center',
           }}
         >
-          <ZoomOut size={18} />
+          <ZoomOut size={ICON_SIZE.lg} />
         </button>
         <span style={{ minWidth: 52, textAlign: 'center' }}>{Math.round(scale * 100)}%</span>
         <button
@@ -232,7 +234,7 @@ export function AttachmentPreviewOverlay({ item, onClose }: AttachmentPreviewOve
             alignItems: 'center',
           }}
         >
-          <ZoomIn size={18} />
+          <ZoomIn size={ICON_SIZE.lg} />
         </button>
         <button
           onClick={resetZoom}
@@ -247,7 +249,7 @@ export function AttachmentPreviewOverlay({ item, onClose }: AttachmentPreviewOve
             alignItems: 'center',
           }}
         >
-          <RotateCcw size={18} />
+          <RotateCcw size={ICON_SIZE.lg} />
         </button>
       </div>
     </div>

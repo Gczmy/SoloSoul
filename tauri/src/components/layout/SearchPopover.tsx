@@ -22,6 +22,8 @@ import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import styles from './SearchPopover.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 const FILTER_PAGES = [
   { key: 'identity', labelKey: 'navigation:identity', icon: User },
@@ -283,11 +285,11 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
             <div className={styles.leftControl}>
               <div className={styles.iconWrap}>
                 <Search
-                  size={16}
+                  size={ICON_SIZE.md}
                   className={`${styles.inputIcon} ${isSearching ? styles.iconHidden : ''}`}
                 />
                 <Loader2
-                  size={16}
+                  size={ICON_SIZE.md}
                   className={`${styles.spinner} ${isSearching ? styles.spinnerVisible : ''}`}
                 />
               </div>
@@ -314,7 +316,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                 aria-label={t('common:clear')}
                 tabIndex={-1}
               >
-                <X size={14} />
+                <X size={ICON_SIZE.sm} />
               </button>
             )}
           </div>
@@ -330,7 +332,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                   className={`${styles.filterBtn} ${active ? styles.filterBtnActive : ''}`}
                   onClick={() => handleFilter(f.key)}
                 >
-                  <Icon size={12} />
+                  <Icon size={ICON_SIZE.xs} />
                   <span>{t(f.labelKey)}</span>
                 </button>
               );
@@ -426,7 +428,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
             {showDefaultView && recent.length > 0 && (
               <div className={styles.section}>
                 <div className={styles.sectionTitle}>
-                  <Clock size={13} />
+                  <Clock size={ICON_SIZE.xs} />
                   <span>{t('common:recent_searches')}</span>
                 </div>
                 {recent.map((q) => (
@@ -435,7 +437,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                     className={styles.recentItem}
                     onClick={() => handleRecentClick(q)}
                   >
-                    <Search size={13} />
+                    <Search size={ICON_SIZE.xs} />
                     <span>{q}</span>
                   </button>
                 ))}
@@ -452,7 +454,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                 navigate('/settings');
               }}
             >
-              <Settings size={16} />
+              <Settings size={ICON_SIZE.md} />
               <span>{t('navigation:settings')}</span>
             </button>
           </div>

@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import type { GuideContent } from '@/lib/guideApi';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface GuideSearchProps {
   onSearch: (query: string) => Promise<GuideContent[]>;
@@ -182,7 +184,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ position: 'relative' }}>
         <Search
-          size={18}
+          size={ICON_SIZE.lg}
           style={{
             position: 'absolute',
             left: 12,
@@ -215,7 +217,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
               padding: 4,
             }}
           >
-            <X size={16} />
+            <X size={ICON_SIZE.md} />
           </button>
         )}
       </div>

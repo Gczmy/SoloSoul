@@ -14,6 +14,8 @@ import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constant
 import { getTierLabel } from '@/lib/ocr';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
 import { Scan, FileText, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 type ScanMode = 'general' | 'mrz';
 
@@ -306,11 +308,11 @@ export function OcrPage() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                       {status?.installed ? (
-                        <CheckCircle size={16} color="var(--accent-primary)" />
+                        <CheckCircle size={ICON_SIZE.md} color="var(--accent-primary)" />
                       ) : status?.bundled ? (
-                        <AlertCircle size={16} color="var(--text-tertiary)" />
+                        <AlertCircle size={ICON_SIZE.md} color="var(--text-tertiary)" />
                       ) : (
-                        <AlertCircle size={16} color="var(--error)" />
+                        <AlertCircle size={ICON_SIZE.md} color="var(--error)" />
                       )}
                       <div>
                         <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
@@ -341,7 +343,7 @@ export function OcrPage() {
                           onClick={() => handleDownload(tier.tier)}
                           loading={isDownloading}
                         >
-                          <Download size={14} style={{ marginRight: 4 }} />
+                          <Download size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
                           {t('ocr:download')}
                         </Button>
                       )}
@@ -387,7 +389,7 @@ export function OcrPage() {
         <Card>
           <div style={{ textAlign: 'center', padding: 24 }}>
             <Scan
-              size={48}
+              size={ICON_SIZE['5xl']}
               style={{ marginBottom: 12, opacity: 0.3, color: 'var(--text-tertiary)' }}
             />
             <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 600, marginBottom: 4 }}>{t('ocr:title')}</h2>
@@ -449,7 +451,7 @@ export function OcrPage() {
             <br />
 
             <Button onClick={handleSelectFile} loading={isScanning}>
-              <FileText size={14} style={{ marginRight: 6 }} />{' '}
+              <FileText size={ICON_SIZE.sm} style={{ marginRight: 6 }} />{' '}
               {scanMode === 'mrz' ? t('ocr:select_image') : t('ocr:select_image_or_pdf')}
             </Button>
           </div>
@@ -467,7 +469,7 @@ export function OcrPage() {
                 color: 'var(--text-secondary)',
               }}
             >
-              <Loader2 size={18} className="spin" />
+              <Loader2 size={ICON_SIZE.lg} className="spin" />
               <span>{t('ocr:scanning')}</span>
             </div>
           </Card>
@@ -486,7 +488,7 @@ export function OcrPage() {
             >
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{t('ocr:result_title')}</h3>
               <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
-                <Upload size={14} style={{ marginRight: 4 }} /> {t('ocr:import_as_object')}
+                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('ocr:import_as_object')}
               </Button>
             </div>
 
@@ -558,7 +560,7 @@ export function OcrPage() {
             >
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{t('ocr:mrz_result_title')}</h3>
               <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
-                <Upload size={14} style={{ marginRight: 4 }} /> {t('ocr:import_as_object')}
+                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('ocr:import_as_object')}
               </Button>
             </div>
             <MrzResultCard result={mrzResult} />

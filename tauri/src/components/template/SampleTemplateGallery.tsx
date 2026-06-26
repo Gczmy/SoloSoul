@@ -12,6 +12,8 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { PluginBadge } from './PluginBadge';
 import { Input } from '@/components/ui/Input';
 import type { SensitivityLevel } from '@/types/template';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 const SAMPLE_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;
@@ -129,7 +131,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
               color: 'var(--text-tertiary)',
             }}
           >
-            <X size={20} />
+            <X size={ICON_SIZE.xl} />
           </button>
         </div>
         <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
@@ -298,7 +300,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <SampleIcon size={22} style={{ color: 'var(--accent-primary)' }} />
+                    <SampleIcon size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
                     <div>
                       <div style={{ fontSize: 'var(--text-body)', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                         {tpl.name}

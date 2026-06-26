@@ -9,6 +9,8 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { Bug, Download, RefreshCw } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface AuditLogEntry {
   id: number;
@@ -80,7 +82,7 @@ export function DebugLogPage() {
               color: 'var(--text-primary)',
             }}
           >
-            <RefreshCw size={14} /> {t('settings:refresh')}
+            <RefreshCw size={ICON_SIZE.sm} /> {t('settings:refresh')}
           </button>
 
           <button
@@ -98,7 +100,7 @@ export function DebugLogPage() {
               color: 'var(--text-primary)',
             }}
           >
-            <Download size={14} /> {t('settings:export')}
+            <Download size={ICON_SIZE.sm} /> {t('settings:export')}
           </button>
 
           <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
@@ -119,7 +121,7 @@ export function DebugLogPage() {
                 fontSize: 'var(--text-body-sm)',
               }}
             >
-              <Bug size={24} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
+              <Bug size={ICON_SIZE['2xl']} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
               {t('settings:no_log_entries_debug')}
             </div>
           ) : (

@@ -22,6 +22,8 @@ import { TemplatePageSelect } from './TemplatePageSelect';
 import { IconPicker } from './IconPicker';
 import { OptionsEditor }  from './OptionsEditor';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface FieldUsage {
   active: number;
@@ -129,7 +131,7 @@ export function TemplateEditor({
               flexShrink: 0,
             }}
           >
-            <ChevronRight size={14} />
+            <ChevronRight size={ICON_SIZE.sm} />
           </span>
           {React.createElement(
             editIconId && editIconId in CUSTOM_ICON_MAP
@@ -306,7 +308,7 @@ export function TemplateEditor({
                       flexShrink: 0,
                     }}
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={ICON_SIZE.sm} />
                   </button>
                 </div>
               ))}
@@ -354,7 +356,7 @@ export function TemplateEditor({
               transition: 'background 0.2s, border-color 0.2s',
             }}
           >
-            <Plus size={14} />
+            <Plus size={ICON_SIZE.sm} />
             {t('settings:add_field') || '添加字段'}
           </button>
         </div>
@@ -456,7 +458,7 @@ function DeprecatedFieldsSection({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <FieldTypeIcon type={prop.type} size={14} />
+                    <FieldTypeIcon type={prop.type} size={ICON_SIZE.sm} />
                   <span
                     style={{
                       fontSize: 'var(--text-body)',

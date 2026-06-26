@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Shield, Eye, Lock } from 'lucide-react';
 import styles from './PluginConsentDialog.module.css';
 import type { ConsentRequestEvent } from '@/lib/plugin';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PluginConsentDialogProps {
   pluginName: string;
@@ -42,7 +44,7 @@ export function PluginConsentDialog({
             const Icon = ICONS[req.sensitivityLevel] ?? Lock;
             return (
               <div key={req.requestId} className={styles.request}>
-                <Icon size={18} className={styles.icon} />
+                <Icon size={ICON_SIZE.lg} className={styles.icon} />
                 <div className={styles.meta}>
                   <span className={styles.fieldLabel}>{req.fieldLabel}</span>
                   <span className={styles.fieldId}>{req.fieldId}</span>

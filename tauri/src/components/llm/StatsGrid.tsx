@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/Card';
 import { MessageSquare, Hash, Download, Clock } from 'lucide-react';
 import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
 import type { TFunction } from 'i18next';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface StatsGridProps {
   usageCount: number;
@@ -25,25 +27,25 @@ export function StatsGrid({
 }: StatsGridProps) {
   const tiles = [
     {
-      icon: <MessageSquare size={16} color="var(--accent-primary)" />,
+      icon: <MessageSquare size={ICON_SIZE.md} color="var(--accent-primary)" />,
       label: t('settings:llm_conversations'),
       value: usageCount.toString(),
       modelValue: (m: ModelUsage) => m.count.toString(),
     },
     {
-      icon: <Hash size={16} color="var(--accent-primary)" />,
+      icon: <Hash size={ICON_SIZE.md} color="var(--accent-primary)" />,
       label: t('settings:llm_token_usage'),
       value: formatTokens(totalTokens),
       modelValue: (m: ModelUsage) => formatTokens(m.tokens),
     },
     {
-      icon: <Download size={16} color="var(--accent-primary)" />,
+      icon: <Download size={ICON_SIZE.md} color="var(--accent-primary)" />,
       label: t('settings:llm_last_load'),
       value: formatDate(lastLoadTime),
       modelValue: (m: ModelUsage) => formatDate(m.lastUsedTime),
     },
     {
-      icon: <Clock size={16} color="var(--accent-primary)" />,
+      icon: <Clock size={ICON_SIZE.md} color="var(--accent-primary)" />,
       label: t('settings:llm_last_use'),
       value: formatDate(lastUsedTime),
       modelValue: (m: ModelUsage) => formatDate(m.lastUsedTime),

@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Lock, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface SecurePasswordInputProps {
   value: string;
@@ -144,7 +146,7 @@ export function SecurePasswordInput({
         }}
       >
         <Lock
-          size={14}
+          size={ICON_SIZE.sm}
           style={{
             position: 'absolute',
             left: 12,
@@ -229,7 +231,7 @@ export function SecurePasswordInput({
                 e.currentTarget.style.color = 'var(--text-tertiary)';
               }}
             >
-              {visible ? <EyeOff size={16} /> : <Eye size={16} />}
+              {visible ? <EyeOff size={ICON_SIZE.md} /> : <Eye size={ICON_SIZE.md} />}
             </button>
           )}
 
@@ -265,7 +267,7 @@ export function SecurePasswordInput({
                   e.currentTarget.style.color = 'var(--text-tertiary)';
                 }}
               >
-                <HelpCircle size={16} />
+                <HelpCircle size={ICON_SIZE.md} />
               </button>
 
               {/* Card via Portal (not clipped by overflow) */}

@@ -96,6 +96,31 @@
   --text-caption: var(--text-xs); /* 12px */
   --text-badge: var(--text-2xs); /* 10px */
 
+  /* ── Icon Size Scale ──────────────────────────────────── */
+  --icon-2xs: 10px;
+  --icon-xs: 12px;
+  --icon-sm: 14px;
+  --icon-md: 16px;
+  --icon-lg: 18px;
+  --icon-xl: 20px;
+  --icon-2xl: 24px;
+  --icon-3xl: 32px;
+  --icon-4xl: 40px;
+  --icon-5xl: 48px;
+  --icon-6xl: 72px;
+
+  /* Semantic icon aliases */
+  --icon-inline: var(--icon-sm);
+  --icon-button: var(--icon-sm);
+  --icon-list: var(--icon-sm);
+  --icon-card: var(--icon-md);
+  --icon-nav: var(--icon-md);
+  --icon-section: var(--icon-lg);
+  --icon-page: var(--icon-xl);
+  --icon-dialog: var(--icon-2xl);
+  --icon-empty: var(--icon-5xl);
+  --icon-logo: var(--icon-6xl);
+
   /* Font weights */
   --font-normal: 400;
   --font-medium: 500;

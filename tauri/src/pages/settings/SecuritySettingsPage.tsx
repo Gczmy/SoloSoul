@@ -8,6 +8,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { BiometricSection } from '@/components/settings/BiometricSection';
 import { PasswordChangeForm } from '@/components/settings/PasswordChangeForm';
 import { AlertTriangle } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export function SecuritySettingsPage() {
   const navigate = useNavigate();
@@ -80,7 +82,7 @@ export function SecuritySettingsPage() {
                 lineHeight: 1.4,
               }}
             >
-              <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+              <AlertTriangle size={ICON_SIZE.md} style={{ flexShrink: 0, marginTop: 1 }} />
               {t('settings:auto_lock_never_warning')}
             </div>
           )}

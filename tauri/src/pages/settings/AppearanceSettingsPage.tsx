@@ -16,6 +16,8 @@ import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-re
 import type { ThemeScheme } from '@/lib/themeSchemes';
 import type { AppSettings } from '@/stores/settingsStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 const ACCENT_OPTIONS: { value: AccentPreset; label: string; color: string }[] = [
   { value: 'ocean', label: 'Ocean', color: '#5B7C99' },
@@ -236,7 +238,7 @@ export function AppearanceSettingsPage() {
                   e.currentTarget.style.color = 'var(--text-secondary)';
                 }}
               >
-                <Palette size={16} />
+                <Palette size={ICON_SIZE.md} />
                 {t('settings:more_appearances')}
               </button>
             </Card>
@@ -336,7 +338,7 @@ export function AppearanceSettingsPage() {
                         color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
                       }}
                     >
-                      <Icon size={22} />
+                      <Icon size={ICON_SIZE['2xl']} />
                       <span style={{ fontSize: 'var(--text-caption)', fontWeight: isActive ? 500 : 400 }}>
                         {t(opt.labelKey)}
                       </span>
@@ -380,7 +382,7 @@ export function AppearanceSettingsPage() {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Icon size={16} style={{ color: 'var(--text-secondary)' }} />
+                        <Icon size={ICON_SIZE.md} style={{ color: 'var(--text-secondary)' }} />
                         <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{label}</span>
                       </div>
                       <select

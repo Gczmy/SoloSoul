@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { FileText, AlertCircle, Scan } from 'lucide-react';
 import type { OcrScanEntry } from '@/stores/ocrScanStore';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface OcrResultPanelProps {
   currentEntry: OcrScanEntry | null;
@@ -24,7 +26,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
           fontSize: 'var(--text-body-sm)',
         }}
       >
-        <Scan size={32} style={{ marginBottom: 8, opacity: 1.3 }} />
+        <Scan size={ICON_SIZE['3xl']} style={{ marginBottom: 8, opacity: 1.3 }} />
         <p style={{ margin: 1 }}>{t('ocr:quick_scan_hint')}</p>
       </div>
     );
@@ -46,7 +48,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
           lineHeight: 1.4,
         }}
       >
-        <FileText size={11} style={{ flexShrink: 0 }} />
+        <FileText size={ICON_SIZE['2xs']} style={{ flexShrink: 0 }} />
         <span
           style={{
             flex: 1,
@@ -78,7 +80,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
             gap: 8,
           }}
         >
-          <AlertCircle size={16} />
+          <AlertCircle size={ICON_SIZE.md} />
           {lastScanError}
         </div>
       )}
@@ -98,7 +100,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
             gap: 8,
           }}
         >
-          <AlertCircle size={16} />
+          <AlertCircle size={ICON_SIZE.md} />
           {currentEntry.error}
         </div>
       )}

@@ -10,6 +10,8 @@ import { ExternalLink, Code, Shield, Info, Download } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { checkForUpdate, downloadAndInstallUpdate, type UpdateProgress } from '@/lib/updater';
 import { formatBytes } from '@/lib/format';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface AppInfo {
   appName: string;
@@ -99,16 +101,16 @@ export function AboutPage() {
   }, []);
 
   const links = [
-    { labelKey: 'github_repo', url: 'https://github.com/Gczmy/SoloSoul', icon: <Code size={14} /> },
+    { labelKey: 'github_repo', url: 'https://github.com/Gczmy/SoloSoul', icon: <Code size={ICON_SIZE.sm} /> },
     {
       labelKey: 'privacy_policy',
       url: `https://github.com/Gczmy/SoloSoul/blob/master/docs/${docLang}/PRIVACY_POLICY.md`,
-      icon: <Shield size={14} />,
+      icon: <Shield size={ICON_SIZE.sm} />,
     },
     {
       labelKey: 'terms_of_service',
       url: `https://github.com/Gczmy/SoloSoul/blob/master/docs/${docLang}/TERMS_OF_SERVICE.md`,
-      icon: <Info size={14} />,
+      icon: <Info size={ICON_SIZE.sm} />,
     },
   ];
 
@@ -120,7 +122,7 @@ export function AboutPage() {
       <PageContainer variant="form" gap="default">
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <ShieldLogo
-            size={72}
+            size={ICON_SIZE['6xl']}
             style={{ margin: '0 auto 14px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
           />
           <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
@@ -229,7 +231,7 @@ export function AboutPage() {
                           gap: 6,
                         }}
                       >
-                        <Download size={14} />v{info.version} → v{versionInfo.latestVersion}
+                        <Download size={ICON_SIZE.sm} />v{info.version} → v{versionInfo.latestVersion}
                       </div>
                       {versionInfo.body && (
                         <div
@@ -303,7 +305,7 @@ export function AboutPage() {
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          <Download size={14} />
+                          <Download size={ICON_SIZE.sm} />
                           {t('settings:update_now') || 'Update Now'}
                         </button>
                       )}
@@ -377,7 +379,7 @@ export function AboutPage() {
                     {link.icon}
                   </span>
                   <span style={{ flex: 1 }}>{t('settings:' + link.labelKey)}</span>
-                  <ExternalLink size={12} style={{ color: 'var(--text-tertiary)', opacity: 0.5 }} />
+                  <ExternalLink size={ICON_SIZE.xs} style={{ color: 'var(--text-tertiary)', opacity: 0.5 }} />
                 </a>
               </div>
             ))}

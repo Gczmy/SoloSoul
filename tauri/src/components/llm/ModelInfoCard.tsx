@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/Card';
 import { Cpu } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import styles from './ModelInfoCard.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ModelInfoCardProps {
   providerName: string;
@@ -41,7 +43,7 @@ export function ModelInfoCard({
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Cpu size={20} color="var(--accent-primary)" />
+          <Cpu size={ICON_SIZE.xl} color="var(--accent-primary)" />
           <span style={{ fontSize: 'var(--text-body)', fontWeight: 600 }}>{providerName}</span>
         </div>
         <span

@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { MessageSquareText, CircleAlert, CircleHelp } from 'lucide-react';
 import styles from './PluginDialog.module.css';
 import type { DialogConfig, DialogRequestEvent } from '@/lib/plugin';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PluginDialogProps {
   pluginName: string;
@@ -96,7 +98,7 @@ export function PluginDialog({ pluginName, request, onSubmit, onCancel }: Plugin
     <div className={styles.overlay}>
       <div className={styles.dialog}>
         <div className={styles.header}>
-          <Icon size={22} className={styles.icon} />
+          <Icon size={ICON_SIZE['2xl']} className={styles.icon} />
           <h3 className={styles.title}>{title}</h3>
         </div>
 

@@ -8,6 +8,8 @@ import { Card } from '@/components/ui/Card';
 
 import { HardDrive, PieChart, X } from 'lucide-react';
 import { formatBytes } from '@/lib/format';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface VaultStats {
   profileCount: number;
@@ -162,7 +164,7 @@ export function DataManagementPage() {
                 background: 'rgba(91,124,153,0.1)',
               }}
             >
-              <HardDrive size={22} style={{ color: 'var(--accent-primary)' }} />
+              <HardDrive size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
@@ -189,7 +191,7 @@ export function DataManagementPage() {
               }}
               title={t('settings:view_breakdown')}
             >
-              <PieChart size={20} />
+              <PieChart size={ICON_SIZE.xl} />
             </button>
           </div>
 
@@ -257,7 +259,7 @@ export function DataManagementPage() {
                   color: 'var(--text-tertiary)',
                 }}
               >
-                <X size={18} />
+                <X size={ICON_SIZE.lg} />
               </button>
             </div>
 

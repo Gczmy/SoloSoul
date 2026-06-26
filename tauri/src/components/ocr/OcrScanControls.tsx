@@ -3,6 +3,8 @@ import { FileText, Loader2 } from 'lucide-react';
 import { type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
 import { OCR_MODEL_SERIES } from '@/lib/constants';
 import { getTierLabel } from '@/lib/ocr';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface OcrScanControlsProps {
   activeTier: string;
@@ -192,7 +194,7 @@ export function OcrScanControls({
             transition: 'background 0.2s, border-color 0.2s, opacity 0.15s ease',
           }}
         >
-          <FileText size={16} />
+          <FileText size={ICON_SIZE.md} />
           {scanMode === 'mrz'
             ? t('ocr:select_image')
             : t('ocr:select_image_or_pdf')}
@@ -213,7 +215,7 @@ export function OcrScanControls({
             borderRadius: 10,
           }}
         >
-          <Loader2 size={18} className="spin" />
+          <Loader2 size={ICON_SIZE.lg} className="spin" />
           <span style={{ fontSize: 'var(--text-body-sm)' }}>{t('ocr:scanning')}</span>
         </div>
       )}

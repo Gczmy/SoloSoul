@@ -7,6 +7,8 @@ import { useConfirm } from '@/hooks/useConfirm';
 import styles from './PluginCard.module.css';
 import type { MarketPluginInfo, PluginManifest } from '@/lib/plugin';
 import type { RunningPlugin } from '@/stores/pluginStore';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PluginCardProps {
   info: MarketPluginInfo;
@@ -111,7 +113,7 @@ export function PluginCard({
         <div className={styles.actionsLeft}>
           {installed && info.isCompatible && (
             <button className={styles.runBtn} onClick={onRun} disabled={isRunning}>
-              {isRunning ? <Loader2 size={14} className={styles.spin} /> : <Play size={14} />}
+              {isRunning ? <Loader2 size={ICON_SIZE.sm} className={styles.spin} /> : <Play size={ICON_SIZE.sm} />}
               {isRunning
                 ? t('status_running', { defaultValue: 'Running' })
                 : t('run', { defaultValue: 'Run' })}
@@ -119,19 +121,19 @@ export function PluginCard({
           )}
           {installed && showResults && runningPlugin?.completed && (
             <button className={styles.clearActionBtn} onClick={onClear}>
-              <X size={14} />
+              <X size={ICON_SIZE.sm} />
               {t('clear', { defaultValue: 'Clear' })}
             </button>
           )}
           {!installed && info.isCompatible && (
             <button className={styles.installBtn} onClick={onInstall}>
-              <Download size={14} />
+              <Download size={ICON_SIZE.sm} />
               {t('install', { defaultValue: 'Install' })}
             </button>
           )}
           {installed && info.hasUpdate && info.isCompatible && (
             <button className={styles.updateBtn} onClick={onUpdate}>
-              <RefreshCw size={14} />
+              <RefreshCw size={ICON_SIZE.sm} />
               {t('update', { defaultValue: 'Update' })}
             </button>
           )}
@@ -143,7 +145,7 @@ export function PluginCard({
                 t('uninstall_confirm_message', { defaultValue: 'Are you sure you want to uninstall "{{name}}"? This action will remove the plugin and its local data.', name: displayName }),
                 onUninstall,
               )}>
-              <Trash2 size={14} />
+              <Trash2 size={ICON_SIZE.sm} />
               {t('uninstall', { defaultValue: 'Uninstall' })}
             </button>
           </div>

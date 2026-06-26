@@ -1,6 +1,8 @@
 import React, { InputHTMLAttributes, forwardRef, useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import styles from './Input.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -63,7 +65,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               tabIndex={-1}
               aria-label="Clear"
             >
-              <X size={14} />
+              <X size={ICON_SIZE.sm} />
             </button>
           )}
         </div>

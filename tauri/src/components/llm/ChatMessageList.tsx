@@ -5,6 +5,8 @@ import { Copy, Check, MessageSquare } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import { formatTimestamp } from '@/lib/time';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ChatMsg {
   role: string;
@@ -56,7 +58,7 @@ export const ChatMessageList = memo(function ChatMessageList({
       {messages.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 16px' }}>
           <MessageSquare
-            size={28}
+            size={ICON_SIZE['3xl']}
             style={{ marginBottom: 8, opacity: 0.25, color: 'var(--text-tertiary)' }}
           />
           <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', margin: 0 }}>
@@ -129,11 +131,11 @@ export const ChatMessageList = memo(function ChatMessageList({
               >
                 {copiedIndex === i ? (
                   <>
-                    <Check size={11} /> {t('settings:ai_copied')}
+                    <Check size={ICON_SIZE['2xs']} /> {t('settings:ai_copied')}
                   </>
                 ) : (
                   <>
-                    <Copy size={11} /> {t('settings:ai_copy')}
+                    <Copy size={ICON_SIZE['2xs']} /> {t('settings:ai_copy')}
                   </>
                 )}
               </button>

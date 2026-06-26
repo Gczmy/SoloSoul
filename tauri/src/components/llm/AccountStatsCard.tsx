@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/Card';
 import { MessageSquare, Hash } from 'lucide-react';
 import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
 import type { TFunction } from 'i18next';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface AccountStatsCardProps {
   usageCount: number;
@@ -21,7 +23,7 @@ export function AccountStatsCard({
     <Card>
       <div style={{ display: 'flex' }}>
         <StatColumn
-          icon={<MessageSquare size={20} color="var(--accent-primary)" />}
+          icon={<MessageSquare size={ICON_SIZE.xl} color="var(--accent-primary)" />}
           label={t('settings:llm_total_conversations')}
           value={usageCount.toString()}
           modelUsages={modelUsages}
@@ -31,7 +33,7 @@ export function AccountStatsCard({
           style={{ width: 1, background: 'var(--border-subtle)', margin: '0 12px', flexShrink: 0 }}
         />
         <StatColumn
-          icon={<Hash size={20} color="var(--accent-primary)" />}
+          icon={<Hash size={ICON_SIZE.xl} color="var(--accent-primary)" />}
           label={t('settings:llm_total_tokens')}
           value={formatTokens(totalTokens)}
           modelUsages={modelUsages}

@@ -2,6 +2,8 @@ import { ShieldCheck, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MrzResult } from '@/lib/ipc';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface MrzResultCardProps {
   result: MrzResult;
@@ -37,7 +39,7 @@ export function MrzResultCard({ result }: MrzResultCardProps) {
           fontWeight: 500,
         }}
       >
-        {result.checksumValid ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
+        {result.checksumValid ? <ShieldCheck size={ICON_SIZE.md} /> : <ShieldAlert size={ICON_SIZE.md} />}
         {result.checksumValid ? t('ocr:mrz_checksum_valid') : t('ocr:mrz_checksum_invalid')}
       </div>
 
@@ -84,7 +86,7 @@ export function MrzResultCard({ result }: MrzResultCardProps) {
           alignSelf: 'flex-start',
         }}
       >
-        {showRaw ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        {showRaw ? <ChevronUp size={ICON_SIZE.sm} /> : <ChevronDown size={ICON_SIZE.sm} />}
         {t('ocr:mrz_raw_lines')}
       </button>
 

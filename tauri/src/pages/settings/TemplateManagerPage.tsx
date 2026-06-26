@@ -35,6 +35,8 @@ import { DeleteConfirmDialog } from '@/components/template/DeleteConfirmDialog';
 import { SensitivityBadges } from '@/components/template/SensitivityBadges';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { retentionPeriodDays } from '@/stores/trashStore';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 const SYSTEM_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;
 
@@ -341,17 +343,17 @@ export function TemplateManagerPage() {
       actions={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Button variant="secondary" onClick={() => setShowSampleGallery(true)}>
-            <BookOpen size={16} style={{ marginRight: 4 }} />
+            <BookOpen size={ICON_SIZE.md} style={{ marginRight: 4 }} />
             {t('settings:sample_templates') || '模板示例'}
           </Button>
           <Button variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={openCreate}>
-            <Plus size={16} style={{ marginRight: 4 }} />
+            <Plus size={ICON_SIZE.md} style={{ marginRight: 4 }} />
             {t('settings:new_template') || '新建模板'}
           </Button>
         </div>
       }
     >
-      <PageContainer variant="wide" gap="default">
+      <PageContainer variant="medium" gap="default">
         {isLoading && <LoadingPlaceholder variant="base" minHeight={120} />}
         {error && <div style={{ color: 'var(--error)' }}>{error}</div>}
 
@@ -387,7 +389,7 @@ export function TemplateManagerPage() {
                       background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
                       color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                       boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                      fontSize: 'var(--text-caption)',
+                      fontSize: 'var(--text-sm)',
                       cursor: 'pointer',
                       transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                     }}
@@ -402,7 +404,7 @@ export function TemplateManagerPage() {
 
         {!isLoading && allTemplates.length === 0 && (
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>
-            <LayoutTemplate size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
+            <LayoutTemplate size={ICON_SIZE['5xl']} style={{ marginBottom: 12, opacity: 0.4 }} />
             <div>{t('settings:no_templates') || '暂无模板'}</div>
             <div style={{ fontSize: 'var(--text-caption)', marginTop: 4 }}>
               {t('settings:no_templates_hint') || '点击右上角"新建模板"创建'}
@@ -423,7 +425,7 @@ export function TemplateManagerPage() {
           <Card key={tpl.id} interactive onClick={() => setDetailTemplate(tpl)}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <TemplateIcon size={20} />
+                <TemplateIcon size={ICON_SIZE.xl} />
                 <div>
                   <div
                     style={{
@@ -481,7 +483,7 @@ export function TemplateManagerPage() {
                     if (ut) openEdit(ut);
                   }}
                 >
-                  <Pencil size={16} />
+                  <Pencil size={ICON_SIZE.md} />
                 </Button>
                 <Button
                   variant="tertiary"
@@ -489,7 +491,7 @@ export function TemplateManagerPage() {
                   onClick={() => handleDelete(tpl.id, tpl.name)}
                   style={{ color: '#e74c3c' }}
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={ICON_SIZE.md} />
                 </Button>
               </div>
             </div>

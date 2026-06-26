@@ -7,6 +7,8 @@ import { formatBytes } from '@/lib/format';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { AttachmentLimitsInfo }  from './AttachmentLimitsInfo';
 import { WarningCancelButton } from './WarningCancelButton';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PageGroup {
   sectionType: string;
@@ -277,7 +279,7 @@ export function ExportSection({
                                     marginBottom: 2,
                                   }}
                                 >
-                                  <Paperclip size={10} />
+                                  <Paperclip size={ICON_SIZE['2xs']} />
                                   <span>
                                     {t('settings:attachments_label', 'Attachments')} (
                                     {(objectAttachments.get(obj.id) || []).length})
@@ -308,7 +310,7 @@ export function ExportSection({
                                       style={{ accentColor: 'var(--accent-primary)' }}
                                     />
                                     <Paperclip
-                                      size={10}
+                                      size={ICON_SIZE['2xs']}
                                       style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
                                     />
                                     <span style={{ fontSize: 'var(--text-caption)', flex: 1 }}>

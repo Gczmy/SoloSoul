@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Send } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ChatInputBarProps {
   input: string;
@@ -147,7 +149,7 @@ export function ChatInputBar({
               <span className="dot">·</span>
             </span>
           ) : (
-            <Send size={14} />
+            <Send size={ICON_SIZE.sm} />
           )}
         </button>
       </div>

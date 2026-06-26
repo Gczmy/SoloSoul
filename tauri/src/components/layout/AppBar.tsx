@@ -1,6 +1,8 @@
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './AppBar.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface AppBarProps {
   title: string;
@@ -35,7 +37,7 @@ export function AppBar({
       <div className={styles.left}>
         {onBack && (
           <button className={styles.backButton} onClick={onBack} aria-label={t('back')}>
-            <ArrowLeft size={20} />
+            <ArrowLeft size={ICON_SIZE.xl} />
           </button>
         )}
         <h1 className={styles.title}>{title}</h1>

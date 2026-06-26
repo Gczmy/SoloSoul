@@ -70,7 +70,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-toolbar);
   color: var(--text-tertiary);
-  font-size: var(--text-caption);
+  font-size: var(--text-sm);
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -190,7 +190,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-base);
   color: var(--text-secondary);
-  font-size: var(--text-caption);
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
 }
@@ -207,7 +207,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-base);
   color: var(--text-secondary);
-  font-size: var(--text-caption);
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
 }

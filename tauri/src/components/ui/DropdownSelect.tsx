@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './DropdownSelect.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export interface DropdownSelectOption {
   value: string | number;
@@ -81,7 +83,7 @@ export function DropdownSelect({
         aria-expanded={open}
       >
         {triggerLabel}
-        <ChevronDown size={12} className={styles.chevron} />
+        <ChevronDown size={ICON_SIZE.xs} className={styles.chevron} />
       </button>
       <AnimatePresence>
         {open && (

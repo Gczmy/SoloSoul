@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, AlertTriangle, RotateCcw, CheckCircle, X } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export type OcrInstallPhase = 'installing' | 'completed' | 'error';
 
@@ -85,11 +87,11 @@ export function OcrInstallBanner({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {isError ? (
-            <AlertTriangle size={16} />
+            <AlertTriangle size={ICON_SIZE.md} />
           ) : isCompleted ? (
-            <CheckCircle size={16} />
+            <CheckCircle size={ICON_SIZE.md} />
           ) : (
-            <Loader2 size={16} className="spin" />
+            <Loader2 size={ICON_SIZE.md} className="spin" />
           )}
           <span style={{ fontWeight: 500 }}>
             {isError
@@ -123,7 +125,7 @@ export function OcrInstallBanner({
                 cursor: 'pointer',
               }}
             >
-              <RotateCcw size={13} /> {t('first_install_retry')}
+              <RotateCcw size={ICON_SIZE.xs} /> {t('first_install_retry')}
             </button>
           )}
           <button
@@ -151,7 +153,7 @@ export function OcrInstallBanner({
               padding: 0,
             }}
           >
-            <X size={14} />
+            <X size={ICON_SIZE.sm} />
           </button>
         </div>
       </div>

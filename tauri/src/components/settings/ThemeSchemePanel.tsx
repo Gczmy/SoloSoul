@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { getSchemesByMode, type ThemeScheme } from '@/lib/themeSchemes';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ThemeSchemePanelProps {
   isOpen: boolean;
@@ -78,7 +80,7 @@ export function ThemeSchemePanel({
           }}
           title={t('common:close')}
         >
-          <X size={18} />
+          <X size={ICON_SIZE.lg} />
         </button>
       </div>
 

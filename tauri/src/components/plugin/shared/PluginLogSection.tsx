@@ -4,6 +4,8 @@ import { ExpandableSection } from './ExpandableSection';
 import { CopyButton } from './CopyButton';
 import type { RunningPlugin } from '@/stores/pluginStore';
 import styles from './PluginLogSection.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PluginLogSectionProps {
   logs: RunningPlugin['logs'];
@@ -69,12 +71,12 @@ export function PluginLogSection({
         <>
           <div className={styles.statusRow}>
             <span className={`${styles.statusBadge} ${statusClass}`}>
-              {!completed && <Loader2 size={10} className={styles.spin} />}
+              {!completed && <Loader2 size={ICON_SIZE['2xs']} className={styles.spin} />}
               {statusLabel}
             </span>
             {completed ? (
               <button className={styles.clearBtn} onClick={onClear}>
-                <X size={10} />
+                <X size={ICON_SIZE['2xs']} />
                 {t('clear', { defaultValue: 'Clear' })}
               </button>
             ) : (
@@ -100,7 +102,7 @@ export function PluginLogSection({
                 getContent={getLogContent}
                 label={t('copy', { defaultValue: 'Copy' })}
                 copiedLabel={t('copied')}
-                icon={<Copy size={10} />}
+                icon={<Copy size={ICON_SIZE['2xs']} />}
                 size="sm"
               />
             )

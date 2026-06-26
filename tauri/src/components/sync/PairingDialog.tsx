@@ -3,6 +3,8 @@ import { ShieldAlert, Smartphone } from 'lucide-react';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import type { SyncPeer } from '@/stores/syncStore';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PairingDialogProps {
   isOpen: boolean;
@@ -33,7 +35,7 @@ export function PairingDialog({ isOpen, peer, onTrust, onIgnore }: PairingDialog
             color: 'var(--danger)',
           }}
         >
-          <ShieldAlert size={22} />
+          <ShieldAlert size={ICON_SIZE['2xl']} />
           <span style={{ fontSize: 'var(--text-body-sm)', lineHeight: 1.5 }}>
             {t('settings:sync_pairing_warning', {
               defaultValue:
@@ -54,7 +56,7 @@ export function PairingDialog({ isOpen, peer, onTrust, onIgnore }: PairingDialog
               background: 'var(--bg-toolbar)',
             }}
           >
-            <Smartphone size={20} style={{ color: 'var(--accent-primary)' }} />
+            <Smartphone size={ICON_SIZE.xl} style={{ color: 'var(--accent-primary)' }} />
           </div>
           <div>
             <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>{peer.name || peer.id}</div>

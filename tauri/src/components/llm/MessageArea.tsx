@@ -2,6 +2,8 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Send, RotateCw, RefreshCw, MessageSquare } from 'lucide-react';
 import { ChatMessageBubble, type ChatMsg } from '@/pages/ai/ChatMessageBubble';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 
 interface ActiveProvider {
@@ -57,7 +59,7 @@ export function MessageArea({
         {messages.length === 0 && (
           <div style={{ textAlign: 'center', padding: '64px 24px' }}>
             <MessageSquare
-              size={40}
+              size={ICON_SIZE['4xl']}
               style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
             />
             <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-tertiary)' }}>
@@ -144,7 +146,7 @@ export function MessageArea({
               <span>·</span>
               {checkingOnline ? (
                 <span style={{ color: 'var(--text-tertiary)' }}>
-                  <RefreshCw size={10} style={{ verticalAlign: 'middle' }} />{' '}
+                  <RefreshCw size={ICON_SIZE['2xs']} style={{ verticalAlign: 'middle' }} />{' '}
                   {t('settings:ai_checking')}
                 </span>
               ) : isOnline === true ? (
@@ -186,7 +188,7 @@ export function MessageArea({
                       color: '#e74c3c',
                     }}
                   >
-                    <RotateCw size={10} />
+                    <RotateCw size={ICON_SIZE['2xs']} />
                   </button>
                 </span>
               ) : null}
@@ -240,7 +242,7 @@ export function MessageArea({
               cursor: 'pointer',
             }}
           >
-            {isSending ? <span style={{ display: 'flex', gap: 2 }} /> : <Send size={16} />}
+            {isSending ? <span style={{ display: 'flex', gap: 2 }} /> : <Send size={ICON_SIZE.md} />}
           </button>
         </div>
       </div>

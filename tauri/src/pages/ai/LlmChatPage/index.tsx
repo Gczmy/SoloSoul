@@ -13,6 +13,8 @@ import { ConversationSidebar } from '@/components/llm/ConversationSidebar';
 import { MessageArea } from '@/components/llm/MessageArea';
 import { TrashConversationCard } from '@/components/llm/TrashConversationCard';
 import { useLlmChat } from './useLlmChat';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export { useLlmChat } from './useLlmChat';
 export { type Conversation, type ConversationSummary } from './useLlmChat';
@@ -96,14 +98,14 @@ export function LlmChatPage() {
               e.currentTarget.style.color = 'var(--text-primary)';
             }}
           >
-            <Settings size={14} /> {t('settings:ai_chat_configure')}
+            <Settings size={ICON_SIZE.sm} /> {t('settings:ai_chat_configure')}
           </button>
         }
       >
         <PageContainer variant="small" gap="default">
           <div style={{ textAlign: 'center', paddingTop: 48, paddingBottom: 48 }}>
             <MessageSquare
-              size={48}
+              size={ICON_SIZE['5xl']}
               style={{ marginBottom: 16, opacity: 0.3, color: 'var(--text-tertiary)' }}
             />
             <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 600, margin: '0 0 8px' }}>
@@ -164,7 +166,7 @@ export function LlmChatPage() {
                 color: 'var(--text-secondary)',
               }}
             >
-              <BarChart3 size={16} />
+              <BarChart3 size={ICON_SIZE.md} />
             </button>
           </span>
           <span className="tooltip-btn" data-tooltip={t('settings:llm_config')}>
@@ -179,7 +181,7 @@ export function LlmChatPage() {
                 color: 'var(--text-secondary)',
               }}
             >
-              <Settings size={16} />
+              <Settings size={ICON_SIZE.md} />
             </button>
           </span>
         </div>

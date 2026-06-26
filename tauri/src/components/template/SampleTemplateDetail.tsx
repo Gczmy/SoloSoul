@@ -6,6 +6,8 @@ import { PluginBadge } from './PluginBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
 import type { SensitivityLevel } from '@/types/template';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface SampleTemplateDetailProps {
   template: SampleTemplate;
@@ -70,7 +72,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
               cursor: 'pointer',
             }}
           >
-            <ArrowLeft size={14} /> {t('common:back', '返回')}
+            <ArrowLeft size={ICON_SIZE.sm} /> {t('common:back', '返回')}
           </button>
           <button
             onClick={onBack}
@@ -83,7 +85,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
               color: 'var(--text-tertiary)',
             }}
           >
-            <X size={20} />
+            <X size={ICON_SIZE.xl} />
           </button>
         </div>
 
@@ -115,7 +117,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                 <span
                   style={{ color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' }}
                 >
-                  <FieldTypeIcon type={prop.type} size={14} />
+                  <FieldTypeIcon type={prop.type} size={ICON_SIZE.sm} />
                 </span>
                 <span style={{ fontSize: 'var(--text-body)', fontWeight: 500, color: 'var(--text-primary)' }}>
                   {prop.name}

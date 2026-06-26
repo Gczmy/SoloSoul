@@ -10,6 +10,8 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Clock, RotateCcw, ChevronRight } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface SnapshotEntry {
   id: string;
@@ -68,7 +70,7 @@ export function HistoryPage() {
         ) : snapshots.length === 0 ? (
           <Card>
             <div style={{ textAlign: 'center', padding: 48 }}>
-              <Clock size={40} style={{ marginBottom: 12, opacity: 0.25 }} />
+              <Clock size={ICON_SIZE['4xl']} style={{ marginBottom: 12, opacity: 0.25 }} />
               <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
                 {t('common:no_history')}
               </p>
@@ -104,11 +106,11 @@ export function HistoryPage() {
                         onClick={() => handleRollback(s)}
                         loading={restoring === s.id}
                       >
-                        <RotateCcw size={12} style={{ marginRight: 3 }} /> {t('common:restore')}
+                        <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 3 }} /> {t('common:restore')}
                       </Button>
                     )}
                     <ChevronRight
-                      size={16}
+                      size={ICON_SIZE.md}
                       style={{ color: 'var(--text-tertiary)', marginTop: 4 }}
                     />
                   </div>

@@ -16,6 +16,8 @@ import {
   type CustomIconId,
 } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 // =============================================================================
 // RenameableNavButton — custom page button with double-click rename
@@ -378,7 +380,7 @@ export function RenameableNavButton({
                             }}
                           >
                             <IconComp
-                              size={18}
+                              size={ICON_SIZE.lg}
                               style={{
                                 color:
                                   selectedIconId === id

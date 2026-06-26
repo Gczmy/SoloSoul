@@ -11,6 +11,8 @@ import { ChatInputBar } from '@/components/llm/ChatInputBar';
 import { ConversationHistory } from '@/components/llm/ConversationHistory';
 import { UnconfiguredHint } from '@/components/llm/UnconfiguredHint';
 import { useLlmChatCore } from '@/hooks/useLlmChatCore';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 // =============================================================================
 // AiQuickChatPopover — quick AI chat floating card beside sidebar
@@ -178,7 +180,7 @@ export function AiQuickChatPopover({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <MessageSquare size={16} style={{ color: 'var(--accent-primary)' }} />
+          <MessageSquare size={ICON_SIZE.md} style={{ color: 'var(--accent-primary)' }} />
           <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
             {t('settings:ai_quick_chat_title')}
           </span>
@@ -201,7 +203,7 @@ export function AiQuickChatPopover({
                   transition: 'all 0.15s ease',
                 }}
               >
-                <Plus size={14} />
+                <Plus size={ICON_SIZE.sm} />
               </button>
               <button
                 onClick={() => setShowHistory((prev) => !prev)}
@@ -225,7 +227,7 @@ export function AiQuickChatPopover({
                   transition: 'all 0.15s ease',
                 }}
               >
-                <History size={14} />
+                <History size={ICON_SIZE.sm} />
               </button>
             </>
           )}
@@ -247,7 +249,7 @@ export function AiQuickChatPopover({
               transition: 'all 0.15s ease',
             }}
           >
-            <ArrowUpRight size={14} />
+            <ArrowUpRight size={ICON_SIZE.sm} />
           </button>
           <button
             onClick={onClose}
@@ -271,7 +273,7 @@ export function AiQuickChatPopover({
               transition: 'all 0.15s ease',
             }}
           >
-            <X size={14} />
+            <X size={ICON_SIZE.sm} />
           </button>
         </div>
       </div>

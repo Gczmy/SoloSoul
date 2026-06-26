@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export interface ProviderConfig {
   id: string;
@@ -161,7 +163,7 @@ export function ProviderManagerPanel({
                     color: 'var(--text-tertiary)',
                   }}
                 >
-                  <Settings size={14} />
+                  <Settings size={ICON_SIZE.sm} />
                 </button>
                 {!p.isBuiltIn && (
                   <button
@@ -187,7 +189,7 @@ export function ProviderManagerPanel({
           )}
         </div>
         <Button variant="secondary" size="sm" onClick={handleAddCustom} style={{ marginTop: 10 }}>
-          <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:llm_add_custom')}
+          <Plus size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('settings:llm_add_custom')}
         </Button>
       </Card>
 

@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Settings2 } from 'lucide-react';
 import styles from './PluginRunParamsDialog.module.css';
 import type { PluginParam } from '@/lib/plugin';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PluginRunParamsDialogProps {
   pluginName: string;
@@ -64,7 +66,7 @@ export function PluginRunParamsDialog({
     <div className={styles.overlay}>
       <div className={styles.dialog}>
         <div className={styles.header}>
-          <Settings2 size={20} className={styles.icon} />
+          <Settings2 size={ICON_SIZE.xl} className={styles.icon} />
           <h3 className={styles.title}>{t('run_params_title', { defaultValue: 'Run Plugin' })}</h3>
         </div>
         <p className={styles.subtitle}>

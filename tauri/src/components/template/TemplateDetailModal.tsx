@@ -6,6 +6,8 @@ import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SensitivityBadges } from './SensitivityBadges';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface DetailProperty {
   id: string;
@@ -80,7 +82,7 @@ export function TemplateDetailModal({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <LayoutTemplate size={24} color="var(--accent-primary)" />
+            <LayoutTemplate size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
             <div>
               <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin: 0 }}>
                 {detailTemplate.name}
@@ -122,7 +124,7 @@ export function TemplateDetailModal({
               color: 'var(--text-tertiary)',
             }}
           >
-            <X size={20} />
+            <X size={ICON_SIZE.xl} />
           </button>
         </div>
 
@@ -174,7 +176,7 @@ export function TemplateDetailModal({
                       alignItems: 'center',
                     }}
                   >
-                    <FieldTypeIcon type={prop.type as PropertyType} size={14} />
+                    <FieldTypeIcon type={prop.type as PropertyType} size={ICON_SIZE.sm} />
                   </span>
                   <span
                     style={{
@@ -214,7 +216,7 @@ export function TemplateDetailModal({
               }
             }}
           >
-            <Pencil size={16} style={{ marginRight: 4 }} />
+            <Pencil size={ICON_SIZE.md} style={{ marginRight: 4 }} />
             {t('common:edit') || '编辑'}
           </Button>
         </div>

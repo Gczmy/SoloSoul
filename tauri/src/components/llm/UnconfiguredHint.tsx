@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Settings } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface UnconfiguredHintProps {
   onClose: () => void;
@@ -22,7 +24,7 @@ export function UnconfiguredHint({ onClose }: UnconfiguredHintProps) {
         gap: 12,
       }}
     >
-      <MessageSquare size={36} style={{ opacity: 0.3, color: 'var(--text-tertiary)' }} />
+      <MessageSquare size={ICON_SIZE['3xl']} style={{ opacity: 0.3, color: 'var(--text-tertiary)' }} />
       <p
         style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', textAlign: 'center', margin: 0 }}
       >
@@ -55,7 +57,7 @@ export function UnconfiguredHint({ onClose }: UnconfiguredHintProps) {
           transition: 'background 0.2s, border-color 0.2s',
         }}
       >
-        <Settings size={14} /> {t('settings:ai_chat_configure')}
+        <Settings size={ICON_SIZE.sm} /> {t('settings:ai_chat_configure')}
       </button>
     </div>
   );

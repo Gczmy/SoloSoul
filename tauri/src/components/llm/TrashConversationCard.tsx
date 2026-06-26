@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { ChatMessageBubble, type ChatMsg } from '@/pages/ai/ChatMessageBubble';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface Conversation {
   id: string;
@@ -74,7 +76,7 @@ export function TrashConversationCard({
               color: 'var(--text-tertiary)',
             }}
           >
-            <X size={16} />
+            <X size={ICON_SIZE.md} />
           </button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>

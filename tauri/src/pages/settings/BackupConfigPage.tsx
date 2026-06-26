@@ -9,6 +9,8 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import { HardDrive, RotateCcw, Trash2, Plus } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface BackupInfo {
   id: string;
@@ -105,7 +107,7 @@ export function BackupConfigPage() {
               gap: 6,
             }}
           >
-            <HardDrive size={16} />
+            <HardDrive size={ICON_SIZE.md} />
             {t('settings:create_backup_title')}
           </h3>
           <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: '0 0 12px' }}>
@@ -156,7 +158,7 @@ export function BackupConfigPage() {
               {isCreating ? (
                 t('common:loading', { defaultValue: '...' })
               ) : (
-                <><Plus size={14} />{t('settings:create')}</>
+                <><Plus size={ICON_SIZE.sm} />{t('settings:create')}</>
               )}
             </button>
           </div>
@@ -172,7 +174,7 @@ export function BackupConfigPage() {
             <LoadingPlaceholder variant="elevated" minHeight={120} />
           ) : backups.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>
-              <HardDrive size={24} style={{ marginBottom: 8, opacity: 0.4 }} />
+              <HardDrive size={ICON_SIZE['2xl']} style={{ marginBottom: 8, opacity: 0.4 }} />
               <p style={{ fontSize: 'var(--text-sm)', margin: 0 }}>{t('settings:no_backups_yet')}</p>
               <p style={{ fontSize: 'var(--text-caption)', margin: '4px 0 0' }}>{t('settings:create_first_backup')}</p>
             </div>
@@ -232,7 +234,7 @@ export function BackupConfigPage() {
                         padding: 0,
                       }}
                     >
-                      <RotateCcw size={14} />
+                      <RotateCcw size={ICON_SIZE.sm} />
                     </button>
                     <button
                       onClick={() => handleDelete(backup.id)}
@@ -262,7 +264,7 @@ export function BackupConfigPage() {
                         padding: 0,
                       }}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={ICON_SIZE.sm} />
                     </button>
                   </div>
                 </div>

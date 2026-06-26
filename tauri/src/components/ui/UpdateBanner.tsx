@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Download, CheckCircle2, X } from 'lucide-react';
 import { formatBytes } from '@/lib/format';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export type UpdateBannerState = 'available' | 'downloading' | 'downloaded' | 'error';
 
@@ -67,7 +69,7 @@ export function UpdateBanner({
                 cursor: 'pointer',
               }}
             >
-              <Download size={13} /> {t('update_now')}
+              <Download size={ICON_SIZE.xs} /> {t('update_now')}
             </button>
             <button
               onClick={onSkip}
@@ -120,7 +122,7 @@ export function UpdateBanner({
 
       {state === 'downloaded' && (
         <>
-          <CheckCircle2 size={16} />
+          <CheckCircle2 size={ICON_SIZE.md} />
           <span style={{ fontWeight: 500 }}>{t('update_downloaded')}</span>
           <button
             onClick={onInstall}
@@ -181,7 +183,7 @@ export function UpdateBanner({
           }}
           aria-label={t('close')}
         >
-          <X size={16} />
+          <X size={ICON_SIZE.md} />
         </button>
       )}
     </div>

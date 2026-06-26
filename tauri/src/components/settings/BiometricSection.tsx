@@ -9,6 +9,8 @@ import { useToastError } from '@/hooks/useToastError';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { invoke } from '@tauri-apps/api/core';
 import { Fingerprint, ShieldCheck } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface BiometricSectionProps {
   accountId: string;
@@ -123,7 +125,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
             gap: 8,
           }}
         >
-          <Fingerprint size={18} />
+          <Fingerprint size={ICON_SIZE.lg} />
           {t('settings:biometric_title')}
         </h3>
         <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
@@ -136,7 +138,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {biometricEnabled && (
               <Button variant="secondary" size="sm" onClick={handleBioTest}>
-                <ShieldCheck size={14} style={{ marginRight: 4 }} />
+                <ShieldCheck size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
                 {t('settings:biometric_test_button', { type: biometryType })}
               </Button>
             )}
@@ -221,7 +223,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                 gap: 8,
               }}
             >
-              <Fingerprint size={20} />
+              <Fingerprint size={ICON_SIZE.xl} />
               {bioAction === 'enable'
                 ? t('settings:biometric_enable_prompt', { type: biometryType })
                 : t('settings:biometric_disable_prompt', { type: biometryType })}

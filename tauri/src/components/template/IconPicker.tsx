@@ -8,6 +8,8 @@ import {
   CATEGORY_LABELS,
   type CustomIconId,
 } from '@/lib/pageIcons';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface IconPickerProps {
   value: string;
@@ -118,7 +120,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
             }}
           >
             <IconComp
-              size={16}
+              size={ICON_SIZE.md}
               style={{
                 color:
                   currentId === id

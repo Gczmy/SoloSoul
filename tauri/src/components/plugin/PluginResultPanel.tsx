@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Copy, Check } from 'lucide-react';
 import styles from './PluginResultPanel.module.css';
 import type { PluginResultPayload } from '@/lib/plugin';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 // ─── 国家名称 → ISO 3166-1 alpha-2 代码映射 ───────────────────────────────
 const COUNTRY_NAME_TO_CODE: Record<string, string> = {
@@ -216,7 +218,7 @@ function PerPairCopyRow({
           title={t('copy_entry', { defaultValue: 'Copy this entry' })}
           aria-label={t('copy_entry', { defaultValue: 'Copy this entry' })}
         >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
+          {copied ? <Check size={ICON_SIZE.xs} /> : <Copy size={ICON_SIZE.xs} />}
         </button>
       </div>
       <span className={styles.pairValue}>{pair.value}</span>

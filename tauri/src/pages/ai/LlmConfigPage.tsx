@@ -19,6 +19,8 @@ import { ProviderManagerPanel, type ProviderConfig } from '@/components/llm-conf
 import { LocalEmbeddingsPanel } from '@/components/llm-config/LocalEmbeddingsPanel';
 import { KnowledgeBaseCard } from '@/components/llm-config/KnowledgeBaseCard';
 import { RiskAcceptanceDialog } from '@/components/llm-config/RiskAcceptanceDialog';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface AiFeatures {
   chat: boolean;
@@ -360,7 +362,7 @@ export function LlmConfigPage() {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <BarChart3 size={20} color="var(--accent-primary)" />
+              <BarChart3 size={ICON_SIZE.xl} color="var(--accent-primary)" />
               <div>
                 <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
                   {t('settings:llm_stats_title')}

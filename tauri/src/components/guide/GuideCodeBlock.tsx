@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface GuideCodeBlockProps {
   children?: React.ReactNode;
@@ -91,7 +93,7 @@ export function GuideCodeBlock({ children, className }: GuideCodeBlockProps) {
         }}
         title={copied ? '已复制' : '复制'}
       >
-        {copied ? <Check size={14} /> : <Copy size={14} />}
+        {copied ? <Check size={ICON_SIZE.sm} /> : <Copy size={ICON_SIZE.sm} />}
         {copied ? '已复制' : '复制'}
       </button>
       <pre

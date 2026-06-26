@@ -3,6 +3,8 @@ import { Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import { formatTimestamp } from '@/lib/time';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export interface ChatMsg {
   role: string;
@@ -103,11 +105,11 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
           >
             {isCopied ? (
               <>
-                <Check size={11} /> {copiedLabel}
+                <Check size={ICON_SIZE['2xs']} /> {copiedLabel}
               </>
             ) : (
               <>
-                <Copy size={11} /> {copyLabel}
+                <Copy size={ICON_SIZE['2xs']} /> {copyLabel}
               </>
             )}
           </button>

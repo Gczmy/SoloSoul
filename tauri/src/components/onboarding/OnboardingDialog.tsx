@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Sparkles, PlusSquare, LayoutTemplate, ShieldCheck, CheckCircle } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface OnboardingDialogProps {
   onComplete: () => void;
@@ -61,7 +63,7 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
             margin: '0 auto 20px',
           }}
         >
-          <Icon size={30} color="white" />
+          <Icon size={ICON_SIZE['3xl']} color="white" />
         </div>
 
         <h2

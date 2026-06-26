@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Upload } from 'lucide-react';
 import type { DragUploadState } from '@/hooks/useDragToAttach';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface DragUploadOverlayProps {
   dragState: DragUploadState;
@@ -61,7 +63,7 @@ export function DragUploadOverlay({
           }}
         >
           <Upload
-            size={28}
+            size={ICON_SIZE['3xl']}
             style={{ color: 'var(--accent-primary)', animation: 'dragPulse 1.2s ease-in-out infinite' }}
           />
           <div style={{ color: '#fff', fontSize: 'var(--text-body-sm)', fontWeight: 600, textAlign: 'center' }}>
@@ -128,7 +130,7 @@ export function DragUploadOverlay({
           border: '2px dashed var(--accent-primary)',
         }}
       >
-        <Upload size={24} style={{ color: 'var(--accent-primary)' }} />
+        <Upload size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
         <span style={{ color: 'var(--accent-primary)', fontSize: 'var(--text-body-sm)', fontWeight: 600 }}>
           {t('drop_to_upload')}
         </span>

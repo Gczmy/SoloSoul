@@ -9,6 +9,8 @@ import { PrimaryNavZone } from './PrimaryNavZone';
 import { SecondaryActionBar } from './SecondaryActionBar';
 import { NavButton } from './NavButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 export { RenameableNavButton } from './RenameableNavButton';
 export { AddPageButton } from './AddPageButton';
 
@@ -52,7 +54,7 @@ export function SideNavigation() {
   return (
     <nav className={styles.sideNav} aria-label={t('home')} style={navStyle}>
       <ShieldLogo
-        size={32}
+        size={ICON_SIZE['3xl']}
         style={isHorizontal ? { marginBottom: 0, marginRight: 12 } : { marginBottom: 16 }}
       />
 

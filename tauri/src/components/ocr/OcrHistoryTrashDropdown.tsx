@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { FileText, Trash2, RotateCcw } from 'lucide-react';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface OcrHistoryTrashDropdownProps {
   showTrash: boolean;
@@ -140,7 +142,7 @@ export function OcrHistoryTrashDropdown({
                   }}
                 >
                   <FileText
-                    size={12}
+                    size={ICON_SIZE.xs}
                     style={{
                       color: hasError ? '#e74c3c' : 'var(--text-tertiary)',
                       flexShrink: 0,
@@ -206,7 +208,7 @@ export function OcrHistoryTrashDropdown({
                   transition: 'all 0.15s ease',
                 }}
               >
-                <Trash2 size={12} />
+                <Trash2 size={ICON_SIZE.xs} />
               </button>
                 </div>
               );
@@ -238,7 +240,7 @@ export function OcrHistoryTrashDropdown({
                 fontSize: 'var(--text-caption)',
               }}
             >
-              <FileText size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+              <FileText size={ICON_SIZE.xs} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
               <div style={{ flex: 1, overflow: 'hidden' }}>
                 <div
                   style={{
@@ -273,7 +275,7 @@ export function OcrHistoryTrashDropdown({
                   transition: 'all 0.15s ease',
                 }}
               >
-                <RotateCcw size={12} />
+                <RotateCcw size={ICON_SIZE.xs} />
               </button>
               <button
                 onClick={() => store.permanentlyDeleteEntry(entry.id)}
@@ -294,7 +296,7 @@ export function OcrHistoryTrashDropdown({
                   transition: 'all 0.15s ease',
                 }}
               >
-                <Trash2 size={12} />
+                <Trash2 size={ICON_SIZE.xs} />
               </button>
             </div>
           ))}

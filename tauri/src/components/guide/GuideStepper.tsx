@@ -1,4 +1,6 @@
 import { ChevronRight } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface GuideStepperProps {
   title?: string;
@@ -28,7 +30,7 @@ export function GuideStepper({ title, children }: GuideStepperProps) {
             gap: 8,
           }}
         >
-          <ChevronRight size={16} style={{ color: 'var(--accent-primary)' }} />
+          <ChevronRight size={ICON_SIZE.md} style={{ color: 'var(--accent-primary)' }} />
           {title}
         </div>
       )}

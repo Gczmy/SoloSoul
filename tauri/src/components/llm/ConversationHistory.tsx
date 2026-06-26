@@ -2,6 +2,8 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MessageSquare } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ConversationSummary {
   id: string;
@@ -77,7 +79,7 @@ const ConversationHistoryItem = memo(function ConversationHistoryItem({
         background: isActive ? 'rgba(91,124,153,0.08)' : 'transparent',
       }}
     >
-      <MessageSquare size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+      <MessageSquare size={ICON_SIZE.xs} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <div
           style={{

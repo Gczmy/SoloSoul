@@ -23,6 +23,8 @@ import {
 } from './useNavigationItems';
 import styles from './SideNavigation.module.css';
 import type { NavPosition } from './NavButton';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface SecondaryActionBarProps {
   sidebarPosition: NavPosition;
@@ -246,7 +248,7 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal: _isHorizonta
       {/* Arrow toggle — full-size button */}
       <div className={styles.arrowToggle}>
         <ChevronUp
-          size={20}
+          size={ICON_SIZE.xl}
           className={`${styles.arrowIcon} ${expanded ? styles.arrowIconExpanded : ''}`}
         />
       </div>

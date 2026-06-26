@@ -10,6 +10,8 @@ import { X, RotateCcw, ChevronLeft, ChevronRight, Image, FileText, Paperclip } f
 import { formatBytes } from '@/lib/format';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, SnapshotEntry, TrashAttachment } from './types';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 /** Truncate long file names preserving extension: 'abcdefg…-.pdf' */
 function truncateFileName(fileName: string, maxLen: number = 28): string {
@@ -140,7 +142,7 @@ export function TrashDetailPanel({
               transition: 'background 0.15s, color 0.15s',
             }}
           >
-            <X size={18} />
+            <X size={ICON_SIZE.lg} />
           </button>
         </div>
 
@@ -207,7 +209,7 @@ export function TrashDetailPanel({
                   : String(p.value);
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {propType && <FieldTypeIcon type={propType} size={14} />}
+                    {propType && <FieldTypeIcon type={propType} size={ICON_SIZE.sm} />}
                     <span style={{ fontWeight: 500, flexShrink: 0 }}>{p.key}</span>
                     {sensitivity && <SensitivityBadge level={sensitivity} />}
                     <span
@@ -357,7 +359,7 @@ export function TrashDetailPanel({
                               transition: 'background 0.15s, border-color 0.15s',
                             }}
                           >
-                            <AttachIcon size={16} style={{ color: iconColor, flexShrink: 0 }} />
+                            <AttachIcon size={ICON_SIZE.md} style={{ color: iconColor, flexShrink: 0 }} />
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div
                                 style={{
@@ -459,7 +461,7 @@ export function TrashDetailPanel({
               onClose();
             }}
           >
-            <RotateCcw size={13} style={{ marginRight: 4 }} /> {t('common:restore')}
+            <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} /> {t('common:restore')}
           </Button>
           <Button
             size="sm"
@@ -548,7 +550,7 @@ function SnapshotContent({
               e.currentTarget.style.color = clampedIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
             }}
           >
-            <ChevronLeft size={14} />
+            <ChevronLeft size={ICON_SIZE.sm} />
           </button>
           <div
             style={{
@@ -597,7 +599,7 @@ function SnapshotContent({
               e.currentTarget.style.color = clampedIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
             }}
           >
-            <ChevronRight size={14} />
+            <ChevronRight size={ICON_SIZE.sm} />
           </button>
         </div>
       )}
@@ -740,7 +742,7 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {f.type && <FieldTypeIcon type={f.type} size={14} />}
+            {f.type && <FieldTypeIcon type={f.type} size={ICON_SIZE.sm} />}
             <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{f.key}</span>
             {f.sensitivityLevel && <SensitivityBadge level={f.sensitivityLevel} />}
           </div>

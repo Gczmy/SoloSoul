@@ -9,6 +9,8 @@ import type { UserTemplate } from '@/types/template';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 /** Extract displayable key-value pairs from object properties (filters internal __ fields). */
 function flattenProperties(
@@ -123,7 +125,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', minWidth: 0 }}>
           <span style={{ flexShrink: 0, display: 'flex' }}>
-            <TemplateIcon size={22} />
+            <TemplateIcon size={ICON_SIZE['2xl']} />
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
             <span style={{ fontSize: 'var(--text-body)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>

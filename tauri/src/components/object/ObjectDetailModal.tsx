@@ -21,6 +21,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ObjectDetailModalProps {
   /** 已加载的对象摘要/完整数据。与 objectId 二选一，优先使用此值。 */
@@ -405,7 +407,7 @@ export function ObjectDetailModal({
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ flexShrink: 0, display: 'flex' }}>
-                    <ObjectDetailIcon size={24} />
+                    <ObjectDetailIcon size={ICON_SIZE['2xl']} />
                   </span>
                   <div>
                     <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{obj.name}</h2>
@@ -455,7 +457,7 @@ export function ObjectDetailModal({
                     e.currentTarget.style.color = 'var(--text-tertiary)';
                   }}
                 >
-                  <X size={20} />
+                  <X size={ICON_SIZE.xl} />
                 </button>
               </div>
 
@@ -575,7 +577,7 @@ export function ObjectDetailModal({
                                 }
                               }}
                             >
-                              {sens === 'critical' ? <Lock size={12} /> : <Eye size={12} />}{' '}
+                              {sens === 'critical' ? <Lock size={ICON_SIZE.xs} /> : <Eye size={ICON_SIZE.xs} />}{' '}
                               {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
                             </button>
                           )}
@@ -611,7 +613,7 @@ export function ObjectDetailModal({
                               transition: 'all var(--duration-fast) var(--ease-smooth)',
                             }}
                           >
-                            {copiedField === f.key ? <Check size={12} /> : <Copy size={12} />}
+                            {copiedField === f.key ? <Check size={ICON_SIZE.xs} /> : <Copy size={ICON_SIZE.xs} />}
                             {copiedField === f.key ? t('common:copied') : t('common:copy')}
                           </button>
                         </div>
@@ -668,7 +670,7 @@ export function ObjectDetailModal({
                   onMouseEnter={onActionBtnEnter}
                   onMouseLeave={onActionBtnLeave}
                 >
-                  <Clock size={14} /> {t('common:history')}
+                  <Clock size={ICON_SIZE.sm} /> {t('common:history')}
                 </button>
                 <button
                   onClick={() => {
@@ -682,7 +684,7 @@ export function ObjectDetailModal({
                   onMouseEnter={onActionBtnEnter}
                   onMouseLeave={onActionBtnLeave}
                 >
-                  <Paperclip size={14} /> {t('common:attachments')}
+                  <Paperclip size={ICON_SIZE.sm} /> {t('common:attachments')}
                 </button>
                 {onEdit && (
                   <button
@@ -691,7 +693,7 @@ export function ObjectDetailModal({
                     onMouseEnter={onActionBtnEnter}
                     onMouseLeave={onActionBtnLeave}
                   >
-                    <Pencil size={14} /> {t('common:edit')}
+                    <Pencil size={ICON_SIZE.sm} /> {t('common:edit')}
                   </button>
                 )}
                 <button
@@ -709,7 +711,7 @@ export function ObjectDetailModal({
                   onMouseEnter={onDeleteBtnEnter}
                   onMouseLeave={onDeleteBtnLeave}
                 >
-                  <Trash2 size={14} /> {t('common:delete')}
+                  <Trash2 size={ICON_SIZE.sm} /> {t('common:delete')}
                 </button>
               </div>
             </>

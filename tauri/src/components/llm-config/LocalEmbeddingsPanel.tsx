@@ -3,6 +3,8 @@ import { Cpu, Download, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface EmbedModelInfo {
   id: string;
@@ -49,7 +51,7 @@ export function LocalEmbeddingsPanel({
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <Cpu size={18} color="var(--accent-primary)" />
+        <Cpu size={ICON_SIZE.lg} color="var(--accent-primary)" />
         <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600 }}>
           {t('settings:llm_embed_models_title')}
         </h3>
@@ -160,7 +162,7 @@ export function LocalEmbeddingsPanel({
                   }}
                   title={t('settings:llm_delete_model')}
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={ICON_SIZE.sm} />
                 </button>
               ) : (
                 <Button
@@ -170,7 +172,7 @@ export function LocalEmbeddingsPanel({
                   loading={downloadingId === m.info.id}
                   disabled={downloadingId !== null && downloadingId !== m.info.id}
                 >
-                  <Download size={14} style={{ marginRight: 4 }} />
+                  <Download size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
                   {t('settings:llm_download')}
                 </Button>
               )}

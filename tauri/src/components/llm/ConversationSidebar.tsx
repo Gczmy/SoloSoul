@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Plus, Pencil, Trash2, Undo2, Delete } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ConversationSummary {
   id: string;
@@ -88,7 +90,7 @@ export function ConversationSidebar({
           onClick={onNewConversation}
           style={{ width: '100%' }}
         >
-          <Plus size={14} style={{ marginRight: 4 }} /> {t('settings:ai_new_conv')}
+          <Plus size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('settings:ai_new_conv')}
         </Button>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '6px 0', minHeight: 0 }}>
@@ -182,7 +184,7 @@ export function ConversationSidebar({
               }}
               className="sidebar-action-btn"
             >
-              <Pencil size={12} />
+              <Pencil size={ICON_SIZE.xs} />
             </button>
             <button
               onClick={(e) => {
@@ -201,7 +203,7 @@ export function ConversationSidebar({
               }}
               className="sidebar-action-btn"
             >
-              <Trash2 size={12} />
+              <Trash2 size={ICON_SIZE.xs} />
             </button>
           </div>
         ))}
@@ -224,7 +226,7 @@ export function ConversationSidebar({
             color: 'var(--text-tertiary)',
           }}
         >
-          <Trash2 size={14} />
+          <Trash2 size={ICON_SIZE.sm} />
           <span>{t('settings:ai_trash')}</span>
           {trashList.length > 0 && (
             <span
@@ -302,7 +304,7 @@ export function ConversationSidebar({
                       color: '#27ae60',
                     }}
                   >
-                    <Undo2 size={12} />
+                    <Undo2 size={ICON_SIZE.xs} />
                   </button>
                   {confirmPermanentDeleteId === conv.id ? (
                     <button
@@ -333,7 +335,7 @@ export function ConversationSidebar({
                         color: '#e74c3c',
                       }}
                     >
-                      <Delete size={12} />
+                      <Delete size={ICON_SIZE.xs} />
                     </button>
                   )}
                 </div>

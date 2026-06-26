@@ -11,6 +11,8 @@ import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Fingerprint, Loader2 } from 'lucide-react';
 import styles from './LoginPage.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -199,7 +201,7 @@ export function LoginPage() {
           textAlign: 'center',
         }}
       >
-        <ShieldLogo size={48} style={{ margin: '0 auto 16px' }} />
+        <ShieldLogo size={ICON_SIZE['5xl']} style={{ margin: '0 auto 16px' }} />
         <h1 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>{t('auth:login_title')}</h1>
         <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 4 }}>
           {t('auth:login_subtitle')}
@@ -208,7 +210,7 @@ export function LoginPage() {
         {/* Loading state while bio check runs — same layout, no layout jump */}
         {!bioChecked && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
-            <Loader2 size={24} className={styles.loadingSpinner} style={{ color: 'var(--text-tertiary)' }} />
+            <Loader2 size={ICON_SIZE['2xl']} className={styles.loadingSpinner} style={{ color: 'var(--text-tertiary)' }} />
           </div>
         )}
 
@@ -291,7 +293,7 @@ export function LoginPage() {
               }}
             >
               <Fingerprint
-                size={40}
+                size={ICON_SIZE['4xl']}
                 color="var(--accent-primary)"
                 style={{ opacity: bioLoading ? 0.5 : 1 }}
               />

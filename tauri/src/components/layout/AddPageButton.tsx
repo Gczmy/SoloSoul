@@ -16,6 +16,8 @@ import {
   type CustomIconId,
 } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 // =============================================================================
 // AddPageButton — "+" button with popover for name + icon selection
@@ -214,7 +216,7 @@ export function AddPageButton({
           aria-label={t('add_page')}
           data-tauri-drag-region="false"
         >
-          <Plus size={20} />
+          <Plus size={ICON_SIZE.xl} />
         </button>
         {createPortal(nameCard, document.body)}
       </div>      {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
@@ -407,7 +409,7 @@ export function AddPageButton({
                               aria-label={id}
                             >
                               <IconComp
-                                size={16}
+                                size={ICON_SIZE.md}
                                 style={{
                                   color:
                                     id === selectedIconId

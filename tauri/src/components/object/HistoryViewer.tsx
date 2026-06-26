@@ -10,6 +10,8 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useRevealState } from '@/hooks/useRevealState';
 import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export interface SnapshotEntry {
   id: string;
@@ -361,7 +363,7 @@ export function HistoryViewer({
           <div
             style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}
           >
-            <Clock size={14} /> {t('common:history')}
+            <Clock size={ICON_SIZE.sm} /> {t('common:history')}
             <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', fontWeight: 400 }}>
               {loading ? '' : `${currentIdx + 1} / ${total}`}
             </span>
@@ -372,20 +374,20 @@ export function HistoryViewer({
               onClick={goPrev}
               title={t('common:previous') || 'Previous'}
               disabled={isOldest || loading}
-              iconSize={16}
+              iconSize={ICON_SIZE.md}
             />
             <BadgeIconButton
               Icon={ChevronRight}
               onClick={goNext}
               title={t('common:next') || 'Next'}
               disabled={isLatest || loading}
-              iconSize={16}
+              iconSize={ICON_SIZE.md}
             />
             <BadgeIconButton
               Icon={X}
               onClick={onClose}
               title={t('common:close') || 'Close'}
-              iconSize={16}
+              iconSize={ICON_SIZE.md}
             />
           </div>
         </div>

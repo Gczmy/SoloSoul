@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { useSyncStore } from '@/stores/syncStore';
 import type { SyncConflict } from '@/lib/ipc';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 function formatNodeId(bytes: number[]): string {
   return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -93,9 +95,9 @@ export function SyncPage() {
                 }}
               >
                 {store.syncEnabled ? (
-                  <Wifi size={20} color="#27ae60" />
+                  <Wifi size={ICON_SIZE.xl} color="#27ae60" />
                 ) : (
-                  <WifiOff size={20} color="#888" />
+                  <WifiOff size={ICON_SIZE.xl} color="#888" />
                 )}
               </div>
               <div>
@@ -263,7 +265,7 @@ export function SyncPage() {
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
                 {t('settings:sync_activity_title', { defaultValue: 'Sync Activity' })}
               </h3>
-              {activityOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              {activityOpen ? <ChevronUp size={ICON_SIZE.lg} /> : <ChevronDown size={ICON_SIZE.lg} />}
             </button>
 
             {activityOpen && (
@@ -355,7 +357,7 @@ export function SyncPage() {
               {t('settings:sync_known_devices_title', { defaultValue: 'Known Devices' })}
             </h3>
             <Button size="sm" variant="tertiary" onClick={loadStatus} loading={store.isLoading}>
-              <RefreshCw size={14} />
+              <RefreshCw size={ICON_SIZE.sm} />
             </Button>
           </div>
 
@@ -373,7 +375,7 @@ export function SyncPage() {
                     background: 'var(--bg-toolbar)',
                   }}
                 >
-                  <Smartphone size={18} style={{ color: 'var(--accent-primary)' }} />
+                  <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{peer.name || peer.id}</div>
                     <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
@@ -398,7 +400,7 @@ export function SyncPage() {
                         onClick={() => store.trustPeer(peer.id, false)}
                         title={t('settings:sync_revoke', { defaultValue: 'Revoke' })}
                       >
-                        <ShieldOff size={14} />
+                        <ShieldOff size={ICON_SIZE.sm} />
                       </Button>
                     )}
                     <Button
@@ -407,7 +409,7 @@ export function SyncPage() {
                       onClick={() => store.forgetPeer(peer.id)}
                       title={t('settings:sync_forget', { defaultValue: 'Forget' })}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={ICON_SIZE.sm} />
                     </Button>
                   </div>
                 </div>

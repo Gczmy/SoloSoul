@@ -14,6 +14,8 @@ import { pluginCommands, PluginParam, PluginTier } from '@/lib/plugin';
 import { isDevOrDebug } from '@/lib/env';
 import { useToastError } from '@/hooks/useToastError';
 import styles from './PluginDashboardPage.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 type Tab = 'all' | 'installed' | 'running' | 'logs';
 const TIERS: PluginTier[] = ['p0', 'p1', 'p2', 'p3', 'p4'];
@@ -190,7 +192,7 @@ export function PluginDashboardPage() {
           title={t('plugin:refresh', { defaultValue: 'Refresh registry' })}
         >
           <RefreshCw
-            size={16}
+            size={ICON_SIZE.md}
             className={`${styles.refreshIcon} ${isLoadingMarket ? styles.spinning : ''}`}
           />
           <span>{t('plugin:refresh', { defaultValue: 'Refresh' })}</span>

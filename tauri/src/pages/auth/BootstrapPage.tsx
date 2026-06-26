@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { AlertTriangle } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export function BootstrapPage() {
   const navigate = useNavigate();
@@ -125,7 +127,7 @@ export function BootstrapPage() {
               textAlign: 'left',
             }}
           >
-            <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+            <AlertTriangle size={ICON_SIZE.md} style={{ flexShrink: 0, marginTop: 1 }} />
             {t('auth:master_password_warning')}
           </div>
           <Button type="submit" loading={isLoading} style={{ width: '100%', marginTop: 8 }}>

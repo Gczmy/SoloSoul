@@ -7,6 +7,8 @@ import { LayoutTemplate } from 'lucide-react';
 import type { UserTemplate } from '@/types/template';
 import type { ObjectData } from '@/stores/objectStore';
 import type { CustomPage } from '@/stores/settingsStore';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ObjectTemplateSelectorProps {
   isNew: boolean;
@@ -137,7 +139,7 @@ export function ObjectTemplateSelector({
             }}
             title={t('editor:manage_templates')}
           >
-            <LayoutTemplate size={14} /> {t('editor:manage_templates')}
+            <LayoutTemplate size={ICON_SIZE.sm} /> {t('editor:manage_templates')}
           </button>
           {visibleTemplates.length === 0 && (
             <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)', padding: '8px 0' }}>

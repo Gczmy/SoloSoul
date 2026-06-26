@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface AttachmentPreviewProps {
   fileName: string;
@@ -55,7 +57,7 @@ export function AttachmentPreview({
             </>
           )}
           <button onClick={onClose} style={{ ...btnStyle, fontSize: 'var(--text-section-title)' }}>
-            <X size={18} />
+            <X size={ICON_SIZE.lg} />
           </button>
         </div>
       </div>

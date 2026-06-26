@@ -18,6 +18,8 @@ import {
   type GuideContent,
 } from '@/lib/guideApi';
 import { BookOpen, RefreshCw, Loader2 } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export function HelpPage() {
   const navigate = useNavigate();
@@ -141,7 +143,7 @@ export function HelpPage() {
       title={content ? content.title : t('settings:items.help_docs')}
       onBack={handleBack}
       actions={
-        guideId ? undefined : <BookOpen size={20} style={{ color: 'var(--text-secondary)' }} />
+        guideId ? undefined : <BookOpen size={ICON_SIZE.xl} style={{ color: 'var(--text-secondary)' }} />
       }
     >
       <PageContainer variant="wide" gap="default">
@@ -174,7 +176,7 @@ export function HelpPage() {
                 cursor: 'pointer',
               }}
             >
-              <RefreshCw size={14} />
+              <RefreshCw size={ICON_SIZE.sm} />
               重试
             </button>
           </div>
@@ -194,7 +196,7 @@ export function HelpPage() {
               }}
             >
               <Loader2
-                size={24}
+                size={ICON_SIZE['2xl']}
                 style={{
                   animation: 'spin 1s linear infinite',
                   color: 'var(--accent-primary)',

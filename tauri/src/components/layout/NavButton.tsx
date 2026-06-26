@@ -3,6 +3,8 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
 import styles from './NavButton.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export type NavPosition = 'left' | 'right' | 'top' | 'bottom';
 
@@ -183,7 +185,7 @@ export function NavButton({
         style={isHorizontal ? { width: 40, height: 40, borderRadius: 10 } : {}}
         data-tauri-drag-region="false"
       >
-        <Icon size={20} />
+        <Icon size={ICON_SIZE.xl} />
       </button>
       {createPortal(nameCard, document.body)}
       {createPortal(activeIndicator, document.body)}

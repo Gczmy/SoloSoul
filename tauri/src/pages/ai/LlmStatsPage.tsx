@@ -17,6 +17,8 @@ import { TokenBreakdownCard } from '@/components/llm/TokenBreakdownCard';
 import { DailySparklineCard } from '@/components/llm/DailySparklineCard';
 import { ModelUsageCard } from '@/components/llm/ModelUsageCard';
 import { BarChart3, RotateCcw } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ProviderConfig {
   id: string;
@@ -125,7 +127,7 @@ export function LlmStatsPage() {
         {!hasData ? (
           <div style={{ textAlign: 'center', padding: '48px 24px' }}>
             <BarChart3
-              size={48}
+              size={ICON_SIZE['5xl']}
               style={{ marginBottom: 16, opacity: 0.25, color: 'var(--text-tertiary)' }}
             />
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
@@ -200,7 +202,7 @@ export function LlmStatsPage() {
                 onClick={() => setShowResetDialog(true)}
                 style={{ width: '100%' }}
               >
-                <RotateCcw size={14} style={{ marginRight: 4 }} /> {t('settings:llm_reset_stats')}
+                <RotateCcw size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('settings:llm_reset_stats')}
               </Button>
             </section>
           </>

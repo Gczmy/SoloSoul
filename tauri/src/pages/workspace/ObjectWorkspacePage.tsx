@@ -27,6 +27,8 @@ import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 import { WorkspaceCategoryTabs } from '@/components/workspace/WorkspaceCategoryTabs';
 import { ConfirmDeleteDialog } from '@/components/workspace/ConfirmDeleteDialog';
 import { useWorkspacePasswordGuard } from '@/hooks/useWorkspacePasswordGuard';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export function ObjectWorkspacePage() {
   const navigate = useNavigate();
@@ -288,7 +290,7 @@ export function ObjectWorkspacePage() {
                 transition: 'border-color 0.2s, box-shadow 0.2s, background 0.2s',
               }}
             >
-              <Trash size={14} /> {t('delete')}
+              <Trash size={ICON_SIZE.sm} /> {t('delete')}
             </button>
           )}
         </div>

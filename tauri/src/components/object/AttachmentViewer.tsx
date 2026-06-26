@@ -15,6 +15,8 @@ import { truncateFileName, formatSize, isImageMime, type AttachmentItem } from '
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export type { AttachmentItem } from '@/lib/attachmentUtils';
 
@@ -346,7 +348,7 @@ export function AttachmentViewer({
                 gap: 8,
               }}
             >
-              <Paperclip size={14} /> {t('common:attachments')}
+              <Paperclip size={ICON_SIZE.sm} /> {t('common:attachments')}
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
               <button
@@ -390,7 +392,7 @@ export function AttachmentViewer({
               title={t('common:upload') || 'Upload'}
             />
           )}
-          <BadgeIconButton Icon={X} onClick={onClose} title={t('common:close') || 'Close'} iconSize={16} />
+          <BadgeIconButton Icon={X} onClick={onClose} title={t('common:close') || 'Close'} iconSize={ICON_SIZE.md} />
         </div>
         {/* 批量操作工具栏 */}
         {selectedIds.size > 0 && displayItems.length > 0 && (
@@ -417,19 +419,19 @@ export function AttachmentViewer({
             {!showTrash ? (
               <div style={{ display: 'flex', gap: 6 }}>
                 <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
-                  <Download size={12} /> {t('common:download')}
+                  <Download size={ICON_SIZE.xs} /> {t('common:download')}
                 </Button>
                 <Button variant="danger" size="sm" onClick={() => setBatchDeleteConfirm(true)}>
-                  <Trash2 size={12} /> {t('common:delete')}
+                  <Trash2 size={ICON_SIZE.xs} /> {t('common:delete')}
                 </Button>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 6 }}>
                 <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
-                  <RotateCw size={12} /> {t('common:restore')}
+                  <RotateCw size={ICON_SIZE.xs} /> {t('common:restore')}
                 </Button>
                 <Button variant="danger" size="sm" onClick={() => setBatchPermanentDeleteConfirm(true)}>
-                  <Trash2 size={12} /> {t('common:delete_permanently')}
+                  <Trash2 size={ICON_SIZE.xs} /> {t('common:delete_permanently')}
                 </Button>
               </div>
             )}
@@ -471,11 +473,11 @@ export function AttachmentViewer({
                   onClick={(e) => { e.stopPropagation(); toggleSelect(compositeKey); }}
                 />
                 {item.mimeType.startsWith('image/') ? (
-                  <Image size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
+                  <Image size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
                 ) : item.mimeType === 'application/pdf' ? (
-                  <FileText size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
+                  <FileText size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
                 ) : (
-                  <Paperclip size={14} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
+                  <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
@@ -500,14 +502,14 @@ export function AttachmentViewer({
                       Icon={RotateCw}
                       onClick={() => handleRestore(item)}
                       title={t('common:restore')}
-                      iconSize={12}
+                      iconSize={ICON_SIZE.xs}
                     />
                     <BadgeIconButton
                       Icon={Trash2}
                       onClick={() => setPermDeleteItem(item)}
                       title={t('common:delete_permanently')}
                       danger
-                      iconSize={12}
+                      iconSize={ICON_SIZE.xs}
                     />
                   </>
                 ) : (
@@ -539,19 +541,19 @@ export function AttachmentViewer({
                           Icon={Eye}
                           onClick={() => handlePreview(item)}
                           title="Preview"
-                          iconSize={12}
+                          iconSize={ICON_SIZE.xs}
                         />
                         <BadgeIconButton
                           Icon={Edit2}
                           onClick={() => handleStartRename(item)}
                           title={t('common:rename')}
-                          iconSize={12}
+                          iconSize={ICON_SIZE.xs}
                         />
                         <BadgeIconButton
                           Icon={Download}
                           onClick={() => handleDownload(item)}
                           title={t('common:download')}
-                          iconSize={12}
+                          iconSize={ICON_SIZE.xs}
                         />
                       </>
                     )}
@@ -560,7 +562,7 @@ export function AttachmentViewer({
                       onClick={() => handleDelete(item)}
                       title={t('common:delete')}
                       danger
-                      iconSize={12}
+                      iconSize={ICON_SIZE.xs}
                     />
                   </>
                 )}

@@ -8,6 +8,8 @@ import { useToastError } from '@/hooks/useToastError';
 import { commands, type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
 import { getTierLabel } from '@/lib/ocr';
 import { Download, CheckCircle, AlertCircle } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export function OcrSettingsPage() {
   const navigate = useNavigate();
@@ -148,11 +150,11 @@ export function OcrSettingsPage() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                     {status?.installed ? (
-                      <CheckCircle size={16} color="var(--accent-primary)" />
+                      <CheckCircle size={ICON_SIZE.md} color="var(--accent-primary)" />
                     ) : status?.bundled ? (
-                      <AlertCircle size={16} color="var(--text-tertiary)" />
+                      <AlertCircle size={ICON_SIZE.md} color="var(--text-tertiary)" />
                     ) : (
-                      <AlertCircle size={16} color="var(--error)" />
+                      <AlertCircle size={ICON_SIZE.md} color="var(--error)" />
                     )}
                     <div>
                       <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
@@ -249,7 +251,7 @@ export function OcrSettingsPage() {
                           t('common:loading', { defaultValue: '...' })
                         ) : (
                           <>
-                            <Download size={14} />
+                            <Download size={ICON_SIZE.sm} />
                             {t('ocr:download')}
                           </>
                         )}

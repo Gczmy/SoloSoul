@@ -11,6 +11,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { FolderOpen, FileText, Upload, Search } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface ScannedFile {
   path: string;
@@ -131,7 +133,7 @@ export function ScanLocalPage() {
                 background: 'rgba(91,124,153,0.1)',
               }}
             >
-              <FolderOpen size={22} style={{ color: 'var(--accent-primary)' }} />
+              <FolderOpen size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>Select Directory</div>
@@ -140,7 +142,7 @@ export function ScanLocalPage() {
               </div>
             </div>
             <Button onClick={handleSelectDir} loading={isScanning}>
-              <Search size={14} style={{ marginRight: 4 }} /> Scan
+              <Search size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> Scan
             </Button>
           </div>
         </Card>
@@ -153,7 +155,7 @@ export function ScanLocalPage() {
                 {files.length} file(s) found
               </span>
               <Button size="sm" variant="secondary" onClick={handleImportAll}>
-                <Upload size={14} style={{ marginRight: 4 }} /> Import All
+                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> Import All
               </Button>
             </div>
             {files.map((file) => (
@@ -162,7 +164,7 @@ export function ScanLocalPage() {
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <FileText size={20} style={{ color: 'var(--text-tertiary)' }} />
+                    <FileText size={ICON_SIZE.xl} style={{ color: 'var(--text-tertiary)' }} />
                     <div>
                       <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{file.name}</div>
                       <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>

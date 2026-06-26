@@ -22,6 +22,8 @@ import { zhCN, enUS } from 'date-fns/locale';
 import { Calendar, X } from 'lucide-react';
 import { DropdownSelect } from '@/components/ui/DropdownSelect';
 import styles from './DatePicker.module.css';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface DatePickerProps {
   value?: string;
@@ -152,7 +154,7 @@ export function DatePicker({
         aria-expanded={open}
       >
         <Calendar
-          size={14}
+          size={ICON_SIZE.sm}
           style={{ marginRight: 8, verticalAlign: 'middle', color: 'var(--text-tertiary)' }}
         />
         <span className={selectedDate ? undefined : styles.placeholder}>{displayText}</span>
@@ -165,7 +167,7 @@ export function DatePicker({
           aria-label="清除"
           title="清除"
         >
-          <X size={14} />
+          <X size={ICON_SIZE.sm} />
         </button>
       )}
 

@@ -28,6 +28,8 @@ import { useSidebarHoverStore } from '@/stores/sidebarHoverStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import type { CustomPage } from '@/stores/settingsStore';
 import type { WheelEvent, UIEvent } from 'react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 const FUNCTION_BAR_HEIGHT = 48;
 
@@ -300,7 +302,7 @@ export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('
     >
       {/* Left zone: logo + primary pages + custom pages */}
       <div className={styles.leftZone} data-tauri-drag-region="false">
-        <ShieldLogo size={32} />
+        <ShieldLogo size={ICON_SIZE['3xl']} />
 
         <nav className={styles.primaryZone} aria-label={t('home')}>
           {/* HOME — always visible */}
@@ -356,7 +358,7 @@ export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('
           {/* Arrow toggle — full-size button */}
           <div className={styles.horizontalArrowToggle}>
             <ChevronRight
-              size={20}
+              size={ICON_SIZE.xl}
               className={`${styles.horizontalArrowIcon} ${!expanded ? styles.horizontalArrowIconExpanded : ''}`}
             />
           </div>

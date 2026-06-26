@@ -13,6 +13,8 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { Search, Download, X } from 'lucide-react';
 import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface AuditLogEntry {
   id: number;
@@ -174,7 +176,7 @@ export function OperationLogPage() {
               padding: '0 10px',
             }}
           >
-            <Search size={14} style={{ color: 'var(--text-tertiary)' }} />
+            <Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />
             <input
               type="text"
               value={searchQuery}
@@ -220,12 +222,12 @@ export function OperationLogPage() {
                   e.currentTarget.style.color = 'var(--text-tertiary)';
                 }}
               >
-                <X size={14} />
+                <X size={ICON_SIZE.sm} />
               </button>
             )}
           </div>
           <Button variant="secondary" size="sm" onClick={handleExport}>
-            <Download size={14} />
+            <Download size={ICON_SIZE.sm} />
             {t('settings:export_logs')}
           </Button>
         </div>
@@ -263,7 +265,7 @@ export function OperationLogPage() {
                   color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                   boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                   cursor: 'pointer',
-                  fontSize: 'var(--text-caption)',
+                  fontSize: 'var(--text-sm)',
                   fontWeight: 500,
                   transition: 'all 0.15s ease',
                 }}

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Upload } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 type TabKey = 'export' | 'import';
 
@@ -71,7 +73,7 @@ export function ExportImportTabBar({ tab, onChange }: ExportImportTabBarProps) {
             }}
           >
             <Icon
-              size={16}
+              size={ICON_SIZE.md}
               style={{
                 transition: 'transform var(--duration-fast) var(--ease-smooth)',
                 transform: isActive ? 'scale(1.05)' : 'scale(1)',

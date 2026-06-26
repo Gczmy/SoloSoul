@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Info } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 export function AttachmentLimitsInfo() {
   const { t } = useTranslation('settings');
@@ -34,7 +36,7 @@ export function AttachmentLimitsInfo() {
           cursor: 'pointer',
         }}
       >
-        <Info size={14} />
+        <Info size={ICON_SIZE.sm} />
       </button>
       {show &&
         pos &&

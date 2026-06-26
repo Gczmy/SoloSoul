@@ -6,6 +6,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import { Info, AlertTriangle } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/iconSizes';
+
 
 interface PasswordChangeFormProps {
   accountId?: string;
@@ -126,7 +128,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
           lineHeight: 1.4,
         }}
       >
-        <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+        <AlertTriangle size={ICON_SIZE.md} style={{ flexShrink: 0, marginTop: 1 }} />
         {t('settings:master_password_warning')}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -157,7 +159,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
                   fontWeight: 400,
                 }}
               >
-                <Info size={12} />
+                <Info size={ICON_SIZE.xs} />
                 {t('common:password_length_requirement')}
               </span>
             </span>
