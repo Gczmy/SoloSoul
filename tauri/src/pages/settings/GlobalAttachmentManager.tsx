@@ -873,7 +873,7 @@ export function GlobalAttachmentManager() {
         )}
 
         {/* Batch toolbar (活跃标签 → 批量删除，回收站标签 → 批量恢复) */}
-        {selectedIds.size > 0 && (
+        {!loading && (
           <Card style={{ padding: '8px 14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 'var(--text-sm)' }}>
               <div
@@ -882,12 +882,12 @@ export function GlobalAttachmentManager() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  cursor: 'pointer',
+                  cursor: displayPages.length > 0 ? 'pointer' : 'default',
                   color: 'var(--text-secondary)',
                   userSelect: 'none',
                 }}
               >
-                <SelectCheckbox checked={allSelected} />
+                <SelectCheckbox checked={allSelected} disabled={displayPages.length === 0} />
                 {allSelected ? t('common:deselect_all') : t('common:select_all')}
               </div>
 
@@ -897,7 +897,7 @@ export function GlobalAttachmentManager() {
                 {t('common:selected_count', { n: selectedIds.size })}
               </span>
 
-              {!showTrash ? (
+              {selectedIds.size > 0 && !showTrash ? (
                 <div style={{ display: 'flex', gap: 6 }}>
                   <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
                     <Download size={ICON_SIZE.sm} /> {t('common:download')}
@@ -906,7 +906,7 @@ export function GlobalAttachmentManager() {
                     <Trash2 size={ICON_SIZE.sm} /> {t('common:delete')}
                   </Button>
                 </div>
-              ) : (
+              ) : selectedIds.size > 0 && showTrash ? (
                 <div style={{ display: 'flex', gap: 6 }}>
                   <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
                     <RotateCcw size={ICON_SIZE.sm} /> {t('common:restore')}
@@ -915,7 +915,7 @@ export function GlobalAttachmentManager() {
                     <Trash2 size={ICON_SIZE.sm} /> {t('common:delete_permanently')}
                   </Button>
                 </div>
-              )}
+              ) : null}
             </div>
           </Card>
         )}
