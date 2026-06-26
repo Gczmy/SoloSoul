@@ -187,30 +187,16 @@ export function WorkspaceObjectCard({
           <button
             onClick={onEdit}
             title="Edit"
+            className="interactive-icon"
             style={iconButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-tertiary)';
-            }}
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={onDelete}
             title="Move to trash"
+            className="interactive-icon-danger"
             style={iconButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(231,76,60,0.1)';
-              e.currentTarget.style.color = '#e74c3c';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-tertiary)';
-            }}
           >
             <Trash2 size={14} />
           </button>
@@ -320,6 +306,7 @@ function CountButton({
       <button
         onClick={onClick}
         title={title}
+        className="interactive-icon"
         style={{
           width: 32,
           height: 32,
@@ -328,18 +315,7 @@ function CountButton({
           justifyContent: 'center',
           border: 'none',
           borderRadius: 8,
-          background: 'transparent',
           cursor: 'pointer',
-          color: 'var(--text-tertiary)',
-          transition: 'all 0.15s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-          e.currentTarget.style.color = 'var(--accent-primary)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = 'var(--text-tertiary)';
         }}
       >
         <Icon size={14} />

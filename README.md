@@ -190,4 +190,6 @@ npm run tauri build
 
 ## 许可证
 
-Private — All Rights Reserved
+SoloSoul 基于 **MIT License** 发布。详见 [LICENSE](LICENSE) 文件。
+
+SoloSoul is released under the **MIT License**. See the [LICENSE](LICENSE) file for details.

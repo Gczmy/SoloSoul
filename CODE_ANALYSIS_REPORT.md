@@ -341,7 +341,7 @@
 | P2-003 unsafe 缺少注释 | ✅ 已修复 | 5 文件共 24 处 unsafe 块已补充 `// SAFETY:` 注释 |
 | P2-004 solosoul-plugin 版本未接入 workspace | ✅ 已修复 | 已改用 `version.workspace = true`，补充 edition/authors/license/repository |
 | P2-005 solosoul-vault 缺少 license/repository | ✅ 已修复 | 已补充 `license.workspace = true` 和 `repository.workspace = true` |
-| P2-006 Cargo 与 README 许可证冲突 | ✅ 真实 | MIT vs Private |
+| P2-006 Cargo 与 README 许可证冲突 | ✅ 已修复 | 创建 LICENSE 文件 (MIT)，更新 README 许可证声明 |
 | P2-007 AGENTS.md 过时路径 | ✅ 已修复 | 更新 docs/ 结构、核心路径、密码对话框路径、快速参考表共 10 处 |
 | P2-008 OCR 版本/敏感度分级文档冲突 | ✅ 真实 | PP-OCRv4 vs v6 等 |
 | P2-009 rust-cache workspaces 路径 | ✅ 已修复 | CI 中已有 `tauri/src-tauri`, `solosoul_cli`, `tauri` 三个路径 |
@@ -380,9 +380,9 @@
 | P0-006 | P0 | **❌ 误报** | pubkey 格式正确 |
 | P0-007/008 | P0→P1 | **✅ 已修复** | 附件组件提取 |
 | P0-009 | P0→P2 | **⏳ 待修复** | 搜索 IPC 性能优化 |
-| P0-010 | P0→P2 | **⏳ 待修复** | 直接 DOM 样式 |
+| P0-010 | P0→P2 | **✅ 已修复** | 改用 CSS 交互类 |
 | P0-011 | P0→P1 | **✅ 已修复** | LLM 聊天去重 |
-| P0-012 | P0→P2 | **⏳ 待修复** | completed 事件 type guard |
+| P0-012 | P0→P2 | **✅ 已修复** | 添加 isPluginCompletedEvent 类型守卫 |
 | P0-013 | P0→P2 | **⏳ 待修复** | 导出估算边缘场景 |
 | P1-001 | P1 | **✅ 已修复** | `KdfConfig::from_env()` 已实现 |
 | P1-002 | P1 | **✅ 已修复** | Windows `icacls` 实现 |
@@ -419,24 +419,24 @@
 
 ### 第二优先级（代码规范）
 
-3. **P0-010（P2）** — 直接 DOM 样式改为 CSS 变量
-4. **P0-012（P2）** — completed 事件类型守卫
+3. ✅ **P0-010** — 已修复（CSS 交互类替代 inline style）
+4. ✅ **P0-012** — 已修复（isPluginCompletedEvent 类型守卫）
 5. **P0-013（P2）** — 导出估算 effect 边缘场景
 ### 第三优先级（文档/配置）
 
-7. **P2-006** — Cargo 与 README 许可证一致化（LICENSE 文件为空）
-8. **P2-007** — AGENTS.md 过时路径更新
-9. **P2-008** — OCR 版本/敏感度分级文档冲突
+6. ✅ **P2-006** — 已修复（创建 LICENSE 文件，更新 README）
+7. ✅ **P2-007** — 已修复（AGENTS.md 路径更新）
+8. **P2-008** — OCR 版本/敏感度分级文档冲突
 
 ### 第四优先级（批量/通用建议）
 
-10. **P1-010** — 关键模块补充测试
-11. **P2-002** — 过长函数拆分
-12. **P2-010** — 验证令牌改用 HKDF（建议性）
-13. **P2-011** — ort 候选版本风险（`2.0.0-rc.12`）
-14. **P2-013** — TypeOrEntryType untagged 歧义（待核实）
-15. **P2-017** — std::mem::forget 改用 Box::leak / OnceLock
-16. **P2-019 ~ P2-025** — 前端性能优化
+9. **P1-010** — 关键模块补充测试
+10. **P2-002** — 过长函数拆分
+11. **P2-010** — 验证令牌改用 HKDF（建议性）
+12. **P2-011** — ort 候选版本风险（`2.0.0-rc.12`）
+13. **P2-013** — TypeOrEntryType untagged 歧义（待核实）
+14. ✅ **P2-017** — 已修复（mem::forget → Box::leak）
+15. **P2-019 ~ P2-025** — 前端性能优化
 
 ### 无需修复
 

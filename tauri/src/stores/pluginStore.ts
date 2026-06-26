@@ -61,6 +61,12 @@ export function isDialogRequestEvent(event: unknown): event is DialogRequestEven
   );
 }
 
+export function isPluginCompletedEvent(value: unknown): value is { exitCode: number } {
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return typeof v.exitCode === 'number';
+}
+
 export interface RunningPlugin {
   pluginId: string;
   pluginName: string;
@@ -234,9 +240,9 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
                   next.completed = true;
                   next.toastShown = true;
                   try {
-                    const completed = JSON.parse(event.jsonData) as { exitCode: number };
-                    if (typeof completed.exitCode === 'number') {
-                      next.exitCode = completed.exitCode;
+                    const parsed = JSON.parse(event.jsonData);
+                    if (isPluginCompletedEvent(parsed)) {
+                      next.exitCode = parsed.exitCode;
                     }
                   } catch {
                     // ignore

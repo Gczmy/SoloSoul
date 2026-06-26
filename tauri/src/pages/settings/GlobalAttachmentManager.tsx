@@ -34,10 +34,6 @@ import {
   truncateFileName,
   formatSize,
   miniBtn,
-  btnHoverEnter,
-  btnHoverLeave,
-  btnDelEnter,
-  btnDelLeave,
 } from '@/lib/attachmentUtils';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
@@ -630,8 +626,7 @@ export function GlobalAttachmentManager() {
             <>
               <button
                 onClick={() => handleRestore(item, objectId)}
-                onMouseEnter={btnHoverEnter}
-                onMouseLeave={btnHoverLeave}
+                className="interactive-icon"
                 style={miniBtn}
                 title={t('common:restore')}
               >
@@ -639,8 +634,7 @@ export function GlobalAttachmentManager() {
               </button>
               <button
                 onClick={() => handlePermanentDelete(item, objectId)}
-                onMouseEnter={btnDelEnter}
-                onMouseLeave={btnDelLeave}
+                className="interactive-icon-danger"
                 style={{ ...miniBtn, color: '#e74c3c' }}
                 title={t('common:delete_permanently')}
               >
@@ -652,8 +646,7 @@ export function GlobalAttachmentManager() {
               <>
                 <button
                   onClick={() => handlePreview(item)}
-                  onMouseEnter={btnHoverEnter}
-                  onMouseLeave={btnHoverLeave}
+                  className="interactive-icon"
                   style={miniBtn}
                   title={t('common:preview')}
                 >
@@ -661,26 +654,23 @@ export function GlobalAttachmentManager() {
                 </button>
                 <button
                   onClick={() => handleStartRename(item, objectId)}
-                onMouseEnter={btnHoverEnter}
-                onMouseLeave={btnHoverLeave}
-                style={miniBtn}
-                title={t('common:rename')}
+                  className="interactive-icon"
+                  style={miniBtn}
+                  title={t('common:rename')}
                 >
                   <Edit2 size={10} />
                 </button>
                 <button
                   onClick={() => handleDownload(item)}
-                onMouseEnter={btnHoverEnter}
-                onMouseLeave={btnHoverLeave}
-                style={miniBtn}
-                title={t('common:download')}
+                  className="interactive-icon"
+                  style={miniBtn}
+                  title={t('common:download')}
                 >
                   <Download size={10} />
                 </button>
                 <button
                   onClick={() => handleSoftDelete(item, objectId)}
-                  onMouseEnter={btnDelEnter}
-                  onMouseLeave={btnDelLeave}
+                  className="interactive-icon-danger"
                   style={{ ...miniBtn, color: '#e74c3c' }}
                   title={t('common:delete')}
                 >
@@ -716,8 +706,7 @@ export function GlobalAttachmentManager() {
             borderBottom: '1px solid var(--border-subtle)',
             transition: 'background 0.15s',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          className="interactive-accent-light"
         >
           {isExpanded ? <ChevronDown size={12} style={{ flexShrink: 0 }} /> : <ChevronRight size={12} style={{ flexShrink: 0 }} />}
           <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
@@ -732,14 +721,7 @@ export function GlobalAttachmentManager() {
           {!showTrash && (
             <button
               onClick={(e) => { e.stopPropagation(); handleUpload(obj.objectId); }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--accent-primary)';
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-secondary)';
-                e.currentTarget.style.background = 'transparent';
-              }}
+              className="interactive-icon"
               style={{
                 ...miniBtn,
                 width: 22,
@@ -789,8 +771,7 @@ export function GlobalAttachmentManager() {
             borderBottom: isExpanded ? '1px solid var(--border-subtle)' : 'none',
             transition: 'background 0.15s',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 8%, var(--bg-toolbar))'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-toolbar)'; }}
+          className="interactive-toolbar"
         >
           <PageIconComp size={16} style={{ flexShrink: 0, color: 'var(--accent-primary)' }} />
           <span style={{ flex: 1 }}>{page.pageName}</span>
@@ -836,23 +817,15 @@ export function GlobalAttachmentManager() {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button
             onClick={() => { setShowTrash(false); clearSelection(); }}
-            onMouseEnter={showTrash ? (e) => {
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-            } : undefined}
-            onMouseLeave={showTrash ? (e) => {
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-            } : undefined}
+            className={!showTrash ? 'selected-accent' : ''}
             style={{
               padding: '5px 12px',
               borderRadius: 6,
               fontSize: 12,
               fontWeight: 500,
-              border: !showTrash ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-              background: !showTrash ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
-              color: !showTrash ? 'var(--accent-primary)' : 'var(--text-primary)',
-              boxShadow: !showTrash ? '0 0 0 1px var(--accent-primary)' : 'none',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-toolbar)',
+              color: 'var(--text-primary)',
               cursor: 'pointer',
               transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
             }}
@@ -862,23 +835,15 @@ export function GlobalAttachmentManager() {
           </button>
           <button
             onClick={() => { setShowTrash(true); clearSelection(); }}
-            onMouseEnter={!showTrash ? (e) => {
-              e.currentTarget.style.borderColor = '#e74c3c';
-              e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
-            } : undefined}
-            onMouseLeave={!showTrash ? (e) => {
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-            } : undefined}
+            className={showTrash ? 'selected-danger' : 'interactive-toolbar'}
             style={{
               padding: '5px 12px',
               borderRadius: 6,
               fontSize: 12,
               fontWeight: 500,
-              border: showTrash ? '1px solid #e74c3c' : '1px solid var(--border-subtle)',
-              background: showTrash ? 'color-mix(in srgb, #e74c3c 10%, transparent)' : 'var(--bg-toolbar)',
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-toolbar)',
               color: showTrash ? '#e74c3c' : 'var(--text-primary)',
-              boxShadow: showTrash ? '0 0 0 1px #e74c3c' : 'none',
               cursor: 'pointer',
               transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
             }}
@@ -891,16 +856,7 @@ export function GlobalAttachmentManager() {
 
           <button
             onClick={loadData}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = 'var(--text-secondary)';
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-            }}
+            className="interactive-toolbar"
             style={{
               padding: '5px 12px',
               borderRadius: 6,
@@ -910,7 +866,6 @@ export function GlobalAttachmentManager() {
               fontSize: 12,
               fontWeight: 500,
               cursor: 'pointer',
-              transition: 'background 0.2s, border-color 0.2s, color 0.2s',
             }}
           >
             {t('common:refresh') || 'Refresh'}
@@ -967,14 +922,7 @@ export function GlobalAttachmentManager() {
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button
                     onClick={handleBatchDownload}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    }}
+                    className="interactive-accent"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -982,26 +930,16 @@ export function GlobalAttachmentManager() {
                       padding: '4px 10px',
                       borderRadius: 6,
                       border: '1px solid var(--border-subtle)',
-                      background: 'transparent',
-                      color: 'var(--text-secondary)',
                       fontSize: 12,
                       fontWeight: 500,
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
                     }}
                   >
                     <Download size={12} /> {t('common:download')}
                   </button>
                   <button
                     onClick={() => setBatchDeleteConfirm(true)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
-                      e.currentTarget.style.borderColor = '#e74c3c';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    }}
+                    className="interactive-accent"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -1014,7 +952,6 @@ export function GlobalAttachmentManager() {
                       fontSize: 12,
                       fontWeight: 500,
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
                     }}
                   >
                     <Trash2 size={12} /> {t('common:delete')}
@@ -1024,14 +961,7 @@ export function GlobalAttachmentManager() {
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button
                     onClick={() => setBatchRestoreConfirm(true)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    }}
+                    className="interactive-accent"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -1044,21 +974,13 @@ export function GlobalAttachmentManager() {
                       fontSize: 12,
                       fontWeight: 500,
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
                     }}
                   >
                     <RotateCcw size={12} /> {t('common:restore')}
                   </button>
                   <button
                     onClick={() => setBatchPermanentDeleteConfirm(true)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
-                      e.currentTarget.style.borderColor = '#e74c3c';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    }}
+                    className="interactive-danger-transparent"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -1066,12 +988,10 @@ export function GlobalAttachmentManager() {
                       padding: '4px 10px',
                       borderRadius: 6,
                       border: '1px solid var(--border-subtle)',
-                      background: 'transparent',
                       color: '#e74c3c',
                       fontSize: 12,
                       fontWeight: 500,
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
                     }}
                   >
                     <Trash2 size={12} /> {t('common:delete_permanently')}

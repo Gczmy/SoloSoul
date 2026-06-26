@@ -10,7 +10,7 @@ import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
-import { truncateFileName, formatSize, pgBtn, miniBtn, btnHoverEnter, btnHoverLeave, btnDelEnter, btnDelLeave, isImageMime, type AttachmentItem } from '@/lib/attachmentUtils';
+import { truncateFileName, formatSize, pgBtn, miniBtn, isImageMime, type AttachmentItem } from '@/lib/attachmentUtils';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 
@@ -349,50 +349,32 @@ export function AttachmentViewer({
             <div style={{ display: 'flex', gap: 4 }}>
               <button
                 onClick={() => { setShowTrash(false); clearSelection(); }}
-                onMouseEnter={!showTrash ? undefined : (e) => {
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                }}
-                onMouseLeave={!showTrash ? undefined : (e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                }}
+                className={!showTrash ? 'selected-accent' : ''}
                 style={{
                   padding: '5px 12px',
                   borderRadius: 6,
                   fontSize: 12,
                   fontWeight: 500,
-                  border: !showTrash ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                  background: !showTrash ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
-                  color: !showTrash ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  boxShadow: !showTrash ? '0 0 0 1px var(--accent-primary)' : 'none',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--text-primary)',
                   cursor: 'pointer',
-                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
               >
                 {t('common:attachments_active', { n: items.length })}
               </button>
               <button
                 onClick={() => { setShowTrash(true); clearSelection(); }}
-                onMouseEnter={showTrash ? undefined : (e) => {
-                  e.currentTarget.style.borderColor = '#e74c3c';
-                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
-                }}
-                onMouseLeave={showTrash ? undefined : (e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                }}
+                className={showTrash ? 'selected-danger' : ''}
                 style={{
                   padding: '5px 12px',
                   borderRadius: 6,
                   fontSize: 12,
                   fontWeight: 500,
-                  border: showTrash ? '1px solid #e74c3c' : '1px solid var(--border-subtle)',
-                  background: showTrash ? 'color-mix(in srgb, #e74c3c 10%, transparent)' : 'var(--bg-toolbar)',
-                  color: showTrash ? '#e74c3c' : 'var(--text-primary)',
-                  boxShadow: showTrash ? '0 0 0 1px #e74c3c' : 'none',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--text-primary)',
                   cursor: 'pointer',
-                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
               >
                 {t('common:attachments_trash', { n: trashItems.length })}
@@ -402,14 +384,7 @@ export function AttachmentViewer({
           {!showTrash && (
             <button
               onClick={handleAdd}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--accent-primary)';
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-secondary)';
-                e.currentTarget.style.background = 'transparent';
-              }}
+              className="interactive-icon"
               style={{
                 width: 28,
                 height: 28,
@@ -418,17 +393,14 @@ export function AttachmentViewer({
                 justifyContent: 'center',
                 border: 'none',
                 borderRadius: 6,
-                background: 'transparent',
                 cursor: 'pointer',
-                color: 'var(--text-secondary)',
-                transition: 'background 0.15s, color 0.15s',
               }}
               title={t('common:upload') || 'Upload'}
             >
               <Upload size={14} />
             </button>
           )}
-          <button onClick={onClose} onMouseEnter={btnHoverEnter} onMouseLeave={btnHoverLeave} style={pgBtn}>
+          <button onClick={onClose} className="interactive-icon" style={pgBtn}>
             <X size={16} />
           </button>
         </div>
@@ -458,24 +430,14 @@ export function AttachmentViewer({
               <div style={{ display: 'flex', gap: 6 }}>
                 <button
                   onClick={handleBatchDownload}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                    e.currentTarget.style.color = 'var(--accent-primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--text-secondary)';
-                  }}
+                  className="interactive-icon"
                   style={{
                     padding: '4px 12px',
                     borderRadius: 6,
                     border: '1px solid var(--border-subtle)',
-                    background: 'transparent',
-                    color: 'var(--text-secondary)',
                     fontSize: 12,
                     fontWeight: 500,
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
@@ -485,24 +447,15 @@ export function AttachmentViewer({
                 </button>
                 <button
                   onClick={() => setBatchDeleteConfirm(true)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
-                    e.currentTarget.style.borderColor = '#e74c3c';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  }}
+                  className="interactive-icon-danger"
                   style={{
                     padding: '4px 12px',
                     borderRadius: 6,
                     border: '1px solid var(--border-subtle)',
-                    background: 'transparent',
                     color: '#e74c3c',
                     fontSize: 12,
                     fontWeight: 500,
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
@@ -515,22 +468,15 @@ export function AttachmentViewer({
               <div style={{ display: 'flex', gap: 6 }}>
                 <button
                   onClick={() => setBatchRestoreConfirm(true)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
+                  className="interactive-accent-light"
                   style={{
                     padding: '4px 12px',
                     borderRadius: 6,
                     border: '1px solid var(--accent-primary)',
-                    background: 'transparent',
                     color: 'var(--accent-primary)',
                     fontSize: 12,
                     fontWeight: 500,
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
@@ -540,24 +486,15 @@ export function AttachmentViewer({
                 </button>
                 <button
                   onClick={() => setBatchPermanentDeleteConfirm(true)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 20%, transparent)';
-                    e.currentTarget.style.borderColor = '#e74c3c';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  }}
+                  className="interactive-danger-transparent"
                   style={{
                     padding: '4px 12px',
                     borderRadius: 6,
                     border: '1px solid var(--border-subtle)',
-                    background: 'transparent',
                     color: '#e74c3c',
                     fontSize: 12,
                     fontWeight: 500,
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
@@ -632,8 +569,7 @@ export function AttachmentViewer({
                   <>
                     <button
                       onClick={() => handleRestore(item)}
-                      onMouseEnter={btnHoverEnter}
-                      onMouseLeave={btnHoverLeave}
+                      className="interactive-icon"
                       style={miniBtn}
                       title={t('common:restore')}
                     >
@@ -641,8 +577,7 @@ export function AttachmentViewer({
                     </button>
                     <button
                       onClick={() => setPermDeleteItem(item)}
-                      onMouseEnter={btnDelEnter}
-                      onMouseLeave={btnDelLeave}
+                      className="interactive-icon-danger"
                       style={{ ...miniBtn, color: '#e74c3c' }}
                       title={t('common:delete_permanently')}
                     >
@@ -676,8 +611,7 @@ export function AttachmentViewer({
                       <>
                         <button
                           onClick={() => handlePreview(item)}
-                          onMouseEnter={btnHoverEnter}
-                          onMouseLeave={btnHoverLeave}
+                          className="interactive-icon"
                           style={miniBtn}
                           title="Preview"
                         >
@@ -685,8 +619,7 @@ export function AttachmentViewer({
                         </button>
                         <button
                           onClick={() => handleStartRename(item)}
-                          onMouseEnter={btnHoverEnter}
-                          onMouseLeave={btnHoverLeave}
+                          className="interactive-icon"
                           style={miniBtn}
                           title={t('common:rename')}
                         >
@@ -694,8 +627,7 @@ export function AttachmentViewer({
                         </button>
                         <button
                           onClick={() => handleDownload(item)}
-                          onMouseEnter={btnHoverEnter}
-                          onMouseLeave={btnHoverLeave}
+                          className="interactive-icon"
                           style={miniBtn}
                           title={t('common:download')}
                         >
@@ -705,8 +637,7 @@ export function AttachmentViewer({
                     )}
                     <button
                       onClick={() => handleDelete(item)}
-                      onMouseEnter={btnDelEnter}
-                      onMouseLeave={btnDelLeave}
+                      className="interactive-icon-danger"
                       style={{ ...miniBtn, color: '#e74c3c' }}
                       title={t('common:delete')}
                     >

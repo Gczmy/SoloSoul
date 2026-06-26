@@ -162,6 +162,49 @@ describe('isConsentRequestEvent', () => {
   });
 });
 
+describe('isPluginCompletedEvent', () => {
+  it('returns false for null', async () => {
+    const { isPluginCompletedEvent } = await import('./pluginStore');
+    expect(isPluginCompletedEvent(null)).toBe(false);
+  });
+
+  it('returns false for non-object types', async () => {
+    const { isPluginCompletedEvent } = await import('./pluginStore');
+    expect(isPluginCompletedEvent('string')).toBe(false);
+    expect(isPluginCompletedEvent(42)).toBe(false);
+    expect(isPluginCompletedEvent(undefined)).toBe(false);
+  });
+
+  it('accepts an object with a numeric exitCode', async () => {
+    const { isPluginCompletedEvent } = await import('./pluginStore');
+    expect(isPluginCompletedEvent({ exitCode: 0 })).toBe(true);
+    expect(isPluginCompletedEvent({ exitCode: -1 })).toBe(true);
+    expect(isPluginCompletedEvent({ exitCode: 255 })).toBe(true);
+  });
+
+  it('rejects an object without exitCode', async () => {
+    const { isPluginCompletedEvent } = await import('./pluginStore');
+    expect(isPluginCompletedEvent({})).toBe(false);
+  });
+
+  it('rejects an object with non-numeric exitCode', async () => {
+    const { isPluginCompletedEvent } = await import('./pluginStore');
+    expect(isPluginCompletedEvent({ exitCode: '0' })).toBe(false);
+    expect(isPluginCompletedEvent({ exitCode: null })).toBe(false);
+    expect(isPluginCompletedEvent({ exitCode: true })).toBe(false);
+  });
+
+  it('accepts objects with extra properties', async () => {
+    const { isPluginCompletedEvent } = await import('./pluginStore');
+    expect(isPluginCompletedEvent({ exitCode: 0, extra: 'data', nested: { a: 1 } })).toBe(true);
+  });
+
+  it('rejects objects with no exitCode but other props', async () => {
+    const { isPluginCompletedEvent } = await import('./pluginStore');
+    expect(isPluginCompletedEvent({ result: 'ok' })).toBe(false);
+  });
+});
+
 describe('isDialogRequestEvent', () => {
   it('returns false for null/undefined', async () => {
     const { isDialogRequestEvent } = await import('./pluginStore');

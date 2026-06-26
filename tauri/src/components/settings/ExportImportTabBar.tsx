@@ -27,34 +27,17 @@ export function ExportImportTabBar({ tab, onChange }: ExportImportTabBarProps) {
           <button
             key={tabKey}
             onClick={() => onChange(tabKey)}
+            className={isActive ? 'selected-accent' : 'interactive-accent-light'}
             style={{
               flex: 1,
               padding: '10px',
               border: 'none',
               cursor: 'pointer',
-              background: isActive
-                ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                : 'transparent',
-              color: isActive ? 'var(--accent-primary)' : 'var(--text-tertiary)',
               fontSize: 14,
               fontWeight: isActive ? 600 : 500,
               fontFamily: 'inherit',
               borderRadius: 6,
               margin: 3,
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-                e.currentTarget.style.color = 'var(--text-primary)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--text-tertiary)';
-              }
             }}
           >
             {tabKey === 'export' ? t('settings:export') : t('settings:import')}

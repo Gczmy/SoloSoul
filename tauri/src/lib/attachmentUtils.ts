@@ -38,7 +38,10 @@ export function formatSize(bytes: number): string {
 }
 
 // ── Button style helpers ─────────────────────────────────────
+// CSS classes (animations.css) preferred over inline styles.
+// These constants are kept for sizing; hover effects use CSS :hover.
 
+/** Base size-only style — use with className="interactive-icon" for hover effects. */
 export const pgBtn: CSSProperties = {
   width: 30,
   height: 30,
@@ -47,13 +50,11 @@ export const pgBtn: CSSProperties = {
   justifyContent: 'center',
   border: 'none',
   borderRadius: 6,
-  background: 'transparent',
   cursor: 'pointer',
-  color: 'var(--text-secondary)',
   fontSize: 14,
-  transition: 'background 0.15s, color 0.15s',
 };
 
+/** Base size-only style — use with className="interactive-icon" for hover effects. */
 export const miniBtn: CSSProperties = {
   width: 28,
   height: 28,
@@ -62,29 +63,28 @@ export const miniBtn: CSSProperties = {
   justifyContent: 'center',
   border: 'none',
   borderRadius: 6,
-  background: 'transparent',
   cursor: 'pointer',
   fontSize: 12,
-  color: 'var(--text-secondary)',
-  transition: 'background 0.15s, color 0.15s',
 };
 
+/** @deprecated Use className="interactive-icon" instead. */
 export function btnHoverEnter(e: React.MouseEvent<HTMLButtonElement>) {
-  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-  e.currentTarget.style.color = 'var(--accent-primary)';
+  e.currentTarget.classList.add('interactive-icon-hover');
 }
 
+/** @deprecated Use className="interactive-icon" instead. */
 export function btnHoverLeave(e: React.MouseEvent<HTMLButtonElement>) {
-  e.currentTarget.style.background = 'transparent';
-  e.currentTarget.style.color = 'var(--text-secondary)';
+  e.currentTarget.classList.remove('interactive-icon-hover');
 }
 
+/** @deprecated Use className="interactive-icon-danger" instead. */
 export function btnDelEnter(e: React.MouseEvent<HTMLButtonElement>) {
-  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 12%, transparent)';
+  e.currentTarget.classList.add('interactive-icon-danger-hover');
 }
 
+/** @deprecated Use className="interactive-icon-danger" instead. */
 export function btnDelLeave(e: React.MouseEvent<HTMLButtonElement>) {
-  e.currentTarget.style.background = 'transparent';
+  e.currentTarget.classList.remove('interactive-icon-danger-hover');
 }
 
 // ── MIME helpers ──────────────────────────────────────────────
