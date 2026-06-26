@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { motion } from 'framer-motion';
 import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
@@ -327,7 +328,10 @@ export function HistoryViewer({
       onClick={onClose}
     >
       {!loading && (
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'relative',
@@ -432,7 +436,7 @@ export function HistoryViewer({
           {snap &&
             `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${t(`common:trigger_${snap.triggeredBy}`)}`}
         </div>
-      </div>
+      </motion.div>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { motion } from 'framer-motion';
 import { Paperclip, X, RotateCw, Eye, Image, FileText, Edit2, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useUiStore } from '@/stores/uiStore';
@@ -315,7 +316,10 @@ export function AttachmentViewer({
       onClick={onClose}
     >
       {!loading && (
-        <div
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
           onClick={(e) => e.stopPropagation()}          ref={dragRef}
           style={{
             width: 500,
@@ -586,7 +590,7 @@ export function AttachmentViewer({
         </div>
         {/* 拖拽上传覆盖层 */}
         <DragUploadOverlay dragState={dragState} borderRadius={16} />
-        </div>
+        </motion.div>
       )}      {/* Preview overlay */}
       <AttachmentPreviewOverlay item={previewItem} onClose={() => setPreviewItem(null)} />
       {confirmDialog}
