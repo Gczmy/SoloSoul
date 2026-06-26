@@ -15,6 +15,7 @@ import type { TemplateProperty } from '@/types/template';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 
 // Labels resolved at render time via t() so they support i18n
+import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { Trash } from 'lucide-react';
@@ -33,6 +34,7 @@ export function ObjectWorkspacePage() {
   const sectionFilter = searchParams.get('section') || '';
   const detailObjectId = searchParams.get('objectId');
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [, setDeletingId] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [confirmPageDelete, setConfirmPageDelete] = useState(false);
@@ -147,15 +149,21 @@ export function ObjectWorkspacePage() {
     }
   }, [accountId, sectionFilter, pageId, loadObjects]);
 
+  // Debounce searchQuery to avoid high-frequency IPC calls on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearchQuery(searchQuery), DEBOUNCE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const visibleObjects = useMemo(
     () =>
       objects.filter(
         (obj) =>
           obj.collectionType !== 'page' &&
           obj.collectionType !== 'unknown' &&
-          obj.name.toLowerCase().includes(searchQuery.toLowerCase()),
+          obj.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()),
       ),
-    [objects, searchQuery],
+    [objects, debouncedSearchQuery],
   );
 
   const snapshotReqRef = useRef(0);

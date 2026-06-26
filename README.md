@@ -66,7 +66,7 @@ SoloSoul/
 | Argon2id 密钥派生 | 默认 8MiB/2 iter (开发) / 64MiB/3 iter (生产) |
 | AES-256-GCM 加密 | 所有数据本地加密存储 |
 | Master Password 零存储 | 仅在内存中用于密钥派生 |
-| 敏感度分级 | Public / Private / Restricted |
+| 敏感度分级 | Public / Internal / Private / Sensitive / Restricted / Critical |
 | Privacy Shield | 一键掩码敏感数据 |
 | 生物识别 | Touch ID / Face ID 解锁 |
 
@@ -152,7 +152,7 @@ npm run tauri build
 | 后端框架 | Tauri v2 (Rust) |
 | 数据库 | SQLite (rusqlite) |
 | 密码学 | Argon2id, AES-256-GCM |
-| OCR | PP-OCRv4 (ONNX Runtime) |
+| OCR | PP-OCRv6 (ONNX Runtime) |
 
 ---
 

@@ -343,10 +343,10 @@
 | P2-005 solosoul-vault 缺少 license/repository | ✅ 已修复 | 已补充 `license.workspace = true` 和 `repository.workspace = true` |
 | P2-006 Cargo 与 README 许可证冲突 | ✅ 已修复 | 创建 LICENSE 文件 (MIT)，更新 README 许可证声明 |
 | P2-007 AGENTS.md 过时路径 | ✅ 已修复 | 更新 docs/ 结构、核心路径、密码对话框路径、快速参考表共 10 处 |
-| P2-008 OCR 版本/敏感度分级文档冲突 | ✅ 真实 | PP-OCRv4 vs v6 等 |
+| P2-008 OCR 版本/敏感度分级文档冲突 | ✅ 已修复 | README: PP-OCRv4→v6, 敏感度 3→6 级 |
 | P2-009 rust-cache workspaces 路径 | ✅ 已修复 | CI 中已有 `tauri/src-tauri`, `solosoul_cli`, `tauri` 三个路径 |
 | P2-010 验证令牌建议改用 HKDF | ⚠️ 建议性 | 真实安全思考，非 Bug |
-| P2-011 ort 候选版本风险 | ✅ 真实 | `2.0.0-rc.12` |
+| P2-011 ort 候选版本风险 | ⚠️ 无稳定版可升级 | `2.0.0-rc.12` 仍为最新版，文档称可生产使用 |
 | P2-012 attachment_copy_to_vault 路径遍历 | ✅ 已修复 | 添加 canonicalize + vault_base.starts_with 检查 |
 | P2-013 TypeOrEntryType untagged 歧义 | ⚠️ 待核实 | 需阅读具体代码 |
 | P2-014 OCR macOS swiftc 安全问题 | ✅ 已修复 | 添加 SHA-256 哈希校验 + 0o700/0o600 权限限制 |
@@ -379,7 +379,7 @@
 | P0-005 | P0 | **❌ 设计如此** | 双远程仓库策略 |
 | P0-006 | P0 | **❌ 误报** | pubkey 格式正确 |
 | P0-007/008 | P0→P1 | **✅ 已修复** | 附件组件提取 |
-| P0-009 | P0→P2 | **⏳ 待修复** | 搜索 IPC 性能优化 |
+| P0-009 | P0→P2 | **✅ 已修复** | searchQuery 添加 300ms 防抖 |
 | P0-010 | P0→P2 | **✅ 已修复** | 改用 CSS 交互类 |
 | P0-011 | P0→P1 | **✅ 已修复** | LLM 聊天去重 |
 | P0-012 | P0→P2 | **✅ 已修复** | 添加 isPluginCompletedEvent 类型守卫 |
@@ -414,7 +414,7 @@
 
 ### 第一优先级（性能优化）
 
-1. **P0-009（P2）** — 搜索过滤高频 IPC 防抖
+1. ✅ **P0-009** — 已修复（searchQuery 300ms 防抖）
 2. **P1-023/024** — 导出/导入内存流式处理
 
 ### 第二优先级（代码规范）
@@ -426,7 +426,7 @@
 
 6. ✅ **P2-006** — 已修复（创建 LICENSE 文件，更新 README）
 7. ✅ **P2-007** — 已修复（AGENTS.md 路径更新）
-8. **P2-008** — OCR 版本/敏感度分级文档冲突
+8. ✅ **P2-008** — 已修复（PP-OCRv4→v6，敏感度 3→6 级）
 
 ### 第四优先级（批量/通用建议）
 
