@@ -339,7 +339,7 @@ export function AttachmentViewer({
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div
               style={{
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',
@@ -355,7 +355,7 @@ export function AttachmentViewer({
                 style={{
                   padding: '5px 12px',
                   borderRadius: 6,
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   fontWeight: 500,
                   border: '1px solid var(--border-subtle)',
                   background: 'var(--bg-toolbar)',
@@ -371,7 +371,7 @@ export function AttachmentViewer({
                 style={{
                   padding: '5px 12px',
                   borderRadius: 6,
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   fontWeight: 500,
                   border: '1px solid var(--border-subtle)',
                   background: 'var(--bg-toolbar)',
@@ -402,7 +402,7 @@ export function AttachmentViewer({
               padding: '8px 12px',
               borderBottom: '1px solid var(--border-subtle)',
               background: 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -445,7 +445,7 @@ export function AttachmentViewer({
                 textAlign: 'center',
                 padding: 48,
                 color: 'var(--text-secondary)',
-                fontSize: 14,
+                fontSize: 'var(--text-body)',
               }}
             >
               {showTrash ? t('common:attachments_trash_empty') : t('common:no_attachments')}
@@ -463,7 +463,7 @@ export function AttachmentViewer({
                   gap: 8,
                   padding: '8px 6px',
                   borderBottom: '1px solid var(--border-subtle)',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                 }}
               >
                 <SelectCheckbox
@@ -490,7 +490,7 @@ export function AttachmentViewer({
                   >
                     {truncateFileName(item.fileName)}
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
+                  <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                     {formatSize(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
                   </div>
                 </div>
@@ -525,7 +525,7 @@ export function AttachmentViewer({
                         style={{
                           width: 100,
                           padding: '3px 6px',
-                          fontSize: 12,
+                          fontSize: 'var(--text-caption)',
                           borderRadius: 4,
                           border: '1px solid var(--accent-primary)',
                           background: 'transparent',

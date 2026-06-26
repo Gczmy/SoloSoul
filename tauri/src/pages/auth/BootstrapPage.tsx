@@ -52,10 +52,10 @@ export function BootstrapPage() {
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
         }}
       >
-        <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8 }}>
+        <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 600, marginBottom: 8 }}>
           {t('auth:bootstrap_title')}
         </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>
+        <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)', marginBottom: 24 }}>
           {t('auth:bootstrap_subtitle')}
         </p>
         <form
@@ -77,7 +77,7 @@ export function BootstrapPage() {
             autoComplete="new-password"
             onEnter={handleSubmit}
           />
-          <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: -12 }}>
+          <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: -12 }}>
             {t('auth:password_rule_hint')}
           </div>
           <SecurePasswordInput
@@ -89,7 +89,7 @@ export function BootstrapPage() {
             onEnter={handleSubmit}
           />
           {passwordMismatch && (
-            <div style={{ color: '#e74c3c', fontSize: 13, marginTop: -8 }}>
+            <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', marginTop: -8 }}>
               {t('settings:password_mismatch')}
             </div>
           )}
@@ -100,7 +100,7 @@ export function BootstrapPage() {
             placeholder={t('auth:password_hint_placeholder')}
           />
           {error && !passwordMismatch && (
-            <div style={{ color: '#e74c3c', fontSize: 13 }}>
+            <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>
               {error.toLowerCase().includes('8 characters') || error.toLowerCase().includes('至少')
                 ? t('auth:password_too_short')
                 : error.toLowerCase().includes('password') || error.toLowerCase().includes('invalid')
@@ -120,7 +120,7 @@ export function BootstrapPage() {
               background: 'rgba(212, 133, 10, 0.10)',
               border: '1px solid rgba(212, 133, 10, 0.25)',
               color: '#D4850A',
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               lineHeight: 1.4,
               textAlign: 'left',
             }}

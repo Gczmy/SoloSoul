@@ -44,7 +44,7 @@
 }
 
 .inlineTitle {
-  font-size: 12px;
+  font-size: var(--text-caption);
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -52,7 +52,7 @@
 }
 
 .count {
-  font-size: 10px;
+  font-size: var(--text-badge);
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 4px;

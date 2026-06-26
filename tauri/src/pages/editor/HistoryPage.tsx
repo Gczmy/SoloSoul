@@ -76,7 +76,7 @@ export function HistoryPage() {
           </Card>
         ) : (
           <>
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
               {t('common:version_count', { n: snapshots.length })}
             </p>
             {snapshots.map((s, i) => (
@@ -88,7 +88,7 @@ export function HistoryPage() {
                     <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
                       {i === 0 ? t('common:snapshot_current') : new Date(s.timestamp).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                       {s.triggeredBy === 'user_edit'
                         ? t('common:trigger_user_edit')
                         : s.triggeredBy === 'rollback'

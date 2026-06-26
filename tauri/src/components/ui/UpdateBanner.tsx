@@ -42,7 +42,7 @@ export function UpdateBanner({
         padding: '10px 16px',
         background: 'var(--accent-primary)',
         color: 'white',
-        fontSize: 13,
+        fontSize: 'var(--text-body-sm)',
         boxShadow: 'var(--shadow-md)',
         position: 'relative',
       }}
@@ -62,7 +62,7 @@ export function UpdateBanner({
                 border: 'none',
                 background: 'rgba(255,255,255,0.2)',
                 color: 'white',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 fontWeight: 500,
                 cursor: 'pointer',
               }}
@@ -77,7 +77,7 @@ export function UpdateBanner({
                 border: '1px solid rgba(255,255,255,0.35)',
                 background: 'transparent',
                 color: 'white',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 cursor: 'pointer',
               }}
             >
@@ -112,7 +112,7 @@ export function UpdateBanner({
               }}
             />
           </div>
-          <span style={{ fontSize: 12, whiteSpace: 'nowrap', minWidth: 90, textAlign: 'right' }}>
+          <span style={{ fontSize: 'var(--text-caption)', whiteSpace: 'nowrap', minWidth: 90, textAlign: 'right' }}>
             {formatBytes(downloadedBytes)} / {formatBytes(totalBytes)}
           </span>
         </>
@@ -130,7 +130,7 @@ export function UpdateBanner({
               border: 'none',
               background: 'rgba(255,255,255,0.2)',
               color: 'white',
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               fontWeight: 500,
               cursor: 'pointer',
             }}
@@ -144,7 +144,7 @@ export function UpdateBanner({
         <>
           <span style={{ fontWeight: 500 }}>{t('update_error', { version })}</span>
           {error && (
-            <span style={{ fontSize: 11, opacity: 0.9, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span style={{ fontSize: 'var(--text-badge)', opacity: 0.9, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {error}
             </span>
           )}
@@ -156,7 +156,7 @@ export function UpdateBanner({
               border: 'none',
               background: 'rgba(255,255,255,0.2)',
               color: 'white',
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               fontWeight: 500,
               cursor: 'pointer',
             }}

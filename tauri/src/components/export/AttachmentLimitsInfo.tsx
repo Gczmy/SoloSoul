@@ -50,7 +50,7 @@ export function AttachmentLimitsInfo() {
               borderRadius: 8,
               padding: 12,
               boxShadow: 'var(--shadow-md)',
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               color: 'var(--text-secondary)',
               maxWidth: 520,
               lineHeight: 1.5,

@@ -50,13 +50,13 @@ export function LocalEmbeddingsPanel({
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <Cpu size={18} color="var(--accent-primary)" />
-        <h3 style={{ fontSize: 14, fontWeight: 600 }}>
+        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600 }}>
           {t('settings:llm_embed_models_title')}
         </h3>
       </div>
       <p
         style={{
-          fontSize: 12,
+          fontSize: 'var(--text-caption)',
           color: 'var(--text-tertiary)',
           marginBottom: 12,
           lineHeight: 1.5,
@@ -72,7 +72,7 @@ export function LocalEmbeddingsPanel({
           gap: 10,
           padding: '6px 0',
           cursor: 'pointer',
-          fontSize: 13,
+          fontSize: 'var(--text-body-sm)',
           marginBottom: 12,
         }}
       >
@@ -106,7 +106,7 @@ export function LocalEmbeddingsPanel({
                   localModelId === m.info.id && useLocalEmbedding
                     ? '1px solid var(--accent-primary)'
                     : '1px solid var(--border-subtle)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
               }}
             >
               <input
@@ -118,7 +118,7 @@ export function LocalEmbeddingsPanel({
               />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 500 }}>{m.info.name}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 2 }}>
                   {m.info.description} · {m.info.dimensions}
                   {t('settings:llm_dimensions')} · {m.info.diskSize}
                 </div>
@@ -141,7 +141,7 @@ export function LocalEmbeddingsPanel({
                         }}
                       />
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 2 }}>
                       {downloadProgress}%
                     </div>
                   </div>
@@ -177,7 +177,7 @@ export function LocalEmbeddingsPanel({
             </div>
           ))}
           {embedModels.length === 0 && (
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
               {t('settings:llm_no_models')}
             </p>
           )}

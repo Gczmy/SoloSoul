@@ -41,20 +41,20 @@ export function AttachmentPreview({
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 500 }}>{fileName}</span>
+        <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{fileName}</span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {isImage && (
             <>
               <button onClick={() => setZoom((z) => Math.max(25, z - 25))} style={btnStyle}>
                 -
               </button>
-              <span style={{ fontSize: 12 }}>{zoom}%</span>
+              <span style={{ fontSize: 'var(--text-caption)' }}>{zoom}%</span>
               <button onClick={() => setZoom((z) => Math.min(400, z + 25))} style={btnStyle}>
                 +
               </button>
             </>
           )}
-          <button onClick={onClose} style={{ ...btnStyle, fontSize: 16 }}>
+          <button onClick={onClose} style={{ ...btnStyle, fontSize: 'var(--text-section-title)' }}>
             <X size={18} />
           </button>
         </div>
@@ -110,6 +110,6 @@ const btnStyle: React.CSSProperties = {
   background: 'transparent',
   cursor: 'pointer',
   color: 'var(--text-secondary)',
-  fontSize: 14,
+  fontSize: 'var(--text-body)',
   fontWeight: 600,
 };

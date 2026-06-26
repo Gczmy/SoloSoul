@@ -24,7 +24,7 @@ export function UnconfiguredHint({ onClose }: UnconfiguredHintProps) {
     >
       <MessageSquare size={36} style={{ opacity: 0.3, color: 'var(--text-tertiary)' }} />
       <p
-        style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', margin: 0 }}
+        style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', textAlign: 'center', margin: 0 }}
       >
         {t('settings:ai_quick_chat_configure_hint')}
       </p>
@@ -47,7 +47,7 @@ export function UnconfiguredHint({ onClose }: UnconfiguredHintProps) {
           border: '1px solid var(--border-subtle)',
           background: 'var(--bg-toolbar)',
           color: 'var(--text-primary)',
-          fontSize: 13,
+          fontSize: 'var(--text-body-sm)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',

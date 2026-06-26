@@ -8,7 +8,7 @@
   padding: 24px;
   text-align: center;
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: var(--text-body-sm);
 }
 
 .resultCard {
@@ -20,7 +20,7 @@
 
 .text {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   line-height: 1.5;
   color: var(--text-secondary);
   white-space: pre-wrap;
@@ -31,12 +31,12 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
 }
 
 .countryBadge {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--text-badge);
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 4px;
@@ -135,7 +135,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: var(--text-caption);
 }
 
 .table th,
@@ -158,7 +158,7 @@
   border-radius: 8px;
   background: var(--bg-inset);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-caption);
   line-height: 1.5;
   color: var(--text-secondary);
   white-space: pre-wrap;
@@ -166,6 +166,6 @@
 }
 
 .unknown {
-  font-size: 12px;
+  font-size: var(--text-caption);
   color: var(--text-warning);
 }

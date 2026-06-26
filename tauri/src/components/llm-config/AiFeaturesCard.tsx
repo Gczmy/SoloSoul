@@ -18,7 +18,7 @@ export function AiFeaturesCard({ features, onToggle }: AiFeaturesCardProps) {
 
   return (
     <Card>
-      <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+      <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
         {t('settings:ai_features')}
       </h3>
       {(['chat', 'smartFill', 'commandGen', 'naturalLanguageSearch'] as const).map((key) => (
@@ -30,7 +30,7 @@ export function AiFeaturesCard({ features, onToggle }: AiFeaturesCardProps) {
             gap: 10,
             padding: '6px 0',
             cursor: key === 'chat' ? 'pointer' : 'not-allowed',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             opacity: key === 'chat' ? 1 : 0.5,
           }}
         >
@@ -43,7 +43,7 @@ export function AiFeaturesCard({ features, onToggle }: AiFeaturesCardProps) {
           />
           {t('settings:ai_' + key)}
           {key !== 'chat' && (
-            <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 4 }}>
+            <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginLeft: 4 }}>
               ({t('settings:ai_in_development')})
             </span>
           )}

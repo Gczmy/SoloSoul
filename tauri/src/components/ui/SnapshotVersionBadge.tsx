@@ -18,7 +18,7 @@ export function SnapshotVersionBadge({ index, total }: SnapshotVersionBadgeProps
         style={{
           padding: '3px 8px',
           borderRadius: 6,
-          fontSize: 10,
+          fontSize: 'var(--text-badge)',
           fontWeight: 600,
           background: index === 0 ? 'rgba(39,174,96,0.12)' : 'rgba(91,124,153,0.08)',
           color: index === 0 ? '#27ae60' : 'var(--accent-primary)',
@@ -35,7 +35,7 @@ export function SnapshotVersionBadge({ index, total }: SnapshotVersionBadgeProps
         style={{
           padding: '3px 8px',
           borderRadius: 6,
-          fontSize: 10,
+          fontSize: 'var(--text-badge)',
           fontWeight: 600,
           background: 'rgba(230,126,34,0.12)',
           color: '#e67e22',

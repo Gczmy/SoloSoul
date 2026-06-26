@@ -13,12 +13,12 @@ export function KnowledgeBaseCard({ embeddingAvailable, rebuilding, onRebuild }:
 
   return (
     <Card>
-      <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+      <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
         {t('settings:llm_knowledge_base_title')}
       </h3>
       <p
         style={{
-          fontSize: 12,
+          fontSize: 'var(--text-caption)',
           color: 'var(--text-tertiary)',
           marginBottom: 12,
           lineHeight: 1.5,

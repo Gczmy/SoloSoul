@@ -95,7 +95,7 @@ export function HomePage() {
           <h2 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>
             {t('common:welcome_back')}
           </h2>
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
             {t('common:vault_description')}
           </p>
         </Card>

@@ -7,7 +7,7 @@
   border-radius: 6px;
   background: var(--bg-toolbar);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   font-family: inherit;
   cursor: pointer;
   outline: none;
@@ -79,7 +79,7 @@
   border: none;
   background: transparent;
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   font-family: inherit;
   cursor: pointer;
   text-align: left;

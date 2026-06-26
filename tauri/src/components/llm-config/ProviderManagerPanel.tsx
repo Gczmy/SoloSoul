@@ -95,7 +95,7 @@ export function ProviderManagerPanel({
   return (
     <>
       <Card>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
           {t('settings:ai_service_providers')}
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -117,7 +117,7 @@ export function ProviderManagerPanel({
                       ? '1px solid var(--accent-primary)'
                       : '1px solid var(--border-subtle)',
                   cursor: 'pointer',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                 }}
                 onClick={() => onSetActive(p.id)}
               >
@@ -129,14 +129,14 @@ export function ProviderManagerPanel({
                 />
                 <div style={{ flex: 1 }}>
                   <span style={{ fontWeight: 500 }}>{p.name}</span>
-                  <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--text-tertiary)' }}>
+                  <span style={{ marginLeft: 6, fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                     {p.model}
                   </span>
                   {p.isBuiltIn && (
                     <span
                       style={{
                         marginLeft: 4,
-                        fontSize: 10,
+                        fontSize: 'var(--text-badge)',
                         padding: '1px 4px',
                         borderRadius: 3,
                         background: 'var(--bg-elevated)',
@@ -176,7 +176,7 @@ export function ProviderManagerPanel({
                       background: 'transparent',
                       cursor: 'pointer',
                       color: '#e74c3c',
-                      fontSize: 14,
+                      fontSize: 'var(--text-body)',
                     }}
                   >
                     ×
@@ -194,7 +194,7 @@ export function ProviderManagerPanel({
       {editingProvider && (
         <div ref={providerFormRef}>
           <Card>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+            <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
               {editingProvider.isBuiltIn
                 ? t('settings:llm_configure') + ' ' + editingProvider.name
                 : t('settings:llm_custom_provider')}
@@ -225,7 +225,7 @@ export function ProviderManagerPanel({
               <div>
                 <label
                   style={{
-                    fontSize: 13,
+                    fontSize: 'var(--text-body-sm)',
                     fontWeight: 500,
                     color: 'var(--text-secondary)',
                     marginBottom: 4,
@@ -244,7 +244,7 @@ export function ProviderManagerPanel({
                   style={{
                     width: '100%',
                     padding: '10px 14px',
-                    fontSize: 14,
+                    fontSize: 'var(--text-body)',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: 8,
                     background: 'var(--bg-elevated)',
@@ -273,7 +273,7 @@ export function ProviderManagerPanel({
               {testResult && (
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: 'var(--text-caption)',
                     padding: '6px 10px',
                     borderRadius: 6,
                     background: 'rgba(128,128,128,0.08)',

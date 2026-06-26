@@ -179,7 +179,7 @@ export function AiQuickChatPopover({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <MessageSquare size={16} style={{ color: 'var(--accent-primary)' }} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+          <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
             {t('settings:ai_quick_chat_title')}
           </span>
         </div>

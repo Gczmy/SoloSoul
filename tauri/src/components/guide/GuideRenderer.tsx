@@ -116,7 +116,7 @@ function createMarkdownComponents(onLinkClick?: (href: string) => void) {
         style={{
           padding: '10px 14px',
           textAlign: 'left',
-          fontSize: 13,
+          fontSize: 'var(--text-body-sm)',
           fontWeight: 600,
           color: 'var(--text-secondary)',
           whiteSpace: 'nowrap',
@@ -130,7 +130,7 @@ function createMarkdownComponents(onLinkClick?: (href: string) => void) {
         style={{
           padding: '10px 14px',
           borderBottom: '1px solid var(--border-subtle)',
-          fontSize: 14,
+          fontSize: 'var(--text-body)',
           color: 'var(--text-primary)',
         }}
       >
@@ -163,7 +163,7 @@ export function GuideRenderer({ content, onLinkClick }: GuideRendererProps) {
   const markdownComponents = createMarkdownComponents(onLinkClick);
 
   return (
-    <div style={{ lineHeight: 1.7, color: 'var(--text-primary)', fontSize: 15 }}>
+    <div style={{ lineHeight: 1.7, color: 'var(--text-primary)', fontSize: 'var(--text-card-title)' }}>
       {segments.map((seg, i) => {
         if (seg.type === 'markdown') {
           return (

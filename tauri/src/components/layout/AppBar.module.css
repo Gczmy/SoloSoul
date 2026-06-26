@@ -21,7 +21,7 @@
   gap: 12px;
 }
 .title {
-  font-size: 16px;
+  font-size: var(--text-section-title);
   font-weight: 600;
   margin: 0;
 }

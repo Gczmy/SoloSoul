@@ -43,7 +43,7 @@ export const SensitivityBadge = memo(function SensitivityBadge({ level }: { leve
         display: 'inline-flex',
         alignItems: 'center',
         gap: 3,
-        fontSize: 10,
+        fontSize: 'var(--text-badge)',
         fontWeight: 600,
         padding: '2px 6px',
         borderRadius: 4,

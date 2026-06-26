@@ -113,7 +113,7 @@ export function TemplateEditor({
             border: '1px solid var(--border-subtle)',
             background: 'var(--bg-toolbar)',
             cursor: 'pointer',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             fontWeight: 500,
             color: 'var(--text-secondary)',
             fontFamily: 'inherit',
@@ -140,7 +140,7 @@ export function TemplateEditor({
           <span style={{ flex: 1 }}>
             {t('settings:template_icon') || '模板图标'}
           </span>
-          <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
             {showIconPicker
               ? (t('common:collapse') || '收起')
               : (t('settings:click_to_change_icon') || '点击选择图标')}
@@ -152,7 +152,7 @@ export function TemplateEditor({
       <div>
         <div
           style={{
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             fontWeight: 500,
             marginBottom: 8,
             color: 'var(--text-secondary)',
@@ -171,7 +171,7 @@ export function TemplateEditor({
         >
           {editProperties.filter((p) => !p.deprecatedAt).length === 0 &&
             editProperties.filter((p) => p.deprecatedAt).length === 0 && (
-              <div style={{ fontSize: 12, color: 'var(--text-tertiary)', padding: '12px 0' }}>
+              <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', padding: '12px 0' }}>
                 {t('settings:empty_template_hint') || '此模板暂无字段，点击下方添加'}
               </div>
             )}
@@ -215,7 +215,7 @@ export function TemplateEditor({
                         border: '1px solid var(--border-subtle)',
                         background: 'var(--bg-elevated)',
                         color: 'var(--text-primary)',
-                        fontSize: 14,
+                        fontSize: 'var(--text-body)',
                         fontFamily: 'inherit',
                         outline: 'none',
                         boxSizing: 'border-box',
@@ -232,7 +232,7 @@ export function TemplateEditor({
                       border: '1px solid var(--border-subtle)',
                       background: 'var(--bg-elevated)',
                       color: 'var(--text-primary)',
-                      fontSize: 13,
+                      fontSize: 'var(--text-body-sm)',
                       cursor: 'pointer',
                       boxSizing: 'border-box',
                       minWidth: 90,
@@ -277,7 +277,7 @@ export function TemplateEditor({
                       border: '1px solid var(--border-subtle)',
                       background: 'var(--bg-elevated)',
                       color: 'var(--text-primary)',
-                      fontSize: 13,
+                      fontSize: 'var(--text-body-sm)',
                       cursor: 'pointer',
                       boxSizing: 'border-box',
                     }}
@@ -345,7 +345,7 @@ export function TemplateEditor({
               border: '1px solid var(--border-subtle)',
               background: 'var(--bg-toolbar)',
               color: 'var(--text-primary)',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -403,7 +403,7 @@ function DeprecatedFieldsSection({
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          fontSize: 12,
+          fontSize: 'var(--text-caption)',
           color: 'var(--text-secondary)',
           background: 'transparent',
           border: 'none',
@@ -459,7 +459,7 @@ function DeprecatedFieldsSection({
                     <FieldTypeIcon type={prop.type} size={14} />
                   <span
                     style={{
-                      fontSize: 14,
+                      fontSize: 'var(--text-body)',
                       fontWeight: 500,
                       color: 'var(--text-secondary)',
                       flex: 1,
@@ -496,7 +496,7 @@ function DeprecatedFieldsSection({
                       justifyContent: 'space-between',
                     }}
                   >
-                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                    <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                       {usage.active > 0 && usage.softDeleted > 0
                         ? t('settings:field_in_use_both', {
                             activeCount: usage.active,
@@ -514,7 +514,7 @@ function DeprecatedFieldsSection({
                       <span
                         onClick={() => {}}
                         style={{
-                          fontSize: 11,
+                          fontSize: 'var(--text-badge)',
                           color: 'var(--accent-primary)',
                           cursor: 'pointer',
                           textDecoration: 'underline',

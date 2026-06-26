@@ -387,7 +387,7 @@ export function TemplateManagerPage() {
                       background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
                       color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                       boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                      fontSize: 12,
+                      fontSize: 'var(--text-caption)',
                       cursor: 'pointer',
                       transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                     }}
@@ -404,7 +404,7 @@ export function TemplateManagerPage() {
           <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>
             <LayoutTemplate size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
             <div>{t('settings:no_templates') || '暂无模板'}</div>
-            <div style={{ fontSize: 12, marginTop: 4 }}>
+            <div style={{ fontSize: 'var(--text-caption)', marginTop: 4 }}>
               {t('settings:no_templates_hint') || '点击右上角"新建模板"创建'}
             </div>
           </div>
@@ -442,7 +442,7 @@ export function TemplateManagerPage() {
                   </div>
                   <div
                     style={{
-                      fontSize: 11,
+                      fontSize: 'var(--text-badge)',
                       color: 'var(--text-tertiary)',
                       display: 'flex',
                       alignItems: 'center',

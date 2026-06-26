@@ -115,8 +115,8 @@ export function TrashDetailPanel({
           }}
         >
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{detailItem.name}</h3>
-            <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+            <h3 style={{ fontSize: 'var(--text-section-title)', fontWeight: 600, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{detailItem.name}</h3>
+            <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
               {t(`settings:trash_type_${detailItem.itemType}`)}
             </span>
           </div>
@@ -144,7 +144,7 @@ export function TrashDetailPanel({
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 'var(--text-body-sm)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:delete_time')}</span>
             <span>{new Date(detailItem.deletedAt).toLocaleString()}</span>
@@ -185,7 +185,7 @@ export function TrashDetailPanel({
               paddingTop: 12,
             }}
           >
-            <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+            <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 8 }}>
               {t('settings:content_preview')}
             </h4>
             <div
@@ -193,7 +193,7 @@ export function TrashDetailPanel({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 6,
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 color: 'var(--text-secondary)',
               }}
             >
@@ -243,7 +243,7 @@ export function TrashDetailPanel({
                   alignItems: 'center',
                   gap: 6,
                   cursor: 'pointer',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   fontWeight: 600,
                   userSelect: 'none',
                 }}
@@ -252,7 +252,7 @@ export function TrashDetailPanel({
                   style={{
                     transform: expandedSections.attachments ? 'rotate(90deg)' : 'none',
                     transition: 'transform 0.15s',
-                    fontSize: 10,
+                    fontSize: 'var(--text-badge)',
                   }}
                 >
                   ▶
@@ -276,7 +276,7 @@ export function TrashDetailPanel({
                         style={{
                           padding: '4px 10px',
                           borderRadius: 6,
-                          fontSize: 11,
+                          fontSize: 'var(--text-badge)',
                           fontWeight: 500,
                           border: showTrashAttachments ? '1px solid var(--border-subtle)' : '1px solid var(--accent-primary)',
                           background: showTrashAttachments ? 'var(--bg-toolbar)' : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
@@ -301,7 +301,7 @@ export function TrashDetailPanel({
                         style={{
                           padding: '4px 10px',
                           borderRadius: 6,
-                          fontSize: 11,
+                          fontSize: 'var(--text-badge)',
                           fontWeight: 500,
                           border: showTrashAttachments ? '1px solid #e74c3c' : '1px solid var(--border-subtle)',
                           background: showTrashAttachments ? 'color-mix(in srgb, #e74c3c 10%, transparent)' : 'var(--bg-toolbar)',
@@ -318,7 +318,7 @@ export function TrashDetailPanel({
                   {(showTrashAttachments ? deletedAttachments : activeAttachments).length === 0 ? (
                     <p
                       style={{
-                        fontSize: 12,
+                        fontSize: 'var(--text-caption)',
                         color: 'var(--text-tertiary)',
                         padding: '8px 0',
                       }}
@@ -348,7 +348,7 @@ export function TrashDetailPanel({
                               display: 'flex',
                               alignItems: 'center',
                               gap: 8,
-                              fontSize: 12,
+                              fontSize: 'var(--text-caption)',
                               padding: '8px 10px',
                               background: 'var(--bg-elevated-hover)',
                               borderRadius: 6,
@@ -370,14 +370,14 @@ export function TrashDetailPanel({
                               >
                                 {truncateFileName(a.fileName)}
                               </div>
-                              <div style={{ color: 'var(--text-tertiary)', fontSize: 10 }}>
+                              <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-badge)' }}>
                                 {formatBytes(a.sizeBytes)} ·{' '}
                                 {new Date(a.createdAt).toLocaleDateString()}
                               </div>
                             </div>
                             <span
                               style={{
-                                fontSize: 10,
+                                fontSize: 'var(--text-badge)',
                                 padding: '2px 6px',
                                 borderRadius: 4,
                                 fontWeight: 500,
@@ -413,7 +413,7 @@ export function TrashDetailPanel({
                   alignItems: 'center',
                   gap: 6,
                   cursor: 'pointer',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   fontWeight: 600,
                   userSelect: 'none',
                 }}
@@ -422,7 +422,7 @@ export function TrashDetailPanel({
                   style={{
                     transform: expandedSections.snapshots ? 'rotate(90deg)' : 'none',
                     transition: 'transform 0.15s',
-                    fontSize: 10,
+                    fontSize: 'var(--text-badge)',
                   }}
                 >
                   ▶
@@ -514,7 +514,7 @@ function SnapshotContent({
   const currentSnap = snapshots[clampedIdx];
 
   return (
-    <div style={{ marginTop: 8, fontSize: 12 }}>
+    <div style={{ marginTop: 8, fontSize: 'var(--text-caption)' }}>
       {snapshots.length > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <button
@@ -529,7 +529,7 @@ function SnapshotContent({
               border: '1px solid var(--border-subtle)',
               borderRadius: 6,
               cursor: clampedIdx >= snapshots.length - 1 ? 'default' : 'pointer',
-              fontSize: 11,
+              fontSize: 'var(--text-badge)',
               background: 'transparent',
               color: clampedIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
               opacity: clampedIdx >= snapshots.length - 1 ? 0.35 : 1,
@@ -555,7 +555,7 @@ function SnapshotContent({
               display: 'flex',
               alignItems: 'center',
               gap: 4,
-              fontSize: 11,
+              fontSize: 'var(--text-badge)',
               fontWeight: 500,
               color: 'var(--text-secondary)',
             }}
@@ -578,7 +578,7 @@ function SnapshotContent({
               border: '1px solid var(--border-subtle)',
               borderRadius: 6,
               cursor: clampedIdx <= 0 ? 'default' : 'pointer',
-              fontSize: 11,
+              fontSize: 'var(--text-badge)',
               background: 'transparent',
               color: clampedIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
               opacity: clampedIdx <= 0 ? 0.35 : 1,
@@ -626,7 +626,7 @@ function SnapshotContent({
                     style={{
                       padding: '2px 6px',
                       borderRadius: 4,
-                      fontSize: 10,
+                      fontSize: 'var(--text-badge)',
                       fontWeight: 500,
                       background: 'rgba(91,124,153,0.08)',
                       color: 'var(--accent-primary)',
@@ -640,7 +640,7 @@ function SnapshotContent({
                 style={{
                   padding: '2px 6px',
                   borderRadius: 4,
-                  fontSize: 10,
+                  fontSize: 'var(--text-badge)',
                   fontWeight: 500,
                   background: 'rgba(91,124,153,0.08)',
                   color: 'var(--accent-primary)',
@@ -651,7 +651,7 @@ function SnapshotContent({
             </div>
             <span
               style={{
-                fontSize: 11,
+                fontSize: 'var(--text-badge)',
                 color: 'var(--text-tertiary)',
                 marginLeft: 'auto',
               }}
@@ -723,7 +723,7 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {snapName && (
-        <div style={{ fontSize: 11, color: 'var(--text-tertiary)', textAlign: 'right', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+        <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', textAlign: 'right', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
           {snapName}
         </div>
       )}
@@ -734,7 +734,7 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             padding: '3px 0',
             borderBottom: '1px solid var(--border-subtle)',
           }}
@@ -757,7 +757,7 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
               style={{
                 padding: '1px 7px',
                 borderRadius: 10,
-                fontSize: 10,
+                fontSize: 'var(--text-badge)',
                 background: 'rgba(91,124,153,0.08)',
                 color: 'var(--accent-primary)',
                 fontWeight: 500,

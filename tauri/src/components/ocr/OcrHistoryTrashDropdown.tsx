@@ -65,7 +65,7 @@ export function OcrHistoryTrashDropdown({
             }
           }}
           style={{
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             padding: '4px 8px',
             borderRadius: 6,
             border: 'none',
@@ -92,7 +92,7 @@ export function OcrHistoryTrashDropdown({
             }
           }}
           style={{
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             padding: '4px 8px',
             borderRadius: 6,
             border: 'none',
@@ -110,7 +110,7 @@ export function OcrHistoryTrashDropdown({
         activeHistory.length === 0 ? (
           <p
             style={{
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               color: 'var(--text-tertiary)',
               textAlign: 'center',
               padding: '16px 12px',
@@ -136,7 +136,7 @@ export function OcrHistoryTrashDropdown({
                     gap: 8,
                     padding: '7px 12px',
                     cursor: 'pointer',
-                    fontSize: 12,
+                    fontSize: 'var(--text-caption)',
                   }}
                 >
                   <FileText
@@ -160,7 +160,7 @@ export function OcrHistoryTrashDropdown({
                     </div>
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 'var(--text-badge)',
                         color: hasError ? '#e74c3c' : 'var(--text-tertiary)',
                         marginTop: 1,
                       }}
@@ -216,7 +216,7 @@ export function OcrHistoryTrashDropdown({
       ) : trash.length === 0 ? (
         <p
           style={{
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             color: 'var(--text-tertiary)',
             textAlign: 'center',
             padding: '16px 12px',
@@ -235,7 +235,7 @@ export function OcrHistoryTrashDropdown({
                 alignItems: 'center',
                 gap: 8,
                 padding: '7px 12px',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
               }}
             >
               <FileText size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
@@ -250,7 +250,7 @@ export function OcrHistoryTrashDropdown({
                 >
                   {entry.fileName}
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 1 }}>
+                <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 1 }}>
                   {new Date(entry.timestamp).toLocaleString()}
                 </div>
               </div>
@@ -316,7 +316,7 @@ export function OcrHistoryTrashDropdown({
                 border: '1px solid #e74c3c',
                 background: 'transparent',
                 color: '#e74c3c',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 cursor: 'pointer',
                 textAlign: 'center',
                 transition: 'all 0.15s ease',

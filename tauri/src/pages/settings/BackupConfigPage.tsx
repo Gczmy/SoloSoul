@@ -174,7 +174,7 @@ export function BackupConfigPage() {
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>
               <HardDrive size={24} style={{ marginBottom: 8, opacity: 0.4 }} />
               <p style={{ fontSize: 'var(--text-sm)', margin: 0 }}>{t('settings:no_backups_yet')}</p>
-              <p style={{ fontSize: 12, margin: '4px 0 0' }}>{t('settings:create_first_backup')}</p>
+              <p style={{ fontSize: 'var(--text-caption)', margin: '4px 0 0' }}>{t('settings:create_first_backup')}</p>
             </div>
           ) : (
             <div style={{ marginTop: 4 }}>
@@ -191,7 +191,7 @@ export function BackupConfigPage() {
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 500 }}>{backup.name}</p>
-                    <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-tertiary)' }}>
+                    <p style={{ margin: '2px 0 0', fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
                       {new Date(backup.created_at).toLocaleString()} &middot;{' '}
                       {formatSize(backup.size_bytes)} &middot;{' '}
                       {t('settings:objects_count', { n: backup.object_count })}
@@ -272,7 +272,7 @@ export function BackupConfigPage() {
         </Card>
 
         {/* Info */}
-        <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center' }}>
+        <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
           {t('settings:backups_stored_locally')}
           <br />
           {t('settings:export_hint')}

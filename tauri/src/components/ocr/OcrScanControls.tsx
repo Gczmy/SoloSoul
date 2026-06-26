@@ -36,7 +36,7 @@ export function OcrScanControls({
         <label
           style={{
             display: 'block',
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             color: 'var(--text-secondary)',
             marginBottom: 6,
           }}
@@ -70,7 +70,7 @@ export function OcrScanControls({
           style={{
             width: '100%',
             padding: '8px 10px',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             borderRadius: 8,
             border: '1px solid var(--border-subtle)',
             background: 'var(--bg-elevated)',
@@ -119,7 +119,7 @@ export function OcrScanControls({
             padding: '6px 14px',
             borderRadius: 6,
             border: 'none',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             cursor: 'pointer',
             background: scanMode === 'general' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent',
             color: scanMode === 'general' ? 'var(--accent-primary)' : 'var(--text-primary)',
@@ -148,7 +148,7 @@ export function OcrScanControls({
             padding: '6px 14px',
             borderRadius: 6,
             border: 'none',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             cursor: 'pointer',
             background: scanMode === 'mrz' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent',
             color: scanMode === 'mrz' ? 'var(--accent-primary)' : 'var(--text-primary)',
@@ -182,7 +182,7 @@ export function OcrScanControls({
             border: '1px solid var(--border-subtle)',
             background: 'var(--bg-toolbar)',
             color: 'var(--text-primary)',
-            fontSize: 14,
+            fontSize: 'var(--text-body)',
             fontWeight: 500,
             cursor: isScanning ? 'not-allowed' : 'pointer',
             display: 'inline-flex',
@@ -214,7 +214,7 @@ export function OcrScanControls({
           }}
         >
           <Loader2 size={18} className="spin" />
-          <span style={{ fontSize: 13 }}>{t('ocr:scanning')}</span>
+          <span style={{ fontSize: 'var(--text-body-sm)' }}>{t('ocr:scanning')}</span>
         </div>
       )}
     </>

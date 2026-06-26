@@ -29,7 +29,7 @@ export function GuideIndex({ guides, categories, language, onSelect, extraItems 
     return (
       <Card>
         <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-secondary)' }}>
-          <p style={{ fontSize: 14 }}>{resolveTitle({ zh: '暂无帮助文档', en: 'No guides available' }, language)}</p>
+          <p style={{ fontSize: 'var(--text-body)' }}>{resolveTitle({ zh: '暂无帮助文档', en: 'No guides available' }, language)}</p>
         </div>
       </Card>
     );
@@ -41,7 +41,7 @@ export function GuideIndex({ guides, categories, language, onSelect, extraItems 
         <div key={group.id}>
           <h3
             style={{
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               fontWeight: 600,
               color: 'var(--text-secondary)',
               textTransform: 'uppercase',
@@ -62,13 +62,13 @@ export function GuideIndex({ guides, categories, language, onSelect, extraItems 
                     justifyContent: 'space-between',
                   }}
                 >
-                  <span style={{ fontSize: 14, fontWeight: 500 }}>
+                  <span style={{ fontSize: 'var(--text-body)', fontWeight: 500 }}>
                     {resolveTitle(guide.title, language)}
                   </span>
                   <span
                     style={{
                       color: 'var(--text-tertiary)',
-                      fontSize: 18,
+                      fontSize: 'var(--text-md)',
                     }}
                   >
                     ›

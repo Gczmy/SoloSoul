@@ -187,7 +187,7 @@ export function TrashPage() {
                   background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
                   color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                   boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   cursor: 'pointer',
                   transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
@@ -220,7 +220,7 @@ export function TrashPage() {
                   background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
                   color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                   boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   cursor: 'pointer',
                   transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
@@ -237,7 +237,7 @@ export function TrashPage() {
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               color: 'var(--text-secondary)',
               padding: '4px 0',
             }}
@@ -266,7 +266,7 @@ export function TrashPage() {
 
         {error && (
           <Card>
-            <p style={{ textAlign: 'center', color: 'var(--error)', padding: 16, fontSize: 13 }}>
+            <p style={{ textAlign: 'center', color: 'var(--error)', padding: 16, fontSize: 'var(--text-body-sm)' }}>
               {error}
             </p>
           </Card>
@@ -305,7 +305,7 @@ export function TrashPage() {
                     size={48}
                     style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
                   />
-                  <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+                  <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
                     {items.length > 0
                       ? t('settings:trash_empty_filtered')
                       : t('settings:trash_empty')}
@@ -347,7 +347,7 @@ export function TrashPage() {
                       <div style={{ minWidth: 0 }}>
                         <div
                           style={{
-                            fontSize: 13,
+                            fontSize: 'var(--text-body-sm)',
                             fontWeight: 500,
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -361,7 +361,7 @@ export function TrashPage() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: 4,
-                            fontSize: 11,
+                            fontSize: 'var(--text-badge)',
                             color: 'var(--text-tertiary)',
                           }}
                         >
@@ -458,7 +458,7 @@ export function TrashPage() {
               boxShadow: '0 -2px 12px rgba(0,0,0,0.08)',
             }}
           >
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)', marginRight: 'auto' }}>
+            <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginRight: 'auto' }}>
               {selectedIds.size} {t('settings:selected')}
             </span>
             <Button size="sm" variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={() => doRestore(Array.from(selectedIds))}>

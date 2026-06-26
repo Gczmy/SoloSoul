@@ -18,7 +18,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-toolbar);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -70,7 +70,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-toolbar);
   color: var(--text-tertiary);
-  font-size: 12px;
+  font-size: var(--text-caption);
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -108,7 +108,7 @@
   border: none;
   background: transparent;
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -140,7 +140,7 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
   color: var(--accent-primary);
-  font-size: 10px;
+  font-size: var(--text-badge);
   font-weight: 600;
 }
 
@@ -155,7 +155,7 @@
   padding: 48px 24px;
   text-align: center;
   color: var(--text-tertiary);
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 
 .outputCard {
@@ -173,7 +173,7 @@
 
 .outputHeader h4 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--text-card-title);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -190,7 +190,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-base);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--text-caption);
   font-weight: 500;
   cursor: pointer;
 }
@@ -207,7 +207,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-base);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--text-caption);
   font-weight: 500;
   cursor: pointer;
 }
@@ -218,7 +218,7 @@
 }
 
 .completedStatus {
-  font-size: 12px;
+  font-size: var(--text-caption);
   color: var(--text-tertiary);
 }
 
@@ -232,7 +232,7 @@
   border-radius: 10px;
   background: var(--bg-inset);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-caption);
 }
 
 .logLine {
@@ -244,7 +244,7 @@
 
 .logLevel {
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: var(--text-badge);
   font-weight: 700;
   color: var(--text-tertiary);
   min-width: 36px;
@@ -274,7 +274,7 @@
 
 .logPanel h4 {
   margin: 0 0 12px;
-  font-size: 15px;
+  font-size: var(--text-card-title);
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -288,14 +288,14 @@
 .auditRow {
   display: flex;
   gap: 12px;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   color: var(--text-secondary);
 }
 
 .auditTime {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--text-caption);
   flex-shrink: 0;
 }
 
@@ -308,6 +308,6 @@
   border-radius: 8px;
   background: var(--color-error-bg);
   color: var(--color-error-text);
-  font-size: 12px;
+  font-size: var(--text-caption);
   word-break: break-word;
 }

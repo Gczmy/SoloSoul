@@ -71,7 +71,7 @@ export function LlmChatPage() {
             type="button"
             onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
             style={{
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               padding: '6px 12px',
               borderRadius: 6,
               border: '1px solid var(--border-subtle)',
@@ -106,7 +106,7 @@ export function LlmChatPage() {
               size={48}
               style={{ marginBottom: 16, opacity: 0.3, color: 'var(--text-tertiary)' }}
             />
-            <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px' }}>
+            <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 600, margin: '0 0 8px' }}>
               {t('settings:ai_chat')}
             </h2>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
@@ -116,7 +116,7 @@ export function LlmChatPage() {
               type="button"
               onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
               style={{
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--border-subtle)',

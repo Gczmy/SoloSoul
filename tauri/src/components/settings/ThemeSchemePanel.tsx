@@ -62,7 +62,7 @@ export function ThemeSchemePanel({
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <h3 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{t('settings:theme_schemes')}</h3>
+        <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, margin: 0 }}>{t('settings:theme_schemes')}</h3>
         <button
           onClick={onClose}
           style={{
@@ -142,7 +142,7 @@ function ModePill({
         borderColor: active ? 'var(--accent-primary)' : 'var(--border-subtle)',
         background: active ? 'var(--state-selected)' : 'transparent',
         color: active ? 'var(--accent-primary)' : 'var(--text-primary)',
-        fontSize: 13,
+        fontSize: 'var(--text-body-sm)',
         fontWeight: 500,
         cursor: 'pointer',
         transition: 'all 0.15s ease',
@@ -247,7 +247,7 @@ function SchemeThumbnail({
       {/* Name */}
       <span
         style={{
-          fontSize: 11,
+          fontSize: 'var(--text-badge)',
           fontWeight: 500,
           color: 'var(--text-primary)',
           textAlign: 'center',
@@ -264,7 +264,7 @@ function SchemeThumbnail({
             position: 'absolute',
             top: 4,
             right: 4,
-            fontSize: 9,
+            fontSize: 'var(--text-badge)',
             fontWeight: 600,
             padding: '1px 5px',
             borderRadius: 3,

@@ -11,7 +11,7 @@ export function SystemPromptCard({ checked, onToggle }: SystemPromptCardProps) {
 
   return (
     <Card>
-      <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+      <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
         {t('settings:ai_system_prompt_title')}
       </h3>
       <label
@@ -21,7 +21,7 @@ export function SystemPromptCard({ checked, onToggle }: SystemPromptCardProps) {
           gap: 10,
           padding: '6px 0',
           cursor: 'pointer',
-          fontSize: 13,
+          fontSize: 'var(--text-body-sm)',
         }}
       >
         <input
@@ -32,7 +32,7 @@ export function SystemPromptCard({ checked, onToggle }: SystemPromptCardProps) {
         />
         {t('settings:ai_system_prompt_software')}
       </label>
-      <p style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4, paddingLeft: 26 }}>
+      <p style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 4, paddingLeft: 26 }}>
         {t('settings:ai_system_prompt_desc')}
       </p>
     </Card>

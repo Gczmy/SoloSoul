@@ -34,7 +34,7 @@ export function ChatInputBar({
     >
       <div
         style={{
-          fontSize: 10,
+          fontSize: 'var(--text-badge)',
           color: 'var(--text-tertiary)',
           marginBottom: 4,
           display: 'flex',
@@ -54,7 +54,7 @@ export function ChatInputBar({
               style={{
                 padding: '0 4px',
                 borderRadius: 3,
-                fontSize: 9,
+                fontSize: 'var(--text-badge)',
                 background: isLocal ? 'rgba(39,174,96,0.12)' : 'rgba(41,128,185,0.12)',
                 color: isLocal ? '#27ae60' : '#2980b9',
               }}
@@ -110,7 +110,7 @@ export function ChatInputBar({
           style={{
             flex: 1,
             padding: '6px 10px',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             lineHeight: 1.5,
             fontFamily: 'inherit',
             border: '1px solid var(--border-subtle)',

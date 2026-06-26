@@ -56,7 +56,7 @@ export function ExportImportTabBar({ tab, onChange }: ExportImportTabBarProps) {
               border: 'none',
               borderRadius: 8,
               cursor: 'pointer',
-              fontSize: 14,
+              fontSize: 'var(--text-body)',
               fontWeight: isActive ? 600 : 500,
               fontFamily: 'inherit',
               background: isActive

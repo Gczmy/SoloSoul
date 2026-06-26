@@ -47,7 +47,7 @@
   border: none;
   outline: none;
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: var(--text-body);
   font-family: inherit;
 }
 .input::placeholder {
@@ -123,7 +123,7 @@
   border: 1px solid var(--border-subtle);
   background: transparent;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: var(--text-caption);
   cursor: pointer;
   transition:
     background 0.12s ease,
@@ -159,7 +159,7 @@
   text-align: center;
   color: var(--text-tertiary);
   padding: 32px 16px;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   transition: opacity 0.15s ease;
 }
 .emptyHidden {
@@ -174,7 +174,7 @@
   justify-content: center;
   gap: 8px;
   padding: 32px 16px;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   color: var(--text-tertiary);
 }
 .searchingOverlay {
@@ -187,7 +187,7 @@
   gap: 8px;
   background: var(--bg-elevated);
   opacity: 0.92;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   color: var(--text-tertiary);
 }
 .resultItem {
@@ -217,12 +217,12 @@
   flex: 1;
 }
 .resultName {
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   font-weight: 500;
   overflow-wrap: break-word;
 }
 .resultMeta {
-  font-size: 11px;
+  font-size: var(--text-badge);
   color: var(--text-tertiary);
   overflow-wrap: break-word;
 }
@@ -232,7 +232,7 @@
   border-radius: 4px;
   background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
   color: var(--accent-primary);
-  font-size: 10px;
+  font-size: var(--text-badge);
   font-weight: 500;
 }
 
@@ -249,7 +249,7 @@
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: var(--text-badge);
   font-weight: 600;
   color: var(--text-tertiary);
   text-transform: uppercase;
@@ -268,7 +268,7 @@
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   transition: background 0.1s ease;
 }
 .recentItem:hover {
@@ -291,7 +291,7 @@
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   transition: background 0.1s ease;
 }
 .settingsItem:hover {

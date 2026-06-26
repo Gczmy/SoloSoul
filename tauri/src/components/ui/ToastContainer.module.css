@@ -46,7 +46,7 @@
 }
 
 .message {
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   color: var(--text-primary);
   flex: 1;
 }
@@ -55,7 +55,7 @@
   border: none;
   cursor: pointer;
   color: var(--text-tertiary);
-  font-size: 14px;
+  font-size: var(--text-body);
   padding: 2px;
 }
 .close:hover {

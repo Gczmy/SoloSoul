@@ -82,12 +82,12 @@ export function TemplateDetailModal({
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <LayoutTemplate size={24} color="var(--accent-primary)" />
             <div>
-              <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+              <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin: 0 }}>
                 {detailTemplate.name}
               </h2>
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: 'var(--text-badge)',
                   color: 'var(--text-tertiary)',
                   display: 'flex',
                   alignItems: 'center',
@@ -133,7 +133,7 @@ export function TemplateDetailModal({
         {detailTemplate.properties.length === 0 ? (
           <p
             style={{
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               color: 'var(--text-tertiary)',
               textAlign: 'center',
               padding: '16px 0',
@@ -178,7 +178,7 @@ export function TemplateDetailModal({
                   </span>
                   <span
                     style={{
-                      fontSize: 14,
+                      fontSize: 'var(--text-body)',
                       fontWeight: 500,
                       color: 'var(--text-primary)',
                       textDecoration: prop.deprecatedAt ? 'line-through' : 'none',

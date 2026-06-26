@@ -126,10 +126,10 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             <TemplateIcon size={22} />
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
+            <span style={{ fontSize: 'var(--text-body)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
             <span
               style={{
-                fontSize: 10,
+                fontSize: 'var(--text-badge)',
                 color: 'var(--text-tertiary)',
                 marginLeft: 2,
                 padding: '1px 5px',
@@ -148,7 +148,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             {obj.templateId && (
               <span
                 style={{
-                  fontSize: 10,
+                  fontSize: 'var(--text-badge)',
                   color: 'var(--text-tertiary)',
                   textDecoration: tplMatch ? 'none' : 'line-through',
                   flexShrink: 0,
@@ -219,7 +219,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
                 style={{
                   padding: '3px 8px',
                   borderRadius: 6,
-                  fontSize: 11,
+                  fontSize: 'var(--text-badge)',
                   background: 'var(--bg-toolbar)',
                   color: 'var(--text-secondary)',
                   border: `1px solid ${isMasked ? s.fg : s.fg}`,
@@ -273,7 +273,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
               style={{
                 padding: '1px 7px',
                 borderRadius: 10,
-                fontSize: 10,
+                fontSize: 'var(--text-badge)',
                 background: 'rgba(91,124,153,0.08)',
                 color: 'var(--accent-primary)',
                 fontWeight: 500,

@@ -108,7 +108,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
 
   return (
     <Card>
-      <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
+      <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 12 }}>
         {t('settings:change_password')}
       </h3>
       <div
@@ -122,7 +122,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
           background: 'rgba(212, 133, 10, 0.10)',
           border: '1px solid rgba(212, 133, 10, 0.25)',
           color: '#D4850A',
-          fontSize: 12,
+          fontSize: 'var(--text-caption)',
           lineHeight: 1.4,
         }}
       >
@@ -152,7 +152,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 3,
-                  fontSize: 11,
+                  fontSize: 'var(--text-badge)',
                   color: 'var(--text-tertiary)',
                   fontWeight: 400,
                 }}
@@ -194,7 +194,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
               marginBottom: 4,
             }}
           >
-            <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+            <label style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>
               {t('common:password_hint')}
             </label>
             <button
@@ -235,7 +235,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
                 borderColor: hintCleared ? '#e74c3c' : 'var(--border-subtle)',
                 background: hintCleared ? '#e74c3c' : 'var(--bg-toolbar)',
                 cursor: 'pointer',
-                fontSize: 11,
+                fontSize: 'var(--text-badge)',
                 fontWeight: 500,
                 color: hintCleared ? 'white' : 'var(--text-tertiary)',
                 transition: 'all 0.15s ease',
@@ -257,7 +257,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
             style={{
               width: '100%',
               padding: '10px 14px',
-              fontSize: 14,
+              fontSize: 'var(--text-body)',
               border: '1px solid',
               borderRadius: 8,
               borderColor: hintCleared ? '#e74c3c' : 'var(--border-subtle)',
@@ -269,14 +269,14 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
             }}
           />
           {hintCleared && (
-            <div style={{ marginTop: 6, fontSize: 12, color: '#e74c3c', lineHeight: 1.4 }}>
+            <div style={{ marginTop: 6, fontSize: 'var(--text-caption)', color: '#e74c3c', lineHeight: 1.4 }}>
               {t('common:clear_hint_warning')}
             </div>
           )}
         </div>
 
         {error && (
-          <div style={{ color: '#dc2626', fontSize: 13, padding: '4px 0' }}>{error}</div>
+          <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', padding: '4px 0' }}>{error}</div>
         )}
 
         <button
@@ -302,7 +302,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
             border: '1px solid var(--border-subtle)',
             background: 'var(--bg-toolbar)',
             color: 'var(--text-primary)',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             fontWeight: 500,
             cursor: shouldDisableSave ? 'default' : 'pointer',
             opacity: shouldDisableSave ? 0.5 : 1,

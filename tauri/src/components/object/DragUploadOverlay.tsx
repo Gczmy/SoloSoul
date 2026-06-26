@@ -64,7 +64,7 @@ export function DragUploadOverlay({
             size={28}
             style={{ color: 'var(--accent-primary)', animation: 'dragPulse 1.2s ease-in-out infinite' }}
           />
-          <div style={{ color: '#fff', fontSize: 13, fontWeight: 600, textAlign: 'center' }}>
+          <div style={{ color: '#fff', fontSize: 'var(--text-body-sm)', fontWeight: 600, textAlign: 'center' }}>
             {totalFiles > 1
               ? t('uploads_in_progress', { current: currentIndex + 1, total: totalFiles })
               : t('uploading')}
@@ -72,7 +72,7 @@ export function DragUploadOverlay({
           <div
             style={{
               color: 'rgba(255,255,255,0.7)',
-              fontSize: 11,
+              fontSize: 'var(--text-badge)',
               maxWidth: 240,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -86,7 +86,7 @@ export function DragUploadOverlay({
             <div
               style={{
                 color: 'rgba(255,255,255,0.5)',
-                fontSize: 10,
+                fontSize: 'var(--text-badge)',
                 marginTop: 2,
               }}
             >
@@ -129,10 +129,10 @@ export function DragUploadOverlay({
         }}
       >
         <Upload size={24} style={{ color: 'var(--accent-primary)' }} />
-        <span style={{ color: 'var(--accent-primary)', fontSize: 13, fontWeight: 600 }}>
+        <span style={{ color: 'var(--accent-primary)', fontSize: 'var(--text-body-sm)', fontWeight: 600 }}>
           {t('drop_to_upload')}
         </span>
-        <span style={{ color: 'var(--text-tertiary)', fontSize: 11 }}>
+        <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-badge)' }}>
           {t('drop_multiple_hint')}
         </span>
       </div>

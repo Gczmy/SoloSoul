@@ -337,7 +337,7 @@ export function AppearanceSettingsPage() {
                       }}
                     >
                       <Icon size={22} />
-                      <span style={{ fontSize: 12, fontWeight: isActive ? 500 : 400 }}>
+                      <span style={{ fontSize: 'var(--text-caption)', fontWeight: isActive ? 500 : 400 }}>
                         {t(opt.labelKey)}
                       </span>
                     </button>
@@ -351,7 +351,7 @@ export function AppearanceSettingsPage() {
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 4 }}>
                 {t('settings:sidebar_button_mode')}
               </h3>
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
+              <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)', marginBottom: 12 }}>
                 {t('settings:sidebar_button_mode_desc')}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -391,7 +391,7 @@ export function AppearanceSettingsPage() {
                         }}
                         style={{
                           padding: '4px 8px',
-                          fontSize: 12,
+                          fontSize: 'var(--text-caption)',
                           borderRadius: 6,
                           border: '1px solid var(--border-subtle)',
                           background: 'var(--bg-elevated)',

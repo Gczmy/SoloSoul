@@ -135,7 +135,7 @@ export function ScanLocalPage() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>Select Directory</div>
-              <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+              <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
                 {selectedDir || 'Choose a folder to scan for documents'}
               </div>
             </div>
@@ -165,7 +165,7 @@ export function ScanLocalPage() {
                     <FileText size={20} style={{ color: 'var(--text-tertiary)' }} />
                     <div>
                       <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{file.name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                         {file.ext.toUpperCase()} · {formatFileSize(file.size)}
                       </div>
                     </div>

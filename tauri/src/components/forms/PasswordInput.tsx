@@ -98,7 +98,7 @@ export function SecurePasswordInput({
       {label && (
         <label
           htmlFor={inputId}
-          style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}
+          style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}
         >
           {label}
         </label>
@@ -180,7 +180,7 @@ export function SecurePasswordInput({
             border: 'none',
             outline: 'none',
             padding: showHintButton ? '10px 72px 10px 32px' : '10px 48px 10px 32px',
-            fontSize: 14,
+            fontSize: 'var(--text-body)',
             background: 'transparent',
             color: 'var(--text-primary)',
             fontFamily: 'inherit',
@@ -285,7 +285,7 @@ export function SecurePasswordInput({
                       maxWidth: 240,
                       padding: '8px 10px',
                       borderRadius: 6,
-                      fontSize: 11,
+                      fontSize: 'var(--text-badge)',
                       lineHeight: 1.4,
                       color: 'var(--text-secondary)',
                       background: 'var(--bg-elevated)',
@@ -305,7 +305,7 @@ export function SecurePasswordInput({
           role="alert"
           key={error}
           style={{
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             color: 'var(--accent-danger, #dc2626)',
             animation: 'fadeInSlideDown 0.25s ease-out',
           }}

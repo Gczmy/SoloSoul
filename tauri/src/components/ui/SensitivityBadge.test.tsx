@@ -24,7 +24,7 @@ describe('SensitivityBadge', () => {
     const badge = screen.getByText('public').closest('span');
     expect(badge).toHaveStyle({
       display: 'inline-flex',
-      fontSize: '10px',
+      fontSize: 'var(--text-badge)',
       fontWeight: '600',
     });
   });

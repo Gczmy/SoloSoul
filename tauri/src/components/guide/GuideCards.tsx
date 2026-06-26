@@ -57,7 +57,7 @@ export function GuideCards({ items, onLinkClick }: GuideCardsProps) {
               alignItems: 'center',
               justifyContent: 'space-between',
               width: '100%',
-              fontSize: 15,
+              fontSize: 'var(--text-card-title)',
               fontWeight: 600,
               color: 'var(--text-primary)',
             }}
@@ -65,7 +65,7 @@ export function GuideCards({ items, onLinkClick }: GuideCardsProps) {
             <span>{item.title}</span>
             <ArrowRight size={16} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
           </div>
-          <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             {item.desc}
           </div>
         </button>

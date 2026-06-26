@@ -43,7 +43,7 @@ export function SecuritySettingsPage() {
                 background: 'var(--bg-toolbar)',
                 color: 'var(--text-primary)',
                 fontFamily: 'inherit',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 transition: 'border-color 0.15s ease',
               }}
             >
@@ -76,7 +76,7 @@ export function SecuritySettingsPage() {
                 background: 'rgba(212, 133, 10, 0.10)',
                 border: '1px solid rgba(212, 133, 10, 0.25)',
                 color: '#D4850A',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 lineHeight: 1.4,
               }}
             >

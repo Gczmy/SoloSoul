@@ -161,7 +161,7 @@ export function SearchPage() {
 
         <div style={{ marginTop: 12 }}>
           {isSearching && (
-            <p style={{ fontSize: 13, color: 'var(--text-tertiary)', textAlign: 'center' }}>
+            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
               {t('common:searching')}
             </p>
           )}
@@ -184,10 +184,10 @@ export function SearchPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <span style={{ flexShrink: 0, display: 'flex' }}><PAGE_ICON_MAP.custom size={18} /></span>
                   <div style={{ overflow: 'hidden' }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
+                    <div style={{ fontSize: 'var(--text-body)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: 'var(--text-badge)',
                         color: 'var(--text-tertiary)',
                         display: 'flex',
                         alignItems: 'center',

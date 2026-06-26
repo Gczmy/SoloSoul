@@ -78,7 +78,7 @@ export function OcrInstallBanner({
           : isCompleted
             ? 'var(--color-success-text, #2e7d32)'
             : 'white',
-        fontSize: 13,
+        fontSize: 'var(--text-body-sm)',
         boxShadow: 'var(--shadow-md)',
       }}
     >
@@ -99,7 +99,7 @@ export function OcrInstallBanner({
                 : t('first_install_banner', { progress })}
           </span>
           {isCompleted && (
-            <span style={{ fontSize: 11, opacity: 0.8 }}>
+            <span style={{ fontSize: 'var(--text-badge)', opacity: 0.8 }}>
               ({t('auto_close_countdown', { seconds: remainingSeconds })})
             </span>
           )}
@@ -118,7 +118,7 @@ export function OcrInstallBanner({
                 border: 'none',
                 background: 'rgba(192, 57, 43, 0.12)',
                 color: 'var(--color-error-text, #c0392b)',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 fontWeight: 500,
                 cursor: 'pointer',
               }}

@@ -21,7 +21,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
           textAlign: 'center',
           padding: '24px 8px',
           color: 'var(--text-tertiary)',
-          fontSize: 13,
+          fontSize: 'var(--text-body-sm)',
         }}
       >
         <Scan size={32} style={{ marginBottom: 8, opacity: 1.3 }} />
@@ -41,7 +41,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
           padding: '6px 8px',
           borderRadius: 6,
           background: 'rgba(91,124,153,0.06)',
-          fontSize: 11,
+          fontSize: 'var(--text-badge)',
           color: 'var(--text-tertiary)',
           lineHeight: 1.4,
         }}
@@ -72,7 +72,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
             background: 'rgba(231,76,60,0.08)',
             border: '1px solid rgba(231,76,60,0.2)',
             color: '#e74c3c',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             display: 'flex',
             alignItems: 'center',
             gap: 8,
@@ -92,7 +92,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
             background: 'rgba(231,76,60,0.08)',
             border: '1px solid rgba(231,76,60,0.2)',
             color: '#e74c3c',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             display: 'flex',
             alignItems: 'center',
             gap: 8,
@@ -110,7 +110,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
             padding: 12,
             borderRadius: 10,
             background: 'var(--bg-toolbar)',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             lineHeight: 1.6,
             whiteSpace: 'pre-wrap',
             maxHeight: 200,
@@ -137,7 +137,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
                   padding: '6px 10px',
                   borderRadius: 6,
                   background: 'rgba(41,128,185,0.08)',
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   color: 'var(--text-secondary)',
                   textAlign: 'center',
                 }}
@@ -149,7 +149,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
                   padding: 12,
                   borderRadius: 10,
                   background: 'var(--bg-toolbar)',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   lineHeight: 1.6,
                   whiteSpace: 'pre-wrap',
                   maxHeight: 200,
@@ -166,7 +166,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
                 padding: 12,
                 borderRadius: 10,
                 background: 'var(--bg-toolbar)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 color: 'var(--text-secondary)',
                 textAlign: 'center',
               }}

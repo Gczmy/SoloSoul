@@ -15,7 +15,7 @@ export function WarningCancelButton({ onClick, children }: WarningCancelButtonPr
       onMouseLeave={() => setHovered(false)}
       style={{
         padding: '6px 12px',
-        fontSize: 13,
+        fontSize: 'var(--text-body-sm)',
         borderRadius: 6,
         border: '1px solid var(--warning)',
         background: hovered

@@ -104,7 +104,7 @@ export function SyncPage() {
                     ? t('settings:sync_enabled', { defaultValue: 'Sync Enabled' })
                     : t('settings:sync_disabled', { defaultValue: 'Sync Disabled' })}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
                   {t('settings:sync_known_devices', {
                     count: store.connectedPeers.length,
                     defaultValue: `${store.connectedPeers.length} device(s) known`,
@@ -158,7 +158,7 @@ export function SyncPage() {
                 padding: 10,
                 borderRadius: 8,
                 background: 'var(--bg-toolbar)',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 fontFamily: 'monospace',
                 wordBreak: 'break-all',
               }}
@@ -176,7 +176,7 @@ export function SyncPage() {
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
             {t('settings:sync_with_device', { defaultValue: 'Sync with Device' })}
           </h3>
-          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 12 }}>
+          <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
             {t('settings:sync_device_input_hint', {
               defaultValue: 'Enter a discovered device ID or a host:port address.',
             })}
@@ -226,12 +226,12 @@ export function SyncPage() {
             </button>
           </div>
           {store.lastResult && (
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
+            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)', marginTop: 8 }}>
               {t('settings:sync_result', { defaultValue: 'Result' })}: {store.lastResult.summary}
             </p>
           )}
           {store.error && (
-            <p style={{ fontSize: 12, color: '#e74c3c', marginTop: 8 }}>{store.error}</p>
+            <p style={{ fontSize: 'var(--text-caption)', color: '#e74c3c', marginTop: 8 }}>{store.error}</p>
           )}
         </Card>
 
@@ -282,7 +282,7 @@ export function SyncPage() {
                       padding: 12,
                       borderRadius: 8,
                       background: 'var(--bg-toolbar)',
-                      fontSize: 12,
+                      fontSize: 'var(--text-caption)',
                     }}
                   >
                     <div style={{ fontWeight: 500, marginBottom: 6 }}>{result.summary}</div>
@@ -330,7 +330,7 @@ export function SyncPage() {
                               <div
                                 style={{
                                   fontFamily: 'monospace',
-                                  fontSize: 11,
+                                  fontSize: 'var(--text-badge)',
                                   color: 'var(--text-tertiary)',
                                 }}
                               >
@@ -376,12 +376,12 @@ export function SyncPage() {
                   <Smartphone size={18} style={{ color: 'var(--accent-primary)' }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{peer.name || peer.id}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                       {peer.addr || 'offline'} · {peer.lastSeen || 'never'}
                     </div>
                     <div
                       style={{
-                        fontSize: 11,
+                        fontSize: 'var(--text-badge)',
                         color: 'var(--text-tertiary)',
                         fontFamily: 'monospace',
                         wordBreak: 'break-all',
@@ -414,7 +414,7 @@ export function SyncPage() {
               ))}
             </div>
           ) : (
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 8 }}>
+            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginTop: 8 }}>
               {t('settings:sync_no_devices', {
                 defaultValue:
                   'No devices known yet. Enable sync and sync with another device to add it.',

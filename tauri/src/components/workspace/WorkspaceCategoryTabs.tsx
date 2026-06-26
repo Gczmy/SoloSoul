@@ -61,7 +61,7 @@ export function WorkspaceCategoryTabs({
       : 'var(--bg-toolbar)',
     color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
     boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-    fontSize: 13,
+    fontSize: 'var(--text-body-sm)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -114,7 +114,7 @@ export function WorkspaceCategoryTabs({
             border: '1px solid var(--border-subtle)',
             background: 'transparent',
             color: 'var(--text-tertiary)',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             cursor: 'pointer',
             transition: 'border-color 0.2s, box-shadow 0.2s, color 0.2s',
           }}

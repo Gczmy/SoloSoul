@@ -56,11 +56,11 @@ export function ConfirmDialog({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>{title}</h3>
+        <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>{title}</h3>
         <div
           style={{
             margin: '0 0 20px',
-            fontSize: 14,
+            fontSize: 'var(--text-body)',
             color: 'var(--text-secondary)',
             lineHeight: 1.5,
           }}
@@ -76,7 +76,7 @@ export function ConfirmDialog({
               border: '1px solid var(--border-subtle)',
               background: 'var(--bg-elevated)',
               cursor: 'pointer',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               color: 'var(--text-primary)',
             }}
           >
@@ -90,7 +90,7 @@ export function ConfirmDialog({
               border: 'none',
               background: confirmBg,
               color: 'white',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'all 0.15s ease',

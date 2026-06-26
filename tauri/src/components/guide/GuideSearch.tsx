@@ -221,13 +221,13 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
       </div>
 
       {loading && (
-        <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
+        <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 'var(--text-body-sm)' }}>
           {t('searching')}
         </p>
       )}
 
       {!loading && results !== null && results.length === 0 && (
-        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
+        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 'var(--text-body)' }}>
           {t('no_matching_help_docs')}
         </p>
       )}
@@ -241,12 +241,12 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
               .replace(/\n+/g, ' ');
             return (
               <Card key={r.id} interactive onClick={() => onSelect(r.id)}>
-                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>
+                <div style={{ fontSize: 'var(--text-body)', fontWeight: 500, marginBottom: 4 }}>
                   <HighlightText text={r.title} tokens={tokens} />
                 </div>
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: 'var(--text-caption)',
                     color: 'var(--text-secondary)',
                     lineHeight: 1.5,
                     display: '-webkit-box',

@@ -34,7 +34,7 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <Scan size={16} style={{ color: 'var(--accent-primary)' }} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+        <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
           {t('ocr:quick_scan_title')}
         </span>
       </div>

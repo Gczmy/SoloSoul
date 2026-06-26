@@ -51,13 +51,13 @@ export function ConfirmDeleteDialog({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
+        <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>
           {title}
         </h3>
         <p
           style={{
             margin: '0 0 20px',
-            fontSize: 14,
+            fontSize: 'var(--text-body)',
             color: 'var(--text-secondary)',
             lineHeight: 1.5,
           }}
@@ -76,7 +76,7 @@ export function ConfirmDeleteDialog({
               border: 'none',
               background: '#e74c3c',
               color: 'white',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               fontWeight: 500,
               cursor: 'pointer',
             }}

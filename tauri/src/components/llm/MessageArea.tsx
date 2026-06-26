@@ -60,7 +60,7 @@ export function MessageArea({
               size={40}
               style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
             />
-            <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>
+            <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-tertiary)' }}>
               {t('settings:ai_chat_start')} · {activeProvider?.name} · {activeProvider?.model}
             </p>
           </div>
@@ -89,7 +89,7 @@ export function MessageArea({
                 padding: '10px 14px',
                 borderRadius: '16px 16px 16px 4px',
                 background: 'var(--bg-elevated)',
-                fontSize: 14,
+                fontSize: 'var(--text-body)',
                 lineHeight: 1.6,
               }}
             >
@@ -114,7 +114,7 @@ export function MessageArea({
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: 'var(--text-badge)',
             color: 'var(--text-tertiary)',
             marginBottom: 4,
             display: 'flex',
@@ -134,7 +134,7 @@ export function MessageArea({
                 style={{
                   padding: '1px 5px',
                   borderRadius: 3,
-                  fontSize: 10,
+                  fontSize: 'var(--text-badge)',
                   background: isLocal ? 'rgba(39,174,96,0.12)' : 'rgba(41,128,185,0.12)',
                   color: isLocal ? '#27ae60' : '#2980b9',
                 }}
@@ -209,7 +209,7 @@ export function MessageArea({
             style={{
               flex: 1,
               padding: '8px 12px',
-              fontSize: 14,
+              fontSize: 'var(--text-body)',
               lineHeight: 1.5,
               fontFamily: 'inherit',
               border: '1px solid var(--border-subtle)',

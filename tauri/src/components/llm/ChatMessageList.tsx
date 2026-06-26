@@ -59,7 +59,7 @@ export const ChatMessageList = memo(function ChatMessageList({
             size={28}
             style={{ marginBottom: 8, opacity: 0.25, color: 'var(--text-tertiary)' }}
           />
-          <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: 0 }}>
+          <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', margin: 0 }}>
             {t('settings:ai_chat_start')} · {activeProviderName}
           </p>
         </div>
@@ -69,7 +69,7 @@ export const ChatMessageList = memo(function ChatMessageList({
           <div
             style={{
               textAlign: 'center',
-              fontSize: 10,
+              fontSize: 'var(--text-badge)',
               color: 'var(--text-tertiary)',
               padding: '4px 0 1px',
             }}
@@ -95,7 +95,7 @@ export const ChatMessageList = memo(function ChatMessageList({
                       ? 'rgba(231,76,60,0.12)'
                       : 'var(--bg-toolbar)',
                 color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 lineHeight: 1.55,
               }}
             >
@@ -120,7 +120,7 @@ export const ChatMessageList = memo(function ChatMessageList({
                   border: 'none',
                   background: 'transparent',
                   cursor: 'pointer',
-                  fontSize: 11,
+                  fontSize: 'var(--text-badge)',
                   color: copiedIndex === i ? '#27ae60' : 'var(--text-tertiary)',
                   display: 'flex',
                   alignItems: 'center',
@@ -155,7 +155,7 @@ export const ChatMessageList = memo(function ChatMessageList({
               padding: '8px 10px',
               borderRadius: '12px 12px 12px 2px',
               background: 'var(--bg-toolbar)',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
             }}
           >
             <span className="typing-animation">

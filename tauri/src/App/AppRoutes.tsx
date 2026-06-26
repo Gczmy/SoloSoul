@@ -344,7 +344,7 @@ export function AppRoutes() {
                   justifyContent: 'center',
                   height: '100vh',
                   color: 'var(--text-secondary)',
-                  fontSize: 14,
+                  fontSize: 'var(--text-body)',
                 }}
               >
                 Connecting to backend...
@@ -363,7 +363,7 @@ export function AppRoutes() {
                   justifyContent: 'center',
                   height: '100vh',
                   color: 'var(--text-secondary)',
-                  fontSize: 14,
+                  fontSize: 'var(--text-body)',
                 }}
               >
                 Connecting...

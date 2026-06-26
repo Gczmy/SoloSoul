@@ -57,7 +57,7 @@ export const TemplateTypeSelect = memo(function TemplateTypeSelect({
         border: '1px solid var(--border-subtle)',
         background: 'var(--bg-elevated)',
         color: 'var(--text-primary)',
-        fontSize: 13,
+        fontSize: 'var(--text-body-sm)',
         cursor: 'pointer',
         boxSizing: 'border-box',
         transition: 'border-color 0.2s, box-shadow 0.2s',

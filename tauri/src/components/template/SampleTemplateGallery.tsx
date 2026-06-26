@@ -113,7 +113,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             marginBottom: 8,
           }}
         >
-          <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>
+          <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin: 0 }}>
             {t('settings:sample_templates_title')}
           </h2>
           <button
@@ -132,7 +132,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             <X size={20} />
           </button>
         </div>
-        <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 16px' }}>
+        <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
           {t('settings:sample_templates_desc')}
         </p>
 
@@ -164,7 +164,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
               background: localeTab === 'zh' ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
               color: localeTab === 'zh' ? 'var(--accent-primary)' : 'var(--text-primary)',
               boxShadow: localeTab === 'zh' ? '0 0 0 1px var(--accent-primary)' : 'none',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
@@ -193,7 +193,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
               background: localeTab === 'en' ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
               color: localeTab === 'en' ? 'var(--accent-primary)' : 'var(--text-primary)',
               boxShadow: localeTab === 'en' ? '0 0 0 1px var(--accent-primary)' : 'none',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
@@ -235,7 +235,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                     background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
                     color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                     boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                    fontSize: 12,
+                    fontSize: 'var(--text-caption)',
                     cursor: 'pointer',
                     transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                   }}
@@ -300,11 +300,11 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <SampleIcon size={22} style={{ color: 'var(--accent-primary)' }} />
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ fontSize: 'var(--text-body)', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
                         {tpl.name}
                         <PluginBadge contractTypeId={tpl.contractTypeId} size="sm" />
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
+                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 2 }}>
                         {t(`navigation:${tpl.category}`, tpl.category)} · {tpl.properties.length}{' '}
                         {t('settings:template_fields')}
                       </div>
@@ -330,7 +330,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'var(--text-tertiary)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 pointerEvents: 'none',
               }}
             >

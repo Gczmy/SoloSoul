@@ -291,7 +291,7 @@ export function AddPageButton({
                 aria-label={t('add_page_placeholder')}
                 style={{
                   padding: '6px 10px',
-                  fontSize: 14,
+                  fontSize: 'var(--text-body)',
                   border: nameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
                   borderRadius: 6,
                   background: 'transparent',
@@ -312,7 +312,7 @@ export function AddPageButton({
                     gap: 8,
                   }}
                 >
-                  <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 'var(--text-badge)', color: '#e74c3c', whiteSpace: 'nowrap' }}>
                     {t('page_name_exists')}
                   </span>
                   <button
@@ -324,7 +324,7 @@ export function AddPageButton({
                       e.currentTarget.style.color = 'var(--text-tertiary)';
                     }}
                     style={{
-                      fontSize: 11,
+                      fontSize: 'var(--text-badge)',
                       color: 'var(--text-tertiary)',
                       background: 'none',
                       border: 'none',
@@ -340,7 +340,7 @@ export function AddPageButton({
 
               {/* Icon picker with category sections (scrollable) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{t('select_icon')}</span>
+                <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>{t('select_icon')}</span>
                 <div style={{ maxHeight: scrollMaxHeight, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {['general','security','identity','finance','travel','work','communication','health','education','life','nature','special'].map((cat) => {
                     const categoryIcons = (Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).filter(
@@ -351,7 +351,7 @@ export function AddPageButton({
                       <div key={cat}>
                         <div
                           style={{
-                            fontSize: 11,
+                            fontSize: 'var(--text-badge)',
                             fontWeight: 500,
                             color: 'var(--text-tertiary)',
                             padding: '2px 0 4px',

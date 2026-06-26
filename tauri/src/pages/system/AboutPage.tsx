@@ -123,7 +123,7 @@ export function AboutPage() {
             size={72}
             style={{ margin: '0 auto 14px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
           />
-          <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
             SoloSoul
           </h1>
           <p
@@ -165,7 +165,7 @@ export function AboutPage() {
                     {versionInfo?.state === 'available' ? (
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: 'var(--text-badge)',
                           padding: '2px 8px',
                           borderRadius: 10,
                           background: 'rgba(230,126,34,0.15)',
@@ -180,7 +180,7 @@ export function AboutPage() {
                     ) : versionInfo?.state === 'error' ? (
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: 'var(--text-badge)',
                           padding: '2px 8px',
                           borderRadius: 10,
                           background: 'rgba(231,76,60,0.12)',
@@ -194,7 +194,7 @@ export function AboutPage() {
                     ) : versionInfo ? (
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: 'var(--text-badge)',
                           padding: '2px 8px',
                           borderRadius: 10,
                           background: 'rgba(39,174,96,0.12)',
@@ -234,7 +234,7 @@ export function AboutPage() {
                       {versionInfo.body && (
                         <div
                           style={{
-                            fontSize: 12,
+                            fontSize: 'var(--text-caption)',
                             color: 'var(--text-secondary)',
                             whiteSpace: 'pre-wrap',
                             lineHeight: 1.5,
@@ -266,7 +266,7 @@ export function AboutPage() {
                               }}
                             />
                           </div>
-                          <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                          <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                             {downloadProgress?.event === 'Finished'
                               ? t('settings:installing') || 'Installing...'
                               : `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} (${progressPercent}%)`}
@@ -308,7 +308,7 @@ export function AboutPage() {
                         </button>
                       )}
                       {downloadError && (
-                        <div style={{ fontSize: 12, color: 'var(--error)' }}>{downloadError}</div>
+                        <div style={{ fontSize: 'var(--text-caption)', color: 'var(--error)' }}>{downloadError}</div>
                       )}
                     </div>
                   </>
@@ -388,7 +388,7 @@ export function AboutPage() {
           style={{
             textAlign: 'center',
             padding: '8px 0',
-            fontSize: 11,
+            fontSize: 'var(--text-badge)',
             color: 'var(--text-tertiary)',
             lineHeight: 1.8,
           }}

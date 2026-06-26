@@ -10,7 +10,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 10px;
+  font-size: var(--text-badge);
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
@@ -33,7 +33,7 @@
 
 /* ─── Inline completed/failed status (page variant) ───────────────── */
 .completedStatus {
-  font-size: 10px;
+  font-size: var(--text-badge);
   font-weight: 700;
   text-transform: uppercase;
   padding: 2px 6px;
@@ -59,7 +59,7 @@
   border-radius: 4px;
   border: 1px solid var(--border-subtle);
   background: var(--bg-toolbar);
-  font-size: 11px;
+  font-size: var(--text-badge);
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -82,7 +82,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-toolbar);
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: var(--text-badge);
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -112,7 +112,7 @@
   display: flex;
   gap: 6px;
   align-items: flex-start;
-  font-size: 11px;
+  font-size: var(--text-badge);
   line-height: 1.4;
   font-family: var(--font-mono, monospace);
   padding: 2px 4px;
@@ -129,7 +129,7 @@
   font-weight: 600;
   min-width: 36px;
   text-transform: uppercase;
-  font-size: 9px;
+  font-size: var(--text-badge);
 }
 
 .logLevel[data-level='info'] {
@@ -151,12 +151,12 @@
 
 .errorText {
   color: #e74c3c;
-  font-size: 11px;
+  font-size: var(--text-badge);
   word-break: break-word;
 }
 
 .inlineError {
-  font-size: 12px;
+  font-size: var(--text-caption);
   color: var(--danger);
   padding: 6px 8px;
   background: var(--danger-subtle);

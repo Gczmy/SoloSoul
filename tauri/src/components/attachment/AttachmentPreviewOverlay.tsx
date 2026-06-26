@@ -116,7 +116,7 @@ export function AttachmentPreviewOverlay({ item, onClose }: AttachmentPreviewOve
           background: 'var(--bg-toolbar)',
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 500 }}>{item.fileName}</span>
+        <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{item.fileName}</span>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -199,7 +199,7 @@ export function AttachmentPreviewOverlay({ item, onClose }: AttachmentPreviewOve
           background: 'rgba(28,28,30,0.85)',
           border: '1px solid rgba(255,255,255,0.12)',
           color: 'var(--text-primary)',
-          fontSize: 13,
+          fontSize: 'var(--text-body-sm)',
           userSelect: 'none',
         }}
       >

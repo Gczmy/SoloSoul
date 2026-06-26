@@ -39,7 +39,7 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
       >
         <h3
           style={{
-            fontSize: 17,
+            fontSize: 'var(--text-md)',
             fontWeight: 600,
             marginBottom: 12,
             display: 'flex',
@@ -47,11 +47,11 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
             gap: 8,
           }}
         >
-          <span style={{ fontSize: 20 }}>⚠</span> {t('settings:ai_risk_title')}
+          <span style={{ fontSize: 'var(--text-page-title)' }}>⚠</span> {t('settings:ai_risk_title')}
         </h3>
         <p
           style={{
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             color: 'var(--text-secondary)',
             lineHeight: 1.6,
             marginBottom: 16,
@@ -61,7 +61,7 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
         </p>
         <ul
           style={{
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             color: 'var(--text-secondary)',
             lineHeight: 1.8,
             paddingLeft: 16,
@@ -80,7 +80,7 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
             gap: 8,
             cursor: 'pointer',
             marginBottom: 16,
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
           }}
         >
           <input

@@ -333,7 +333,7 @@ export function ObjectDetailModal({
     background: 'var(--bg-toolbar)',
     color: 'var(--text-secondary)',
     cursor: 'pointer',
-    fontSize: 13,
+    fontSize: 'var(--text-body-sm)',
     fontWeight: 500,
     transition: 'all 0.15s ease',
   };
@@ -408,8 +408,8 @@ export function ObjectDetailModal({
                     <ObjectDetailIcon size={24} />
                   </span>
                   <div>
-                    <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{obj.name}</h2>
-                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                    <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{obj.name}</h2>
+                    <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                       {resolveCollectionLabelLocal(obj.collectionType)}
                       {obj.contractTypeId && (
                         <span style={{ marginLeft: 4, display: 'inline-flex', verticalAlign: 'middle' }}>
@@ -465,7 +465,7 @@ export function ObjectDetailModal({
               {fields.length === 0 ? (
                 <p
                   style={{
-                    fontSize: 13,
+                    fontSize: 'var(--text-body-sm)',
                     color: 'var(--text-tertiary)',
                     textAlign: 'center',
                     padding: '16px 0',
@@ -507,7 +507,7 @@ export function ObjectDetailModal({
                           >
                             <span
                               style={{
-                                fontSize: 12,
+                                fontSize: 'var(--text-caption)',
                                 fontWeight: 600,
                                 color: 'var(--text-secondary)',
                                 textDecoration: deprecated ? 'line-through' : 'none',
@@ -521,7 +521,7 @@ export function ObjectDetailModal({
                           </div>
                           <div
                             style={{
-                              fontSize: 14,
+                              fontSize: 'var(--text-body)',
                               color:
                                 needsReveal && !revealed
                                   ? 'var(--text-tertiary)'
@@ -549,7 +549,7 @@ export function ObjectDetailModal({
                                 background:
                                   sens === 'critical' ? 'rgba(220,38,38,0.06)' : 'transparent',
                                 cursor: 'pointer',
-                                fontSize: 11,
+                                fontSize: 'var(--text-badge)',
                                 color: sens === 'critical' ? '#dc2626' : 'var(--text-tertiary)',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -598,7 +598,7 @@ export function ObjectDetailModal({
                                   ? 'color-mix(in srgb, var(--accent-primary) 12%, transparent)'
                                   : 'transparent',
                               cursor: 'pointer',
-                              fontSize: 11,
+                              fontSize: 'var(--text-badge)',
                               color: copiedField === f.key
                                 ? 'var(--accent-primary)'
                                 : hoveredField === f.key
@@ -633,7 +633,7 @@ export function ObjectDetailModal({
                       style={{
                         padding: '2px 8px',
                         borderRadius: 10,
-                        fontSize: 11,
+                        fontSize: 'var(--text-badge)',
                         background: 'var(--bg-toolbar)',
                         color: 'var(--text-secondary)',
                         border: '1px solid var(--border-subtle)',
@@ -743,13 +743,13 @@ export function ObjectDetailModal({
               border: '1px solid var(--border-subtle)',
             }}
           >
-            <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>
               {t('common:object_delete_confirm_title')}
             </h3>
             <p
               style={{
                 margin: '0 0 20px',
-                fontSize: 14,
+                fontSize: 'var(--text-body)',
                 color: 'var(--text-secondary)',
                 lineHeight: 1.5,
               }}
@@ -769,7 +769,7 @@ export function ObjectDetailModal({
                   border: 'none',
                   background: 'var(--danger)',
                   color: 'white',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   fontWeight: 500,
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',

@@ -200,8 +200,8 @@ export function LoginPage() {
         }}
       >
         <ShieldLogo size={48} style={{ margin: '0 auto 16px' }} />
-        <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>{t('auth:login_title')}</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4 }}>
+        <h1 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>{t('auth:login_title')}</h1>
+        <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 4 }}>
           {t('auth:login_subtitle')}
         </p>
 
@@ -226,7 +226,7 @@ export function LoginPage() {
                   border: '1px solid var(--border-subtle)',
                   background: 'var(--bg-elevated)',
                   color: 'var(--text-primary)',
-                  fontSize: 14,
+                  fontSize: 'var(--text-body)',
                   fontFamily: 'inherit',
                   outline: 'none',
                   textAlign: 'left',
@@ -247,14 +247,14 @@ export function LoginPage() {
                   border: '1px solid var(--border-subtle)',
                   background: 'var(--bg-elevated)',
                   color: 'var(--text-primary)',
-                  fontSize: 14,
+                  fontSize: 'var(--text-body)',
                   textAlign: 'left',
                 }}
               >
                 <div>{selectedAccount?.name ?? accounts[0]?.name}</div>
                 <div
                   style={{
-                    fontSize: 11,
+                    fontSize: 'var(--text-badge)',
                     color: 'var(--text-tertiary)',
                     marginTop: 2,
                     fontFamily: 'monospace',
@@ -295,7 +295,7 @@ export function LoginPage() {
                 color="var(--accent-primary)"
                 style={{ opacity: bioLoading ? 0.5 : 1 }}
               />
-              <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-primary)' }}>
+              <span style={{ fontSize: 'var(--text-card-title)', fontWeight: 500, color: 'var(--text-primary)' }}>
                 {bioLoading
                   ? t('auth:bio_verifying')
                   : t('auth:bio_unlock_reason', { type: biometryType })}
@@ -306,7 +306,7 @@ export function LoginPage() {
               className={styles.loginTextButton}
               style={{
                 marginTop: 12,
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 color: 'var(--text-tertiary)',
                 background: 'none',
                 border: 'none',
@@ -333,7 +333,7 @@ export function LoginPage() {
               onEnter={handleSubmit}
             />
             {(error || bioError || submitError) && (
-              <div style={{ color: '#e74c3c', fontSize: 13 }}>
+              <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>
                 {submitError || bioError || (error
                   ? error.toLowerCase().includes('8 characters') ||
                     error.toLowerCase().includes('至少')
@@ -357,7 +357,7 @@ export function LoginPage() {
                 border: '1px solid var(--border-subtle)',
                 background: isLoading ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
                 color: isLoading ? 'var(--accent-primary)' : 'var(--text-primary)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 fontWeight: 500,
                 fontFamily: 'inherit',
                 cursor: isLoading ? 'default' : 'pointer',
@@ -389,7 +389,7 @@ export function LoginPage() {
                 }}
                 className={styles.loginTextButton}
                 style={{
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   color: 'var(--text-tertiary)',
                   background: 'none',
                   border: 'none',

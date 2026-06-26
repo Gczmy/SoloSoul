@@ -158,7 +158,7 @@ export function OcrSettingsPage() {
                       <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
                         {getTierLabel(t, tier).name}
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                         {status?.installed
                           ? t('ocr:status_installed')
                           : status?.bundled
@@ -192,7 +192,7 @@ export function OcrSettingsPage() {
                           border: '1px solid var(--border-subtle)',
                           background: 'var(--bg-toolbar)',
                           color: 'var(--text-primary)',
-                          fontSize: 12,
+                          fontSize: 'var(--text-caption)',
                           fontWeight: 500,
                           cursor: isInstalling ? 'default' : 'pointer',
                           opacity: isInstalling ? 0.6 : 1,
@@ -233,7 +233,7 @@ export function OcrSettingsPage() {
                           border: '1px solid var(--border-subtle)',
                           background: 'var(--bg-toolbar)',
                           color: 'var(--text-primary)',
-                          fontSize: 12,
+                          fontSize: 'var(--text-caption)',
                           fontWeight: 500,
                           cursor: isDownloading ? 'default' : 'pointer',
                           opacity: isDownloading ? 0.6 : 1,
@@ -266,7 +266,7 @@ export function OcrSettingsPage() {
               <label
                 style={{
                   display: 'block',
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   color: 'var(--text-secondary)',
                   marginBottom: 6,
                 }}

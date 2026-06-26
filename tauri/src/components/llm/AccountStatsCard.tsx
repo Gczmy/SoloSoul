@@ -75,17 +75,17 @@ const StatColumn = memo(function StatColumn({
     >
       <div style={{ marginBottom: 4 }}>{icon}</div>
       <div
-        style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent-primary)', lineHeight: 1.2 }}
+        style={{ fontSize: 'var(--text-page-title)', fontWeight: 700, color: 'var(--accent-primary)', lineHeight: 1.2 }}
       >
         {value}
       </div>
-      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 4 }}>{label}</div>
       {modelUsages.length > 0 && (
         <div
           style={{
             width: '100%',
             overflow: needsScroll ? 'auto' : 'visible',
-            fontSize: 10,
+            fontSize: 'var(--text-badge)',
             color: 'var(--text-tertiary)',
             textAlign: 'center',
           }}

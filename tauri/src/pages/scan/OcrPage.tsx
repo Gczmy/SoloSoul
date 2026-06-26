@@ -255,7 +255,7 @@ export function OcrPage() {
               <label
                 style={{
                   display: 'block',
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   color: 'var(--text-secondary)',
                   marginBottom: 6,
                 }}
@@ -316,7 +316,7 @@ export function OcrPage() {
                         <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
                           {getTierLabel(t, tier).name}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                        <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                           {status?.installed
                             ? t('ocr:status_installed')
                             : status?.bundled
@@ -356,7 +356,7 @@ export function OcrPage() {
                 <label
                   style={{
                     display: 'block',
-                    fontSize: 12,
+                    fontSize: 'var(--text-caption)',
                     color: 'var(--text-secondary)',
                     marginBottom: 6,
                   }}
@@ -390,7 +390,7 @@ export function OcrPage() {
               size={48}
               style={{ marginBottom: 12, opacity: 0.3, color: 'var(--text-tertiary)' }}
             />
-            <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>{t('ocr:title')}</h2>
+            <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 600, marginBottom: 4 }}>{t('ocr:title')}</h2>
             <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
               {t('ocr:description')}
             </p>
@@ -505,7 +505,7 @@ export function OcrPage() {
                     }}
                   >
                     <span style={{ flex: 1, wordBreak: 'break-word' }}>{box.text}</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                    <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', flexShrink: 0 }}>
                       {(box.confidence * 100).toFixed(0)}%
                     </span>
                   </div>

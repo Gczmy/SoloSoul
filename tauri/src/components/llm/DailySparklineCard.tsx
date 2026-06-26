@@ -184,7 +184,7 @@ export const DailySparklineCard = memo(function DailySparklineCard({ daily, t }:
             return (
               <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 10, height: 3, borderRadius: 2, background: color }} />
-                <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{s.name}</span>
+                <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>{s.name}</span>
               </div>
             );
           })}

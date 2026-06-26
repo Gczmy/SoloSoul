@@ -24,14 +24,14 @@
 
 .title {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--text-section-title);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .subtitle {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -66,20 +66,20 @@
 }
 
 .fieldLabel {
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .fieldId {
-  font-size: 11px;
+  font-size: var(--text-badge);
   color: var(--text-tertiary);
   font-family: var(--font-mono);
   word-break: break-all;
 }
 
 .badge {
-  font-size: 10px;
+  font-size: var(--text-badge);
   font-weight: 700;
   text-transform: uppercase;
   padding: 3px 6px;
@@ -115,7 +115,7 @@
 .approveBtn {
   padding: 8px 14px;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   font-weight: 600;
   cursor: pointer;
   border: none;

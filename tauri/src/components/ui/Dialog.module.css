@@ -30,7 +30,7 @@
   }
 }
 .title {
-  font-size: 18px;
+  font-size: var(--text-md);
   font-weight: 600;
   margin-bottom: 16px;
 }

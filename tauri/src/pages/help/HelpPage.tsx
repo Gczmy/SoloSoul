@@ -224,7 +224,7 @@ export function HelpPage() {
                       }}
                     >
                       <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{t('common:tutorial')}</span>
-                      <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>›</span>
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-md)' }}>›</span>
                     </div>
                   </Card>
                 ),

@@ -67,16 +67,16 @@
 /* Sizes */
 .sm {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   border-radius: 6px;
 }
 .md {
   padding: 10px 20px;
-  font-size: 14px;
+  font-size: var(--text-body);
 }
 .lg {
   padding: 14px 28px;
-  font-size: 16px;
+  font-size: var(--text-section-title);
 }
 
 .spinner {

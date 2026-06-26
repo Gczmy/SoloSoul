@@ -42,12 +42,12 @@ export function ObjectTemplateSelector({
   if (isNew) {
     return (
       <Card>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
           {t('common:object_type')}
           {sectionParam && (
             <span
               style={{
-                fontSize: 11,
+                fontSize: 'var(--text-badge)',
                 color: 'var(--text-tertiary)',
                 marginLeft: 8,
                 fontWeight: 400,
@@ -89,7 +89,7 @@ export function ObjectTemplateSelector({
                   background: 'var(--bg-elevated)',
                   color:
                     selectedType === type ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -131,7 +131,7 @@ export function ObjectTemplateSelector({
               border: '1px dashed var(--border-strong)',
               background: 'transparent',
               color: 'var(--text-secondary)',
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
@@ -140,7 +140,7 @@ export function ObjectTemplateSelector({
             <LayoutTemplate size={14} /> {t('editor:manage_templates')}
           </button>
           {visibleTemplates.length === 0 && (
-            <div style={{ fontSize: 13, color: 'var(--text-tertiary)', padding: '8px 0' }}>
+            <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)', padding: '8px 0' }}>
               {t('editor:no_template_for_section') || '此页面暂无模板，'}
               <span
                 onClick={() =>
@@ -169,12 +169,12 @@ export function ObjectTemplateSelector({
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}>
           {t('common:object_type')}:
         </span>
         <span
           style={{
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             fontWeight: 500,
             padding: '2px 8px',
             borderRadius: 4,
@@ -190,7 +190,7 @@ export function ObjectTemplateSelector({
         {(selectedType || currentObject?.templateId) && (
           <span
             style={{
-              fontSize: 11,
+              fontSize: 'var(--text-badge)',
               color: 'var(--text-tertiary)',
               textDecoration: selectedType ? 'none' : 'line-through',
             }}

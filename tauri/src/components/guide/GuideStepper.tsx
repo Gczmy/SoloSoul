@@ -20,7 +20,7 @@ export function GuideStepper({ title, children }: GuideStepperProps) {
           style={{
             padding: '12px 16px',
             borderBottom: '1px solid var(--border-subtle)',
-            fontSize: 14,
+            fontSize: 'var(--text-body)',
             fontWeight: 600,
             color: 'var(--text-primary)',
             display: 'flex',

@@ -136,17 +136,17 @@ export function ExportSection({
 
   return (
     <>
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+      <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
         {t('settings:export_desc')}
       </p>
 
       {/* Page & Object tree */}
       <Card>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('settings:select_objects')}
         </h3>
         {pageGroups.length === 0 ? (
-          <p style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>{t('common:no_data')}</p>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>{t('common:no_data')}</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {pageGroups.map((group) => {
@@ -183,7 +183,7 @@ export function ExportSection({
                         // Toggle expanded state via callback to parent
                       }}
                       style={{
-                        fontSize: 14,
+                        fontSize: 'var(--text-body)',
                         fontWeight: 600,
                         flex: 1,
                         display: 'flex',
@@ -195,7 +195,7 @@ export function ExportSection({
                         style={{
                           transform: expanded ? 'rotate(90deg)' : 'none',
                           transition: 'transform 0.15s',
-                          fontSize: 10,
+                          fontSize: 'var(--text-badge)',
                         }}
                       >
                         ▶
@@ -204,7 +204,7 @@ export function ExportSection({
                         {t(`navigation:${group.sectionType}`, group.pageName)}
                       </span>
                     </span>
-                    <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                    <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
                       {t('common:object_count', { n: group.objectCount })}
                     </span>
                   </div>
@@ -228,7 +228,7 @@ export function ExportSection({
                             onChange={() => onToggleObject(obj.id, group.sectionType, allIds)}
                             style={{ accentColor: 'var(--accent-primary)' }}
                           />
-                          <span style={{ fontSize: 13, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
+                          <span style={{ fontSize: 'var(--text-body-sm)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
                           <SensitivityBadge
                             level={obj.sensitivityLevel as SensitivityLevel}
                           />
@@ -241,7 +241,7 @@ export function ExportSection({
                                 onToggleObjectExpanded(obj.id);
                               }}
                               style={{
-                                fontSize: 10,
+                                fontSize: 'var(--text-badge)',
                                 background: 'none',
                                 border: 'none',
                                 cursor: 'pointer',
@@ -260,7 +260,7 @@ export function ExportSection({
                         {includeAttachments && expandedObjects.has(obj.id) && (
                           <div style={{ paddingLeft: 52, paddingBottom: 4 }}>
                             {(objectAttachments.get(obj.id) || []).length === 0 ? (
-                              <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                              <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
                                 {t('settings:no_attachments', 'No attachments')}
                               </span>
                             ) : (
@@ -271,7 +271,7 @@ export function ExportSection({
                                     alignItems: 'center',
                                     gap: 4,
                                     padding: '2px 0',
-                                    fontSize: 11,
+                                    fontSize: 'var(--text-badge)',
                                     color: 'var(--text-tertiary)',
                                     borderBottom: '1px solid var(--border-subtle)',
                                     marginBottom: 2,
@@ -311,11 +311,11 @@ export function ExportSection({
                                       size={10}
                                       style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
                                     />
-                                    <span style={{ fontSize: 12, flex: 1 }}>
+                                    <span style={{ fontSize: 'var(--text-caption)', flex: 1 }}>
                                       {att.fileName}
                                     </span>
                                     <span
-                                      style={{ fontSize: 11, color: 'var(--text-tertiary)' }}
+                                      style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
                                     >
                                       {formatBytes(att.sizeBytes)}
                                     </span>
@@ -337,7 +337,7 @@ export function ExportSection({
       {/* Tag filter */}
       {allTags.length > 0 && (
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+          <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
             {t('settings:filter_by_tags')}
           </h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -353,7 +353,7 @@ export function ExportSection({
                     return next;
                   })}
                   style={{
-                    fontSize: 12,
+                    fontSize: 'var(--text-caption)',
                     padding: '4px 10px',
                     borderRadius: 12,
                     border: '1px solid var(--border-subtle)',
@@ -378,7 +378,7 @@ export function ExportSection({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               padding: '4px 0',
             }}
           >
@@ -401,7 +401,7 @@ export function ExportSection({
       )}
 
       <Card>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('settings:export_options')}
         </h3>
         <div style={{ padding: '4px 0' }}>
@@ -412,7 +412,7 @@ export function ExportSection({
                 alignItems: 'center',
                 gap: 8,
                 cursor: 'pointer',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
               }}
             >
               <input
@@ -428,7 +428,7 @@ export function ExportSection({
           <div
             style={{
               paddingLeft: 24,
-              fontSize: 11,
+              fontSize: 'var(--text-badge)',
               color: 'var(--text-tertiary)',
               marginTop: 2,
             }}
@@ -443,7 +443,7 @@ export function ExportSection({
               alignItems: 'center',
               gap: 8,
               cursor: 'pointer',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
             }}
           >
             <input
@@ -457,7 +457,7 @@ export function ExportSection({
           <div
             style={{
               paddingLeft: 24,
-              fontSize: 11,
+              fontSize: 'var(--text-badge)',
               color: 'var(--text-tertiary)',
               marginTop: 2,
             }}
@@ -472,7 +472,7 @@ export function ExportSection({
               alignItems: 'center',
               gap: 8,
               cursor: 'pointer',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
             }}
           >
             <input
@@ -486,7 +486,7 @@ export function ExportSection({
           <div
             style={{
               paddingLeft: 24,
-              fontSize: 11,
+              fontSize: 'var(--text-badge)',
               color: 'var(--text-tertiary)',
               marginTop: 2,
             }}
@@ -498,10 +498,10 @@ export function ExportSection({
 
       {/* Save path */}
       <Card>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('common:export_path')}
         </h3>
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>
+        <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 8 }}>
           {savePath || t('settings:no_file_selected')}
         </div>
         <button
@@ -515,7 +515,7 @@ export function ExportSection({
             if (fp) onSetSavePath(fp);
           }}
           style={{
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             padding: '6px 12px',
             borderRadius: 6,
             border: '1px solid var(--border-subtle)',
@@ -543,7 +543,7 @@ export function ExportSection({
 
       {/* Encryption */}
       <Card>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('settings:encryption')}
         </h3>
 
@@ -554,7 +554,7 @@ export function ExportSection({
               padding: '8px 12px',
               background: 'var(--warning-subtle)',
               borderRadius: 6,
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               color: 'var(--warning)',
               border: '1px solid var(--warning)',
             }}
@@ -585,12 +585,12 @@ export function ExportSection({
         {exportPassword &&
           exportPasswordConfirm &&
           exportPassword !== exportPasswordConfirm && (
-            <div style={{ marginTop: 4, fontSize: 12, color: 'var(--danger)' }}>
+            <div style={{ marginTop: 4, fontSize: 'var(--text-caption)', color: 'var(--danger)' }}>
               {t('settings:password_mismatch')}
             </div>
           )}
         {exportPassword && (
-          <div style={{ marginTop: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
+          <div style={{ marginTop: 6, fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}>
             {t('settings:password_strength')}:{' '}
             <span
               style={{
@@ -605,7 +605,7 @@ export function ExportSection({
               {pwStrengthLabel[pwStrength]}
             </span>
             {pwStrength === 'weak' && (
-              <span style={{ marginLeft: 8, color: 'var(--danger)', fontSize: 11 }}>
+              <span style={{ marginLeft: 8, color: 'var(--danger)', fontSize: 'var(--text-badge)' }}>
                 {t('settings:password_weak_warning')}
               </span>
             )}
@@ -621,7 +621,7 @@ export function ExportSection({
             style={{
               width: '100%',
               padding: '10px 14px',
-              fontSize: 14,
+              fontSize: 'var(--text-body)',
               border: '1px solid var(--border-subtle)',
               borderRadius: 8,
               background: 'var(--bg-elevated)',
@@ -641,7 +641,7 @@ export function ExportSection({
             borderRadius: 8,
             background: 'var(--warning-subtle)',
             border: '1px solid var(--warning)',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             color: 'var(--warning)',
           }}
         >
@@ -657,7 +657,7 @@ export function ExportSection({
               type="button"
               onClick={onSetShowHintWarningAndExport}
               style={{
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--warning)',
@@ -689,7 +689,7 @@ export function ExportSection({
             borderRadius: 8,
             background: 'var(--warning-subtle)',
             border: '1px solid var(--warning)',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             color: 'var(--warning)',
           }}
         >
@@ -705,7 +705,7 @@ export function ExportSection({
               type="button"
               onClick={onSetShowWeakWarningAndExport}
               style={{
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--warning)',
@@ -734,7 +734,7 @@ export function ExportSection({
         onClick={onExport}
         disabled={totalSelected === 0 || !exportPassword || !savePath}
         style={{
-          fontSize: 12,
+          fontSize: 'var(--text-caption)',
           padding: '6px 12px',
           borderRadius: 6,
           border: '1px solid var(--border-subtle)',

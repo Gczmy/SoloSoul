@@ -101,7 +101,7 @@ export function DebugLogPage() {
             <Download size={14} /> {t('settings:export')}
           </button>
 
-          <span style={{ fontSize: 12, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
             {filteredLogs.length} {t('settings:entries_count')}
           </span>
         </div>
@@ -126,7 +126,7 @@ export function DebugLogPage() {
             <div
               style={{
                 fontFamily: 'var(--font-mono, "SF Mono", Monaco, monospace)',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 lineHeight: 1.6,
               }}
             >

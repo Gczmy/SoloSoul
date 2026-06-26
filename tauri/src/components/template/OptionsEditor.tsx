@@ -29,7 +29,7 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
           border: '1px solid var(--border-subtle)',
           background: 'var(--bg-elevated)',
           color: 'var(--text-secondary)',
-          fontSize: 13,
+          fontSize: 'var(--text-body-sm)',
           cursor: 'pointer',
           whiteSpace: 'nowrap',
           lineHeight: '36px',
@@ -63,20 +63,20 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
               border: '1px solid var(--border-subtle)',
             }}
           >
-            <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 600 }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>
               {fieldType === 'multiselect' ? '编辑多选选项' : '编辑单选选项'}
               <span
                 style={{
                   fontWeight: 400,
                   color: 'var(--text-secondary)',
                   marginLeft: 8,
-                  fontSize: 14,
+                  fontSize: 'var(--text-body)',
                 }}
               >
                 {fieldName}
               </span>
             </h3>
-            <p style={{ margin: '0 0 16px', fontSize: 12, color: 'var(--text-tertiary)' }}>
+            <p style={{ margin: '0 0 16px', fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
               {fieldType === 'multiselect'
                 ? '每行输入一个选项，可多选'
                 : '每行输入一个选项，只能选一项'}
@@ -92,7 +92,7 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
                 border: '1px solid var(--border-subtle)',
                 background: 'var(--bg-toolbar)',
                 color: 'var(--text-primary)',
-                fontSize: 14,
+                fontSize: 'var(--text-body)',
                 fontFamily: 'inherit',
                 resize: 'vertical',
                 boxSizing: 'border-box',
@@ -110,7 +110,7 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
                   border: '1px solid var(--border-subtle)',
                   background: 'transparent',
                   cursor: 'pointer',
-                  fontSize: 14,
+                  fontSize: 'var(--text-body)',
                   color: 'var(--text-secondary)',
                 }}
               >
@@ -132,7 +132,7 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
                   border: 'none',
                   background: 'var(--accent-primary)',
                   cursor: 'pointer',
-                  fontSize: 14,
+                  fontSize: 'var(--text-body)',
                   color: 'white',
                 }}
               >

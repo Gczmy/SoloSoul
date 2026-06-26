@@ -255,7 +255,7 @@ export function RenameableNavButton({
                   autoFocus
                   style={{
                     padding: '6px 10px',
-                    fontSize: 14,
+                    fontSize: 'var(--text-body)',
                     border: renameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
                     borderRadius: 6,
                     background: 'transparent',
@@ -275,7 +275,7 @@ export function RenameableNavButton({
                       gap: 8,
                     }}
                   >
-                    <span style={{ fontSize: 11, color: '#e74c3c', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 'var(--text-badge)', color: '#e74c3c', whiteSpace: 'nowrap' }}>
                       {t('page_name_exists')}
                     </span>
                     <button
@@ -287,7 +287,7 @@ export function RenameableNavButton({
                         e.currentTarget.style.color = 'var(--text-tertiary)';
                       }}
                       style={{
-                        fontSize: 11,
+                        fontSize: 'var(--text-badge)',
                         color: 'var(--text-tertiary)',
                         background: 'none',
                         border: 'none',
@@ -324,7 +324,7 @@ export function RenameableNavButton({
                     <div key={cat}>
                       <div
                         style={{
-                          fontSize: 11,
+                          fontSize: 'var(--text-badge)',
                           fontWeight: 500,
                           color: 'var(--text-tertiary)',
                           padding: '2px 0 4px',

@@ -12,7 +12,7 @@ export function ModelUsageCard({ perModel, t }: ModelUsageCardProps) {
 
   return (
     <Card>
-      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 12 }}>
+      <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
         {t('settings:llm_model_count', {
           count: perModel.length,
           tokens: formatTokens(totalTokens),
@@ -33,7 +33,7 @@ export function ModelUsageCard({ perModel, t }: ModelUsageCardProps) {
               >
                 <span
                   style={{
-                    fontSize: 13,
+                    fontSize: 'var(--text-body-sm)',
                     fontWeight: 600,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -44,7 +44,7 @@ export function ModelUsageCard({ perModel, t }: ModelUsageCardProps) {
                 </span>
                 <span
                   style={{
-                    fontSize: 12,
+                    fontSize: 'var(--text-caption)',
                     color: 'var(--text-tertiary)',
                     flexShrink: 0,
                     marginLeft: 8,
@@ -72,7 +72,7 @@ export function ModelUsageCard({ perModel, t }: ModelUsageCardProps) {
                   }}
                 />
               </div>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+              <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                 {m.provider} · {formatTokens(m.tokens)} · {m.count} {t('settings:llm_calls')}
               </div>
             </div>

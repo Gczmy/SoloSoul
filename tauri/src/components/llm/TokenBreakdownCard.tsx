@@ -27,7 +27,7 @@ export function TokenBreakdownCard({
         {/* Session */}
         <div>
           <div
-            style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}
+            style={{ fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}
           >
             {t('settings:llm_this_session')}
           </div>
@@ -41,7 +41,7 @@ export function TokenBreakdownCard({
         {/* Account */}
         <div>
           <div
-            style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}
+            style={{ fontSize: 'var(--text-caption)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}
           >
             {t('settings:llm_account_total')}
           </div>
@@ -89,7 +89,7 @@ const TokenBar = memo(function TokenBar({
           }}
         />
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 6, fontSize: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 6, fontSize: 'var(--text-caption)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <div
             style={{ width: 8, height: 8, borderRadius: 2, background: 'var(--accent-primary)' }}

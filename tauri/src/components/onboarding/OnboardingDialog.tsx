@@ -66,7 +66,7 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
 
         <h2
           style={{
-            fontSize: 20,
+            fontSize: 'var(--text-page-title)',
             fontWeight: 700,
             margin: '0 0 10px',
             color: 'var(--text-primary)',
@@ -76,7 +76,7 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
         </h2>
         <p
           style={{
-            fontSize: 14,
+            fontSize: 'var(--text-body)',
             color: 'var(--text-secondary)',
             lineHeight: 1.6,
             margin: '0 0 28px',
@@ -105,7 +105,7 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
             type="button"
             onClick={onSkip}
             style={{
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               padding: '6px 12px',
               borderRadius: 6,
               border: '1px solid var(--border-subtle)',
@@ -126,7 +126,7 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
                 type="button"
                 onClick={() => setStep((s) => s - 1)}
                 style={{
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   padding: '6px 12px',
                   borderRadius: 6,
                   border: '1px solid var(--border-subtle)',
@@ -152,7 +152,7 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
                 }
               }}
               style={{
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--border-subtle)',

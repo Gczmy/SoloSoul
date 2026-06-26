@@ -48,7 +48,7 @@ export function ObjectFieldList({
 
   return (
     <Card>
-      <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+      <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
         {t('common:properties')}
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -99,7 +99,7 @@ export function ObjectFieldList({
                       }}
                     />
                     {validationErrors[key] && (
-                      <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>
+                      <div style={{ fontSize: 'var(--text-badge)', color: '#ef4444', marginTop: 4 }}>
                         {validationErrors[key]}
                       </div>
                     )}
@@ -145,7 +145,7 @@ export function ObjectFieldList({
                     }}
                   />
                   {validationErrors[field.key] && (
-                    <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>
+                    <div style={{ fontSize: 'var(--text-badge)', color: '#ef4444', marginTop: 4 }}>
                       {validationErrors[field.key]}
                     </div>
                   )}

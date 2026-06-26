@@ -66,7 +66,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
               border: '1px solid var(--border-subtle)',
               background: 'transparent',
               color: 'var(--text-secondary)',
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               cursor: 'pointer',
             }}
           >
@@ -88,10 +88,10 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 4px' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin:  0 }}>{template.name}</h2>
+          <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin:  0 }}>{template.name}</h2>
           <PluginBadge contractTypeId={template.contractTypeId} />
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 20 }}>
+        <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 20 }}>
           {t(`navigation:${template.category}`, template.category)} · {template.properties.length}{' '}
           {t('settings:template_fields')}
         </div>
@@ -117,14 +117,14 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                 >
                   <FieldTypeIcon type={prop.type} size={14} />
                 </span>
-                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
+                <span style={{ fontSize: 'var(--text-body)', fontWeight: 500, color: 'var(--text-primary)' }}>
                   {prop.name}
                 </span>
                 {prop.contractField && (
                   <span
                     title={t('settings:plugin_badge_tooltip', { pluginName: '插件' })}
                     style={{
-                      fontSize: 10,
+                      fontSize: 'var(--text-badge)',
                       padding: '1px 4px',
                       borderRadius: 3,
                       background: 'var(--accent-primary-soft, rgba(99,102,241,0.12))',
@@ -136,7 +136,7 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+                <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                   {t(`editor:field_types.${prop.type}`, prop.type)}
                 </span>
                 <SensitivityBadge level={prop.sensitivityLevel as SensitivityLevel} />

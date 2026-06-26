@@ -99,11 +99,11 @@ export function PasswordVerificationDialog({
   return (
     <Dialog isOpen={open} onClose={handleClose}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 320 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
+        <h2 style={{ fontSize: 'var(--text-section-title)', fontWeight: 600, margin: 0 }}>
           {title || t('auth:verification_title')}
         </h2>
         {description && (
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>{description}</p>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: 0 }}>{description}</p>
         )}
         <SecurePasswordInput
           value={password}
@@ -140,7 +140,7 @@ export function PasswordVerificationDialog({
                 border: '1px solid var(--border-subtle)',
                 background: 'transparent',
                 color: 'var(--text-secondary)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 transition: 'all 0.15s',

@@ -36,7 +36,7 @@ export function GuideTip({ type = 'info', children }: GuideTipProps) {
         border: style.border,
         background: style.background,
         margin: '12px 0',
-        fontSize: 14,
+        fontSize: 'var(--text-body)',
         lineHeight: 1.6,
         color: 'var(--text-primary)',
       }}

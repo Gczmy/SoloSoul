@@ -42,11 +42,11 @@ export function DeleteConfirmDialog({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600 }}>{title}</h3>
+        <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>{title}</h3>
         <p
           style={{
             margin: '0 0 20px',
-            fontSize: 14,
+            fontSize: 'var(--text-body)',
             color: 'var(--text-secondary)',
             lineHeight: 1.5,
           }}

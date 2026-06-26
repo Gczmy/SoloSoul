@@ -63,7 +63,7 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
                 ? 'rgba(231,76,60,0.12)'
                 : 'var(--bg-elevated)',
             color: isUser ? 'white' : 'var(--text-primary)',
-            fontSize: 14,
+            fontSize: 'var(--text-body)',
             lineHeight: 1.6,
           }}
         >
@@ -94,7 +94,7 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
               border: 'none',
               background: 'transparent',
               cursor: 'pointer',
-              fontSize: 11,
+              fontSize: 'var(--text-badge)',
               color: isCopied ? '#27ae60' : 'var(--text-tertiary)',
               display: 'flex',
               alignItems: 'center',

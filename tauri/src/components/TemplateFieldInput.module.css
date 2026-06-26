@@ -6,7 +6,7 @@
 }
 
 .label {
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   font-weight: 500;
   color: var(--text-secondary, #666);
 }
@@ -18,7 +18,7 @@
 }
 
 .labelText {
-  font-size: 13px;
+  font-size: var(--text-body-sm);
   font-weight: 500;
   color: var(--text-secondary, #666);
 }
@@ -29,7 +29,7 @@
   padding: 8px 12px;
   border: 1px solid var(--border-subtle);
   border-radius: 6px;
-  font-size: 14px;
+  font-size: var(--text-body);
   background: var(--bg-elevated);
   color: var(--text-primary);
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -63,7 +63,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--text-body);
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 6px;
@@ -88,7 +88,7 @@
 }
 
 .hint {
-  font-size: 11px;
+  font-size: var(--text-badge);
   color: var(--text-tertiary, #999);
   line-height: 1.4;
 }

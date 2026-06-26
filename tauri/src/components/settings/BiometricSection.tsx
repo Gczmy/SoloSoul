@@ -115,7 +115,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
       <Card>
         <h3
           style={{
-            fontSize: 15,
+            fontSize: 'var(--text-card-title)',
             fontWeight: 600,
             marginBottom: 4,
             display: 'flex',
@@ -126,11 +126,11 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           <Fingerprint size={18} />
           {t('settings:biometric_title')}
         </h3>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+        <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
           {t('settings:biometric_desc', { type: biometryType })}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 14 }}>
+          <span style={{ fontSize: 'var(--text-body)' }}>
             {t('settings:biometric_toggle_label', { type: biometryType })}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -213,7 +213,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           >
             <h3
               style={{
-                fontSize: 17,
+                fontSize: 'var(--text-md)',
                 fontWeight: 600,
                 marginBottom: 12,
                 display: 'flex',
@@ -240,7 +240,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
               onEnter={handleBioConfirm}
             />
             {error && (
-              <div style={{ color: '#dc2626', fontSize: 13, padding: '4px 0', marginTop: 8 }}>
+              <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', padding: '4px 0', marginTop: 8 }}>
                 {error}
               </div>
             )}

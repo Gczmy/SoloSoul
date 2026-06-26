@@ -54,16 +54,16 @@ export function ImportSection({
 
   return (
     <>
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+      <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
         {t('settings:import_desc')}
       </p>
 
       {/* File selector */}
       <Card>
-        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('settings:select_file')}
         </h3>
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>
+        <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 8 }}>
           {importPath || t('settings:no_file_selected')}
         </div>
         <button
@@ -83,7 +83,7 @@ export function ImportSection({
             }
           }}
           style={{
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             padding: '6px 12px',
             borderRadius: 6,
             border: '1px solid var(--border-subtle)',
@@ -114,7 +114,7 @@ export function ImportSection({
               onClick={onPreview}
               disabled={isPreviewing}
               style={{
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--border-subtle)',
@@ -150,10 +150,10 @@ export function ImportSection({
       {/* Parsed manifest preview */}
       {importPreview && (
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
+          <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
             {t('settings:import_preview')}
           </h3>
-          <div style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ fontSize: 'var(--text-body-sm)', display: 'flex', flexDirection: 'column', gap: 6 }}>
             <p>
               {t('settings:version')}: {importPreview.version}
             </p>
@@ -181,7 +181,7 @@ export function ImportSection({
                 padding: '8px 12px',
                 background: 'var(--bg-elevated-hover)',
                 borderRadius: 6,
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 color: 'var(--text-secondary)',
               }}
             >
@@ -205,7 +205,7 @@ export function ImportSection({
                 onClick={onDecrypt}
                 disabled={!importPw || isDecrypting}
                 style={{
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   padding: '6px 12px',
                   borderRadius: 6,
                   border: '1px solid var(--border-subtle)',
@@ -247,11 +247,11 @@ export function ImportSection({
                   paddingTop: 12,
                 }}
               >
-                <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+                <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 6 }}>
                   {t('settings:objects_in_package')} ({decryptedPreview.objects.length})
                 </h4>
 
-                <div style={{ maxHeight: 240, overflowY: 'auto', fontSize: 13 }}>
+                <div style={{ maxHeight: 240, overflowY: 'auto', fontSize: 'var(--text-body-sm)' }}>
                   {decryptedPreview.objects.map((obj) => {
                     const isConflict = decryptedPreview.conflicts.some(
                       (c) => c.objectId === obj.id,
@@ -278,7 +278,7 @@ export function ImportSection({
                         {isConflict && (
                           <span
                             style={{
-                              fontSize: 11,
+                              fontSize: 'var(--text-badge)',
                               color: 'var(--warning)',
                               border: '1px solid var(--warning)',
                               borderRadius: 3,
@@ -300,7 +300,7 @@ export function ImportSection({
                       padding: '8px 12px',
                       background: 'var(--warning-subtle)',
                       borderRadius: 6,
-                      fontSize: 12,
+                      fontSize: 'var(--text-caption)',
                       color: 'var(--warning)',
                     }}
                   >
@@ -317,7 +317,7 @@ export function ImportSection({
                     type="button"
                     onClick={() => onSetShowStrategySelector(true)}
                     style={{
-                      fontSize: 12,
+                      fontSize: 'var(--text-caption)',
                       padding: '6px 12px',
                       borderRadius: 6,
                       border: '1px solid var(--border-subtle)',
@@ -346,7 +346,7 @@ export function ImportSection({
                     onClick={onImport}
                     disabled={!importPw || isImporting}
                     style={{
-                      fontSize: 12,
+                      fontSize: 'var(--text-caption)',
                       padding: '6px 12px',
                       borderRadius: 6,
                       border: '1px solid var(--border-subtle)',
@@ -385,7 +385,7 @@ export function ImportSection({
                     borderRadius: 8,
                   }}
                 >
-                  <h4 style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+                  <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 8 }}>
                     {t('settings:import_strategy_title')}
                   </h4>
                   {(['skipExisting', 'overwrite', 'merge'] as ImportStrategy[]).map((s) => (
@@ -397,7 +397,7 @@ export function ImportSection({
                         gap: 8,
                         padding: '6px 0',
                         cursor: 'pointer',
-                        fontSize: 13,
+                        fontSize: 'var(--text-body-sm)',
                       }}
                     >
                       <input
@@ -408,7 +408,7 @@ export function ImportSection({
                       />
                       <div>
                         <strong>{t(`settings:strategy_${s}`)}</strong>
-                        <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: 1 }}>
+                        <p style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', margin: 1 }}>
                           {t(`settings:strategy_${s}_desc`)}
                         </p>
                       </div>
@@ -419,7 +419,7 @@ export function ImportSection({
                       type="button"
                       onClick={() => onSetShowStrategySelector(false)}
                       style={{
-                        fontSize: 12,
+                        fontSize: 'var(--text-caption)',
                         padding: '6px 12px',
                         borderRadius: 6,
                         border: '1px solid var(--border-subtle)',
@@ -448,7 +448,7 @@ export function ImportSection({
                       onClick={onImport}
                       disabled={!importPw || isImporting}
                       style={{
-                        fontSize: 12,
+                        fontSize: 'var(--text-caption)',
                         padding: '6px 12px',
                         borderRadius: 6,
                         border: '1px solid var(--border-subtle)',
@@ -485,7 +485,7 @@ export function ImportSection({
         </Card>
       )}
       {importPreview && !decryptedPreview && (
-        <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center' }}>
+        <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
           {t('settings:password_required_for_decrypt')}
         </p>
       )}

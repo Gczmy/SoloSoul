@@ -60,7 +60,7 @@ export function TrashConversationCard({
             borderBottom: '1px solid var(--border-subtle)',
           }}
         >
-          <span style={{ fontSize: 14, fontWeight: 600 }}>
+          <span style={{ fontSize: 'var(--text-body)', fontWeight: 600 }}>
             {floatingConv.name || t('settings:ai_deleted_conv')}
           </span>
           <button

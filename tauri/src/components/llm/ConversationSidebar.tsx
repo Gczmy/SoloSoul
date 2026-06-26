@@ -95,7 +95,7 @@ export function ConversationSidebar({
         {conversations.length === 0 && (
           <p
             style={{
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               color: 'var(--text-tertiary)',
               textAlign: 'center',
               padding: '24px 12px',
@@ -115,7 +115,7 @@ export function ConversationSidebar({
               gap: 6,
               padding: '8px 12px',
               cursor: 'pointer',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               background: currentConvId === conv.id ? 'rgba(91,124,153,0.08)' : 'transparent',
               borderLeft:
                 currentConvId === conv.id
@@ -137,7 +137,7 @@ export function ConversationSidebar({
                   style={{
                     width: '100%',
                     padding: '2px 4px',
-                    fontSize: 13,
+                    fontSize: 'var(--text-body-sm)',
                     border: '1px solid var(--accent-primary)',
                     borderRadius: 4,
                     background: 'var(--bg-elevated)',
@@ -159,7 +159,7 @@ export function ConversationSidebar({
                   >
                     {conv.name || t('settings:ai_untitled')}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>
+                  <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 1 }}>
                     {formatRelative(conv.updatedAt)}
                   </div>
                 </>
@@ -220,7 +220,7 @@ export function ConversationSidebar({
             border: 'none',
             background: showTrash ? 'rgba(91,124,153,0.08)' : 'transparent',
             cursor: 'pointer',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             color: 'var(--text-tertiary)',
           }}
         >
@@ -230,7 +230,7 @@ export function ConversationSidebar({
             <span
               style={{
                 marginLeft: 'auto',
-                fontSize: 11,
+                fontSize: 'var(--text-badge)',
                 background: 'rgba(231,76,60,0.15)',
                 color: '#e74c3c',
                 padding: '1px 6px',
@@ -252,7 +252,7 @@ export function ConversationSidebar({
             {trashList.length === 0 ? (
               <p
                 style={{
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   color: 'var(--text-tertiary)',
                   textAlign: 'center',
                   padding: '16px 12px',
@@ -269,7 +269,7 @@ export function ConversationSidebar({
                     alignItems: 'center',
                     gap: 4,
                     padding: '6px 12px',
-                    fontSize: 12,
+                    fontSize: 'var(--text-caption)',
                   }}
                 >
                   <div
@@ -286,7 +286,7 @@ export function ConversationSidebar({
                     >
                       {conv.name || t('settings:ai_untitled')}
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
+                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                       {conv.deletedAt ? formatRelative(conv.deletedAt) : ''}
                     </div>
                   </div>
@@ -315,7 +315,7 @@ export function ConversationSidebar({
                         background: '#e74c3c',
                         cursor: 'pointer',
                         color: 'white',
-                        fontSize: 10,
+                        fontSize: 'var(--text-badge)',
                       }}
                     >
                       {t('settings:ai_confirm_btn')}

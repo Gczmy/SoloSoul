@@ -171,7 +171,7 @@ export function DataManagementPage() {
               <div style={{ fontSize: 'var(--text-page-title)', fontWeight: 600 }}>
                 {stats ? formatBytes(stats.totalSizeBytes) : '—'}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+              <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                 {stats ? t('settings:profile_count', { count: stats.profileCount }) : '—'}
                 {stats?.lastModified &&
                   ` · ${t('settings:updated')} ${new Date(stats.lastModified).toLocaleDateString()}`}
@@ -200,7 +200,7 @@ export function DataManagementPage() {
                 marginTop: 10,
                 paddingTop: 10,
                 borderTop: '1px solid var(--border-subtle)',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 color: 'var(--text-tertiary)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -285,7 +285,7 @@ export function DataManagementPage() {
                       }}
                     />
                     <span style={{ flex: 1 }}>{slice.label}</span>
-                    <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>{pct}%</span>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}>{pct}%</span>
                     <span style={{ fontWeight: 500 }}>{formatBytes(slice.value)}</span>
                   </div>
                 );
@@ -333,7 +333,7 @@ export function DataManagementPage() {
               onClick={() => navigate('/settings/backup')}
               className="interactive-toolbar"
               style={{
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--border-subtle)',
@@ -351,7 +351,7 @@ export function DataManagementPage() {
               onClick={() => navigate('/settings/backup')}
               className="interactive-toolbar"
               style={{
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--border-subtle)',
@@ -380,7 +380,7 @@ export function DataManagementPage() {
               onClick={() => navigate('/settings/export-import')}
               className="interactive-toolbar"
               style={{
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--border-subtle)',
@@ -398,7 +398,7 @@ export function DataManagementPage() {
               onClick={() => navigate('/settings/export-import')}
               className="interactive-toolbar"
               style={{
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--border-subtle)',
@@ -423,7 +423,7 @@ export function DataManagementPage() {
             type="button"
             onClick={() => navigate('/settings/trash')}
             style={{
-              fontSize: 12,
+              fontSize: 'var(--text-caption)',
               padding: '6px 12px',
               borderRadius: 6,
               border: '1px solid var(--border-subtle)',

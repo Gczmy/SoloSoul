@@ -42,11 +42,11 @@ export function ModelInfoCard({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Cpu size={20} color="var(--accent-primary)" />
-          <span style={{ fontSize: 14, fontWeight: 600 }}>{providerName}</span>
+          <span style={{ fontSize: 'var(--text-body)', fontWeight: 600 }}>{providerName}</span>
         </div>
         <span
           style={{
-            fontSize: 11,
+            fontSize: 'var(--text-badge)',
             fontWeight: 600,
             color: statusColor,
             background: bgColor,

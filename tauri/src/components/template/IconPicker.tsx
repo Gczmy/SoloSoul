@@ -52,7 +52,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
               }}
               style={{
                 padding: '4px 10px',
-                fontSize: 12,
+                fontSize: 'var(--text-caption)',
                 fontWeight: isActive ? 600 : 400,
                 borderRadius: 6,
                 border: isActive

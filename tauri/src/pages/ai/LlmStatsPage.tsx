@@ -131,7 +131,7 @@ export function LlmStatsPage() {
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
               {t('settings:llm_no_data')}
             </p>
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>
+            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginTop: 4 }}>
               {t('settings:llm_no_data_hint')}
             </p>
           </div>

@@ -31,12 +31,12 @@ export function TrashConfirmDialog({ action, onClose, onConfirm }: TrashConfirmD
           boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
         }}
       >
-        <h3 style={{ fontSize: 15, fontWeight: 600, margin: '0 0 8px' }}>
+        <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, margin: '0 0 8px' }}>
           {action.type === 'delete'
             ? t('settings:confirm_delete_title')
             : t('settings:confirm_restore_title')}
         </h3>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+        <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
           {action.type === 'delete'
             ? t('settings:confirm_delete_desc', { count: action.count })
             : t('settings:confirm_restore_desc', { count: action.count })}

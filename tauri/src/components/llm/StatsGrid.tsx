@@ -86,10 +86,10 @@ const StatTile = memo(function StatTile({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
           {icon}
-          <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{label}</span>
+          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>{label}</span>
         </div>
         <div
-          style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}
+          style={{ fontSize: 'var(--text-md)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}
         >
           {value}
         </div>
@@ -98,7 +98,7 @@ const StatTile = memo(function StatTile({
             style={{
               marginTop: 4,
               overflow: needsScroll ? 'auto' : 'visible',
-              fontSize: 10,
+              fontSize: 'var(--text-badge)',
               color: 'var(--text-tertiary)',
             }}
           >

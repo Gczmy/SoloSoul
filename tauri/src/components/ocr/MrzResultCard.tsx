@@ -33,7 +33,7 @@ export function MrzResultCard({ result }: MrzResultCardProps) {
           borderRadius: 8,
           background: result.checksumValid ? 'var(--accent-primary)' : 'var(--error)',
           color: '#fff',
-          fontSize: 13,
+          fontSize: 'var(--text-body-sm)',
           fontWeight: 500,
         }}
       >
@@ -58,10 +58,10 @@ export function MrzResultCard({ result }: MrzResultCardProps) {
               background: 'var(--bg-toolbar)',
             }}
           >
-            <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginBottom: 2 }}>
+            <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginBottom: 2 }}>
               {field.label}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 500, wordBreak: 'break-word' }}>
+            <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, wordBreak: 'break-word' }}>
               {field.value || '-'}
             </div>
           </div>
@@ -76,7 +76,7 @@ export function MrzResultCard({ result }: MrzResultCardProps) {
           alignItems: 'center',
           gap: 6,
           padding: '6px 0',
-          fontSize: 12,
+          fontSize: 'var(--text-caption)',
           color: 'var(--text-secondary)',
           background: 'none',
           border: 'none',
@@ -95,7 +95,7 @@ export function MrzResultCard({ result }: MrzResultCardProps) {
             borderRadius: 6,
             background: 'var(--bg-toolbar)',
             fontFamily: 'monospace',
-            fontSize: 12,
+            fontSize: 'var(--text-caption)',
             lineHeight: 1.5,
             color: 'var(--text-secondary)',
           }}

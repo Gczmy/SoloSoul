@@ -1,6 +1,6 @@
 .infoRow {
   display: flex;
-  font-size: 13px;
+  font-size: var(--text-body-sm);
 }
 
 .infoLabel {

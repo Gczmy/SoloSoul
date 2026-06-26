@@ -28,7 +28,7 @@ export const ConversationHistory = memo(function ConversationHistory({
     return (
       <p
         style={{
-          fontSize: 12,
+          fontSize: 'var(--text-caption)',
           color: 'var(--text-tertiary)',
           textAlign: 'center',
           padding: '16px 12px',
@@ -73,7 +73,7 @@ const ConversationHistoryItem = memo(function ConversationHistoryItem({
         gap: 8,
         padding: '7px 12px',
         cursor: 'pointer',
-        fontSize: 12,
+        fontSize: 'var(--text-caption)',
         background: isActive ? 'rgba(91,124,153,0.08)' : 'transparent',
       }}
     >
@@ -90,7 +90,7 @@ const ConversationHistoryItem = memo(function ConversationHistoryItem({
         >
           {conv.name || t('settings:ai_untitled')}
         </div>
-        <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 1 }}>
+        <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 1 }}>
           {formatRelative(conv.updatedAt)} · {conv.messageCount} {t('settings:ai_messages')}
         </div>
       </div>

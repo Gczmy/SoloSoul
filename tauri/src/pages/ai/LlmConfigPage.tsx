@@ -310,7 +310,7 @@ export function LlmConfigPage() {
       <PageContainer variant="xs" gap="default">
         {!hasAcceptedRisk && (
           <Card>
-            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
               <span style={{ color: '#e67e22' }}>⚠</span> {t('settings:ai_risk_notice')}
             </p>
           </Card>
@@ -365,12 +365,12 @@ export function LlmConfigPage() {
                 <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
                   {t('settings:llm_stats_title')}
                 </span>
-                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>
+                <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 1 }}>
                   {t('settings:llm_stats_desc')}
                 </div>
               </div>
             </div>
-            <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>›</span>
+            <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-md)' }}>›</span>
           </div>
         </Card>
 

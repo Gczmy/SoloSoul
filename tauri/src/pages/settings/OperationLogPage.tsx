@@ -263,7 +263,7 @@ export function OperationLogPage() {
                   color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                   boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                   cursor: 'pointer',
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   fontWeight: 500,
                   transition: 'all 0.15s ease',
                 }}
@@ -281,7 +281,7 @@ export function OperationLogPage() {
           <Card>
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
               <p style={{ fontSize: 'var(--text-sm)' }}>{t('settings:no_log_entries')}</p>
-              <p style={{ fontSize: 12, marginTop: 4 }}>
+              <p style={{ fontSize: 'var(--text-caption)', marginTop: 4 }}>
                 {searchQuery || entityTypeFilter
                   ? t('settings:adjust_filters')
                   : t('settings:logs_hint')}
@@ -309,7 +309,7 @@ export function OperationLogPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span
                       style={{
-                        fontSize: 11,
+                        fontSize: 'var(--text-badge)',
                         fontWeight: 600,
                         padding: '1px 6px',
                         borderRadius: 4,
@@ -334,7 +334,7 @@ export function OperationLogPage() {
                     </span>
                     <span
                       style={{
-                        fontSize: 11,
+                        fontSize: 'var(--text-badge)',
                         fontWeight: 600,
                         padding: '1px 6px',
                         borderRadius: 4,
@@ -360,7 +360,7 @@ export function OperationLogPage() {
                     {entry.performedBy === 'system' && (
                       <span
                         style={{
-                          fontSize: 10,
+                          fontSize: 'var(--text-badge)',
                           padding: '1px 4px',
                           borderRadius: 3,
                           backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.08))',
@@ -371,7 +371,7 @@ export function OperationLogPage() {
                       </span>
                     )}
                     <span
-                      style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}
+                      style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginLeft: 'auto' }}
                     >
                       {new Date(entry.timestamp).toLocaleString(i18n.language)}
                     </span>
@@ -380,7 +380,7 @@ export function OperationLogPage() {
                     <div
                       style={{
                         margin: '4px 0 0',
-                        fontSize: 12,
+                        fontSize: 'var(--text-caption)',
                         color: 'var(--text-secondary)',
                         fontFamily: 'monospace',
                         whiteSpace: 'pre-wrap',

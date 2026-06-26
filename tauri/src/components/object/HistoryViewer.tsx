@@ -100,7 +100,7 @@ function SnapshotCard({
       {/* Version badge */}
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <SnapshotVersionBadge index={index} total={total} />
-        <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-tertiary)', overflowWrap: 'break-word', wordBreak: 'break-word', textAlign: 'right', maxWidth: '70%' }}>{snapName}</div>
+        <div style={{ marginLeft: 'auto', fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', overflowWrap: 'break-word', wordBreak: 'break-word', textAlign: 'right', maxWidth: '70%' }}>{snapName}</div>
       </div>
       {/* Properties — like detail panel, with sensitivity */}
       {fields.length > 0 && (
@@ -118,7 +118,7 @@ function SnapshotCard({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  fontSize: 12,
+                  fontSize: 'var(--text-caption)',
                   padding: '6px 8px',
                   borderRadius: 6,
                   background: 'var(--bg-toolbar)',
@@ -193,7 +193,7 @@ function SnapshotCard({
               style={{
                 padding: '1px 7px',
                 borderRadius: 10,
-                fontSize: 10,
+                fontSize: 'var(--text-badge)',
                 background: 'rgba(91,124,153,0.08)',
                 color: 'var(--accent-primary)',
                 fontWeight: 500,
@@ -359,10 +359,10 @@ export function HistoryViewer({
           }}
         >
           <div
-            style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}
+            style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}
           >
             <Clock size={14} /> {t('common:history')}
-            <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontWeight: 400 }}>
+            <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', fontWeight: 400 }}>
               {loading ? '' : `${currentIdx + 1} / ${total}`}
             </span>
           </div>
@@ -399,7 +399,7 @@ export function HistoryViewer({
                 textAlign: 'center',
                 padding: 48,
                 color: 'var(--text-secondary)',
-                fontSize: 14,
+                fontSize: 'var(--text-body)',
               }}
             >
               {t('common:no_history')}
@@ -424,7 +424,7 @@ export function HistoryViewer({
           style={{
             padding: '10px 18px',
             borderTop: '1px solid var(--border-subtle)',
-            fontSize: 11,
+            fontSize: 'var(--text-badge)',
             color: 'var(--text-tertiary)',
             textAlign: 'center',
           }}
