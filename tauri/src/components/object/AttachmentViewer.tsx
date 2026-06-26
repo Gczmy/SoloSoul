@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2, Upload, Download } from 'lucide-react';
+import { Paperclip, X, RotateCw, Eye, Image, FileText, Edit2, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
@@ -320,6 +320,7 @@ export function AttachmentViewer({
           style={{
             width: 500,
             maxHeight: '80vh',
+            minHeight: 280,
             display: 'flex',
             flexDirection: 'column',
             background: 'var(--bg-elevated)',
@@ -352,38 +353,48 @@ export function AttachmentViewer({
               <Paperclip size={ICON_SIZE.sm} /> {t('common:attachments')}
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => { setShowTrash(false); clearSelection(); }}
-                className={!showTrash ? 'selected-accent' : ''}
                 style={{
-                  padding: '5px 12px',
-                  borderRadius: 6,
                   fontSize: 'var(--text-caption)',
-                  fontWeight: 500,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
+                  ...(!showTrash ? {
+                    background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                    borderColor: 'var(--accent-primary)',
+                    color: 'var(--accent-primary)',
+                    boxShadow: '0 0 0 1px var(--accent-primary)',
+                  } : {}),
                 }}
               >
                 {t('common:attachments_active', { n: items.length })}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => { setShowTrash(true); clearSelection(); }}
-                className={showTrash ? 'selected-danger' : ''}
                 style={{
-                  padding: '5px 12px',
-                  borderRadius: 6,
                   fontSize: 'var(--text-caption)',
-                  fontWeight: 500,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
+                  ...(showTrash ? {
+                    background: 'color-mix(in srgb, #e74c3c 10%, transparent)',
+                    borderColor: '#e74c3c',
+                    color: '#e74c3c',
+                    boxShadow: '0 0 0 1px #e74c3c',
+                  } : {}),
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#e74c3c';
+                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!showTrash) {
+                    e.currentTarget.style.borderColor = '';
+                    e.currentTarget.style.background = '';
+                  }
                 }}
               >
                 {t('common:attachments_trash', { n: trashItems.length })}
-              </button>
+              </Button>
             </div>
           </div>
           {!showTrash && (
@@ -391,12 +402,13 @@ export function AttachmentViewer({
               Icon={Upload}
               onClick={handleAdd}
               title={t('common:upload') || 'Upload'}
+              iconSize={ICON_SIZE.sm}
             />
           )}
           <BadgeIconButton Icon={X} onClick={onClose} title={t('common:close') || 'Close'} iconSize={ICON_SIZE.md} />
         </div>
-        {/* 批量操作工具栏 */}
-        {selectedIds.size > 0 && displayItems.length > 0 && (
+        {/* 批量操作工具栏 — 常驻显示 */}
+        {displayItems.length > 0 && (
           <div
             style={{
               display: 'flex',
@@ -404,7 +416,9 @@ export function AttachmentViewer({
               justifyContent: 'space-between',
               padding: '8px 12px',
               borderBottom: '1px solid var(--border-subtle)',
-              background: 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
+              background: selectedIds.size > 0
+                ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
+                : 'var(--bg-toolbar)',
               fontSize: 'var(--text-body-sm)',
             }}
           >
@@ -414,35 +428,40 @@ export function AttachmentViewer({
                 onClick={() => handleSelectAll(allVisibleKeys)}
                 indeterminate={selectedIds.size > 0 && !allSelected}
               />
-              <span style={{ color: 'var(--text-secondary)' }}>
-                {t('common:selected_count', { n: selectedIds.size })}
+              <span style={{ color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }} onClick={() => handleSelectAll(allVisibleKeys)}>
+                {allSelected ? t('common:deselect_all') : t('common:select_all')}
               </span>
+              {selectedIds.size > 0 && (
+                <span style={{ color: 'var(--text-tertiary)' }}>
+                  {t('common:selected_count', { n: selectedIds.size })}
+                </span>
+              )}
             </div>
-            {!showTrash ? (
+            {selectedIds.size > 0 && !showTrash ? (
               <div style={{ display: 'flex', gap: 6 }}>
                 <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
-                  <Download size={ICON_SIZE.xs} /> {t('common:download')}
+                  <Download size={ICON_SIZE.sm} /> {t('common:download')}
                 </Button>
                 <DeleteButton onClick={() => setBatchDeleteConfirm(true)} title={t('common:delete')}>
                   {t('common:delete')}
                 </DeleteButton>
               </div>
-            ) : (
+            ) : selectedIds.size > 0 && showTrash ? (
               <div style={{ display: 'flex', gap: 6 }}>
                 <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
-                  <RotateCw size={ICON_SIZE.xs} /> {t('common:restore')}
+                  <RotateCw size={ICON_SIZE.sm} /> {t('common:restore')}
                 </Button>
                 <DeleteButton onClick={() => setBatchPermanentDeleteConfirm(true)} title={t('common:delete_permanently')}>
                   {t('common:delete_permanently')}
                 </DeleteButton>
               </div>
-            )}
+            ) : null}
           </div>
         )}
         {/* List */}
-        <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
+        <div style={{ flex: 1, overflow: 'auto' }}>
           {loading ? (
-            <LoadingPlaceholder variant="elevated" minHeight={120} />
+            <LoadingPlaceholder variant="elevated" minHeight={120} style={{ flex: 'none' }} />
           ) : displayItems.length === 0 ? (
             <div
               style={{
@@ -455,7 +474,7 @@ export function AttachmentViewer({
               {showTrash ? t('common:attachments_trash_empty') : t('common:no_attachments')}
             </div>
           ) : (
-            displayItems.map((item) => {
+            displayItems.map((item, idx) => {
               const compositeKey = `${objectId}::${item.id}`;
               const checked = selectedIds.has(compositeKey);
               return (
@@ -465,8 +484,8 @@ export function AttachmentViewer({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  padding: '8px 6px',
-                  borderBottom: '1px solid var(--border-subtle)',
+                  padding: '8px 12px',
+                  borderBottom: idx < displayItems.length - 1 ? '1px solid var(--border-subtle)' : 'none',
                   fontSize: 'var(--text-body-sm)',
                 }}
               >
@@ -504,14 +523,12 @@ export function AttachmentViewer({
                       Icon={RotateCw}
                       onClick={() => handleRestore(item)}
                       title={t('common:restore')}
-                      iconSize={ICON_SIZE.xs}
+                      iconSize={ICON_SIZE.sm}
                     />
-                    <BadgeIconButton
-                      Icon={Trash2}
+                    <DeleteButton
+                      iconOnly
                       onClick={() => setPermDeleteItem(item)}
                       title={t('common:delete_permanently')}
-                      dangerOutline
-                      iconSize={ICON_SIZE.xs}
                     />
                   </>
                 ) : (
@@ -543,28 +560,26 @@ export function AttachmentViewer({
                           Icon={Eye}
                           onClick={() => handlePreview(item)}
                           title="Preview"
-                          iconSize={ICON_SIZE.xs}
+                          iconSize={ICON_SIZE.sm}
                         />
                         <BadgeIconButton
                           Icon={Edit2}
                           onClick={() => handleStartRename(item)}
                           title={t('common:rename')}
-                          iconSize={ICON_SIZE.xs}
+                          iconSize={ICON_SIZE.sm}
                         />
                         <BadgeIconButton
                           Icon={Download}
                           onClick={() => handleDownload(item)}
                           title={t('common:download')}
-                          iconSize={ICON_SIZE.xs}
+                          iconSize={ICON_SIZE.sm}
                         />
                       </>
                     )}
-                    <BadgeIconButton
-                      Icon={Trash2}
+                    <DeleteButton
+                      iconOnly
                       onClick={() => handleDelete(item)}
                       title={t('common:delete')}
-                      dangerOutline
-                      iconSize={ICON_SIZE.xs}
                     />
                   </>
                 )}

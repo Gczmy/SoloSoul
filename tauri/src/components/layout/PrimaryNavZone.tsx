@@ -6,6 +6,7 @@ import { AddPageButton } from './AddPageButton';
 import { NavButton } from './NavButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { useActiveCustomPages, primaryItems } from './useNavigationItems';
+import { useSidebarHoverStore } from '@/stores/sidebarHoverStore';
 import styles from './SideNavigation.module.css';
 
 import type { NavPosition } from './NavButton';
@@ -21,6 +22,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
   const location = useLocation();
   const { t } = useTranslation('navigation');
   const activeCustomPages = useActiveCustomPages();
+  const setHovering = useSidebarHoverStore((s) => s.setHovering);
   const horizontalNavRef = useRef<HTMLDivElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -158,12 +160,17 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
 
       {/* AddPageButton — vertical mode only (horizontal has it in SecondaryActionBar) */}
       {!isHorizontal && (
-        <AddPageButton
-          onCreate={(page) => {
-            navigate(`/workspace/custom/${page.id}`);
-          }}
-          position={sidebarPosition}
-        />
+        <div
+          onMouseEnter={() => setHovering(true)}
+          onMouseLeave={() => setHovering(false)}
+        >
+          <AddPageButton
+            onCreate={(page) => {
+              navigate(`/workspace/custom/${page.id}`);
+            }}
+            position={sidebarPosition}
+          />
+        </div>
       )}
     </>
   );
