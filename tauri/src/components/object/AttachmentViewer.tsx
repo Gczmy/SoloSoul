@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { Paperclip, X, RotateCw, Eye, Image, FileText, Edit2, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
@@ -315,12 +314,12 @@ export function AttachmentViewer({
       }}
       onClick={onClose}
     >
-      <div
-        onClick={(e) => e.stopPropagation()}          ref={dragRef}
+      {!loading && (
+        <div
+          onClick={(e) => e.stopPropagation()}          ref={dragRef}
           style={{
             width: 500,
             maxHeight: '80vh',
-            minHeight: 280,
             display: 'flex',
             flexDirection: 'column',
             background: 'var(--bg-elevated)',
@@ -460,9 +459,7 @@ export function AttachmentViewer({
         )}
         {/* List */}
         <div style={{ flex: 1, overflow: 'auto' }}>
-          {loading ? (
-            <LoadingPlaceholder variant="elevated" minHeight={120} style={{ flex: 'none' }} />
-          ) : displayItems.length === 0 ? (
+          {displayItems.length === 0 ? (
             <div
               style={{
                 textAlign: 'center',
@@ -589,7 +586,8 @@ export function AttachmentViewer({
         </div>
         {/* 拖拽上传覆盖层 */}
         <DragUploadOverlay dragState={dragState} borderRadius={16} />
-      </div>      {/* Preview overlay */}
+        </div>
+      )}      {/* Preview overlay */}
       <AttachmentPreviewOverlay item={previewItem} onClose={() => setPreviewItem(null)} />
       {confirmDialog}
       {/* Confirmation dialogs */}

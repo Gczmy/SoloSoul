@@ -6,7 +6,6 @@ import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/Sensiti
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
-import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useRevealState } from '@/hooks/useRevealState';
 import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -327,6 +326,7 @@ export function HistoryViewer({
       }}
       onClick={onClose}
     >
+      {!loading && (
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -393,9 +393,7 @@ export function HistoryViewer({
         </div>
         {/* Content */}
         <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-          {loading ? (
-            <LoadingPlaceholder variant="elevated" minHeight={160} />
-          ) : !snap ? (
+          {!snap ? (
             <div
               style={{
                 textAlign: 'center',
@@ -435,6 +433,7 @@ export function HistoryViewer({
             `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${t(`common:trigger_${snap.triggeredBy}`)}`}
         </div>
       </div>
+      )}
     </div>
   );
 }
