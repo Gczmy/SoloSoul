@@ -33,7 +33,6 @@ import type { LucideIcon } from 'lucide-react';
 import {
   truncateFileName,
   formatSize,
-  miniBtn,
 } from '@/lib/attachmentUtils';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
@@ -710,19 +709,12 @@ export function GlobalAttachmentManager() {
             {t('settings:attachments_count', { n: obj.attachments.length })} · {formatSize(obj.attachments.reduce((sum, a) => sum + a.sizeBytes, 0))}
           </span>
           {!showTrash && (
-            <button
+            <BadgeIconButton
+              Icon={Upload}
               onClick={(e) => { e.stopPropagation(); handleUpload(obj.objectId); }}
-              className="interactive-icon"
-              style={{
-                ...miniBtn,
-                width: 22,
-                height: 22,
-                fontSize: 10,
-              }}
               title={t('common:upload') || 'Upload'}
-            >
-              <Upload size={10} />
-            </button>
+              iconSize={10}
+            />
           )}
         </div>
         {isExpanded && obj.attachments.map((att) => renderAttachment(att, obj.objectId))}

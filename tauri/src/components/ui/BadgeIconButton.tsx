@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import type { MouseEventHandler } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import styles from './BadgeIconButton.module.css';
 
@@ -8,7 +9,7 @@ interface BadgeIconButtonProps {
   /** Optional count to display as a badge */
   count?: number;
   /** Click handler */
-  onClick: () => void;
+  onClick: MouseEventHandler<HTMLButtonElement>;
   /** Tooltip title */
   title: string;
   /** If true, renders as a danger button (red hover) */

@@ -1,5 +1,3 @@
-import type { CSSProperties } from 'react';
-
 // ── Types ────────────────────────────────────────────────────
 
 export interface AttachmentItem {
@@ -36,23 +34,6 @@ export function formatSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
-
-// ── Button style helpers ─────────────────────────────────────
-// CSS classes (animations.css) preferred over inline styles.
-// These constants are kept for sizing; hover effects use CSS :hover.
-
-/** Base size-only style — use with className="interactive-icon" for hover effects. */
-export const miniBtn: CSSProperties = {
-  width: 28,
-  height: 28,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: 'none',
-  borderRadius: 6,
-  cursor: 'pointer',
-  fontSize: 12,
-};
 
 // ── MIME helpers ──────────────────────────────────────────────
 
