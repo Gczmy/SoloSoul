@@ -110,7 +110,7 @@ function ObjectDropTarget({
 // ── Component ────────────────────────────────────────────────
 
 export function GlobalAttachmentManager() {
-  const { t } = useTranslation(['settings', 'common']);
+  const { t } = useTranslation(['settings', 'common', 'navigation']);
   const navigate = useNavigate();
   const location = useLocation();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
@@ -757,8 +757,8 @@ export function GlobalAttachmentManager() {
           }}
           className="interactive-toolbar"
         >
-          <PageIconComp size={ICON_SIZE.sm} style={{ flexShrink: 0, color: 'var(--accent-primary)' }} />
-          <span style={{ flex: 1 }}>{page.pageName}</span>
+          <PageIconComp size={ICON_SIZE.xl} style={{ flexShrink: 0, color: 'var(--accent-primary)' }} />
+          <span style={{ flex: 1 }}>{page.pageId ? page.pageName : t(`navigation:${page.pageName}`)}</span>
           <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
             {t('settings:objects_count', { n: page.objects.length })} · {t('settings:attachments_count', { n: page.objects.reduce((sum, o) => sum + o.attachments.length, 0) })} · {formatSize(page.objects.reduce((sum, o) => sum + o.attachments.reduce((s, a) => s + a.sizeBytes, 0), 0))}
           </span>
