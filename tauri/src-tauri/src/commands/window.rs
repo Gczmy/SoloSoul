@@ -24,6 +24,9 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
         if ptr.is_null() {
             return Err("NSWindow pointer is null".to_string());
         }
+        // SAFETY: ptr 是 Tauri 框架通过 ns_window() 返回的有效 NSWindow 指针，
+        // 已经过非空检查。在 Tauri 窗口生命周期内该指针始终有效。&*ptr 创建
+        // 一个借用引用，不转移所有权，Tauri 负责 NSWindow 的生命周期。
         let ns_window = unsafe { &*ptr };
         let bg = NSColor::colorWithRed_green_blue_alpha(
             color.red as f64 / 255.0,
@@ -38,8 +41,11 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
             + 0.587 * f64::from(color.green)
             + 0.114 * f64::from(color.blue);
         let appearance_name = if luminance < 128.0 {
+            // SAFETY: NSAppearanceNameDarkAqua 是 AppKit 公开的全局 NSString 常量，
+            // 从 ObjC extern 静态变量中读取不会产生数据竞争或内存安全问题。
             unsafe { NSAppearanceNameDarkAqua }
         } else {
+            // SAFETY: NSAppearanceNameAqua 是 AppKit 公开的全局 NSString 常量。
             unsafe { NSAppearanceNameAqua }
         };
         let appearance = NSAppearance::appearanceNamed(appearance_name);
@@ -56,6 +62,9 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
         let caption_color: u32 =
             ((color.blue as u32) << 16) | ((color.green as u32) << 8) | (color.red as u32);
 
+        // SAFETY: DwmSetWindowAttribute 是 Windows DWM API；hwnd 是 Tauri 提供的
+        // 有效窗口句柄，caption_color 是栈上分配的 u32 值，size 正确。调用期间
+        // 不会修改 Rust 内存，仅由 DWM 读取标题栏颜色配置。
         unsafe {
             DwmSetWindowAttribute(
                 hwnd,

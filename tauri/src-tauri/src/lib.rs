@@ -68,6 +68,9 @@ fn setup_panic_hook() {
                  发送给开发团队以协助排查。",
                 payload, location
             );
+            // SAFETY: show_message_box 封装了 Windows MessageBoxW API，
+            // 使用从 panic 信息生成的字符串；在 panic hook 中调用是安全的最佳实践。
+            // 该函数接收的字符串在此处分配且在调用期间保持有效。
             unsafe {
                 show_message_box("SoloSoul 错误", &box_text);
             }
@@ -157,7 +160,7 @@ pub fn run() {
         .unwrap_or_else(|| tracing_subscriber::EnvFilter::new("info,ort=warn"));
 
     // 将 guard 泄漏，确保 non-blocking writer 在进程生命周期内不会 drop
-    std::mem::forget(guard);
+    Box::leak(Box::new(guard));
 
     // 使用 tracing-subscriber registry + layers，同时输出到文件和 stderr
     {

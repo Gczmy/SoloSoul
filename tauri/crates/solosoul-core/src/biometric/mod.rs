@@ -438,6 +438,8 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), BiometricError> {
     let la_name = c"LAContext";
     let la_cls = AnyClass::get(la_name).ok_or(BiometricError::UserPresenceUnavailable)?;
 
+    // SAFETY: LAContext 是已知的 Objective-C 类，msg_send! 通过 objc2 运行时安全调用 ObjC 消息发送。
+    // alloc/init 是标准 ObjC 构造模式，返回的可保留对象由调用方负责 release。
     let ctx: *mut NSObject = unsafe {
         let alloc: *mut NSObject = msg_send![la_cls, alloc];
         msg_send![alloc, init]
@@ -451,6 +453,8 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), BiometricError> {
     let ns_name = c"NSString";
     let ns_cls = AnyClass::get(ns_name)
         .ok_or_else(|| BiometricError::Other("NSString class not found".into()))?;
+    // SAFETY: NSString 是已知 ObjC 类 +initWithUTF8String: 接收非空 C 字符串指针，
+    // c_reason 是刚分配的 CString，在 msg_send 期间保持有效。
     let ns_reason: *mut NSObject = unsafe {
         let alloc: *mut NSObject = msg_send![ns_cls, alloc];
         msg_send![alloc, initWithUTF8String: c_reason.as_ptr()]
@@ -467,6 +471,8 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), BiometricError> {
 
     // LAPolicyDeviceOwnerAuthentication = 2 (NSInteger)
     // 允许 Touch ID / Face ID，无生物识别时回退到设备密码。
+    // SAFETY: ctx 与 ns_reason 均为刚创建的非空 ObjC 对象指针；evaluatePolicy:reply:
+    // 在 block 返回前不会释放这些参数；block 是 RcBlock，保证在跨线程回调期间有效。
     unsafe {
         let _: () = msg_send![
             ctx,
@@ -481,6 +487,8 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), BiometricError> {
         .map_err(|_| BiometricError::UserPresenceCancelled)?;
 
     // Release manually-owned ObjC objects (MRC)
+    // SAFETY: ctx 和 ns_reason 均为 alloc/init 产生的 +1 retain 对象，evaluatePolicy:reply:
+    // 同步执行完毕不再需要它们，在此 release 归还所有权是标准 MRC 模式。
     unsafe {
         let _: () = msg_send![ctx, release];
         let _: () = msg_send![ns_reason, release];

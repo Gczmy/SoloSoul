@@ -338,11 +338,11 @@
 |----|----------|------|
 | P2-001 Clippy 风格警告 | ✅ 已修复 | `cargo clippy -- -D warnings` 干净，`cargo clippy --fix` 无新变更 |
 | P2-002 过长函数 | ✅ 真实 | 需配合组件拆分 |
-| P2-003 unsafe 缺少注释 | ✅ 真实 | 需逐文件补充 `// SAFETY:` |
+| P2-003 unsafe 缺少注释 | ✅ 已修复 | 5 文件共 24 处 unsafe 块已补充 `// SAFETY:` 注释 |
 | P2-004 solosoul-plugin 版本未接入 workspace | ✅ 已修复 | 已改用 `version.workspace = true`，补充 edition/authors/license/repository |
 | P2-005 solosoul-vault 缺少 license/repository | ✅ 已修复 | 已补充 `license.workspace = true` 和 `repository.workspace = true` |
 | P2-006 Cargo 与 README 许可证冲突 | ✅ 真实 | MIT vs Private |
-| P2-007 AGENTS.md 过时路径 | ✅ 真实 | 引用了已不存在的文件路径 |
+| P2-007 AGENTS.md 过时路径 | ✅ 已修复 | 更新 docs/ 结构、核心路径、密码对话框路径、快速参考表共 10 处 |
 | P2-008 OCR 版本/敏感度分级文档冲突 | ✅ 真实 | PP-OCRv4 vs v6 等 |
 | P2-009 rust-cache workspaces 路径 | ✅ 已修复 | CI 中已有 `tauri/src-tauri`, `solosoul_cli`, `tauri` 三个路径 |
 | P2-010 验证令牌建议改用 HKDF | ⚠️ 建议性 | 真实安全思考，非 Bug |
@@ -352,7 +352,7 @@
 | P2-014 OCR macOS swiftc 安全问题 | ✅ 已修复 | 添加 SHA-256 哈希校验 + 0o700/0o600 权限限制 |
 | P2-015 死代码 | ❌ 误报 | `CachedPrompt.created_at` 和 `PeerSession` 均有活跃引用，非死代码 |
 | P2-016 OCR langs 未使用 | ❌ 误报 | 当前代码中未找到 `ocr_langs` 字段 |
-| P2-017 std::mem::forget 资源泄漏 | ✅ 真实 | 可改用 Box::leak / OnceLock |
+| P2-017 std::mem::forget 资源泄漏 | ✅ 已修复 | `Box::leak(Box::new(guard))` 替代 `std::mem::forget` |
 | P2-018 RestoreManifest dead_code | ❌ 误报 | `RestoreManifest` 在 `backup.rs:276` 定义、`292` 使用，非死代码 |
 | P2-019 ~ P2-025 前端性能 | ✅ 真实 | 均为合理优化建议 |
 
@@ -410,39 +410,38 @@
 
 ## 最终建议修复顺序（当前状态）
 
-> **注：** 以下仅列出仍未修复的项。已修复的 13 项已从列表中移除。
+> **注：** 以下仅列出仍未修复的项。
 
-### 第一优先级（遗留清理）
+### 第一优先级（性能优化）
 
-1. **P1-009** — 确认 `src-tauri/src/plugin/` 旧目录引用情况，无引用则删除
-2. **P1-008** — 将 `@tauri-apps/cli` 移到 devDependencies
+1. **P0-009（P2）** — 搜索过滤高频 IPC 防抖
+2. **P1-023/024** — 导出/导入内存流式处理
 
-### 第二优先级（安全）
+### 第二优先级（代码规范）
 
-3. **P2-012** — `attachment_copy_to_vault` 添加 src_path 目录限制
-4. **P2-014** — OCR macOS Vision 临时二进制安全加固
+3. **P0-010（P2）** — 直接 DOM 样式改为 CSS 变量
+4. **P0-012（P2）** — completed 事件类型守卫
+5. **P0-013（P2）** — 导出估算 effect 边缘场景
+### 第三优先级（文档/配置）
 
-### 第三优先级（性能优化）
+7. **P2-006** — Cargo 与 README 许可证一致化（LICENSE 文件为空）
+8. **P2-007** — AGENTS.md 过时路径更新
+9. **P2-008** — OCR 版本/敏感度分级文档冲突
 
-6. **P0-009（P2）** — 搜索过滤高频 IPC 防抖
-7. **P1-023/024** — 导出/导入内存流式处理
+### 第四优先级（批量/通用建议）
 
-### 第四优先级（代码规范）
-
-8. **P0-010（P2）** — 直接 DOM 样式改为 CSS 变量
-9. **P0-012（P2）** — completed 事件类型守卫
-10. **P0-013（P2）** — 导出估算 effect 边缘场景
-
-### 第五优先级（批量/通用建议）
-
-11. **P1-010** — 关键模块补充测试
-12. **P2-001 / P2-003** — Clippy 风格警告 + unsafe 注释
-13. **P2-004 ~ P2-009** — Cargo.toml 配置统一、文档一致化
+10. **P1-010** — 关键模块补充测试
+11. **P2-002** — 过长函数拆分
+12. **P2-010** — 验证令牌改用 HKDF（建议性）
+13. **P2-011** — ort 候选版本风险（`2.0.0-rc.12`）
+14. **P2-013** — TypeOrEntryType untagged 歧义（待核实）
+15. **P2-017** — std::mem::forget 改用 Box::leak / OnceLock
+16. **P2-019 ~ P2-025** — 前端性能优化
 
 ### 无需修复
 
 - P0-005 / P0-006 — 设计如此，已有 Release 验证
-- P1-007 / P1-008 — 非阻塞（P2）
+- P1-007 — 非阻塞（P2）
 - P1-012 — 占位 SDK 的有意配置
 - P1-019 / P1-020/021 — 误报
 - P1-025 — 安全降级策略

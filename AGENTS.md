@@ -84,7 +84,6 @@ SoloSoul/
 │   ├── src-tauri/              # Rust 后端（Tauri）
 │   │   ├── src/
 │   │   │   ├── commands/       # IPC 命令（30+ 个模块）
-│   │   │   ├── core/           # 核心逻辑（SensitivityManager）
 │   │   │   ├── db/             # SQLite 连接与迁移
 │   │   │   ├── ipc/            # IPC 通信
 │   │   │   ├── services/       # 业务服务（vault, llm_context）
@@ -125,14 +124,22 @@ SoloSoul/
 │   └── python/
 │
 ├── docs/                       # 项目文档（中文为主）
-│   ├── TODO.md                 # 开发任务清单（P0–P7 优先级系统）
-│   ├── USER_GUIDE.md           # 终端用户指南
-│   ├── CLIENT_ROADMAP.md       # 客户端技术架构路线图
-│   ├── CLIENT_USER_GUIDE.md    # 客户端专用指南
-│   ├── CHANGELOG.md            # 版本历史（SemVer）
-│   ├── WORKLOG.md              # 事件日志
-│   ├── PRIVACY_POLICY.md       # 隐私政策
-│   └── TERMS_OF_SERVICE.md     # 服务条款
+│   ├── design_map/             # 架构设计文档（技术选型、组件映射等）
+│   ├── en-US/                  # 英文版隐私政策与服务条款
+│   ├── zh-CN/                  # 中文版隐私政策与服务条款
+│   ├── manifesto/              # 产品使命与设计哲学
+│   ├── plugin_market/          # 插件市场技术文档
+│   ├── solosoul_cli/           # CLI 用户指南与研究
+│   ├── biometric-spec.md       # 生物识别实现规范
+│   ├── ocr-guide.md            # OCR 功能说明
+│   ├── sync-roadmap.md         # 同步功能路线图
+│   ├── P0.5-REFACTOR-REPORT.md # 重构报告
+│   ├── color-palette.html      # 配色方案
+│   ├── release_process.md      # 发布流程
+│   ├── review_code_process.md  # 代码审查流程
+│   └── wasm-plugin-development-guide.md  # WASM 插件开发指南
+│
+├── CHANGELOG.md                # 版本历史（SemVer，位于项目根目录）
 │
 └── .github/workflows/          # GitHub Actions CI/CD
     ├── ci_cd.yml               # 完整流水线：前端检查 / Rust 测试 / Tauri 构建 / Release
@@ -320,7 +327,7 @@ Tauri 前端所有字段均有 `SensitivityLevel`：
 ### Tauri / React 前端
 
 - **状态管理**：Zustand。避免直接混用 `useState` 进行跨页面状态共享。
-- **密码验证对话框**：统一使用 `src/components/PasswordVerificationDialog.tsx`，禁止多处复制对话框代码。
+- **密码验证对话框**：统一使用 `src/components/forms/PasswordVerificationDialog.tsx`，禁止多处复制对话框代码。
 - **防抖保存**：Profile 修改采用 500ms debounce，关键操作可强制立即保存。
 - **操作日志**：每次 CRUD 生成 `OperationEntry`，含 before→after 差异描述，支持 30 天软删除后永久清理。
 - **自动锁定**：监听窗口焦点变化与系统休眠事件，超时锁定 Vault 并擦除敏感状态。
@@ -427,10 +434,9 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 | Tauri IPC 封装 | `tauri/src/lib/ipc.ts` |
 | Tauri Vault 服务（薄包装） | `tauri/src-tauri/src/services/vault_service.rs` |
 | 共享核心库（Vault/模板/生物识别） | `tauri/crates/solosoul-core/` |
-| Tauri SensitivityManager | `tauri/src-tauri/src/core/sensitivity_manager.rs` |
 | Tauri Auth 命令 | `tauri/src-tauri/src/commands/auth.rs` |
 | Tauri Profile 命令 | `tauri/src-tauri/src/commands/profile.rs` |
-| Tauri 对象命令 | `tauri/src-tauri/src/commands/unified_object.rs` |
+| Tauri 对象命令 | `tauri/src-tauri/src/commands/object.rs` |
 | Tauri OCR 页面 | `tauri/src/pages/scan/OcrPage.tsx` |
 | Tauri OCR 设置页 | `tauri/src/pages/settings/OcrSettingsPage.tsx` |
 | Tauri 数据库模块 | `tauri/src-tauri/src/db/` |
@@ -469,9 +475,7 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 | CLI 字段编辑器/模态提示 | `solosoul_cli/src/widgets/field_editor.rs`、`prompt.rs` |
 | 共享进程锁 | `tauri/crates/solosoul-core/src/process_lock.rs` |
 | 共享核心库安全解锁 | `tauri/crates/solosoul-core/src/vault_service.rs` (`unlock_secure`)
-| 任务清单 | `docs/TODO.md` |
-| 用户指南 | `docs/USER_GUIDE.md` |
+| CLI 用户指南 | `docs/solosoul_cli/USER_GUIDE.md` |
 | OCR 功能说明 | `docs/ocr-guide.md` |
 | 生物识别实现规范 | `docs/biometric-spec.md` |
-| 技术路线图 | `docs/CLIENT_ROADMAP.md` |
-| 事件日志 | `docs/WORKLOG.md` |
+| 同步路线图 | `docs/sync-roadmap.md` |

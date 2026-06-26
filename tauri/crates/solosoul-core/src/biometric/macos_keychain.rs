@@ -78,6 +78,8 @@ impl MacOsBiometricStorage {
     fn base_query(account_id: &str) -> CFMutableDictionary<CFString, CFType> {
         let mut dict = CFMutableDictionary::<CFString, CFType>::new();
 
+        // SAFETY: kSecClass / kSecAttrService / kSecAttrAccount 是 Core Foundation
+        // 公开的字符串常量指针，wrap_under_get_rule 不会转移所有权，仅借用全局常量。
         let class_key = unsafe { CFString::wrap_under_get_rule(kSecClass) };
         let class_val: CFType =
             unsafe { CFString::wrap_under_get_rule(kSecClassGenericPassword) }.into_CFType();
@@ -87,6 +89,7 @@ impl MacOsBiometricStorage {
         let service_val: CFType = CFString::from(SERVICE).into_CFType();
         dict.add(&service_key, &service_val);
 
+        // SAFETY: 同上 — kSecAttrAccount 是 CF 字符串常量。
         let account_key_cf = unsafe { CFString::wrap_under_get_rule(kSecAttrAccount) };
         let account_val: CFType = CFString::from(account_key(account_id).as_str()).into_CFType();
         dict.add(&account_key_cf, &account_val);
@@ -102,10 +105,12 @@ impl MacOsBiometricStorage {
         let mut dict = Self::base_query(account_id);
 
         let access_control = Self::access_control()?;
+        // SAFETY: kSecAttrAccessControl 是 CF 字符串常量，wrap_under_get_rule 不转移所有权。
         let access_key = unsafe { CFString::wrap_under_get_rule(kSecAttrAccessControl) };
         let access_val: CFType = access_control.into_CFType();
         dict.add(&access_key, &access_val);
 
+        // SAFETY: kSecValueData 是 CF 字符串常量，wrap_under_get_rule 不转移所有权。
         let data_key = unsafe { CFString::wrap_under_get_rule(kSecValueData) };
         let data_val: CFType = CFData::from_buffer(key_hex.as_bytes()).into_CFType();
         dict.add(&data_key, &data_val);
@@ -117,6 +122,7 @@ impl MacOsBiometricStorage {
     fn read_query(account_id: &str, reason: &str) -> CFMutableDictionary<CFString, CFType> {
         let mut dict = Self::base_query(account_id);
 
+        // SAFETY: kSecReturnData / kSecMatchLimit 是 CF 字符串常量，wrap_under_get_rule 不转移所有权。
         let return_data_key = unsafe { CFString::wrap_under_get_rule(kSecReturnData) };
         let true_val: CFType = CFBoolean::from(true).into_CFType();
         dict.add(&return_data_key, &true_val);
@@ -146,6 +152,9 @@ impl BiometricStorage for MacOsBiometricStorage {
 
         let dict = Self::add_query(account_id, key_hex)?;
         let params = dict.to_immutable();
+        // SAFETY: SecItemAdd 是 Apple Security Framework 的 C API；params 是
+        // 完全构造的查询字典，输出参数为 null（不关心结果引用）。返回值 OSStatus
+        // 会在下方检查。
         let status = unsafe {
             SecItemAdd(
                 params.as_concrete_TypeRef(),
@@ -182,10 +191,13 @@ impl BiometricStorage for MacOsBiometricStorage {
     fn update(&self, account_id: &str, key_hex: &str) -> Result<(), BiometricError> {
         let query = Self::base_query(account_id).to_immutable();
         let mut update = CFMutableDictionary::<CFString, CFType>::new();
+        // SAFETY: kSecValueData 是 CF 字符串常量，wrap_under_get_rule 不转移所有权。
         let data_key = unsafe { CFString::wrap_under_get_rule(kSecValueData) };
         let data_val: CFType = CFData::from_buffer(key_hex.as_bytes()).into_CFType();
         update.add(&data_key, &data_val);
 
+        // SAFETY: SecItemUpdate 是 Apple Security Framework 的 C API；query 与
+        // update 字典均已完全构造。
         let status = unsafe {
             SecItemUpdate(
                 query.as_concrete_TypeRef(),
@@ -227,6 +239,9 @@ impl BiometricStorage for MacOsBiometricStorage {
     fn read(&self, account_id: &str, reason: &str) -> Result<String, BiometricError> {
         let params = Self::read_query(account_id, reason).to_immutable();
         let mut result: CFTypeRef = ptr::null();
+        // SAFETY: SecItemCopyMatching 是 Apple Security Framework 的 C API；
+        // params 是完全构造的查询字典，result 在栈上初始化为 null 指针，
+        // 成功时 API 会分配 CFData 并写入 result。
         let status =
             unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut result as *mut _) };
 
@@ -270,6 +285,8 @@ impl BiometricStorage for MacOsBiometricStorage {
             return Err(BiometricError::KeychainItemNotFound);
         }
 
+        // SAFETY: result 由 SecItemCopyMatching 成功（status == 0）时分配，
+        // 类型为 CFDataRef；wrap_under_create_rule 接管所有权并在 drop 时释放。
         let data = unsafe { CFData::wrap_under_create_rule(result as CFDataRef) };
         let bytes = data.bytes();
         String::from_utf8(bytes.to_vec()).map_err(|_| BiometricError::InvalidKeyFormat)
@@ -277,6 +294,8 @@ impl BiometricStorage for MacOsBiometricStorage {
 
     fn delete(&self, account_id: &str) -> Result<(), BiometricError> {
         let query = Self::base_query(account_id).to_immutable();
+        // SAFETY: SecItemDelete 是 Apple Security Framework 的 C API；
+        // query 是完全构造的匹配字典。
         let status = unsafe { SecItemDelete(query.as_concrete_TypeRef()) };
 
         if status == ERR_SEC_MISSING_ENTITLEMENT {
@@ -313,6 +332,8 @@ impl BiometricStorage for MacOsBiometricStorage {
     fn exists(&self, account_id: &str) -> bool {
         let mut dict = Self::base_query(account_id);
 
+        // SAFETY: kSecReturnAttributes / kSecMatchLimit / kSecUseAuthenticationUI
+        // 是 CF 字符串常量，wrap_under_get_rule 不转移所有权。
         let return_attrs_key = unsafe { CFString::wrap_under_get_rule(kSecReturnAttributes) };
         let true_val: CFType = CFBoolean::from(true).into_CFType();
         dict.add(&return_attrs_key, &true_val);
@@ -327,10 +348,12 @@ impl BiometricStorage for MacOsBiometricStorage {
 
         let params = dict.to_immutable();
         let mut result: CFTypeRef = ptr::null();
+        // SAFETY: SecItemCopyMatching 的 exists 用法 — 不触发 UI 认证的查询。
         let status =
             unsafe { SecItemCopyMatching(params.as_concrete_TypeRef(), &mut result as *mut _) };
 
         if !result.is_null() {
+            // SAFETY: result 是 SecItemCopyMatching 分配的 CF 对象，必须手动 CFRelease。
             unsafe { CFRelease(result) };
         }
 
