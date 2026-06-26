@@ -76,6 +76,7 @@
   --font-display: 'SF Pro Display', var(--font-sans);
 
   /* Font sizes — modular scale (1.25 ratio) */
+  --text-2xs: 0.625rem; /* 10px */
   --text-xs: 0.75rem; /* 12px */
   --text-sm: 0.875rem; /* 14px */
   --text-base: 1rem; /* 16px */

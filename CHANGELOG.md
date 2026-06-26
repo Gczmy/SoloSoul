@@ -13,6 +13,7 @@ All notable changes to SoloSoul are documented in this file.
 ### Changed
 
 - **全站页面布局标准化** — 新增 `PageContainer` 共享容器组件、`CardGrid` 卡片网格组件与 `tokens.css` 布局/排版 token（`--page-max-width*`、`--section-gap`、`--card-grid-*`、`--text-page-title` 等）。首页保持 720px 作为内容/列表页标准，设置/回收站/搜索统一 600px，编辑器/同步/LLM 配置统一 560px，表单/设置详情页统一 480px。20+ 页面从写死 `maxWidth` 改为引用 token，以后改一处即可统一全站宽度、间距与字号。
+- **附件管理页面字体统一** — `GlobalAttachmentManager` 内所有写死 `fontSize`（10/11/12/13px）替换为排版 token（`--text-2xs`、`--text-xs`、`--text-body-sm`），与全站 token 保持一致。
 
 ### Added
 

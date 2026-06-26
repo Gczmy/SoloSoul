@@ -564,7 +564,7 @@ export function GlobalAttachmentManager() {
           alignItems: 'center',
           gap: 6,
           padding: '6px 8px 6px 40px',
-          fontSize: 12,
+          fontSize: 'var(--text-xs)',
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
@@ -597,7 +597,7 @@ export function GlobalAttachmentManager() {
               flex: 1,
               minWidth: 0,
               padding: '2px 6px',
-              fontSize: 12,
+              fontSize: 'var(--text-xs)',
               borderRadius: 4,
               border: '1px solid var(--accent-primary)',
               background: 'transparent',
@@ -619,7 +619,7 @@ export function GlobalAttachmentManager() {
             >
               {truncateFileName(item.fileName)}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
+            <div style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-tertiary)' }}>
               {formatSize(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
             </div>
           </div>
@@ -694,7 +694,7 @@ export function GlobalAttachmentManager() {
             gap: 6,
             padding: '7px 8px 7px 28px',
             cursor: 'pointer',
-            fontSize: 12,
+            fontSize: 'var(--text-xs)',
             fontWeight: 500,
             color: 'var(--text-primary)',
             borderBottom: '1px solid var(--border-subtle)',
@@ -703,13 +703,13 @@ export function GlobalAttachmentManager() {
           className="interactive-accent-light"
         >
           {isExpanded ? <ChevronDown size={12} style={{ flexShrink: 0 }} /> : <ChevronRight size={12} style={{ flexShrink: 0 }} />}
-          <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
+          <span style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-tertiary)' }}>
             {obj.templateName}
           </span>
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
             {obj.objectName}
           </span>
-          <span style={{ fontSize: 11, color: 'var(--text-tertiary)', flexShrink: 0, whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-tertiary)', flexShrink: 0, whiteSpace: 'nowrap' }}>
             {t('settings:attachments_count', { n: obj.attachments.length })} · {formatSize(obj.attachments.reduce((sum, a) => sum + a.sizeBytes, 0))}
           </span>
           {!showTrash && (
@@ -751,7 +751,7 @@ export function GlobalAttachmentManager() {
             gap: 8,
             padding: '10px 14px',
             cursor: 'pointer',
-            fontSize: 13,
+            fontSize: 'var(--text-body-sm)',
             fontWeight: 600,
             color: 'var(--text-primary)',
             background: 'var(--bg-toolbar)',
@@ -762,7 +762,7 @@ export function GlobalAttachmentManager() {
         >
           <PageIconComp size={16} style={{ flexShrink: 0, color: 'var(--accent-primary)' }} />
           <span style={{ flex: 1 }}>{page.pageName}</span>
-          <span style={{ fontSize: 11, color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 'var(--text-2xs)', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
             {t('settings:objects_count', { n: page.objects.length })} · {t('settings:attachments_count', { n: page.objects.reduce((sum, o) => sum + o.attachments.length, 0) })} · {formatSize(page.objects.reduce((sum, o) => sum + o.attachments.reduce((s, a) => s + a.sizeBytes, 0), 0))}
           </span>
           {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -800,7 +800,7 @@ export function GlobalAttachmentManager() {
             style={{
               padding: '5px 12px',
               borderRadius: 6,
-              fontSize: 12,
+              fontSize: 'var(--text-xs)',
               fontWeight: 500,
               border: '1px solid var(--border-subtle)',
               background: 'var(--bg-toolbar)',
@@ -810,7 +810,7 @@ export function GlobalAttachmentManager() {
             }}
           >
             {t('common:attachments_active', { n: activeCount }) || `Attachments (${activeCount})`}
-            <span style={{ marginLeft: 4, fontSize: 10, opacity: 0.7 }}>{formatSize(activeBytes)}</span>
+            <span style={{ marginLeft: 4, fontSize: 'var(--text-2xs)', opacity: 0.7 }}>{formatSize(activeBytes)}</span>
           </button>
           <button
             onClick={() => { setShowTrash(true); clearSelection(); }}
@@ -818,7 +818,7 @@ export function GlobalAttachmentManager() {
             style={{
               padding: '5px 12px',
               borderRadius: 6,
-              fontSize: 12,
+              fontSize: 'var(--text-xs)',
               fontWeight: 500,
               border: '1px solid var(--border-subtle)',
               background: 'var(--bg-toolbar)',
@@ -828,7 +828,7 @@ export function GlobalAttachmentManager() {
             }}
           >
             {t('common:attachments_trash', { n: trashCount }) || `Trash (${trashCount})`}
-            <span style={{ marginLeft: 4, fontSize: 10, opacity: 0.7 }}>{formatSize(trashBytes)}</span>
+            <span style={{ marginLeft: 4, fontSize: 'var(--text-2xs)', opacity: 0.7 }}>{formatSize(trashBytes)}</span>
           </button>
 
           <div style={{ flex: 1 }} />
@@ -842,7 +842,7 @@ export function GlobalAttachmentManager() {
               border: '1px solid var(--border-subtle)',
               background: 'var(--bg-toolbar)',
               color: 'var(--text-secondary)',
-              fontSize: 12,
+              fontSize: 'var(--text-xs)',
               fontWeight: 500,
               cursor: 'pointer',
             }}
@@ -854,7 +854,7 @@ export function GlobalAttachmentManager() {
         {/* Summary card */}
         {!loading && data && (
           <Card style={{ padding: '12px 16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 'var(--text-xs)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Paperclip size={14} style={{ color: 'var(--accent-primary)' }} />
                 <span style={{ color: 'var(--text-tertiary)' }}>{t('common:attachments')}</span>
@@ -865,7 +865,7 @@ export function GlobalAttachmentManager() {
                 <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatSize(summaryStats.totalBytes)}</span>
               </div>
               <div style={{ flex: 1 }} />
-              <div style={{ color: 'var(--text-tertiary)', fontSize: 11 }}>
+              <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-2xs)' }}>
                 {t('settings:objects_count', { n: summaryStats.totalObjects })}
               </div>
             </div>
@@ -875,7 +875,7 @@ export function GlobalAttachmentManager() {
         {/* Batch toolbar (活跃标签 → 批量删除，回收站标签 → 批量恢复) */}
         {selectedIds.size > 0 && (
           <Card style={{ padding: '8px 14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 'var(--text-xs)' }}>
               <div
                 onClick={() => handleSelectAll(allVisibleKeys)}
                 style={{
@@ -893,7 +893,7 @@ export function GlobalAttachmentManager() {
 
               <div style={{ flex: 1 }} />
 
-              <span style={{ color: 'var(--text-tertiary)', fontSize: 11 }}>
+              <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-2xs)' }}>
                 {t('common:selected_count', { n: selectedIds.size })}
               </span>
 
