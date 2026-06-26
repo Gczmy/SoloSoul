@@ -3,25 +3,12 @@ import { Card } from '@/components/ui/Card';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { Clock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
-
-const ICON_BUTTON_BASE = {
-  width: 32,
-  height: 32,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: 'none',
-  borderRadius: 8,
-  background: 'transparent',
-  cursor: 'pointer',
-  color: 'var(--text-tertiary)',
-  transition: 'all 0.15s ease',
-} as const;
 
 /** Extract displayable key-value pairs from object properties (filters internal __ fields). */
 function flattenProperties(
@@ -118,8 +105,6 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   const getFieldName = (fieldKey: string): string =>
     getFieldProperty(fieldKey)?.name || objFieldDefs?.[fieldKey]?.name || fieldKey;
 
-  const iconButtonStyle = ICON_BUTTON_BASE;
-
   const { ref: dragRef, dragState } = useDragToAttach(obj.id, {
     onComplete: onUploadComplete,
   });
@@ -182,31 +167,39 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             )}
           </div>
         </div>
-        {/* Edit + Delete + History actions */}
-        <div style={{ display: 'flex', gap: 2 }} onClick={(e) => e.stopPropagation()}>
-          <CountButton count={snapshotCount} onClick={onHistory} title="History" icon={Clock} />
-          <CountButton
+        {/* Action buttons — info (history/attachments) | divider | edit/delete */}
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <BadgeIconButton
+            Icon={Clock}
+            count={snapshotCount}
+            onClick={onHistory}
+            title="History"
+          />
+          <BadgeIconButton
+            Icon={Paperclip}
             count={attachmentCount}
             onClick={onAttachments}
             title="Attachments"
-            icon={Paperclip}
           />
-          <button
-            onClick={onEdit}
-            title="Edit"
-            className="interactive-icon"
-            style={iconButtonStyle}
-          >
-            <Pencil size={14} />
-          </button>
-          <button
+          <div
+            style={{
+              width: 3,
+              height: 20,
+              borderRadius: 9999,
+              background: 'var(--border-subtle)',
+              flexShrink: 0,
+            }}
+          />
+          <BadgeIconButton Icon={Pencil} onClick={onEdit} title="Edit" />
+          <BadgeIconButton
+            Icon={Trash2}
             onClick={onDelete}
             title="Move to trash"
-            className="interactive-icon-danger"
-            style={iconButtonStyle}
-          >
-            <Trash2 size={14} />
-          </button>
+            danger
+          />
         </div>
       </div>
       {/* Property chips — label always visible, value blurred when masked */}
@@ -297,63 +290,4 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   );
 });
 
-const CountButton = memo(function CountButton({
-  count,
-  onClick,
-  title,
-  icon: Icon,
-}: {
-  count?: number;
-  onClick: () => void;
-  title: string;
-  icon: React.ComponentType<{ size?: number }>;
-}) {
-  return (
-    <div style={{ position: 'relative' }}>
-      <button
-        onClick={onClick}
-        title={title}
-        className="interactive-icon"
-        style={{
-          width: 32,
-          height: 32,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: 'none',
-          borderRadius: 8,
-          cursor: 'pointer',
-        }}
-      >
-        <Icon size={14} />
-      </button>
-      {count !== undefined && count > 0 && (
-        <span
-          data-testid={`count-badge-${title.toLowerCase()}`}
-          style={{
-            position: 'absolute',
-            top: -2,
-            right: -2,
-            minWidth: 14,
-            height: 14,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'transparent',
-            border: '1px solid var(--accent-primary)',
-            color: 'var(--accent-primary)',
-            fontSize: 9,
-            fontWeight: 700,
-            borderRadius: 7,
-            padding: '0 3px',
-            lineHeight: 1,
-          }}
-        >
-          {count > 99 ? '99+' : count}
-        </span>
-      )}
-    </div>
-  );
-});
 
-CountButton.displayName = 'CountButton';

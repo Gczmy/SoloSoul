@@ -1,0 +1,62 @@
+/* BadgeIconButton.module.css — aligned with project design system */
+
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+
+.button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Accent variant — default blue/slate hover */
+.accent:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  color: var(--accent-primary);
+}
+
+/* Danger variant — red hover */
+.danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-danger) 12%, transparent);
+  color: var(--accent-danger);
+}
+
+/* ── Badge ─────────────────────────────────────────────── */
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 9px;
+  padding: 0 5px;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 1;
+  border: 1px solid var(--bg-elevated);
+}
