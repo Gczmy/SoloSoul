@@ -41,8 +41,8 @@
 
 /* Danger-outline variant — matches Button danger-outline */
 .dangerOutline {
+  background: color-mix(in srgb, #ef4444 10%, transparent);
   color: #ef4444;
-  border: 1px solid #ef4444;
 }
 .dangerOutline:hover:not(:disabled) {
   background: #ef4444;

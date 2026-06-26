@@ -65,8 +65,7 @@
 }
 
 .dangerOutline {
-  background: transparent;
-  border: 1px solid #ef4444;
+  background: color-mix(in srgb, #ef4444 10%, transparent);
   color: #ef4444;
 }
 .dangerOutline:hover:not(:disabled) {
