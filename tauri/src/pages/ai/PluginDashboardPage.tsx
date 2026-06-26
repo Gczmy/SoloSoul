@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { PluginCard } from '@/components/plugin/PluginCard';
 import { PluginConsentDialog } from '@/components/plugin/PluginConsentDialog';
@@ -160,7 +161,7 @@ export function PluginDashboardPage() {
       title={t('settings:items.plugins', { defaultValue: 'Plugins' })}
       onBack={() => navigate('/settings')}
     >
-      <div className={styles.container}>
+      <PageContainer variant="wide" gap="section">
         <div className={styles.header}>
           <Card className={styles.tabsCard}>
             <div className={styles.tabs}>
@@ -262,7 +263,7 @@ export function PluginDashboardPage() {
           </div>
         )}
 
-      </div>
+      </PageContainer>
 
       {pendingConsents.length > 0 && (
         <PluginConsentDialog

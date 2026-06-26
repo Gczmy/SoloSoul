@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -91,20 +92,12 @@ export function BackupConfigPage() {
 
   return (
     <AppShell title={t('settings:backup_restore')} onBack={() => navigate('/settings')}>
-      <div
-        style={{
-          maxWidth: 560,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <PageContainer variant="xs" gap="section">
         {/* Create Backup */}
         <Card>
           <h3
             style={{
-              fontSize: 14,
+              fontSize: 'var(--text-sm)',
               fontWeight: 600,
               margin: '0 0 4px',
               display: 'flex',
@@ -115,7 +108,7 @@ export function BackupConfigPage() {
             <HardDrive size={16} />
             {t('settings:create_backup_title')}
           </h3>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '0 0 12px' }}>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: '0 0 12px' }}>
             {t('settings:backup_hint')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -148,7 +141,7 @@ export function BackupConfigPage() {
                 border: '1px solid var(--border-subtle)',
                 background: 'var(--bg-toolbar)',
                 color: 'var(--text-primary)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 fontWeight: 500,
                 cursor: !backupName.trim() || isCreating ? 'default' : 'pointer',
                 opacity: !backupName.trim() || isCreating ? 0.5 : 1,
@@ -171,7 +164,7 @@ export function BackupConfigPage() {
 
         {/* Backup List */}
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, margin: '0 0 4px' }}>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, margin: '0 0 4px' }}>
             {t('settings:saved_backups')}
           </h3>
 
@@ -180,7 +173,7 @@ export function BackupConfigPage() {
           ) : backups.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>
               <HardDrive size={24} style={{ marginBottom: 8, opacity: 0.4 }} />
-              <p style={{ fontSize: 14, margin: 0 }}>{t('settings:no_backups_yet')}</p>
+              <p style={{ fontSize: 'var(--text-sm)', margin: 0 }}>{t('settings:no_backups_yet')}</p>
               <p style={{ fontSize: 12, margin: '4px 0 0' }}>{t('settings:create_first_backup')}</p>
             </div>
           ) : (
@@ -197,7 +190,7 @@ export function BackupConfigPage() {
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 14, fontWeight: 500 }}>{backup.name}</p>
+                    <p style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 500 }}>{backup.name}</p>
                     <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-tertiary)' }}>
                       {new Date(backup.created_at).toLocaleString()} &middot;{' '}
                       {formatSize(backup.size_bytes)} &middot;{' '}
@@ -284,7 +277,7 @@ export function BackupConfigPage() {
           <br />
           {t('settings:export_hint')}
         </p>
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 
@@ -61,15 +62,7 @@ export function DebugLogPage() {
 
   return (
     <AppShell title={t('settings:debug_log')} onBack={() => navigate('/settings')}>
-      <div
-        style={{
-          maxWidth: 720,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
+      <PageContainer variant="wide" gap="default">
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <button
@@ -83,7 +76,7 @@ export function DebugLogPage() {
               display: 'flex',
               alignItems: 'center',
               gap: 4,
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               color: 'var(--text-primary)',
             }}
           >
@@ -101,7 +94,7 @@ export function DebugLogPage() {
               display: 'flex',
               alignItems: 'center',
               gap: 4,
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               color: 'var(--text-primary)',
             }}
           >
@@ -123,7 +116,7 @@ export function DebugLogPage() {
                 textAlign: 'center',
                 padding: 32,
                 color: 'var(--text-tertiary)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
               }}
             >
               <Bug size={24} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
@@ -180,7 +173,7 @@ export function DebugLogPage() {
             </div>
           )}
         </Card>
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -59,15 +60,7 @@ export function HistoryPage() {
   return (
     <AppShell title={t('common:history')} onBack={() => navigate(-1)}>
       {confirmDialog}
-      <div
-        style={{
-          maxWidth: 560,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-        }}
-      >
+      <PageContainer variant="xs" gap="default">
         {loading ? (
           <Card>
             <LoadingPlaceholder variant="elevated" minHeight={80} />
@@ -76,7 +69,7 @@ export function HistoryPage() {
           <Card>
             <div style={{ textAlign: 'center', padding: 48 }}>
               <Clock size={40} style={{ marginBottom: 12, opacity: 0.25 }} />
-              <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
                 {t('common:no_history')}
               </p>
             </div>
@@ -92,7 +85,7 @@ export function HistoryPage() {
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>
+                    <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
                       {i === 0 ? t('common:snapshot_current') : new Date(s.timestamp).toLocaleString()}
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
@@ -124,7 +117,7 @@ export function HistoryPage() {
             ))}
           </>
         )}
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

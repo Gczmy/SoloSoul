@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -156,15 +157,7 @@ export function TrashPage() {
               navigate('/settings');
             }
           }}>
-      <div
-        style={{
-          maxWidth: 600,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
+      <PageContainer variant="small" gap="default">
         <Input
           placeholder={t('settings:search_trash')}
           value={searchQuery}
@@ -513,7 +506,7 @@ export function TrashPage() {
             }}
           />
         )}
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

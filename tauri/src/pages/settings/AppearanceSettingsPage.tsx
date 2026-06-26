@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { invoke } from '@tauri-apps/api/core';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -165,21 +166,13 @@ export function AppearanceSettingsPage() {
         <div
           style={{
             flex: 1,
-            padding: 16,
+            padding: '16px 0',
           }}
         >
-          <div
-            style={{
-              maxWidth: 480,
-              margin: '0 auto',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-            }}
-          >
+          <PageContainer variant="form" gap="default">
             {/* Theme preset */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
                 {t('settings:groups.appearance')}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -195,7 +188,7 @@ export function AppearanceSettingsPage() {
                       borderRadius: 8,
                       background:
                         settings.theme === preset ? 'var(--state-selected)' : 'transparent',
-                      fontSize: 14,
+                      fontSize: 'var(--text-sm)',
                     }}
                   >
                     <input
@@ -229,7 +222,7 @@ export function AppearanceSettingsPage() {
                   border: '1px dashed var(--border-strong)',
                   background: 'transparent',
                   color: 'var(--text-secondary)',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   fontWeight: 500,
                   cursor: 'pointer',
                   transition: 'all 0.15s',
@@ -250,7 +243,7 @@ export function AppearanceSettingsPage() {
 
             {/* Accent color */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
                 {t('settings:accent_color')}
               </h3>
               <div style={{ display: 'flex', gap: 12 }}>
@@ -280,7 +273,7 @@ export function AppearanceSettingsPage() {
 
             {/* Language selector (15.7) */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
                 {t('settings:items.language')}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -296,7 +289,7 @@ export function AppearanceSettingsPage() {
                       borderRadius: 8,
                       background:
                         settings.language === opt.value ? 'var(--state-selected)' : 'transparent',
-                      fontSize: 14,
+                      fontSize: 'var(--text-sm)',
                     }}
                   >
                     <input
@@ -316,7 +309,7 @@ export function AppearanceSettingsPage() {
 
             {/* Sidebar position */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
                 {t('settings:sidebar_position')}
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
@@ -355,7 +348,7 @@ export function AppearanceSettingsPage() {
 
             {/* Sidebar button mode: card vs page */}
             <Card>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 4 }}>
                 {t('settings:sidebar_button_mode')}
               </h3>
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 12 }}>
@@ -388,7 +381,7 @@ export function AppearanceSettingsPage() {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Icon size={16} style={{ color: 'var(--text-secondary)' }} />
-                        <span style={{ fontSize: 13, fontWeight: 500 }}>{label}</span>
+                        <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{label}</span>
                       </div>
                       <select
                         value={currentMode}
@@ -415,7 +408,7 @@ export function AppearanceSettingsPage() {
                 })}
               </div>
             </Card>
-          </div>
+          </PageContainer>
         </div>
       </div>
     </AppShell>

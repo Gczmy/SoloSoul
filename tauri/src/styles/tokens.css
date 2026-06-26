@@ -86,6 +86,12 @@
   --text-3xl: 2.25rem; /* 36px */
   --text-4xl: 3rem; /* 48px */
 
+  /* Extra semantic typography aliases */
+  --text-card-title: 0.9375rem; /* 15px */
+  --text-body-sm: 0.8125rem; /* 13px */
+  --text-page-title: var(--text-lg); /* 20px */
+  --text-section-title: var(--text-base); /* 16px */
+
   /* Font weights */
   --font-normal: 400;
   --font-medium: 500;
@@ -144,4 +150,23 @@
   --z-tooltip: 600;
   --z-toast: 700;
   --z-max: 9999;
+
+  /* ── Layout / Page Container Tokens ───────────────────── */
+  --page-max-width: 720px; /* 首页 / 内容页 / 列表页 */
+  --page-max-width-md: 640px; /* 中等宽度页 */
+  --page-max-width-sm: 600px; /* 设置首页 / 回收站 / 附件 / 搜索 */
+  --page-max-width-xs: 560px; /* 编辑器 / 历史 / 同步 / LLM 配置 */
+  --page-max-width-form: 480px; /* 表单 / 设置详情页 */
+
+  --page-padding: var(--space-xl); /* 16px */
+  --page-gap: var(--space-xl); /* 16px */
+  --section-gap: 20px; /* dashboard / 首页区块间距 */
+  --page-content-gap-lg: var(--space-2xl); /* 24px */
+
+  /* Card grids */
+  --card-grid-min-width: 240px;
+  --card-grid-gap: var(--space-lg); /* 12px */
+
+  /* Page-level search bars */
+  --search-bar-max-width: var(--page-max-width);
 }

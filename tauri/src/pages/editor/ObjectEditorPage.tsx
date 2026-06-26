@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -318,15 +319,7 @@ export function ObjectEditorPage() {
 
   return (
     <AppShell title={isNew ? t('common:new_object') : t('common:edit_object')} onBack={handleBack}>
-      <div
-        style={{
-          maxWidth: 560,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <PageContainer variant="xs" gap="default">
         <ObjectTemplateSelector
           isNew={isNew}
           visibleTemplates={visibleTemplates}
@@ -375,7 +368,7 @@ export function ObjectEditorPage() {
                 </div>
               </>
             )}
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

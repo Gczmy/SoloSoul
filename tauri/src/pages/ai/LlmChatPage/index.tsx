@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import {
@@ -99,46 +100,48 @@ export function LlmChatPage() {
           </button>
         }
       >
-        <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center', padding: '48px 24px' }}>
-          <MessageSquare
-            size={48}
-            style={{ marginBottom: 16, opacity: 0.3, color: 'var(--text-tertiary)' }}
-          />
-          <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px' }}>
-            {t('settings:ai_chat')}
-          </h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
-            {t('settings:ai_chat_disabled')}
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
-            style={{
-              fontSize: 12,
-              padding: '6px 12px',
-              borderRadius: 6,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontWeight: 500,
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }}
-          >
-            {t('settings:ai_chat_configure')}
-          </button>
-        </div>
+        <PageContainer variant="small" gap="default">
+          <div style={{ textAlign: 'center', paddingTop: 48, paddingBottom: 48 }}>
+            <MessageSquare
+              size={48}
+              style={{ marginBottom: 16, opacity: 0.3, color: 'var(--text-tertiary)' }}
+            />
+            <h2 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 8px' }}>
+              {t('settings:ai_chat')}
+            </h2>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
+              {t('settings:ai_chat_disabled')}
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
+              style={{
+                fontSize: 12,
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
+            >
+              {t('settings:ai_chat_configure')}
+            </button>
+          </div>
+        </PageContainer>
       </AppShell>
     );
   }

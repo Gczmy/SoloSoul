@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { invoke } from '@tauri-apps/api/core';
@@ -116,16 +117,7 @@ export function AboutPage() {
 
   return (
     <AppShell title={t('settings:about')} onBack={() => navigate('/settings')}>
-      <div
-        style={{
-          maxWidth: 480,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-          padding: '12px 0',
-        }}
-      >
+      <PageContainer variant="form" gap="default">
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <ShieldLogo
             size={72}
@@ -136,7 +128,7 @@ export function AboutPage() {
           </h1>
           <p
             style={{
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               color: 'var(--text-tertiary)',
               margin: '6px 0 0',
               maxWidth: 280,
@@ -163,11 +155,11 @@ export function AboutPage() {
                     padding: '12px 0',
                   }}
                 >
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                  <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
                     {t('settings:version')}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
+                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-primary)' }}>
                       v{info.version}
                     </span>
                     {versionInfo?.state === 'available' ? (
@@ -230,7 +222,7 @@ export function AboutPage() {
                     >
                       <div
                         style={{
-                          fontSize: 13,
+                          fontSize: 'var(--text-body-sm)',
                           fontWeight: 600,
                           display: 'flex',
                           alignItems: 'center',
@@ -300,7 +292,7 @@ export function AboutPage() {
                             border: '1px solid var(--border-subtle)',
                             background: 'var(--bg-toolbar)',
                             color: 'var(--text-primary)',
-                            fontSize: 13,
+                            fontSize: 'var(--text-body-sm)',
                             fontWeight: 500,
                             fontFamily: 'inherit',
                             cursor: 'pointer',
@@ -331,10 +323,10 @@ export function AboutPage() {
                     padding: '12px 0',
                   }}
                 >
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                  <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
                     {t('settings:platform')}
                   </span>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
+                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-primary)' }}>
                     {friendlyPlatform(info.os, info.arch)}
                   </span>
                 </div>
@@ -345,7 +337,7 @@ export function AboutPage() {
                   textAlign: 'center',
                   padding: 16,
                   color: 'var(--text-tertiary)',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                 }}
               >
                 {t('settings:could_not_load')}
@@ -372,7 +364,7 @@ export function AboutPage() {
                     padding: '12px 4px',
                     borderRadius: 8,
                     color: 'var(--text-primary)',
-                    fontSize: 14,
+                    fontSize: 'var(--text-sm)',
                     textDecoration: 'none',
                     transition: 'background 0.12s',
                   }}
@@ -404,7 +396,7 @@ export function AboutPage() {
           <div>Copyright &copy; {new Date().getFullYear()} SoloSoul</div>
           <div>MIT License &mdash; Open Source Software</div>
         </div>
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

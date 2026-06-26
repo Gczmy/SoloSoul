@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useToastError } from '@/hooks/useToastError';
 import { commands, type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
@@ -93,9 +94,9 @@ export function OcrSettingsPage() {
 
   return (
     <AppShell title={t('ocr:settings_title')} onBack={() => navigate('/settings')}>
-      <div style={{ maxWidth: 640, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <PageContainer variant="medium" gap="default">
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
             {t('ocr:active_model')}
           </h3>
           <select
@@ -105,7 +106,7 @@ export function OcrSettingsPage() {
             style={{
               width: '100%',
               padding: '8px 10px',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               borderRadius: 8,
               border: '1px solid var(--border-subtle)',
               background: 'var(--bg-toolbar)',
@@ -125,7 +126,7 @@ export function OcrSettingsPage() {
         </Card>
 
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
             {t('ocr:model_management')}
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -154,7 +155,7 @@ export function OcrSettingsPage() {
                       <AlertCircle size={16} color="var(--error)" />
                     )}
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 500 }}>
+                      <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
                         {getTierLabel(t, tier).name}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
@@ -280,7 +281,7 @@ export function OcrSettingsPage() {
                 style={{
                   width: '100%',
                   padding: '8px 10px',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   borderRadius: 8,
                   border: '1px solid var(--border-subtle)',
                   background: 'var(--bg-toolbar)',
@@ -291,7 +292,7 @@ export function OcrSettingsPage() {
             </div>
           )}
         </Card>
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

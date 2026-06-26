@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useCancellable } from '@/hooks/useCancellable';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -251,7 +252,7 @@ export function ObjectWorkspacePage() {
               border: '1px solid var(--border-subtle)',
               background: 'var(--bg-toolbar)',
               color: 'var(--text-primary)',
-              fontSize: 13,
+              fontSize: 'var(--text-body-sm)',
               fontWeight: 500,
               cursor: 'pointer',
               transition: 'background 0.2s, border-color 0.2s',
@@ -280,7 +281,7 @@ export function ObjectWorkspacePage() {
                 background: 'transparent',
                 color: '#e74c3c',
                 cursor: 'pointer',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 4,
@@ -293,17 +294,13 @@ export function ObjectWorkspacePage() {
         </div>
       }
     >
-      <div
-        style={{
-          maxWidth: 640,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-        onMouseDown={(e) => {
-          if (e.detail > 1) e.preventDefault();
-        }}        >
+      <PageContainer variant="medium" gap="default">
+        <div
+          style={{ display: 'contents' }}
+          onMouseDown={(e) => {
+            if (e.detail > 1) e.preventDefault();
+          }}
+        >
           <WorkspaceCategoryTabs
             sectionFilter={sectionFilter}
             pageId={pageId}
@@ -335,7 +332,7 @@ export function ObjectWorkspacePage() {
                 textAlign: 'center',
                 color: 'var(--text-secondary)',
                 padding: '24px 0',
-                fontSize: 14,
+                fontSize: 'var(--text-sm)',
               }}
             >
               {searchQuery ? t('no_matching_objects') : t('no_objects')}
@@ -413,7 +410,8 @@ export function ObjectWorkspacePage() {
             if (confirmDelete) handleDelete(confirmDelete.id);
           }}
         />
-      </div>
+        </div>
+      </PageContainer>
       {historyObj && (() => {
         const historyObjData = objects.find((o) => o.id === historyObj.id);
         const historyLabels = historyObjData?.propertyLabels;

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { useToastError } from '@/hooks/useToastError';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { invoke } from '@tauri-apps/api/core';
@@ -307,15 +308,7 @@ export function ExportImportPage() {
 
   return (
     <AppShell title={t('settings:export_import')} onBack={() => navigate('/settings')}>
-      <div
-        style={{
-          maxWidth: 640,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <PageContainer variant="medium" gap="default">
         <ExportImportTabBar tab={tab} onChange={setTab} />
 
         {tab === 'export' ? (
@@ -396,7 +389,7 @@ export function ExportImportPage() {
             onSetStrategy={setImportStrategy}
           />
         )}
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

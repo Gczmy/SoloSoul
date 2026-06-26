@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -350,15 +351,7 @@ export function TemplateManagerPage() {
         </div>
       }
     >
-      <div
-        style={{
-          maxWidth: 700,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <PageContainer variant="wide" gap="default">
         {isLoading && <LoadingPlaceholder variant="base" minHeight={120} />}
         {error && <div style={{ color: 'var(--error)' }}>{error}</div>}
 
@@ -434,7 +427,7 @@ export function TemplateManagerPage() {
                 <div>
                   <div
                     style={{
-                      fontSize: 14,
+                      fontSize: 'var(--text-sm)',
                       fontWeight: 500,
                       display: 'flex',
                       alignItems: 'center',
@@ -503,7 +496,7 @@ export function TemplateManagerPage() {
           </Card>
         );}
         )}
-      </div>
+      </PageContainer>
 
       {/* Edit / Create Dialog */}
       <Dialog

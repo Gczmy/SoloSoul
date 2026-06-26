@@ -1,0 +1,44 @@
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--page-padding);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.wide {
+  max-width: var(--page-max-width);
+}
+
+.medium {
+  max-width: var(--page-max-width-md);
+}
+
+.small {
+  max-width: var(--page-max-width-sm);
+}
+
+.xs {
+  max-width: var(--page-max-width-xs);
+}
+
+.form {
+  max-width: var(--page-max-width-form);
+}
+
+.full {
+  max-width: none;
+}
+
+.gap-default {
+  gap: var(--page-gap);
+}
+
+.gap-section {
+  gap: var(--section-gap);
+}
+
+.gap-large {
+  gap: var(--page-content-gap-lg);
+}

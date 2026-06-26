@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
+import styles from './LlmStatsPage.module.css';
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -107,16 +109,7 @@ export function LlmStatsPage() {
 
   return (
     <AppShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
-      <div
-        style={{
-          maxWidth: 640,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 20,
-          padding: '0 16px 32px',
-        }}
-      >
+      <PageContainer variant="medium" gap="section" className={styles.page}>
         {/* Model Info */}
         <section>
           <SectionTitle>{t('settings:llm_current_model')}</SectionTitle>
@@ -135,7 +128,7 @@ export function LlmStatsPage() {
               size={48}
               style={{ marginBottom: 16, opacity: 0.25, color: 'var(--text-tertiary)' }}
             />
-            <p style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
               {t('settings:llm_no_data')}
             </p>
             <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 4 }}>
@@ -212,7 +205,7 @@ export function LlmStatsPage() {
             </section>
           </>
         )}
-      </div>
+      </PageContainer>
 
       {/* Reset Confirm Dialog */}
       <Dialog
@@ -220,7 +213,7 @@ export function LlmStatsPage() {
         onClose={() => setShowResetDialog(false)}
         title={t('settings:llm_reset_confirm_title')}
       >
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+        <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
           {t('settings:llm_reset_confirm_desc')}
         </p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
@@ -240,7 +233,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h3
       style={{
-        fontSize: 13,
+        fontSize: 'var(--text-body-sm)',
         fontWeight: 600,
         color: 'var(--text-secondary)',
         textTransform: 'uppercase',

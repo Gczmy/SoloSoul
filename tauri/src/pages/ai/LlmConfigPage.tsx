@@ -5,6 +5,7 @@ import i18n from '@/lib/i18n';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 
 
@@ -306,15 +307,7 @@ export function LlmConfigPage() {
   return (
     <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
       {confirmDialog}
-      <div
-        style={{
-          maxWidth: 560,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <PageContainer variant="xs" gap="default">
         {!hasAcceptedRisk && (
           <Card>
             <p style={{ fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
@@ -369,7 +362,7 @@ export function LlmConfigPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <BarChart3 size={20} color="var(--accent-primary)" />
               <div>
-                <span style={{ fontSize: 14, fontWeight: 500 }}>
+                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
                   {t('settings:llm_stats_title')}
                 </span>
                 <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>
@@ -386,7 +379,7 @@ export function LlmConfigPage() {
           onClose={() => setShowRiskDialog(false)}
           onAccept={handleAcceptRisk}
         />
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

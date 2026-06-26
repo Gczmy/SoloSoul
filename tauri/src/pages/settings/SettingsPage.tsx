@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { isDevOrDebug } from '@/lib/env';
 import { formatBytes } from '@/lib/format';
@@ -155,20 +156,12 @@ export function SettingsPage() {
 
   return (
     <AppShell title={t('settings:title')} onBack={() => navigate('/home')}>
-      <div
-        style={{
-          maxWidth: 600,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 24,
-        }}
-      >
+      <PageContainer variant="small" gap="large">
         {settingGroups.map((group) => (
           <div key={group.title}>
             <h3
               style={{
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 fontWeight: 600,
                 color: 'var(--text-secondary)',
                 textTransform: 'uppercase',
@@ -196,7 +189,7 @@ export function SettingsPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <item.icon size={20} />
                       <div>
-                        <span style={{ fontSize: 14, fontWeight: 500 }}>{item.label}</span>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{item.label}</span>
                         {'desc' in item && item.desc && (
                           <div
                             style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}
@@ -228,7 +221,7 @@ export function SettingsPage() {
             </div>
           </div>
         ))}
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

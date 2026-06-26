@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
+import { CardGrid } from '@/components/ui/CardGrid';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import type { ProfileSection } from '@/types';
 
@@ -88,80 +90,76 @@ export function HomePage() {
 
   return (
     <AppShell title={t('common:home')}>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 20,
-          maxWidth: 720,
-          margin: '0 auto',
-        }}
-      >
+      <PageContainer variant="wide" gap="section">
         <Card>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
+          <h2 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>
             {t('common:welcome_back')}
           </h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
             {t('common:vault_description')}
           </p>
         </Card>
 
-        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: -8, color: 'var(--text-primary)' }}>
+        <h2
+          style={{
+            fontSize: 'var(--text-section-title)',
+            fontWeight: 600,
+            marginBottom: -8,
+            color: 'var(--text-primary)',
+          }}
+        >
           {t('common:data_sections')}
         </h2>
 
         {/* Profile Sections */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-            gap: 12,
-          }}
-        >
+        <CardGrid>
           {sections.map((s) => (
             <Card key={s.type} interactive onClick={() => navigate(`/workspace?section=${s.type}`)}>
               <div style={{ marginBottom: 8 }}>
                 <s.icon size={28} />
               </div>
-              <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+              <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
                 {t(`navigation:${s.labelKey}`)}
               </h3>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
                 {t(`common:${s.descKey}`)}
               </p>
             </Card>
           ))}
+        </CardGrid>
 
-        </div>
-
-        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: -8, color: 'var(--text-primary)' }}>
+        <h2
+          style={{
+            fontSize: 'var(--text-section-title)',
+            fontWeight: 600,
+            marginBottom: -8,
+            color: 'var(--text-primary)',
+          }}
+        >
           {t('common:quick_access')}
         </h2>
 
         {/* Quick Access Cards */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-            gap: 12,
-          }}
-        >
+        <CardGrid>
           {quickCards.map((q) => (
-            <Card key={q.path} interactive onClick={() => navigate(q.path, { state: { fromHome: true } })}>
-
+            <Card
+              key={q.path}
+              interactive
+              onClick={() => navigate(q.path, { state: { fromHome: true } })}
+            >
               <div style={{ marginBottom: 8 }}>
                 <q.icon size={28} />
               </div>
-              <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+              <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
                 {t(`navigation:${q.labelKey}`)}
               </h3>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
                 {t(`common:${q.descKey}`)}
               </p>
             </Card>
           ))}
-        </div>
-      </div>
+        </CardGrid>
+      </PageContainer>
     </AppShell>
   );
 }

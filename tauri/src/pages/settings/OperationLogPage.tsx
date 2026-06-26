@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -159,15 +160,7 @@ export function OperationLogPage() {
 
   return (
     <AppShell title={t('settings:operation_log')} onBack={() => navigate('/settings')}>
-      <div
-        style={{
-          maxWidth: 720,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
+      <PageContainer variant="wide" gap="default">
         {/* Row 1: Search + Export */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <div
@@ -192,7 +185,7 @@ export function OperationLogPage() {
                 border: 'none',
                 outline: 'none',
                 padding: '8px 4px',
-                fontSize: 14,
+                fontSize: 'var(--text-sm)',
                 background: 'transparent',
                 color: 'var(--text-primary)',
                 fontFamily: 'inherit',
@@ -287,7 +280,7 @@ export function OperationLogPage() {
         ) : filteredLogs.length === 0 ? (
           <Card>
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-tertiary)' }}>
-              <p style={{ fontSize: 14 }}>{t('settings:no_log_entries')}</p>
+              <p style={{ fontSize: 'var(--text-sm)' }}>{t('settings:no_log_entries')}</p>
               <p style={{ fontSize: 12, marginTop: 4 }}>
                 {searchQuery || entityTypeFilter
                   ? t('settings:adjust_filters')
@@ -298,7 +291,7 @@ export function OperationLogPage() {
         ) : (
           filteredLogs.map((entry) => (
             <Card key={entry.id}>
-              <div style={{ display: 'flex', gap: 12, fontSize: 13 }}>
+              <div style={{ display: 'flex', gap: 12, fontSize: 'var(--text-body-sm)' }}>
                 <div
                   style={{
                     width: 3,
@@ -405,7 +398,7 @@ export function OperationLogPage() {
             </Card>
           ))
         )}
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

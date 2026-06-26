@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
@@ -115,15 +116,7 @@ export function ScanLocalPage() {
       title={t('settings:local_import', { defaultValue: 'Local Import' })}
       onBack={() => navigate(-1)}
     >
-      <div
-        style={{
-          maxWidth: 640,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <PageContainer variant="medium" gap="default">
         {/* Directory picker */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -141,7 +134,7 @@ export function ScanLocalPage() {
               <FolderOpen size={22} style={{ color: 'var(--accent-primary)' }} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Select Directory</div>
+              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>Select Directory</div>
               <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
                 {selectedDir || 'Choose a folder to scan for documents'}
               </div>
@@ -156,7 +149,7 @@ export function ScanLocalPage() {
         {files.length > 0 && (
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
                 {files.length} file(s) found
               </span>
               <Button size="sm" variant="secondary" onClick={handleImportAll}>
@@ -171,7 +164,7 @@ export function ScanLocalPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <FileText size={20} style={{ color: 'var(--text-tertiary)' }} />
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 500 }}>{file.name}</div>
+                      <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{file.name}</div>
                       <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                         {file.ext.toUpperCase()} · {formatFileSize(file.size)}
                       </div>
@@ -197,14 +190,14 @@ export function ScanLocalPage() {
                 textAlign: 'center',
                 color: 'var(--text-secondary)',
                 padding: 24,
-                fontSize: 14,
+                fontSize: 'var(--text-sm)',
               }}
             >
               No supported files found in this directory.
             </p>
           </Card>
         )}
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

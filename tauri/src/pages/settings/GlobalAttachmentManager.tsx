@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -781,15 +782,7 @@ export function GlobalAttachmentManager() {
         else navigate('/settings');
       }}
     >
-      <div
-        style={{
-          maxWidth: 600,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
+      <PageContainer variant="small" gap="default">
         {/* Search */}
         <Input
           placeholder={showTrash ? t('common:search_trash') || 'Search trash...' : t('common:search_attachments') || 'Search attachments...'}
@@ -939,7 +932,7 @@ export function GlobalAttachmentManager() {
                 size={48}
                 style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
               />
-              <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
                 {searchQuery.trim()
                   ? (t('common:no_search_results') || 'No matching attachments found.')
                   : showTrash
@@ -951,7 +944,7 @@ export function GlobalAttachmentManager() {
         ) : (
           displayPages.map(renderPage)
         )}
-      </div>
+      </PageContainer>
 
       {/* Preview overlay */}
       <AttachmentPreviewOverlay item={previewItem} onClose={() => setPreviewItem(null)} />

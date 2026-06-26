@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -75,15 +76,7 @@ export function SyncPage() {
       title={t('settings:sync', { defaultValue: 'Device Sync' })}
       onBack={() => navigate(backTo || '/home', { replace: true })}
     >
-      <div
-        style={{
-          maxWidth: 560,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <PageContainer variant="xs" gap="default">
         {/* Status card */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -106,7 +99,7 @@ export function SyncPage() {
                 )}
               </div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 600 }}>
+                <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
                   {store.syncEnabled
                     ? t('settings:sync_enabled', { defaultValue: 'Sync Enabled' })
                     : t('settings:sync_disabled', { defaultValue: 'Sync Disabled' })}
@@ -144,7 +137,7 @@ export function SyncPage() {
                   : '1px solid var(--border-subtle)',
                 background: 'var(--bg-toolbar)',
                 color: store.syncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 fontWeight: 500,
                 cursor: store.isLoading ? 'default' : 'pointer',
                 opacity: store.isLoading ? 0.6 : 1,
@@ -180,7 +173,7 @@ export function SyncPage() {
 
         {/* Manual sync */}
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
             {t('settings:sync_with_device', { defaultValue: 'Sync with Device' })}
           </h3>
           <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 12 }}>
@@ -218,7 +211,7 @@ export function SyncPage() {
                 border: '1px solid var(--border-subtle)',
                 background: 'var(--bg-toolbar)',
                 color: 'var(--text-primary)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 fontWeight: 500,
                 cursor: !manualAddr.trim() || store.isLoading ? 'default' : 'pointer',
                 opacity: !manualAddr.trim() || store.isLoading ? 0.5 : 1,
@@ -267,7 +260,7 @@ export function SyncPage() {
                 transition: 'color 0.15s ease',
               }}
             >
-              <h3 style={{ fontSize: 14, fontWeight: 600 }}>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
                 {t('settings:sync_activity_title', { defaultValue: 'Sync Activity' })}
               </h3>
               {activityOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -358,7 +351,7 @@ export function SyncPage() {
         {/* Known peers */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: 14, fontWeight: 600 }}>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
               {t('settings:sync_known_devices_title', { defaultValue: 'Known Devices' })}
             </h3>
             <Button size="sm" variant="tertiary" onClick={loadStatus} loading={store.isLoading}>
@@ -382,7 +375,7 @@ export function SyncPage() {
                 >
                   <Smartphone size={18} style={{ color: 'var(--accent-primary)' }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{peer.name || peer.id}</div>
+                    <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{peer.name || peer.id}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                       {peer.addr || 'offline'} · {peer.lastSeen || 'never'}
                     </div>
@@ -429,7 +422,7 @@ export function SyncPage() {
             </p>
           )}
         </Card>
-      </div>
+      </PageContainer>
 
       <PairingDialog
         isOpen={!!pendingPeer}

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useCancellable } from '@/hooks/useCancellable';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { GuideRenderer } from '@/components/guide/GuideRenderer';
@@ -143,15 +144,7 @@ export function HelpPage() {
         guideId ? undefined : <BookOpen size={20} style={{ color: 'var(--text-secondary)' }} />
       }
     >
-      <div
-        style={{
-          maxWidth: 720,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 20,
-        }}
-      >
+      <PageContainer variant="wide" gap="default">
         {error && (
           <div
             style={{
@@ -160,7 +153,7 @@ export function HelpPage() {
               background: 'var(--color-error-bg)',
               border: '1px solid var(--color-error-border)',
               color: 'var(--color-error-text)',
-              fontSize: 14,
+              fontSize: 'var(--text-sm)',
             }}
           >
             <div style={{ fontWeight: 600, marginBottom: 8 }}>{error.title}</div>
@@ -177,7 +170,7 @@ export function HelpPage() {
                 border: '1px solid var(--color-error-border)',
                 background: 'transparent',
                 color: 'var(--color-error-text)',
-                fontSize: 13,
+                fontSize: 'var(--text-body-sm)',
                 cursor: 'pointer',
               }}
             >
@@ -207,7 +200,7 @@ export function HelpPage() {
                   color: 'var(--accent-primary)',
                 }}
               />
-              <p style={{ fontSize: 14 }}>{t('common:loading', '正在加载...')}</p>
+              <p style={{ fontSize: 'var(--text-sm)' }}>{t('common:loading', '正在加载...')}</p>
             </div>
           </Card>
         )}
@@ -230,7 +223,7 @@ export function HelpPage() {
                         justifyContent: 'space-between',
                       }}
                     >
-                      <span style={{ fontSize: 14, fontWeight: 500 }}>{t('common:tutorial')}</span>
+                      <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{t('common:tutorial')}</span>
                       <span style={{ color: 'var(--text-tertiary)', fontSize: 18 }}>›</span>
                     </div>
                   </Card>
@@ -253,7 +246,7 @@ export function HelpPage() {
             />
           </div>
         )}
-      </div>
+      </PageContainer>
       {showTutorial && (
         <OnboardingDialog
           onComplete={() => setShowTutorial(false)}

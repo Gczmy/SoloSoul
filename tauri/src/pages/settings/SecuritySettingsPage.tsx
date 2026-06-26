@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -17,24 +18,16 @@ export function SecuritySettingsPage() {
 
   return (
     <AppShell title={t('settings:items.security_settings')} onBack={() => navigate('/settings')}>
-      <div
-        style={{
-          maxWidth: 480,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <PageContainer variant="form" gap="default">
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+          <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
             {t('settings:auto_lock')}
           </h3>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
             {t('settings:auto_lock_description')}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 14 }}>{t('settings:auto_lock')}</span>
+            <span style={{ fontSize: 'var(--text-sm)' }}>{t('settings:auto_lock')}</span>
             <select
               value={settings.autoLockTimeoutMinutes}
               onChange={(e) => {
@@ -96,7 +89,7 @@ export function SecuritySettingsPage() {
         <BiometricSection accountId={currentAccount?.id || ''} />
 
         <PasswordChangeForm accountId={currentAccount?.id} />
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

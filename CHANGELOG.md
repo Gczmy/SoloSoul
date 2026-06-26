@@ -10,6 +10,10 @@ All notable changes to SoloSoul are documented in this file.
 - **图片附件预览无法滚动和缩放** — `AttachmentPreviewOverlay` 改为可滚动容器，支持按原始尺寸滚动浏览；新增底部缩放工具栏（放大 / 缩小 / 适应窗口）以及 Ctrl/Cmd + 滚轮缩放。
 - **地址格式化器国家徽章国际化** — `PluginResultPanel` 将插件返回的 `DEFAULT` 国家代码识别为“未检测到国家”，中文显示 `默认`，英文显示 `Default`。
 
+### Changed
+
+- **全站页面布局标准化** — 新增 `PageContainer` 共享容器组件、`CardGrid` 卡片网格组件与 `tokens.css` 布局/排版 token（`--page-max-width*`、`--section-gap`、`--card-grid-*`、`--text-page-title` 等）。首页保持 720px 作为内容/列表页标准，设置/回收站/搜索统一 600px，编辑器/同步/LLM 配置统一 560px，表单/设置详情页统一 480px。20+ 页面从写死 `maxWidth` 改为引用 token，以后改一处即可统一全站宽度、间距与字号。
+
 ### Added
 
 - **附件下载功能** — AttachmentViewer 和 GlobalAttachmentManager 支持单个附件下载（系统 `save` 对话框）和批量下载（目录选择器），点击后复制 Vault 文件到用户选择的目标路径。新增 i18n key：`download_result`、`download_failed`、`batch_download_result`、`select_download_directory`。

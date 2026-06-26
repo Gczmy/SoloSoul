@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { open } from '@tauri-apps/plugin-dialog';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
@@ -244,18 +245,10 @@ export function OcrPage() {
               navigate(-1);
             }
           }}>
-      <div
-        style={{
-          maxWidth: 720,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-        }}
-      >
+      <PageContainer variant="wide" gap="default">
         {/* Model management */}
         <Card>
-          <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{t('ocr:model_title')}</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>{t('ocr:model_title')}</h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
@@ -276,7 +269,7 @@ export function OcrPage() {
                 style={{
                   width: '100%',
                   padding: '8px 10px',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   borderRadius: 8,
                   border: '1px solid var(--border-subtle)',
                   background: 'var(--bg-elevated)',
@@ -320,7 +313,7 @@ export function OcrPage() {
                         <AlertCircle size={16} color="var(--error)" />
                       )}
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 500 }}>
+                        <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
                           {getTierLabel(t, tier).name}
                         </div>
                         <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
@@ -378,7 +371,7 @@ export function OcrPage() {
                   style={{
                     width: '100%',
                     padding: '8px 10px',
-                    fontSize: 13,
+                    fontSize: 'var(--text-body-sm)',
                     borderRadius: 8,
                     border: '1px solid var(--border-subtle)',
                     background: 'var(--bg-elevated)',
@@ -398,7 +391,7 @@ export function OcrPage() {
               style={{ marginBottom: 12, opacity: 0.3, color: 'var(--text-tertiary)' }}
             />
             <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>{t('ocr:title')}</h2>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
               {t('ocr:description')}
             </p>
 
@@ -423,7 +416,7 @@ export function OcrPage() {
                   padding: '6px 14px',
                   borderRadius: 6,
                   border: 'none',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   cursor: 'pointer',
                   background: scanMode === 'general' ? 'var(--bg-elevated)' : 'transparent',
                   color: 'var(--text-primary)',
@@ -442,7 +435,7 @@ export function OcrPage() {
                   padding: '6px 14px',
                   borderRadius: 6,
                   border: 'none',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   cursor: 'pointer',
                   background: scanMode === 'mrz' ? 'var(--bg-elevated)' : 'transparent',
                   color: 'var(--text-primary)',
@@ -491,7 +484,7 @@ export function OcrPage() {
                 marginBottom: 12,
               }}
             >
-              <h3 style={{ fontSize: 14, fontWeight: 600 }}>{t('ocr:result_title')}</h3>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{t('ocr:result_title')}</h3>
               <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
                 <Upload size={14} style={{ marginRight: 4 }} /> {t('ocr:import_as_object')}
               </Button>
@@ -508,7 +501,7 @@ export function OcrPage() {
                       padding: '8px 10px',
                       borderRadius: 6,
                       background: 'var(--bg-toolbar)',
-                      fontSize: 13,
+                      fontSize: 'var(--text-body-sm)',
                     }}
                   >
                     <span style={{ flex: 1, wordBreak: 'break-word' }}>{box.text}</span>
@@ -526,7 +519,7 @@ export function OcrPage() {
                   padding: 12,
                   borderRadius: 8,
                   background: 'var(--bg-toolbar)',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   lineHeight: 1.6,
                   whiteSpace: 'pre-wrap',
                   maxHeight: 300,
@@ -543,7 +536,7 @@ export function OcrPage() {
                   textAlign: 'center',
                   color: 'var(--text-tertiary)',
                   padding: 24,
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                 }}
               >
                 {t('ocr:no_text')}
@@ -563,7 +556,7 @@ export function OcrPage() {
                 marginBottom: 12,
               }}
             >
-              <h3 style={{ fontSize: 14, fontWeight: 600 }}>{t('ocr:mrz_result_title')}</h3>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{t('ocr:mrz_result_title')}</h3>
               <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
                 <Upload size={14} style={{ marginRight: 4 }} /> {t('ocr:import_as_object')}
               </Button>
@@ -571,7 +564,7 @@ export function OcrPage() {
             <MrzResultCard result={mrzResult} />
           </Card>
         )}
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }

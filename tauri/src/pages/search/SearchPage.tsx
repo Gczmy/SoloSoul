@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { invoke } from '@tauri-apps/api/core';
@@ -149,7 +150,7 @@ export function SearchPage() {
 
   return (
     <AppShell title={t('navigation:search')} onBack={() => navigate('/home')}>
-      <div style={{ maxWidth: 600, margin: '0 auto' }}>
+      <PageContainer variant="small" gap="default">
         <Input
           placeholder={t('common:search_placeholder')}
           value={query}
@@ -211,7 +212,7 @@ export function SearchPage() {
             ))}
           </div>
         </div>
-      </div>
+      </PageContainer>
 
       {/* Object detail modal */}
       {detailObjectId && (

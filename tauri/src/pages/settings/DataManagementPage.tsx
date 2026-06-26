@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 
 import { HardDrive, PieChart, X } from 'lucide-react';
@@ -146,15 +147,7 @@ export function DataManagementPage() {
 
   return (
     <AppShell title={t('settings:data_management')} onBack={() => navigate('/settings')}>
-      <div
-        style={{
-          maxWidth: 480,
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
+      <PageContainer variant="form" gap="default">
         {/* Vault stats card */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -172,10 +165,10 @@ export function DataManagementPage() {
               <HardDrive size={22} style={{ color: 'var(--accent-primary)' }} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+              <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
                 {t('settings:vault_size')}
               </div>
-              <div style={{ fontSize: 20, fontWeight: 600 }}>
+              <div style={{ fontSize: 'var(--text-page-title)', fontWeight: 600 }}>
                 {stats ? formatBytes(stats.totalSizeBytes) : '—'}
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
@@ -251,7 +244,7 @@ export function DataManagementPage() {
                 marginBottom: 16,
               }}
             >
-              <h3 style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>
+              <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, margin: 0 }}>
                 {t('settings:storage_breakdown')}
               </h3>
               <button
@@ -280,7 +273,7 @@ export function DataManagementPage() {
                 return (
                   <div
                     key={slice.key}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 'var(--text-body-sm)' }}
                   >
                     <div
                       style={{
@@ -303,7 +296,7 @@ export function DataManagementPage() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   borderTop: '1px solid var(--border-subtle)',
                   paddingTop: 8,
                   marginTop: 4,
@@ -330,8 +323,8 @@ export function DataManagementPage() {
 
         {/* Quick actions */}
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{t('settings:backup')}</h3>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>{t('settings:backup')}</h3>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
             {t('settings:backup_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -375,10 +368,10 @@ export function DataManagementPage() {
         </Card>
 
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+          <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
             {t('settings:export_import')}
           </h3>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
             {t('settings:export_import_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -422,8 +415,8 @@ export function DataManagementPage() {
         </Card>
 
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{t('settings:trash')}</h3>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>{t('settings:trash')}</h3>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
             {t('settings:trash_empty')}
           </p>
           <button
@@ -458,10 +451,10 @@ export function DataManagementPage() {
 
         {/* Snapshot retention config */}
         <Card>
-          <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+          <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
             {t('settings:snapshot_retention')}
           </h3>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
             {t('settings:snapshot_retention_desc')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -473,7 +466,7 @@ export function DataManagementPage() {
                   alignItems: 'center',
                   gap: 10,
                   cursor: 'pointer',
-                  fontSize: 13,
+                  fontSize: 'var(--text-body-sm)',
                   padding: '4px 0',
                 }}
               >
@@ -490,7 +483,7 @@ export function DataManagementPage() {
             ))}
           </div>
         </Card>
-      </div>
+      </PageContainer>
     </AppShell>
   );
 }
