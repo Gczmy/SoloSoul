@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Input } from '@/components/ui/Input';
@@ -903,82 +904,21 @@ export function GlobalAttachmentManager() {
 
               {!showTrash ? (
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button
-                    onClick={handleBatchDownload}
-                    className="interactive-accent"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                  >
+                  <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
                     <Download size={12} /> {t('common:download')}
-                  </button>
-                  <button
-                    onClick={() => setBatchDeleteConfirm(true)}
-                    className="interactive-accent"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      background: 'transparent',
-                      color: '#e74c3c',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                  >
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={() => setBatchDeleteConfirm(true)}>
                     <Trash2 size={12} /> {t('common:delete')}
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <button
-                    onClick={() => setBatchRestoreConfirm(true)}
-                    className="interactive-accent"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      background: 'transparent',
-                      color: 'var(--accent-primary)',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                  >
+                  <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
                     <RotateCcw size={12} /> {t('common:restore')}
-                  </button>
-                  <button
-                    onClick={() => setBatchPermanentDeleteConfirm(true)}
-                    className="interactive-danger-transparent"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      color: '#e74c3c',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                    }}
-                  >
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={() => setBatchPermanentDeleteConfirm(true)}>
                     <Trash2 size={12} /> {t('common:delete_permanently')}
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

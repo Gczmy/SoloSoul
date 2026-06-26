@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { Paperclip, X, Trash2, RotateCw, Eye, Image, FileText, Edit2, Upload, Download } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -415,80 +416,21 @@ export function AttachmentViewer({
             </div>
             {!showTrash ? (
               <div style={{ display: 'flex', gap: 6 }}>
-                <button
-                  onClick={handleBatchDownload}
-                  className="interactive-icon"
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--border-subtle)',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
+                <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
                   <Download size={12} /> {t('common:download')}
-                </button>
-                <button
-                  onClick={() => setBatchDeleteConfirm(true)}
-                  className="interactive-icon-danger"
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--border-subtle)',
-                    color: '#e74c3c',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
+                </Button>
+                <Button variant="danger" size="sm" onClick={() => setBatchDeleteConfirm(true)}>
                   <Trash2 size={12} /> {t('common:delete')}
-                </button>
+                </Button>
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 6 }}>
-                <button
-                  onClick={() => setBatchRestoreConfirm(true)}
-                  className="interactive-accent-light"
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--accent-primary)',
-                    color: 'var(--accent-primary)',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
+                <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
                   <RotateCw size={12} /> {t('common:restore')}
-                </button>
-                <button
-                  onClick={() => setBatchPermanentDeleteConfirm(true)}
-                  className="interactive-danger-transparent"
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 6,
-                    border: '1px solid var(--border-subtle)',
-                    color: '#e74c3c',
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
+                </Button>
+                <Button variant="danger" size="sm" onClick={() => setBatchPermanentDeleteConfirm(true)}>
                   <Trash2 size={12} /> {t('common:delete_permanently')}
-                </button>
+                </Button>
               </div>
             )}
           </div>
