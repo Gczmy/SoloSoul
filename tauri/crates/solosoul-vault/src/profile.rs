@@ -121,7 +121,7 @@ pub struct IdentityData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContactEntry {
     pub label: String,
-    #[serde(alias = "type", rename = "type")]
+    #[serde(alias = "entryType", rename = "type")]
     #[serde(deserialize_with = "deserialize_contact_type")]
     pub entry_type: String,
     pub value: String,
@@ -131,21 +131,42 @@ pub struct ContactEntry {
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
+/// Deserialize `contact_type` accepting either a plain JSON string or a legacy
+/// `{"entry_type": "..."}` object (backward compat, replaced by `type` field name).
 fn deserialize_contact_type<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
 {
-    #[derive(Deserialize)]
-    #[serde(untagged)]
-    enum TypeOrEntryType {
-        Type(String),
-        EntryType { entry_type: String },
+    use serde::de::{self, IgnoredAny, MapAccess, Visitor};
+
+    struct ContactTypeVisitor;
+
+    impl<'de> Visitor<'de> for ContactTypeVisitor {
+        type Value = String;
+
+        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            f.write_str("a string or an object with an `entry_type` field")
+        }
+
+        fn visit_str<E: de::Error>(self, v: &str) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+
+        fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<String, A::Error> {
+            let mut entry_type = None;
+            while let Some(key) = map.next_key::<String>()? {
+                if key == "entry_type" || key == "entryType" {
+                    entry_type = Some(map.next_value::<String>()?);
+                } else {
+                    // Silently skip unknown fields for backward compatibility.
+                    let _ = map.next_value::<IgnoredAny>();
+                }
+            }
+            entry_type.ok_or_else(|| de::Error::missing_field("entry_type"))
+        }
     }
-    let raw = TypeOrEntryType::deserialize(deserializer)?;
-    match raw {
-        TypeOrEntryType::Type(s) => Ok(s),
-        TypeOrEntryType::EntryType { entry_type } => Ok(entry_type),
-    }
+
+    deserializer.deserialize_any(ContactTypeVisitor)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

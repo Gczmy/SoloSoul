@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, RefreshCw, Trash2, Play, Loader2, X } from 'lucide-react';
 import { PluginLogSection } from './shared/PluginLogSection';
@@ -41,7 +42,7 @@ export function PluginCard({
   const installed = !!info.installedVersion;
   const latestVersion = info.registryEntry.latestVersion;
 
-  const statuses = (() => {
+  const statuses = useMemo(() => {
     const result: Array<{ label: string; className: string }> = [];
     if (!info.isCompatible) {
       result.push({
@@ -77,7 +78,7 @@ export function PluginCard({
       });
     }
     return result;
-  })();
+  }, [info, isRunning]);
 
   const displayName = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
   const displayDesc =

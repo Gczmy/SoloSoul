@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Circle, CircleDot, Lock } from 'lucide-react';
 
@@ -31,7 +32,7 @@ export function getSensitivityStyle(level: SensitivityLevel) {
   return STYLES[level] || STYLES.internal;
 }
 
-export function SensitivityBadge({ level }: { level: SensitivityLevel }) {
+export const SensitivityBadge = memo(function SensitivityBadge({ level }: { level: SensitivityLevel }) {
   const { t } = useTranslation('sensitivity');
   const s = getSensitivityStyle(level);
   const label = t(level);
@@ -56,4 +57,4 @@ export function SensitivityBadge({ level }: { level: SensitivityLevel }) {
       {label}
     </span>
   );
-}
+});

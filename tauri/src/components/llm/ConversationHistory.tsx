@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MessageSquare } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
@@ -16,7 +17,7 @@ interface ConversationHistoryProps {
   onSelect: (id: string) => void;
 }
 
-export function ConversationHistory({
+export const ConversationHistory = memo(function ConversationHistory({
   conversations,
   currentConvId,
   onSelect,
@@ -42,49 +43,68 @@ export function ConversationHistory({
   return (
     <div style={{ padding: '6px 2px' }}>
       {conversations.map((conv) => (
-        <div
+        <ConversationHistoryItem
           key={conv.id}
-          onClick={() => onSelect(conv.id)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '7px 12px',
-            cursor: 'pointer',
-            fontSize: 12,
-            background: currentConvId === conv.id ? 'rgba(91,124,153,0.08)' : 'transparent',
-          }}
-        >
-          <MessageSquare size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <div
-              style={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                color: 'var(--text-primary)',
-                fontWeight: currentConvId === conv.id ? 500 : 400,
-              }}
-            >
-              {conv.name || t('settings:ai_untitled')}
-            </div>
-            <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 1 }}>
-              {formatRelative(conv.updatedAt)} · {conv.messageCount} {t('settings:ai_messages')}
-            </div>
-          </div>
-          {currentConvId === conv.id && (
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: 'var(--accent-primary)',
-                flexShrink: 1,
-              }}
-            />
-          )}
-        </div>
+          conv={conv}
+          isActive={currentConvId === conv.id}
+          onSelect={onSelect}
+        />
       ))}
     </div>
   );
-}
+});
+
+const ConversationHistoryItem = memo(function ConversationHistoryItem({
+  conv,
+  isActive,
+  onSelect,
+}: {
+  conv: ConversationSummary;
+  isActive: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const { t } = useTranslation(['settings', 'common']);
+  return (
+    <div
+      onClick={() => onSelect(conv.id)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '7px 12px',
+        cursor: 'pointer',
+        fontSize: 12,
+        background: isActive ? 'rgba(91,124,153,0.08)' : 'transparent',
+      }}
+    >
+      <MessageSquare size={12} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <div
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            color: 'var(--text-primary)',
+            fontWeight: isActive ? 500 : 400,
+          }}
+        >
+          {conv.name || t('settings:ai_untitled')}
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 1 }}>
+          {formatRelative(conv.updatedAt)} · {conv.messageCount} {t('settings:ai_messages')}
+        </div>
+      </div>
+      {isActive && (
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            background: 'var(--accent-primary)',
+            flexShrink: 1,
+          }}
+        />
+      )}
+    </div>
+  );
+});

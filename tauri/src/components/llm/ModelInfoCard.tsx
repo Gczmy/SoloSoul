@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Cpu } from 'lucide-react';
 import type { TFunction } from 'i18next';
@@ -65,7 +66,7 @@ export function ModelInfoCard({
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+const InfoRow = memo(function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className={styles.infoRow}>
       <span className={styles.infoLabel}>{label}</span>
@@ -74,4 +75,4 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       </span>
     </div>
   );
-}
+});

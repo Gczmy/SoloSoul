@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card } from '@/components/ui/Card';
 import { formatTokens } from '@/lib/llm/statsApi';
 import type { TFunction } from 'i18next';
@@ -56,7 +57,7 @@ export function TokenBreakdownCard({
   );
 }
 
-function TokenBar({
+const TokenBar = memo(function TokenBar({
   prompt,
   completion,
   total,
@@ -105,4 +106,4 @@ function TokenBar({
       </div>
     </div>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import styles from './LoadingPlaceholder.module.css';
 
 interface LoadingPlaceholderProps {
@@ -13,7 +14,7 @@ interface LoadingPlaceholderProps {
  * 纯色加载占位，不显示任何文字、图标或动画。
  * 用于页面/数据初次加载，最大限度降低画面闪烁。
  */
-export function LoadingPlaceholder({
+export const LoadingPlaceholder = memo(function LoadingPlaceholder({
   variant = 'base',
   minHeight,
   className = '',
@@ -27,4 +28,4 @@ export function LoadingPlaceholder({
       aria-hidden="true"
     />
   );
-}
+});

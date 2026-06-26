@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useRef, useEffect, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, MessageSquare } from 'lucide-react';
@@ -22,7 +23,7 @@ interface ChatMessageListProps {
   chatEndRef: RefObject<HTMLDivElement | null>;
 }
 
-export function ChatMessageList({
+export const ChatMessageList = memo(function ChatMessageList({
   messages,
   isSending,
   copiedIndex,
@@ -168,4 +169,4 @@ export function ChatMessageList({
       <div ref={chatEndRef} />
     </div>
   );
-}
+});

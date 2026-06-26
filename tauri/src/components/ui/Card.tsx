@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import styles from './Card.module.css';
 
 interface CardProps {
@@ -8,7 +9,7 @@ interface CardProps {
   style?: React.CSSProperties;
 }
 
-export function Card({ children, className, interactive, onClick, style }: CardProps) {
+export const Card = memo(function Card({ children, className, interactive, onClick, style }: CardProps) {
   return (
     <div
       className={`${styles.card} ${interactive ? styles.interactive : ''} ${className || ''}`}
@@ -27,4 +28,4 @@ export function Card({ children, className, interactive, onClick, style }: CardP
       {children}
     </div>
   );
-}
+});

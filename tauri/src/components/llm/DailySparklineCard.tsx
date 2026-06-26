@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card } from '@/components/ui/Card';
 import { type DailyUsage } from '@/lib/llm/statsApi';
 import type { TFunction } from 'i18next';
@@ -36,7 +37,7 @@ function formatY(value: number): string {
   return value.toFixed(0);
 }
 
-export function DailySparklineCard({ daily, t }: DailySparklineCardProps) {
+export const DailySparklineCard = memo(function DailySparklineCard({ daily, t }: DailySparklineCardProps) {
   const sorted = [...daily].sort((a, b) => a.date.localeCompare(b.date));
   const last14 = sorted.length > 14 ? sorted.slice(sorted.length - 14) : sorted;
   if (last14.length === 0) return null;
@@ -191,4 +192,4 @@ export function DailySparklineCard({ daily, t }: DailySparklineCardProps) {
       </div>
     </Card>
   );
-}
+});

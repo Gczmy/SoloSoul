@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card } from '@/components/ui/Card';
 import { MessageSquare, Hash } from 'lucide-react';
 import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
@@ -41,7 +42,7 @@ export function AccountStatsCard({
   );
 }
 
-function StatColumn({
+const StatColumn = memo(function StatColumn({
   icon,
   label,
   value,
@@ -101,4 +102,4 @@ function StatColumn({
       )}
     </div>
   );
-}
+});

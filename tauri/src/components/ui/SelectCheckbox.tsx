@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface SelectCheckboxProps {
   checked: boolean;
@@ -14,7 +14,7 @@ interface SelectCheckboxProps {
  * A small checkbox component used for batch selection of rows.
  * Uses the project's accent color when checked with an SVG checkmark.
  */
-export function SelectCheckbox({
+export const SelectCheckbox = memo(function SelectCheckbox({
   checked,
   onClick,
   size = 16,
@@ -44,4 +44,4 @@ export function SelectCheckbox({
       )}
     </div>
   );
-}
+});

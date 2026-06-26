@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { Card } from '@/components/ui/Card';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { Clock, Paperclip, Pencil, Trash2 } from 'lucide-react';
@@ -7,6 +8,20 @@ import type { UserTemplate } from '@/types/template';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
+
+const ICON_BUTTON_BASE = {
+  width: 32,
+  height: 32,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: 'none',
+  borderRadius: 8,
+  background: 'transparent',
+  cursor: 'pointer',
+  color: 'var(--text-tertiary)',
+  transition: 'all 0.15s ease',
+} as const;
 
 /** Extract displayable key-value pairs from object properties (filters internal __ fields). */
 function flattenProperties(
@@ -55,7 +70,7 @@ interface WorkspaceObjectCardProps {
   onUploadComplete?: () => void;
 }
 
-export function WorkspaceObjectCard({
+export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   obj,
   collectionLabel,
   userTemplates,
@@ -72,9 +87,13 @@ export function WorkspaceObjectCard({
   // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
   const tplMatch = tpl && (tpl.category || 'identity') === obj.collectionType;
   const fieldOrder = tpl?.properties.map((p) => p.id);
-  const fields = flattenProperties(
-    obj.properties as Record<string, unknown> | undefined,
-    fieldOrder,
+  const fields = useMemo(
+    () =>
+      flattenProperties(
+        obj.properties as Record<string, unknown> | undefined,
+        fieldOrder,
+      ),
+    [obj.properties, fieldOrder],
   );
 
   const TemplateIcon = tpl?.iconId ? resolveCustomIcon(tpl.iconId) : PAGE_ICON_MAP.custom;
@@ -99,19 +118,7 @@ export function WorkspaceObjectCard({
   const getFieldName = (fieldKey: string): string =>
     getFieldProperty(fieldKey)?.name || objFieldDefs?.[fieldKey]?.name || fieldKey;
 
-  const iconButtonStyle: React.CSSProperties = {
-    width: 32,
-    height: 32,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: 'none',
-    borderRadius: 8,
-    background: 'transparent',
-    cursor: 'pointer',
-    color: 'var(--text-tertiary)',
-    transition: 'all 0.15s ease',
-  };
+  const iconButtonStyle = ICON_BUTTON_BASE;
 
   const { ref: dragRef, dragState } = useDragToAttach(obj.id, {
     onComplete: onUploadComplete,
@@ -288,9 +295,9 @@ export function WorkspaceObjectCard({
       <DragUploadOverlay dragState={dragState} borderRadius={12} />
     </div>
   );
-}
+});
 
-function CountButton({
+const CountButton = memo(function CountButton({
   count,
   onClick,
   title,
@@ -347,4 +354,6 @@ function CountButton({
       )}
     </div>
   );
-}
+});
+
+CountButton.displayName = 'CountButton';

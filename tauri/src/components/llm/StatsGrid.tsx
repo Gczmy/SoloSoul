@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card } from '@/components/ui/Card';
 import { MessageSquare, Hash, Download, Clock } from 'lucide-react';
 import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
@@ -58,7 +59,7 @@ export function StatsGrid({
   );
 }
 
-function StatTile({
+const StatTile = memo(function StatTile({
   icon,
   label,
   value,
@@ -114,7 +115,7 @@ function StatTile({
       </div>
     </Card>
   );
-}
+});
 
 function formatDate(iso?: string): string {
   if (!iso) return '—';
