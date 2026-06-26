@@ -791,42 +791,34 @@ export function GlobalAttachmentManager() {
 
         {/* Tab pills */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => { setShowTrash(false); clearSelection(); }}
-            className={!showTrash ? 'selected-accent' : ''}
-            style={{
-              padding: '5px 12px',
-              borderRadius: 6,
-              fontSize: 'var(--text-sm)',
-              fontWeight: 500,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-            }}
+            style={!showTrash ? {
+              background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+              borderColor: 'var(--accent-primary)',
+              color: 'var(--accent-primary)',
+              boxShadow: '0 0 0 1px var(--accent-primary)',
+            } : undefined}
           >
             {t('common:attachments_active', { n: activeCount }) || `Attachments (${activeCount})`}
             <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>{formatSize(activeBytes)}</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => { setShowTrash(true); clearSelection(); }}
-            className={showTrash ? 'selected-danger' : 'interactive-toolbar'}
-            style={{
-              padding: '5px 12px',
-              borderRadius: 6,
-              fontSize: 'var(--text-sm)',
-              fontWeight: 500,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: showTrash ? '#e74c3c' : 'var(--text-primary)',
-              cursor: 'pointer',
-              transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-            }}
+            style={showTrash ? {
+              background: 'color-mix(in srgb, #e74c3c 10%, transparent)',
+              borderColor: '#e74c3c',
+              color: '#e74c3c',
+              boxShadow: '0 0 0 1px #e74c3c',
+            } : undefined}
           >
             {t('common:attachments_trash', { n: trashCount }) || `Trash (${trashCount})`}
             <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>{formatSize(trashBytes)}</span>
-          </button>
+          </Button>
 
           <div style={{ flex: 1 }} />
 
