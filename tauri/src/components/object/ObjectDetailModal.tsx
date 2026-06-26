@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { X, Clock, Paperclip, Pencil, Trash2, Lock, Eye } from 'lucide-react';
+import { X, Clock, Paperclip, Pencil, Trash2, Lock, Eye, Copy, Check } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
@@ -579,6 +579,7 @@ export function ObjectDetailModal({
                             </button>
                           )}
                           <button
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() =>
                               handleCopy(
                                 revealed ? f.value : maskValue(f.value, fieldId, sens),
@@ -588,15 +589,16 @@ export function ObjectDetailModal({
                             style={{
                               padding: '4px 10px',
                               borderRadius: 6,
-                              border: '1px solid var(--border-subtle)',
+                              border: '1px solid ' + (copiedField === f.key ? 'var(--accent-primary)' : 'var(--border-subtle)'),
                               background: 'transparent',
                               cursor: 'pointer',
                               fontSize: 11,
-                              color: copiedField === f.key ? '#27ae60' : 'var(--text-tertiary)',
+                              color: copiedField === f.key ? 'var(--accent-primary)' : 'var(--text-tertiary)',
                               display: 'flex',
                               alignItems: 'center',
                               gap: 4,
-                              transition: 'all 0.15s ease',
+                              boxShadow: copiedField === f.key ? '0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent)' : 'none',
+                              transition: 'all var(--duration-fast) var(--ease-smooth)',
                             }}
                             onMouseEnter={(e) => {
                               if (copiedField !== f.key) {
@@ -613,6 +615,7 @@ export function ObjectDetailModal({
                               }
                             }}
                           >
+                            {copiedField === f.key ? <Check size={12} /> : <Copy size={12} />}
                             {copiedField === f.key ? t('common:copied') : t('common:copy')}
                           </button>
                         </div>
