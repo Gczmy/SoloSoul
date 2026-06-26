@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/stores/authStore';
@@ -634,12 +635,10 @@ export function GlobalAttachmentManager() {
                 title={t('common:restore')}
                 iconSize={ICON_SIZE.sm}
               />
-              <BadgeIconButton
-                Icon={Trash2}
+              <DeleteButton
+                iconOnly
                 onClick={() => handlePermanentDelete(item, objectId)}
                 title={t('common:delete_permanently')}
-                danger
-                iconSize={ICON_SIZE.sm}
               />
             </>
           ) : (
@@ -663,12 +662,10 @@ export function GlobalAttachmentManager() {
                   title={t('common:download')}
                   iconSize={ICON_SIZE.sm}
                 />
-                <BadgeIconButton
-                  Icon={Trash2}
+                <DeleteButton
+                  iconOnly
                   onClick={() => handleSoftDelete(item, objectId)}
                   title={t('common:delete')}
-                  danger
-                  iconSize={ICON_SIZE.sm}
                 />
               </>
             )
@@ -906,18 +903,18 @@ export function GlobalAttachmentManager() {
                   <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
                     <Download size={ICON_SIZE.sm} /> {t('common:download')}
                   </Button>
-                  <Button variant="danger-outline" size="sm" onClick={() => setBatchDeleteConfirm(true)}>
-                    <Trash2 size={ICON_SIZE.sm} /> {t('common:delete')}
-                  </Button>
+                  <DeleteButton onClick={() => setBatchDeleteConfirm(true)} title={t('common:delete')}>
+                    {t('common:delete')}
+                  </DeleteButton>
                 </div>
               ) : selectedIds.size > 0 && showTrash ? (
                 <div style={{ display: 'flex', gap: 6 }}>
                   <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
                     <RotateCcw size={ICON_SIZE.sm} /> {t('common:restore')}
                   </Button>
-                  <Button variant="danger-outline" size="sm" onClick={() => setBatchPermanentDeleteConfirm(true)}>
-                    <Trash2 size={ICON_SIZE.sm} /> {t('common:delete_permanently')}
-                  </Button>
+                  <DeleteButton onClick={() => setBatchPermanentDeleteConfirm(true)} title={t('common:delete_permanently')}>
+                    {t('common:delete_permanently')}
+                  </DeleteButton>
                 </div>
               ) : null}
             </div>

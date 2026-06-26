@@ -39,6 +39,16 @@
   color: var(--accent-danger);
 }
 
+/* Danger-outline variant — matches Button danger-outline */
+.dangerOutline {
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+.dangerOutline:hover:not(:disabled) {
+  background: #ef4444;
+  color: #ffffff;
+}
+
 /* ── Badge ─────────────────────────────────────────────── */
 .badge {
   position: absolute;

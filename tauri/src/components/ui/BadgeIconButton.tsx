@@ -15,6 +15,8 @@ interface BadgeIconButtonProps {
   title: string;
   /** If true, renders as a danger button (red hover) */
   danger?: boolean;
+  /** If true, renders as a danger-outline button (red icon on transparent, solid red on hover) */
+  dangerOutline?: boolean;
   /** If true, the button is disabled */
   disabled?: boolean;
   /** Icon size. Default ICON_SIZE.sm (14px). */
@@ -39,12 +41,15 @@ export const BadgeIconButton = memo(function BadgeIconButton({
   onClick,
   title,
   danger = false,
+  dangerOutline = false,
   disabled = false,
   iconSize = ICON_SIZE.sm,
   className = '',
 }: BadgeIconButtonProps) {
   const hasBadge = count !== undefined && count > 0;
   const label = hasBadge ? `${title} (${count})` : title;
+
+  const variantClass = dangerOutline ? styles.dangerOutline : danger ? styles.danger : styles.accent;
 
   return (
     <div className={styles.wrapper}>
@@ -54,7 +59,7 @@ export const BadgeIconButton = memo(function BadgeIconButton({
         title={title}
         disabled={disabled}
         aria-label={label}
-        className={`${styles.button} ${danger ? styles.danger : styles.accent} ${className}`}
+        className={`${styles.button} ${variantClass} ${className}`}
       >
         <Icon size={iconSize} />
       </button>
