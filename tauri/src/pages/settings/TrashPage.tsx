@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Button } from '@/components/ui/Button';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { useAuthStore } from '@/stores/authStore';
 import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -244,16 +245,12 @@ export function TrashPage() {
               padding: '4px 0',
             }}
           >
-            <input
-              type="checkbox"
+            <SelectCheckbox
               checked={allFilteredSelected}
-              ref={(el) => {
-                if (el) el.indeterminate = !allFilteredSelected && hasSelection;
-              }}
+              indeterminate={!allFilteredSelected && hasSelection}
               onChange={() =>
                 allFilteredSelected ? clearSelection() : selectAll(filtered.map((i) => i.id))
               }
-              style={{ accentColor: 'var(--accent-primary)' }}
             />
             <span>
               {t('settings:select_all')} ({filtered.length})
@@ -326,12 +323,9 @@ export function TrashPage() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="checkbox"
+                    <SelectCheckbox
                       checked={selectedIds.has(item.id)}
-                      onChange={() => toggleSelection(item.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ accentColor: 'var(--accent-primary)', flexShrink: 0 }}
+                      onClick={(e) => { e.stopPropagation(); toggleSelection(item.id); }}
                     />
                     <div
                       style={{

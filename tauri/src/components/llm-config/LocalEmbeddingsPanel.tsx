@@ -3,6 +3,7 @@ import { Cpu, Download, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -78,12 +79,7 @@ export function LocalEmbeddingsPanel({
           marginBottom: 12,
         }}
       >
-        <input
-          type="checkbox"
-          checked={useLocalEmbedding}
-          onChange={(e) => onToggle(e.target.checked)}
-          style={{ accentColor: 'var(--accent-primary)' }}
-        />
+        <SelectCheckbox checked={useLocalEmbedding} onChange={(v) => onToggle(v)} />
         <span>{t('settings:llm_use_local_embedding')}</span>
       </label>
 

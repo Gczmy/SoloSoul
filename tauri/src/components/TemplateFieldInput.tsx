@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PropertyType } from '@/types/template';
 import { DatePicker } from '@/components/forms/DatePicker';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import styles from './TemplateFieldInput.module.css';
 
 interface TemplateFieldInputProps {
@@ -98,11 +99,9 @@ export function TemplateFieldInput({
       return (
         <div className={styles.field}>
           <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              className={styles.checkbox}
+            <SelectCheckbox
               checked={Boolean(value)}
-              onChange={(e) => onChange(e.target.checked)}
+              onChange={(v) => onChange(v)}
               disabled={disabled}
             />
             {labelRow}
@@ -143,12 +142,10 @@ export function TemplateFieldInput({
           <div className={styles.multiSelect}>
             {(options || []).map((opt) => (
               <label key={opt} className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  className={styles.checkbox}
+                <SelectCheckbox
                   checked={selected.includes(opt)}
-                  onChange={(e) => {
-                    const next = e.target.checked
+                  onChange={(v) => {
+                    const next = v
                       ? (options || []).filter((o) => selected.includes(o) || o === opt)
                       : selected.filter((v) => v !== opt);
                     onChange(next);

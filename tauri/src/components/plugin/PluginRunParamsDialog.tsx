@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Settings2 } from 'lucide-react';
 import styles from './PluginRunParamsDialog.module.css';
 import type { PluginParam } from '@/lib/plugin';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -91,10 +92,9 @@ export function PluginRunParamsDialog({
 
                 {param.type === 'boolean' && (
                   <label className={styles.checkboxRow}>
-                    <input
-                      type="checkbox"
+                    <SelectCheckbox
                       checked={values[param.id] === 'true'}
-                      onChange={(e) => handleChange(param.id, e.target.checked ? 'true' : 'false')}
+                      onChange={(v) => handleChange(param.id, v ? 'true' : 'false')}
                     />
                     <span>{param.label}</span>
                   </label>

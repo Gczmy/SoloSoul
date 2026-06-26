@@ -573,8 +573,6 @@ export function GlobalAttachmentManager() {
         <SelectCheckbox
           checked={isChecked}
           onClick={(e) => { e.stopPropagation(); toggleSelect(compositeKey); }}
-          size={14}
-          borderRadius={3}
         />
         {showTrash ? (
           <Trash2 size={ICON_SIZE.sm} style={{ color: '#e74c3c', flexShrink: 0 }} />
@@ -889,7 +887,7 @@ export function GlobalAttachmentManager() {
                   userSelect: 'none',
                 }}
               >
-                <SelectCheckbox checked={allSelected} size={14} borderRadius={3} />
+                <SelectCheckbox checked={allSelected} />
                 {allSelected ? t('common:deselect_all') : t('common:select_all')}
               </div>
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 
 interface RiskAcceptanceDialogProps {
   open: boolean;
@@ -83,11 +84,9 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
             fontSize: 'var(--text-body-sm)',
           }}
         >
-          <input
-            type="checkbox"
+          <SelectCheckbox
             checked={riskChecked}
-            onChange={() => setRiskChecked(!riskChecked)}
-            style={{ accentColor: 'var(--accent-primary)' }}
+            onChange={(v) => setRiskChecked(v)}
           />
           {t('settings:ai_risk_agree')}
         </label>

@@ -74,13 +74,6 @@
   background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
 }
 
-.checkbox {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: var(--accent-primary);
-}
-
 .multiSelect {
   display: flex;
   flex-wrap: wrap;

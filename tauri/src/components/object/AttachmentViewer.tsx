@@ -411,6 +411,7 @@ export function AttachmentViewer({
               <SelectCheckbox
                 checked={allSelected}
                 onClick={() => handleSelectAll(allVisibleKeys)}
+                indeterminate={selectedIds.size > 0 && !allSelected}
               />
               <span style={{ color: 'var(--text-secondary)' }}>
                 {t('common:selected_count', { n: selectedIds.size })}

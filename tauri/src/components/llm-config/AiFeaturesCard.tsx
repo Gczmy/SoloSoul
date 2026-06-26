@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 
 interface AiFeatures {
   chat: boolean;
@@ -34,12 +35,10 @@ export function AiFeaturesCard({ features, onToggle }: AiFeaturesCardProps) {
             opacity: key === 'chat' ? 1 : 0.5,
           }}
         >
-          <input
-            type="checkbox"
+          <SelectCheckbox
             checked={features[key]}
             onChange={() => key === 'chat' && onToggle(key)}
             disabled={key !== 'chat'}
-            style={{ accentColor: 'var(--accent-primary)' }}
           />
           {t('settings:ai_' + key)}
           {key !== 'chat' && (

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 
 interface SystemPromptCardProps {
   checked: boolean;
@@ -24,12 +25,7 @@ export function SystemPromptCard({ checked, onToggle }: SystemPromptCardProps) {
           fontSize: 'var(--text-body-sm)',
         }}
       >
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={onToggle}
-          style={{ accentColor: 'var(--accent-primary)' }}
-        />
+        <SelectCheckbox checked={checked} onChange={() => onToggle()} />
         {t('settings:ai_system_prompt_software')}
       </label>
       <p style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 4, paddingLeft: 26 }}>

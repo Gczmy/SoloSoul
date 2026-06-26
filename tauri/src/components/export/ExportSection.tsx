@@ -7,6 +7,7 @@ import { formatBytes } from '@/lib/format';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { AttachmentLimitsInfo }  from './AttachmentLimitsInfo';
 import { WarningCancelButton } from './WarningCancelButton';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -170,14 +171,10 @@ export function ExportSection({
                       userSelect: 'none',
                     }}
                   >
-                    <input
-                      type="checkbox"
+                    <SelectCheckbox
                       checked={pageChecked}
-                      ref={(el) => {
-                        if (el) el.indeterminate = someChecked && !pageChecked;
-                      }}
+                      indeterminate={someChecked && !pageChecked}
                       onChange={() => onTogglePage(group.sectionType, allIds)}
-                      style={{ accentColor: 'var(--accent-primary)' }}
                     />
                     <span
                       onClick={() => {
@@ -224,11 +221,9 @@ export function ExportSection({
                             cursor: 'pointer',
                           }}
                         >
-                          <input
-                            type="checkbox"
+                          <SelectCheckbox
                             checked={selectedObjectIds.has(obj.id)}
                             onChange={() => onToggleObject(obj.id, group.sectionType, allIds)}
-                            style={{ accentColor: 'var(--accent-primary)' }}
                           />
                           <span style={{ fontSize: 'var(--text-body-sm)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
                           <SensitivityBadge
@@ -296,8 +291,7 @@ export function ExportSection({
                                       cursor: 'pointer',
                                     }}
                                   >
-                                    <input
-                                      type="checkbox"
+                                    <SelectCheckbox
                                       checked={selectedAttachmentIds.has(att.id)}
                                       onChange={() =>
                                         onToggleAttachment(
@@ -307,7 +301,6 @@ export function ExportSection({
                                           allIds,
                                         )
                                       }
-                                      style={{ accentColor: 'var(--accent-primary)' }}
                                     />
                                     <Paperclip
                                       size={ICON_SIZE['2xs']}
@@ -417,11 +410,9 @@ export function ExportSection({
                 fontSize: 'var(--text-body-sm)',
               }}
             >
-              <input
-                type="checkbox"
+              <SelectCheckbox
                 checked={includeAttachments}
-                onChange={() => onSetIncludeAttachments(!includeAttachments)}
-                style={{ accentColor: 'var(--accent-primary)' }}
+                onChange={(v) => onSetIncludeAttachments(v)}
               />
               {t('settings:include_attachments')}
             </label>
@@ -448,11 +439,9 @@ export function ExportSection({
               fontSize: 'var(--text-body-sm)',
             }}
           >
-            <input
-              type="checkbox"
+            <SelectCheckbox
               checked={includePreferences}
-              onChange={() => onSetIncludePreferences(!includePreferences)}
-              style={{ accentColor: 'var(--accent-primary)' }}
+              onChange={(v) => onSetIncludePreferences(v)}
             />
             {t('settings:include_preferences')}
           </label>
@@ -477,11 +466,9 @@ export function ExportSection({
               fontSize: 'var(--text-body-sm)',
             }}
           >
-            <input
-              type="checkbox"
+            <SelectCheckbox
               checked={includeBehavioral}
-              onChange={() => onSetIncludeBehavioral(!includeBehavioral)}
-              style={{ accentColor: 'var(--accent-primary)' }}
+              onChange={(v) => onSetIncludeBehavioral(v)}
             />
             {t('settings:include_behavioral')}
           </label>

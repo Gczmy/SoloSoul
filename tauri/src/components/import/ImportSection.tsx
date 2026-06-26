@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import type { ImportStrategy, ImportPreview, DecryptedImportPreview } from '@/types/exportImport';
 
@@ -267,11 +268,9 @@ export function ImportSection({
                           padding: '3px 0',
                         }}
                       >
-                        <input
-                          type="checkbox"
+                        <SelectCheckbox
                           checked={isSelected}
                           onChange={() => onToggleSelection(obj.id)}
-                          style={{ accentColor: 'var(--accent-primary)' }}
                         />
                         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
                         <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
