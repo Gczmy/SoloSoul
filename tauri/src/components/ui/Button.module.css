@@ -66,12 +66,12 @@
 
 .dangerOutline {
   background: transparent;
-  border: 1px solid var(--accent-danger);
-  color: var(--accent-danger);
+  border: 1px solid #ef4444;
+  color: #ef4444;
 }
 .dangerOutline:hover:not(:disabled) {
-  background: var(--accent-danger);
-  color: var(--accent-danger-text);
+  background: #ef4444;
+  color: #ffffff;
 }
 .dangerOutline:active:not(:disabled) {
   transform: scale(0.97);
