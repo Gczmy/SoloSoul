@@ -132,7 +132,7 @@ function resolveCountryLabel(
     const upper = tagCode.toUpperCase();
     // 插件未识别到国家时返回 DEFAULT，需要国际化为“默认/Default”
     if (upper === 'DEFAULT') {
-      return locale === 'zh' ? '[默认]' : '[Default]';
+      return locale === 'zh' ? '默认' : 'Default';
     }
     const entry = COUNTRY_CODE_TO_LABEL[upper];
     if (entry) return locale === 'zh' ? entry.zh : entry.en;
@@ -152,7 +152,7 @@ function resolveCountryLabel(
   }
 
   // 3. 无 tag 也无 tagCode → 显示默认标签
-  return locale === 'zh' ? '[默认]' : '[Default]';
+  return locale === 'zh' ? '默认' : 'Default';
 }
 
 interface PluginResultPanelProps {

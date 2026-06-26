@@ -51,7 +51,7 @@ describe('PluginResultPanel', () => {
   });
 
   describe('country badge', () => {
-    it('shows localized [Default] badge when tagCode is DEFAULT', () => {
+    it('shows localized Default badge when tagCode is DEFAULT', () => {
       const results: PluginResultPayload[] = [
         {
           type: 'key_value',
@@ -60,7 +60,7 @@ describe('PluginResultPanel', () => {
         },
       ];
       render(<PluginResultPanel results={results} />);
-      expect(screen.getByText('[Default]')).toBeInTheDocument();
+      expect(screen.getByText('Default')).toBeInTheDocument();
     });
 
     it('shows localized country badge for recognized tagCode', () => {
@@ -84,7 +84,7 @@ describe('PluginResultPanel', () => {
         },
       ];
       render(<PluginResultPanel results={results} />);
-      expect(screen.getByText('[Default]')).toBeInTheDocument();
+      expect(screen.getByText('Default')).toBeInTheDocument();
     });
   });
 
