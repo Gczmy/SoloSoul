@@ -85,6 +85,7 @@ export function ObjectDetailModal({
   const [fetchedObj, setFetchedObj] = useState<ObjectData | null>(null);
   const [loading, setLoading] = useState(!object && !!objectId);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [hoveredField, setHoveredField] = useState<string | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fetchIdRef = useRef(0);
 
@@ -586,33 +587,28 @@ export function ObjectDetailModal({
                                 f.key,
                               )
                             }
+                            onMouseEnter={() => setHoveredField(f.key)}
+                            onMouseLeave={() => setHoveredField(null)}
                             style={{
                               padding: '4px 10px',
                               borderRadius: 6,
                               border: '1px solid ' + (copiedField === f.key ? 'var(--accent-primary)' : 'var(--border-subtle)'),
-                              background: 'transparent',
+                              background:
+                                hoveredField === f.key && copiedField !== f.key
+                                  ? 'color-mix(in srgb, var(--accent-primary) 12%, transparent)'
+                                  : 'transparent',
                               cursor: 'pointer',
                               fontSize: 11,
-                              color: copiedField === f.key ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                              color: copiedField === f.key
+                                ? 'var(--accent-primary)'
+                                : hoveredField === f.key
+                                  ? 'var(--accent-primary)'
+                                  : 'var(--text-tertiary)',
                               display: 'flex',
                               alignItems: 'center',
                               gap: 4,
                               boxShadow: copiedField === f.key ? '0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent)' : 'none',
                               transition: 'all var(--duration-fast) var(--ease-smooth)',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (copiedField !== f.key) {
-                                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                                e.currentTarget.style.color = 'var(--accent-primary)';
-                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (copiedField !== f.key) {
-                                e.currentTarget.style.background = 'transparent';
-                                e.currentTarget.style.color = 'var(--text-tertiary)';
-                                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                              }
                             }}
                           >
                             {copiedField === f.key ? <Check size={12} /> : <Copy size={12} />}
