@@ -830,22 +830,9 @@ export function GlobalAttachmentManager() {
 
           <div style={{ flex: 1 }} />
 
-          <button
-            onClick={loadData}
-            className="interactive-toolbar"
-            style={{
-              padding: '5px 12px',
-              borderRadius: 6,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-secondary)',
-              fontSize: 'var(--text-sm)',
-              fontWeight: 500,
-              cursor: 'pointer',
-            }}
-          >
-            {t('common:refresh') || 'Refresh'}
-          </button>
+          <Button variant="secondary" size="sm" onClick={loadData}>
+            <RotateCcw size={ICON_SIZE.sm} /> {t('common:refresh') || 'Refresh'}
+          </Button>
         </div>
 
         {/* Summary card */}
