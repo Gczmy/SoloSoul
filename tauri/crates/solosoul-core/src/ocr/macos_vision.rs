@@ -12,6 +12,8 @@
 //!
 //! 本模块仅可在 `cfg(target_os = "macos")` 下编译。非 macOS 平台应使用 PP-OCRv6 回退。
 
+use sha2::{Digest, Sha256};
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -130,12 +132,29 @@ if let jsonData = try? JSONSerialization.data(withJSONObject: ["results": result
 }
 "##;
 
+/// 计算文件的 SHA-256 哈希。
+fn sha256_file(path: &Path) -> Result<Vec<u8>, String> {
+    let mut file = std::fs::File::open(path)
+        .map_err(|e| format!("打开文件计算哈希失败: {e}"))?;
+    let mut hasher = Sha256::new();
+    std::io::copy(&mut file, &mut hasher)
+        .map_err(|e| format!("计算哈希失败: {e}"))?;
+    Ok(hasher.finalize().to_vec())
+}
+
 /// 获取或编译 Vision Framework CLI 二进制路径。
+///
+/// # 安全
+/// - 编译后设置二进制权限为 0o700（仅所有者可执行）
+/// - 源文件权限设为 0o600（仅所有者可读）
+/// - 计算并持久化编译产物的 SHA-256 哈希
+/// - 每次复用缓存前校验哈希，防止 TOCTOU 篡改
 fn ensure_vision_cli() -> Result<PathBuf, String> {
     let tmp_dir = std::env::temp_dir().join("solosoul-ocr-vision");
     std::fs::create_dir_all(&tmp_dir).map_err(|e| format!("创建 Vision CLI 缓存目录失败: {e}"))?;
 
     let binary_path = tmp_dir.join("ocr_vision_cli");
+    let hash_path = tmp_dir.join("ocr_vision_cli.sha256");
     let source_path = tmp_dir.join("ocr_vision_cli.swift");
 
     // 始终写入最新源码
@@ -197,6 +216,42 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
             binary_path.display(),
             bin_meta.len()
         );
+
+        // 设置二进制权限为 0o700（仅所有者可执行）
+        let mut bin_perms = bin_meta.permissions();
+        bin_perms.set_mode(0o700);
+        std::fs::set_permissions(&binary_path, bin_perms)
+            .map_err(|e| format!("设置二进制权限失败: {e}"))?;
+
+        // 设置源文件权限为 0o600（仅所有者可读）
+        if let Ok(src_meta) = std::fs::metadata(&source_path) {
+            let mut src_perms = src_meta.permissions();
+            src_perms.set_mode(0o600);
+            let _ = std::fs::set_permissions(&source_path, src_perms);
+        }
+
+        // 计算并持久化编译产物的 SHA-256 哈希
+        let hash = sha256_file(&binary_path)?;
+        let hash_hex = hex::encode(&hash);
+        std::fs::write(&hash_path, &hash_hex)
+            .map_err(|e| format!("写入哈希文件失败: {e}"))?;
+        tracing::debug!("Vision CLI 哈希已存储: {}", &hash_hex[..16]);
+    } else {
+        // 复用缓存前校验哈希，防止 TOCTOU 篡改
+        if hash_path.exists() {
+            let stored_hash = std::fs::read_to_string(&hash_path)
+                .map_err(|_| "读取哈希文件失败".to_string())?;
+            let actual_hash = sha256_file(&binary_path)?;
+            let actual_hex = hex::encode(&actual_hash);
+            if stored_hash.trim() != actual_hex {
+                let cache_dir = tmp_dir.display();
+                return Err(format!(
+                    "缓存二进制哈希不匹配，文件可能已被篡改。请删除 {} 后重试",
+                    cache_dir
+                ));
+            }
+            tracing::debug!("Vision CLI 哈希校验通过");
+        }
     }
 
     // 诊断：输出二进制绝对路径

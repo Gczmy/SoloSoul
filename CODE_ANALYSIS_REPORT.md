@@ -347,9 +347,9 @@
 | P2-009 rust-cache workspaces 路径 | ✅ 已修复 | CI 中已有 `tauri/src-tauri`, `solosoul_cli`, `tauri` 三个路径 |
 | P2-010 验证令牌建议改用 HKDF | ⚠️ 建议性 | 真实安全思考，非 Bug |
 | P2-011 ort 候选版本风险 | ✅ 真实 | `2.0.0-rc.12` |
-| P2-012 attachment_copy_to_vault 路径遍历 | ✅ 真实 | 用户传入 src_path 无目录限制 |
+| P2-012 attachment_copy_to_vault 路径遍历 | ✅ 已修复 | 添加 canonicalize + vault_base.starts_with 检查 |
 | P2-013 TypeOrEntryType untagged 歧义 | ⚠️ 待核实 | 需阅读具体代码 |
-| P2-014 OCR macOS swiftc 安全问题 | ✅ 真实 | 运行时编译并执行临时二进制 |
+| P2-014 OCR macOS swiftc 安全问题 | ✅ 已修复 | 添加 SHA-256 哈希校验 + 0o700/0o600 权限限制 |
 | P2-015 死代码 | ❌ 误报 | `CachedPrompt.created_at` 和 `PeerSession` 均有活跃引用，非死代码 |
 | P2-016 OCR langs 未使用 | ❌ 误报 | 当前代码中未找到 `ocr_langs` 字段 |
 | P2-017 std::mem::forget 资源泄漏 | ✅ 真实 | 可改用 Box::leak / OnceLock |

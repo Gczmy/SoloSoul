@@ -621,6 +621,10 @@ fn load_all_referenced_attachment_ids(
 }
 
 /// 将文件复制到 vault 附件目录，返回目标路径。
+///
+/// # 安全
+/// - `src_path` 会先 canonicalize 以解析相对路径遍历 (`../`)。
+/// - 来源路径不能位于 vault 存储目录内（防止自引用）。
 fn copy_to_vault(
     app: &App,
     src_path: &str,
@@ -629,12 +633,27 @@ fn copy_to_vault(
     file_name: &str,
 ) -> Result<String> {
     let base = app.vault_service.base_path();
-    let dest_dir = base.join("attachments").join(object_id).join(attachment_id);
+
+    // Canonicalize src_path 以解析路径遍历
+    let src = std::path::Path::new(src_path)
+        .canonicalize()
+        .map_err(|e| map_err(format!("无效的源文件路径: {}", e)))?;
+
+    // 拒绝源文件位于 vault 存储目录内
+    // Canonicalize vault 基目录以匹配 src.canonicalize() 的符号链接解析
+    let vault_base = base
+        .canonicalize()
+        .map_err(|e| map_err(format!("无效的 vault 基目录: {}", e)))?;
+    if src.starts_with(&vault_base) {
+        return Err(map_err("源文件路径不能位于 vault 存储目录内".to_string()));
+    }
+
+    let dest_dir = vault_base.join("attachments").join(object_id).join(attachment_id);
     std::fs::create_dir_all(&dest_dir).map_err(|e| map_err(format!("创建目录失败: {}", e)))?;
 
     let safe_name = sanitize_file_name(file_name);
     let dest_path = dest_dir.join(&safe_name);
-    std::fs::copy(src_path, &dest_path).map_err(|e| map_err(format!("复制文件失败: {}", e)))?;
+    std::fs::copy(&src, &dest_path).map_err(|e| map_err(format!("复制文件失败: {}", e)))?;
     Ok(dest_path.to_string_lossy().to_string())
 }
 
@@ -726,10 +745,12 @@ mod tests {
 
     #[test]
     fn test_add_and_list() {
-        let (mut app, account_id, dir) = unlocked_app();
+        let (mut app, account_id, _dir) = unlocked_app();
         let obj_id = create_test_object(&mut app, &account_id);
 
-        let file_path = dir.path().join("test.txt");
+        // Use a temp dir outside vault base to avoid self-reference check
+        let files_dir = tempfile::TempDir::new().unwrap();
+        let file_path = files_dir.path().join("test.txt");
         std::fs::write(&file_path, "hello").unwrap();
 
         super::add(&mut app, Some(file_path.to_str().unwrap())).unwrap();
@@ -748,9 +769,10 @@ mod tests {
 
     #[test]
     fn test_rename() {
-        let (mut app, account_id, dir) = unlocked_app();
+        let (mut app, account_id, _dir) = unlocked_app();
         let obj_id = create_test_object(&mut app, &account_id);
-        let file_path = dir.path().join("test.txt");
+        let files_dir = tempfile::TempDir::new().unwrap();
+        let file_path = files_dir.path().join("test.txt");
         std::fs::write(&file_path, "hello").unwrap();
         super::add(&mut app, Some(file_path.to_str().unwrap())).unwrap();
 
@@ -767,9 +789,10 @@ mod tests {
 
     #[test]
     fn test_delete_restore_and_purge() {
-        let (mut app, account_id, dir) = unlocked_app();
+        let (mut app, account_id, _dir) = unlocked_app();
         let obj_id = create_test_object(&mut app, &account_id);
-        let file_path = dir.path().join("test.txt");
+        let files_dir = tempfile::TempDir::new().unwrap();
+        let file_path = files_dir.path().join("test.txt");
         std::fs::write(&file_path, "hello").unwrap();
         super::add(&mut app, Some(file_path.to_str().unwrap())).unwrap();
 
@@ -815,9 +838,10 @@ mod tests {
 
     #[test]
     fn test_cleanup() {
-        let (mut app, account_id, dir) = unlocked_app();
+        let (mut app, account_id, _dir) = unlocked_app();
         let obj_id = create_test_object(&mut app, &account_id);
-        let file_path = dir.path().join("test.txt");
+        let files_dir = tempfile::TempDir::new().unwrap();
+        let file_path = files_dir.path().join("test.txt");
         std::fs::write(&file_path, "hello").unwrap();
         super::add(&mut app, Some(file_path.to_str().unwrap())).unwrap();
 

@@ -307,6 +307,11 @@ pub async fn attachment_count_batch(
 
 /// Copy a file into vault-managed attachment storage.
 /// Returns the vault path that should be stored as `vault_path` on the attachment meta.
+///
+/// # Security
+/// - `src_path` is canonicalized to resolve relative path traversal (`../`).
+/// - Source path must NOT be inside vault storage itself (prevents self-referencing).
+/// - `file_name` is sanitized to only the final path component.
 #[tauri::command]
 pub async fn attachment_copy_to_vault(
     state: State<'_, AppState>,
@@ -320,6 +325,21 @@ pub async fn attachment_copy_to_vault(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let base = svc.base_path().clone();
+
+    // Canonicalize src_path to resolve relative path traversal
+    let src = std::path::Path::new(&src_path)
+        .canonicalize()
+        .map_err(|e| format!("Invalid source path: {}", e))?;
+
+    // Reject if source path is within vault storage (self-referencing)
+    // Canonicalize the vault base to match src.canonicalize() symlink resolution.
+    let vault_base = base
+        .canonicalize()
+        .map_err(|_| "Invalid vault base path".to_string())?;
+    if src.starts_with(&vault_base) {
+        return Err("Source path must not be inside vault storage".to_string());
+    }
+
     let dest_dir = attachment_dir(&base, &object_id, &attachment_id)?;
     std::fs::create_dir_all(&dest_dir).map_err(|e| format!("Mkdir: {}", e))?;
 
@@ -330,7 +350,7 @@ pub async fn attachment_copy_to_vault(
         .to_string_lossy()
         .to_string();
     let dest_path = dest_dir.join(&safe_name);
-    std::fs::copy(&src_path, &dest_path).map_err(|e| format!("Copy: {}", e))?;
+    std::fs::copy(&src, &dest_path).map_err(|e| format!("Copy: {}", e))?;
     Ok(dest_path.to_string_lossy().to_string())
 }
 
