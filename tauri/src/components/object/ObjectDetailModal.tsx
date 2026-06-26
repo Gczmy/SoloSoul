@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { motion } from 'framer-motion';
 import { X, Clock, Paperclip, Pencil, Lock, Eye, Copy, Check } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
@@ -10,7 +11,6 @@ import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/Sensiti
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { Button } from '@/components/ui/Button';
-import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
@@ -368,7 +368,11 @@ export function ObjectDetailModal({
         }}
         onClick={onClose}
       >
-        <div
+        {!loading && obj && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
           ref={detailDragRef}
           onClick={(e) => e.stopPropagation()}
           style={{
@@ -384,9 +388,6 @@ export function ObjectDetailModal({
             position: 'relative',
           }}
         >
-          {loading || !obj ? (
-            <LoadingPlaceholder variant="elevated" minHeight={160} />
-          ) : (
             <>
               {/* Header */}
               <div
@@ -702,8 +703,8 @@ export function ObjectDetailModal({
                 </DeleteButton>
               </div>
             </>
-          )}
-        </div>
+        </motion.div>
+        )}
       </div>
 
       {confirmDelete && obj && (
