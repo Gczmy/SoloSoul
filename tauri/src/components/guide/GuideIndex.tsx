@@ -36,7 +36,7 @@ export function GuideIndex({ guides, categories, language, onSelect, extraItems 
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-lg)' }}>
       {grouped.map((group) => (
         <div key={group.id}>
           <h3
@@ -52,7 +52,7 @@ export function GuideIndex({ guides, categories, language, onSelect, extraItems 
           >
             {resolveTitle(group.title, language)}
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
             {group.items.map((guide) => (
               <Card key={guide.id} interactive onClick={() => onSelect(guide.id)}>
                 <div

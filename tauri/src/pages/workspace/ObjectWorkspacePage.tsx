@@ -341,30 +341,33 @@ export function ObjectWorkspacePage() {
             </p>
           </Card>
         )}
-        {!isLoading &&
-          visibleObjects.map((obj) => (
-            <WorkspaceObjectCard
-              key={obj.id}
-              obj={obj}
-              collectionLabel={resolveCollectionLabel(obj.collectionType)}
-              userTemplates={userTemplates}
-              snapshotCount={snapshotCounts[obj.id]}
-              attachmentCount={attachmentCounts[obj.id]}
-              onClick={() => setDetailObj(obj)}
-              onHistory={() =>
-                setHistoryObj({
-                  id: obj.id,
-                  name: obj.name,
-                  collectionType: obj.collectionType,
-                  templateId: obj.templateId || undefined,
-                })
-              }
-              onUploadComplete={refreshAttachmentCounts}
-              onAttachments={() => setAttachmentObjId(obj.id)}
-              onEdit={() => navigate(`/editor/${obj.id}`)}
-              onDelete={() => setConfirmDelete({ id: obj.id, name: obj.name })}
-            />
-          ))}
+        {!isLoading && visibleObjects.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
+            {visibleObjects.map((obj) => (
+              <WorkspaceObjectCard
+                key={obj.id}
+                obj={obj}
+                collectionLabel={resolveCollectionLabel(obj.collectionType)}
+                userTemplates={userTemplates}
+                snapshotCount={snapshotCounts[obj.id]}
+                attachmentCount={attachmentCounts[obj.id]}
+                onClick={() => setDetailObj(obj)}
+                onHistory={() =>
+                  setHistoryObj({
+                    id: obj.id,
+                    name: obj.name,
+                    collectionType: obj.collectionType,
+                    templateId: obj.templateId || undefined,
+                  })
+                }
+                onUploadComplete={refreshAttachmentCounts}
+                onAttachments={() => setAttachmentObjId(obj.id)}
+                onEdit={() => navigate(`/editor/${obj.id}`)}
+                onDelete={() => setConfirmDelete({ id: obj.id, name: obj.name })}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Page delete confirmation dialog */}
         <ConfirmDeleteDialog

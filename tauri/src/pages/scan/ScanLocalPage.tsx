@@ -158,8 +158,9 @@ export function ScanLocalPage() {
                 <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> Import All
               </Button>
             </div>
-            {files.map((file) => (
-              <Card key={file.path}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
+              {files.map((file) => (
+                <Card key={file.path}>
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
@@ -181,7 +182,8 @@ export function ScanLocalPage() {
                   </Button>
                 </div>
               </Card>
-            ))}
+              ))}
+            </div>
           </>
         )}
 

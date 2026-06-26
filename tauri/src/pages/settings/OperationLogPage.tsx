@@ -291,114 +291,116 @@ export function OperationLogPage() {
             </div>
           </Card>
         ) : (
-          filteredLogs.map((entry) => (
-            <Card key={entry.id}>
-              <div style={{ display: 'flex', gap: 12, fontSize: 'var(--text-body-sm)' }}>
-                <div
-                  style={{
-                    width: 3,
-                    borderRadius: 2,
-                    flexShrink: 0,
-                    backgroundColor: entry.actionType.includes('delete')
-                      ? 'var(--accent-danger, #ef4444)'
-                      : entry.actionType.includes('create')
-                        ? 'var(--accent-success, #22c55e)'
-                        : 'var(--accent-primary, #3b82f6)',
-                  }}
-                />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
+            {filteredLogs.map((entry) => (
+              <Card key={entry.id}>
+                <div style={{ display: 'flex', gap: 12, fontSize: 'var(--text-body-sm)' }}>
+                  <div
+                    style={{
+                      width: 3,
+                      borderRadius: 2,
+                      flexShrink: 0,
+                      backgroundColor: entry.actionType.includes('delete')
+                        ? 'var(--accent-danger, #ef4444)'
+                        : entry.actionType.includes('create')
+                          ? 'var(--accent-success, #22c55e)'
+                          : 'var(--accent-primary, #3b82f6)',
+                    }}
+                  />
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span
-                      style={{
-                        fontSize: 'var(--text-badge)',
-                        fontWeight: 600,
-                        padding: '1px 6px',
-                        borderRadius: 4,
-                        backgroundColor: entry.actionType.includes('delete')
-                          ? 'rgba(239,68,68,0.12)'
-                          : entry.actionType.includes('create')
-                            ? 'rgba(34,197,94,0.12)'
-                            : 'rgba(59,130,246,0.12)',
-                        color: entry.actionType.includes('delete')
-                          ? 'var(--accent-danger, #ef4444)'
-                          : entry.actionType.includes('create')
-                            ? 'var(--accent-success, #22c55e)'
-                            : 'var(--accent-primary, #3b82f6)',
-                      }}
-                    >
-                      {t(
-                        `settings:log.action.${entry.actionType}`,
-                        entry.actionType
-                          .replace(/_/g, ' ')
-                          .replace(/\b\w/g, (c) => c.toUpperCase()),
-                      )}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 'var(--text-badge)',
-                        fontWeight: 600,
-                        padding: '1px 6px',
-                        borderRadius: 4,
-                        backgroundColor:
-                          entry.entityType === 'page'
-                            ? 'rgba(139, 92, 246, 0.12)'
-                            : entry.entityType === 'object'
-                              ? 'rgba(34, 197, 94, 0.12)'
-                              : 'var(--bg-subtle, rgba(128,128,128,0.08))',
-                        color:
-                          entry.entityType === 'page'
-                            ? '#8B5CF6'
-                            : entry.entityType === 'object'
-                              ? '#22c55e'
-                              : 'var(--text-secondary)',
-                      }}
-                    >
-                      {t(`settings:log.entity.${entry.entityType}`, entry.entityType)}
-                      {entry.entityName && entry.entityType !== 'template'
-                        ? `: ${entry.entityName}`
-                        : ''}
-                    </span>
-                    {entry.performedBy === 'system' && (
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <span
                         style={{
                           fontSize: 'var(--text-badge)',
-                          padding: '1px 4px',
-                          borderRadius: 3,
-                          backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.08))',
-                          color: 'var(--text-tertiary)',
+                          fontWeight: 600,
+                          padding: '1px 6px',
+                          borderRadius: 4,
+                          backgroundColor: entry.actionType.includes('delete')
+                            ? 'rgba(239,68,68,0.12)'
+                            : entry.actionType.includes('create')
+                              ? 'rgba(34,197,94,0.12)'
+                              : 'rgba(59,130,246,0.12)',
+                          color: entry.actionType.includes('delete')
+                            ? 'var(--accent-danger, #ef4444)'
+                            : entry.actionType.includes('create')
+                              ? 'var(--accent-success, #22c55e)'
+                              : 'var(--accent-primary, #3b82f6)',
                         }}
                       >
-                        {t('settings:log.performed_by_system')}
+                        {t(
+                          `settings:log.action.${entry.actionType}`,
+                          entry.actionType
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, (c) => c.toUpperCase()),
+                        )}
                       </span>
-                    )}
-                    <span
-                      style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginLeft: 'auto' }}
-                    >
-                      {new Date(entry.timestamp).toLocaleString(i18n.language)}
-                    </span>
-                  </div>
-                  {entry.details && formatDetail(entry, t, customPages) && (
-                    <div
-                      style={{
-                        margin: '4px 0 0',
-                        fontSize: 'var(--text-caption)',
-                        color: 'var(--text-secondary)',
-                        fontFamily: 'monospace',
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word',
-                        backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.04))',
-                        padding: '6px 8px',
-                        borderRadius: 4,
-                      }}
-                    >
-                      {formatDetail(entry, t, customPages)}
+                      <span
+                        style={{
+                          fontSize: 'var(--text-badge)',
+                          fontWeight: 600,
+                          padding: '1px 6px',
+                          borderRadius: 4,
+                          backgroundColor:
+                            entry.entityType === 'page'
+                              ? 'rgba(139, 92, 246, 0.12)'
+                              : entry.entityType === 'object'
+                                ? 'rgba(34, 197, 94, 0.12)'
+                                : 'var(--bg-subtle, rgba(128,128,128,0.08))',
+                          color:
+                            entry.entityType === 'page'
+                              ? '#8B5CF6'
+                              : entry.entityType === 'object'
+                                ? '#22c55e'
+                                : 'var(--text-secondary)',
+                        }}
+                      >
+                        {t(`settings:log.entity.${entry.entityType}`, entry.entityType)}
+                        {entry.entityName && entry.entityType !== 'template'
+                          ? `: ${entry.entityName}`
+                          : ''}
+                      </span>
+                      {entry.performedBy === 'system' && (
+                        <span
+                          style={{
+                            fontSize: 'var(--text-badge)',
+                            padding: '1px 4px',
+                            borderRadius: 3,
+                            backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.08))',
+                            color: 'var(--text-tertiary)',
+                          }}
+                        >
+                          {t('settings:log.performed_by_system')}
+                        </span>
+                      )}
+                      <span
+                        style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginLeft: 'auto' }}
+                      >
+                        {new Date(entry.timestamp).toLocaleString(i18n.language)}
+                      </span>
                     </div>
-                  )}
+                    {entry.details && formatDetail(entry, t, customPages) && (
+                      <div
+                        style={{
+                          margin: '4px 0 0',
+                          fontSize: 'var(--text-caption)',
+                          color: 'var(--text-secondary)',
+                          fontFamily: 'monospace',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          backgroundColor: 'var(--bg-subtle, rgba(128,128,128,0.04))',
+                          padding: '6px 8px',
+                          borderRadius: 4,
+                        }}
+                      >
+                        {formatDetail(entry, t, customPages)}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))
+              </Card>
+            ))}
+          </div>
         )}
       </PageContainer>
     </AppShell>

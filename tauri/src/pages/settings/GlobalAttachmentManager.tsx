@@ -944,7 +944,9 @@ export function GlobalAttachmentManager() {
             </div>
           </Card>
         ) : (
-          displayPages.map(renderPage)
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}>
+            {displayPages.map(renderPage)}
+          </div>
         )}
       </PageContainer>
 

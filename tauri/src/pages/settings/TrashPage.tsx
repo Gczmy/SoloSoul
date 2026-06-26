@@ -279,7 +279,7 @@ export function TrashPage() {
             <LoadingPlaceholder variant="elevated" minHeight={120} />
           </Card>
         ) : (
-          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
             {isLoading && hasLoaded && (
               <div
                 style={{

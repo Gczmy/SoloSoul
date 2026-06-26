@@ -418,6 +418,7 @@ export function TemplateManagerPage() {
           </div>
         )}
 
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
         {filteredTemplates.map((tpl) => {
           const ut = templates.find((u) => u.id === tpl.id);
           const TemplateIcon = ut?.iconId ? resolveCustomIcon(ut.iconId) : LayoutTemplate;
@@ -498,6 +499,7 @@ export function TemplateManagerPage() {
           </Card>
         );}
         )}
+        </div>
       </PageContainer>
 
       {/* Edit / Create Dialog */}

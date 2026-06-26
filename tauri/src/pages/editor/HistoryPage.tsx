@@ -81,8 +81,9 @@ export function HistoryPage() {
             <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
               {t('common:version_count', { n: snapshots.length })}
             </p>
-            {snapshots.map((s, i) => (
-              <Card key={s.id}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
+              {snapshots.map((s, i) => (
+                <Card key={s.id}>
                 <div
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
@@ -116,7 +117,8 @@ export function HistoryPage() {
                   </div>
                 </div>
               </Card>
-            ))}
+              ))}
+            </div>
           </>
         )}
       </PageContainer>

@@ -174,7 +174,7 @@ export function SearchPage() {
             </Card>
           )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
             {results.map((item) => (
               <Card
                 key={item.objectId}
