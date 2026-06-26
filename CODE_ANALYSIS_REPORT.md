@@ -345,7 +345,7 @@
 | P2-007 AGENTS.md 过时路径 | ✅ 已修复 | 更新 docs/ 结构、核心路径、密码对话框路径、快速参考表共 10 处 |
 | P2-008 OCR 版本/敏感度分级文档冲突 | ✅ 已修复 | README: PP-OCRv4→v6, 敏感度 3→6 级 |
 | P2-009 rust-cache workspaces 路径 | ✅ 已修复 | CI 中已有 `tauri/src-tauri`, `solosoul_cli`, `tauri` 三个路径 |
-| P2-010 验证令牌建议改用 HKDF | ⚠️ 建议性 | 真实安全思考，非 Bug |
+| P2-010 验证令牌改用 HKDF | ✅ 已修复 | HKDF-SHA256 替代 lightweight Argon2id，含 crypto_version 向后兼容 |
 | P2-011 ort 候选版本风险 | ⚠️ 无稳定版可升级 | `2.0.0-rc.12` 仍为最新版，文档称可生产使用 |
 | P2-012 attachment_copy_to_vault 路径遍历 | ✅ 已修复 | 添加 canonicalize + vault_base.starts_with 检查 |
 | P2-013 TypeOrEntryType untagged 歧义 | ⚠️ 待核实 | 需阅读具体代码 |
@@ -430,9 +430,9 @@
 
 ### 第四优先级（批量/通用建议）
 
-9. **P1-010** — 关键模块补充测试
-10. **P2-002** — 过长函数拆分
-11. **P2-010** — 验证令牌改用 HKDF（建议性）
+9. ✅ **P1-010** — 已修复（25 项新增测试：rate_limiter 7、hkdf_ext 7、session 6、biometric stub 5）
+10. ✅ **P2-002** — 已修复（extract `build_attachment_tree_pages` / `send_paginated_deltas`）
+11. ✅ **P2-010** — 已验证令牌改用 HKDF-SHA256，含 crypto_version < 3 向后兼容 |
 12. **P2-011** — ort 候选版本风险（`2.0.0-rc.12`）
 13. **P2-013** — TypeOrEntryType untagged 歧义（待核实）
 14. ✅ **P2-017** — 已修复（mem::forget → Box::leak）

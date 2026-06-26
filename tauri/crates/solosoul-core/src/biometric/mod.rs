@@ -538,22 +538,13 @@ mod tests {
     fn create_test_account_config(password: &str) -> (crate::vault_service::AccountConfig, String) {
         let salt = solosoul_crypto::kdf::generate_salt();
         let salt_b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt);
-        let config = solosoul_crypto::kdf::KdfConfig::balanced();
-        let master_key = solosoul_crypto::kdf::derive_key(password, &salt, &config).unwrap();
+        let kdf_cfg = solosoul_crypto::kdf::KdfConfig::balanced();
+        let master_key = solosoul_crypto::kdf::derive_key(password, &salt, &kdf_cfg).unwrap();
+        let mk: [u8; 32] = master_key.as_slice().try_into().unwrap();
+        let verify_hash = hex::encode(
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1").unwrap(),
+        );
         let master_key_hex = hex::encode(master_key.as_slice());
-
-        let verify_config = solosoul_crypto::kdf::KdfConfig {
-            memory_kb: 8192,
-            iterations: 1,
-            parallelism: 1,
-        };
-        let verify_key = solosoul_crypto::kdf::derive_key(
-            &master_key_hex,
-            b"SOLOSOUL_VAULT_VERIFY_v1",
-            &verify_config,
-        )
-        .unwrap();
-        let verify_hash = hex::encode(verify_key.as_slice());
 
         let cfg = crate::vault_service::AccountConfig {
             account_id: "test_acc".to_string(),
@@ -561,7 +552,7 @@ mod tests {
             salt: salt_b64,
             verify_hash,
             created_at: chrono::Utc::now().to_rfc3339(),
-            crypto_version: 2,
+            crypto_version: 3,
             password_hint: None,
             last_login_at: None,
             last_operation_at: None,

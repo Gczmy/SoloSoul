@@ -443,11 +443,28 @@ pub async fn attachment_list_all(
         }
     }
 
-    // Helper: build tree from a list of objects, with template name lookup cache
+    let pages = build_attachment_tree_pages(
+        &vault, &account_id, &page_objects, &section_groups, false,
+    )?;
+    let trash_pages = build_attachment_tree_pages(
+        &vault, &account_id, &page_objects, &section_groups, true,
+    )?;
+
+    Ok(AttachmentListAllResult { pages, trash_pages })
+}
+
+/// Build attachment tree pages for a given filter (active vs trash).
+fn build_attachment_tree_pages(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+    page_objects: &[solosoul_vault::ObjectSummary],
+    section_groups: &std::collections::BTreeMap<String, Vec<solosoul_vault::ObjectSummary>>,
+    only_deleted: bool,
+) -> Result<Vec<AttachmentTreePage>, String> {
     let template_cache: std::cell::RefCell<std::collections::HashMap<String, Option<String>>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
     let build_objects_with_attachments =
-        |objs: &[solosoul_vault::ObjectSummary], only_deleted: bool| -> Vec<AttachmentTreeObject> {
+        |objs: &[solosoul_vault::ObjectSummary], only_del: bool| -> Vec<AttachmentTreeObject> {
             objs.iter()
                 .filter_map(|summary| {
                     let record = vault.load_object(&summary.id).ok()??;
@@ -455,7 +472,7 @@ pub async fn attachment_list_all(
                     let filtered: Vec<AttachmentMeta> = all_atts
                         .into_iter()
                         .filter(|a| {
-                            if only_deleted {
+                            if only_del {
                                 a.deleted_at.is_some()
                             } else {
                                 a.deleted_at.is_none()
@@ -488,19 +505,19 @@ pub async fn attachment_list_all(
                 .collect()
         };
 
-    // ── Build active pages ─────────────────────────────────────
     let mut pages: Vec<AttachmentTreePage> = Vec::new();
     let mut child_ids_assigned: std::collections::HashSet<String> =
         std::collections::HashSet::new();
 
     // For custom pages: find children via parent_id
-    for page_obj in &page_objects {
-        let children =
-            vault.list_objects(&account_id, None, Some(&page_obj.id), None, false, false)?;
+    for page_obj in page_objects {
+        let children = vault
+            .list_objects(account_id, None, Some(&page_obj.id), None, false, false)
+            .unwrap_or_default();
         for child in &children {
             child_ids_assigned.insert(child.id.clone());
         }
-        let objects_with_attachments = build_objects_with_attachments(&children, false);
+        let objects_with_attachments = build_objects_with_attachments(&children, only_deleted);
         if !objects_with_attachments.is_empty() {
             pages.push(AttachmentTreePage {
                 page_id: Some(page_obj.id.clone()),
@@ -512,7 +529,7 @@ pub async fn attachment_list_all(
     }
 
     // For remaining objects: group by section_type (built-in sections)
-    for (section, objs) in &section_groups {
+    for (section, objs) in section_groups {
         let unassigned: Vec<_> = objs
             .iter()
             .filter(|o| !child_ids_assigned.contains(&o.id))
@@ -521,57 +538,18 @@ pub async fn attachment_list_all(
         if unassigned.is_empty() {
             continue;
         }
-        let objects_with_attachments = build_objects_with_attachments(&unassigned, false);
+        let objects_with_attachments = build_objects_with_attachments(&unassigned, only_deleted);
         if !objects_with_attachments.is_empty() {
             pages.push(AttachmentTreePage {
                 page_id: None,
                 page_name: section.clone(),
-                // Pass section name as icon key so frontend can look up in PAGE_ICON_MAP
                 page_icon: Some(section.clone()),
                 objects: objects_with_attachments,
             });
         }
     }
 
-    // ── Build trash pages ──────────────────────────────────────
-    let mut trash_pages: Vec<AttachmentTreePage> = Vec::new();
-    for page_obj in &page_objects {
-        let children =
-            vault.list_objects(&account_id, None, Some(&page_obj.id), None, false, false)?;
-        for child in &children {
-            child_ids_assigned.insert(child.id.clone());
-        }
-        let objects_with_trash = build_objects_with_attachments(&children, true);
-        if !objects_with_trash.is_empty() {
-            trash_pages.push(AttachmentTreePage {
-                page_id: Some(page_obj.id.clone()),
-                page_name: page_obj.name.clone(),
-                page_icon: Some(page_obj.icon_name.clone()),
-                objects: objects_with_trash,
-            });
-        }
-    }
-    for (section, objs) in &section_groups {
-        let unassigned: Vec<_> = objs
-            .iter()
-            .filter(|o| !child_ids_assigned.contains(&o.id))
-            .cloned()
-            .collect();
-        if unassigned.is_empty() {
-            continue;
-        }
-        let objects_with_trash = build_objects_with_attachments(&unassigned, true);
-        if !objects_with_trash.is_empty() {
-            trash_pages.push(AttachmentTreePage {
-                page_id: None,
-                page_name: section.clone(),
-                page_icon: Some(section.clone()),
-                objects: objects_with_trash,
-            });
-        }
-    }
-
-    Ok(AttachmentListAllResult { pages, trash_pages })
+    Ok(pages)
 }
 
 /// Download an attachment file to a user-chosen destination path.

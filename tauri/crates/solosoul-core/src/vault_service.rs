@@ -340,18 +340,13 @@ impl VaultService {
         let master_key = derive_key(password, &salt, &kdf_config)
             .map_err(|e| format!("Key derivation failed: {}", e))?;
 
-        let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
-        let verify_key = derive_key(
-            &hex::encode(master_key.as_slice()),
-            verify_data,
-            &KdfConfig {
-                memory_kb: 8192,
-                iterations: 1,
-                parallelism: 1,
-            },
-        )
-        .map_err(|e| format!("Verify key derivation failed: {}", e))?;
-        let verify_hash = hex::encode(verify_key.as_slice());
+        let mk: [u8; 32] = master_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Master key must be 32 bytes".to_string())?;
+        let verify_hash = hex::encode(solosoul_crypto::hkdf_ext::derive_hkdf_key(
+            &mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1",
+        ).map_err(|e| format!("Verify HKDF failed: {}", e))?);
 
         let dir = self.account_dir(&account_id);
         fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
@@ -367,7 +362,7 @@ impl VaultService {
             ),
             verify_hash,
             created_at: now.clone(),
-            crypto_version: 2,
+            crypto_version: 3, // P2-010: HKDF-based verify hash
             biometric_enabled: false,
             kdf_memory_kb: Some(kdf_config.memory_kb),
             kdf_iterations: Some(kdf_config.iterations),
@@ -449,18 +444,28 @@ impl VaultService {
         let master_key = derive_key(password, &salt_arr, &kdf_config)
             .map_err(|_| "Key derivation failed".to_string())?;
 
-        let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
-        let verify_key = derive_key(
-            &hex::encode(master_key.as_slice()),
-            verify_data,
-            &KdfConfig {
-                memory_kb: 8192,
-                iterations: 1,
-                parallelism: 1,
-            },
-        )
-        .map_err(|_| "Verify failed".to_string())?;
-        let computed_hash = hex::encode(verify_key.as_slice());
+        let mk: [u8; 32] = master_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Master key must be 32 bytes".to_string())?;
+        // Backward compat: crypto_version < 3 uses old Argon2id verify hash
+        let computed_hash = if config.crypto_version < 3 {
+            let verify_key = derive_key(
+                &hex::encode(master_key.as_slice()),
+                b"SOLOSOUL_VAULT_VERIFY_v1",
+                &KdfConfig {
+                    memory_kb: 8192,
+                    iterations: 1,
+                    parallelism: 1,
+                },
+            )
+            .map_err(|_| "Verify failed".to_string())?;
+            hex::encode(verify_key.as_slice())
+        } else {
+            hex::encode(solosoul_crypto::hkdf_ext::derive_hkdf_key(
+                &mk, &salt_arr, b"SOLOSOUL_VAULT_VERIFY_v1",
+            ).map_err(|_| "Verify HKDF failed".to_string())?)
+        };
 
         if !secure_compare(computed_hash.as_bytes(), config.verify_hash.as_bytes()) {
             return Err("Invalid password".to_string());
@@ -525,6 +530,7 @@ impl VaultService {
 
     /// Verify whether the given password matches the account's master password.
     /// Does NOT modify any state (no unlocking, no session key storage).
+    /// Verify hash is derived from the Argon2id master key using HKDF-SHA256 (P2-010).
     pub fn verify_password(&self, account_id: &str, password: &str) -> Result<bool, String> {
         let config_path = self.config_path(account_id);
         let content =
@@ -544,18 +550,28 @@ impl VaultService {
         let master_key = derive_key(password, &salt_arr, &kdf_config)
             .map_err(|_| "Key derivation failed".to_string())?;
 
-        let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
-        let verify_key = derive_key(
-            &hex::encode(master_key.as_slice()),
-            verify_data,
-            &KdfConfig {
-                memory_kb: 8192,
-                iterations: 1,
-                parallelism: 1,
-            },
-        )
-        .map_err(|_| "Verify failed".to_string())?;
-        let computed_hash = hex::encode(verify_key.as_slice());
+        let mk: [u8; 32] = master_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Master key must be 32 bytes".to_string())?;
+        // Backward compat: crypto_version < 3 uses old Argon2id verify hash
+        let computed_hash = if config.crypto_version < 3 {
+            let verify_key = derive_key(
+                &hex::encode(master_key.as_slice()),
+                b"SOLOSOUL_VAULT_VERIFY_v1",
+                &KdfConfig {
+                    memory_kb: 8192,
+                    iterations: 1,
+                    parallelism: 1,
+                },
+            )
+            .map_err(|_| "Verify failed".to_string())?;
+            hex::encode(verify_key.as_slice())
+        } else {
+            hex::encode(solosoul_crypto::hkdf_ext::derive_hkdf_key(
+                &mk, &salt_arr, b"SOLOSOUL_VAULT_VERIFY_v1",
+            ).map_err(|_| "Verify HKDF failed".to_string())?)
+        };
 
         Ok(secure_compare(
             computed_hash.as_bytes(),
@@ -626,19 +642,11 @@ impl VaultService {
             vault.reencrypt_all(&old_key, &new_key_enc)?;
         }
 
-        // Derive new verify hash.
-        let verify_data = b"SOLOSOUL_VAULT_VERIFY_v1";
-        let verify_key = derive_key(
-            &hex::encode(new_key.as_slice()),
-            verify_data,
-            &KdfConfig {
-                memory_kb: 8192,
-                iterations: 1,
-                parallelism: 1,
-            },
-        )
-        .map_err(|e| e.to_string())?;
-        let verify_hash = hex::encode(verify_key.as_slice());
+        // Derive new verify hash via HKDF (P2-010).
+        let mk: [u8; 32] = new_key_arr; // already 32 bytes from try_into above
+        let verify_hash = hex::encode(solosoul_crypto::hkdf_ext::derive_hkdf_key(
+            &mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1",
+        ).map_err(|e| format!("Verify HKDF failed: {}", e))?);
 
         // Update config
         let config_path = self.config_path(account_id);
@@ -646,6 +654,7 @@ impl VaultService {
             fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
         let mut config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
+        config.crypto_version = 3; // P2-010: HKDF-based verify hash
         config.salt =
             base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt.as_slice());
         config.verify_hash = verify_hash;

@@ -473,67 +473,9 @@ fn run_initiator_session(
     let _ = trusted;
 
     // Send our changes first, paginated by table.
-    for table in SYNC_TABLES {
-        loop {
-            let watermark = vault_to_watermark(&vault.get_peer_watermark(&peer_node_id, table)?);
-            let page = generate_delta_paginated(
-                &vault,
-                table,
-                &watermark,
-                account_id,
-                node_id,
-                DELTA_PAGE_LIMIT,
-                0,
-            )?;
-            if page.records.is_empty() && page.finished {
-                break;
-            }
-
-            let finished = page.finished;
-            let max_hlc = max_record_hlc(&page.records);
-            let record_count = page.records.len();
-            send_msg(
-                &mut session,
-                transport,
-                &SyncMessage::Batch {
-                    table: table.to_string(),
-                    records: page.records,
-                    finished,
-                },
-            )?;
-
-            let ack = recv_msg(&mut session, transport)?;
-            if let SyncMessage::Ack {
-                table: ack_table,
-                count,
-            } = ack
-            {
-                if ack_table != *table {
-                    return Err(format!("Ack for wrong table: {}", ack_table));
-                }
-                tracing::info!("Sent {} {} records to peer", count, table);
-            } else {
-                return Err("Expected Ack after Batch".to_string());
-            }
-
-            // Advance peer watermark so the next page resumes after what we just sent.
-            if let Some(max) = max_hlc {
-                vault.update_peer_watermark(
-                    &peer_node_id,
-                    table,
-                    &watermark_to_vault(&hlc_to_sync_watermark(&max)),
-                )?;
-            }
-
-            if finished {
-                break;
-            }
-            // If the peer is still behind, another page will be fetched starting from
-            // the updated watermark. The loop count is bounded by table size / DELTA_PAGE_LIMIT.
-            let _ = record_count;
-        }
-    }
-    send_msg(&mut session, transport, &SyncMessage::Done)?;
+    send_paginated_deltas(
+        &mut session, transport, &vault, account_id, node_id, &peer_node_id,
+    )?;
 
     // Receive peer changes and apply each batch incrementally to bound memory.
     let mut data_stats = ApplyStats::default();
@@ -750,59 +692,9 @@ fn handle_inbound(
     }
 
     // Send our changes back, paginated by table.
-    for table in SYNC_TABLES {
-        loop {
-            let watermark = vault_to_watermark(&vault.get_peer_watermark(&peer_node_id, table)?);
-            let page = generate_delta_paginated(
-                &vault,
-                table,
-                &watermark,
-                account_id,
-                node_id,
-                DELTA_PAGE_LIMIT,
-                0,
-            )?;
-            if page.records.is_empty() && page.finished {
-                break;
-            }
-
-            let finished = page.finished;
-            let max_hlc = max_record_hlc(&page.records);
-            send_msg(
-                &mut session,
-                transport,
-                &SyncMessage::Batch {
-                    table: table.to_string(),
-                    records: page.records,
-                    finished,
-                },
-            )?;
-            let ack = recv_msg(&mut session, transport)?;
-            if let SyncMessage::Ack {
-                table: ack_table, ..
-            } = ack
-            {
-                if ack_table != *table {
-                    return Err(format!("Ack for wrong table: {}", ack_table));
-                }
-            } else {
-                return Err("Expected Ack after Batch".to_string());
-            }
-
-            if let Some(max) = max_hlc {
-                vault.update_peer_watermark(
-                    &peer_node_id,
-                    table,
-                    &watermark_to_vault(&hlc_to_sync_watermark(&max)),
-                )?;
-            }
-
-            if finished {
-                break;
-            }
-        }
-    }
-    send_msg(&mut session, transport, &SyncMessage::Done)?;
+    send_paginated_deltas(
+        &mut session, transport, &vault, account_id, node_id, &peer_node_id,
+    )?;
 
     let base = vault.base_path();
     let attachment_stats =
@@ -871,6 +763,73 @@ fn recv_msg(
 ) -> Result<SyncMessage, String> {
     let bytes = session.receive(transport)?;
     SyncMessage::decode(&bytes)
+}
+
+/// Send paginated delta batches for all SYNC_TABLES to a peer, handling acks
+/// and watermark advancement. Shared by both initiator and responder sessions.
+fn send_paginated_deltas(
+    session: &mut NoiseSession,
+    transport: &mut SyncTransport,
+    vault: &VaultStore,
+    account_id: &str,
+    node_id: &str,
+    peer_node_id: &str,
+) -> Result<(), String> {
+    for table in SYNC_TABLES {
+        loop {
+            let watermark = vault_to_watermark(&vault.get_peer_watermark(peer_node_id, table)?);
+            let page = generate_delta_paginated(
+                vault,
+                table,
+                &watermark,
+                account_id,
+                node_id,
+                DELTA_PAGE_LIMIT,
+                0,
+            )?;
+            if page.records.is_empty() && page.finished {
+                break;
+            }
+
+            let finished = page.finished;
+            let max_hlc = max_record_hlc(&page.records);
+
+            send_msg(
+                session,
+                transport,
+                &SyncMessage::Batch {
+                    table: table.to_string(),
+                    records: page.records,
+                    finished,
+                },
+            )?;
+
+            let ack = recv_msg(session, transport)?;
+            if let SyncMessage::Ack {
+                table: ack_table, ..
+            } = ack
+            {
+                if ack_table != *table {
+                    return Err(format!("Ack for wrong table: {}", ack_table));
+                }
+            } else {
+                return Err("Expected Ack after Batch".to_string());
+            }
+
+            if let Some(max) = max_hlc {
+                vault.update_peer_watermark(
+                    peer_node_id,
+                    table,
+                    &watermark_to_vault(&hlc_to_sync_watermark(&max)),
+                )?;
+            }
+
+            if finished {
+                break;
+            }
+        }
+    }
+    send_msg(session, transport, &SyncMessage::Done)
 }
 
 fn vault_to_watermark(wm: &solosoul_vault::SyncWatermark) -> SyncWatermark {

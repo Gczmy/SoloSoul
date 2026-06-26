@@ -46,3 +46,78 @@ impl RateLimiter {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_basic_rate_limit_allows_within_limit() {
+        let limiter = RateLimiter::new(5);
+        for _ in 0..5 {
+            assert!(limiter.check("plugin_a", "action_x"));
+        }
+    }
+
+    #[test]
+    fn test_rate_limit_exceeds_max() {
+        let limiter = RateLimiter::new(3);
+        assert!(limiter.check("p1", "a1"));
+        assert!(limiter.check("p1", "a1"));
+        assert!(limiter.check("p1", "a1"));
+        assert!(!limiter.check("p1", "a1")); // 第 4 次应被限流
+    }
+
+    #[test]
+    fn test_different_actions_independent() {
+        let limiter = RateLimiter::new(2);
+        assert!(limiter.check("p1", "action_a"));
+        assert!(limiter.check("p1", "action_a"));
+        // action_b 应仍可用（独立计数）
+        assert!(limiter.check("p1", "action_b"));
+        assert!(limiter.check("p1", "action_b"));
+        // action_a 应已被限流
+        assert!(!limiter.check("p1", "action_a"));
+    }
+
+    #[test]
+    fn test_different_plugins_independent() {
+        let limiter = RateLimiter::new(1);
+        assert!(limiter.check("plugin_a", "read"));
+        // plugin_b 的 read 应仍可用
+        assert!(limiter.check("plugin_b", "read"));
+        // plugin_a 的 read 应已被限流
+        assert!(!limiter.check("plugin_a", "read"));
+    }
+
+    #[test]
+    fn test_rate_limit_per_minute_allows_same_plugin() {
+        let limiter = RateLimiter::new(10);
+        for i in 0..10 {
+            assert!(limiter.check("p1", &format!("action_{}", i)));
+        }
+        // 同一插件但不同动作不应限流
+        assert!(limiter.check("p1", "action_new"));
+    }
+
+    #[test]
+    fn test_different_plugins_and_actions() {
+        let limiter = RateLimiter::new(2);
+        assert!(limiter.check("p1", "read"));
+        assert!(limiter.check("p1", "read"));
+        assert!(!limiter.check("p1", "read"));
+        // p2 read 独立
+        assert!(limiter.check("p2", "read"));
+        assert!(limiter.check("p2", "read"));
+        assert!(!limiter.check("p2", "read"));
+        // p1 write 独立
+        assert!(limiter.check("p1", "write"));
+    }
+
+    #[test]
+    fn test_zero_max_denies_all() {
+        let limiter = RateLimiter::new(0);
+        assert!(!limiter.check("p1", "a1"));
+        assert!(!limiter.check("p1", "a1"));
+    }
+}
