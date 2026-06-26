@@ -28,6 +28,7 @@ import {
   BookOpen,
   Trash2,
   LayoutTemplate,
+  Paperclip,
   ArrowLeftRight,
   Shield,
   Key,
@@ -121,6 +122,7 @@ export const PAGE_ICON_MAP = {
   templates: LayoutTemplate,
   import_export: ArrowLeftRight,
   ocr: Scan,
+  attachments: Paperclip,
 } as const satisfies Record<string, LucideIcon>;
 
 export type PageIconKey = keyof typeof PAGE_ICON_MAP;

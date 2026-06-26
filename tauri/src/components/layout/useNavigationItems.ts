@@ -47,6 +47,7 @@ export const CUSTOMIZABLE_ACTION_IDS = [
   'search',
   'trash',
   'templates',
+  'attachments',
   'plugins',
   'ocr',
   'import_export',
@@ -67,6 +68,7 @@ export const CUSTOMIZABLE_LINKS: Record<
   trash: { path: '/settings/trash', iconKey: 'trash', labelKey: 'trash' },
   help: { path: '/help', iconKey: 'help', labelKey: 'help' },
   templates: { path: '/settings/templates', iconKey: 'templates', labelKey: 'templates' },
+  attachments: { path: '/settings/attachments', iconKey: 'attachments', labelKey: 'attachments' },
   import_export: {
     path: '/settings/export-import',
     iconKey: 'import_export',

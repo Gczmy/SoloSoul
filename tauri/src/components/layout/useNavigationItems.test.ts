@@ -22,12 +22,13 @@ describe('useNavigationItems constants', () => {
     expect(SETTINGS_ITEM.iconKey).toBe('settings');
   });
 
-  it('CUSTOMIZABLE_ACTION_IDS has exactly 8 items', () => {
-    expect(CUSTOMIZABLE_ACTION_IDS).toHaveLength(8);
+  it('CUSTOMIZABLE_ACTION_IDS has exactly 9 items', () => {
+    expect(CUSTOMIZABLE_ACTION_IDS).toHaveLength(9);
     expect(CUSTOMIZABLE_ACTION_IDS).toEqual([
       'search',
       'trash',
       'templates',
+      'attachments',
       'plugins',
       'ocr',
       'import_export',

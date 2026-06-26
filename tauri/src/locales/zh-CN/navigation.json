@@ -13,6 +13,7 @@
   "help": "帮助文档",
   "trash": "回收站",
   "templates": "模板管理",
+  "attachments": "附件管理",
   "import_export": "导入导出",
   "ocr": "OCR 扫描",
   "plugins": "插件",
