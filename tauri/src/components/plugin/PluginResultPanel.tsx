@@ -130,6 +130,10 @@ function resolveCountryLabel(
   // 1. 优先通过 tagCode 查表
   if (tagCode) {
     const upper = tagCode.toUpperCase();
+    // 插件未识别到国家时返回 DEFAULT，需要国际化为“默认/Default”
+    if (upper === 'DEFAULT') {
+      return locale === 'zh' ? '[默认]' : '[Default]';
+    }
     const entry = COUNTRY_CODE_TO_LABEL[upper];
     if (entry) return locale === 'zh' ? entry.zh : entry.en;
     return upper; // 未知代码，直接显示大写代码

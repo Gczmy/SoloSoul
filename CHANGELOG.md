@@ -8,6 +8,7 @@ All notable changes to SoloSoul are documented in this file.
 
 - **附件预览无法打开文件** — 新增 Rust 命令 `attachment_open`，绕过 `tauri-plugin-shell` 默认仅允许 `http(s)/mailto/tel` 的 open 校验，直接从 Vault attachments 目录调用系统默认应用打开非图片附件，并校验路径必须在 Vault 存储范围内。
 - **图片附件预览无法滚动和缩放** — `AttachmentPreviewOverlay` 改为可滚动容器，支持按原始尺寸滚动浏览；新增底部缩放工具栏（放大 / 缩小 / 适应窗口）以及 Ctrl/Cmd + 滚轮缩放。
+- **地址格式化器国家徽章国际化** — `PluginResultPanel` 将插件返回的 `DEFAULT` 国家代码识别为“未检测到国家”，中文显示 `[默认]`，英文显示 `[Default]`。
 
 ### Added
 

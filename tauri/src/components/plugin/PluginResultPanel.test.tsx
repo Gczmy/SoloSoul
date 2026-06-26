@@ -50,6 +50,44 @@ describe('PluginResultPanel', () => {
     expect(screen.getByText('# Title')).toBeInTheDocument();
   });
 
+  describe('country badge', () => {
+    it('shows localized [Default] badge when tagCode is DEFAULT', () => {
+      const results: PluginResultPayload[] = [
+        {
+          type: 'key_value',
+          title: 'Addresses',
+          pairs: [{ key: 'Address 1', value: 'Unknown St, Mystery City', tagCode: 'DEFAULT' }],
+        },
+      ];
+      render(<PluginResultPanel results={results} />);
+      expect(screen.getByText('[Default]')).toBeInTheDocument();
+    });
+
+    it('shows localized country badge for recognized tagCode', () => {
+      const results: PluginResultPayload[] = [
+        {
+          type: 'key_value',
+          title: 'Addresses',
+          pairs: [{ key: 'Address 1', value: '...', tagCode: 'CN' }],
+        },
+      ];
+      render(<PluginResultPanel results={results} />);
+      expect(screen.getByText('CN')).toBeInTheDocument();
+    });
+
+    it('shows default badge when no tag/tagCode is provided', () => {
+      const results: PluginResultPayload[] = [
+        {
+          type: 'key_value',
+          title: 'Addresses',
+          pairs: [{ key: 'Address 1', value: 'No country info' }],
+        },
+      ];
+      render(<PluginResultPanel results={results} />);
+      expect(screen.getByText('[Default]')).toBeInTheDocument();
+    });
+  });
+
   describe('per-pair copy', () => {
     const originalClipboard = navigator.clipboard;
     let writeText: ReturnType<typeof vi.fn>;
