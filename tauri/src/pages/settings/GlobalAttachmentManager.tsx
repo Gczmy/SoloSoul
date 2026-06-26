@@ -906,7 +906,7 @@ export function GlobalAttachmentManager() {
                   <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
                     <Download size={ICON_SIZE.sm} /> {t('common:download')}
                   </Button>
-                  <Button variant="danger" size="sm" onClick={() => setBatchDeleteConfirm(true)}>
+                  <Button variant="danger-outline" size="sm" onClick={() => setBatchDeleteConfirm(true)}>
                     <Trash2 size={ICON_SIZE.sm} /> {t('common:delete')}
                   </Button>
                 </div>
@@ -915,7 +915,7 @@ export function GlobalAttachmentManager() {
                   <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
                     <RotateCcw size={ICON_SIZE.sm} /> {t('common:restore')}
                   </Button>
-                  <Button variant="danger" size="sm" onClick={() => setBatchPermanentDeleteConfirm(true)}>
+                  <Button variant="danger-outline" size="sm" onClick={() => setBatchPermanentDeleteConfirm(true)}>
                     <Trash2 size={ICON_SIZE.sm} /> {t('common:delete_permanently')}
                   </Button>
                 </div>

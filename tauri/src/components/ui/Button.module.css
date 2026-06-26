@@ -64,6 +64,19 @@
   transform: scale(0.97);
 }
 
+.dangerOutline {
+  background: transparent;
+  border: 1px solid var(--accent-danger);
+  color: var(--accent-danger);
+}
+.dangerOutline:hover:not(:disabled) {
+  background: var(--accent-danger);
+  color: var(--accent-danger-text);
+}
+.dangerOutline:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
 /* Sizes */
 .sm {
   padding: 6px 12px;
