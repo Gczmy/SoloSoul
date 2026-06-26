@@ -27,13 +27,14 @@ export const SelectCheckbox = memo(function SelectCheckbox({
         width: size,
         height: size,
         borderRadius,
-        border: checked ? 'none' : `1px solid var(--border-subtle)`,
+        border: checked ? 'none' : `1.5px solid var(--accent-primary)`,
         background: checked ? 'var(--accent-primary)' : 'transparent',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
         flexShrink: 0,
+        boxSizing: 'border-box',
         transition: 'all 0.15s ease',
       }}
     >
