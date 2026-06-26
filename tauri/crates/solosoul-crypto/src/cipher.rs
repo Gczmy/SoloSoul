@@ -257,6 +257,70 @@ pub fn decrypt_chunked_from_bytes(
     Ok(Zeroizing::new(result))
 }
 
+/// Decrypt a chunked stream, writing decrypted plaintext directly to `writer`.
+/// Expects format: nonce(12) || chunk_count(8) || chunk_ct+tag ...
+pub fn decrypt_chunked_stream<R: Read, W: Write>(
+    key: &[u8; 32],
+    reader: &mut R,
+    writer: &mut W,
+) -> Result<(), CipherError> {
+    let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CipherError::InvalidKeyLength)?;
+
+    let mut header = [0u8; 20];
+    reader
+        .read_exact(&mut header)
+        .map_err(|_| CipherError::InvalidCiphertext)?;
+    let mut base_nonce = [0u8; 12];
+    base_nonce.copy_from_slice(&header[..12]);
+    let chunk_count =
+        u64::from_be_bytes(header[12..20].try_into().map_err(|_| CipherError::InvalidCiphertext)?)
+            as usize;
+
+    let mut chunk_buf = vec![0u8; CHUNK_SIZE + 16]; // plaintext + auth tag
+    for i in 0..chunk_count {
+        let mut nonce_bytes = base_nonce;
+        let idx_bytes = (i as u64).to_be_bytes();
+        for j in 0..8 {
+            nonce_bytes[4 + j] ^= idx_bytes[j];
+        }
+        let nonce = Nonce::from_slice(&nonce_bytes);
+
+        // For all but the last chunk, ciphertext is exactly CHUNK_SIZE + 16.
+        // For the last chunk, it's whatever remains.
+        let expected = if i == chunk_count - 1 {
+            // Read remaining bytes
+            let mut remaining = Vec::new();
+            reader
+                .read_to_end(&mut remaining)
+                .map_err(|e| CipherError::Io(e.to_string()))?;
+            if remaining.is_empty() {
+                return Err(CipherError::InvalidCiphertext);
+            }
+            let pt = cipher
+                .decrypt(nonce, remaining.as_slice())
+                .map_err(|_| CipherError::DecryptionFailed)?;
+            writer
+                .write_all(&pt)
+                .map_err(|e| CipherError::Io(e.to_string()))?;
+            continue;
+        } else {
+            CHUNK_SIZE + 16
+        };
+
+        reader
+            .read_exact(&mut chunk_buf[..expected])
+            .map_err(|_| CipherError::InvalidCiphertext)?;
+        let pt = cipher
+            .decrypt(nonce, &chunk_buf[..expected])
+            .map_err(|_| CipherError::DecryptionFailed)?;
+        writer
+            .write_all(&pt)
+            .map_err(|e| CipherError::Io(e.to_string()))?;
+    }
+
+    Ok(())
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum CipherError {
     #[error("无效的密钥长度（需要 32 字节）")]

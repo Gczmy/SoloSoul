@@ -24,6 +24,8 @@ use solosoul_core::{ObjectRecord, Profile, VaultStore};
 // 导出包大小限制（与 GUI 一致）
 const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB
 const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
+// 流式加密现在总是使用分块模式，不再需要阈值判断（P1-023）。
+#[allow(dead_code)]
 const STREAMING_THRESHOLD: u64 = 10 * 1024 * 1024; // 10 MB
 
 /// 附件元数据（与 GUI `attachment::AttachmentMeta` 一致，camelCase 序列化）。
@@ -332,8 +334,8 @@ pub(crate) fn export_execute(
 
     let salt = solosoul_crypto::kdf::generate_salt();
     let key = derive_export_key(password, &salt)?;
-    let enc_bytes = solosoul_crypto::cipher::encrypt_to_bytes(&key, &payload_bytes, None)
-        .map_err(|e| format!("加密失败: {}", e))?;
+    // Payload will be encrypted via streaming chunked cipher to avoid holding the full
+    // ciphertext in memory (P1-023).
 
     // 收集附件源文件。
     let base = app.vault_service.base_path().to_path_buf();
@@ -366,28 +368,22 @@ pub(crate) fn export_execute(
     let mut zip = ZipWriter::new(file);
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
-    // 写入附件。
+    // 写入附件（使用流式加密以避免完整明文和密文同时驻留内存 — P1-023）。
     if let Some(ref ak) = att_key {
         for (obj_id, att_id, _file_name, src_path) in &attachment_entries {
             let file_size = std::fs::metadata(src_path).map(|m| m.len()).unwrap_or(0);
             let zip_name = format!("attachments/{}/{}.enc", obj_id, att_id);
-            let mut buf = Vec::new();
-            let mut f = File::open(src_path).map_err(|e| format!("打开附件失败: {}", e))?;
-            f.read_to_end(&mut buf)
-                .map_err(|e| format!("读取附件失败: {}", e))?;
-
-            let enc = if file_size <= STREAMING_THRESHOLD {
-                solosoul_crypto::cipher::encrypt_to_bytes(ak, &buf, None)
-                    .map_err(|e| format!("加密附件失败: {}", e))?
-            } else {
-                solosoul_crypto::cipher::encrypt_chunked_to_bytes(ak, &buf)
-                    .map_err(|e| format!("分块加密附件失败: {}", e))?
-            };
-
             zip.start_file(&zip_name, options)
                 .map_err(|e| format!("写入 ZIP 附件条目失败: {}", e))?;
-            zip.write_all(&enc)
-                .map_err(|e| format!("写入附件数据失败: {}", e))?;
+            let mut f = File::open(src_path).map_err(|e| format!("打开附件失败: {}", e))?;
+            let mut reader = std::io::BufReader::new(&mut f);
+            solosoul_crypto::cipher::encrypt_chunked_stream(
+                ak,
+                file_size,
+                &mut reader,
+                &mut zip,
+            )
+            .map_err(|e| format!("加密附件失败: {}", e))?;
         }
     }
 
@@ -400,11 +396,19 @@ pub(crate) fn export_execute(
     zip.write_all(&manifest_bytes)
         .map_err(|e| format!("写入 manifest 数据失败: {}", e))?;
 
-    // payload.enc
+    // payload.enc (encrypted via streaming chunked cipher — P1-023)
     zip.start_file("payload.enc", options)
         .map_err(|e| format!("写入 payload 条目失败: {}", e))?;
-    zip.write_all(&enc_bytes)
-        .map_err(|e| format!("写入 payload 数据失败: {}", e))?;
+    {
+        let mut cursor = std::io::Cursor::new(&payload_bytes);
+        solosoul_crypto::cipher::encrypt_chunked_stream(
+            &key,
+            payload_bytes.len() as u64,
+            &mut cursor,
+            &mut zip,
+        )
+        .map_err(|e| format!("加密 payload 流失败: {}", e))?;
+    }
 
     zip.finish().map_err(|e| format!("完成 ZIP 失败: {}", e))?;
 
@@ -640,7 +644,7 @@ pub(crate) fn import_execute(
     let key = derive_export_key(password, &salt)?;
 
     let enc_bytes = read_file_from_zip(path, "payload.enc")?;
-    let decrypted = solosoul_crypto::cipher::decrypt_from_bytes(&key, &enc_bytes, None)
+    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
         .map_err(|_| "解密失败：密码错误或文件已损坏".to_string())?;
 
     let payload: serde_json::Value =
@@ -779,7 +783,7 @@ fn import_attachments(
 
     // 从 payload 构建旧的附件元数据映射。
     let payload_enc = read_file_from_zip(path, "payload.enc")?;
-    let decrypted = solosoul_crypto::cipher::decrypt_from_bytes(key, &payload_enc, None)
+    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(key, &payload_enc)
         .map_err(|_| "解密负载失败".to_string())?;
     let payload: serde_json::Value =
         serde_json::from_slice(&decrypted).map_err(|e| format!("解析负载失败: {}", e))?;
@@ -805,7 +809,6 @@ fn import_attachments(
     let zip_file = File::open(path).map_err(|e| format!("打开导入包失败: {}", e))?;
     let mut archive = ZipArchive::new(zip_file).map_err(|_| "无效的导入包".to_string())?;
     let att_prefix = "attachments/";
-    const STREAMING_THRESHOLD: usize = 10 * 1024 * 1024;
 
     let mut imported_atts: HashMap<String, Vec<AttachmentMeta>> = HashMap::new();
 
@@ -836,17 +839,7 @@ fn import_attachments(
             None => continue,
         };
 
-        let mut enc_data = Vec::new();
-        f.read_to_end(&mut enc_data).map_err(|e| e.to_string())?;
-
-        let att_data = if enc_data.len() > (STREAMING_THRESHOLD + 28) {
-            solosoul_crypto::cipher::decrypt_chunked_from_bytes(&att_key, &enc_data)
-                .map_err(|e| format!("分块解密附件失败: {}", e))?
-        } else {
-            solosoul_crypto::cipher::decrypt_from_bytes(&att_key, &enc_data, None)
-                .map_err(|e| format!("解密附件失败: {}", e))?
-        };
-
+        // 使用流式解密避免完整密文和明文同时驻留内存 — P1-024。
         let new_att_id = generate_id();
         let dest = base.join("attachments").join(obj_id).join(&new_att_id);
         std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
@@ -857,7 +850,13 @@ fn import_attachments(
             .to_string_lossy()
             .to_string();
         let file_path_dest = dest.join(&safe_name);
-        std::fs::write(&file_path_dest, &att_data).map_err(|e| e.to_string())?;
+        let mut out_file = File::create(&file_path_dest)
+            .map_err(|e| format!("创建附件文件失败: {}", e))?;
+        solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
+            .map_err(|e| format!("解密附件流失败: {}", e))?;
+        let file_size = std::fs::metadata(&file_path_dest)
+            .map(|m| m.len())
+            .unwrap_or(0);
 
         imported_atts
             .entry(obj_id.to_string())
@@ -867,7 +866,7 @@ fn import_attachments(
                 object_id: obj_id.to_string(),
                 file_name: old_meta.file_name.clone(),
                 mime_type: old_meta.mime_type.clone(),
-                size_bytes: att_data.len() as u64,
+                size_bytes: file_size,
                 created_at: chrono::Utc::now().to_rfc3339(),
                 deleted_at: None,
                 src_path: Some(file_path_dest.to_string_lossy().to_string()),

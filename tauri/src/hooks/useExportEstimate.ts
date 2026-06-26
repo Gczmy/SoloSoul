@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 
@@ -27,28 +27,35 @@ interface ScopeState {
 export function useExportEstimate(accountId: string, scope: ScopeState, totalSelected: number) {
   const [estimate, setEstimate] = useState<ExportEstimate | null>(null);
   const [estimating, setEstimating] = useState(false);
-  const prevKeyRef = useRef<string>('');
+
+  // Stable key from scope contents — changes only when actual selection changes.
+  const scopeKey = useMemo(
+    () =>
+      JSON.stringify({
+        pages: Array.from(scope.selectedPageIds).sort(),
+        objects: Array.from(scope.selectedObjectIds).sort(),
+        tags: Array.from(scope.selectedTags).sort(),
+        attachments: Array.from(scope.selectedAttachmentIds).sort(),
+        includeAttachments: scope.includeAttachments,
+        includePreferences: scope.includePreferences,
+        includeBehavioral: scope.includeBehavioral,
+      }),
+    [
+      scope.selectedPageIds,
+      scope.selectedObjectIds,
+      scope.selectedTags,
+      scope.selectedAttachmentIds,
+      scope.includeAttachments,
+      scope.includePreferences,
+      scope.includeBehavioral,
+    ],
+  );
 
   useEffect(() => {
     if (totalSelected === 0) {
       setEstimate(null);
-      prevKeyRef.current = '';
       return;
     }
-
-    // Build a stable key from scope contents to avoid re-triggering on Set identity changes.
-    const scopeKey = JSON.stringify({
-      pages: Array.from(scope.selectedPageIds).sort(),
-      objects: Array.from(scope.selectedObjectIds).sort(),
-      tags: Array.from(scope.selectedTags).sort(),
-      attachments: Array.from(scope.selectedAttachmentIds).sort(),
-      includeAttachments: scope.includeAttachments,
-      includePreferences: scope.includePreferences,
-      includeBehavioral: scope.includeBehavioral,
-    });
-
-    if (prevKeyRef.current === scopeKey) return;
-    prevKeyRef.current = scopeKey;
 
     const debounce = setTimeout(() => {
       setEstimating(true);
@@ -70,8 +77,7 @@ export function useExportEstimate(accountId: string, scope: ScopeState, totalSel
     }, DEBOUNCE_DELAY_MS);
 
     return () => clearTimeout(debounce);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalSelected, accountId]);
+  }, [totalSelected, accountId, scopeKey]);
 
   return { estimate, estimating };
 }

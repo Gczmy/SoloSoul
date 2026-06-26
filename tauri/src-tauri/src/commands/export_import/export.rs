@@ -259,8 +259,8 @@ pub async fn export_execute(
     // ── Derive key & encrypt ──────────────────────────────────
     let salt = solosoul_crypto::kdf::generate_salt();
     let key = derive_export_key(&req.password, &salt)?;
-    let enc_bytes = solosoul_crypto::cipher::encrypt_to_bytes(&key, &payload_bytes, None)
-        .map_err(|e| format!("encrypt: {}", e))?;
+    // Payload is encrypted via streaming chunked cipher to avoid holding the full
+    // ciphertext in memory simultaneously with the plaintext (P1-023).
 
     // ── Build ZIP ──────────────────────────────────────────────
     let save_path = if req.save_path.starts_with("~/") {
@@ -370,25 +370,17 @@ pub async fn export_execute(
             zip.start_file(&zip_name, options)
                 .map_err(|e| e.to_string())?;
 
-            if file_size <= ATTACHMENT_STREAMING_THRESHOLD {
-                let mut buf = Vec::new();
-                let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
-                f.read_to_end(&mut buf)
-                    .map_err(|e| format!("read attachment: {}", e))?;
-                let enc = solosoul_crypto::cipher::encrypt_to_bytes(ak, &buf, None)
-                    .map_err(|e| format!("encrypt attachment: {}", e))?;
-                zip.write_all(&enc).map_err(|e| e.to_string())?;
-            } else {
-                let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
-                let mut reader = std::io::BufReader::new(&mut f);
-                solosoul_crypto::cipher::encrypt_chunked_stream(
-                    ak,
-                    file_size,
-                    &mut reader,
-                    &mut zip,
-                )
-                .map_err(|e| format!("encrypt attachment chunked stream: {}", e))?;
-            }
+            // Always use streaming chunked encryption for attachments to avoid
+            // holding both plaintext and ciphertext in memory (P1-023).
+            let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
+            let mut reader = std::io::BufReader::new(&mut f);
+            solosoul_crypto::cipher::encrypt_chunked_stream(
+                ak,
+                file_size,
+                &mut reader,
+                &mut zip,
+            )
+            .map_err(|e| format!("encrypt attachment: {}", e))?;
             has_attachments = true;
         }
     }
@@ -459,10 +451,19 @@ pub async fn export_execute(
         .map_err(|e| e.to_string())?;
     zip.write_all(&manifest_bytes).map_err(|e| e.to_string())?;
 
-    // payload.enc (encrypted)
+    // payload.enc (encrypted via streaming chunked cipher — P1-023)
     zip.start_file("payload.enc", options)
         .map_err(|e| e.to_string())?;
-    zip.write_all(&enc_bytes).map_err(|e| e.to_string())?;
+    {
+        let mut cursor = std::io::Cursor::new(&payload_bytes);
+        solosoul_crypto::cipher::encrypt_chunked_stream(
+            &key,
+            payload_bytes.len() as u64,
+            &mut cursor,
+            &mut zip,
+        )
+        .map_err(|e| format!("encrypt payload stream: {}", e))?;
+    }
 
     zip.finish().map_err(|e| format!("ZIP finish: {}", e))?;
 

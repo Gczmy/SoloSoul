@@ -85,7 +85,7 @@ pub async fn import_decrypt_preview(
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
     let key = derive_export_key(&password, &salt)?;
     let enc_bytes = read_file_from_zip(&file_path, "payload.enc")?;
-    let decrypted = solosoul_crypto::cipher::decrypt_from_bytes(&key, &enc_bytes, None)
+    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
         .map_err(|_| import_err("DECRYPT_FAILED"))?;
 
     let payload: serde_json::Value =
@@ -232,7 +232,7 @@ async fn import_execute_internal(
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
     let key = derive_export_key(&password, &salt)?;
     let enc_bytes = read_file_from_zip(&file_path, "payload.enc")?;
-    let decrypted = solosoul_crypto::cipher::decrypt_from_bytes(&key, &enc_bytes, None)
+    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
         .map_err(|_| import_err("DECRYPT_FAILED"))?;
 
     let payload: serde_json::Value =
@@ -418,20 +418,8 @@ async fn import_execute_internal(
                 None => continue,
             };
 
-            let mut enc_data = Vec::new();
-            f.read_to_end(&mut enc_data).map_err(|e| e.to_string())?;
-
-            // R029: choose the decryption method based on size (matching the export logic)
-            // instead of trying one and falling back to the other.
-            let att_data = if enc_data.len() > (ATTACHMENT_STREAMING_DECRYPT_THRESHOLD + 28) {
-                solosoul_crypto::cipher::decrypt_chunked_from_bytes(&att_key, &enc_data)
-                    .map_err(|e| format!("decrypt attachment chunked: {}", e))?
-            } else {
-                solosoul_crypto::cipher::decrypt_from_bytes(&att_key, &enc_data, None)
-                    .map_err(|e| format!("decrypt attachment: {}", e))?
-            };
-
-            // Save to vault storage
+            // Use streaming decryption to avoid holding the full ciphertext
+            // and plaintext in memory simultaneously (P1-024).
             let new_att_id = generate_id();
             let dest = svc
                 .base_path()
@@ -447,7 +435,13 @@ async fn import_execute_internal(
                 .to_string_lossy()
                 .to_string();
             let file_path_dest = dest.join(&safe_name);
-            std::fs::write(&file_path_dest, &att_data).map_err(|e| e.to_string())?;
+            let mut out_file =
+                File::create(&file_path_dest).map_err(|e| format!("create attachment file: {}", e))?;
+            solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
+                .map_err(|e| format!("decrypt attachment stream: {}", e))?;
+            let file_size = std::fs::metadata(&file_path_dest)
+                .map(|m| m.len())
+                .unwrap_or(0);
 
             imported_atts
                 .entry(obj_id.to_string())
@@ -457,7 +451,7 @@ async fn import_execute_internal(
                     object_id: obj_id.to_string(),
                     file_name: old_meta.file_name.clone(),
                     mime_type: old_meta.mime_type.clone(),
-                    size_bytes: att_data.len() as u64,
+                    size_bytes: file_size,
                     created_at: now.clone(),
                     deleted_at: None,
                     src_path: Some(file_path_dest.to_string_lossy().to_string()),

@@ -31,9 +31,11 @@ pub(crate) const IMPORT_ERR_PREFIX: &str = "__IMPORT_ERR__:";
 
 /// 导出审计日志时最多读取的条数。
 pub(crate) const MAX_AUDIT_LOG_EXPORT: usize = 100_000;
-/// 附件采用流式加解密的大小阈值（字节）。
+/// 附件流式加解密现在始终使用分块模式（不再需要阈值判断 — P1-023）。
+/// 保留常量定义以供存档，实际流式处理不再引用。
+#[allow(dead_code)]
 pub(crate) const ATTACHMENT_STREAMING_THRESHOLD: u64 = 10 * 1024 * 1024; // 10 MiB
-/// 附件采用分块解密的大小阈值（字节），需与加密侧阈值对应。
+#[allow(dead_code)]
 pub(crate) const ATTACHMENT_STREAMING_DECRYPT_THRESHOLD: usize = 10 * 1024 * 1024; // 10 MiB
 
 pub(crate) fn export_err(code: &str) -> String {
