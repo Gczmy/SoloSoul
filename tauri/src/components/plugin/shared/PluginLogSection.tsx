@@ -48,6 +48,7 @@ export function PluginLogSection({
       <CopyButton
         getContent={getLogContent}
         label={t('copy', { defaultValue: 'Copy' })}
+        copiedLabel={t('copied')}
         icon={<Copy size={size === 'md' ? 12 : 10} />}
         size={size}
       />
@@ -98,6 +99,7 @@ export function PluginLogSection({
               completed && <CopyButton
                 getContent={getLogContent}
                 label={t('copy', { defaultValue: 'Copy' })}
+                copiedLabel={t('copied')}
                 icon={<Copy size={10} />}
                 size="sm"
               />

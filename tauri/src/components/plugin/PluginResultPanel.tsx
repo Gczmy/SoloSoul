@@ -121,12 +121,12 @@ const COUNTRY_CODE_TO_LABEL: Record<string, { zh: string; en: string }> = {
   PE: { zh: '秘鲁', en: 'PE' },
 };
 
-/** 根据 tag/tagCode 解析出本地化短标签 */
+/** 根据 tag/tagCode 解析出本地化短标签，无匹配时返回默认标签 */
 function resolveCountryLabel(
   tag: string | undefined,
   tagCode: string | undefined,
   locale: 'zh' | 'en',
-): string | null {
+): string {
   // 1. 优先通过 tagCode 查表
   if (tagCode) {
     const upper = tagCode.toUpperCase();
@@ -147,8 +147,8 @@ function resolveCountryLabel(
     return locale === 'zh' ? '通用' : 'Any';
   }
 
-  // 3. 无 tag 也无 tagCode → 非国家字段，不显示徽章
-  return null;
+  // 3. 无 tag 也无 tagCode → 显示默认标签
+  return locale === 'zh' ? '[默认]' : '[Default]';
 }
 
 interface PluginResultPanelProps {

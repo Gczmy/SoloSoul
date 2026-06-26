@@ -5,11 +5,12 @@ import styles from './CopyButton.module.css';
 interface CopyButtonProps {
   getContent: () => string;
   label: string;
+  copiedLabel?: string;
   icon: React.ReactNode;
   size?: 'sm' | 'md';
 }
 
-export function CopyButton({ getContent, label, icon, size = 'sm' }: CopyButtonProps) {
+export function CopyButton({ getContent, label, copiedLabel = 'Copied', icon, size = 'sm' }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -29,7 +30,7 @@ export function CopyButton({ getContent, label, icon, size = 'sm' }: CopyButtonP
       title={label}
     >
       {copied ? <Check size={size === 'sm' ? 10 : 12} /> : icon}
-      {copied ? 'Copied' : label}
+      {copied ? copiedLabel : label}
     </button>
   );
 }
