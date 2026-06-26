@@ -196,15 +196,17 @@ export function GlobalAttachmentManager() {
       return;
     }
 
-    // For non-images, try opening with default app
+    // For non-images, open with the system default app via a trusted Rust command.
     try {
-      const { open } = await import('@tauri-apps/plugin-shell');
-      const filePath = item.vaultPath || item.srcPath;
-      if (filePath) await open(filePath);
+      await invoke('attachment_open', {
+        objectId: item.objectId,
+        attachmentId: item.id,
+      });
     } catch {
       showToast({
         type: 'error',
-        message: t('common:cannot_open_file', { path: item.fileName }) ||
+        message:
+          t('common:cannot_open_file', { path: item.fileName }) ||
           `Cannot open file: ${item.fileName}`,
       });
     }

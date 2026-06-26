@@ -18,6 +18,7 @@ tauri-plugin-http = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
+opener = "0.7"
 
 # Workspace crates
 solosoul-crypto = { path = "../crates/solosoul-crypto" }

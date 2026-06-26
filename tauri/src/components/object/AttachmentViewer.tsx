@@ -45,28 +45,28 @@ export function AttachmentViewer({
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
 
 
-  const openWithDefault = async (path: string) => {
+  const openAttachmentExternal = async (item: AttachmentItem) => {
     try {
-      const { open } = await import('@tauri-apps/plugin-shell');
-      await open(path);
+      await invoke('attachment_open', {
+        objectId,
+        attachmentId: item.id,
+      });
     } catch {
       showToast({
         type: 'error',
-        message: t('common:cannot_open_file', { path }) ||
-          `Cannot open file. Make sure the file still exists at: ${path}`,
+        message:
+          t('common:cannot_open_file', { path: item.fileName }) ||
+          `Cannot open file. Make sure the file still exists: ${item.fileName}`,
       });
     }
   };
 
   const handlePreview = async (item: AttachmentItem) => {
     const isImg = isImageMime(item.mimeType, item.fileName);
-    const filePath = item.vaultPath || item.srcPath;
     if (isImg) {
       setPreviewItem(item);
-    } else if (filePath) {
-      openWithDefault(filePath);
     } else {
-      openWithDefault(item.fileName);
+      openAttachmentExternal(item);
     }
   };
 

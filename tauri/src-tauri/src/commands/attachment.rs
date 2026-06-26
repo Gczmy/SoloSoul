@@ -588,6 +588,52 @@ pub async fn attachment_download(
     Ok(())
 }
 
+/// Open an attachment with the system's default application.
+/// The path is resolved from the attachment metadata and verified to be inside
+/// the vault's `attachments` directory before opening.
+#[tauri::command]
+pub async fn attachment_open(
+    state: State<'_, AppState>,
+    object_id: String,
+    attachment_id: String,
+) -> Result<(), String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let vault = svc
+        .get_vault_store()
+        .ok_or_else(|| "Vault not unlocked".to_string())?;
+
+    let record = vault.load_object(&object_id)?.ok_or("Object not found")?;
+    let att = load_attachments(&record.properties)
+        .into_iter()
+        .find(|a| a.id == attachment_id)
+        .ok_or("Attachment not found")?;
+
+    let path_str = att
+        .vault_path
+        .as_ref()
+        .or(att.src_path.as_ref())
+        .ok_or("Attachment has no file path")?;
+
+    let vault_base = svc
+        .base_path()
+        .canonicalize()
+        .map_err(|_| "Invalid vault base path".to_string())?;
+    let attachments_dir = vault_base.join("attachments");
+
+    let path = std::path::Path::new(path_str)
+        .canonicalize()
+        .map_err(|e| format!("Cannot access attachment file: {}", e))?;
+    if !path.starts_with(&attachments_dir) {
+        return Err("Attachment path is outside vault storage".to_string());
+    }
+
+    opener::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
+    Ok(())
+}
+
 /// Scan attachments directory and remove files not referenced in any object's metadata.
 #[tauri::command]
 pub async fn attachment_cleanup_orphans(
