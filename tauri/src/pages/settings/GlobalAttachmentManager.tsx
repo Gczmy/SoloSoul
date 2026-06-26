@@ -887,7 +887,11 @@ export function GlobalAttachmentManager() {
                   userSelect: 'none',
                 }}
               >
-                <SelectCheckbox checked={allSelected} disabled={displayPages.length === 0} />
+                <SelectCheckbox
+                  checked={allSelected}
+                  indeterminate={selectedIds.size > 0 && !allSelected}
+                  disabled={displayPages.length === 0}
+                />
                 {allSelected ? t('common:deselect_all') : t('common:select_all')}
               </div>
 
