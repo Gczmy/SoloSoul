@@ -42,19 +42,6 @@ export function formatSize(bytes: number): string {
 // These constants are kept for sizing; hover effects use CSS :hover.
 
 /** Base size-only style — use with className="interactive-icon" for hover effects. */
-export const pgBtn: CSSProperties = {
-  width: 30,
-  height: 30,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: 'none',
-  borderRadius: 6,
-  cursor: 'pointer',
-  fontSize: 14,
-};
-
-/** Base size-only style — use with className="interactive-icon" for hover effects. */
 export const miniBtn: CSSProperties = {
   width: 28,
   height: 28,
@@ -66,26 +53,6 @@ export const miniBtn: CSSProperties = {
   cursor: 'pointer',
   fontSize: 12,
 };
-
-/** @deprecated Use className="interactive-icon" instead. */
-export function btnHoverEnter(e: React.MouseEvent<HTMLButtonElement>) {
-  e.currentTarget.classList.add('interactive-icon-hover');
-}
-
-/** @deprecated Use className="interactive-icon" instead. */
-export function btnHoverLeave(e: React.MouseEvent<HTMLButtonElement>) {
-  e.currentTarget.classList.remove('interactive-icon-hover');
-}
-
-/** @deprecated Use className="interactive-icon-danger" instead. */
-export function btnDelEnter(e: React.MouseEvent<HTMLButtonElement>) {
-  e.currentTarget.classList.add('interactive-icon-danger-hover');
-}
-
-/** @deprecated Use className="interactive-icon-danger" instead. */
-export function btnDelLeave(e: React.MouseEvent<HTMLButtonElement>) {
-  e.currentTarget.classList.remove('interactive-icon-danger-hover');
-}
 
 // ── MIME helpers ──────────────────────────────────────────────
 

@@ -555,15 +555,6 @@
   background: color-mix(in srgb, #e74c3c 12%, transparent);
 }
 
-/* ── Programmatic hover toggling (shim for btnHoverEnter/Leave) ── */
-.interactive-icon-hover {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent) !important;
-  color: var(--accent-primary) !important;
-}
-.interactive-icon-danger-hover {
-  background: color-mix(in srgb, #e74c3c 12%, transparent) !important;
-}
-
 /* ── Selected state (composable with interactive-*) ─────── */
 .selected-accent {
   background: color-mix(in srgb, var(--accent-primary) 10%, transparent) !important;

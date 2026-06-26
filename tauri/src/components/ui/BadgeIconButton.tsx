@@ -25,7 +25,7 @@ interface BadgeIconButtonProps {
  * A small icon button with an optional numeric badge.
  *
  * Design system alignment:
- * - 28×28 size (matches miniBtn/pgBtn)
+ * - 28×28 size (matches miniBtn)
  * - 6px border radius (radius-sm token)
  * - Badge uses tinted accent background (not solid white)
  * - Hover via .interactive-icon / .interactive-icon-danger CSS classes

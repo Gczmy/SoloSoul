@@ -10,7 +10,8 @@ import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
-import { truncateFileName, formatSize, pgBtn, miniBtn, isImageMime, type AttachmentItem } from '@/lib/attachmentUtils';
+import { truncateFileName, formatSize, isImageMime, type AttachmentItem } from '@/lib/attachmentUtils';
+import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 
@@ -382,27 +383,13 @@ export function AttachmentViewer({
             </div>
           </div>
           {!showTrash && (
-            <button
+            <BadgeIconButton
+              Icon={Upload}
               onClick={handleAdd}
-              className="interactive-icon"
-              style={{
-                width: 28,
-                height: 28,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: 'none',
-                borderRadius: 6,
-                cursor: 'pointer',
-              }}
               title={t('common:upload') || 'Upload'}
-            >
-              <Upload size={14} />
-            </button>
+            />
           )}
-          <button onClick={onClose} className="interactive-icon" style={pgBtn}>
-            <X size={16} />
-          </button>
+          <BadgeIconButton Icon={X} onClick={onClose} title={t('common:close') || 'Close'} iconSize={16} />
         </div>
         {/* 批量操作工具栏 */}
         {selectedIds.size > 0 && displayItems.length > 0 && (
@@ -567,22 +554,19 @@ export function AttachmentViewer({
                 </div>
                 {showTrash ? (
                   <>
-                    <button
+                    <BadgeIconButton
+                      Icon={RotateCw}
                       onClick={() => handleRestore(item)}
-                      className="interactive-icon"
-                      style={miniBtn}
                       title={t('common:restore')}
-                    >
-                      <RotateCw size={12} />
-                    </button>
-                    <button
+                      iconSize={12}
+                    />
+                    <BadgeIconButton
+                      Icon={Trash2}
                       onClick={() => setPermDeleteItem(item)}
-                      className="interactive-icon-danger"
-                      style={{ ...miniBtn, color: '#e74c3c' }}
                       title={t('common:delete_permanently')}
-                    >
-                      <Trash2 size={12} />
-                    </button>
+                      danger
+                      iconSize={12}
+                    />
                   </>
                 ) : (
                   <>
@@ -609,40 +593,33 @@ export function AttachmentViewer({
                       />
                     ) : (
                       <>
-                        <button
+                        <BadgeIconButton
+                          Icon={Eye}
                           onClick={() => handlePreview(item)}
-                          className="interactive-icon"
-                          style={miniBtn}
                           title="Preview"
-                        >
-                          <Eye size={12} />
-                        </button>
-                        <button
+                          iconSize={12}
+                        />
+                        <BadgeIconButton
+                          Icon={Edit2}
                           onClick={() => handleStartRename(item)}
-                          className="interactive-icon"
-                          style={miniBtn}
                           title={t('common:rename')}
-                        >
-                          <Edit2 size={12} />
-                        </button>
-                        <button
+                          iconSize={12}
+                        />
+                        <BadgeIconButton
+                          Icon={Download}
                           onClick={() => handleDownload(item)}
-                          className="interactive-icon"
-                          style={miniBtn}
                           title={t('common:download')}
-                        >
-                          <Download size={12} />
-                        </button>
+                          iconSize={12}
+                        />
                       </>
                     )}
-                    <button
+                    <BadgeIconButton
+                      Icon={Trash2}
                       onClick={() => handleDelete(item)}
-                      className="interactive-icon-danger"
-                      style={{ ...miniBtn, color: '#e74c3c' }}
                       title={t('common:delete')}
-                    >
-                      <Trash2 size={12} />
-                    </button>
+                      danger
+                      iconSize={12}
+                    />
                   </>
                 )}
               </div>

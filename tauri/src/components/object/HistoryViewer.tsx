@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -48,29 +49,7 @@ function flattenProperties(
   return entries;
 }
 
-const pgBtn: React.CSSProperties = {
-  width: 30,
-  height: 30,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  border: 'none',
-  borderRadius: 6,
-  background: 'transparent',
-  cursor: 'pointer',
-  color: 'var(--text-secondary)',
-  fontSize: 14,
-  transition: 'background 0.15s, color 0.15s',
-};
 
-const pgBtnHoverEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-  e.currentTarget.style.color = 'var(--accent-primary)';
-};
-const pgBtnHoverLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-  e.currentTarget.style.background = 'transparent';
-  e.currentTarget.style.color = 'var(--text-secondary)';
-};
 
 function SnapshotCard({
   snap,
@@ -388,32 +367,26 @@ export function HistoryViewer({
             </span>
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
-            <button
+            <BadgeIconButton
+              Icon={ChevronLeft}
               onClick={goPrev}
+              title={t('common:previous') || 'Previous'}
               disabled={isOldest || loading}
-              onMouseEnter={!isOldest && !loading ? pgBtnHoverEnter : undefined}
-              onMouseLeave={!isOldest && !loading ? pgBtnHoverLeave : undefined}
-              style={{ ...pgBtn, opacity: isOldest || loading ? 0.3 : 1 }}
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
+              iconSize={16}
+            />
+            <BadgeIconButton
+              Icon={ChevronRight}
               onClick={goNext}
+              title={t('common:next') || 'Next'}
               disabled={isLatest || loading}
-              onMouseEnter={!isLatest && !loading ? pgBtnHoverEnter : undefined}
-              onMouseLeave={!isLatest && !loading ? pgBtnHoverLeave : undefined}
-              style={{ ...pgBtn, opacity: isLatest || loading ? 0.3 : 1 }}
-            >
-              <ChevronRight size={16} />
-            </button>
-            <button
+              iconSize={16}
+            />
+            <BadgeIconButton
+              Icon={X}
               onClick={onClose}
-              onMouseEnter={pgBtnHoverEnter}
-              onMouseLeave={pgBtnHoverLeave}
-              style={{ ...pgBtn, marginLeft: 4 }}
-            >
-              <X size={16} />
-            </button>
+              title={t('common:close') || 'Close'}
+              iconSize={16}
+            />
           </div>
         </div>
         {/* Content */}
