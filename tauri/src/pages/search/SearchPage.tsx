@@ -60,22 +60,17 @@ function Highlight({ text, query }: { text: string; query: string }) {
   return <>{parts}</>;
 }
 
-/** Build search query with i18n page name detection.
- *  If the query matches a translated system page name, append the English page key
- *  so the backend can match it via search_pages. */
-function buildSearchQuery(query: string, t: TFunction): string {
+/** Detect if the query matches a translated system page name.
+ *  Returns the English page key if matched, null otherwise. */
+function matchPageTranslation(query: string, t: TFunction): string | null {
   const q = query.toLowerCase().trim();
-  const extraKeys: string[] = [];
   for (const key of SYSTEM_PAGE_KEYS) {
     const label = t(`navigation:${key}`).toLowerCase();
     if (label === q || label.includes(q) || q.includes(label)) {
-      extraKeys.push(key);
+      return key;
     }
   }
-  if (extraKeys.length > 0) {
-    return `${query} ${extraKeys.join(' ')}`;
-  }
-  return query;
+  return null;
 }
 
 /** Resolve display name for a search result item.
@@ -177,12 +172,46 @@ export function SearchPage() {
       setIsSearching(true);
       setHasSearched(true);
       try {
-        const enhancedQuery = buildSearchQuery(q, t);
+        // Search with original query (no modification) to find matching objects
+        const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
+
+        // If query matches a translated page name, also filter by collectionType
+        // so objects in that page are found (e.g. searching "身份" with collectionType "identity")
+        const pageKey = matchPageTranslation(q, t);
+        if (pageKey) {
+          payload.collectionType = pageKey;
+        }
+
         const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
           'search_unified',
-          { accountId, query: enhancedQuery, limit: 50 },
+          payload,
         );
-        setResults(res.items);
+
+        let items = res.items;
+
+        // If a page was matched, prepend a synthetic page result so the user sees it
+        if (pageKey) {
+          const pageExists = items.some((i) => i.itemType === 'page' && i.objectId === pageKey);
+          if (!pageExists) {
+            items = [
+              {
+                objectId: pageKey,
+                name: pageKey,
+                collectionType: pageKey,
+                itemType: 'page',
+                objectCount: undefined,
+                matchedField: undefined,
+                matchedValue: undefined,
+                matchType: undefined,
+                sensitivityLevels: undefined,
+                relevance: 99,
+              } as SearchItem,
+              ...items,
+            ];
+          }
+        }
+
+        setResults(items);
       } catch (e) {
         onError(e, t('common:search_failed'));
       } finally {

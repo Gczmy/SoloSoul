@@ -129,21 +129,17 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     return item.name;
   }
 
-  /** Build search query with i18n page name detection. */
-  function buildSearchQuery(q: string): string {
+  /** Detect if the query matches a translated system page name. */
+  function matchPageTranslation(q: string): string | null {
     const trimmed = q.toLowerCase().trim();
     const systemKeys = ['identity', 'travel', 'financial', 'professional'] as const;
-    const extraKeys: string[] = [];
     for (const key of systemKeys) {
       const label = t(`navigation:${key}`).toLowerCase();
       if (label === trimmed || label.includes(trimmed) || trimmed.includes(label)) {
-        extraKeys.push(key);
+        return key;
       }
     }
-    if (extraKeys.length > 0) {
-      return `${q} ${extraKeys.join(' ')}`;
-    }
-    return q;
+    return null;
   }
 
   /** Resolve icon for a search result item. */
@@ -207,10 +203,15 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
       setIsSearching(true);
       setHasSearched(true);
       try {
-        // When no filter is active, enhance query for i18n page name matching
-        const searchQuery = filter ? q : buildSearchQuery(q);
+        // Keep original query; add collectionType when query matches a page translation
         const isCustom = activeCustomPages.some((p) => p.id === filter);
-        const payload: Record<string, unknown> = { accountId, query: searchQuery, limit: 50 };
+        const pageKey = !filter ? matchPageTranslation(q) : null;
+        const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
+
+        // When a page is matched, add collectionType so objects in that page are also found
+        if (pageKey) {
+          payload.collectionType = pageKey;
+        }
         if (filter) {
           if (isCustom) {
             payload.parentId = filter;
@@ -222,7 +223,31 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
           'search_unified',
           payload,
         );
-        setResults(res.items);
+
+        let items = res.items;
+        // If a page was matched and isn't already in results, prepend a synthetic page
+        if (pageKey) {
+            const pageExists = items.some((i) => i.itemType === 'page' && i.objectId === pageKey);
+            if (!pageExists) {
+              items = [
+                {
+                  objectId: pageKey,
+                  name: pageKey,
+                  collectionType: pageKey,
+                  itemType: 'page',
+                  objectCount: undefined,
+                  matchedField: undefined,
+                  matchedValue: undefined,
+                  matchType: undefined,
+                  sensitivityLevels: undefined,
+                  relevance: 99,
+                } as SearchItem,
+                ...items,
+              ];
+            }
+        }
+
+        setResults(items);
       } catch (e) {
         onError(e, t('common:search_failed'));
       } finally {
