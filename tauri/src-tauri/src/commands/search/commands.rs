@@ -226,15 +226,23 @@ pub async fn search_unified(
     )
     .await?;
 
-    // 未按具体页面筛选时，额外搜索页面（系统分区 + 自定义页面）和模板
-    if collection_type.is_none() && parent_id.is_none() {
+    // 搜索页面和模板（不受 collectionType 影响）
+    if parent_id.is_none() {
         let vault = vault_handle(&state)?;
-        if let Ok(pages) = search_pages(&vault, &account_id, &query) {
-            object_result.items.extend(pages);
+
+        // 未按具体页面筛选时，额外搜索页面（系统分区 + 自定义页面）
+        if collection_type.is_none() {
+            if let Ok(pages) = search_pages(&vault, &account_id, &query) {
+                object_result.items.extend(pages);
+            }
         }
+
+        // 始终搜索模板 — 模板不归属于页面，不受 collectionType 影响
         if let Ok(templates) = search_templates(&vault, &account_id, &query) {
             object_result.items.extend(templates);
         }
+
+        // 重新排序和截断
         object_result.items.sort_by(|a, b| {
             b.relevance
                 .partial_cmp(&a.relevance)
