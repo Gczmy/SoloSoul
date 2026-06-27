@@ -4,6 +4,47 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.6] - 2026-06-27
+
+### Fixed
+
+- **回收站对象详情卡片"原位置"显示** — 自定义页面的 UUID 改为显示页面名称（使用 resolveCollectionLabel + useSettingsStore 解析），同时修复国际化。
+- **回收站页面时间筛选切换闪烁** — 移除加载覆盖层（Loader2），旧数据在加载期间保持不变，新数据到达后无缝替换。
+- **切换页面历史/附件 badge 数字闪烁** — 移除 snapshot counts 0 初始化，加载期间 badge 不显示，数据到达后统一显示实际数字。
+- **快照区域横线调整** — 折叠时 toggle 下方显示横线，展开时由最后一个字段的 borderBottom 自然作底部边界，避免双线重叠。
+- **ConfirmDialog 事件冒泡** — 修复覆盖层点击 e.stopPropagation()，防止点击 dismiss 时意外关闭附件卡片。
+- **附件文件名 .* 后缀 bug** — 移除 save() 对话框的 filters 配置，避免系统对话框自动给文件名追加 .*。
+- **附件拖拽穿透与事件重复** — 修复拖拽上传时多层元素穿透、计数刷新不及时、Tauri 重复事件去重问题。
+
+### Changed
+
+- **回收站恢复按钮无边框** — variant="secondary" + accent 边框 -> variant="tertiary"（无边框，hover 浅色底）。
+- **回收站底部按钮右对齐** — 恢复和永久删除按钮容器添加 justifyContent: flex-end，垂直位置不变。
+- **danger-outline 按钮样式强化** — 常态显示浅红底 + 亮红文字，hover 时更深背景。
+- **提取共享 DeleteButton 组件** — 附件管理批量删除等场景统一使用，减少重复代码。
+- **全站字体大小统一为语义化 token** — 新增 --text-body、--text-caption、--text-badge 等语义字号 token。
+- **全站页面布局标准化** — 新增 PageContainer 共享容器组件、CardGrid 卡片网格组件与 tokens.css 布局/排版 token。
+- **附件 UI 统一** — TrashPage 附件标签按钮改为 pill 样式；附件图标和格式标签颜色统一为 var(--text-tertiary)。
+- **全站卡片 gap 统一** — 使用 --card-grid-gap token 布局。
+- **ConfirmDialog 字体/按钮对齐** — 标题/正文字号与对象删除确认框对齐。
+
+### Added
+
+- **附件下载功能** — AttachmentViewer 和 GlobalAttachmentManager 支持单个附件下载（系统 save 对话框）和批量下载（目录选择器）。新增 i18n key。
+- **附件批量选择 UI** — 提取 SelectCheckbox 组件，支持 indeterminate 状态，批量工具栏始终可见。
+
+### i18n
+
+- **81 条新 i18n key** — 包括 fs_is_dir、文件夹拖拽过滤、cannot_open_file 等。
+- **HistoryPage 和 GlobalAttachmentManager 国际化** — Toast 消息全面支持中英文。
+
+### Chores
+
+- 版本号同步升级到 2.5.6.
+
+
+## [2.5.5] - 2026-06-24
+
 ### Fixed
 
 - **附件预览无法打开文件** — 新增 Rust 命令 `attachment_open`，绕过 `tauri-plugin-shell` 默认仅允许 `http(s)/mailto/tel` 的 open 校验，直接从 Vault attachments 目录调用系统默认应用打开非图片附件，并校验路径必须在 Vault 存储范围内。
@@ -43,6 +84,7 @@ All notable changes to SoloSoul are documented in this file.
 
 - 版本号同步升级到 2.5.5。
 - `cargo fmt` 格式化及代码清理。
+
 
 ## [2.5.4] - 2026-06-24
 
@@ -1330,8 +1372,26 @@ All notable changes to SoloSoul are documented in this file.
 - Multi-account support with independent vault directories
 - Comprehensive test suite
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.5.5...HEAD
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.5.6...HEAD
+[2.5.6]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.6
+[2.5.5]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.5
+[2.5.4]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.4
+[2.5.3]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.3
+[2.5.2]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.2
+[2.5.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.1
+[2.5.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.0
 [2.4.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.4.1
+[2.3.3]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.3.3
+[2.3.2]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.3.2
+[2.3.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.3.1
+[2.3.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.3.0
+[2.2.2]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.2.2
+[2.2.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.2.1
+[2.2.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.2.0
+[2.1.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.1.0
+[2.0.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.0.1
+[2.0.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.0.0
+[1.8.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.8.0
 [1.7.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.7.1
 [1.7.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.7.0
 [1.6.6]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.6.6
@@ -1358,4 +1418,3 @@ All notable changes to SoloSoul are documented in this file.
 [1.0.0-pre.1]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0-pre.1
 [1.0.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v1.0.0
 [0.1.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v0.1.0
-[2.5.5]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.5
