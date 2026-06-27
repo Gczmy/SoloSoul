@@ -45,7 +45,7 @@ interface SearchItem {
   objectCount?: number;
   matchedField?: string;
   matchedValue?: string;
-  matchType?: 'fieldName' | 'fieldValue' | 'name';
+  matchType?: 'fieldName' | 'fieldValue' | 'name' | 'template';
   relevance: number;
 }
 
@@ -321,6 +321,14 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
         </span>
       );
     }
+    if (item.matchType === 'template' && item.matchedValue) {
+      return (
+        <span>
+          {' · '}
+          {t('settings:search_type_template')}：<Highlight text={item.matchedValue} query={query} />
+        </span>
+      );
+    }
     return null;
   };
 
@@ -464,7 +472,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                   >
                     <ResultIcon size={16} />
                     <div className={styles.resultText}>
-                      <div className={styles.resultName}>{resolveResultName(item)}</div>
+                      <div className={styles.resultName}>{item.itemType === 'page' || item.itemType === 'template' || item.matchType === 'template' ? <Highlight text={resolveResultName(item)} query={query} /> : resolveResultName(item)}</div>
                       <div className={styles.resultMeta}>
                         {item.itemType === 'page' ? (
                           <>
@@ -491,7 +499,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                             <span className={styles.typeTag}>
                               {t('settings:search_type_object')}
                             </span>
-                            <span> · {resolvePageName(item)}</span>
+                            <span> · {item.matchType === 'template' ? <Highlight text={resolvePageName(item)} query={query} /> : resolvePageName(item)}</span>
                             {item.fieldCount !== undefined && (
                               <span>
                                 {' '}

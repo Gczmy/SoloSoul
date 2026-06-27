@@ -137,7 +137,7 @@ interface SearchItem {
   fieldCount?: number;
   matchedField?: string;
   matchedValue?: string;
-  matchType?: 'fieldName' | 'fieldValue' | 'name';
+  matchType?: 'fieldName' | 'fieldValue' | 'name' | 'template';
   sensitivityLevels?: string[];
   relevance: number;
 }
@@ -257,6 +257,14 @@ export function SearchPage() {
         </span>
       );
     }
+    if (item.matchType === 'template' && item.matchedValue) {
+      return (
+        <span>
+          {' · '}
+          {t('settings:search_type_template')}：<Highlight text={item.matchedValue} query={query} />
+        </span>
+      );
+    }
     return null;
   };
 
@@ -316,7 +324,7 @@ export function SearchPage() {
                       <ResultIcon size={18} />
                     </span>
                     <div style={{ overflow: 'hidden' }}>
-                      <div style={{ fontSize: 'var(--text-body)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{resolveResultName(item, customPages, t)}</div>
+                      <div style={{ fontSize: 'var(--text-body)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPage || item.itemType === 'template' || item.matchType === 'template' ? <Highlight text={resolveResultName(item, customPages, t)} query={query} /> : resolveResultName(item, customPages, t)}</div>
                       <div
                         style={{
                           fontSize: 'var(--text-badge)',
@@ -331,6 +339,8 @@ export function SearchPage() {
                           <span>{t('settings:search_type_page')}</span>
                         ) : item.itemType === 'template' ? (
                           <span>{t('settings:search_type_template', 'Template')}</span>
+                        ) : item.matchType === 'template' ? (
+                          <Highlight text={resolveCollectionLabel(item.collectionType, customPages, t)} query={query} />
                         ) : (
                           <span>{resolveCollectionLabel(item.collectionType, customPages, t)}</span>
                         )}

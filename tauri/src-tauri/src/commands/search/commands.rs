@@ -238,14 +238,16 @@ pub async fn search_unified(
         }
 
         // 始终搜索模板 — 模板不归属于页面，不受 collectionType 影响
-        let mut matched_template_ids: Vec<String> = Vec::new();
+        let mut matched_templates: std::collections::HashMap<String, String> = std::collections::HashMap::new();
         if let Ok(templates) = search_templates(&vault, &account_id, &query) {
-            matched_template_ids = templates.iter().map(|t| t.object_id.clone()).collect();
+            for t in &templates {
+                matched_templates.insert(t.object_id.clone(), t.name.clone());
+            }
             object_result.items.extend(templates);
         }
 
         // 如果模板匹配，查找使用这些模板的对象（即使名称/字段不包含查询词）
-        if !matched_template_ids.is_empty() {
+        if !matched_templates.is_empty() {
             if let Ok(all_objects) = vault.list_objects(&account_id, None, None, None, false, false) {
                 let existing_ids: std::collections::HashSet<String> = object_result.items.iter()
                     .map(|i| i.object_id.clone())
@@ -262,7 +264,7 @@ pub async fn search_unified(
                         }
                     }
                     if let Some(ref tid) = obj.template_id {
-                        if matched_template_ids.contains(tid) {
+                        if let Some(tpl_name) = matched_templates.get(tid) {
                             let field_count = count_object_fields(&obj.properties);
                             object_result.items.push(SearchResultItem {
                                 object_id: obj.id,
@@ -273,8 +275,8 @@ pub async fn search_unified(
                                 field_count: Some(field_count),
                                 sensitivity_levels: Some(vec![obj.sensitivity_level]),
                                 object_count: None,
-                                matched_field: None,
-                                matched_value: None,
+                                matched_field: Some("template".to_string()),
+                                matched_value: Some(tpl_name.clone()),
                                 match_type: Some("template".to_string()),
                                 relevance: SCORE_PARTIAL_NAME,
                             });
