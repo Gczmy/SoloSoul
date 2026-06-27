@@ -12,12 +12,14 @@ import {
   CreditCard,
   Briefcase,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import type { CustomPage } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
-import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
@@ -113,6 +115,49 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const { onError } = useToastError();
   const { t } = useTranslation(['common', 'navigation', 'settings', 'sensitivity', 'editor']);
+
+  /** Build search query with i18n page name detection. */
+  function buildSearchQuery(q: string): string {
+    const trimmed = q.toLowerCase().trim();
+    const systemKeys = ['identity', 'travel', 'financial', 'professional'] as const;
+    const extraKeys: string[] = [];
+    for (const key of systemKeys) {
+      const label = t(`navigation:${key}`).toLowerCase();
+      if (label === trimmed || label.includes(trimmed) || trimmed.includes(label)) {
+        extraKeys.push(key);
+      }
+    }
+    if (extraKeys.length > 0) {
+      return `${q} ${extraKeys.join(' ')}`;
+    }
+    return q;
+  }
+
+  /** Resolve icon for a search result item. */
+  function resolveResultIcon(
+    item: { itemType: string; collectionType: string; objectId: string },
+    pages: CustomPage[],
+  ): LucideIcon {
+    if (item.itemType === 'page') {
+      if (item.objectId in PAGE_ICON_MAP) {
+        return PAGE_ICON_MAP[item.objectId as keyof typeof PAGE_ICON_MAP];
+      }
+      const cp = pages.find((p) => p.id === item.objectId);
+      if (cp) {
+        return resolveCustomIcon(cp.iconId);
+      }
+      return PAGE_ICON_MAP.custom;
+    }
+    if (item.collectionType in PAGE_ICON_MAP) {
+      return PAGE_ICON_MAP[item.collectionType as keyof typeof PAGE_ICON_MAP];
+    }
+    const cp = pages.find((p) => p.id === item.collectionType);
+    if (cp) {
+      return resolveCustomIcon(cp.iconId);
+    }
+    return PAGE_ICON_MAP.custom;
+  }
+
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -149,8 +194,10 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
       setIsSearching(true);
       setHasSearched(true);
       try {
+        // When no filter is active, enhance query for i18n page name matching
+        const searchQuery = filter ? q : buildSearchQuery(q);
         const isCustom = activeCustomPages.some((p) => p.id === filter);
-        const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
+        const payload: Record<string, unknown> = { accountId, query: searchQuery, limit: 50 };
         if (filter) {
           if (isCustom) {
             payload.parentId = filter;
@@ -366,13 +413,15 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                     {t('common:no_results')}
                   </div>
                 )}
-                {results.map((item) => (
+                {results.map((item) => {
+                    const ResultIcon = resolveResultIcon(item, customPages);
+                    return (
                   <button
                     key={`${item.itemType}-${item.objectId}`}
                     className={styles.resultItem}
                     onClick={() => handleClickResult(item)}
                   >
-                    <PAGE_ICON_MAP.custom size={16} />
+                    <ResultIcon size={16} />
                     <div className={styles.resultText}>
                       <div className={styles.resultName}>{item.name}</div>
                       <div className={styles.resultMeta}>
@@ -420,7 +469,8 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                       </div>
                     </div>
                   </button>
-                ))}
+                  );
+                })}
               </>
             )}
 
