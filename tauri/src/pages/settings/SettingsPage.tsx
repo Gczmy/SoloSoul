@@ -23,6 +23,7 @@ import {
   Smartphone,
   Scan,
   Paperclip,
+  Search,
 } from 'lucide-react';
 
 export function SettingsPage() {
@@ -126,6 +127,12 @@ export function SettingsPage() {
     {
       title: t('settings:groups.system'),
       items: [
+        {
+          label: t('settings:items.search') || '搜索',
+          icon: Search,
+          path: '/search',
+          desc: t('settings:desc.search') || '全局搜索',
+        },
         {
           label: t('settings:items.ocr') || 'OCR',
           icon: Scan,
