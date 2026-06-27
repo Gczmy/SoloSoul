@@ -2,8 +2,6 @@
 
 All notable changes to SoloSoul are documented in this file.
 
-## [Unreleased]
-
 ## [2.5.6] - 2026-06-27
 
 ### Security
