@@ -31,11 +31,6 @@ async fn search_advanced_impl(
     let mut items: Vec<SearchResultItem> = Vec::new();
 
     for rec in &records {
-        // 关键级别的信息安全过滤：不进入搜索匹配
-        if rec.sensitivity_level == "critical" {
-            continue;
-        }
-
         // Apply collection_type filter
         if let Some(ref filter_ct) = collection_type {
             if &rec.type_id != filter_ct {
@@ -59,6 +54,30 @@ async fn search_advanced_impl(
         // Collect field-level matches from properties
         let mut field_matches: Vec<FieldMatch> = Vec::new();
         search_properties_for_matches(&rec.properties, &q, "", &mut field_matches);
+
+        // Redact field values whose template property has "critical" sensitivity level
+        if !field_matches.is_empty() {
+            if let Some(ref tid) = rec.template_id {
+                if let Some(tpl) = templates.get(tid) {
+                    let critical_fields: std::collections::HashSet<&str> = tpl.properties
+                        .iter()
+                        .filter(|p| p.sensitivity_level.as_deref() == Some("critical"))
+                        .map(|p| p.name.as_str())
+                        .collect();
+                    if !critical_fields.is_empty() {
+                        for fm in &mut field_matches {
+                            if matches!(fm.match_type, FieldMatchType::FieldValue) {
+                                let segments: Vec<&str> = fm.field_path.split('.').collect();
+                                if segments.iter().any(|s| critical_fields.contains(s)) {
+                                    fm.display_value = "[REDACTED]".to_string();
+                                    fm.score = 0.0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // Name match bonus
         let name_score = if rec.name.to_lowercase().contains(&q) {
@@ -182,7 +201,6 @@ pub async fn search_unified(
 
         let items: Vec<SearchResultItem> = summaries
             .into_iter()
-            .filter(|s| s.sensitivity_level != "critical")
             .map(|s| {
                 let mut levels = HashSet::new();
                 levels.insert(s.sensitivity_level.clone());
@@ -261,10 +279,6 @@ pub async fn search_unified(
 
                 for obj in all_objects {
                     if existing_ids.contains(&obj.id) {
-                        continue;
-                    }
-                    // 关键级别对象不进入搜索匹配
-                    if obj.sensitivity_level == "critical" {
                         continue;
                     }
                     // 如果指定了 collectionType 过滤，仅添加属于该页面的对象
