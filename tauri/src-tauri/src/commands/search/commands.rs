@@ -31,6 +31,11 @@ async fn search_advanced_impl(
     let mut items: Vec<SearchResultItem> = Vec::new();
 
     for rec in &records {
+        // 关键级别的信息安全过滤：不进入搜索匹配
+        if rec.sensitivity_level == "critical" {
+            continue;
+        }
+
         // Apply collection_type filter
         if let Some(ref filter_ct) = collection_type {
             if &rec.type_id != filter_ct {
@@ -177,6 +182,7 @@ pub async fn search_unified(
 
         let items: Vec<SearchResultItem> = summaries
             .into_iter()
+            .filter(|s| s.sensitivity_level != "critical")
             .map(|s| {
                 let mut levels = HashSet::new();
                 levels.insert(s.sensitivity_level.clone());
@@ -255,6 +261,10 @@ pub async fn search_unified(
 
                 for obj in all_objects {
                     if existing_ids.contains(&obj.id) {
+                        continue;
+                    }
+                    // 关键级别对象不进入搜索匹配
+                    if obj.sensitivity_level == "critical" {
                         continue;
                     }
                     // 如果指定了 collectionType 过滤，仅添加属于该页面的对象
