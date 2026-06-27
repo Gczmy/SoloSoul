@@ -38,7 +38,7 @@ interface SearchItem {
   objectId: string;
   name: string;
   collectionType: string;
-  itemType: 'object' | 'page';
+  itemType: 'object' | 'page' | 'template';
   parentId?: string;
   fieldCount?: number;
   sensitivityLevels?: string[];
@@ -333,6 +333,9 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
       } else {
         navigate(`/workspace?section=${item.objectId}`);
       }
+    } else if (item.itemType === 'template') {
+      onClose();
+      navigate('/settings/templates');
     } else {
       // Open object detail modal directly without leaving the current page
       setDetailObjectId(item.objectId);
@@ -471,6 +474,15 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                               <span>
                                 {' '}
                                 · {item.objectCount} {t('settings:search_objects_count')}
+                              </span>
+                            )}
+                          </>
+                        ) : item.itemType === 'template' ? (
+                          <>
+                            <span className={styles.typeTag}>{t('settings:search_type_template', 'Template')}</span>
+                            {item.fieldCount !== undefined && (
+                              <span>
+                                {' · '}{item.fieldCount} {t('settings:search_fields_count')}
                               </span>
                             )}
                           </>

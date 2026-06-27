@@ -226,11 +226,14 @@ pub async fn search_unified(
     )
     .await?;
 
-    // 未按具体页面筛选时，额外搜索页面（系统分区 + 自定义页面）
+    // 未按具体页面筛选时，额外搜索页面（系统分区 + 自定义页面）和模板
     if collection_type.is_none() && parent_id.is_none() {
         let vault = vault_handle(&state)?;
         if let Ok(pages) = search_pages(&vault, &account_id, &query) {
             object_result.items.extend(pages);
+        }
+        if let Ok(templates) = search_templates(&vault, &account_id, &query) {
+            object_result.items.extend(templates);
         }
         object_result.items.sort_by(|a, b| {
             b.relevance

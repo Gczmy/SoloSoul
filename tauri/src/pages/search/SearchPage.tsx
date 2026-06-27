@@ -130,9 +130,11 @@ interface SearchItem {
   objectId: string;
   name: string;
   collectionType: string;
-  itemType?: string; // "object" | "page" — from backend, optional for backward compat
+  /** "object" | "page" | "template" */
+  itemType?: string;
   parentId?: string;
   objectCount?: number;
+  fieldCount?: number;
   matchedField?: string;
   matchedValue?: string;
   matchType?: 'fieldName' | 'fieldValue' | 'name';
@@ -265,6 +267,8 @@ export function SearchPage() {
       } else {
         navigate(`/workspace?section=${item.objectId}`);
       }
+    } else if (item.itemType === 'template') {
+      navigate('/settings/templates');
     } else {
       setDetailObjectId(item.objectId);
     }
@@ -325,6 +329,8 @@ export function SearchPage() {
                       >
                         {isPage ? (
                           <span>{t('settings:search_type_page')}</span>
+                        ) : item.itemType === 'template' ? (
+                          <span>{t('settings:search_type_template', 'Template')}</span>
                         ) : (
                           <span>{resolveCollectionLabel(item.collectionType, customPages, t)}</span>
                         )}
@@ -333,7 +339,12 @@ export function SearchPage() {
                             {' · '}{item.objectCount} {t('settings:search_objects_count')}
                           </span>
                         )}
-                        {!isPage && item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
+                        {item.itemType === 'template' && item.fieldCount !== undefined && (
+                          <span>
+                            {' · '}{item.fieldCount} {t('settings:search_fields_count')}
+                          </span>
+                        )}
+                        {!isPage && item.itemType !== 'template' && item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
                           <>
                             {' · '}
                             {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (

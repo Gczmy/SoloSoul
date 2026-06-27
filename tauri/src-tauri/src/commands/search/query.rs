@@ -136,6 +136,44 @@ pub(crate) fn count_section_objects(vault: &VaultStore, account_id: &str, sectio
         .unwrap_or(0)
 }
 
+/// Search user templates matching the query.
+pub(crate) fn search_templates(
+    vault: &VaultStore,
+    account_id: &str,
+    query: &str,
+) -> Result<Vec<SearchResultItem>, String> {
+    let q = query.to_lowercase();
+    let templates = vault.list_user_templates(account_id)?;
+    let mut items: Vec<SearchResultItem> = Vec::new();
+
+    for tpl in templates {
+        let name_lower = tpl.name.to_lowercase();
+        if name_lower.contains(&q) || q.contains(&name_lower) {
+            let score = if name_lower == q {
+                SCORE_EXACT_NAME
+            } else {
+                SCORE_PARTIAL_NAME
+            };
+            items.push(SearchResultItem {
+                object_id: tpl.id,
+                name: tpl.name,
+                collection_type: "template".to_string(),
+                item_type: "template".to_string(),
+                parent_id: None,
+                field_count: Some(tpl.properties.len()),
+                sensitivity_levels: None,
+                object_count: None,
+                matched_field: None,
+                matched_value: None,
+                match_type: None,
+                relevance: score,
+            });
+        }
+    }
+
+    Ok(items)
+}
+
 /// Search pages (system sections + custom pages) matching the query.
 pub(crate) fn search_pages(
     vault: &VaultStore,
