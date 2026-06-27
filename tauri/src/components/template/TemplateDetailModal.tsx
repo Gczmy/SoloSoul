@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { X, Pencil, LayoutTemplate } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
@@ -58,7 +59,10 @@ export function TemplateDetailModal({
       }}
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
         style={{
           background: 'var(--bg-elevated)',
@@ -220,7 +224,7 @@ export function TemplateDetailModal({
             {t('common:edit') || '编辑'}
           </Button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

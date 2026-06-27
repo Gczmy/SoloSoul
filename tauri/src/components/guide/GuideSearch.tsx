@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, X } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import type { GuideContent } from '@/lib/guideApi';
@@ -182,45 +182,13 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ position: 'relative' }}>
-        <Search
-          size={ICON_SIZE.lg}
-          style={{
-            position: 'absolute',
-            left: 12,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'var(--text-tertiary)',
-          }}
-        />
-        <Input
-          placeholder={t('search_help_docs')}
-          value={query}
-          onChange={(e) => handleChange(e.target.value)}
-          style={{ paddingLeft: 38 }}
-        />
-        {query && (
-          <button
-            onClick={() => {
-              setQuery('');
-              setResults(null);
-            }}
-            style={{
-              position: 'absolute',
-              right: 10,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-tertiary)',
-              cursor: 'pointer',
-              padding: 4,
-            }}
-          >
-            <X size={ICON_SIZE.md} />
-          </button>
-        )}
-      </div>
+      <Input
+        placeholder={t('search_help_docs')}
+        value={query}
+        onChange={(e) => handleChange(e.target.value)}
+        onClear={() => { setQuery(''); setResults(null); }}
+        prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
+      />
 
       {loading && (
         <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 'var(--text-body-sm)' }}>

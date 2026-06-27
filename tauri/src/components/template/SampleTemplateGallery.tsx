@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
+import { X, Search } from 'lucide-react';
+import { motion } from 'framer-motion';
 import {
   SAMPLE_TEMPLATES_BY_LOCALE,
   getDefaultLocaleTab,
@@ -93,7 +94,10 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
       }}
       onClick={onClose}
     >
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
         style={{
           background: 'var(--bg-elevated)',
@@ -211,6 +215,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onClear={() => setSearchQuery('')}
+            prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
           />
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {pageOptions.map((opt) => {
@@ -340,7 +345,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

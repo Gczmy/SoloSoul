@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/Input';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
+import { ICON_SIZE } from '@/lib/iconSizes';
+import { Search } from 'lucide-react';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
@@ -157,6 +159,7 @@ export function SearchPage() {
           onChange={(e) => handleChange(e.target.value)}
           onClear={() => { setQuery(''); setResults([]); setHasSearched(false); }}
           autoFocus
+          prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
         />
 
         <div style={{ marginTop: 12 }}>

@@ -14,7 +14,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
-import { Trash2, RotateCcw, FileText, Info, Loader2, Folder, LayoutTemplate } from 'lucide-react';
+import { Trash2, RotateCcw, FileText, Info, Loader2, Folder, LayoutTemplate, Search } from 'lucide-react';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import type { UserTemplate } from '@/types/template';
 import { TrashDetailPanel } from '@/components/trash/TrashDetailPanel';
@@ -161,78 +161,80 @@ export function TrashPage() {
               navigate('/settings');
             }
           }}>
-      <PageContainer variant="small" gap="default">
+      <PageContainer variant="medium" gap="default">
         <Input
           placeholder={t('settings:search_trash')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onClear={() => setSearchQuery('')}
+          prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
         />
 
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {TIME_OPTIONS.map((opt) => {
-            const isActive = timeFilter === opt.value;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => setTimeFilter(opt.value)}
-                onMouseEnter={!isActive ? (e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                } : undefined}
-                onMouseLeave={!isActive ? (e) => {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                } : undefined}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 6,
-                  border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                  background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
-                  color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {TIME_OPTIONS.map((opt) => {
+              const isActive = timeFilter === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setTimeFilter(opt.value)}
+                  onMouseEnter={!isActive ? (e) => {
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  } : undefined}
+                  onMouseLeave={!isActive ? (e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  } : undefined}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 6,
+                    border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                    background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                    color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                    boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                   fontSize: 'var(--text-sm)',
                   cursor: 'pointer',
                   transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
               >
                 {t(`settings:${opt.labelKey}`, opt.labelKey)}
-              </button>
-            );
-          })}
-        </div>
-
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {TYPE_OPTIONS.map((opt) => {
-            const isActive = typeFilter === opt.value;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => setTypeFilter(opt.value)}
-                onMouseEnter={!isActive ? (e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                } : undefined}
-                onMouseLeave={!isActive ? (e) => {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                } : undefined}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 6,
-                  border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                  background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
-                  color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {TYPE_OPTIONS.map((opt) => {
+              const isActive = typeFilter === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setTypeFilter(opt.value)}
+                  onMouseEnter={!isActive ? (e) => {
+                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  } : undefined}
+                  onMouseLeave={!isActive ? (e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  } : undefined}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 6,
+                    border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
+                    background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                    color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+                    boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                   fontSize: 'var(--text-sm)',
                   cursor: 'pointer',
                   transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                 }}
               >
                 {t(`settings:trash_type_${opt.value}`)}
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {filtered.length > 0 && (

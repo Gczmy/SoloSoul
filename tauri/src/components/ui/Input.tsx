@@ -7,6 +7,8 @@ import { ICON_SIZE } from '@/lib/iconSizes';
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
+  /** Icon displayed inside the input field on the left side (e.g. search icon). */
+  prefixIcon?: React.ReactNode;
   icon?: React.ReactNode;
   badge?: React.ReactNode;
   /** When provided, shows a clear (X) button at the right side of the input. */
@@ -14,7 +16,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, icon, badge, onClear, className, ...props }, ref) => {
+  ({ label, error, prefixIcon, icon, badge, onClear, className, ...props }, ref) => {
     const [shouldShake, setShouldShake] = useState(false);
     const prevErrorRef = useRef(error);
 
@@ -44,10 +46,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
         <div className={styles.inputWrap}>
+          {prefixIcon && (
+            <span className={styles.prefixIcon}>{prefixIcon}</span>
+          )}
           <input
             ref={ref}
             className={[
               styles.input,
+              prefixIcon ? styles.hasPrefix : '',
               showClear ? styles.hasClear : '',
               error ? styles.hasError : '',
               shouldShake ? styles.shake : '',

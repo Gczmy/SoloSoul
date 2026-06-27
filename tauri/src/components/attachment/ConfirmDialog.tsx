@@ -40,7 +40,8 @@ export function ConfirmDialog({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'rgba(0,0,0,0.4)',
+        background: 'var(--bg-overlay)',
+        backdropFilter: 'blur(4px)',
       }}
       onClick={onCancel}
     >

@@ -5,7 +5,6 @@ import { useCancellable } from '@/hooks/useCancellable';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
-import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { GuideRenderer } from '@/components/guide/GuideRenderer';
 import { GuideIndex } from '@/components/guide/GuideIndex';
 import { GuideSearch } from '@/components/guide/GuideSearch';
@@ -17,7 +16,8 @@ import {
   type GuideIndex as GuideIndexType,
   type GuideContent,
 } from '@/lib/guideApi';
-import { BookOpen, RefreshCw, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { BookOpen, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -35,7 +35,6 @@ export function HelpPage() {
   const [index, setIndex] = useState<GuideIndexType | null>(null);
   const [content, setContent] = useState<GuideContent | null>(null);
   const [loading, setLoading] = useState(true);
-  const [indexLoading, setIndexLoading] = useState(true);
   const [error, setError] = useState<{ title: string; message: string; isTimeout: boolean } | null>(
     null,
   );
@@ -70,7 +69,6 @@ export function HelpPage() {
 
   const loadIndex = useCallback(() => {
     const { isCancelled } = makeIndexCancellable();
-    setIndexLoading(true);
     setError(null);
     loadGuideIndex()
       .then((idx) => {
@@ -78,9 +76,6 @@ export function HelpPage() {
       })
       .catch((e) => {
         if (!isCancelled()) setError(formatIndexError(e));
-      })
-      .finally(() => {
-        if (!isCancelled()) setIndexLoading(false);
       });
   }, [makeIndexCancellable]);
 
@@ -182,33 +177,13 @@ export function HelpPage() {
           </div>
         )}
 
-        {!guideId && indexLoading && (
-          <Card>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                padding: '40px 16px',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <Loader2
-                size={ICON_SIZE['2xl']}
-                style={{
-                  animation: 'spin 1s linear infinite',
-                  color: 'var(--accent-primary)',
-                }}
-              />
-              <p style={{ fontSize: 'var(--text-sm)' }}>{t('common:loading', '正在加载...')}</p>
-            </div>
-          </Card>
-        )}
-
-        {!guideId && !indexLoading && index && (
-          <>
+        {!guideId && index && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}
+          >
             <GuideSearch onSearch={handleSearch} onSelect={handleSelect} />
             <GuideIndex
               guides={index.guides}
@@ -232,13 +207,11 @@ export function HelpPage() {
                 ),
               }}
             />
-          </>
+          </motion.div>
         )}
 
-        {guideId && loading && <LoadingPlaceholder variant="base" minHeight={200} />}
-
         {guideId && content && !loading && (
-          <div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
             <GuideRenderer
               content={content.content}
               onLinkClick={(href) => {
@@ -246,7 +219,7 @@ export function HelpPage() {
                 setSearchParams({ id: guideIdFromHref });
               }}
             />
-          </div>
+          </motion.div>
         )}
       </PageContainer>
       {showTutorial && (

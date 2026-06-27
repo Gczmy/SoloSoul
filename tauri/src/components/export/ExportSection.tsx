@@ -617,6 +617,27 @@ export function ExportSection({
               color: 'var(--text-primary)',
               fontFamily: 'inherit',
               outline: 'none',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              if (e.currentTarget !== document.activeElement) {
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (e.currentTarget !== document.activeElement) {
+                e.currentTarget.style.borderColor = '';
+                e.currentTarget.style.boxShadow = '';
+              }
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = '';
+              e.currentTarget.style.boxShadow = '';
             }}
           />
         </div>

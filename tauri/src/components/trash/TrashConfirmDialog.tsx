@@ -23,31 +23,32 @@ export function TrashConfirmDialog({ action, onClose, onConfirm }: TrashConfirmD
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: 340,
+          width: '90%',
+          maxWidth: 360,
           zIndex: 100,
           background: 'var(--bg-elevated)',
           borderRadius: 12,
-          padding: 24,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          padding: '24px 28px',
+          boxShadow: 'var(--shadow-lg)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
-        <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, margin: '0 0 8px' }}>
+        <h3 style={{ fontSize: 'var(--text-section-title)', fontWeight: 600, margin: '0 0 8px' }}>
           {action.type === 'delete'
             ? t('settings:confirm_delete_title')
             : t('settings:confirm_restore_title')}
         </h3>
-        <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
+        <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.5 }}>
           {action.type === 'delete'
             ? t('settings:confirm_delete_desc', { count: action.count })
             : t('settings:confirm_restore_desc', { count: action.count })}
         </p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button size="sm" variant="secondary" onClick={onClose}>
+          <Button variant="secondary" onClick={onClose}>
             {t('common:cancel')}
           </Button>
           <Button
-            size="sm"
-            variant={action.type === 'delete' ? 'danger' : 'primary'}
+            variant={action.type === 'delete' ? 'danger-outline' : 'primary'}
             onClick={async () => {
               await onConfirm();
             }}

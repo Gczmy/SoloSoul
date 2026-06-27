@@ -20,7 +20,7 @@ import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
-import { Trash } from 'lucide-react';
+import { Trash, Search } from 'lucide-react';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 
@@ -290,6 +290,7 @@ export function ObjectWorkspacePage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onClear={() => setSearchQuery('')}
+          prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
         />
 
         {isLoading && (

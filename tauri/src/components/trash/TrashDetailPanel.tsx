@@ -8,6 +8,7 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { X, RotateCcw, ChevronLeft, ChevronRight, Image, FileText, Paperclip } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { formatBytes } from '@/lib/format';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, SnapshotEntry, TrashAttachment } from './types';
@@ -93,7 +94,10 @@ export function TrashDetailPanel({
         style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 99 }}
         onClick={onClose}
       />
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
         style={{
           position: 'fixed',
           top: '50%',
@@ -474,7 +478,7 @@ export function TrashDetailPanel({
             {t('common:delete_permanently')}
           </DeleteButton>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

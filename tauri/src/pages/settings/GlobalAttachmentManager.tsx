@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -7,7 +8,6 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { DeleteButton } from '@/components/ui/DeleteButton';
-import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
@@ -15,7 +15,6 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useAttachmentPageSort } from '@/hooks/useAttachmentPageSort';
 import {
   Paperclip,
-  Trash2,
   RotateCcw,
   Eye,
   Edit2,
@@ -575,11 +574,7 @@ export function GlobalAttachmentManager() {
           checked={isChecked}
           onClick={(e) => { e.stopPropagation(); toggleSelect(compositeKey); }}
         />
-        {showTrash ? (
-          <Trash2 size={ICON_SIZE.sm} style={{ color: '#e74c3c', flexShrink: 0 }} />
-        ) : (
-          <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-        )}
+        <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
 
         {isRenaming ? (
           <input
@@ -786,10 +781,17 @@ export function GlobalAttachmentManager() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onClear={() => setSearchQuery('')}
-          icon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
+          prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
         />
 
         {/* Tab pills */}
+        {!loading && data && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}
+        >
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <Button
             variant="secondary"
@@ -838,7 +840,6 @@ export function GlobalAttachmentManager() {
         </div>
 
         {/* Summary card */}
-        {!loading && data && (
           <Card style={{ padding: '12px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 'var(--text-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -856,10 +857,8 @@ export function GlobalAttachmentManager() {
               </div>
             </div>
           </Card>
-        )}
 
-        {/* Batch toolbar (活跃标签 → 批量删除，回收站标签 → 批量恢复) */}
-        {!loading && (
+        {/* Batch toolbar */}
           <Card style={{ padding: '8px 14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 'var(--text-sm)' }}>
               <div
@@ -908,33 +907,36 @@ export function GlobalAttachmentManager() {
               ) : null}
             </div>
           </Card>
-        )}
 
         {/* Content */}
-        {loading ? (
-          <Card>
-            <LoadingPlaceholder variant="elevated" minHeight={200} />
-          </Card>
-        ) : displayPages.length === 0 ? (
-          <Card>
-            <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-              <Paperclip
-                size={ICON_SIZE['5xl']}
-                style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
-              />
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                {searchQuery.trim()
-                  ? (t('common:no_search_results') || 'No matching attachments found.')
-                  : showTrash
-                    ? (t('settings:trash_empty') || 'Trash is empty.')
-                    : (t('common:no_attachments') || 'No attachments found.')}
-              </p>
-            </div>
-          </Card>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}>
-            {displayPages.map(renderPage)}
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            {displayPages.length === 0 ? (
+              <Card>
+                <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                  <Paperclip
+                    size={ICON_SIZE['5xl']}
+                    style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
+                  />
+                  <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                    {searchQuery.trim()
+                      ? (t('common:no_search_results') || 'No matching attachments found.')
+                      : showTrash
+                        ? (t('settings:trash_empty') || 'Trash is empty.')
+                        : (t('common:no_attachments') || 'No attachments found.')}
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}>
+                {displayPages.map(renderPage)}
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
         )}
       </PageContainer>
 

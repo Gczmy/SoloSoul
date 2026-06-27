@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -75,11 +76,18 @@ export function ExportImportPage() {
   const [showStrategySelector, setShowStrategySelector] = useState(false);
 
   // Load scope tree
+  const [scopeLoaded, setScopeLoaded] = useState(false);
   const loadScope = useCallback(() => {
     if (!accountId) return;
+    setScopeLoaded(false);
     invoke<PageGroup[]>('export_get_scope_tree', { accountId })
-      .then(setPageGroups)
-      .catch(() => {});
+      .then((groups) => {
+        setPageGroups(groups);
+        setScopeLoaded(true);
+      })
+      .catch(() => {
+        setScopeLoaded(true);
+      });
   }, [accountId]);
 
   useEffect(() => {
@@ -311,7 +319,13 @@ export function ExportImportPage() {
       <PageContainer variant="medium" gap="default">
         <ExportImportTabBar tab={tab} onChange={setTab} />
 
-        {tab === 'export' ? (
+        {tab === 'export' && scopeLoaded ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--page-gap)' }}
+          >
           <ExportSection
             pageGroups={pageGroups}
             selectedPageIds={selectedPageIds}
@@ -365,7 +379,8 @@ export function ExportImportPage() {
               handleExport();
             }}
           />
-        ) : (
+          </motion.div>
+        ) : tab === 'import' ? (
           <ImportSection
             importPath={importPath}
             importPreview={importPreview}
@@ -388,7 +403,7 @@ export function ExportImportPage() {
             onToggleSelection={toggleImportSelection}
             onSetStrategy={setImportStrategy}
           />
-        )}
+        ) : null}
       </PageContainer>
     </AppShell>
   );

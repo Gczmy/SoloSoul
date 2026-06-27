@@ -18,6 +18,7 @@ import {
   Pencil,
   Plus,
   BookOpen,
+  Search,
 } from 'lucide-react';
 import type {
   UserTemplate,
@@ -364,6 +365,7 @@ export function TemplateManagerPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onClear={() => setSearchQuery('')}
+              prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
             />
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {pageOptions.map((opt) => {
