@@ -14,7 +14,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
-import { Trash2, RotateCcw, FileText, Info, Loader2, Folder, LayoutTemplate, Search } from 'lucide-react';
+import { Trash2, RotateCcw, FileText, Info, Folder, LayoutTemplate, Search } from 'lucide-react';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import type { UserTemplate } from '@/types/template';
 import { TrashDetailPanel } from '@/components/trash/TrashDetailPanel';
@@ -279,27 +279,7 @@ export function TrashPage() {
             <LoadingPlaceholder variant="elevated" minHeight={120} />
           </Card>
         ) : (
-          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
-            {isLoading && hasLoaded && (
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'var(--bg-elevated)',
-                  opacity: 0.85,
-                  zIndex: 1,
-                  borderRadius: 12,
-                }}
-              >
-                <Loader2
-                  size={ICON_SIZE['2xl']}
-                  style={{ animation: 'spin 1s linear infinite', color: 'var(--accent-primary)' }}
-                />
-              </div>
-            )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
             {filtered.length === 0 ? (
               <Card>
                 <div style={{ textAlign: 'center', padding: '48px 24px' }}>
@@ -373,18 +353,14 @@ export function TrashPage() {
                     </div>
                     <Button
                       size="sm"
-                      variant="secondary"
-                      style={{
-                        border: '1px solid var(--accent-primary)',
-                        color: 'var(--accent-primary)',
-                      }}
+                      variant="tertiary"
                       onClick={(e) => {
                         e.stopPropagation();
                         doRestore([item.id]);
                       }}
                       title={t('common:restore')}
                     >
-                      <RotateCcw size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
+                      <RotateCcw size={ICON_SIZE.sm} />
                     </Button>
                     <DeleteButton
                       onClick={(e) => {
@@ -444,7 +420,7 @@ export function TrashPage() {
             <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginRight: 'auto' }}>
               {selectedIds.size} {t('settings:selected')}
             </span>
-            <Button size="sm" variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={() => doRestore(Array.from(selectedIds))}>
+            <Button size="sm" variant="tertiary" onClick={() => doRestore(Array.from(selectedIds))}>
               <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} /> {t('common:restore')}
             </Button>
             <DeleteButton onClick={() => doDelete(Array.from(selectedIds))} title={t('common:delete_permanently')}>

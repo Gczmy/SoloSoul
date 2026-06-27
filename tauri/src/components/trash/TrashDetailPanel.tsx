@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -45,6 +47,7 @@ export function TrashDetailPanel({
   onRequestRestore,
   onRequestDelete,
 }: TrashDetailPanelProps) {
+  const customPages = useSettingsStore((s) => s.settings.customPages);
   const { t } = useTranslation(['settings', 'common', 'editor', 'navigation']);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [showTrashAttachments, setShowTrashAttachments] = useState(false);
@@ -161,7 +164,7 @@ export function TrashDetailPanel({
               {t('settings:original_location')}
             </span>
             <span>
-              {t(`navigation:${detailItem.sectionType}`, detailItem.originalLocation)}
+              {resolveCollectionLabel(detailItem.sectionType || detailItem.originalLocation, customPages, t)}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -423,6 +426,9 @@ export function TrashDetailPanel({
                   fontSize: 'var(--text-body-sm)',
                   fontWeight: 600,
                   userSelect: 'none',
+                  ...(expandedSections.snapshots
+                    ? {}
+                    : { borderBottom: '1px solid var(--border-subtle)', paddingBottom: 10, marginBottom: 10 }),
                 }}
               >
                 <span
@@ -453,14 +459,10 @@ export function TrashDetailPanel({
           </>
         )}
 
-        <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+        <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <Button
             size="sm"
-            variant="secondary"
-            style={{
-              border: '1px solid var(--accent-primary)',
-              color: 'var(--accent-primary)',
-            }}
+            variant="tertiary"
             onClick={() => {
               onRequestRestore(detailItem.id);
               onClose();

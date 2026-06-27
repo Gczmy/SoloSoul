@@ -178,11 +178,6 @@ export function ObjectWorkspacePage() {
     const ids = visibleObjects.map((o) => o.id);
     if (ids.length === 0) return;
     const reqId = ++snapshotReqRef.current;
-    // Initialize with 0 immediately so badges render without waiting for the invoke
-    const initial: Record<string, number> = {};
-    for (const id of ids) initial[id] = 0;
-    setSnapshotCounts(initial);
-
     invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
       .then((counts) => {
         if (snapshotReqRef.current !== reqId) return; // stale response, discard
