@@ -117,6 +117,12 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal: _isHorizonta
 
   // ── Render helpers ─────────────────────────────────────────────
   const renderButtonWithCard = (item: typeof items[number]) => {
+    // Page mode (type === 'link'): render as plain navigation button.
+    // Note: ai_chat always returns type: 'link' even in card mode, so exclude it.
+    if (item.type === 'link' && item.iconKey !== 'ai_chat') {
+      return renderPlainButton(item);
+    }
+
     if (item.iconKey === 'plugins') {
       return (
         <div ref={pluginButtonRef} key="plugins" data-plugin-button="true">
