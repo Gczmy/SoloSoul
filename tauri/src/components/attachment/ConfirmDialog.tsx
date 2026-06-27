@@ -43,7 +43,10 @@ export function ConfirmDialog({
         background: 'var(--bg-overlay)',
         backdropFilter: 'blur(4px)',
       }}
-      onClick={onCancel}
+      onClick={(e) => {
+        e.stopPropagation();
+        onCancel();
+      }}
     >
       <div
         style={{

@@ -401,12 +401,9 @@ export function AttachmentViewer({
             </div>
           </div>
           {!showTrash && (
-            <BadgeIconButton
-              Icon={Upload}
-              onClick={handleAdd}
-              title={t('common:upload') || 'Upload'}
-              iconSize={ICON_SIZE.sm}
-            />
+            <Button variant="secondary" size="sm" onClick={handleAdd}>
+              <Upload size={ICON_SIZE.sm} /> {t('common:upload')}
+            </Button>
           )}
           <BadgeIconButton Icon={X} onClick={onClose} title={t('common:close') || 'Close'} iconSize={ICON_SIZE.md} />
         </div>
