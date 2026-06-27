@@ -55,40 +55,67 @@ async fn search_advanced_impl(
         let mut field_matches: Vec<FieldMatch> = Vec::new();
         search_properties_for_matches(&rec.properties, &q, "", &mut field_matches);
 
-        // Redact field values whose property has "sensitive" or "critical" sensitivity level.
-        // Uses rec.property_labels (template property UUID → level) crossed with
-        // rec.properties.__fields (UUID → {name, ...}) to find field names to redact.
-        // This is more reliable than looking up the template because property_labels
-        // is stored directly on the object.
-        if !field_matches.is_empty() {
-            if let Some(ref labels) = rec.property_labels {
-                if let Some(labels_obj) = labels.as_object() {
-                    if let Some(fields_val) = rec.properties.get("__fields") {
-                        if let Some(fields_obj) = fields_val.as_object() {
-                            // Collect field names that have sensitive/critical level
-                            let sensitive_field_names: std::collections::HashSet<&str> = labels_obj
-                                .iter()
-                                .filter(|(_, v)| {
-                                    v.as_str().map_or(false, |s| s == "sensitive" || s == "critical")
-                                })
-                                .filter_map(|(uuid, _)| {
-                                    fields_obj.get(uuid)
-                                        .and_then(|f| f.get("name"))
-                                        .and_then(|n| n.as_str())
-                                })
-                                .collect();
-                            if !sensitive_field_names.is_empty() {
-                                for fm in &mut field_matches {
-                                    if matches!(fm.match_type, FieldMatchType::FieldValue) {
-                                        let segments: Vec<&str> = fm.field_path.split('.').collect();
-                                        if segments.iter().any(|s| sensitive_field_names.contains(s)) {
-                                            fm.display_value = "[REDACTED]".to_string();
-                                            fm.score = 0.0;
+        // Redact field values for sensitive/critical content.
+        // Three strategies:
+        // 1) Object-level: rec.sensitivity_level == "sensitive" | "critical" → redact ALL fieldValue matches
+        // 2) Field-level: property_labels × __fields UUID cross-reference
+        // 3) Fallback: template property sensitivity (when property_labels not yet backfilled)
+        let redact_all = rec.sensitivity_level == "sensitive" || rec.sensitivity_level == "critical";
+        if !field_matches.is_empty() && (redact_all || rec.property_labels.is_some() || rec.template_id.is_some()) {
+            let sensitive_field_names: std::collections::HashSet<String> = if redact_all {
+                // Strategy 1: object-level — ALL fields are sensitive, signal via empty non-deterministic marker
+                // No actual names needed; handled by the separate redact_all check below
+                std::collections::HashSet::new()
+            } else {
+                // Strategy 2: property_labels × __fields (field-level UUID cross-reference)
+                let mut names = std::collections::HashSet::new();
+                if let Some(ref labels) = rec.property_labels {
+                    if let Some(labels_obj) = labels.as_object() {
+                        if let Some(fields_val) = rec.properties.get("__fields") {
+                            if let Some(fields_obj) = fields_val.as_object() {
+                                for (uuid, level_val) in labels_obj {
+                                    if level_val.as_str().map_or(false, |s| {
+                                        s == "sensitive" || s == "critical"
+                                    }) {
+                                        if let Some(name) = fields_obj
+                                            .get(uuid)
+                                            .and_then(|f| f.get("name"))
+                                            .and_then(|n| n.as_str())
+                                        {
+                                            names.insert(name.to_string());
                                         }
                                     }
                                 }
                             }
                         }
+                    }
+                }
+                // Strategy 3: fallback to template property sensitivity
+                if names.is_empty() {
+                    if let Some(ref tid) = rec.template_id {
+                        if let Some(tpl) = templates.get(tid) {
+                            for prop in &tpl.properties {
+                                if prop.sensitivity_level.as_deref().map_or(false, |s| {
+                                    s == "sensitive" || s == "critical"
+                                }) {
+                                    names.insert(prop.name.clone());
+                                }
+                            }
+                        }
+                    }
+                }
+                names
+            };
+
+            for fm in &mut field_matches {
+                if matches!(fm.match_type, FieldMatchType::FieldValue) {
+                    let should_redact = redact_all || {
+                        let segments: Vec<&str> = fm.field_path.split('.').collect();
+                        segments.iter().any(|s| sensitive_field_names.contains(*s))
+                    };
+                    if should_redact {
+                        fm.display_value = "[REDACTED]".to_string();
+                        fm.score = 0.0;
                     }
                 }
             }
