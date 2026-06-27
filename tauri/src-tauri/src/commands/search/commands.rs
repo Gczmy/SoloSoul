@@ -238,8 +238,50 @@ pub async fn search_unified(
         }
 
         // 始终搜索模板 — 模板不归属于页面，不受 collectionType 影响
+        let mut matched_template_ids: Vec<String> = Vec::new();
         if let Ok(templates) = search_templates(&vault, &account_id, &query) {
+            matched_template_ids = templates.iter().map(|t| t.object_id.clone()).collect();
             object_result.items.extend(templates);
+        }
+
+        // 如果模板匹配，查找使用这些模板的对象（即使名称/字段不包含查询词）
+        if !matched_template_ids.is_empty() {
+            if let Ok(all_objects) = vault.list_objects(&account_id, None, None, None, false, false) {
+                let existing_ids: std::collections::HashSet<String> = object_result.items.iter()
+                    .map(|i| i.object_id.clone())
+                    .collect();
+
+                for obj in all_objects {
+                    if existing_ids.contains(&obj.id) {
+                        continue;
+                    }
+                    // 如果指定了 collectionType 过滤，仅添加属于该页面的对象
+                    if let Some(ref ct) = collection_type {
+                        if obj.collection_type != *ct {
+                            continue;
+                        }
+                    }
+                    if let Some(ref tid) = obj.template_id {
+                        if matched_template_ids.contains(tid) {
+                            let field_count = count_object_fields(&obj.properties);
+                            object_result.items.push(SearchResultItem {
+                                object_id: obj.id,
+                                name: obj.name,
+                                collection_type: obj.collection_type,
+                                item_type: "object".to_string(),
+                                parent_id: None,
+                                field_count: Some(field_count),
+                                sensitivity_levels: Some(vec![obj.sensitivity_level]),
+                                object_count: None,
+                                matched_field: None,
+                                matched_value: None,
+                                match_type: Some("template".to_string()),
+                                relevance: SCORE_PARTIAL_NAME,
+                            });
+                        }
+                    }
+                }
+            }
         }
 
         // 重新排序和截断
