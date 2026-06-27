@@ -1,9 +1,16 @@
 use super::*;
+use solosoul_core::is_searchable_field_value;
 
+/// 递归遍历对象属性，收集与查询词匹配的字段名/字段值。
+///
+/// - `protected_keys`：字段 id 集合，这些字段的值不允许参与匹配。
+/// - `skip_values`：为 true 时跳过所有字段值匹配（用于对象级敏感度为 sensitive/critical 时）。
 pub(crate) fn search_properties_for_matches(
     data: &serde_json::Value,
     query: &str,
     current_path: &str,
+    protected_keys: &std::collections::HashSet<String>,
+    skip_values: bool,
     matches: &mut Vec<FieldMatch>,
 ) {
     match data {
@@ -23,7 +30,10 @@ pub(crate) fn search_properties_for_matches(
                     });
                 }
                 if let serde_json::Value::String(s) = value {
-                    if s.to_lowercase().contains(query) {
+                    if s.to_lowercase().contains(query)
+                        && !skip_values
+                        && is_searchable_field_value(&field_path, protected_keys)
+                    {
                         let score = if s.len() == query.len() {
                             SCORE_EXACT_VALUE
                         } else {
@@ -46,7 +56,14 @@ pub(crate) fn search_properties_for_matches(
                         });
                     }
                 }
-                search_properties_for_matches(value, query, &field_path, matches);
+                search_properties_for_matches(
+                    value,
+                    query,
+                    &field_path,
+                    protected_keys,
+                    skip_values,
+                    matches,
+                );
             }
         }
         serde_json::Value::Array(arr) => {
@@ -55,6 +72,8 @@ pub(crate) fn search_properties_for_matches(
                     item,
                     query,
                     &format!("{}[{}]", current_path, i),
+                    protected_keys,
+                    skip_values,
                     matches,
                 );
             }

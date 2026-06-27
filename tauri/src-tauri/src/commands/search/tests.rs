@@ -7,7 +7,7 @@ fn test_search_properties_for_matches_value_match() {
         "email": "alice@example.com"
     });
     let mut matches = Vec::new();
-    search_properties_for_matches(&data, "alice", "", &mut matches);
+    search_properties_for_matches(&data, "alice", "", &HashSet::new(), false, &mut matches);
     assert!(!matches.is_empty());
     let has_value_match = matches.iter().any(|m| {
         m.display_value == "alice@example.com" && matches!(m.match_type, FieldMatchType::FieldValue)
@@ -21,7 +21,7 @@ fn test_search_properties_for_matches_field_name_match() {
         "emailAddress": "test@example.com"
     });
     let mut matches = Vec::new();
-    search_properties_for_matches(&data, "email", "", &mut matches);
+    search_properties_for_matches(&data, "email", "", &HashSet::new(), false, &mut matches);
     let has_field_match = matches.iter().any(|m| {
         m.display_value == "emailAddress" && matches!(m.match_type, FieldMatchType::FieldName)
     });
@@ -36,7 +36,7 @@ fn test_search_properties_for_matches_nested_object() {
         }
     });
     let mut matches = Vec::new();
-    search_properties_for_matches(&data, "456", "", &mut matches);
+    search_properties_for_matches(&data, "456", "", &HashSet::new(), false, &mut matches);
     let has_nested = matches.iter().any(|m| m.field_path == "contact.phone");
     assert!(has_nested);
 }
@@ -47,7 +47,7 @@ fn test_search_properties_for_matches_array_of_objects() {
         "items": [{"name": "hello"}, {"name": "world"}]
     });
     let mut matches = Vec::new();
-    search_properties_for_matches(&data, "world", "", &mut matches);
+    search_properties_for_matches(&data, "world", "", &HashSet::new(), false, &mut matches);
     let has_array = matches.iter().any(|m| m.field_path == "items[1].name");
     assert!(has_array);
 }
@@ -58,7 +58,7 @@ fn test_search_properties_for_matches_exact_length_bonus() {
         "code": "abc"
     });
     let mut matches = Vec::new();
-    search_properties_for_matches(&data, "abc", "", &mut matches);
+    search_properties_for_matches(&data, "abc", "", &HashSet::new(), false, &mut matches);
     let score = matches
         .iter()
         .find(|m| m.display_value == "abc")
@@ -73,7 +73,7 @@ fn test_search_properties_for_matches_partial_score() {
         "code": "abcdef"
     });
     let mut matches = Vec::new();
-    search_properties_for_matches(&data, "abc", "", &mut matches);
+    search_properties_for_matches(&data, "abc", "", &HashSet::new(), false, &mut matches);
     let score = matches
         .iter()
         .find(|m| m.display_value == "abcdef")
@@ -87,7 +87,7 @@ fn test_search_properties_for_matches_truncation() {
     let long = "a".repeat(200);
     let data = serde_json::json!({ "description": long });
     let mut matches = Vec::new();
-    search_properties_for_matches(&data, "aaa", "", &mut matches);
+    search_properties_for_matches(&data, "aaa", "", &HashSet::new(), false, &mut matches);
     let m = &matches[0];
     assert!(m.display_value.ends_with("..."));
     assert!(m.display_value.len() <= 104); // 100 chars + "..."
@@ -97,7 +97,7 @@ fn test_search_properties_for_matches_truncation() {
 fn test_search_properties_for_matches_no_match() {
     let data = serde_json::json!({ "name": "Bob" });
     let mut matches = Vec::new();
-    search_properties_for_matches(&data, "zzz", "", &mut matches);
+    search_properties_for_matches(&data, "zzz", "", &HashSet::new(), false, &mut matches);
     assert!(matches.is_empty());
 }
 
@@ -111,7 +111,7 @@ fn test_search_properties_for_matches_deeply_nested() {
         }
     });
     let mut matches = Vec::new();
-    search_properties_for_matches(&data, "target", "", &mut matches);
+    search_properties_for_matches(&data, "target", "", &HashSet::new(), false, &mut matches);
     let has_deep = matches
         .iter()
         .any(|m| m.field_path == "level1.level2.level3");
@@ -168,4 +168,87 @@ fn test_search_result_item_serialization_optional_fields() {
     assert!(json.contains("\"matchedField\":null"));
     assert!(json.contains("\"matchedValue\":null"));
     assert!(json.contains("\"matchType\":null"));
+}
+
+#[test]
+fn test_search_skips_critical_field_value() {
+    let data = serde_json::json!({
+        "idNumber": "123456",
+        "email": "a@b.com"
+    });
+    let mut protected = HashSet::new();
+    protected.insert("idNumber".to_string());
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "123456", "", &protected, false, &mut matches);
+    assert!(
+        !matches
+            .iter()
+            .any(|m| matches!(m.match_type, FieldMatchType::FieldValue)),
+        "critical 字段值不应产生 fieldValue 匹配"
+    );
+}
+
+#[test]
+fn test_search_skips_sensitive_field_value() {
+    let data = serde_json::json!({ "ssn": "654321" });
+    let mut protected = HashSet::new();
+    protected.insert("ssn".to_string());
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "654321", "", &protected, false, &mut matches);
+    assert!(!matches
+        .iter()
+        .any(|m| matches!(m.match_type, FieldMatchType::FieldValue)));
+}
+
+#[test]
+fn test_search_allows_internal_field_value() {
+    let data = serde_json::json!({ "email": "alice@example.com" });
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "alice", "", &HashSet::new(), false, &mut matches);
+    assert!(matches.iter().any(|m| {
+        m.display_value == "alice@example.com" && matches!(m.match_type, FieldMatchType::FieldValue)
+    }));
+}
+
+#[test]
+fn test_search_skips_nested_protected_field_value() {
+    let data = serde_json::json!({
+        "contact": {
+            "phone": "123-456-7890"
+        }
+    });
+    let mut protected = HashSet::new();
+    protected.insert("phone".to_string());
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "456", "", &protected, false, &mut matches);
+    assert!(!matches.iter().any(|m| {
+        m.field_path == "contact.phone" && matches!(m.match_type, FieldMatchType::FieldValue)
+    }));
+}
+
+#[test]
+fn test_search_field_name_metadata_still_searchable() {
+    let data = serde_json::json!({
+        "idNumber": "123456",
+        "__fields": {
+            "idNumber": { "name": "证件号码", "type": "text" }
+        }
+    });
+    let mut protected = HashSet::new();
+    protected.insert("idNumber".to_string());
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "证件号码", "", &protected, false, &mut matches);
+    assert!(matches.iter().any(|m| {
+        m.display_value == "证件号码" && matches!(m.match_type, FieldMatchType::FieldValue)
+    }));
+}
+
+#[test]
+fn test_search_skip_values_redacts_object_level_sensitive() {
+    let data = serde_json::json!({ "email": "alice@example.com" });
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "alice", "", &HashSet::new(), true, &mut matches);
+    assert!(!matches
+        .iter()
+        .any(|m| matches!(m.match_type, FieldMatchType::FieldValue)));
 }

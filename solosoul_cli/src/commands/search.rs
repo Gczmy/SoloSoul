@@ -6,7 +6,10 @@
 use std::collections::HashSet;
 
 use color_eyre::Result;
-use solosoul_core::{ObjectRecord, VaultStore};
+use solosoul_core::{
+    collect_protected_field_keys, is_protected_sensitivity, is_searchable_field_value,
+    ObjectRecord, UserTemplate, VaultStore,
+};
 
 use crate::app::{App, AppPhase};
 
@@ -123,6 +126,14 @@ fn perform_search(
     let mut items: Vec<SearchResultItem> = Vec::new();
     let mut total_scanned = 0usize;
 
+    // 预加载模板，用于字段级敏感度兜底
+    let templates: std::collections::HashMap<String, UserTemplate> = vault
+        .list_user_templates(account_id)
+        .map_err(map_err)?
+        .into_iter()
+        .map(|t| (t.id.clone(), t))
+        .collect();
+
     // 1. 页面（系统分区 + 自定义页面）
     let mut page_items = search_pages(vault, account_id, &q)?;
     total_scanned += page_items.len();
@@ -139,7 +150,7 @@ fn perform_search(
         if items.len() >= RESULT_LIMIT {
             break;
         }
-        if let Some(item) = build_object_result(vault, account_id, &rec, &q) {
+        if let Some(item) = build_object_result(vault, account_id, &rec, &q, &templates) {
             items.push(item);
         }
     }
@@ -226,9 +237,26 @@ fn build_object_result(
     _account_id: &str,
     rec: &ObjectRecord,
     query: &str,
+    templates: &std::collections::HashMap<String, UserTemplate>,
 ) -> Option<SearchResultItem> {
+    // 对象级敏感度为 sensitive/critical 时，整体跳过字段值匹配。
+    let skip_values = is_protected_sensitivity(&rec.sensitivity_level);
+    // 字段级敏感度过滤：property_labels 优先，缺失时回退到模板。
+    let protected_keys = collect_protected_field_keys(
+        rec.property_labels.as_ref(),
+        rec.template_id.as_deref(),
+        templates,
+    );
+
     let mut field_matches: Vec<FieldMatch> = Vec::new();
-    search_properties_for_matches(&rec.properties, query, "", &mut field_matches);
+    search_properties_for_matches(
+        &rec.properties,
+        query,
+        "",
+        &protected_keys,
+        skip_values,
+        &mut field_matches,
+    );
 
     let name_score = if rec.name.to_lowercase().contains(query) {
         2.0
@@ -295,6 +323,8 @@ fn search_properties_for_matches(
     data: &serde_json::Value,
     query: &str,
     current_path: &str,
+    protected_keys: &HashSet<String>,
+    skip_values: bool,
     matches: &mut Vec<FieldMatch>,
 ) {
     match data {
@@ -314,7 +344,10 @@ fn search_properties_for_matches(
                     });
                 }
                 if let serde_json::Value::String(s) = value {
-                    if s.to_lowercase().contains(query) {
+                    if s.to_lowercase().contains(query)
+                        && !skip_values
+                        && is_searchable_field_value(&field_path, protected_keys)
+                    {
                         let score = if s.len() == query.len() { 5.0 } else { 3.0 };
                         let truncated = truncate_value(s, 100);
                         matches.push(FieldMatch {
@@ -325,7 +358,14 @@ fn search_properties_for_matches(
                         });
                     }
                 }
-                search_properties_for_matches(value, query, &field_path, matches);
+                search_properties_for_matches(
+                    value,
+                    query,
+                    &field_path,
+                    protected_keys,
+                    skip_values,
+                    matches,
+                );
             }
         }
         serde_json::Value::Array(arr) => {
@@ -334,6 +374,8 @@ fn search_properties_for_matches(
                     item,
                     query,
                     &format!("{}[{}]", current_path, i),
+                    protected_keys,
+                    skip_values,
                     matches,
                 );
             }
@@ -489,10 +531,40 @@ mod tests {
     fn test_search_properties_for_matches() {
         let data = serde_json::json!({ "email": "alice@example.com" });
         let mut matches = Vec::new();
-        search_properties_for_matches(&data, "alice", "", &mut matches);
+        search_properties_for_matches(&data, "alice", "", &HashSet::new(), false, &mut matches);
         assert!(matches
             .iter()
             .any(|m| m.display_value == "alice@example.com"));
+    }
+
+    #[test]
+    fn test_search_properties_for_matches_skips_protected_value() {
+        let data = serde_json::json!({
+            "idNumber": "123456",
+            "email": "alice@example.com"
+        });
+        let mut protected = HashSet::new();
+        protected.insert("idNumber".to_string());
+
+        let mut matches = Vec::new();
+        search_properties_for_matches(&data, "123456", "", &protected, false, &mut matches);
+        assert!(!matches.iter().any(|m| m.display_value == "123456"));
+
+        let mut matches = Vec::new();
+        search_properties_for_matches(&data, "alice", "", &protected, false, &mut matches);
+        assert!(matches
+            .iter()
+            .any(|m| m.display_value == "alice@example.com"));
+    }
+
+    #[test]
+    fn test_search_properties_for_matches_skip_values_flag() {
+        let data = serde_json::json!({ "email": "alice@example.com" });
+        let mut matches = Vec::new();
+        search_properties_for_matches(&data, "alice", "", &HashSet::new(), true, &mut matches);
+        assert!(!matches
+            .iter()
+            .any(|m| matches!(m.match_type, FieldMatchType::FieldValue)));
     }
 
     #[test]

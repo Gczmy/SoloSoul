@@ -14,6 +14,7 @@ pub mod biometric;
 pub mod llm;
 pub mod ocr;
 pub mod process_lock;
+pub mod search_filter;
 pub mod template_service;
 pub mod vault_service;
 
@@ -27,4 +28,10 @@ pub use vault_service::{AccountConfig, AccountSummary, VaultService};
 pub use solosoul_vault::{
     AuditLogEntry, ObjectRecord, ObjectSummary, Profile, PropertyType, TemplateProperty, TrashItem,
     TrashItemSummary, UserTemplate, VaultStats, VaultStore,
+};
+
+// 搜索过滤辅助函数
+pub use search_filter::{
+    collect_protected_field_keys, is_protected_sensitivity, is_searchable_field_value,
+    PROTECTED_SENSITIVITIES,
 };

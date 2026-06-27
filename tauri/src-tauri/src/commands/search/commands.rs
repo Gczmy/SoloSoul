@@ -1,4 +1,5 @@
 use super::*;
+use solosoul_core::{collect_protected_field_keys, is_protected_sensitivity};
 
 async fn search_advanced_impl(
     state: &AppState,
@@ -51,75 +52,25 @@ async fn search_advanced_impl(
             continue;
         }
 
+        // 对象级敏感度为 sensitive/critical 时，跳过所有字段值匹配。
+        let redact_all = is_protected_sensitivity(&rec.sensitivity_level);
+        // 字段级敏感度过滤：property_labels 优先，缺失时回退到模板定义。
+        let protected_keys = collect_protected_field_keys(
+            rec.property_labels.as_ref(),
+            rec.template_id.as_deref(),
+            &templates,
+        );
+
         // Collect field-level matches from properties
         let mut field_matches: Vec<FieldMatch> = Vec::new();
-        search_properties_for_matches(&rec.properties, &q, "", &mut field_matches);
-
-        // Redact field values for sensitive/critical content.
-        // Three strategies:
-        // 1) Object-level: rec.sensitivity_level == "sensitive" | "critical" → redact ALL fieldValue matches
-        // 2) Field-level: property_labels × __fields UUID cross-reference
-        // 3) Fallback: template property sensitivity (when property_labels not yet backfilled)
-        let redact_all = rec.sensitivity_level == "sensitive" || rec.sensitivity_level == "critical";
-        if !field_matches.is_empty() && (redact_all || rec.property_labels.is_some() || rec.template_id.is_some()) {
-            let sensitive_field_names: std::collections::HashSet<String> = if redact_all {
-                // Strategy 1: object-level — ALL fields are sensitive, signal via empty non-deterministic marker
-                // No actual names needed; handled by the separate redact_all check below
-                std::collections::HashSet::new()
-            } else {
-                // Strategy 2: property_labels × __fields (field-level UUID cross-reference)
-                let mut names = std::collections::HashSet::new();
-                if let Some(ref labels) = rec.property_labels {
-                    if let Some(labels_obj) = labels.as_object() {
-                        if let Some(fields_val) = rec.properties.get("__fields") {
-                            if let Some(fields_obj) = fields_val.as_object() {
-                                for (uuid, level_val) in labels_obj {
-                                    if level_val.as_str().map_or(false, |s| {
-                                        s == "sensitive" || s == "critical"
-                                    }) {
-                                        if let Some(name) = fields_obj
-                                            .get(uuid)
-                                            .and_then(|f| f.get("name"))
-                                            .and_then(|n| n.as_str())
-                                        {
-                                            names.insert(name.to_string());
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                // Strategy 3: fallback to template property sensitivity
-                if names.is_empty() {
-                    if let Some(ref tid) = rec.template_id {
-                        if let Some(tpl) = templates.get(tid) {
-                            for prop in &tpl.properties {
-                                if prop.sensitivity_level.as_deref().map_or(false, |s| {
-                                    s == "sensitive" || s == "critical"
-                                }) {
-                                    names.insert(prop.name.clone());
-                                }
-                            }
-                        }
-                    }
-                }
-                names
-            };
-
-            for fm in &mut field_matches {
-                if matches!(fm.match_type, FieldMatchType::FieldValue) {
-                    let should_redact = redact_all || {
-                        let segments: Vec<&str> = fm.field_path.split('.').collect();
-                        segments.iter().any(|s| sensitive_field_names.contains(*s))
-                    };
-                    if should_redact {
-                        fm.display_value = "[REDACTED]".to_string();
-                        fm.score = 0.0;
-                    }
-                }
-            }
-        }
+        search_properties_for_matches(
+            &rec.properties,
+            &q,
+            "",
+            &protected_keys,
+            redact_all,
+            &mut field_matches,
+        );
 
         // Name match bonus
         let name_score = if rec.name.to_lowercase().contains(&q) {
@@ -304,7 +255,8 @@ pub async fn search_unified(
         }
 
         // 始终搜索模板 — 模板不归属于页面，不受 collectionType 影响
-        let mut matched_templates: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+        let mut matched_templates: std::collections::HashMap<String, String> =
+            std::collections::HashMap::new();
         if let Ok(templates) = search_templates(&vault, &account_id, &query) {
             for t in &templates {
                 matched_templates.insert(t.object_id.clone(), t.name.clone());
@@ -314,8 +266,11 @@ pub async fn search_unified(
 
         // 如果模板匹配，查找使用这些模板的对象（即使名称/字段不包含查询词）
         if !matched_templates.is_empty() {
-            if let Ok(all_objects) = vault.list_objects(&account_id, None, None, None, false, false) {
-                let existing_ids: std::collections::HashSet<String> = object_result.items.iter()
+            if let Ok(all_objects) = vault.list_objects(&account_id, None, None, None, false, false)
+            {
+                let existing_ids: std::collections::HashSet<String> = object_result
+                    .items
+                    .iter()
                     .map(|i| i.object_id.clone())
                     .collect();
 
