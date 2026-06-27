@@ -133,6 +133,8 @@ interface SearchItem {
   /** "object" | "page" | "template" */
   itemType?: string;
   parentId?: string;
+  templateName?: string;
+  templateDeleted?: boolean;
   objectCount?: number;
   fieldCount?: number;
   matchedField?: string;
@@ -343,6 +345,12 @@ export function SearchPage() {
                           <Highlight text={resolveCollectionLabel(item.collectionType, customPages, t)} query={query} />
                         ) : (
                           <span>{resolveCollectionLabel(item.collectionType, customPages, t)}</span>
+                        )}
+                        {!isPage && item.itemType !== 'template' && item.templateName && (
+                          <span>
+                            {' · '}
+                            <span style={item.templateDeleted ? { textDecoration: 'line-through' } : undefined}>{item.templateName}</span>
+                          </span>
                         )}
                         {isPage && item.objectCount !== undefined && (
                           <span>

@@ -330,6 +330,11 @@ fn search_properties_for_matches(
     match data {
         serde_json::Value::Object(obj) => {
             for (key, value) in obj {
+                // 跳过系统元数据字段，避免搜索结果过多
+                let lower_key = key.to_lowercase();
+                if lower_key == "createdat" || lower_key == "objectid" || lower_key == "id" || lower_key == "updatedat" || lower_key == "deletedat" || lower_key == "vaultpath" || lower_key == "__templatename" {
+                    continue;
+                }
                 let field_path = if current_path.is_empty() {
                     key.clone()
                 } else {

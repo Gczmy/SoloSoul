@@ -35,7 +35,8 @@
     "district": "县/区",
     "city": "城市",
     "province": "省/自治区/直辖市/特别行政区",
-    "title": "标题"
+    "title": "标题",
+    "fileName": "文件名"
   },
   "templates": {
     "address": "地址"

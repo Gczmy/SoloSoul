@@ -33,6 +33,10 @@ pub struct SearchResultItem {
     /// "object" or "page"
     pub item_type: String,
     pub parent_id: Option<String>,
+    /// Name of the template used by this object (object results only)
+    pub template_name: Option<String>,
+    /// Whether the template referenced by this object has been deleted
+    pub template_deleted: bool,
     /// Number of populated fields in the object (object results only)
     pub field_count: Option<usize>,
     /// Sensitivity levels present in the object (object results only)

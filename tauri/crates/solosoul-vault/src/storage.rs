@@ -1779,8 +1779,22 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        // 保存模板名称到 properties，用于模板被删除后仍能显示原始模板名
+        let mut properties = obj.properties.clone();
+        if let Some(ref tid) = obj.template_id {
+            let tpl_name: Result<String, _> = conn.query_row(
+                "SELECT name FROM user_templates WHERE id = ?1",
+                params![tid],
+                |row| row.get(0),
+            );
+            if let Ok(name) = tpl_name {
+                if let Some(map) = properties.as_object_mut() {
+                    map.insert("__templateName".to_string(), serde_json::Value::String(name));
+                }
+            }
+        }
         let children_json = serde_json::to_string(&obj.children_ids).unwrap_or_default();
-        let props_json = serde_json::to_string(&obj.properties).unwrap_or_default();
+        let props_json = serde_json::to_string(&properties).unwrap_or_default();
         let labels_json = obj
             .property_labels
             .as_ref()

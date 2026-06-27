@@ -40,6 +40,8 @@ interface SearchItem {
   collectionType: string;
   itemType: 'object' | 'page' | 'template';
   parentId?: string;
+  templateName?: string;
+  templateDeleted?: boolean;
   fieldCount?: number;
   sensitivityLevels?: string[];
   objectCount?: number;
@@ -500,6 +502,12 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                               {t('settings:search_type_object')}
                             </span>
                             <span> · {item.matchType === 'template' ? <Highlight text={resolvePageName(item)} query={query} /> : resolvePageName(item)}</span>
+                            {item.templateName && (
+                              <span>
+                                {' · '}
+                                <span style={item.templateDeleted ? { textDecoration: 'line-through' } : undefined}>{item.templateName}</span>
+                              </span>
+                            )}
                             {item.fieldCount !== undefined && (
                               <span>
                                 {' '}
