@@ -6,42 +6,97 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [2.5.6] - 2026-06-27
 
+### Security
+
+- **流式加密导出/导入（P1-023/024）** — 大文件加解密改为分块流式处理，避免将完整密文加载到内存中，降低内存占用与侧信道风险。
+- **HKDF-SHA256 密码验证（P2-010）** — 密码验证哈希从轻量级 Argon2id 迁移至 HKDF-SHA256，提升验证性能同时保持安全性。
+- **Windows ACL 文件权限（P1-002）** — 通过 icacls 限制 Vault 数据目录的 Windows 文件权限，防止其他进程越权访问。
+- **移除硬编码密钥（P1-003）** — 移除代码中硬编码的 BIO_FILE_KEY_SECRET，改为从密钥派生函数动态生成。
+- **路径遍历防护（P2-012）** — 加固 OCR 与附件处理中的用户可控路径校验。
+- **OCR Swift 安全加固（P2-014）** — 修复 OCR 模块中 Swift 代码的安全问题。
+- **tauri.conf.json 架构修正（P1-007）** — schema 指向官方 tauri-apps/tauri。
+- **插件运行时双重写入消除（P1-009）** — 合并 src-tauri/plugin/ 到 solosoul-plugin crate，消除同份数据写入两次的竞态条件。
+- **全局 currentObject 单例替换（P1-017/018）** — 用 per-objectId 缓存替代全局单例，消除多对象并发编辑的竞态条件。
+- **KDF 参数可配置** — 新增 SOLOSOUL_SECURE=1 环境变量切换生产模式 KDF 参数（64 MiB/3 iter），开发模式保持 8 MiB/2 iter。
+
 ### Fixed
 
 - **回收站对象详情卡片"原位置"显示** — 自定义页面的 UUID 改为显示页面名称（使用 resolveCollectionLabel + useSettingsStore 解析），同时修复国际化。
 - **回收站页面时间筛选切换闪烁** — 移除加载覆盖层（Loader2），旧数据在加载期间保持不变，新数据到达后无缝替换。
 - **切换页面历史/附件 badge 数字闪烁** — 移除 snapshot counts 0 初始化，加载期间 badge 不显示，数据到达后统一显示实际数字。
-- **快照区域横线调整** — 折叠时 toggle 下方显示横线，展开时由最后一个字段的 borderBottom 自然作底部边界，避免双线重叠。
-- **ConfirmDialog 事件冒泡** — 修复覆盖层点击 e.stopPropagation()，防止点击 dismiss 时意外关闭附件卡片。
-- **附件文件名 .* 后缀 bug** — 移除 save() 对话框的 filters 配置，避免系统对话框自动给文件名追加 .*。
-- **附件拖拽穿透与事件重复** — 修复拖拽上传时多层元素穿透、计数刷新不及时、Tauri 重复事件去重问题。
+- **快照区域横线调整** — 折叠时 toggle 下方显示横线，展开时由最后一个字段的 borderBottom 自然作底部边界。
+- **ConfirmDialog 事件冒泡** — 修复覆盖层点击 stopPropagation()，防止点击 dismiss 时意外关闭附件卡片。
+- **ObjectDetailModal/HistoryViewer/ExportSection 闪烁** — 全面引入懒加载 + fade-in 动画。
+- **GlobalAttachmentManager 工具栏闪烁** — tab pills 改用 Button 组件，刷新按钮统一 variant=secondary。
+- **附件预览修复** — 非图片附件无法预览修复；图片附件支持滚动、缩放与底部缩放工具栏。
+- **复制按钮重影背景** — 消除在对话框背景上的白色重影，hover 时改为声明式样式 + 发光动画。
+- **附件文件名 .* 后缀 bug** — 移除 save() 对话框的 filters 配置，避免自动追加 .*。
+- **附件拖拽穿透与事件重复** — 修复多层元素穿透、计数刷新不及时、Tauri 重复事件去重。
+- **地址格式化器默认国家徽章** — DEFAULT 显示"默认"/"Default"而非 raw code。
+- **模板删除弹性修复** — 修复模板删除后 property_labels、fields、templateName、contractTypeId 残留导致的崩溃。
+- **模板名称删除线统一** — 编辑器、工作区卡片、详情弹窗三处模板名称删除线统一检测 page category。
+- **ESLint 警告清零（P1-022）** — 修复未使用变量、缺失依赖、死代码等所有 ESLint 警告。
+- **Clippy/Fmt 修复（P0-002/003/004）** — 修复主项目的 clippy 警告与 cargo fmt。
+- **前端性能优化（P2-019~025）** — 包括 ObjectWorkspacePage memo、搜索防抖、减少重渲染。
+- **搜索防抖与 OCR 文档修复（P0-009/P2-008/P2-011）** — 搜索结果节流、OCR 文档路径修正、ort 版本兼容。
 
 ### Changed
 
-- **回收站恢复按钮无边框** — variant="secondary" + accent 边框 -> variant="tertiary"（无边框，hover 浅色底）。
+- **ObjectWorkspacePage 重构（P1-013）** — 拆分为 useWorkspacePasswordGuard hook、ConfirmDeleteDialog、WorkspaceCategoryTabs 三个模块。
+- **P1 组件提取大重构** — 提取 BadgeIconButton、DeleteButton、SelectCheckbox 等共享组件；消除所有 miniBtn/pgBtn 遗留用法；LLM 配置去重、附件工具函数抽取。
+- **全站按钮样式统一** — 新增 danger-outline 变体（常态浅红底 + 亮红文字）；提取共享 DeleteButton 组件。
+- **全站字体大小统一为语义化 token** — 新增 --text-body、--text-caption、--text-badge 等 token；591 处写死 fontSize 映射为 token。
+- **全站页面布局标准化** — 新增 PageContainer、CardGrid 与 tokens.css 布局 token。
+- **全站卡片 gap 统一** — 使用 --card-grid-gap token 布局，与字号比例对齐。
+- **回收站恢复按钮无边框** — variant=secondary + accent 边框 -> variant=tertiary（无边框，hover 浅色底）。
 - **回收站底部按钮右对齐** — 恢复和永久删除按钮容器添加 justifyContent: flex-end，垂直位置不变。
-- **danger-outline 按钮样式强化** — 常态显示浅红底 + 亮红文字，hover 时更深背景。
-- **提取共享 DeleteButton 组件** — 附件管理批量删除等场景统一使用，减少重复代码。
-- **全站字体大小统一为语义化 token** — 新增 --text-body、--text-caption、--text-badge 等语义字号 token。
-- **全站页面布局标准化** — 新增 PageContainer 共享容器组件、CardGrid 卡片网格组件与 tokens.css 布局/排版 token。
-- **附件 UI 统一** — TrashPage 附件标签按钮改为 pill 样式；附件图标和格式标签颜色统一为 var(--text-tertiary)。
-- **全站卡片 gap 统一** — 使用 --card-grid-gap token 布局。
-- **ConfirmDialog 字体/按钮对齐** — 标题/正文字号与对象删除确认框对齐。
+- **ConfirmDialog 字体/按钮对齐** — 标题/正文字号与对象删除确认框对齐；删除确认按钮改为 danger-outline。
+- **附件 UI 统一** — TrashPage 附件标签按钮改为 pill 样式；图标和格式标签颜色统一为 var(--text-tertiary)。
+- **附件管理页面字体统一** — GlobalAttachmentManager 内写死 fontSize 替换为排版 token。
+- **附件侧边栏集成** — 附件管理入口加入侧边栏，导出/导入 tab UI 优化。
+- **SelectCheckbox 增强** — 加入 accent 边框提升可见性，支持 indeterminate 状态。
+- **插件复制按钮增强** — 统一添加主题色边框与发光动画反馈；复制成功文本国际化。
+- **按钮 hover 状态统一** — 全站按钮采用声明式 hover 样式，消除内联 onMouseEnter/Leave。
 
 ### Added
 
-- **附件下载功能** — AttachmentViewer 和 GlobalAttachmentManager 支持单个附件下载（系统 save 对话框）和批量下载（目录选择器）。新增 i18n key。
-- **附件批量选择 UI** — 提取 SelectCheckbox 组件，支持 indeterminate 状态，批量工具栏始终可见。
+- **附件下载功能** — AttachmentViewer 和 GlobalAttachmentManager 支持单个附件下载（系统 save 对话框）和批量下载（目录选择器）。新增 i18n key：download_result、download_failed、batch_download_result、select_download_directory。
+- **附件批量选择 UI** — 提取 SelectCheckbox 组件，支持全选/取消全选/tri-state 不确定状态，批量工具栏始终可见。
+- **CI/CD 工作流完善（P1-004/005）** — 新增 CLI 检查、macOS/Windows 构建、Release draft 作业。
+- **vitest 配置迁移（P1-012）** — --passWithNoTests 标志迁移到 vitest 配置文件。
+- **tauri-apps/cli 移入 devDependencies（P1-008）** — 减少生产依赖体积。
+
+### Refactored
+
+- **ObjectWorkspacePage 拆分** — 提取密码保护 hook、确认删除对话框、分类标签页。
+- **BadgeIconButton 组件提取** — 消除 4 处重复的 badge+icon+button 组合实现。
+- **DeleteButton 组件提取** — 附件管理、回收站等场景统一使用 danger-outline 按钮。
+- **Button 变体统一** — tertiary（无边框）、danger-outline（危险操作）等变体标准化。
+- **全局 currentObject 缓存重构** — 从全局单例改为 per-objectId 缓存 Map。
+- **插件 crate 合并** — src-tauri/plugin/ 合并到 solosoul-plugin crate。
+- **Cargo.toml workspace 对齐（P2-004/005）** — 统一 workspace 内各 crate 的依赖版本。
+- **LLM 配置去重** — 抽取通用 LLM 配置逻辑，消除重复代码。
+- **附件工具函数抽取** — useDragToAttach 等 hooks 提取为独立模块。
 
 ### i18n
 
-- **81 条新 i18n key** — 包括 fs_is_dir、文件夹拖拽过滤、cannot_open_file 等。
+- **81 条新 i18n key** — 包括 fs_is_dir、文件夹拖拽过滤、cannot_open_file、附件下载相关等。
 - **HistoryPage 和 GlobalAttachmentManager 国际化** — Toast 消息全面支持中英文。
+- **地址格式化器国家徽章本地化** — DEFAULT 国家代码显示"默认"/"Default"，国家名根据 locale 显示。
+- **插件复制按钮文本国际化** — Copied/已复制 等反馈文本支持中英文。
+
+### Docs
+
+- **design_map IPC 规范更新** — IPC 命令从 66 个扩容到 155 个，新增完整命令列表与参数描述。
+- **design_map Zustand Store 文档** — 根据实际 16 个 store 实现更新状态管理文档。
+- **design_map 索引修复** — 解决文档索引冲突，补充实现细节。
+- **CODE_ANALYSIS_REPORT 状态更新** — 标记已修复的审计项目。
 
 ### Chores
 
-- 版本号同步升级到 2.5.6.
-
+- 版本号同步升级到 2.5.6。
+- cargo fmt 格式化及代码清理。
+- 修复 workspace Cargo.toml 版本对齐。
 
 ## [2.5.5] - 2026-06-24
 
