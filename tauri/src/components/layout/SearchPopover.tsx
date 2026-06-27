@@ -116,6 +116,19 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const { onError } = useToastError();
   const { t } = useTranslation(['common', 'navigation', 'settings', 'sensitivity', 'editor']);
 
+  /** Resolve display name: translate system page keys via i18n. */
+  function resolveResultName(
+    item: { itemType: string; objectId: string; name: string },
+  ): string {
+    if (item.itemType === 'page') {
+      const system = FILTER_PAGES.find((f) => f.key === item.objectId);
+      if (system) return t(system.labelKey);
+      const cp = customPages.find((p) => p.id === item.objectId);
+      if (cp) return cp.name;
+    }
+    return item.name;
+  }
+
   /** Build search query with i18n page name detection. */
   function buildSearchQuery(q: string): string {
     const trimmed = q.toLowerCase().trim();
@@ -423,7 +436,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                   >
                     <ResultIcon size={16} />
                     <div className={styles.resultText}>
-                      <div className={styles.resultName}>{item.name}</div>
+                      <div className={styles.resultName}>{resolveResultName(item)}</div>
                       <div className={styles.resultMeta}>
                         {item.itemType === 'page' ? (
                           <>

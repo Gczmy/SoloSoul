@@ -78,6 +78,29 @@ function buildSearchQuery(query: string, t: TFunction): string {
   return query;
 }
 
+/** Resolve display name for a search result item.
+ *  System pages return English key from backend — translate via i18n.
+ *  Custom pages and objects use their stored name directly. */
+function resolveResultName(
+  item: { itemType?: string; objectId: string; name: string },
+  customPages: CustomPage[],
+  t: TFunction,
+): string {
+  if (item.itemType === 'page') {
+    // System page — translate via navigation namespace
+    const systemKey = (SYSTEM_PAGE_KEYS as readonly string[]).includes(item.objectId)
+      ? item.objectId
+      : null;
+    if (systemKey) {
+      return t(`navigation:${systemKey}`);
+    }
+    // Custom page — use stored name
+    const cp = customPages.find((p) => p.id === item.objectId);
+    if (cp) return cp.name;
+  }
+  return item.name;
+}
+
 /** Resolve icon for a search result item based on its type and collection. */
 function resolveResultIcon(
   item: { itemType?: string; collectionType: string; objectId: string },
@@ -260,7 +283,7 @@ export function SearchPage() {
                       <ResultIcon size={18} />
                     </span>
                     <div style={{ overflow: 'hidden' }}>
-                      <div style={{ fontSize: 'var(--text-body)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
+                      <div style={{ fontSize: 'var(--text-body)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{resolveResultName(item, customPages, t)}</div>
                       <div
                         style={{
                           fontSize: 'var(--text-badge)',
