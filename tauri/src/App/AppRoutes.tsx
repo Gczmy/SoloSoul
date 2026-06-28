@@ -21,6 +21,7 @@ import {
   markOcrFirstInstallDone,
 } from '@/stores/ocrInstallStore';
 import { commands } from '@/lib/ipc';
+import { ST_SKIPPED_VERSION } from '@/lib/storageKeys';
 import { protectedRoutes, AuthGuard } from './routes';
 import { BootstrapPage }  from '@/pages/auth/BootstrapPage';
 import { LoginPage }  from '@/pages/auth/LoginPage';
@@ -54,7 +55,7 @@ export function AppRoutes() {
   useEffect(() => {
     checkForUpdate().then((result) => {
       if (result.kind !== 'available') return;
-      const skipped = localStorage.getItem('solosoul_skipped_version');
+      const skipped = localStorage.getItem(ST_SKIPPED_VERSION);
       if (skipped === result.info.version) return;
       setUpdateState({
         kind: 'available',
@@ -308,7 +309,7 @@ export function AppRoutes() {
               onUpdate={startDownload}
               onInstall={installUpdate}
               onSkip={() => {
-                localStorage.setItem('solosoul_skipped_version', updateState.version);
+                localStorage.setItem(ST_SKIPPED_VERSION, updateState.version);
                 setUpdateState({ kind: 'hidden' });
               }}
               onClose={() => setUpdateState({ kind: 'hidden' })}

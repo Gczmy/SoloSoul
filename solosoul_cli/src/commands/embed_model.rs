@@ -12,6 +12,7 @@
 //! - `/embed_model help` —— 帮助
 
 use crate::app::App;
+use crate::commands::CliError;
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -185,7 +186,7 @@ fn install(app: &mut App, model_id: &str) {
     }
 }
 
-async fn download_model(model_id: &str, target_dir: &std::path::Path) -> Result<String, String> {
+async fn download_model(model_id: &str, target_dir: &std::path::Path) -> Result<String, CliError> {
     let registry_url = std::env::var("SOLOSOUL_EMBED_REGISTRY")
         .unwrap_or_else(|_| DEFAULT_REGISTRY_URL.to_string());
     let client = reqwest::Client::builder()
@@ -226,10 +227,10 @@ async fn download_model(model_id: &str, target_dir: &std::path::Path) -> Result<
     hasher.update(&bytes);
     let got = format!("{:x}", hasher.finalize());
     if !entry.sha256.is_empty() && got != entry.sha256 {
-        return Err(format!(
+        return Err(CliError::Msg(format!(
             "sha256 校验失败: 期望 {} 实际 {}",
             entry.sha256, got
-        ));
+        )));
     }
 
     std::fs::create_dir_all(target_dir).map_err(|e| format!("创建模型目录失败: {}", e))?;

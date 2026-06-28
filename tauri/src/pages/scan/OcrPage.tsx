@@ -90,6 +90,8 @@ export function OcrPage() {
     }
   };
 
+  // P212: mount-only — intentionally omitting loadTiersAndStatus/onError/t to avoid re-run.
+  // All deps are stable refs or setState setters; stale closures not an issue for this init call.
   useEffect(() => {
     loadTiersAndStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -162,6 +164,8 @@ export function OcrPage() {
     return () => {
       cancelled = true;
     };
+    // P212: guardActiveModelInstalled/handleScanError/scanMode omitted intentionally —
+    // they are stable functions; adding them would cause re-scan on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialFilePath]);
 

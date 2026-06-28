@@ -15,6 +15,7 @@ import type { SupportedLang } from '@/lib/i18n';
 import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
 import type { AppSettings } from '@/stores/settingsStore';
+import { ST_UI_PREFS } from '@/lib/storageKeys';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
@@ -68,7 +69,7 @@ export function AppearanceSettingsPage() {
     const s = useSettingsStore.getState().settings;
     try {
       localStorage.setItem(
-        'solosoul_ui_prefs',
+        ST_UI_PREFS,
         JSON.stringify({
           theme: s.theme,
           accentColor: s.accentColor,

@@ -49,6 +49,7 @@ export function OcrSettingsPage() {
     }
   };
 
+  // P212: mount-only init — loadTiersAndStatus/onError/t are stable, omitted intentionally.
   useEffect(() => {
     loadTiersAndStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps

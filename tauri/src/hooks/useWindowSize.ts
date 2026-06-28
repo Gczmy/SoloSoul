@@ -3,9 +3,9 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { PhysicalSize } from '@tauri-apps/api/dpi';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
+import { ST_WINDOW_SIZE } from '@/lib/storageKeys';
 
 const WINDOW_SIZE_KEY = 'windowSize';
-const WINDOW_SIZE_CACHE_KEY = 'solosoul_window_size';
 const DEBOUNCE_MS = 200;
 
 interface WindowSize {
@@ -15,7 +15,7 @@ interface WindowSize {
 
 function readCachedSize(): WindowSize | null {
   try {
-    const raw = localStorage.getItem(WINDOW_SIZE_CACHE_KEY);
+    const raw = localStorage.getItem(ST_WINDOW_SIZE);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as WindowSize;
     if (parsed.width && parsed.height) return parsed;
@@ -27,7 +27,7 @@ function readCachedSize(): WindowSize | null {
 
 function writeCachedSize(size: WindowSize) {
   try {
-    localStorage.setItem(WINDOW_SIZE_CACHE_KEY, JSON.stringify(size));
+    localStorage.setItem(ST_WINDOW_SIZE, JSON.stringify(size));
   } catch {
     /* ignore */
   }

@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
+use crate::commands::CliError;
 use crate::plugin_sink::TerminalPluginSink;
 
 /// 以安装插件的摘要信息（用定列表展示）。
@@ -511,10 +512,10 @@ fn resolve_plugin_market_dir() -> PathBuf {
 }
 
 /// 克 registry.json 加载插件注册表条目。
-fn load_registry_entries(market_dir: &Path) -> Result<Vec<RegistryEntry>, String> {
+fn load_registry_entries(market_dir: &Path) -> Result<Vec<RegistryEntry>, CliError> {
     let registry_path = market_dir.join("registry.json");
     if !registry_path.exists() {
-        return Err(format!("未找到 registry.json: {}", registry_path.display()));
+        return Err(CliError::Msg(format!("未找到 registry.json: {}", registry_path.display())));
     }
 
     let content = std::fs::read_to_string(&registry_path)

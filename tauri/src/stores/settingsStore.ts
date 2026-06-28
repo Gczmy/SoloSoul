@@ -7,6 +7,7 @@ import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import type { TrashRetentionPeriod } from '@/stores/trashStore';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
+import { ST_UI_PREFS, ST_WINDOW_SIZE } from '@/lib/storageKeys';
 
 // 9.8.3 — Custom page data structure
 // Custom pages are now stored in the objects table (P0-1), not in preferences.
@@ -149,7 +150,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   loadUiPreferences: async () => {
     // Step 1: apply cached prefs instantly from localStorage
     try {
-      const raw = localStorage.getItem('solosoul_ui_prefs');
+      const raw = localStorage.getItem(ST_UI_PREFS);
       if (raw) {
         const parsed = uiPrefsSchema.safeParse(JSON.parse(raw));
         if (parsed.success) {
@@ -208,10 +209,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         // Only fall back to the on-disk UI preference when there is no localStorage
         // cache. The cache is updated synchronously on every resize, so it is always
         // at least as fresh as the debounced disk write.
-        const hasCachedSize = !!localStorage.getItem('solosoul_window_size');
+        const hasCachedSize = !!localStorage.getItem(ST_WINDOW_SIZE);
         if (!hasCachedSize) {
           parsed.windowSize = prefs.windowSize;            try {
-              localStorage.setItem('solosoul_window_size', JSON.stringify(prefs.windowSize));
+              localStorage.setItem(ST_WINDOW_SIZE, JSON.stringify(prefs.windowSize));
             } catch (e) {
               console.warn('[settingsStore] Failed to cache window size:', e);
             }
@@ -233,7 +234,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       set({ settings: parsed });
       try {
         localStorage.setItem(
-          'solosoul_ui_prefs',
+          ST_UI_PREFS,
           JSON.stringify({
             theme: parsed.theme,
             accentColor: parsed.accentColor,
@@ -293,7 +294,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // account preference to avoid reverting to a stale size after login.
       let effectiveWindowSize: WindowSize | undefined;
       try {
-        const cachedRaw = localStorage.getItem('solosoul_window_size');
+        const cachedRaw = localStorage.getItem(ST_WINDOW_SIZE);
         if (cachedRaw) {
           const cached = windowSizeSchema.safeParse(JSON.parse(cachedRaw));
           if (cached.success) effectiveWindowSize = cached.data;
@@ -434,7 +435,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // Window size is a non-sensitive UI preference that must be available before login.
       if (key === 'windowSize') {
         try {
-          localStorage.setItem('solosoul_window_size', JSON.stringify(value));
+          localStorage.setItem(ST_WINDOW_SIZE, JSON.stringify(value));
         } catch (e) {
           console.warn('[settingsStore] Failed to cache window size:', e);
         }

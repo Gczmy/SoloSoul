@@ -18,6 +18,7 @@ use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
 use crate::app::App;
+use crate::commands::CliError;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 use solosoul_core::{ObjectRecord, Profile, VaultStore};
 
@@ -89,14 +90,14 @@ fn require_unlocked(app: &mut App) -> Result<String> {
 }
 
 /// 确保 Vault 已解锁，返回账户 ID（给内部 String 错误函数使用）。
-fn require_account_id(app: &mut App) -> Result<String, String> {
+fn require_account_id(app: &mut App) -> Result<String, CliError> {
     if !app.vault_service.is_unlocked() {
         app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err("Vault is locked".to_string());
+        return Err(CliError::VaultLocked);
     }
     app.vault_service
         .get_current_account()
-        .ok_or_else(|| "No current account".to_string())
+        .ok_or_else(|| CliError::NoAccount)
 }
 
 /// 命令入口。`args[0]` 为 `/export` 或 `/import`。
@@ -119,7 +120,7 @@ fn handle_export(app: &mut App, args: &[&str]) -> Result<()> {
     let (file_arg, scope) = match parse_export_args(args) {
         Ok(v) => v,
         Err(e) => {
-            app.error_message = Some(e);
+            app.error_message = Some(e.to_string());
             return Ok(());
         }
     };
@@ -128,7 +129,7 @@ fn handle_export(app: &mut App, args: &[&str]) -> Result<()> {
     let path = match resolve_export_path(&base, file_arg) {
         Ok(p) => p,
         Err(e) => {
-            app.error_message = Some(e);
+            app.error_message = Some(e.to_string());
             return Ok(());
         }
     };
@@ -161,7 +162,7 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
     let (file_arg, preview, strategy) = match parse_import_args(args) {
         Ok(v) => v,
         Err(e) => {
-            app.error_message = Some(e);
+            app.error_message = Some(e.to_string());
             return Ok(());
         }
     };
@@ -208,7 +209,7 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
 }
 
 /// 解析 `/export` 参数。
-fn parse_export_args<'a>(args: &[&'a str]) -> Result<(Option<&'a str>, ExportScope), String> {
+fn parse_export_args<'a>(args: &[&'a str]) -> Result<(Option<&'a str>, ExportScope), CliError> {
     let mut file_arg: Option<&str> = None;
     let mut scope = ExportScope::default();
     let mut iter = args.iter().peekable();
@@ -219,26 +220,26 @@ fn parse_export_args<'a>(args: &[&'a str]) -> Result<(Option<&'a str>, ExportSco
                 "--full" => scope.full = true,
                 "--include-attachments" => scope.include_attachments = true,
                 "--pages" => {
-                    let list = iter.next().ok_or("--pages 后需要逗号分隔的页面列表")?;
+                    let list = iter.next().ok_or(CliError::Msg("--pages 后需要逗号分隔的页面列表".to_string()))?;
                     scope.selected_page_ids = list.split(',').map(String::from).collect();
                 }
                 "--objects" => {
                     let list = iter
                         .next()
-                        .ok_or("--objects 后需要逗号分隔的对象 ID 列表")?;
+                        .ok_or(CliError::Msg("--objects 后需要逗号分隔的对象 ID 列表".to_string()))?;
                     scope.selected_object_ids = list.split(',').map(String::from).collect();
                 }
-                other => return Err(format!("未知导出选项: {}", other)),
+                other => return Err(CliError::Msg(format!("未知导出选项: {}", other))),
             }
         } else if file_arg.is_none() {
             file_arg = Some(*arg);
         } else {
-            return Err("多余的文件参数".to_string());
+            return Err(CliError::Msg("多余的文件参数".to_string()));
         }
     }
 
     if !scope.full && scope.selected_page_ids.is_empty() && scope.selected_object_ids.is_empty() {
-        return Err("请指定 --full、--pages 或 --objects 之一".to_string());
+        return Err(CliError::Msg("请指定 --full、--pages 或 --objects 之一".to_string()));
     }
 
     Ok((file_arg, scope))
@@ -247,7 +248,7 @@ fn parse_export_args<'a>(args: &[&'a str]) -> Result<(Option<&'a str>, ExportSco
 /// 解析 `/import` 参数。
 fn parse_import_args<'a>(
     args: &[&'a str],
-) -> Result<(Option<&'a str>, bool, ImportStrategy), String> {
+) -> Result<(Option<&'a str>, bool, ImportStrategy), CliError> {
     let mut file_arg: Option<&str> = None;
     let mut preview = false;
     let mut strategy = ImportStrategy::Overwrite;
@@ -258,20 +259,20 @@ fn parse_import_args<'a>(
             match *arg {
                 "--preview" => preview = true,
                 "--strategy" => {
-                    let value = iter.next().ok_or("--strategy 后需要策略值")?;
+                    let value = iter.next().ok_or(CliError::Msg("--strategy 后需要策略值".to_string()))?;
                     strategy = match *value {
                         "skip" => ImportStrategy::SkipExisting,
                         "overwrite" => ImportStrategy::Overwrite,
                         "merge" => ImportStrategy::Merge,
-                        other => return Err(format!("未知导入策略: {}", other)),
+                        other => return Err(CliError::Msg(format!("未知导入策略: {}", other))),
                     };
                 }
-                other => return Err(format!("未知导入选项: {}", other)),
+                other => return Err(CliError::Msg(format!("未知导入选项: {}", other))),
             }
         } else if file_arg.is_none() {
             file_arg = Some(*arg);
         } else {
-            return Err("多余的文件参数".to_string());
+            return Err(CliError::Msg("多余的文件参数".to_string()));
         }
     }
 
@@ -282,7 +283,7 @@ fn parse_import_args<'a>(
 ///
 /// - 未提供文件名：使用当前工作目录下的 `solosoul_export_{timestamp}.solosoul`。
 /// - 提供了文件名：仅使用其文件名字段，并写入 `{base}/exports/` 下，防止越界写入数据目录。
-fn resolve_export_path(base: &Path, file_arg: Option<&str>) -> Result<PathBuf, String> {
+fn resolve_export_path(base: &Path, file_arg: Option<&str>) -> Result<PathBuf, CliError> {
     match file_arg {
         None => {
             let cwd = std::env::current_dir().unwrap_or_else(|_| base.to_path_buf());
@@ -311,7 +312,7 @@ pub(crate) fn export_execute(
     password: &str,
     path: &Path,
     scope: &ExportScope,
-) -> Result<(), String> {
+) -> Result<(), CliError> {
     validate_export_password(app, password)?;
 
     let account_id = require_account_id(app)?;
@@ -321,8 +322,7 @@ pub(crate) fn export_execute(
         .ok_or_else(|| "Vault 未打开".to_string())?;
 
     let records = collect_scope_objects(&vault, &account_id, scope)?;
-    if records.is_empty() {
-        return Err("没有选中任何对象".to_string());
+    if records.is_empty() {            return Err(CliError::Msg("没有选中任何对象".to_string()));
     }
 
     let payload = build_payload(&vault, &records);
@@ -346,7 +346,7 @@ pub(crate) fn export_execute(
     let total_export_estimate =
         payload_estimate + total_attachment_bytes + (attachment_entries.len() as u64 * 28);
     if total_export_estimate > MAX_EXPORT_TOTAL_BYTES {
-        return Err("导出包总大小超过限制".to_string());
+        return Err(CliError::Msg("导出包总大小超过限制".to_string()));
     }
 
     let att_key = if !attachment_entries.is_empty() {
@@ -430,14 +430,14 @@ pub(crate) fn export_execute(
 }
 
 /// 校验导出密码强度并确认其不是主密码。
-fn validate_export_password(app: &App, password: &str) -> Result<(), String> {
+fn validate_export_password(app: &App, password: &str) -> Result<(), CliError> {
     if password.len() < 8 {
-        return Err("导出密码至少需要 8 位".to_string());
+        return Err(CliError::Msg("导出密码至少需要 8 位".to_string()));
     }
     let has_letter = password.chars().any(|c| c.is_ascii_alphabetic());
     let has_digit = password.chars().any(|c| c.is_ascii_digit());
     if !has_letter || !has_digit {
-        return Err("导出密码必须同时包含字母和数字".to_string());
+        return Err(CliError::Msg("导出密码必须同时包含字母和数字".to_string()));
     }
 
     let account_id = app
@@ -445,14 +445,14 @@ fn validate_export_password(app: &App, password: &str) -> Result<(), String> {
         .get_current_account()
         .ok_or_else(|| "未找到当前账户".to_string())?;
     match app.vault_service.verify_password(&account_id, password) {
-        Ok(true) => Err("导出密码不能与主密码相同".to_string()),
+        Ok(true) => Err(CliError::Validation("导出密码不能与主密码相同".to_string())),
         Ok(false) => Ok(()),
-        Err(e) => Err(format!("校验主密码失败: {}", e)),
+        Err(e) => Err(CliError::Msg(format!("校验主密码失败: {}", e))),
     }
 }
 
 /// 使用 Argon2id 从导出密码与 salt 派生 32 字节密钥。
-fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32], String> {
+fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32], CliError> {
     use solosoul_crypto::kdf::{derive_key, KdfConfig};
     let key_vec = derive_key(password, salt, &KdfConfig::balanced())
         .map_err(|e| format!("密钥派生失败: {}", e))?;
@@ -474,7 +474,7 @@ fn collect_scope_objects(
     vault: &VaultStore,
     account_id: &str,
     scope: &ExportScope,
-) -> Result<Vec<ObjectRecord>, String> {
+) -> Result<Vec<ObjectRecord>, CliError> {
     let all = vault.list_objects(account_id, None, None, None, false, false)?;
 
     if scope.full {
@@ -541,7 +541,7 @@ fn collect_attachment_entries(
     base: &Path,
     records: &[ObjectRecord],
     scope: &ExportScope,
-) -> Result<Vec<(String, String, String, PathBuf)>, String> {
+) -> Result<Vec<(String, String, String, PathBuf)>, CliError> {
     if !scope.include_attachments {
         return Ok(Vec::new());
     }
@@ -558,7 +558,7 @@ fn collect_attachment_entries(
                 continue;
             }
             if att.size_bytes > MAX_ATTACHMENT_BYTES {
-                return Err(format!("附件过大: {}", att.file_name));
+                return Err(CliError::Msg(format!("附件过大: {}", att.file_name)));
             }
 
             let src = att
@@ -615,7 +615,7 @@ fn build_manifest(
 }
 
 /// 读取导入包预览信息。
-pub(crate) fn import_preview(path: &Path) -> Result<String, String> {
+pub(crate) fn import_preview(path: &Path) -> Result<String, CliError> {
     let manifest = read_manifest(path)?;
     Ok(format!(
         "导出包预览: 版本 {}, 对象数 {}, 包含附件: {}, 密码提示: {}",
@@ -636,9 +636,9 @@ pub(crate) fn import_execute(
     path: &Path,
     password: &str,
     strategy: ImportStrategy,
-) -> Result<(), String> {
+) -> Result<(), CliError> {
     if password.is_empty() {
-        return Err("导入密码不能为空".to_string());
+        return Err(CliError::Msg("导入密码不能为空".to_string()));
     }
 
     let account_id = require_account_id(app)?;
@@ -825,7 +825,7 @@ fn import_attachments(
     salt: &[u8],
     imported_object_ids: &HashSet<String>,
     payload: &serde_json::Value,
-) -> Result<(), String> {
+) -> Result<(), CliError> {
     let vault = app
         .vault_service
         .get_vault_store()
@@ -951,7 +951,7 @@ fn import_preferences(
     key: &[u8; 32],
     salt: &[u8],
     path: &Path,
-) -> Result<(), String> {
+) -> Result<(), CliError> {
     let prefs_key =
         solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:preferences:v1")
             .map_err(|e| format!("派生偏好设置密钥失败: {}", e))?;
@@ -1024,9 +1024,9 @@ fn resolve_cross_scope_references(
 }
 
 /// 读取 ZIP 中的 manifest.json。
-fn read_manifest(path: &Path) -> Result<ManifestData, String> {
+fn read_manifest(path: &Path) -> Result<ManifestData, CliError> {
     if !path.exists() {
-        return Err(format!("文件不存在: {}", path.display()));
+        return Err(CliError::Msg(format!("文件不存在: {}", path.display())));
     }
     let file = File::open(path).map_err(|e| format!("无法打开文件: {}", e))?;
     let mut archive = ZipArchive::new(file).map_err(|_| "无效的 ZIP 包".to_string())?;
@@ -1067,7 +1067,7 @@ fn read_manifest(path: &Path) -> Result<ManifestData, String> {
 }
 
 /// 从 ZIP 中读取指定名称的文件内容。
-fn read_file_from_zip(path: &Path, name: &str) -> Result<Vec<u8>, String> {
+fn read_file_from_zip(path: &Path, name: &str) -> Result<Vec<u8>, CliError> {
     let file = File::open(path).map_err(|e| format!("无法打开文件: {}", e))?;
     let mut archive = ZipArchive::new(file).map_err(|_| "无效的 ZIP 包".to_string())?;
     let mut entry = archive

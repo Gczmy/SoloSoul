@@ -75,6 +75,7 @@ export function OcrQuickScanPopover({
     if (!store.currentScanId && activeHistory.length > 0) {
       useOcrScanStore.setState({ currentScanId: activeHistory[0].id });
     }
+    // P212: mount-only — store.getActiveHistory/useOcrScanStore.setState are stable refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

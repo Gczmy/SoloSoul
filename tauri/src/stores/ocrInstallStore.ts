@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { ST_OCR_FIRST_INSTALL } from '@/lib/storageKeys';
 
 export interface OcrInstallProgressPayload {
   tier: string;
@@ -21,11 +22,12 @@ interface OcrInstallState {
   reset: () => void;
 }
 
-const STORAGE_KEY = 'solosoul_ocr_first_install_done';
+// P215: centralized in @/lib/storageKeys
+export const OCR_STORAGE_KEY = ST_OCR_FIRST_INSTALL;
 
 export function isOcrFirstInstallDone(): boolean {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'true';
+    return localStorage.getItem(ST_OCR_FIRST_INSTALL) === 'true';
   } catch {
     return false;
   }
@@ -33,7 +35,7 @@ export function isOcrFirstInstallDone(): boolean {
 
 export function markOcrFirstInstallDone() {
   try {
-    localStorage.setItem(STORAGE_KEY, 'true');
+    localStorage.setItem(ST_OCR_FIRST_INSTALL, 'true');
   } catch {
     /* ignore */
   }

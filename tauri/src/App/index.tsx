@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import type { AccountInfo } from '@/lib/ipc';
+import { ST_ONBOARDING_SEEN } from '@/lib/storageKeys';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { OcrScanNotificationListener } from '@/components/layout/OcrScanNotificationListener';
 import { PluginQuickNotificationListener } from '@/components/plugin/PluginQuickNotificationListener';
@@ -11,7 +12,7 @@ import { AppRoutes } from './AppRoutes';
 function App() {
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
     try {
-      return localStorage.getItem('solosoul_onboarding_seen') === 'true';
+      return localStorage.getItem(ST_ONBOARDING_SEEN) === 'true';
     } catch {
       return true;
     }
@@ -52,7 +53,7 @@ function App() {
 
   const finishOnboarding = () => {
     try {
-      localStorage.setItem('solosoul_onboarding_seen', 'true');
+      localStorage.setItem(ST_ONBOARDING_SEEN, 'true');
     } catch {
       /* ignore */
     }

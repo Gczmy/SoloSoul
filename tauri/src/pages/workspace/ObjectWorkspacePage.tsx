@@ -173,7 +173,8 @@ export function ObjectWorkspacePage() {
   const snapshotReqRef = useRef(0);
 
   // Load snapshot counts for visible objects
-  /* eslint-disable react-hooks/exhaustive-deps */
+  // P212: setSnapshotCounts/snapshotReqRef omitted intentionally — they are stable
+  // (useState setter / useRef). visibleObjects IS the only meaningful dependency.
   useEffect(() => {
     const ids = visibleObjects.map((o) => o.id);
     if (ids.length === 0) return;
@@ -192,7 +193,7 @@ export function ObjectWorkspacePage() {
       });
     // Increment ref on cleanup so in-flight responses become stale (handles Strict Mode + unmount)
     return () => { snapshotReqRef.current++; };
-  /* eslint-enable react-hooks/exhaustive-deps */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleObjects]);
 
   // Load attachment counts for visible objects

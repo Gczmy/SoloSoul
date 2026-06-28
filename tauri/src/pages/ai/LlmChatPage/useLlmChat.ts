@@ -78,6 +78,7 @@ export function useLlmChat(): UseLlmChatReturn {
         setTrashList(trash);
       })
       .catch((err) => console.warn('[useLlmChat] Refresh conversation lists failed:', err));
+    // P212: core omitted intentionally — adding it causes re-subscription loop on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId]);
 

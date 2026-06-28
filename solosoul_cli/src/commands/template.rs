@@ -5,6 +5,7 @@ use solosoul_core::template_service::SystemTemplateRegistry;
 use solosoul_core::UserTemplate;
 
 use crate::app::{App, AppPhase};
+use crate::commands::CliError;
 
 fn map_err(e: String) -> color_eyre::Report {
     color_eyre::eyre::eyre!(e)
@@ -43,13 +44,13 @@ fn require_unlocked(app: &mut App) -> Result<(String, std::sync::Arc<solosoul_co
 }
 
 /// 加载系统模板注册表，使用当前 UI 语言。
-fn load_system_templates(app: &App) -> Result<SystemTemplateRegistry, String> {
+fn load_system_templates(app: &App) -> Result<SystemTemplateRegistry, CliError> {
     let locale = crate::commands::settings::load_ui_prefs(app)
         .get("language")
         .and_then(|v| v.as_str())
         .unwrap_or("en-US")
         .to_string();
-    SystemTemplateRegistry::load_for_locale(&locale)
+    Ok(SystemTemplateRegistry::load_for_locale(&locale)?)
 }
 
 /// 执行 `/template`：打开模板列表屏幕。

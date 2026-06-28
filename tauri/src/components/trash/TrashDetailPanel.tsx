@@ -85,6 +85,8 @@ export function TrashDetailPanel({
     if (detailItem.snapshots.length > 0 && !historySnapData[detailItem.id]) {
       loadSnapshotData(detailItem.id, detailItem.snapshots[0].id);
     }
+    // P212: historySnapData[detailItem.id] intentionally omitted — adding it would
+    // cause infinite loop since loadSnapshotData calls setHistorySnapData.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailItem.id, detailItem.snapshots, loadSnapshotData]);
 

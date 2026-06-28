@@ -11,6 +11,7 @@ import { ChatInputBar } from '@/components/llm/ChatInputBar';
 import { ConversationHistory } from '@/components/llm/ConversationHistory';
 import { UnconfiguredHint } from '@/components/llm/UnconfiguredHint';
 import { useLlmChatCore } from '@/hooks/useLlmChatCore';
+import { ST_QUICK_CHAT_PREFIX } from '@/lib/storageKeys';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -43,7 +44,7 @@ export function AiQuickChatPopover({
     return () => setQuickChatOpen(false);
   }, []);
 
-  const quickChatStorageKey = accountId ? `solosoul_quick_chat_conv_${accountId}` : null;
+  const quickChatStorageKey = accountId ? `${ST_QUICK_CHAT_PREFIX}${accountId}` : null;
 
   const core = useLlmChatCore({
     includeSystemPrompt: true,
@@ -60,6 +61,8 @@ export function AiQuickChatPopover({
       }
     }
     // Only run on mount / when loading completes
+    // P212: quickChatStorageKey/core.loadConversation omitted intentionally —
+    // they are stable; adding them would re-trigger after every conversation load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [core.loading]);
 

@@ -284,6 +284,7 @@ export function useDragToAttach(
       unlisten?.();
     };
     // 只在 mount/unmount 时注册/注销监听器
+    // P212: empty deps intentional — all mutable state is stored in refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
