@@ -16,6 +16,10 @@
     },
     "dialog:default",
     "fs:default",
+    {
+      "identifier": "fs:allow-copy-file",
+      "allow": [{ "path": "**" }]
+    },
     "http:default",
     "notification:default"
   ]
