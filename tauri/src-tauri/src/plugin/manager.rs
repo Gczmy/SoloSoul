@@ -30,6 +30,16 @@ fn sanitize_plugin_id(id: &str) -> String {
         .collect()
 }
 
+/// 根据 locale 生成插件启动日志文本。
+fn plugin_start_message(locale: &str, plugin_name: &str) -> String {
+    let is_en = locale == "en-US" || locale.starts_with("en");
+    if is_en {
+        format!("Starting plugin: {}", plugin_name)
+    } else {
+        format!("启动插件: {}", plugin_name)
+    }
+}
+
 fn validate_plugin_id(id: &str) -> Result<(), PluginError> {
     if id.is_empty()
         || id.len() > 64
@@ -503,6 +513,10 @@ impl PluginManager {
         };
 
         let session_id = session.id.clone();
+        let locale = params
+            .get("locale")
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| "zh-CN".to_string());
         let workspace_dir = std::env::temp_dir()
             .join("solosoul-plugin")
             .join(sanitize_plugin_id(plugin_id))
@@ -525,7 +539,7 @@ impl PluginManager {
 
         let _ = channel.send(PluginEvent::log(
             "info",
-            format!("Starting plugin: {}", manifest.name),
+            plugin_start_message(&locale, &manifest.name),
         ));
 
         let sandbox = self.sandbox;

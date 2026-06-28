@@ -2,14 +2,30 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { downloadDir } from '@tauri-apps/api/path';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Settings2, Paperclip, Play, Eye, Download, FolderOpen, Check, Loader2 } from 'lucide-react';
+import {
+  Settings2,
+  Paperclip,
+  Play,
+  Eye,
+  Download,
+  FolderOpen,
+  Check,
+  Loader2,
+} from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { commands } from '@/lib/ipc';
-import { pluginCommands, type PluginLogLine, type WatermarkResultItem, type WatermarkResultPayload } from '@/lib/plugin';
+import { useAttachmentPageSort } from '@/hooks/useAttachmentPageSort';
+import {
+  pluginCommands,
+  type PluginLogLine,
+  type WatermarkResultItem,
+  type WatermarkResultPayload,
+} from '@/lib/plugin';
 import { useToastError } from '@/hooks/useToastError';
 import { open } from '@tauri-apps/plugin-shell';
 import { save, open as openDialog } from '@tauri-apps/plugin-dialog';
@@ -65,7 +81,7 @@ const POSITION_OPTIONS: { value: WatermarkConfig['position']; label: string }[] 
 
 export function WatermarkPluginPage() {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(['plugin', 'common']);
+  const { t, i18n } = useTranslation(['plugin', 'common', 'navigation']);
   const { onError } = useToastError();
 
   const [config, setConfig] = useState<WatermarkConfig>(DEFAULT_CONFIG);
@@ -129,13 +145,18 @@ export function WatermarkPluginPage() {
 
   useEffect(() => {
     loadAttachments();
-    downloadDir().then(setOutputDir).catch(() => setOutputDir(''));
+    downloadDir()
+      .then(setOutputDir)
+      .catch(() => setOutputDir(''));
   }, [loadAttachments]);
 
   const selectedAttachments = useMemo(
     () => attachments.filter((a) => selectedIds.has(a.id)),
     [attachments, selectedIds],
   );
+
+  const groupedPages = useMemo(() => groupByPageObject(attachments), [attachments]);
+  const sortedPages = useAttachmentPageSort(groupedPages);
 
   const configSummary = useMemo(() => {
     const pos = POSITION_OPTIONS.find((p) => p.value === config.position)?.label ?? config.position;
@@ -153,11 +174,17 @@ export function WatermarkPluginPage() {
 
   const handleRun = async () => {
     if (selectedAttachments.length === 0) {
-      onError(new Error('请先选择附件'), t('plugin:watermark.no_attachments', { defaultValue: '未选择附件' }));
+      onError(
+        new Error('请先选择附件'),
+        t('plugin:watermark.no_attachments', { defaultValue: '未选择附件' }),
+      );
       return;
     }
     if (!outputDir) {
-      onError(new Error('请选择输出目录'), t('plugin:watermark.no_output_dir', { defaultValue: '未选择输出目录' }));
+      onError(
+        new Error('请选择输出目录'),
+        t('plugin:watermark.no_output_dir', { defaultValue: '未选择输出目录' }),
+      );
       return;
     }
 
@@ -191,7 +218,12 @@ export function WatermarkPluginPage() {
           } catch {
             setLogs((prev) => [
               ...prev,
-              { id: String(Date.now()), level: 'info', message: event.jsonData, timestamp: Date.now() },
+              {
+                id: String(Date.now()),
+                level: 'info',
+                message: event.jsonData,
+                timestamp: Date.now(),
+              },
             ]);
           }
         } else if (event.eventType === 'result') {
@@ -208,7 +240,10 @@ export function WatermarkPluginPage() {
       });
 
       if (res.exitCode !== 0) {
-        onError(new Error(`插件退出码 ${res.exitCode}`), t('plugin:watermark.run_failed', { defaultValue: '水印添加失败' }));
+        onError(
+          new Error(`插件退出码 ${res.exitCode}`),
+          t('plugin:watermark.run_failed', { defaultValue: '水印添加失败' }),
+        );
       }
     } catch (err) {
       onError(err, t('plugin:watermark.run_failed', { defaultValue: '水印添加失败' }));
@@ -248,7 +283,9 @@ export function WatermarkPluginPage() {
     >
       <PageContainer>
         <Card className={styles.section}>
-          <h2 className={styles.sectionTitle}>{t('plugin:watermark.config_section', { defaultValue: '插件配置' })}</h2>
+          <h2 className={styles.sectionTitle}>
+            {t('plugin:watermark.config_section', { defaultValue: '插件配置' })}
+          </h2>
 
           <div className={styles.configRow}>
             <Button
@@ -271,9 +308,7 @@ export function WatermarkPluginPage() {
             </Button>
           </div>
 
-          {config && !showConfigCard && (
-            <div className={styles.summary}>{configSummary}</div>
-          )}
+          {config && !showConfigCard && <div className={styles.summary}>{configSummary}</div>}
 
           {selectedAttachments.length > 0 && (
             <div className={styles.selectedList}>
@@ -345,7 +380,11 @@ export function WatermarkPluginPage() {
                       value={config.color[i]}
                       onChange={(e) =>
                         setConfig((c) => {
-                          const color: [number, number, number] = [...c.color] as [number, number, number];
+                          const color: [number, number, number] = [...c.color] as [
+                            number,
+                            number,
+                            number,
+                          ];
                           color[i] = Number(e.target.value);
                           return { ...c, color };
                         })
@@ -359,7 +398,10 @@ export function WatermarkPluginPage() {
                 <select
                   value={config.position}
                   onChange={(e) =>
-                    setConfig((c) => ({ ...c, position: e.target.value as WatermarkConfig['position'] }))
+                    setConfig((c) => ({
+                      ...c,
+                      position: e.target.value as WatermarkConfig['position'],
+                    }))
                   }
                 >
                   {POSITION_OPTIONS.map((p) => (
@@ -370,10 +412,9 @@ export function WatermarkPluginPage() {
                 </select>
               </label>
               <label className={styles.fieldInline}>
-                <input
-                  type="checkbox"
+                <SelectCheckbox
                   checked={config.tile}
-                  onChange={(e) => setConfig((c) => ({ ...c, tile: e.target.checked }))}
+                  onChange={(checked) => setConfig((c) => ({ ...c, tile: checked }))}
                 />
                 <span>{t('plugin:watermark.tile', { defaultValue: '平铺水印' })}</span>
               </label>
@@ -392,21 +433,32 @@ export function WatermarkPluginPage() {
           {showAttachCard && (
             <div className={styles.cardBody}>
               {loadingAttachments ? (
-                <div className={styles.empty}>{t('common:loading', { defaultValue: '加载中...' })}</div>
+                <div className={styles.empty}>
+                  {t('common:loading', { defaultValue: '加载中...' })}
+                </div>
               ) : attachments.length === 0 ? (
-                <div className={styles.empty}>{t('plugin:watermark.no_attachments', { defaultValue: '没有可用的图片/PDF 附件' })}</div>
+                <div className={styles.empty}>
+                  {t('plugin:watermark.no_attachments', {
+                    defaultValue: '没有可用的图片/PDF 附件',
+                  })}
+                </div>
               ) : (
                 <div className={styles.tree}>
-                  {groupByPageObject(attachments).map(([pageName, objects]) => (
-                    <div key={pageName} className={styles.treePage}>
-                      <div className={styles.treePageName}>{pageName}</div>
-                      {Object.entries(objects).map(([objectName, atts]) => (
+                  {sortedPages.map((page) => (
+                    <div key={page.pageName} className={styles.treePage}>
+                      <div className={styles.treePageName}>
+                        {page.pageId
+                          ? page.pageName
+                          : t(`navigation:${page.pageName}`, {
+                              defaultValue: page.pageName,
+                            })}
+                      </div>
+                      {Object.entries(page.objects).map(([objectName, atts]) => (
                         <div key={objectName} className={styles.treeObject}>
                           <div className={styles.treeObjectName}>{objectName}</div>
                           {atts.map((a) => (
                             <label key={a.id} className={styles.treeItem}>
-                              <input
-                                type="checkbox"
+                              <SelectCheckbox
                                 checked={selectedIds.has(a.id)}
                                 onChange={() => handleToggleAttachment(a.id)}
                               />
@@ -449,16 +501,24 @@ export function WatermarkPluginPage() {
 
         {(logs.length > 0 || running) && (
           <Card className={styles.section}>
-            <h2 className={styles.sectionTitle}>{t('plugin:watermark.logs', { defaultValue: '插件日志' })}</h2>
+            <h2 className={styles.sectionTitle}>
+              {t('plugin:watermark.logs', { defaultValue: '插件日志' })}
+            </h2>
             <div className={styles.logs}>
               {logs.map((log) => (
                 <div key={log.id} className={`${styles.logLine} ${styles[log.level]}`}>
-                  <span className={styles.logLevel}>{log.level.toUpperCase()}</span>
+                  <span className={styles.logLevel}>
+                    {t(`plugin:log_level_${log.level}`, {
+                      defaultValue: log.level.toUpperCase(),
+                    })}
+                  </span>
                   <span className={styles.logMessage}>{log.message}</span>
                 </div>
               ))}
               {running && logs.length === 0 && (
-                <div className={styles.empty}>{t('plugin:watermark.running', { defaultValue: '正在处理...' })}</div>
+                <div className={styles.empty}>
+                  {t('plugin:watermark.running', { defaultValue: '正在处理...' })}
+                </div>
               )}
             </div>
           </Card>
@@ -467,7 +527,9 @@ export function WatermarkPluginPage() {
         {results.length > 0 && (
           <Card className={styles.section}>
             <div className={styles.resultHeader}>
-              <h2 className={styles.sectionTitle}>{t('plugin:watermark.results', { defaultValue: '插件结果' })}</h2>
+              <h2 className={styles.sectionTitle}>
+                {t('plugin:watermark.results', { defaultValue: '插件结果' })}
+              </h2>
               <div className={styles.outputDirRow}>
                 <span className={styles.outputDirLabel}>
                   {t('plugin:watermark.output_dir', { defaultValue: '下载路径' })}:
@@ -509,15 +571,25 @@ export function WatermarkPluginPage() {
   );
 }
 
-function groupByPageObject(
-  attachments: AttachmentNode[],
-): Array<[string, Record<string, AttachmentNode[]>]> {
-  const map = new Map<string, Map<string, AttachmentNode[]>>();
+interface AttachmentPageGroup {
+  pageId?: string;
+  pageName: string;
+  objects: Record<string, AttachmentNode[]>;
+}
+
+function groupByPageObject(attachments: AttachmentNode[]): AttachmentPageGroup[] {
+  const map = new Map<string, { pageId?: string; objects: Map<string, AttachmentNode[]> }>();
   for (const a of attachments) {
-    if (!map.has(a.pageName)) map.set(a.pageName, new Map());
-    const objMap = map.get(a.pageName)!;
-    if (!objMap.has(a.objectName)) objMap.set(a.objectName, []);
-    objMap.get(a.objectName)!.push(a);
+    if (!map.has(a.pageName)) {
+      map.set(a.pageName, { pageId: a.pageId, objects: new Map() });
+    }
+    const entry = map.get(a.pageName)!;
+    if (!entry.objects.has(a.objectName)) entry.objects.set(a.objectName, []);
+    entry.objects.get(a.objectName)!.push(a);
   }
-  return Array.from(map.entries()).map(([page, objMap]) => [page, Object.fromEntries(objMap)]);
+  return Array.from(map.entries()).map(([pageName, entry]) => ({
+    pageId: entry.pageId,
+    pageName,
+    objects: Object.fromEntries(entry.objects),
+  }));
 }
