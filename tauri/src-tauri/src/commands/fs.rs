@@ -1,7 +1,7 @@
 use crate::state::AppState;
 use serde::Serialize;
 use std::fs::{self as fs_std, File};
-use std::io::{BufReader, BufWriter, Write};
+use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
 use tauri::State;
 
@@ -179,10 +179,9 @@ pub async fn inspect_backup(
     // 流式读取前 100MB 用于解密预览（backup 通常远小于此值）
     let max_read = std::cmp::min(meta.len(), 100 * 1024 * 1024) as usize;
     let encrypted = {
-        let mut file = std::fs::File::open(&backup)
+        let file = std::fs::File::open(&backup)
             .map_err(|e| format!("Open backup failed: {}", e))?;
         let mut buf = Vec::with_capacity(max_read);
-        use std::io::Read;
         file.take(max_read as u64)
             .read_to_end(&mut buf)
             .map_err(|e| format!("Read backup failed: {}", e))?;
