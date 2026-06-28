@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { downloadDir } from '@tauri-apps/api/path';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Settings2, Paperclip, Play, Eye, Download, FolderOpen, Check } from 'lucide-react';
@@ -79,7 +80,7 @@ export function WatermarkPluginPage() {
 
   useEffect(() => {
     loadAttachments();
-    chooseDefaultOutputDir();
+    downloadDir().then(setOutputDir).catch(() => setOutputDir(''));
   }, []);
 
   const loadAttachments = async () => {
@@ -123,15 +124,6 @@ export function WatermarkPluginPage() {
       onError(err, t('plugin:watermark.load_attachments_failed', { defaultValue: '加载附件失败' }));
     } finally {
       setLoadingAttachments(false);
-    }
-  };
-
-  const chooseDefaultOutputDir = async () => {
-    try {
-      const dir = await openDialog({ directory: true });
-      if (dir) setOutputDir(dir);
-    } catch {
-      // 用户取消则保持为空
     }
   };
 
