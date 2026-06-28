@@ -6,6 +6,9 @@ use tauri::State;
 // ── Conversation storage ──────────────────────────────────
 
 use super::*;
+
+/// 单条对话的最大消息数量，超过此限时自动裁剪最早的消息。
+const MAX_CONVERSATION_MESSAGES: usize = 500;
 pub(crate) fn load_conversations(
     vault: &VaultStore,
     account_id: &str,
@@ -24,11 +27,25 @@ pub(crate) fn load_conversations(
     }
 }
 
+/// 裁剪单条对话的消息数量，防止 Profile 数据无限增长。
+fn trim_conversation_messages(conv: &mut Conversation) {
+    if conv.messages.len() > MAX_CONVERSATION_MESSAGES {
+        let excess = conv.messages.len() - MAX_CONVERSATION_MESSAGES;
+        conv.messages.drain(..excess);
+    }
+}
+
 pub(crate) fn save_conversations(
     vault: &VaultStore,
     account_id: &str,
     conversations: &[Conversation],
 ) -> Result<(), String> {
+    // 裁剪每条对话的消息数量，防止 Profile 数据无限增长
+    let mut trimmed = conversations.to_vec();
+    for conv in &mut trimmed {
+        trim_conversation_messages(conv);
+    }
+
     let mut profile = match vault.load_profile(account_id) {
         Ok(Some(p)) => p,
         Ok(None) => solosoul_vault::Profile::new_with_id(account_id, account_id, Vec::new()),
@@ -44,7 +61,7 @@ pub(crate) fn save_conversations(
         .ok_or("Invalid")?
         .entry("preferences".to_string())
         .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
-    prefs["llmConversations"] = serde_json::to_value(conversations).map_err(|e| e.to_string())?;
+    prefs["llmConversations"] = serde_json::to_value(&trimmed).map_err(|e| e.to_string())?;
     profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;

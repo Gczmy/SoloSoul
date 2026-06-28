@@ -172,7 +172,12 @@ pub async fn attachment_rename(
     let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
     let mut atts = load_attachments(&record.properties);
     if let Some(a) = atts.iter_mut().find(|a| a.id == attachment_id) {
-        a.file_name = new_name;
+        // P207: sanitize file_name to prevent path traversal
+        let safe_name = std::path::Path::new(&new_name)
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or(new_name.clone());
+        a.file_name = safe_name;
     }
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
