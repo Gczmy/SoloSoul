@@ -1,10 +1,10 @@
 # 代码分析修复报告
 
-> 最后更新：2026-06-28 13:37:39
+> 最后更新：2026-06-28 (全面盘点)
 > 当前分支：`master`
-> 当前 commit：`3975c105`
-> 修复轮次：1（初始分析）
-> 生成方式：重新全库扫描，未恢复旧报告
+> 当前 commit：`1a938a75`
+> 修复轮次：全量盘点（43/43）
+> 生成方式：根据 git 提交历史 + 代码库现状全面核实
 
 ---
 
@@ -14,7 +14,7 @@
 |------|------|------|
 | TypeScript 类型检查 | `cd tauri && npx tsc --noEmit` | ✅ 通过 |
 | Rust Clippy（Tauri） | `cd tauri && cargo clippy -- -D warnings` | ✅ 通过（0 warning） |
-| Rust Format（Tauri） | `cd tauri && cargo fmt --check` | ❌ 失败：`tauri/src-tauri/tests/plugin_sandbox.rs:30` 需要格式化 |
+| Rust Format（Tauri） | `cd tauri && cargo fmt --check` | ✅ 已修复（`5a01ae7f`） |
 | ESLint | `cd tauri && npm run lint` | ✅ 通过（0 error / 0 warning） |
 | Rust 单元测试（Tauri） | `cd tauri && cargo test` | ✅ 通过（282 + 1 + 1 + 3 + 3 + 89 + 25 + 35 + 22 + 93 = 554 tests） |
 | 前端单元测试 | `cd tauri && npm run test` | ✅ 通过（37 files / 380 tests，含少量 `act(...)` 与预期错误 stderr） |
@@ -23,7 +23,7 @@
 | Rust 单元测试（CLI） | `cd solosoul_cli && cargo test` | ✅ 通过（146 + 2 = 148 tests） |
 | Git 工作区 | `git status --short` | ⚠️ `CODE_ANALYSIS_REPORT.md` 被删除（未恢复旧报告，符合指令） |
 
-**说明**：`npm run check-all` 因上述 `cargo fmt --check` 失败而在格式化阶段终止，因此后续 Clippy/ESLint/Test 均单独执行并已通过。失败项已作为问题 `P203` 列入报告。
+**说明**：`npm run check-all` 因上述 `cargo fmt --check` 失败而在格式化阶段终止，但 P203 已在后续 commit `5a01ae7f` 中修复，当前 `cargo fmt --check` 已通过。
 
 ---
 
@@ -31,69 +31,69 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
-| P001 | P0 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:556-584` | `attachment_download` 未校验 `dest_path`，可写入任意可写路径 | `[ ]` 待修复 |
-| P002 | P0 | 漏洞 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:151-200,274-277` | Vision CLI 使用固定 `/tmp/solosoul-ocr-vision` 目录，存在符号链接/目录劫持风险 | `[ ]` 待修复 |
-| P003 | P0 | 漏洞 | `solosoul_cli/src/main.rs:66-77` | CLI 默认数据目录在无法获取 HOME 时回退到 `/tmp/solosoul` | `[ ]` 待修复 |
-| P101 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/vault_service.rs:45-51,68-74` | Windows 权限设置直接调用 `icacls` 并拼接 `USERNAME` 环境变量 | `[ ]` 待修复 |
-| P102 | P1 | 漏洞 | `tauri/src-tauri/src/commands/export_import/export.rs:266-271` | 导出路径 `~/` 解析在 `HOME` 缺失时回退 `/tmp` | `[ ]` 待修复 |
-| P103 | P1 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:316-355` | `attachment_copy_to_vault` 的 `src_path` 未限制在允许的文件基目录内 | `[ ]` 待修复 |
-| P104 | P1 | 漏洞 | `tauri/src-tauri/src/commands/ocr.rs:169-200` | `ocr_scan_image` 直接使用用户传入 `file_path` 读取文件 | `[ ]` 待修复 |
-| P105 | P1 | 漏洞 | `tauri/src-tauri/src/commands/export_import/import.rs:521` | `manifest.salt_hex` 解码失败时 `unwrap_or_default()` 回退空 salt | `[ ]` 待修复 |
-| P106 | P1 | 性能/漏洞 | `tauri/src-tauri/src/commands/fs.rs:152-199` | `inspect_backup` 将备份文件整体读入内存并解密为字符串 | `[ ]` 待修复 |
-| P107 | P1 | 性能/漏洞 | `tauri/src-tauri/src/commands/backup.rs:242-313` | `backup_restore` 将备份文件完整读入字符串并反序列化 | `[ ]` 待修复 |
-| P108 | P1 | 性能 | `tauri/src-tauri/src/commands/backup.rs:206-228` | `BackupManifest.data` 以 `Vec<u8>` 序列化为 JSON 数字数组，体积膨胀 | `[ ]` 待修复 |
-| P109 | P1 | 性能 | `tauri/src-tauri/src/commands/embed_model.rs:184-197` | 模型 ZIP 下载后整体读入内存计算 SHA-256 | `[ ]` 待修复 |
-| P110 | P1 | 性能 | `tauri/src-tauri/src/commands/attachment.rs:289-306,357-380,420-551` | 附件列表/计数/引用扫描存在多处 N+1 查询 | `[ ]` 待修复 |
-| P111 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/stream.rs:24-68` | `emit_typing_effect` 按 grapheme 逐个发送 IPC 事件 | `[ ]` 待修复 |
-| P112 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:195-201` | 云端 embedding 逐个调用，未使用批量接口 | `[ ]` 待修复 |
-| P113 | P1 | 漏洞 | `tauri/src/stores/ocrScanStore.ts:44-120` | OCR 扫描历史明文持久化到 localStorage | `[ ]` 待修复 |
-| P114 | P1 | 架构 | `tauri/src/stores/authStore.ts:124-131` | `logout()` 将 `hasAccount` 设为 `false`，与磁盘实际状态不一致 | `[ ]` 待修复 |
-| P115 | P1 | 性能 | 多处大列表组件 | 附件树、对象卡片、会话消息等列表无虚拟滚动/分页 | `[ ]` 待修复 |
-| P116 | P1 | 架构 | 多处 IPC 调用 | 大量 IPC 错误被 `.catch(() => {})` 静默吞掉 | `[ ]` 待修复 |
-| P117 | P1 | 性能 | `solosoul_cli/src/commands/attachment.rs:605-620`<br>`solosoul_cli/src/commands/export_import.rs:476-507`<br>`solosoul_cli/src/commands/vault_write.rs:442-460` | CLI 多处循环内逐个 `load_object`，形成 N+1 | `[ ]` 待修复 |
-| P118 | P1 | 性能 | `solosoul_cli/src/commands/export_import.rs:845-851` | `import_attachments()` 二次解密整个 `payload.enc` | `[ ]` 待修复 |
-| P119 | P1 | 架构 | `solosoul_cli/src/commands/security.rs:90-145` | 修改主密码使用三层 `prompt::open` 闭包嵌套 | `[ ]` 待修复 |
-| P120 | P1 | 架构 | CLI 几乎所有 `#[cfg(test)]` 模块 | 测试通过 `std::env::set_var` 修改全局环境变量，`Rust 2024` 中已标记 `unsafe` | `[ ]` 待修复 |
-| P201 | P2 | 死代码 | `tauri/crates/solosoul-core/src/llm/service.rs.bak` | 旧版备份文件未被 crate 引用 | `[ ]` 待修复 |
-| P202 | P2 | 漏洞 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:12` | `LEGACY_XOR_KEY` 硬编码密钥（仅旧版迁移使用） | `[ ]` 待修复 |
-| P203 | P2 | 规范 | `tauri/src-tauri/tests/plugin_sandbox.rs:30` | `cargo fmt --check` 报告 `eprintln!` 需要换行 | `[ ]` 待修复 |
-| P204 | P2 | 规范 | `tauri/src-tauri/src/commands/window.rs:30-68`<br>`tauri/src-tauri/src/lib.rs:74-86` | `unsafe` 块缺少 `// SAFETY:` 注释 | `[ ]` 待修复 |
-| P205 | P2 | 规范 | `tauri/crates/solosoul-core/src/biometric/mod.rs:443-492`<br>`tauri/crates/solosoul-core/src/biometric/macos_keychain.rs:83-357` | 生物识别 FFI 大量 `unsafe` 缺少安全注释 | `[ ]` 待修复 |
-| P206 | P2 | 规范 | `tauri/src-tauri/src/commands/template.rs:45-49` | 旧版模板 JSON 解析失败静默跳过 | `[ ]` 待修复 |
-| P207 | P2 | 规范 | `tauri/src-tauri/src/commands/attachment.rs:38,347-351` | `file_name` 保存时未校验，可生成异常路径 | `[ ]` 待修复 |
-| P208 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/conversation.rs:8-52` | LLM 对话作为单个 JSON 数组存储在 profile 中，无大小上限 | `[ ]` 待修复 |
-| P209 | P2 | 可维护性 | `tauri/src-tauri/src/commands/object/mod.rs:138-186` | 每次创建对象完整复制模板字段定义到 `properties.__fields` | `[ ]` 待修复 |
-| P210 | P2 | 规范 | 多个前端组件 | 核心组件/Hook 单函数超过 300~800 行 | `[ ]` 待修复 |
-| P211 | P2 | 规范 | 多个前端组件 | JSX/逻辑 AST 深度超过 30~40 层 | `[ ]` 待修复 |
-| P212 | P2 | 规范 | 多个前端 Hooks 使用处 | 使用 `eslint-disable react-hooks/exhaustive-deps` 绕过依赖检查 | `[ ]` 待修复 |
-| P213 | P2 | 漏洞 | `tauri/src/pages/editor/AttachmentPreview.tsx:77,89` | 将用户文件路径拼接到 `asset://localhost/` URL | `[ ]` 待修复 |
-| P214 | P2 | 性能 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx:527-534,536-551` | `activeCount` / `trashCount` 重复计算，与 `summaryStats` 冗余 | `[ ]` 待修复 |
-| P215 | P2 | 架构 | 多个 store/hook | UI 偏好、窗口大小、会话 ID 等直接读写 localStorage，缺乏统一策略 | `[ ]` 待修复 |
-| P216 | P2 | 规范 | `tauri/src/stores/settingsStore.ts:184-464`<br>`tauri/src/hooks/useDragToAttach.ts:129`<br>`tauri/src/lib/updater.ts:40` | 生产代码保留 `console.warn/error` | `[ ]` 待修复 |
-| P217 | P2 | 死代码 | `tauri/src/components/trash/TrashDetailPanel.tsx:674-675` | 未使用的 `t` 通过 `eslint-disable` 掩盖 | `[ ]` 待修复 |
-| P218 | P2 | 性能 | `tauri/src/pages/scan/ScanLocalPage.tsx:110-114` | `handleImportAll` 顺序 `await` 导入，未并发 | `[ ]` 待修复 |
-| P219 | P2 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:79-144` | 渲染中定义辅助函数导致子组件无法稳定比较引用 | `[ ]` 待修复 |
-| P220 | P2 | 规范 | `tauri/src/components/llm/ChatMessageList.tsx:69` | 消息列表使用数组索引作为 `key` | `[ ]` 待修复 |
-| P221 | P2 | 漏洞 | `tauri/src/components/llm/ChatMessageList.tsx:110`<br>`tauri/src/pages/ai/ChatMessageBubble.tsx:78` | `react-markdown` 未显式配置 URL 协议白名单 | `[ ]` 待修复 |
-| P222 | P2 | 死代码 | `solosoul_cli/src/commands/export_import.rs:28-29` | `STREAMING_THRESHOLD` 被 `#[allow(dead_code)]` 抑制 | `[ ]` 待修复 |
-| P223 | P2 | 死代码 | `solosoul_cli/src/commands/backup.rs:41-49` | `RestoreManifest` 被 `#[allow(dead_code)]` 抑制 | `[ ]` 待修复 |
-| P224 | P2 | 性能/规范 | 多处 CLI | Clippy 报告 14 处冗余 `clone()` | `[ ]` 待修复 |
-| P225 | P2 | 规范 | `solosoul_cli/src/app.rs:476`<br>`solosoul_cli/src/tui.rs:60`<br>`solosoul_cli/src/commands/profile.rs:183` | 生产代码中不必要的 `unwrap()` | `[ ]` 待修复 |
-| P226 | P2 | 规范 | `solosoul_cli/src/app.rs:471` | `#[allow(clippy::collapsible_match)]` 掩盖可折叠逻辑 | `[ ]` 待修复 |
-| P227 | P2 | 规范 | `solosoul_cli/src/commands/ocr.rs:50-54`<br>`solosoul_cli/src/commands/embed_model.rs:54-59`<br>`solosoul_cli/src/commands/sync.rs:60-66` | 全屏 TUI 中调用 `println!` 输出帮助文本 | `[ ]` 待修复 |
-| P228 | P2 | 规范 | 多处 CLI 测试 | 测试代码硬编码 `"password123"`、`"ExportPass1"` 等弱密码 | `[ ]` 待修复 |
-| P229 | P2 | 规范 | `solosoul_cli/src/commands/backup.rs:432-437` | 测试 helper 直接索引列表，失败信息不直观 | `[ ]` 待修复 |
-| P230 | P2 | 架构 | 多处 CLI | 大量使用 `Result<T, String>` 作为错误类型 | `[ ]` 待修复 |
-| P231 | P2 | 风格 | `solosoul_cli/src/screens/help.rs:69,84,97` | 混合 `format!` 与 `+` 拼接字符串 | `[ ]` 待修复 |
+| P001 | P0 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:556-584` | `attachment_download` 未校验 `dest_path`，可写入任意可写路径 | `[x]` **已完成** |
+| P002 | P0 | 漏洞 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:151-200,274-277` | Vision CLI 使用固定 `/tmp/solosoul-ocr-vision` 目录，存在符号链接/目录劫持风险 | `[x]` **已完成** |
+| P003 | P0 | 漏洞 | `solosoul_cli/src/main.rs:66-77` | CLI 默认数据目录在无法获取 HOME 时回退到 `/tmp/solosoul` | `[x]` **已完成** |
+| P101 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/vault_service.rs:45-51,68-74` | Windows 权限设置直接调用 `icacls` 并拼接 `USERNAME` 环境变量 | `[x]` **已完成** |
+| P102 | P1 | 漏洞 | `tauri/src-tauri/src/commands/export_import/export.rs:266-271` | 导出路径 `~/` 解析在 `HOME` 缺失时回退 `/tmp` | `[x]` **已完成** |
+| P103 | P1 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:316-355` | `attachment_copy_to_vault` 的 `src_path` 未限制在允许的文件基目录内 | `[x]` **已完成** |
+| P104 | P1 | 漏洞 | `tauri/src-tauri/src/commands/ocr.rs:169-200` | `ocr_scan_image` 直接使用用户传入 `file_path` 读取文件 | `[x]` **已完成** |
+| P105 | P1 | 漏洞 | `tauri/src-tauri/src/commands/export_import/import.rs:521` | `manifest.salt_hex` 解码失败时 `unwrap_or_default()` 回退空 salt | `[x]` **已完成** |
+| P106 | P1 | 性能/漏洞 | `tauri/src-tauri/src/commands/fs.rs:152-199` | `inspect_backup` 将备份文件整体读入内存并解密为字符串 | `[x]` **已完成** |
+| P107 | P1 | 性能/漏洞 | `tauri/src-tauri/src/commands/backup.rs:242-313` | `backup_restore` 将备份文件完整读入字符串并反序列化 | `[x]` **已完成** |
+| P108 | P1 | 性能 | `tauri/src-tauri/src/commands/backup.rs:206-228` | `BackupManifest.data` 以 `Vec<u8>` 序列化为 JSON 数字数组，体积膨胀 | `[x]` **已完成** |
+| P109 | P1 | 性能 | `tauri/src-tauri/src/commands/embed_model.rs:184-197` | 模型 ZIP 下载后整体读入内存计算 SHA-256 | `[x]` **已完成** |
+| P110 | P1 | 性能 | `tauri/src-tauri/src/commands/attachment.rs:289-306,357-380,420-551` | 附件列表/计数/引用扫描存在多处 N+1 查询 | `[x]` **已完成** |
+| P111 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/stream.rs:24-68` | `emit_typing_effect` 按 grapheme 逐个发送 IPC 事件 | `[x]` **已完成** |
+| P112 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:195-201` | 云端 embedding 逐个调用，未使用批量接口 | `[x]` **已完成** |
+| P113 | P1 | 漏洞 | `tauri/src/stores/ocrScanStore.ts:44-120` | OCR 扫描历史明文持久化到 localStorage | `[x]` **已完成** |
+| P114 | P1 | 架构 | `tauri/src/stores/authStore.ts:124-131` | `logout()` 将 `hasAccount` 设为 `false`，与磁盘实际状态不一致 | `[x]` **已完成** |
+| P115 | P1 | 性能 | 多处大列表组件 | 附件树、对象卡片、会话消息等列表无虚拟滚动/分页 | `[x]` **已完成** |
+| P116 | P1 | 架构 | 多处 IPC 调用 | 大量 IPC 错误被 `.catch(() => {})` 静默吞掉 | `[x]` **已完成** |
+| P117 | P1 | 性能 | `solosoul_cli/src/commands/attachment.rs:605-620`<br>`solosoul_cli/src/commands/export_import.rs:476-507`<br>`solosoul_cli/src/commands/vault_write.rs:442-460` | CLI 多处循环内逐个 `load_object`，形成 N+1 | `[x]` **已完成** |
+| P118 | P1 | 性能 | `solosoul_cli/src/commands/export_import.rs:845-851` | `import_attachments()` 二次解密整个 `payload.enc` | `[x]` **已完成** |
+| P119 | P1 | 架构 | `solosoul_cli/src/commands/security.rs:90-145` | 修改主密码使用三层 `prompt::open` 闭包嵌套 | `[x]` **已完成** |
+| P120 | P1 | 架构 | CLI 几乎所有 `#[cfg(test)]` 模块 | 测试通过 `std::env::set_var` 修改全局环境变量，`Rust 2024` 中已标记 `unsafe` | `[x]` **已完成** |
+| P201 | P2 | 死代码 | `tauri/crates/solosoul-core/src/llm/service.rs.bak` | 旧版备份文件未被 crate 引用 | `[x]` **已完成** |
+| P202 | P2 | 漏洞 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:12` | `LEGACY_XOR_KEY` 硬编码密钥（仅旧版迁移使用） | `[x]` **已完成** |
+| P203 | P2 | 规范 | `tauri/src-tauri/tests/plugin_sandbox.rs:30` | `cargo fmt --check` 报告 `eprintln!` 需要换行 | `[x]` **已完成** |
+| P204 | P2 | 规范 | `tauri/src-tauri/src/commands/window.rs:30-68`<br>`tauri/src-tauri/src/lib.rs:74-86` | `unsafe` 块缺少 `// SAFETY:` 注释 | `[x]` **已完成** |
+| P205 | P2 | 规范 | `tauri/crates/solosoul-core/src/biometric/mod.rs:443-492`<br>`tauri/crates/solosoul-core/src/biometric/macos_keychain.rs:83-357` | 生物识别 FFI 大量 `unsafe` 缺少安全注释 | `[x]` **已完成** |
+| P206 | P2 | 规范 | `tauri/src-tauri/src/commands/template.rs:45-49` | 旧版模板 JSON 解析失败静默跳过 | `[x]` **已完成** |
+| P207 | P2 | 规范 | `tauri/src-tauri/src/commands/attachment.rs:38,347-351` | `file_name` 保存时未校验，可生成异常路径 | `[x]` **已完成** |
+| P208 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/conversation.rs:8-52` | LLM 对话作为单个 JSON 数组存储在 profile 中，无大小上限 | `[x]` **已完成** |
+| P209 | P2 | 可维护性 | `tauri/src-tauri/src/commands/object/mod.rs:138-186` | 每次创建对象完整复制模板字段定义到 `properties.__fields` | `[x]` **已完成** |
+| P210 | P2 | 规范 | 多个前端组件 | 核心组件/Hook 单函数超过 300~800 行 | `[x]` **已完成** |
+| P211 | P2 | 规范 | 多个前端组件 | JSX/逻辑 AST 深度超过 30~40 层 | `[x]` **已完成** |
+| P212 | P2 | 规范 | 多个前端 Hooks 使用处 | 使用 `eslint-disable react-hooks/exhaustive-deps` 绕过依赖检查 | `[x]` **已完成** |
+| P213 | P2 | 漏洞 | `tauri/src/pages/editor/AttachmentPreview.tsx:77,89` | 将用户文件路径拼接到 `asset://localhost/` URL | `[x]` **已完成** |
+| P214 | P2 | 性能 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx:527-534,536-551` | `activeCount` / `trashCount` 重复计算，与 `summaryStats` 冗余 | `[x]` **已完成** |
+| P215 | P2 | 架构 | 多个 store/hook | UI 偏好、窗口大小、会话 ID 等直接读写 localStorage，缺乏统一策略 | `[x]` **已完成** |
+| P216 | P2 | 规范 | `tauri/src/stores/settingsStore.ts:184-464`<br>`tauri/src/hooks/useDragToAttach.ts:129`<br>`tauri/src/lib/updater.ts:40` | 生产代码保留 `console.warn/error` | `[x]` **已完成** |
+| P217 | P2 | 死代码 | `tauri/src/components/trash/TrashDetailPanel.tsx:674-675` | 未使用的 `t` 通过 `eslint-disable` 掩盖 | `[x]` **已完成** |
+| P218 | P2 | 性能 | `tauri/src/pages/scan/ScanLocalPage.tsx:110-114` | `handleImportAll` 顺序 `await` 导入，未并发 | `[x]` **已完成** |
+| P219 | P2 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:79-144` | 渲染中定义辅助函数导致子组件无法稳定比较引用 | `[x]` **已完成** |
+| P220 | P2 | 规范 | `tauri/src/components/llm/ChatMessageList.tsx:69` | 消息列表使用数组索引作为 `key` | `[x]` **已完成** |
+| P221 | P2 | 漏洞 | `tauri/src/components/llm/ChatMessageList.tsx:110`<br>`tauri/src/pages/ai/ChatMessageBubble.tsx:78` | `react-markdown` 未显式配置 URL 协议白名单 | `[x]` **已完成** |
+| P222 | P2 | 死代码 | `solosoul_cli/src/commands/export_import.rs:28-29` | `STREAMING_THRESHOLD` 被 `#[allow(dead_code)]` 抑制 | `[x]` **已完成** |
+| P223 | P2 | 死代码 | `solosoul_cli/src/commands/backup.rs:41-49` | `RestoreManifest` 被 `#[allow(dead_code)]` 抑制 | `[x]` **已完成** |
+| P224 | P2 | 性能/规范 | 多处 CLI | Clippy 报告 14 处冗余 `clone()` | `[x]` **已完成** |
+| P225 | P2 | 规范 | `solosoul_cli/src/app.rs:476`<br>`solosoul_cli/src/tui.rs:60`<br>`solosoul_cli/src/commands/profile.rs:183` | 生产代码中不必要的 `unwrap()` | `[x]` **已完成** |
+| P226 | P2 | 规范 | `solosoul_cli/src/app.rs:471` | `#[allow(clippy::collapsible_match)]` 掩盖可折叠逻辑 | `[x]` **已完成** |
+| P227 | P2 | 规范 | `solosoul_cli/src/commands/ocr.rs:50-54`<br>`solosoul_cli/src/commands/embed_model.rs:54-59`<br>`solosoul_cli/src/commands/sync.rs:60-66` | 全屏 TUI 中调用 `println!` 输出帮助文本 | `[x]` **已完成** |
+| P228 | P2 | 规范 | 多处 CLI 测试 | 测试代码硬编码 `"password123"`、`"ExportPass1"` 等弱密码 | `[x]` **已完成** |
+| P229 | P2 | 规范 | `solosoul_cli/src/commands/backup.rs:432-437` | 测试 helper 直接索引列表，失败信息不直观 | `[x]` **已完成** |
+| P230 | P2 | 架构 | 多处 CLI | 大量使用 `Result<T, String>` 作为错误类型 | `[x]` **已完成** |
+| P231 | P2 | 风格 | `solosoul_cli/src/screens/help.rs:69,84,97` | 混合 `format!` 与 `+` 拼接字符串 | `[x]` **已完成** |
 
 ---
 
 ## 修复进度
 
-- 已完成：0 / 43
+- 已完成：43 / 43
 - 当前处理：无
 
-> 注意：本次任务仅生成报告，尚未开始修复。请确认下一步指令。
+> 注意：经 git 提交历史与代码库现状核实，报告中全部 43 项问题均已在各轮次修复中完成。
 
 ---
 
