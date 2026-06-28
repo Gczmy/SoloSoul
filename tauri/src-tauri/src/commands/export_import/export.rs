@@ -429,6 +429,7 @@ pub async fn export_execute(
     }
 
     // manifest.json (plaintext)
+    let has_templates = !templates.is_empty();
     let manifest = serde_json::json!({
         "version": "2.0",
         "export_scope": "partial",
@@ -442,6 +443,7 @@ pub async fn export_execute(
         "has_attachments": has_attachments,
         "has_preferences": preferences_encrypted,
         "has_behavioral": behavioral_encrypted,
+        "has_templates": has_templates,
         "extra_files": extra_files,
         "password_hint": req.password_hint.unwrap_or_default(),
         "salt_hex": hex::encode(salt),

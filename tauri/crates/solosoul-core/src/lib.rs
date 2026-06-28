@@ -10,6 +10,7 @@
 //! 而不必引入整个 Tauri 运行时。
 
 pub mod auth;
+pub mod export_import;
 pub mod biometric;
 pub mod llm;
 pub mod ocr;

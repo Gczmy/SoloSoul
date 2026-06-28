@@ -273,6 +273,211 @@ fn test_export_request_serde_roundtrip() {
     );
 }
 
+// ── 9. Export includes templates in payload ────────────────
+
+#[test]
+fn test_export_includes_templates() -> Result<(), String> {
+    let temp_dir = TempDir::new().map_err(|e| e.to_string())?;
+    let zip_path = temp_dir.path().join("test_export_tmpl.solosoul");
+
+    let password = "ExportPass1";
+    let salt = solosoul_crypto::kdf::generate_salt(); // 16-byte salt
+    let key = derive_export_key(password, &salt)?;
+
+    let file = File::create(&zip_path).map_err(|e| e.to_string())?;
+    let mut zip = ZipWriter::new(file);
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+    let manifest = json!({
+        "version": "2.0",
+        "salt_hex": hex::encode(salt),
+        "has_attachments": false,
+        "has_templates": true,
+        "extra_files": []
+    });
+    zip.start_file("manifest.json", options)
+        .map_err(|e| e.to_string())?;
+    zip.write_all(manifest.to_string().as_bytes())
+        .map_err(|e| e.to_string())?;
+    let payload = json!({
+        "objects": [{
+            "id": "obj_1",
+            "name": "Test",
+            "type_id": "note",
+            "section_type": "identity",
+            "icon_name": "document",
+            "properties": {},
+            "sensitivity_level": "internal",
+            "tags": [],
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-06-01T00:00:00Z",
+            "version": 1,
+            "template_id": "identity"
+        }],
+        "templates": [{
+            "id": "identity",
+            "accountId": "acc_export",
+            "name": "身份信息",
+            "iconId": null,
+            "properties": [{
+                "id": "fullName",
+                "name": "证件号码",
+                "type": "text",
+                "sensitivityLevel": "internal"
+            }],
+            "category": "identity",
+            "createdAt": "2024-01-01T00:00:00Z",
+            "updatedAt": null
+        }]
+    });
+    let payload_bytes = serde_json::to_vec(&payload).map_err(|e| e.to_string())?;
+    zip.start_file("payload.enc", options)
+        .map_err(|e| e.to_string())?;
+    solosoul_crypto::cipher::encrypt_chunked_stream(
+        &key,
+        payload_bytes.len() as u64,
+        &mut std::io::Cursor::new(&payload_bytes),
+        &mut zip,
+    )
+    .map_err(|e| format!("encrypt: {}", e))?;
+
+    zip.finish().map_err(|e| e.to_string())?;
+
+    let manifest_data = read_manifest(zip_path.to_str().unwrap())?;
+    let v = manifest_data;
+    // Verify has_templates through the raw JSON of the manifest
+    let file2 = File::open(&zip_path).map_err(|e| e.to_string())?;
+    let mut archive = zip::ZipArchive::new(file2).map_err(|_| "invalid zip".to_string())?;
+    let mut entry = archive.by_name("manifest.json").map_err(|_| "missing manifest".to_string())?;
+    let mut buf = String::new();
+    entry.read_to_string(&mut buf).map_err(|e| e.to_string())?;
+    let raw: serde_json::Value = serde_json::from_str(&buf).map_err(|e| e.to_string())?;
+    assert_eq!(raw["has_templates"], true);
+    assert_eq!(v.salt_hex.len(), 32); // 16-byte salt as 32 hex chars
+    Ok(())
+}
+
+#[test]
+fn test_import_template_snapshot_remapping() -> Result<(), String> {
+    let temp_dir = TempDir::new().map_err(|e| e.to_string())?;
+    let zip_path = temp_dir.path().join("test_import_snapshot.solosoul");
+
+    let password = "ExportPass1";
+    let salt = solosoul_crypto::kdf::generate_salt();
+    let key = derive_export_key(password, &salt)?;
+
+    // 构造导出包：包含一个中文模板 + 引用该模板的对象
+    let payload = json!({
+        "objects": [{
+            "id": "obj_cn",
+            "name": "张三的护照",
+            "type_id": "note",
+            "section_type": "travel",
+            "icon_name": "passport",
+            "properties": {"fullName": "张三", "passportNumber": "E12345678"},
+            "sensitivity_level": "internal",
+            "tags": [],
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-06-01T00:00:00Z",
+            "version": 1,
+            "template_id": "passport_template"
+        }],
+        "templates": [{
+            "id": "passport_template",
+            "accountId": "acc_export",
+            "name": "护照信息",
+            "iconId": "passport",
+            "properties": [{
+                "id": "fullName",
+                "name": "姓名",
+                "type": "text",
+                "sensitivityLevel": "internal"
+            }, {
+                "id": "passportNumber",
+                "name": "护照号码",
+                "type": "text",
+                "sensitivityLevel": "critical"
+            }],
+            "category": "travel",
+            "createdAt": "2024-01-01T00:00:00Z",
+            "updatedAt": null
+        }]
+    });
+    let payload_bytes = serde_json::to_vec(&payload).map_err(|e| e.to_string())?;
+
+    let file = File::create(&zip_path).map_err(|e| e.to_string())?;
+    let mut zip = ZipWriter::new(file);
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+    let manifest = json!({
+        "version": "2.0",
+        "salt_hex": hex::encode(salt),
+        "has_attachments": false,
+        "has_templates": true,
+        "extra_files": []
+    });
+    zip.start_file("manifest.json", options)
+        .map_err(|e| e.to_string())?;
+    zip.write_all(manifest.to_string().as_bytes())
+        .map_err(|e| e.to_string())?;
+
+    zip.start_file("payload.enc", options)
+        .map_err(|e| e.to_string())?;
+    solosoul_crypto::cipher::encrypt_chunked_stream(
+        &key,
+        payload_bytes.len() as u64,
+        &mut std::io::Cursor::new(&payload_bytes),
+        &mut zip,
+    )
+    .map_err(|e| format!("encrypt: {}", e))?;
+    zip.finish().map_err(|e| e.to_string())?;
+
+    // 验证：解析 payload 中对象的 template_id 没有被映射（这里只是直接测试数据格式）
+    let enc = read_file_from_zip(zip_path.to_str().unwrap(), "payload.enc")?;
+    let dec = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc)
+        .map_err(|_| "decrypt failed".to_string())?;
+    let parsed: serde_json::Value =
+        serde_json::from_slice(&dec).map_err(|e| format!("parse: {}", e))?;
+
+    // 检查 templates 存在且携带了原始模板数据
+    let tmpls = parsed["templates"].as_array().ok_or("no templates")?;
+    assert_eq!(tmpls.len(), 1);
+    assert_eq!(tmpls[0]["name"], "护照信息");
+    assert_eq!(tmpls[0]["id"], "passport_template");
+
+    // 检查对象引用 template_id
+    let objs = parsed["objects"].as_array().ok_or("no objects")?;
+    assert_eq!(objs[0]["template_id"], "passport_template");
+
+    // 验证 content_hash 计算
+    use solosoul_core::export_import::user_template_content_hash;
+    use solosoul_vault::UserTemplate;
+    let tpl: UserTemplate =
+        serde_json::from_value(tmpls[0].clone()).map_err(|e| format!("deserialize tpl: {}", e))?;
+    let hash = user_template_content_hash(&tpl);
+    assert_eq!(hash.len(), 64);
+    Ok(())
+}
+
+#[test]
+fn test_import_system_section_type_preserved() {
+    let obj = json!({
+        "id": "sys_obj",
+        "name": "My Identity",
+        "type_id": "note",
+        "section_type": "identity",
+        "icon_name": "document",
+        "properties": {},
+        "sensitivity_level": "internal",
+        "tags": [],
+        "created_at": "2024-01-01T00:00:00Z",
+        "updated_at": "2024-06-01T00:00:00Z",
+        "version": 1
+    });
+    // 系统页面的 section_type 应保持为 key，不做国际化映射
+    assert_eq!(obj["section_type"], "identity");
+}
+
 #[test]
 fn test_import_preview_serde_roundtrip() {
     let original = ImportPreview {

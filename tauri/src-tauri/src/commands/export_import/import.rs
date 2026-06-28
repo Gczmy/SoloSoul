@@ -250,16 +250,30 @@ async fn import_execute_internal(
         .as_array()
         .ok_or("No objects array in payload")?;
     let package_ids = build_package_ids(&payload);
-    // ── Rebuild referenced templates ─────────────────────────────
+    // ── Rebuild referenced templates (snapshot isolation by content hash) ──
+    let mut template_id_map: std::collections::HashMap<String, String> =
+        std::collections::HashMap::new();
     if let Some(templates) = payload["templates"].as_array() {
+        let now = chrono::Utc::now().to_rfc3339();
         for tpl_val in templates {
-            if let Ok(tpl) = serde_json::from_value::<solosoul_vault::UserTemplate>(tpl_val.clone())
+            if let Ok(mut tpl) =
+                serde_json::from_value::<solosoul_vault::UserTemplate>(tpl_val.clone())
             {
-                if vault.load_user_template(&tpl.id).ok().flatten().is_none() {
-                    let mut new_tpl = tpl;
-                    new_tpl.account_id = account_id.clone();
-                    let _ = vault.save_user_template(&new_tpl);
+                let original_id = tpl.id.clone();
+                let hash = solosoul_core::export_import::user_template_content_hash(&tpl);
+                let imported_id =
+                    solosoul_core::export_import::imported_template_id(&original_id, &hash);
+
+                // 复用或新建快照模板
+                if vault.load_user_template(&imported_id).ok().flatten().is_none() {
+                    tpl.id = imported_id.clone();
+                    tpl.account_id = account_id.clone();
+                    tpl.created_at = now.clone();
+                    tpl.updated_at = Some(now.clone());
+                    let _ = vault.save_user_template(&tpl);
                 }
+
+                template_id_map.insert(original_id, imported_id);
             }
         }
     }
@@ -342,7 +356,14 @@ async fn import_execute_internal(
                         .collect()
                 })
                 .unwrap_or_default(),
-            template_id: obj_val["template_id"].as_str().map(String::from),
+            template_id: obj_val["template_id"]
+                .as_str()
+                .map(|tid| {
+                    template_id_map
+                        .get(tid)
+                        .cloned()
+                        .unwrap_or_else(|| tid.to_string())
+                }),
             template_type: obj_val["template_type"].as_str().map(String::from),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
             updated_at: now.clone(),

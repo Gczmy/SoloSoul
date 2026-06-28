@@ -328,7 +328,7 @@ pub(crate) fn export_execute(
         return Err("没有选中任何对象".to_string());
     }
 
-    let payload = build_payload(&records);
+    let payload = build_payload(&vault, &records);
     let payload_bytes =
         serde_json::to_vec(&payload).map_err(|e| format!("序列化负载失败: {}", e))?;
 
@@ -507,8 +507,23 @@ fn collect_scope_objects(
     Ok(records)
 }
 
-/// 构建加密前的 payload JSON。
-fn build_payload(records: &[ObjectRecord]) -> serde_json::Value {
+/// 构建加密前的 payload JSON（包含模板快照）。
+fn build_payload(vault: &VaultStore, records: &[ObjectRecord]) -> serde_json::Value {
+    let template_ids: HashSet<String> = records
+        .iter()
+        .filter_map(|r| r.template_id.clone())
+        .collect();
+    let templates: Vec<serde_json::Value> = template_ids
+        .iter()
+        .filter_map(|tid| {
+            vault
+                .load_user_template(tid)
+                .ok()
+                .flatten()
+                .and_then(|tpl| serde_json::to_value(&tpl).ok())
+        })
+        .collect();
+
     serde_json::json!({
         "objects": records.iter().map(|r| serde_json::json!({
             "id": r.id,
@@ -526,7 +541,10 @@ fn build_payload(records: &[ObjectRecord]) -> serde_json::Value {
             "created_at": r.created_at,
             "updated_at": r.updated_at,
             "version": r.version,
+            "template_id": r.template_id,
+            "template_type": r.template_type,
         })).collect::<Vec<_>>(),
+        "templates": templates,
     })
 }
 
@@ -588,6 +606,8 @@ fn build_manifest(
     has_attachments: bool,
     salt: &[u8; 16],
 ) -> serde_json::Value {
+    // 检查 records 是否有引用模板
+    let has_templates = records.iter().any(|r| r.template_id.is_some());
     serde_json::json!({
         "version": "2.0",
         "export_scope": if scope.full { "full" } else { "partial" },
@@ -600,6 +620,7 @@ fn build_manifest(
         "has_attachments": has_attachments,
         "has_preferences": false,
         "has_behavioral": false,
+        "has_templates": has_templates,
         "extra_files": [],
         "password_hint": "",
         "salt_hex": hex::encode(salt),
@@ -651,8 +672,34 @@ pub(crate) fn import_execute(
         serde_json::from_slice(&decrypted).map_err(|e| format!("解析负载失败: {}", e))?;
 
     let package_ids = build_package_ids(&payload);
-    let objects = payload["objects"].as_array().cloned().unwrap_or_default();
+
+    // ── 模板快照导入（内容哈希隔离） ──────────────────────────
+    let mut template_id_map: HashMap<String, String> = HashMap::new();
     let now = chrono::Utc::now().to_rfc3339();
+    if let Some(templates) = payload["templates"].as_array() {
+        for tpl_val in templates {
+            if let Ok(mut tpl) =
+                serde_json::from_value::<solosoul_core::UserTemplate>(tpl_val.clone())
+            {
+                let original_id = tpl.id.clone();
+                let hash = solosoul_core::export_import::user_template_content_hash(&tpl);
+                let imported_id =
+                    solosoul_core::export_import::imported_template_id(&original_id, &hash);
+
+                if vault.load_user_template(&imported_id).ok().flatten().is_none() {
+                    tpl.id = imported_id.clone();
+                    tpl.account_id = account_id.clone();
+                    tpl.created_at = now.clone();
+                    tpl.updated_at = Some(now.clone());
+                    let _ = vault.save_user_template(&tpl);
+                }
+
+                template_id_map.insert(original_id, imported_id);
+            }
+        }
+    }
+
+    let objects = payload["objects"].as_array().cloned().unwrap_or_default();
     let mut imported = 0usize;
     let mut imported_object_ids: HashSet<String> = HashSet::new();
 
@@ -719,7 +766,14 @@ pub(crate) fn import_execute(
                 })
                 .unwrap_or_default(),
             contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
-            template_id: obj_val["template_id"].as_str().map(String::from),
+            template_id: obj_val["template_id"]
+                .as_str()
+                .map(|tid| {
+                    template_id_map
+                        .get(tid)
+                        .cloned()
+                        .unwrap_or_else(|| tid.to_string())
+                }),
             template_type: obj_val["template_type"].as_str().map(String::from),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
             updated_at: now.clone(),
@@ -1173,6 +1227,460 @@ mod tests {
 
         let result = import_execute(&mut app, &path, "WrongPass1", ImportStrategy::Overwrite);
         assert!(result.is_err(), "应返回密码错误: {:?}", result);
+    }
+
+    #[test]
+    fn test_cli_export_includes_templates_in_payload() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+
+        // 创建模板
+        let tpl = solosoul_core::UserTemplate {
+            contract_type_id: None,
+            id: "passport_tpl".to_string(),
+            account_id: account_id.clone(),
+            name: "护照信息".to_string(),
+            icon_id: Some("passport".to_string()),
+            properties: vec![solosoul_core::TemplateProperty {
+                contract_field: None,
+                id: "fullName".to_string(),
+                name: "姓名".to_string(),
+                prop_type: solosoul_core::PropertyType::Text,
+                sensitivity_level: Some("internal".to_string()),
+                options: None,
+                sensitive: None,
+                deprecated_at: None,
+            }],
+            category: Some("travel".to_string()),
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            updated_at: None,
+        };
+        vault.save_user_template(&tpl).unwrap();
+
+        // 创建引用模板的对象
+        let mut rec = make_test_record(&account_id, "obj_tpl", "My Passport");
+        rec.template_id = Some("passport_tpl".to_string());
+        vault.save_object(&rec).unwrap();
+
+        let path = std::env::temp_dir().join("test_cli_export_tmpl.solosoul");
+        let _ = std::fs::remove_file(&path);
+        let scope = ExportScope {
+            full: true,
+            include_attachments: false,
+            ..Default::default()
+        };
+        export_execute(&mut app, "ExportPass1", &path, &scope).unwrap();
+
+        // 验证导出的 payload 包含 templates
+        let manifest = read_manifest(&path).unwrap();
+        let enc = read_file_from_zip(&path, "payload.enc").unwrap();
+        let salt = hex::decode(&manifest.salt_hex).unwrap();
+        let key = derive_export_key("ExportPass1", &salt).unwrap();
+        let dec = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc).unwrap();
+        let payload: serde_json::Value = serde_json::from_slice(&dec).unwrap();
+
+        let tmpls = payload["templates"].as_array().unwrap();
+        assert!(!tmpls.is_empty(), "payload 中应包含 templates");
+        let has_passport = tmpls
+            .iter()
+            .any(|t| t["name"].as_str() == Some("护照信息"));
+        assert!(has_passport, "应包含护照模板");
+
+        // 验证对象携带 template_id
+        let objs = payload["objects"].as_array().unwrap();
+        assert!(objs.iter().any(|o| o["template_id"] == "passport_tpl"));
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn test_cli_import_remaps_template_id() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+
+        // 先创建目标账户自己的同名模板（英文版 — 模拟跨语言场景）
+        let existing_tpl = solosoul_core::UserTemplate {
+            contract_type_id: None,
+            id: "passport_tpl".to_string(),
+            account_id: account_id.clone(),
+            name: "Passport Info".to_string(),
+            icon_id: Some("passport".to_string()),
+            properties: vec![solosoul_core::TemplateProperty {
+                contract_field: None,
+                id: "fullName".to_string(),
+                name: "Full Name".to_string(),
+                prop_type: solosoul_core::PropertyType::Text,
+                sensitivity_level: Some("internal".to_string()),
+                options: None,
+                sensitive: None,
+                deprecated_at: None,
+            }],
+            category: Some("travel".to_string()),
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            updated_at: None,
+        };
+        vault.save_user_template(&existing_tpl).unwrap();
+
+        // 导出含中文模板的包
+        let path = std::env::temp_dir().join("test_cli_import_remap.solosoul");
+        let _ = std::fs::remove_file(&path);
+        let salt = solosoul_crypto::kdf::generate_salt();
+        let key = derive_export_key("ExportPass1", &salt).unwrap();
+
+        let payload = serde_json::json!({
+            "objects": [{
+                "id": "obj_cn",
+                "name": "我的护照",
+                "account_id": account_id,
+                "type_id": "note",
+                "section_type": "travel",
+                "icon_name": "passport",
+                "properties": {"fullName": "张三"},
+                "sensitivity_level": "internal",
+                "tags": [],
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-06-01T00:00:00Z",
+                "version": 1,
+                "template_id": "passport_tpl"
+            }],
+            "templates": [{
+                "id": "passport_tpl",
+                "accountId": "acc_export",
+                "name": "护照信息",
+                "iconId": "passport",
+                "properties": [{
+                    "id": "fullName",
+                    "name": "姓名",
+                    "type": "text",
+                    "sensitivityLevel": "internal"
+                }],
+                "category": "travel",
+                "createdAt": "2024-01-01T00:00:00Z",
+                "updatedAt": null
+            }]
+        });
+
+        let payload_bytes = serde_json::to_vec(&payload).unwrap();
+        let file = File::create(&path).unwrap();
+        let mut zip = zip::ZipWriter::new(file);
+        let options =
+            zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+        let manifest = serde_json::json!({
+            "version": "2.0",
+            "salt_hex": hex::encode(salt),
+            "has_attachments": false,
+            "has_templates": true,
+            "extra_files": []
+        });
+        zip.start_file("manifest.json", options).unwrap();
+        zip.write_all(manifest.to_string().as_bytes()).unwrap();
+
+        zip.start_file("payload.enc", options).unwrap();
+        solosoul_crypto::cipher::encrypt_chunked_stream(
+            &key,
+            payload_bytes.len() as u64,
+            &mut std::io::Cursor::new(&payload_bytes),
+            &mut zip,
+        )
+        .unwrap();
+        zip.finish().unwrap();
+
+        // 导入到英文账户
+        import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+
+        // 验证对象 template_id 被重定向（不再是原始 "passport_tpl"）
+        let imported = vault.load_object("obj_cn").unwrap().unwrap();
+        let tid = imported.template_id.unwrap();
+        assert!(
+            tid.starts_with("imported:"),
+            "template_id 应被重定向到 imported:..., 实际为: {}",
+            tid
+        );
+        assert!(tid.ends_with(":passport_tpl"), "应保留原始 ID 后缀");
+
+        // 验证快照模板数据导入且名称为中文
+        let snapshot_tpl = vault.load_user_template(&tid).unwrap().unwrap();
+        assert_eq!(snapshot_tpl.name, "护照信息");
+        assert_eq!(
+            snapshot_tpl.properties[0].name, "姓名"
+        );
+
+        // 验证原始英文模板未被覆盖
+        let orig_tpl = vault.load_user_template("passport_tpl").unwrap().unwrap();
+        assert_eq!(orig_tpl.name, "Passport Info");
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn test_cli_import_old_package_without_templates() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+
+        // 创建旧格式包（没有 templates 数组）
+        let path = std::env::temp_dir().join("test_cli_import_old.solosoul");
+        let _ = std::fs::remove_file(&path);
+        let salt = solosoul_crypto::kdf::generate_salt();
+        let key = derive_export_key("ExportPass1", &salt).unwrap();
+
+        let payload = serde_json::json!({
+            "objects": [{
+                "id": "obj_old",
+                "name": "Old Object",
+                "account_id": account_id,
+                "type_id": "note",
+                "section_type": "identity",
+                "icon_name": "document",
+                "properties": {},
+                "sensitivity_level": "internal",
+                "tags": [],
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-06-01T00:00:00Z",
+                "version": 1
+            }]
+            // 没有 "templates" 字段
+        });
+
+        let payload_bytes = serde_json::to_vec(&payload).unwrap();
+        let file = File::create(&path).unwrap();
+        let mut zip = zip::ZipWriter::new(file);
+        let options =
+            zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+        let manifest = serde_json::json!({
+            "version": "1.0",
+            "salt_hex": hex::encode(salt),
+            "has_attachments": false,
+            "extra_files": []
+        });
+        zip.start_file("manifest.json", options).unwrap();
+        zip.write_all(manifest.to_string().as_bytes()).unwrap();
+
+        zip.start_file("payload.enc", options).unwrap();
+        solosoul_crypto::cipher::encrypt_chunked_stream(
+            &key,
+            payload_bytes.len() as u64,
+            &mut std::io::Cursor::new(&payload_bytes),
+            &mut zip,
+        )
+        .unwrap();
+        zip.finish().unwrap();
+
+        // 导入 — 应正常工作（无 templates 的旧包兼容）
+        import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+        let imported = vault.load_object("obj_old").unwrap().unwrap();
+        assert_eq!(imported.name, "Old Object");
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn test_cli_import_reuses_snapshot_template() {
+        // 同一模板内容导入两次，应只创建一个快照模板
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+
+        // 构造含中文模板的包
+        let path = std::env::temp_dir().join("test_cli_import_dedup.solosoul");
+        let _ = std::fs::remove_file(&path);
+        let salt = solosoul_crypto::kdf::generate_salt();
+        let key = derive_export_key("ExportPass1", &salt).unwrap();
+
+        let payload = serde_json::json!({
+            "objects": [{
+                "id": "obj_1",
+                "name": "对象一",
+                "account_id": account_id,
+                "type_id": "note",
+                "section_type": "identity",
+                "icon_name": "document",
+                "properties": {},
+                "sensitivity_level": "internal",
+                "tags": [],
+                "template_id": "chinese_tpl",
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-06-01T00:00:00Z",
+                "version": 1
+            }],
+            "templates": [{
+                "id": "chinese_tpl",
+                "accountId": "acc_export",
+                "name": "中文模板",
+                "iconId": null,
+                "properties": [{
+                    "id": "f1",
+                    "name": "字段一",
+                    "type": "text",
+                    "sensitivityLevel": "internal"
+                }],
+                "category": null,
+                "createdAt": "2024-01-01T00:00:00Z",
+                "updatedAt": null
+            }]
+        });
+
+        let payload_bytes = serde_json::to_vec(&payload).unwrap();
+        let file = File::create(&path).unwrap();
+        let mut zip = zip::ZipWriter::new(file);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+        let manifest = serde_json::json!({
+            "version": "2.0", "salt_hex": hex::encode(salt),
+            "has_attachments": false, "has_templates": true, "extra_files": []
+        });
+        zip.start_file("manifest.json", options).unwrap();
+        zip.write_all(manifest.to_string().as_bytes()).unwrap();
+        zip.start_file("payload.enc", options).unwrap();
+        solosoul_crypto::cipher::encrypt_chunked_stream(
+            &key, payload_bytes.len() as u64,
+            &mut std::io::Cursor::new(&payload_bytes), &mut zip,
+        ).unwrap();
+        zip.finish().unwrap();
+
+        // 第一次导入 — 创建快照模板
+        import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+        let imported_1 = vault.load_object("obj_1").unwrap().unwrap();
+        let snapshot_id = imported_1.template_id.unwrap();
+        assert!(snapshot_id.starts_with("imported:"));
+
+        // 统计当前快照模板数量
+        let all_templates = vault.list_user_templates(&account_id).unwrap();
+        let snapshot_count_before = all_templates
+            .iter()
+            .filter(|t| t.id.starts_with("imported:"))
+            .count();
+
+        // 第二次导入 — 使用不同的对象 ID 但同一模板内容
+        let payload2 = serde_json::json!({
+            "objects": [{
+                "id": "obj_2",
+                "name": "对象二",
+                "account_id": account_id,
+                "type_id": "note",
+                "section_type": "identity",
+                "icon_name": "document",
+                "properties": {},
+                "sensitivity_level": "internal",
+                "tags": [],
+                "template_id": "chinese_tpl",
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-06-01T00:00:00Z",
+                "version": 1
+            }],
+            "templates": [{
+                "id": "chinese_tpl",
+                "accountId": "acc_export",
+                "name": "中文模板",
+                "iconId": null,
+                "properties": [{
+                    "id": "f1",
+                    "name": "字段一",
+                    "type": "text",
+                    "sensitivityLevel": "internal"
+                }],
+                "category": null,
+                "createdAt": "2024-01-01T00:00:00Z",
+                "updatedAt": null
+            }]
+        });
+        let salt2 = solosoul_crypto::kdf::generate_salt();
+        let key2 = derive_export_key("ExportPass1", &salt2).unwrap();
+        let path2 = std::env::temp_dir().join("test_cli_import_dedup_2.solosoul");
+        let _ = std::fs::remove_file(&path2);
+        let payload2_bytes = serde_json::to_vec(&payload2).unwrap();
+        let f2 = File::create(&path2).unwrap();
+        let mut z2 = zip::ZipWriter::new(f2);
+        let m2 = serde_json::json!({
+            "version": "2.0", "salt_hex": hex::encode(salt2),
+            "has_attachments": false, "has_templates": true, "extra_files": []
+        });
+        z2.start_file("manifest.json", options).unwrap();
+        z2.write_all(m2.to_string().as_bytes()).unwrap();
+        z2.start_file("payload.enc", options).unwrap();
+        solosoul_crypto::cipher::encrypt_chunked_stream(
+            &key2, payload2_bytes.len() as u64,
+            &mut std::io::Cursor::new(&payload2_bytes), &mut z2,
+        ).unwrap();
+        z2.finish().unwrap();
+
+        import_execute(&mut app, &path2, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+
+        // 验证第二个对象指向同一个快照模板 ID
+        let imported_2 = vault.load_object("obj_2").unwrap().unwrap();
+        assert_eq!(imported_2.template_id.unwrap(), snapshot_id,
+            "同一模板内容的两次导入应复用同一个快照模板 ID");
+
+        // 验证快照模板数量没有增加
+        let all_templates_after = vault.list_user_templates(&account_id).unwrap();
+        let snapshot_count_after = all_templates_after
+            .iter()
+            .filter(|t| t.id.starts_with("imported:"))
+            .count();
+        assert_eq!(
+            snapshot_count_after, snapshot_count_before,
+            "同样内容的模板不应产生新的快照模板: 之前={}, 之后={}",
+            snapshot_count_before, snapshot_count_after
+        );
+
+        let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_file(&path2);
+    }
+
+    #[test]
+    fn test_cli_import_custom_page_name_preserved() {
+        // 自定义页面对象名称应在导入后保持原样
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+
+        let path = std::env::temp_dir().join("test_cli_import_custom_page.solosoul");
+        let _ = std::fs::remove_file(&path);
+        let salt = solosoul_crypto::kdf::generate_salt();
+        let key = derive_export_key("ExportPass1", &salt).unwrap();
+
+        let payload = serde_json::json!({
+            "objects": [{
+                "id": "custom_page_1",
+                "name": "我的中文页面",
+                "account_id": account_id,
+                "type_id": "page",
+                "section_type": "custom_page_1",
+                "icon_name": "folder",
+                "properties": {},
+                "sensitivity_level": "internal",
+                "tags": [],
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-06-01T00:00:00Z",
+                "version": 1
+            }]
+        });
+
+        let payload_bytes = serde_json::to_vec(&payload).unwrap();
+        let file = File::create(&path).unwrap();
+        let mut zip = zip::ZipWriter::new(file);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+        let manifest = serde_json::json!({
+            "version": "2.0", "salt_hex": hex::encode(salt),
+            "has_attachments": false, "has_templates": false, "extra_files": []
+        });
+        zip.start_file("manifest.json", options).unwrap();
+        zip.write_all(manifest.to_string().as_bytes()).unwrap();
+        zip.start_file("payload.enc", options).unwrap();
+        solosoul_crypto::cipher::encrypt_chunked_stream(
+            &key, payload_bytes.len() as u64,
+            &mut std::io::Cursor::new(&payload_bytes), &mut zip,
+        ).unwrap();
+        zip.finish().unwrap();
+
+        import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+
+        let imported = vault.load_object("custom_page_1").unwrap().unwrap();
+        assert_eq!(imported.name, "我的中文页面", "自定义页面名称应保持原样");
+        assert_eq!(imported.type_id, "page");
+        assert_eq!(imported.section_type, "custom_page_1");
+
+        let _ = std::fs::remove_file(&path);
     }
 
     #[test]
