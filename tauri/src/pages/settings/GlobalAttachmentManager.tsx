@@ -847,15 +847,15 @@ export function GlobalAttachmentManager() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
                 <span style={{ color: 'var(--text-tertiary)' }}>{t('common:attachments')}</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{summaryStats.totalAttachments}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{showTrash ? trashCount : activeCount}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ color: 'var(--text-tertiary)' }}>{t('common:size')}</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatSize(summaryStats.totalBytes)}</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatSize(showTrash ? trashBytes : activeBytes)}</span>
               </div>
               <div style={{ flex: 1 }} />
               <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}>
-                {t('settings:objects_count', { n: summaryStats.totalObjects })}
+                {t('settings:objects_count', { n: showTrash ? trashObjects : activeObjects })}
               </div>
             </div>
           </Card>

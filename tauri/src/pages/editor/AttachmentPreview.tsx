@@ -81,7 +81,10 @@ export function AttachmentPreview({
           padding: 16,
         }}
       >
-        {previewUrl && previewUrl !== 'error' && (
+        {previewUrl === 'error' && (
+          <div style={{ color: '#e74c3c', padding: 24 }}>Failed to load preview.</div>
+        )}
+        {previewUrl && previewUrl !== 'error' && isImage && (
           <img
             src={previewUrl}
             alt={fileName}
@@ -93,8 +96,17 @@ export function AttachmentPreview({
             }}
           />
         )}
-        {previewUrl === 'error' && (
-          <div style={{ color: '#e74c3c', padding: 24 }}>Failed to load preview.</div>
+        {previewUrl && previewUrl !== 'error' && isPDF && (
+          <iframe
+            src={previewUrl}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              borderRadius: 8,
+              background: 'white',
+            }}
+          />
         )}
       </div>
     </div>
