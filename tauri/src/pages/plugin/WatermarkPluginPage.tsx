@@ -411,11 +411,11 @@ export function WatermarkPluginPage() {
                   ))}
                 </select>
               </label>
-              <label className={styles.fieldInline}>
-                <SelectCheckbox
-                  checked={config.tile}
-                  onChange={(checked) => setConfig((c) => ({ ...c, tile: checked }))}
-                />
+              <label
+                className={styles.fieldInline}
+                onClick={() => setConfig((c) => ({ ...c, tile: !c.tile }))}
+              >
+                <SelectCheckbox checked={config.tile} />
                 <span>{t('plugin:watermark.tile', { defaultValue: '平铺水印' })}</span>
               </label>
               <div className={styles.cardActions}>
@@ -457,11 +457,12 @@ export function WatermarkPluginPage() {
                         <div key={objectName} className={styles.treeObject}>
                           <div className={styles.treeObjectName}>{objectName}</div>
                           {atts.map((a) => (
-                            <label key={a.id} className={styles.treeItem}>
-                              <SelectCheckbox
-                                checked={selectedIds.has(a.id)}
-                                onChange={() => handleToggleAttachment(a.id)}
-                              />
+                            <label
+                              key={a.id}
+                              className={styles.treeItem}
+                              onClick={() => handleToggleAttachment(a.id)}
+                            >
+                              <SelectCheckbox checked={selectedIds.has(a.id)} />
                               <span className={styles.treeItemName}>{a.fileName}</span>
                               <span className={styles.treeItemMime}>{a.mimeType}</span>
                             </label>
