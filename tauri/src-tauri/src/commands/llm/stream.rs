@@ -20,17 +20,20 @@ pub struct LlmStreamPayload {
     pub error: Option<String>,
 }
 
-/// 打字机效果：将完整文本逐字推送到前端（降级用）
+/// 打字机效果：将完整文本逐块推送到前端（降级用）
+/// P111: 改为按 CHUNK_SIZE 个字符批量发送，减少 IPC 事件数量。
 async fn emit_typing_effect(app: &tauri::AppHandle, conversation_id: &str, full_text: &str) {
+    const CHUNK_SIZE: usize = 20;
     let graphemes: Vec<String> = full_text.graphemes(true).map(|g| g.to_string()).collect();
     let total = graphemes.len();
     let max_typing_ms = 3000u64;
-    let delay_ms = if total <= 50 { 2u64 } else { 4u64 };
+    let delay_ms = if total <= 50 { 10u64 } else { 30u64 };
 
-    for (i, g) in graphemes.iter().enumerate() {
-        let elapsed = (i as u64) * delay_ms;
+    let mut pos = 0;
+    while pos < total {
+        let elapsed = (pos as u64 / CHUNK_SIZE as u64) * delay_ms;
         if elapsed >= max_typing_ms {
-            let remaining: String = graphemes[i..].concat();
+            let remaining: String = graphemes[pos..].concat();
             let _ = app.emit(
                 "llm-stream-chunk",
                 LlmStreamPayload {
@@ -42,29 +45,30 @@ async fn emit_typing_effect(app: &tauri::AppHandle, conversation_id: &str, full_
             );
             return;
         }
+        let end = std::cmp::min(pos + CHUNK_SIZE, total);
+        let chunk: String = graphemes[pos..end].concat();
         let _ = app.emit(
             "llm-stream-chunk",
             LlmStreamPayload {
                 conversation_id: conversation_id.to_string(),
-                chunk: g.clone(),
+                chunk,
                 is_done: false,
                 error: None,
             },
         );
+        pos = end;
         tokio::time::sleep(tokio::time::Duration::from_millis(delay_ms)).await;
     }
 
-    if (total as u64) * delay_ms < max_typing_ms {
-        let _ = app.emit(
-            "llm-stream-chunk",
-            LlmStreamPayload {
-                conversation_id: conversation_id.to_string(),
-                chunk: String::new(),
-                is_done: true,
-                error: None,
-            },
-        );
-    }
+    let _ = app.emit(
+        "llm-stream-chunk",
+        LlmStreamPayload {
+            conversation_id: conversation_id.to_string(),
+            chunk: String::new(),
+            is_done: true,
+            error: None,
+        },
+    );
 }
 
 /// 发送聊天请求并流式推送结果（Phase 2.3：SSE 流式 + 打字机降级）
