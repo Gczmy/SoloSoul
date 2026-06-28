@@ -551,7 +551,9 @@ fn build_attachment_tree_pages(
 }
 
 /// Download an attachment file to a user-chosen destination path.
-/// Copies the file from vault storage to the specified destination.
+/// Copies the file from vault storage to a destination path that is verified
+/// to be within the user's allowed download area (desktop, documents, downloads,
+/// or the SOLOSOUL_FS_BASE directory if set).
 #[tauri::command]
 pub async fn attachment_download(
     state: State<'_, AppState>,
@@ -575,8 +577,76 @@ pub async fn attachment_download(
         return Err("Source path must be within vault storage".to_string());
     }
 
-    // Create parent directory and copy the file
+    // Security: validate dest_path is in an allowed download directory.
+    // Reject path traversal components.
     let dest = std::path::Path::new(&dest_path);
+    if dest
+        .components()
+        .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        return Err("Destination path must not contain '..'".to_string());
+    }
+
+    // Determine allowed base directories for downloads.
+    let allowed_bases: Vec<PathBuf> = {
+        let mut bases = Vec::new();
+        // $SOLOSOUL_FS_BASE if set
+        if let Ok(fs_base) = std::env::var("SOLOSOUL_FS_BASE") {
+            if let Ok(canon) = PathBuf::from(fs_base).canonicalize() {
+                bases.push(canon);
+            }
+        }
+        // Common user download directories (Desktop, Documents, Downloads)
+        #[cfg(unix)]
+        let home_var = "HOME";
+        #[cfg(windows)]
+        let home_var = "USERPROFILE";
+        for dir_name in &["Desktop", "Documents", "Downloads"] {
+            if let Ok(home) = std::env::var(home_var) {
+                let p = PathBuf::from(&home).join(dir_name);
+                if let Ok(canon) = p.canonicalize() {
+                    bases.push(canon);
+                }
+            }
+        }
+        bases
+    };
+
+    // If we have allowed bases, verify dest is within one of them.
+    if !allowed_bases.is_empty() {
+        let dest_canon = if dest.exists() {
+            dest.canonicalize().map_err(|e| format!("Invalid destination: {}", e))?
+        } else if let Some(parent) = dest.parent() {
+            if parent.exists() {
+                parent.canonicalize().map_err(|_| "Cannot resolve destination parent".to_string())?
+            } else {
+                return Err("Destination parent directory does not exist".to_string());
+            }
+        } else {
+            return Err("Invalid destination path".to_string());
+        };
+
+        let in_allowed_dir = allowed_bases.iter().any(|base| {
+            if dest_canon.starts_with(base) {
+                return true;
+            }
+            // Also allow the destination's parent directory itself to be an allowed dir
+            if let Some(parent) = dest_canon.parent() {
+                parent.starts_with(base)
+            } else {
+                false
+            }
+        });
+
+        if !in_allowed_dir {
+            return Err(
+                "Destination must be within Desktop, Documents, Downloads, or SOLOSOUL_FS_BASE"
+                    .to_string(),
+            );
+        }
+    }
+
+    // Create parent directory and copy the file
     if let Some(parent) = dest.parent() {
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("Failed to create destination directory: {}", e))?;

@@ -16,6 +16,7 @@ use sha2::{Digest, Sha256};
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use tempfile::Builder as TempDirBuilder;
 
 /// Vision Framework 扫描结果的简化表示。
 #[derive(serde::Deserialize, Debug)]
@@ -143,17 +144,29 @@ fn sha256_file(path: &Path) -> Result<Vec<u8>, String> {
 /// 获取或编译 Vision Framework CLI 二进制路径。
 ///
 /// # 安全
+/// - 使用随机化临时目录，避免符号链接劫持
 /// - 编译后设置二进制权限为 0o700（仅所有者可执行）
 /// - 源文件权限设为 0o600（仅所有者可读）
 /// - 计算并持久化编译产物的 SHA-256 哈希
 /// - 每次复用缓存前校验哈希，防止 TOCTOU 篡改
 fn ensure_vision_cli() -> Result<PathBuf, String> {
-    let tmp_dir = std::env::temp_dir().join("solosoul-ocr-vision");
+    // 使用每次随机化的临时目录，防止符号链接劫持攻击
+    let tmp_dir = TempDirBuilder::new()
+        .prefix("solosoul-ocr-vision-")
+        .tempdir()
+        .map_err(|e| format!("创建随机临时目录失败: {e}"))?;
+    // 获取路径并阻止 drop 时删除目录（使缓存跨调用保持有效）
+    let tmp_dir_path = tmp_dir.path().to_path_buf();
     std::fs::create_dir_all(&tmp_dir).map_err(|e| format!("创建 Vision CLI 缓存目录失败: {e}"))?;
+    std::mem::forget(tmp_dir);
 
-    let binary_path = tmp_dir.join("ocr_vision_cli");
-    let hash_path = tmp_dir.join("ocr_vision_cli.sha256");
-    let source_path = tmp_dir.join("ocr_vision_cli.swift");
+    let binary_path = tmp_dir_path.join("ocr_vision_cli");
+    let hash_path = tmp_dir_path.join("ocr_vision_cli.sha256");
+    let source_path = tmp_dir_path.join("ocr_vision_cli.swift");
+    // 清理旧的缓存文件（如果有）
+    let _ = std::fs::remove_file(&binary_path);
+    let _ = std::fs::remove_file(&hash_path);
+    let _ = std::fs::remove_file(&source_path);
 
     // 始终写入最新源码
     std::fs::write(&source_path, VISION_SWIFT_SOURCE)
@@ -241,11 +254,7 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
             let actual_hash = sha256_file(&binary_path)?;
             let actual_hex = hex::encode(&actual_hash);
             if stored_hash.trim() != actual_hex {
-                let cache_dir = tmp_dir.display();
-                return Err(format!(
-                    "缓存二进制哈希不匹配，文件可能已被篡改。请删除 {} 后重试",
-                    cache_dir
-                ));
+                return Err("缓存二进制哈希不匹配，文件可能已被篡改。请重新启动应用".to_string());
             }
             tracing::debug!("Vision CLI 哈希校验通过");
         }

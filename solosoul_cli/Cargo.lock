@@ -4557,6 +4557,7 @@ dependencies = [
  "sha2",
  "solosoul-crypto",
  "solosoul-vault",
+ "tempfile",
  "thiserror 1.0.69",
  "tokio",
  "tracing",

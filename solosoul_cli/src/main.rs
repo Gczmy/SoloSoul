@@ -73,7 +73,10 @@ fn default_data_dir() -> PathBuf {
     if let Ok(home) = std::env::var("HOME") {
         PathBuf::from(home).join(".solosoul")
     } else {
-        PathBuf::from("/tmp/solosoul")
+        eprintln!(
+            "错误：无法确定 HOME 目录。请通过 --data-dir 或 SOLOSOUL_DATA_DIR 环境变量指定数据目录。"
+        );
+        std::process::exit(1);
     }
 }
 
