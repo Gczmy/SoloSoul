@@ -212,7 +212,8 @@ export function WatermarkPluginPage() {
 
   const handlePreview = async (path: string) => {
     try {
-      await open(path);
+      const fileUrl = new URL(path.replace(/\\/g, '/'), 'file://').href;
+      await open(fileUrl);
     } catch (err) {
       onError(err, t('plugin:watermark.preview_failed', { defaultValue: '预览失败' }));
     }

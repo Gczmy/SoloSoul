@@ -78,6 +78,9 @@
     }
   },
   "plugins": {
+    "shell": {
+      "open": "((mailto:\\w+)|(tel:\\w+)|(https?://.+)|(file://.+)|(/.+))"
+    },
     "updater": {
       "active": true,
       "endpoints": [
