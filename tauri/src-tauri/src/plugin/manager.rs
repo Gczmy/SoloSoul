@@ -17,6 +17,19 @@ use std::sync::Arc;
 use tauri::ipc::Channel;
 
 /// 插件 ID 允许字符集，防止通过 ID 构造路径遍历。
+/// 将插件 ID 转换为可安全用于文件路径的名称。
+fn sanitize_plugin_id(id: &str) -> String {
+    id.chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect()
+}
+
 fn validate_plugin_id(id: &str) -> Result<(), PluginError> {
     if id.is_empty()
         || id.len() > 64
@@ -68,6 +81,8 @@ struct MarketManifestRaw {
     /// Stage 4 typed-lookup 字段绑定
     #[serde(default)]
     field_bindings: Vec<super::manifest::PluginFieldBinding>,
+    #[serde(default)]
+    pub custom_ui: Option<String>,
 }
 
 /// 插件管理器
@@ -276,6 +291,7 @@ impl PluginManager {
                         params: local.params,
                         contracts: local.contracts,
                         field_bindings: local.field_bindings,
+                        custom_ui: local.custom_ui,
                     };
                     self.store.save_plugin(&manifest, &wasm_bytes)?;
                     self.audit.log(
@@ -342,6 +358,7 @@ impl PluginManager {
             params: manifest_raw.params,
             contracts: manifest_raw.contracts,
             field_bindings: manifest_raw.field_bindings,
+            custom_ui: manifest_raw.custom_ui,
         };
 
         self.store.save_plugin(&manifest, &wasm_bytes)?;
@@ -486,7 +503,13 @@ impl PluginManager {
         };
 
         let session_id = session.id.clone();
-        let host = super::SoloHostFunctions::new(
+        let workspace_dir = std::env::temp_dir()
+            .join("solosoul-plugin")
+            .join(sanitize_plugin_id(plugin_id))
+            .join(&session_id);
+        std::fs::create_dir_all(&workspace_dir)
+            .map_err(|e| PluginError::ExecutionFailed(format!("创建插件工作区失败: {}", e)))?;
+        let host = super::SoloHostFunctions::new_with_workspace(
             plugin_id,
             &manifest.name,
             &session_id,
@@ -497,6 +520,7 @@ impl PluginManager {
             self.consent_manager.clone(),
             field_resolver,
             channel.clone(),
+            Some(workspace_dir.clone()),
         );
 
         let _ = channel.send(PluginEvent::log(
@@ -514,8 +538,13 @@ impl PluginManager {
         .await
         .map_err(|e| PluginError::ExecutionFailed(format!("任务 Join 失败: {}", e)))?;
 
+        let cleanup = || {
+            let _ = std::fs::remove_dir_all(&workspace_dir);
+        };
+
         match result {
             Ok(r) => {
+                cleanup();
                 self.audit.log(
                     plugin_id,
                     Some(&session.id),
@@ -526,6 +555,7 @@ impl PluginManager {
                 Ok(r)
             }
             Err(e) => {
+                cleanup();
                 let _ = channel.send(PluginEvent::error(plugin_id, e.to_string()));
                 self.audit.log(
                     plugin_id,

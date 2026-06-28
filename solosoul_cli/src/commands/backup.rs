@@ -418,7 +418,9 @@ mod tests {
             .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         let vault = VaultService::with_base_path(dir.path().to_path_buf());
-        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
+        let account = vault
+            .create_account("Test", crate::TEST_PASSWORD, None)
+            .unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
         (app, account_id, dir)
@@ -434,9 +436,10 @@ mod tests {
     fn first_backup_id(app: &mut App) -> String {
         handle(app, &["list"]).unwrap();
         match &app.phase {
-            AppPhase::BackupList { items, .. } => {
-                items.first().map(|i| i.id.clone()).expect("测试应至少有一个备份")
-            }
+            AppPhase::BackupList { items, .. } => items
+                .first()
+                .map(|i| i.id.clone())
+                .expect("测试应至少有一个备份"),
             _ => panic!("expected BackupList"),
         }
     }

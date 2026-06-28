@@ -18,6 +18,7 @@ pub mod process_lock;
 pub mod search_filter;
 pub mod template_service;
 pub mod vault_service;
+pub mod watermark;
 
 /// Crate version (from Cargo.toml at compile time).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

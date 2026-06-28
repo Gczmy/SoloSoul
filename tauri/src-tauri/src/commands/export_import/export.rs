@@ -264,8 +264,9 @@ pub async fn export_execute(
 
     // ── Build ZIP ──────────────────────────────────────────────
     let save_path = if req.save_path.starts_with("~/") {
-        let home = std::env::var("HOME")
-            .map_err(|_| "HOME environment variable not set; cannot resolve ~/ in save path".to_string())?;
+        let home = std::env::var("HOME").map_err(|_| {
+            "HOME environment variable not set; cannot resolve ~/ in save path".to_string()
+        })?;
         home + &req.save_path[1..]
     } else {
         req.save_path.clone()

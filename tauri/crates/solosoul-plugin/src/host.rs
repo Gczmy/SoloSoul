@@ -10,6 +10,7 @@ use super::{
 use crate::event::PluginEventSink;
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -38,6 +39,9 @@ mod code {
     pub const DOMAIN_NOT_ALLOWED: i32 = -10;
     pub const INVALID_ARGUMENT: i32 = -11;
     pub const WASM_TRAP: i32 = -12;
+    pub const FILE_NOT_FOUND: i32 = -13;
+    pub const FILE_TOO_LARGE: i32 = -14;
+    pub const PROCESSING_FAILED: i32 = -15;
     /// 异步 HTTP 请求仍在进行中（非错误，仅用于轮询）
     pub const HTTP_PENDING: i32 = 1;
 }
@@ -85,6 +89,8 @@ pub struct SoloHostFunctions {
     pub(crate) next_http_handle: AtomicU32,
     /// Shared HTTP client reused across plugin HTTP calls.
     pub(crate) http_client: reqwest::Client,
+    /// 插件运行时的临时工作区目录（用于附件复制、水印处理等）。
+    pub workspace_dir: Option<std::path::PathBuf>,
 }
 
 impl Drop for SoloHostFunctions {
@@ -113,6 +119,36 @@ impl SoloHostFunctions {
         field_resolver: Arc<FieldResolver>,
         channel: std::sync::Arc<dyn PluginEventSink>,
     ) -> Self {
+        Self::new_with_workspace(
+            plugin_id,
+            plugin_name,
+            session_id,
+            manifest,
+            params,
+            audit,
+            rate_limiter,
+            consent_manager,
+            field_resolver,
+            channel,
+            None,
+        )
+    }
+
+    /// 创建 Host Functions 数据，并指定临时工作区目录。
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_with_workspace(
+        plugin_id: impl Into<String>,
+        plugin_name: impl Into<String>,
+        session_id: impl Into<String>,
+        manifest: PluginManifest,
+        params: HashMap<String, String>,
+        audit: Arc<PluginAuditLogger>,
+        rate_limiter: Arc<RateLimiter>,
+        consent_manager: Arc<ConsentManager>,
+        field_resolver: Arc<FieldResolver>,
+        channel: std::sync::Arc<dyn PluginEventSink>,
+        workspace_dir: Option<std::path::PathBuf>,
+    ) -> Self {
         let http_client = reqwest::Client::builder()
             .connect_timeout(Duration::from_secs(10))
             .timeout(Duration::from_secs(30))
@@ -135,6 +171,7 @@ impl SoloHostFunctions {
             http_handles: Arc::new(Mutex::new(HashMap::new())),
             next_http_handle: AtomicU32::new(1),
             http_client,
+            workspace_dir,
         }
     }
 
@@ -829,7 +866,405 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
+    // solosoul_list_attachments —— 列出可水印的附件树
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_list_attachments",
+            |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_cap: i32| -> i32 {
+                let resolver = caller.data().host.field_resolver.clone();
+                match resolver.list_attachments() {
+                    Ok(json) => write_buffer(&mut caller, out_ptr, out_cap, &json, -1),
+                    Err(e) => plugin_error_code(&e),
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_prepare_attachment_copy —— 将 Vault 附件复制到插件临时工作区
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_prepare_attachment_copy",
+            |mut caller: Caller<'_, SoloHostState>,
+             object_id_ptr: i32,
+             object_id_len: i32,
+             attachment_id_ptr: i32,
+             attachment_id_len: i32,
+             out_path_ptr: i32,
+             out_path_cap: i32|
+             -> i32 {
+                let object_id = match read_string(&mut caller, object_id_ptr, object_id_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let attachment_id =
+                    match read_string(&mut caller, attachment_id_ptr, attachment_id_len) {
+                        Ok(s) if !s.is_empty() => s,
+                        _ => return code::INVALID_ARGUMENT,
+                    };
+
+                let workspace = match caller.data().host.workspace_dir.as_ref() {
+                    Some(d) => d.clone(),
+                    None => return code::NOT_IMPLEMENTED,
+                };
+
+                let resolver = caller.data().host.field_resolver.clone();
+                match copy_attachment_to_workspace(
+                    &resolver,
+                    &workspace,
+                    &object_id,
+                    &attachment_id,
+                ) {
+                    Ok(path) => write_buffer(
+                        &mut caller,
+                        out_path_ptr,
+                        out_path_cap,
+                        path.to_string_lossy().as_ref(),
+                        -1,
+                    ),
+                    Err(e) => {
+                        let _ = caller.data().host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("prepare_attachment_copy 失败: {}", e),
+                        ));
+                        code::PROCESSING_FAILED
+                    }
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_image_watermark —— 为图片添加水印
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_image_watermark",
+            |mut caller: Caller<'_, SoloHostState>,
+             input_path_ptr: i32,
+             input_path_len: i32,
+             output_path_ptr: i32,
+             output_path_len: i32,
+             config_json_ptr: i32,
+             config_json_len: i32|
+             -> i32 {
+                let input_path = match read_string(&mut caller, input_path_ptr, input_path_len) {
+                    Ok(s) if !s.is_empty() => PathBuf::from(s),
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let output_path = match read_string(&mut caller, output_path_ptr, output_path_len) {
+                    Ok(s) if !s.is_empty() => PathBuf::from(s),
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let config_json = match read_string(&mut caller, config_json_ptr, config_json_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+
+                if !is_under_workspace(&caller.data().host, &input_path)
+                    || !is_under_workspace(&caller.data().host, &output_path)
+                {
+                    return code::PERMISSION_DENIED;
+                }
+
+                let config =
+                    match solosoul_core::watermark::WatermarkConfig::from_json(&config_json) {
+                        Ok(c) => c,
+                        Err(e) => {
+                            let _ = caller.data().host.channel.send(PluginEvent::log(
+                                "error",
+                                format!("image_watermark 配置解析失败: {}", e),
+                            ));
+                            return code::INVALID_ARGUMENT;
+                        }
+                    };
+
+                match solosoul_core::watermark::apply_to_image(&input_path, &output_path, &config) {
+                    Ok(()) => code::SUCCESS,
+                    Err(e) => {
+                        let _ = caller.data().host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("image_watermark 失败: {}", e),
+                        ));
+                        code::PROCESSING_FAILED
+                    }
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_pdf_watermark —— 为 PDF 添加水印
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_pdf_watermark",
+            |mut caller: Caller<'_, SoloHostState>,
+             input_path_ptr: i32,
+             input_path_len: i32,
+             output_path_ptr: i32,
+             output_path_len: i32,
+             config_json_ptr: i32,
+             config_json_len: i32|
+             -> i32 {
+                let input_path = match read_string(&mut caller, input_path_ptr, input_path_len) {
+                    Ok(s) if !s.is_empty() => PathBuf::from(s),
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let output_path = match read_string(&mut caller, output_path_ptr, output_path_len) {
+                    Ok(s) if !s.is_empty() => PathBuf::from(s),
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let config_json = match read_string(&mut caller, config_json_ptr, config_json_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+
+                if !is_under_workspace(&caller.data().host, &input_path)
+                    || !is_under_workspace(&caller.data().host, &output_path)
+                {
+                    return code::PERMISSION_DENIED;
+                }
+
+                let config =
+                    match solosoul_core::watermark::WatermarkConfig::from_json(&config_json) {
+                        Ok(c) => c,
+                        Err(e) => {
+                            let _ = caller.data().host.channel.send(PluginEvent::log(
+                                "error",
+                                format!("pdf_watermark 配置解析失败: {}", e),
+                            ));
+                            return code::INVALID_ARGUMENT;
+                        }
+                    };
+
+                match solosoul_core::watermark::apply_to_pdf(&input_path, &output_path, &config) {
+                    Ok(()) => code::SUCCESS,
+                    Err(e) => {
+                        let _ = caller.data().host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("pdf_watermark 失败: {}", e),
+                        ));
+                        code::PROCESSING_FAILED
+                    }
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_write_output_file —— 将字节写入输出目录
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_write_output_file",
+            |mut caller: Caller<'_, SoloHostState>,
+             file_name_ptr: i32,
+             file_name_len: i32,
+             bytes_ptr: i32,
+             bytes_len: i32,
+             out_path_ptr: i32,
+             out_path_cap: i32|
+             -> i32 {
+                let file_name = match read_string(&mut caller, file_name_ptr, file_name_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                if bytes_len < 0 || bytes_len as usize > 256 * 1024 * 1024 {
+                    return code::FILE_TOO_LARGE;
+                }
+                let bytes_len = bytes_len as usize;
+                let bytes = match read_bytes(&mut caller, bytes_ptr, bytes_len) {
+                    Ok(b) => b,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+
+                let output_dir = match caller
+                    .data()
+                    .host
+                    .params
+                    .get("outputDir")
+                    .filter(|s| !s.is_empty())
+                {
+                    Some(d) => PathBuf::from(d),
+                    None => return code::INVALID_ARGUMENT,
+                };
+
+                match write_output_file(&output_dir, &file_name, &bytes) {
+                    Ok(path) => write_buffer(
+                        &mut caller,
+                        out_path_ptr,
+                        out_path_cap,
+                        path.to_string_lossy().as_ref(),
+                        -1,
+                    ),
+                    Err(e) => {
+                        let _ = caller.data().host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("write_output_file 失败: {}", e),
+                        ));
+                        code::PROCESSING_FAILED
+                    }
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_copy_output_file —— 将工作区中的已处理文件复制到输出目录
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_copy_output_file",
+            |mut caller: Caller<'_, SoloHostState>,
+             src_path_ptr: i32,
+             src_path_len: i32,
+             file_name_ptr: i32,
+             file_name_len: i32,
+             out_path_ptr: i32,
+             out_path_cap: i32|
+             -> i32 {
+                let src_path = match read_string(&mut caller, src_path_ptr, src_path_len) {
+                    Ok(s) if !s.is_empty() => PathBuf::from(s),
+                    _ => return code::INVALID_ARGUMENT,
+                };
+                let file_name = match read_string(&mut caller, file_name_ptr, file_name_len) {
+                    Ok(s) if !s.is_empty() => s,
+                    _ => return code::INVALID_ARGUMENT,
+                };
+
+                if !is_under_workspace(&caller.data().host, &src_path) {
+                    return code::PERMISSION_DENIED;
+                }
+
+                let output_dir = match caller
+                    .data()
+                    .host
+                    .params
+                    .get("outputDir")
+                    .filter(|s| !s.is_empty())
+                {
+                    Some(d) => PathBuf::from(d),
+                    None => return code::INVALID_ARGUMENT,
+                };
+
+                match copy_output_file(&src_path, &output_dir, &file_name) {
+                    Ok(path) => write_buffer(
+                        &mut caller,
+                        out_path_ptr,
+                        out_path_cap,
+                        path.to_string_lossy().as_ref(),
+                        -1,
+                    ),
+                    Err(e) => {
+                        let _ = caller.data().host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("copy_output_file 失败: {}", e),
+                        ));
+                        code::PROCESSING_FAILED
+                    }
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
     Ok(())
+}
+
+fn is_under_workspace(host: &SoloHostFunctions, path: &Path) -> bool {
+    match host.workspace_dir.as_ref() {
+        Some(ws) => {
+            let canonical_ws = std::fs::canonicalize(ws).unwrap_or_else(|_| ws.to_path_buf());
+            let canonical_path = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+            canonical_path.starts_with(&canonical_ws)
+        }
+        None => false,
+    }
+}
+
+fn copy_attachment_to_workspace(
+    resolver: &FieldResolver,
+    workspace: &Path,
+    object_id: &str,
+    attachment_id: &str,
+) -> Result<PathBuf, String> {
+    let vault = resolver
+        .vault_ref()
+        .ok_or_else(|| "Vault 未解锁".to_string())?;
+    let _account_id = resolver
+        .account_id_ref()
+        .ok_or_else(|| "未选择账户".to_string())?;
+
+    let record = vault
+        .load_object(object_id)
+        .map_err(|e| format!("读取对象失败: {}", e))?
+        .ok_or_else(|| "对象不存在".to_string())?;
+
+    let attachment = record
+        .properties
+        .get("__attachments")
+        .and_then(|v| v.as_array())
+        .and_then(|arr| {
+            arr.iter().find(|a| {
+                a.get("id")
+                    .and_then(|id| id.as_str())
+                    .map(|id| id == attachment_id)
+                    .unwrap_or(false)
+            })
+        })
+        .ok_or_else(|| "附件不存在".to_string())?;
+
+    let file_name = attachment
+        .get("fileName")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "附件缺少文件名".to_string())?;
+
+    let vault_base = vault.base_path();
+    let src = vault_base
+        .join("attachments")
+        .join(object_id)
+        .join(attachment_id)
+        .join(file_name);
+    let dst_dir = workspace.join(object_id).join(attachment_id);
+    let dst = dst_dir.join(file_name);
+
+    std::fs::create_dir_all(&dst_dir).map_err(|e| format!("创建工作区目录失败: {}", e))?;
+    std::fs::copy(&src, &dst).map_err(|e| format!("复制附件失败: {}", e))?;
+
+    Ok(dst)
+}
+
+fn write_output_file(output_dir: &Path, file_name: &str, bytes: &[u8]) -> Result<PathBuf, String> {
+    if file_name.contains('/') || file_name.contains('\\') || file_name == "." || file_name == ".."
+    {
+        return Err("非法文件名".to_string());
+    }
+    std::fs::create_dir_all(output_dir).map_err(|e| format!("创建输出目录失败: {}", e))?;
+    let path = output_dir.join(file_name);
+    std::fs::write(&path, bytes).map_err(|e| format!("写入文件失败: {}", e))?;
+    Ok(path)
+}
+
+fn copy_output_file(src: &Path, output_dir: &Path, file_name: &str) -> Result<PathBuf, String> {
+    if file_name.contains('/') || file_name.contains('\\') || file_name == "." || file_name == ".."
+    {
+        return Err("非法文件名".to_string());
+    }
+    std::fs::create_dir_all(output_dir).map_err(|e| format!("创建输出目录失败: {}", e))?;
+    let dst = output_dir.join(file_name);
+    std::fs::copy(src, &dst).map_err(|e| format!("复制输出文件失败: {}", e))?;
+    Ok(dst)
+}
+
+fn read_bytes(caller: &mut Caller<'_, SoloHostState>, ptr: i32, len: usize) -> Result<Vec<u8>, ()> {
+    let memory = caller
+        .get_export("memory")
+        .and_then(|e| e.into_memory())
+        .ok_or(())?;
+    let data = memory.data(&caller);
+    if ptr < 0 || ptr as usize + len > data.len() {
+        return Err(());
+    }
+    let mut buf = vec![0u8; len];
+    buf.copy_from_slice(&data[ptr as usize..ptr as usize + len]);
+    Ok(buf)
 }
 
 fn now_millis() -> i64 {

@@ -30,7 +30,9 @@ fn dummy_channel() -> Channel<solo_soul::plugin::PluginEvent> {
 async fn test_hello_world_plugin_runs() {
     let wasm_path = wasm_path();
     if !wasm_path.exists() {
-        eprintln!("跳过 test_hello_world_plugin_runs: 未找到 wasm 产物 (需要先构建 hello_world 示例)");
+        eprintln!(
+            "跳过 test_hello_world_plugin_runs: 未找到 wasm 产物 (需要先构建 hello_world 示例)"
+        );
         return;
     }
     let wasm_bytes = std::fs::read(&wasm_path).expect("读取 hello_world.wasm 失败");
@@ -61,6 +63,7 @@ async fn test_hello_world_plugin_runs() {
         params: vec![],
         contracts: vec![],
         field_bindings: vec![],
+        custom_ui: None,
     };
 
     let host = SoloHostFunctions::new(
@@ -131,6 +134,7 @@ async fn test_plugin_trap_is_isolated() {
         params: vec![],
         contracts: vec![],
         field_bindings: vec![],
+        custom_ui: None,
     };
 
     let host = SoloHostFunctions::new(

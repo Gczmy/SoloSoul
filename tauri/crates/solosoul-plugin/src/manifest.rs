@@ -198,6 +198,9 @@ pub struct PluginManifest {
     /// Stage 4 typed-lookup 字段绑定
     #[serde(default)]
     pub field_bindings: Vec<PluginFieldBinding>,
+    /// 自定义 UI 标识。声明后前端将使用内置 React 组件渲染该插件的运行界面。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_ui: Option<String>,
 }
 
 fn default_ttl() -> u64 {
@@ -257,6 +260,9 @@ pub struct RegistryEntry {
     /// Stage 4 typed-lookup 字段绑定
     #[serde(default)]
     pub field_bindings: Vec<PluginFieldBinding>,
+    /// 自定义 UI 标识
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub custom_ui: Option<String>,
 }
 
 /// 返回给前端的市场插件信息（JSON 使用 camelCase）

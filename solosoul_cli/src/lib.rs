@@ -4,11 +4,9 @@
 pub static VAULT_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 /// 测试用默认密码常量，集中管理避免各文件分散的字符串字面量。
-#[cfg(test)]
 pub const TEST_PASSWORD: &str = "password123";
 
 /// 测试用导出密码常量。
-#[cfg(test)]
 pub const TEST_EXPORT_PASSWORD: &str = "ExportPass1";
 
 pub mod app;

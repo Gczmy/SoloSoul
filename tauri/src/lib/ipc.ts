@@ -159,6 +159,11 @@ export const commands = {
     return invoke('inspect_backup', { backupPath });
   },
 
+  // Plugin attachment listing (used by custom plugin UIs)
+  async pluginListAttachments(): Promise<string> {
+    return invoke('plugin_list_attachments');
+  },
+
   // Discovery
   async mdnsDiscover(
     timeoutMs: number,

@@ -116,20 +116,13 @@ fn on_old_password(app: &mut App, result: PromptResult, account_id: String) {
                 mask: true,
                 allow_toggle_mask: true,
             },
-            Box::new(move |app, result| {
-                on_new_password(app, result, account_id, old_password)
-            }),
+            Box::new(move |app, result| on_new_password(app, result, account_id, old_password)),
         );
     }
 }
 
 /// 步骤 2: 接收新密码，提示确认密码。
-fn on_new_password(
-    app: &mut App,
-    result: PromptResult,
-    account_id: String,
-    old_password: String,
-) {
+fn on_new_password(app: &mut App, result: PromptResult, account_id: String, old_password: String) {
     if let PromptResult::Text(new_password) = result {
         if new_password.len() < 8 {
             app.error_message = Some("主密码至少需要 8 位".to_string());
@@ -163,22 +156,15 @@ fn on_confirm_password(
             app.error_message = Some("两次输入的新密码不一致".to_string());
             return;
         }
-        match app.vault_service.change_password(
-            &account_id,
-            &old_password,
-            &new_password,
-        ) {
-            Ok(()) => {
-                app.error_message = Some("主密码已修改".to_string())
-            }
-            Err(e) => {
-                app.error_message = Some(format!("修改失败: {}", e))
-            }
+        match app
+            .vault_service
+            .change_password(&account_id, &old_password, &new_password)
+        {
+            Ok(()) => app.error_message = Some("主密码已修改".to_string()),
+            Err(e) => app.error_message = Some(format!("修改失败: {}", e)),
         }
     }
 }
-
-/// 读取账户配置，用于获取密码提示等无需解锁的信息。
 
 /// 读取账户配置，用于获取密码提示等无需解锁的信息。
 fn load_account_config(app: &App, account_id: &str) -> Option<solosoul_core::AccountConfig> {
@@ -403,7 +389,9 @@ mod tests {
             .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         let vault = VaultService::with_base_path(dir.path().to_path_buf());
-        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
+        let account = vault
+            .create_account("Test", crate::TEST_PASSWORD, None)
+            .unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
         (app, account_id, dir)

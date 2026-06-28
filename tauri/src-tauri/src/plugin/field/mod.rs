@@ -22,6 +22,35 @@ use super::PluginError;
 use solosoul_vault::VaultStore;
 use std::sync::Arc;
 
+/// 附件列表项（用于 list_attachments）
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AttItem {
+    id: String,
+    object_id: String,
+    file_name: String,
+    mime_type: String,
+    size_bytes: u64,
+}
+
+/// 带附件的对象摘要
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AttObject {
+    object_id: String,
+    object_name: String,
+    attachments: Vec<AttItem>,
+}
+
+/// 页面级附件分组
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AttPage {
+    page_id: Option<String>,
+    page_name: String,
+    objects: Vec<AttObject>,
+}
+
 /// 字段解析器
 #[derive(Clone, Default)]
 pub struct FieldResolver {
@@ -75,6 +104,16 @@ impl FieldResolver {
             allowed_patterns,
             contracts,
         }
+    }
+
+    /// 获取 Vault 引用（供 Host Functions 使用）
+    pub fn vault_ref(&self) -> Option<&Arc<VaultStore>> {
+        self.vault.as_ref()
+    }
+
+    /// 获取账户 ID 引用（供 Host Functions 使用）
+    pub fn account_id_ref(&self) -> Option<&String> {
+        self.account_id.as_ref()
     }
 
     // ── 公共 API ────────────────────────────────────────────────────────
@@ -412,6 +451,132 @@ impl FieldResolver {
             })
             .collect();
         Ok(serde_json::to_string(&items).unwrap_or_else(|_| "[]".to_string()))
+    }
+
+    /// 列出所有可水印的附件（图片/PDF），按页面 → 对象分组返回 JSON。
+    pub fn list_attachments(&self) -> Result<String, PluginError> {
+        let vault = self
+            .vault
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+        let account_id = self
+            .account_id
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+
+        let objects = vault
+            .list_objects(account_id, None, None, None, false, false)
+            .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?;
+
+        let mut page_objects: Vec<solosoul_vault::ObjectSummary> = Vec::new();
+        let mut section_groups: std::collections::BTreeMap<
+            String,
+            Vec<solosoul_vault::ObjectSummary>,
+        > = std::collections::BTreeMap::new();
+
+        for obj in &objects {
+            if obj.collection_type == "page" {
+                page_objects.push(obj.clone());
+            } else {
+                section_groups
+                    .entry(obj.section_type.clone())
+                    .or_default()
+                    .push(obj.clone());
+            }
+        }
+
+        let mut pages: Vec<AttPage> = Vec::new();
+        let mut child_ids_assigned: std::collections::HashSet<String> =
+            std::collections::HashSet::new();
+
+        for page_obj in &page_objects {
+            let children = vault
+                .list_objects(account_id, None, Some(&page_obj.id), None, false, false)
+                .unwrap_or_default();
+            for child in &children {
+                child_ids_assigned.insert(child.id.clone());
+            }
+            let objects = Self::collect_attachment_objects(vault, &children);
+            if !objects.is_empty() {
+                pages.push(AttPage {
+                    page_id: Some(page_obj.id.clone()),
+                    page_name: page_obj.name.clone(),
+                    objects,
+                });
+            }
+        }
+
+        for (section, objs) in &section_groups {
+            let filtered: Vec<_> = objs
+                .iter()
+                .filter(|o| !child_ids_assigned.contains(&o.id))
+                .cloned()
+                .collect();
+            let objects = Self::collect_attachment_objects(vault, &filtered);
+            if !objects.is_empty() {
+                pages.push(AttPage {
+                    page_id: None,
+                    page_name: section.clone(),
+                    objects,
+                });
+            }
+        }
+
+        let tree = serde_json::json!({ "pages": pages });
+        Ok(tree.to_string())
+    }
+
+    fn collect_attachment_objects(
+        vault: &Arc<VaultStore>,
+        summaries: &[solosoul_vault::ObjectSummary],
+    ) -> Vec<AttObject> {
+        let ids: Vec<String> = summaries.iter().map(|s| s.id.clone()).collect();
+        let records = vault.load_objects_batch(&ids).ok().unwrap_or_default();
+        summaries
+            .iter()
+            .filter_map(|summary| {
+                let record = records.get(&summary.id)?;
+                let attachments: Vec<AttItem> = record
+                    .properties
+                    .get("__attachments")?
+                    .as_array()?
+                    .iter()
+                    .filter_map(|v| {
+                        let id = v.get("id")?.as_str()?;
+                        let file_name = v.get("fileName")?.as_str()?;
+                        let mime_type = v.get("mimeType")?.as_str()?;
+                        let size_bytes = v.get("sizeBytes")?.as_u64()?;
+                        if !matches!(
+                            mime_type,
+                            "application/pdf"
+                                | "image/png"
+                                | "image/jpeg"
+                                | "image/jpg"
+                                | "image/webp"
+                                | "image/gif"
+                        ) {
+                            return None;
+                        }
+                        Some(AttItem {
+                            id: id.to_string(),
+                            object_id: summary.id.clone(),
+                            file_name: file_name.to_string(),
+                            mime_type: mime_type.to_string(),
+                            size_bytes,
+                        })
+                    })
+                    .collect();
+                if attachments.is_empty() {
+                    None
+                } else {
+                    Some(AttObject {
+                        object_id: summary.id.clone(),
+                        object_name: summary.name.clone(),
+                        attachments,
+                    })
+                }
+            })
+            .collect()
     }
 }
 

@@ -459,7 +459,9 @@ mod tests {
             .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         let vault = VaultService::with_base_path(dir.path().to_path_buf());
-        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
+        let account = vault
+            .create_account("Test", crate::TEST_PASSWORD, None)
+            .unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
         (app, account_id, dir)
@@ -617,7 +619,10 @@ mod tests {
         let (mut app, account_id, _dir) = unlocked_app();
         // 脚本式调用要求 Vault 已解锁；unlocked_app() 仅创建不解锁。
         app.vault_service
-            .unlock_secure(&account_id, &Zeroizing::new(crate::TEST_PASSWORD.to_string()))
+            .unlock_secure(
+                &account_id,
+                &Zeroizing::new(crate::TEST_PASSWORD.to_string()),
+            )
             .unwrap();
         handle(&mut app, &["/setting", "ui.theme", "\"dark\""]).unwrap();
         let vault = app.vault_service.get_vault_store().unwrap();

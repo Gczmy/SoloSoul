@@ -97,7 +97,7 @@ fn require_account_id(app: &mut App) -> Result<String, CliError> {
     }
     app.vault_service
         .get_current_account()
-        .ok_or_else(|| CliError::NoAccount)
+        .ok_or(CliError::NoAccount)
 }
 
 /// 命令入口。`args[0]` 为 `/export` 或 `/import`。
@@ -220,13 +220,15 @@ fn parse_export_args<'a>(args: &[&'a str]) -> Result<(Option<&'a str>, ExportSco
                 "--full" => scope.full = true,
                 "--include-attachments" => scope.include_attachments = true,
                 "--pages" => {
-                    let list = iter.next().ok_or(CliError::Msg("--pages 后需要逗号分隔的页面列表".to_string()))?;
+                    let list = iter.next().ok_or(CliError::Msg(
+                        "--pages 后需要逗号分隔的页面列表".to_string(),
+                    ))?;
                     scope.selected_page_ids = list.split(',').map(String::from).collect();
                 }
                 "--objects" => {
-                    let list = iter
-                        .next()
-                        .ok_or(CliError::Msg("--objects 后需要逗号分隔的对象 ID 列表".to_string()))?;
+                    let list = iter.next().ok_or(CliError::Msg(
+                        "--objects 后需要逗号分隔的对象 ID 列表".to_string(),
+                    ))?;
                     scope.selected_object_ids = list.split(',').map(String::from).collect();
                 }
                 other => return Err(CliError::Msg(format!("未知导出选项: {}", other))),
@@ -239,7 +241,9 @@ fn parse_export_args<'a>(args: &[&'a str]) -> Result<(Option<&'a str>, ExportSco
     }
 
     if !scope.full && scope.selected_page_ids.is_empty() && scope.selected_object_ids.is_empty() {
-        return Err(CliError::Msg("请指定 --full、--pages 或 --objects 之一".to_string()));
+        return Err(CliError::Msg(
+            "请指定 --full、--pages 或 --objects 之一".to_string(),
+        ));
     }
 
     Ok((file_arg, scope))
@@ -259,7 +263,9 @@ fn parse_import_args<'a>(
             match *arg {
                 "--preview" => preview = true,
                 "--strategy" => {
-                    let value = iter.next().ok_or(CliError::Msg("--strategy 后需要策略值".to_string()))?;
+                    let value = iter
+                        .next()
+                        .ok_or(CliError::Msg("--strategy 后需要策略值".to_string()))?;
                     strategy = match *value {
                         "skip" => ImportStrategy::SkipExisting,
                         "overwrite" => ImportStrategy::Overwrite,
@@ -322,7 +328,8 @@ pub(crate) fn export_execute(
         .ok_or_else(|| "Vault 未打开".to_string())?;
 
     let records = collect_scope_objects(&vault, &account_id, scope)?;
-    if records.is_empty() {            return Err(CliError::Msg("没有选中任何对象".to_string()));
+    if records.is_empty() {
+        return Err(CliError::Msg("没有选中任何对象".to_string()));
     }
 
     let payload = build_payload(&vault, &records);
@@ -1097,7 +1104,9 @@ mod tests {
             .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         let vault = VaultService::with_base_path(dir.path().to_path_buf());
-        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
+        let account = vault
+            .create_account("Test", crate::TEST_PASSWORD, None)
+            .unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
         (app, account_id, dir)
@@ -1194,7 +1203,13 @@ mod tests {
         vault.delete_object("obj_1", false).unwrap();
         assert!(vault.load_object("obj_1").unwrap().is_none());
 
-        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
+        import_execute(
+            &mut app,
+            &path,
+            crate::TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+        )
+        .unwrap();
         let restored = vault.load_object("obj_1").unwrap().unwrap();
         assert_eq!(restored.name, "Test Object");
         assert_eq!(restored.properties["title"].as_str().unwrap(), "hello");
@@ -1377,7 +1392,13 @@ mod tests {
         zip.finish().unwrap();
 
         // 导入到英文账户
-        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
+        import_execute(
+            &mut app,
+            &path,
+            crate::TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+        )
+        .unwrap();
 
         // 验证对象 template_id 被重定向（不再是原始 "passport_tpl"）
         let imported = vault.load_object("obj_cn").unwrap().unwrap();
@@ -1456,7 +1477,13 @@ mod tests {
         zip.finish().unwrap();
 
         // 导入 — 应正常工作（无 templates 的旧包兼容）
-        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
+        import_execute(
+            &mut app,
+            &path,
+            crate::TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+        )
+        .unwrap();
         let imported = vault.load_object("obj_old").unwrap().unwrap();
         assert_eq!(imported.name, "Old Object");
 
@@ -1530,7 +1557,13 @@ mod tests {
         zip.finish().unwrap();
 
         // 第一次导入 — 创建快照模板
-        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
+        import_execute(
+            &mut app,
+            &path,
+            crate::TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+        )
+        .unwrap();
         let imported_1 = vault.load_object("obj_1").unwrap().unwrap();
         let snapshot_id = imported_1.template_id.unwrap();
         assert!(snapshot_id.starts_with("imported:"));
@@ -1598,7 +1631,13 @@ mod tests {
         .unwrap();
         z2.finish().unwrap();
 
-        import_execute(&mut app, &path2, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
+        import_execute(
+            &mut app,
+            &path2,
+            crate::TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+        )
+        .unwrap();
 
         // 验证第二个对象指向同一个快照模板 ID
         let imported_2 = vault.load_object("obj_2").unwrap().unwrap();
@@ -1673,7 +1712,13 @@ mod tests {
         .unwrap();
         zip.finish().unwrap();
 
-        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
+        import_execute(
+            &mut app,
+            &path,
+            crate::TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+        )
+        .unwrap();
 
         let imported = vault.load_object("custom_page_1").unwrap().unwrap();
         assert_eq!(imported.name, "我的中文页面", "自定义页面名称应保持原样");

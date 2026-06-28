@@ -9,6 +9,7 @@ use super::{
 };
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::atomic::AtomicU32;
 pub(crate) use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
@@ -38,6 +39,9 @@ mod code {
     pub const DOMAIN_NOT_ALLOWED: i32 = -10;
     pub const INVALID_ARGUMENT: i32 = -11;
     pub const WASM_TRAP: i32 = -12;
+    pub const FILE_NOT_FOUND: i32 = -13;
+    pub const FILE_TOO_LARGE: i32 = -14;
+    pub const PROCESSING_FAILED: i32 = -15;
     /// 异步 HTTP 请求仍在进行中（非错误，仅用于轮询）
     pub const HTTP_PENDING: i32 = 1;
 }
@@ -85,6 +89,8 @@ pub struct SoloHostFunctions {
     pub(crate) next_http_handle: AtomicU32,
     /// Shared HTTP client reused across plugin HTTP calls.
     pub(crate) http_client: reqwest::Client,
+    /// 插件运行时的临时工作区目录（用于附件复制、水印处理等）。
+    pub workspace_dir: Option<PathBuf>,
 }
 
 impl Drop for SoloHostFunctions {
@@ -113,6 +119,36 @@ impl SoloHostFunctions {
         field_resolver: Arc<FieldResolver>,
         channel: Channel<PluginEvent>,
     ) -> Self {
+        Self::new_with_workspace(
+            plugin_id,
+            plugin_name,
+            session_id,
+            manifest,
+            params,
+            audit,
+            rate_limiter,
+            consent_manager,
+            field_resolver,
+            channel,
+            None,
+        )
+    }
+
+    /// 创建 Host Functions 数据，并指定临时工作区目录。
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_with_workspace(
+        plugin_id: impl Into<String>,
+        plugin_name: impl Into<String>,
+        session_id: impl Into<String>,
+        manifest: PluginManifest,
+        params: HashMap<String, String>,
+        audit: Arc<PluginAuditLogger>,
+        rate_limiter: Arc<RateLimiter>,
+        consent_manager: Arc<ConsentManager>,
+        field_resolver: Arc<FieldResolver>,
+        channel: Channel<PluginEvent>,
+        workspace_dir: Option<PathBuf>,
+    ) -> Self {
         let http_client = reqwest::Client::builder()
             .connect_timeout(Duration::from_secs(10))
             .timeout(Duration::from_secs(30))
@@ -135,6 +171,7 @@ impl SoloHostFunctions {
             http_handles: Arc::new(Mutex::new(HashMap::new())),
             next_http_handle: AtomicU32::new(1),
             http_client,
+            workspace_dir,
         }
     }
 

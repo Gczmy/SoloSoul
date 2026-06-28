@@ -35,6 +35,14 @@ pub async fn plugin_list_installed(
 }
 
 #[command]
+pub async fn plugin_list_attachments(state: State<'_, AppState>) -> Result<String, String> {
+    let vault_store = vault_handle(&state)?;
+    let account_id = current_account_optional(&state).ok_or("未选择账户")?;
+    let resolver = crate::plugin::FieldResolver::with_vault(vault_store, account_id, vec![]);
+    resolver.list_attachments().map_err(|e| e.to_string())
+}
+
+#[command]
 pub async fn plugin_install(
     state: State<'_, AppState>,
     plugin_id: String,

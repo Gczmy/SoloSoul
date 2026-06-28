@@ -210,7 +210,10 @@ pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<B
             backup_profiles.push(ProfileBackupEntry {
                 id: profile.id,
                 name: profile.name,
-                data_b64: base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &profile.data),
+                data_b64: base64::Engine::encode(
+                    &base64::engine::general_purpose::STANDARD,
+                    &profile.data,
+                ),
                 created_at: profile.created_at.to_rfc3339(),
                 updated_at: profile.updated_at.to_rfc3339(),
                 version: profile.version,

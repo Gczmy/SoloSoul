@@ -224,10 +224,7 @@ async fn embed_texts(
                 return Err(format!(
                     "Batch embedding API HTTP {}: {}",
                     status,
-                    body_text
-                        .chars()
-                        .take(200)
-                        .collect::<String>()
+                    body_text.chars().take(200).collect::<String>()
                 ));
             }
 
@@ -250,7 +247,11 @@ async fn embed_texts(
                         .iter()
                         .filter_map(|v| v.as_f64().map(|f| f as f32))
                         .collect::<Vec<f32>>();
-                    if emb.is_empty() { None } else { Some((idx, emb)) }
+                    if emb.is_empty() {
+                        None
+                    } else {
+                        Some((idx, emb))
+                    }
                 })
                 .collect();
 

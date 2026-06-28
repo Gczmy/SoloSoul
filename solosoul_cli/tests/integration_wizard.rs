@@ -29,7 +29,9 @@ fn test_full_wizard_lifecycle() {
     let dir = tempfile::TempDir::new().unwrap();
 
     let vault = VaultService::with_base_path(dir.path().to_path_buf());
-    let account = vault.create_account("Wizard", solosoul_cli::TEST_PASSWORD, None).unwrap();
+    let account = vault
+        .create_account("Wizard", solosoul_cli::TEST_PASSWORD, None)
+        .unwrap();
     let account_id = account["id"].as_str().unwrap().to_string();
     vault.lock();
 
@@ -164,7 +166,9 @@ fn test_prompt_pauses_auto_lock() {
     let dir = tempfile::TempDir::new().unwrap();
 
     let vault = VaultService::with_base_path(dir.path().to_path_buf());
-    vault.create_account("Pause", solosoul_cli::TEST_PASSWORD, None).unwrap();
+    vault
+        .create_account("Pause", solosoul_cli::TEST_PASSWORD, None)
+        .unwrap();
     vault.lock();
 
     let mut app = App::new(Arc::new(vault)).unwrap();

@@ -125,6 +125,11 @@ export function PluginDashboardPage() {
   const handleRun = async (pluginId: string) => {
     const info = marketPlugins.find((p) => p.pluginId === pluginId);
     if (!info) return;
+    // 若插件声明了自定义 UI，跳转到独立页面完成配置后再运行
+    if (info.registryEntry.customUi) {
+      navigate(`/plugin/custom/${info.pluginId}`);
+      return;
+    }
     // 在「全部」tab 点击运行时自动切换到「已安装」tab，避免出现旧样式卡片
     if (activeTab === 'all') {
       setActiveTab('installed');

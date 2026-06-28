@@ -515,7 +515,10 @@ fn resolve_plugin_market_dir() -> PathBuf {
 fn load_registry_entries(market_dir: &Path) -> Result<Vec<RegistryEntry>, CliError> {
     let registry_path = market_dir.join("registry.json");
     if !registry_path.exists() {
-        return Err(CliError::Msg(format!("未找到 registry.json: {}", registry_path.display())));
+        return Err(CliError::Msg(format!(
+            "未找到 registry.json: {}",
+            registry_path.display()
+        )));
     }
 
     let content = std::fs::read_to_string(&registry_path)

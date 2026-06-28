@@ -469,17 +469,18 @@ pub fn build_external_edit_request(field: EditableField) -> ExternalEditRequest 
 impl App {
     /// 将外部编辑器（inquire）返回的值应用到当前向导的选中字段。
     pub fn apply_external_edit(&mut self, value: Option<serde_json::Value>) {
-        let Some(value) = value else { return; };
+        let Some(value) = value else {
+            return;
+        };
         match &mut self.phase {
             AppPhase::NewObjectWizard {
                 step:
                     NewObjectStep::FillFields {
                         fields, selected, ..
                     },
+            } if *selected < fields.len() => {
+                fields[*selected].value = value;
             }
-                if *selected < fields.len() => {
-                    fields[*selected].value = value;
-                }
             AppPhase::EditObjectWizard {
                 step:
                     EditObjectStep::Overview {
@@ -489,14 +490,13 @@ impl App {
                         ..
                     },
                 ..
-            }
-                if *selected < fields.len() => {
-                    let key = fields[*selected].key.clone();
-                    fields[*selected].value = value.clone();
-                    if let serde_json::Value::Object(ref mut map) = object.properties {
-                        map.insert(key, value);
-                    }
+            } if *selected < fields.len() => {
+                let key = fields[*selected].key.clone();
+                fields[*selected].value = value.clone();
+                if let serde_json::Value::Object(ref mut map) = object.properties {
+                    map.insert(key, value);
                 }
+            }
             _ => {}
         }
     }
@@ -2974,7 +2974,9 @@ mod tests {
             .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         let vault = VaultService::with_base_path(dir.path().to_path_buf());
-        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
+        let account = vault
+            .create_account("Test", crate::TEST_PASSWORD, None)
+            .unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         vault.lock();
         let app = App::new(Arc::new(vault)).unwrap();
@@ -3421,7 +3423,10 @@ mod tests {
         // 让 open_menu snapshot Home 为 previous_phase。
         let (mut app, account_id, _dir) = locked_app();
         app.vault_service
-            .unlock_secure(&account_id, &Zeroizing::new(crate::TEST_PASSWORD.to_string()))
+            .unlock_secure(
+                &account_id,
+                &Zeroizing::new(crate::TEST_PASSWORD.to_string()),
+            )
             .unwrap();
         app.phase = AppPhase::Home {
             account_id: account_id.clone(),
@@ -3505,7 +3510,10 @@ mod tests {
         // 使用 locked_app() 则调用 auth::unlock 仅进入向导，不会真正解锁；这里直接调用 unlock_secure。
         let (mut app, account_id, _dir) = locked_app();
         app.vault_service
-            .unlock_secure(&account_id, &Zeroizing::new(crate::TEST_PASSWORD.to_string()))
+            .unlock_secure(
+                &account_id,
+                &Zeroizing::new(crate::TEST_PASSWORD.to_string()),
+            )
             .unwrap();
         app.command_input
             .set_value("/setting notifications true".to_string());

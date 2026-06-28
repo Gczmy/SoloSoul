@@ -11,6 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub struct PluginEvent {
     pub event_type: String,
     pub json_data: String,
+    pub custom_type: Option<String>,
     pub request_id: Option<String>,
     pub plugin_id: Option<String>,
     pub plugin_name: Option<String>,
@@ -42,6 +43,7 @@ impl PluginEvent {
                 "timestamp": now_millis(),
             })
             .to_string(),
+            custom_type: None,
             request_id: None,
             plugin_id: None,
             plugin_name: None,
@@ -56,6 +58,7 @@ impl PluginEvent {
         Self {
             event_type: "result".to_string(),
             json_data: json.into(),
+            custom_type: None,
             request_id: None,
             plugin_id: None,
             plugin_name: None,
@@ -75,6 +78,7 @@ impl PluginEvent {
         Self {
             event_type: "dialog_request".to_string(),
             json_data: config.into(),
+            custom_type: None,
             request_id: Some(request_id.into()),
             plugin_id: Some(plugin_id.into()),
             plugin_name: Some(plugin_name.into()),
@@ -97,6 +101,7 @@ impl PluginEvent {
         Self {
             event_type: "consent_request".to_string(),
             json_data: serde_json::json!({}).to_string(),
+            custom_type: None,
             request_id: Some(request_id.into()),
             plugin_id: Some(plugin_id.into()),
             plugin_name: Some(plugin_name.into()),
@@ -115,6 +120,7 @@ impl PluginEvent {
                 "fuelConsumed": fuel_consumed,
             })
             .to_string(),
+            custom_type: None,
             request_id: None,
             plugin_id: Some(plugin_id.into()),
             plugin_name: None,
@@ -129,9 +135,30 @@ impl PluginEvent {
         Self {
             event_type: "error".to_string(),
             json_data: serde_json::json!({ "message": message.into() }).to_string(),
+            custom_type: None,
             request_id: None,
             plugin_id: Some(plugin_id.into()),
             plugin_name: None,
+            field_id: None,
+            field_label: None,
+            sensitivity_level: None,
+        }
+    }
+
+    /// 自定义 UI 事件
+    pub fn custom(
+        plugin_id: impl Into<String>,
+        plugin_name: impl Into<String>,
+        custom_type: impl Into<String>,
+        json_data: impl Into<String>,
+    ) -> Self {
+        Self {
+            event_type: "custom_event".to_string(),
+            json_data: json_data.into(),
+            custom_type: Some(custom_type.into()),
+            request_id: None,
+            plugin_id: Some(plugin_id.into()),
+            plugin_name: Some(plugin_name.into()),
             field_id: None,
             field_label: None,
             sensitivity_level: None,

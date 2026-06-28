@@ -25,6 +25,7 @@ import { ScanLocalPage } from "@/pages/scan/ScanLocalPage";
 import { OcrPage } from "@/pages/scan/OcrPage";
 import { HistoryPage } from "@/pages/editor/HistoryPage";
 import { SyncPage } from "@/pages/sync/SyncPage";
+import { PluginCustomPage } from "@/pages/plugin/PluginCustomPage";
 import { useAuthStore } from "@/stores/authStore";
 
 import type { ReactNode } from "react";
@@ -70,4 +71,5 @@ export const protectedRoutes: RouteConfig[] = [
   { path: '/editor', element: <ObjectEditorPage /> },
   { path: '/editor/:objectId', element: <ObjectEditorPage /> },
   { path: '/workspace/custom/:pageId', element: <ObjectWorkspacePage /> },
+  { path: '/plugin/custom/:pluginId', element: <PluginCustomPage /> },
 ];

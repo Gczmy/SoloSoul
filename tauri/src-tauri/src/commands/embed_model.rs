@@ -179,14 +179,16 @@ pub async fn download_model(app: &AppHandle, model: &EmbedModelInfo) -> Result<(
                 }),
             );
         }
-    }        // Verify checksum (SHA256) — 流式读取，避免大文件 OOM
+    } // Verify checksum (SHA256) — 流式读取，避免大文件 OOM
     let hash = {
         use std::io::Read;
         let mut file = std::fs::File::open(&zip_path).map_err(|e| format!("Open zip: {}", e))?;
         let mut hasher = sha2::Sha256::new();
         let mut buf = [0u8; 8192];
         loop {
-            let n = file.read(&mut buf).map_err(|e| format!("Read zip chunk: {}", e))?;
+            let n = file
+                .read(&mut buf)
+                .map_err(|e| format!("Read zip chunk: {}", e))?;
             if n == 0 {
                 break;
             }

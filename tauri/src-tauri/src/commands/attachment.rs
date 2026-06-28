@@ -368,7 +368,10 @@ pub async fn attachment_copy_to_vault(
         bases
     };
     if !allowed_bases.is_empty() && !allowed_bases.iter().any(|b| src.starts_with(b)) {
-        return Err("Source path must be within Desktop, Documents, Downloads, or SOLOSOUL_FS_BASE".to_string());
+        return Err(
+            "Source path must be within Desktop, Documents, Downloads, or SOLOSOUL_FS_BASE"
+                .to_string(),
+        );
     }
 
     let dest_dir = attachment_dir(&base, &object_id, &attachment_id)?;
@@ -485,9 +488,10 @@ fn build_attachment_tree_pages(
     let template_cache: std::cell::RefCell<std::collections::HashMap<String, Option<String>>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
     // P110: Pre-load all referenced object records in one batch query
-    let all_summaries: Vec<_> = page_objects.iter().chain(
-        section_groups.values().flat_map(|v| v.iter())
-    ).collect();
+    let all_summaries: Vec<_> = page_objects
+        .iter()
+        .chain(section_groups.values().flat_map(|v| v.iter()))
+        .collect();
     let all_ids: Vec<String> = all_summaries.iter().map(|s| s.id.clone()).collect();
     let records_batch = vault.load_objects_batch(&all_ids).ok().unwrap_or_default();
     let build_objects_with_attachments =
@@ -644,10 +648,13 @@ pub async fn attachment_download(
     // If we have allowed bases, verify dest is within one of them.
     if !allowed_bases.is_empty() {
         let dest_canon = if dest.exists() {
-            dest.canonicalize().map_err(|e| format!("Invalid destination: {}", e))?
+            dest.canonicalize()
+                .map_err(|e| format!("Invalid destination: {}", e))?
         } else if let Some(parent) = dest.parent() {
             if parent.exists() {
-                parent.canonicalize().map_err(|_| "Cannot resolve destination parent".to_string())?
+                parent
+                    .canonicalize()
+                    .map_err(|_| "Cannot resolve destination parent".to_string())?
             } else {
                 return Err("Destination parent directory does not exist".to_string());
             }

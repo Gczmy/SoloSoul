@@ -1940,11 +1940,15 @@ impl VaultStore {
             placeholders.join(",")
         );
 
-        let mut stmt = conn.prepare(&sql).map_err(|e| format!("load_objects_batch: {}", e))?;
+        let mut stmt = conn
+            .prepare(&sql)
+            .map_err(|e| format!("load_objects_batch: {}", e))?;
 
         // Convert IDs to a slice of &dyn ToSql
-        let params_refs: Vec<&dyn rusqlite::types::ToSql> =
-            ids.iter().map(|id| id as &dyn rusqlite::types::ToSql).collect();
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> = ids
+            .iter()
+            .map(|id| id as &dyn rusqlite::types::ToSql)
+            .collect();
 
         let rows = stmt
             .query_map(params_refs.as_slice(), |row| {
@@ -1967,7 +1971,8 @@ impl VaultStore {
                     Ok(String::new())
                 } else {
                     decrypt_text_field(&key, &labels_str)
-                }.map_err(|e| {
+                }
+                .map_err(|e| {
                     rusqlite::Error::FromSqlConversionFailure(
                         9,
                         rusqlite::types::Type::Text,

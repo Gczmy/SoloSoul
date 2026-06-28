@@ -180,7 +180,9 @@ fn set_value_at_path(data: &mut Value, path: &str, value: Value) -> Result<(), C
         return Err(CliError::Msg("路径为空".to_string()));
     }
 
-    let obj = data.as_object_mut().ok_or(CliError::Msg("Profile 数据不是对象".to_string()))?;
+    let obj = data
+        .as_object_mut()
+        .ok_or(CliError::Msg("Profile 数据不是对象".to_string()))?;
     let (last, parents) = parts.split_last().unwrap();
 
     let mut current = obj;
@@ -207,7 +209,9 @@ mod tests {
             .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         let vault = VaultService::with_base_path(dir.path().to_path_buf());
-        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
+        let account = vault
+            .create_account("Test", crate::TEST_PASSWORD, None)
+            .unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
         app.vault_service

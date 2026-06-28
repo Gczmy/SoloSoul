@@ -131,6 +131,7 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
         params: vec![],
         contracts: vec![],
         field_bindings: vec![],
+        custom_ui: None,
     };
 
     let mut params = HashMap::new();

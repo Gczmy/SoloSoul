@@ -13,6 +13,7 @@ export interface RegistryEntry {
   categories: string[];
   params: PluginParam[];
   i18n?: Record<string, { name: string; description: string }>;
+  customUi?: string;
 }
 
 export type PluginTier = 'p0' | 'p1' | 'p2' | 'p3' | 'p4';
@@ -58,6 +59,7 @@ export interface PluginManifest {
   tier: PluginTier;
   category: string;
   params: PluginParam[];
+  customUi?: string;
 }
 
 export interface PluginLogLine {
@@ -65,6 +67,20 @@ export interface PluginLogLine {
   level: 'debug' | 'info' | 'warn' | 'error';
   message: string;
   timestamp: number;
+}
+
+export interface WatermarkResultItem {
+  objectId: string;
+  attachmentId: string;
+  fileName: string;
+  mimeType: string;
+  outputPath: string;
+}
+
+export interface WatermarkResultPayload {
+  type: 'watermark_result';
+  outputDir: string;
+  items: WatermarkResultItem[];
 }
 
 export type PluginResultPayload =
@@ -75,7 +91,8 @@ export type PluginResultPayload =
       pairs: Array<{ key: string; value: string; tag?: string; tagCode?: string }>;
     }
   | { type: 'table'; headers: string[]; rows: string[][] }
-  | { type: 'markdown'; content: string };
+  | { type: 'markdown'; content: string }
+  | WatermarkResultPayload;
 
 export interface PluginResult {
   exitCode: number;
@@ -114,8 +131,9 @@ export interface ConsentRequestEvent {
 }
 
 export interface PluginEvent {
-  eventType: 'log' | 'result' | 'consent_request' | 'dialog_request' | 'completed' | 'error';
+  eventType: 'log' | 'result' | 'consent_request' | 'dialog_request' | 'completed' | 'error' | 'custom_event';
   jsonData: string;
+  customType?: string;
   requestId?: string;
   pluginId?: string;
   pluginName?: string;

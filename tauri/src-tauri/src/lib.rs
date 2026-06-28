@@ -550,6 +550,7 @@ pub fn run() {
             // Plugin commands
             commands::plugin::plugin_list_all,
             commands::plugin::plugin_list_installed,
+            commands::plugin::plugin_list_attachments,
             commands::plugin::plugin_install,
             commands::plugin::plugin_update,
             commands::plugin::plugin_uninstall,

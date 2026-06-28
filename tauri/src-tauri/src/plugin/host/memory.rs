@@ -24,13 +24,23 @@ pub(crate) fn read_string(
     ptr: i32,
     len: i32,
 ) -> Result<String, PluginError> {
+    let bytes = read_bytes(caller, ptr, len)?;
+    String::from_utf8(bytes).map_err(|_| PluginError::InvalidManifest("非法 UTF-8".to_string()))
+}
+
+/// 从 Wasm 内存读取原始字节
+pub(crate) fn read_bytes(
+    caller: &mut Caller<'_, SoloHostState>,
+    ptr: i32,
+    len: i32,
+) -> Result<Vec<u8>, PluginError> {
     if ptr < 0 || len < 0 {
         return Err(PluginError::InvalidArgument("非法指针".to_string()));
     }
     let len = len as usize;
     if len > MAX_PLUGIN_READ_LEN {
         return Err(PluginError::InvalidArgument(format!(
-            "字符串长度超过 {} 字节限制",
+            "读取长度超过 {} 字节限制",
             MAX_PLUGIN_READ_LEN
         )));
     }
@@ -38,7 +48,7 @@ pub(crate) fn read_string(
     let mut buf = vec![0u8; len];
     mem.read(&mut *caller, ptr as usize, &mut buf)
         .map_err(|e| PluginError::ExecutionFailed(format!("读取内存失败: {}", e)))?;
-    String::from_utf8(buf).map_err(|_| PluginError::InvalidManifest("非法 UTF-8".to_string()))
+    Ok(buf)
 }
 
 /// 将 UTF-8 字符串写入 Wasm 内存，并以 `\0` 结尾
