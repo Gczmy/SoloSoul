@@ -1034,17 +1034,47 @@ fn copy_attachment_to_workspace(
         .and_then(|v| v.as_str())
         .ok_or_else(|| "附件缺少文件名".to_string())?;
 
-    let vault_base = vault.base_path();
-    let src = vault_base
-        .join("attachments")
-        .join(object_id)
-        .join(attachment_id)
-        .join(file_name);
+    // 优先使用附件元数据中持久化的 vault_path（由 attachment_copy_to_vault 写入）。
+    // 如果没有，则回退到 data_dir/attachments/{object_id}/{attachment_id}/{file_name}，
+    // 其中 data_dir 是 Vault 账户目录的父目录（VaultService::base_path）。
+    let src = attachment
+        .get("vaultPath")
+        .and_then(|v| v.as_str())
+        .map(std::path::PathBuf::from)
+        .filter(|p| p.is_file())
+        .or_else(|| {
+            vault
+                .base_path()
+                .parent()
+                .map(|data_dir| {
+                    data_dir
+                        .join("attachments")
+                        .join(object_id)
+                        .join(attachment_id)
+                        .join(file_name)
+                })
+                .filter(|p| p.is_file())
+        })
+        .ok_or_else(|| {
+            let fallback = vault
+                .base_path()
+                .parent()
+                .map(|data_dir| {
+                    data_dir
+                        .join("attachments")
+                        .join(object_id)
+                        .join(attachment_id)
+                        .join(file_name)
+                })
+                .unwrap_or_default();
+            format!("找不到附件文件: vault_path 或 {}", fallback.display())
+        })?;
+
     let dst_dir = workspace.join(object_id).join(attachment_id);
     let dst = dst_dir.join(file_name);
 
     std::fs::create_dir_all(&dst_dir).map_err(|e| format!("创建工作区目录失败: {}", e))?;
-    std::fs::copy(&src, &dst).map_err(|e| format!("复制附件失败: {}", e))?;
+    std::fs::copy(&src, &dst).map_err(|e| format!("复制附件失败 ({}): {}", src.display(), e))?;
 
     Ok(dst)
 }
