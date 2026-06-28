@@ -1916,6 +1916,106 @@ impl VaultStore {
         Ok(result)
     }
 
+    /// P110: Batch-load multiple objects by ID, avoiding N+1 `load_object` calls.
+    /// Returns a HashMap keyed by object ID, containing only the objects that were found.
+    pub fn load_objects_batch(
+        &self,
+        ids: &[String],
+    ) -> Result<std::collections::HashMap<String, ObjectRecord>, String> {
+        if ids.is_empty() {
+            return Ok(std::collections::HashMap::new());
+        }
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+
+        // Build placeholders: (?1,?2,...,?N)
+        let placeholders: Vec<String> = (1..=ids.len()).map(|i| format!("?{}", i)).collect();
+        let sql = format!(
+            "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
+             children_ids, properties, property_labels, sensitivity_level,
+             is_deleted, deleted_at, tags_json, template_id, template_type,
+             contract_type_id, created_at, updated_at, version
+             FROM objects WHERE id IN ({})",
+            placeholders.join(",")
+        );
+
+        let mut stmt = conn.prepare(&sql).map_err(|e| format!("load_objects_batch: {}", e))?;
+
+        // Convert IDs to a slice of &dyn ToSql
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> =
+            ids.iter().map(|id| id as &dyn rusqlite::types::ToSql).collect();
+
+        let rows = stmt
+            .query_map(params_refs.as_slice(), |row| {
+                let children_str: String = row.get(7)?;
+                let props_str: String = row.get(8)?;
+                let labels_str: String = row.get(9)?;
+                let tags_str: String = row.get(13)?;
+                let deleted: i32 = row.get(11)?;
+                let decrypted_props = decrypt_text_field(&key, &props_str).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        8,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Object properties decryption failed: {}", e),
+                        )),
+                    )
+                })?;
+                let decrypted_labels = if labels_str.is_empty() {
+                    Ok(String::new())
+                } else {
+                    decrypt_text_field(&key, &labels_str)
+                }.map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        9,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Object labels decryption failed: {}", e),
+                        )),
+                    )
+                })?;
+                Ok(ObjectRecord {
+                    id: row.get(0)?,
+                    account_id: row.get(1)?,
+                    type_id: row.get(2)?,
+                    section_type: row.get(3)?,
+                    name: row.get(4)?,
+                    icon_name: row.get(5)?,
+                    parent_id: row.get(6)?,
+                    children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
+                    properties: serde_json::from_str(&decrypted_props)
+                        .unwrap_or(serde_json::Value::Null),
+                    property_labels: if decrypted_labels.is_empty() {
+                        None
+                    } else {
+                        serde_json::from_str(&decrypted_labels).ok()
+                    },
+                    sensitivity_level: row.get(10)?,
+                    is_deleted: deleted != 0,
+                    deleted_at: row.get(12)?,
+                    tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
+                    template_id: row.get(14)?,
+                    template_type: row.get(15)?,
+                    contract_type_id: row.get(16)?,
+                    created_at: row.get(17)?,
+                    updated_at: row.get(18)?,
+                    version: row.get(19)?,
+                })
+            })
+            .map_err(|e| format!("load_objects_batch query: {}", e))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("load_objects_batch collect: {}", e))?;
+
+        let mut result = std::collections::HashMap::with_capacity(rows.len());
+        for obj in rows {
+            result.insert(obj.id.clone(), obj);
+        }
+        Ok(result)
+    }
+
     /// R020: batch-load object attachment IDs without the N+1 `load_object` calls
     /// required by `get_vault_stats`. Returns `(object_id, attachment_ids)` pairs
     /// for all active objects in the account.

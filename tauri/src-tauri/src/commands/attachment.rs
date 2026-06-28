@@ -297,15 +297,15 @@ pub async fn attachment_count_batch(
     object_ids: Vec<String>,
 ) -> Result<HashMap<String, usize>, String> {
     let vault = vault_handle(&state)?;
+    // P110: Use batch load instead of N+1 individual load_object calls
+    let objects = vault.load_objects_batch(&object_ids)?;
     let mut result = HashMap::new();
-    for id in &object_ids {
-        if let Ok(Some(rec)) = vault.load_object(id) {
-            let count = load_attachments(&rec.properties)
-                .iter()
-                .filter(|a| a.deleted_at.is_none())
-                .count();
-            result.insert(id.clone(), count);
-        }
+    for (id, rec) in &objects {
+        let count = load_attachments(&rec.properties)
+            .iter()
+            .filter(|a| a.deleted_at.is_none())
+            .count();
+        result.insert(id.clone(), count);
     }
     Ok(result)
 }
@@ -386,25 +386,16 @@ pub async fn attachment_copy_to_vault(
 }
 
 /// Collect all attachment IDs that are currently referenced in any object's __attachments.
+/// P110: Uses existing `list_object_attachment_ids` batch method instead of N+1 load_object calls.
 fn load_all_referenced_attachment_ids(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,
 ) -> Result<std::collections::HashSet<String>, String> {
-    let objects = vault.list_objects(account_id, None, None, None, false, false)?;
+    let batch = vault.list_object_attachment_ids(account_id)?;
     let mut active_ids = std::collections::HashSet::new();
-    for summary in &objects {
-        if let Ok(Some(rec)) = vault.load_object(&summary.id) {
-            let atts: Vec<AttachmentMeta> = rec
-                .properties
-                .get("__attachments")
-                .and_then(|v| serde_json::from_value::<Vec<AttachmentMeta>>(v.clone()).ok())
-                .unwrap_or_default();
-            // Include ALL attachments (both active and soft-deleted) — the soft-deleted ones
-            // still have a reference; only truly orphaned files (no __attachments entry at all)
-            // should be cleaned up. Permanently deleting removes the entry, so those are orphans.
-            for a in &atts {
-                active_ids.insert(a.id.clone());
-            }
+    for (_object_id, att_ids) in &batch {
+        for id in att_ids {
+            active_ids.insert(id.clone());
         }
     }
     Ok(active_ids)
@@ -483,6 +474,7 @@ pub async fn attachment_list_all(
 }
 
 /// Build attachment tree pages for a given filter (active vs trash).
+/// P110: Batch-loads all objects at once instead of N+1 load_object calls.
 fn build_attachment_tree_pages(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,
@@ -492,11 +484,17 @@ fn build_attachment_tree_pages(
 ) -> Result<Vec<AttachmentTreePage>, String> {
     let template_cache: std::cell::RefCell<std::collections::HashMap<String, Option<String>>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
+    // P110: Pre-load all referenced object records in one batch query
+    let all_summaries: Vec<_> = page_objects.iter().chain(
+        section_groups.values().flat_map(|v| v.iter())
+    ).collect();
+    let all_ids: Vec<String> = all_summaries.iter().map(|s| s.id.clone()).collect();
+    let records_batch = vault.load_objects_batch(&all_ids).ok().unwrap_or_default();
     let build_objects_with_attachments =
         |objs: &[solosoul_vault::ObjectSummary], only_del: bool| -> Vec<AttachmentTreeObject> {
             objs.iter()
                 .filter_map(|summary| {
-                    let record = vault.load_object(&summary.id).ok()??;
+                    let record = records_batch.get(&summary.id)?;
                     let all_atts = load_attachments(&record.properties);
                     let filtered: Vec<AttachmentMeta> = all_atts
                         .into_iter()
