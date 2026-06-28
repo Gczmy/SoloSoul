@@ -156,8 +156,8 @@ export const useOcrScanStore = create<OcrScanState>()(
     {
       name: 'solosoul-ocr-scan-history',
       storage: createJSONStorage(() => localStorage),
+      // 仅持久化非敏感元数据（activeTier / scanMode），不持久化扫描结果（result / mrzResult / filePath）
       partialize: (state) => ({
-        scanHistory: state.scanHistory,
         activeTier: state.activeTier,
         scanMode: state.scanMode,
       }),

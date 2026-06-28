@@ -123,11 +123,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await commands.logout();
+    // 登出仅重置认证状态，hasAccount 保持为 null（未知），
+    // 由 BootstrapGuard 重新调用 checkHasAccount 确认后端账户状态。
     set({
       isAuthenticated: false,
       currentAccount: null,
       accounts: [],
-      hasAccount: false,
+      hasAccount: null,
     });
   },
 
