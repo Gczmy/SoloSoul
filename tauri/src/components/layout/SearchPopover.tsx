@@ -21,6 +21,7 @@ import type { CustomPage } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
+import { searchCache } from '@/lib/searchCache';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import styles from './SearchPopover.module.css';
@@ -202,15 +203,26 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
         setHasSearched(false);
         return;
       }
+
+      // Build cache key with the same params that will go into the payload
+      const isCustom = filter ? activeCustomPages.some((p) => p.id === filter) : false;
+      const pageKey = !filter ? matchPageTranslation(q) : null;
+      const effectiveCollectionType = pageKey ?? (filter && !isCustom ? filter : null);
+      const parentId = filter && isCustom ? filter : null;
+
+      const cacheKey = searchCache.buildKey(accountId, q, effectiveCollectionType, parentId);
+      const cached = searchCache.get<SearchItem[]>(cacheKey);
+      if (cached) {
+        setResults(cached);
+        setHasSearched(true);
+        return;
+      }
+
       setIsSearching(true);
       setHasSearched(true);
       try {
-        // Keep original query; add collectionType when query matches a page translation
-        const isCustom = activeCustomPages.some((p) => p.id === filter);
-        const pageKey = !filter ? matchPageTranslation(q) : null;
         const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
 
-        // When a page is matched, add collectionType so objects in that page are also found
         if (pageKey) {
           payload.collectionType = pageKey;
         }
@@ -227,7 +239,6 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
         );
 
         let items = res.items;
-        // If a page was matched and isn't already in results, prepend a synthetic page
         if (pageKey) {
             const pageExists = items.some((i) => i.itemType === 'page' && i.objectId === pageKey);
             if (!pageExists) {
@@ -249,6 +260,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
             }
         }
 
+        searchCache.set(cacheKey, items);
         setResults(items);
       } catch (e) {
         onError(e, t('common:search_failed'));

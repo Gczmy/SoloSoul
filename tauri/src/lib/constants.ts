@@ -11,3 +11,6 @@ export const OCR_MODEL_SERIES = 'PP-OCRv6';
 
 /** Prefix returned by the Rust backend when the active OCR model is not installed. */
 export const OCR_MODEL_NOT_INSTALLED_PREFIX = '__OCR_MODEL_NOT_INSTALLED__';
+
+/** TTL (ms) for search result cache — same keyword won't refetch within this window. */
+export const SEARCH_CACHE_TTL_MS = 30_000;

@@ -20,6 +20,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import type { CustomPage } from '@/stores/settingsStore';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
+import { searchCache } from '@/lib/searchCache';
 
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 const SYSTEM_PAGE_KEYS = ['identity', 'travel', 'financial', 'professional'] as const;
@@ -173,15 +174,20 @@ export function SearchPage() {
         setHasSearched(false);
         return;
       }
+
+      const pageKey = matchPageTranslation(q, t);
+      const cacheKey = searchCache.buildKey(accountId, q, pageKey ?? undefined);
+      const cached = searchCache.get<SearchItem[]>(cacheKey);
+      if (cached) {
+        setResults(cached);
+        setHasSearched(true);
+        return;
+      }
+
       setIsSearching(true);
       setHasSearched(true);
       try {
-        // Search with original query (no modification) to find matching objects
         const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
-
-        // If query matches a translated page name, also filter by collectionType
-        // so objects in that page are found (e.g. searching "身份" with collectionType "identity")
-        const pageKey = matchPageTranslation(q, t);
         if (pageKey) {
           payload.collectionType = pageKey;
         }
@@ -193,7 +199,6 @@ export function SearchPage() {
 
         let items = res.items;
 
-        // If a page was matched, prepend a synthetic page result so the user sees it
         if (pageKey) {
           const pageExists = items.some((i) => i.itemType === 'page' && i.objectId === pageKey);
           if (!pageExists) {
@@ -215,6 +220,7 @@ export function SearchPage() {
           }
         }
 
+        searchCache.set(cacheKey, items);
         setResults(items);
       } catch (e) {
         onError(e, t('common:search_failed'));
@@ -297,13 +303,7 @@ export function SearchPage() {
         />
 
         <div style={{ marginTop: 12 }}>
-          {isSearching && (
-            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              {t('common:searching')}
-            </p>
-          )}
-
-          {!isSearching && hasSearched && results.length === 0 && (
+          {hasSearched && results.length === 0 && !isSearching && (
             <Card>
               <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '24px 0' }}>
                 {t('common:no_results')}
