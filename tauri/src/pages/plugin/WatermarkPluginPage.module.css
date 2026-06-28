@@ -130,6 +130,11 @@
 
 .colorRow input {
   flex: 1;
+  color-scheme: light;
+}
+
+:global([data-theme='dark']) .colorRow input {
+  color-scheme: dark;
 }
 
 .cardActions {
