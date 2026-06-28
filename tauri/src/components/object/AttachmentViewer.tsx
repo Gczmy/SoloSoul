@@ -118,7 +118,7 @@ export function AttachmentViewer({
         objectId,
         attachmentId: renamingId,
         newName: renameValue.trim(),
-      }).catch(() => {});
+      }).catch((err) => console.warn('[AttachmentViewer] Rename failed:', err));
     }
     setRenamingId(null);
   };

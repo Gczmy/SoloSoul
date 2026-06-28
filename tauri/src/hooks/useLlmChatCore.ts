@@ -243,7 +243,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         invoke('llm_save_conversation', {
           accountId: accountIdRef.current,
           conversation: finalConv,
-        }).catch(() => {});
+        }).catch((err) => console.warn('[useLlmChatCore] Save conversation failed:', err));
         onConversationSaved?.();
       }
       llmStore.reset();

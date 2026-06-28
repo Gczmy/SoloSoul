@@ -167,7 +167,7 @@ export function AppRoutes() {
       .then((fn) => {
         unlisten = fn;
       })
-      .catch(() => {});
+      .catch((err) => console.warn('[AppRoutes] CloseRequested listener failed:', err));
 
     return () => {
       unlisten?.();

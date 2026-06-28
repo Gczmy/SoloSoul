@@ -83,7 +83,7 @@ export function AppearanceSettingsPage() {
 
   const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
-    invoke('ui_update_preference', { key: 'theme', value: preset }).catch(() => {});
+    invoke('ui_update_preference', { key: 'theme', value: preset }).catch((err) => console.warn('[Appearance] Update theme pref failed:', err));
     const resolvedSystemTheme = preset === 'system' ? await getSystemTheme() : undefined;
     await applyTheme({
       preset:
@@ -100,7 +100,7 @@ export function AppearanceSettingsPage() {
 
   const handleAccentChange = async (accent: AccentPreset) => {
     updateSetting(accountId, 'accentColor', accent);
-    invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch(() => {});
+    invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch((err) => console.warn('[Appearance] Update accent pref failed:', err));
     const resolvedSystemTheme = settings.theme === 'system' ? await getSystemTheme() : undefined;
     await applyTheme({
       preset:
@@ -127,7 +127,7 @@ export function AppearanceSettingsPage() {
     if (scheme.mode !== currentMode) {
       const newTheme = scheme.mode;
       updateSetting(accountId, 'theme', newTheme);
-      invoke('ui_update_preference', { key: 'theme', value: newTheme }).catch(() => {});
+      invoke('ui_update_preference', { key: 'theme', value: newTheme }).catch((err) => console.warn('[Appearance] Update theme during scheme select failed:', err));
       await applyTheme({
         preset: newTheme === 'dark' ? 'warm-stone-dark' : 'warm-stone-light',
         accentColor: settings.accentColor as AccentPreset,
@@ -143,7 +143,7 @@ export function AppearanceSettingsPage() {
     // Persist as default for the scheme's mode
     const key = scheme.mode === 'light' ? 'defaultLightTheme' : 'defaultDarkTheme';
     updateSetting(accountId, key, scheme.id);
-    invoke('ui_update_preference', { key, value: scheme.id }).catch(() => {});
+    invoke('ui_update_preference', { key, value: scheme.id }).catch((err) => console.warn('[Appearance] Update scheme pref failed:', err));
     syncUiCache();
   };
 

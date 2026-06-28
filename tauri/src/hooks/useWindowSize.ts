@@ -38,14 +38,14 @@ async function persistWindowSize(payload: WindowSize) {
   await invoke('ui_update_preference', {
     key: WINDOW_SIZE_KEY,
     value: JSON.stringify(payload),
-  }).catch(() => {});
+  }).catch((err) => console.warn('[useWindowSize] Update UI pref failed:', err));
   // Mirror to encrypted account preferences so each account can retain its own
   // window geometry while keeping a plaintext fallback for the login window.
   const accountId = useAuthStore.getState().currentAccount?.id;
   if (accountId) {
     await invoke('user_data_update_preference', {
       payload: { accountId, preferences: { windowSize: payload } },
-    }).catch(() => {});
+    }).catch((err) => console.warn('[useWindowSize] Update account pref failed:', err));
   }
 }
 

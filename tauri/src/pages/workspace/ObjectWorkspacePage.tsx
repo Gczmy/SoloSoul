@@ -63,7 +63,7 @@ export function ObjectWorkspacePage() {
   const makeCancellable = useCancellable();
 
   useEffect(() => {
-    loadUserTemplates().catch(() => {});
+    loadUserTemplates().catch((err) => console.warn('[Workspace] Load templates failed:', err));
   }, [loadUserTemplates]);
 
   // Open object detail modal directly when navigated with ?objectId=... (e.g. from search)
@@ -71,7 +71,7 @@ export function ObjectWorkspacePage() {
     if (!detailObjectId || !accountId) return;
     invoke('object_get', { objectId: detailObjectId })
       .then((obj) => setDetailObj(obj as (typeof visibleObjects)[number]))
-      .catch(() => {});
+      .catch((err) => console.warn('[Workspace] Fetch object detail failed:', err));
   }, [detailObjectId, accountId]);
 
   const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
@@ -186,8 +186,9 @@ export function ObjectWorkspacePage() {
         for (const id of ids) full[id] = counts[id] ?? 0;
         setSnapshotCounts(full);
       })
-      .catch(() => {
+      .catch((err) => {
         if (snapshotReqRef.current !== reqId) return; // stale error, discard
+        console.warn('[Workspace] Snapshot count batch failed:', err);
       });
     // Increment ref on cleanup so in-flight responses become stale (handles Strict Mode + unmount)
     return () => { snapshotReqRef.current++; };
@@ -206,7 +207,7 @@ export function ObjectWorkspacePage() {
       .then((counts) => {
         if (!isCancelled()) setAttachmentCounts(counts);
       })
-      .catch(() => {});
+      .catch((err) => console.warn('[Workspace] Attachment count batch failed:', err));
     return cancel;
   }, [visibleObjects, makeCancellable]);
 

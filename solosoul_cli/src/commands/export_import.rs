@@ -478,13 +478,9 @@ fn collect_scope_objects(
     let all = vault.list_objects(account_id, None, None, None, false, false)?;
 
     if scope.full {
-        let mut records = Vec::new();
-        for summary in &all {
-            if let Ok(Some(rec)) = vault.load_object(&summary.id) {
-                records.push(rec);
-            }
-        }
-        return Ok(records);
+        let ids: Vec<String> = all.iter().map(|s| s.id.clone()).collect();
+        let loaded = vault.load_objects_batch(&ids)?;
+        return Ok(loaded.into_values().collect());
     }
 
     let mut selected_ids: HashSet<String> = scope.selected_object_ids.iter().cloned().collect();
@@ -494,13 +490,9 @@ fn collect_scope_objects(
         }
     }
 
-    let mut records = Vec::new();
-    for id in &selected_ids {
-        if let Ok(Some(rec)) = vault.load_object(id) {
-            records.push(rec);
-        }
-    }
-    Ok(records)
+    let ids: Vec<String> = selected_ids.into_iter().collect();
+    let loaded = vault.load_objects_batch(&ids)?;
+    Ok(loaded.into_values().collect())
 }
 
 /// 构建加密前的 payload JSON（包含模板快照）。

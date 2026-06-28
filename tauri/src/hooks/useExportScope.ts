@@ -133,7 +133,7 @@ export function useExportScope({ accountId, includeAttachments }: UseExportScope
               return n;
             });
           })
-          .catch(() => {});
+          .catch((err) => console.warn('[useExportScope] Load attachments failed:', err));
       }
       return next;
     });
@@ -156,7 +156,7 @@ export function useExportScope({ accountId, includeAttachments }: UseExportScope
               return n;
             });
           })
-          .catch(() => {});
+          .catch((err) => console.warn('[useExportScope] Load attachment for expanded object failed:', err));
       }
       return next;
     });

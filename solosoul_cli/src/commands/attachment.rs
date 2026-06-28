@@ -609,12 +609,15 @@ fn load_all_referenced_attachment_ids(
     let objects = vault
         .list_objects(account_id, None, None, None, false, false)
         .map_err(map_err)?;
+
+    // Batch load all objects to avoid N+1 queries (P117)
+    let ids: Vec<String> = objects.iter().map(|s| s.id.clone()).collect();
+    let loaded = vault.load_objects_batch(&ids).map_err(map_err)?;
+
     let mut active_ids = HashSet::new();
-    for summary in &objects {
-        if let Ok(Some(rec)) = vault.load_object(&summary.id) {
-            for a in load_attachments(&rec.properties) {
-                active_ids.insert(a.id.clone());
-            }
+    for (_id, rec) in &loaded {
+        for a in load_attachments(&rec.properties) {
+            active_ids.insert(a.id.clone());
         }
     }
     Ok(active_ids)

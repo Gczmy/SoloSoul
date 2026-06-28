@@ -178,7 +178,7 @@ async fn embed_text(
     }
 }
 
-/// Batch embed multiple texts. Stops on first error.
+/// Batch embed multiple texts — sends all texts in a single API call for cloud providers.
 async fn embed_texts(
     source: EmbeddingSource,
     models_dir: std::path::PathBuf,
@@ -192,12 +192,85 @@ async fn embed_texts(
                 .await
                 .map_err(|e| format!("Embedding batch task: {}", e))?
         }
-        EmbeddingSource::Cloud { .. } => {
-            let mut results = Vec::with_capacity(texts.len());
-            for text in texts {
-                let vec = embed_text(source.clone(), models_dir.clone(), text).await?;
-                results.push(vec);
+        EmbeddingSource::Cloud {
+            ref base_url,
+            ref api_key,
+            ref model,
+        } => {
+            let client = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(120))
+                .build()
+                .map_err(|e| format!("Client: {}", e))?;
+
+            let url = format!("{}/embeddings", base_url.trim_end_matches('/'));
+            let body = serde_json::json!({
+                "input": texts,
+                "model": model,
+                "encoding_format": "float"
+            });
+
+            let resp = client
+                .post(&url)
+                .header("Authorization", format!("Bearer {}", api_key))
+                .header("Content-Type", "application/json")
+                .json(&body)
+                .send()
+                .await
+                .map_err(|e| format!("Batch embedding request to {} failed: {}", url, e))?;
+
+            if !resp.status().is_success() {
+                let status = resp.status();
+                let body_text = resp.text().await.unwrap_or_default();
+                return Err(format!(
+                    "Batch embedding API HTTP {}: {}",
+                    status,
+                    body_text
+                        .chars()
+                        .take(200)
+                        .collect::<String>()
+                ));
             }
+
+            let result: serde_json::Value = resp
+                .json()
+                .await
+                .map_err(|e| format!("Parse batch embedding response: {}", e))?;
+
+            let data = result["data"]
+                .as_array()
+                .ok_or("Invalid batch embedding response format: missing 'data'")?;
+
+            // Sort by index to preserve input order
+            let mut indexed: Vec<(usize, Vec<f32>)> = data
+                .iter()
+                .filter_map(|entry| {
+                    let idx = entry["index"].as_u64()? as usize;
+                    let emb = entry["embedding"]
+                        .as_array()?
+                        .iter()
+                        .filter_map(|v| v.as_f64().map(|f| f as f32))
+                        .collect::<Vec<f32>>();
+                    if emb.is_empty() { None } else { Some((idx, emb)) }
+                })
+                .collect();
+
+            indexed.sort_by_key(|(idx, _)| *idx);
+
+            let mut results: Vec<Vec<f32>> = indexed.into_iter().map(|(_, emb)| emb).collect();
+
+            if results.len() != texts.len() {
+                return Err(format!(
+                    "Batch embedding returned {} results for {} texts",
+                    results.len(),
+                    texts.len()
+                ));
+            }
+
+            // Normalize all vectors in place
+            for v in &mut results {
+                normalize_vector(v);
+            }
+
             Ok(results)
         }
     }

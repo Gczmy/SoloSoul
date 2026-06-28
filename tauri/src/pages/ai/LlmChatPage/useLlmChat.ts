@@ -77,7 +77,7 @@ export function useLlmChat(): UseLlmChatReturn {
         core?.setConversations(list);
         setTrashList(trash);
       })
-      .catch(() => {});
+      .catch((err) => console.warn('[useLlmChat] Refresh conversation lists failed:', err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId]);
 

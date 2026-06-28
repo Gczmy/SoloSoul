@@ -96,7 +96,7 @@ export function LlmConfigPage() {
         if (cfg.useLocalEmbedding !== undefined) setUseLocalEmbedding(cfg.useLocalEmbedding);
         if (cfg.localEmbedModelId !== undefined) setLocalModelId(cfg.localEmbedModelId);
       })
-      .catch(() => {})
+      .catch((err) => console.warn('[LLMConfig] Load providers failed:', err))
       .finally(() => setLoading(false));
 
     invoke<boolean>('llm_check_embedding_available', { accountId })
@@ -228,7 +228,7 @@ export function LlmConfigPage() {
   const handleSetActive = async (id: string) => {
     if (!accountId) return;
     setActiveId(id);
-    await invoke('llm_set_active_provider', { accountId, providerId: id }).catch(() => {});
+    await invoke('llm_set_active_provider', { accountId, providerId: id }).catch((err) => console.warn('[LLMConfig] Set active provider failed:', err));
   };
 
   const handleFeatureToggle = async (key: keyof AiFeatures) => {
@@ -239,29 +239,29 @@ export function LlmConfigPage() {
     }
     setFeatures(next);
     if (accountId)
-      await invoke('llm_set_ai_features', { accountId, features: next }).catch(() => {});
+      await invoke('llm_set_ai_features', { accountId, features: next }).catch((err) => console.warn('[LLMConfig] Set AI features failed:', err));
   };
 
   const handleAcceptRisk = async () => {
     if (!accountId) return;
-    await invoke('llm_accept_risk', { accountId }).catch(() => {});
+    await invoke('llm_accept_risk', { accountId }).catch((err) => console.warn('[LLMConfig] Accept risk failed:', err));
     setHasAcceptedRisk(true);
     setShowRiskDialog(false);
     const next = { ...features, chat: true };
     setFeatures(next);
-    await invoke('llm_set_ai_features', { accountId, features: next }).catch(() => {});
+    await invoke('llm_set_ai_features', { accountId, features: next }).catch((err) => console.warn('[LLMConfig] Set features after risk accept failed:', err));
   };
 
   const handleSystemPromptToggle = async () => {
     const next = !includeSystemPrompt;
     setIncludeSystemPrompt(next);
     if (accountId)
-      await invoke('llm_set_system_prompt_switch', { accountId, enabled: next }).catch(() => {});
+      await invoke('llm_set_system_prompt_switch', { accountId, enabled: next }).catch((err) => console.warn('[LLMConfig] Set system prompt switch failed:', err));
   };
 
   const handleSaveProvider = async (provider: ProviderConfig) => {
     if (!accountId) return;
-    await invoke('llm_save_provider', { accountId, provider }).catch(() => {});
+    await invoke('llm_save_provider', { accountId, provider }).catch((err) => console.warn('[LLMConfig] Save provider failed:', err));
     setProviders((prev) => {
       const idx = prev.findIndex((p) => p.id === provider.id);
       const updated = { ...provider, apiKey: provider.apiKey ? '••••••••' : '' };
@@ -281,7 +281,7 @@ export function LlmConfigPage() {
       t('settings:llm_delete_provider_title') || 'Delete provider',
       t('settings:llm_delete_provider_body') || 'Delete this provider configuration?',
       async () => {
-        await invoke('llm_delete_provider', { accountId, providerId: id }).catch(() => {});
+        await invoke('llm_delete_provider', { accountId, providerId: id }).catch((err) => console.warn('[LLMConfig] Delete provider failed:', err));
         setProviders((prev) => prev.filter((p) => p.id !== id));
         if (activeId === id) setActiveId('');
       },

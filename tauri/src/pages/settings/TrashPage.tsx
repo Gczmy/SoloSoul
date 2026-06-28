@@ -116,7 +116,7 @@ export function TrashPage() {
           useSettingsStore
             .getState()
             .loadCustomPages(accountId)
-            .catch(() => {});
+            .catch((err) => console.warn('[TrashPage] Load custom pages after restore failed:', err));
       },
     });
   };

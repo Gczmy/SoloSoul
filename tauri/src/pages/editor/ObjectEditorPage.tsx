@@ -49,7 +49,7 @@ export function ObjectEditorPage() {
   }, []);
 
   useEffect(() => {
-    loadUserTemplates().catch(() => {});
+    loadUserTemplates().catch((err) => console.warn('[ObjectEditor] Load templates failed:', err));
   }, [loadUserTemplates]);
 
   // Build templateMeta and objectTemplates from loaded user templates

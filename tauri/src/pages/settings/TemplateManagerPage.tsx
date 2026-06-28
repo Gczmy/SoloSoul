@@ -94,8 +94,8 @@ export function TemplateManagerPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    loadTemplates().catch(() => {});
-    if (accountId) loadCustomPages(accountId).catch(() => {});
+    loadTemplates().catch((err) => console.warn('[TemplateManager] Load templates failed:', err));
+    if (accountId) loadCustomPages(accountId).catch((err) => console.warn('[TemplateManager] Load custom pages failed:', err));
   }, [loadTemplates, accountId, loadCustomPages]);
 
 

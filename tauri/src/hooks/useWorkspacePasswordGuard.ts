@@ -37,7 +37,7 @@ export function useWorkspacePasswordGuard(): UseWorkspacePasswordGuardReturn {
       .then((r) =>
         setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
       )
-      .catch(() => {});
+      .catch((err) => console.warn('[useWorkspacePasswordGuard] Biometric check failed:', err));
     if (accountId) {
       invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
         .then((accounts) => {
