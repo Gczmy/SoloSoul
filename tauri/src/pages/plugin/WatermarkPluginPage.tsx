@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { downloadDir } from '@tauri-apps/api/path';
+import { downloadDir, join } from '@tauri-apps/api/path';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -96,6 +96,7 @@ export function WatermarkPluginPage() {
   const [running, setRunning] = useState(false);
   const [logs, setLogs] = useState<PluginLogLine[]>([]);
   const [results, setResults] = useState<WatermarkResultItem[]>([]);
+  const [selectedResultIds, setSelectedResultIds] = useState<Set<string>>(new Set());
 
   const loadAttachments = useCallback(async () => {
     setLoadingAttachments(true);
@@ -165,6 +166,17 @@ export function WatermarkPluginPage() {
 
   const handleToggleAttachment = (id: string) => {
     setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const resultItemId = (item: WatermarkResultItem) => `${item.objectId}-${item.attachmentId}`;
+
+  const handleToggleResult = (id: string) => {
+    setSelectedResultIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -268,6 +280,26 @@ export function WatermarkPluginPage() {
       await copyFile(item.outputPath, dest);
     } catch (err) {
       onError(err, t('plugin:watermark.download_failed', { defaultValue: '下载失败' }));
+    }
+  };
+
+  const handleDownloadSelected = async () => {
+    try {
+      const dir = await openDialog({ directory: true });
+      if (!dir) return;
+      const selected = results.filter((item) => selectedResultIds.has(resultItemId(item)));
+      if (selected.length === 0) return;
+      await Promise.all(
+        selected.map(async (item) => {
+          const dest = await join(dir, item.fileName);
+          await copyFile(item.outputPath, dest);
+        }),
+      );
+    } catch (err) {
+      onError(
+        err,
+        t('plugin:watermark.download_selected_failed', { defaultValue: '下载已选项失败' }),
+      );
     }
   };
 
@@ -542,28 +574,70 @@ export function WatermarkPluginPage() {
                   title={t('plugin:watermark.change_output_dir', { defaultValue: '更改下载路径' })}
                 />
               </div>
+              {selectedResultIds.size > 0 && (
+                <Button variant="secondary" size="sm" onClick={handleDownloadSelected}>
+                  <Download size={ICON_SIZE.sm} />
+                  {t('plugin:watermark.download_selected', {
+                    defaultValue: '下载已选项',
+                  })}
+                </Button>
+              )}
+            </div>
+            <div
+              className={styles.selectAllRow}
+              onClick={() => {
+                if (results.every((r) => selectedResultIds.has(resultItemId(r)))) {
+                  setSelectedResultIds(new Set());
+                } else {
+                  setSelectedResultIds(new Set(results.map(resultItemId)));
+                }
+              }}
+            >
+              <SelectCheckbox
+                checked={
+                  results.length > 0 && results.every((r) => selectedResultIds.has(resultItemId(r)))
+                }
+                indeterminate={
+                  selectedResultIds.size > 0 &&
+                  !results.every((r) => selectedResultIds.has(resultItemId(r)))
+                }
+              />
+              <span>{t('plugin:watermark.select_all', { defaultValue: '全选' })}</span>
             </div>
             <div className={styles.resultList}>
-              {results.map((item) => (
-                <div key={`${item.objectId}-${item.attachmentId}`} className={styles.resultItem}>
-                  <div className={styles.resultInfo}>
-                    <span className={styles.resultName}>{item.fileName}</span>
-                    <span className={styles.resultMime}>{item.mimeType}</span>
-                  </div>
-                  <div className={styles.resultActions}>
-                    <BadgeIconButton
-                      Icon={Eye}
-                      onClick={() => handlePreview(item.outputPath)}
-                      title={t('plugin:watermark.preview', { defaultValue: '预览' })}
+              {results.map((item) => {
+                const id = resultItemId(item);
+                return (
+                  <div key={id} className={styles.resultItem}>
+                    <SelectCheckbox
+                      checked={selectedResultIds.has(id)}
+                      onChange={() => handleToggleResult(id)}
                     />
-                    <BadgeIconButton
-                      Icon={Download}
-                      onClick={() => handleDownload(item)}
-                      title={t('plugin:watermark.download', { defaultValue: '下载' })}
-                    />
+                    <div className={styles.resultInfo}>
+                      <span className={styles.resultName}>{item.fileName}</span>
+                      <span className={styles.resultMime}>{item.mimeType}</span>
+                    </div>
+                    <div className={styles.resultActions}>
+                      <BadgeIconButton
+                        Icon={Eye}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePreview(item.outputPath);
+                        }}
+                        title={t('plugin:watermark.preview', { defaultValue: '预览' })}
+                      />
+                      <BadgeIconButton
+                        Icon={Download}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownload(item);
+                        }}
+                        title={t('plugin:watermark.download', { defaultValue: '下载' })}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Card>
         )}
