@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { downloadDir } from '@tauri-apps/api/path';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Settings2, Paperclip, Play, Eye, Download, FolderOpen, Check } from 'lucide-react';
+import { Settings2, Paperclip, Play, Eye, Download, FolderOpen, Check, Loader2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { commands } from '@/lib/ipc';
 import { pluginCommands, type PluginLogLine, type WatermarkResultItem, type WatermarkResultPayload } from '@/lib/plugin';
 import { useToastError } from '@/hooks/useToastError';
@@ -78,12 +80,7 @@ export function WatermarkPluginPage() {
   const [logs, setLogs] = useState<PluginLogLine[]>([]);
   const [results, setResults] = useState<WatermarkResultItem[]>([]);
 
-  useEffect(() => {
-    loadAttachments();
-    downloadDir().then(setOutputDir).catch(() => setOutputDir(''));
-  }, []);
-
-  const loadAttachments = async () => {
+  const loadAttachments = useCallback(async () => {
     setLoadingAttachments(true);
     try {
       const json = await commands.pluginListAttachments();
@@ -125,7 +122,12 @@ export function WatermarkPluginPage() {
     } finally {
       setLoadingAttachments(false);
     }
-  };
+  }, [onError, t]);
+
+  useEffect(() => {
+    loadAttachments();
+    downloadDir().then(setOutputDir).catch(() => setOutputDir(''));
+  }, [loadAttachments]);
 
   const selectedAttachments = useMemo(
     () => attachments.filter((a) => selectedIds.has(a.id)),
@@ -241,22 +243,24 @@ export function WatermarkPluginPage() {
           <h2 className={styles.sectionTitle}>{t('plugin:watermark.config_section', { defaultValue: '插件配置' })}</h2>
 
           <div className={styles.configRow}>
-            <button
-              className={styles.actionBtn}
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setShowConfigCard((v) => !v)}
               disabled={running}
             >
               <Settings2 size={ICON_SIZE.sm} />
               {t('plugin:watermark.watermark_config', { defaultValue: '水印配置' })}
-            </button>
-            <button
-              className={styles.actionBtn}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setShowAttachCard((v) => !v)}
               disabled={running}
             >
               <Paperclip size={ICON_SIZE.sm} />
               {t('plugin:watermark.select_attachments', { defaultValue: '附件选择' })}
-            </button>
+            </Button>
           </div>
 
           {config && !showConfigCard && (
@@ -366,13 +370,13 @@ export function WatermarkPluginPage() {
                 <span>{t('plugin:watermark.tile', { defaultValue: '平铺水印' })}</span>
               </label>
               <div className={styles.cardActions}>
-                <button className={styles.secondaryBtn} onClick={() => setConfig(DEFAULT_CONFIG)}>
+                <Button variant="tertiary" size="sm" onClick={() => setConfig(DEFAULT_CONFIG)}>
                   {t('common:reset', { defaultValue: '重置' })}
-                </button>
-                <button className={styles.primaryBtn} onClick={() => setShowConfigCard(false)}>
+                </Button>
+                <Button variant="primary" size="sm" onClick={() => setShowConfigCard(false)}>
                   <Check size={ICON_SIZE.sm} />
                   {t('common:save', { defaultValue: '保存' })}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -409,23 +413,29 @@ export function WatermarkPluginPage() {
                 </div>
               )}
               <div className={styles.cardActions}>
-                <button className={styles.primaryBtn} onClick={() => setShowAttachCard(false)}>
+                <Button variant="primary" size="sm" onClick={() => setShowAttachCard(false)}>
                   <Check size={ICON_SIZE.sm} />
                   {t('common:save', { defaultValue: '保存' })}
-                </button>
+                </Button>
               </div>
             </div>
           )}
 
           <div className={styles.runRow}>
-            <button className={styles.runBtn} onClick={handleRun} disabled={running || selectedAttachments.length === 0}>
+            <Button
+              variant="primary"
+              size="lg"
+              loading={running}
+              disabled={selectedAttachments.length === 0}
+              onClick={handleRun}
+            >
               {running ? (
-                <span className={styles.spin}><Play size={ICON_SIZE.sm} /></span>
+                <Loader2 size={ICON_SIZE.sm} className={styles.spin} />
               ) : (
                 <Play size={ICON_SIZE.sm} />
               )}
               {t('plugin:watermark.add_watermark', { defaultValue: '添加水印' })}
-            </button>
+            </Button>
           </div>
         </Card>
 
@@ -455,9 +465,11 @@ export function WatermarkPluginPage() {
                   {t('plugin:watermark.output_dir', { defaultValue: '下载路径' })}:
                 </span>
                 <span className={styles.outputDir}>{outputDir}</span>
-                <button className={styles.iconBtn} onClick={handleChangeOutputDir} title={t('plugin:watermark.change_output_dir', { defaultValue: '更改下载路径' })}>
-                  <FolderOpen size={ICON_SIZE.sm} />
-                </button>
+                <BadgeIconButton
+                  Icon={FolderOpen}
+                  onClick={handleChangeOutputDir}
+                  title={t('plugin:watermark.change_output_dir', { defaultValue: '更改下载路径' })}
+                />
               </div>
             </div>
             <div className={styles.resultList}>
@@ -468,20 +480,16 @@ export function WatermarkPluginPage() {
                     <span className={styles.resultMime}>{item.mimeType}</span>
                   </div>
                   <div className={styles.resultActions}>
-                    <button
-                      className={styles.iconBtn}
+                    <BadgeIconButton
+                      Icon={Eye}
                       onClick={() => handlePreview(item.outputPath)}
                       title={t('plugin:watermark.preview', { defaultValue: '预览' })}
-                    >
-                      <Eye size={ICON_SIZE.sm} />
-                    </button>
-                    <button
-                      className={styles.iconBtn}
+                    />
+                    <BadgeIconButton
+                      Icon={Download}
                       onClick={() => handleDownload(item)}
                       title={t('plugin:watermark.download', { defaultValue: '下载' })}
-                    >
-                      <Download size={ICON_SIZE.sm} />
-                    </button>
+                    />
                   </div>
                 </div>
               ))}
