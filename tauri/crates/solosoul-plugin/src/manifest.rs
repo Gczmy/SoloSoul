@@ -261,7 +261,7 @@ pub struct RegistryEntry {
     #[serde(default)]
     pub field_bindings: Vec<PluginFieldBinding>,
     /// 自定义 UI 标识
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, alias = "custom_ui", skip_serializing_if = "Option::is_none")]
     pub custom_ui: Option<String>,
 }
 
