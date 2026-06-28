@@ -108,7 +108,11 @@ export function ScanLocalPage() {
   };
 
   const handleImportAll = async () => {
-    await Promise.all(files.map((file) => handleImport(file)));
+    const results = await Promise.allSettled(files.map((file) => handleImport(file)));
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length > 0) {
+      console.warn(`ImportAll: ${failures.length}/${files.length} files failed`);
+    }
   };
 
   return (

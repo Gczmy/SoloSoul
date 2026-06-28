@@ -117,37 +117,34 @@ pub fn inherit_property_labels(
     vault: &solosoul_vault::VaultStore,
     template_id: Option<&str>,
 ) -> Option<serde_json::Value> {
-    template_id.and_then(|tid| {
-        let tpl = vault.load_user_template(tid).ok().flatten()?;
-        let mut map = serde_json::Map::new();
-        for prop in &tpl.properties {
-            if let Some(ref sl) = prop.sensitivity_level {
-                map.insert(prop.id.clone(), serde_json::Value::String(sl.clone()));
-            }
-        }
-        if map.is_empty() {
-            None
-        } else {
-            Some(serde_json::Value::Object(map))
-        }
-    })
+    // 复用 inherit_template_properties 避免重复加载模板
+    let (labels, _) = inherit_template_properties(vault, template_id);
+    labels
 }
 
-/// 从模板继承字段定义（字段名 + 类型等），嵌入到 `properties` 的 `__fields` 键中。
-/// 即使模板被删除，对象仍保留字段定义副本。
-fn inherit_property_fields(
+/// 内部合并函数：一次加载模板，同时返回 property_labels 和 __fields。
+fn inherit_template_properties(
     vault: &solosoul_vault::VaultStore,
     template_id: Option<&str>,
-) -> serde_json::Value {
+) -> (Option<serde_json::Value>, serde_json::Value) {
     let Some(tid) = template_id else {
-        return serde_json::Value::Null;
+        return (None, serde_json::Value::Null);
     };
     let tpl = match vault.load_user_template(tid).ok().flatten() {
         Some(t) => t,
-        None => return serde_json::Value::Null,
+        None => return (None, serde_json::Value::Null),
     };
-    let mut map = serde_json::Map::new();
+
+    let mut labels_map = serde_json::Map::new();
+    let mut fields_map = serde_json::Map::new();
+
     for prop in &tpl.properties {
+        // property_labels
+        if let Some(ref sl) = prop.sensitivity_level {
+            labels_map.insert(prop.id.clone(), serde_json::Value::String(sl.clone()));
+        }
+
+        // __fields
         let mut field_def = serde_json::Map::new();
         field_def.insert(
             "name".to_string(),
@@ -176,13 +173,31 @@ fn inherit_property_fields(
         if let Some(ref cf) = prop.contract_field {
             field_def.insert("contractField".to_string(), serde_json::Value::Bool(*cf));
         }
-        map.insert(prop.id.clone(), serde_json::Value::Object(field_def));
+        fields_map.insert(prop.id.clone(), serde_json::Value::Object(field_def));
     }
-    if map.is_empty() {
+
+    let labels = if labels_map.is_empty() {
+        None
+    } else {
+        Some(serde_json::Value::Object(labels_map))
+    };
+    let fields = if fields_map.is_empty() {
         serde_json::Value::Null
     } else {
-        serde_json::Value::Object(map)
-    }
+        serde_json::Value::Object(fields_map)
+    };
+    (labels, fields)
+}
+
+/// 从模板继承字段定义（字段名 + 类型等），嵌入到 `properties` 的 `__fields` 键中。
+/// 即使模板被删除，对象仍保留字段定义副本。
+fn inherit_property_fields(
+    vault: &solosoul_vault::VaultStore,
+    template_id: Option<&str>,
+) -> serde_json::Value {
+    // 复用 inherit_template_properties 避免重复加载模板
+    let (_, fields) = inherit_template_properties(vault, template_id);
+    fields
 }
 
 /// 将 `__fields` 注入到 properties JSON 对象中。

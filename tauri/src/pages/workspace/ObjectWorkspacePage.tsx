@@ -76,13 +76,13 @@ export function ObjectWorkspacePage() {
 
   const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
 
-  const resolveCollectionLabel = (collectionType: string) => {
+  const resolveCollectionLabel = useCallback((collectionType: string) => {
     if (['identity', 'travel', 'financial', 'professional'].includes(collectionType)) {
       return t(`navigation:${collectionType}`);
     }
     const cp = customPages.find((p) => p.id === collectionType);
     return cp?.name || collectionType;
-  };
+  }, [t, customPages]);
 
   const activeCategoryLabel = sectionFilter
     ? t(`navigation:${sectionFilter}`, sectionFilter)
@@ -109,14 +109,14 @@ export function ObjectWorkspacePage() {
     return map;
   }, [userTemplates]);
 
-  const getFieldProperty = (
+  const getFieldProperty = useCallback((
     templateId: string | undefined,
     fieldKey: string,
   ): TemplateProperty | undefined => {
     return templateFieldMap.get(templateId || '')?.get(fieldKey);
-  };
+  }, [templateFieldMap]);
 
-  const getFieldSensitivity = (
+  const getFieldSensitivity = useCallback((
     templateId: string | undefined,
     fieldKey: string,
     propertyLabels?: Record<string, string>,
@@ -127,13 +127,13 @@ export function ObjectWorkspacePage() {
     }
     // 2. 回退到模板定义
     return (getFieldProperty(templateId, fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public';
-  };
+  }, [getFieldProperty]);
 
-  const isFieldDeprecated = (templateId: string | undefined, fieldKey: string): boolean => {
+  const isFieldDeprecated = useCallback((templateId: string | undefined, fieldKey: string): boolean => {
     return !!getFieldProperty(templateId, fieldKey)?.deprecatedAt;
-  };
+  }, [getFieldProperty]);
 
-  const getFieldName = (
+  const getFieldName = useCallback((
     templateId: string | undefined,
     fieldKey: string,
     propertyFields?: Record<string, { name: string }>,
@@ -141,7 +141,7 @@ export function ObjectWorkspacePage() {
     return getFieldProperty(templateId, fieldKey)?.name
       || propertyFields?.[fieldKey]?.name
       || fieldKey;
-  };
+  }, [getFieldProperty]);
 
   useEffect(() => {
     if (accountId) {

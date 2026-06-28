@@ -522,33 +522,35 @@ export function GlobalAttachmentManager() {
     setExpandedObjects(allObjects);
   }, [displayPages, searchQuery, data]);
 
-  // ── Count summaries ────────────────────────────────────────
-
-  const activeCount = data?.pages.reduce((acc, p) =>
-    acc + p.objects.reduce((acc2, o) => acc2 + o.attachments.length, 0), 0) ?? 0;
-  const activeBytes = data?.pages.reduce((acc, p) =>
-    acc + p.objects.reduce((acc2, o) => acc2 + o.attachments.reduce((s, a) => s + a.sizeBytes, 0), 0), 0) ?? 0;
-  const trashCount = data?.trashPages.reduce((acc, p) =>
-    acc + p.objects.reduce((acc2, o) => acc2 + o.attachments.length, 0), 0) ?? 0;
-  const trashBytes = data?.trashPages.reduce((acc, p) =>
-    acc + p.objects.reduce((acc2, o) => acc2 + o.attachments.reduce((s, a) => s + a.sizeBytes, 0), 0), 0) ?? 0;
+  // ── Count summaries (unified via summaryStats) ─────────────
 
   const summaryStats = useMemo(() => {
-    const pages = showTrash ? (data?.trashPages || []) : (data?.pages || []);
-    let totalAttachments = 0;
-    let totalBytes = 0;
-    let totalObjects = 0;
-    for (const page of pages) {
+    const activePages = data?.pages || [];
+    const trashPages = data?.trashPages || [];
+    let activeAttachments = 0, activeBytes = 0, activeObjects = 0;
+    for (const page of activePages) {
       for (const obj of page.objects) {
-        totalObjects++;
+        activeObjects++;
         for (const att of obj.attachments) {
-          totalAttachments++;
-          totalBytes += att.sizeBytes;
+          activeAttachments++;
+          activeBytes += att.sizeBytes;
         }
       }
     }
-    return { totalObjects, totalAttachments, totalBytes };
-  }, [data, showTrash]);
+    let trashAttachments = 0, trashBytes = 0, trashObjects = 0;
+    for (const page of trashPages) {
+      for (const obj of page.objects) {
+        trashObjects++;
+        for (const att of obj.attachments) {
+          trashAttachments++;
+          trashBytes += att.sizeBytes;
+        }
+      }
+    }
+    return { activeAttachments, activeBytes, activeObjects, trashAttachments, trashBytes, trashObjects };
+  }, [data]);
+
+  const { activeAttachments: activeCount, activeBytes, activeObjects, trashAttachments: trashCount, trashBytes, trashObjects } = summaryStats;
 
   // ── Render attachment row ──────────────────────────────────
 

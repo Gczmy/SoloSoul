@@ -50,13 +50,22 @@ pub fn handle(app: &mut App, argv: &[&str]) -> Result<()> {
     }
 }
 
+/// 帮助文本，供 `/embed_model help` 显示。
+pub fn help_text() -> Vec<&'static str> {
+    vec![
+        "用法: /embed_model <subcommand> [args]",
+        "  list                       列出本地已安装/可用模型",
+        "  install <model_id>         从注册表下载并安装指定模型",
+        "  remove <model_id>          删除本地 embedding 模型目录",
+        "  status                     显示当前本地目录情况",
+        "  help                       显示本帮助",
+    ]
+}
+
 fn print_help() {
-    println!("用法: /embed_model <subcommand> [args]");
-    println!("  list                       列出本地已安装/可用模型");
-    println!("  install <model_id>         从注册表下载并安装指定模型");
-    println!("  remove <model_id>          删除本地 embedding 模型目录");
-    println!("  status                     显示当前本地目录情况");
-    println!("  help                       显示本帮助");
+    for line in help_text() {
+        println!("{line}");
+    }
 }
 
 /// CLI 用户使用的 embedding 模型本地目录：`{base_path}/embed_models`。

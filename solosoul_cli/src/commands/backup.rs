@@ -40,7 +40,6 @@ struct BackupProfileEntry {
 
 /// 恢复时读取的清单结构。
 #[derive(Deserialize)]
-#[allow(dead_code)]
 struct RestoreManifest {
     version: String,
     created_at: String,

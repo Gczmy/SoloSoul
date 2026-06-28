@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { X } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
@@ -17,8 +18,16 @@ export function AttachmentPreview({
   onClose,
 }: AttachmentPreviewProps) {
   const [zoom, setZoom] = useState(100);
+  const [previewUrl, setPreviewUrl] = useState('');
   const isImage = mimeType.startsWith('image/');
   const isPDF = mimeType === 'application/pdf';
+
+  useEffect(() => {
+    if (!filePath) return;
+    invoke<string>('fs_read_file_as_data_url', { path: filePath })
+      .then(setPreviewUrl)
+      .catch(() => setPreviewUrl('error'));
+  }, [filePath]);
 
   return (
     <div
@@ -72,9 +81,9 @@ export function AttachmentPreview({
           padding: 16,
         }}
       >
-        {isImage && filePath && (
+        {previewUrl && previewUrl !== 'error' && (
           <img
-            src={`asset://localhost/${encodeURIComponent(filePath)}`}
+            src={previewUrl}
             alt={fileName}
             style={{
               maxWidth: `${zoom}%`,
@@ -84,17 +93,8 @@ export function AttachmentPreview({
             }}
           />
         )}
-        {isPDF && filePath && (
-          <iframe
-            src={`asset://localhost/${encodeURIComponent(filePath)}`}
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              borderRadius: 8,
-              background: 'white',
-            }}
-          />
+        {previewUrl === 'error' && (
+          <div style={{ color: '#e74c3c', padding: 24 }}>Failed to load preview.</div>
         )}
       </div>
     </div>

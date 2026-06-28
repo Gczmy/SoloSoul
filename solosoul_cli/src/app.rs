@@ -468,12 +468,8 @@ pub fn build_external_edit_request(field: EditableField) -> ExternalEditRequest 
 
 impl App {
     /// 将外部编辑器（inquire）返回的值应用到当前向导的选中字段。
-    #[allow(clippy::collapsible_match)]
     pub fn apply_external_edit(&mut self, value: Option<serde_json::Value>) {
-        if value.is_none() {
-            return;
-        }
-        let value = value.unwrap();
+        let Some(value) = value else { return; };
         match &mut self.phase {
             AppPhase::NewObjectWizard {
                 step:

@@ -46,12 +46,21 @@ pub fn handle(app: &mut App, argv: &[&str]) -> Result<()> {
     }
 }
 
+/// 帮助文本，供 `/ocr help` 显示。
+pub fn help_text() -> Vec<&'static str> {
+    vec![
+        "用法: /ocr <subcommand> [args]",
+        "  tiers                       列出可用模型档位 (tiny/small/medium) 及本地安装状态",
+        "  scan [--mrz] <image-path>   对指定本地图片执行 OCR;--mrz 触发护照 MRZ 结构化识别",
+        "  status                      显示当前模型目录与已安装档位",
+        "  help                        显示本帮助",
+    ]
+}
+
 fn print_help() {
-    println!("用法: /ocr <subcommand> [args]");
-    println!("  tiers                       列出可用模型档位 (tiny/small/medium) 及本地安装状态");
-    println!("  scan [--mrz] <image-path>   对指定本地图片执行 OCR;--mrz 触发护照 MRZ 结构化识别");
-    println!("  status                      显示当前模型目录与已安装档位");
-    println!("  help                        显示本帮助");
+    for line in help_text() {
+        println!("{line}");
+    }
 }
 
 /// 计算 CLI 使用的 model 目录：`{base_path}/models`。

@@ -65,8 +65,7 @@ pub fn render(
                 // Top border with category title
                 let title_prefix = format!("─[{}]─", group_name);
                 let title_fill = inner_width.saturating_sub(title_prefix.len() as u16 + 2);
-                let top_line =
-                    format!("┌{}", title_prefix) + &"─".repeat(title_fill as usize) + "┐";
+                let top_line = format!("┌{}─{}┐", title_prefix, "─".repeat(title_fill as usize));
                 all_lines.push(Line::from(top_line).style(theme.style_brand()));
 
                 // Commands
