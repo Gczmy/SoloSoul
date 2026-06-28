@@ -5,6 +5,15 @@ import rehypeHighlight from 'rehype-highlight';
 import { formatTimestamp } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
+/** URL 协议白名单：仅允许安全的 HTTP(S)/mailto 链接 */
+function allowedUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    if (['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return url;
+  } catch { /* ignore invalid URLs */ }
+  return '';
+}
+
 
 export interface ChatMsg {
   role: string;
@@ -75,7 +84,12 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
             <div style={{ color: '#e74c3c', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
           ) : (
             <div className="markdown-content">
-              <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{msg.content}</ReactMarkdown>
+              <ReactMarkdown
+                rehypePlugins={[rehypeHighlight]}
+                urlTransform={allowedUrl}
+              >
+                {msg.content}
+              </ReactMarkdown>
             </div>
           )}
         </div>

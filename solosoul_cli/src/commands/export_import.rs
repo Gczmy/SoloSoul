@@ -24,9 +24,6 @@ use solosoul_core::{ObjectRecord, Profile, VaultStore};
 // 导出包大小限制（与 GUI 一致）
 const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB
 const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
-                                                        // 流式加密现在总是使用分块模式，不再需要阈值判断（P1-023）。
-#[allow(dead_code)]
-const STREAMING_THRESHOLD: u64 = 10 * 1024 * 1024; // 10 MB
 
 /// 附件元数据（与 GUI `attachment::AttachmentMeta` 一致，camelCase 序列化）。
 #[derive(Debug, Clone, Serialize, Deserialize)]

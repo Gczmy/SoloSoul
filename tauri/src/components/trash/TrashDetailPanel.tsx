@@ -47,8 +47,8 @@ export function TrashDetailPanel({
   onRequestRestore,
   onRequestDelete,
 }: TrashDetailPanelProps) {
-  const customPages = useSettingsStore((s) => s.settings.customPages);
   const { t } = useTranslation(['settings', 'common', 'editor', 'navigation']);
+  const customPages = useSettingsStore((s) => s.settings.customPages);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [showTrashAttachments, setShowTrashAttachments] = useState(false);
   const [historySnapIndex, setHistorySnapIndex] = useState<Record<string, number>>({});

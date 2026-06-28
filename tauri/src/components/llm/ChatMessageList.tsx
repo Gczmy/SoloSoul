@@ -7,6 +7,15 @@ import rehypeHighlight from 'rehype-highlight';
 import { formatTimestamp } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
+/** URL 协议白名单：仅允许安全的 HTTP(S)/mailto 链接 */
+function allowedUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    if (['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return url;
+  } catch { /* ignore invalid URLs */ }
+  return '';
+}
+
 
 interface ChatMsg {
   role: string;
@@ -67,7 +76,7 @@ export const ChatMessageList = memo(function ChatMessageList({
         </div>
       )}
       {messages.map((msg, i) => (
-        <div key={i} style={{ marginBottom: 6 }}>
+        <div key={msg.createdAt + msg.role + i} style={{ marginBottom: 6 }}>
           <div
             style={{
               textAlign: 'center',
@@ -107,7 +116,12 @@ export const ChatMessageList = memo(function ChatMessageList({
                 <div style={{ color: '#e74c3c', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
               ) : (
                 <div className="quick-chat-markdown">
-                  <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{msg.content}</ReactMarkdown>
+                  <ReactMarkdown
+                    rehypePlugins={[rehypeHighlight]}
+                    urlTransform={allowedUrl}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
                 </div>
               )}
             </div>

@@ -108,9 +108,7 @@ export function ScanLocalPage() {
   };
 
   const handleImportAll = async () => {
-    for (const file of files) {
-      await handleImport(file);
-    }
+    await Promise.all(files.map((file) => handleImport(file)));
   };
 
   return (
