@@ -3,7 +3,7 @@
 //! 支持对图片（PNG/JPEG/WEBP/BMP/GIF）和 PDF 添加文本水印。
 //! 所有操作都在输入文件的副本上进行，不会修改保险库内原始附件。
 
-use ab_glyph::{point, Font, FontRef, PxScale};
+use ab_glyph::{point, Font, FontRef, PxScale, ScaleFont};
 use image::{Rgba, RgbaImage};
 use pdfium_render::prelude::*;
 use serde::Deserialize;
@@ -169,6 +169,7 @@ pub fn apply_to_image(input: &Path, output: &Path, config: &WatermarkConfig) -> 
 
     // 手动布局文本（ab_glyph 0.2 未提供 layout 方法）
     let scale = PxScale::from(config.font_size);
+    let scaled = font.as_scaled(scale);
     let baseline_y = config.font_size * 0.8;
     let mut glyphs: Vec<ab_glyph::Glyph> = Vec::with_capacity(config.text.chars().count());
     let mut cursor_x = 0.0f32;
@@ -176,22 +177,24 @@ pub fn apply_to_image(input: &Path, output: &Path, config: &WatermarkConfig) -> 
     for ch in config.text.chars() {
         let id = font.glyph_id(ch);
         if let Some(prev) = prev_id {
-            cursor_x += font.kern_unscaled(prev, id) * scale.x;
+            cursor_x += scaled.kern(prev, id);
         }
         glyphs.push(id.with_scale_and_position(scale, point(cursor_x, baseline_y)));
-        cursor_x += font.h_advance_unscaled(id) * scale.x;
+        cursor_x += scaled.h_advance(id);
         prev_id = Some(id);
     }
 
-    let mut text_w = 0.0f32;
+    let mut max_ink_x = 0.0f32;
     let mut text_h = 0.0f32;
     for glyph in &glyphs {
         if let Some(outline) = font.outline_glyph(glyph.clone()) {
             let bounds = outline.px_bounds();
-            text_w = text_w.max(bounds.max.x);
+            max_ink_x = max_ink_x.max(bounds.max.x);
             text_h = text_h.max(bounds.max.y - bounds.min.y);
         }
     }
+    // 文本宽度取排版总前进距与最大墨BBox右端的最大值，避免斜体等突出部分被截断。
+    let text_w = cursor_x.max(max_ink_x);
     if text_w <= 0.0 || text_h <= 0.0 {
         return Err("水印文本渲染后尺寸为零".to_string());
     }
@@ -222,8 +225,12 @@ pub fn apply_to_image(input: &Path, output: &Path, config: &WatermarkConfig) -> 
         }
     }
 
-    // 旋转临时层
-    let rotated = rotate_rgba(&layer, config.angle);
+    // 旋转临时层（0° 时直接复用，避免无意义的重采样）
+    let rotated = if config.angle == 0.0 {
+        layer.clone()
+    } else {
+        rotate_rgba(&layer, config.angle)
+    };
 
     // 计算绘制位置
     let positions = compute_positions(
@@ -239,7 +246,7 @@ pub fn apply_to_image(input: &Path, output: &Path, config: &WatermarkConfig) -> 
     }
 
     let fmt = guess_image_format(output).unwrap_or(image::ImageFormat::Png);
-    canvas
+    image::DynamicImage::ImageRgba8(canvas)
         .save_with_format(output, fmt)
         .map_err(|e| format!("保存图片失败: {}", e))?;
     Ok(())
@@ -710,5 +717,41 @@ mod tests {
             .load_pdf_from_file(&output, None)
             .expect("reload output pdf");
         assert_eq!(doc.pages().len(), 1, "页数应保持不变");
+    }
+
+    /// 验证图片水印不会陷入无限大内存/超时，并正确生成输出文件。
+    #[test]
+    fn test_apply_to_image_smoke() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let input = dir.path().join("input.jpg");
+        let output = dir.path().join("output.jpg");
+
+        let rgb = image::RgbImage::from_pixel(200, 150, image::Rgb([255, 255, 255]));
+        rgb.save_with_format(&input, image::ImageFormat::Jpeg)
+            .expect("create test jpeg");
+
+        let cfg = WatermarkConfig {
+            text: "SoloSoul".to_string(),
+            font_size: 48.0,
+            color: [128, 128, 128],
+            opacity: 0.5,
+            angle: -30.0,
+            position: WatermarkPosition::Center,
+            tile: false,
+            margin_x: 0,
+            margin_y: 0,
+        };
+
+        let start = std::time::Instant::now();
+        let result = apply_to_image(&input, &output, &cfg);
+        let elapsed = start.elapsed();
+        assert!(result.is_ok(), "图片水印应成功: {:?}", result);
+        assert!(output.exists(), "输出文件应存在");
+        assert!(output.metadata().unwrap().len() > 0, "输出文件不应为空");
+        assert!(
+            elapsed < std::time::Duration::from_secs(5),
+            "图片水印应在合理时间内完成，实际耗时 {:?}",
+            elapsed
+        );
     }
 }
