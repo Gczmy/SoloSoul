@@ -48,6 +48,10 @@ fn migrate_legacy_templates_if_needed(
         .and_then(|v| serde_json::from_value::<Vec<serde_json::Value>>(v.clone()).ok())
         .unwrap_or_default();
 
+    if legacy_templates.is_empty() {
+        tracing::warn!("Legacy migration: found profile data but no userTemplates array, skipping");
+    }
+
     for tpl in legacy_templates {
         let name = tpl
             .get("name")

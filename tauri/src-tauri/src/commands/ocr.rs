@@ -184,6 +184,11 @@ pub async fn ocr_scan_image(
         return Err(format!("文件不存在: {}", path.display()));
     }
 
+    // 验证文件路径在允许的目录内（防御性安全校验）
+    if !is_path_in_allowed_dir(&path) {
+        return Err("文件路径不在允许的目录中（Desktop/Documents/Downloads）".to_string());
+    }
+
     let mut engine = OcrEngine::load(&models_dir, tier)?;
     let ext = path
         .extension()
@@ -238,6 +243,11 @@ pub async fn ocr_scan_mrz(
     let path = PathBuf::from(&file_path);
     if !path.exists() {
         return Err(format!("文件不存在: {}", path.display()));
+    }
+
+    // 验证文件路径在允许的目录内（防御性安全校验）
+    if !is_path_in_allowed_dir(&path) {
+        return Err("文件路径不在允许的目录中（Desktop/Documents/Downloads）".to_string());
     }
 
     let mut engine = OcrEngine::load(&models_dir, tier)?;
@@ -457,6 +467,36 @@ pub async fn ocr_download_model(
         Some(&details),
     );
     Ok(())
+}
+
+// =============================================================================
+// Path validation helper
+// =============================================================================
+
+/// 检查路径是否在允许的用户目录内（Desktop/Documents/Downloads）。
+/// 用于防御性安全校验，防止路径遍历攻击。
+fn is_path_in_allowed_dir(path: &Path) -> bool {
+    let canon = match path.canonicalize() {
+        Ok(p) => p,
+        Err(_) => return false,
+    };
+
+    let home_var = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
+    let home = match std::env::var(home_var) {
+        Ok(h) => PathBuf::from(h),
+        Err(_) => return false,
+    };
+
+    for dir_name in &["Desktop", "Documents", "Downloads"] {
+        let allowed = home.join(dir_name);
+        if let Ok(allowed_canon) = allowed.canonicalize() {
+            if canon.starts_with(&allowed_canon) {
+                return true;
+            }
+        }
+    }
+
+    false
 }
 
 // =============================================================================
