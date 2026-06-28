@@ -518,7 +518,8 @@ async fn import_execute_internal(
         .extra_files
         .contains(&"preferences.enc".to_string())
     {
-        let prefs_salt = hex::decode(&manifest.salt_hex).unwrap_or_default();
+        let prefs_salt = hex::decode(&manifest.salt_hex)
+            .map_err(|e| format!("Invalid salt_hex in manifest: {}", e))?;
         let prefs_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
             &key,
             &prefs_salt,

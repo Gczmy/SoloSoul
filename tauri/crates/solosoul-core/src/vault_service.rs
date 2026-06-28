@@ -38,10 +38,30 @@ fn set_private_file(path: &Path) -> Result<(), String> {
 }
 
 #[cfg(windows)]
+/// Validate Windows username to prevent icacls command injection.
+/// Only allow characters valid in Windows usernames.
+fn sanitize_windows_username(username: &str) -> Result<String, String> {
+    if username.is_empty() {
+        return Err("Windows username is empty".to_string());
+    }
+    if !username
+        .chars()
+        .all(|c| c.is_alphanumeric() || c == ' ' || c == '-' || c == '_' || c == '.')
+    {
+        return Err(format!(
+            "Windows username contains invalid characters: {}",
+            username
+        ));
+    }
+    Ok(username.to_string())
+}
+
+#[cfg(windows)]
 fn set_private_dir(path: &Path) -> Result<(), String> {
     let path_str = path.to_string_lossy();
     let username = std::env::var("USERNAME")
         .map_err(|_| "USERNAME environment variable not found".to_string())?;
+    let username = sanitize_windows_username(&username)?;
     let status = std::process::Command::new("icacls")
         .args([
             path_str.as_ref(),
@@ -65,6 +85,7 @@ fn set_private_file(path: &Path) -> Result<(), String> {
     let path_str = path.to_string_lossy();
     let username = std::env::var("USERNAME")
         .map_err(|_| "USERNAME environment variable not found".to_string())?;
+    let username = sanitize_windows_username(&username)?;
     let status = std::process::Command::new("icacls")
         .args([
             path_str.as_ref(),
