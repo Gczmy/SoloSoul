@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { WatermarkPluginPage } from './WatermarkPluginPage';
 
 const CUSTOM_UI_REGISTRY: Record<string, React.ComponentType> = {
-  WatermarkPluginPage,
+  'com.solosoul.official.watermark': WatermarkPluginPage,
 };
 
 export function PluginCustomPage() {
