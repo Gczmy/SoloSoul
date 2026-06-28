@@ -96,6 +96,10 @@ static GUIDE_INDEX_CACHE: Lazy<Mutex<Option<GuideIndex>>> = Lazy::new(|| Mutex::
 static GUIDE_SUMMARY_CACHE: Lazy<Mutex<HashMap<String, String>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
+/// 缓存的全文搜索索引
+static SEARCH_INDEX_CACHE: Lazy<Mutex<Option<SearchIndex>>> =
+    Lazy::new(|| Mutex::new(None));
+
 /// 获取缓存内容，容忍毒化锁（poisoned lock recovery）
 fn get_index_cache() -> Option<GuideIndex> {
     let guard = GUIDE_INDEX_CACHE.lock().unwrap_or_else(|e| e.into_inner());
@@ -119,6 +123,16 @@ fn set_summary_cache(summaries: HashMap<String, String>) {
         .lock()
         .unwrap_or_else(|e| e.into_inner());
     *guard = summaries;
+}
+
+fn get_search_index_cache() -> Option<SearchIndex> {
+    let guard = SEARCH_INDEX_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    guard.clone()
+}
+
+fn set_search_index_cache(index: SearchIndex) {
+    let mut guard = SEARCH_INDEX_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    *guard = Some(index);
 }
 
 /// 如果摘要缓存为空，则按需预加载所有指南摘要。
@@ -513,9 +527,24 @@ pub async fn guide_load_content(
     })
 }
 
+/// 加载全文搜索索引（缓存优先）
+pub fn load_search_index_impl() -> Result<SearchIndex, String> {
+    if let Some(idx) = get_search_index_cache() {
+        return Ok(idx);
+    }
+    let path = resource_path("docs/guides/search-index.json");
+    let content = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read search index at {:?}: {}", path, e))?;
+    let index: SearchIndex = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to parse search index: {}", e))?;
+    set_search_index_cache(index.clone());
+    Ok(index)
+}
+
 #[tauri::command]
 pub async fn guide_search(query: String, language: String) -> Result<Vec<GuideContent>, String> {
     let index = load_guide_index()?;
+    let search_index = load_search_index_impl()?;
     let tokens: Vec<String> = query
         .to_lowercase()
         .split(|c: char| c.is_whitespace() || c.is_ascii_punctuation())
@@ -531,6 +560,7 @@ pub async fn guide_search(query: String, language: String) -> Result<Vec<GuideCo
         let mut score = 0;
         let title_text = resolve_title(&guide.title, &language).to_lowercase();
         for token in &tokens {
+            // Keyword match (score 1)
             if guide
                 .keywords
                 .iter()
@@ -538,8 +568,15 @@ pub async fn guide_search(query: String, language: String) -> Result<Vec<GuideCo
             {
                 score += 1;
             }
+            // Title match (score 3)
             if title_text.contains(token) {
                 score += 3;
+            }
+            // Full-text content match via pre-built search index (score 2)
+            if let Some(guide_ids) = search_index.words.get(token) {
+                if guide_ids.contains(&guide.id) {
+                    score += 2;
+                }
             }
         }
         if score >= 1 {
@@ -567,10 +604,5 @@ pub struct SearchIndex {
 
 #[tauri::command]
 pub async fn guide_load_search_index() -> Result<SearchIndex, String> {
-    let path = resource_path("docs/guides/search-index.json");
-    let content = std::fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read search index at {:?}: {}", path, e))?;
-    let index: SearchIndex = serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse search index: {}", e))?;
-    Ok(index)
+    load_search_index_impl()
 }
