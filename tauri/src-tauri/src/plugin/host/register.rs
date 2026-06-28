@@ -989,11 +989,32 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
     Ok(())
 }
 
+/// 规范化路径，对不存在的路径尝试规范化其父目录后再拼接末尾组件。
+fn resolve_path(path: &std::path::Path) -> std::path::PathBuf {
+    if let Ok(p) = std::fs::canonicalize(path) {
+        return p;
+    }
+    let mut existing = path;
+    let mut suffix = Vec::new();
+    loop {
+        if let Some(file_name) = existing.file_name() {
+            suffix.push(file_name);
+            if let Some(parent) = existing.parent() {
+                existing = parent;
+                continue;
+            }
+        }
+        break;
+    }
+    let base = std::fs::canonicalize(existing).unwrap_or_else(|_| existing.to_path_buf());
+    suffix.into_iter().rev().fold(base, |acc, name| acc.join(name))
+}
+
 fn is_under_workspace(host: &super::SoloHostFunctions, path: &std::path::Path) -> bool {
     match host.workspace_dir.as_ref() {
         Some(ws) => {
-            let canonical_ws = std::fs::canonicalize(ws).unwrap_or_else(|_| ws.to_path_buf());
-            let canonical_path = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
+            let canonical_ws = resolve_path(ws);
+            let canonical_path = resolve_path(path);
             canonical_path.starts_with(&canonical_ws)
         }
         None => false,
