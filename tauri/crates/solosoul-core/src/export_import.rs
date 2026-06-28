@@ -5,22 +5,36 @@
 
 /// 计算 UserTemplate 的内容哈希，用于判断是否是同一份"快照模板"。
 /// 忽略 account_id、id、created_at、updated_at 等随账户/时间变化的字段。
+fn template_properties_sorted(tpl: &solosoul_vault::UserTemplate) -> Vec<serde_json::Value> {
+    let mut sorted: Vec<&solosoul_vault::TemplateProperty> = tpl.properties.iter().collect();
+    sorted.sort_by(|a, b| a.id.cmp(&b.id));
+    sorted
+        .iter()
+        .map(|p| {
+            serde_json::json!({
+                "id": p.id,
+                "name": p.name,
+                "prop_type": p.prop_type,
+                "sensitivity_level": p.sensitivity_level,
+                "options": p.options,
+                "contract_field": p.contract_field,
+            })
+        })
+        .collect()
+}
+
+/// 计算 UserTemplate 的内容哈希，用于判断是否是同一份"快照模板"。
+/// 忽略 account_id、id、created_at、updated_at 等随账户/时间变化的字段。
 pub fn user_template_content_hash(tpl: &solosoul_vault::UserTemplate) -> String {
     use sha2::Digest;
 
+    let sorted_props = template_properties_sorted(tpl);
     let canonical = serde_json::json!({
         "name": tpl.name,
         "icon_id": tpl.icon_id,
         "category": tpl.category,
         "contract_type_id": tpl.contract_type_id,
-        "properties": tpl.properties.iter().map(|p| serde_json::json!({
-            "id": p.id,
-            "name": p.name,
-            "prop_type": p.prop_type,
-            "sensitivity_level": p.sensitivity_level,
-            "options": p.options,
-            "contract_field": p.contract_field,
-        })).collect::<Vec<_>>(),
+        "properties": sorted_props,
     });
     let bytes = serde_json::to_vec(&canonical).unwrap_or_default();
     hex::encode(sha2::Sha256::digest(&bytes))

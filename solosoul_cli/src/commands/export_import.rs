@@ -388,7 +388,11 @@ pub(crate) fn export_execute(
     }
 
     // manifest.json
-    let manifest = build_manifest(scope, &records, att_key.is_some(), &salt);
+    // has_templates 以实际导出 payload 中成功加载的模板为准
+    let has_templates = payload["templates"]
+        .as_array()
+        .map_or(false, |a| !a.is_empty());
+    let manifest = build_manifest(scope, &records, att_key.is_some(), has_templates, &salt);
     let manifest_bytes =
         serde_json::to_vec_pretty(&manifest).map_err(|e| format!("序列化 manifest 失败: {}", e))?;
     zip.start_file("manifest.json", options)
@@ -604,10 +608,9 @@ fn build_manifest(
     scope: &ExportScope,
     records: &[ObjectRecord],
     has_attachments: bool,
+    has_templates: bool,
     salt: &[u8; 16],
 ) -> serde_json::Value {
-    // 检查 records 是否有引用模板
-    let has_templates = records.iter().any(|r| r.template_id.is_some());
     serde_json::json!({
         "version": "2.0",
         "export_scope": if scope.full { "full" } else { "partial" },
