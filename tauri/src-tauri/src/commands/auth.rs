@@ -185,7 +185,8 @@ mod tests {
         let kdf_config = KdfConfig::balanced();
         let master_key = derive_key(password, salt, &kdf_config).unwrap();
         let mk: [u8; 32] = master_key.as_slice().try_into().unwrap();
-        let vk = solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, salt, b"SOLOSOUL_VAULT_VERIFY_v1").unwrap();
+        let vk = solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, salt, b"SOLOSOUL_VAULT_VERIFY_v1")
+            .unwrap();
         hex::encode(vk)
     }
 

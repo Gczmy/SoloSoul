@@ -542,7 +542,8 @@ mod tests {
         let master_key = solosoul_crypto::kdf::derive_key(password, &salt, &kdf_cfg).unwrap();
         let mk: [u8; 32] = master_key.as_slice().try_into().unwrap();
         let verify_hash = hex::encode(
-            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1").unwrap(),
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1")
+                .unwrap(),
         );
         let master_key_hex = hex::encode(master_key.as_slice());
 

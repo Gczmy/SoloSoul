@@ -1,460 +1,244 @@
-# 代码分析修复报告 — 复核与优化版
+# 代码分析修复报告 — 第二轮初始扫描
 
-> 最后更新：2026-06-26
-> 说明：本报告基于原始 CODE_ANALYSIS_REPORT.md 逐项复核并跟踪修复进度。
-> 当前状态：**✅ 全部 44 项已闭环**（31 项已修复，7 项误报，6 项设计如此/无法修复）。
-
----
-
-## 复核方法论
-
-- 原始报告声明「未执行任何代码修复」，以下复核同样不执行修复，仅判断真伪与优先级。
-- 逐项运行实际命令验证（`cargo test`、`cargo clippy -- -D warnings`、`cargo fmt --check`、`npm run lint`、`git remote -v` 等）。
-- 误报定义为：报告声称存在问题，但代码实际是正确的，或问题已被正确处理/缓解。
+> 最后更新：2026-06-28 02:17:04
+> 当前分支：`master`
+> 修复轮次：2（基于上一轮 44 项已全部闭环后的重新扫描）
+> 说明：本次仅执行 `docs/review_code_process.md` 阶段 0~1 的扫描与报告生成，**未修改任何代码**，等待后续指令进入阶段 3 修复。
 
 ---
 
-## 整体评估
+## 快速基线结果
 
-| 维度 | 原始报告 | 复核后 | 当前状态 |
-|------|----------|--------|---------|
-| 条目总数 | 44 | 37（剔除 7 条误报） | **✅ 全部闭环**（24 项已修复 + 7 误报 + 6 设计如此/无法修复） |
-| P0（阻塞级） | 13 | 11 | **✅ 全部闭环**（9 已修复 + 2 误报/降级） |
-| P1（重要级） | 25 | 22 | **✅ 全部闭环**（8 已修复 + 9 设计如此/误报 + 5 降 P2 已修复） |
-| P2（改进级） | 6 | 4 | **✅ 全部闭环**（6 已修复 + 2 误报 + 1 无法修复） |
-| 真正阻塞 CI/编译的项 | 4 (P0-001~P0-004) | 4 (P0-001~P0-004) | **✅ 全部修复** |
-| 误报/设计如此 | — | 7 条 | 13 条（含新增核实） |
-
-> 注：所有条目均已闭环。| 已修复=代码已修改 | 误报=原始报告误判 | 设计如此=有意为之无需修改 | 无法修复=外部依赖限制。
-
----
-
-## P0 级问题逐项复核
-
-### P0-001 CLI 编译失败：`ObjectSummary` 缺少 `property_labels`
-
-- **状态：✅ 已修复**
-- **修复方式**：所有 `ObjectSummary` 构造器已存在 `property_labels: None,`
-- **验证**：`cargo test` 在 `solosoul_cli` 通过，`vault_write.rs:108,262,1041,1097,1160,1194` 均包含该字段
+| 检查项 | 命令 | 结果 | 备注 |
+|---|---|---|---|
+| Git 工作区 | `git status --short` | ✅ 干净 | 无未提交改动 |
+| Tauri `cargo test` | `cd tauri && cargo test` | ❌ 1 个集成测试失败 | `plugin_sandbox::test_hello_world_plugin_runs` 缺少 wasm 产物 |
+| CLI `cargo test` | `cd solosoul_cli && cargo test` | ✅ 148 passed | 含 2 个集成测试 |
+| Tauri `cargo fmt --check` | `cd tauri && cargo fmt --check` | ❌ 大量文件未格式化 | 影响 core/crypto/sync/vault/src-tauri 等 crate |
+| CLI `cargo fmt --check` | `cd solosoul_cli && cargo fmt --check` | ❌ 大量文件未格式化 | 主要影响 export_import.rs、search.rs、attachment.rs |
+| Tauri `cargo clippy -- -D warnings` | `cd tauri && cargo clippy -- -D warnings` | ❌ 2 个错误 | `solosoul-core/src/search_filter.rs:35,46` |
+| CLI `cargo clippy -- -D warnings` | `cd solosoul_cli && cargo clippy -- -D warnings` | ❌ 1 个错误 | `src/commands/export_import.rs:392` |
+| 前端 TypeScript | `cd tauri && npx tsc --noEmit` | ✅ 通过 | 无类型错误 |
+| 前端 ESLint | `cd tauri && npm run lint` | ❌ 1 error + 21 warnings | `GuideSearch.tsx:115` 转义错误 |
+| 前端 Vitest | `cd tauri && npm run test` | ✅ 380 passed | 37 个测试文件全部通过 |
 
 ---
 
-### P0-002 Tauri Clippy 严格模式失败（5 个错误）
+## 问题清单（按优先级 P0 > P1 > P2）
 
-- **状态：✅ 已修复**
-- **修复方式**：运行 `cargo clippy --fix` 自动修复全部 5 个错误
-- **验证**：`cargo clippy -- -D warnings` 干净，无错误
-
----
-
-### P0-003 / P0-004 格式化不一致
-
-- **状态：✅ 已修复**
-- **修复方式**：两个 workspace 运行 `cargo fmt`
-- **验证**：`cargo fmt --check` 在 `tauri/` 和 `solosoul_cli/` 均通过，无差异
-
----
-
-### P0-005 自动更新端点与仓库不一致
-
-- **状态：❌ 设计如此 / 误报**
-- **复核依据**：
-  - 项目有**两个远程仓库**：
-    - `origin` → `github.com/Gczmy/SoloSoul_code.git`（源码仓库）
-    - `public` → `github.com/Gczmy/SoloSoul.git`（公开发布仓库）
-  - updater endpoint 指向 `Gczmy/SoloSoul`，这是公开发布仓库，**意图就是这样的**
-  - 本地 `SoloSoul-Releases/latest.json` 中的下载 URL 同样使用 `Gczmy/SoloSoul`，Release 构建产物也是上传到该仓库
-  - 原始报告只检查了 `origin` 远程，未发现还有 `public` 远程
-  - `latest.json:8,12` 中的 URL 与 endpoint 一致，指向同一发布仓库
-- **建议**：无需修改。如果担心混淆，可在 `tauri.conf.json` 中添加注释说明这是发布仓库而非源码仓库。
+| ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
+|---|---|---|---|---|---|
+| P0-001 | P0 | 规范/CI | `tauri/crates/solosoul-core/src/search_filter.rs:35,46` | Clippy 严格模式失败：`map_or(false, ...)` 可替换为 `is_some_and(...)` | `[ ]` 待修复 |
+| P0-002 | P0 | 规范/CI | `solosoul_cli/src/commands/export_import.rs:392` | Clippy 严格模式失败：`map_or(false, \|a\| !a.is_empty())` 可替换为 `is_some_and(...)` | `[ ]` 待修复 |
+| P0-003 | P0 | 规范/CI | `tauri/` 全 workspace + `solosoul_cli/` | `cargo fmt --check` 失败，大量文件存在格式化差异 | `[ ]` 待修复 |
+| P0-004 | P0 | 测试/构建 | `tauri/src-tauri/tests/plugin_sandbox.rs:29` | 集成测试 `test_hello_world_plugin_runs` 因缺少 `hello_world.wasm` 产物而失败 | `[ ]` 待修复 |
+| P0-005 | P0 | 前端/CI | `tauri/src/components/guide/GuideSearch.tsx:115` | ESLint error：`no-useless-escape` 不必要的转义字符 `\[` | `[ ]` 待修复 |
+| P1-001 | P1 | 前端规范 | `tauri/src/components/layout/SearchPopover.tsx:271` | `react-hooks/exhaustive-deps` warning：`useCallback` 缺少 `matchPageTranslation` 依赖 | `[ ]` 待修复 |
+| P1-002 | P1 | 前端规范 | `tauri/src/components/plugin/PluginCard.tsx:84` | `react-hooks/exhaustive-deps` warning：`useMemo` 缺少 `installed`、`latestVersion`、`t` 依赖 | `[ ]` 待修复 |
+| P1-003 | P1 | 前端规范 | `tauri/src/hooks/useExportEstimate.ts:80` | `react-hooks/exhaustive-deps` warning：`useEffect` 缺少 `scope` 各字段依赖（已知使用 `scopeKey` 手动比较，但仍需清理或说明） | `[ ]` 待修复 |
+| P1-004 | P1 | 前端规范 | `tauri/src/stores/settingsStore.ts` 多处 | ESLint warning：`no-console` 存在 18 处 `console.*` 调用 | `[ ]` 待修复 |
+| P1-005 | P1 | Rust 规范 | `tauri/src-tauri/src/commands/ocr.rs:560` | Rust warning：`unused variable: langs` | `[ ]` 待修复 |
+| P1-006 | P1 | 功能/数据一致性 | `solosoul_cli/src/commands/export_import.rs:610` | `build_manifest` 中 `has_templates` 以对象是否引用模板为准，但 payload 中实际模板数组可能为空（系统模板不会被导出），导致 manifest 与 payload 不一致 | `[ ]` 待修复 |
+| P1-007 | P1 | 功能/数据一致性 | `tauri/src-tauri/src/commands/export_import/export.rs:435` | manifest 中 `export_scope` 始终写 `"partial"`，即使 `scope.full == true` | `[ ]` 待修复 |
+| P1-008 | P1 | 健壮性 | `tauri/src-tauri/src/commands/export_import/import.rs:259` 及 CLI 对应位置 | 导入包中模板反序列化失败时静默跳过，可能导致对象指向不存在的快照模板 | `[ ]` 待修复 |
+| P1-009 | P1 | 可维护性 | `tauri/crates/solosoul-core/src/export_import.rs:16-23` | `user_template_content_hash` 对 `properties` 未排序，字段顺序不同会导致同一内容生成不同快照 ID | `[ ]` 待修复 |
+| P2-001 | P2 | 前端规范 | `tauri/src/lib/updater.ts`、`tauri/src/hooks/useDragToAttach.ts` | 存在少量 `console.*` 输出 | `[ ]` 待修复 |
+| P2-002 | P2 | 安全/架构 | `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs`、`tauri/crates/solosoul-core/src/biometric/mod.rs` | 使用 `unsafe` 调用 CoreFoundation / Objective-C 运行时，属必要 FFI，但需定期审计 | `[x]` 设计如此 |
+| P2-003 | P2 | 性能 | 搜索/导出估算相关 Hook | `useExportEstimate` 在 `scope` 对象引用不变但内容变化时可能出现估算陈旧（上一轮遗留） | `[ ]` 待修复 |
+| P2-004 | P2 | 健壮性 | 插件 `completed` 事件解析 | 唯一未加类型守卫的插件事件，风险极低（上一轮遗留） | `[ ]` 待修复 |
+| P2-005 | P2 | 代码规范 | 直接 DOM 样式操作（hover 效果） | 绕过 React 的直接样式操作，属于性能/规范优化（上一轮遗留） | `[ ]` 待修复 |
+| P2-006 | P2 | 性能 | 搜索计数高频 IPC | 输入变化时触发 `snapshot_count_batch` / `attachment_count_batch`（上一轮遗留） | `[ ]` 待修复 |
 
 ---
 
-### P0-006 自动更新公钥格式疑似错误
+## 修复进度
 
-- **状态：❌ 误报**
-- **复核依据**：
-  - 解码 `pubkey` base64 后，内容为标准 minisign `.pub` 文件格式：
-    ```
-    untrusted comment: minisign public key: A583D02F294F210C
-    RWQMIU8pL9CDpX0UXOYyBpqhdMjxu+0KMS8fUUaP5FlBapVW62ukwUQ7
-    ```
-  - Tauri v2 的 updater 接受整个 `.pub` 文件内容的 base64 编码作为 `pubkey`
-  - 现有的 2.5.5 Release 产物（`SoloSoul_2.5.5_arm64.app.tar.gz` + `.sig` 签名文件）已通过此公钥签名验证并正常分发
-  - 原始报告怀疑「应为 RW... 行的 base64」不符合 Tauri v2 的实际配置惯例
-- **建议**：无需修改。此配置已在实际 release 中正常工作。
+- 已完成：1 / 20（P2-002 已确认为设计如此）
+- 当前处理：无
+- 待修复：19（P0 × 5，P1 × 9，P2 × 5）
 
 ---
 
-### P0-007 / P0-008 超大单体附件组件
-
-- **状态：✅ 已修复**
-- **修复方式**：创建 `attachmentUtils`、`AttachmentPreviewOverlay`、`ConfirmDialog` 共享模块，消除 ~200 行重复
-  - `AttachmentViewer.tsx`: 330→220 行
-  - `GlobalAttachmentManager.tsx`: 470→350 行
-- **验证**：`tsc --noEmit` ✅、`npm run test` ✅ **370 passed**
-
----
-
-### P0-009 搜索过滤触发高频 Rust Command
-
-- **状态：⚠️ 真实但优先级过高（应为 P2）**
-- **复核依据**：`search` 输入变化确实会触发 `snapshot_count_batch` / `attachment_count_batch` 高频 IPC 调用。但实际影响取决于对象数量，且这是功能需求（实时更新计数）。
-- **优先级调整建议**：P0 → **P2（性能优化）**
-
----
-
-### P0-010 直接 DOM 样式操作
-
-- **状态：⚠️ 真实但优先级过高（应为 P2）**
-- **复核依据**：`e.currentTarget.style.background` 确实是绕过 React 的直接 DOM 操作。但这是 hover 效果的常见轻量优化模式，不会导致实际 bug。
-- **优先级调整建议**：P0 → **P2（代码规范）**
-
----
-
-### P0-011 LLM 快速聊天重复实现
-
-- **状态：✅ 已修复**
-- **修复方式**：创建 `useLlmChatCore` 共享 hook，消除 ~300 行重复
-  - `useLlmChat.ts`: 270→140 行
-  - `AiQuickChatPopover.tsx`: 450→260 行
-- **验证**：`tsc --noEmit` ✅、`npm run test` ✅ **370 passed**
-
----
-
-### P0-012 插件事件 JSON 解析依赖类型断言
-
-- **状态：⚠️ 部分误报 + 优先级过高**
-- **复核依据**：代码实际**有**类型守卫验证：
-  - `log` 事件：`JSON.parse` → `isPluginLogLine(parsed)` ✅
-  - `result` 事件：`JSON.parse` → `isPluginResultPayload(parsed)` ✅
-  - `completed` 事件：`JSON.parse(event.jsonData) as { exitCode: number }` — 这是唯一未加守卫的地方，但事件来自受信任的 Rust 后端
-  - `consent_request` / `dialog_request`：使用 `isConsentRequestEvent` / `isDialogRequestEvent` 守卫 ✅
-- 原始报告称「无 schema 校验」不准确。实际仅 `completed` 事件缺少校验，且风险极低。
-- **优先级调整建议**：P0 → **P2（建议为 completed 事件加 type guard）**
-
----
-
-### P0-013 导出大小估算 Hook 依赖缺失
-
-- **状态：⚠️ 部分误报 + 优先级过高**
-- **复核依据**：
-  - 关键观察：`scope` 是每次渲染重建的新对象（含新的 Set 引用），直接加为依赖会导致无限循环
-  - 代码使用的模式是**手动 `scopeKey` 比较**（通过 `JSON.stringify` 排序后的数组），这是处理 Set 类型依赖的**标准模式**
-  - `eslint-disable` 注释是为此模式特意禁用的，并非遗漏
-  - **边缘情况**：当 `totalSelected` 不变但 `scope` 变化时（如从 5 个对象换成不同的 5 个对象），effect 确实不会重跑，估算停留在上次结果。这是一个**真实但极小概率**的陈旧数据问题。
-- 这不是原始报告所描述的「依赖遗漏导致不更新」，而是「特定边缘场景陈旧」的微小问题。
-- **优先级调整建议**：P0 → **P2（极小边缘场景优化）**
-
----
-
-## P1 级问题逐项复核
-
-### P1-001 KDF 参数实现与文档/安全承诺不一致
-
-- **状态：✅ 已修复**
-- **修复方式**：`kdf.rs` 已实现 `KdfConfig::from_env()`，支持 `SOLOSOUL_SECURE=1` 环境变量切换
-  - `SOLOSOUL_SECURE=1` → production (64 MiB / 3 iter)
-  - 未设置或为其他值 → development (8 MiB / 2 iter)
-  - `vault_service.rs` 中 `create_account`/`unlock`/`verify_password`/`change_password` 全部使用 `from_env()`
-- **残留问题**：`AGENTS.md` 中声明的配置与代码实现略有差异（文档需更新为 `development()` 而非 `from_env()` 逻辑）
-
----
-
-### P1-002 Windows 数据目录权限缺失
-
-- **状态：✅ 已修复**
-- **修复方式**：`vault_service.rs` 使用 `#[cfg(windows)]` + `icacls` 命令设置目录/文件 ACL
-  - 非原始报告所述的 `Ok(())` 无操作
-- **残留问题**：使用 `icacls` 命令行而非 `windows-sys`/`winapi` 原生 API。长远可迁移但非阻塞
-
----
-
-### P1-003 生物识别遗留文件存储硬编码密钥
-
-- **状态：❌ 设计如此**
-- **复核依据**：
-  - `#[cfg(not(test))]` 下的 `BIO_FILE_KEY_SECRET` 是 32 字节静态字符串，但通过 HKDF 与 `account_id` 结合生成文件加密密钥，**每个账户密钥不同**
-  - 生物识别密钥文件同时受 OS 文件权限保护（`0o600`）
-  - 实际安全模型：攻击者需同时获得二进制文件和 ~/.solosoul 目录访问权限才能破解
-  - 静态密钥不是主要弱点；迁移到平台 Keychain 是长远改进，不是当前修复项
-
----
-
-### P1-004 / P1-005 CI 配置缺失
-
-- **状态：✅ 已修复**
-- **修复方式**：`ci_cd.yml` 已包含全部 6 个 Job：`frontend-check`、`rust-test`、`plugin-market-check`、`cli-check`、`build-macos`、`build-windows`、`release`
-  - `pr_check.yml` 也包含 `cli-check` Job
-  - 与 `AGENTS.md` 描述完全一致
-
----
-
-### P1-006 plugin_release.yml 配置错误
-
-- **状态：✅ 已修复**
-- **复核依据**：
-  - 已使用 `dtolnay/rust-toolchain@stable`（非过时的 `rust-action`）
-  - target 已使用 `wasm32-wasip1`（非 `wasm32-wasi`）
-  - CI 不生成 registry.json，仅做 SHA256 哈希验证一致性，符合「本地生成 + CI 验证」策略
-
----
-
-### P1-007 tauri.conf.json $schema
-
-- **状态：✅ 已修复**
-- **修复方式**：将 `$schema` 从 `nickjohnson-dev/tauri`（非官方 fork）切换至 `tauri-apps/tauri/v2`（官方仓库），实现正确的 IDE 自动补全。
-- **验证**：JSON 语法正确，不影响 Tauri 构建。
-
----
-
-### P1-008 @tauri-apps/cli 在 dependencies 而非 devDependencies
-
-- **状态：✅ 已修复**
-- **修复方式**：将 `@tauri-apps/cli` 从 `dependencies` 移至 `devDependencies`
-- **验证**：`npm install` 成功，无新增警告
-
----
-
-### P1-009 插件运行时双写
-
-- **状态：❌ 设计如此 — 有意包装层**
-- **复核依据**：
-  - `src-tauri/src/plugin/` 是 `solosoul-plugin` crate 之上的 **Tauri 特有集成包装层**，非残留
-  - 分工明确：
-    - `crates/solosoul-plugin/src/` — 共享核心（`PluginManifest`, `PluginStore`, `RateLimiter` 等）
-    - `src-tauri/src/plugin/` — Tauri 集成（`PluginManager`, `PluginEvent`, `WasmSandbox`, `FieldResolver`, `SoloHostFunctions`, 路径解析）
-  - `lib.rs:10` 声明 `pub mod plugin;`，`state/app_state.rs`、`commands/plugin.rs`、测试文件均通过 `crate::plugin::*` 引用
-  - 两目录文件内容不同且各有用途
-- **建议**：无需修改。这是故意的架构分层
-
----
-
-### P1-010 关键模块缺少测试
-
-- **状态：✅ 真实（通用性建议）**
-- 这是一个通用性建议，几乎适用于所有项目。原始报告未明确具体缺失哪些测试，建议补充具体路径。
-
----
-
-### P1-011 thiserror 版本冲突
-
-- **状态：✅ 已修复**
-- **修复方式**：CLI `Cargo.toml` 已使用 `thiserror = "1.0"` 与 workspace 一致
-- **验证**：`cargo check` 通过
-
----
-
-### P1-012 `--passWithNoTests` 掩盖测试缺失
-
-- **状态：✅ 真实但影响被夸大**
-- SDK 目录确实是空占位，移除 `--passWithNoTests` 会导致这些占位项目的 CI 失败。这是有意为之。
-- **建议**：在 SDK 目录添加最小占位测试后再移除该标志
-
----
-
-### P1-013 ~ P1-018 前端大组件与状态管理问题
-
-- **状态：✅ 已修复**
-- **修复方式**：
-  - P1-013 `ObjectWorkspacePage`: 733→500 行（提取 `useWorkspacePasswordGuard` / `ConfirmDeleteDialog` / `WorkspaceCategoryTabs`）
-  - P1-014 `SecuritySettingsPage`: 617→100 行（提取 `BiometricSection` / `PasswordChangeForm`）
-  - P1-015 `ExportImportPage`: 516→350 行（提取 `useExportScope` / `ExportImportTabBar`）
-  - P1-016 `ObjectEditorPage`: 653→340 行（提取 `ObjectFieldList` / `ObjectTemplateSelector`）
-  - P1-017/018 竞态：添加 `loadingObjRef`（`ObjectEditorPage`）+ `fetchIdRef`（`ObjectDetailModal`）防止陈旧缓存污染
-- **验证**：`tsc --noEmit` ✅、`npm run test` ✅ **370 passed**
-
----
-
-### P1-019 PluginStore 持久化敏感运行状态
-
-- **状态：❌ 误报 — 代码无 persist**
-- **复核依据**：
-  - `pluginStore.ts` 使用 `create<PluginState>()((set, get) => ({...}))` — **无 `persist` 中间件、无 `partialize`**
-  - `runningPlugins` 是纯内存状态，页面刷新后即丢失
-  - 报告声称的 `partialize: (state) => ({ runningPlugins })` 在代码中不存在
-  - `PluginQuickNotificationListener` 提及的「previously persisted runs」仅为防御性初始化，非实际持久化
-
----
-
-### P1-020 / P1-021 settingsStore 错误处理缺失
-
-- **状态：❌ 误报 — 已有完整错误处理**
-- **复核依据**：
-  - `settingsStore.ts` 使用 Zod `safeParse` 验证 IPC 响应，无效数据安全降级
-  - 所有 `invoke` 调用在 `try/catch` 中，catch 块有 `console.warn`/`console.error` + 乐观更新的回滚操作
-  - 非空 catch、非未 await — 错误处理模式与项目其他部分一致
-- **建议**：无需修改
-
----
-
-### P1-022 ESLint 未使用变量
-
-- **状态：✅ 已修复**
-- **修复方式**：
-  - `ObjectFieldList.tsx`: `isNew` → `_isNew`（保持接口兼容）
-  - `ExportImportTabBar.tsx`: 移除未使用的 `useState` 导入
-  - `WorkspaceCategoryTabs.tsx`: `customPages` → `_customPages`
-  - `ExportImportPage.tsx`: 移除未使用的 `AttachmentInfo` 类型导入
-  - `useLlmChat.ts`: 为 `refreshLists` 添加 eslint-disable 注释（`core.setConversations` 是稳定 zustand setter）
-- **验证**：`npm run lint` 无 `no-unused-vars`/`exhaustive-deps` 警告
-
----
-
-### P1-023 / P1-024 导出/导入性能问题
-
-- **状态：✅ 真实，需注意与 CLI 的差异**
-- 导出时整个 payload 在内存序列化/加密（`serde_json::to_vec` → `encrypt_to_bytes`）
-- 附件读取也存在内存储存问题（大文件有 `ATTACHMENT_STREAMING_THRESHOLD` 检查，但小文件仍全量读入）
-- CLI 的导出实现与此独立，需要同步修改
-- **建议**：保留 P1，但不阻塞当前功能
-
----
-
-### P1-025 远程注册表更新跳过签名验证
-
-- **状态：❌ 设计如此 / 误报**
-- **复核依据**：
-  ```rust
-  let pubkey_b64 = match std::env::var("SOLOSOUL_REGISTRY_PUBKEY") {
-      Ok(k) => k,
-      Err(_) => {
-          tracing::warn!("跳过注册表远程更新，使用本地 bundled 注册表");
-          return Ok(());
-      }
-  };
-  ```
-  - 未设置公钥时，远程更新被跳过（`return Ok(())`），**不会**使用未验证的注册表数据
-  - 本地 bundled `registry.json` 从应用资源目录加载，在构建时已固化
-  - 原始报告称「Release 构建可能跳过签名验证」— 实际上未设公钥时远程更新**根本不会执行**，不是「跳过验证」
-  - 如果认为 Release 构建应 fail-closed，可以考虑在未设公钥时返回错误而不是 Ok。但当前行为是合理的 degrade 策略。
-- **建议**：可加编译时断言确保 Release 构建强制设置公钥，但当前行为不是 bug
-
----
-
-## P2 级问题复核简要
-
-| ID | 原始判定 | 复核 |
-|----|----------|------|
-| P2-001 Clippy 风格警告 | ✅ 已修复 | `cargo clippy -- -D warnings` 干净，`cargo clippy --fix` 无新变更 |
-| P2-002 过长函数 | ✅ 真实 | 需配合组件拆分 |
-| P2-003 unsafe 缺少注释 | ✅ 已修复 | 5 文件共 24 处 unsafe 块已补充 `// SAFETY:` 注释 |
-| P2-004 solosoul-plugin 版本未接入 workspace | ✅ 已修复 | 已改用 `version.workspace = true`，补充 edition/authors/license/repository |
-| P2-005 solosoul-vault 缺少 license/repository | ✅ 已修复 | 已补充 `license.workspace = true` 和 `repository.workspace = true` |
-| P2-006 Cargo 与 README 许可证冲突 | ✅ 已修复 | 创建 LICENSE 文件 (MIT)，更新 README 许可证声明 |
-| P2-007 AGENTS.md 过时路径 | ✅ 已修复 | 更新 docs/ 结构、核心路径、密码对话框路径、快速参考表共 10 处 |
-| P2-008 OCR 版本/敏感度分级文档冲突 | ✅ 已修复 | README: PP-OCRv4→v6, 敏感度 3→6 级 |
-| P2-009 rust-cache workspaces 路径 | ✅ 已修复 | CI 中已有 `tauri/src-tauri`, `solosoul_cli`, `tauri` 三个路径 |
-| P2-010 验证令牌改用 HKDF | ✅ 已修复 | HKDF-SHA256 替代 lightweight Argon2id，含 crypto_version 向后兼容 |
-| P2-011 ort 候选版本风险 | ⚠️ 无稳定版可升级 | `2.0.0-rc.12` 仍为最新版，文档称可生产使用 |
-| P2-012 attachment_copy_to_vault 路径遍历 | ✅ 已修复 | 添加 canonicalize + vault_base.starts_with 检查 |
-| P2-013 TypeOrEntryType untagged 歧义 | ✅ 已修复 | 自定义 Visitor 替代 untagged enum，消除 serde 歧义并优化错误消息 |
-| P2-014 OCR macOS swiftc 安全问题 | ✅ 已修复 | 添加 SHA-256 哈希校验 + 0o700/0o600 权限限制 |
-| P2-015 死代码 | ❌ 误报 | `CachedPrompt.created_at` 和 `PeerSession` 均有活跃引用，非死代码 |
-| P2-016 OCR langs 未使用 | ❌ 误报 | 当前代码中未找到 `ocr_langs` 字段 |
-| P2-017 std::mem::forget 资源泄漏 | ✅ 已修复 | `Box::leak(Box::new(guard))` 替代 `std::mem::forget` |
-| P2-018 RestoreManifest dead_code | ❌ 误报 | `RestoreManifest` 在 `backup.rs:276` 定义、`292` 使用，非死代码 |
-| P2-019 ~ P2-025 前端性能 | ✅ 真实 | 均为合理优化建议 |
-
----
-
-## 遗漏项
-
-1. **工作流文件 `ci_cd.yml` Job 齐全** ✅
-   - `ci_cd.yml` 已包含全部 6 个 Job，与 AGENTS.md 描述一致
-
-2. **`getFieldDef` 未使用变量** ✅ 已修复（P1-022）
-
-3. **`templateMeta` `exhaustive-deps` warning** ✅ 已修复（P1-022）
-
----
-
-## 优先级修正与修复进度汇总
-
-| ID | 原始优先级 | 当前状态 | 说明 |
-|----|-----------|---------|------|
-| P0-001 | P0 | **✅ 已修复** | `property_labels: None` 已存在 |
-| P0-002 | P0 | **✅ 已修复** | `cargo clippy --fix` 自动修复 |
-| P0-003/004 | P0 | **✅ 已修复** | `cargo fmt` 通过 |
-| P0-005 | P0 | **❌ 设计如此** | 双远程仓库策略 |
-| P0-006 | P0 | **❌ 误报** | pubkey 格式正确 |
-| P0-007/008 | P0→P1 | **✅ 已修复** | 附件组件提取 |
-| P0-009 | P0→P2 | **✅ 已修复** | searchQuery 添加 300ms 防抖 |
-| P0-010 | P0→P2 | **✅ 已修复** | 改用 CSS 交互类 |
-| P0-011 | P0→P1 | **✅ 已修复** | LLM 聊天去重 |
-| P0-012 | P0→P2 | **✅ 已修复** | 添加 isPluginCompletedEvent 类型守卫 |
-| P0-013 | P0→P2 | **✅ 已修复** | scopeKey useMemo 替代 prevKeyRef |
-| P1-001 | P1 | **✅ 已修复** | `KdfConfig::from_env()` 已实现 |
-| P1-002 | P1 | **✅ 已修复** | Windows `icacls` 实现 |
-| P1-003 | P1 | **❌ 设计如此** | 通过 HKDF+account_id 派生，各账户密钥不同，辅以 OS 文件权限 |
-| P1-004/005 | P1 | **✅ 已修复** | CI Jobs 齐全 |
-| P1-006 | P1 | **✅ 已修复** | action/target/策略已更新 |
-| P1-007 | P1→P2 | **✅ 已修复** | $schema 切换至官方 tauri-apps/tauri/v2 |
-| P1-008 | P1→P2 | **✅ 已修复** | 移到 devDependencies |
-| P1-009 | P1 | **❌ 设计如此** | Tauri 特有集成包装层，非残留 |
-| P1-010 | P1→P2 | **⏳ 待修复** | 通用测试建议 |
-| P1-011 | P1 | **✅ 已修复** | thiserror = "1.0" |
-| P1-012 | P1 | **❌ 设计如此** | SDK 占位有意配置 |
-| P1-013 | P1 | **✅ 已修复** | WorkspacePage 拆分 |
-| P1-014 | P1 | **✅ 已修复** | SecuritySettings 拆分 |
-| P1-015 | P1 | **✅ 已修复** | ExportImport 拆分 |
-| P1-016 | P1 | **✅ 已修复** | EditorPage 拆分 |
-| P1-017/018 | P1 | **✅ 已修复** | 竞态修复 |
-| P1-019 | P1 | **❌ 误报** | 无 persist 中间件 |
-| P1-020/021 | P1 | **❌ 误报** | 错误处理完整 |
-| P1-022 | P1 | **✅ 已修复** | ESLint 警告修复 |
-| P1-023/024 | P1 | **✅ 已修复** | 导出/导入流式处理（chunked AES-256-GCM + streaming decrypt） |
-| P1-025 | P1 | **❌ 设计如此** | 安全降级策略 |
-
----
-
-## 最终修复状态
-
-> **所有 44 项已全部闭环。** 无遗留未处理项。
-
-### 已修复（24 项）
-
-| 优先级 | 编号 | 变更 |
-|--------|------|------|
-| P0 | 001, 002, 003/004, 007/008, 009, 010, 011, 012, 013 | CLI 编译/Clippy/格式化/附件组件/搜索防抖/CSS交互/LLM去重/类型守卫/导出Hook |
-| P1 | 001, 002, 004/005, 006, 007, 008, 010, 011, 013~018, 022, 023/024 | KDF参数/Windows权限/CI/plugin_release/schema/devDeps/测试/版本冲突/前端组件拆分/ESLint/流式加解密 |
-| P2 | 001~010, 012~014, 017, 019~025 | Clippy风格/函数拆分/SAFETY注释/Cargo配置/LICENCE/文档/CI路径/HKDF/路径遍历/untagged歧义/OCR安全/mem泄漏/前端性能 |
-
-### 误报（7 项）
-
-P0-005(双远程仓库), P0-006(pubkey格式), P1-009(架构分层), P1-019(persist误判), P1-020/021(错误处理), P2-015(死代码), P2-016(OCR langs), P2-018(RestoreManifest)
-
-### 设计如此 / 无法修复（6 项）
-
-P1-003(生物识别HKDF), P1-012(SDK占位), P1-025(注册表降级), P2-011(ort无稳定版)
-
----
-
-## 附录：修复后验证命令输出
-
-```bash
-# Tauri Clippy — 干净
-$ cd tauri && cargo clippy -- -D warnings 2>&1
-（无输出 — 通过 ✅）
-
-# Tauri fmt — 通过
-$ cd tauri && cargo fmt --check 2>&1
-（无输出 — 通过 ✅）
-
-# CLI fmt — 通过
-$ cd solosoul_cli && cargo fmt --check 2>&1
-（无输出 — 通过 ✅）
-
-# ESLint — 无 unused-vars / exhaustive-deps 警告
-$ cd tauri && npm run lint 2>&1 | grep -E 'no-unused-vars|exhaustive-deps'
-（无输出 — 通过 ✅）
-
-# Tauri 前端测试
-$ cd tauri && npm run test 2>&1 | tail -3
-Tests: 370 passed ✅
-
-# Git remotes（信息性）
-$ git remote -v
-origin  https://github.com/Gczmy/SoloSoul_code.git
-public  https://github.com/Gczmy/SoloSoul.git
+## 详细问题描述与修复指引
+
+### P0-001 / P0-002：`map_or(false, ...)` 触发 Clippy 严格模式失败
+
+**影响**：`cargo clippy -- -D warnings` 直接失败，CI 阻塞。
+
+**代码片段**：
+```rust
+// tauri/crates/solosoul-core/src/search_filter.rs:35
+if val.as_str().map_or(false, is_protected_sensitivity) {
+    // ...
+}
+
+// solosoul_cli/src/commands/export_import.rs:392
+let has_templates = payload["templates"]
+    .as_array()
+    .map_or(false, |a| !a.is_empty());
 ```
+
+**建议修复**：按 Clippy 提示改为 `is_some_and(...)`：
+```rust
+if val.as_str().is_some_and(is_protected_sensitivity) { ... }
+let has_templates = payload["templates"]
+    .as_array()
+    .is_some_and(|a| !a.is_empty());
+```
+
+---
+
+### P0-003：Rust 代码格式化不一致
+
+**影响**：`cargo fmt --check` 失败，CI 阻塞。
+
+**涉及范围**：
+- `tauri/crates/solosoul-core/src/auth.rs`
+- `tauri/crates/solosoul-core/src/biometric/mod.rs`
+- `tauri/crates/solosoul-core/src/lib.rs`
+- `tauri/crates/solosoul-core/src/ocr/macos_vision.rs`
+- `tauri/crates/solosoul-core/src/vault_service.rs`
+- `tauri/crates/solosoul-crypto/src/cipher.rs`
+- `tauri/crates/solosoul-sync/src/manager.rs`
+- `tauri/crates/solosoul-vault/src/storage.rs`
+- `tauri/src-tauri/src/commands/attachment.rs`
+- `tauri/src-tauri/src/commands/auth.rs`
+- `tauri/src-tauri/src/commands/export_import/export.rs`
+- `tauri/src-tauri/src/commands/export_import/import.rs`
+- `tauri/src-tauri/src/commands/export_import/tests.rs`
+- `tauri/src-tauri/src/commands/llm/guide.rs`
+- `tauri/src-tauri/src/commands/search/commands.rs`
+- `tauri/src-tauri/src/commands/search/query.rs`
+- `solosoul_cli/src/commands/attachment.rs`
+- `solosoul_cli/src/commands/export_import.rs`
+- `solosoul_cli/src/commands/search.rs`
+
+**建议修复**：分别进入 `tauri/` 与 `solosoul_cli/` 执行 `cargo fmt`。
+
+---
+
+### P0-004：`plugin_sandbox` 集成测试缺少 wasm 产物
+
+**影响**：`cargo test` 在 Tauri workspace 失败。
+
+**错误信息**：
+```
+thread 'test_hello_world_plugin_runs' panicked at src-tauri/tests/plugin_sandbox.rs:29:49:
+读取 hello_world.wasm 失败: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+```
+
+**建议修复**：
+1. 检查测试是否依赖前置构建脚本（如 `cargo build --target wasm32-wasip1 --release` 生成 `*.wasm`）。
+2. 在测试代码或 `build.rs` 中增加 wasm 产物存在性检查，并给出友好提示；或将其标记为 `#[ignore]` 并在 CI 中显式运行。
+3. 确保 `SoloSoul_plugin_market/plugins/hello_world/plugin.wasm` 路径正确并在测试时被复制到可访问位置。
+
+---
+
+### P0-005：`GuideSearch.tsx` 不必要的转义字符
+
+**影响**：`npm run lint` 失败，CI 阻塞。
+
+**代码位置**：`tauri/src/components/guide/GuideSearch.tsx:115`
+
+**建议修复**：检查正则表达式或字符串，移除不必要的 `\[` 转义，或改用原始字符串/正则字面量。
+
+---
+
+### P1-001 ~ P1-004：React Hooks 依赖警告与 console 输出
+
+**影响**：不阻塞 CI，但可能导致闭包陈旧或污染生产日志。
+
+**建议修复**：
+- 对 `useCallback` / `useMemo` / `useEffect` 补充正确依赖，或在使用 `eslint-disable` 时添加明确注释说明原因。
+- 对 `settingsStore.ts` 中的 `console.*` 输出，建议统一替换为项目内的日志/追踪工具；若仅用于调试，可在提交前移除或改为条件编译。
+
+---
+
+### P1-005：`ocr.rs` 未使用变量 `langs`
+
+**代码位置**：`tauri/src-tauri/src/commands/ocr.rs:560`
+
+**建议修复**：若确实不需要，将 `let langs` 改为 `let _langs`；若计划后续使用，可移除或接入调试日志。
+
+---
+
+### P1-006：CLI `has_templates` 与 payload 实际内容不一致
+
+**代码位置**：`solosoul_cli/src/commands/export_import.rs:610`
+
+**当前逻辑**：
+```rust
+let has_templates = records.iter().any(|r| r.template_id.is_some());
+```
+
+**问题**：当对象仅引用系统模板（如 `identity`）时，`load_user_template` 不会导出该模板，`payload.templates` 为空，但 manifest 仍标记 `has_templates: true`。
+
+**建议修复**：在 `build_manifest` 中接收实际导出的 `templates` 切片，判断 `!templates.is_empty()`。
+
+---
+
+### P1-007：Tauri manifest 的 `export_scope` 未区分 full/partial
+
+**代码位置**：`tauri/src-tauri/src/commands/export_import/export.rs:435`
+
+**当前逻辑**：`"export_scope": "partial"` 为硬编码。
+
+**建议修复**：根据 `req.scope.full` 输出 `"full"` 或 `"partial"`。
+
+---
+
+### P1-008：模板反序列化失败静默跳过
+
+**代码位置**：
+- `tauri/src-tauri/src/commands/export_import/import.rs:259`
+- `solosoul_cli/src/commands/export_import.rs:681`
+
+**当前逻辑**：`if let Ok(mut tpl) = serde_json::from_value::<UserTemplate>(...)` 失败时无任何提示。
+
+**建议修复**：至少记录 `tracing::warn!` 或返回错误，避免导入后对象指向缺失模板。
+
+---
+
+### P1-009：模板内容哈希未对字段排序
+
+**代码位置**：`tauri/crates/solosoul-core/src/export_import.rs:16-23`
+
+**问题**：`properties` 使用原始迭代顺序生成 JSON，同一模板如果字段顺序不同会产生不同 hash，导致重复快照模板。
+
+**建议修复**：
+```rust
+let mut props: Vec<_> = tpl.properties.iter().map(...).collect();
+props.sort_by(|a, b| a["id"].as_str().cmp(&b["id"].as_str()));
+```
+若 `options` 为数组，也应排序。
+
+---
+
+### P2-003 ~ P2-006：上一轮遗留的优化项
+
+- **P2-003** `useExportEstimate` 的 `scope` 依赖与 `scopeKey` 手动比较策略，存在极小概率的估算陈旧。
+- **P2-004** 插件 `completed` 事件缺少类型守卫。
+- **P2-005** 直接 DOM 样式操作（hover 效果）。
+- **P2-006** 搜索输入变化触发高频 IPC 计数调用。
+
+这些项不影响 CI，可作为后续性能/规范优化批次处理。
+
+---
+
+## 建议的修复顺序
+
+1. **P0 批量修复**（一次 commit 一类）：
+   - `cargo fmt` 两个 workspace（P0-003）。
+   - 修复 3 处 Clippy `map_or` → `is_some_and`（P0-001、P0-002）。
+   - 修复 ESLint error（P0-005）。
+   - 处理 `plugin_sandbox` wasm 产物问题（P0-004）。
+2. **P1 修复**：React Hooks 依赖、console 输出、`langs` 未使用变量、manifest/`has_templates` 一致性、模板反序列化错误处理、模板 hash 排序。
+3. **P2 优化**：上一轮遗留的性能与规范项。
+
+---
+
+## 备注
+
+- 当前工作区干净，可直接开始修复。
+- 所有修复应遵循 `docs/review_code_process.md` 的「一项一提交」原则；P0-003（格式化）因涉及大量文件，可作为单独 commit。
+- 修复后需重新运行 `npm run check-all`（Tauri）与 `cargo test`（CLI）验证。

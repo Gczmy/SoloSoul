@@ -109,14 +109,22 @@ async fn search_advanced_impl(
                 )
             };
             // 先尝试从模板缓存中获取名称，若模板已删除则回退到 properties 中存储的 __templateName
-            let tpl_from_cache = rec.template_id.as_ref().and_then(|tid| templates.get(tid)).map(|t| t.name.clone());
-            let tpl_from_props = rec.properties.get("__templateName").and_then(|v| v.as_str().map(String::from));
-            let (tpl_name, tpl_deleted) = match (rec.template_id.as_ref(), tpl_from_cache, tpl_from_props) {
-                (Some(_), Some(name), _) => (Some(name), false),
-                (Some(_), None, Some(name)) => (Some(name), true),
-                (Some(_), None, None) => (rec.template_id.clone(), true),
-                _ => (None, false),
-            };
+            let tpl_from_cache = rec
+                .template_id
+                .as_ref()
+                .and_then(|tid| templates.get(tid))
+                .map(|t| t.name.clone());
+            let tpl_from_props = rec
+                .properties
+                .get("__templateName")
+                .and_then(|v| v.as_str().map(String::from));
+            let (tpl_name, tpl_deleted) =
+                match (rec.template_id.as_ref(), tpl_from_cache, tpl_from_props) {
+                    (Some(_), Some(name), _) => (Some(name), false),
+                    (Some(_), None, Some(name)) => (Some(name), true),
+                    (Some(_), None, None) => (rec.template_id.clone(), true),
+                    _ => (None, false),
+                };
             items.push(SearchResultItem {
                 object_id: rec.id.clone(),
                 name: rec.name.clone(),
@@ -217,14 +225,22 @@ pub async fn search_unified(
                         }
                     }
                 }
-                let tpl_from_cache = s.template_id.as_ref().and_then(|tid| templates.get(tid)).map(|t| t.name.clone());
-                let tpl_from_props = s.properties.get("__templateName").and_then(|v| v.as_str().map(String::from));
-                let (tpl_name, tpl_deleted) = match (s.template_id.as_ref(), tpl_from_cache, tpl_from_props) {
-                    (Some(_), Some(name), _) => (Some(name), false),
-                    (Some(_), None, Some(name)) => (Some(name), true),
-                    (Some(_), None, None) => (s.template_id.clone(), true),
-                    _ => (None, false),
-                };
+                let tpl_from_cache = s
+                    .template_id
+                    .as_ref()
+                    .and_then(|tid| templates.get(tid))
+                    .map(|t| t.name.clone());
+                let tpl_from_props = s
+                    .properties
+                    .get("__templateName")
+                    .and_then(|v| v.as_str().map(String::from));
+                let (tpl_name, tpl_deleted) =
+                    match (s.template_id.as_ref(), tpl_from_cache, tpl_from_props) {
+                        (Some(_), Some(name), _) => (Some(name), false),
+                        (Some(_), None, Some(name)) => (Some(name), true),
+                        (Some(_), None, None) => (s.template_id.clone(), true),
+                        _ => (None, false),
+                    };
                 SearchResultItem {
                     object_id: s.id,
                     name: s.name,

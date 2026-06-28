@@ -344,9 +344,10 @@ impl VaultService {
             .as_slice()
             .try_into()
             .map_err(|_| "Master key must be 32 bytes".to_string())?;
-        let verify_hash = hex::encode(solosoul_crypto::hkdf_ext::derive_hkdf_key(
-            &mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1",
-        ).map_err(|e| format!("Verify HKDF failed: {}", e))?);
+        let verify_hash = hex::encode(
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1")
+                .map_err(|e| format!("Verify HKDF failed: {}", e))?,
+        );
 
         let dir = self.account_dir(&account_id);
         fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
@@ -462,9 +463,14 @@ impl VaultService {
             .map_err(|_| "Verify failed".to_string())?;
             hex::encode(verify_key.as_slice())
         } else {
-            hex::encode(solosoul_crypto::hkdf_ext::derive_hkdf_key(
-                &mk, &salt_arr, b"SOLOSOUL_VAULT_VERIFY_v1",
-            ).map_err(|_| "Verify HKDF failed".to_string())?)
+            hex::encode(
+                solosoul_crypto::hkdf_ext::derive_hkdf_key(
+                    &mk,
+                    &salt_arr,
+                    b"SOLOSOUL_VAULT_VERIFY_v1",
+                )
+                .map_err(|_| "Verify HKDF failed".to_string())?,
+            )
         };
 
         if !secure_compare(computed_hash.as_bytes(), config.verify_hash.as_bytes()) {
@@ -568,9 +574,14 @@ impl VaultService {
             .map_err(|_| "Verify failed".to_string())?;
             hex::encode(verify_key.as_slice())
         } else {
-            hex::encode(solosoul_crypto::hkdf_ext::derive_hkdf_key(
-                &mk, &salt_arr, b"SOLOSOUL_VAULT_VERIFY_v1",
-            ).map_err(|_| "Verify HKDF failed".to_string())?)
+            hex::encode(
+                solosoul_crypto::hkdf_ext::derive_hkdf_key(
+                    &mk,
+                    &salt_arr,
+                    b"SOLOSOUL_VAULT_VERIFY_v1",
+                )
+                .map_err(|_| "Verify HKDF failed".to_string())?,
+            )
         };
 
         Ok(secure_compare(
@@ -644,9 +655,10 @@ impl VaultService {
 
         // Derive new verify hash via HKDF (P2-010).
         let mk: [u8; 32] = new_key_arr; // already 32 bytes from try_into above
-        let verify_hash = hex::encode(solosoul_crypto::hkdf_ext::derive_hkdf_key(
-            &mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1",
-        ).map_err(|e| format!("Verify HKDF failed: {}", e))?);
+        let verify_hash = hex::encode(
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1")
+                .map_err(|e| format!("Verify HKDF failed: {}", e))?,
+        );
 
         // Update config
         let config_path = self.config_path(account_id);

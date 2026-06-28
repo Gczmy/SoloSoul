@@ -40,12 +40,14 @@ pub fn verify_password_core(password: &str, config: &AccountConfig) -> Result<bo
         .map_err(|_| "Verify failed".to_string())?;
         hex::encode(verify_key.as_slice())
     } else {
-        hex::encode(solosoul_crypto::hkdf_ext::derive_hkdf_key(
-            &master_key_arr,
-            &salt_arr,
-            b"SOLOSOUL_VAULT_VERIFY_v1",
+        hex::encode(
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(
+                &master_key_arr,
+                &salt_arr,
+                b"SOLOSOUL_VAULT_VERIFY_v1",
+            )
+            .map_err(|e| format!("HKDF verify failed: {}", e))?,
         )
-        .map_err(|e| format!("HKDF verify failed: {}", e))?)
     };
 
     Ok(solosoul_crypto::secure::secure_compare(
@@ -83,7 +85,8 @@ mod tests {
         let kdf_config = KdfConfig::balanced();
         let master_key = derive_key(password, salt, &kdf_config).unwrap();
         let mk: [u8; 32] = master_key.as_slice().try_into().unwrap();
-        let vk = solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, salt, b"SOLOSOUL_VAULT_VERIFY_v1").unwrap();
+        let vk = solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, salt, b"SOLOSOUL_VAULT_VERIFY_v1")
+            .unwrap();
         hex::encode(vk)
     }
 

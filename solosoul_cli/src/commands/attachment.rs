@@ -648,7 +648,10 @@ fn copy_to_vault(
         return Err(map_err("源文件路径不能位于 vault 存储目录内".to_string()));
     }
 
-    let dest_dir = vault_base.join("attachments").join(object_id).join(attachment_id);
+    let dest_dir = vault_base
+        .join("attachments")
+        .join(object_id)
+        .join(attachment_id);
     std::fs::create_dir_all(&dest_dir).map_err(|e| map_err(format!("创建目录失败: {}", e)))?;
 
     let safe_name = sanitize_file_name(file_name);

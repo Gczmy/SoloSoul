@@ -265,7 +265,12 @@ async fn import_execute_internal(
                     solosoul_core::export_import::imported_template_id(&original_id, &hash);
 
                 // 复用或新建快照模板
-                if vault.load_user_template(&imported_id).ok().flatten().is_none() {
+                if vault
+                    .load_user_template(&imported_id)
+                    .ok()
+                    .flatten()
+                    .is_none()
+                {
                     tpl.id = imported_id.clone();
                     tpl.account_id = account_id.clone();
                     tpl.created_at = now.clone();
@@ -356,14 +361,12 @@ async fn import_execute_internal(
                         .collect()
                 })
                 .unwrap_or_default(),
-            template_id: obj_val["template_id"]
-                .as_str()
-                .map(|tid| {
-                    template_id_map
-                        .get(tid)
-                        .cloned()
-                        .unwrap_or_else(|| tid.to_string())
-                }),
+            template_id: obj_val["template_id"].as_str().map(|tid| {
+                template_id_map
+                    .get(tid)
+                    .cloned()
+                    .unwrap_or_else(|| tid.to_string())
+            }),
             template_type: obj_val["template_type"].as_str().map(String::from),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
             updated_at: now.clone(),
@@ -456,8 +459,8 @@ async fn import_execute_internal(
                 .to_string_lossy()
                 .to_string();
             let file_path_dest = dest.join(&safe_name);
-            let mut out_file =
-                File::create(&file_path_dest).map_err(|e| format!("create attachment file: {}", e))?;
+            let mut out_file = File::create(&file_path_dest)
+                .map_err(|e| format!("create attachment file: {}", e))?;
             solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
                 .map_err(|e| format!("decrypt attachment stream: {}", e))?;
             let file_size = std::fs::metadata(&file_path_dest)

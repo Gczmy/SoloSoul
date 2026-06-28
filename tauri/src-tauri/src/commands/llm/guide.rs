@@ -97,8 +97,7 @@ static GUIDE_SUMMARY_CACHE: Lazy<Mutex<HashMap<String, String>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
 /// 缓存的全文搜索索引
-static SEARCH_INDEX_CACHE: Lazy<Mutex<Option<SearchIndex>>> =
-    Lazy::new(|| Mutex::new(None));
+static SEARCH_INDEX_CACHE: Lazy<Mutex<Option<SearchIndex>>> = Lazy::new(|| Mutex::new(None));
 
 /// 获取缓存内容，容忍毒化锁（poisoned lock recovery）
 fn get_index_cache() -> Option<GuideIndex> {

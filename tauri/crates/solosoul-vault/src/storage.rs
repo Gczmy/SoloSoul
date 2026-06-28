@@ -1789,7 +1789,10 @@ impl VaultStore {
             );
             if let Ok(name) = tpl_name {
                 if let Some(map) = properties.as_object_mut() {
-                    map.insert("__templateName".to_string(), serde_json::Value::String(name));
+                    map.insert(
+                        "__templateName".to_string(),
+                        serde_json::Value::String(name),
+                    );
                 }
             }
         }

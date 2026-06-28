@@ -272,9 +272,11 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
         .map_err(|_| CipherError::InvalidCiphertext)?;
     let mut base_nonce = [0u8; 12];
     base_nonce.copy_from_slice(&header[..12]);
-    let chunk_count =
-        u64::from_be_bytes(header[12..20].try_into().map_err(|_| CipherError::InvalidCiphertext)?)
-            as usize;
+    let chunk_count = u64::from_be_bytes(
+        header[12..20]
+            .try_into()
+            .map_err(|_| CipherError::InvalidCiphertext)?,
+    ) as usize;
 
     let mut chunk_buf = vec![0u8; CHUNK_SIZE + 16]; // plaintext + auth tag
     for i in 0..chunk_count {

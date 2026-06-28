@@ -24,7 +24,7 @@ use solosoul_core::{ObjectRecord, Profile, VaultStore};
 // 导出包大小限制（与 GUI 一致）
 const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB
 const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
-// 流式加密现在总是使用分块模式，不再需要阈值判断（P1-023）。
+                                                        // 流式加密现在总是使用分块模式，不再需要阈值判断（P1-023）。
 #[allow(dead_code)]
 const STREAMING_THRESHOLD: u64 = 10 * 1024 * 1024; // 10 MB
 
@@ -377,13 +377,8 @@ pub(crate) fn export_execute(
                 .map_err(|e| format!("写入 ZIP 附件条目失败: {}", e))?;
             let mut f = File::open(src_path).map_err(|e| format!("打开附件失败: {}", e))?;
             let mut reader = std::io::BufReader::new(&mut f);
-            solosoul_crypto::cipher::encrypt_chunked_stream(
-                ak,
-                file_size,
-                &mut reader,
-                &mut zip,
-            )
-            .map_err(|e| format!("加密附件失败: {}", e))?;
+            solosoul_crypto::cipher::encrypt_chunked_stream(ak, file_size, &mut reader, &mut zip)
+                .map_err(|e| format!("加密附件失败: {}", e))?;
         }
     }
 
@@ -391,7 +386,7 @@ pub(crate) fn export_execute(
     // has_templates 以实际导出 payload 中成功加载的模板为准
     let has_templates = payload["templates"]
         .as_array()
-        .map_or(false, |a| !a.is_empty());
+        .is_some_and(|a| !a.is_empty());
     let manifest = build_manifest(scope, &records, att_key.is_some(), has_templates, &salt);
     let manifest_bytes =
         serde_json::to_vec_pretty(&manifest).map_err(|e| format!("序列化 manifest 失败: {}", e))?;
@@ -689,7 +684,12 @@ pub(crate) fn import_execute(
                 let imported_id =
                     solosoul_core::export_import::imported_template_id(&original_id, &hash);
 
-                if vault.load_user_template(&imported_id).ok().flatten().is_none() {
+                if vault
+                    .load_user_template(&imported_id)
+                    .ok()
+                    .flatten()
+                    .is_none()
+                {
                     tpl.id = imported_id.clone();
                     tpl.account_id = account_id.clone();
                     tpl.created_at = now.clone();
@@ -769,14 +769,12 @@ pub(crate) fn import_execute(
                 })
                 .unwrap_or_default(),
             contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
-            template_id: obj_val["template_id"]
-                .as_str()
-                .map(|tid| {
-                    template_id_map
-                        .get(tid)
-                        .cloned()
-                        .unwrap_or_else(|| tid.to_string())
-                }),
+            template_id: obj_val["template_id"].as_str().map(|tid| {
+                template_id_map
+                    .get(tid)
+                    .cloned()
+                    .unwrap_or_else(|| tid.to_string())
+            }),
             template_type: obj_val["template_type"].as_str().map(String::from),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
             updated_at: now.clone(),
@@ -907,8 +905,8 @@ fn import_attachments(
             .to_string_lossy()
             .to_string();
         let file_path_dest = dest.join(&safe_name);
-        let mut out_file = File::create(&file_path_dest)
-            .map_err(|e| format!("创建附件文件失败: {}", e))?;
+        let mut out_file =
+            File::create(&file_path_dest).map_err(|e| format!("创建附件文件失败: {}", e))?;
         solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
             .map_err(|e| format!("解密附件流失败: {}", e))?;
         let file_size = std::fs::metadata(&file_path_dest)
@@ -1284,9 +1282,7 @@ mod tests {
 
         let tmpls = payload["templates"].as_array().unwrap();
         assert!(!tmpls.is_empty(), "payload 中应包含 templates");
-        let has_passport = tmpls
-            .iter()
-            .any(|t| t["name"].as_str() == Some("护照信息"));
+        let has_passport = tmpls.iter().any(|t| t["name"].as_str() == Some("护照信息"));
         assert!(has_passport, "应包含护照模板");
 
         // 验证对象携带 template_id
@@ -1366,8 +1362,8 @@ mod tests {
         let payload_bytes = serde_json::to_vec(&payload).unwrap();
         let file = File::create(&path).unwrap();
         let mut zip = zip::ZipWriter::new(file);
-        let options =
-            zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
 
         let manifest = serde_json::json!({
             "version": "2.0",
@@ -1405,9 +1401,7 @@ mod tests {
         // 验证快照模板数据导入且名称为中文
         let snapshot_tpl = vault.load_user_template(&tid).unwrap().unwrap();
         assert_eq!(snapshot_tpl.name, "护照信息");
-        assert_eq!(
-            snapshot_tpl.properties[0].name, "姓名"
-        );
+        assert_eq!(snapshot_tpl.properties[0].name, "姓名");
 
         // 验证原始英文模板未被覆盖
         let orig_tpl = vault.load_user_template("passport_tpl").unwrap().unwrap();
@@ -1448,8 +1442,8 @@ mod tests {
         let payload_bytes = serde_json::to_vec(&payload).unwrap();
         let file = File::create(&path).unwrap();
         let mut zip = zip::ZipWriter::new(file);
-        let options =
-            zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
 
         let manifest = serde_json::json!({
             "version": "1.0",
@@ -1536,9 +1530,12 @@ mod tests {
         zip.write_all(manifest.to_string().as_bytes()).unwrap();
         zip.start_file("payload.enc", options).unwrap();
         solosoul_crypto::cipher::encrypt_chunked_stream(
-            &key, payload_bytes.len() as u64,
-            &mut std::io::Cursor::new(&payload_bytes), &mut zip,
-        ).unwrap();
+            &key,
+            payload_bytes.len() as u64,
+            &mut std::io::Cursor::new(&payload_bytes),
+            &mut zip,
+        )
+        .unwrap();
         zip.finish().unwrap();
 
         // 第一次导入 — 创建快照模板
@@ -1602,17 +1599,23 @@ mod tests {
         z2.write_all(m2.to_string().as_bytes()).unwrap();
         z2.start_file("payload.enc", options).unwrap();
         solosoul_crypto::cipher::encrypt_chunked_stream(
-            &key2, payload2_bytes.len() as u64,
-            &mut std::io::Cursor::new(&payload2_bytes), &mut z2,
-        ).unwrap();
+            &key2,
+            payload2_bytes.len() as u64,
+            &mut std::io::Cursor::new(&payload2_bytes),
+            &mut z2,
+        )
+        .unwrap();
         z2.finish().unwrap();
 
         import_execute(&mut app, &path2, "ExportPass1", ImportStrategy::Overwrite).unwrap();
 
         // 验证第二个对象指向同一个快照模板 ID
         let imported_2 = vault.load_object("obj_2").unwrap().unwrap();
-        assert_eq!(imported_2.template_id.unwrap(), snapshot_id,
-            "同一模板内容的两次导入应复用同一个快照模板 ID");
+        assert_eq!(
+            imported_2.template_id.unwrap(),
+            snapshot_id,
+            "同一模板内容的两次导入应复用同一个快照模板 ID"
+        );
 
         // 验证快照模板数量没有增加
         let all_templates_after = vault.list_user_templates(&account_id).unwrap();
@@ -1671,9 +1674,12 @@ mod tests {
         zip.write_all(manifest.to_string().as_bytes()).unwrap();
         zip.start_file("payload.enc", options).unwrap();
         solosoul_crypto::cipher::encrypt_chunked_stream(
-            &key, payload_bytes.len() as u64,
-            &mut std::io::Cursor::new(&payload_bytes), &mut zip,
-        ).unwrap();
+            &key,
+            payload_bytes.len() as u64,
+            &mut std::io::Cursor::new(&payload_bytes),
+            &mut zip,
+        )
+        .unwrap();
         zip.finish().unwrap();
 
         import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();

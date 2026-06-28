@@ -18,7 +18,14 @@ pub(crate) fn search_properties_for_matches(
             for (key, value) in obj {
                 // 跳过系统元数据字段，避免搜索结果过多
                 let lower_key = key.to_lowercase();
-                if lower_key == "createdat" || lower_key == "objectid" || lower_key == "id" || lower_key == "updatedat" || lower_key == "deletedat" || lower_key == "vaultpath" || lower_key == "__templatename" {
+                if lower_key == "createdat"
+                    || lower_key == "objectid"
+                    || lower_key == "id"
+                    || lower_key == "updatedat"
+                    || lower_key == "deletedat"
+                    || lower_key == "vaultpath"
+                    || lower_key == "__templatename"
+                {
                     continue;
                 }
                 let field_path = if current_path.is_empty() {
@@ -220,10 +227,11 @@ pub(crate) fn search_pages(
         };
         items.push(SearchResultItem {
             object_id: page.id.clone(),
-            name: page.name,                collection_type: "page".to_string(),
-                template_name: None,
-                template_deleted: false,
-                item_type: "page".to_string(),
+            name: page.name,
+            collection_type: "page".to_string(),
+            template_name: None,
+            template_deleted: false,
+            item_type: "page".to_string(),
             parent_id: None,
             field_count: None,
             sensitivity_levels: None,

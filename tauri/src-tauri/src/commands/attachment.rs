@@ -443,12 +443,10 @@ pub async fn attachment_list_all(
         }
     }
 
-    let pages = build_attachment_tree_pages(
-        &vault, &account_id, &page_objects, &section_groups, false,
-    )?;
-    let trash_pages = build_attachment_tree_pages(
-        &vault, &account_id, &page_objects, &section_groups, true,
-    )?;
+    let pages =
+        build_attachment_tree_pages(&vault, &account_id, &page_objects, &section_groups, false)?;
+    let trash_pages =
+        build_attachment_tree_pages(&vault, &account_id, &page_objects, &section_groups, true)?;
 
     Ok(AttachmentListAllResult { pages, trash_pages })
 }

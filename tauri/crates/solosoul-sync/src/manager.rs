@@ -474,7 +474,12 @@ fn run_initiator_session(
 
     // Send our changes first, paginated by table.
     send_paginated_deltas(
-        &mut session, transport, &vault, account_id, node_id, &peer_node_id,
+        &mut session,
+        transport,
+        &vault,
+        account_id,
+        node_id,
+        &peer_node_id,
     )?;
 
     // Receive peer changes and apply each batch incrementally to bound memory.
@@ -693,7 +698,12 @@ fn handle_inbound(
 
     // Send our changes back, paginated by table.
     send_paginated_deltas(
-        &mut session, transport, &vault, account_id, node_id, &peer_node_id,
+        &mut session,
+        transport,
+        &vault,
+        account_id,
+        node_id,
+        &peer_node_id,
     )?;
 
     let base = vault.base_path();

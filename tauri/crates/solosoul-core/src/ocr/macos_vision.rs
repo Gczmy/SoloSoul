@@ -134,11 +134,9 @@ if let jsonData = try? JSONSerialization.data(withJSONObject: ["results": result
 
 /// 计算文件的 SHA-256 哈希。
 fn sha256_file(path: &Path) -> Result<Vec<u8>, String> {
-    let mut file = std::fs::File::open(path)
-        .map_err(|e| format!("打开文件计算哈希失败: {e}"))?;
+    let mut file = std::fs::File::open(path).map_err(|e| format!("打开文件计算哈希失败: {e}"))?;
     let mut hasher = Sha256::new();
-    std::io::copy(&mut file, &mut hasher)
-        .map_err(|e| format!("计算哈希失败: {e}"))?;
+    std::io::copy(&mut file, &mut hasher).map_err(|e| format!("计算哈希失败: {e}"))?;
     Ok(hasher.finalize().to_vec())
 }
 
@@ -233,14 +231,13 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
         // 计算并持久化编译产物的 SHA-256 哈希
         let hash = sha256_file(&binary_path)?;
         let hash_hex = hex::encode(&hash);
-        std::fs::write(&hash_path, &hash_hex)
-            .map_err(|e| format!("写入哈希文件失败: {e}"))?;
+        std::fs::write(&hash_path, &hash_hex).map_err(|e| format!("写入哈希文件失败: {e}"))?;
         tracing::debug!("Vision CLI 哈希已存储: {}", &hash_hex[..16]);
     } else {
         // 复用缓存前校验哈希，防止 TOCTOU 篡改
         if hash_path.exists() {
-            let stored_hash = std::fs::read_to_string(&hash_path)
-                .map_err(|_| "读取哈希文件失败".to_string())?;
+            let stored_hash =
+                std::fs::read_to_string(&hash_path).map_err(|_| "读取哈希文件失败".to_string())?;
             let actual_hash = sha256_file(&binary_path)?;
             let actual_hex = hex::encode(&actual_hash);
             if stored_hash.trim() != actual_hex {

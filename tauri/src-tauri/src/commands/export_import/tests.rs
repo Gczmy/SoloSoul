@@ -348,7 +348,9 @@ fn test_export_includes_templates() -> Result<(), String> {
     // Verify has_templates through the raw JSON of the manifest
     let file2 = File::open(&zip_path).map_err(|e| e.to_string())?;
     let mut archive = zip::ZipArchive::new(file2).map_err(|_| "invalid zip".to_string())?;
-    let mut entry = archive.by_name("manifest.json").map_err(|_| "missing manifest".to_string())?;
+    let mut entry = archive
+        .by_name("manifest.json")
+        .map_err(|_| "missing manifest".to_string())?;
     let mut buf = String::new();
     entry.read_to_string(&mut buf).map_err(|e| e.to_string())?;
     let raw: serde_json::Value = serde_json::from_str(&buf).map_err(|e| e.to_string())?;

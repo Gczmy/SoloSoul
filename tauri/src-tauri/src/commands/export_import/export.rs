@@ -374,13 +374,8 @@ pub async fn export_execute(
             // holding both plaintext and ciphertext in memory (P1-023).
             let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
             let mut reader = std::io::BufReader::new(&mut f);
-            solosoul_crypto::cipher::encrypt_chunked_stream(
-                ak,
-                file_size,
-                &mut reader,
-                &mut zip,
-            )
-            .map_err(|e| format!("encrypt attachment: {}", e))?;
+            solosoul_crypto::cipher::encrypt_chunked_stream(ak, file_size, &mut reader, &mut zip)
+                .map_err(|e| format!("encrypt attachment: {}", e))?;
             has_attachments = true;
         }
     }

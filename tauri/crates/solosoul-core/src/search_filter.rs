@@ -32,7 +32,7 @@ pub fn collect_protected_field_keys(
 
     if let Some(labels) = property_labels.and_then(|v| v.as_object()) {
         for (key, val) in labels {
-            if val.as_str().map_or(false, is_protected_sensitivity) {
+            if val.as_str().is_some_and(is_protected_sensitivity) {
                 keys.insert(key.clone());
             }
         }
@@ -46,7 +46,7 @@ pub fn collect_protected_field_keys(
                 if prop
                     .sensitivity_level
                     .as_deref()
-                    .map_or(false, is_protected_sensitivity)
+                    .is_some_and(is_protected_sensitivity)
                 {
                     keys.insert(prop.id.clone());
                 }
