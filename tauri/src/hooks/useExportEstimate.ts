@@ -51,6 +51,8 @@ export function useExportEstimate(accountId: string, scope: ScopeState, totalSel
     ],
   );
 
+  // scopeKey 已覆盖 scope 所有字段，scope 本体不含在 deps 中是故意的
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (totalSelected === 0) {
       setEstimate(null);

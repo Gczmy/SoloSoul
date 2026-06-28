@@ -81,7 +81,7 @@ export function PluginCard({
       });
     }
     return result;
-  }, [info, isRunning]);
+  }, [info, isRunning, installed, latestVersion, t]);
 
   const displayName = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
   const displayDesc =

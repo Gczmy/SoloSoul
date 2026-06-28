@@ -557,7 +557,7 @@ mod tests {
 
     #[test]
     fn test_ocr_get_supported_languages() {
-        let langs = ocr_get_supported_languages();
+        let _langs = ocr_get_supported_languages();
         // Actually call the sync logic inline
         let expected = vec![
             "auto".to_string(),

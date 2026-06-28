@@ -133,7 +133,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   }
 
   /** Detect if the query matches a translated system page name. */
-  function matchPageTranslation(q: string): string | null {
+  const matchPageTranslation = useCallback((q: string): string | null => {
     const trimmed = q.toLowerCase().trim();
     const systemKeys = ['identity', 'travel', 'financial', 'professional'] as const;
     for (const key of systemKeys) {
@@ -143,7 +143,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
       }
     }
     return null;
-  }
+  }, [t]);
 
   /** Resolve icon for a search result item. */
   function resolveResultIcon(
@@ -268,7 +268,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
         setIsSearching(false);
       }
     },
-    [accountId, activeCustomPages, onError, t],
+    [accountId, activeCustomPages, onError, t, matchPageTranslation],
   );
 
   const handleChange = (val: string) => {

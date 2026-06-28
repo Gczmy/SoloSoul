@@ -427,7 +427,7 @@ pub async fn export_execute(
     let has_templates = !templates.is_empty();
     let manifest = serde_json::json!({
         "version": "2.0",
-        "export_scope": "partial",
+        "export_scope": if req.scope.full { "full" } else { "partial" },
         "selected_pages": req.scope.selected_page_ids,
         "selected_objects": req.scope.selected_object_ids,
         "selected_tags": req.scope.selected_tags,

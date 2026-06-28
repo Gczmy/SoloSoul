@@ -13,7 +13,7 @@ export default [
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'no-console': 'warn',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
   {
