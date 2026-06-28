@@ -7,6 +7,10 @@ import type { GuideContent } from '@/lib/guideApi';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
+/** 帮助文档搜索缓存：同一关键词 30 秒内不重复请求后端 */
+const GUIDE_SEARCH_CACHE_TTL = 30_000;
+const guideSearchCache = new Map<string, { data: GuideContent[]; timestamp: number }>();
+
 
 interface GuideSearchProps {
   onSearch: (query: string) => Promise<GuideContent[]>;
@@ -200,9 +204,18 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
         setResults(null);
         return;
       }
+
+      const cacheKey = q.trim().toLowerCase();
+      const cached = guideSearchCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < GUIDE_SEARCH_CACHE_TTL) {
+        setResults(cached.data);
+        return;
+      }
+
       setLoading(true);
       try {
         const res = await onSearch(q.trim());
+        guideSearchCache.set(cacheKey, { data: res, timestamp: Date.now() });
         setResults(res);
       } catch {
         setResults([]);
