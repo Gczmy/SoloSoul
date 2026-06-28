@@ -431,7 +431,9 @@ mod tests {
     fn first_backup_id(app: &mut App) -> String {
         handle(app, &["list"]).unwrap();
         match &app.phase {
-            AppPhase::BackupList { items, .. } => items[0].id.clone(),
+            AppPhase::BackupList { items, .. } => {
+                items.first().map(|i| i.id.clone()).expect("测试应至少有一个备份")
+            }
             _ => panic!("expected BackupList"),
         }
     }

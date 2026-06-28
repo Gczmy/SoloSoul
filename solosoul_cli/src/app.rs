@@ -476,11 +476,10 @@ impl App {
                     NewObjectStep::FillFields {
                         fields, selected, ..
                     },
-            } => {
-                if *selected < fields.len() {
+            }
+                if *selected < fields.len() => {
                     fields[*selected].value = value;
                 }
-            }
             AppPhase::EditObjectWizard {
                 step:
                     EditObjectStep::Overview {
@@ -490,15 +489,14 @@ impl App {
                         ..
                     },
                 ..
-            } => {
-                if *selected < fields.len() {
+            }
+                if *selected < fields.len() => {
                     let key = fields[*selected].key.clone();
                     fields[*selected].value = value.clone();
                     if let serde_json::Value::Object(ref mut map) = object.properties {
                         map.insert(key, value);
                     }
                 }
-            }
             _ => {}
         }
     }
