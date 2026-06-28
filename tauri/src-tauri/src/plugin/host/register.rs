@@ -989,22 +989,21 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
     Ok(())
 }
 
-/// 规范化路径，对不存在的路径尝试规范化其父目录后再拼接末尾组件。
+/// 规范化路径，对不存在的路径尝试规范化其最近存在的祖先后再拼接末尾组件。
 fn resolve_path(path: &std::path::Path) -> std::path::PathBuf {
     if let Ok(p) = std::fs::canonicalize(path) {
         return p;
     }
     let mut existing = path;
     let mut suffix = Vec::new();
-    loop {
+    while !existing.exists() {
         if let Some(file_name) = existing.file_name() {
             suffix.push(file_name);
-            if let Some(parent) = existing.parent() {
-                existing = parent;
-                continue;
-            }
         }
-        break;
+        match existing.parent() {
+            Some(parent) => existing = parent,
+            None => break,
+        }
     }
     let base = std::fs::canonicalize(existing).unwrap_or_else(|_| existing.to_path_buf());
     suffix.into_iter().rev().fold(base, |acc, name| acc.join(name))
