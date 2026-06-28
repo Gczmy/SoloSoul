@@ -27,9 +27,8 @@ fn feed_string(app: &mut App, s: &str) {
 fn test_full_wizard_lifecycle() {
     let _guard = solosoul_cli::VAULT_TEST_LOCK.lock().unwrap();
     let dir = tempfile::TempDir::new().unwrap();
-    std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
 
-    let vault = VaultService::new();
+    let vault = VaultService::with_base_path(dir.path().to_path_buf());
     let account = vault.create_account("Wizard", solosoul_cli::TEST_PASSWORD, None).unwrap();
     let account_id = account["id"].as_str().unwrap().to_string();
     vault.lock();
@@ -163,9 +162,8 @@ fn test_full_wizard_lifecycle() {
 fn test_prompt_pauses_auto_lock() {
     let _guard = solosoul_cli::VAULT_TEST_LOCK.lock().unwrap();
     let dir = tempfile::TempDir::new().unwrap();
-    std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
 
-    let vault = VaultService::new();
+    let vault = VaultService::with_base_path(dir.path().to_path_buf());
     vault.create_account("Pause", solosoul_cli::TEST_PASSWORD, None).unwrap();
     vault.lock();
 

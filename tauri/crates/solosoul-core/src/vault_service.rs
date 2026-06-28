@@ -204,6 +204,19 @@ impl VaultService {
         svc
     }
 
+    /// 使用指定的基础路径创建 VaultService（P120: 避免测试中 set_var 污染）。
+    /// 不自动从 env var 读取路径，也不调用 load_accounts（由调用者按需初始化）。
+    pub fn with_base_path(base_path: PathBuf) -> Self {
+        Self {
+            base_path,
+            accounts_cache: RwLock::new(HashMap::new()),
+            session_key: RwLock::new(None),
+            unlocked_account: RwLock::new(None),
+            vault_store: RwLock::new(None),
+            create_lock: std::sync::Mutex::new(()),
+        }
+    }
+
     fn default_base_path() -> PathBuf {
         if let Ok(dir) = std::env::var("SOLOSOUL_DATA_DIR") {
             return PathBuf::from(dir);

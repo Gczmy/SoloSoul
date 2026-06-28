@@ -87,6 +87,7 @@ fn update_profile_preference(app: &mut App, key: &str, value: Value) -> Result<(
 }
 
 /// 执行 `/security password`：通过连续提示修改主密码。
+/// P119: 使用链式函数替代三层嵌套回调。
 fn start_change_password(app: &mut App) -> Result<()> {
     let account_id = require_unlocked(app)?;
 
@@ -98,64 +99,86 @@ fn start_change_password(app: &mut App) -> Result<()> {
             mask: true,
             allow_toggle_mask: true,
         },
-        Box::new(move |app, result| {
-            if let PromptResult::Text(old_password) = result {
-                let account_id = account_id.clone();
-                prompt::open(
-                    app,
-                    PromptSpec::Text {
-                        label: "新主密码".to_string(),
-                        initial: String::new(),
-                        mask: true,
-                        allow_toggle_mask: true,
-                    },
-                    Box::new(move |app, result| {
-                        if let PromptResult::Text(new_password) = result {
-                            if new_password.len() < 8 {
-                                app.error_message = Some("主密码至少需要 8 位".to_string());
-                                return;
-                            }
-                            let account_id = account_id.clone();
-                            let old_password = old_password.clone();
-                            prompt::open(
-                                app,
-                                PromptSpec::Text {
-                                    label: "确认新主密码".to_string(),
-                                    initial: String::new(),
-                                    mask: true,
-                                    allow_toggle_mask: true,
-                                },
-                                Box::new(move |app, result| {
-                                    if let PromptResult::Text(confirm_password) = result {
-                                        if new_password != confirm_password {
-                                            app.error_message =
-                                                Some("两次输入的新密码不一致".to_string());
-                                            return;
-                                        }
-                                        match app.vault_service.change_password(
-                                            &account_id,
-                                            &old_password,
-                                            &new_password,
-                                        ) {
-                                            Ok(()) => {
-                                                app.error_message = Some("主密码已修改".to_string())
-                                            }
-                                            Err(e) => {
-                                                app.error_message = Some(format!("修改失败: {}", e))
-                                            }
-                                        }
-                                    }
-                                }),
-                            );
-                        }
-                    }),
-                );
-            }
-        }),
+        Box::new(move |app, result| on_old_password(app, result, account_id)),
     );
 
     Ok(())
 }
+
+/// 步骤 1: 接收旧密码，提示新密码。
+fn on_old_password(app: &mut App, result: PromptResult, account_id: String) {
+    if let PromptResult::Text(old_password) = result {
+        prompt::open(
+            app,
+            PromptSpec::Text {
+                label: "新主密码".to_string(),
+                initial: String::new(),
+                mask: true,
+                allow_toggle_mask: true,
+            },
+            Box::new(move |app, result| {
+                on_new_password(app, result, account_id, old_password)
+            }),
+        );
+    }
+}
+
+/// 步骤 2: 接收新密码，提示确认密码。
+fn on_new_password(
+    app: &mut App,
+    result: PromptResult,
+    account_id: String,
+    old_password: String,
+) {
+    if let PromptResult::Text(new_password) = result {
+        if new_password.len() < 8 {
+            app.error_message = Some("主密码至少需要 8 位".to_string());
+            return;
+        }
+        prompt::open(
+            app,
+            PromptSpec::Text {
+                label: "确认新主密码".to_string(),
+                initial: String::new(),
+                mask: true,
+                allow_toggle_mask: true,
+            },
+            Box::new(move |app, result| {
+                on_confirm_password(app, result, account_id, old_password, new_password)
+            }),
+        );
+    }
+}
+
+/// 步骤 3: 接收确认密码，执行修改。
+fn on_confirm_password(
+    app: &mut App,
+    result: PromptResult,
+    account_id: String,
+    old_password: String,
+    new_password: String,
+) {
+    if let PromptResult::Text(confirm_password) = result {
+        if new_password != confirm_password {
+            app.error_message = Some("两次输入的新密码不一致".to_string());
+            return;
+        }
+        match app.vault_service.change_password(
+            &account_id,
+            &old_password,
+            &new_password,
+        ) {
+            Ok(()) => {
+                app.error_message = Some("主密码已修改".to_string())
+            }
+            Err(e) => {
+                app.error_message = Some(format!("修改失败: {}", e))
+            }
+        }
+    }
+}
+
+/// 读取账户配置，用于获取密码提示等无需解锁的信息。
 
 /// 读取账户配置，用于获取密码提示等无需解锁的信息。
 fn load_account_config(app: &App, account_id: &str) -> Option<solosoul_core::AccountConfig> {
@@ -379,8 +402,7 @@ mod tests {
             .lock()
             .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
-        std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
-        let vault = VaultService::new();
+        let vault = VaultService::with_base_path(dir.path().to_path_buf());
         let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();

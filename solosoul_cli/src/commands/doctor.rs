@@ -93,8 +93,7 @@ mod tests {
             .lock()
             .unwrap_or_else(|e| e.into_inner());
         let dir = TempDir::new().unwrap();
-        std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
-        let vault = VaultService::new();
+        let vault = VaultService::with_base_path(dir.path().to_path_buf());
         let app = App::new(Arc::new(vault)).unwrap();
         (app, dir)
     }

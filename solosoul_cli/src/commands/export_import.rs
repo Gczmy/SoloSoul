@@ -784,9 +784,9 @@ pub(crate) fn import_execute(
         imported_object_ids.insert(id.to_string());
     }
 
-    // 导入附件。
+    // 导入附件（P118: 传入已解密的 payload 避免二次解密）。
     if manifest.has_attachments {
-        import_attachments(app, path, &key, &salt, &imported_object_ids)?;
+        import_attachments(app, path, &key, &salt, &imported_object_ids, &payload)?;
     }
 
     // 导入偏好设置。
@@ -816,12 +816,15 @@ pub(crate) fn import_execute(
 }
 
 /// 导入附件到 vault 存储目录。
+///
+/// P118: 接受已解密的 payload，避免二次解密。
 fn import_attachments(
     app: &mut App,
     path: &Path,
     key: &[u8; 32],
     salt: &[u8],
     imported_object_ids: &HashSet<String>,
+    payload: &serde_json::Value,
 ) -> Result<(), String> {
     let vault = app
         .vault_service
@@ -831,13 +834,6 @@ fn import_attachments(
 
     let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
         .map_err(|e| format!("派生附件密钥失败: {}", e))?;
-
-    // 从 payload 构建旧的附件元数据映射。
-    let payload_enc = read_file_from_zip(path, "payload.enc")?;
-    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(key, &payload_enc)
-        .map_err(|_| "解密负载失败".to_string())?;
-    let payload: serde_json::Value =
-        serde_json::from_slice(&decrypted).map_err(|e| format!("解析负载失败: {}", e))?;
 
     let mut att_meta_map: HashMap<(String, String), AttachmentMeta> = HashMap::new();
     if let Some(arr) = payload["objects"].as_array() {
@@ -1100,8 +1096,7 @@ mod tests {
             .lock()
             .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
-        std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
-        let vault = VaultService::new();
+        let vault = VaultService::with_base_path(dir.path().to_path_buf());
         let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
