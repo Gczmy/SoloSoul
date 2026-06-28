@@ -101,6 +101,49 @@ function extractTokens(query: string): string[] {
     .filter((t) => t.length >= 2 && !stops.has(t));
 }
 
+/**
+ * 从文档内容中提取匹配关键词的上下文片段。
+ * 找到第一个匹配 token 的位置，取其前后各 contextChars 字符作为摘要。
+ */
+function extractContextSnippet(content: string, tokens: string[], contextChars = 80): string {
+  // 清理 Markdown 标记
+  const clean = content
+    .replace(/[#*`\[\]!>|\-_]/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (tokens.length === 0) return clean.slice(0, 260);
+
+  // 查找第一个匹配位置（不区分大小写）
+  let firstMatch = -1;
+  let matchedToken = '';
+  const lower = clean.toLowerCase();
+  for (const token of tokens) {
+    const idx = lower.indexOf(token);
+    if (idx !== -1 && (firstMatch === -1 || idx < firstMatch)) {
+      firstMatch = idx;
+      matchedToken = token;
+    }
+  }
+
+  if (firstMatch === -1) {
+    // 没有匹配到内容（可能只匹配了标题），返回开头
+    return clean.slice(0, 260);
+  }
+
+  // 取上下文窗口
+  const start = Math.max(0, firstMatch - contextChars);
+  const end = Math.min(clean.length, firstMatch + matchedToken.length + contextChars);
+  let snippet = clean.slice(start, end);
+
+  // 两端加省略号
+  if (start > 0) snippet = '…' + snippet;
+  if (end < clean.length) snippet = snippet + '…';
+
+  return snippet;
+}
+
 /** 高亮文本中的匹配 token */
 function HighlightText({ text, tokens }: { text: string; tokens: string[] }) {
   if (tokens.length === 0) return <>{text}</>;
@@ -205,10 +248,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
       {!loading && results && results.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {results.map((r) => {
-            const excerpt = r.content
-              .slice(0, 260)
-              .replace(/[#*`[\]!]/g, '')
-              .replace(/\n+/g, ' ');
+            const snippet = extractContextSnippet(r.content, tokens);
             return (
               <Card key={r.id} interactive onClick={() => onSelect(r.id)}>
                 <div style={{ fontSize: 'var(--text-body)', fontWeight: 500, marginBottom: 4 }}>
@@ -225,7 +265,7 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
                     overflow: 'hidden',
                   }}
                 >
-                  <HighlightText text={excerpt} tokens={tokens} />
+                  <HighlightText text={snippet} tokens={tokens} />
                 </div>
               </Card>
             );

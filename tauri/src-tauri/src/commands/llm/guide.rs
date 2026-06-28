@@ -458,7 +458,7 @@ pub fn find_relevant_guides_internal(
                 score += 1;
             }
             if title_text.contains(token) {
-                score += 3;
+                score += 10;
             }
             if summary_text.contains(token) {
                 score += 2; // 摘要命中权重介于关键词和标题之间
@@ -568,9 +568,9 @@ pub async fn guide_search(query: String, language: String) -> Result<Vec<GuideCo
             {
                 score += 1;
             }
-            // Title match (score 3)
+            // Title match (score 10) — heavily prioritised over content-only matches
             if title_text.contains(token) {
-                score += 3;
+                score += 10;
             }
             // Full-text content match via pre-built search index (score 2)
             if let Some(guide_ids) = search_index.words.get(token) {
