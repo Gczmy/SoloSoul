@@ -197,7 +197,8 @@ pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<B
     struct ProfileBackupEntry {
         id: String,
         name: String,
-        data: Vec<u8>,
+        /// Base64-encoded profile data (避免 JSON 序列化为大型数字数组)
+        data_b64: String,
         created_at: String,
         updated_at: String,
         version: u32,
@@ -209,7 +210,7 @@ pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<B
             backup_profiles.push(ProfileBackupEntry {
                 id: profile.id,
                 name: profile.name,
-                data: profile.data,
+                data_b64: base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &profile.data),
                 created_at: profile.created_at.to_rfc3339(),
                 updated_at: profile.updated_at.to_rfc3339(),
                 version: profile.version,
@@ -283,6 +284,9 @@ pub async fn backup_restore(
     struct RestoreProfileEntry {
         id: String,
         name: String,
+        #[serde(default)]
+        data_b64: String,
+        #[serde(default)]
         data: Vec<u8>,
         created_at: String,
         updated_at: String,
@@ -293,10 +297,17 @@ pub async fn backup_restore(
     let mut restored = 0usize;
 
     for entry in &manifest.profiles {
+        // 兼容新旧两种格式：优先 data_b64，回退旧版 data (Vec<u8>)
+        let data = if !entry.data_b64.is_empty() {
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &entry.data_b64)
+                .map_err(|e| format!("Base64 decode profile data: {}", e))?
+        } else {
+            entry.data.clone()
+        };
         let profile = solosoul_vault::Profile {
             id: entry.id.clone(),
             name: entry.name.clone(),
-            data: entry.data.clone(),
+            data,
             created_at: chrono::DateTime::parse_from_rfc3339(&entry.created_at)
                 .map(|dt| dt.with_timezone(&chrono::Utc))
                 .unwrap_or_else(|_| chrono::Utc::now()),

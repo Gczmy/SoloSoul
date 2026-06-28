@@ -340,6 +340,32 @@ pub async fn attachment_copy_to_vault(
         return Err("Source path must not be inside vault storage".to_string());
     }
 
+    // 验证源文件在允许的用户目录内（Desktop/Documents/Downloads 或 SOLOSOUL_FS_BASE）
+    let allowed_bases: Vec<PathBuf> = {
+        let mut bases = Vec::new();
+        if let Ok(fs_base) = std::env::var("SOLOSOUL_FS_BASE") {
+            if let Ok(canon) = PathBuf::from(fs_base).canonicalize() {
+                bases.push(canon);
+            }
+        }
+        #[cfg(unix)]
+        let home_var = "HOME";
+        #[cfg(windows)]
+        let home_var = "USERPROFILE";
+        if let Ok(home) = std::env::var(home_var) {
+            for dir_name in &["Desktop", "Documents", "Downloads"] {
+                let p = PathBuf::from(&home).join(dir_name);
+                if let Ok(canon) = p.canonicalize() {
+                    bases.push(canon);
+                }
+            }
+        }
+        bases
+    };
+    if !allowed_bases.is_empty() && !allowed_bases.iter().any(|b| src.starts_with(b)) {
+        return Err("Source path must be within Desktop, Documents, Downloads, or SOLOSOUL_FS_BASE".to_string());
+    }
+
     let dest_dir = attachment_dir(&base, &object_id, &attachment_id)?;
     std::fs::create_dir_all(&dest_dir).map_err(|e| format!("Mkdir: {}", e))?;
 

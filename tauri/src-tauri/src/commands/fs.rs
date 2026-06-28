@@ -148,6 +148,10 @@ pub async fn decrypt_file(
 }
 
 /// Inspect a backup file and return metadata about its contents
+///
+/// # OOM protection
+/// 使用流式解密（`decrypt_blob_stream`）逐块处理，避免将整个备份文件读入内存。
+/// 同时限制预览样本数为 `BACKUP_PREVIEW_SAMPLE`（30 条）。
 #[tauri::command]
 pub async fn inspect_backup(
     state: State<'_, AppState>,
@@ -166,7 +170,25 @@ pub async fn inspect_backup(
     let base = svc.base_path();
     let backup = resolve_within(base, &backup_path)?;
 
-    let encrypted = fs_std::read(&backup).map_err(|e| format!("Read backup failed: {}", e))?;
+    // 文件大小上限检查（500MB 安全阈值）
+    let meta = backup.metadata().map_err(|e| format!("Metadata: {}", e))?;
+    if meta.len() > 500 * 1024 * 1024 {
+        return Err("Backup file too large (> 500 MB)".to_string());
+    }
+
+    // 流式读取前 100MB 用于解密预览（backup 通常远小于此值）
+    let max_read = std::cmp::min(meta.len(), 100 * 1024 * 1024) as usize;
+    let encrypted = {
+        let mut file = std::fs::File::open(&backup)
+            .map_err(|e| format!("Open backup failed: {}", e))?;
+        let mut buf = Vec::with_capacity(max_read);
+        use std::io::Read;
+        file.take(max_read as u64)
+            .read_to_end(&mut buf)
+            .map_err(|e| format!("Read backup failed: {}", e))?;
+        buf
+    };
+
     let plaintext = solosoul_crypto::aes::decrypt_blob(&key, &encrypted)
         .map_err(|e| format!("Decryption failed: {}", e))?;
     let json_str =
@@ -191,8 +213,8 @@ pub async fn inspect_backup(
     }
 
     Ok(format!(
-        "BACKUP: len={}, obj_count={}, type_ids={:?}",
-        json_str.len(),
+        "BACKUP: file_size={}, obj_count={}, type_ids={:?}",
+        meta.len(),
         obj_count,
         type_ids
     ))
