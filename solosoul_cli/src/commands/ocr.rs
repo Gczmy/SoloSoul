@@ -272,7 +272,7 @@ mod tests {
         std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
         let vault = VaultService::new();
         vault
-            .create_account("OcrTest", "password123", None)
+            .create_account("OcrTest", crate::TEST_PASSWORD, None)
             .unwrap();
         let app = App::new(Arc::new(vault)).unwrap();
         (app, dir)

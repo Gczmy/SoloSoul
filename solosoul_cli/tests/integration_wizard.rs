@@ -30,7 +30,7 @@ fn test_full_wizard_lifecycle() {
     std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
 
     let vault = VaultService::new();
-    let account = vault.create_account("Wizard", "password123", None).unwrap();
+    let account = vault.create_account("Wizard", solosoul_cli::TEST_PASSWORD, None).unwrap();
     let account_id = account["id"].as_str().unwrap().to_string();
     vault.lock();
 
@@ -45,7 +45,7 @@ fn test_full_wizard_lifecycle() {
             step: solosoul_cli::app::UnlockStep::EnterPassword { .. }
         }
     ));
-    feed_string(&mut app, "password123");
+    feed_string(&mut app, solosoul_cli::TEST_PASSWORD);
     app.handle_event(solosoul_cli::events::Event::Key(key_enter()))
         .unwrap();
     assert!(matches!(app.phase, AppPhase::Home { .. }));
@@ -166,12 +166,12 @@ fn test_prompt_pauses_auto_lock() {
     std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
 
     let vault = VaultService::new();
-    vault.create_account("Pause", "password123", None).unwrap();
+    vault.create_account("Pause", solosoul_cli::TEST_PASSWORD, None).unwrap();
     vault.lock();
 
     let mut app = App::new(Arc::new(vault)).unwrap();
     commands::auth::unlock(&mut app).unwrap();
-    feed_string(&mut app, "password123");
+    feed_string(&mut app, solosoul_cli::TEST_PASSWORD);
     app.handle_event(solosoul_cli::events::Event::Key(key_enter()))
         .unwrap();
 

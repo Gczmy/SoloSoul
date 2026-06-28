@@ -1110,7 +1110,7 @@ mod tests {
         let dir = tempfile::TempDir::new().unwrap();
         std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
         let vault = VaultService::new();
-        let account = vault.create_account("Test", "password123", None).unwrap();
+        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
         (app, account_id, dir)
@@ -1156,7 +1156,7 @@ mod tests {
             include_attachments: false,
             ..Default::default()
         };
-        export_execute(&mut app, "ExportPass1", &path, &scope).unwrap();
+        export_execute(&mut app, crate::TEST_EXPORT_PASSWORD, &path, &scope).unwrap();
 
         assert!(path.exists());
         let manifest = read_manifest(&path).unwrap();
@@ -1179,7 +1179,7 @@ mod tests {
             include_attachments: false,
             ..Default::default()
         };
-        export_execute(&mut app, "ExportPass1", &path, &scope).unwrap();
+        export_execute(&mut app, crate::TEST_EXPORT_PASSWORD, &path, &scope).unwrap();
 
         let preview = import_preview(&path).unwrap();
         assert!(preview.contains("对象数 1"), "preview: {}", preview);
@@ -1201,13 +1201,13 @@ mod tests {
             include_attachments: false,
             ..Default::default()
         };
-        export_execute(&mut app, "ExportPass1", &path, &scope).unwrap();
+        export_execute(&mut app, crate::TEST_EXPORT_PASSWORD, &path, &scope).unwrap();
 
         // 删除本地对象后重新导入。
         vault.delete_object("obj_1", false).unwrap();
         assert!(vault.load_object("obj_1").unwrap().is_none());
 
-        import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
         let restored = vault.load_object("obj_1").unwrap().unwrap();
         assert_eq!(restored.name, "Test Object");
         assert_eq!(restored.properties["title"].as_str().unwrap(), "hello");
@@ -1228,7 +1228,7 @@ mod tests {
             include_attachments: false,
             ..Default::default()
         };
-        export_execute(&mut app, "ExportPass1", &path, &scope).unwrap();
+        export_execute(&mut app, crate::TEST_EXPORT_PASSWORD, &path, &scope).unwrap();
 
         let result = import_execute(&mut app, &path, "WrongPass1", ImportStrategy::Overwrite);
         assert!(result.is_err(), "应返回密码错误: {:?}", result);
@@ -1274,13 +1274,13 @@ mod tests {
             include_attachments: false,
             ..Default::default()
         };
-        export_execute(&mut app, "ExportPass1", &path, &scope).unwrap();
+        export_execute(&mut app, crate::TEST_EXPORT_PASSWORD, &path, &scope).unwrap();
 
         // 验证导出的 payload 包含 templates
         let manifest = read_manifest(&path).unwrap();
         let enc = read_file_from_zip(&path, "payload.enc").unwrap();
         let salt = hex::decode(&manifest.salt_hex).unwrap();
-        let key = derive_export_key("ExportPass1", &salt).unwrap();
+        let key = derive_export_key(crate::TEST_EXPORT_PASSWORD, &salt).unwrap();
         let dec = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc).unwrap();
         let payload: serde_json::Value = serde_json::from_slice(&dec).unwrap();
 
@@ -1328,7 +1328,7 @@ mod tests {
         let path = std::env::temp_dir().join("test_cli_import_remap.solosoul");
         let _ = std::fs::remove_file(&path);
         let salt = solosoul_crypto::kdf::generate_salt();
-        let key = derive_export_key("ExportPass1", &salt).unwrap();
+        let key = derive_export_key(crate::TEST_EXPORT_PASSWORD, &salt).unwrap();
 
         let payload = serde_json::json!({
             "objects": [{
@@ -1390,7 +1390,7 @@ mod tests {
         zip.finish().unwrap();
 
         // 导入到英文账户
-        import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
 
         // 验证对象 template_id 被重定向（不再是原始 "passport_tpl"）
         let imported = vault.load_object("obj_cn").unwrap().unwrap();
@@ -1423,7 +1423,7 @@ mod tests {
         let path = std::env::temp_dir().join("test_cli_import_old.solosoul");
         let _ = std::fs::remove_file(&path);
         let salt = solosoul_crypto::kdf::generate_salt();
-        let key = derive_export_key("ExportPass1", &salt).unwrap();
+        let key = derive_export_key(crate::TEST_EXPORT_PASSWORD, &salt).unwrap();
 
         let payload = serde_json::json!({
             "objects": [{
@@ -1469,7 +1469,7 @@ mod tests {
         zip.finish().unwrap();
 
         // 导入 — 应正常工作（无 templates 的旧包兼容）
-        import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
         let imported = vault.load_object("obj_old").unwrap().unwrap();
         assert_eq!(imported.name, "Old Object");
 
@@ -1486,7 +1486,7 @@ mod tests {
         let path = std::env::temp_dir().join("test_cli_import_dedup.solosoul");
         let _ = std::fs::remove_file(&path);
         let salt = solosoul_crypto::kdf::generate_salt();
-        let key = derive_export_key("ExportPass1", &salt).unwrap();
+        let key = derive_export_key(crate::TEST_EXPORT_PASSWORD, &salt).unwrap();
 
         let payload = serde_json::json!({
             "objects": [{
@@ -1543,7 +1543,7 @@ mod tests {
         zip.finish().unwrap();
 
         // 第一次导入 — 创建快照模板
-        import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
         let imported_1 = vault.load_object("obj_1").unwrap().unwrap();
         let snapshot_id = imported_1.template_id.unwrap();
         assert!(snapshot_id.starts_with("imported:"));
@@ -1589,7 +1589,7 @@ mod tests {
             }]
         });
         let salt2 = solosoul_crypto::kdf::generate_salt();
-        let key2 = derive_export_key("ExportPass1", &salt2).unwrap();
+        let key2 = derive_export_key(crate::TEST_EXPORT_PASSWORD, &salt2).unwrap();
         let path2 = std::env::temp_dir().join("test_cli_import_dedup_2.solosoul");
         let _ = std::fs::remove_file(&path2);
         let payload2_bytes = serde_json::to_vec(&payload2).unwrap();
@@ -1611,7 +1611,7 @@ mod tests {
         .unwrap();
         z2.finish().unwrap();
 
-        import_execute(&mut app, &path2, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+        import_execute(&mut app, &path2, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
 
         // 验证第二个对象指向同一个快照模板 ID
         let imported_2 = vault.load_object("obj_2").unwrap().unwrap();
@@ -1646,7 +1646,7 @@ mod tests {
         let path = std::env::temp_dir().join("test_cli_import_custom_page.solosoul");
         let _ = std::fs::remove_file(&path);
         let salt = solosoul_crypto::kdf::generate_salt();
-        let key = derive_export_key("ExportPass1", &salt).unwrap();
+        let key = derive_export_key(crate::TEST_EXPORT_PASSWORD, &salt).unwrap();
 
         let payload = serde_json::json!({
             "objects": [{
@@ -1686,7 +1686,7 @@ mod tests {
         .unwrap();
         zip.finish().unwrap();
 
-        import_execute(&mut app, &path, "ExportPass1", ImportStrategy::Overwrite).unwrap();
+        import_execute(&mut app, &path, crate::TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite).unwrap();
 
         let imported = vault.load_object("custom_page_1").unwrap().unwrap();
         assert_eq!(imported.name, "我的中文页面", "自定义页面名称应保持原样");
@@ -1711,7 +1711,7 @@ mod tests {
             include_attachments: false,
             ..Default::default()
         };
-        let result = export_execute(&mut app, "password123", &path, &scope);
+        let result = export_execute(&mut app, crate::TEST_PASSWORD, &path, &scope);
         assert!(
             result.is_err(),
             "应拒绝与主密码相同的导出密码: {:?}",

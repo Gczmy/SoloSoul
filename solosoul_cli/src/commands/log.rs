@@ -90,7 +90,7 @@ mod tests {
         let dir = tempfile::TempDir::new().unwrap();
         std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
         let vault = VaultService::new();
-        let account = vault.create_account("Test", "password123", None).unwrap();
+        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
         (app, account_id, dir)
@@ -104,7 +104,7 @@ mod tests {
         let dir = tempfile::TempDir::new().unwrap();
         std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
         let vault = VaultService::new();
-        let account = vault.create_account("Test", "password123", None).unwrap();
+        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         vault.lock();
         let mut app = App::new(Arc::new(vault)).unwrap();
@@ -115,7 +115,7 @@ mod tests {
 
         // 解锁后应成功
         crate::commands::auth::unlock(&mut app).unwrap();
-        for c in "password123".chars() {
+        for c in crate::TEST_PASSWORD.chars() {
             app.handle_event(crate::events::Event::Key(crossterm::event::KeyEvent::from(
                 crossterm::event::KeyCode::Char(c),
             )))

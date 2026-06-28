@@ -2975,7 +2975,7 @@ mod tests {
         let dir = tempfile::TempDir::new().unwrap();
         std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
         let vault = VaultService::new();
-        let account = vault.create_account("Test", "password123", None).unwrap();
+        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         vault.lock();
         let app = App::new(Arc::new(vault)).unwrap();
@@ -3013,7 +3013,7 @@ mod tests {
         ));
 
         // 输入密码
-        for c in "password123".chars() {
+        for c in crate::TEST_PASSWORD.chars() {
             app.handle_event(crate::events::Event::Key(KeyEvent::from(KeyCode::Char(c))))
                 .unwrap();
         }
@@ -3034,7 +3034,7 @@ mod tests {
     fn test_home_esc_opens_exit_prompt() {
         let (mut app, _id, _dir) = locked_app();
         commands::auth::unlock(&mut app).unwrap();
-        for c in "password123".chars() {
+        for c in crate::TEST_PASSWORD.chars() {
             app.handle_event(crate::events::Event::Key(KeyEvent::from(KeyCode::Char(c))))
                 .unwrap();
         }
@@ -3068,7 +3068,7 @@ mod tests {
         let (mut app, _id, _dir) = locked_app();
         // 先手动解锁
         commands::auth::unlock(&mut app).unwrap();
-        for c in "password123".chars() {
+        for c in crate::TEST_PASSWORD.chars() {
             app.handle_event(crate::events::Event::Key(KeyEvent::from(KeyCode::Char(c))))
                 .unwrap();
         }
@@ -3088,7 +3088,7 @@ mod tests {
     fn test_render_home_does_not_panic() {
         let (mut app, _id, _dir) = locked_app();
         commands::auth::unlock(&mut app).unwrap();
-        for c in "password123".chars() {
+        for c in crate::TEST_PASSWORD.chars() {
             app.handle_event(crate::events::Event::Key(KeyEvent::from(KeyCode::Char(c))))
                 .unwrap();
         }
@@ -3145,7 +3145,7 @@ mod tests {
             }
         ));
 
-        type_string(&mut app, "password123");
+        type_string(&mut app, crate::TEST_PASSWORD);
         press_key(&mut app, KeyCode::Enter);
         assert!(matches!(
             app.phase,
@@ -3154,7 +3154,7 @@ mod tests {
             }
         ));
 
-        type_string(&mut app, "password123");
+        type_string(&mut app, crate::TEST_PASSWORD);
         press_key(&mut app, KeyCode::Enter);
         assert!(matches!(
             app.phase,
@@ -3187,7 +3187,7 @@ mod tests {
     fn test_home_shortcut_navigation() {
         let (mut app, _id, _dir) = locked_app();
         commands::auth::unlock(&mut app).unwrap();
-        type_string(&mut app, "password123");
+        type_string(&mut app, crate::TEST_PASSWORD);
         press_key(&mut app, KeyCode::Enter);
         assert!(matches!(app.phase, AppPhase::Home { .. }));
         assert_eq!(app.selected_shortcut, 0);
@@ -3220,7 +3220,7 @@ mod tests {
     fn test_home_tab_autocomplete_when_input_not_empty() {
         let (mut app, _id, _dir) = locked_app();
         commands::auth::unlock(&mut app).unwrap();
-        type_string(&mut app, "password123");
+        type_string(&mut app, crate::TEST_PASSWORD);
         press_key(&mut app, KeyCode::Enter);
 
         type_string(&mut app, "/ex");
@@ -3235,7 +3235,7 @@ mod tests {
 
         let (mut app, _id, _dir) = locked_app();
         commands::auth::unlock(&mut app).unwrap();
-        type_string(&mut app, "password123");
+        type_string(&mut app, crate::TEST_PASSWORD);
         press_key(&mut app, KeyCode::Enter);
         assert!(app.vault_service.is_unlocked());
 
@@ -3384,7 +3384,7 @@ mod tests {
     fn test_home_mouse_wheel_scroll() {
         let (mut app, _id, _dir) = locked_app();
         commands::auth::unlock(&mut app).unwrap();
-        type_string(&mut app, "password123");
+        type_string(&mut app, crate::TEST_PASSWORD);
         press_key(&mut app, KeyCode::Enter);
         assert!(matches!(app.phase, AppPhase::Home { .. }));
         assert_eq!(app.selected_shortcut, 0);
@@ -3402,7 +3402,7 @@ mod tests {
     fn test_home_up_down_no_conflict_with_command_input() {
         let (mut app, _id, _dir) = locked_app();
         commands::auth::unlock(&mut app).unwrap();
-        type_string(&mut app, "password123");
+        type_string(&mut app, crate::TEST_PASSWORD);
         press_key(&mut app, KeyCode::Enter);
         assert!(matches!(app.phase, AppPhase::Home { .. }));
         assert_eq!(app.selected_shortcut, 0);
@@ -3423,7 +3423,7 @@ mod tests {
         // 让 open_menu snapshot Home 为 previous_phase。
         let (mut app, account_id, _dir) = locked_app();
         app.vault_service
-            .unlock_secure(&account_id, &Zeroizing::new("password123".to_string()))
+            .unlock_secure(&account_id, &Zeroizing::new(crate::TEST_PASSWORD.to_string()))
             .unwrap();
         app.phase = AppPhase::Home {
             account_id: account_id.clone(),
@@ -3507,7 +3507,7 @@ mod tests {
         // 使用 locked_app() 则调用 auth::unlock 仅进入向导，不会真正解锁；这里直接调用 unlock_secure。
         let (mut app, account_id, _dir) = locked_app();
         app.vault_service
-            .unlock_secure(&account_id, &Zeroizing::new("password123".to_string()))
+            .unlock_secure(&account_id, &Zeroizing::new(crate::TEST_PASSWORD.to_string()))
             .unwrap();
         app.command_input
             .set_value("/setting notifications true".to_string());

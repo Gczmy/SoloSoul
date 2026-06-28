@@ -381,7 +381,7 @@ mod tests {
         let dir = tempfile::TempDir::new().unwrap();
         std::env::set_var("SOLOSOUL_DATA_DIR", dir.path());
         let vault = VaultService::new();
-        let account = vault.create_account("Test", "password123", None).unwrap();
+        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
         (app, account_id, dir)
@@ -449,7 +449,7 @@ mod tests {
             .contains("密码错误"));
         assert!(app
             .vault_service
-            .verify_password(&account_id, "password123")
+            .verify_password(&account_id, crate::TEST_PASSWORD)
             .unwrap());
     }
 
@@ -478,7 +478,7 @@ mod tests {
         handle(&mut app, &["/security", "password"]).unwrap();
         assert!(app.prompt.is_some());
 
-        answer_text_prompt(&mut app, "password123");
+        answer_text_prompt(&mut app, crate::TEST_PASSWORD);
         answer_text_prompt(&mut app, "newpassword");
         answer_text_prompt(&mut app, "newpassword");
 
@@ -489,7 +489,7 @@ mod tests {
             .contains("主密码已修改"));
         assert!(!app
             .vault_service
-            .verify_password(&account_id, "password123")
+            .verify_password(&account_id, crate::TEST_PASSWORD)
             .unwrap());
         assert!(app
             .vault_service
