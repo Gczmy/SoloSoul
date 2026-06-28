@@ -126,7 +126,6 @@ export function useDragToAttach(
       );
     } catch (e) {
       // 保留 console.error 用于调试追溯（错误对象 e 仅在 catch 作用域内）
-      // eslint-disable-next-line no-console
       console.error('Drag-drop upload failed:', e);
       useUiStore.getState().showToast({
         type: 'error',

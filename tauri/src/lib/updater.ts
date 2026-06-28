@@ -37,7 +37,6 @@ export async function checkForUpdate(): Promise<UpdateCheckResult> {
     };
   } catch (error) {
     // 网络异常时静默失败，避免打扰用户
-    // eslint-disable-next-line no-console
     console.warn('[updater] check failed:', error);
     return {
       kind: 'error',

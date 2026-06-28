@@ -112,7 +112,7 @@ function extractTokens(query: string): string[] {
 function extractContextSnippet(content: string, tokens: string[], contextChars = 80): string {
   // 清理 Markdown 标记
   const clean = content
-    .replace(/[]#*`[!>|_-]/g, '')
+    .replace(/[[\]!#*`!>|_-]/g, '')
     .replace(/\n{3,}/g, '\n\n')
     .replace(/\s+/g, ' ')
     .trim();
