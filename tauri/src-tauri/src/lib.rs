@@ -244,7 +244,10 @@ pub fn run() {
                 }
             }
 
-            // 4. 初始化 AppState（关键步骤，失败时中止启动）
+            // 4. 为当前进程设置 PDFium 动态库路径（OCR 与水印共用）。
+            commands::ocr::ensure_pdfium_library_path(app.handle());
+
+            // 5. 初始化 AppState（关键步骤，失败时中止启动）
             tracing::debug!("[setup] 正在创建 AppState...");
             let app_state = match AppState::new(app.handle().clone()) {
                 Ok(state) => state,
@@ -256,14 +259,14 @@ pub fn run() {
             app.manage(app_state);
             app.manage(commands::discovery::SharedDaemon::new());
 
-            // 5. 初始化 RESOURCE_DIR
+            // 6. 初始化 RESOURCE_DIR
             if let Ok(resource_dir) = app.path().resource_dir() {
                 let _ = commands::llm::RESOURCE_DIR.set(resource_dir);
             } else {
                 tracing::error!("[setup] ❌ 无法获取 resource_dir，RESOURCE_DIR 未设置");
             }
 
-            // 6. 应用启动时后台静默刷新插件注册表（不阻塞启动，失败仅记录日志）
+            // 7. 应用启动时后台静默刷新插件注册表（不阻塞启动，失败仅记录日志）
             {
                 let app_handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
@@ -304,7 +307,7 @@ pub fn run() {
                 });
             }
 
-            // 7. 检测系统 locale 并注入前端
+            // 8. 检测系统 locale 并注入前端
             let locale =
                 commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
             let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") {
@@ -321,7 +324,7 @@ pub fn run() {
                 let _ = window.eval(format!("window.__SOLOSOUL_LOCALE__='{}'", locale_flag));
             }
 
-            // 8. 恢复窗口大小
+            // 9. 恢复窗口大小
             let managed_state = app.state::<AppState>();
             if let Ok(svc) = managed_state.vault_service.read() {
                 let prefs_path = svc.base_path().join("ui_preferences.json");
@@ -344,7 +347,7 @@ pub fn run() {
                 }
             }
 
-            // 8. 启动系统主题轮询任务，当检测到主题变化时通过 Tauri Event 通知前端
+            // 10. 启动系统主题轮询任务，当检测到主题变化时通过 Tauri Event 通知前端
             {
                 let app_handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {

@@ -118,7 +118,7 @@ fn active_tier(app: &tauri::AppHandle) -> OcrModelTier {
 /// 尝试从 Tauri 资源目录定位 PDFium 动态库，并通过环境变量告知 `pdfium-render`。
 ///
 /// 该环境变量仅在当前进程内有效；若用户已手动设置，则保留原值。
-fn ensure_pdfium_library_path(app: &tauri::AppHandle) {
+pub(crate) fn ensure_pdfium_library_path(app: &tauri::AppHandle) {
     if std::env::var("PDFIUM_LIBRARY_PATH").is_ok() {
         return;
     }

@@ -26,83 +26,10 @@ pub fn has_meaningful_text(pages: &[String], min_chars_per_page: usize) -> bool 
     avg >= min_chars_per_page
 }
 
-fn pdfium_dylib_filename() -> &'static str {
-    if cfg!(target_os = "macos") {
-        "libpdfium.dylib"
-    } else if cfg!(target_os = "windows") {
-        "pdfium.dll"
-    } else {
-        "libpdfium.so"
-    }
-}
-
-fn try_find_bundled_pdfium() -> Option<PathBuf> {
-    // 1. 优先使用调用方通过环境变量显式指定的路径（Tauri 侧通常从 RESOURCE_DIR 设置）。
-    if let Ok(path) = std::env::var("PDFIUM_LIBRARY_PATH") {
-        let p = PathBuf::from(path);
-        if p.exists() {
-            return Some(p);
-        }
-    }
-
-    // 2. 非 Tauri 调用者：尝试从当前可执行文件位置推断打包资源目录。
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(exe_dir) = exe.parent() {
-            #[cfg(target_os = "macos")]
-            {
-                let candidate = exe_dir.parent().map(|p| {
-                    p.join("Resources")
-                        .join("pdfium")
-                        .join(pdfium_dylib_filename())
-                });
-                if candidate.as_ref().map(|p| p.exists()).unwrap_or(false) {
-                    return candidate;
-                }
-            }
-            #[cfg(target_os = "windows")]
-            {
-                let candidate = exe_dir.join("pdfium").join(pdfium_dylib_filename());
-                if candidate.exists() {
-                    return Some(candidate);
-                }
-            }
-            #[cfg(target_os = "linux")]
-            {
-                let candidate = exe_dir.join("pdfium").join(pdfium_dylib_filename());
-                if candidate.exists() {
-                    return Some(candidate);
-                }
-            }
-        }
-    }
-
-    // 3. 兼容开发环境：从当前工作目录的 resources/pdfium/ 子目录查找。
-    let filename = pdfium_dylib_filename();
-    let candidates: [PathBuf; 4] = [
-        PathBuf::from("resources/pdfium").join(filename),
-        PathBuf::from("resources").join(filename),
-        PathBuf::from(filename),
-        PathBuf::from("src-tauri/resources/pdfium").join(filename),
-    ];
-    candidates.iter().find(|p| p.exists()).cloned()
-}
-
-fn init_pdfium() -> Result<Pdfium, String> {
-    let bundled = try_find_bundled_pdfium();
-    let bindings = if let Some(path) = bundled {
-        Pdfium::bind_to_library(&path)
-    } else {
-        Pdfium::bind_to_system_library()
-    }
-    .map_err(|e| format!("无法加载 PDFium: {e}"))?;
-
-    Ok(Pdfium::new(bindings))
-}
-
 /// 将 PDF 每页渲染为临时 PNG 图片。
 /// 返回按页排序的图片路径列表。调用方负责删除临时文件。
 pub fn render_pdf_pages(path: &Path, dpi: u32, temp_dir: &Path) -> Result<Vec<PathBuf>, String> {
-    let pdfium = init_pdfium()?;
+    let pdfium = crate::pdfium::init_pdfium()?;
     let document = pdfium
         .load_pdf_from_file(path, None)
         .map_err(|e| format!("无法加载 PDF: {e}"))?;

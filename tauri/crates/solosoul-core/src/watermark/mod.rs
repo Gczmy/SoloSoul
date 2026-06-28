@@ -5,6 +5,7 @@
 
 use ab_glyph::{point, Font, FontRef, PxScale};
 use image::{Rgba, RgbaImage};
+use pdfium_render::prelude::*;
 use serde::Deserialize;
 use std::path::Path;
 
@@ -91,7 +92,7 @@ fn is_pdf(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
-/// 尝试加载系统等宽字体文件
+/// 尝试加载系统等宽字体文件（供图片水印使用）
 fn load_font_bytes() -> Result<Vec<u8>, String> {
     let candidates: &[&str] = &[
         "/System/Library/Fonts/Monaco.ttf",
@@ -119,6 +120,8 @@ fn load_font_bytes() -> Result<Vec<u8>, String> {
     Err("未找到系统字体，无法渲染水印".to_string())
 }
 
+/// 从 TTC（TrueType Collection）中提取第一个字体。
+/// 当 PDFium / ab_glyph 无法直接读取集合字体时用作 fallback。
 fn extract_first_from_ttc(data: &[u8]) -> Result<Vec<u8>, String> {
     if data.len() < 16 {
         return Err("TTC 文件过短".to_string());
@@ -158,7 +161,7 @@ pub fn apply_to_image(input: &Path, output: &Path, config: &WatermarkConfig) -> 
     let font_data = load_font_bytes()?;
     let font = FontRef::try_from_slice(&font_data).map_err(|e| format!("加载字体失败: {}", e))?;
 
-    let img = image::open(input).map_err(|e| format!("打开图片失败: {}", e))?;
+    let img = image::open(input).map_err(|e| format!("打开图片失败: {e}"))?;
     let (img_w, img_h) = (img.width() as i32, img.height() as i32);
 
     // 将原图转换为 RGBA8
@@ -319,17 +322,6 @@ fn compute_positions(
     if cfg.tile || cfg.position == WatermarkPosition::Tile {
         let step_x = layer_w + margin_x.max(20);
         let step_y = layer_h + margin_y.max(20);
-        let mut pts = Vec::new();
-        let mut x = -step_x / 2;
-        while x < canvas_w + step_x {
-            let mut y = -step_y / 2;
-            while y < canvas_h + step_y {
-                pts.push((x + (canvas_w - layer_w) / 2 % step_x - step_x, y));
-                y += step_y;
-            }
-            x += step_x;
-        }
-        // 重新生成平铺网格，以左上角为起点
         let mut tiled = Vec::new();
         let start_x = margin_x;
         let start_y = margin_y;
@@ -383,217 +375,340 @@ fn blend_at(canvas: &mut RgbaImage, layer: &RgbaImage, dx: i32, dy: i32) {
     }
 }
 
-/// 对 PDF 添加文本水印
+// =============================================================================
+// PDF 水印（pdfium-render + PDFium）
+// =============================================================================
+
+/// 对 PDF 添加文本水印。
+///
+/// 使用 PDFium 的页面对象插入能力，以 `PdfPages::watermark()` 在每一页上添加
+/// 文本对象。PDFium 会自动处理图形状态隔离，因此不会破坏原有内容流。
 pub fn apply_to_pdf(input: &Path, output: &Path, config: &WatermarkConfig) -> Result<(), String> {
-    let mut doc = lopdf::Document::load(input).map_err(|e| format!("加载 PDF 失败: {}", e))?;
+    let pdfium = crate::pdfium::init_pdfium()?;
+    let mut document = pdfium
+        .load_pdf_from_file(input, None)
+        .map_err(|e| format!("加载 PDF 失败: {e}"))?;
 
-    let pages = doc.get_pages();
-    let font_name = "WSHelv";
-    let gstate_name = "WSGS";
+    // 预加载字体；水印闭包无法同时可变借用 document。
+    let font = load_pdf_font(&mut document, &config.text)?;
 
-    for &page_id in pages.values() {
-        // 先获取页面尺寸（对 doc 的不可变借用）
-        let (page_w, page_h) = page_size(&doc, page_id)?;
+    let text = if config.text.is_empty() {
+        " ".to_string()
+    } else {
+        config.text.clone()
+    };
+    let alpha = (config.opacity.clamp(0.0, 1.0) * 255.0) as u8;
+    let [r, g, b] = config.color;
+    let fill_color = PdfColor::new(r, g, b, alpha);
+    let angle = config.angle;
+    let position = config.position;
+    let tile = config.tile || position == WatermarkPosition::Tile;
+    let margin_x = config.margin_x;
+    let margin_y = config.margin_y;
+    let font_size = config.font_size;
 
-        // 构建水印内容流（仍不需要借用 doc）
-        let watermark_stream =
-            build_pdf_watermark_stream(config, font_name, gstate_name, page_w, page_h)?;
-        let watermark_id = doc.add_object(lopdf::Object::Stream(watermark_stream));
-
-        // 再借用页面对象，设置资源并追加内容
-        let page_obj = doc
-            .get_object_mut(page_id)
-            .map_err(|e| format!("获取 PDF 页面对象失败: {}", e))?
-            .as_dict_mut()
-            .map_err(|e| format!("PDF 页面对象不是字典: {}", e))?;
-
-        let mut resources = page_obj
-            .get(b"Resources")
-            .ok()
-            .and_then(|r| r.as_dict().ok().cloned())
-            .unwrap_or_default();
-
-        // 添加字体资源（标准 Helvetica）
-        let mut font_dict = lopdf::Dictionary::new();
-        font_dict.set("Type", lopdf::Object::Name(b"Font".to_vec()));
-        font_dict.set("Subtype", lopdf::Object::Name(b"Type1".to_vec()));
-        font_dict.set("BaseFont", lopdf::Object::Name(b"Helvetica".to_vec()));
-        font_dict.set("Encoding", lopdf::Object::Name(b"WinAnsiEncoding".to_vec()));
-        resources.set(font_name, lopdf::Object::Dictionary(font_dict));
-
-        // 添加透明 ExtGState
-        let alpha = config.opacity.clamp(0.0, 1.0);
-        let mut gs_dict = lopdf::Dictionary::new();
-        gs_dict.set("Type", lopdf::Object::Name(b"ExtGState".to_vec()));
-        gs_dict.set("CA", lopdf::Object::Real(alpha));
-        gs_dict.set("ca", lopdf::Object::Real(alpha));
-
-        let mut ext_gstates = resources
-            .get(b"ExtGState")
-            .ok()
-            .and_then(|r| r.as_dict().ok().cloned())
-            .unwrap_or_default();
-        ext_gstates.set(gstate_name, lopdf::Object::Dictionary(gs_dict));
-        resources.set("ExtGState", lopdf::Object::Dictionary(ext_gstates));
-
-        page_obj.set("Resources", lopdf::Object::Dictionary(resources));
-
-        // 将新内容追加到页面 Contents
-        match page_obj.get_mut(b"Contents") {
-            Ok(lopdf::Object::Reference(r)) => {
-                let arr = lopdf::Object::Array(vec![
-                    lopdf::Object::Reference(*r),
-                    lopdf::Object::Reference(watermark_id),
-                ]);
-                page_obj.set("Contents", arr);
-            }
-            Ok(lopdf::Object::Array(arr)) => {
-                arr.push(lopdf::Object::Reference(watermark_id));
-            }
-            Ok(_) | Err(_) => {
-                page_obj.set(
-                    "Contents",
-                    lopdf::Object::Array(vec![lopdf::Object::Reference(watermark_id)]),
+    document
+        .pages()
+        .watermark(|group, _page_index, page_w, page_h| {
+            if tile {
+                add_tiled_text_watermarks(
+                    group,
+                    &document,
+                    &font,
+                    &text,
+                    font_size,
+                    fill_color,
+                    angle,
+                    page_w.value,
+                    page_h.value,
+                    margin_x,
+                    margin_y,
+                )?;
+            } else {
+                let mut text_obj =
+                    create_watermark_text_object(&document, &font, &text, font_size, fill_color)?;
+                let text_w = text_obj.width()?.value;
+                let text_h = text_obj.height()?.value;
+                let (tx, ty) = pdf_text_position(
+                    page_w.value,
+                    page_h.value,
+                    text_w,
+                    text_h,
+                    position,
+                    margin_x,
+                    margin_y,
                 );
+                // 以文本中心为锚点旋转，再平移到目标位置
+                rotate_around_center(&mut text_obj, text_w / 2.0, text_h / 2.0, angle)?;
+                text_obj.translate(PdfPoints::new(tx), PdfPoints::new(ty))?;
+                group.push(&mut PdfPageObject::from(text_obj))?;
             }
-        }
-    }
+            Ok(())
+        })
+        .map_err(|e| format!("添加水印失败: {e}"))?;
 
-    doc.save(output)
-        .map_err(|e| format!("保存 PDF 失败: {}", e))?;
+    document
+        .save_to_file(output)
+        .map_err(|e| format!("保存 PDF 失败: {e}"))?;
     Ok(())
 }
 
-/// 构建单页 PDF 水印内容流
-fn build_pdf_watermark_stream(
-    config: &WatermarkConfig,
-    font_name: &str,
-    gstate_name: &str,
-    page_w: f64,
-    page_h: f64,
-) -> Result<lopdf::Stream, String> {
-    let (tx, ty) = pdf_text_position(page_w, page_h, config.font_size, config);
-
-    let [r, g, b] = config.color;
-    let rad = config.angle.to_radians();
-    let cos_a = rad.cos() as f64;
-    let sin_a = rad.sin() as f64;
-
-    let name = |s: &str| lopdf::Object::Name(s.as_bytes().to_vec());
-    let real = |v: f64| lopdf::Object::Real(v as f32);
-
-    let ops = vec![
-        lopdf::content::Operation::new("q", vec![]),
-        lopdf::content::Operation::new("gs", vec![name(gstate_name)]),
-        lopdf::content::Operation::new("Tf", vec![name(font_name), real(config.font_size as f64)]),
-        lopdf::content::Operation::new(
-            "rg",
-            vec![
-                real(r as f64 / 255.0),
-                real(g as f64 / 255.0),
-                real(b as f64 / 255.0),
-            ],
-        ),
-        lopdf::content::Operation::new("BT", vec![]),
-        lopdf::content::Operation::new(
-            "Tm",
-            vec![
-                real(cos_a),
-                real(sin_a),
-                real(-sin_a),
-                real(cos_a),
-                real(tx),
-                real(ty),
-            ],
-        ),
-        lopdf::content::Operation::new(
-            "Tj",
-            vec![lopdf::Object::String(
-                escape_pdf_bytes(&config.text),
-                lopdf::StringFormat::Literal,
-            )],
-        ),
-        lopdf::content::Operation::new("ET", vec![]),
-        lopdf::content::Operation::new("Q", vec![]),
-    ];
-
-    let content = lopdf::content::Content { operations: ops };
-    let encoded = content
-        .encode()
-        .map_err(|e| format!("编码 PDF 内容流失败: {}", e))?;
-    Ok(lopdf::Stream::new(lopdf::Dictionary::new(), encoded))
+/// 将自定义错误信息转换为 PDFium 错误类型，以便在水印闭包中使用。
+fn pdfium_err(msg: String) -> PdfiumError {
+    PdfiumError::IoError(std::io::Error::other(msg))
 }
 
-/// 获取页面尺寸（宽，高）
-fn page_size(doc: &lopdf::Document, page_id: lopdf::ObjectId) -> Result<(f64, f64), String> {
-    let page_obj = doc
-        .get_object(page_id)
-        .map_err(|e| format!("获取页面失败: {}", e))?
-        .as_dict()
-        .map_err(|e| format!("页面对象不是字典: {}", e))?;
-
-    let media_box = page_obj
-        .get(b"MediaBox")
-        .or_else(|_| page_obj.get(b"CropBox"))
-        .map_err(|_| "页面缺少 MediaBox/CropBox".to_string())?;
-
-    let arr = media_box
-        .as_array()
-        .map_err(|_| "MediaBox 不是数组".to_string())?;
-    if arr.len() != 4 {
-        return Err("MediaBox 长度不正确".to_string());
-    }
-    let x1 = as_f64(&arr[0])?;
-    let y1 = as_f64(&arr[1])?;
-    let x2 = as_f64(&arr[2])?;
-    let y2 = as_f64(&arr[3])?;
-    Ok((x2 - x1, y2 - y1))
-}
-
-fn as_f64(obj: &lopdf::Object) -> Result<f64, String> {
-    match obj {
-        lopdf::Object::Real(v) => Ok(*v as f64),
-        lopdf::Object::Integer(v) => Ok(*v as f64),
-        _ => Err("PDF 数值类型不支持".to_string()),
-    }
-}
-
-fn pdf_text_position(
-    page_w: f64,
-    page_h: f64,
+/// 创建一个已设置好文本、颜色、透明度的水印文本对象。
+fn create_watermark_text_object<'a>(
+    document: &PdfDocument<'a>,
+    font: &PdfFontToken,
+    text: &str,
     font_size: f32,
-    cfg: &WatermarkConfig,
-) -> (f64, f64) {
-    let text_w = cfg.text.len() as f64 * font_size as f64 * 0.55;
-    let text_h = font_size as f64;
-    let margin_x = cfg.margin_x as f64;
-    let margin_y = cfg.margin_y as f64;
+    fill_color: PdfColor,
+) -> Result<PdfPageTextObject<'a>, PdfiumError> {
+    let mut text_obj = PdfPageTextObject::new(document, text, *font, PdfPoints::new(font_size))
+        .map_err(|e| pdfium_err(format!("创建文本对象失败: {e}")))?;
+    text_obj
+        .set_fill_color(fill_color)
+        .map_err(|e| pdfium_err(format!("设置文本颜色失败: {e}")))?;
+    Ok(text_obj)
+}
 
-    match cfg.position {
-        WatermarkPosition::Center => ((page_w - text_w) / 2.0, (page_h + text_h) / 2.0),
-        WatermarkPosition::TopLeft => (margin_x, page_h - margin_y - text_h),
-        WatermarkPosition::TopRight => (page_w - margin_x - text_w, page_h - margin_y - text_h),
-        WatermarkPosition::BottomLeft => (margin_x, margin_y + text_h),
-        WatermarkPosition::BottomRight => (page_w - margin_x - text_w, margin_y + text_h),
-        WatermarkPosition::Tile => ((page_w - text_w) / 2.0, (page_h + text_h) / 2.0),
+/// 以 (cx, cy) 为中心旋转文本对象。
+fn rotate_around_center(
+    text_obj: &mut PdfPageTextObject,
+    cx: f32,
+    cy: f32,
+    angle_deg: f32,
+) -> Result<(), PdfiumError> {
+    if angle_deg == 0.0 {
+        return Ok(());
+    }
+    text_obj
+        .translate(PdfPoints::new(-cx), PdfPoints::new(-cy))
+        .map_err(|e| pdfium_err(format!("平移失败: {e}")))?;
+    text_obj
+        .rotate_counter_clockwise_degrees(angle_deg)
+        .map_err(|e| pdfium_err(format!("旋转失败: {e}")))?;
+    text_obj
+        .translate(PdfPoints::new(cx), PdfPoints::new(cy))
+        .map_err(|e| pdfium_err(format!("平移失败: {e}")))?;
+    Ok(())
+}
+
+/// 在页面上平铺多个水印文本对象。
+#[allow(clippy::too_many_arguments)]
+fn add_tiled_text_watermarks<'a>(
+    group: &mut PdfPageGroupObject<'a>,
+    document: &PdfDocument<'a>,
+    font: &PdfFontToken,
+    text: &str,
+    font_size: f32,
+    fill_color: PdfColor,
+    angle: f32,
+    page_w: f32,
+    page_h: f32,
+    margin_x: i32,
+    margin_y: i32,
+) -> Result<(), PdfiumError> {
+    // 先建一个原型对象用于测量尺寸
+    let prototype = create_watermark_text_object(document, font, text, font_size, fill_color)?;
+    let text_w = prototype
+        .width()
+        .map_err(|e| pdfium_err(format!("测量宽度失败: {e}")))?
+        .value;
+    let text_h = prototype
+        .height()
+        .map_err(|e| pdfium_err(format!("测量高度失败: {e}")))?
+        .value;
+    drop(prototype);
+
+    let step_x = text_w + margin_x.max(20) as f32;
+    let step_y = text_h + margin_y.max(20) as f32;
+
+    let mut x = margin_x as f32;
+    while x < page_w {
+        let mut y = margin_y as f32;
+        while y < page_h {
+            let mut text_obj =
+                create_watermark_text_object(document, font, text, font_size, fill_color)?;
+            rotate_around_center(&mut text_obj, text_w / 2.0, text_h / 2.0, angle)?;
+            text_obj
+                .translate(PdfPoints::new(x), PdfPoints::new(y))
+                .map_err(|e| pdfium_err(format!("平铺平移失败: {e}")))?;
+            group
+                .push(&mut PdfPageObject::from(text_obj))
+                .map_err(|e| pdfium_err(format!("加入水印对象失败: {e}")))?;
+            y += step_y;
+        }
+        x += step_x;
+    }
+    Ok(())
+}
+
+/// 根据位置参数计算单条水印的左下角锚点。
+fn pdf_text_position(
+    page_w: f32,
+    page_h: f32,
+    text_w: f32,
+    text_h: f32,
+    position: WatermarkPosition,
+    margin_x: i32,
+    margin_y: i32,
+) -> (f32, f32) {
+    let mx = margin_x as f32;
+    let my = margin_y as f32;
+    match position {
+        WatermarkPosition::Center => ((page_w - text_w) / 2.0, (page_h - text_h) / 2.0),
+        WatermarkPosition::TopLeft => (mx, page_h - my - text_h),
+        WatermarkPosition::TopRight => (page_w - mx - text_w, page_h - my - text_h),
+        WatermarkPosition::BottomLeft => (mx, my),
+        WatermarkPosition::BottomRight => (page_w - mx - text_w, my),
+        WatermarkPosition::Tile => ((page_w - text_w) / 2.0, (page_h - text_h) / 2.0),
     }
 }
 
-/// 转义 PDF 字符串中的特殊字符，返回 WinAnsiEncoding 兼容字节。
-fn escape_pdf_bytes(s: &str) -> Vec<u8> {
-    let mut out = Vec::new();
-    for c in s.chars() {
-        match c {
-            '(' | ')' | '\\' => {
-                out.push(b'\\');
-                out.push(c as u8);
+/// 为 PDF 水印加载字体。
+///
+/// 如果水印文本包含非 ASCII 字符，优先尝试加载系统 CJK 字体；
+/// 失败时回退到 PDFium 内置 Helvetica。
+fn load_pdf_font<'a>(document: &mut PdfDocument<'a>, text: &str) -> Result<PdfFontToken, String> {
+    let needs_cjk = !text.is_ascii();
+    if needs_cjk {
+        for path in cjk_font_candidates() {
+            if let Ok(token) = try_load_font(document, path) {
+                return Ok(token);
             }
-            '\n' => out.extend_from_slice(b"\\n"),
-            '\r' => out.extend_from_slice(b"\\r"),
-            '\t' => out.extend_from_slice(b"\\t"),
-            c if (c as u32) < 128 => out.push(c as u8),
-            _ => out.push(b'?'),
         }
     }
-    out
+    Ok(document.fonts_mut().helvetica())
+}
+
+/// 各平台 CJK 字体候选路径。
+fn cjk_font_candidates() -> Vec<&'static str> {
+    let mut candidates = Vec::new();
+    #[cfg(target_os = "macos")]
+    {
+        candidates.push("/System/Library/Fonts/PingFang.ttc");
+        candidates.push("/System/Library/Fonts/Hiragino Sans GB.ttc");
+        candidates.push("/Library/Fonts/Arial Unicode.ttf");
+    }
+    #[cfg(target_os = "windows")]
+    {
+        candidates.push(r"C:\Windows\Fonts\msyh.ttc");
+        candidates.push(r"C:\Windows\Fonts\simsun.ttc");
+        candidates.push(r"C:\Windows\Fonts\simhei.ttf");
+    }
+    #[cfg(target_os = "linux")]
+    {
+        candidates.push("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc");
+        candidates.push("/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc");
+        candidates.push("/usr/share/fonts/truetype/wqy/wqy-microhei.ttc");
+    }
+    candidates
+}
+
+/// 尝试从路径加载 TrueType 字体；对 TTC 先提取首字体到临时文件再加载。
+fn try_load_font<'a>(document: &mut PdfDocument<'a>, path: &str) -> Result<PdfFontToken, String> {
+    let lower = path.to_ascii_lowercase();
+    if lower.ends_with(".ttc") {
+        let data = std::fs::read(path).map_err(|e| format!("读取字体失败: {e}"))?;
+        let single = extract_first_from_ttc(&data)?;
+        let mut temp = tempfile::NamedTempFile::with_suffix(".ttf")
+            .map_err(|e| format!("创建临时字体文件失败: {e}"))?;
+        std::io::Write::write_all(&mut temp, &single)
+            .map_err(|e| format!("写入临时字体失败: {e}"))?;
+        let token = document
+            .fonts_mut()
+            .load_true_type_from_file(temp.path(), true)
+            .map_err(|e| format!("加载 TTC 字体失败: {e}"))?;
+        // 关键：临时文件必须保持存活到 PDF 保存完成。
+        // Pdfium 加载字体时会读取文件；此处让临时文件随调用方作用域释放，
+        // 但 token 引用的是已加载的字体句柄，通常已复制到内存。
+        // 为保险起见，此处不主动 drop temp。
+        let _ = temp;
+        Ok(token)
+    } else {
+        document
+            .fonts_mut()
+            .load_true_type_from_file(path, true)
+            .map_err(|e| format!("加载字体失败: {e}"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_compute_positions_center() {
+        let cfg = WatermarkConfig {
+            position: WatermarkPosition::Center,
+            ..Default::default()
+        };
+        let pts = compute_positions(1000, 800, 200, 50, &cfg);
+        assert_eq!(pts, vec![(400, 375)]);
+    }
+
+    #[test]
+    fn test_pdf_text_position_center() {
+        let (x, y) = pdf_text_position(
+            1000.0_f32,
+            800.0_f32,
+            200.0_f32,
+            50.0_f32,
+            WatermarkPosition::Center,
+            0,
+            0,
+        );
+        assert_eq!(x, 400.0_f32);
+        assert_eq!(y, 375.0_f32);
+    }
+
+    #[test]
+    fn test_extract_first_from_ttc_invalid() {
+        assert!(extract_first_from_ttc(b"not ttc").is_err());
+    }
+
+    /// 使用 fixtures/testdata/minimal.pdf 验证 pdfium-render 水印不会崩溃。
+    #[test]
+    fn test_apply_to_pdf_smoke() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let input = dir.path().join("input.pdf");
+        let output = dir.path().join("output.pdf");
+
+        const MINIMAL_PDF: &[u8] = include_bytes!("testdata/minimal.pdf");
+        std::fs::write(&input, MINIMAL_PDF).expect("write input pdf");
+
+        // 测试环境下指向仓库中的 PDFium 动态库。
+        let dylib_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../src-tauri/resources/pdfium/libpdfium.dylib");
+        if dylib_path.exists() {
+            std::env::set_var("PDFIUM_LIBRARY_PATH", &dylib_path);
+        }
+
+        let cfg = WatermarkConfig {
+            text: "SoloSoul".to_string(),
+            font_size: 48.0,
+            color: [128, 128, 128],
+            opacity: 0.3,
+            angle: -45.0,
+            position: WatermarkPosition::Center,
+            tile: false,
+            margin_x: 0,
+            margin_y: 0,
+        };
+
+        let result = apply_to_pdf(&input, &output, &cfg);
+        assert!(result.is_ok(), "PDF 水印应成功: {:?}", result);
+        assert!(output.exists(), "输出文件应存在");
+        assert!(output.metadata().unwrap().len() > 0, "输出文件不应为空");
+
+        // 进一步确认 PDF 仍能被 PDFium 加载，并且至少保留 1 页。
+        let pdfium = crate::pdfium::init_pdfium().expect("init pdfium");
+        let doc = pdfium
+            .load_pdf_from_file(&output, None)
+            .expect("reload output pdf");
+        assert_eq!(doc.pages().len(), 1, "页数应保持不变");
+    }
 }

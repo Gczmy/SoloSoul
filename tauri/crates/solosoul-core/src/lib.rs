@@ -14,6 +14,7 @@ pub mod biometric;
 pub mod export_import;
 pub mod llm;
 pub mod ocr;
+pub mod pdfium;
 pub mod process_lock;
 pub mod search_filter;
 pub mod template_service;
