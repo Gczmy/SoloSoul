@@ -39,6 +39,8 @@ struct AttItem {
 struct AttObject {
     object_id: String,
     object_name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    template_name: Option<String>,
     attachments: Vec<AttItem>,
 }
 
@@ -532,10 +534,25 @@ impl FieldResolver {
     ) -> Vec<AttObject> {
         let ids: Vec<String> = summaries.iter().map(|s| s.id.clone()).collect();
         let records = vault.load_objects_batch(&ids).ok().unwrap_or_default();
+        let template_cache: std::cell::RefCell<
+            std::collections::HashMap<String, Option<String>>,
+        > = std::cell::RefCell::new(std::collections::HashMap::new());
         summaries
             .iter()
             .filter_map(|summary| {
                 let record = records.get(&summary.id)?;
+                let template_name = record.template_id.as_ref().and_then(|tid| {
+                    let mut cache = template_cache.borrow_mut();
+                    cache.get(tid).cloned().unwrap_or_else(|| {
+                        let name = vault
+                            .load_user_template(tid)
+                            .ok()
+                            .flatten()
+                            .map(|t| t.name.clone());
+                        cache.insert(tid.clone(), name.clone());
+                        name
+                    })
+                });
                 let attachments: Vec<AttItem> = record
                     .properties
                     .get("__attachments")?
@@ -572,6 +589,7 @@ impl FieldResolver {
                     Some(AttObject {
                         object_id: summary.id.clone(),
                         object_name: summary.name.clone(),
+                        template_name,
                         attachments,
                     })
                 }

@@ -27,6 +27,7 @@ interface AttachmentNode {
   pageId?: string;
   pageName: string;
   objectName: string;
+  templateName?: string;
 }
 
 interface WatermarkConfig {
@@ -64,7 +65,7 @@ const POSITION_OPTIONS: { value: WatermarkConfig['position']; label: string }[] 
 
 export function WatermarkPluginPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation(['plugin', 'common']);
+  const { t, i18n } = useTranslation(['plugin', 'common']);
   const { onError } = useToastError();
 
   const [config, setConfig] = useState<WatermarkConfig>(DEFAULT_CONFIG);
@@ -91,6 +92,7 @@ export function WatermarkPluginPage() {
           objects: Array<{
             objectId: string;
             objectName: string;
+            templateName?: string;
             attachments: Array<{
               id: string;
               objectId: string;
@@ -112,6 +114,7 @@ export function WatermarkPluginPage() {
               pageId: page.pageId,
               pageName: page.pageName,
               objectName: obj.objectName,
+              templateName: obj.templateName,
             });
           }
         }
@@ -170,9 +173,13 @@ export function WatermarkPluginPage() {
           attachmentId: a.id.split('/')[1],
           fileName: a.fileName,
           mimeType: a.mimeType,
+          objectName: a.objectName,
+          pageName: a.pageName,
+          templateName: a.templateName ?? '',
         })),
       ),
       outputDir,
+      locale: i18n.language,
     };
 
     try {
