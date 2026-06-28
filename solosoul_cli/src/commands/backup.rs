@@ -39,11 +39,15 @@ struct BackupProfileEntry {
 }
 
 /// 恢复时读取的清单结构。
+/// `_version` / `_created_at` / `_profile_count` 保留以维持旧版备份 JSON 反序列化兼容性。
 #[derive(Deserialize)]
 struct RestoreManifest {
-    version: String,
-    created_at: String,
-    profile_count: usize,
+    #[serde(rename = "version")]
+    _version: String,
+    #[serde(rename = "created_at")]
+    _created_at: String,
+    #[serde(rename = "profile_count")]
+    _profile_count: usize,
     profiles: Vec<RestoreProfileEntry>,
 }
 
