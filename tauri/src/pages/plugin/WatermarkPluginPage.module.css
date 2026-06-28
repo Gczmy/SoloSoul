@@ -381,6 +381,14 @@
   background: var(--bg-secondary);
 }
 
+.resultMain {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
 .resultInfo {
   display: flex;
   flex-direction: column;

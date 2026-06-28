@@ -534,9 +534,8 @@ impl FieldResolver {
     ) -> Vec<AttObject> {
         let ids: Vec<String> = summaries.iter().map(|s| s.id.clone()).collect();
         let records = vault.load_objects_batch(&ids).ok().unwrap_or_default();
-        let template_cache: std::cell::RefCell<
-            std::collections::HashMap<String, Option<String>>,
-        > = std::cell::RefCell::new(std::collections::HashMap::new());
+        let template_cache: std::cell::RefCell<std::collections::HashMap<String, Option<String>>> =
+            std::cell::RefCell::new(std::collections::HashMap::new());
         summaries
             .iter()
             .filter_map(|summary| {

@@ -1188,7 +1188,10 @@ fn resolve_path(path: &Path) -> PathBuf {
         }
     }
     let base = std::fs::canonicalize(existing).unwrap_or_else(|_| existing.to_path_buf());
-    suffix.into_iter().rev().fold(base, |acc, name| acc.join(name))
+    suffix
+        .into_iter()
+        .rev()
+        .fold(base, |acc, name| acc.join(name))
 }
 
 fn is_under_workspace(host: &SoloHostFunctions, path: &Path) -> bool {

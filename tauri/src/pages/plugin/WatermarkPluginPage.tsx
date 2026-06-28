@@ -609,13 +609,12 @@ export function WatermarkPluginPage() {
                 const id = resultItemId(item);
                 return (
                   <div key={id} className={styles.resultItem}>
-                    <SelectCheckbox
-                      checked={selectedResultIds.has(id)}
-                      onChange={() => handleToggleResult(id)}
-                    />
-                    <div className={styles.resultInfo}>
-                      <span className={styles.resultName}>{item.fileName}</span>
-                      <span className={styles.resultMime}>{item.mimeType}</span>
+                    <div className={styles.resultMain} onClick={() => handleToggleResult(id)}>
+                      <SelectCheckbox checked={selectedResultIds.has(id)} />
+                      <div className={styles.resultInfo}>
+                        <span className={styles.resultName}>{item.fileName}</span>
+                        <span className={styles.resultMime}>{item.mimeType}</span>
+                      </div>
                     </div>
                     <div className={styles.resultActions}>
                       <BadgeIconButton
