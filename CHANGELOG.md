@@ -4,6 +4,63 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.7] - 2026-06-29
+
+### Added
+
+- **附件水印插件（P0）** — 新增图片/PDF 附件水印添加插件，支持文字水印（自定义文本、字号、颜色、透明度、旋转角度）、平铺/居中/四角定位、自定义输出目录与实时预览。插件自定义 UI 包含水印配置面板与结果区批量操作（全选/下载/清除）。
+- **搜索敏感字段脱敏（P1-018/019/020）** — 搜索结果中敏感/关键级别的字段值不再显示具体内容，采用三层脱敏策略：对象级（sensitive/critical 整体跳过）、字段级（property_labels + __fields UUID 交叉引用）、模板级（回退到模板定义的属性敏感度）。
+- **模板名称搜索** — 搜索框输入模板名称时，使用该模板的所有对象也会被包含在结果中，并在结果卡片中标注模板匹配信息。
+- **搜索结果缓存** — 搜索结果增加 30 秒内存缓存，减少重复请求。
+- **搜索页面入口** — 设置页「系统」分组新增搜索页面入口。
+- **帮助搜索增强** — 帮助文档搜索支持全文内容匹配（基于预构建搜索索引），搜索结果排序优化（标题匹配权重更高），30 秒内存缓存。
+- **新手引导动画增强** — Onboarding 教程卡片的「跳过」和「返回」按钮增加悬停动画。
+- **侧边栏页面模式导航修复** — 搜索/OCR/插件按钮在页面模式下导航正确跳转。
+
+### Security
+
+- **P0 安全修复批次** — attachment_download 路径校验增强、Vision CLI 使用随机临时目录、CLI 不再使用 /tmp 作为回退路径。
+- **P1 安全修复批次** — Windows icacls 用户名校验、导出路径禁用 /tmp 回退、导入 salt decode 错误修复。
+- **OCR 扫描路径校验（P104/P206）** — ocr_scan_image 和 mrz 路径加固，template.rs 遗留警告清理。
+- **附件存储安全（P103/P106/P107/P108/P109）** — 附件路径限制、inspect_backup OOM 修复、backup base64 清理、SHA-256 流式处理。
+- **状态管理安全（P113/P114）** — ocrScanStore 退出时清理 scanHistory、authStore logout 设置 hasAccount=null。
+- **附件重命名字符消毒（P207/P208）** — 附件文件名特殊字符消毒，对话消息限制 500 条。
+
+### Fixed
+
+- **P2xx 修复批次** — React hooks deps、localStorage 整合、CliError 迁移、CLI import 二次解密修复、密码修改回调展平。
+- **P112/P116/P117** — RAG batch embedding 修复、.catch 静默错误修复、CLI N+1 查询消除。
+- **P216/P228** — ESLint console 配置修正、CLI 测试密码改为常量。
+- **P213** — 恢复附件 PDF 预览（通过 data URL 的 iframe 预览）。
+- **P214/P219/P213/P209/P223/P227/P231/P226/P225** — 统计去重、useCallback、asset:// data URL、模板合并、死代码标签、println→error、字符串拼接、collapsible_match、unwrap 处理。
+- **P217/P220/P221/P218/P222** — TrashDetailPanel 未使用变量、ChatMessageList key、react-markdown URL 白名单、ScanLocalPage 并发导入、CLI STREAMING_THRESHOLD 死代码。
+- **P201** — 删除残留的 service.rs.bak 文件。
+- **搜索结果修复** — 修复 6 项搜索 bug（系统页面名翻译、collectionType 筛选、模板搜索权限、关键级对象排除等）。
+- **ConfirmDialog 国际化** — 确认/取消按钮使用国际化文本。
+- **导出导入模板快照隔离** — 按 template property id 排序以保证确定性哈希。
+- **水印插件修复** — 权限拦截修复（fs.copy_file、shell open scope）、workspace 归属判断、路径 symlink 解析、附件源路径拷贝、UI 按钮统一样式、注册表 custom_ui 序列化兼容。
+
+### Changed
+
+- **水印插件 Rewrite** — 从自定义 PDF 处理迁移到 pdfium-render + PDFium 库，支持更稳定的 PDF 水印添加。
+- **水印插件国际化** — 全量支持中英文：配置面板标签、折叠栏标题、结果区按钮、配置摘要。
+
+### Performance
+
+- **LLM 流式输出优化（P111）** — emit_typing_effect 改为 20 字符批次发送。
+- **附件 N+1 查询消除（P110）** — 新增 load_objects_batch VaultStore API，消除 attachment_count_batch 和 build_attachment_tree_pages 中的 N+1 查询。
+- **RAG batch embedding（P112）** — 批量嵌入处理提升性能。
+
+### Refactored
+
+- **水印配置面板重构** — 配置摘要实时显示、全选/批量操作行合并、紧凑型按钮适配侧边栏卡片。
+
+### Chores
+
+- 版本号同步升级到 2.5.7。
+- Clippy/Lint/ESLint 清理（P1/P2 代码质量修复）。
+- 代码分析报告更新。
+
 ## [2.5.6] - 2026-06-27
 
 ### Security
