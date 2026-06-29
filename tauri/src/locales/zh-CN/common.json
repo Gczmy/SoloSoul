@@ -56,6 +56,7 @@
   "refresh": "刷新",
   "filter": "筛选",
   "clear": "清除",
+  "clear_selection": "清除",
   "select_all": "全选",
   "deselect_all": "取消全选",
   "home": "首页",

@@ -1,0 +1,218 @@
+.configArea {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  margin-top: 6px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ─── Config form ──────────────────────────────────────────────────── */
+.configBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--bg-input);
+  border-radius: 6px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.field > span {
+  font-size: var(--text-badge);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.field input,
+.field select {
+  padding: 5px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-size: var(--text-caption);
+  font-family: inherit;
+}
+
+.field input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.rangeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rangeRow input[type='range'] {
+  flex: 1;
+  height: 4px;
+  accent-color: var(--accent-primary);
+}
+
+.rangeValue {
+  font-size: var(--text-badge);
+  color: var(--text-secondary);
+  min-width: 32px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.colorRow {
+  display: flex;
+  gap: 4px;
+}
+
+.colorRow input {
+  flex: 1;
+  min-width: 0;
+  color-scheme: light;
+}
+
+:global([data-theme='dark']) .colorRow input {
+  color-scheme: dark;
+}
+
+.fieldInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+/* ─── Attachment tree ──────────────────────────────────────────────── */
+.tree {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-input);
+  border-radius: 6px;
+}
+
+.treePage {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.treePageName {
+  font-size: var(--text-badge);
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 2px 4px;
+}
+
+.treeObject {
+  margin-left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.treeObjectName {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  padding: 1px 4px;
+}
+
+.treeItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px 3px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.12s ease;
+}
+
+.treeItem:hover {
+  background: var(--bg-hover);
+}
+
+.treeItemName {
+  font-size: var(--text-badge);
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treeItemMime {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.configSummary {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: var(--text-badge);
+  color: var(--text-primary);
+  padding: 6px 8px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.configSummaryText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.configSummaryRest {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.outputDirRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  font-size: var(--text-badge);
+}
+
+.outputDirLabel {
+  color: var(--text-secondary);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.outputDirValue {
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loading,
+.empty {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: 16px 8px;
+}

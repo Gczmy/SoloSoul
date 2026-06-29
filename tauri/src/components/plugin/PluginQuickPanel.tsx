@@ -7,6 +7,8 @@ import { usePluginQuickStore, type QuickPanelTab } from '@/stores/pluginQuickSto
 import { useConfirm } from '@/hooks/useConfirm';
 import { PluginLogSection } from './shared/PluginLogSection';
 import { PluginResultSection } from './shared/PluginResultSection';
+import { WatermarkPluginConfig } from './WatermarkPluginConfig';
+import { useUiStore } from '@/stores/uiStore';
 import { isDevOrDebug } from '@/lib/env';
 import styles from './PluginQuickPanel.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
@@ -29,6 +31,9 @@ export function PluginQuickPanel({
 
   const { activeTab, setActiveTab } = usePluginQuickStore();
   const { requestConfirm, dialog: uninstallDialog } = useConfirm();
+
+  // 存储插件运行参数（用于水印插件等的侧边栏配置）
+  const pluginRunParamsRef = useRef<Record<string, Record<string, string>>>({});
 
   const {
     marketPlugins,
@@ -232,7 +237,29 @@ export function PluginQuickPanel({
                           const name =
                             info.registryEntry.i18n?.[locale]?.name ??
                             info.registryEntry.name;
-                          runPlugin(info.pluginId, name);
+                          const savedParams = pluginRunParamsRef.current[info.pluginId];
+                          // 水印插件：检查是否已选择附件，无附件时提示用户
+                          if (info.pluginId === 'com.solosoul.official.watermark') {
+                            const selectedRaw = savedParams?.selectedAttachments;
+                            if (selectedRaw) {
+                              try {
+                                const selected = JSON.parse(selectedRaw);
+                                if (!Array.isArray(selected) || selected.length === 0) {
+                                  useUiStore.getState().showToast({
+                                    type: 'warning',
+                                    message: t('plugin:watermark.select_attachments_first', {
+                                      defaultValue: '请先选择附件再运行',
+                                    }),
+                                    duration: 4000,
+                                  });
+                                  return;
+                                }
+                              } catch {
+                                // JSON 解析失败，继续运行
+                              }
+                            }
+                          }
+                          runPlugin(info.pluginId, name, savedParams);
                         }}
                         disabled={isRunning}
                       >
@@ -272,7 +299,15 @@ export function PluginQuickPanel({
                   </div>
                 </div>
 
-                {/* Running state inline */}
+                {/* ── 水印插件配置区（侧边栏内联配置，始终在日志上方） ──── */}
+                {installed && info.pluginId === 'com.solosoul.official.watermark' && (
+                  <WatermarkPluginConfig
+                    onParamsChange={(params) => {
+                      pluginRunParamsRef.current[info.pluginId] = params;
+                    }}
+                  />
+                )}
+                {/* Running state inline（运行日志 + 结果，在配置区下方） */}
                 {running && (
                   <QuickRunningInfo
                     pluginId={info.pluginId}

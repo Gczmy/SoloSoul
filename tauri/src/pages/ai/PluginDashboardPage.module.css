@@ -150,6 +150,54 @@
   gap: 12px;
 }
 
+.pluginWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.inlineConfig {
+  padding: 0 16px 16px;
+  border-radius: 0 0 14px 14px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-top: none;
+  margin-top: -12px;
+
+  /* 页面级字体大小覆盖 — 侧边栏 10px/12px → 页面的 13px/14px */
+  --text-badge: var(--text-body-sm);
+  --text-caption: var(--text-sm);
+}
+
+/* treeItemMime 使用固定 10px，需单独覆盖 */
+.inlineConfig div[class*='treeItemMime'] {
+  font-size: 11px;
+}
+
+/* ExpandableSection title 使用 var(--text-caption)，被 --text-caption 覆盖生效 */
+
+/* 配置表单内间距扩大，适配页面级字号 */
+.inlineConfig div[class*='configBody'] {
+  gap: 10px;
+  padding: 12px;
+}
+
+.inlineConfig div[class*='tree'] {
+  gap: 6px;
+  padding: 6px;
+}
+
+.inlineWatermarkRunning {
+  padding: 16px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .loading,
 .empty {
   padding: 48px 24px;

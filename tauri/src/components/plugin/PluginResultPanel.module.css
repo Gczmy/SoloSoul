@@ -169,3 +169,132 @@
   font-size: var(--text-caption);
   color: var(--text-warning);
 }
+
+/* ─── Watermark result wrapper ─────────────────────────────────────── */
+.watermarkResult {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ─── Select-all row ───────────────────────────────────────────────── */
+.watermarkSelectAll {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  font-size: var(--text-caption);
+  border-radius: 6px;
+}
+
+.watermarkSelectAllLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: background 0.12s ease;
+}
+
+.watermarkSelectAllLeft:hover {
+  background: var(--bg-hover);
+}
+
+.watermarkSelectAllRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.watermarkSelectAllRight button {
+  font-size: var(--text-caption);
+  padding: 3px 8px;
+}
+
+.watermarkSelectAllLabel {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.watermarkSelectedCount {
+  color: var(--accent-primary);
+  font-weight: 600;
+  font-size: var(--text-badge);
+}
+
+.watermarkClearSelection {
+  background: none;
+  border: none;
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-family: inherit;
+  border-radius: 4px;
+  transition: all 0.12s ease;
+}
+
+.watermarkClearSelection:hover {
+  color: var(--danger);
+  background: var(--danger-subtle);
+}
+
+/* ─── Watermark result items ───────────────────────────────────────── */
+.watermarkList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.watermarkItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: var(--bg-input);
+  transition: background 0.12s ease;
+}
+
+.watermarkItem:hover {
+  background: var(--bg-hover);
+}
+
+.watermarkMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.watermarkInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.watermarkName {
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.watermarkMime {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.watermarkActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}

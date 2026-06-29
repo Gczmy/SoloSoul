@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw } from 'lucide-react';
@@ -6,12 +6,16 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { PluginCard } from '@/components/plugin/PluginCard';
+import { PluginLogSection } from '@/components/plugin/shared/PluginLogSection';
+import { PluginResultSection } from '@/components/plugin/shared/PluginResultSection';
+import { WatermarkPluginConfig } from '@/components/plugin/WatermarkPluginConfig';
 import { PluginConsentDialog } from '@/components/plugin/PluginConsentDialog';
 import { PluginDialog } from '@/components/plugin/PluginDialog';
 import { PluginRunParamsDialog } from '@/components/plugin/PluginRunParamsDialog';
 import { usePluginStore } from '@/stores/pluginStore';
 import { pluginCommands, PluginParam, PluginTier } from '@/lib/plugin';
 import { isDevOrDebug } from '@/lib/env';
+import { useUiStore } from '@/stores/uiStore';
 import { useToastError } from '@/hooks/useToastError';
 import styles from './PluginDashboardPage.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
@@ -54,6 +58,9 @@ export function PluginDashboardPage() {
   } = usePluginStore();
 
   const { onError } = useToastError();
+
+  // 存储内联配置（水印插件等）的运行参数
+  const inlineParamsRef = useRef<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
     if (error) {
@@ -125,17 +132,40 @@ export function PluginDashboardPage() {
   const handleRun = async (pluginId: string) => {
     const info = marketPlugins.find((p) => p.pluginId === pluginId);
     if (!info) return;
-    // 若插件声明了自定义 UI，跳转到独立页面完成配置后再运行
-    if (info.registryEntry.customUi) {
-      navigate(`/plugin/custom/${info.pluginId}`);
-      return;
-    }
     // 在「全部」tab 点击运行时自动切换到「已安装」tab，避免出现旧样式卡片
     if (activeTab === 'all') {
       setActiveTab('installed');
     }
     const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
     const name = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
+
+    // 水印插件：优先使用侧边栏式内联配置参数
+    if (pluginId === 'com.solosoul.official.watermark') {
+      const savedParams = inlineParamsRef.current[pluginId];
+      if (savedParams) {
+        const selectedRaw = savedParams.selectedAttachments;
+        if (selectedRaw) {
+          try {
+            const selected = JSON.parse(selectedRaw);
+            if (!Array.isArray(selected) || selected.length === 0) {
+              useUiStore.getState().showToast({
+                type: 'warning',
+                message: t('plugin:watermark.select_attachments_first', {
+                  defaultValue: '请先选择附件再运行',
+                }),
+                duration: 4000,
+              });
+              return;
+            }
+          } catch {
+            // JSON 解析失败，继续运行
+          }
+        }
+        await runPlugin(pluginId, name, savedParams);
+        return;
+      }
+    }
+
     const params = info.registryEntry.params?.length
       ? info.registryEntry.params
       : (installedMap[pluginId]?.params ?? []);
@@ -248,24 +278,67 @@ export function PluginDashboardPage() {
                 {t('plugin:empty_list', { defaultValue: 'No plugins found' })}
               </div>
             ) : (
-              displayedPlugins.map((info) => (
-                <PluginCard
-                  key={info.pluginId}
-                  info={info}
-                  manifest={installedMap[info.pluginId]}
-                  isRunning={
-                    !!runningPlugins[info.pluginId] && !runningPlugins[info.pluginId].completed
-                  }
-                  runningPlugin={runningPlugins[info.pluginId]}
-                  showResults={activeTab === 'installed' || activeTab === 'running'}
-                  onInstall={() => installPlugin(info.pluginId, info.registryEntry.latestVersion)}
-                  onUpdate={() => updatePlugin(info.pluginId)}
-                  onUninstall={() => uninstallPlugin(info.pluginId)}
-                  onRun={() => handleRun(info.pluginId)}
-                  onStop={() => stopPlugin(info.pluginId)}
-                  onClear={() => clearPluginOutput(info.pluginId)}
-                />
-              ))
+              displayedPlugins.map((info) => {
+                const installed = !!info.installedVersion;
+                const isWatermark = info.pluginId === 'com.solosoul.official.watermark';
+                const running = runningPlugins[info.pluginId];
+                const showWatermarkRunning = activeTab === 'installed' || activeTab === 'running';
+                return (
+                  <div key={info.pluginId} className={styles.pluginWrapper}>
+                    <PluginCard
+                      info={info}
+                      manifest={installedMap[info.pluginId]}
+                      isRunning={
+                        !!running && !running.completed
+                      }
+                      runningPlugin={running}
+                      // 水印插件：由外部接管日志/结果渲染，卡片内不显示
+                      showResults={isWatermark ? false : (activeTab === 'installed' || activeTab === 'running')}
+                      onInstall={() => installPlugin(info.pluginId, info.registryEntry.latestVersion)}
+                      onUpdate={() => updatePlugin(info.pluginId)}
+                      onUninstall={() => uninstallPlugin(info.pluginId)}
+                      onRun={() => handleRun(info.pluginId)}
+                      onStop={() => stopPlugin(info.pluginId)}
+                      onClear={() => clearPluginOutput(info.pluginId)}
+                    />
+                    {/* 水印插件：配置区 → 日志区 → 结果区（与侧边栏顺序一致） */}
+                    {installed && isWatermark && (
+                      <>
+                        <div
+                          className={styles.inlineConfig}
+                          style={showWatermarkRunning && running ? { borderRadius: 0 } : undefined}
+                        >
+                          <WatermarkPluginConfig
+                            onParamsChange={(params) => {
+                              inlineParamsRef.current[info.pluginId] = params;
+                            }}
+                          />
+                        </div>
+                        {showWatermarkRunning && running && (
+                          <div className={styles.inlineWatermarkRunning}>
+                            <PluginLogSection
+                              logs={running.logs}
+                              error={running.error}
+                              completed={running.completed}
+                              onStop={() => stopPlugin(info.pluginId)}
+                              onClear={() => clearPluginOutput(info.pluginId)}
+                              variant="page"
+                            />
+                            {running.results.length > 0 && (
+                              <PluginResultSection
+                                results={running.results}
+                                defaultExpanded
+                                showCopyButtons
+                                variant="page"
+                              />
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })
             )}
           </div>
         )}

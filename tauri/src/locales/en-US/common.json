@@ -56,6 +56,7 @@
   "refresh": "Refresh",
   "filter": "Filter",
   "clear": "Clear",
+  "clear_selection": "Clear",
   "select_all": "Select all",
   "deselect_all": "Deselect all",
   "home": "Home",

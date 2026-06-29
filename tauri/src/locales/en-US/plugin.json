@@ -54,5 +54,39 @@
   "tier_all": "All Tiers",
   "tier_coming_soon": "Coming Soon",
   "uninstall_confirm_message": "Are you sure you want to uninstall this plugin?",
-  "uninstall_confirm_title": "Uninstall Plugin"
+  "uninstall_confirm_title": "Uninstall Plugin",
+
+  "watermark.position_center": "Center",
+  "watermark.position_topLeft": "Top Left",
+  "watermark.position_topRight": "Top Right",
+  "watermark.position_bottomLeft": "Bottom Left",
+  "watermark.position_bottomRight": "Bottom Right",
+  "watermark.position_tile": "Tile",
+
+  "watermark.summary_text": "Text",
+  "watermark.summary_font_size": "Font",
+  "watermark.summary_color": "Color",
+  "watermark.summary_opacity": "Opacity",
+  "watermark.summary_angle": "Angle",
+  "watermark.summary_position": "Position",
+
+  "watermark_config_sidebar": "Watermark Config",
+  "select_attachments_sidebar": "Select Attachments",
+
+  "watermark.select_all": "Select All",
+  "watermark.selected_count": "{{count}} selected",
+  "watermark.download_selected": "Download ({{count}})",
+  "watermark.preview": "Preview",
+  "watermark.download": "Download",
+
+  "watermark.output_dir": "Output Directory",
+  "watermark.change_output_dir": "Change Output Directory",
+  "watermark.text": "Watermark Text",
+  "watermark.font_size": "Font Size",
+  "watermark.opacity": "Opacity",
+  "watermark.angle": "Rotation Angle",
+  "watermark.color": "Color (R,G,B)",
+  "watermark.position": "Position",
+  "watermark.tile": "Tile Watermark",
+  "watermark.no_attachments": "No image/PDF attachments available"
 }

@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Eye, Download } from 'lucide-react';
+import { open } from '@tauri-apps/plugin-shell';
+import { save, open as openDialog } from '@tauri-apps/plugin-dialog';
+import { copyFile } from '@tauri-apps/plugin-fs';
+import { join } from '@tauri-apps/api/path';
+import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
+import { Button } from '@/components/ui/Button';
 import styles from './PluginResultPanel.module.css';
-import type { PluginResultPayload } from '@/lib/plugin';
+import type { PluginResultPayload, WatermarkResultItem } from '@/lib/plugin';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -270,6 +277,9 @@ function ResultContent({ payload }: { payload: PluginResultPayload }) {
     case 'markdown':
       return <pre className={styles.markdown}>{payload.content}</pre>;
 
+    case 'watermark_result':
+      return <WatermarkResultContent payload={payload} />;
+
     default:
       return (
         <div className={styles.unknown}>
@@ -279,4 +289,143 @@ function ResultContent({ payload }: { payload: PluginResultPayload }) {
   }
 }
 
+function WatermarkResultContent({ payload }: { payload: PluginResultPayload & { type: 'watermark_result' } }) {
+  const { t } = useTranslation('plugin');
+  const items = payload.items;
+
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const resultItemId = useCallback((item: WatermarkResultItem) => {
+    return `${item.objectId}-${item.attachmentId}`;
+  }, []);
+
+  const allSelected = items.length > 0 && items.every((item) => selectedIds.has(resultItemId(item)));
+  const someSelected = selectedIds.size > 0 && !allSelected;
+
+  const handleToggle = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map(resultItemId)));
+    }
+  };
+
+  const handlePreview = async (path: string) => {
+    try {
+      const fileUrl = new URL(path.replace(/\\/g, '/'), 'file://').href;
+      await open(fileUrl);
+    } catch {
+      // silent in sidebar
+    }
+  };
+
+  const handleDownload = async (item: WatermarkResultItem) => {
+    try {
+      const dest = await save({ defaultPath: item.fileName });
+      if (dest) {
+        await copyFile(item.outputPath, dest);
+      }
+    } catch {
+      // silent
+    }
+  };
+
+  const handleDownloadSelected = async () => {
+    if (selectedIds.size === 0) return;
+    try {
+      const dir = await openDialog({ directory: true });
+      if (!dir) return;
+      const selected = items.filter((item) => selectedIds.has(resultItemId(item)));
+      await Promise.all(
+        selected.map(async (item) => {
+          const dest = await join(dir, item.fileName);
+          await copyFile(item.outputPath, dest);
+        }),
+      );
+    } catch {
+      // silent
+    }
+  };
+
+  return (
+    <div className={styles.watermarkResult}>
+      {/* 全选 + 批量操作（同一行） */}
+      <div className={styles.watermarkSelectAll}>
+        <div className={styles.watermarkSelectAllLeft} onClick={handleSelectAll}>
+          <SelectCheckbox
+            checked={allSelected}
+            indeterminate={someSelected}
+          />
+          <span className={styles.watermarkSelectAllLabel}>
+            {t('watermark.select_all', { defaultValue: '全选' })}
+          </span>
+          <span className={styles.watermarkSelectedCount}>
+            {t('watermark.selected_count', {
+              defaultValue: '已选 {{count}} 项',
+              count: selectedIds.size,
+            })}
+          </span>
+        </div>
+        {selectedIds.size > 0 && (
+          <div className={styles.watermarkSelectAllRight}>
+            <Button variant="secondary" size="sm" onClick={handleDownloadSelected}>
+              <Download size={ICON_SIZE.xs} />
+              {t('watermark.download_selected', {
+                defaultValue: '下载已选项 ({{count}})',
+                count: selectedIds.size,
+              })}
+            </Button>
+            <button
+              className={styles.watermarkClearSelection}
+              onClick={() => setSelectedIds(new Set())}
+            >
+              {t('common:clear_selection', { defaultValue: '清除选择' })}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 文件列表 */}
+      <div className={styles.watermarkList}>
+        {items.map((item) => (
+          <div key={resultItemId(item)} className={styles.watermarkItem}>
+            <div
+              className={styles.watermarkMain}
+              onClick={() => handleToggle(resultItemId(item))}
+            >
+              <SelectCheckbox checked={selectedIds.has(resultItemId(item))} />
+              <div className={styles.watermarkInfo}>
+                <span className={styles.watermarkName} title={item.fileName}>
+                  {item.fileName}
+                </span>
+                <span className={styles.watermarkMime}>{item.mimeType}</span>
+              </div>
+            </div>
+            <div className={styles.watermarkActions}>
+              <BadgeIconButton
+                Icon={Eye}
+                onClick={() => handlePreview(item.outputPath)}
+                title={t('watermark.preview', { defaultValue: '预览' })}
+              />
+              <BadgeIconButton
+                Icon={Download}
+                onClick={() => handleDownload(item)}
+                title={t('watermark.download', { defaultValue: '下载' })}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
