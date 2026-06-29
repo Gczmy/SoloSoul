@@ -8,7 +8,6 @@ import { ExpandableSection } from './shared/ExpandableSection';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { useAttachmentPageSort } from '@/hooks/useAttachmentPageSort';
-import { ICON_SIZE } from '@/lib/iconSizes';
 import styles from './WatermarkPluginConfig.module.css';
 
 interface WatermarkConfig {

@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import { formatTimestamp } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/iconSizes';
+import { type ChatMsg } from '@/types/llmChat';
 
 /** URL 协议白名单：仅允许安全的 HTTP(S)/mailto 链接 */
 function allowedUrl(url: string): string {
@@ -16,12 +17,6 @@ function allowedUrl(url: string): string {
   return '';
 }
 
-
-interface ChatMsg {
-  role: string;
-  content: string;
-  createdAt: string;
-}
 
 interface ChatMessageListProps {
   messages: ChatMsg[];
@@ -76,7 +71,10 @@ export const ChatMessageList = memo(function ChatMessageList({
         </div>
       )}
       {messages.map((msg, i) => (
-        <div key={msg.createdAt + msg.role + i} style={{ marginBottom: 6 }}>
+        <div
+          key={msg.id ?? `msg-${msg.createdAt}-${msg.role}-${msg.content.slice(0, 16)}`}
+          style={{ marginBottom: 6 }}
+        >
           <div
             style={{
               textAlign: 'center',

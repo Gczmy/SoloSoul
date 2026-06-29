@@ -16,6 +16,7 @@ function allowedUrl(url: string): string {
 
 
 export interface ChatMsg {
+  id?: string;
   role: string;
   content: string;
   createdAt: string;

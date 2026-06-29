@@ -173,27 +173,26 @@ export function ObjectWorkspacePage() {
   const snapshotReqRef = useRef(0);
 
   // Load snapshot counts for visible objects
-  // P212: setSnapshotCounts/snapshotReqRef omitted intentionally — they are stable
-  // (useState setter / useRef). visibleObjects IS the only meaningful dependency.
   useEffect(() => {
     const ids = visibleObjects.map((o) => o.id);
     if (ids.length === 0) return;
     const reqId = ++snapshotReqRef.current;
+    let mounted = true;
     invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
       .then((counts) => {
-        if (snapshotReqRef.current !== reqId) return; // stale response, discard
+        if (!mounted || snapshotReqRef.current !== reqId) return; // stale response, discard
         // Ensure every visible object has a snapshot count (default 0)
         const full: Record<string, number> = {};
         for (const id of ids) full[id] = counts[id] ?? 0;
         setSnapshotCounts(full);
       })
       .catch((err) => {
-        if (snapshotReqRef.current !== reqId) return; // stale error, discard
+        if (!mounted || snapshotReqRef.current !== reqId) return; // stale error, discard
         console.warn('[Workspace] Snapshot count batch failed:', err);
       });
-    // Increment ref on cleanup so in-flight responses become stale (handles Strict Mode + unmount)
-    return () => { snapshotReqRef.current++; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      mounted = false;
+    };
   }, [visibleObjects]);
 
   // Load attachment counts for visible objects

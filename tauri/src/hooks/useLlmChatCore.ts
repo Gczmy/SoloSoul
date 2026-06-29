@@ -204,7 +204,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
           conversationId: convId,
         });
         setCurrentConvId(conv.id);
-        setMessages(conv.messages);
+        setMessages(conv.messages.map((m) => (m.id ? m : { ...m, id: generateId() })));
       } catch {
         /* may be deleted */
       }
@@ -278,7 +278,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     if (!text || !activeProvider || !accountId) return;
 
     const ts = nowISO();
-    const userMsg: ChatMsg = { role: 'user', content: text, createdAt: ts };
+    const userMsg: ChatMsg = { id: generateId(), role: 'user', content: text, createdAt: ts };
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
     setInput('');
@@ -306,7 +306,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       }
     }
 
-    const assistantMsg: ChatMsg = { role: 'assistant', content: '', createdAt: nowISO() };
+    const assistantMsg: ChatMsg = { id: generateId(), role: 'assistant', content: '', createdAt: nowISO() };
     const streamingMessages = [...updatedMessages, assistantMsg];
     setMessages(streamingMessages);
     llmStore.startStream(convId);
@@ -355,6 +355,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     } catch (e) {
       const errMsg = typeof e === 'string' ? e : e instanceof Error ? e.message : String(e);
       const errorAssistantMsg: ChatMsg = {
+        id: generateId(),
         role: 'assistant',
         content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}`,
         createdAt: nowISO(),
