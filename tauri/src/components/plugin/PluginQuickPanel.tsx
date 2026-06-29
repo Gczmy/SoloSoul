@@ -90,7 +90,9 @@ export function PluginQuickPanel({
     let filtered = marketPlugins;
     if (!isDevOrDebug()) {
       filtered = filtered.filter(
-        (p) => p.pluginId === 'com.solosoul.official.address-fmt',
+        (p) =>
+          p.pluginId === 'com.solosoul.official.address-fmt' ||
+          p.pluginId === 'com.solosoul.official.watermark',
       );
     }
     switch (activeTab) {
