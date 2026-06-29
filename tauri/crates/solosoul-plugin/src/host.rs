@@ -1168,39 +1168,9 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
     Ok(())
 }
 
-/// 规范化路径，对不存在的路径尝试规范化其最近存在的祖先后再拼接末尾组件。
-/// 这样可处理 macOS `/tmp` -> `/private/tmp` 的符号链接，同时允许尚未创建
-/// 的输出路径（如 `.watermarked.pdf`）通过 `is_under_workspace` 检查。
-fn resolve_path(path: &Path) -> PathBuf {
-    if let Ok(p) = std::fs::canonicalize(path) {
-        return p;
-    }
-    // 找到最近存在的祖先，规范化后再把缺失的组件拼回来。
-    let mut existing = path;
-    let mut suffix = Vec::new();
-    while !existing.exists() {
-        if let Some(file_name) = existing.file_name() {
-            suffix.push(file_name);
-        }
-        match existing.parent() {
-            Some(parent) => existing = parent,
-            None => break,
-        }
-    }
-    let base = std::fs::canonicalize(existing).unwrap_or_else(|_| existing.to_path_buf());
-    suffix
-        .into_iter()
-        .rev()
-        .fold(base, |acc, name| acc.join(name))
-}
-
 fn is_under_workspace(host: &SoloHostFunctions, path: &Path) -> bool {
     match host.workspace_dir.as_ref() {
-        Some(ws) => {
-            let canonical_ws = resolve_path(ws);
-            let canonical_path = resolve_path(path);
-            canonical_path.starts_with(&canonical_ws)
-        }
+        Some(ws) => solosoul_core::path_util::is_path_under_workspace(ws, path),
         None => false,
     }
 }

@@ -111,7 +111,6 @@ describe('initI18n', () => {
 
     // Reset DOM/storage state
     localStorage.clear();
-    delete (window as unknown as Record<string, unknown>)['__SOLOSOUL_LOCALE__'];
 
     // Default navigator.language = en-US
     Object.defineProperty(navigator, 'language', {
@@ -126,42 +125,9 @@ describe('initI18n', () => {
     invokeMock.mockResolvedValue('');
   });
 
-  // ── Layer 1: window.__SOLOSOUL_LOCALE__ ────────────────────────────────
+  // ── Layer 1: localStorage ─────────────────────────────────────────────
 
-  it('detects zh-CN from window.__SOLOSOUL_LOCALE__ (layer 1)', async () => {
-    window.__SOLOSOUL_LOCALE__ = 'zh-CN';
-    const { initI18n } = await import('./i18n');
-    await initI18n();
-
-    const { init } = vi.mocked((await import('i18next')).default);
-    expect(init).toHaveBeenCalledWith(expect.objectContaining({ lng: 'zh-CN' }));
-    expect(invokeMock).not.toHaveBeenCalled();
-  });
-
-  it('detects en-US from window.__SOLOSOUL_LOCALE__', async () => {
-    window.__SOLOSOUL_LOCALE__ = 'en-US';
-    const { initI18n } = await import('./i18n');
-    await initI18n();
-
-    const { init } = vi.mocked((await import('i18next')).default);
-    expect(init).toHaveBeenCalledWith(expect.objectContaining({ lng: 'en-US' }));
-    expect(invokeMock).not.toHaveBeenCalled();
-  });
-
-  it('ignores invalid window.__SOLOSOUL_LOCALE__ and falls to layer 2', async () => {
-    window.__SOLOSOUL_LOCALE__ = 'invalid-value';
-    localStorage.setItem(LANG_KEY, 'zh-CN'); // layer 2 should catch this
-    const { initI18n } = await import('./i18n');
-    await initI18n();
-
-    const { init } = vi.mocked((await import('i18next')).default);
-    expect(init).toHaveBeenCalledWith(expect.objectContaining({ lng: 'zh-CN' }));
-    expect(invokeMock).not.toHaveBeenCalled();
-  });
-
-  // ── Layer 2: localStorage ─────────────────────────────────────────────
-
-  it('reads zh-CN from localStorage when window locale is absent (layer 2)', async () => {
+  it('reads zh-CN from localStorage (layer 1)', async () => {
     localStorage.setItem(LANG_KEY, 'zh-CN');
     const { initI18n } = await import('./i18n');
     await initI18n();
@@ -181,21 +147,21 @@ describe('initI18n', () => {
     expect(invokeMock).not.toHaveBeenCalled();
   });
 
-  it('ignores invalid localStorage value and falls to layer 3', async () => {
+  it('ignores invalid localStorage value and falls to layer 2', async () => {
     localStorage.setItem(LANG_KEY, 'fr-FR'); // not zh-CN or en-US
     invokeMock.mockResolvedValue('zh-CN');
     const { initI18n } = await import('./i18n');
     await initI18n();
 
     const { init } = vi.mocked((await import('i18next')).default);
-    // Layer 3 (IPC) provides zh-CN
+    // Layer 2 (IPC) provides zh-CN
     expect(init).toHaveBeenCalledWith(expect.objectContaining({ lng: 'zh-CN' }));
     expect(invokeMock).toHaveBeenCalledWith('get_system_locale');
   });
 
-  // ── Layer 3: IPC ───────────────────────────────────────────────────────
+  // ── Layer 2: IPC ───────────────────────────────────────────────────────
 
-  it('uses IPC result zh-CN when localStorage is empty (layer 3)', async () => {
+  it('uses IPC result zh-CN when localStorage is empty (layer 2)', async () => {
     invokeMock.mockResolvedValue('zh-CN');
     const { initI18n } = await import('./i18n');
     await initI18n();
@@ -224,10 +190,10 @@ describe('initI18n', () => {
     expect(init).toHaveBeenCalledWith(expect.objectContaining({ lng: 'zh-CN' }));
   });
 
-  // ── Layer 4: navigator.language ────────────────────────────────────────
+  // ── Layer 3: navigator.language ────────────────────────────────────────
 
-  it('falls back to navigator.language when all earlier layers fail (layer 4)', async () => {
-    // All layers 1-3 return nothing useful
+  it('falls back to navigator.language when all earlier layers fail (layer 3)', async () => {
+    // All layers 1-2 return nothing useful
     const { initI18n } = await import('./i18n');
     await initI18n();
 
@@ -236,7 +202,7 @@ describe('initI18n', () => {
     expect(init).toHaveBeenCalledWith(expect.objectContaining({ lng: 'en-US' }));
   });
 
-  it('falls to navigator zh-CN when IPC returns empty and layers 1-2 absent', async () => {
+  it('falls to navigator zh-CN when IPC returns empty and layers 1 absent', async () => {
     Object.defineProperty(navigator, 'language', {
       value: 'zh-CN',
       configurable: true,

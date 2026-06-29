@@ -16,6 +16,7 @@ pub mod llm;
 pub mod ocr;
 pub mod pdfium;
 pub mod process_lock;
+pub mod path_util;
 pub mod search_filter;
 pub mod template_service;
 pub mod vault_service;
@@ -38,3 +39,6 @@ pub use search_filter::{
     collect_protected_field_keys, is_protected_sensitivity, is_searchable_field_value,
     PROTECTED_SENSITIVITIES,
 };
+
+// 路径规范化工具函数
+pub use path_util::{is_path_under_workspace, resolve_path};

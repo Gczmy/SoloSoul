@@ -116,16 +116,38 @@ pub fn read_manifest(file_path: &str) -> Result<ManifestData, String> {
     })
 }
 
+/// ZIP 条目的最大解压大小限制（100 MB），防止 ZIP 炸弹 / OOM。
+const MAX_ZIP_ENTRY_SIZE: u64 = 100 * 1024 * 1024;
+
+/// 从 ZIP 中读取指定名称的文件内容，带大小限制。
+///
+/// # 安全
+/// - 读取前检查 `entry.size()`（未压缩大小），超过 `MAX_ZIP_ENTRY_SIZE` 则拒绝。
+/// - 使用 `.take()` 限制实际读取字节数，即使 `size()` 返回 0/错误也有第二道防线。
 pub fn read_file_from_zip(file_path: &str, name: &str) -> Result<Vec<u8>, String> {
     let path = std::path::Path::new(file_path);
     let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;
     let mut archive = ZipArchive::new(file).map_err(|_| "Invalid ZIP".to_string())?;
-    let mut entry = archive
+    let entry = archive
         .by_name(name)
         .map_err(|_| format!("File not found: {}", name))?;
+
+    // 检查 ZIP 条目声明的未压缩大小
+    if entry.size() > MAX_ZIP_ENTRY_SIZE {
+        return Err(format!(
+            "ZIP entry '{}' is too large ({} bytes, max {} bytes)",
+            name,
+            entry.size(),
+            MAX_ZIP_ENTRY_SIZE
+        ));
+    }
+
     let mut buf = Vec::new();
+    // 使用 take() 作为第二道防线（即使 entry.size() 不准确）
     entry
+        .take(MAX_ZIP_ENTRY_SIZE + 1)
         .read_to_end(&mut buf)
         .map_err(|e| format!("Read {}: {}", name, e))?;
+
     Ok(buf)
 }

@@ -307,7 +307,9 @@ pub fn run() {
                 });
             }
 
-            // 8. 检测系统 locale 并注入前端
+            // 8. 检测系统 locale（前端通过 IPC get_system_locale + navigator.language 获取）
+            //     此前通过 window.eval 注入 __SOLOSOUL_LOCALE__ 的方式已被移除（P005），
+            //     改为前端通过 IPC 调用 get_system_locale 获取，无需后端提前注入。
             let locale =
                 commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
             let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") {
@@ -320,11 +322,10 @@ pub fn run() {
                 locale,
                 locale_flag
             );
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.eval(format!("window.__SOLOSOUL_LOCALE__='{}'", locale_flag));
-            }
 
-            // 9. 恢复窗口大小
+            // 9. 恢复窗口大小（通过 Tauri API 设置窗口尺寸）
+            //     此前通过 window.eval 注入 localStorage 的方式已被移除（P005），
+            //     前端已通过 IPC ui_get_preferences + localStorage 自管理窗口尺寸。
             let managed_state = app.state::<AppState>();
             if let Ok(svc) = managed_state.vault_service.read() {
                 let prefs_path = svc.base_path().join("ui_preferences.json");
@@ -336,10 +337,6 @@ pub fn run() {
                             if let Some(win) = app.get_webview_window("main") {
                                 let _ = win.set_size(tauri::Size::Physical(
                                     tauri::PhysicalSize::new(ws.width, ws.height),
-                                ));
-                                let _ = win.eval(format!(
-                                    "try{{localStorage.setItem('solosoul_window_size','{}')}}catch(e){{}}",
-                                    serde_json::json!({"width": ws.width, "height": ws.height})
                                 ));
                             }
                         }

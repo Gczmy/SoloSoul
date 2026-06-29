@@ -23,12 +23,6 @@ import zhOcr from '@/locales/zh-CN/ocr.json';
 export const SUPPORTED_LANGS = ['zh-CN', 'en-US'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
 
-declare global {
-  interface Window {
-    __SOLOSOUL_LOCALE__?: string;
-  }
-}
-
 const resources: Record<string, Record<string, object>> = {
   'en-US': {
     common: enCommon,
@@ -66,9 +60,11 @@ export function detectSystemLanguage(): SupportedLang {
  *
  * Detection priority:
  *  1. localStorage — user's explicit manual preference (set via /language setting)
- *  2. window.__SOLOSOUL_LOCALE__ — system locale injected by Rust before page loads (first launch)
- *  3. IPC get_system_locale — Rust backend via OS API (authoritative on desktop)
- *  4. navigator.language — last resort
+ *  2. IPC get_system_locale — Rust backend via OS API (authoritative on desktop)
+ *  3. navigator.language — last resort
+ *
+ * 注：此前 Rust 通过 window.eval 注入 window.__SOLOSOUL_LOCALE__ 的方式已被移除（P005），
+ * 改为前端通过 IPC get_system_locale 获取（Layer 2），无需后端提前注入。
  */
 export async function initI18n(): Promise<typeof i18next> {
   let detectedLng: SupportedLang | null = null;
@@ -77,13 +73,7 @@ export async function initI18n(): Promise<typeof i18next> {
   const stored = localStorage.getItem(LANG_KEY);
   if (stored === 'zh-CN' || stored === 'en-US') detectedLng = stored;
 
-  // Layer 2: Rust setup eval (injects before page loads; first-launch fallback)
-  if (!detectedLng) {
-    const winLocale = window.__SOLOSOUL_LOCALE__;
-    if (winLocale === 'zh-CN' || winLocale === 'en-US') detectedLng = winLocale;
-  }
-
-  // Layer 3: Rust IPC
+  // Layer 2: Rust IPC (取代此前 window.eval + window.__SOLOSOUL_LOCALE__)
   if (!detectedLng) {
     const locale = await invoke<string>('get_system_locale');
     if (locale) {
@@ -91,7 +81,7 @@ export async function initI18n(): Promise<typeof i18next> {
     }
   }
 
-  // Layer 4: navigator.language
+  // Layer 3: navigator.language
   if (!detectedLng) {
     detectedLng = detectSystemLanguage();
   }

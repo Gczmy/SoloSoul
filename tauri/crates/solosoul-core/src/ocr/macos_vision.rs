@@ -281,6 +281,7 @@ pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
     );
 
     let output = Command::new(&binary_path)
+        .arg("--")
         .arg(image_path)
         .output()
         .map_err(|e| format!("执行 Vision CLI 失败: {e}"))?;

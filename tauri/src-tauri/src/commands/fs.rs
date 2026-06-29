@@ -176,22 +176,20 @@ pub async fn inspect_backup(
         return Err("Backup file too large (> 500 MB)".to_string());
     }
 
-    // 流式读取前 100MB 用于解密预览（backup 通常远小于此值）
-    let max_read = std::cmp::min(meta.len(), 100 * 1024 * 1024) as usize;
-    let encrypted = {
+    // ── 流式读取并解密，避免将备份文件全量读入内存 ──
+    let max_read = std::cmp::min(meta.len(), 50 * 1024 * 1024) as u64;
+    let mut encrypted_reader = {
         let file =
             std::fs::File::open(&backup).map_err(|e| format!("Open backup failed: {}", e))?;
-        let mut buf = Vec::with_capacity(max_read);
-        file.take(max_read as u64)
-            .read_to_end(&mut buf)
-            .map_err(|e| format!("Read backup failed: {}", e))?;
-        buf
+        std::io::BufReader::new(file).take(max_read)
     };
 
-    let plaintext = solosoul_crypto::aes::decrypt_blob(&key, &encrypted)
+    // 使用流式解密降低内存峰值。backup 的体积通常远小于 50 MB。
+    let mut decrypted_buf = Vec::new();
+    solosoul_crypto::aes::decrypt_chunked_stream(&key, &mut encrypted_reader, &mut decrypted_buf)
         .map_err(|e| format!("Decryption failed: {}", e))?;
     let json_str =
-        String::from_utf8(plaintext.to_vec()).map_err(|e| format!("Invalid UTF-8: {}", e))?;
+        String::from_utf8(decrypted_buf).map_err(|e| format!("Invalid UTF-8: {}", e))?;
 
     let mut obj_count = 0;
     let mut type_ids: Vec<String> = Vec::new();
