@@ -307,5 +307,16 @@
   "attachment_limit_single_size_behavior": "The oversized attachment will not be exported",
   "attachment_limit_single_count_behavior": "Excess attachments will not be saved",
   "attachment_limit_total_size_behavior": "Reduce attachments or export in batches",
-  "dialog_subtitle": "{{pluginName}} is asking:"
+  "dialog_subtitle": "{{pluginName}} is asking:",
+
+  "guide": "Guide",
+  "got_it": "Got it",
+
+  "drag_upload_guide_title": "Drag && Drop Upload Guide",
+  "drag_guide_step1_title": "Object Card",
+  "drag_guide_step1_desc": "In the workspace list, drag and drop files directly onto any object card to attach them. The card will highlight when hovered during a drag.",
+  "drag_guide_step2_title": "Object Detail",
+  "drag_guide_step2_desc": "Click an object card to open the detail panel. Drag files into the panel area to attach them to the current object.",
+  "drag_guide_step3_title": "Attachment Manager",
+  "drag_guide_step3_desc": "In the attachment manager dialog, drag files directly into the window to batch upload multiple attachments at once."
 }

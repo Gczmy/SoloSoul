@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
-import { X, Clock, Paperclip, Pencil, Lock, Eye, Copy, Check } from 'lucide-react';
+import { X, Clock, Paperclip, Pencil, Lock, Eye, Copy, Check, Maximize2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
@@ -22,6 +22,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
+import { PageGuide } from '@/components/guide/PageGuide';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -647,10 +648,28 @@ export function ObjectDetailModal({
                   paddingTop: 16,
                   borderTop: '1px solid var(--border-subtle)',
                   display: 'flex',
+                  alignItems: 'center',
                   gap: 8,
                   flexWrap: 'wrap',
                 }}
               >
+                <PageGuide
+                  title="拖拽上传指南"
+                  steps={[
+                    {
+                      icon: Maximize2,
+                      title: '拖拽到此面板',
+                      description:
+                        '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
+                    },
+                    {
+                      icon: Paperclip,
+                      title: '附件管理器',
+                      description:
+                        '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
+                    },
+                  ]}
+                />
                 <button
                   onClick={() => {
                     if (onHistory) {

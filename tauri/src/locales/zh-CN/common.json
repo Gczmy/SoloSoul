@@ -306,5 +306,16 @@
   "attachment_limit_single_size_behavior": "该附件不会被导出",
   "attachment_limit_single_count_behavior": "超出数量的附件不会被保存",
   "attachment_limit_total_size_behavior": "请减少附件或分批导出",
-  "dialog_subtitle": "{{pluginName}} 请求："
+  "dialog_subtitle": "{{pluginName}} 请求：",
+
+  "guide": "指南",
+  "got_it": "知道了",
+
+  "drag_upload_guide_title": "拖拽附件上传指南",
+  "drag_guide_step1_title": "对象卡片",
+  "drag_guide_step1_desc": "在工作区列表中，直接将文件拖拽到任意对象的卡片上，即可为该对象添加附件。拖入时卡片会高亮提示。",
+  "drag_guide_step2_title": "对象详情",
+  "drag_guide_step2_desc": "点击对象卡片打开详情面板，将文件拖入面板内的任意区域，即可快速附加到当前对象。",
+  "drag_guide_step3_title": "附件管理",
+  "drag_guide_step3_desc": "在附件管理器弹窗中，直接将文件拖入窗口，即可批量上传多个附件。支持同时拖入多个文件。"
 }

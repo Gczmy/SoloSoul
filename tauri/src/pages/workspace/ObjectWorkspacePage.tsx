@@ -20,7 +20,7 @@ import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
-import { Trash, Search } from 'lucide-react';
+import { Trash, Search, LayoutList, Maximize2, Paperclip } from 'lucide-react';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 
@@ -28,6 +28,7 @@ import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 import { WorkspaceCategoryTabs } from '@/components/workspace/WorkspaceCategoryTabs';
 import { ConfirmDeleteDialog } from '@/components/workspace/ConfirmDeleteDialog';
 import { useWorkspacePasswordGuard } from '@/hooks/useWorkspacePasswordGuard';
+import { PageGuide } from '@/components/guide/PageGuide';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -234,7 +235,33 @@ export function ObjectWorkspacePage() {
       title={customPage?.name || activeCategoryLabel || t('objects')}
       onBack={() => navigate('/home')}
       actions={
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <PageGuide
+            title={t('common:drag_upload_guide_title') ?? '拖拽附件上传指南'}
+            steps={[
+              {
+                icon: LayoutList,
+                title: t('common:drag_guide_step1_title') ?? '对象卡片',
+                description:
+                  t('common:drag_guide_step1_desc') ??
+                  '在工作区列表中，直接将文件拖拽到任意对象的卡片上，即可为该对象添加附件。拖入时卡片会高亮提示。',
+              },
+              {
+                icon: Maximize2,
+                title: t('common:drag_guide_step2_title') ?? '对象详情',
+                description:
+                  t('common:drag_guide_step2_desc') ??
+                  '点击对象卡片打开详情面板，将文件拖入面板内的任意区域，即可快速附加到当前对象。',
+              },
+              {
+                icon: Paperclip,
+                title: t('common:drag_guide_step3_title') ?? '附件管理',
+                description:
+                  t('common:drag_guide_step3_desc') ??
+                  '在附件管理器弹窗中，直接将文件拖入窗口，即可批量上传多个附件。支持同时拖入多个文件。',
+              },
+            ]}
+          />
           <button
             onClick={() => navigate(newObjectUrl)}
             onMouseEnter={(e) => {
@@ -288,6 +315,7 @@ export function ObjectWorkspacePage() {
           onClear={() => setSearchQuery('')}
           prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
         />
+
 
         {isLoading && (
           <Card>
