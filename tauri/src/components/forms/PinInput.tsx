@@ -8,6 +8,15 @@ interface PinInputProps {
   verifying?: boolean;
 }
 
+/** 共用渐变横线 CSS 值 */
+const GRADIENT_LINE =
+  'linear-gradient(90deg, ' +
+  'color-mix(in srgb, var(--accent-primary) 10%, var(--accent-warm)) 0%, ' +
+  'color-mix(in srgb, var(--accent-primary) 80%, var(--accent-warm)) 15%, ' +
+  'color-mix(in srgb, var(--accent-primary) 20%, var(--accent-warm)) 50%, ' +
+  'color-mix(in srgb, var(--accent-primary) 80%, var(--accent-warm)) 85%, ' +
+  'color-mix(in srgb, var(--accent-primary) 10%, var(--accent-warm)) 100%)';
+
 /**
  * 数字 PIN 码输入组件。
  * 一个隐藏 input 统一处理键盘/粘贴，纯视觉方框展示掩码 + 边框高亮指示当前输入位。
@@ -113,28 +122,23 @@ export function PinInput({ length, onComplete, disabled, error, verifying }: Pin
         ))}
       </div>
 
-      {/* 验证中动画 — 流动渐变横线 */}
+      {/* 验证中动画 — 梯度 + 叠加移动光斑 */}
       <div
         style={{
           position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: totalWidth,
-          height: 4,
-          borderRadius: 2,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
           opacity: verifying ? 1 : 0,
           pointerEvents: 'none',
           transition: 'opacity 0.25s ease',
-          background:
-            'linear-gradient(90deg, transparent 0%, var(--accent-primary) 25%, transparent 50%, var(--accent-primary) 75%, transparent 100%)',
-          backgroundSize: '200% 100%',
-          animation: verifying ? 'pin-flow 2.8s linear infinite' : 'none',
-          boxShadow: verifying
-            ? '0 0 6px 2px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 16px 4px color-mix(in srgb, var(--accent-primary) 20%, transparent)'
-            : 'none',
         }}
-      />
+      >
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: totalWidth, height: 8, borderRadius: 4, background: GRADIENT_LINE, backgroundSize: '150% 100%', animation: 'pin-flow 4s linear infinite' }}>
+          <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 4, background: 'repeating-linear-gradient(-45deg, transparent 0px, transparent 10px, rgba(255,255,255,0.25) 12px, transparent 14px)', animation: 'pin-ripple 0.8s linear infinite', mixBlendMode: 'overlay' }} />
+        </div>
+      </div>
 
       {/* 注入关键帧动画 */}
       <style>{`
@@ -142,6 +146,11 @@ export function PinInput({ length, onComplete, disabled, error, verifying }: Pin
           0% { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
+        @keyframes pin-ripple {
+          0% { background-position: 0 0; }
+          100% { background-position: 19.8px 0; }
+        }
+
       `}</style>
     </div>
   );
