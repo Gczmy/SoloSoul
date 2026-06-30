@@ -50,6 +50,7 @@ export function LoginPage() {
   const [showPinInput, setShowPinInput] = useState(false);
   const [pinUnlocking, setPinUnlocking] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
+  const [pinInputKey, setPinInputKey] = useState(0);
 
   useEffect(() => {
     // Defensive load: fetch the account list directly in case Vite HMR keeps
@@ -200,6 +201,8 @@ export function LoginPage() {
       } else {
         setPinError(t('auth:pin_error'));
       }
+      // 清空 PinInput 控件状态
+      setPinInputKey((k) => k + 1);
       setPinUnlocking(false);
     }
   }, [selectedAccountId, pinUnlocking, t, navigate]);
@@ -431,6 +434,7 @@ export function LoginPage() {
                 {t('auth:pin_enter_title')}
               </span>
               <PinInput
+                key={pinInputKey}
                 length={6}
                 onComplete={handlePinComplete}
                 disabled={pinUnlocking}
@@ -555,6 +559,25 @@ export function LoginPage() {
                 }}
               >
                 {t('auth:use_biometric_instead', { type: biometryType })}
+              </button>
+            )}
+            {pinAvailable && (
+              <button
+                onClick={() => {
+                  setShowPasswordInput(false);
+                  setPinError(null);
+                  setShowPinInput(true);
+                }}
+                className={styles.loginTextButton}
+                style={{
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-tertiary)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {t('auth:use_pin_instead')}
               </button>
             )}
           </form>

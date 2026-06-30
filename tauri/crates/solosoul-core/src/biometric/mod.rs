@@ -20,10 +20,10 @@ use std::path::{Path, PathBuf};
 
 #[cfg(target_os = "macos")]
 mod macos;
-#[cfg(target_os = "windows")]
-mod windows;
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 mod stub;
+#[cfg(target_os = "windows")]
+mod windows;
 
 /// 旧版基于本地加密文件的存储。用于从旧版本升级时迁移凭证、当前 macOS 方案、以及测试 mock。
 pub(crate) mod legacy;
@@ -533,9 +533,7 @@ pub(crate) fn query_macos_biometric_availability() -> (bool, Option<String>, Opt
 
     // LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1
     let mut error: *mut NSObject = std::ptr::null_mut();
-    let success: i8 = unsafe {
-        msg_send![ctx, canEvaluatePolicy: 1i64, error: &mut error]
-    };
+    let success: i8 = unsafe { msg_send![ctx, canEvaluatePolicy: 1i64, error: &mut error] };
 
     let biometry_type: i64 = unsafe { msg_send![ctx, biometryType] };
 

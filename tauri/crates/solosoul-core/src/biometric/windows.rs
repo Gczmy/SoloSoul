@@ -95,9 +95,11 @@ pub(crate) fn query_windows_biometric_availability() -> (bool, Option<String>, O
             UserConsentVerifierAvailabilityHelper::DeviceNotPresent => {
                 (false, None, Some("Windows Hello device not present".into()))
             }
-            UserConsentVerifierAvailabilityHelper::NotConfiguredForUser => {
-                (false, None, Some("Windows Hello not configured for this user".into()))
-            }
+            UserConsentVerifierAvailabilityHelper::NotConfiguredForUser => (
+                false,
+                None,
+                Some("Windows Hello not configured for this user".into()),
+            ),
             UserConsentVerifierAvailabilityHelper::DisabledByPolicy => {
                 (false, None, Some("Windows Hello disabled by policy".into()))
             }
@@ -105,9 +107,11 @@ pub(crate) fn query_windows_biometric_availability() -> (bool, Option<String>, O
                 (false, None, Some("Windows Hello device busy".into()))
             }
         },
-        Err(e) => {
-            (false, None, Some(format!("CheckAvailabilityAsync failed: {e}")))
-        }
+        Err(e) => (
+            false,
+            None,
+            Some(format!("CheckAvailabilityAsync failed: {e}")),
+        ),
     }
 }
 
@@ -140,7 +144,9 @@ pub(crate) fn trigger_windows_biometric(reason: &str, _strict: bool) -> Result<(
             if msg.contains("not available") || msg.contains("not configured") {
                 Err(BiometricError::UserPresenceUnavailable)
             } else {
-                Err(BiometricError::Other(format!("Windows Hello verification failed: {e}")))
+                Err(BiometricError::Other(format!(
+                    "Windows Hello verification failed: {e}"
+                )))
             }
         }
     }
@@ -195,8 +201,8 @@ impl UserConsentVerifierHelper {
     }
 
     fn request_verification(reason: &str) -> Result<UserConsentVerificationResultHelper, String> {
-        use windows::Security::Credentials::UI::UserConsentVerifier;
         use windows::core::HSTRING;
+        use windows::Security::Credentials::UI::UserConsentVerifier;
 
         let message = HSTRING::from(reason);
 
@@ -229,8 +235,8 @@ mod tests {
 
     #[test]
     fn test_windows_storage_delegates_to_file_storage() {
-        let dir = std::env::temp_dir()
-            .join(format!("solosoul-windows-test-{}", uuid::Uuid::new_v4()));
+        let dir =
+            std::env::temp_dir().join(format!("solosoul-windows-test-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         let storage = WindowsBiometricStorage::new(dir.clone());
         let account_id = "acc-windows";

@@ -14,6 +14,11 @@ use serde::{Deserialize, Serialize};
 use solosoul_crypto::cipher::{decrypt_from_bytes, encrypt_to_bytes};
 use solosoul_crypto::kdf::{derive_key, KdfConfig};
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+
+/// 进程级互斥锁，保护所有 PIN 操作的失败计数器不受并发干扰。
+/// PinManager 在 Tauri 命令中每次都被重新创建，因此锁不能挂在实例上。
+static PIN_OP_LOCK: Mutex<()> = Mutex::new(());
 
 /// PIN 凭证文件的内容。
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -125,7 +130,7 @@ impl PinManager {
         match failed_attempts {
             0..=4 => 0,
             5..=9 => 30,
-            10 => 300,         // 5 分钟
+            10 => 300,                        // 5 分钟
             n => 300 + (n - 10) as u64 * 300, // 之后每次递增 5 分钟
         }
     }
@@ -138,14 +143,10 @@ impl PinManager {
         serde_json::from_str(&s).map_err(|_| PinError::ParseError)
     }
 
-    fn write_config(
-        &self,
-        account_id: &str,
-        config: AccountConfig,
-    ) -> Result<(), PinError> {
+    fn write_config(&self, account_id: &str, config: AccountConfig) -> Result<(), PinError> {
         let path = self.config_path(account_id);
-        let json = serde_json::to_string_pretty(&config)
-            .map_err(|e| PinError::Internal(e.to_string()))?;
+        let json =
+            serde_json::to_string_pretty(&config).map_err(|e| PinError::Internal(e.to_string()))?;
         std::fs::write(&path, json).map_err(|e| PinError::Internal(e.to_string()))?;
         Ok(())
     }
@@ -189,9 +190,10 @@ impl PinManager {
         // 从 PIN + salt 派生 KEK
         let kek = derive_key(pin, &salt, &kdf_cfg)
             .map_err(|e| PinError::SetupFailed(format!("kdf: {e}")))?;
-        let kek_arr: [u8; 32] = kek.as_slice().try_into().map_err(|_| {
-            PinError::SetupFailed("kek must be 32 bytes".into())
-        })?;
+        let kek_arr: [u8; 32] = kek
+            .as_slice()
+            .try_into()
+            .map_err(|_| PinError::SetupFailed("kek must be 32 bytes".into()))?;
 
         // 用 KEK 加密会话密钥
         let ciphertext_bytes = encrypt_to_bytes(&kek_arr, session_key.as_slice(), None)
@@ -216,7 +218,9 @@ impl PinManager {
         std::fs::write(&cred_path, cred_json)
             .map_err(|e| PinError::SetupFailed(format!("write: {e}")))?;
         // 设置文件权限为私有（Unix 0600）
-        let _ = set_private_file(&cred_path);
+        if let Err(e) = set_private_file(&cred_path) {
+            tracing::warn!("Failed to set private permissions on PIN credential: {}", e);
+        }
 
         // 更新 config
         self.update_config_field(account_id, |c| {
@@ -248,6 +252,9 @@ impl PinManager {
         pin: &str,
         vault_service: &VaultService,
     ) -> Result<(), PinError> {
+        // 获取进程级互斥锁，确保失败计数器的读-改-写操作的原子性
+        let _guard = PIN_OP_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+
         let config = self.read_config(account_id)?;
 
         // 检查锁定状态
@@ -261,8 +268,7 @@ impl PinManager {
 
         // 读取凭证文件
         let cred_path = self.pin_credential_path(account_id);
-        let cred_json =
-            std::fs::read_to_string(&cred_path).map_err(|_| PinError::NotConfigured)?;
+        let cred_json = std::fs::read_to_string(&cred_path).map_err(|_| PinError::NotConfigured)?;
         let credential: PinCredential =
             serde_json::from_str(&cred_json).map_err(|_| PinError::ParseError)?;
 
@@ -270,19 +276,23 @@ impl PinManager {
         let salt_bytes =
             base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &credential.salt)
                 .map_err(|_| PinError::ParseError)?;
-        let salt_arr: [u8; 16] = salt_bytes.as_slice().try_into().map_err(|_| PinError::ParseError)?;
+        let salt_arr: [u8; 16] = salt_bytes
+            .as_slice()
+            .try_into()
+            .map_err(|_| PinError::ParseError)?;
 
         // 从 PIN + salt 派生 KEK
         let kdf_cfg = pin_kdf_config();
         let kek = derive_key(pin, &salt_arr, &kdf_cfg)
             .map_err(|e| PinError::UnlockFailed(format!("kdf: {e}")))?;
-        let kek_arr: [u8; 32] = kek.as_slice().try_into().map_err(|_| {
-            PinError::UnlockFailed("kek must be 32 bytes".into())
-        })?;
+        let kek_arr: [u8; 32] = kek
+            .as_slice()
+            .try_into()
+            .map_err(|_| PinError::UnlockFailed("kek must be 32 bytes".into()))?;
 
         // 尝试 AES-GCM 解密
-        let ciphertext_bytes = hex::decode(&credential.ciphertext)
-            .map_err(|_| PinError::ParseError)?;
+        let ciphertext_bytes =
+            hex::decode(&credential.ciphertext).map_err(|_| PinError::ParseError)?;
         match decrypt_from_bytes(&kek_arr, &ciphertext_bytes, None) {
             Ok(session_key_zw) => {
                 let session_key_bytes = session_key_zw;
@@ -291,13 +301,14 @@ impl PinManager {
                     c.pin_locked_until = None;
                 })?;
 
-                let key: [u8; 32] = session_key_bytes.as_slice().try_into().map_err(|_| {
-                    PinError::UnlockFailed("key must be 32 bytes".into())
-                })?;
+                let key: [u8; 32] = session_key_bytes
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| PinError::UnlockFailed("key must be 32 bytes".into()))?;
 
                 vault_service
                     .unlock_with_session_key(account_id, &key)
-                    .map_err(|e| PinError::UnlockFailed(e))?;
+                    .map_err(PinError::UnlockFailed)?;
 
                 // 写审计日志
                 if let Some(vg) = vault_service.get_vault_store() {
@@ -424,7 +435,7 @@ impl PinManager {
         } else {
             let failed = config.pin_failed_attempts;
             if failed < 5 {
-                5 - failed
+                5u32.saturating_sub(failed)
             } else {
                 // 已在锁定逻辑中处理，但可能在解锁期间：剩余 0
                 0

@@ -356,6 +356,7 @@ export function PinSection({ accountId }: PinSectionProps) {
                 <PinInput
                   length={PIN_LENGTH}
                   onComplete={handlePinConfirm}
+                  disabled={pinLoading}
                   error={!!setupError}
                 />
                 {setupError && (

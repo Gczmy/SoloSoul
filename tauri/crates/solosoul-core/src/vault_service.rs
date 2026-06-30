@@ -131,7 +131,6 @@ pub struct AccountConfig {
     pub kdf_parallelism: Option<u32>,
 
     // ── PIN 相关字段 ──
-
     /// PIN 解锁是否已启用。
     #[serde(default, rename = "pinEnabled")]
     pub pin_enabled: bool,

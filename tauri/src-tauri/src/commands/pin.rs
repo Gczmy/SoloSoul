@@ -23,12 +23,16 @@ pub async fn pin_check_availability(
     state: State<'_, AppState>,
     account_id: String,
 ) -> Result<PinStatus, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let manager = PinManager::new(svc.base_path().clone());
-    Ok(manager.status(&account_id))
+    let vault_service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let svc = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let manager = PinManager::new(svc.base_path().clone());
+        Ok::<_, String>(manager.status(&account_id))
+    })
+    .await
+    .map_err(|e| format!("pin_check_availability task failed: {}", e))?
 }
 
 /// 设置 PIN 码（需要验证主密码）。
@@ -39,15 +43,18 @@ pub async fn pin_setup(
     password: String,
     pin: String,
 ) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let manager = PinManager::new(svc.base_path().clone());
-    // setup_pin 会调用 svc.unlock 验证主密码并获取会话密钥
-    manager
-        .setup_pin(&account_id, &password, &pin, &svc)
-        .map_err(map_pin_error)
+    let vault_service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let svc = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let manager = PinManager::new(svc.base_path().clone());
+        manager
+            .setup_pin(&account_id, &password, &pin, &svc)
+            .map_err(map_pin_error)
+    })
+    .await
+    .map_err(|e| format!("pin_setup task failed: {}", e))?
 }
 
 /// 使用 PIN 码解锁 Vault。
@@ -57,14 +64,18 @@ pub async fn pin_unlock(
     account_id: String,
     pin: String,
 ) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let manager = PinManager::new(svc.base_path().clone());
-    manager
-        .unlock_with_pin(&account_id, &pin, &svc)
-        .map_err(map_pin_error)
+    let vault_service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let svc = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let manager = PinManager::new(svc.base_path().clone());
+        manager
+            .unlock_with_pin(&account_id, &pin, &svc)
+            .map_err(map_pin_error)
+    })
+    .await
+    .map_err(|e| format!("pin_unlock task failed: {}", e))?
 }
 
 /// 禁用 PIN 码（需要验证主密码）。
@@ -74,14 +85,18 @@ pub async fn pin_disable(
     account_id: String,
     password: String,
 ) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let manager = PinManager::new(svc.base_path().clone());
-    manager
-        .disable_pin(&account_id, &password, &svc)
-        .map_err(map_pin_error)
+    let vault_service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let svc = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let manager = PinManager::new(svc.base_path().clone());
+        manager
+            .disable_pin(&account_id, &password, &svc)
+            .map_err(map_pin_error)
+    })
+    .await
+    .map_err(|e| format!("pin_disable task failed: {}", e))?
 }
 
 #[cfg(test)]
