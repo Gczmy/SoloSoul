@@ -14,7 +14,6 @@ use serde::{Deserialize, Serialize};
 use solosoul_crypto::cipher::{decrypt_from_bytes, encrypt_to_bytes};
 use solosoul_crypto::kdf::{derive_key, KdfConfig};
 use std::path::{Path, PathBuf};
-use zeroize::Zeroizing;
 
 /// PIN 凭证文件的内容。
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -142,7 +141,7 @@ impl PinManager {
     fn write_config(
         &self,
         account_id: &str,
-        mut config: AccountConfig,
+        config: AccountConfig,
     ) -> Result<(), PinError> {
         let path = self.config_path(account_id);
         let json = serde_json::to_string_pretty(&config)
@@ -440,31 +439,14 @@ impl PinManager {
         }
     }
 
-    /// 修改密码后重新包装 PIN 凭证（用新的会话密钥重加密）。
-    pub fn update_credential(
-        &self,
-        account_id: &str,
-        new_key_hex: &str,
-    ) -> Result<(), PinError> {
+    /// 清除 PIN 凭证（在修改密码后调用，因为 KEK 需要 PIN 输入，无法自动重新加密）。
+    /// 用户需重新设置 PIN。
+    pub fn clear_credential(&self, account_id: &str) -> Result<(), PinError> {
         if !self.is_configured(account_id) {
             return Ok(());
         }
 
         let cred_path = self.pin_credential_path(account_id);
-        let cred_json =
-            std::fs::read_to_string(&cred_path).map_err(|_| PinError::NotConfigured)?;
-        let credential: PinCredential =
-            serde_json::from_str(&cred_json).map_err(|_| PinError::ParseError)?;
-
-        // 解码 salt
-        let salt_bytes =
-            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &credential.salt)
-                .map_err(|_| PinError::ParseError)?;
-        let salt_arr: [u8; 16] = salt_bytes.as_slice().try_into().map_err(|_| PinError::ParseError)?;
-
-        // 删除旧的凭证文件，标记需要重新设置
-        // 注意：由于 PIN 派生 KEK 需要 PIN 输入，无法在 change_password 流程中
-        // 自动用新会话密钥重 encrypted。因此清除凭证，用户需重新设置 PIN。
         if cred_path.exists() {
             let _ = std::fs::remove_file(&cred_path);
         }
@@ -476,11 +458,7 @@ impl PinManager {
             c.pin_locked_until = None;
         })?;
 
-        tracing::info!(
-            "PIN credential cleared for {} after password change",
-            account_id
-        );
-
+        tracing::info!("PIN credential cleared for {}", account_id);
         Ok(())
     }
 }

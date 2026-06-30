@@ -167,9 +167,12 @@ export function LoginPage() {
   // Show initial UI based on what's available
   useEffect(() => {
     if (!bioChecked || !pinChecked) return;
-    // If neither biometric nor PIN is available, show password input
     if (!bioAvailable && !pinAvailable) {
+      // Neither quick unlock option available — show password input
       setShowPasswordInput(true);
+    } else if (!bioAvailable && pinAvailable) {
+      // Only PIN available — show PIN input directly
+      setShowPinInput(true);
     }
   }, [bioChecked, pinChecked, bioAvailable, pinAvailable]);
 

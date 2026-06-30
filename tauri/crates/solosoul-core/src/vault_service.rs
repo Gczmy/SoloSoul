@@ -770,8 +770,7 @@ impl VaultService {
         // 用户需要重新设置 PIN。
         {
             let pin_manager = PinManager::new(self.base_path().clone());
-            let new_key_hex = hex::encode(new_key_arr.as_slice());
-            if let Err(e) = pin_manager.update_credential(account_id, &new_key_hex) {
+            if let Err(e) = pin_manager.clear_credential(account_id) {
                 tracing::warn!(
                     "Failed to update PIN credential after password change for {}: {}",
                     account_id,
