@@ -49,6 +49,7 @@ export function PinInput({ length, onComplete, disabled, error, verifying }: Pin
       {/* 隐藏 input — 统一接收所有键盘/粘贴输入 */}
       <input
         ref={inputRef}
+        autoFocus
         type="text"
         inputMode="numeric"
         pattern="[0-9]*"
@@ -60,7 +61,10 @@ export function PinInput({ length, onComplete, disabled, error, verifying }: Pin
         aria-label="PIN 输入"
         style={{
           position: 'absolute',
-          inset: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
           opacity: 0,
           zIndex: 1,
           cursor: 'default',
