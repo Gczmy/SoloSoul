@@ -219,11 +219,16 @@ pub async fn biometric_delete_credential(
 
 #[tauri::command]
 pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
-    if !solosoul_core::biometric::is_macos() {
+    if !solosoul_core::biometric::is_macos() && std::env::consts::OS != "windows" {
         return Ok(false);
     }
     // 使用严格策略确保实际触发生物识别，不回落到设备密码。
-    trigger_system_biometric("test biometric authentication for SoloSoul", true)
+    let reason = if solosoul_core::biometric::is_macos() {
+        "test biometric authentication for SoloSoul"
+    } else {
+        "Test Windows Hello for SoloSoul"
+    };
+    trigger_system_biometric(reason, true)
         .map_err(|e| map_bio_error(e, "test"))?;
     Ok(true)
 }

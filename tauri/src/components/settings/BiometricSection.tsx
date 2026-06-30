@@ -50,6 +50,8 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
       ? 'Touch ID'
       : bioAvailable?.biometryType === 'faceId'
         ? 'Face ID'
+      : bioAvailable?.biometryType === 'windowsHello'
+        ? 'Windows Hello'
         : 'Touch ID';
 
   const handleBioToggle = () => {

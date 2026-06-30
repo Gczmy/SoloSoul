@@ -9,6 +9,7 @@
 //! - macOS：将主密钥保存到受 `kSecAccessControlUserPresence` 保护的 Keychain
 //!   Generic Password Item。读取时由系统触发 Touch ID / 设备密码提示框；
 //!   仅在开启/验证生物识别时主动调用 LocalAuthentication，打开应用时不会弹框。
+//! - Windows：使用本地加密文件 + UserConsentVerifier（Windows Hello）弹窗。
 //! - 其他平台：暂不支持，使用 `StubBiometricStorage` 返回友好错误码。
 
 use crate::auth::verify_password_core;
@@ -19,7 +20,9 @@ use std::path::{Path, PathBuf};
 
 #[cfg(target_os = "macos")]
 mod macos;
-#[cfg(not(target_os = "macos"))]
+#[cfg(target_os = "windows")]
+mod windows;
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 mod stub;
 
 /// 旧版基于本地加密文件的存储。用于从旧版本升级时迁移凭证、当前 macOS 方案、以及测试 mock。
@@ -132,7 +135,9 @@ pub(crate) trait BiometricStorage: Send + Sync {
 fn platform_storage(base_path: PathBuf) -> Box<dyn BiometricStorage + Send + Sync> {
     #[cfg(target_os = "macos")]
     return Box::new(macos::MacOsBiometricStorage::new(base_path));
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    return Box::new(windows::WindowsBiometricStorage::new(base_path));
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = base_path;
         Box::new(stub::StubBiometricStorage)
@@ -218,7 +223,9 @@ impl BiometricManager {
     pub fn availability(&self, account_id: &str) -> BiometricAvailability {
         #[cfg(target_os = "macos")]
         let (available, bt, err) = query_macos_biometric_availability();
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(target_os = "windows")]
+        let (available, bt, err) = windows::query_windows_biometric_availability();
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         let (available, bt, err) = (false, None, Some("platform not supported".into()));
         let configured = self.is_configured(account_id);
         BiometricAvailability {
@@ -417,7 +424,9 @@ fn derive_master_key(
 pub fn trigger_system_biometric(reason: &str, strict: bool) -> Result<(), BiometricError> {
     #[cfg(target_os = "macos")]
     return trigger_macos_biometric(reason, strict);
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    return windows::trigger_windows_biometric(reason, strict);
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = (reason, strict);
         Err(BiometricError::PlatformNotSupported)

@@ -367,8 +367,8 @@
   "biometric_error_save_failed": "保存生物识别凭证失败",
   "biometric_error_delete_failed": "删除生物识别凭证失败",
   "biometric_error_not_configured": "尚未配置生物识别，请先启用",
-  "biometric_unavailable_desc": "当前设备未设置或不支持生物识别（Touch ID / Face ID）。请先在系统设置中添加指纹或面容，然后重新打开此页面。",
-  "biometric_error_user_presence_unavailable": "当前设备未设置生物识别或设备密码，请先设置 Touch ID 或登录密码",
+  "biometric_unavailable_desc": "当前设备未设置或不支持生物识别（Touch ID / Face ID / Windows Hello）。请先在系统设置中添加指纹或面容，然后重新打开此页面。",
+  "biometric_error_user_presence_unavailable": "当前设备未设置生物识别或设备密码，请先设置 Touch ID / Windows Hello 或登录密码",
   "biometric_error_keychain_write_failed": "保存凭证到钥匙串失败",
   "biometric_error_keychain_read_failed": "从钥匙串读取凭证失败",
   "biometric_error_keychain_item_not_found": "钥匙串中未找到生物识别凭证",
@@ -445,12 +445,14 @@
     "biometric_type": {
       "touchId": "Touch ID",
       "faceId": "Face ID",
+      "windowsHello": "Windows Hello",
       "unknown": "未知生物识别"
     },
     "method": {
       "password": "密码",
       "touchId": "Touch ID",
-      "faceId": "Face ID"
+      "faceId": "Face ID",
+      "windowsHello": "Windows Hello"
     },
     "conflict_renamed": "名称已调整",
     "conflict_none": "无冲突",

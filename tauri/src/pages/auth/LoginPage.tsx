@@ -73,6 +73,9 @@ export function LoginPage() {
         } else if (r.biometryType === 'faceId') {
           setBiometryType('Face ID');
           setBiometryTypeRaw('faceId');
+        } else if (r.biometryType === 'windowsHello') {
+          setBiometryType('Windows Hello');
+          setBiometryTypeRaw('windowsHello');
         }
       })
       .catch(() => {
