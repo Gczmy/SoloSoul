@@ -15,6 +15,7 @@ pub mod export_import;
 pub mod llm;
 pub mod ocr;
 pub mod pdfium;
+pub mod pin;
 pub mod process_lock;
 pub mod path_util;
 pub mod search_filter;

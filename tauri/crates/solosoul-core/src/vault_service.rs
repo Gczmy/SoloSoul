@@ -4,6 +4,7 @@
 #[cfg(test)]
 use crate::biometric::legacy::FileBiometricStorage;
 use crate::biometric::BiometricManager;
+use crate::pin::PinManager;
 use serde::{Deserialize, Serialize};
 use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
 use solosoul_crypto::secure::secure_compare;
@@ -128,6 +129,21 @@ pub struct AccountConfig {
     /// KDF 参数：存储的 parallelism
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub kdf_parallelism: Option<u32>,
+
+    // ── PIN 相关字段 ──
+
+    /// PIN 解锁是否已启用。
+    #[serde(default, rename = "pinEnabled")]
+    pub pin_enabled: bool,
+    /// PIN 长度（4~8）。
+    #[serde(default, rename = "pinLength")]
+    pub pin_length: u32,
+    /// 连续 PIN 错误次数。
+    #[serde(default, rename = "pinFailedAttempts")]
+    pub pin_failed_attempts: u32,
+    /// PIN 锁定截止时间（ISO 8601），None 表示未锁定。
+    #[serde(default, rename = "pinLockedUntil")]
+    pub pin_locked_until: Option<String>,
 }
 
 impl AccountConfig {
@@ -399,6 +415,10 @@ impl VaultService {
             created_at: now.clone(),
             crypto_version: 3, // P2-010: HKDF-based verify hash
             biometric_enabled: false,
+            pin_enabled: false,
+            pin_length: 0,
+            pin_failed_attempts: 0,
+            pin_locked_until: None,
             kdf_memory_kb: Some(kdf_config.memory_kb),
             kdf_iterations: Some(kdf_config.iterations),
             kdf_parallelism: Some(kdf_config.parallelism),
@@ -739,6 +759,21 @@ impl VaultService {
             if let Err(e) = bio_manager.update_credential(account_id, &new_key_hex) {
                 tracing::warn!(
                     "Failed to update biometric credential after password change for {}: {}",
+                    account_id,
+                    e
+                );
+            }
+        }
+
+        // 如果用户已启用 PIN 解锁，同步更新 PIN 凭证。
+        // 由于 PIN 派生 KEK 时需要 PIN 输入（不可用），此处清除凭证并标记为未配置，
+        // 用户需要重新设置 PIN。
+        {
+            let pin_manager = PinManager::new(self.base_path().clone());
+            let new_key_hex = hex::encode(new_key_arr.as_slice());
+            if let Err(e) = pin_manager.update_credential(account_id, &new_key_hex) {
+                tracing::warn!(
+                    "Failed to update PIN credential after password change for {}: {}",
                     account_id,
                     e
                 );

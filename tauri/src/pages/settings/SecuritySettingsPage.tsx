@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { BiometricSection } from '@/components/settings/BiometricSection';
+import { PinSection } from '@/components/settings/PinSection';
 import { PasswordChangeForm } from '@/components/settings/PasswordChangeForm';
 import { AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
@@ -89,6 +90,8 @@ export function SecuritySettingsPage() {
         </Card>
 
         <BiometricSection accountId={currentAccount?.id || ''} />
+
+        <PinSection accountId={currentAccount?.id || ''} />
 
         <PasswordChangeForm accountId={currentAccount?.id} />
       </PageContainer>

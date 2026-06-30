@@ -513,6 +513,11 @@ pub fn run() {
             commands::biometric::biometric_unlock,
             commands::biometric::biometric_delete_credential,
             commands::biometric::biometric_test,
+            // PIN commands
+            commands::pin::pin_check_availability,
+            commands::pin::pin_setup,
+            commands::pin::pin_unlock,
+            commands::pin::pin_disable,
             // OCR commands
             commands::ocr::ocr_scan_image,
             commands::ocr::ocr_scan_mrz,

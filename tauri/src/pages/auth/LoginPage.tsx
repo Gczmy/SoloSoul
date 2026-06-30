@@ -9,7 +9,8 @@ import { useCancellable } from '@/hooks/useCancellable';
 
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
-import { Fingerprint, Loader2 } from 'lucide-react';
+import { PinInput } from '@/components/forms/PinInput';
+import { Fingerprint, KeyRound, Loader2 } from 'lucide-react';
 import styles from './LoginPage.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
@@ -42,6 +43,13 @@ export function LoginPage() {
   const [bioChecked, setBioChecked] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const makeCancellable = useCancellable();
+
+  // PIN state
+  const [pinAvailable, setPinAvailable] = useState(false);
+  const [pinChecked, setPinChecked] = useState(false);
+  const [showPinInput, setShowPinInput] = useState(false);
+  const [pinUnlocking, setPinUnlocking] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
 
   useEffect(() => {
     // Defensive load: fetch the account list directly in case Vite HMR keeps
@@ -96,13 +104,16 @@ export function LoginPage() {
     }
   }, [accounts, selectedAccountId]);
 
-  // Check biometric availability for selected account (only if account exists)
+  // Check biometric and PIN availability for selected account
   useEffect(() => {
     const { isCancelled, cancel } = makeCancellable();
     if (!selectedAccountId) {
       setBioChecked(true);
+      setPinChecked(true);
       return cancel;
     }
+
+    // Check biometric
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
       'biometric_check_availability',
       { accountId: selectedAccountId },
@@ -120,19 +131,75 @@ export function LoginPage() {
           }
         } else {
           setBioAvailable(false);
-          setShowPasswordInput(true);
         }
       })
       .catch(() => {
         if (isCancelled()) return;
         setBioAvailable(false);
-        setShowPasswordInput(true);
       })
       .finally(() => {
         if (!isCancelled()) setBioChecked(true);
       });
+
+    // Check PIN
+    invoke<{ configured: boolean; locked: boolean }>(
+      'pin_check_availability',
+      { accountId: selectedAccountId },
+    )
+      .then((r) => {
+        if (isCancelled()) return;
+        setPinAvailable(r.configured && !r.locked);
+        if (!r.configured || r.locked) {
+          // Fall through; password input will show
+        }
+      })
+      .catch(() => {
+        if (isCancelled()) return;
+        setPinAvailable(false);
+      })
+      .finally(() => {
+        if (!isCancelled()) setPinChecked(true);
+      });
+
     return cancel;
   }, [selectedAccountId, makeCancellable]);
+
+  // Show initial UI based on what's available
+  useEffect(() => {
+    if (!bioChecked || !pinChecked) return;
+    // If neither biometric nor PIN is available, show password input
+    if (!bioAvailable && !pinAvailable) {
+      setShowPasswordInput(true);
+    }
+  }, [bioChecked, pinChecked, bioAvailable, pinAvailable]);
+
+  const handlePinComplete = useCallback(async (pin: string) => {
+    if (!selectedAccountId || pinUnlocking) return;
+    setPinUnlocking(true);
+    setPinError(null);
+    try {
+      await invoke('pin_unlock', { accountId: selectedAccountId, pin });
+      // Vault unlocked — set auth state
+      const accs = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
+      const acc = accs.find((a) => a.id === selectedAccountId) || {
+        id: selectedAccountId,
+        name: selectedAccountId,
+      };
+      useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
+      navigate('/');
+    } catch (e) {
+      const msg = String(e);
+      if (msg.includes('__PIN_ERR__:locked')) {
+        setPinError(t('auth:pin_locked'));
+        setPinAvailable(false);
+      } else if (msg.includes('__PIN_ERR__:incorrect')) {
+        setPinError(t('auth:pin_incorrect'));
+      } else {
+        setPinError(t('auth:pin_error'));
+      }
+      setPinUnlocking(false);
+    }
+  }, [selectedAccountId, pinUnlocking, t, navigate]);
 
   const handleBiometricUnlock = useCallback(async () => {
     if (!selectedAccountId || bioLoading) return;
@@ -275,8 +342,8 @@ export function LoginPage() {
           </div>
         )}
 
-        {/* Biometric unlock */}
-        {bioAvailable && !showPasswordInput && (
+        {/* Biometric unlock — shown when biometric is available and PIN is not the active choice */}
+        {bioAvailable && !showPasswordInput && !showPinInput && (
           <div style={{ marginBottom: 16 }}>
             <button
               onClick={handleBiometricUnlock}
@@ -306,11 +373,28 @@ export function LoginPage() {
                   : t('auth:bio_unlock_reason', { type: biometryType })}
               </span>
             </button>
+            {/* PIN option */}
+            {pinAvailable && (
+              <button
+                onClick={() => setShowPinInput(true)}
+                className={styles.loginTextButton}
+                style={{
+                  marginTop: 12,
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-tertiary)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {t('auth:use_pin_instead')}
+              </button>
+            )}
             <button
               onClick={() => setShowPasswordInput(true)}
               className={styles.loginTextButton}
               style={{
-                marginTop: 12,
+                marginTop: 4,
                 fontSize: 'var(--text-body-sm)',
                 color: 'var(--text-tertiary)',
                 background: 'none',
@@ -323,8 +407,74 @@ export function LoginPage() {
           </div>
         )}
 
-        {/* Password input — always shown when bio not available or user chose password */}
-        {bioChecked && (showPasswordInput || !bioAvailable) && (
+        {/* PIN unlock — shown when PIN is chosen */}
+        {pinAvailable && showPinInput && !showPasswordInput && (
+          <div style={{ marginBottom: 16 }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                padding: '16px 24px 20px',
+                borderRadius: 14,
+                border: '1px solid var(--border-subtle)',
+                background: 'transparent',
+                width: '100%',
+              }}
+            >
+              <KeyRound size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
+              <span style={{ fontSize: 'var(--text-card-title)', fontWeight: 500, color: 'var(--text-primary)' }}>
+                {t('auth:pin_enter_title')}
+              </span>
+              <PinInput
+                length={6}
+                onComplete={handlePinComplete}
+                disabled={pinUnlocking}
+                error={!!pinError}
+              />
+              {pinError && (
+                <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>
+                  {pinError}
+                </div>
+              )}
+            </div>
+            {/* Other options */}
+            {bioAvailable && (
+              <button
+                onClick={() => { setShowPinInput(false); setPinError(null); }}
+                className={styles.loginTextButton}
+                style={{
+                  marginTop: 8,
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-tertiary)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {t('auth:use_biometric_instead', { type: biometryType })}
+              </button>
+            )}
+            <button
+              onClick={() => { setShowPinInput(false); setShowPasswordInput(true); setPinError(null); }}
+              className={styles.loginTextButton}
+              style={{
+                marginTop: 4,
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-tertiary)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {t('auth:use_password_instead')}
+            </button>
+          </div>
+        )}
+
+        {/* Password input — always shown when no quick unlock available or user chose password */}
+        {bioChecked && pinChecked && (showPasswordInput || (!bioAvailable && !pinAvailable)) && (
           <form
             onSubmit={handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
