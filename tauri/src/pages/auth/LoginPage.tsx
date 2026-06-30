@@ -39,7 +39,6 @@ export function LoginPage() {
   const [biometryTypeRaw, setBiometryTypeRaw] = useState('touchId');
   const [bioLoading, setBioLoading] = useState(false);
   const [bioError, setBioError] = useState<string | null>(null);
-  const [showPasswordInput, setShowPasswordInput] = useState(false);
   const [bioChecked, setBioChecked] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const makeCancellable = useCancellable();
@@ -47,7 +46,6 @@ export function LoginPage() {
   // PIN state
   const [pinAvailable, setPinAvailable] = useState(false);
   const [pinChecked, setPinChecked] = useState(false);
-  const [showPinInput, setShowPinInput] = useState(false);
   const [pinUnlocking, setPinUnlocking] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinInputKey, setPinInputKey] = useState(0);
@@ -105,14 +103,31 @@ export function LoginPage() {
     }
   }, [accounts, selectedAccountId]);
 
+  // Priority-based login method selection
+  // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
+  const [loginMethod, setLoginMethod] = useState<
+    'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null
+  >(null);
+
   // Check biometric and PIN availability for selected account
   useEffect(() => {
     const { isCancelled, cancel } = makeCancellable();
     if (!selectedAccountId) {
       setBioChecked(true);
       setPinChecked(true);
+      setLoginMethod('password');
       return cancel;
     }
+
+    // Reset state when account changes
+    setLoginMethod(null);
+    setBioChecked(false);
+    setPinChecked(false);
+    setBioAvailable(false);
+    setPinAvailable(false);
+    setBioError(null);
+    setPinError(null);
+    setSubmitError(null);
 
     // Check biometric
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
@@ -129,6 +144,9 @@ export function LoginPage() {
           } else if (r.biometryType === 'faceId') {
             setBiometryType('Face ID');
             setBiometryTypeRaw('faceId');
+          } else if (r.biometryType === 'windowsHello') {
+            setBiometryType('Windows Hello');
+            setBiometryTypeRaw('windowsHello');
           }
         } else {
           setBioAvailable(false);
@@ -150,9 +168,6 @@ export function LoginPage() {
       .then((r) => {
         if (isCancelled()) return;
         setPinAvailable(r.configured && !r.locked);
-        if (!r.configured || r.locked) {
-          // Fall through; password input will show
-        }
       })
       .catch(() => {
         if (isCancelled()) return;
@@ -165,17 +180,22 @@ export function LoginPage() {
     return cancel;
   }, [selectedAccountId, makeCancellable]);
 
-  // Show initial UI based on what's available
+  // Set login method by priority after both checks complete
   useEffect(() => {
     if (!bioChecked || !pinChecked) return;
-    if (!bioAvailable && !pinAvailable) {
-      // Neither quick unlock option available — show password input
-      setShowPasswordInput(true);
-    } else if (!bioAvailable && pinAvailable) {
-      // Only PIN available — show PIN input directly
-      setShowPinInput(true);
+
+    // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
+    if (bioAvailable) {
+      if (biometryTypeRaw === 'faceId') setLoginMethod('faceId');
+      else if (biometryTypeRaw === 'touchId') setLoginMethod('touchId');
+      else if (biometryTypeRaw === 'windowsHello') setLoginMethod('windowsHello');
+      else setLoginMethod('password');
+    } else if (pinAvailable) {
+      setLoginMethod('pin');
+    } else {
+      setLoginMethod('password');
     }
-  }, [bioChecked, pinChecked, bioAvailable, pinAvailable]);
+  }, [bioChecked, pinChecked, bioAvailable, pinAvailable, biometryTypeRaw]);
 
   const handlePinComplete = useCallback(async (pin: string) => {
     if (!selectedAccountId || pinUnlocking) return;
@@ -196,8 +216,8 @@ export function LoginPage() {
       if (msg.includes('__PIN_ERR__:locked')) {
         setPinError(t('auth:pin_locked'));
         setPinAvailable(false);
-        // 锁定后显示密码输入框，让用户用主密码登录
-        setShowPasswordInput(true);
+        // 锁定后降级到主密码
+        setLoginMethod('password');
       } else if (msg.includes('__PIN_ERR__:incorrect')) {
         setPinError(t('auth:pin_incorrect'));
       } else {
@@ -238,10 +258,10 @@ export function LoginPage() {
         msg.toLowerCase().includes('cancel') ||
         msg.includes('__BIO_ERR__:cancelled')
       ) {
-        setShowPasswordInput(true);
+        setLoginMethod('password');
       } else {
         setBioError(getBiometricErrorMessage(e, t));
-        setShowPasswordInput(true);
+        setLoginMethod('password');
       }
     } finally {
       if (!success) setBioLoading(false);
@@ -350,8 +370,8 @@ export function LoginPage() {
           </div>
         )}
 
-        {/* Biometric unlock — shown when biometric is available and PIN is not the active choice */}
-        {bioAvailable && !showPasswordInput && !showPinInput && (
+        {/* Biometric unlock — highest-priority method */}
+        {(loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello') && (
           <div style={{ marginBottom: 16 }}>
             <button
               onClick={handleBiometricUnlock}
@@ -381,10 +401,10 @@ export function LoginPage() {
                   : t('auth:bio_unlock_reason', { type: biometryType })}
               </span>
             </button>
-            {/* PIN option */}
+            {/* Fallback: PIN (lower priority than biometric) */}
             {pinAvailable && (
               <button
-                onClick={() => setShowPinInput(true)}
+                onClick={() => setLoginMethod('pin')}
                 className={styles.loginTextButton}
                 style={{
                   marginTop: 12,
@@ -399,7 +419,7 @@ export function LoginPage() {
               </button>
             )}
             <button
-              onClick={() => setShowPasswordInput(true)}
+              onClick={() => setLoginMethod('password')}
               className={styles.loginTextButton}
               style={{
                 marginTop: 4,
@@ -415,8 +435,8 @@ export function LoginPage() {
           </div>
         )}
 
-        {/* PIN unlock — shown when PIN is chosen */}
-        {pinAvailable && showPinInput && !showPasswordInput && (
+        {/* PIN unlock — shown when PIN is the highest available method or user chose it */}
+        {loginMethod === 'pin' && (
           <div style={{ marginBottom: 16 }}>
             <div
               style={{
@@ -449,10 +469,15 @@ export function LoginPage() {
                 </div>
               )}
             </div>
-            {/* Other options */}
+            {/* Fallback: biometric (higher priority, show as quick switch) */}
             {bioAvailable && (
               <button
-                onClick={() => { setShowPinInput(false); setPinError(null); }}
+                onClick={() => {
+                  if (biometryTypeRaw === 'faceId') setLoginMethod('faceId');
+                  else if (biometryTypeRaw === 'touchId') setLoginMethod('touchId');
+                  else if (biometryTypeRaw === 'windowsHello') setLoginMethod('windowsHello');
+                  setPinError(null);
+                }}
                 className={styles.loginTextButton}
                 style={{
                   marginTop: 8,
@@ -467,7 +492,7 @@ export function LoginPage() {
               </button>
             )}
             <button
-              onClick={() => { setShowPinInput(false); setShowPasswordInput(true); setPinError(null); }}
+              onClick={() => { setLoginMethod('password'); setPinError(null); }}
               className={styles.loginTextButton}
               style={{
                 marginTop: 4,
@@ -483,8 +508,8 @@ export function LoginPage() {
           </div>
         )}
 
-        {/* Password input — always shown when no quick unlock available or user chose password */}
-        {bioChecked && pinChecked && (showPasswordInput || (!bioAvailable && !pinAvailable)) && (
+        {/* Password input — lowest priority, shown when no other method available or user chose it */}
+        {loginMethod === 'password' && (
           <form
             onSubmit={handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
@@ -549,7 +574,9 @@ export function LoginPage() {
             {bioAvailable && (
               <button
                 onClick={() => {
-                  setShowPasswordInput(false);
+                  if (biometryTypeRaw === 'faceId') setLoginMethod('faceId');
+                  else if (biometryTypeRaw === 'touchId') setLoginMethod('touchId');
+                  else if (biometryTypeRaw === 'windowsHello') setLoginMethod('windowsHello');
                   setBioError(null);
                 }}
                 className={styles.loginTextButton}
@@ -567,9 +594,8 @@ export function LoginPage() {
             {pinAvailable && (
               <button
                 onClick={() => {
-                  setShowPasswordInput(false);
+                  setLoginMethod('pin');
                   setPinError(null);
-                  setShowPinInput(true);
                 }}
                 className={styles.loginTextButton}
                 style={{
