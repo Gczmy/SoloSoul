@@ -268,11 +268,14 @@ export function AppRoutes() {
 
   // Listen for vault-locked event — clear sensitive state and redirect
   useEffect(() => {
-    const unlisten = listen('vault-locked', () => {
+    const unlisten = listen('vault-locked', async () => {
       useObjectStore.getState().clearOnVaultLock();
       useSettingsStore.getState().clearOnVaultLock();
       useProfileStore.getState().clear();
       useAuthStore.getState().logout();
+      // Re-check account state so hasAccount resolves from null → true/false
+      // (otherwise /login route stays on "Connecting...")
+      await useAuthStore.getState().checkHasAccount();
       navigate('/login');
     });
     return () => {
