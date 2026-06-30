@@ -216,22 +216,16 @@ impl BiometricManager {
     /// the given account. `available` refers to the device/platform; `configured`
     /// refers to whether this account has a stored credential.
     pub fn availability(&self, account_id: &str) -> BiometricAvailability {
-        let bt = if is_macos() {
-            Some("touchId".into())
-        } else {
-            None
-        };
+        #[cfg(target_os = "macos")]
+        let (available, bt, err) = query_macos_biometric_availability();
+        #[cfg(not(target_os = "macos"))]
+        let (available, bt, err) = (false, None, Some("platform not supported".into()));
         let configured = self.is_configured(account_id);
-        let available = bt.is_some();
         BiometricAvailability {
             available,
             configured,
             biometry_type: bt,
-            error: if is_macos() {
-                None
-            } else {
-                Some("platform not supported".into())
-            },
+            error: err,
         }
     }
 
@@ -244,7 +238,9 @@ impl BiometricManager {
         reason: &str,
     ) -> Result<(), BiometricError> {
         self.verify_password(password, account_id)?;
-        trigger_system_biometric(reason)?;
+        // save_credential 使用严格策略（仅生物识别，不允许密码回退），
+        // 确保用户确实有可用的生物识别，而不是弹出密码框。
+        trigger_system_biometric(reason, true)?;
         let key_hex = derive_master_key(password, account_id, &self.base_path)?;
         self.storage.save(account_id, &key_hex, reason)?;
         self.set_config_flag(account_id, true)?;
@@ -279,7 +275,8 @@ impl BiometricManager {
         self.migrate_legacy_if_needed(account_id)?;
         // 在读取凭证前先触发系统生物识别弹窗（Touch ID / 设备密码）。
         // 这样即使使用本地文件存储，也能保证用户身份验证。
-        trigger_system_biometric(reason)?;
+        // unlock 保留设备密码回退（strict=false），避免指纹失败/锁定后无法登录。
+        trigger_system_biometric(reason, false)?;
         let key_hex = self.storage.read(account_id, reason)?;
         let key_bytes = hex::decode(&key_hex).map_err(|_| BiometricError::InvalidKeyFormat)?;
         let key: [u8; 32] = key_bytes
@@ -313,8 +310,9 @@ impl BiometricManager {
     }
 
     /// Trigger the system biometric dialog as a self-test.
+    /// 使用严格策略确保实际触发生物识别，不回落到设备密码。
     pub fn test(&self, reason: &str) -> Result<bool, BiometricError> {
-        trigger_system_biometric(reason)?;
+        trigger_system_biometric(reason, true)?;
         Ok(true)
     }
 
@@ -416,18 +414,18 @@ fn derive_master_key(
     Ok(hex::encode(mk.as_slice()))
 }
 
-pub fn trigger_system_biometric(reason: &str) -> Result<(), BiometricError> {
+pub fn trigger_system_biometric(reason: &str, strict: bool) -> Result<(), BiometricError> {
     #[cfg(target_os = "macos")]
-    return trigger_macos_biometric(reason);
+    return trigger_macos_biometric(reason, strict);
     #[cfg(not(target_os = "macos"))]
     {
-        let _ = reason;
+        let _ = (reason, strict);
         Err(BiometricError::PlatformNotSupported)
     }
 }
 
 #[cfg(target_os = "macos")]
-fn trigger_macos_biometric(reason: &str) -> Result<(), BiometricError> {
+fn trigger_macos_biometric(reason: &str, strict: bool) -> Result<(), BiometricError> {
     use std::ffi::{c_void, CString};
     use std::sync::mpsc;
 
@@ -469,14 +467,15 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), BiometricError> {
         let _ = tx.send(success != 0);
     });
 
-    // LAPolicyDeviceOwnerAuthentication = 2 (NSInteger)
-    // 允许 Touch ID / Face ID，无生物识别时回退到设备密码。
+    // strict=true: LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1（仅生物识别，无密码回退）
+    // strict=false: LAPolicyDeviceOwnerAuthentication = 2（生物识别优先，失败可回退设备密码）
+    let policy: i64 = if strict { 1 } else { 2 };
     // SAFETY: ctx 与 ns_reason 均为刚创建的非空 ObjC 对象指针；evaluatePolicy:reply:
     // 在 block 返回前不会释放这些参数；block 是 RcBlock，保证在跨线程回调期间有效。
     unsafe {
         let _: () = msg_send![
             ctx,
-            evaluatePolicy: 2i64,
+            evaluatePolicy: policy,
             localizedReason: ns_reason,
             reply: &*block,
         ];
@@ -498,6 +497,73 @@ fn trigger_macos_biometric(reason: &str) -> Result<(), BiometricError> {
         Ok(())
     } else {
         Err(BiometricError::UserPresenceCancelled)
+    }
+}
+
+/// 使用 canEvaluatePolicy:error:（policy=1）检测 macOS 设备是否真正支持并已启用生物识别。
+/// 返回 (available, biometry_type, error_message)。
+#[cfg(target_os = "macos")]
+pub(crate) fn query_macos_biometric_availability() -> (bool, Option<String>, Option<String>) {
+    use objc2::msg_send;
+    use objc2::runtime::{AnyClass, NSObject};
+
+    let la_name = c"LAContext";
+    let la_cls = match AnyClass::get(la_name) {
+        Some(cls) => cls,
+        None => return (false, None, Some("LAContext class not found".into())),
+    };
+
+    // SAFETY: same pattern as trigger_macos_biometric
+    let ctx: *mut NSObject = unsafe {
+        let alloc: *mut NSObject = msg_send![la_cls, alloc];
+        msg_send![alloc, init]
+    };
+    if ctx.is_null() {
+        return (false, None, Some("failed to create LAContext".into()));
+    }
+
+    // LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1
+    let mut error: *mut NSObject = std::ptr::null_mut();
+    let success: i8 = unsafe {
+        msg_send![ctx, canEvaluatePolicy: 1i64, error: &mut error]
+    };
+
+    let biometry_type: i64 = unsafe { msg_send![ctx, biometryType] };
+
+    // SAFETY: release the context
+    unsafe {
+        let _: () = msg_send![ctx, release];
+    }
+
+    if success != 0 {
+        // canEvaluatePolicy: 成功 → 设备真的支持生物识别
+        let bt = match biometry_type {
+            1 => Some("touchId".to_string()),
+            2 => Some("faceId".to_string()),
+            3 => Some("opticId".to_string()),
+            _ => None,
+        };
+        (true, bt, None)
+    } else {
+        let err_msg = if !error.is_null() {
+            // SAFETY: error is non-null from canEvaluatePolicy returning NO
+            let code: i64 = unsafe { msg_send![error, code] };
+            // LAError codes:
+            // LAErrorBiometryNotAvailable = 6
+            // LAErrorBiometryNotEnrolled = 7
+            // LAErrorBiometryLockout = 8
+            // LAErrorPasscodeNotSet = 5
+            match code {
+                5 => "passcode not set on device".into(),
+                6 => "biometry not available on this device".into(),
+                7 => "biometry not enrolled (no fingers registered)".into(),
+                8 => "biometry locked out".into(),
+                _ => format!("canEvaluatePolicy failed (code={})", code),
+            }
+        } else {
+            "biometric authentication not available".into()
+        };
+        (false, None, Some(err_msg))
     }
 }
 
@@ -813,6 +879,32 @@ mod tests {
             );
             assert!(manager.verify_password(password, account_id).is_ok());
         });
+    }
+
+    #[test]
+    fn test_macos_biometric_availability_shape() {
+        // 使用 manager.availability() 以保持平台无关，避免直接调用 #[cfg] 限定的函数
+        let manager = manager_from_home();
+        let result = manager.availability("nonexistent");
+        let available = result.available;
+        let bt = result.biometry_type;
+        let err = result.error;
+        // 只验证返回结构，不验证具体值（CI 可能无 Touch ID 硬件）
+        assert!(available == false || available == true);
+        if let Some(ref bt_val) = bt {
+            assert!(
+                bt_val == "touchId" || bt_val == "faceId" || bt_val == "opticId",
+                "unexpected biometry_type: {}",
+                bt_val
+            );
+        }
+        if let Some(ref err_msg) = err {
+            assert!(!err_msg.is_empty(), "error message should not be empty");
+        }
+        // available=true 时必须有 biometry_type
+        if available {
+            assert!(bt.is_some(), "available=true must have biometry_type");
+        }
     }
 
     #[test]

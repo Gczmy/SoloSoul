@@ -61,36 +61,21 @@ pub async fn biometric_check_availability(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
-    let bt = if solosoul_core::biometric::is_macos() {
-        Some("touchId".into())
-    } else {
-        None
-    };
-    // 旧版本地文件凭证在查询时自动迁移到 Keychain；失败也不影响显示按钮。
+    // 旧版本地文件凭证在查询时自动迁移到 Keychain；失败也不影响显示。
     if !account_id.is_empty() {
         let _ = manager.migrate_legacy_if_needed(&account_id);
     }
-    let configured = manager.is_configured(&account_id);
-    let available = bt.is_some();
+    let result = manager.availability(&account_id);
     if !account_id.is_empty() {
         tracing::debug!(
             "biometric_check_availability account_id={} available={} configured={} biometry_type={:?}",
             account_id,
-            available,
-            configured,
-            bt
+            result.available,
+            result.configured,
+            result.biometry_type
         );
     }
-    Ok(BiometricAvailability {
-        available,
-        configured,
-        biometry_type: bt,
-        error: if solosoul_core::biometric::is_macos() {
-            None
-        } else {
-            Some("platform not supported".into())
-        },
-    })
+    Ok(result)
 }
 
 #[tauri::command]
@@ -237,7 +222,8 @@ pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
     if !solosoul_core::biometric::is_macos() {
         return Ok(false);
     }
-    trigger_system_biometric("test biometric authentication for SoloSoul")
+    // 使用严格策略确保实际触发生物识别，不回落到设备密码。
+    trigger_system_biometric("test biometric authentication for SoloSoul", true)
         .map_err(|e| map_bio_error(e, "test"))?;
     Ok(true)
 }

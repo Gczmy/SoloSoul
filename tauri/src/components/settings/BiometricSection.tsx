@@ -110,7 +110,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
     }
   };
 
-  if (bioAvailable === null || !bioAvailable.available) return null;
+  if (bioAvailable === null) return null;
 
   return (
     <>
@@ -128,62 +128,81 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           <Fingerprint size={ICON_SIZE.lg} />
           {t('settings:biometric_title')}
         </h3>
-        <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
-          {t('settings:biometric_desc', { type: biometryType })}
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 'var(--text-body)' }}>
-            {t('settings:biometric_toggle_label', { type: biometryType })}
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {biometricEnabled && (
-              <Button variant="secondary" size="sm" onClick={handleBioTest}>
-                <ShieldCheck size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
-                {t('settings:biometric_test_button', { type: biometryType })}
-              </Button>
-            )}
-            <label
-              style={{
-                position: 'relative',
-                display: 'inline-block',
-                width: 44,
-                height: 24,
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={biometricEnabled}
-                onChange={handleBioToggle}
-                style={{ opacity: 0, width: 0, height: 0 }}
-              />
-              <span
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: biometricEnabled
-                    ? 'var(--accent-primary)'
-                    : 'var(--border-subtle)',
-                  borderRadius: 12,
-                  transition: '0.2s',
-                }}
-              />
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 2,
-                  left: biometricEnabled ? 22 : 2,
-                  width: 20,
-                  height: 20,
-                  borderRadius: '50%',
-                  background: 'white',
-                  transition: '0.2s',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                }}
-              />
-            </label>
+        {!bioAvailable.available ? (
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: 8,
+              background: 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.5,
+            }}
+          >
+            {t('settings:biometric_unavailable_desc') ??
+              '当前设备未设置或不支持生物识别（Touch ID / Face ID）。请先在系统设置中添加指纹或面容，然后重新打开此页面。'}
           </div>
-        </div>
+        ) : (
+          <>
+            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+              {t('settings:biometric_desc', { type: biometryType })}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 'var(--text-body)' }}>
+                {t('settings:biometric_toggle_label', { type: biometryType })}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {biometricEnabled && (
+                  <Button variant="secondary" size="sm" onClick={handleBioTest}>
+                    <ShieldCheck size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
+                    {t('settings:biometric_test_button', { type: biometryType })}
+                  </Button>
+                )}
+                <label
+                  style={{
+                    position: 'relative',
+                    display: 'inline-block',
+                    width: 44,
+                    height: 24,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={biometricEnabled}
+                    onChange={handleBioToggle}
+                    style={{ opacity: 0, width: 0, height: 0 }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: biometricEnabled
+                        ? 'var(--accent-primary)'
+                        : 'var(--border-subtle)',
+                      borderRadius: 12,
+                      transition: '0.2s',
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 2,
+                      left: biometricEnabled ? 22 : 2,
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: 'white',
+                      transition: '0.2s',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+          </>
+        )}
       </Card>
 
       {/* Biometric password verification dialog */}

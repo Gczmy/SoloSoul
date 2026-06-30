@@ -34,11 +34,15 @@
 
 - 主密钥保存在应用数据目录的本地加密文件 `biometric_key` 中（复用 `FileBiometricStorage`）。
 - 文件密钥使用 HKDF 从 `account_id + 应用级 secret` 派生，不依赖 Keychain 也能解密。
-- **保存凭证前**由 `BiometricManager::save_credential` 调用 `LocalAuthentication`，弹出 Touch ID / 设备密码框验证用户身份。
-- **读取凭证前**由 `BiometricManager::unlock` 调用 `LocalAuthentication`，验证通过后才读取文件并解锁 Vault。
+- **可用性检测**：`BiometricManager::availability()` 现在调用 `canEvaluatePolicy:error:`（policy=1，仅生物识别）真实探测设备是否支持并已注册 Touch ID/Face ID，不再硬编码返回 `available=true`。前端据此在设备不支持时隐藏开关并显示说明文案。
+- **保存凭证前**由 `BiometricManager::save_credential` 调用 `LocalAuthentication`，使用严格策略（policy=1，仅生物识别，不允许密码回退）。这样在新机器或未录入指纹的机器上不会弹出密码框，而是返回 `UserPresenceUnavailable`。
+- **读取凭证前（解锁）**由 `BiometricManager::unlock` 调用 `LocalAuthentication`，使用宽松策略（policy=2，生物识别优先，失败可回退设备密码），避免指纹多次失败后无法登录。
+- **测试**：`BiometricManager::test()/biometric_test` 使用严格策略确保实际触发生物识别。
 - `is_configured` 只检查 `biometricEnabled` 标记和 `biometric_key` 文件是否存在，**不会弹出任何系统验证框**。
 - 旧版 `biometric_key` 文件无需迁移；当前 macOS 后端直接把它作为主存储。
 - 若关闭生物识别，会清理 `biometricEnabled` 标记并删除 `biometric_key` 文件。
+
+**错误映射**：`canEvaluatePolicy` 返回的 LAError 码映射：LAErrorPasscodeNotSet(5) → "passcode not set"、LAErrorBiometryNotAvailable(6) → "biometry not available"、LAErrorBiometryNotEnrolled(7) → "biometry not enrolled"、LAErrorBiometryLockout(8) → "biometry locked out"。
 
 ### 2.2 未来 macOS 方案：Keychain UserPresence（已保留实现）
 

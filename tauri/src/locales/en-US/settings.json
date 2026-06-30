@@ -367,6 +367,7 @@
   "biometric_error_save_failed": "Failed to save biometric credential",
   "biometric_error_delete_failed": "Failed to delete biometric credential",
   "biometric_error_not_configured": "Biometric not configured; please enable first",
+  "biometric_unavailable_desc": "Biometric authentication (Touch ID / Face ID) is not available or not set up on this device. Please add a fingerprint or face in System Settings, then reopen this page.",
   "biometric_error_user_presence_unavailable": "Biometric authentication is not available on this device. Please set up Touch ID or a device password.",
   "biometric_error_keychain_write_failed": "Failed to save credential to Keychain",
   "biometric_error_keychain_read_failed": "Failed to read credential from Keychain",
