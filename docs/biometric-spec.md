@@ -8,7 +8,7 @@
 |------|------|---------|
 | **macOS** | ✅ 已支持 Touch ID / Face ID / 设备密码（本地加密文件 + LocalAuthentication 弹窗） | `tauri/crates/solosoul-core/src/biometric/macos.rs` |
 | **macOS (未来)** | ⏳ Keychain UserPresence 方案已保留 | `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs` |
-| **Windows** | ❌ 未实现 | 待后续按本规范扩展 |
+| **Windows** | ✅ 已支持 Windows Hello（本地加密文件 + UserConsentVerifier 弹窗） | `tauri/crates/solosoul-core/src/biometric/windows.rs` |
 | **Linux** | ❌ 未实现 | 暂不支持 |
 
 核心原则：
@@ -159,7 +159,8 @@ Windows Hello 实现后，至少覆盖以下场景：
 |------|------|
 | `tauri/crates/solosoul-core/src/biometric/mod.rs` | 生物识别核心接口与 `BiometricManager` |
 | `tauri/crates/solosoul-core/src/biometric/macos.rs` | macOS Keychain UserPresence 存储实现 |
-| `tauri/crates/solosoul-core/src/biometric/stub.rs` | 非 macOS 占位实现 |
+| `tauri/crates/solosoul-core/src/biometric/stub.rs` | 非 macOS/Windows 占位实现 |
+| `tauri/crates/solosoul-core/src/biometric/windows.rs` | Windows Hello UserConsentVerifier 实现 |
 | `tauri/crates/solosoul-core/src/biometric/legacy.rs` | 旧版文件存储（仅测试/清理） |
 | `tauri/crates/solosoul-core/src/vault_service.rs` | 改密时同步更新生物识别凭证 |
 | `tauri/src-tauri/src/commands/biometric.rs` | Tauri 命令层与错误码映射 |
@@ -176,3 +177,4 @@ Windows Hello 实现后，至少覆盖以下场景：
 |------|------|
 | 2026-06-16 | 根据 macOS Touch ID 修复经验，整理形成本规范，明确 Windows Hello 实现约束 |
 | 2026-06-16 | macOS 生物识别存储升级为 Keychain `kSecAccessControlUserPresence`；新增 `BiometricStorage` trait 与错误码 |
+| 2026-06-30 | 实现 Windows Hello 支持：新增 `windows.rs`，复用本地加密文件 + `UserConsentVerifier` 检测与弹窗 |

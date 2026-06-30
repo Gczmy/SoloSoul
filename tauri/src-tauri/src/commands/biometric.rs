@@ -104,12 +104,13 @@ pub async fn biometric_save_credential(
         }
     }
 
+    // reason 根据 biometry_type 动态生成，避免在 Windows Hello 设备上显示 Touch ID
+    let save_reason = match biometry_type.as_deref() {
+        Some("windowsHello") => "verify your identity to enable Windows Hello for SoloSoul",
+        _ => "verify your identity to enable Touch ID / Face ID for SoloSoul",
+    };
     manager
-        .save_credential(
-            &account_id,
-            &password,
-            "verify your identity to enable Touch ID for SoloSoul",
-        )
+        .save_credential(&account_id, &password, save_reason)
         .map_err(|e| map_bio_error(e, "save"))?;
 
     if let Some(vg) = svc.get_vault_store() {
@@ -161,6 +162,7 @@ pub async fn biometric_unlock(
             let action_type = match bio_type {
                 "touchId" => "touch_id_unlock",
                 "faceId" => "face_id_unlock",
+                "windowsHello" => "windows_hello_unlock",
                 _ => "biometric_unlock",
             };
             let _ = vault.log_structured(
