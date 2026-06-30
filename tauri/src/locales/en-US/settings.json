@@ -375,7 +375,6 @@
   "biometric_error_invalid_key_format": "Stored biometric credential is corrupted",
   "biometric_error_unknown": "Biometric unknown error",
 
-  // ── PIN ──
   "pin_title": "PIN Code Unlock",
   "pin_desc": "Use a {{length}}-digit PIN for quick unlock",
   "pin_not_configured_desc": "Set a PIN code to unlock quickly without entering your master password every time.",

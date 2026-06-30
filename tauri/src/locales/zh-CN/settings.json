@@ -375,7 +375,6 @@
   "biometric_error_invalid_key_format": "保存的生物识别凭证已损坏",
   "biometric_error_unknown": "生物识别出现未知错误",
 
-  // ── PIN ──
   "pin_title": "PIN 码解锁",
   "pin_desc": "使用 {{length}} 位 PIN 码快速解锁",
   "pin_not_configured_desc": "设置 PIN 码后，可使用数字 PIN 码快速解锁，无需每次输入主密码。",
