@@ -196,6 +196,8 @@ export function LoginPage() {
       if (msg.includes('__PIN_ERR__:locked')) {
         setPinError(t('auth:pin_locked'));
         setPinAvailable(false);
+        // 锁定后显示密码输入框，让用户用主密码登录
+        setShowPasswordInput(true);
       } else if (msg.includes('__PIN_ERR__:incorrect')) {
         setPinError(t('auth:pin_incorrect'));
       } else {
@@ -439,6 +441,7 @@ export function LoginPage() {
                 onComplete={handlePinComplete}
                 disabled={pinUnlocking}
                 error={!!pinError}
+                verifying={pinUnlocking}
               />
               {pinError && (
                 <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>
@@ -494,9 +497,9 @@ export function LoginPage() {
               autoComplete="current-password"
               onEnter={handleSubmit}
             />
-            {(error || bioError || submitError) && (
-              <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>
-                {submitError || bioError || (error
+            {(error || bioError || submitError || pinError) && (
+              <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>
+                {pinError || submitError || bioError || (error
                   ? error.toLowerCase().includes('8 characters') ||
                     error.toLowerCase().includes('至少')
                     ? t('auth:password_too_short')

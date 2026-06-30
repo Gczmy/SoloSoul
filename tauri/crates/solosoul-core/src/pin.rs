@@ -450,6 +450,21 @@ impl PinManager {
         }
     }
 
+    /// 重置 PIN 失败计数和锁定状态（在用户通过更强因子——主密码或生物识别——成功登录后调用）。
+    /// PIN 是比主密码/生物识别弱的便捷因子，强因子的持有者有权重置自己的 PIN 锁定状态。
+    pub fn reset_attempts(&self, account_id: &str) -> Result<(), PinError> {
+        let config = self.read_config(account_id)?;
+        if !config.pin_enabled || (config.pin_failed_attempts == 0 && config.pin_locked_until.is_none()) {
+            return Ok(());
+        }
+        self.update_config_field(account_id, |c| {
+            c.pin_failed_attempts = 0;
+            c.pin_locked_until = None;
+        })?;
+        tracing::info!("PIN attempts reset for {}", account_id);
+        Ok(())
+    }
+
     /// 清除 PIN 凭证（在修改密码后调用，因为 KEK 需要 PIN 输入，无法自动重新加密）。
     /// 用户需重新设置 PIN。
     pub fn clear_credential(&self, account_id: &str) -> Result<(), PinError> {

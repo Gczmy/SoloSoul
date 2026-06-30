@@ -5,13 +5,14 @@ interface PinInputProps {
   onComplete: (pin: string) => void;
   disabled?: boolean;
   error?: boolean;
+  verifying?: boolean;
 }
 
 /**
  * 数字 PIN 码输入组件。
  * 每个字符独立小框，自动焦点推进，Backspace 回退。
  */
-export function PinInput({ length, onComplete, disabled, error }: PinInputProps) {
+export function PinInput({ length, onComplete, disabled, error, verifying }: PinInputProps) {
   const [digits, setDigits] = useState<string[]>(Array(length).fill(''));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -73,10 +74,6 @@ export function PinInput({ length, onComplete, disabled, error }: PinInputProps)
         setDigits(newDigits);
         focusInput(idx - 1);
       }
-    } else if (e.key === 'ArrowLeft') {
-      focusInput(idx - 1);
-    } else if (e.key === 'ArrowRight') {
-      focusInput(idx + 1);
     }
   }, [digits, focusInput]);
 
@@ -97,52 +94,98 @@ export function PinInput({ length, onComplete, disabled, error }: PinInputProps)
     }
   }, [digits, length, focusInput, onComplete]);
 
+  const totalWidth = length * 40 + (length - 1) * 8;
+
   return (
     <div
       style={{
+        position: 'relative',
         display: 'flex',
         gap: 8,
         justifyContent: 'center',
         alignItems: 'center',
+        height: 48,
       }}
     >
-      {Array.from({ length }).map((_, idx) => (
-        <input
-          key={idx}
-          ref={(el) => { inputRefs.current[idx] = el; }}
-          type="password"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          value={digits[idx]}
-          onChange={(e) => handleChange(idx, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(idx, e)}
-          onPaste={idx === 0 ? handlePaste : undefined}
-          onFocus={() => setActiveIdx(idx)}
-          disabled={disabled}
-          maxLength={1}
-          style={{
-            width: 48,
-            height: 56,
-            textAlign: 'center',
-            fontSize: 'var(--text-card-title, 20px)',
-            fontFamily: 'monospace',
-            fontWeight: 600,
-            borderRadius: 10,
-            border: error
-              ? '2px solid #dc2626'
-              : activeIdx === idx
-                ? '2px solid var(--accent-primary)'
-                : '1px solid var(--border-subtle)',
-            background: error
-              ? 'rgba(220, 38, 38, 0.06)'
-              : 'var(--bg-toolbar)',
-            color: 'var(--text-primary)',
-            outline: 'none',
-            transition: 'border-color 0.15s ease, background 0.15s ease',
-            caretColor: 'var(--accent-primary)',
-          }}
-        />
-      ))}
+      {/* PIN 输入框 — verifying 时淡出 */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          opacity: verifying ? 0 : 1,
+          transition: 'opacity 0.25s ease',
+        }}
+      >
+        {Array.from({ length }).map((_, idx) => (
+          <input
+            key={idx}
+            ref={(el) => { inputRefs.current[idx] = el; }}
+            type="password"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            value={digits[idx]}
+            onChange={(e) => handleChange(idx, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(idx, e)}
+            onPaste={idx === 0 ? handlePaste : undefined}
+            onFocus={() => setActiveIdx(idx)}
+            onMouseDown={(e) => e.preventDefault()}
+            disabled={disabled || verifying}
+            maxLength={1}
+            style={{
+              width: 40,
+              height: 48,
+              textAlign: 'center',
+              fontSize: 'var(--text-card-title, 20px)',
+              fontFamily: 'monospace',
+              fontWeight: 600,
+              borderRadius: 10,
+              border: error
+                ? '2px solid #dc2626'
+                : activeIdx === idx
+                  ? '2px solid var(--accent-primary)'
+                  : '1px solid var(--border-subtle)',
+              background: error
+                ? 'rgba(220, 38, 38, 0.06)'
+                : 'var(--bg-toolbar)',
+              color: 'var(--text-primary)',
+              outline: 'none',
+              transition: 'border-color 0.15s ease, background 0.15s ease',
+              caretColor: 'var(--accent-primary)',
+            }}
+          />
+        ))}
+      </div>
+
+      {/* 验证中动画 — 流动渐变横线 */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: totalWidth,
+          height: 4,
+          borderRadius: 2,
+          opacity: verifying ? 1 : 0,
+          pointerEvents: 'none',
+          transition: 'opacity 0.25s ease',
+          background:
+            'linear-gradient(90deg, transparent 0%, var(--accent-primary) 25%, transparent 50%, var(--accent-primary) 75%, transparent 100%)',
+          backgroundSize: '200% 100%',
+          animation: verifying ? 'pin-flow 2.8s linear infinite' : 'none',
+          boxShadow: verifying
+            ? '0 0 6px 2px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 16px 4px color-mix(in srgb, var(--accent-primary) 20%, transparent)'
+            : 'none',
+        }}
+      />
+
+      {/* 注入关键帧动画 */}
+      <style>{`
+        @keyframes pin-flow {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
     </div>
   );
 }

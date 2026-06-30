@@ -561,6 +561,12 @@ impl VaultService {
             *store = Some(vault_arc);
         }
 
+        // 用户已通过主密码验证身份，重置 PIN 锁定状态。
+        let pin_manager = PinManager::new(self.base_path().clone());
+        if let Err(e) = pin_manager.reset_attempts(account_id) {
+            tracing::warn!("Failed to reset PIN attempts after unlock: {}", e);
+        }
+
         Ok(())
     }
 
@@ -666,6 +672,12 @@ impl VaultService {
         let vault_arc = Arc::new(vault);
         if let Ok(mut store) = self.vault_store.write() {
             *store = Some(vault_arc);
+        }
+
+        // 用户已通过更强因子（生物识别 / PIN 本身）验证身份，重置 PIN 锁定状态。
+        let pin_manager = PinManager::new(self.base_path().clone());
+        if let Err(e) = pin_manager.reset_attempts(account_id) {
+            tracing::warn!("Failed to reset PIN attempts after unlock: {}", e);
         }
 
         Ok(())
