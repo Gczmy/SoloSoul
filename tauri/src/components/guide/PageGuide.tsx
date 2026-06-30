@@ -1,49 +1,60 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CircleHelp, X, ChevronRight } from 'lucide-react';
+import {
+  CircleHelp,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ArrowRight,
+} from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 import type { LucideIcon } from 'lucide-react';
 
 export interface GuideStep {
-  /** 步骤图标 */
   icon: LucideIcon;
-  /** 步骤标题 */
   title: string;
-  /** 步骤描述 */
   description: string;
 }
 
-interface PageGuideProps {
-  /** 指南卡片标题 */
+export interface GuideHelpLink {
   title: string;
-  /** 步骤列表 */
+  description: string;
+  href: string;
+}
+
+export interface GuidePage {
+  icon: LucideIcon;
+  title: string;
   steps: GuideStep[];
-  /** 触发器按钮文本（默认 "指南"） */
+  helpLinks: GuideHelpLink[];
+}
+
+interface PageGuideProps {
+  pages: GuidePage[];
   label?: string;
 }
 
 /**
- * PageGuide — 页面级指南组件。
+ * PageGuide — 多页面分步指南组件。
  *
  * 渲染一个「圆圈问号图标 + 文本」触发器按钮（无背景色、外边框 outline、悬停强调色），
- * 点击后弹出指南卡片，以分步的新手教程形式展示页面功能指引。
- *
- * 用法：
- * ```tsx
- * <PageGuide
- *   title="拖拽上传指南"
- *   steps={[
- *     { icon: LayoutList, title: '对象卡片', description: '...' },
- *   ]}
- * />
- * ```
+ * 点击后弹出多页指南卡片，每页包含：步骤列表 + 相关帮助文档跳转卡片。
+ * 支持上/下一页导航、页面指示圆点。
  */
-export function PageGuide({ title, steps, label }: PageGuideProps) {
+export function PageGuide({ pages, label }: PageGuideProps) {
   const { t } = useTranslation('common');
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // 每次打开时重置到第一页
+  useEffect(() => {
+    if (open) setPageIndex(0);
+  }, [open]);
 
   // 点击外部关闭卡片
   useEffect(() => {
@@ -58,7 +69,6 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
         setOpen(false);
       }
     };
-    // 延迟注册，避免触发按钮自身的 click 冒泡
     const timer = setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside);
     }, 0);
@@ -79,9 +89,27 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
   }, [open]);
 
   const displayLabel = label ?? t('guide') ?? '指南';
-
-  // 按钮激活态：仅鼠标悬停时高亮（打开卡片后立即恢复常态）
   const active = hovered;
+  const currentPage = pages[pageIndex];
+  const isFirst = pageIndex === 0;
+  const isLast = pageIndex === pages.length - 1;
+
+  const handlePrev = () => {
+    if (!isFirst) setPageIndex((i) => i - 1);
+  };
+
+  const handleNext = () => {
+    if (!isLast) setPageIndex((i) => i + 1);
+  };
+
+  const handleHelpLinkClick = (href: string) => {
+    setOpen(false);
+    navigate(href);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
   return (
     <>
@@ -114,7 +142,7 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
       </button>
 
       {/* 指南卡片 — 居中浮层 */}
-      {open && (
+      {open && currentPage && (
         <div
           style={{
             position: 'fixed',
@@ -126,7 +154,7 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
             background: 'var(--bg-overlay)',
             backdropFilter: 'blur(4px)',
           }}
-          onClick={() => setOpen(false)}
+          onClick={handleClose}
         >
           <div
             ref={cardRef}
@@ -136,7 +164,7 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
               borderRadius: 16,
               boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
               border: '1px solid var(--border-subtle)',
-              maxWidth: 440,
+              maxWidth: 500,
               width: '90%',
               maxHeight: '85vh',
               overflowY: 'auto',
@@ -159,13 +187,17 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
                     width: 32,
                     height: 32,
                     borderRadius: 10,
-                    background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
+                    background:
+                      'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <CircleHelp size={ICON_SIZE.md} style={{ color: 'var(--accent-primary)' }} />
+                  <currentPage.icon
+                    size={ICON_SIZE.md}
+                    style={{ color: 'var(--accent-primary)' }}
+                  />
                 </div>
                 <span
                   style={{
@@ -174,11 +206,11 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
                     color: 'var(--text-primary)',
                   }}
                 >
-                  {title}
+                  {currentPage.title}
                 </span>
               </div>
               <button
-                onClick={() => setOpen(false)}
+                onClick={handleClose}
                 style={{
                   padding: 6,
                   borderRadius: 8,
@@ -189,7 +221,8 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
                   transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                   e.currentTarget.style.color = 'var(--accent-primary)';
                 }}
                 onMouseLeave={(e) => {
@@ -201,11 +234,50 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
               </button>
             </div>
 
+            {/* 页面指示圆点 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '12px 20px 0',
+              }}
+            >
+              {pages.map((p, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPageIndex(i)}
+                  style={{
+                    width: i === pageIndex ? 24 : 8,
+                    height: 8,
+                    borderRadius: 4,
+                    border: 'none',
+                    background:
+                      i === pageIndex
+                        ? 'var(--accent-primary)'
+                        : 'var(--border-subtle)',
+                    cursor: 'pointer',
+                    transition: 'all 0.25s ease',
+                    padding: 0,
+                  }}
+                  title={p.title}
+                />
+              ))}
+            </div>
+
             {/* Steps */}
-            <div style={{ padding: '16px 20px 20px', display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {steps.map((step, index) => {
+            <div
+              style={{
+                padding: '16px 20px 8px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0,
+              }}
+            >
+              {currentPage.steps.map((step, index) => {
                 const Icon = step.icon;
-                const isLast = index === steps.length - 1;
+                const isLastStep = index === currentPage.steps.length - 1;
                 return (
                   <div
                     key={index}
@@ -231,8 +303,10 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
                           width: 28,
                           height: 28,
                           borderRadius: '50%',
-                          background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                          border: '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
+                          background:
+                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                          border:
+                            '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -240,10 +314,12 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
                           zIndex: 1,
                         }}
                       >
-                        <Icon size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
+                        <Icon
+                          size={ICON_SIZE.sm}
+                          style={{ color: 'var(--accent-primary)' }}
+                        />
                       </div>
-                      {/* 连接线 */}
-                      {!isLast && (
+                      {!isLastStep && (
                         <div
                           style={{
                             width: 1,
@@ -299,6 +375,7 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
                           fontSize: 'var(--text-body-sm)',
                           color: 'var(--text-secondary)',
                           lineHeight: 1.6,
+                          whiteSpace: 'pre-wrap',
                         }}
                       >
                         {step.description}
@@ -309,45 +386,232 @@ export function PageGuide({ title, steps, label }: PageGuideProps) {
               })}
             </div>
 
-            {/* Footer */}
+            {/* 相关帮助文档卡片 */}
+            {currentPage.helpLinks.length > 0 && (
+              <div
+                style={{
+                  margin: '4px 20px 8px',
+                  padding: '12px',
+                  borderRadius: 10,
+                  background: 'var(--bg-toolbar)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 'var(--text-badge)',
+                    fontWeight: 600,
+                    color: 'var(--text-tertiary)',
+                    marginBottom: 8,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  {t('related_docs') ?? '相关帮助文档'}
+                </div>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: 6 }}
+                >
+                  {currentPage.helpLinks.map((link, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleHelpLinkClick(link.href)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '8px 10px',
+                        borderRadius: 8,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-elevated)',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        width: '100%',
+                        transition: 'all 0.15s ease',
+                        fontFamily: 'inherit',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor =
+                          'var(--accent-primary)';
+                        e.currentTarget.style.background =
+                          'color-mix(in srgb, var(--accent-primary) 4%, transparent)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor =
+                          'var(--border-subtle)';
+                        e.currentTarget.style.background = 'var(--bg-elevated)';
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 'var(--text-body-sm)',
+                            fontWeight: 600,
+                            color: 'var(--text-primary)',
+                            marginBottom: 2,
+                          }}
+                        >
+                          {link.title}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 'var(--text-badge)',
+                            color: 'var(--text-tertiary)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {link.description}
+                        </div>
+                      </div>
+                      <ArrowRight
+                        size={ICON_SIZE.sm}
+                        style={{
+                          color: 'var(--accent-primary)',
+                          flexShrink: 0,
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Footer — 导航 + 关闭 */}
             <div
               style={{
                 padding: '10px 20px',
                 borderTop: '1px solid var(--border-subtle)',
                 display: 'flex',
-                justifyContent: 'flex-end',
+                alignItems: 'center',
+                justifyContent: 'space-between',
               }}
             >
+              {/* Prev */}
               <button
-                onClick={() => setOpen(false)}
+                onClick={handlePrev}
+                disabled={isFirst}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 4,
-                  padding: '6px 14px',
+                  padding: '6px 12px',
                   borderRadius: 8,
                   border: '1px solid var(--border-subtle)',
                   background: 'var(--bg-toolbar)',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer',
+                  color: isFirst
+                    ? 'var(--text-disabled)'
+                    : 'var(--text-secondary)',
+                  cursor: isFirst ? 'default' : 'pointer',
                   fontSize: 'var(--text-badge)',
                   fontWeight: 500,
+                  opacity: isFirst ? 0.4 : 1,
                   transition: 'all 0.15s ease',
+                  fontFamily: 'inherit',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
+                  if (!isFirst) {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor =
+                      'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'var(--bg-toolbar)';
                   e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-secondary)';
+                  e.currentTarget.style.color = isFirst
+                    ? 'var(--text-disabled)'
+                    : 'var(--text-secondary)';
                 }}
               >
-                {t('got_it') ?? '知道了'}
-                <ChevronRight size={ICON_SIZE.xs} />
+                <ChevronLeft size={ICON_SIZE.xs} />
+                {t('previous') ?? '上一页'}
               </button>
+
+              {/* Page count */}
+              <span
+                style={{
+                  fontSize: 'var(--text-badge)',
+                  color: 'var(--text-tertiary)',
+                  fontWeight: 500,
+                }}
+              >
+                {pageIndex + 1} / {pages.length}
+              </span>
+
+              {/* Next or Got it */}
+              {!isLast ? (
+                <button
+                  onClick={handleNext}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-toolbar)',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    fontSize: 'var(--text-badge)',
+                    fontWeight: 500,
+                    transition: 'all 0.15s ease',
+                    fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor =
+                      'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
+                >
+                  {t('next') ?? '下一页'}
+                  <ChevronRight size={ICON_SIZE.xs} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleClose}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '6px 14px',
+                    borderRadius: 8,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-toolbar)',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    fontSize: 'var(--text-badge)',
+                    fontWeight: 500,
+                    transition: 'all 0.15s ease',
+                    fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor =
+                      'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-secondary)';
+                  }}
+                >
+                  {t('got_it') ?? '知道了'}
+                  <ChevronRight size={ICON_SIZE.xs} />
+                </button>
+              )}
             </div>
           </div>
         </div>

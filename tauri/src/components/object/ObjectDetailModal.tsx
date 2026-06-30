@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
-import { X, Clock, Paperclip, Pencil, Lock, Eye, Copy, Check, Maximize2 } from 'lucide-react';
+import { X, Clock, Paperclip, Pencil, Lock, Eye, Copy, Check, Maximize2, Upload } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
@@ -654,19 +654,35 @@ export function ObjectDetailModal({
                 }}
               >
                 <PageGuide
-                  title="拖拽上传指南"
-                  steps={[
+                  pages={[
                     {
-                      icon: Maximize2,
-                      title: '拖拽到此面板',
-                      description:
-                        '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
-                    },
-                    {
-                      icon: Paperclip,
-                      title: '附件管理器',
-                      description:
-                        '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
+                      icon: Upload,
+                      title: t('common:drag_upload_guide_title') ?? '拖拽附件上传指南',
+                      steps: [
+                        {
+                          icon: Maximize2,
+                          title: t('common:guide_detail_step1_title') ?? '拖拽到此面板',
+                          description:
+                            t('common:guide_detail_step1_desc') ??
+                            '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
+                        },
+                        {
+                          icon: Paperclip,
+                          title: t('common:guide_detail_step2_title') ?? '附件管理器',
+                          description:
+                            t('common:guide_detail_step2_desc') ??
+                            '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
+                        },
+                      ],
+                      helpLinks: [
+                        {
+                          title: t('common:guide_help_attachments') ?? '附件管理',
+                          description:
+                            t('common:guide_help_attachments_desc') ??
+                            '附件的上传、下载、重命名与回收站管理',
+                          href: '/help?id=attachments',
+                        },
+                      ],
                     },
                   ]}
                 />

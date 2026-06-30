@@ -318,5 +318,41 @@
   "drag_guide_step2_title": "Object Detail",
   "drag_guide_step2_desc": "Click an object card to open the detail panel. Drag files into the panel area to attach them to the current object.",
   "drag_guide_step3_title": "Attachment Manager",
-  "drag_guide_step3_desc": "In the attachment manager dialog, drag files directly into the window to batch upload multiple attachments at once."
+  "drag_guide_step3_desc": "In the attachment manager dialog, drag files directly into the window to batch upload multiple attachments at once.",
+
+  "related_docs": "Related Help Docs",
+
+  "guide_object_card_title": "Object Card Guide",
+  "guide_card_step1_title": "Card Structure",
+  "guide_card_step1_desc": "Each object card shows a template icon, object name, and category label at the top. If the object is linked to a template, the template name is also shown. Action buttons on the right: History (clock), Attachments (paperclip), Edit (pencil), Delete (trash). The card body displays field properties as labeled chips.",
+  "guide_card_step2_title": "Sensitivity Colors",
+  "guide_card_step2_desc": "Field border colors indicate sensitivity levels: 🟢 Green = Public, 🔵 Blue = Internal, 🟠 Amber = Sensitive, 🔴 Red = Critical. Non-public field values are automatically blurred to protect privacy.",
+  "guide_card_step3_title": "Interactions",
+  "guide_card_step3_desc": "Click anywhere on the card to open the detail panel. Use the top-right buttons to: view version history, manage attachments, edit the object, or delete it. Drag and drop files onto the card to quickly add attachments.",
+
+  "guide_template_title": "Object Template Guide",
+  "guide_tpl_step1_title": "What is a Template",
+  "guide_tpl_step1_desc": "A template defines the data structure of an object, with a set of fields. Each field has a name, type (text, number, date, select, etc.), and sensitivity level. When creating an object using a template, the matching fields are generated automatically.",
+  "guide_tpl_step2_title": "Managing Templates",
+  "guide_tpl_step2_desc": "Go to Settings > Template Manager to view all available templates, create new ones, or edit field structures. You can choose icons, assign pages, reorder fields, and set sensitivity levels. Deprecated fields can be restored or permanently cleaned up.",
+  "guide_tpl_step3_title": "Using Templates",
+  "guide_tpl_step3_desc": "When creating a new object, select a template to quickly populate data. You can change or replace the template later. If a template is deleted, existing object data is preserved — the template name is shown with strikethrough.",
+
+  "guide_help_getting_started": "Getting Started",
+  "guide_help_getting_started_desc": "Learn the basics of SoloSoul and workspace navigation",
+  "guide_help_attachments": "Attachments",
+  "guide_help_attachments_desc": "Upload, download, rename, and manage attachments in trash",
+  "guide_help_sensitivity": "Sensitivity Levels",
+  "guide_help_sensitivity_desc": "Understand different sensitivity levels and security policies",
+  "guide_help_objects": "Object Management",
+  "guide_help_objects_desc": "Create, edit, history rollback, and trash management for objects",
+  "guide_help_templates": "Template Management",
+  "guide_help_templates_desc": "Create, edit, field management, and deprecation of templates",
+  "guide_help_create_object": "Creating Objects",
+  "guide_help_create_object_desc": "Use templates to create objects with pre-defined structures",
+
+  "guide_detail_step1_title": "Drag into This Panel",
+  "guide_detail_step1_desc": "Drag files from your file manager directly into this detail panel to attach them. The panel will highlight when dragged over.",
+  "guide_detail_step2_title": "Attachment Manager",
+  "guide_detail_step2_desc": "Click the Attachments button to open the manager, or drag files directly into the manager window for batch upload."
 }
