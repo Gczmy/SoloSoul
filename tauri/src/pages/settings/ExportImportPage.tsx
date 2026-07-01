@@ -48,6 +48,7 @@ export function ExportImportPage() {
     toggleExpandedPage,
     totalSelected,
     loadSelectedAttachments,
+    bulkSelect,
   } = useExportScope({ accountId, includeAttachments });
   const [exportPassword, setExportPassword] = useState('');
   const [exportPasswordConfirm, setExportPasswordConfirm] = useState('');
@@ -516,6 +517,13 @@ export function ExportImportPage() {
               onSetIncludePreferences={setIncludePreferences}
               onSetIncludeBehavioral={setIncludeBehavioral}
               onToggleExpandedPage={toggleExpandedPage}
+              onSelectAllExport={(selectAll) =>
+                bulkSelect(
+                  selectAll,
+                  pageGroups.flatMap((g) => g.objects.map((o) => o.id)),
+                  pageGroups.map((g) => g.sectionType),
+                )
+              }
               showWeakPasswordWarning={showWeakPasswordWarning}
               onSetShowWeakPasswordWarning={setShowWeakPasswordWarning}
               onSetShowHintWarningAndExport={() => {

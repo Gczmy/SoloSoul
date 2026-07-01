@@ -27,6 +27,8 @@ interface UseExportScopeReturn {
   totalSelected: number;
   /** 批量加载已选对象的附件（当 includeAttachments 从 false 切为 true 时触发） */
   loadSelectedAttachments: () => void;
+  /** 全选/取消全选 */
+  bulkSelect: (selectAll: boolean, allObjectIds: string[], allSectionTypes: string[]) => void;
 }
 
 export function useExportScope({
@@ -239,6 +241,57 @@ export function useExportScope({
 
   const totalSelected = selectedObjectIds.size;
 
+  /** 全选/取消全选 */
+  const bulkSelect = useCallback(
+    (selectAll: boolean, allObjectIds: string[], allSectionTypes: string[]) => {
+      if (selectAll) {
+        setSelectedPageIds(new Set(allSectionTypes));
+        setSelectedObjectIds(new Set(allObjectIds));
+        if (includeAttachments) {
+          const unloadedIds = allObjectIds.filter((id) => !objectAttachments.has(id));
+          if (unloadedIds.length > 0) {
+            Promise.all(
+              unloadedIds.map((id) =>
+                invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
+                  .then((atts) => ({ id, atts }))
+                  .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
+              ),
+            ).then((results) => {
+              setObjectAttachments((prev) => {
+                const n = new Map(prev);
+                for (const { id, atts } of results) n.set(id, atts);
+                return n;
+              });
+              setSelectedAttachmentIds((prev) => {
+                const n = new Set(prev);
+                for (const { atts } of results) for (const att of atts) n.add(att.id);
+                return n;
+              });
+            });
+          }
+          const loadedAttIds = new Set<string>();
+          for (const [oid, atts] of objectAttachments) {
+            if (allObjectIds.includes(oid)) {
+              for (const att of atts) loadedAttIds.add(att.id);
+            }
+          }
+          if (loadedAttIds.size > 0) {
+            setSelectedAttachmentIds((prev) => {
+              const n = new Set(prev);
+              for (const id of loadedAttIds) n.add(id);
+              return n;
+            });
+          }
+        }
+      } else {
+        setSelectedPageIds(new Set());
+        setSelectedObjectIds(new Set());
+        setSelectedAttachmentIds(new Set());
+      }
+    },
+    [includeAttachments, objectAttachments, accountId],
+  );
+
   return {
     selectedPageIds,
     selectedObjectIds,
@@ -253,5 +306,6 @@ export function useExportScope({
     toggleExpandedPage,
     totalSelected,
     loadSelectedAttachments,
+    bulkSelect,
   };
 }

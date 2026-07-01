@@ -84,6 +84,7 @@ interface ExportSectionProps {
   onSetIncludePreferences: (v: boolean) => void;
   onSetIncludeBehavioral: (v: boolean) => void;
   onToggleExpandedPage: (sectionType: string) => void;
+  onSelectAllExport: (selectAll: boolean) => void;
   showWeakPasswordWarning: boolean;
   onSetShowWeakPasswordWarning: (v: boolean) => void;
   onSetShowHintWarningAndExport: () => void;
@@ -129,6 +130,7 @@ export function ExportSection({
   onSetIncludeBehavioral,
   showWeakPasswordWarning,
   onSetShowWeakPasswordWarning,
+  onSelectAllExport,
   onToggleExpandedPage,
   onSetShowHintWarningAndExport,
   onSetWeakPasswordExport,
@@ -143,9 +145,46 @@ export function ExportSection({
 
       {/* Page & Object tree */}
       <Card>
-        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
-          {t('settings:select_objects')}
-        </h3>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 8,
+          }}
+        >
+          <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600 }}>
+            {t('settings:select_objects')}
+          </h3>
+          {pageGroups.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onSelectAllExport(totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0))}
+              style={{
+                fontSize: 'var(--text-badge)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--accent-primary)',
+                padding: '2px 6px',
+                borderRadius: 4,
+                fontFamily: 'inherit',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'none';
+              }}
+            >
+              {totalSelected === pageGroups.reduce((s, g) => s + g.objects.length, 0)
+                ? t('common:deselect_all')
+                : t('common:select_all')}
+            </button>
+          )}
+        </div>
         {pageGroups.length === 0 ? (
           <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>
             {t('common:no_data')}
