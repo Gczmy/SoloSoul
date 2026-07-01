@@ -230,8 +230,7 @@ pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
     } else {
         "Test Windows Hello for SoloSoul"
     };
-    trigger_system_biometric(reason, true)
-        .map_err(|e| map_bio_error(e, "test"))?;
+    trigger_system_biometric(reason, true).map_err(|e| map_bio_error(e, "test"))?;
     Ok(true)
 }
 

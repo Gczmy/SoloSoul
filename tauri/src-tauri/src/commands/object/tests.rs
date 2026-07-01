@@ -1031,7 +1031,8 @@ fn test_trash_page_detail_includes_children() {
         original_parent_id: None,
         original_section_type: Some("page".to_string()),
         original_sort_order: None,
-        data: serde_json::to_vec(&serde_json::json!({"name": "My Custom Page"})).unwrap_or_default(),
+        data: serde_json::to_vec(&serde_json::json!({"name": "My Custom Page"}))
+            .unwrap_or_default(),
         deleted_at: now_ms,
         expires_at: Some(now_ms + retention_ms("30d")),
         deleted_by: "user".to_string(),
@@ -1042,7 +1043,10 @@ fn test_trash_page_detail_includes_children() {
 
     // Create child object trash items (matching original_section_type == page_id)
     for i in 0..3 {
-        let rec = vault.load_object(&format!("child-obj-{}", i)).unwrap().unwrap();
+        let rec = vault
+            .load_object(&format!("child-obj-{}", i))
+            .unwrap()
+            .unwrap();
         let full_record = serde_json::json!({
             "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
             "section_type": rec.section_type, "name": rec.name, "icon_name": rec.icon_name,
@@ -1107,13 +1111,20 @@ fn test_trash_page_detail_includes_children() {
     let mut children = children;
     children.sort_by(|a, b| a.name.cmp(&b.name));
 
-    assert_eq!(children.len(), 3, "Should return 3 child objects for the page");
+    assert_eq!(
+        children.len(),
+        3,
+        "Should return 3 child objects for the page"
+    );
     assert!(children.iter().any(|c| c.name == "Child Object 0"));
     assert!(children.iter().any(|c| c.name == "Child Object 1"));
     assert!(children.iter().any(|c| c.name == "Child Object 2"));
     // Verify names are sorted
     let names: Vec<&str> = children.iter().map(|c| c.name.as_str()).collect();
-    assert_eq!(names, vec!["Child Object 0", "Child Object 1", "Child Object 2"]);
+    assert_eq!(
+        names,
+        vec!["Child Object 0", "Child Object 1", "Child Object 2"]
+    );
 }
 
 #[test]

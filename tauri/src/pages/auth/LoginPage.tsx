@@ -232,11 +232,11 @@ export function LoginPage() {
     try {
       // pin_unlock 直接返回账户信息（id + name），省去额外 vault_list_accounts 调用
       const acc = await invoke<AccountInfo>('pin_unlock', { accountId: selectedAccountId, pin, location: 'login_page', action: 'unlock' });
-      console.log('[PERF] PIN unlock total:', (performance.now() - t0).toFixed(1), 'ms');
+      console.warn('[PERF] PIN unlock total:', (performance.now() - t0).toFixed(1), 'ms');
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
       navigate('/');
     } catch (e) {
-      console.log('[PERF] PIN unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
+      console.warn('[PERF] PIN unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
       const msg = String(e);
       if (msg.includes('__PIN_ERR__:locked')) {
         setPinError(t('auth:pin_locked'));
@@ -275,11 +275,11 @@ export function LoginPage() {
       };
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
       success = true;
-      console.log('[PERF] Biometric unlock total:', (performance.now() - t0).toFixed(1), 'ms');
+      console.warn('[PERF] Biometric unlock total:', (performance.now() - t0).toFixed(1), 'ms');
       // Navigate immediately to avoid showing the biometric UI after success
       navigate('/');
     } catch (e) {
-      console.log('[PERF] Biometric unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
+      console.warn('[PERF] Biometric unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
       const msg = String(e);
       if (
         msg.toLowerCase().includes('cancelled') ||
@@ -307,7 +307,7 @@ export function LoginPage() {
     }
     const t0 = performance.now();
     await login(selectedAccountId, password);
-    console.log('[PERF] Password unlock total:', (performance.now() - t0).toFixed(1), 'ms');
+    console.warn('[PERF] Password unlock total:', (performance.now() - t0).toFixed(1), 'ms');
   };
 
   // ==== 构建可用解锁方式列表 ====

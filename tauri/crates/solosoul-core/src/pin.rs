@@ -461,7 +461,9 @@ impl PinManager {
     /// PIN 是比主密码/生物识别弱的便捷因子，强因子的持有者有权重置自己的 PIN 锁定状态。
     pub fn reset_attempts(&self, account_id: &str) -> Result<(), PinError> {
         let config = self.read_config(account_id)?;
-        if !config.pin_enabled || (config.pin_failed_attempts == 0 && config.pin_locked_until.is_none()) {
+        if !config.pin_enabled
+            || (config.pin_failed_attempts == 0 && config.pin_locked_until.is_none())
+        {
             return Ok(());
         }
         self.update_config_field(account_id, |c| {
@@ -588,7 +590,8 @@ mod tests {
         // 锁定后尝试 PIN 解锁
         svc.lock();
         assert!(!svc.is_unlocked());
-        mgr.unlock_with_pin(&account_id, "123456", &svc, None, None).unwrap();
+        mgr.unlock_with_pin(&account_id, "123456", &svc, None, None)
+            .unwrap();
         assert!(svc.is_unlocked());
 
         assert!(mgr.is_configured(&account_id));

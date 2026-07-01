@@ -152,7 +152,7 @@ export function PasswordVerificationDialog({
     } else {
       setLoginMethod('password');
     }
-  }, [open, pinChecked, hasBiometric, pinAvailable]);
+  }, [open, pinChecked, hasBiometric, pinAvailable, biometricType]);
 
   const handlePinComplete = useCallback(async (pin: string) => {
     if (!pinAccountId) return;

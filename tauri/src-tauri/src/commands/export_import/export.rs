@@ -100,10 +100,17 @@ pub async fn export_get_scope_tree(
     // Filter out orphan UUID groups that belong to already-deleted custom pages.
     // These appear when a custom page was soft-deleted without its child objects
     // (pre-P0-1 bug), leaving orphan objects with section_type = page UUID.
-    let system_sections_set: std::collections::HashSet<&str> =
-        ["identity", "travel", "financial", "professional", "note", "document", "uncategorized"]
-            .into_iter()
-            .collect();
+    let system_sections_set: std::collections::HashSet<&str> = [
+        "identity",
+        "travel",
+        "financial",
+        "professional",
+        "note",
+        "document",
+        "uncategorized",
+    ]
+    .into_iter()
+    .collect();
 
     let mut remaining: Vec<(String, Vec<ObjectSummary>)> = groups
         .into_iter()

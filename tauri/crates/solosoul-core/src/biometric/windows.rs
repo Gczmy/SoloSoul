@@ -74,7 +74,9 @@ fn ensure_mta() -> Result<(), BiometricError> {
         }
     });
 
-    INIT.get().copied().unwrap_or(Err(()))
+    INIT.get()
+        .copied()
+        .unwrap_or(Err(()))
         .map_err(|_| BiometricError::Other("COM initialization failed".into()))?;
     Ok(())
 }

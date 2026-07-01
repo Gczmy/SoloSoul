@@ -513,7 +513,7 @@ export function TrashDetailPanel({
   onRequestDelete,
 }: TrashDetailPanelProps) {
   const { t } = useTranslation(['settings', 'common']);
-  const [viewingChildId, setViewingChildId] = useState<string | null>(null);
+  const [, setViewingChildId] = useState<string | null>(null);
   const [childDetail, setChildDetail] = useState<TrashDetail | null>(null);
   const [childLoading, setChildLoading] = useState(false);
 

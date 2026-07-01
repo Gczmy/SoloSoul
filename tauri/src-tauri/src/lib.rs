@@ -272,7 +272,9 @@ pub fn run() {
                 tauri::async_runtime::spawn(async move {
                     // 若未配置公钥则跳过，避免每次启动都报错
                     if std::env::var("SOLOSOUL_REGISTRY_PUBKEY").is_err() {
-                        tracing::debug!("[plugin] SOLOSOUL_REGISTRY_PUBKEY 未配置，跳过启动时注册表刷新");
+                        tracing::debug!(
+                            "[plugin] SOLOSOUL_REGISTRY_PUBKEY 未配置，跳过启动时注册表刷新"
+                        );
                         return;
                     }
                     // 若 1 小时内已刷新过则跳过
@@ -300,7 +302,10 @@ pub fn run() {
                                 let _ = std::fs::write(&last_update_path, b"");
                             }
                             Err(e) => {
-                                tracing::warn!("[plugin] 注册表后台刷新失败（将在下次手动刷新时重试）: {}", e)
+                                tracing::warn!(
+                                    "[plugin] 注册表后台刷新失败（将在下次手动刷新时重试）: {}",
+                                    e
+                                )
                             }
                         }
                     }
@@ -310,8 +315,7 @@ pub fn run() {
             // 8. 检测系统 locale（前端通过 IPC get_system_locale + navigator.language 获取）
             //     此前通过 window.eval 注入 __SOLOSOUL_LOCALE__ 的方式已被移除（P005），
             //     改为前端通过 IPC 调用 get_system_locale 获取，无需后端提前注入。
-            let locale =
-                commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
+            let locale = commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
             let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") {
                 "zh-CN"
             } else {

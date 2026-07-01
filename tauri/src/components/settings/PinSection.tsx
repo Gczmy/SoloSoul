@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { PinInput } from '@/components/forms/PinInput';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useAuthStore } from '@/stores/authStore';
-import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { KeyRound, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
@@ -19,7 +18,7 @@ const PIN_LENGTH = 6;
 
 export function PinSection({ accountId }: PinSectionProps) {
   const { t } = useTranslation(['settings', 'common']);
-  const { onError, onSuccess } = useToastError();
+  const { onSuccess } = useToastError();
 
   const [pinStatus, setPinStatus] = useState<{
     configured: boolean;
@@ -34,7 +33,6 @@ export function PinSection({ accountId }: PinSectionProps) {
   const [setupStep, setSetupStep] = useState<'enter_password' | 'enter_pin' | 'confirm_pin'>('enter_password');
   const [setupPassword, setSetupPassword] = useState('');
   const [setupPin1, setSetupPin1] = useState('');
-  const [setupPin2, setSetupPin2] = useState('');
   const [setupError, setSetupError] = useState<string | null>(null);
 
   // Disable flow
@@ -70,7 +68,6 @@ export function PinSection({ accountId }: PinSectionProps) {
     setSetupStep('enter_password');
     setSetupPassword('');
     setSetupPin1('');
-    setSetupPin2('');
     setSetupError(null);
     setShowSetup(true);
   };

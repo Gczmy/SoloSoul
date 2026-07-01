@@ -355,7 +355,9 @@ pub async fn trash_get_detail(
         let page_id = &trash.original_id;
         let mut children: Vec<TrashChildSummary> = all
             .into_iter()
-            .filter(|t| t.item_type == "object" && t.original_section_type.as_deref() == Some(page_id))
+            .filter(|t| {
+                t.item_type == "object" && t.original_section_type.as_deref() == Some(page_id)
+            })
             .filter_map(|t| {
                 // Look up full TrashItem to get original_id
                 let item_id = t.id.clone();

@@ -188,8 +188,7 @@ pub async fn inspect_backup(
     let mut decrypted_buf = Vec::new();
     solosoul_crypto::aes::decrypt_chunked_stream(&key, &mut encrypted_reader, &mut decrypted_buf)
         .map_err(|e| format!("Decryption failed: {}", e))?;
-    let json_str =
-        String::from_utf8(decrypted_buf).map_err(|e| format!("Invalid UTF-8: {}", e))?;
+    let json_str = String::from_utf8(decrypted_buf).map_err(|e| format!("Invalid UTF-8: {}", e))?;
 
     let mut obj_count = 0;
     let mut type_ids: Vec<String> = Vec::new();
