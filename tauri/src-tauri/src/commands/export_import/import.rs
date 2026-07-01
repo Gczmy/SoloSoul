@@ -383,6 +383,12 @@ async fn import_execute_internal(
         vault
             .save_object(&record)
             .map_err(|e| format!("save: {}", e))?;
+
+        // 为导入对象创建初始 snapshot，使历史记录 badge 正常显示
+        let snapshot_data =
+            serde_json::to_vec(&record).map_err(|e| format!("snapshot ser: {}", e))?;
+        let _ = vault.save_snapshot(id, "import", &snapshot_data, "Imported");
+
         imported += 1;
         imported_object_ids.insert(id.to_string());
     }
