@@ -1,16 +1,16 @@
 import ReactMarkdown from 'react-markdown';
-import type { Components } from 'react-markdown';
+import type { Components, Options as MarkdownOptions } from 'react-markdown';
 
 interface SafeMarkdownProps {
   children: string;
   /** Optional custom components for ReactMarkdown */
   components?: Components;
   /** Optional remark plugins (pass-through to ReactMarkdown) */
-  remarkPlugins?: any[];
+  remarkPlugins?: MarkdownOptions['remarkPlugins'];
   /** Optional rehype plugins (pass-through to ReactMarkdown) */
-  rehypePlugins?: any[];
+  rehypePlugins?: MarkdownOptions['rehypePlugins'];
   /** Optional URL transform function */
-  urlTransform?: (url: string) => string;
+  urlTransform?: MarkdownOptions['urlTransform'];
   /** Optional class name for the container */
   className?: string;
 }
