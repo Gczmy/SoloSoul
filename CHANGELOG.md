@@ -4,6 +4,30 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.8] - 2026-07-01
+
+### Added
+
+- **Windows Hello 生物识别** — 新增 Windows Hello 生物识别凭证存储与用户验证支持，基于 UserConsentVerifier + 本地加密文件存储。
+- **新手引导多页引导（PageGuide）** — 增强 PageGuide 组件，支持多步引导式帮助文档。
+
+### Changed
+
+- **登录优先级逻辑** — 登录方式按 Face ID > Touch ID > Windows Hello > PIN > 主密码优先级自动选择，仅显示一种登录界面，不再叠加。
+- **导出密码限制取消** — 导出时任何非空密码均可使用（>=1 字符），不再限制复杂度。
+- **PIN 验证动画重设计** — 验证横线使用渐变流 + 斜纹光斑动画效果，横线高度从 8px 减半至 4px。
+
+### Fixed
+
+- **锁定账户登录页面闪烁** — 全面消除 vault 锁定后重新挂载 LoginPage 的闪烁问题：模块级 `_cachedLoginMethod` 缓存登录方式跨卸载持久化、卡片 `minHeight: 420` 预留完整高度、账户选择器 `minHeight: 50` 预留空间、移除加载转圈、`!selectedAccountId` 时不再设置 `bioChecked`/`pinChecked` 保护缓存值不被覆盖。
+- **Windows 构建修复** — `ensure_mta()` 中 `?` 操作符无法将 `()` 转换为 `BiometricError`，改用 `map_err` 显式转换。
+- **Windows Hello 诊断日志** — 添加 Windows Hello 完整诊断与审计日志。
+
+### Chores
+
+- 版本号同步升级到 2.5.8。
+- 提交 `d633b1d1`、`08401af7`、`27e2ccdf`、`71686c2a`、`a3825bd7`。
+
 ## [2.5.7] - 2026-06-29
 
 ### Added
