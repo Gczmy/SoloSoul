@@ -135,7 +135,7 @@ export function PinInput({ length, onComplete, disabled, error, verifying }: Pin
           transition: 'opacity 0.25s ease',
         }}
       >
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: totalWidth, height: 8, borderRadius: 4, background: GRADIENT_LINE, backgroundSize: '150% 100%', animation: 'pin-flow 4s linear infinite' }}>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: totalWidth, height: 4, borderRadius: 2, background: GRADIENT_LINE, backgroundSize: '150% 100%', animation: 'pin-flow 4s linear infinite' }}>
           <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 4, background: 'repeating-linear-gradient(-45deg, transparent 0px, transparent 10px, rgba(255,255,255,0.25) 12px, transparent 14px)', animation: 'pin-ripple 0.8s linear infinite', mixBlendMode: 'overlay' }} />
         </div>
       </div>
