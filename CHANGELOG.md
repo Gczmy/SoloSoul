@@ -4,6 +4,39 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.9] - 2026-07-01
+
+### Added
+
+- **SafeMarkdown 安全组件** — 新增 `SafeMarkdown` 封装组件，统一配置 `disallowedElements={['script', 'style', 'iframe', 'object', 'embed']}`，替换 GuideRenderer/ChatMessageList/ChatMessageBubble 三处 ReactMarkdown 调用，加固 XSS 防护。
+
+### Changed
+
+- **PIN 码审计日志分类** — PIN 码查看关键信息的操作日志从 `critical_field_login`（密码登录）改为独立的 `critical_field_pin`（PIN 解锁），entityType 从 `biometric`（生物识别）改为 `auth`（认证），与主密码分类一致。
+- **Windows Hello 审计日志一致性** — 补全 Windows Hello 在所有审计日志路径中的映射，确保 `windows_hello_unlock` → `windowsHello` 类型映射、`writeCriticalAccessLog` 分支覆盖。
+- **关键数据访问对话框宽度** — `PasswordVerificationDialog` 的 `maxWidth` 从 480px 缩小至 360px，与登录页卡片宽度一致。Dialog 组件新增可选 `dialogStyle` prop。
+- **Prettier 全项目格式化** — `npm run format` 格式化 178 个前端文件（`.ts/.tsx/.css/.json`），消除格式检查失败。
+
+### Fixed
+
+- **代码审计 P001–P005 修复**：
+  - P001：`cargo fmt` 修复 9 个 Rust 文件格式（`biometric/windows.rs`、`pin.rs`、`biometric.rs`、`export.rs`、`fs.rs`、`snapshot.rs`、`tests.rs`、`commands/pin.rs`、`lib.rs`）
+  - P002：ESLint 10 个 warning 清零（`useEffect` 依赖补全、未使用变量/导入清理、`console.log` → `console.warn`）
+  - P003：Prettier 178 个文件格式化
+  - P004：legacy XOR key 添加 SECURITY 注释，标记为已知保留
+  - P005：创建 SafeMarkdown 组件替换三处 ReactMarkdown
+
+### Security
+
+- **SafeMarkdown XSS 加固** — `disallowedElements` 配置禁用 `script`/`style`/`iframe`/`object`/`embed` 标签，消除 ReactMarkdown 未来升级可能引入的风险。
+- **Legacy XOR key 文档化** — `legacy.rs` 中 `LEGACY_XOR_KEY` 添加安全注释说明：仅用于旧版文件单向解密迁移，解密后自动迁移到 per-account HKDF 派生 AES-256-GCM 新格式。
+
+### Chores
+
+- 版本号同步升级到 2.5.9。
+- 12 个 commit 自 v2.5.8（`642cad0a`）到 v2.5.9。
+- 提交 CHANGELOG 摘要：`08401af7`、`b7c44657`、`e25241c3`、`3df4fa20`、`52655f29`、`b1311812`、`3018af4b`、`d779b5c3`、`fa96d87e`、`3f57ca4f` 等。
+
 ## [2.5.8] - 2026-07-01
 
 ### Added
