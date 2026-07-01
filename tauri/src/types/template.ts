@@ -19,6 +19,11 @@ export type PropertyType =
 
 export type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
 
+export interface ContractRoleBinding {
+  contractTypeId: string;
+  roleId: string;
+}
+
 export interface TemplateProperty {
   id: string;
   name: string;
@@ -32,6 +37,8 @@ export interface TemplateProperty {
   deprecatedAt?: string;
   /** 插件合约字段映射 — 当此属性映射到插件合约中的字段时为 true。 */
   contractField?: boolean;
+  /** 新版绑定：一个字段可绑定到多个插件契约的多个角色。 */
+  contractBindings?: ContractRoleBinding[];
 }
 
 export interface UserTemplate {

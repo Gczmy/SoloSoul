@@ -1,6 +1,31 @@
 use super::helpers::*;
 use super::{FieldResolver, PluginError, VaultStore};
+use solosoul_vault::{TemplateProperty, UserTemplate};
 use std::sync::Arc;
+
+/// 查找提供指定 contract role 的模板属性。
+/// 优先新版 contract_bindings；其次回退 legacy contract_field + 字段 ID 匹配。
+fn find_property_for_role<'a>(
+    template: &'a UserTemplate,
+    ctid: &str,
+    role_id: &str,
+) -> Option<&'a TemplateProperty> {
+    // 1. 新版：字段声明了 contract_bindings 且包含 (ctid, role_id)
+    let role_match = template.properties.iter().find(|p| {
+        p.contract_bindings
+            .as_ref()
+            .map_or(false, |bs| bs.iter().any(|b| b.contract_type_id == ctid && b.role_id == role_id))
+    });
+    if role_match.is_some() {
+        return role_match;
+    }
+
+    // 2. 旧版兼容：字段 ID 等于 role_id 且 contract_field == true
+    template
+        .properties
+        .iter()
+        .find(|p| p.id == role_id && p.contract_field == Some(true))
+}
 
 impl FieldResolver {
     // ── Stage 4-B typed-lookup ──────────────────────────────────────────
@@ -94,21 +119,14 @@ impl FieldResolver {
         }
         objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
 
-        // 4. contract_field gate：仅标记了 contract_field=true 的属性可读
+        // 4. 通过 role binding 查询：新版 contract_bindings 优先，旧版 contract_field 兜底
         let prop_first = prop_path.split('.').next().unwrap_or("");
-        let prop = template
-            .properties
-            .iter()
-            .find(|p| p.id == prop_first)
-            .ok_or_else(|| {
-                PluginError::InvalidField(format!("contract {} 没有属性 {}", ctid, prop_first))
-            })?;
-        if prop.contract_field != Some(true) {
-            return Err(PluginError::InvalidField(format!(
-                "属性 {} 未声明为 contract_field（gate 拒绝）",
-                prop_first
-            )));
-        }
+        let prop = find_property_for_role(&template, &ctid, prop_first).ok_or_else(|| {
+            PluginError::InvalidField(format!(
+                "contract {} 没有角色 {} 的绑定字段",
+                ctid, prop_first
+            ))
+        })?;
 
         Ok(extract_property(&objects[0].properties, &prop_path))
     }
@@ -150,25 +168,19 @@ impl FieldResolver {
             .ok_or_else(|| PluginError::InvalidField(format!("未找到类型: {}", ctid)))?
             .clone();
 
-        let property = template
-            .properties
-            .into_iter()
-            .find(|p| p.id == prop_first)
-            .ok_or_else(|| {
-                PluginError::InvalidField(format!("类型 {} 中未找到属性: {}", ctid, prop_first))
+        // 通过 role binding 查询
+        let property =
+            find_property_for_role(&template, &ctid, &prop_first).ok_or_else(|| {
+                PluginError::InvalidField(format!(
+                    "contact {} 没有角色 {} 的绑定字段",
+                    ctid, prop_first
+                ))
             })?;
 
-        // contract_field gate
-        if property.contract_field != Some(true) {
-            return Err(PluginError::InvalidField(format!(
-                "属性 {} 未声明为 contract_field（gate 拒绝）",
-                prop_first
-            )));
-        }
-
-        let label = property.name;
+        let label = property.name.clone();
         let sensitivity = property
             .sensitivity_level
+            .clone()
             .unwrap_or_else(|| "internal".to_string());
         Ok((label, sensitivity))
     }

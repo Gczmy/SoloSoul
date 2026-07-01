@@ -45,6 +45,22 @@ export interface MarketPluginInfo {
   registryEntry: RegistryEntry;
 }
 
+export interface PluginContractRole {
+  roleId: string;
+  label?: string;
+  required?: boolean;
+  defaultPropertyId?: string;
+}
+
+export interface PluginContractBinding {
+  typeId: string;
+  version: number;
+  displayName?: string;
+  strictContractGate: boolean;
+  typeIdAliases: string[];
+  roles: PluginContractRole[];
+}
+
 export interface PluginManifest {
   id: string;
   name: string;
@@ -59,6 +75,8 @@ export interface PluginManifest {
   tier: PluginTier;
   category: string;
   params: PluginParam[];
+  /** 插件声明的合约列表（V2 新增字段，可为空/缺省） */
+  contracts?: PluginContractBinding[];
   customUi?: string;
 }
 

@@ -73,6 +73,7 @@ fn migrate_legacy_templates_if_needed(
                         // so existing templates don't break.
                         Some(TemplateProperty {
                             contract_field: None,
+                            contract_bindings: None,
                             id,
                             name,
                             prop_type: PropertyType::Text,
@@ -413,6 +414,7 @@ pub async fn template_save_from_object(
                     let prop_type = PropertyType::infer_from_value(value, key);
                     TemplateProperty {
                         contract_field: None,
+                        contract_bindings: None,
                         id: key.clone(),
                         name: key.clone(),
                         prop_type,

@@ -137,8 +137,9 @@ pub fn seed_default_templates(
         let properties: Vec<solosoul_vault::TemplateProperty> = st
             .properties
             .iter()
-            .map(|p| solosoul_vault::TemplateProperty {
+            .map(|p|                solosoul_vault::TemplateProperty {
                 contract_field: p.contract_field,
+                contract_bindings: None,
                 id: p.id.clone(),
                 name: p.name_fallback.clone(),
                 prop_type: solosoul_vault::PropertyType::parse(&p.prop_type)
@@ -245,6 +246,7 @@ mod tests {
             properties: vec![
                 solosoul_vault::TemplateProperty {
                     contract_field: None,
+                    contract_bindings: None,
                     id: "fullName".to_string(),
                     name: "Full Name".to_string(),
                     prop_type: solosoul_vault::PropertyType::Text,
@@ -255,6 +257,7 @@ mod tests {
                 },
                 solosoul_vault::TemplateProperty {
                     contract_field: None,
+                    contract_bindings: None,
                     id: "passportNumber".to_string(),
                     name: "Passport Number".to_string(),
                     prop_type: solosoul_vault::PropertyType::Text,
@@ -265,6 +268,7 @@ mod tests {
                 },
                 solosoul_vault::TemplateProperty {
                     contract_field: None,
+                    contract_bindings: None,
                     id: "nationality".to_string(),
                     name: "Nationality".to_string(),
                     prop_type: solosoul_vault::PropertyType::Text,
@@ -275,6 +279,7 @@ mod tests {
                 },
                 solosoul_vault::TemplateProperty {
                     contract_field: None,
+                    contract_bindings: None,
                     id: "dateOfBirth".to_string(),
                     name: "Date of Birth".to_string(),
                     prop_type: solosoul_vault::PropertyType::Text,

@@ -91,6 +91,7 @@ mod tests {
                 options: None,
                 deprecated_at: None,
                 contract_field: None,
+                contract_bindings: None,
             }],
             category: None,
             created_at: "now".to_string(),

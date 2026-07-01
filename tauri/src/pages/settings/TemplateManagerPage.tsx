@@ -14,7 +14,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { LayoutTemplate, Pencil, Plus, BookOpen, Search } from 'lucide-react';
-import type { UserTemplate, TemplateProperty, PropertyType } from '@/types/template';
+import type { UserTemplate, TemplateProperty, PropertyType, ContractRoleBinding } from '@/types/template';
 import { resolveCustomIcon } from '@/lib/pageIcons';
 import { SampleTemplateGallery } from '@/components/template/SampleTemplateGallery';
 import { SampleTemplateDetail } from '@/components/template/SampleTemplateDetail';
@@ -259,6 +259,16 @@ export function TemplateManagerPage() {
     setEditProperties((prev) =>
       prev.map((p, i) =>
         i === index ? { ...p, options: options.length > 0 ? options : undefined } : p,
+      ),
+    );
+  };
+
+  const updatePropertyContractBindings = (index: number, bindings: ContractRoleBinding[]) => {
+    setEditProperties((prev) =>
+      prev.map((p, i) =>
+        i === index
+          ? { ...p, contractBindings: bindings.length > 0 ? bindings : undefined }
+          : p,
       ),
     );
   };
@@ -541,6 +551,7 @@ export function TemplateManagerPage() {
           onUpdatePropertyType={updatePropertyType}
           onUpdatePropertySensitivity={updatePropertySensitivity}
           onUpdatePropertyOptions={updatePropertyOptions}
+          onUpdatePropertyContractBindings={updatePropertyContractBindings}
           onRemoveProperty={removeProperty}
           onRestoreProperty={restoreProperty}
           onPermanentlyRemoveProperty={permanentlyRemoveProperty}

@@ -1,7 +1,8 @@
 use super::*;
 use crate::plugin::manifest::PluginContractBinding;
 use solosoul_vault::{
-    ObjectRecord, PropertyType, TemplateProperty, UserTemplate, VaultConfig, VaultStore,
+    ContractRoleBinding, ObjectRecord, PropertyType, TemplateProperty, UserTemplate, VaultConfig,
+    VaultStore,
 };
 use std::sync::Arc;
 use tempfile::TempDir;
@@ -166,11 +167,11 @@ fn test_resolve_typed_happy_path() {
         id: "addr".to_string(),
         account_id: account_id.to_string(),
         name: "地址".to_string(),
-        icon_id: Some("map-pin".to_string()),
-        properties: vec![TemplateProperty {
-            contract_field: Some(true),
-            id: "street".to_string(),
-            name: "街道".to_string(),
+        icon_id: Some("map-pin".to_string()),        properties: vec![TemplateProperty {
+                contract_field: Some(true),
+                contract_bindings: None,
+                id: "street".to_string(),
+                name: "街道".to_string(),
             prop_type: PropertyType::Text,
             sensitivity_level: Some("internal".to_string()),
             sensitive: None,
@@ -256,11 +257,11 @@ fn test_resolve_typed_contract_field_false() {
         id: "addr".to_string(),
         account_id: account_id.to_string(),
         name: "地址".to_string(),
-        icon_id: None,
-        properties: vec![TemplateProperty {
-            contract_field: None, // 未标记为 contract_field
-            id: "street".to_string(),
-            name: "街道".to_string(),
+        icon_id: None,        properties: vec![TemplateProperty {
+                contract_field: None, // 未标记为 contract_field
+                contract_bindings: None,
+                id: "street".to_string(),
+                name: "街道".to_string(),
             prop_type: PropertyType::Text,
             sensitivity_level: Some("internal".to_string()),
             sensitive: None,
@@ -472,6 +473,316 @@ fn test_list_objects_typed_lookup_with_legacy_objects() {
         items[0]["properties"]["street"].as_str().unwrap(),
         "长安街1号"
     );
+}
+
+/// 新版 contract_bindings 解析：用户模板字段通过 contract_bindings 绑定到 plugin role
+#[test]
+fn test_resolve_typed_with_contract_bindings() {
+    let account_id = "acc_bindings";
+    let (_tmp, vault) = test_vault(account_id);
+
+    let now = chrono::Utc::now().to_rfc3339();
+    let now2 = now.clone();
+    // 用户自定义模板：字段 ID 为 "specificAddress"（不是 street），
+    // 通过 contract_bindings 声明绑定到 address-fmt/v1 的 street role
+    let template = UserTemplate {
+        contract_type_id: Some("com.solosoul.address/v1".to_string()),
+        id: "addr_tpl".to_string(),
+        account_id: account_id.to_string(),
+        name: "临时地址".to_string(),
+        icon_id: Some("map-pin".to_string()),
+        properties: vec![TemplateProperty {
+            contract_field: None, // 旧版标记为空
+            contract_bindings: Some(vec![ContractRoleBinding {
+                contract_type_id: "com.solosoul.address/v1".to_string(),
+                role_id: "street".to_string(),
+            }]),
+            id: "specificAddress".to_string(),
+            name: "具体地址".to_string(),
+            prop_type: PropertyType::Text,
+            sensitivity_level: Some("internal".to_string()),
+            sensitive: None,
+            options: None,
+            deprecated_at: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: now.clone(),
+        updated_at: Some(now),
+    };
+    vault.save_user_template(&template).unwrap();
+
+    let record = ObjectRecord {
+        contract_type_id: Some("com.solosoul.address/v1".to_string()),
+        id: "addr_1".to_string(),
+        account_id: account_id.to_string(),
+        type_id: "addr_tpl".to_string(),
+        section_type: "identity".to_string(),
+        name: "家".to_string(),
+        icon_name: "map-pin".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({"specificAddress": "123 Main St"}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        created_at: now.clone(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+    vault.save_object(&record).unwrap();
+
+    let contracts = vec![PluginContractBinding {
+        type_id: "com.solosoul.address/v1".to_string(),
+        type_id_aliases: vec!["addr_tpl".to_string()],
+        ..Default::default()
+    }];
+    let resolver = FieldResolver::with_vault_and_contracts(
+        vault,
+        account_id.to_string(),
+        vec!["addr_tpl.*".to_string()],
+        contracts,
+    );
+
+    let result = resolver.resolve("addr_tpl.specificAddress").unwrap();
+    assert_eq!(result, "123 Main St");
+}
+
+/// 旧版 contract_field = true 仍然可解析
+#[test]
+fn test_resolve_typed_legacy_contract_field_still_works() {
+    let account_id = "acc_legacy_field";
+    let (_tmp, vault) = test_vault(account_id);
+
+    let now = chrono::Utc::now().to_rfc3339();
+    let template = UserTemplate {
+        contract_type_id: Some("com.solosoul.address/v1".to_string()),
+        id: "addr".to_string(),
+        account_id: account_id.to_string(),
+        name: "地址".to_string(),
+        icon_id: Some("map-pin".to_string()),
+        properties: vec![TemplateProperty {
+            contract_field: Some(true), // 旧版标记
+            contract_bindings: None,
+            id: "street".to_string(),
+            name: "街道".to_string(),
+            prop_type: PropertyType::Text,
+            sensitivity_level: Some("internal".to_string()),
+            sensitive: None,
+            options: None,
+            deprecated_at: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: now.clone(),
+        updated_at: Some(now),
+    };
+    vault.save_user_template(&template).unwrap();
+
+    let record = ObjectRecord {
+        contract_type_id: Some("com.solosoul.address/v1".to_string()),
+        id: "addr_1".to_string(),
+        account_id: account_id.to_string(),
+        type_id: "addr".to_string(),
+        section_type: "identity".to_string(),
+        name: "家".to_string(),
+        icon_name: "map-pin".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({"street": "长安街1号"}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        created_at: now.clone(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+    vault.save_object(&record).unwrap();
+
+    let contracts = vec![PluginContractBinding {
+        type_id: "com.solosoul.address/v1".to_string(),
+        type_id_aliases: vec!["addr".to_string()],
+        ..Default::default()
+    }];
+    let resolver = FieldResolver::with_vault_and_contracts(
+        vault,
+        account_id.to_string(),
+        vec!["addr.*".to_string()],
+        contracts,
+    );
+
+    // 即使字段 ID 等于 role_id（legacy 模式），也应通过旧版路径找到
+    let result = resolver.resolve("addr.street").unwrap();
+    assert_eq!(result, "长安街1号");
+}
+
+/// 新版 binding 优先级高于旧版 contract_field + 字段 ID 匹配
+#[test]
+fn test_resolve_typed_role_binding_overrides_legacy_id() {
+    let account_id = "acc_override";
+    let (_tmp, vault) = test_vault(account_id);
+
+    let now = chrono::Utc::now().to_rfc3339();
+    // 模板同时包含旧版 street 字段和新版 specificAddress（绑定到 street role）
+    let template = UserTemplate {
+        contract_type_id: Some("com.solosoul.address/v1".to_string()),
+        id: "addr".to_string(),
+        account_id: account_id.to_string(),
+        name: "地址".to_string(),
+        icon_id: None,
+        properties: vec![
+            TemplateProperty {
+                contract_field: Some(true),
+                contract_bindings: None,
+                id: "street".to_string(),
+                name: "旧街道".to_string(),
+                prop_type: PropertyType::Text,
+                sensitivity_level: Some("internal".to_string()),
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+            },
+            TemplateProperty {
+                contract_field: None,
+                contract_bindings: Some(vec![ContractRoleBinding {
+                    contract_type_id: "com.solosoul.address/v1".to_string(),
+                    role_id: "street".to_string(),
+                }]),
+                id: "specificAddress".to_string(),
+                name: "具体地址".to_string(),
+                prop_type: PropertyType::Text,
+                sensitivity_level: Some("internal".to_string()),
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+            },
+        ],
+        category: Some("identity".to_string()),
+        created_at: now.clone(),
+        updated_at: Some(now),
+    };
+    vault.save_user_template(&template).unwrap();
+
+    // 新版 binding 对应的对象
+    let record = ObjectRecord {
+        contract_type_id: Some("com.solosoul.address/v1".to_string()),
+        id: "addr_1".to_string(),
+        account_id: account_id.to_string(),
+        type_id: "addr".to_string(),
+        section_type: "identity".to_string(),
+        name: "家".to_string(),
+        icon_name: "map-pin".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({"specificAddress": "456 Oak Ave", "street": "789 Pine St"}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        created_at: now.clone(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+    vault.save_object(&record).unwrap();
+
+    let contracts = vec![PluginContractBinding {
+        type_id: "com.solosoul.address/v1".to_string(),
+        type_id_aliases: vec!["addr".to_string()],
+        ..Default::default()
+    }];
+    let resolver = FieldResolver::with_vault_and_contracts(
+        vault,
+        account_id.to_string(),
+        vec!["addr.*".to_string()],
+        contracts,
+    );
+
+    // 解析 street role → 应返回 specificAddress（新版 binding 优先）而不是旧版 street 字段
+    let result = resolver.resolve("addr.street").unwrap();
+    assert_eq!(result, "456 Oak Ave", "新版 role binding 应优先于旧版 contract_field");
+}
+
+/// field_metadata_typed 通过 role binding 正确返回字段标签和敏感度
+#[test]
+fn test_field_metadata_typed_with_role_binding() {
+    let account_id = "acc_meta_binding";
+    let (_tmp, vault) = test_vault(account_id);
+
+    let now = chrono::Utc::now().to_rfc3339();
+    let template = UserTemplate {
+        contract_type_id: Some("com.solosoul.address/v1".to_string()),
+        id: "addr".to_string(),
+        account_id: account_id.to_string(),
+        name: "地址".to_string(),
+        icon_id: None,
+        properties: vec![TemplateProperty {
+            contract_field: None,
+            contract_bindings: Some(vec![ContractRoleBinding {
+                contract_type_id: "com.solosoul.address/v1".to_string(),
+                role_id: "street".to_string(),
+            }]),
+            id: "specificAddress".to_string(),
+            name: "具体地址".to_string(),
+            prop_type: PropertyType::Text,
+            sensitivity_level: Some("sensitive".to_string()),
+            sensitive: None,
+            options: None,
+            deprecated_at: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: now.clone(),
+        updated_at: Some(now),
+    };
+    vault.save_user_template(&template).unwrap();
+
+    let record = ObjectRecord {
+        contract_type_id: Some("com.solosoul.address/v1".to_string()),
+        id: "addr_1".to_string(),
+        account_id: account_id.to_string(),
+        type_id: "addr".to_string(),
+        section_type: "identity".to_string(),
+        name: "家".to_string(),
+        icon_name: "map-pin".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({"specificAddress": "123 Main St"}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        created_at: now.clone(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+    vault.save_object(&record).unwrap();
+
+    let contracts = vec![PluginContractBinding {
+        type_id: "com.solosoul.address/v1".to_string(),
+        type_id_aliases: vec!["addr".to_string()],
+        ..Default::default()
+    }];
+    let resolver = FieldResolver::with_vault_and_contracts(
+        vault,
+        account_id.to_string(),
+        vec!["addr.*".to_string()],
+        contracts,
+    );
+
+    let (label, sensitivity) = resolver.field_metadata("addr.specificAddress").unwrap();
+    assert_eq!(label, "具体地址");
+    assert_eq!(sensitivity, "sensitive");
 }
 
 /// parse_typed_field SECONDARY alias 路径（无 vault 模式）

@@ -64,6 +64,7 @@ mod tests {
             updated_at: Some("2024-06-01T00:00:00Z".to_string()),
             properties: vec![TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "fullName".to_string(),
                 name: field_name.to_string(),
                 prop_type: PropertyType::Text,

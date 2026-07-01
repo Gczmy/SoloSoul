@@ -127,6 +127,23 @@ impl PluginTier {
     }
 }
 
+/// 插件契约中的一个输入角色（语义槽位）。
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginContractRole {
+    /// 角色标识，如 "street"、"city"、"country"。
+    pub role_id: String,
+    /// 用户可见的标签，如 "街道 / Street"。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub label: Option<String>,
+    /// 该角色是否为插件运行所必需。
+    #[serde(default)]
+    pub required: bool,
+    /// 向后兼容：该角色默认对应的字段 ID。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_property_id: Option<String>,
+}
+
 /// 插件绑定的契约类型。空 vec 表示走 legacy `parse_type_property` 路径。
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
@@ -144,6 +161,28 @@ pub struct PluginContractBinding {
     /// 别名表：允许以短名（如 "address"）作为 typed 入口
     #[serde(default)]
     pub type_id_aliases: Vec<String>,
+    /// 该契约定义的角色列表。
+    #[serde(default)]
+    pub roles: Vec<PluginContractRole>,
+}
+
+impl PluginContractBinding {
+    /// 若 manifest 没有声明 roles，从 field_bindings 推导 legacy roles。
+    pub fn effective_roles(&self, manifest_field_bindings: &[PluginFieldBinding]) -> Vec<PluginContractRole> {
+        if !self.roles.is_empty() {
+            return self.roles.clone();
+        }
+        manifest_field_bindings
+            .iter()
+            .filter(|fb| fb.contract_type_id == self.type_id)
+            .map(|fb| PluginContractRole {
+                role_id: fb.property_id.clone(),
+                label: fb.abi_name.clone(),
+                required: false,
+                default_property_id: Some(fb.property_id.clone()),
+            })
+            .collect()
+    }
 }
 
 fn default_contract_version() -> u32 {

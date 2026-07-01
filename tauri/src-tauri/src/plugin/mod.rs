@@ -14,8 +14,9 @@ pub use solosoul_plugin::error::PluginError;
 // PluginEvent、FieldResolver、PluginRegistry、WasmSandbox 使用本地模块（Tauri 特有）
 pub use solosoul_plugin::manifest::{
     MarketPluginInfo, PluginAuditAction, PluginAuditEntry, PluginContractBinding,
-    PluginFieldBinding, PluginInstallResult, PluginLogLine, PluginManifest, PluginNetworkPolicy,
-    PluginParam, PluginResult, PluginResultPayload, PluginTier, RegistryEntry, RegistryVersion,
+    PluginContractRole, PluginFieldBinding, PluginInstallResult, PluginLogLine, PluginManifest,
+    PluginNetworkPolicy, PluginParam, PluginResult, PluginResultPayload, PluginTier, RegistryEntry,
+    RegistryVersion,
 };
 pub use solosoul_plugin::rate_limiter::{RateLimiter, RateLimiterMap};
 pub use solosoul_plugin::session::{PluginSession, PluginSessionInfo, PluginSessionManager};

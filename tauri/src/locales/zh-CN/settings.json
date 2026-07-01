@@ -684,5 +684,10 @@
   "llm_delete_model_title": "删除模型",
   "llm_delete_provider_body": "确定要删除此提供商吗？",
   "llm_delete_provider_title": "删除提供商",
-  "local_import": "本地导入"
+  "local_import": "本地导入",
+  "plugin_binding": "插件绑定",
+  "click_to_configure": "点击配置",
+  "select_plugin_contract": "选择插件契约",
+  "select_role": "选择角色",
+  "no_plugin_contracts_available": "暂无已安装的插件契约（需安装含有角色定义的插件）"
 }

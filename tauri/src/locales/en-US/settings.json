@@ -684,5 +684,10 @@
   "llm_delete_model_title": "Delete Model",
   "llm_delete_provider_body": "Are you sure you want to delete this provider?",
   "llm_delete_provider_title": "Delete Provider",
-  "local_import": "Local Import"
+  "local_import": "Local Import",
+  "plugin_binding": "Plugin Binding",
+  "click_to_configure": "Click to configure",
+  "select_plugin_contract": "Select plugin contract",
+  "select_role": "Select role",
+  "no_plugin_contracts_available": "No installed plugin contracts available (install a plugin with role definitions)"
 }

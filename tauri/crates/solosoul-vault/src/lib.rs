@@ -370,6 +370,16 @@ impl PropertyType {
     }
 }
 
+/// 模板字段到插件契约角色的绑定。
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ContractRoleBinding {
+    /// 插件契约类型 ID，如 "com.solosoul.official.address-fmt/v1"。
+    pub contract_type_id: String,
+    /// 契约内的角色 ID，如 "street"。
+    pub role_id: String,
+}
+
 /// A single property definition within a user template.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -398,6 +408,9 @@ pub struct TemplateProperty {
         skip_serializing_if = "Option::is_none"
     )]
     pub contract_field: Option<bool>,
+    /// 新版绑定：一个字段可绑定到多个插件契约的多个角色。
+    #[serde(default, skip_serializing_if = "Option::is_none", rename = "contractBindings")]
+    pub contract_bindings: Option<Vec<ContractRoleBinding>>,
 }
 
 /// A user-defined object template stored in the vault.
