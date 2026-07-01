@@ -97,7 +97,28 @@ pub async fn export_get_scope_tree(
     }
 
     // 3. Any remaining groups (uncategorized, etc.)
-    let mut remaining: Vec<(String, Vec<ObjectSummary>)> = groups.into_iter().collect();
+    // Filter out orphan UUID groups that belong to already-deleted custom pages.
+    // These appear when a custom page was soft-deleted without its child objects
+    // (pre-P0-1 bug), leaving orphan objects with section_type = page UUID.
+    let system_sections_set: std::collections::HashSet<&str> =
+        ["identity", "travel", "financial", "professional", "note", "document", "uncategorized"]
+            .into_iter()
+            .collect();
+
+    let mut remaining: Vec<(String, Vec<ObjectSummary>)> = groups
+        .into_iter()
+        .filter(|(key, _)| {
+            // Keep non-UUID keys (e.g. "uncategorized") and UUIDs that match known custom pages
+            if system_sections_set.contains(key.as_str()) {
+                return true;
+            }
+            if uuid::Uuid::parse_str(key).is_err() {
+                return true;
+            }
+            // UUID key: only keep if it's a known custom page
+            custom_pages.contains_key(key)
+        })
+        .collect();
     remaining.sort_by(|a, b| a.0.cmp(&b.0));
     for (st, objs) in remaining {
         result.push(PageGroup {

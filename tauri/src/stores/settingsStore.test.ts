@@ -247,7 +247,7 @@ describe('settingsStore', () => {
       expect(pages[1].deletedAt).toBeUndefined();
       expect(invoke).toHaveBeenCalledWith('page_delete', {
         accountId: 'acc-1',
-        sectionType: 'custom',
+        sectionType: 'p1',
         pageObjectId: 'p1',
       });
     });

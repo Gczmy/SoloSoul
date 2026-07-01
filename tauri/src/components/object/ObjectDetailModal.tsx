@@ -831,6 +831,11 @@ export function ObjectDetailModal({
         description={t('common:critical_access_desc')}
         confirmLabel={t('common:unlock')}
         hint={passwordHint}
+        pinAccountId={accountId}
+        onPinSuccess={() => {
+          pwResolveRef.current?.({ ok: true, method: 'password' });
+          setShowPwDialog(false);
+        }}
         biometricType={bioAvailable.available ? bioAvailable.biometryType : undefined}
         onBiometric={bioAvailable.available ? handleBiometricUnlock : undefined}
       />

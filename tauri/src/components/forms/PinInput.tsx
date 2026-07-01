@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 
 interface PinInputProps {
   length: number;
@@ -6,6 +6,10 @@ interface PinInputProps {
   disabled?: boolean;
   error?: boolean;
   verifying?: boolean;
+}
+
+export interface PinInputHandle {
+  focus: () => void;
 }
 
 /** 共用渐变横线 CSS 值 */
@@ -20,10 +24,19 @@ const GRADIENT_LINE =
 /**
  * 数字 PIN 码输入组件。
  * 一个隐藏 input 统一处理键盘/粘贴，纯视觉方框展示掩码 + 边框高亮指示当前输入位。
+ * 额外通过全局 keydown 监听器确保点击卡片外部空白区域后仍能正常输入。
  */
-export function PinInput({ length, onComplete, disabled, error, verifying }: PinInputProps) {
+export const PinInput = forwardRef<PinInputHandle, PinInputProps>(
+  function PinInput({ length, onComplete, disabled, error, verifying }, ref) {
   const [value, setValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const valueRef = useRef('');
+  // 保持 ref 与 state 同步，供全局 keydown 闭包读取最新值
+  valueRef.current = value;
+
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+  }), []);
 
   const activeIndex = Math.min(value.length, length - 1);
 
@@ -39,6 +52,37 @@ export function PinInput({ length, onComplete, disabled, error, verifying }: Pin
   const handleContainerClick = () => {
     inputRef.current?.focus();
   };
+
+  // 全局 keydown 监听器：当隐藏 input 失去焦点时，仍然能捕获数字键输入
+  useEffect(() => {
+    if (disabled || verifying) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 如果隐藏 input 已有焦点，让它的 onChange 处理（避免双重处理）
+      if (document.activeElement === inputRef.current) return;
+      // 如果焦点在其它输入框/文本区中，不干扰
+      const tag = (document.activeElement?.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        const next = (valueRef.current + e.key).slice(0, length);
+        setValue(next);
+        if (next.length === length) {
+          onComplete(next);
+        }
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        setValue(valueRef.current.slice(0, -1));
+      } else if (e.key === 'Enter' && valueRef.current.length > 0) {
+        e.preventDefault();
+        onComplete(valueRef.current);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [length, onComplete, disabled, verifying]);
 
   const totalWidth = length * 40 + (length - 1) * 8;
 
@@ -154,4 +198,4 @@ export function PinInput({ length, onComplete, disabled, error, verifying }: Pin
       `}</style>
     </div>
   );
-}
+});

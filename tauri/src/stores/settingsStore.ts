@@ -508,7 +508,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set((s) => ({ settings: { ...s.settings, customPages: pages } }));
     try {
       // P0-1: Use page_delete to create a "page" type trash item
-      await invoke('page_delete', { accountId, sectionType: 'custom', pageObjectId: pageId });
+      // sectionType must be the actual page UUID so that page_delete's sub-object
+      // matching (section_type == section_type || collection_type == section_type)
+      // correctly finds all child objects assigned to this custom page.
+      await invoke('page_delete', { accountId, sectionType: pageId, pageObjectId: pageId });
     } catch (e) {
       console.warn('[settingsStore] Failed to remove custom page:', pageId, e);
       set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));

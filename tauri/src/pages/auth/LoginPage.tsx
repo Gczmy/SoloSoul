@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
@@ -9,7 +9,7 @@ import { useCancellable } from '@/hooks/useCancellable';
 
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
-import { PinInput } from '@/components/forms/PinInput';
+import { PinInput, type PinInputHandle } from '@/components/forms/PinInput';
 import { Fingerprint, KeyRound } from 'lucide-react';
 import styles from './LoginPage.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
@@ -51,6 +51,7 @@ export function LoginPage() {
   const [pinUnlocking, setPinUnlocking] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinInputKey, setPinInputKey] = useState(0);
+  const pinInputRef = useRef<PinInputHandle>(null);
 
   useEffect(() => {
     // Defensive load: fetch the account list directly in case Vite HMR keeps
@@ -436,7 +437,7 @@ export function LoginPage() {
 
         {/* PIN unlock — shown when PIN is the highest available method or user chose it */}
         {loginMethod === 'pin' && (
-          <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 16 }} onClick={() => pinInputRef.current?.focus()}>
             <div
               style={{
                 display: 'flex',
@@ -455,6 +456,7 @@ export function LoginPage() {
                 {t('auth:pin_enter_title')}
               </span>
               <PinInput
+                ref={pinInputRef}
                 key={pinInputKey}
                 length={6}
                 onComplete={handlePinComplete}
