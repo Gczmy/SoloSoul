@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.5.9] - 2026-07-01
+
+### Added
+
+- **SafeMarkdown 安全组件** — 统一配置 XSS 防护，替换 ReactMarkdown 调用。
+
+### Changed
+
+- **PIN 审计日志独立** — 查看关键信息时记录 `critical_field_pin`，entityType 归入认证。
+- **Windows Hello 日志一致** — 补齐审计日志映射与 `writeCriticalAccessLog` 分支。
+- **对话框宽度** — PasswordVerificationDialog 缩窄至 360px，与登录卡片一致。
+
+### Performance
+
+- **PIN 解锁提速 70%** — KDF 参数统一后开发模式从 ~1472ms 降至 ~445ms。
+
+### Fixed
+
+- **PIN 关键字段展开** — PIN 解锁后关键字段被遮挡问题修复。
+- **Windows COM 错误** — `ensure_mta()` 类型转换修复。
+- **代码审计 P001-P005** — cargo fmt 9 文件、ESLint 清零、Prettier 178 文件、XOR key 注释、SafeMarkdown 加固。
+
+### Chores
+
+- 版本号同步升级到 2.5.9。
+
 ## [2.5.8] - 2026-07-01
 
 ### Added
@@ -25,6 +51,7 @@
 ### Chores
 
 - 版本号同步升级到 2.5.8。
+
 ## [2.5.7] - 2026-06-29
 
 ### Added
