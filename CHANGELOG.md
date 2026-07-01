@@ -15,12 +15,17 @@ All notable changes to SoloSoul are documented in this file.
 - **PIN 码审计日志分类** — PIN 码查看关键信息的操作日志从 `critical_field_login`（密码登录）改为独立的 `critical_field_pin`（PIN 解锁），entityType 从 `biometric`（生物识别）改为 `auth`（认证），与主密码分类一致。
 - **Windows Hello 审计日志一致性** — 补全 Windows Hello 在所有审计日志路径中的映射，确保 `windows_hello_unlock` → `windowsHello` 类型映射、`writeCriticalAccessLog` 分支覆盖。
 - **关键数据访问对话框宽度** — `PasswordVerificationDialog` 的 `maxWidth` 从 480px 缩小至 360px，与登录页卡片宽度一致。Dialog 组件新增可选 `dialogStyle` prop。
-- **Prettier 全项目格式化** — `npm run format` 格式化 178 个前端文件（`.ts/.tsx/.css/.json`），消除格式检查失败。
+
+### Performance
+
+- **PIN 解密性能优化** — `pin_kdf_config()` 改用 `KdfConfig::from_env()`，开发模式下 PIN 解锁从 ~1472ms 降至 ~445ms（降幅 70%）。
 
 ### Fixed
 
+- **PIN 解锁无法展开关键字段** — 修复 PIN 解锁成功后关键字段仍被遮挡的问题，新增全局 keydown 事件捕获确保口令对话框正常弹出。
+- **Windows COM 初始化错误类型** — 修复 `ensure_mta()` 中 `?` 操作符无法将 `()` 转换为 `BiometricError` 的编译错误，改用 `map_err` 显式转换。
 - **代码审计 P001–P005 修复**：
-  - P001：`cargo fmt` 修复 9 个 Rust 文件格式（`biometric/windows.rs`、`pin.rs`、`biometric.rs`、`export.rs`、`fs.rs`、`snapshot.rs`、`tests.rs`、`commands/pin.rs`、`lib.rs`）
+  - P001：`cargo fmt` 修复 9 个 Rust 文件格式
   - P002：ESLint 10 个 warning 清零（`useEffect` 依赖补全、未使用变量/导入清理、`console.log` → `console.warn`）
   - P003：Prettier 178 个文件格式化
   - P004：legacy XOR key 添加 SECURITY 注释，标记为已知保留
