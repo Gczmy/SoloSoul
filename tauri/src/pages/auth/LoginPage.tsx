@@ -231,7 +231,7 @@ export function LoginPage() {
     const t0 = performance.now();
     try {
       // pin_unlock 直接返回账户信息（id + name），省去额外 vault_list_accounts 调用
-      const acc = await invoke<AccountInfo>('pin_unlock', { accountId: selectedAccountId, pin });
+      const acc = await invoke<AccountInfo>('pin_unlock', { accountId: selectedAccountId, pin, location: 'login_page', action: 'unlock' });
       console.log('[PERF] PIN unlock total:', (performance.now() - t0).toFixed(1), 'ms');
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
       navigate('/');

@@ -73,8 +73,8 @@ function SnapshotCard({
   isFieldDeprecated: (fieldKey: string) => boolean;
   getFieldName: (fieldKey: string) => string;
   fieldOrder?: string[];
-  verifyPassword: () => Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' }>;
-  onCriticalAccess?: (fieldName: string, method: 'password' | 'touchId' | 'faceId') => void;
+  verifyPassword: () => Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin' }>;
+  onCriticalAccess?: (fieldName: string, method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin') => void;
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
   const { isRevealed, reveal } = useRevealState();
@@ -215,7 +215,7 @@ export interface HistoryViewerProps {
   objectName?: string;
   collectionType?: string;
   onClose: () => void;
-  passwordVerify: () => Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' }>;
+  passwordVerify: () => Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin' }>;
   getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
   isFieldDeprecated: (fieldKey: string) => boolean;
   getFieldName: (fieldKey: string) => string;
@@ -248,16 +248,20 @@ export function HistoryViewer({
 
   const writeCriticalAccessLog = async (
     fieldName: string,
-    method: 'password' | 'touchId' | 'faceId',
+    method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin',
   ) => {
     if (!objectName) return;
     const actionType =
       method === 'password'
         ? 'critical_field_login'
-        : method === 'touchId'
-          ? 'critical_field_touch_id'
-          : 'critical_field_face_id';
-    const entityType = method === 'password' ? 'auth' : 'biometric';
+        : method === 'pin'
+          ? 'critical_field_pin'
+          : method === 'touchId'
+            ? 'critical_field_touch_id'
+            : method === 'windowsHello'
+              ? 'critical_field_windows_hello'
+              : 'critical_field_face_id';
+    const entityType = method === 'password' || method === 'pin' ? 'auth' : 'biometric';
     const pageLabel = collectionType ? resolveCollectionLabelLocal(collectionType) : '';
     const details = `objectName=${objectName} page=${pageLabel} fieldName=${fieldName}`;
     try {

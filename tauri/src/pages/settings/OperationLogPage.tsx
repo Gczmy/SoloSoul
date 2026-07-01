@@ -56,7 +56,9 @@ function formatDetail(
       ? 'touchId'
       : entry.actionType === 'face_id_unlock'
         ? 'faceId'
-        : null;
+        : entry.actionType === 'windows_hello_unlock'
+          ? 'windowsHello'
+          : null;
   const key = bioTypeFromAction
     ? 'settings:log.detail.biometric_unlock'
     : `settings:log.detail.${entry.actionType}`;

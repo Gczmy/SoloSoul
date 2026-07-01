@@ -64,6 +64,8 @@ pub async fn pin_unlock(
     state: State<'_, AppState>,
     account_id: String,
     pin: String,
+    location: Option<String>,
+    action: Option<String>,
 ) -> Result<AccountSummary, String> {
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
@@ -72,7 +74,7 @@ pub async fn pin_unlock(
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         let manager = PinManager::new(svc.base_path().clone());
         manager
-            .unlock_with_pin(&account_id, &pin, &svc)
+            .unlock_with_pin(&account_id, &pin, &svc, location.as_deref(), action.as_deref())
             .map_err(map_pin_error)?;
         // 解锁成功后查找账户名返回
         let accounts = svc.list_accounts();

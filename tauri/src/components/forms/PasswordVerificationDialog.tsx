@@ -159,7 +159,7 @@ export function PasswordVerificationDialog({
     setPinUnlocking(true);
     setPinError(null);
     try {
-      await invoke('pin_unlock', { accountId: pinAccountId, pin });
+      await invoke('pin_unlock', { accountId: pinAccountId, pin, location: 'critical_data_access', action: 'unlock' });
       setPassword('');
       setPinError(null);
       onPinSuccess?.();

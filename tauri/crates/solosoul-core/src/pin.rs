@@ -248,6 +248,8 @@ impl PinManager {
         account_id: &str,
         pin: &str,
         vault_service: &VaultService,
+        location: Option<&str>,
+        action: Option<&str>,
     ) -> Result<(), PinError> {
         // 获取进程级互斥锁，确保失败计数器的读-改-写操作的原子性
         let _guard = PIN_OP_LOCK.lock().unwrap_or_else(|e| e.into_inner());
@@ -307,16 +309,24 @@ impl PinManager {
                     .unlock_with_session_key(account_id, &key)
                     .map_err(PinError::UnlockFailed)?;
 
-                // 写审计日志
-                if let Some(vg) = vault_service.get_vault_store() {
-                    let _ = vg.as_ref().log_structured(
-                        "pin_unlock",
-                        "auth",
-                        Some(account_id),
-                        None,
-                        "user",
-                        None,
+                // 关键数据访问场景由前端写 critical_field_login 审计日志，此处跳过通用日志避免重复。
+                // 与 biometric.rs 中 `location != "critical_data_access"` 的跳过逻辑一致。
+                if location != Some("critical_data_access") {
+                    let details = format!(
+                        "method=pin location={} action={}",
+                        location.unwrap_or("unknown"),
+                        action.unwrap_or("unlock")
                     );
+                    if let Some(vg) = vault_service.get_vault_store() {
+                        let _ = vg.as_ref().log_structured(
+                            "pin_unlock",
+                            "auth",
+                            Some(account_id),
+                            None,
+                            "user",
+                            Some(&details),
+                        );
+                    }
                 }
 
                 Ok(())
@@ -578,7 +588,7 @@ mod tests {
         // 锁定后尝试 PIN 解锁
         svc.lock();
         assert!(!svc.is_unlocked());
-        mgr.unlock_with_pin(&account_id, "123456", &svc).unwrap();
+        mgr.unlock_with_pin(&account_id, "123456", &svc, None, None).unwrap();
         assert!(svc.is_unlocked());
 
         assert!(mgr.is_configured(&account_id));
@@ -595,7 +605,7 @@ mod tests {
 
         // 错误 PIN
         assert!(matches!(
-            mgr.unlock_with_pin(&account_id, "000000", &svc),
+            mgr.unlock_with_pin(&account_id, "000000", &svc, None, None),
             Err(PinError::Incorrect)
         ));
 
@@ -614,7 +624,7 @@ mod tests {
 
         // 连续 5 次错误
         for _ in 0..5 {
-            let _ = mgr.unlock_with_pin(&account_id, "000000", &svc);
+            let _ = mgr.unlock_with_pin(&account_id, "000000", &svc, None, None);
         }
 
         let status = mgr.status(&account_id);
@@ -623,7 +633,7 @@ mod tests {
 
         // 锁定期间应返回 Locked
         assert!(matches!(
-            mgr.unlock_with_pin(&account_id, "123456", &svc),
+            mgr.unlock_with_pin(&account_id, "123456", &svc, None, None),
             Err(PinError::Locked)
         ));
     }
@@ -649,7 +659,7 @@ mod tests {
         assert!(!mgr.is_configured(&account_id));
 
         assert!(matches!(
-            mgr.unlock_with_pin(&account_id, "123456", &svc),
+            mgr.unlock_with_pin(&account_id, "123456", &svc, None, None),
             Err(PinError::NotConfigured)
         ));
     }

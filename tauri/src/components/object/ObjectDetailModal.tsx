@@ -106,7 +106,7 @@ export function ObjectDetailModal({
 
   const [showPwDialog, setShowPwDialog] = useState(false);
   const pwResolveRef = useRef<
-    ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null
+    ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin' }) => void) | null
   >(null);
   const pendingRevealRef = useRef<{ fieldId: string; fieldName: string } | null>(null);
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
@@ -182,7 +182,7 @@ export function ObjectDetailModal({
 
   const passwordVerify = useCallback(async (): Promise<{
     ok: boolean;
-    method: 'password' | 'touchId' | 'faceId';
+    method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
   }> => {
     return new Promise((resolve) => {
       pwResolveRef.current = resolve;
@@ -196,15 +196,19 @@ export function ObjectDetailModal({
 
 
   const writeCriticalAccessLog = useCallback(
-    async (method: 'password' | 'touchId' | 'faceId') => {
+    async (method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin') => {
       if (!accountId || !obj || !pendingRevealRef.current) return;
       const actionType =
         method === 'password'
           ? 'critical_field_login'
-          : method === 'touchId'
-            ? 'critical_field_touch_id'
-            : 'critical_field_face_id';
-      const entityType = method === 'password' ? 'auth' : 'biometric';
+          : method === 'pin'
+            ? 'critical_field_pin'
+            : method === 'touchId'
+              ? 'critical_field_touch_id'
+              : method === 'windowsHello'
+                ? 'critical_field_windows_hello'
+                : 'critical_field_face_id';
+      const entityType = method === 'password' || method === 'pin' ? 'auth' : 'biometric';
       const details = `objectName=${obj.name} page=${resolveCollectionLabelLocal(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName}`;
       try {
         await invoke('log_write', {
@@ -232,7 +236,7 @@ export function ObjectDetailModal({
         action: 'unlock',
         biometryType: bioAvailable.biometryType,
       });
-      const method = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
+      const method = (bioAvailable.biometryType as 'touchId' | 'faceId' | 'windowsHello') || 'touchId';
       pwResolveRef.current?.({ ok: true, method });
       return true;
     } catch {
@@ -833,7 +837,7 @@ export function ObjectDetailModal({
         hint={passwordHint}
         pinAccountId={accountId}
         onPinSuccess={() => {
-          pwResolveRef.current?.({ ok: true, method: 'password' });
+          pwResolveRef.current?.({ ok: true, method: 'pin' });
           setShowPwDialog(false);
         }}
         biometricType={bioAvailable.available ? bioAvailable.biometryType : undefined}
