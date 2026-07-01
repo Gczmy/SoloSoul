@@ -10,9 +10,19 @@ import { useCancellable } from '@/hooks/useCancellable';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinInput, type PinInputHandle } from '@/components/forms/PinInput';
-import { Fingerprint, KeyRound } from 'lucide-react';
+import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
 import styles from './LoginPage.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
+
+/** 生物识别类型的可读标签映射 */
+const BIOMETRIC_LABEL: Record<string, string> = {
+  faceId: 'Face ID',
+  touchId: 'Touch ID',
+  windowsHello: 'Windows Hello',
+};
+
+/** DEBUG: 设为 true 时，底部图标栏始终显示全部 5 种解锁方式，且生物识别卡片可切换显示全部 3 种 */
+const __DEBUG_SHOW_ALL = false;
 
 /** 模块级缓存 — 跨组件卸载持久化，避免锁定后重新挂载时闪烁 */
 let _cachedLoginMethod: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null = null;
@@ -52,6 +62,9 @@ export function LoginPage() {
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinInputKey, setPinInputKey] = useState(0);
   const pinInputRef = useRef<PinInputHandle>(null);
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
+  const [committedIcon, setCommittedIcon] = useState<string | null>(null);
+  const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Defensive load: fetch the account list directly in case Vite HMR keeps
@@ -186,17 +199,25 @@ export function LoginPage() {
     return cancel;
   }, [selectedAccountId, makeCancellable]);
 
+  // 卸载时清理悬停延迟定时器
+  useEffect(() => {
+    return () => {
+      if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+    };
+  }, []);
+
   // Set login method by priority after both checks complete
   useEffect(() => {
     if (!bioChecked || !pinChecked) return;
 
     // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
-    if (bioAvailable) {
-      if (biometryTypeRaw === 'faceId') setLoginMethod('faceId');
-      else if (biometryTypeRaw === 'touchId') setLoginMethod('touchId');
-      else if (biometryTypeRaw === 'windowsHello') setLoginMethod('windowsHello');
+    if (__DEBUG_SHOW_ALL || bioAvailable) {
+      const raw = __DEBUG_SHOW_ALL ? 'touchId' : biometryTypeRaw;
+      if (raw === 'faceId') setLoginMethod('faceId');
+      else if (raw === 'touchId') setLoginMethod('touchId');
+      else if (raw === 'windowsHello') setLoginMethod('windowsHello');
       else setLoginMethod('password');
-    } else if (pinAvailable) {
+    } else if (__DEBUG_SHOW_ALL || pinAvailable) {
       setLoginMethod('pin');
     } else {
       setLoginMethod('password');
@@ -207,17 +228,15 @@ export function LoginPage() {
     if (!selectedAccountId || pinUnlocking) return;
     setPinUnlocking(true);
     setPinError(null);
+    const t0 = performance.now();
     try {
-      await invoke('pin_unlock', { accountId: selectedAccountId, pin });
-      // Vault unlocked — set auth state
-      const accs = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
-      const acc = accs.find((a) => a.id === selectedAccountId) || {
-        id: selectedAccountId,
-        name: selectedAccountId,
-      };
-      useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
+      // pin_unlock 直接返回账户信息（id + name），省去额外 vault_list_accounts 调用
+      const acc = await invoke<AccountInfo>('pin_unlock', { accountId: selectedAccountId, pin });
+      console.log('[PERF] PIN unlock total:', (performance.now() - t0).toFixed(1), 'ms');
+      useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
       navigate('/');
     } catch (e) {
+      console.log('[PERF] PIN unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
       const msg = String(e);
       if (msg.includes('__PIN_ERR__:locked')) {
         setPinError(t('auth:pin_locked'));
@@ -240,6 +259,7 @@ export function LoginPage() {
     setBioLoading(true);
     setBioError(null);
     let success = false;
+    const t0 = performance.now();
     try {
       await invoke('biometric_unlock', {
         accountId: selectedAccountId,
@@ -255,9 +275,11 @@ export function LoginPage() {
       };
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
       success = true;
+      console.log('[PERF] Biometric unlock total:', (performance.now() - t0).toFixed(1), 'ms');
       // Navigate immediately to avoid showing the biometric UI after success
       navigate('/');
     } catch (e) {
+      console.log('[PERF] Biometric unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
       const msg = String(e);
       if (
         msg.toLowerCase().includes('cancelled') ||
@@ -283,7 +305,80 @@ export function LoginPage() {
       setSubmitError(t('auth:no_account_selected'));
       return;
     }
+    const t0 = performance.now();
     await login(selectedAccountId, password);
+    console.log('[PERF] Password unlock total:', (performance.now() - t0).toFixed(1), 'ms');
+  };
+
+  // ==== 构建可用解锁方式列表 ====
+  // 顺序：主密码 → Face ID → Touch ID → Windows Hello → PIN
+  const iconMethods: {
+    id: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password';
+    icon: React.ReactNode;
+    label: string;
+    onClick: () => void;
+  }[] = [];
+  // 1. 主密码（始终可用）
+  iconMethods.push({
+    id: 'password',
+    icon: <KeyRound size={ICON_SIZE.xl} />,
+    label: t('auth:password_method', { defaultValue: '主密码' }),
+    onClick: () => setLoginMethod('password'),
+  });
+  // 2. Face ID
+  if (__DEBUG_SHOW_ALL || (bioAvailable && biometryTypeRaw === 'faceId')) {
+    iconMethods.push({
+      id: 'faceId',
+      icon: <ScanFace size={ICON_SIZE.xl} />,
+      label: 'Face ID',
+      onClick: () => { setLoginMethod('faceId'); setBioError(null); },
+    });
+  }
+  // 3. Touch ID
+  if (__DEBUG_SHOW_ALL || (bioAvailable && biometryTypeRaw === 'touchId')) {
+    iconMethods.push({
+      id: 'touchId',
+      icon: <Fingerprint size={ICON_SIZE.xl} />,
+      label: 'Touch ID',
+      onClick: () => { setLoginMethod('touchId'); setBioError(null); },
+    });
+  }
+  // 4. Windows Hello
+  if (__DEBUG_SHOW_ALL || (bioAvailable && biometryTypeRaw === 'windowsHello')) {
+    iconMethods.push({
+      id: 'windowsHello',
+      icon: <ShieldCheck size={ICON_SIZE.xl} />,
+      label: 'Windows Hello',
+      onClick: () => { setLoginMethod('windowsHello'); setBioError(null); },
+    });
+  }
+  // 5. PIN 码
+  if (__DEBUG_SHOW_ALL || pinAvailable) {
+    iconMethods.push({
+      id: 'pin',
+      icon: <Grip size={ICON_SIZE.xl} />,
+      label: t('auth:pin_method', { defaultValue: 'PIN 码' }),
+      onClick: () => { setLoginMethod('pin'); setPinError(null); },
+    });
+  }
+
+  // 两阶段悬停：边框/颜色立即高亮，文字/展开延迟 300ms 后触发
+  const handleIconEnter = (id: string) => {
+    setHoveredIcon(id);
+    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+    commitTimerRef.current = setTimeout(() => {
+      setCommittedIcon(id);
+      commitTimerRef.current = null;
+    }, 300);
+  };
+
+  const handleIconLeave = () => {
+    setHoveredIcon(null);
+    setCommittedIcon(null);
+    if (commitTimerRef.current) {
+      clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
   };
 
   return (
@@ -306,6 +401,7 @@ export function LoginPage() {
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
+          overflow: 'hidden',
         }}
       >
         <ShieldLogo size={ICON_SIZE['5xl']} style={{ margin: '0 auto 16px' }} />
@@ -372,7 +468,15 @@ export function LoginPage() {
 
         {/* Biometric unlock — highest-priority method */}
         {(loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello') && (
-          <div style={{ marginBottom: 16 }}>
+          <div
+            style={{
+              minHeight: 152,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              marginBottom: 16,
+            }}
+          >
             <button
               onClick={handleBiometricUnlock}
               disabled={bioLoading}
@@ -381,6 +485,7 @@ export function LoginPage() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: 12,
                 padding: '20px 24px',
                 borderRadius: 14,
@@ -390,59 +495,46 @@ export function LoginPage() {
                 width: '100%',
               }}
             >
-              <Fingerprint
-                size={ICON_SIZE['4xl']}
-                color="var(--accent-primary)"
-                style={{ opacity: bioLoading ? 0.5 : 1 }}
-              />
+              {loginMethod === 'faceId' && (
+                <ScanFace size={ICON_SIZE['4xl']} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
+              )}
+              {loginMethod === 'touchId' && (
+                <Fingerprint size={ICON_SIZE['4xl']} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
+              )}
+              {loginMethod === 'windowsHello' && (
+                <ShieldCheck size={ICON_SIZE['4xl']} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
+              )}
               <span style={{ fontSize: 'var(--text-card-title)', fontWeight: 500, color: 'var(--text-primary)' }}>
                 {bioLoading
                   ? t('auth:bio_verifying')
-                  : t('auth:bio_unlock_reason', { type: biometryType })}
+                  : t('auth:bio_unlock_reason', {
+                      type: loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello'
+                        ? BIOMETRIC_LABEL[loginMethod] || loginMethod
+                        : biometryType,
+                    })}
               </span>
-            </button>
-            {/* Fallback: PIN (lower priority than biometric) */}
-            {pinAvailable && (
-              <button
-                onClick={() => setLoginMethod('pin')}
-                className={styles.loginTextButton}
-                style={{
-                  marginTop: 12,
-                  fontSize: 'var(--text-body-sm)',
-                  color: 'var(--text-tertiary)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                {t('auth:use_pin_instead')}
-              </button>
-            )}
-            <button
-              onClick={() => setLoginMethod('password')}
-              className={styles.loginTextButton}
-              style={{
-                marginTop: 4,
-                fontSize: 'var(--text-body-sm)',
-                color: 'var(--text-tertiary)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {t('auth:use_password_instead')}
             </button>
           </div>
         )}
 
         {/* PIN unlock — shown when PIN is the highest available method or user chose it */}
         {loginMethod === 'pin' && (
-          <div style={{ marginBottom: 16 }} onClick={() => pinInputRef.current?.focus()}>
+          <div
+            style={{
+              minHeight: 152,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              marginBottom: 16,
+            }}
+            onClick={() => pinInputRef.current?.focus()}
+          >
             <div
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: 12,
                 padding: '16px 24px 20px',
                 borderRadius: 14,
@@ -451,7 +543,7 @@ export function LoginPage() {
                 width: '100%',
               }}
             >
-              <KeyRound size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
+              <Grip size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
               <span style={{ fontSize: 'var(--text-card-title)', fontWeight: 500, color: 'var(--text-primary)' }}>
                 {t('auth:pin_enter_title')}
               </span>
@@ -470,47 +562,20 @@ export function LoginPage() {
                 </div>
               )}
             </div>
-            {/* Fallback: biometric (higher priority, show as quick switch) */}
-            {bioAvailable && (
-              <button
-                onClick={() => {
-                  if (biometryTypeRaw === 'faceId') setLoginMethod('faceId');
-                  else if (biometryTypeRaw === 'touchId') setLoginMethod('touchId');
-                  else if (biometryTypeRaw === 'windowsHello') setLoginMethod('windowsHello');
-                  setPinError(null);
-                }}
-                className={styles.loginTextButton}
-                style={{
-                  marginTop: 8,
-                  fontSize: 'var(--text-body-sm)',
-                  color: 'var(--text-tertiary)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                {t('auth:use_biometric_instead', { type: biometryType })}
-              </button>
-            )}
-            <button
-              onClick={() => { setLoginMethod('password'); setPinError(null); }}
-              className={styles.loginTextButton}
-              style={{
-                marginTop: 4,
-                fontSize: 'var(--text-body-sm)',
-                color: 'var(--text-tertiary)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              {t('auth:use_password_instead')}
-            </button>
           </div>
         )}
 
         {/* Password input — 最低优先级；初始化或缓存回退时也显示，避免白屏 */}
         {(loginMethod === 'password' || loginMethod === null) && (
+          <div
+            style={{
+              minHeight: 152,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              marginBottom: 16,
+            }}
+          >
           <form
             onSubmit={handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
@@ -572,45 +637,93 @@ export function LoginPage() {
             >
               {isLoading ? t('common:loading', { defaultValue: '...' }) : t('auth:login_button')}
             </button>
-            {bioAvailable && (
-              <button
-                onClick={() => {
-                  if (biometryTypeRaw === 'faceId') setLoginMethod('faceId');
-                  else if (biometryTypeRaw === 'touchId') setLoginMethod('touchId');
-                  else if (biometryTypeRaw === 'windowsHello') setLoginMethod('windowsHello');
-                  setBioError(null);
-                }}
-                className={styles.loginTextButton}
-                style={{
-                  fontSize: 'var(--text-body-sm)',
-                  color: 'var(--text-tertiary)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                {t('auth:use_biometric_instead', { type: biometryType })}
-              </button>
-            )}
-            {pinAvailable && (
-              <button
-                onClick={() => {
-                  setLoginMethod('pin');
-                  setPinError(null);
-                }}
-                className={styles.loginTextButton}
-                style={{
-                  fontSize: 'var(--text-body-sm)',
-                  color: 'var(--text-tertiary)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                {t('auth:use_pin_instead')}
-              </button>
-            )}
           </form>
+          </div>
+        )}
+
+        {/* ===== 底部图标栏 — 切换解锁方式 ===== */}
+        {loginMethod !== null && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 6,
+              paddingTop: 12,
+              marginTop: 'auto',
+              borderTop: '1px solid var(--border-subtle)',
+              justifyContent: 'flex-start',
+              overflow: 'hidden',
+              maxWidth: '100%',
+            }}
+          >
+            {iconMethods.map((method) => {
+              const isActive = loginMethod === method.id;
+              const isHovered = hoveredIcon === method.id;
+              const isExpanded = committedIcon === method.id;
+
+              return (
+                <button
+                  key={method.id}
+                  aria-label={method.label}
+                  onClick={() => {
+                    setHoveredIcon(null);
+                    setCommittedIcon(null);
+                    if (commitTimerRef.current) {
+                      clearTimeout(commitTimerRef.current);
+                      commitTimerRef.current = null;
+                    }
+                    method.onClick();
+                  }}
+                  onMouseEnter={() => handleIconEnter(method.id)}
+                  onMouseLeave={handleIconLeave}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 10px',
+                    borderRadius: 8,
+                    border: `1px solid ${
+                      isHovered
+                        ? 'var(--accent-primary)'
+                        : isActive
+                          ? 'color-mix(in srgb, var(--accent-primary) 40%, transparent)'
+                          : 'transparent'
+                    }`,
+                    background: isActive
+                      ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
+                      : 'transparent',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontSize: 'var(--text-body-sm)',
+                    color: isHovered
+                      ? 'var(--accent-primary)'
+                      : isActive
+                        ? 'var(--text-primary)'
+                        : 'var(--text-tertiary)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    maxWidth: isExpanded ? 200 : 40,
+                    transition: isExpanded || (!isHovered && !isExpanded) ? 'all 0.25s ease' : 'all 0.25s ease, max-width 0.01s linear 0.2s',
+                    flexShrink: 0,
+                    outline: 'none',
+                  }}
+                >
+                  <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                    {method.icon}
+                  </span>
+                  <span
+                    style={{
+                      opacity: isExpanded ? 1 : 0,
+                      transition: 'opacity 0.2s ease 0.05s',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {method.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

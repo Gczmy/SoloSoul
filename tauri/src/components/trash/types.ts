@@ -21,6 +21,14 @@ export interface TrashDetail {
   attachments: TrashAttachment[];
   deletedAttachments: TrashAttachment[];
   snapshots: SnapshotEntry[];
+  childItems: TrashChildSummary[];
+}
+
+export interface TrashChildSummary {
+  id: string;
+  originalId: string;
+  name: string;
+  itemType: string;
 }
 
 export interface TrashAttachment {

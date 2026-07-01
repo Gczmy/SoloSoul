@@ -971,6 +971,7 @@ fn test_trash_detail_serialization() {
         }],
         deleted_attachments: vec![],
         snapshots: vec![serde_json::json!({"id": "snap-1", "timestamp": 0})],
+        child_items: vec![],
     };
     let json = serde_json::to_string(&detail).unwrap();
     assert!(json.contains("\"id\":\"trash_001\""));
@@ -985,6 +986,134 @@ fn test_trash_detail_serialization() {
     assert!(json.contains("\"attachments\""));
     assert!(json.contains("\"deletedAttachments\""));
     assert!(json.contains("\"snapshots\""));
+}
+
+#[test]
+fn test_trash_page_detail_includes_children() {
+    let (vault, _dir) = setup_vault();
+    let page_id = "custom-page-uuid-1234";
+    let section = page_id;
+
+    // Save child objects that belong to the page
+    for i in 0..3 {
+        let record = ObjectRecord {
+            contract_type_id: None,
+            id: format!("child-obj-{}", i),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: section.to_string(),
+            name: format!("Child Object {}", i),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"idx": i}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&record).unwrap();
+    }
+
+    let now_ms = chrono::Utc::now().timestamp_millis();
+
+    // Create page trash item (page type)
+    let page_trash = TrashItem {
+        id: "trash_page_001".to_string(),
+        item_type: "page".to_string(),
+        original_id: page_id.to_string(),
+        original_parent_id: None,
+        original_section_type: Some("page".to_string()),
+        original_sort_order: None,
+        data: serde_json::to_vec(&serde_json::json!({"name": "My Custom Page"})).unwrap_or_default(),
+        deleted_at: now_ms,
+        expires_at: Some(now_ms + retention_ms("30d")),
+        deleted_by: "user".to_string(),
+        name_snapshot: "My Custom Page".to_string(),
+        icon_snapshot: Some("folder".to_string()),
+    };
+    vault.save_trash_item(&page_trash).unwrap();
+
+    // Create child object trash items (matching original_section_type == page_id)
+    for i in 0..3 {
+        let rec = vault.load_object(&format!("child-obj-{}", i)).unwrap().unwrap();
+        let full_record = serde_json::json!({
+            "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
+            "section_type": rec.section_type, "name": rec.name, "icon_name": rec.icon_name,
+            "properties": rec.properties,
+        });
+        let trash = TrashItem {
+            id: format!("trash_child_{}", i),
+            item_type: "object".to_string(),
+            original_id: rec.id.clone(),
+            original_parent_id: None,
+            original_section_type: Some(rec.section_type.clone()),
+            original_sort_order: None,
+            data: serde_json::to_vec(&full_record).unwrap_or_default(),
+            deleted_at: now_ms,
+            expires_at: Some(now_ms + retention_ms("30d")),
+            deleted_by: "user".to_string(),
+            name_snapshot: rec.name.clone(),
+            icon_snapshot: Some(rec.icon_name.clone()),
+        };
+        vault.save_trash_item(&trash).unwrap();
+        vault.delete_object(&rec.id, true).unwrap();
+    }
+
+    // Also create an unrelated trash item that should NOT appear in children
+    let unrelated_trash = TrashItem {
+        id: "trash_unrelated".to_string(),
+        item_type: "object".to_string(),
+        original_id: "unrelated-obj".to_string(),
+        original_parent_id: None,
+        original_section_type: Some("other-page".to_string()),
+        original_sort_order: None,
+        data: vec![],
+        deleted_at: now_ms,
+        expires_at: Some(now_ms + retention_ms("30d")),
+        deleted_by: "user".to_string(),
+        name_snapshot: "Unrelated".to_string(),
+        icon_snapshot: None,
+    };
+    vault.save_trash_item(&unrelated_trash).unwrap();
+
+    // Fetch and verify: replicate trash_get_detail child logic
+    let page_item = vault.get_trash_item("trash_page_001").unwrap().unwrap();
+    assert_eq!(page_item.item_type, "page");
+
+    let all = vault.list_trash_items(None, None).unwrap();
+    let children: Vec<TrashChildSummary> = all
+        .into_iter()
+        .filter(|t| t.item_type == "object" && t.original_section_type.as_deref() == Some(page_id))
+        .filter_map(|t| {
+            let item_id = t.id.clone();
+            match vault.get_trash_item(&item_id) {
+                Ok(Some(full)) => Some(TrashChildSummary {
+                    id: item_id,
+                    original_id: full.original_id,
+                    name: t.name,
+                    item_type: t.item_type,
+                }),
+                _ => None,
+            }
+        })
+        .collect::<Vec<_>>();
+    let mut children = children;
+    children.sort_by(|a, b| a.name.cmp(&b.name));
+
+    assert_eq!(children.len(), 3, "Should return 3 child objects for the page");
+    assert!(children.iter().any(|c| c.name == "Child Object 0"));
+    assert!(children.iter().any(|c| c.name == "Child Object 1"));
+    assert!(children.iter().any(|c| c.name == "Child Object 2"));
+    // Verify names are sorted
+    let names: Vec<&str> = children.iter().map(|c| c.name.as_str()).collect();
+    assert_eq!(names, vec!["Child Object 0", "Child Object 1", "Child Object 2"]);
 }
 
 #[test]

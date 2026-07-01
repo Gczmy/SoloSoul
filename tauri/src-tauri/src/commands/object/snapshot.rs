@@ -164,6 +164,16 @@ pub async fn trash_set_retention(state: State<'_, AppState>, period: String) -> 
     Ok(())
 }
 
+/// Summary of a child object belonging to a deleted custom page.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TrashChildSummary {
+    pub id: String,
+    pub original_id: String,
+    pub name: String,
+    pub item_type: String,
+}
+
 /// Get full detail of a trash item including preview data.
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -185,6 +195,8 @@ pub struct TrashDetail {
     pub deleted_attachments: Vec<TrashAttachmentInfo>,
     /// Snapshots from object_snapshots table
     pub snapshots: Vec<serde_json::Value>,
+    /// Child objects for page-type trash items (empty for non-page)
+    pub child_items: Vec<TrashChildSummary>,
 }
 
 #[derive(Serialize)]
@@ -337,6 +349,33 @@ pub async fn trash_get_detail(
     })();
     let (attachments, deleted_attachments) = parsed.unwrap_or_default();
 
+    // Fetch child items for page-type trash
+    let child_items: Vec<TrashChildSummary> = if trash.item_type == "page" {
+        let all = vault.list_trash_items(None, None).unwrap_or_default();
+        let page_id = &trash.original_id;
+        let mut children: Vec<TrashChildSummary> = all
+            .into_iter()
+            .filter(|t| t.item_type == "object" && t.original_section_type.as_deref() == Some(page_id))
+            .filter_map(|t| {
+                // Look up full TrashItem to get original_id
+                let item_id = t.id.clone();
+                match vault.get_trash_item(&item_id) {
+                    Ok(Some(full)) => Some(TrashChildSummary {
+                        id: item_id,
+                        original_id: full.original_id,
+                        name: t.name,
+                        item_type: t.item_type,
+                    }),
+                    _ => None,
+                }
+            })
+            .collect();
+        children.sort_by(|a, b| a.name.cmp(&b.name));
+        children
+    } else {
+        Vec::new()
+    };
+
     // Fetch snapshots
     let snapshots = vault.list_snapshots(&trash.original_id).unwrap_or_default();
 
@@ -364,6 +403,7 @@ pub async fn trash_get_detail(
         attachments,
         deleted_attachments,
         snapshots,
+        child_items,
     })
 }
 

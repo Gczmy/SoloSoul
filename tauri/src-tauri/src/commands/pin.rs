@@ -5,6 +5,7 @@
 
 use crate::state::AppState;
 use solosoul_core::pin::{PinError, PinManager, PinStatus};
+use solosoul_core::AccountSummary;
 use tauri::State;
 
 const PIN_ERR_PREFIX: &str = "__PIN_ERR__:";
@@ -57,13 +58,13 @@ pub async fn pin_setup(
     .map_err(|e| format!("pin_setup task failed: {}", e))?
 }
 
-/// 使用 PIN 码解锁 Vault。
+/// 使用 PIN 码解锁 Vault，返回账户信息（id + name），省去前端额外调用 vault_list_accounts。
 #[tauri::command]
 pub async fn pin_unlock(
     state: State<'_, AppState>,
     account_id: String,
     pin: String,
-) -> Result<(), String> {
+) -> Result<AccountSummary, String> {
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
         let svc = vault_service
@@ -72,7 +73,13 @@ pub async fn pin_unlock(
         let manager = PinManager::new(svc.base_path().clone());
         manager
             .unlock_with_pin(&account_id, &pin, &svc)
-            .map_err(map_pin_error)
+            .map_err(map_pin_error)?;
+        // 解锁成功后查找账户名返回
+        let accounts = svc.list_accounts();
+        accounts
+            .into_iter()
+            .find(|a| a.id == account_id)
+            .ok_or_else(|| "Account not found after PIN unlock".to_string())
     })
     .await
     .map_err(|e| format!("pin_unlock task failed: {}", e))?

@@ -96,13 +96,10 @@ impl PinError {
     }
 }
 
-/// PIN 的 KDF 配置：约 100ms 的计算时间。
+/// PIN 的 KDF 配置：与主密码解锁保持一致，由环境变量控制。
+/// - 开发模式（默认）：8 MiB, 2 iter（通过 `SOLOSOUL_SECURE=1` 切换生产模式）
 fn pin_kdf_config() -> KdfConfig {
-    KdfConfig {
-        memory_kb: 65536,
-        iterations: 3,
-        parallelism: 4,
-    }
+    KdfConfig::from_env()
 }
 
 /// 管理 PIN 凭证的创建、验证、锁定状态等。

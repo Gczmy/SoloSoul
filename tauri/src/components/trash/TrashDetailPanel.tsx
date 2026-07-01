@@ -9,11 +9,11 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
-import { X, RotateCcw, ChevronLeft, ChevronRight, Image, FileText, Paperclip } from 'lucide-react';
+import { X, RotateCcw, ChevronLeft, ChevronRight, Image, FileText, Paperclip, FolderOpen, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatBytes } from '@/lib/format';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
-import type { TrashDetail, SnapshotEntry, TrashAttachment } from './types';
+import type { TrashDetail, SnapshotEntry, TrashAttachment, TrashChildSummary } from './types';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 
@@ -40,13 +40,24 @@ interface TrashDetailPanelProps {
   onRequestDelete: (id: string) => void;
 }
 
-export function TrashDetailPanel({
-  detailItem,
+/** Shared content block reused for the main item and drilled-down child item. */
+function ObjectDetailContent({
+  item,
   detailTemplate,
   onClose,
   onRequestRestore,
   onRequestDelete,
-}: TrashDetailPanelProps) {
+  showBackButton,
+  onBack,
+}: {
+  item: TrashDetail;
+  detailTemplate: UserTemplate | null;
+  onClose: () => void;
+  onRequestRestore: (id: string) => void;
+  onRequestDelete: (id: string) => void;
+  showBackButton?: boolean;
+  onBack?: () => void;
+}) {
   const { t } = useTranslation(['settings', 'common', 'editor', 'navigation']);
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
@@ -78,20 +89,453 @@ export function TrashDetailPanel({
     }
   };
 
-  const currentSnapIdx = historySnapIndex[detailItem.id] ?? 0;
+  const currentSnapIdx = historySnapIndex[item.id] ?? 0;
 
-  // Load first snapshot when panel opens; skip if already cached for this item
+  // Load first snapshot when mounted; skip if already cached
   useEffect(() => {
-    if (detailItem.snapshots.length > 0 && !historySnapData[detailItem.id]) {
-      loadSnapshotData(detailItem.id, detailItem.snapshots[0].id);
+    if (item.snapshots.length > 0 && !historySnapData[item.id]) {
+      loadSnapshotData(item.id, item.snapshots[0].id);
     }
-    // P212: historySnapData[detailItem.id] intentionally omitted — adding it would
-    // cause infinite loop since loadSnapshotData calls setHistorySnapData.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detailItem.id, detailItem.snapshots, loadSnapshotData]);
+  }, [item.id, item.snapshots, loadSnapshotData]);
 
-  const activeAttachments: TrashAttachment[] = detailItem.attachments;
-  const deletedAttachments: TrashAttachment[] = detailItem.deletedAttachments;
+  const activeAttachments: TrashAttachment[] = item.attachments;
+  const deletedAttachments: TrashAttachment[] = item.deletedAttachments;
+
+  return (
+    <>
+      {/* Back button (child drill-down) */}
+      {showBackButton && onBack && (
+        <button
+          onClick={onBack}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--accent-primary)';
+            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--text-secondary)';
+            e.currentTarget.style.background = 'none';
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            background: 'none',
+            border: 'none',
+            borderRadius: 6,
+            cursor: 'pointer',
+            padding: '4px 8px',
+            color: 'var(--text-secondary)',
+            fontSize: 'var(--text-body-sm)',
+            fontFamily: 'inherit',
+            transition: 'background 0.15s, color 0.15s',
+            marginBottom: 8,
+          }}
+        >
+          <ArrowLeft size={ICON_SIZE.sm} />
+          {t('common:back', { defaultValue: 'Back' })}
+        </button>
+      )}
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: 16,
+        }}
+      >
+        <div>
+          <h3 style={{ fontSize: 'var(--text-section-title)', fontWeight: 600, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{item.name}</h3>
+          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+            {t(`settings:trash_type_${item.itemType}`)}
+          </span>
+        </div>
+        <button
+          onClick={onClose}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--accent-primary)';
+            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--text-tertiary)';
+            e.currentTarget.style.background = 'none';
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            borderRadius: 6,
+            cursor: 'pointer',
+            padding: 4,
+            color: 'var(--text-tertiary)',
+            transition: 'background 0.15s, color 0.15s',
+          }}
+        >
+          <X size={ICON_SIZE.lg} />
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 'var(--text-body-sm)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:delete_time')}</span>
+          <span>{new Date(item.deletedAt).toLocaleString()}</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--text-tertiary)' }}>
+            {t('settings:original_location')}
+          </span>
+          <span>
+            {resolveCollectionLabel(item.sectionType || item.originalLocation, customPages, t)}
+          </span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--text-tertiary)' }}>
+            {t('settings:remaining_retention')}
+          </span>
+          <span>
+            {item.remainingDays != null
+              ? t('settings:trash_expires_in', { days: item.remainingDays })
+              : t('settings:never_delete')}
+          </span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:deleted_by')}</span>
+          <span>
+            {item.deletedBy === 'user'
+              ? t('settings:deleted_by_user')
+              : t('settings:deleted_by_system')}
+          </span>
+        </div>
+      </div>
+
+      {item.previewProperties.length > 0 && (
+        <div
+          style={{
+            marginTop: 16,
+            borderTop: '1px solid var(--border-subtle)',
+            paddingTop: 12,
+          }}
+        >
+          <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 8 }}>
+            {t('settings:content_preview')}
+          </h4>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            {item.previewProperties.map((p, i) => {
+              const propType = (p as Record<string, unknown>).type as PropertyType | undefined;
+              const sensitivity = (p as Record<string, unknown>).sensitivityLevel as
+                | SensitivityLevel
+                | undefined;
+              const typeLabel = propType
+                ? t(`editor:field_types.${propType}`, propType)
+                : String(p.value);
+              return (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {propType && <FieldTypeIcon type={propType} size={ICON_SIZE.sm} />}
+                  <span style={{ fontWeight: 500, flexShrink: 0 }}>{p.key}</span>
+                  {sensitivity && <SensitivityBadge level={sensitivity} />}
+                  <span
+                    style={{
+                      color: 'var(--text-tertiary)',
+                      marginLeft: 'auto',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {typeLabel}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {item.itemType !== 'template' && (
+        <>
+          {/* Attachments section */}
+          <div
+            style={{
+              marginTop: 12,
+              borderTop: '1px solid var(--border-subtle)',
+              paddingTop: 10,
+            }}
+          >
+            <div
+              onClick={() => toggleSection('attachments')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                cursor: 'pointer',
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 600,
+                userSelect: 'none',
+              }}
+            >
+              <span
+                style={{
+                  transform: expandedSections.attachments ? 'rotate(90deg)' : 'none',
+                  transition: 'transform 0.15s',
+                  fontSize: 'var(--text-badge)',
+                }}
+              >
+                ▶
+              </span>
+              {t('common:attachments')} ({activeAttachments.length + deletedAttachments.length})
+            </div>
+            {expandedSections.attachments && (
+              <div style={{ marginTop: 8 }}>
+                {deletedAttachments.length > 0 && (
+                  <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+                    <button
+                      onClick={() => setShowTrashAttachments(false)}
+                      onMouseEnter={!showTrashAttachments ? undefined : (e) => {
+                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                      }}
+                      onMouseLeave={!showTrashAttachments ? undefined : (e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        e.currentTarget.style.background = 'var(--bg-toolbar)';
+                      }}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: 6,
+                        fontSize: 'var(--text-badge)',
+                        fontWeight: 500,
+                        border: showTrashAttachments ? '1px solid var(--border-subtle)' : '1px solid var(--accent-primary)',
+                        background: showTrashAttachments ? 'var(--bg-toolbar)' : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                        color: showTrashAttachments ? 'var(--text-primary)' : 'var(--accent-primary)',
+                        boxShadow: showTrashAttachments ? 'none' : '0 0 0 1px var(--accent-primary)',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
+                      }}
+                    >
+                      {t('common:active')} ({activeAttachments.length})
+                    </button>
+                    <button
+                      onClick={() => setShowTrashAttachments(true)}
+                      onMouseEnter={showTrashAttachments ? undefined : (e) => {
+                        e.currentTarget.style.borderColor = '#e74c3c';
+                        e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
+                      }}
+                      onMouseLeave={showTrashAttachments ? undefined : (e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        e.currentTarget.style.background = 'var(--bg-toolbar)';
+                      }}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: 6,
+                        fontSize: 'var(--text-badge)',
+                        fontWeight: 500,
+                        border: showTrashAttachments ? '1px solid #e74c3c' : '1px solid var(--border-subtle)',
+                        background: showTrashAttachments ? 'color-mix(in srgb, #e74c3c 10%, transparent)' : 'var(--bg-toolbar)',
+                        color: showTrashAttachments ? '#e74c3c' : 'var(--text-primary)',
+                        boxShadow: showTrashAttachments ? '0 0 0 1px #e74c3c' : 'none',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
+                      }}
+                    >
+                      {t('common:trash')} ({deletedAttachments.length})
+                    </button>
+                  </div>
+                )}
+                {(showTrashAttachments ? deletedAttachments : activeAttachments).length === 0 ? (
+                  <p
+                    style={{
+                      fontSize: 'var(--text-caption)',
+                      color: 'var(--text-tertiary)',
+                      padding: '8px 0',
+                    }}
+                  >
+                    {t('common:no_data')}
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {(showTrashAttachments ? deletedAttachments : activeAttachments).map((a) => {
+                      const ext = a.fileName.split('.').pop()?.toLowerCase() || '';
+                      const isImage = a.mimeType.startsWith('image/') || ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
+                      const isPdf = a.mimeType === 'application/pdf' || ext === 'pdf';
+                      const AttachIcon = isImage ? Image : isPdf ? FileText : Paperclip;
+                      const iconColor = 'var(--text-tertiary)';
+                      return (
+                        <div
+                          key={a.id}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
+                            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'var(--bg-elevated-hover)';
+                            e.currentTarget.style.borderColor = 'transparent';
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            fontSize: 'var(--text-caption)',
+                            padding: '8px 10px',
+                            background: 'var(--bg-elevated-hover)',
+                            borderRadius: 6,
+                            border: '1px solid transparent',
+                            cursor: 'default',
+                            transition: 'background 0.15s, border-color 0.15s',
+                          }}
+                        >
+                          <AttachIcon size={ICON_SIZE.md} style={{ color: iconColor, flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div
+                              style={{
+                                fontWeight: 500,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                textDecoration: showTrashAttachments ? 'line-through' : 'none',
+                              }}
+                            >
+                              {truncateFileName(a.fileName)}
+                            </div>
+                            <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-badge)' }}>
+                              {formatBytes(a.sizeBytes)} ·{' '}
+                              {new Date(a.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: 'var(--text-badge)',
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              fontWeight: 500,
+                              background: 'color-mix(in srgb, var(--text-tertiary) 10%, transparent)',
+                              color: 'var(--text-tertiary)',
+                              flexShrink: 0,
+                              textDecoration: 'none',
+                            }}
+                          >
+                            {ext.toUpperCase() || 'FILE'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Snapshots section */}
+          <div
+            style={{
+              marginTop: 12,
+              borderTop: '1px solid var(--border-subtle)',
+              paddingTop: 10,
+            }}
+          >
+            <div
+              onClick={() => toggleSection('snapshots')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                cursor: 'pointer',
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 600,
+                userSelect: 'none',
+                ...(expandedSections.snapshots
+                  ? {}
+                  : { borderBottom: '1px solid var(--border-subtle)', paddingBottom: 10, marginBottom: 10 }),
+              }}
+            >
+              <span
+                style={{
+                  transform: expandedSections.snapshots ? 'rotate(90deg)' : 'none',
+                  transition: 'transform 0.15s',
+                  fontSize: 'var(--text-badge)',
+                }}
+              >
+                ▶
+              </span>
+              {t('settings:data_snapshots')} ({item.snapshots.length})
+            </div>
+            {expandedSections.snapshots && (
+              <SnapshotContent
+                _detailId={item.id}
+                snapshots={item.snapshots}
+                currentSnapIdx={currentSnapIdx}
+                data={historySnapData[item.id]}
+                loading={historySnapLoading[item.id]}
+                detailTemplate={detailTemplate}
+                onChangeSnapshot={(newIdx) =>
+                  changeSnapshot(item.id, item.snapshots, newIdx)
+                }
+              />
+            )}
+          </div>
+        </>
+      )}
+
+      <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <Button
+          size="sm"
+          variant="tertiary"
+          onClick={() => {
+            onRequestRestore(item.id);
+            onClose();
+          }}
+        >
+          <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} /> {t('common:restore')}
+        </Button>
+        <DeleteButton
+          onClick={() => {
+            onRequestDelete(item.id);
+            onClose();
+          }}
+          title={t('common:delete_permanently')}
+        >
+          {t('common:delete_permanently')}
+        </DeleteButton>
+      </div>
+    </>
+  );
+}
+
+export function TrashDetailPanel({
+  detailItem,
+  detailTemplate,
+  onClose,
+  onRequestRestore,
+  onRequestDelete,
+}: TrashDetailPanelProps) {
+  const { t } = useTranslation(['settings', 'common']);
+  const [viewingChildId, setViewingChildId] = useState<string | null>(null);
+  const [childDetail, setChildDetail] = useState<TrashDetail | null>(null);
+  const [childLoading, setChildLoading] = useState(false);
+
+  const handleViewChild = useCallback(async (child: TrashChildSummary) => {
+    setViewingChildId(child.id);
+    setChildLoading(true);
+    try {
+      const detail = await invoke<TrashDetail>('trash_get_detail', { trashId: child.id });
+      setChildDetail(detail);
+    } catch {
+      setChildDetail(null);
+    } finally {
+      setChildLoading(false);
+    }
+  }, []);
+
+  const handleBackToParent = useCallback(() => {
+    setViewingChildId(null);
+    setChildDetail(null);
+  }, []);
+
+  const showChildren = detailItem.itemType === 'page' && detailItem.childItems.length > 0;
 
   return (
     <>
@@ -118,370 +562,111 @@ export function TrashDetailPanel({
           boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: 16,
-          }}
-        >
-          <div>
-            <h3 style={{ fontSize: 'var(--text-section-title)', fontWeight: 600, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{detailItem.name}</h3>
-            <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-              {t(`settings:trash_type_${detailItem.itemType}`)}
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--accent-primary)';
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--text-tertiary)';
-              e.currentTarget.style.background = 'none';
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              borderRadius: 6,
-              cursor: 'pointer',
-              padding: 4,
-              color: 'var(--text-tertiary)',
-              transition: 'background 0.15s, color 0.15s',
-            }}
-          >
-            <X size={ICON_SIZE.lg} />
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 'var(--text-body-sm)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:delete_time')}</span>
-            <span>{new Date(detailItem.deletedAt).toLocaleString()}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-tertiary)' }}>
-              {t('settings:original_location')}
-            </span>
-            <span>
-              {resolveCollectionLabel(detailItem.sectionType || detailItem.originalLocation, customPages, t)}
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-tertiary)' }}>
-              {t('settings:remaining_retention')}
-            </span>
-            <span>
-              {detailItem.remainingDays != null
-                ? t('settings:trash_expires_in', { days: detailItem.remainingDays })
-                : t('settings:never_delete')}
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:deleted_by')}</span>
-            <span>
-              {detailItem.deletedBy === 'user'
-                ? t('settings:deleted_by_user')
-                : t('settings:deleted_by_system')}
-            </span>
-          </div>
-        </div>
-
-        {detailItem.previewProperties.length > 0 && (
-          <div
-            style={{
-              marginTop: 16,
-              borderTop: '1px solid var(--border-subtle)',
-              paddingTop: 12,
-            }}
-          >
-            <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 8 }}>
-              {t('settings:content_preview')}
-            </h4>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-                fontSize: 'var(--text-caption)',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              {detailItem.previewProperties.map((p, i) => {
-                const propType = (p as Record<string, unknown>).type as PropertyType | undefined;
-                const sensitivity = (p as Record<string, unknown>).sensitivityLevel as
-                  | SensitivityLevel
-                  | undefined;
-                const typeLabel = propType
-                  ? t(`editor:field_types.${propType}`, propType)
-                  : String(p.value);
-                return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {propType && <FieldTypeIcon type={propType} size={ICON_SIZE.sm} />}
-                    <span style={{ fontWeight: 500, flexShrink: 0 }}>{p.key}</span>
-                    {sensitivity && <SensitivityBadge level={sensitivity} />}
-                    <span
-                      style={{
-                        color: 'var(--text-tertiary)',
-                        marginLeft: 'auto',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {typeLabel}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+        {/* Child detail loading */}
+        {childLoading && (
+          <div style={{ padding: '24px 0' }}>
+            <LoadingPlaceholder variant="base" minHeight={60} />
           </div>
         )}
 
-        {detailItem.itemType !== 'template' && (
+        {/* Child detail view */}
+        {!childLoading && childDetail && (
+          <ObjectDetailContent
+            item={childDetail}
+            detailTemplate={detailTemplate}
+            onClose={onClose}
+            onRequestRestore={onRequestRestore}
+            onRequestDelete={onRequestDelete}
+            showBackButton
+            onBack={handleBackToParent}
+          />
+        )}
+
+        {/* Main item view (hidden when drilling into child) */}
+        {!childLoading && !childDetail && (
           <>
-            {/* Attachments section */}
-            <div
-              style={{
-                marginTop: 12,
-                borderTop: '1px solid var(--border-subtle)',
-                paddingTop: 10,
-              }}
-            >
+            <ObjectDetailContent
+              item={detailItem}
+              detailTemplate={detailTemplate}
+              onClose={onClose}
+              onRequestRestore={onRequestRestore}
+              onRequestDelete={onRequestDelete}
+            />
+
+            {/* Child objects list for page-type items */}
+            {showChildren && (
               <div
-                onClick={() => toggleSection('attachments')}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  cursor: 'pointer',
-                  fontSize: 'var(--text-body-sm)',
-                  fontWeight: 600,
-                  userSelect: 'none',
+                  marginTop: 16,
+                  borderTop: '1px solid var(--border-subtle)',
+                  paddingTop: 12,
                 }}
               >
-                <span
+                <h4
                   style={{
-                    transform: expandedSections.attachments ? 'rotate(90deg)' : 'none',
-                    transition: 'transform 0.15s',
-                    fontSize: 'var(--text-badge)',
+                    fontSize: 'var(--text-body-sm)',
+                    fontWeight: 600,
+                    marginBottom: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
-                  ▶
-                </span>
-                {t('common:attachments')} ({activeAttachments.length + deletedAttachments.length})
-              </div>
-              {expandedSections.attachments && (
-                <div style={{ marginTop: 8 }}>
-                  {deletedAttachments.length > 0 && (
-                    <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-                      <button
-                        onClick={() => setShowTrashAttachments(false)}
-                        onMouseEnter={!showTrashAttachments ? undefined : (e) => {
-                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                        }}
-                        onMouseLeave={!showTrashAttachments ? undefined : (e) => {
-                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                          e.currentTarget.style.background = 'var(--bg-toolbar)';
-                        }}
-                        style={{
-                          padding: '4px 10px',
-                          borderRadius: 6,
-                          fontSize: 'var(--text-badge)',
-                          fontWeight: 500,
-                          border: showTrashAttachments ? '1px solid var(--border-subtle)' : '1px solid var(--accent-primary)',
-                          background: showTrashAttachments ? 'var(--bg-toolbar)' : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                          color: showTrashAttachments ? 'var(--text-primary)' : 'var(--accent-primary)',
-                          boxShadow: showTrashAttachments ? 'none' : '0 0 0 1px var(--accent-primary)',
-                          cursor: 'pointer',
-                          transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                        }}
-                      >
-                        {t('common:active')} ({activeAttachments.length})
-                      </button>
-                      <button
-                        onClick={() => setShowTrashAttachments(true)}
-                        onMouseEnter={showTrashAttachments ? undefined : (e) => {
-                          e.currentTarget.style.borderColor = '#e74c3c';
-                          e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
-                        }}
-                        onMouseLeave={showTrashAttachments ? undefined : (e) => {
-                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                          e.currentTarget.style.background = 'var(--bg-toolbar)';
-                        }}
-                        style={{
-                          padding: '4px 10px',
-                          borderRadius: 6,
-                          fontSize: 'var(--text-badge)',
-                          fontWeight: 500,
-                          border: showTrashAttachments ? '1px solid #e74c3c' : '1px solid var(--border-subtle)',
-                          background: showTrashAttachments ? 'color-mix(in srgb, #e74c3c 10%, transparent)' : 'var(--bg-toolbar)',
-                          color: showTrashAttachments ? '#e74c3c' : 'var(--text-primary)',
-                          boxShadow: showTrashAttachments ? '0 0 0 1px #e74c3c' : 'none',
-                          cursor: 'pointer',
-                          transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                        }}
-                      >
-                        {t('common:trash')} ({deletedAttachments.length})
-                      </button>
-                    </div>
-                  )}
-                  {(showTrashAttachments ? deletedAttachments : activeAttachments).length === 0 ? (
-                    <p
+                  <FolderOpen size={ICON_SIZE.sm} />
+                  {t('settings:page_contains_objects', { defaultValue: '页面包含的对象' })} ({detailItem.childItems.length})
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {detailItem.childItems.map((child) => (
+                    <button
+                      key={child.id}
+                      onClick={() => handleViewChild(child)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
+                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent-primary) 25%, transparent)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'var(--bg-elevated-hover)';
+                        e.currentTarget.style.borderColor = 'transparent';
+                      }}
                       style={{
-                        fontSize: 'var(--text-caption)',
-                        color: 'var(--text-tertiary)',
-                        padding: '8px 0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '8px 10px',
+                        borderRadius: 6,
+                        border: '1px solid transparent',
+                        background: 'var(--bg-elevated-hover)',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        fontSize: 'var(--text-body-sm)',
+                        color: 'var(--text-primary)',
+                        textAlign: 'left',
+                        width: '100%',
+                        transition: 'background 0.15s, border-color 0.15s',
                       }}
                     >
-                      {t('common:no_data')}
-                    </p>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {(showTrashAttachments ? deletedAttachments : activeAttachments).map((a) => {
-                        const ext = a.fileName.split('.').pop()?.toLowerCase() || '';
-                        const isImage = a.mimeType.startsWith('image/') || ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
-                        const isPdf = a.mimeType === 'application/pdf' || ext === 'pdf';
-                        const AttachIcon = isImage ? Image : isPdf ? FileText : Paperclip;
-                        const iconColor = 'var(--text-tertiary)';
-                        return (
-                          <div
-                            key={a.id}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-                              e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = 'var(--bg-elevated-hover)';
-                              e.currentTarget.style.borderColor = 'transparent';
-                            }}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 8,
-                              fontSize: 'var(--text-caption)',
-                              padding: '8px 10px',
-                              background: 'var(--bg-elevated-hover)',
-                              borderRadius: 6,
-                              border: '1px solid transparent',
-                              cursor: 'default',
-                              transition: 'background 0.15s, border-color 0.15s',
-                            }}
-                          >
-                            <AttachIcon size={ICON_SIZE.md} style={{ color: iconColor, flexShrink: 0 }} />
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div
-                                style={{
-                                  fontWeight: 500,
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                  textDecoration: showTrashAttachments ? 'line-through' : 'none',
-                                }}
-                              >
-                                {truncateFileName(a.fileName)}
-                              </div>
-                              <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-badge)' }}>
-                                {formatBytes(a.sizeBytes)} ·{' '}
-                                {new Date(a.createdAt).toLocaleDateString()}
-                              </div>
-                            </div>
-                            <span
-                              style={{
-                                fontSize: 'var(--text-badge)',
-                                padding: '2px 6px',
-                                borderRadius: 4,
-                                fontWeight: 500,
-                                background: 'color-mix(in srgb, var(--text-tertiary) 10%, transparent)',
-                                color: 'var(--text-tertiary)',
-                                flexShrink: 0,
-                                textDecoration: 'none',
-                              }}
-                            >
-                              {ext.toUpperCase() || 'FILE'}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          background: 'var(--accent-primary)',
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {child.name}
+                      </span>
+                      <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                        ▶
+                      </span>
+                    </button>
+                  ))}
                 </div>
-              )}
-            </div>
-
-            {/* Snapshots section */}
-            <div
-              style={{
-                marginTop: 12,
-                borderTop: '1px solid var(--border-subtle)',
-                paddingTop: 10,
-              }}
-            >
-              <div
-                onClick={() => toggleSection('snapshots')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  cursor: 'pointer',
-                  fontSize: 'var(--text-body-sm)',
-                  fontWeight: 600,
-                  userSelect: 'none',
-                  ...(expandedSections.snapshots
-                    ? {}
-                    : { borderBottom: '1px solid var(--border-subtle)', paddingBottom: 10, marginBottom: 10 }),
-                }}
-              >
-                <span
-                  style={{
-                    transform: expandedSections.snapshots ? 'rotate(90deg)' : 'none',
-                    transition: 'transform 0.15s',
-                    fontSize: 'var(--text-badge)',
-                  }}
-                >
-                  ▶
-                </span>
-                {t('settings:data_snapshots')} ({detailItem.snapshots.length})
               </div>
-              {expandedSections.snapshots && (
-                <SnapshotContent
-                  _detailId={detailItem.id}
-                  snapshots={detailItem.snapshots}
-                  currentSnapIdx={currentSnapIdx}
-                  data={historySnapData[detailItem.id]}
-                  loading={historySnapLoading[detailItem.id]}
-                  detailTemplate={detailTemplate}
-                  onChangeSnapshot={(newIdx) =>
-                    changeSnapshot(detailItem.id, detailItem.snapshots, newIdx)
-                  }
-                />
-              )}
-            </div>
+            )}
           </>
         )}
-
-        <div style={{ marginTop: 16, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button
-            size="sm"
-            variant="tertiary"
-            onClick={() => {
-              onRequestRestore(detailItem.id);
-              onClose();
-            }}
-          >
-            <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} /> {t('common:restore')}
-          </Button>
-          <DeleteButton
-            onClick={() => {
-              onRequestDelete(detailItem.id);
-              onClose();
-            }}
-            title={t('common:delete_permanently')}
-          >
-            {t('common:delete_permanently')}
-          </DeleteButton>
-        </div>
       </motion.div>
     </>
   );
