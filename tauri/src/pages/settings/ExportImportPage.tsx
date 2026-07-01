@@ -187,14 +187,12 @@ export function ExportImportPage() {
         return;
       }
     }
-    skipHintCheckRef.current = false;
 
     // 检查 2: 密码安全性低（不足 8 位）→ 软警告
     if (!skipWeakPasswordCheckRef.current && exportPassword.length < 8) {
       setShowWeakPasswordWarning(true);
       return;
     }
-    skipWeakPasswordCheckRef.current = false;
 
     setIsExporting(true);
     try {
@@ -215,6 +213,9 @@ export function ExportImportPage() {
           savePath,
         },
       });
+      // 导出成功后重置 skip ref，下次导出重新检查
+      skipHintCheckRef.current = false;
+      skipWeakPasswordCheckRef.current = false;
       onSuccess(t('settings:export_success'));
     } catch (e) {
       onError(new Error(resolveBackendErrorMessage(e)), t('common:export_failed'));
