@@ -42,7 +42,7 @@ interface ExportEstimate {
   estimatedBytes: number;
 }
 
-type PasswordStrength = 'none' | 'weak' | 'medium' | 'strong';
+
 
 interface ExportSectionProps {
   pageGroups: PageGroup[];
@@ -54,7 +54,6 @@ interface ExportSectionProps {
   exportHint: string;
   savePath: string | null;
   isExporting: boolean;
-  showWeakWarning: boolean;
   showHintWarning: boolean;
   selectedTags: Set<string>;
   includeAttachments: boolean;
@@ -65,8 +64,6 @@ interface ExportSectionProps {
   includeBehavioral: boolean;
   exportEstimate: ExportEstimate | null;
   estimating: boolean;
-  pwStrength: PasswordStrength;
-  pwStrengthLabel: Record<PasswordStrength, string>;
   hasSensitiveData: boolean;
   allTags: string[];
   totalSelected: number;
@@ -79,13 +76,11 @@ interface ExportSectionProps {
   onSetExportHint: (v: string) => void;
   onSetSavePath: (v: string | null) => void;
   onExport: () => void;
-  onSetShowWeakWarning: (v: boolean) => void;
   onSetShowHintWarning: (v: boolean) => void;
   onSetSelectedTags: (updater: (prev: Set<string>) => Set<string>) => void;
   onSetIncludeAttachments: (v: boolean) => void;
   onSetIncludePreferences: (v: boolean) => void;
   onSetIncludeBehavioral: (v: boolean) => void;
-  onSetShowWeakWarningAndExport: () => void;
   onToggleExpandedPage: (sectionType: string) => void;
   onSetShowHintWarningAndExport: () => void;
 }
@@ -100,7 +95,6 @@ export function ExportSection({
   exportHint,
   savePath,
   isExporting,
-  showWeakWarning,
   showHintWarning,
   selectedTags,
   includeAttachments,
@@ -111,8 +105,6 @@ export function ExportSection({
   includeBehavioral,
   exportEstimate,
   estimating,
-  pwStrength,
-  pwStrengthLabel,
   hasSensitiveData,
   allTags,
   totalSelected,
@@ -125,13 +117,11 @@ export function ExportSection({
   onSetExportHint,
   onSetSavePath,
   onExport,
-  onSetShowWeakWarning,
   onSetShowHintWarning,
   onSetSelectedTags,
   onSetIncludeAttachments,
   onSetIncludePreferences,
   onSetIncludeBehavioral,
-  onSetShowWeakWarningAndExport,
   onToggleExpandedPage,
   onSetShowHintWarningAndExport,
 }: ExportSectionProps) {
@@ -554,10 +544,7 @@ export function ExportSection({
 
         <SecurePasswordInput
           value={exportPassword}
-          onChange={(v) => {
-            onSetExportPassword(v);
-            onSetShowWeakWarning(false);
-          }}
+          onChange={onSetExportPassword}
           placeholder={t('common:password_placeholder')}
           showHintButton={false}
           onEnter={onExport}
@@ -578,28 +565,6 @@ export function ExportSection({
               {t('settings:password_mismatch')}
             </div>
           )}
-        {exportPassword && (
-          <div style={{ marginTop: 6, fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}>
-            {t('settings:password_strength')}:{' '}
-            <span
-              style={{
-                color:
-                  pwStrength === 'weak'
-                    ? 'var(--danger)'
-                    : pwStrength === 'medium'
-                      ? 'var(--warning)'
-                      : 'var(--success)',
-              }}
-            >
-              {pwStrengthLabel[pwStrength]}
-            </span>
-            {pwStrength === 'weak' && (
-              <span style={{ marginLeft: 8, color: 'var(--danger)', fontSize: 'var(--text-badge)' }}>
-                {t('settings:password_weak_warning')}
-              </span>
-            )}
-          </div>
-        )}
         <div style={{ marginTop: 8 }}>
           <input
             type="text"
@@ -666,54 +631,6 @@ export function ExportSection({
             <button
               type="button"
               onClick={onSetShowHintWarningAndExport}
-              style={{
-                fontSize: 'var(--text-caption)',
-                padding: '6px 12px',
-                borderRadius: 6,
-                border: '1px solid var(--warning)',
-                background: 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)',
-                color: 'var(--warning)',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)';
-              }}
-            >
-              {t('settings:export_anyway')}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Weak password confirmation dialog */}
-      {showWeakWarning && (
-        <div
-          style={{
-            padding: '12px 16px',
-            borderRadius: 8,
-            background: 'var(--warning-subtle)',
-            border: '1px solid var(--warning)',
-            fontSize: 'var(--text-body-sm)',
-            color: 'var(--warning)',
-          }}
-        >
-          <p style={{ marginBottom: 8, fontWeight: 600 }}>
-            {t('settings:weak_password_title')}
-          </p>
-          <p style={{ marginBottom: 10 }}>{t('settings:weak_password_confirm')}</p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <WarningCancelButton onClick={() => onSetShowWeakWarning(false)}>
-              {t('common:cancel')}
-            </WarningCancelButton>
-            <button
-              type="button"
-              onClick={onSetShowWeakWarningAndExport}
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',

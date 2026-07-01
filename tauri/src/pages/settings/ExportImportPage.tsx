@@ -19,9 +19,7 @@ import type {
   DecryptedImportPreview,
   ImportStrategy,
   ImportResult,
-  PasswordStrength,
 } from '@/types/exportImport';
-import { assessPasswordStrength } from '@/types/exportImport';
 
 type TabKey = 'export' | 'import';
 
@@ -55,10 +53,8 @@ export function ExportImportPage() {
   const [exportHint, setExportHint] = useState('');
   const [savePath, setSavePath] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [showWeakWarning, setShowWeakWarning] = useState(false);
   const [showHintWarning, setShowHintWarning] = useState(false);
   const skipHintCheckRef = useRef(false);
-  const skipWeakCheckRef = useRef(false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [includePreferences, setIncludePreferences] = useState(false);
   const [includeBehavioral, setIncludeBehavioral] = useState(false);
@@ -124,15 +120,6 @@ export function ExportImportPage() {
     totalSelected,
   );
 
-  // Password strength
-  const pwStrength = assessPasswordStrength(exportPassword);
-  const pwStrengthLabel: Record<PasswordStrength, string> = {
-    none: '',
-    weak: t('settings:password_weak'),
-    medium: t('settings:password_medium'),
-    strong: t('settings:password_strong'),
-  };
-
   // Has sensitive data?
   const hasSensitiveData = useMemo(() => {
     for (const group of pageGroups) {
@@ -187,14 +174,8 @@ export function ExportImportPage() {
         return;
       }
     }
-    if (pwStrength === 'weak' && !skipWeakCheckRef.current && !showWeakWarning) {
-      setShowWeakWarning(true);
-      return;
-    }
-
-    // Both checks passed — reset skip flags for next export attempt
+    // Check passed — reset skip flag for next export attempt
     skipHintCheckRef.current = false;
-    skipWeakCheckRef.current = false;
 
     setIsExporting(true);
     try {
@@ -336,7 +317,6 @@ export function ExportImportPage() {
             exportHint={exportHint}
             savePath={savePath}
             isExporting={isExporting}
-            showWeakWarning={showWeakWarning}
             showHintWarning={showHintWarning}
             selectedTags={selectedTags}
             includeAttachments={includeAttachments}
@@ -347,8 +327,6 @@ export function ExportImportPage() {
             includeBehavioral={includeBehavioral}
             exportEstimate={exportEstimate}
             estimating={estimating}
-            pwStrength={pwStrength}
-            pwStrengthLabel={pwStrengthLabel}
             hasSensitiveData={hasSensitiveData}
             allTags={allTags}
             totalSelected={totalSelected}
@@ -361,17 +339,11 @@ export function ExportImportPage() {
             onSetExportHint={setExportHint}
             onSetSavePath={setSavePath}
             onExport={handleExport}
-            onSetShowWeakWarning={setShowWeakWarning}
             onSetShowHintWarning={setShowHintWarning}
             onSetSelectedTags={(updater) => setSelectedTags(updater)}
             onSetIncludeAttachments={setIncludeAttachments}
             onSetIncludePreferences={setIncludePreferences}
             onSetIncludeBehavioral={setIncludeBehavioral}
-            onSetShowWeakWarningAndExport={() => {
-              skipWeakCheckRef.current = true;
-              setShowWeakWarning(false);
-              handleExport();
-            }}
             onToggleExpandedPage={toggleExpandedPage}
             onSetShowHintWarningAndExport={() => {
               skipHintCheckRef.current = true;

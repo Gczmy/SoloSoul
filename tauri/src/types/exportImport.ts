@@ -69,13 +69,6 @@ export type PasswordStrength = 'none' | 'weak' | 'medium' | 'strong';
 
 export function assessPasswordStrength(pw: string): PasswordStrength {
   if (!pw) return 'none';
-  let score = 0;
-  if (pw.length >= 8) score++;
-  if (pw.length >= 12) score++;
-  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
-  if (/\d/.test(pw)) score++;
-  if (/[^a-zA-Z0-9]/.test(pw)) score++;
-  if (score <= 1) return 'weak';
-  if (score <= 3) return 'medium';
+  // 不再限制密码复杂度 — 由用户自行决定密码难度
   return 'strong';
 }
