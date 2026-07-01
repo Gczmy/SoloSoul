@@ -6,9 +6,11 @@ interface DialogProps {
   onClose: () => void;
   children: React.ReactNode;
   title?: string;
+  /** 可选的内联样式，用于覆盖 .dialog 的默认样式（如 width、maxWidth） */
+  dialogStyle?: React.CSSProperties;
 }
 
-export function Dialog({ isOpen, onClose, children, title }: DialogProps) {
+export function Dialog({ isOpen, onClose, children, title, dialogStyle }: DialogProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export function Dialog({ isOpen, onClose, children, title }: DialogProps) {
         }
       }}
     >
-      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.dialog} style={dialogStyle} onClick={(e) => e.stopPropagation()}>
         {title && <h2 className={styles.title}>{title}</h2>}
         {children}
       </div>
