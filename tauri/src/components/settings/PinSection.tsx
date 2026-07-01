@@ -7,7 +7,7 @@ import { PinInput } from '@/components/forms/PinInput';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
-import { KeyRound, Lock, Unlock, AlertTriangle } from 'lucide-react';
+import { Grip, KeyRound, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
 interface PinSectionProps {
@@ -77,10 +77,16 @@ export function PinSection({ accountId }: PinSectionProps) {
   const handlePasswordSubmit = async () => {
     if (!setupPassword) return;
     setSetupError(null);
-    // Verify password by attempting a login-like check
     try {
-      await invoke('verify_password', { accountId, password: setupPassword });
-      setSetupStep('enter_pin');
+      const ok = await invoke<boolean>('verify_password', {
+        accountId,
+        password: setupPassword,
+      });
+      if (ok) {
+        setSetupStep('enter_pin');
+      } else {
+        setSetupError(t('settings:current_password_incorrect'));
+      }
     } catch {
       setSetupError(t('settings:current_password_incorrect'));
     }
@@ -175,7 +181,7 @@ export function PinSection({ accountId }: PinSectionProps) {
             gap: 8,
           }}
         >
-          <KeyRound size={ICON_SIZE.lg} />
+          <Grip size={ICON_SIZE.lg} />
           {t('settings:pin_title')}
         </h3>
 

@@ -47,6 +47,7 @@ export function ExportImportPage() {
     toggleAttachment,
     toggleExpandedPage,
     totalSelected,
+    loadSelectedAttachments,
   } = useExportScope({ accountId, includeAttachments });
   const [exportPassword, setExportPassword] = useState('');
   const [exportPasswordConfirm, setExportPasswordConfirm] = useState('');
@@ -55,6 +56,8 @@ export function ExportImportPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [showHintWarning, setShowHintWarning] = useState(false);
   const skipHintCheckRef = useRef(false);
+  const [showWeakPasswordWarning, setShowWeakPasswordWarning] = useState(false);
+  const skipWeakPasswordCheckRef = useRef(false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [includePreferences, setIncludePreferences] = useState(false);
   const [includeBehavioral, setIncludeBehavioral] = useState(false);
@@ -91,6 +94,15 @@ export function ExportImportPage() {
   }, [loadScope]);
 
   // Page / object / attachment toggles — managed via useExportScope
+
+  // 当 includeAttachments 从 false 切为 true 时，为已选对象批量加载附件（Bug 修复）
+  const prevIncludeAttachmentsRef = useRef(includeAttachments);
+  useEffect(() => {
+    if (includeAttachments && !prevIncludeAttachmentsRef.current && totalSelected > 0) {
+      loadSelectedAttachments();
+    }
+    prevIncludeAttachmentsRef.current = includeAttachments;
+  }, [includeAttachments, totalSelected, loadSelectedAttachments]);
 
   // Export estimate via dedicated hook (P062 fix)
   const scopeState = useMemo(
@@ -159,6 +171,7 @@ export function ExportImportPage() {
       return;
     }
 
+    // 检查 1: 密码提示词包含密码内容 → 软警告
     if (!skipHintCheckRef.current && exportHint && exportPassword.length >= 3) {
       const pwLower = exportPassword.toLowerCase();
       const hintLower = exportHint.toLowerCase();
@@ -174,8 +187,14 @@ export function ExportImportPage() {
         return;
       }
     }
-    // Check passed — reset skip flag for next export attempt
     skipHintCheckRef.current = false;
+
+    // 检查 2: 密码安全性低（不足 8 位）→ 软警告
+    if (!skipWeakPasswordCheckRef.current && exportPassword.length < 8) {
+      setShowWeakPasswordWarning(true);
+      return;
+    }
+    skipWeakPasswordCheckRef.current = false;
 
     setIsExporting(true);
     try {
@@ -350,9 +369,16 @@ export function ExportImportPage() {
               onSetIncludePreferences={setIncludePreferences}
               onSetIncludeBehavioral={setIncludeBehavioral}
               onToggleExpandedPage={toggleExpandedPage}
+              showWeakPasswordWarning={showWeakPasswordWarning}
+              onSetShowWeakPasswordWarning={setShowWeakPasswordWarning}
               onSetShowHintWarningAndExport={() => {
                 skipHintCheckRef.current = true;
                 setShowHintWarning(false);
+                handleExport();
+              }}
+              onSetWeakPasswordExport={() => {
+                skipWeakPasswordCheckRef.current = true;
+                setShowWeakPasswordWarning(false);
                 handleExport();
               }}
             />

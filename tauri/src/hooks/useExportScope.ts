@@ -25,6 +25,8 @@ interface UseExportScopeReturn {
   ) => void;
   toggleExpandedPage: (sectionType: string) => void;
   totalSelected: number;
+  /** 批量加载已选对象的附件（当 includeAttachments 从 false 切为 true 时触发） */
+  loadSelectedAttachments: () => void;
 }
 
 export function useExportScope({
@@ -210,6 +212,31 @@ export function useExportScope({
     [],
   );
 
+  /** 批量加载已选对象的附件并将它们加入 selectedAttachmentIds */
+  const loadSelectedAttachments = useCallback(() => {
+    const ids = Array.from(selectedObjectIds);
+    const unloadedIds = ids.filter((id) => !objectAttachments.has(id));
+    if (unloadedIds.length === 0) return;
+    Promise.all(
+      unloadedIds.map((id) =>
+        invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
+          .then((atts) => ({ id, atts }))
+          .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
+      ),
+    ).then((results) => {
+      setObjectAttachments((prev) => {
+        const n = new Map(prev);
+        for (const { id, atts } of results) n.set(id, atts);
+        return n;
+      });
+      setSelectedAttachmentIds((prev) => {
+        const n = new Set(prev);
+        for (const { atts } of results) for (const att of atts) n.add(att.id);
+        return n;
+      });
+    });
+  }, [accountId, selectedObjectIds, objectAttachments]);
+
   const totalSelected = selectedObjectIds.size;
 
   return {
@@ -225,5 +252,6 @@ export function useExportScope({
     toggleAttachment,
     toggleExpandedPage,
     totalSelected,
+    loadSelectedAttachments,
   };
 }

@@ -213,14 +213,9 @@ pub async fn export_execute(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
-    // ── Validate password ──────────────────────────────────────
-    if req.password.len() < 8 {
-        return Err(export_err("PASSWORD_TOO_SHORT"));
-    }
-    let has_letter = req.password.chars().any(|c| c.is_ascii_alphabetic());
-    let has_digit = req.password.chars().any(|c| c.is_ascii_digit());
-    if !has_letter || !has_digit {
-        return Err(export_err("PASSWORD_REQUIRE_LETTER_DIGIT"));
+    // ── Validate password (any non-empty password is accepted, P0-008) ──
+    if req.password.is_empty() {
+        return Err(export_err("PASSWORD_EMPTY"));
     }
 
     // ── Verify export password is NOT the master password ──────

@@ -84,7 +84,10 @@ interface ExportSectionProps {
   onSetIncludePreferences: (v: boolean) => void;
   onSetIncludeBehavioral: (v: boolean) => void;
   onToggleExpandedPage: (sectionType: string) => void;
+  showWeakPasswordWarning: boolean;
+  onSetShowWeakPasswordWarning: (v: boolean) => void;
   onSetShowHintWarningAndExport: () => void;
+  onSetWeakPasswordExport: () => void;
 }
 
 export function ExportSection({
@@ -124,8 +127,11 @@ export function ExportSection({
   onSetIncludeAttachments,
   onSetIncludePreferences,
   onSetIncludeBehavioral,
+  showWeakPasswordWarning,
+  onSetShowWeakPasswordWarning,
   onToggleExpandedPage,
   onSetShowHintWarningAndExport,
+  onSetWeakPasswordExport,
 }: ExportSectionProps) {
   const { t } = useTranslation(['settings', 'common']);
 
@@ -641,6 +647,56 @@ export function ExportSection({
           />
         </div>
       </Card>
+
+      {/* Weak password confirmation dialog */}
+      {showWeakPasswordWarning && (
+        <div
+          style={{
+            padding: '12px 16px',
+            borderRadius: 8,
+            background: 'var(--warning-subtle)',
+            border: '1px solid var(--warning)',
+            fontSize: 'var(--text-body-sm)',
+            color: 'var(--warning)',
+          }}
+        >
+          <p style={{ marginBottom: 8, fontWeight: 600 }}>
+            {t('settings:weak_password_title')}
+          </p>
+          <p style={{ marginBottom: 10 }}>{t('settings:weak_password_confirm')}</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <WarningCancelButton onClick={() => onSetShowWeakPasswordWarning(false)}>
+              {t('common:cancel')}
+            </WarningCancelButton>
+            <button
+              type="button"
+              onClick={onSetWeakPasswordExport}
+              style={{
+                fontSize: 'var(--text-caption)',
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: '1px solid var(--warning)',
+                background: 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)',
+                color: 'var(--warning)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)';
+              }}
+            >
+              {t('settings:export_anyway')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Password hint risk confirmation dialog */}
       {showHintWarning && (
