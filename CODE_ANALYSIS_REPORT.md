@@ -1,8 +1,8 @@
 # 代码分析修复报告
 
-> 最后更新：2026-07-01 22:40:12 BST
+> 最后更新：2026-07-01 22:50:00 BST
 > 当前分支：`master`
-> 修复轮次：1（初始分析，全部修复完成）
+> 修复轮次：1（初始分析，全部修复完成；复核中发现并修复 SafeMarkdown 类型问题）
 > 说明：本次为重新生成的全新报告，未恢复旧报告内容。
 
 ---
@@ -141,13 +141,18 @@
     ```
   - 3 个消费者文件全部从 `ReactMarkdown` 替换为 `SafeMarkdown`。
 - **验证结果**：`npx tsc --noEmit` 与 `npm run lint` 通过；`npm run format:check` 通过。
+- **复核中发现并修复的附加问题**：
+  - 初始 `SafeMarkdown` 实现将 `remarkPlugins` / `rehypePlugins` 声明为 `any[]`，导致 ESLint `@typescript-eslint/no-explicit-any` 报错。
+  - 已改为从 `react-markdown` 引入 `Options as MarkdownOptions`，使用 `MarkdownOptions['remarkPlugins']` / `MarkdownOptions['rehypePlugins']` 作为类型。
+  - 复核后重新运行 `npm run check-all` 全部通过。
 
 ---
 
 ## 基线与备注
 
 - 本次分析前，`CODE_ANALYSIS_REPORT.md` 在 Git 工作区中显示为已删除（`D`），因此直接生成新报告覆盖。
-- 当前工作区除报告文件外无其他未提交改动；修复时建议按“一项一提交”原则处理。
+- 复核期间对 `tauri/src/components/ui/SafeMarkdown.tsx` 做了一次额外类型修正（未提交），以消除 ESLint `no-explicit-any` 错误。
+- 修复时建议按“一项一提交”原则处理。
 - 所有修复完成后，应重新运行：
   ```bash
   cd tauri
