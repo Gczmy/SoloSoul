@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.5.8] - 2026-07-01
+
+### Added
+
+- **Windows Hello 生物识别** — 新增 Windows Hello 支持。
+- **新手引导多页引导** — 增强 PageGuide 组件。
+
+### Changed
+
+- **登录优先级逻辑** — Face ID > Touch ID > Windows Hello > PIN > 主密码自动选择。
+- **导出密码限制取消** — 任何非空密码均可导出（>=1 字符）。
+- **PIN 验证横线减半** — 4px 渐变流光动画。
+
+### Fixed
+
+- **锁定页面闪烁** — 全面消除登录页面闪烁（缓存 + minHeight + 移除转圈）。
+- **Windows 构建修复** — COM 初始化错误修复。
+
+### Chores
+
+- 版本号同步升级到 2.5.8。
+
+
 All notable changes to SoloSoul are documented in this file.
 
 ## [2.5.7] - 2026-06-29
