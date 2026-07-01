@@ -45,6 +45,7 @@ interface ImportSectionProps {
   onToggleImportAttachment: (attId: string) => void;
   onToggleExpandedImportPage: (sectionType: string) => void;
   onToggleImportObjectExpanded: (objectId: string) => void;
+  onSelectAllImport: (selectAll: boolean) => void;
   onSetStrategy: (s: ImportStrategy) => void;
 }
 
@@ -92,6 +93,7 @@ export function ImportSection({
   onToggleImportAttachment,
   onToggleExpandedImportPage,
   onToggleImportObjectExpanded,
+  onSelectAllImport,
   onSetStrategy,
 }: ImportSectionProps) {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
@@ -339,9 +341,46 @@ export function ImportSection({
                   paddingTop: 12,
                 }}
               >
-                <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 6 }}>
-                  {t('settings:select_objects')}
-                </h4>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 6,
+                  }}
+                >
+                  <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600 }}>
+                    {t('settings:select_objects')}
+                  </h4>
+                  {importPageGroups.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)}
+                      style={{
+                        fontSize: 'var(--text-badge)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--accent-primary)',
+                        padding: '2px 6px',
+                        borderRadius: 4,
+                        fontFamily: 'inherit',
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background =
+                          'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'none';
+                      }}
+                    >
+                      {importTotalSelected === decryptedPreview.objects.length
+                        ? t('common:deselect_all')
+                        : t('common:select_all')}
+                    </button>
+                  )}
+                </div>
 
                 {importPageGroups.length === 0 ? (
                   <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>

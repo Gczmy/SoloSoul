@@ -78,7 +78,7 @@ export function ObjectFieldList({
                   | Record<string, string>
                   | undefined;
                 const sensitivity: SensitivityLevel =
-                  (objLabels?.[key] as SensitivityLevel) || 'public';
+                  (objLabels?.[key] as SensitivityLevel) || 'internal';
                 const isContractField = fieldDef?.contractField === true;
                 const objContractTypeId = currentObject?.contractTypeId;
                 return (

@@ -431,6 +431,32 @@ export function ExportImportPage() {
     });
   };
 
+  // 全选/取消全选
+  const handleSelectAllImport = useCallback(
+    (selectAll: boolean) => {
+      if (!decryptedPreview) return;
+      const selMap = new Map<string, boolean>();
+      for (const obj of decryptedPreview.objects) {
+        selMap.set(obj.id, selectAll);
+      }
+      setImportSelections(selMap);
+
+      if (selectAll) {
+        const attIds = new Set(decryptedPreview.attachments.map((a) => a.id));
+        setImportSelectedAttachmentIds(attIds);
+        const pageIds = new Set<string>();
+        for (const obj of decryptedPreview.objects) {
+          pageIds.add(obj.sectionType || 'uncategorized');
+        }
+        setImportSelectedPageIds(pageIds);
+      } else {
+        setImportSelectedAttachmentIds(new Set());
+        setImportSelectedPageIds(new Set());
+      }
+    },
+    [decryptedPreview],
+  );
+
   // 导入总选择数
   const importTotalSelected = useMemo(() => {
     let count = 0;
@@ -534,6 +560,7 @@ export function ExportImportPage() {
             onToggleImportAttachment={toggleImportAttachment}
             onToggleExpandedImportPage={toggleExpandedImportPage}
             onToggleImportObjectExpanded={toggleImportObjectExpanded}
+            onSelectAllImport={handleSelectAllImport}
             onSetStrategy={setImportStrategy}
           />
         ) : null}

@@ -191,7 +191,7 @@ fn inherit_template_properties(
 
 /// 从模板继承字段定义（字段名 + 类型等），嵌入到 `properties` 的 `__fields` 键中。
 /// 即使模板被删除，对象仍保留字段定义副本。
-fn inherit_property_fields(
+pub(crate) fn inherit_property_fields(
     vault: &solosoul_vault::VaultStore,
     template_id: Option<&str>,
 ) -> serde_json::Value {
@@ -201,7 +201,7 @@ fn inherit_property_fields(
 }
 
 /// 将 `__fields` 注入到 properties JSON 对象中。
-fn inject_property_fields(properties: &mut serde_json::Value, fields: &serde_json::Value) {
+pub(crate) fn inject_property_fields(properties: &mut serde_json::Value, fields: &serde_json::Value) {
     if fields.is_null() {
         return;
     }
@@ -212,7 +212,7 @@ fn inject_property_fields(properties: &mut serde_json::Value, fields: &serde_jso
 
 /// 将模板元信息（名称、图标等）注入到 properties JSON 对象中，
 /// 即使模板被删除，对象仍能显示模板名称。
-fn inject_template_meta(
+pub(crate) fn inject_template_meta(
     vault: &solosoul_vault::VaultStore,
     template_id: Option<&str>,
     properties: &mut serde_json::Value,

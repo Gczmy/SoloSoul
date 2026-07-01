@@ -329,6 +329,55 @@ async fn import_execute_internal(
         let mut properties = obj_val["properties"].clone();
         resolve_cross_scope_references(&mut properties, &package_ids);
 
+        // ── 解析实际模板 ID ──
+        let resolved_template_id = obj_val["template_id"].as_str().map(|tid| {
+            template_id_map
+                .get(tid)
+                .cloned()
+                .unwrap_or_else(|| tid.to_string())
+        });
+
+        // ── 从模板继承字段敏感度、字段定义和模板名称 ──
+        // 即使模板后来被删除，对象仍保留自己的副本
+        let mut property_labels = if obj_val["property_labels"].is_null() {
+            None
+        } else {
+            Some(obj_val["property_labels"].clone())
+        };
+        if let Some(ref tid) = resolved_template_id {
+            // 合并 property_labels：payload 原有值优先，模板值作为兜底
+            let tpl_labels =
+                crate::commands::object::inherit_property_labels(&vault, Some(tid));
+            match (tpl_labels, &mut property_labels) {
+                (Some(tpl), Some(ref mut existing)) => {
+                    // 模板值作为兜底，不覆盖已有值
+                    if let Some(tpl_obj) = tpl.as_object() {
+                        if let Some(existing_obj) = existing.as_object_mut() {
+                            for (k, v) in tpl_obj {
+                                existing_obj.entry(k.clone()).or_insert_with(|| v.clone());
+                            }
+                        }
+                    }
+                }
+                (Some(tpl), None) => {
+                    property_labels = Some(tpl);
+                }
+                _ => {}
+            }
+
+            // 注入 __fields（字段名称 + 类型）
+            let fields =
+                crate::commands::object::inherit_property_fields(&vault, Some(tid));
+            crate::commands::object::inject_property_fields(&mut properties, &fields);
+
+            // 注入 __templateName
+            crate::commands::object::inject_template_meta(
+                &vault,
+                Some(tid),
+                &mut properties,
+            );
+        }
+
         let record = solosoul_vault::ObjectRecord {
             contract_type_id: None,
             id: id.to_string(),
@@ -353,11 +402,7 @@ async fn import_execute_internal(
                 })
                 .unwrap_or_default(),
             properties,
-            property_labels: if obj_val["property_labels"].is_null() {
-                None
-            } else {
-                Some(obj_val["property_labels"].clone())
-            },
+            property_labels,
             sensitivity_level: obj_val["sensitivity_level"]
                 .as_str()
                 .unwrap_or("internal")
@@ -372,12 +417,7 @@ async fn import_execute_internal(
                         .collect()
                 })
                 .unwrap_or_default(),
-            template_id: obj_val["template_id"].as_str().map(|tid| {
-                template_id_map
-                    .get(tid)
-                    .cloned()
-                    .unwrap_or_else(|| tid.to_string())
-            }),
+            template_id: resolved_template_id,
             template_type: obj_val["template_type"].as_str().map(String::from),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
             updated_at: now.clone(),

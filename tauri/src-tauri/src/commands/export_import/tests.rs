@@ -1,5 +1,12 @@
 use super::*;
+use crate::commands::object::{
+    inherit_property_fields, inherit_property_labels, inject_property_fields, inject_template_meta,
+};
 use serde_json::json;
+use solosoul_vault::{
+    ObjectRecord, PropertyType, TemplateProperty, UserTemplate, VaultConfig, VaultStore,
+};
+use std::sync::Arc;
 use tempfile::TempDir;
 
 // ── 1. Error formatting functions ───────────────────────────
@@ -500,4 +507,197 @@ fn test_import_preview_serde_roundtrip() {
     assert_eq!(original.extra_files, deserialized.extra_files);
     assert_eq!(original.export_time, deserialized.export_time);
     assert_eq!(original.password_hint, deserialized.password_hint);
+}
+
+// ── 10. Import template inheritance (方案 A) ─────────────────
+
+fn test_vault(account_id: &str) -> (TempDir, Arc<VaultStore>) {
+    let tmp = TempDir::new().unwrap();
+    let config = VaultConfig::new(account_id, tmp.path().to_path_buf()).with_data_key([0u8; 32]);
+    let vault = VaultStore::open(config).unwrap();
+    (tmp, Arc::new(vault))
+}
+
+/// 导入对象在模板删除后仍保留字段敏感度（property_labels）和字段定义（__fields）。
+#[test]
+fn test_import_object_keeps_sensitivity_after_template_delete() {
+    let account_id = "acc_import_sens";
+    let (_tmp, vault) = test_vault(account_id);
+
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // 1. 创建模板，三个字段各有不同的敏感度
+    let template = UserTemplate {
+        contract_type_id: None,
+        id: "passport".to_string(),
+        account_id: account_id.to_string(),
+        name: "护照信息".to_string(),
+        icon_id: Some("passport".to_string()),
+        properties: vec![
+            TemplateProperty {
+                contract_field: None,
+                id: "fullName".to_string(),
+                name: "姓名".to_string(),
+                prop_type: PropertyType::Text,
+                sensitivity_level: Some("internal".to_string()),
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+            },
+            TemplateProperty {
+                contract_field: None,
+                id: "passportNumber".to_string(),
+                name: "护照号码".to_string(),
+                prop_type: PropertyType::Text,
+                sensitivity_level: Some("critical".to_string()),
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+            },
+            TemplateProperty {
+                contract_field: None,
+                id: "email".to_string(),
+                name: "邮箱".to_string(),
+                prop_type: PropertyType::Text,
+                sensitivity_level: Some("sensitive".to_string()),
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+            },
+        ],
+        category: Some("travel".to_string()),
+        created_at: now.clone(),
+        updated_at: Some(now.clone()),
+    };
+    vault.save_user_template(&template).unwrap();
+
+    // 2. 创建一个基于该模板的对象（模拟导入场景，没有 property_labels）
+    let record = ObjectRecord {
+        contract_type_id: None,
+        id: "imported_obj".to_string(),
+        account_id: account_id.to_string(),
+        type_id: "passport".to_string(),
+        section_type: "travel".to_string(),
+        name: "张三的护照".to_string(),
+        icon_name: "passport".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "fullName": "张三",
+            "passportNumber": "E12345678",
+            "email": "zhangsan@example.com"
+        }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("passport".to_string()),
+        template_type: None,
+        created_at: now.clone(),
+        updated_at: now,
+        version: 1,
+    };
+    vault.save_object(&record).unwrap();
+
+    // 3. 执行模板继承逻辑（模拟 import.rs 中的修复）
+    let loaded = vault.load_object("imported_obj").unwrap().unwrap();
+    let mut properties = loaded.properties.clone();
+
+    let merged_labels = inherit_property_labels(&vault, loaded.template_id.as_deref());
+    let fields = inherit_property_fields(&vault, loaded.template_id.as_deref());
+    inject_property_fields(&mut properties, &fields);
+    inject_template_meta(&vault, loaded.template_id.as_deref(), &mut properties);
+
+    // 保存更新后的对象
+    let mut obj = vault.load_object("imported_obj").unwrap().unwrap();
+    obj.properties = properties;
+    obj.property_labels = merged_labels;
+    vault.save_object(&obj).unwrap();
+
+    // 4. 验证对象现在有 property_labels
+    let updated = vault.load_object("imported_obj").unwrap().unwrap();
+    let labels = updated.property_labels.as_ref().unwrap();
+    let labels_obj = labels.as_object().unwrap();
+    assert_eq!(labels_obj.get("fullName").and_then(|v| v.as_str()), Some("internal"));
+    assert_eq!(labels_obj.get("passportNumber").and_then(|v| v.as_str()), Some("critical"));
+    assert_eq!(labels_obj.get("email").and_then(|v| v.as_str()), Some("sensitive"));
+
+    // 5. 验证 __fields 已注入
+    let props = &updated.properties;
+    let fields = props.get("__fields").and_then(|f| f.as_object()).unwrap();
+    assert!(fields.contains_key("fullName"));
+    assert!(fields.contains_key("passportNumber"));
+    assert!(fields.contains_key("email"));
+    assert_eq!(
+        fields.get("fullName").and_then(|f| f.get("name")).and_then(|n| n.as_str()),
+        Some("姓名")
+    );
+
+    // 6. 验证 __templateName 已注入
+    assert_eq!(
+        props.get("__templateName").and_then(|n| n.as_str()),
+        Some("护照信息")
+    );
+
+    // 7. 删除模板
+    vault.delete_user_template("passport").unwrap();
+    assert!(vault.load_user_template("passport").unwrap().is_none());
+
+    // 8. 重新加载对象，验证 property_labels 仍然保留
+    let after_delete = vault.load_object("imported_obj").unwrap().unwrap();
+    let labels_after = after_delete.property_labels.as_ref().unwrap();
+    let labels_obj_after = labels_after.as_object().unwrap();
+    assert_eq!(labels_obj_after.get("passportNumber").and_then(|v| v.as_str()), Some("critical"));
+    assert_eq!(labels_obj_after.get("email").and_then(|v| v.as_str()), Some("sensitive"));
+
+    // 9. __fields 和 __templateName 也继续保留
+    let props_after = &after_delete.properties;
+    assert!(props_after.get("__fields").is_some());
+    assert_eq!(
+        props_after.get("__templateName").and_then(|n| n.as_str()),
+        Some("护照信息")
+    );
+}
+
+/// 回归测试：无模板对象导入后不受影响
+#[test]
+fn test_import_no_template_object_unchanged() {
+    let account_id = "acc_no_tpl";
+    let (_tmp, vault) = test_vault(account_id);
+
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // 创建无模板的对象
+    let record = ObjectRecord {
+        contract_type_id: None,
+        id: "no_tpl_obj".to_string(),
+        account_id: account_id.to_string(),
+        type_id: "note".to_string(),
+        section_type: "identity".to_string(),
+        name: "无模板对象".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({"note": "this has no template"}),
+        property_labels: None,
+        sensitivity_level: "public".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        created_at: now.clone(),
+        updated_at: now,
+        version: 1,
+    };
+    vault.save_object(&record).unwrap();
+
+    // 验证 property_labels 仍为 None
+    let loaded = vault.load_object("no_tpl_obj").unwrap().unwrap();
+    assert!(loaded.property_labels.is_none());
+    assert!(loaded.template_id.is_none());
+    // 无模板时不应有 __fields 或 __templateName
+    assert!(loaded.properties.get("__fields").is_none());
+    assert!(loaded.properties.get("__templateName").is_none());
 }
