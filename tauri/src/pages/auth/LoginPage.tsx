@@ -10,10 +10,12 @@ import { useCancellable } from '@/hooks/useCancellable';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinInput } from '@/components/forms/PinInput';
-import { Fingerprint, KeyRound, Loader2 } from 'lucide-react';
+import { Fingerprint, KeyRound } from 'lucide-react';
 import styles from './LoginPage.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
+/** 模块级缓存 — 跨组件卸载持久化，避免锁定后重新挂载时闪烁 */
+let _cachedLoginMethod: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null = null;
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -105,22 +107,25 @@ export function LoginPage() {
 
   // Priority-based login method selection
   // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
+  // 从模块缓存初始化，避免锁定后重新挂载时闪烁
   const [loginMethod, setLoginMethod] = useState<
     'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null
-  >(null);
+  >(_cachedLoginMethod);
+
+  // 跨卸载持久化 — 锁定再登录后直接显示最后使用的方法
+  useEffect(() => {
+    if (loginMethod) _cachedLoginMethod = loginMethod;
+  }, [loginMethod]);
 
   // Check biometric and PIN availability for selected account
   useEffect(() => {
     const { isCancelled, cancel } = makeCancellable();
     if (!selectedAccountId) {
-      setBioChecked(true);
-      setPinChecked(true);
-      setLoginMethod('password');
+      // 尚未选中账户时保持缓存值，不触发优先级设置 effect，避免覆盖缓存
       return cancel;
     }
 
-    // Reset state when account changes
-    setLoginMethod(null);
+    // Reset state when account changes — 不重置 loginMethod，保留缓存值避免闪烁
     setBioChecked(false);
     setPinChecked(false);
     setBioAvailable(false);
@@ -295,8 +300,11 @@ export function LoginPage() {
           borderRadius: 16,
           padding: 32,
           width: 360,
+          minHeight: 420,
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
           textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <ShieldLogo size={ICON_SIZE['5xl']} style={{ margin: '0 auto 16px' }} />
@@ -305,17 +313,9 @@ export function LoginPage() {
           {t('auth:login_subtitle')}
         </p>
 
-        {/* Loading state while bio check runs — same layout, no layout jump */}
-        {!bioChecked && (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
-            <Loader2 size={ICON_SIZE['2xl']} className={styles.loadingSpinner} style={{ color: 'var(--text-tertiary)' }} />
-          </div>
-        )}
-
-        {/* Account selector / name — visible for both biometric and password login */}
-        {bioChecked && accounts.length > 0 && (
-          <div style={{ marginBottom: 20, width: '100%' }}>
-            {accounts.length > 1 ? (
+        {/* Account selector / name — 始终预留空间，避免切换登录方式时下方内容位移 */}
+        <div style={{ marginBottom: 20, width: '100%', minHeight: accounts.length > 0 ? 'auto' : 50 }}>
+            {accounts.length > 0 && (accounts.length > 1 ? (
               <select
                 value={selectedAccountId}
                 onChange={(e) => setSelectedAccountId(e.target.value)}
@@ -366,9 +366,8 @@ export function LoginPage() {
                   {selectedAccount?.id ?? accounts[0]?.id}
                 </div>
               </div>
-            )}
+            ))}
           </div>
-        )}
 
         {/* Biometric unlock — highest-priority method */}
         {(loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello') && (
@@ -508,8 +507,8 @@ export function LoginPage() {
           </div>
         )}
 
-        {/* Password input — lowest priority, shown when no other method available or user chose it */}
-        {loginMethod === 'password' && (
+        {/* Password input — 最低优先级；初始化或缓存回退时也显示，避免白屏 */}
+        {(loginMethod === 'password' || loginMethod === null) && (
           <form
             onSubmit={handleSubmit}
             style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
