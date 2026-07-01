@@ -1,10 +1,20 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
+import { Paperclip } from 'lucide-react';
+import { formatBytes } from '@/lib/format';
+import { ICON_SIZE } from '@/lib/iconSizes';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import type { ImportStrategy, ImportPreview, DecryptedImportPreview } from '@/types/exportImport';
+import type {
+  AttachmentImportInfo,
+  ImportStrategy,
+  ImportPreview,
+  DecryptedImportPreview,
+  ObjectSummary,
+} from '@/types/exportImport';
 
 interface ImportSectionProps {
   importPath: string;
@@ -17,6 +27,11 @@ interface ImportSectionProps {
   importStrategy: ImportStrategy;
   importSelections: Map<string, boolean>;
   showStrategySelector: boolean;
+  importSelectedPageIds: Set<string>;
+  importSelectedAttachmentIds: Set<string>;
+  importExpandedPages: Set<string>;
+  importExpandedObjects: Set<string>;
+  importTotalSelected: number;
   onSetImportPath: (v: string) => void;
   onSetImportPreview: (v: ImportPreview | null) => void;
   onSetDecryptedPreview: (v: DecryptedImportPreview | null) => void;
@@ -26,7 +41,26 @@ interface ImportSectionProps {
   onDecrypt: () => void;
   onImport: () => void;
   onToggleSelection: (id: string) => void;
+  onToggleImportPage: (sectionType: string, objectIds: string[]) => void;
+  onToggleImportAttachment: (attId: string) => void;
+  onToggleExpandedImportPage: (sectionType: string) => void;
+  onToggleImportObjectExpanded: (objectId: string) => void;
   onSetStrategy: (s: ImportStrategy) => void;
+}
+
+/** Group decrypted preview objects by section_type into pages */
+function groupIntoPages(objects: ObjectSummary[]) {
+  const map = new Map<string, { sectionType: string; objects: ObjectSummary[] }>();
+  for (const obj of objects) {
+    const st = obj.sectionType || 'uncategorized';
+    let group = map.get(st);
+    if (!group) {
+      group = { sectionType: st, objects: [] };
+      map.set(st, group);
+    }
+    group.objects.push(obj);
+  }
+  return Array.from(map.values());
 }
 
 export function ImportSection({
@@ -40,6 +74,11 @@ export function ImportSection({
   importStrategy,
   importSelections,
   showStrategySelector,
+  importSelectedPageIds,
+  importSelectedAttachmentIds,
+  importExpandedPages,
+  importExpandedObjects,
+  importTotalSelected,
   onSetImportPath,
   onSetImportPreview,
   onSetDecryptedPreview,
@@ -49,9 +88,41 @@ export function ImportSection({
   onDecrypt,
   onImport,
   onToggleSelection,
+  onToggleImportPage,
+  onToggleImportAttachment,
+  onToggleExpandedImportPage,
+  onToggleImportObjectExpanded,
   onSetStrategy,
 }: ImportSectionProps) {
-  const { t } = useTranslation(['settings', 'common']);
+  const { t } = useTranslation(['settings', 'common', 'navigation']);
+
+  // Build pages from decrypted objects
+  const importPageGroups = useMemo(
+    () => (decryptedPreview ? groupIntoPages(decryptedPreview.objects) : []),
+    [decryptedPreview],
+  );
+
+  // Build a lookup set for conflict object IDs
+  const conflictIds = useMemo(
+    () => new Set(decryptedPreview?.conflicts.map((c) => c.objectId) ?? []),
+    [decryptedPreview],
+  );
+
+  // Attachments grouped by object ID
+  const attachmentsByObject = useMemo(() => {
+    const map = new Map<string, AttachmentImportInfo[]>();
+    if (decryptedPreview) {
+      for (const att of decryptedPreview.attachments) {
+        let list = map.get(att.objectId);
+        if (!list) {
+          list = [];
+          map.set(att.objectId, list);
+        }
+        list.push(att);
+      }
+    }
+    return map;
+  }, [decryptedPreview]);
 
   return (
     <>
@@ -258,7 +329,7 @@ export function ImportSection({
             </div>
           )}
 
-          {/* Decrypted preview with conflicts */}
+          {/* Decrypted preview — Page → Object → Attachment tree */}
           {decryptedPreview && (
             <>
               <div
@@ -269,57 +340,229 @@ export function ImportSection({
                 }}
               >
                 <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 6 }}>
-                  {t('settings:objects_in_package')} ({decryptedPreview.objects.length})
+                  {t('settings:select_objects')}
                 </h4>
 
-                <div style={{ maxHeight: 240, overflowY: 'auto', fontSize: 'var(--text-body-sm)' }}>
-                  {decryptedPreview.objects.map((obj) => {
-                    const isConflict = decryptedPreview.conflicts.some(
-                      (c) => c.objectId === obj.id,
-                    );
-                    const isSelected = importSelections.get(obj.id) ?? true;
-                    return (
-                      <div
-                        key={obj.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          padding: '3px 0',
-                        }}
-                      >
-                        <SelectCheckbox
-                          checked={isSelected}
-                          onChange={() => onToggleSelection(obj.id)}
-                        />
-                        <span
-                          style={{
-                            flex: 1,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {obj.name}
-                        </span>
-                        <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
-                        {isConflict && (
-                          <span
+                {importPageGroups.length === 0 ? (
+                  <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>
+                    {t('common:no_data')}
+                  </p>
+                ) : (
+                  <div style={{ maxHeight: 320, overflowY: 'auto', fontSize: 'var(--text-body-sm)' }}>
+                    {importPageGroups.map((group) => {
+                      const allIds = group.objects.map((o) => o.id);
+                      const pageChecked = importSelectedPageIds.has(group.sectionType);
+                      const someChecked =
+                        !pageChecked && allIds.some((id) => importSelections.get(id) === true);
+                      const expanded = importExpandedPages.has(group.sectionType);
+                      return (
+                        <div key={group.sectionType}>
+                          {/* Page row */}
+                          <div
                             style={{
-                              fontSize: 'var(--text-badge)',
-                              color: 'var(--warning)',
-                              border: '1px solid var(--warning)',
-                              borderRadius: 3,
-                              padding: '0 4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              padding: '8px 0',
+                              cursor: 'pointer',
+                              userSelect: 'none',
                             }}
                           >
-                            {t('settings:conflict')}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                            <SelectCheckbox
+                              checked={pageChecked}
+                              indeterminate={someChecked && !pageChecked}
+                              onChange={() => onToggleImportPage(group.sectionType, allIds)}
+                            />
+                            <span
+                              onClick={() => onToggleExpandedImportPage(group.sectionType)}
+                              style={{
+                                fontSize: 'var(--text-body)',
+                                fontWeight: 600,
+                                flex: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  transform: expanded ? 'rotate(90deg)' : 'none',
+                                  transition: 'transform 0.15s',
+                                  fontSize: 'var(--text-badge)',
+                                }}
+                              >
+                                ▶
+                              </span>
+                              <span
+                                style={{
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {t(`navigation:${group.sectionType}`, group.sectionType)}
+                              </span>
+                            </span>
+                            <span
+                              style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}
+                            >
+                              {t('common:object_count', { n: group.objects.length })}
+                            </span>
+                          </div>
+
+                          {/* Object rows (collapsible) */}
+                          {expanded &&
+                            group.objects.map((obj) => {
+                              const isConflict = conflictIds.has(obj.id);
+                              const isSelected = importSelections.get(obj.id) ?? true;
+                              const objAtts = attachmentsByObject.get(obj.id) ?? [];
+                              const hasAtts = objAtts.length > 0;
+                              return (
+                                <div key={obj.id}>
+                                  <label
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 8,
+                                      padding: '4px 0 4px 28px',
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <SelectCheckbox
+                                      checked={isSelected}
+                                      onChange={() => onToggleSelection(obj.id)}
+                                    />
+                                    <span
+                                      style={{
+                                        fontSize: 'var(--text-body-sm)',
+                                        flex: 1,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                      }}
+                                    >
+                                      {obj.name}
+                                    </span>
+                                    <SensitivityBadge
+                                      level={obj.sensitivityLevel as SensitivityLevel}
+                                    />
+                                    {isConflict && (
+                                      <span
+                                        style={{
+                                          fontSize: 'var(--text-badge)',
+                                          color: 'var(--warning)',
+                                          border: '1px solid var(--warning)',
+                                          borderRadius: 3,
+                                          padding: '0 4px',
+                                        }}
+                                      >
+                                        {t('settings:conflict')}
+                                      </span>
+                                    )}
+                                    {hasAtts && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          onToggleImportObjectExpanded(obj.id);
+                                        }}
+                                        style={{
+                                          fontSize: 'var(--text-badge)',
+                                          background: 'none',
+                                          border: 'none',
+                                          cursor: 'pointer',
+                                          padding: '0 4px',
+                                          transform: importExpandedObjects.has(obj.id)
+                                            ? 'rotate(90deg)'
+                                            : 'none',
+                                          transition: 'transform 0.15s',
+                                          color: 'var(--text-tertiary)',
+                                        }}
+                                      >
+                                        ▶
+                                      </button>
+                                    )}
+                                  </label>
+
+                                  {/* Attachment rows */}
+                                  {importExpandedObjects.has(obj.id) && (
+                                    <div style={{ paddingLeft: 52, paddingBottom: 4 }}>
+                                      {!hasAtts ? (
+                                        <span
+                                          style={{
+                                            fontSize: 'var(--text-caption)',
+                                            color: 'var(--text-tertiary)',
+                                          }}
+                                        >
+                                          {t('settings:no_attachments')}
+                                        </span>
+                                      ) : (
+                                        <>
+                                          <div
+                                            style={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: 4,
+                                              padding: '2px 0',
+                                              fontSize: 'var(--text-badge)',
+                                              color: 'var(--text-tertiary)',
+                                              borderBottom: '1px solid var(--border-subtle)',
+                                              marginBottom: 2,
+                                            }}
+                                          >
+                                            <Paperclip size={ICON_SIZE['2xs']} />
+                                            <span>
+                                              {t('settings:attachments_label')} ({objAtts.length})
+                                            </span>
+                                          </div>
+                                          {objAtts.map((att) => (
+                                            <label
+                                              key={att.id}
+                                              style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 6,
+                                                padding: '2px 0 2px 16px',
+                                                cursor: 'pointer',
+                                              }}
+                                            >
+                                              <SelectCheckbox
+                                                checked={importSelectedAttachmentIds.has(att.id)}
+                                                onChange={() => onToggleImportAttachment(att.id)}
+                                              />
+                                              <Paperclip
+                                                size={ICON_SIZE['2xs']}
+                                                style={{
+                                                  color: 'var(--text-tertiary)',
+                                                  flexShrink: 0,
+                                                }}
+                                              />
+                                              <span style={{ fontSize: 'var(--text-caption)', flex: 1 }}>
+                                                {att.fileName}
+                                              </span>
+                                              <span
+                                                style={{
+                                                  fontSize: 'var(--text-badge)',
+                                                  color: 'var(--text-tertiary)',
+                                                }}
+                                              >
+                                                {formatBytes(att.sizeBytes)}
+                                              </span>
+                                            </label>
+                                          ))}
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {decryptedPreview.conflicts.length > 0 && (
                   <div
@@ -339,6 +582,7 @@ export function ImportSection({
                 )}
               </div>
 
+              {/* Action buttons */}
               {!showStrategySelector ? (
                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                   <button
@@ -373,7 +617,7 @@ export function ImportSection({
                   <button
                     type="button"
                     onClick={onImport}
-                    disabled={!importPw || isImporting}
+                    disabled={!importPw || isImporting || importTotalSelected === 0}
                     style={{
                       fontSize: 'var(--text-caption)',
                       padding: '6px 12px',
@@ -383,14 +627,18 @@ export function ImportSection({
                         ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
                         : 'var(--bg-toolbar)',
                       color: isImporting ? 'var(--accent-primary)' : 'var(--text-primary)',
-                      cursor: !importPw || isImporting ? 'default' : 'pointer',
+                      cursor:
+                        !importPw || isImporting || importTotalSelected === 0
+                          ? 'default'
+                          : 'pointer',
                       fontFamily: 'inherit',
                       fontWeight: 500,
-                      opacity: !importPw || isImporting ? 0.5 : 1,
+                      opacity:
+                        !importPw || isImporting || importTotalSelected === 0 ? 0.5 : 1,
                       transition: 'all 0.15s ease',
                     }}
                     onMouseEnter={(e) => {
-                      if (importPw && !isImporting) {
+                      if (importPw && !isImporting && importTotalSelected > 0) {
                         e.currentTarget.style.background =
                           'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                         e.currentTarget.style.borderColor = 'var(--accent-primary)';
@@ -398,7 +646,7 @@ export function ImportSection({
                       }
                     }}
                     onMouseLeave={(e) => {
-                      if (importPw && !isImporting) {
+                      if (importPw && !isImporting && importTotalSelected > 0) {
                         e.currentTarget.style.background = 'var(--bg-toolbar)';
                         e.currentTarget.style.borderColor = 'var(--border-subtle)';
                         e.currentTarget.style.color = 'var(--text-primary)';
@@ -407,7 +655,7 @@ export function ImportSection({
                   >
                     {isImporting
                       ? t('common:loading', { defaultValue: '...' })
-                      : t('settings:quick_import')}
+                      : `${t('settings:quick_import')} (${importTotalSelected})`}
                   </button>
                 </div>
               ) : (
@@ -487,7 +735,7 @@ export function ImportSection({
                     <button
                       type="button"
                       onClick={onImport}
-                      disabled={!importPw || isImporting}
+                      disabled={!importPw || isImporting || importTotalSelected === 0}
                       style={{
                         fontSize: 'var(--text-caption)',
                         padding: '6px 12px',
@@ -497,14 +745,18 @@ export function ImportSection({
                           ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
                           : 'var(--bg-toolbar)',
                         color: isImporting ? 'var(--accent-primary)' : 'var(--text-primary)',
-                        cursor: !importPw || isImporting ? 'default' : 'pointer',
+                        cursor:
+                          !importPw || isImporting || importTotalSelected === 0
+                            ? 'default'
+                            : 'pointer',
                         fontFamily: 'inherit',
                         fontWeight: 500,
-                        opacity: !importPw || isImporting ? 0.5 : 1,
+                        opacity:
+                          !importPw || isImporting || importTotalSelected === 0 ? 0.5 : 1,
                         transition: 'all 0.15s ease',
                       }}
                       onMouseEnter={(e) => {
-                        if (importPw && !isImporting) {
+                        if (importPw && !isImporting && importTotalSelected > 0) {
                           e.currentTarget.style.background =
                             'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                           e.currentTarget.style.borderColor = 'var(--accent-primary)';
@@ -512,7 +764,7 @@ export function ImportSection({
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (importPw && !isImporting) {
+                        if (importPw && !isImporting && importTotalSelected > 0) {
                           e.currentTarget.style.background = 'var(--bg-toolbar)';
                           e.currentTarget.style.borderColor = 'var(--border-subtle)';
                           e.currentTarget.style.color = 'var(--text-primary)';
@@ -521,7 +773,7 @@ export function ImportSection({
                     >
                       {isImporting
                         ? t('common:loading', { defaultValue: '...' })
-                        : `${t('settings:import_action')} (${importSelections.size})`}
+                        : `${t('settings:import_action')} (${importTotalSelected})`}
                     </button>
                   </div>
                 </div>

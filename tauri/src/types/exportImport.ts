@@ -41,11 +41,19 @@ export interface ImportPreview {
   passwordHint: string | null;
 }
 
+export interface AttachmentImportInfo {
+  id: string;
+  objectId: string;
+  fileName: string;
+  sizeBytes: number;
+}
+
 export interface DecryptedImportPreview {
   objects: ObjectSummary[];
   conflicts: ConflictInfo[];
   hasPreferences: boolean;
   hasAuditLog: boolean;
+  attachments: AttachmentImportInfo[];
 }
 
 export interface ConflictInfo {

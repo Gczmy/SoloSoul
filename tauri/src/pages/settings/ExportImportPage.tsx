@@ -73,6 +73,12 @@ export function ExportImportPage() {
   const [importStrategy, setImportStrategy] = useState<ImportStrategy>('skipExisting');
   const [importSelections, setImportSelections] = useState<Map<string, boolean>>(new Map());
   const [showStrategySelector, setShowStrategySelector] = useState(false);
+  const [importSelectedPageIds, setImportSelectedPageIds] = useState<Set<string>>(new Set());
+  const [importSelectedAttachmentIds, setImportSelectedAttachmentIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [importExpandedPages, setImportExpandedPages] = useState<Set<string>>(new Set());
+  const [importExpandedObjects, setImportExpandedObjects] = useState<Set<string>>(new Set());
 
   // Load scope tree
   const [scopeLoaded, setScopeLoaded] = useState(false);
@@ -250,11 +256,25 @@ export function ExportImportPage() {
         password: importPw,
       });
       setDecryptedPreview(preview);
+
+      // 全选所有对象
       const selMap = new Map<string, boolean>();
       for (const obj of preview.objects) {
         selMap.set(obj.id, true);
       }
       setImportSelections(selMap);
+
+      // 全选所有附件
+      const attIds = new Set(preview.attachments.map((a) => a.id));
+      setImportSelectedAttachmentIds(attIds);
+
+      // 按 section_type 构建页面全选集合
+      const pageIds = new Set<string>();
+      for (const obj of preview.objects) {
+        const st = obj.sectionType || 'uncategorized';
+        pageIds.add(st);
+      }
+      setImportSelectedPageIds(pageIds);
     } catch (e) {
       onError(new Error(resolveBackendErrorMessage(e)), t('common:decrypt_failed'));
     } finally {
@@ -263,14 +283,19 @@ export function ExportImportPage() {
   };
 
   const handleImport = async () => {
-    if (!importPath || !importPw) return;
+    if (!importPath || !importPw || importTotalSelected === 0) return;
     setIsImporting(true);
     try {
+      const selections = Array.from(importSelections.entries()).map(([objectId, selected]) => ({
+        objectId,
+        selected,
+      }));
+      const selAttIds =
+        importSelectedAttachmentIds.size > 0
+          ? Array.from(importSelectedAttachmentIds)
+          : [];
+
       if (showStrategySelector && decryptedPreview) {
-        const selections = Array.from(importSelections.entries()).map(([objectId, selected]) => ({
-          objectId,
-          selected,
-        }));
         const result = await invoke<ImportResult>('import_execute_advanced', {
           accountId,
           req: {
@@ -278,6 +303,7 @@ export function ExportImportPage() {
             strategy: importStrategy,
             sourcePath: importPath,
             password: importPw,
+            selectedAttachmentIds: selAttIds.length > 0 ? selAttIds : null,
           },
         });
         onSuccess(
@@ -287,10 +313,16 @@ export function ExportImportPage() {
           }),
         );
       } else {
-        const result = await invoke<ImportResult>('import_execute', {
+        // Quick Import: use SkipExisting strategy, respect selections
+        const result = await invoke<ImportResult>('import_execute_advanced', {
           accountId,
-          filePath: importPath,
-          password: importPw,
+          req: {
+            selections,
+            strategy: 'skipExisting',
+            sourcePath: importPath,
+            password: importPw,
+            selectedAttachmentIds: selAttIds.length > 0 ? selAttIds : null,
+          },
         });
         onSuccess(
           t('settings:import_success_with_attachments', {
@@ -312,13 +344,101 @@ export function ExportImportPage() {
     }
   };
 
+  // ── 导入树选择处理 ──
+
   const toggleImportSelection = (id: string) => {
     setImportSelections((prev) => {
       const next = new Map(prev);
-      next.set(id, !next.get(id));
+      const newVal = !next.get(id);
+      next.set(id, newVal);
       return next;
     });
   };
+
+  const toggleImportPage = (sectionType: string, objectIds: string[]) => {
+    setImportSelectedPageIds((prev) => {
+      const next = new Set(prev);
+      const currentlyChecked = next.has(sectionType);
+      if (currentlyChecked) {
+        next.delete(sectionType);
+      } else {
+        next.add(sectionType);
+      }
+      return next;
+    });
+    // 同步切换该页面下所有对象的选择状态
+    setImportSelections((prev) => {
+      const next = new Map(prev);
+      const currentlyChecked = importSelectedPageIds.has(sectionType);
+      for (const id of objectIds) {
+        next.set(id, !currentlyChecked);
+      }
+      return next;
+    });
+    // 同步切换该页面下所有附件
+    if (decryptedPreview) {
+      const pageAttIds = decryptedPreview.attachments
+        .filter((a) => objectIds.includes(a.objectId))
+        .map((a) => a.id);
+      setImportSelectedAttachmentIds((prev) => {
+        const next = new Set(prev);
+        const currentlyChecked = importSelectedPageIds.has(sectionType);
+        for (const attId of pageAttIds) {
+          if (currentlyChecked) {
+            next.delete(attId);
+          } else {
+            next.add(attId);
+          }
+        }
+        return next;
+      });
+    }
+  };
+
+  const toggleImportAttachment = (attId: string) => {
+    setImportSelectedAttachmentIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(attId)) {
+        next.delete(attId);
+      } else {
+        next.add(attId);
+      }
+      return next;
+    });
+  };
+
+  const toggleExpandedImportPage = (sectionType: string) => {
+    setImportExpandedPages((prev) => {
+      const next = new Set(prev);
+      if (next.has(sectionType)) {
+        next.delete(sectionType);
+      } else {
+        next.add(sectionType);
+      }
+      return next;
+    });
+  };
+
+  const toggleImportObjectExpanded = (objectId: string) => {
+    setImportExpandedObjects((prev) => {
+      const next = new Set(prev);
+      if (next.has(objectId)) {
+        next.delete(objectId);
+      } else {
+        next.add(objectId);
+      }
+      return next;
+    });
+  };
+
+  // 导入总选择数
+  const importTotalSelected = useMemo(() => {
+    let count = 0;
+    for (const v of importSelections.values()) {
+      if (v) count++;
+    }
+    return count;
+  }, [importSelections]);
 
   return (
     <AppShell title={t('settings:export_import')} onBack={() => navigate('/settings')}>
@@ -396,6 +516,11 @@ export function ExportImportPage() {
             importStrategy={importStrategy}
             importSelections={importSelections}
             showStrategySelector={showStrategySelector}
+            importSelectedPageIds={importSelectedPageIds}
+            importSelectedAttachmentIds={importSelectedAttachmentIds}
+            importExpandedPages={importExpandedPages}
+            importExpandedObjects={importExpandedObjects}
+            importTotalSelected={importTotalSelected}
             onSetImportPath={setImportPath}
             onSetImportPreview={setImportPreview}
             onSetDecryptedPreview={setDecryptedPreview}
@@ -405,6 +530,10 @@ export function ExportImportPage() {
             onDecrypt={handleDecryptPreview}
             onImport={handleImport}
             onToggleSelection={toggleImportSelection}
+            onToggleImportPage={toggleImportPage}
+            onToggleImportAttachment={toggleImportAttachment}
+            onToggleExpandedImportPage={toggleExpandedImportPage}
+            onToggleImportObjectExpanded={toggleImportObjectExpanded}
             onSetStrategy={setImportStrategy}
           />
         ) : null}

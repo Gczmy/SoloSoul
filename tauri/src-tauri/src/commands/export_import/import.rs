@@ -155,6 +155,7 @@ pub async fn import_decrypt_preview(
                     continue;
                 }
                 attachments.push(AttachmentImportInfo {
+                    id: att.id.clone(),
                     object_id: obj.id.clone(),
                     file_name: att.file_name.clone(),
                     size_bytes: att.size_bytes,
@@ -187,6 +188,7 @@ pub async fn import_execute(
         password,
         ImportStrategy::SkipExisting,
         None,
+        None,
     )
     .await
 }
@@ -205,6 +207,7 @@ pub async fn import_execute_advanced(
         req.password,
         req.strategy,
         Some(req.selections),
+        req.selected_attachment_ids,
     )
     .await
 }
@@ -216,6 +219,7 @@ async fn import_execute_internal(
     password: String,
     strategy: ImportStrategy,
     selections: Option<Vec<ImportSelection>>,
+    selected_attachment_ids: Option<Vec<String>>,
 ) -> Result<ImportResult, String> {
     let svc = state
         .vault_service
@@ -393,6 +397,10 @@ async fn import_execute_internal(
         imported_object_ids.insert(id.to_string());
     }
 
+    // 构建选中附件 ID 集合，用于附件过滤
+    let sel_att_ids_set: Option<std::collections::HashSet<String>> =
+        selected_attachment_ids.map(|ids| ids.into_iter().collect());
+
     let mut imported_attachments_count = 0usize;
 
     // ── P1: Import attachments (encrypted) ─────────────────────
@@ -448,6 +456,13 @@ async fn import_execute_internal(
             // Skip if object was not imported (e.g. SkipExisting)
             if !imported_object_ids.contains(obj_id) {
                 continue;
+            }
+
+            // 如果指定了附件选择，跳过未选中的附件
+            if let Some(ref sel_set) = sel_att_ids_set {
+                if !sel_set.contains(old_att_id) {
+                    continue;
+                }
             }
 
             let old_meta = match att_meta_map.get(&(obj_id.to_string(), old_att_id.to_string())) {

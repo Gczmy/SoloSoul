@@ -140,6 +140,7 @@ pub struct ImportPreview {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AttachmentImportInfo {
+    pub id: String,
     pub object_id: String,
     pub file_name: String,
     pub size_bytes: u64,
@@ -188,6 +189,8 @@ pub struct AdvancedImportRequest {
     pub strategy: ImportStrategy,
     pub source_path: String,
     pub password: String,
+    /// 选中的附件 ID（旧 ID，来自导出包）。None = 导入所有附件，Some([]) = 不导入附件。
+    pub selected_attachment_ids: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
