@@ -8,25 +8,47 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Added
 
-- **Windows Hello 生物识别** — 新增 Windows Hello 生物识别凭证存储与用户验证支持，基于 UserConsentVerifier + 本地加密文件存储。
-- **新手引导多页引导（PageGuide）** — 增强 PageGuide 组件，支持多步引导式帮助文档。
+- **Windows Hello 生物识别** — 新增 Windows Hello 生物识别凭证存储与用户验证支持。使用 `UserConsentVerifier` 触发 Windows Hello 弹窗验证用户身份，凭证存储复用本地加密文件方案，支持可用性检测、验证弹窗（PIN 作为系统回退）、诊断日志与审计事件记录。
+- **PIN 快速解锁** — 已登录状态支持 PIN 码快速解锁 vault，减少频繁输入主密码的摩擦。
+- **PIN 锁定重置** — 强因子认证（主密码/Face ID/Touch ID）成功后自动重置 PIN 锁定状态，避免用户因 PIN 锁定无法登录。
+- **新手引导多页引导（PageGuide）** — 新增 PageGuide 组件，支持多步引导式帮助文档；增加拖拽上传教程页面。
 
 ### Changed
 
-- **登录优先级逻辑** — 登录方式按 Face ID > Touch ID > Windows Hello > PIN > 主密码优先级自动选择，仅显示一种登录界面，不再叠加。
-- **导出密码限制取消** — 导出时任何非空密码均可使用（>=1 字符），不再限制复杂度。
-- **PIN 验证动画重设计** — 验证横线使用渐变流 + 斜纹光斑动画效果，横线高度从 8px 减半至 4px。
+- **登录优先级逻辑** — 登录方式按 Face ID > Touch ID > Windows Hello > PIN > 主密码优先级自动选择。用单个 `loginMethod` 状态替代多个布尔标志，仅显示一种登录界面，不再叠加。切换账户时重置检测状态重新计算优先级。
+- **导出密码限制取消** — 导出时任何非空密码均可使用（>=1 字符），不再限制复杂度（字母+数字+8位等），由用户自行决定密码强度。
+- **PIN 输入组件重写** — PinInput 从受控 input 重构为隐藏真实输入框 + 纯视觉盒子（visual boxes）架构，消除光标偏移、输入冲突等问题。验证动画使用渐变流 + 斜纹光斑叠加效果，验证横线高度从 8px 减半至 4px。
 
 ### Fixed
 
-- **锁定账户登录页面闪烁** — 全面消除 vault 锁定后重新挂载 LoginPage 的闪烁问题：模块级 `_cachedLoginMethod` 缓存登录方式跨卸载持久化、卡片 `minHeight: 420` 预留完整高度、账户选择器 `minHeight: 50` 预留空间、移除加载转圈、`!selectedAccountId` 时不再设置 `bioChecked`/`pinChecked` 保护缓存值不被覆盖。
-- **Windows 构建修复** — `ensure_mta()` 中 `?` 操作符无法将 `()` 转换为 `BiometricError`，改用 `map_err` 显式转换。
-- **Windows Hello 诊断日志** — 添加 Windows Hello 完整诊断与审计日志。
+- **锁定账户登录页面闪烁** — 全面消除 vault 锁定后重新挂载 LoginPage 的闪烁问题：
+  - 模块级 `_cachedLoginMethod` 缓存登录方式跨卸载持久化，初始化时直接从缓存取值
+  - 登录卡片 `minHeight: 420` 预留完整高度，账户选择器 `minHeight: 50` 预留空间
+  - 移除加载转圈，`!selectedAccountId` 时不再提前设置 `bioChecked`/`pinChecked` 保护缓存值
+  - 最终效果：锁定后重新挂载，TouchID/FaceID 按钮立即出现，零视觉过渡
+- **PIN 并发竞态条件** — 修复 `spawn_blocking` 中的 Rust panic 问题，修复设置页 PIN 配置逻辑中的 race condition。
+- **PIN 初次显示 bug** — 修复登录页面 PIN 默认显示问题，清理 `clear_credential` 逻辑中的警告。
+- **Vault 锁定导航卡死** — 修复 vault 锁定后页面卡在「正在连接」界面无法跳转到登录页的问题。
+- **settings.json 白屏崩溃** — 移除 settings.json 中残留的 JSON 注释（`//` 注释），修复深色/浅色模式切换时的白屏崩溃。
+- **macOS 生物识别检测修复** — 修复 macOS 生物识别可用性检测逻辑，修正 `canEvaluatePolicy` 返回码判定，强化 strict 策略执行。
+- **Windows COM 初始化修复** — `ensure_mta()` 中 `?` 操作符无法将 `()` 转换为 `BiometricError`，改用 `map_err` 显式转换为 `BiometricError::Other`。
+- **Windows Hello 诊断日志** — 添加 Windows Hello 完整诊断与审计事件日志，记录可用性检查与验证结果。
+- **代码批量修复 （P001-P005/P009/P013-P014）** — 批量修复代码审计问题。
+- **水印插件生产构建启用** — 水印插件在 production 模式下可正常显示与使用。
+
+### Refactored
+
+- **PinInput 架构重写** — 从受控 `<input>` 组件重构为隐藏 input + 视觉盒子（visual boxes）架构，消除光标偏移、系统密码管理器拦截等问题，提升各浏览器兼容性。
+
+### Docs
+
+- **生物识别状态表更新** — 更新生物识别文档中的状态表格，修复 Windows Hello 的 save reason 参数与 unlock 审计日志记录描述。
 
 ### Chores
 
 - 版本号同步升级到 2.5.8。
-- 提交 `d633b1d1`、`08401af7`、`27e2ccdf`、`71686c2a`、`a3825bd7`。
+- 24 个 commit 自 v2.5.7（`ff2ad14b`）到 v2.5.8。
+- 提交 CHANGELOG 摘要：`a3825bd7`、`27e2ccdf`、`5d35244d`、`71686c2a`、`d633b1d1`、`08401af7` 等。
 
 ## [2.5.7] - 2026-06-29
 
