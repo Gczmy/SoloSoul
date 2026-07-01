@@ -5,26 +5,26 @@
 ### Added
 
 - **Windows Hello 生物识别** — 新增 Windows Hello 支持。
-- **新手引导多页引导** — 增强 PageGuide 组件。
+- **PIN 快速解锁** — PIN 码快速解锁 vault，强因子认证后自动重置锁定。
+- **新手引导增强** — 多步引导式帮助文档（PageGuide）与拖拽上传教程。
 
 ### Changed
 
-- **登录优先级逻辑** — Face ID > Touch ID > Windows Hello > PIN > 主密码自动选择。
-- **导出密码限制取消** — 任何非空密码均可导出（>=1 字符）。
-- **PIN 验证横线减半** — 4px 渐变流光动画。
+- **登录优先级** — Face ID > Touch ID > Windows Hello > PIN > 主密码自动选择。
+- **导出密码简化** — 任何非空密码均可导出，不再限制复杂度。
+- **PinInput 重写** — 隐藏 input + 纯视觉盒子架构，消除光标偏移。
 
 ### Fixed
 
-- **锁定页面闪烁** — 全面消除登录页面闪烁（缓存 + minHeight + 移除转圈）。
-- **Windows 构建修复** — COM 初始化错误修复。
+- **登录页面闪烁** — 全面消除锁定后登录页面闪烁问题。
+- **PIN 竞态 & 导航卡死** — 修复并发 panic 与 vault 锁定后卡在连接界面。
+- **白屏崩溃** — 移除 settings.json 残留注释导致的崩溃。
+- **macOS 生物识别检测** — 修复 biometric 可用性检测逻辑。
+- **Windows COM 初始化** — 修复 `BiometricError` 类型转换错误。
 
 ### Chores
 
 - 版本号同步升级到 2.5.8。
-
-
-All notable changes to SoloSoul are documented in this file.
-
 ## [2.5.7] - 2026-06-29
 
 ### Added
