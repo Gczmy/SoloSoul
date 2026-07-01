@@ -19,15 +19,16 @@ export function DeleteConfirmDialog({
   const { t } = useTranslation(['common']);
 
   return (
-    <div        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--bg-overlay)',
-        }}
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-overlay)',
+      }}
       onClick={onCancel}
     >
       <div
@@ -42,7 +43,9 @@ export function DeleteConfirmDialog({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>{title}</h3>
+        <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>
+          {title}
+        </h3>
         <p
           style={{
             margin: '0 0 20px',

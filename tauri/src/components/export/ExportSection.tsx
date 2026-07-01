@@ -5,11 +5,10 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Paperclip } from 'lucide-react';
 import { formatBytes } from '@/lib/format';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { AttachmentLimitsInfo }  from './AttachmentLimitsInfo';
+import { AttachmentLimitsInfo } from './AttachmentLimitsInfo';
 import { WarningCancelButton } from './WarningCancelButton';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 interface PageGroup {
   sectionType: string;
@@ -42,8 +41,6 @@ interface ExportEstimate {
   estimatedBytes: number;
 }
 
-
-
 interface ExportSectionProps {
   pageGroups: PageGroup[];
   selectedPageIds: Set<string>;
@@ -70,7 +67,12 @@ interface ExportSectionProps {
   onTogglePage: (sectionType: string, objectIds: string[]) => void;
   onToggleObject: (id: string, sectionType: string, allIdsInGroup: string[]) => void;
   onToggleObjectExpanded: (objectId: string) => void;
-  onToggleAttachment: (attId: string, objectId: string, sectionType: string, allIdsInGroup: string[]) => void;
+  onToggleAttachment: (
+    attId: string,
+    objectId: string,
+    sectionType: string,
+    allIdsInGroup: string[],
+  ) => void;
   onSetExportPassword: (v: string) => void;
   onSetExportPasswordConfirm: (v: string) => void;
   onSetExportHint: (v: string) => void;
@@ -139,14 +141,15 @@ export function ExportSection({
           {t('settings:select_objects')}
         </h3>
         {pageGroups.length === 0 ? (
-          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>{t('common:no_data')}</p>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>
+            {t('common:no_data')}
+          </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {pageGroups.map((group) => {
               const allIds = group.objects.map((o) => o.id);
               const pageChecked = selectedPageIds.has(group.sectionType);
-              const someChecked =
-                !pageChecked && allIds.some((id) => selectedObjectIds.has(id));
+              const someChecked = !pageChecked && allIds.some((id) => selectedObjectIds.has(id));
               const expanded = expandedPages.has(group.sectionType);
               return (
                 <div key={group.sectionType}>
@@ -189,11 +192,19 @@ export function ExportSection({
                       >
                         ▶
                       </span>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {t(`navigation:${group.sectionType}`, group.pageName)}
                       </span>
                     </span>
-                    <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                    <span
+                      style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}
+                    >
                       {t('common:object_count', { n: group.objectCount })}
                     </span>
                   </div>
@@ -215,10 +226,18 @@ export function ExportSection({
                             checked={selectedObjectIds.has(obj.id)}
                             onChange={() => onToggleObject(obj.id, group.sectionType, allIds)}
                           />
-                          <span style={{ fontSize: 'var(--text-body-sm)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
-                          <SensitivityBadge
-                            level={obj.sensitivityLevel as SensitivityLevel}
-                          />
+                          <span
+                            style={{
+                              fontSize: 'var(--text-body-sm)',
+                              flex: 1,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {obj.name}
+                          </span>
+                          <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
                           {includeAttachments && (
                             <button
                               type="button"
@@ -233,9 +252,7 @@ export function ExportSection({
                                 border: 'none',
                                 cursor: 'pointer',
                                 padding: '0 4px',
-                                transform: expandedObjects.has(obj.id)
-                                  ? 'rotate(90deg)'
-                                  : 'none',
+                                transform: expandedObjects.has(obj.id) ? 'rotate(90deg)' : 'none',
                                 transition: 'transform 0.15s',
                                 color: 'var(--text-tertiary)',
                               }}
@@ -247,7 +264,12 @@ export function ExportSection({
                         {includeAttachments && expandedObjects.has(obj.id) && (
                           <div style={{ paddingLeft: 52, paddingBottom: 4 }}>
                             {(objectAttachments.get(obj.id) || []).length === 0 ? (
-                              <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                              <span
+                                style={{
+                                  fontSize: 'var(--text-caption)',
+                                  color: 'var(--text-tertiary)',
+                                }}
+                              >
                                 {t('settings:no_attachments', 'No attachments')}
                               </span>
                             ) : (
@@ -300,7 +322,10 @@ export function ExportSection({
                                       {att.fileName}
                                     </span>
                                     <span
-                                      style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
+                                      style={{
+                                        fontSize: 'var(--text-badge)',
+                                        color: 'var(--text-tertiary)',
+                                      }}
                                     >
                                       {formatBytes(att.sizeBytes)}
                                     </span>
@@ -331,12 +356,14 @@ export function ExportSection({
               return (
                 <button
                   key={tag}
-                  onClick={() => onSetSelectedTags((prev) => {
-                    const next = new Set(prev);
-                    if (next.has(tag)) next.delete(tag);
-                    else next.add(tag);
-                    return next;
-                  })}
+                  onClick={() =>
+                    onSetSelectedTags((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(tag)) next.delete(tag);
+                      else next.add(tag);
+                      return next;
+                    })
+                  }
                   style={{
                     fontSize: 'var(--text-caption)',
                     padding: '4px 10px',
@@ -480,7 +507,13 @@ export function ExportSection({
         <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('common:export_path')}
         </h3>
-        <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 8 }}>
+        <div
+          style={{
+            fontSize: 'var(--text-body-sm)',
+            color: 'var(--text-secondary)',
+            marginBottom: 8,
+          }}
+        >
           {savePath || t('settings:no_file_selected')}
         </div>
         <button
@@ -506,7 +539,8 @@ export function ExportSection({
             transition: 'all 0.15s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            e.currentTarget.style.background =
+              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
             e.currentTarget.style.borderColor = 'var(--accent-primary)';
             e.currentTarget.style.color = 'var(--accent-primary)';
           }}
@@ -558,13 +592,11 @@ export function ExportSection({
             onEnter={onExport}
           />
         </div>
-        {exportPassword &&
-          exportPasswordConfirm &&
-          exportPassword !== exportPasswordConfirm && (
-            <div style={{ marginTop: 4, fontSize: 'var(--text-caption)', color: 'var(--danger)' }}>
-              {t('settings:password_mismatch')}
-            </div>
-          )}
+        {exportPassword && exportPasswordConfirm && exportPassword !== exportPasswordConfirm && (
+          <div style={{ marginTop: 4, fontSize: 'var(--text-caption)', color: 'var(--danger)' }}>
+            {t('settings:password_mismatch')}
+          </div>
+        )}
         <div style={{ marginTop: 8 }}>
           <input
             type="text"
@@ -587,7 +619,8 @@ export function ExportSection({
             onMouseEnter={(e) => {
               if (e.currentTarget !== document.activeElement) {
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.boxShadow =
+                  '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               }
             }}
             onMouseLeave={(e) => {
@@ -598,7 +631,8 @@ export function ExportSection({
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
+              e.currentTarget.style.boxShadow =
+                '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = '';
@@ -644,10 +678,12 @@ export function ExportSection({
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)';
               }}
             >
               {t('settings:export_anyway')}
@@ -665,7 +701,9 @@ export function ExportSection({
           padding: '6px 12px',
           borderRadius: 6,
           border: '1px solid var(--border-subtle)',
-          background: isExporting ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+          background: isExporting
+            ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+            : 'var(--bg-toolbar)',
           color: isExporting ? 'var(--accent-primary)' : 'var(--text-primary)',
           cursor: totalSelected === 0 || !exportPassword || !savePath ? 'default' : 'pointer',
           fontFamily: 'inherit',
@@ -675,7 +713,8 @@ export function ExportSection({
         }}
         onMouseEnter={(e) => {
           if (totalSelected > 0 && exportPassword && savePath && !isExporting) {
-            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            e.currentTarget.style.background =
+              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
             e.currentTarget.style.borderColor = 'var(--accent-primary)';
             e.currentTarget.style.color = 'var(--accent-primary)';
           }
@@ -688,7 +727,9 @@ export function ExportSection({
           }
         }}
       >
-        {isExporting ? t('common:loading', { defaultValue: '...' }) : `${t('settings:export_selected')} (${totalSelected})`}
+        {isExporting
+          ? t('common:loading', { defaultValue: '...' })
+          : `${t('settings:export_selected')} (${totalSelected})`}
       </button>
     </>
   );

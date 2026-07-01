@@ -7,11 +7,16 @@ export type TrashRetentionPeriod = '30d' | '60d' | 'half_year' | 'one_year' | 'n
 /** Convert retention period string to number of days (-1 for never). */
 export function retentionPeriodDays(period: TrashRetentionPeriod): number {
   switch (period) {
-    case '60d': return 60;
-    case 'half_year': return 180;
-    case 'one_year': return 365;
-    case 'never': return -1;
-    default: return 30;
+    case '60d':
+      return 60;
+    case 'half_year':
+      return 180;
+    case 'one_year':
+      return 365;
+    case 'never':
+      return -1;
+    default:
+      return 30;
   }
 }
 

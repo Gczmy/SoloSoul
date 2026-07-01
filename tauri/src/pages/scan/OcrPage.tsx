@@ -9,13 +9,18 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
-import { commands, type OcrResult, type OcrTierInfo, type OcrModelStatus, type MrzResult } from '@/lib/ipc';
+import {
+  commands,
+  type OcrResult,
+  type OcrTierInfo,
+  type OcrModelStatus,
+  type MrzResult,
+} from '@/lib/ipc';
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
 import { getTierLabel } from '@/lib/ocr';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
 import { Scan, FileText, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 type ScanMode = 'general' | 'mrz';
 
@@ -59,7 +64,10 @@ export function OcrPage() {
   const guardActiveModelInstalled = (): boolean => {
     const status = statusMap[activeTier];
     if (status && !status.installed) {
-      onError(new Error(t('ocr:scan_model_not_installed', { tier: activeTier })), t('ocr:scan_failed'));
+      onError(
+        new Error(t('ocr:scan_model_not_installed', { tier: activeTier })),
+        t('ocr:scan_failed'),
+      );
       return false;
     }
     return true;
@@ -101,7 +109,9 @@ export function OcrPage() {
     if (scanMode === 'mrz') {
       return [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }];
     }
-    return [{ name: 'Images & PDFs', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'pdf'] }];
+    return [
+      { name: 'Images & PDFs', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'pdf'] },
+    ];
   };
 
   const performScan = async (path: string) => {
@@ -243,18 +253,23 @@ export function OcrPage() {
   };
 
   return (
-    <AppShell title={t('ocr:title')} onBack={() => {
-            const state = location.state as { fromHome?: boolean } | undefined;
-            if (state?.fromHome) {
-              navigate('/home');
-            } else {
-              navigate(-1);
-            }
-          }}>
+    <AppShell
+      title={t('ocr:title')}
+      onBack={() => {
+        const state = location.state as { fromHome?: boolean } | undefined;
+        if (state?.fromHome) {
+          navigate('/home');
+        } else {
+          navigate(-1);
+        }
+      }}
+    >
       <PageContainer variant="wide" gap="default">
         {/* Model management */}
         <Card>
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>{t('ocr:model_title')}</h3>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
+            {t('ocr:model_title')}
+          </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
@@ -322,7 +337,9 @@ export function OcrPage() {
                         <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
                           {getTierLabel(t, tier).name}
                         </div>
-                        <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                        <div
+                          style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
+                        >
                           {status?.installed
                             ? t('ocr:status_installed')
                             : status?.bundled
@@ -396,8 +413,16 @@ export function OcrPage() {
               size={ICON_SIZE['5xl']}
               style={{ marginBottom: 12, opacity: 0.3, color: 'var(--text-tertiary)' }}
             />
-            <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 600, marginBottom: 4 }}>{t('ocr:title')}</h2>
-            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 600, marginBottom: 4 }}>
+              {t('ocr:title')}
+            </h2>
+            <p
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                marginBottom: 16,
+              }}
+            >
               {t('ocr:description')}
             </p>
 
@@ -490,9 +515,12 @@ export function OcrPage() {
                 marginBottom: 12,
               }}
             >
-              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{t('ocr:result_title')}</h3>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                {t('ocr:result_title')}
+              </h3>
               <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
-                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('ocr:import_as_object')}
+                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} />{' '}
+                {t('ocr:import_as_object')}
               </Button>
             </div>
 
@@ -511,7 +539,13 @@ export function OcrPage() {
                     }}
                   >
                     <span style={{ flex: 1, wordBreak: 'break-word' }}>{box.text}</span>
-                    <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                    <span
+                      style={{
+                        fontSize: 'var(--text-badge)',
+                        color: 'var(--text-tertiary)',
+                        flexShrink: 0,
+                      }}
+                    >
                       {(box.confidence * 100).toFixed(0)}%
                     </span>
                   </div>
@@ -562,9 +596,12 @@ export function OcrPage() {
                 marginBottom: 12,
               }}
             >
-              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{t('ocr:mrz_result_title')}</h3>
+              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                {t('ocr:mrz_result_title')}
+              </h3>
               <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
-                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('ocr:import_as_object')}
+                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} />{' '}
+                {t('ocr:import_as_object')}
               </Button>
             </div>
             <MrzResultCard result={mrzResult} />

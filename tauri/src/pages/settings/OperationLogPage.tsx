@@ -15,7 +15,6 @@ import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface AuditLogEntry {
   id: number;
   timestamp: string;
@@ -96,8 +95,7 @@ function formatDetail(
         defaultValue: String(vars.action),
       });
     // Resolve section to human-readable page/section name (built-in or custom page)
-    if (vars.section)
-      vars.section = resolveCollectionLabel(String(vars.section), customPages, t);
+    if (vars.section) vars.section = resolveCollectionLabel(String(vars.section), customPages, t);
     // Translate unlock method for critical field access logs
     if (vars.method)
       vars.method = t(`settings:log.method.${vars.method}`, { defaultValue: String(vars.method) });
@@ -128,11 +126,9 @@ export function OperationLogPage() {
     }
   }, [onError, t]);
 
-
   useEffect(() => {
     loadLogs();
   }, [loadLogs]);
-
 
   const handleExport = async () => {
     try {
@@ -216,7 +212,8 @@ export function OperationLogPage() {
                   transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                   e.currentTarget.style.color = 'var(--accent-primary)';
                 }}
                 onMouseLeave={(e) => {
@@ -238,14 +235,16 @@ export function OperationLogPage() {
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {[null, ...ALL_ENTITY_TYPES].map((type) => {
             const isActive = entityTypeFilter === type;
-            const label = type === null ? t('settings:all') : t(`settings:log.entity.${type}`, type);
+            const label =
+              type === null ? t('settings:all') : t(`settings:log.entity.${type}`, type);
             return (
               <button
                 key={type ?? 'all'}
                 onClick={() => setEntityTypeFilter(type === entityTypeFilter ? null : type)}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                     e.currentTarget.style.borderColor = 'var(--accent-primary)';
                   }
                 }}
@@ -376,7 +375,11 @@ export function OperationLogPage() {
                         </span>
                       )}
                       <span
-                        style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginLeft: 'auto' }}
+                        style={{
+                          fontSize: 'var(--text-badge)',
+                          color: 'var(--text-tertiary)',
+                          marginLeft: 'auto',
+                        }}
                       >
                         {new Date(entry.timestamp).toLocaleString(i18n.language)}
                       </span>

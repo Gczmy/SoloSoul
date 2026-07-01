@@ -5,7 +5,6 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface AttachmentPreviewOverlayProps {
   item: AttachmentItem | null;
   onClose: () => void;

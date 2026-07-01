@@ -31,7 +31,7 @@ export function ObjectEditorPage() {
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const { getObject, createObject, updateObject, currentObjectCache } = useObjectStore();
-  const currentObject = objectId ? currentObjectCache[objectId] ?? null : null;
+  const currentObject = objectId ? (currentObjectCache[objectId] ?? null) : null;
   const { onError, onSuccess } = useToastError();
   const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
   const customPages = useSettingsStore((s) => s.settings.customPages);
@@ -159,7 +159,9 @@ export function ObjectEditorPage() {
       setValues({});
       getObject(accountId, objectId)
         .catch((e) => onError(e, t('common:object_load_failed')))
-        .finally(() => { loadingObjRef.current = false; });
+        .finally(() => {
+          loadingObjRef.current = false;
+        });
     }
   }, [objectId, accountId, getObject, isNew, onError, t]);
 
@@ -167,7 +169,14 @@ export function ObjectEditorPage() {
   // Guard: skip if a fresh fetch is in-flight (prevents stale cache data from
   // populating the form before the most recent getObject resolves).
   useEffect(() => {
-    if (isNew || !currentObject || dataLoaded || currentObject.id !== objectId || loadingObjRef.current) return;
+    if (
+      isNew ||
+      !currentObject ||
+      dataLoaded ||
+      currentObject.id !== objectId ||
+      loadingObjRef.current
+    )
+      return;
     setName(currentObject.name || '');
     // Populate property values
     const vals: Record<string, unknown> = {};
@@ -219,7 +228,15 @@ export function ObjectEditorPage() {
       setSelectedType('');
     }
     setDataLoaded(true);
-  }, [currentObject, isNew, dataLoaded, objectId, objectTemplates, templateMeta, currentObjectCache]);
+  }, [
+    currentObject,
+    isNew,
+    dataLoaded,
+    objectId,
+    objectTemplates,
+    templateMeta,
+    currentObjectCache,
+  ]);
 
   const validateFields = (): boolean => {
     const errors: Record<string, string> = {};

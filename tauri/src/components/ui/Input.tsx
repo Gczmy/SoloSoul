@@ -3,7 +3,6 @@ import { X } from 'lucide-react';
 import styles from './Input.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
@@ -30,8 +29,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       prevErrorRef.current = error;
     }, [error]);
 
-    const hasValue =
-      props.value !== undefined && props.value !== null && props.value !== '';
+    const hasValue = props.value !== undefined && props.value !== null && props.value !== '';
     const showClear = onClear && hasValue;
 
     return (
@@ -46,9 +44,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
         <div className={styles.inputWrap}>
-          {prefixIcon && (
-            <span className={styles.prefixIcon}>{prefixIcon}</span>
-          )}
+          {prefixIcon && <span className={styles.prefixIcon}>{prefixIcon}</span>}
           <input
             ref={ref}
             className={[
@@ -75,7 +71,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </button>
           )}
         </div>
-        {error && <span className={styles.error} key={error}>{error}</span>}
+        {error && (
+          <span className={styles.error} key={error}>
+            {error}
+          </span>
+        )}
       </div>
     );
   },

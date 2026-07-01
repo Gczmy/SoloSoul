@@ -18,7 +18,6 @@ import {
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 // =============================================================================
 // AddPageButton — "+" button with popover for name + icon selection
 // =============================================================================
@@ -106,7 +105,7 @@ export function AddPageButton({
     // Small delay to avoid conflicting with the button click
     outsideClickTimeoutRef.current = setTimeout(
       () => document.addEventListener('mousedown', handler),
-      0
+      0,
     );
     return () => {
       if (outsideClickTimeoutRef.current) {
@@ -219,7 +218,8 @@ export function AddPageButton({
           <Plus size={ICON_SIZE.xl} />
         </button>
         {createPortal(nameCard, document.body)}
-      </div>      {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
+      </div>{' '}
+      {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
       {createPortal(
         <AnimatePresence>
           {isCreating && (
@@ -314,7 +314,13 @@ export function AddPageButton({
                     gap: 8,
                   }}
                 >
-                  <span style={{ fontSize: 'var(--text-badge)', color: '#e74c3c', whiteSpace: 'nowrap' }}>
+                  <span
+                    style={{
+                      fontSize: 'var(--text-badge)',
+                      color: '#e74c3c',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {t('page_name_exists')}
                   </span>
                   <button
@@ -342,12 +348,36 @@ export function AddPageButton({
 
               {/* Icon picker with category sections (scrollable) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>{t('select_icon')}</span>
-                <div style={{ maxHeight: scrollMaxHeight, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {['general','security','identity','finance','travel','work','communication','health','education','life','nature','special'].map((cat) => {
-                    const categoryIcons = (Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).filter(
-                      ([id]) => ICON_CATEGORIES[id] === cat
-                    );
+                <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                  {t('select_icon')}
+                </span>
+                <div
+                  style={{
+                    maxHeight: scrollMaxHeight,
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
+                  }}
+                >
+                  {[
+                    'general',
+                    'security',
+                    'identity',
+                    'finance',
+                    'travel',
+                    'work',
+                    'communication',
+                    'health',
+                    'education',
+                    'life',
+                    'nature',
+                    'special',
+                  ].map((cat) => {
+                    const categoryIcons = (
+                      Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]
+                    ).filter(([id]) => ICON_CATEGORIES[id] === cat);
                     if (categoryIcons.length === 0) return null;
                     return (
                       <div key={cat}>
@@ -377,7 +407,8 @@ export function AddPageButton({
                               onClick={() => setSelectedIconId(id)}
                               onMouseEnter={(e) => {
                                 if (id !== selectedIconId) {
-                                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                                  e.currentTarget.style.background =
+                                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                                 }
                               }}
@@ -433,4 +464,3 @@ export function AddPageButton({
     </div>
   );
 }
-

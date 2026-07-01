@@ -14,7 +14,13 @@ function resolveTitle(title: { zh: string; en: string }, language: string): stri
   return language.startsWith('zh') ? title.zh : title.en;
 }
 
-export function GuideIndex({ guides, categories, language, onSelect, extraItems }: GuideIndexProps) {
+export function GuideIndex({
+  guides,
+  categories,
+  language,
+  onSelect,
+  extraItems,
+}: GuideIndexProps) {
   const grouped = useMemo(() => {
     const sortedCats = [...categories].sort((a, b) => a.order - b.order);
     return sortedCats
@@ -29,7 +35,9 @@ export function GuideIndex({ guides, categories, language, onSelect, extraItems 
     return (
       <Card>
         <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-secondary)' }}>
-          <p style={{ fontSize: 'var(--text-body)' }}>{resolveTitle({ zh: '暂无帮助文档', en: 'No guides available' }, language)}</p>
+          <p style={{ fontSize: 'var(--text-body)' }}>
+            {resolveTitle({ zh: '暂无帮助文档', en: 'No guides available' }, language)}
+          </p>
         </div>
       </Card>
     );

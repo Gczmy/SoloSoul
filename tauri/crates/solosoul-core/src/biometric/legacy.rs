@@ -9,6 +9,26 @@ use std::path::{Path, PathBuf};
 use zeroize::Zeroizing;
 
 /// Legacy hard-coded XOR key used only for one-way migration of old biometric files.
+///
+/// # Security
+///
+/// This key is intentionally hard-coded because:
+/// 1. It is ONLY used for **one-way decryption** of legacy biometric credential files
+///    that were stored with a simple XOR obfuscation scheme in older versions.
+/// 2. On successful decryption, the legacy file is **atomically migrated** to a new
+///    AES-256-GCM encrypted format with a per-account derived key (HKDF from SHA-256
+///    of account_id). The legacy XOR-encrypted file is then renamed and cleaned up.
+/// 3. The attack surface is minimal: an attacker would need both the compiled binary
+///    AND the old `biometric_key` file on disk (protected by OS file permissions 0o600).
+///    The decrypted payload is a limited-duration session key, not the master password.
+/// 4. There is no key rotation concern: once a file is migrated, this key is never
+///    used again for that account.
+///
+/// Once the legacy migration window closes (e.g., all users of versions < 2.0 have
+/// either migrated or been prompted to re-enable biometrics), this constant and the
+/// entire `legacy.rs` module can be safely removed.
+///
+/// See also: `file_encryption_key()` for the current per-account derivation scheme.
 const LEGACY_XOR_KEY: &[u8; 32] = b"Solosoul_biometric_obfuscate_v1!";
 #[cfg(test)]
 const TEST_FILE_KEY_SALT: &[u8] = b"test-only-biometric-file-key-salt";

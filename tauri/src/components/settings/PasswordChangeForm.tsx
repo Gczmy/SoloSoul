@@ -8,7 +8,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { Info, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface PasswordChangeFormProps {
   accountId?: string;
 }
@@ -196,7 +195,13 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
               marginBottom: 4,
             }}
           >
-            <label style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}>
+            <label
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 500,
+                color: 'var(--text-secondary)',
+              }}
+            >
               {t('common:password_hint')}
             </label>
             <button
@@ -215,7 +220,8 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
                   e.currentTarget.style.background = '#c0392b';
                   e.currentTarget.style.boxShadow = '0 1px 4px rgba(231,76,60,0.35)';
                 } else {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                   e.currentTarget.style.color = 'var(--accent-primary)';
                 }
@@ -271,14 +277,23 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
             }}
           />
           {hintCleared && (
-            <div style={{ marginTop: 6, fontSize: 'var(--text-caption)', color: '#e74c3c', lineHeight: 1.4 }}>
+            <div
+              style={{
+                marginTop: 6,
+                fontSize: 'var(--text-caption)',
+                color: '#e74c3c',
+                lineHeight: 1.4,
+              }}
+            >
               {t('common:clear_hint_warning')}
             </div>
           )}
         </div>
 
         {error && (
-          <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', padding: '4px 0' }}>{error}</div>
+          <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', padding: '4px 0' }}>
+            {error}
+          </div>
         )}
 
         <button
@@ -286,7 +301,8 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
           disabled={shouldDisableSave}
           onMouseEnter={(e) => {
             if (!shouldDisableSave) {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
               e.currentTarget.style.borderColor = 'var(--accent-primary)';
               e.currentTarget.style.color = 'var(--accent-primary)';
             }

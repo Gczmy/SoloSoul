@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export interface ProviderConfig {
   id: string;
   name: string;
@@ -131,7 +130,13 @@ export function ProviderManagerPanel({
                 />
                 <div style={{ flex: 1 }}>
                   <span style={{ fontWeight: 500 }}>{p.name}</span>
-                  <span style={{ marginLeft: 6, fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                  <span
+                    style={{
+                      marginLeft: 6,
+                      fontSize: 'var(--text-badge)',
+                      color: 'var(--text-tertiary)',
+                    }}
+                  >
                     {p.model}
                   </span>
                   {p.isBuiltIn && (
@@ -279,9 +284,7 @@ export function ProviderManagerPanel({
                     padding: '6px 10px',
                     borderRadius: 6,
                     background: 'rgba(128,128,128,0.08)',
-                    color: testResult.startsWith(t('settings:llm_test_ok'))
-                      ? '#27ae60'
-                      : '#e74c3c',
+                    color: testResult.startsWith(t('settings:llm_test_ok')) ? '#27ae60' : '#e74c3c',
                   }}
                 >
                   {testResult}

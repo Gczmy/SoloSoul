@@ -297,7 +297,11 @@ export function SearchPage() {
           placeholder={t('common:search_placeholder')}
           value={query}
           onChange={(e) => handleChange(e.target.value)}
-          onClear={() => { setQuery(''); setResults([]); setHasSearched(false); }}
+          onClear={() => {
+            setQuery('');
+            setResults([]);
+            setHasSearched(false);
+          }}
           autoFocus
           prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
         />
@@ -316,17 +320,27 @@ export function SearchPage() {
               const ResultIcon = resolveResultIcon(item, customPages);
               const isPage = item.itemType === 'page';
               return (
-                <Card
-                  key={item.objectId}
-                  interactive
-                  onClick={() => handleClickResult(item)}
-                >
+                <Card key={item.objectId} interactive onClick={() => handleClickResult(item)}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <span style={{ flexShrink: 0, display: 'flex' }}>
                       <ResultIcon size={18} />
                     </span>
                     <div style={{ overflow: 'hidden' }}>
-                      <div style={{ fontSize: 'var(--text-body)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isPage || item.itemType === 'template' || item.matchType === 'template' ? <Highlight text={resolveResultName(item, customPages, t)} query={query} /> : resolveResultName(item, customPages, t)}</div>
+                      <div
+                        style={{
+                          fontSize: 'var(--text-body)',
+                          fontWeight: 500,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {isPage || item.itemType === 'template' || item.matchType === 'template' ? (
+                          <Highlight text={resolveResultName(item, customPages, t)} query={query} />
+                        ) : (
+                          resolveResultName(item, customPages, t)
+                        )}
+                      </div>
                       <div
                         style={{
                           fontSize: 'var(--text-badge)',
@@ -342,34 +356,50 @@ export function SearchPage() {
                         ) : item.itemType === 'template' ? (
                           <span>{t('settings:search_type_template', 'Template')}</span>
                         ) : item.matchType === 'template' ? (
-                          <Highlight text={resolveCollectionLabel(item.collectionType, customPages, t)} query={query} />
+                          <Highlight
+                            text={resolveCollectionLabel(item.collectionType, customPages, t)}
+                            query={query}
+                          />
                         ) : (
                           <span>{resolveCollectionLabel(item.collectionType, customPages, t)}</span>
                         )}
                         {!isPage && item.itemType !== 'template' && item.templateName && (
                           <span>
                             {' · '}
-                            <span style={item.templateDeleted ? { textDecoration: 'line-through' } : undefined}>{item.templateName}</span>
+                            <span
+                              style={
+                                item.templateDeleted
+                                  ? { textDecoration: 'line-through' }
+                                  : undefined
+                              }
+                            >
+                              {item.templateName}
+                            </span>
                           </span>
                         )}
                         {isPage && item.objectCount !== undefined && (
                           <span>
-                            {' · '}{item.objectCount} {t('settings:search_objects_count')}
+                            {' · '}
+                            {item.objectCount} {t('settings:search_objects_count')}
                           </span>
                         )}
                         {item.itemType === 'template' && item.fieldCount !== undefined && (
                           <span>
-                            {' · '}{item.fieldCount} {t('settings:search_fields_count')}
+                            {' · '}
+                            {item.fieldCount} {t('settings:search_fields_count')}
                           </span>
                         )}
-                        {!isPage && item.itemType !== 'template' && item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
-                          <>
-                            {' · '}
-                            {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
-                              <SensitivityBadge key={lvl} level={lvl} />
-                            ))}
-                          </>
-                        )}
+                        {!isPage &&
+                          item.itemType !== 'template' &&
+                          item.sensitivityLevels &&
+                          item.sensitivityLevels.length > 0 && (
+                            <>
+                              {' · '}
+                              {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
+                                <SensitivityBadge key={lvl} level={lvl} />
+                              ))}
+                            </>
+                          )}
                         {renderMatchHint(item)}
                       </div>
                     </div>

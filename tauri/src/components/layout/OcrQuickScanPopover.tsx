@@ -218,7 +218,16 @@ export function OcrQuickScanPopover({
       )}
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '12px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+        }}
+      >
         <OcrScanControls
           activeTier={store.activeTier}
           scanMode={store.scanMode}

@@ -243,7 +243,7 @@ describe('initI18n', () => {
       expect.objectContaining({
         fallbackLng: 'en-US',
         defaultNS: 'common',
-      })
+      }),
     );
   });
 
@@ -255,10 +255,16 @@ describe('initI18n', () => {
     expect(init).toHaveBeenCalledWith(
       expect.objectContaining({
         ns: expect.arrayContaining([
-          'common', 'navigation', 'settings', 'auth',
-          'sensitivity', 'editor', 'plugin', 'ocr',
+          'common',
+          'navigation',
+          'settings',
+          'auth',
+          'sensitivity',
+          'editor',
+          'plugin',
+          'ocr',
         ]),
-      })
+      }),
     );
   });
 

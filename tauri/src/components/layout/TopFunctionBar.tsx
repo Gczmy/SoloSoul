@@ -30,11 +30,15 @@ import type { CustomPage } from '@/stores/settingsStore';
 import type { WheelEvent, UIEvent } from 'react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 const FUNCTION_BAR_HEIGHT = 48;
 
-export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('./NavButton').NavPosition }) {
-  const POSITION: import('./NavButton').NavPosition = sidebarPosition === 'bottom' ? 'bottom' : 'top';
+export function TopFunctionBar({
+  sidebarPosition,
+}: {
+  sidebarPosition?: import('./NavButton').NavPosition;
+}) {
+  const POSITION: import('./NavButton').NavPosition =
+    sidebarPosition === 'bottom' ? 'bottom' : 'top';
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation('navigation');
@@ -121,8 +125,6 @@ export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('
     [isAnyCardOpen, setHovering],
   );
 
-
-
   // ── Horizontal scroll (function buttons) ───────────────────────
   const funcScrollRef = useRef<HTMLDivElement>(null);
 
@@ -165,7 +167,7 @@ export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('
   };
 
   // ── Render helpers for function buttons ─────────────────────────
-  const renderButtonWithCard = (item: typeof items[number]) => {
+  const renderButtonWithCard = (item: (typeof items)[number]) => {
     // Page mode (type === 'link'): render as plain navigation button.
     // Note: ai_chat always returns type: 'link' even in card mode, so exclude it.
     if (item.type === 'link' && item.iconKey !== 'ai_chat') {
@@ -179,7 +181,11 @@ export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('
             Icon={PAGE_ICON_MAP[item.iconKey]}
             label={t(item.labelKey)}
             isActive={isPluginPanelOpen}
-            onClick={item.type === 'action' ? (item as import('./useNavigationItems').NavAction).action : (() => {})}
+            onClick={
+              item.type === 'action'
+                ? (item as import('./useNavigationItems').NavAction).action
+                : () => {}
+            }
             position={POSITION}
           />
           {isPluginPanelOpen &&
@@ -201,7 +207,11 @@ export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('
             Icon={PAGE_ICON_MAP[item.iconKey]}
             label={t(item.labelKey)}
             isActive={isOcrCardOpen}
-            onClick={item.type === 'action' ? (item as import('./useNavigationItems').NavAction).action : (() => {})}
+            onClick={
+              item.type === 'action'
+                ? (item as import('./useNavigationItems').NavAction).action
+                : () => {}
+            }
             position={POSITION}
           />
           {isOcrCardOpen &&
@@ -223,14 +233,15 @@ export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('
             Icon={PAGE_ICON_MAP[item.iconKey]}
             label={t(item.labelKey)}
             isActive={showSearch}
-            onClick={item.type === 'action' ? (item as import('./useNavigationItems').NavAction).action : (() => {})}
+            onClick={
+              item.type === 'action'
+                ? (item as import('./useNavigationItems').NavAction).action
+                : () => {}
+            }
             position={POSITION}
           />
           {showSearch &&
-            createPortal(
-              <SearchPopover onClose={() => setShowSearch(false)} />,
-              document.body,
-            )}
+            createPortal(<SearchPopover onClose={() => setShowSearch(false)} />, document.body)}
         </div>
       );
     }
@@ -265,7 +276,7 @@ export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('
     return null;
   };
 
-  const renderPlainButton = (item: typeof items[number]) => {
+  const renderPlainButton = (item: (typeof items)[number]) => {
     if (item.type === 'action') {
       return (
         <NavButton
@@ -370,7 +381,9 @@ export function TopFunctionBar({ sidebarPosition }: { sidebarPosition?: import('
           </div>
 
           {/* Scrollable function buttons — always rendered for smooth CSS transition */}
-          <div className={`${styles.horizontalButtonArea} ${expanded ? styles.horizontalButtonAreaOpen : ''}`}>
+          <div
+            className={`${styles.horizontalButtonArea} ${expanded ? styles.horizontalButtonAreaOpen : ''}`}
+          >
             <div
               ref={funcScrollRef}
               className={styles.horizontalButtonScroll}

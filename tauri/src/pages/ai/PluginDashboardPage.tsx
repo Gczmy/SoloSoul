@@ -20,7 +20,6 @@ import { useToastError } from '@/hooks/useToastError';
 import styles from './PluginDashboardPage.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 type Tab = 'all' | 'installed' | 'running' | 'logs';
 const TIERS: PluginTier[] = ['p0', 'p1', 'p2', 'p3', 'p4'];
 
@@ -204,36 +203,36 @@ export function PluginDashboardPage() {
         <div className={styles.header}>
           <Card className={styles.tabsCard}>
             <div className={styles.tabs}>
-            {(['all', 'installed', 'running', 'logs'] as Tab[]).map((tab) => (
-              <button
-                key={tab}
-                className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {t(`plugin:tab_${tab}`, { defaultValue: tab })}
-                {tab === 'installed' && (
-                  <span className={styles.tabBadge}>{installedPlugins.length}</span>
-                )}
-                {tab === 'running' && activeRunning.length > 0 && (
-                  <span className={styles.tabBadge}>{activeRunning.length}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </Card>
-        <button
-          className={styles.refreshBtn}
-          onClick={() => refreshRegistry()}
-          disabled={isLoadingMarket}
-          aria-busy={isLoadingMarket}
-          title={t('plugin:refresh', { defaultValue: 'Refresh registry' })}
-        >
-          <RefreshCw
-            size={ICON_SIZE.md}
-            className={`${styles.refreshIcon} ${isLoadingMarket ? styles.spinning : ''}`}
-          />
-          <span>{t('plugin:refresh', { defaultValue: 'Refresh' })}</span>
-        </button>
+              {(['all', 'installed', 'running', 'logs'] as Tab[]).map((tab) => (
+                <button
+                  key={tab}
+                  className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ''}`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {t(`plugin:tab_${tab}`, { defaultValue: tab })}
+                  {tab === 'installed' && (
+                    <span className={styles.tabBadge}>{installedPlugins.length}</span>
+                  )}
+                  {tab === 'running' && activeRunning.length > 0 && (
+                    <span className={styles.tabBadge}>{activeRunning.length}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </Card>
+          <button
+            className={styles.refreshBtn}
+            onClick={() => refreshRegistry()}
+            disabled={isLoadingMarket}
+            aria-busy={isLoadingMarket}
+            title={t('plugin:refresh', { defaultValue: 'Refresh registry' })}
+          >
+            <RefreshCw
+              size={ICON_SIZE.md}
+              className={`${styles.refreshIcon} ${isLoadingMarket ? styles.spinning : ''}`}
+            />
+            <span>{t('plugin:refresh', { defaultValue: 'Refresh' })}</span>
+          </button>
         </div>
 
         {activeTab === 'all' && (
@@ -290,13 +289,15 @@ export function PluginDashboardPage() {
                     <PluginCard
                       info={info}
                       manifest={installedMap[info.pluginId]}
-                      isRunning={
-                        !!running && !running.completed
-                      }
+                      isRunning={!!running && !running.completed}
                       runningPlugin={running}
                       // 水印插件：由外部接管日志/结果渲染，卡片内不显示
-                      showResults={isWatermark ? false : (activeTab === 'installed' || activeTab === 'running')}
-                      onInstall={() => installPlugin(info.pluginId, info.registryEntry.latestVersion)}
+                      showResults={
+                        isWatermark ? false : activeTab === 'installed' || activeTab === 'running'
+                      }
+                      onInstall={() =>
+                        installPlugin(info.pluginId, info.registryEntry.latestVersion)
+                      }
                       onUpdate={() => updatePlugin(info.pluginId)}
                       onUninstall={() => uninstallPlugin(info.pluginId)}
                       onRun={() => handleRun(info.pluginId)}
@@ -344,7 +345,6 @@ export function PluginDashboardPage() {
             )}
           </div>
         )}
-
       </PageContainer>
 
       {pendingConsents.length > 0 && (

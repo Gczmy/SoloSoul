@@ -3,7 +3,6 @@ import { Upload } from 'lucide-react';
 import type { DragUploadState } from '@/hooks/useDragToAttach';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface DragUploadOverlayProps {
   dragState: DragUploadState;
   /**
@@ -27,12 +26,10 @@ const pulseKeyframes = `
  * - 上传中：显示上传进度（如 "上传中 (2/5): 文件名.pdf"）
  * - 空闲时：不渲染任何内容
  */
-export function DragUploadOverlay({
-  dragState,
-  borderRadius = 12,
-}: DragUploadOverlayProps) {
+export function DragUploadOverlay({ dragState, borderRadius = 12 }: DragUploadOverlayProps) {
   const { t } = useTranslation('common');
-  const { isDraggingOver, isUploading, currentIndex, totalFiles, currentFileName, pendingFiles } = dragState;
+  const { isDraggingOver, isUploading, currentIndex, totalFiles, currentFileName, pendingFiles } =
+    dragState;
 
   if (!isDraggingOver && !isUploading) return null;
 
@@ -64,9 +61,19 @@ export function DragUploadOverlay({
         >
           <Upload
             size={ICON_SIZE['3xl']}
-            style={{ color: 'var(--accent-primary)', animation: 'dragPulse 1.2s ease-in-out infinite' }}
+            style={{
+              color: 'var(--accent-primary)',
+              animation: 'dragPulse 1.2s ease-in-out infinite',
+            }}
           />
-          <div style={{ color: '#fff', fontSize: 'var(--text-body-sm)', fontWeight: 600, textAlign: 'center' }}>
+          <div
+            style={{
+              color: '#fff',
+              fontSize: 'var(--text-body-sm)',
+              fontWeight: 600,
+              textAlign: 'center',
+            }}
+          >
             {totalFiles > 1
               ? t('uploads_in_progress', { current: currentIndex + 1, total: totalFiles })
               : t('uploading')}
@@ -131,7 +138,13 @@ export function DragUploadOverlay({
         }}
       >
         <Upload size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
-        <span style={{ color: 'var(--accent-primary)', fontSize: 'var(--text-body-sm)', fontWeight: 600 }}>
+        <span
+          style={{
+            color: 'var(--accent-primary)',
+            fontSize: 'var(--text-body-sm)',
+            fontWeight: 600,
+          }}
+        >
           {t('drop_to_upload')}
         </span>
         <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-badge)' }}>

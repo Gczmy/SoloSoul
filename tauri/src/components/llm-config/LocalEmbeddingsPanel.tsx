@@ -7,7 +7,6 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface EmbedModelInfo {
   id: string;
   name: string;
@@ -117,7 +116,13 @@ export function LocalEmbeddingsPanel({
               />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 500 }}>{m.info.name}</div>
-                <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 2 }}>
+                <div
+                  style={{
+                    fontSize: 'var(--text-badge)',
+                    color: 'var(--text-tertiary)',
+                    marginTop: 2,
+                  }}
+                >
                   {m.info.description} · {m.info.dimensions}
                   {t('settings:llm_dimensions')} · {m.info.diskSize}
                 </div>
@@ -140,7 +145,13 @@ export function LocalEmbeddingsPanel({
                         }}
                       />
                     </div>
-                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 2 }}>
+                    <div
+                      style={{
+                        fontSize: 'var(--text-badge)',
+                        color: 'var(--text-tertiary)',
+                        marginTop: 2,
+                      }}
+                    >
                       {downloadProgress}%
                     </div>
                   </div>

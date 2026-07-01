@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { useRef, useEffect, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, MessageSquare } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import rehypeHighlight from 'rehype-highlight';
 import { formatTimestamp } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/iconSizes';
@@ -13,10 +13,11 @@ function allowedUrl(url: string): string {
   try {
     const parsed = new URL(url);
     if (['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return url;
-  } catch { /* ignore invalid URLs */ }
+  } catch {
+    /* ignore invalid URLs */
+  }
   return '';
 }
-
 
 interface ChatMessageListProps {
   messages: ChatMsg[];
@@ -113,14 +114,13 @@ export const ChatMessageList = memo(function ChatMessageList({
               ) : msg.content.startsWith(errorPrefix) ? (
                 <div style={{ color: '#e74c3c', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
               ) : (
-                <div className="quick-chat-markdown">
-                  <ReactMarkdown
-                    rehypePlugins={[rehypeHighlight]}
-                    urlTransform={allowedUrl}
-                  >
-                    {msg.content}
-                  </ReactMarkdown>
-                </div>
+                <SafeMarkdown
+                  rehypePlugins={[rehypeHighlight]}
+                  urlTransform={allowedUrl}
+                  className="quick-chat-markdown"
+                >
+                  {msg.content}
+                </SafeMarkdown>
               )}
             </div>
           </div>

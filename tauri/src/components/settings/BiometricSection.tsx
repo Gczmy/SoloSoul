@@ -11,7 +11,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { Fingerprint, ShieldCheck } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface BiometricSectionProps {
   accountId: string;
 }
@@ -50,9 +49,9 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
       ? 'Touch ID'
       : bioAvailable?.biometryType === 'faceId'
         ? 'Face ID'
-      : bioAvailable?.biometryType === 'windowsHello'
-        ? 'Windows Hello'
-        : 'Touch ID';
+        : bioAvailable?.biometryType === 'windowsHello'
+          ? 'Windows Hello'
+          : 'Touch ID';
 
   const handleBioToggle = () => {
     setBioAction(biometricEnabled ? 'disable' : 'enable');
@@ -90,7 +89,10 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
       setShowBioPwDialog(false);
     } catch (e) {
       const msg = String(e);
-      if (msg.toLowerCase().includes('invalid password') || msg.toLowerCase().includes('incorrect')) {
+      if (
+        msg.toLowerCase().includes('invalid password') ||
+        msg.toLowerCase().includes('incorrect')
+      ) {
         setError(t('settings:current_password_incorrect'));
       } else {
         setError(getBiometricErrorMessage(e, t));
@@ -147,7 +149,13 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           </div>
         ) : (
           <>
-            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+            <p
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                marginBottom: 12,
+              }}
+            >
               {t('settings:biometric_desc', { type: biometryType })}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -263,7 +271,14 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
               onEnter={handleBioConfirm}
             />
             {error && (
-              <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', padding: '4px 0', marginTop: 8 }}>
+              <div
+                style={{
+                  color: '#dc2626',
+                  fontSize: 'var(--text-body-sm)',
+                  padding: '4px 0',
+                  marginTop: 8,
+                }}
+              >
                 {error}
               </div>
             )}

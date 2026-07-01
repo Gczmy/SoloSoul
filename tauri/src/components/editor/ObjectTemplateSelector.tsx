@@ -9,7 +9,6 @@ import type { ObjectData } from '@/stores/objectStore';
 import type { CustomPage } from '@/stores/settingsStore';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface ObjectTemplateSelectorProps {
   isNew: boolean;
   visibleTemplates: string[];
@@ -72,7 +71,8 @@ export function ObjectTemplateSelector({
                 onMouseEnter={(e) => {
                   if (selectedType !== type) {
                     e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -89,8 +89,7 @@ export function ObjectTemplateSelector({
                       ? '1px solid var(--accent-primary)'
                       : '1px solid var(--border-subtle)',
                   background: 'var(--bg-elevated)',
-                  color:
-                    selectedType === type ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  color: selectedType === type ? 'var(--accent-primary)' : 'var(--text-primary)',
                   fontSize: 'var(--text-body-sm)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
@@ -115,7 +114,8 @@ export function ObjectTemplateSelector({
               e.currentTarget.style.borderColor = 'var(--accent-primary)';
               e.currentTarget.style.borderStyle = 'solid';
               e.currentTarget.style.color = 'var(--accent-primary)';
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = 'var(--border-strong)';
@@ -142,7 +142,13 @@ export function ObjectTemplateSelector({
             <LayoutTemplate size={ICON_SIZE.sm} /> {t('editor:manage_templates')}
           </button>
           {visibleTemplates.length === 0 && (
-            <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)', padding: '8px 0' }}>
+            <div
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-tertiary)',
+                padding: '8px 0',
+              }}
+            >
               {t('editor:no_template_for_section') || '此页面暂无模板，'}
               <span
                 onClick={() =>
@@ -186,9 +192,7 @@ export function ObjectTemplateSelector({
         >
           {resolveCollectionLabel(collectionType, customPages, t)}
         </span>
-        {contractTypeId && (
-          <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
-        )}
+        {contractTypeId && <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />}
         {(selectedType || currentObject?.templateId) && (
           <span
             style={{
@@ -197,11 +201,15 @@ export function ObjectTemplateSelector({
               textDecoration: selectedType ? 'none' : 'line-through',
             }}
           >
-            · {selectedType ? (templateMeta[selectedType]?.label || selectedType) : (() => {
-                      const tplName = (currentObject?.properties as Record<string, unknown>)?.__templateName as string | undefined;
-                      const tplId = currentObject?.templateId || '';
-                      return tplName ? `${tplName} (${tplId.slice(0, 8)}…)` : tplId;
-                    })()}
+            ·{' '}
+            {selectedType
+              ? templateMeta[selectedType]?.label || selectedType
+              : (() => {
+                  const tplName = (currentObject?.properties as Record<string, unknown>)
+                    ?.__templateName as string | undefined;
+                  const tplId = currentObject?.templateId || '';
+                  return tplName ? `${tplName} (${tplId.slice(0, 8)}…)` : tplId;
+                })()}
           </span>
         )}
       </div>

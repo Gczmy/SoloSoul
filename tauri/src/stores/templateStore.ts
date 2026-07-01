@@ -45,7 +45,13 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   },
 
   async createTemplate(name, iconId, category, properties, contractTypeId) {
-    const id = await invoke<string>('template_create', { name, iconId, category, properties, contractTypeId });
+    const id = await invoke<string>('template_create', {
+      name,
+      iconId,
+      category,
+      properties,
+      contractTypeId,
+    });
     await get().loadTemplates();
     return id;
   },

@@ -34,7 +34,8 @@ export const TemplateTypeSelect = memo(function TemplateTypeSelect({
       onChange={(e) => onChange(e.target.value as PropertyType)}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = 'var(--accent-primary)';
-        e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+        e.currentTarget.style.boxShadow =
+          '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
       }}
       onMouseLeave={(e) => {
         if (document.activeElement !== e.currentTarget) {
@@ -44,7 +45,8 @@ export const TemplateTypeSelect = memo(function TemplateTypeSelect({
       }}
       onFocus={(e) => {
         e.currentTarget.style.borderColor = 'var(--accent-primary)';
-        e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
+        e.currentTarget.style.boxShadow =
+          '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
       }}
       onBlur={(e) => {
         e.currentTarget.style.borderColor = 'var(--border-subtle)';

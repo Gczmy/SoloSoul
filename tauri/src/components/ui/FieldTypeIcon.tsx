@@ -18,7 +18,13 @@ import type { PropertyType } from '@/types/template';
 /** Map field type to a Lucide icon for visual indication.
  *  §29 — 唯一真理来源：所有字段类型图标统一由此组件提供。
  */
-export const FieldTypeIcon = memo(function FieldTypeIcon({ type, size = 14 }: { type: PropertyType; size?: number }) {
+export const FieldTypeIcon = memo(function FieldTypeIcon({
+  type,
+  size = 14,
+}: {
+  type: PropertyType;
+  size?: number;
+}) {
   const style = { color: 'var(--text-tertiary)', flexShrink: 0 } as React.CSSProperties;
   switch (type) {
     case 'text':

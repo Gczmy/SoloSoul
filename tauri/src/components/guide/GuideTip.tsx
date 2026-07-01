@@ -1,7 +1,6 @@
 import { Info, AlertTriangle, Lightbulb } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface GuideTipProps {
   type?: 'tip' | 'warning' | 'info';
   children: React.ReactNode;

@@ -11,7 +11,6 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { Bug, Download, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface AuditLogEntry {
   id: number;
   timestamp: string;
@@ -103,7 +102,13 @@ export function DebugLogPage() {
             <Download size={ICON_SIZE.sm} /> {t('settings:export')}
           </button>
 
-          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
+          <span
+            style={{
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-tertiary)',
+              marginLeft: 'auto',
+            }}
+          >
             {filteredLogs.length} {t('settings:entries_count')}
           </span>
         </div>

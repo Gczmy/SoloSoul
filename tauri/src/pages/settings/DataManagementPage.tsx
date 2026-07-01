@@ -10,7 +10,6 @@ import { HardDrive, PieChart, X } from 'lucide-react';
 import { formatBytes } from '@/lib/format';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface VaultStats {
   profileCount: number;
   totalSizeBytes: number;
@@ -275,7 +274,12 @@ export function DataManagementPage() {
                 return (
                   <div
                     key={slice.key}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 'var(--text-body-sm)' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontSize: 'var(--text-body-sm)',
+                    }}
                   >
                     <div
                       style={{
@@ -287,7 +291,11 @@ export function DataManagementPage() {
                       }}
                     />
                     <span style={{ flex: 1 }}>{slice.label}</span>
-                    <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}>{pct}%</span>
+                    <span
+                      style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}
+                    >
+                      {pct}%
+                    </span>
                     <span style={{ fontWeight: 500 }}>{formatBytes(slice.value)}</span>
                   </div>
                 );
@@ -325,8 +333,16 @@ export function DataManagementPage() {
 
         {/* Quick actions */}
         <Card>
-          <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>{t('settings:backup')}</h3>
-          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
+            {t('settings:backup')}
+          </h3>
+          <p
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              marginBottom: 12,
+            }}
+          >
             {t('settings:backup_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -373,7 +389,13 @@ export function DataManagementPage() {
           <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
             {t('settings:export_import')}
           </h3>
-          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <p
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              marginBottom: 12,
+            }}
+          >
             {t('settings:export_import_desc')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -417,8 +439,16 @@ export function DataManagementPage() {
         </Card>
 
         <Card>
-          <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>{t('settings:trash')}</h3>
-          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
+            {t('settings:trash')}
+          </h3>
+          <p
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              marginBottom: 12,
+            }}
+          >
             {t('settings:trash_empty')}
           </p>
           <button
@@ -437,7 +467,8 @@ export function DataManagementPage() {
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               e.currentTarget.style.borderColor = 'var(--accent-primary)';
               e.currentTarget.style.color = 'var(--accent-primary)';
             }}
@@ -456,7 +487,13 @@ export function DataManagementPage() {
           <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
             {t('settings:snapshot_retention')}
           </h3>
-          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <p
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              marginBottom: 12,
+            }}
+          >
             {t('settings:snapshot_retention_desc')}
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/Button';
 import type { SyncPeer } from '@/stores/syncStore';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface PairingDialogProps {
   isOpen: boolean;
   peer: SyncPeer | null;
@@ -59,7 +58,9 @@ export function PairingDialog({ isOpen, peer, onTrust, onIgnore }: PairingDialog
             <Smartphone size={ICON_SIZE.xl} style={{ color: 'var(--accent-primary)' }} />
           </div>
           <div>
-            <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>{peer.name || peer.id}</div>
+            <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
+              {peer.name || peer.id}
+            </div>
             <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
               {peer.addr || 'offline'}
             </div>
@@ -67,7 +68,13 @@ export function PairingDialog({ isOpen, peer, onTrust, onIgnore }: PairingDialog
         </div>
 
         <div>
-          <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)', marginBottom: 6 }}>
+          <div
+            style={{
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-secondary)',
+              marginBottom: 6,
+            }}
+          >
             {t('settings:sync_pairing_verify_prompt', {
               defaultValue:
                 'Verify the fingerprint below matches the one shown on the other device:',

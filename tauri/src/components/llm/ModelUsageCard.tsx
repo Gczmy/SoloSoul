@@ -12,7 +12,9 @@ export function ModelUsageCard({ perModel, t }: ModelUsageCardProps) {
 
   return (
     <Card>
-      <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
+      <div
+        style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 12 }}
+      >
         {t('settings:llm_model_count', {
           count: perModel.length,
           tokens: formatTokens(totalTokens),

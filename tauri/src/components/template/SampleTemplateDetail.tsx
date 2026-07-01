@@ -9,7 +9,6 @@ import type { SampleTemplate } from '@/lib/sampleTemplates';
 import type { SensitivityLevel } from '@/types/template';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface SampleTemplateDetailProps {
   template: SampleTemplate;
   onBack: () => void;
@@ -94,10 +93,18 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 4px' }}>
-          <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin:  0 }}>{template.name}</h2>
+          <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin: 0 }}>
+            {template.name}
+          </h2>
           <PluginBadge contractTypeId={template.contractTypeId} />
         </div>
-        <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 20 }}>
+        <div
+          style={{
+            fontSize: 'var(--text-caption)',
+            color: 'var(--text-tertiary)',
+            marginBottom: 20,
+          }}
+        >
           {t(`navigation:${template.category}`, template.category)} · {template.properties.length}{' '}
           {t('settings:template_fields')}
         </div>
@@ -123,7 +130,13 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                 >
                   <FieldTypeIcon type={prop.type} size={ICON_SIZE.sm} />
                 </span>
-                <span style={{ fontSize: 'var(--text-body)', fontWeight: 500, color: 'var(--text-primary)' }}>
+                <span
+                  style={{
+                    fontSize: 'var(--text-body)',
+                    fontWeight: 500,
+                    color: 'var(--text-primary)',
+                  }}
+                >
                   {prop.name}
                 </span>
                 {prop.contractField && (
@@ -155,7 +168,11 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
           <Button variant="secondary" onClick={onBack}>
             {t('common:close')}
           </Button>
-          <Button variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={onUse}>
+          <Button
+            variant="secondary"
+            style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
+            onClick={onUse}
+          >
             {t('settings:use_sample_template')}
           </Button>
         </div>

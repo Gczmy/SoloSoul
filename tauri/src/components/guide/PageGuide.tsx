@@ -1,13 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  CircleHelp,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  ArrowRight,
-} from 'lucide-react';
+import { CircleHelp, X, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 import type { LucideIcon } from 'lucide-react';
 
@@ -187,8 +181,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                     width: 32,
                     height: 32,
                     borderRadius: 10,
-                    background:
-                      'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
+                    background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -253,10 +246,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                     height: 8,
                     borderRadius: 4,
                     border: 'none',
-                    background:
-                      i === pageIndex
-                        ? 'var(--accent-primary)'
-                        : 'var(--border-subtle)',
+                    background: i === pageIndex ? 'var(--accent-primary)' : 'var(--border-subtle)',
                     cursor: 'pointer',
                     transition: 'all 0.25s ease',
                     padding: 0,
@@ -303,8 +293,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                           width: 28,
                           height: 28,
                           borderRadius: '50%',
-                          background:
-                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                          background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
                           border:
                             '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
                           display: 'flex',
@@ -314,10 +303,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                           zIndex: 1,
                         }}
                       >
-                        <Icon
-                          size={ICON_SIZE.sm}
-                          style={{ color: 'var(--accent-primary)' }}
-                        />
+                        <Icon size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
                       </div>
                       {!isLastStep && (
                         <div
@@ -409,9 +395,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                 >
                   {t('related_docs') ?? '相关帮助文档'}
                 </div>
-                <div
-                  style={{ display: 'flex', flexDirection: 'column', gap: 6 }}
-                >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {currentPage.helpLinks.map((link, i) => (
                     <button
                       key={i}
@@ -431,14 +415,12 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                         fontFamily: 'inherit',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor =
-                          'var(--accent-primary)';
+                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
                         e.currentTarget.style.background =
                           'color-mix(in srgb, var(--accent-primary) 4%, transparent)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor =
-                          'var(--border-subtle)';
+                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
                         e.currentTarget.style.background = 'var(--bg-elevated)';
                       }}
                     >
@@ -500,9 +482,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                   borderRadius: 8,
                   border: '1px solid var(--border-subtle)',
                   background: 'var(--bg-toolbar)',
-                  color: isFirst
-                    ? 'var(--text-disabled)'
-                    : 'var(--text-secondary)',
+                  color: isFirst ? 'var(--text-disabled)' : 'var(--text-secondary)',
                   cursor: isFirst ? 'default' : 'pointer',
                   fontSize: 'var(--text-badge)',
                   fontWeight: 500,
@@ -514,8 +494,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                   if (!isFirst) {
                     e.currentTarget.style.background =
                       'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor =
-                      'var(--accent-primary)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
                     e.currentTarget.style.color = 'var(--accent-primary)';
                   }
                 }}
@@ -564,8 +543,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background =
                       'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor =
-                      'var(--accent-primary)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
                     e.currentTarget.style.color = 'var(--accent-primary)';
                   }}
                   onMouseLeave={(e) => {
@@ -598,8 +576,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background =
                       'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor =
-                      'var(--accent-primary)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
                     e.currentTarget.style.color = 'var(--accent-primary)';
                   }}
                   onMouseLeave={(e) => {

@@ -20,13 +20,18 @@ export const TemplatePageSelect = memo(function TemplatePageSelect({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {label && <label style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}>{label}</label>}
+      {label && (
+        <label style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}>
+          {label}
+        </label>
+      )}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = 'var(--accent-primary)';
-          e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+          e.currentTarget.style.boxShadow =
+            '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
         }}
         onMouseLeave={(e) => {
           if (document.activeElement !== e.currentTarget) {
@@ -36,7 +41,8 @@ export const TemplatePageSelect = memo(function TemplatePageSelect({
         }}
         onFocus={(e) => {
           e.currentTarget.style.borderColor = 'var(--accent-primary)';
-          e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
+          e.currentTarget.style.boxShadow =
+            '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
         }}
         onBlur={(e) => {
           e.currentTarget.style.borderColor = 'var(--border-subtle)';

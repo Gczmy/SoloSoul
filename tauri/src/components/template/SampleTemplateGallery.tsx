@@ -15,7 +15,6 @@ import { Input } from '@/components/ui/Input';
 import type { SensitivityLevel } from '@/types/template';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 const SAMPLE_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;
 
@@ -40,10 +39,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
   const currentSamples = SAMPLE_TEMPLATES_BY_LOCALE[localeTab];
 
   // 用于卡片可见判断与“点击护送”联动，避免重复计算 q。
-  const normalizedQuery = useMemo(
-    () => searchQuery.trim().toLowerCase(),
-    [searchQuery],
-  );
+  const normalizedQuery = useMemo(() => searchQuery.trim().toLowerCase(), [searchQuery]);
 
   const pageOptions = useMemo(
     () => [
@@ -138,7 +134,13 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             <X size={ICON_SIZE.xl} />
           </button>
         </div>
-        <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)', margin: '0 0 16px' }}>
+        <p
+          style={{
+            fontSize: 'var(--text-caption)',
+            color: 'var(--text-secondary)',
+            margin: '0 0 16px',
+          }}
+        >
           {t('settings:sample_templates_desc')}
         </p>
 
@@ -154,20 +156,35 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             data-testid="locale-tab-zh"
             aria-pressed={localeTab === 'zh'}
             onClick={() => switchLocale('zh')}
-            onMouseEnter={localeTab !== 'zh' ? (e) => {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            } : undefined}
-            onMouseLeave={localeTab !== 'zh' ? (e) => {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            } : undefined}
+            onMouseEnter={
+              localeTab !== 'zh'
+                ? (e) => {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  }
+                : undefined
+            }
+            onMouseLeave={
+              localeTab !== 'zh'
+                ? (e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  }
+                : undefined
+            }
             style={{
               flex: 1,
               padding: '8px 12px',
               borderRadius: 8,
-              border: localeTab === 'zh' ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-              background: localeTab === 'zh' ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+              border:
+                localeTab === 'zh'
+                  ? '1px solid var(--accent-primary)'
+                  : '1px solid var(--border-subtle)',
+              background:
+                localeTab === 'zh'
+                  ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                  : 'var(--bg-toolbar)',
               color: localeTab === 'zh' ? 'var(--accent-primary)' : 'var(--text-primary)',
               boxShadow: localeTab === 'zh' ? '0 0 0 1px var(--accent-primary)' : 'none',
               fontSize: 'var(--text-body-sm)',
@@ -183,20 +200,35 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             data-testid="locale-tab-en"
             aria-pressed={localeTab === 'en'}
             onClick={() => switchLocale('en')}
-            onMouseEnter={localeTab !== 'en' ? (e) => {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            } : undefined}
-            onMouseLeave={localeTab !== 'en' ? (e) => {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            } : undefined}
+            onMouseEnter={
+              localeTab !== 'en'
+                ? (e) => {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  }
+                : undefined
+            }
+            onMouseLeave={
+              localeTab !== 'en'
+                ? (e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  }
+                : undefined
+            }
             style={{
               flex: 1,
               padding: '8px 12px',
               borderRadius: 8,
-              border: localeTab === 'en' ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-              background: localeTab === 'en' ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+              border:
+                localeTab === 'en'
+                  ? '1px solid var(--accent-primary)'
+                  : '1px solid var(--border-subtle)',
+              background:
+                localeTab === 'en'
+                  ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                  : 'var(--bg-toolbar)',
               color: localeTab === 'en' ? 'var(--accent-primary)' : 'var(--text-primary)',
               boxShadow: localeTab === 'en' ? '0 0 0 1px var(--accent-primary)' : 'none',
               fontSize: 'var(--text-body-sm)',
@@ -227,19 +259,32 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   data-testid={`page-filter-${opt.id}`}
                   onClick={() => setPageFilter(opt.id)}
                   aria-pressed={isActive}
-                  onMouseEnter={!isActive ? (e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  } : undefined}
-                  onMouseLeave={!isActive ? (e) => {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  } : undefined}
+                  onMouseEnter={
+                    !isActive
+                      ? (e) => {
+                          e.currentTarget.style.background =
+                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                        }
+                      : undefined
+                  }
+                  onMouseLeave={
+                    !isActive
+                      ? (e) => {
+                          e.currentTarget.style.background = 'var(--bg-toolbar)';
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        }
+                      : undefined
+                  }
                   style={{
                     padding: '5px 12px',
                     borderRadius: 6,
-                    border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                    background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                    border: isActive
+                      ? '1px solid var(--accent-primary)'
+                      : '1px solid var(--border-subtle)',
+                    background: isActive
+                      ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                      : 'var(--bg-toolbar)',
                     color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                     boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                     fontSize: 'var(--text-caption)',
@@ -305,13 +350,31 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <SampleIcon size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
+                    <SampleIcon
+                      size={ICON_SIZE['2xl']}
+                      style={{ color: 'var(--accent-primary)' }}
+                    />
                     <div>
-                      <div style={{ fontSize: 'var(--text-body)', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 'var(--text-body)',
+                          fontWeight: 600,
+                          color: 'var(--text-primary)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
                         {tpl.name}
                         <PluginBadge contractTypeId={tpl.contractTypeId} size="sm" />
                       </div>
-                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 2 }}>
+                      <div
+                        style={{
+                          fontSize: 'var(--text-badge)',
+                          color: 'var(--text-tertiary)',
+                          marginTop: 2,
+                        }}
+                      >
                         {t(`navigation:${tpl.category}`, tpl.category)} · {tpl.properties.length}{' '}
                         {t('settings:template_fields')}
                       </div>

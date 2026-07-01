@@ -11,7 +11,6 @@ import { ICON_SIZE } from '@/lib/iconSizes';
 const GUIDE_SEARCH_CACHE_TTL = 30_000;
 const guideSearchCache = new Map<string, { data: GuideContent[]; timestamp: number }>();
 
-
 interface GuideSearchProps {
   onSearch: (query: string) => Promise<GuideContent[]>;
   onSelect: (guideId: string) => void;
@@ -242,18 +241,33 @@ export function GuideSearch({ onSearch, onSelect }: GuideSearchProps) {
         placeholder={t('search_help_docs')}
         value={query}
         onChange={(e) => handleChange(e.target.value)}
-        onClear={() => { setQuery(''); setResults(null); }}
+        onClear={() => {
+          setQuery('');
+          setResults(null);
+        }}
         prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
       />
 
       {loading && (
-        <p style={{ textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 'var(--text-body-sm)' }}>
+        <p
+          style={{
+            textAlign: 'center',
+            color: 'var(--text-tertiary)',
+            fontSize: 'var(--text-body-sm)',
+          }}
+        >
           {t('searching')}
         </p>
       )}
 
       {!loading && results !== null && results.length === 0 && (
-        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: 'var(--text-body)' }}>
+        <p
+          style={{
+            textAlign: 'center',
+            color: 'var(--text-secondary)',
+            fontSize: 'var(--text-body)',
+          }}
+        >
           {t('no_matching_help_docs')}
         </p>
       )}

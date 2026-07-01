@@ -5,7 +5,6 @@ import { OCR_MODEL_SERIES } from '@/lib/constants';
 import { getTierLabel } from '@/lib/ocr';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface OcrScanControlsProps {
   activeTier: string;
   scanMode: 'general' | 'mrz';
@@ -52,7 +51,8 @@ export function OcrScanControls({
           onMouseEnter={(e) => {
             if (!e.currentTarget.disabled) {
               e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.boxShadow =
+                '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
             }
           }}
           onMouseLeave={(e) => {
@@ -63,7 +63,8 @@ export function OcrScanControls({
           }}
           onFocus={(e) => {
             e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            e.currentTarget.style.boxShadow = '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
+            e.currentTarget.style.boxShadow =
+              '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
           }}
           onBlur={(e) => {
             e.currentTarget.style.borderColor = 'var(--border-subtle)';
@@ -108,13 +109,18 @@ export function OcrScanControls({
           disabled={isScanning}
           onMouseEnter={(e) => {
             if (scanMode !== 'general' && !isScanning) {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               e.currentTarget.style.color = 'var(--accent-primary)';
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = scanMode === 'general' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent';
-            e.currentTarget.style.color = scanMode === 'general' ? 'var(--accent-primary)' : 'var(--text-primary)';
+            e.currentTarget.style.background =
+              scanMode === 'general'
+                ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
+                : 'transparent';
+            e.currentTarget.style.color =
+              scanMode === 'general' ? 'var(--accent-primary)' : 'var(--text-primary)';
             e.currentTarget.style.fontWeight = scanMode === 'general' ? '600' : '400';
           }}
           style={{
@@ -123,7 +129,10 @@ export function OcrScanControls({
             border: 'none',
             fontSize: 'var(--text-body-sm)',
             cursor: 'pointer',
-            background: scanMode === 'general' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent',
+            background:
+              scanMode === 'general'
+                ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
+                : 'transparent',
             color: scanMode === 'general' ? 'var(--accent-primary)' : 'var(--text-primary)',
             fontWeight: scanMode === 'general' ? 600 : 400,
             opacity: isScanning ? 0.6 : 1,
@@ -137,13 +146,18 @@ export function OcrScanControls({
           disabled={isScanning}
           onMouseEnter={(e) => {
             if (scanMode !== 'mrz' && !isScanning) {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               e.currentTarget.style.color = 'var(--accent-primary)';
             }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = scanMode === 'mrz' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent';
-            e.currentTarget.style.color = scanMode === 'mrz' ? 'var(--accent-primary)' : 'var(--text-primary)';
+            e.currentTarget.style.background =
+              scanMode === 'mrz'
+                ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
+                : 'transparent';
+            e.currentTarget.style.color =
+              scanMode === 'mrz' ? 'var(--accent-primary)' : 'var(--text-primary)';
             e.currentTarget.style.fontWeight = scanMode === 'mrz' ? '600' : '400';
           }}
           style={{
@@ -152,7 +166,10 @@ export function OcrScanControls({
             border: 'none',
             fontSize: 'var(--text-body-sm)',
             cursor: 'pointer',
-            background: scanMode === 'mrz' ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)' : 'transparent',
+            background:
+              scanMode === 'mrz'
+                ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
+                : 'transparent',
             color: scanMode === 'mrz' ? 'var(--accent-primary)' : 'var(--text-primary)',
             fontWeight: scanMode === 'mrz' ? 600 : 400,
             opacity: isScanning ? 0.6 : 1,
@@ -170,7 +187,8 @@ export function OcrScanControls({
           disabled={isScanning}
           onMouseEnter={(e) => {
             if (!isScanning) {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               e.currentTarget.style.borderColor = 'var(--accent-primary)';
             }
           }}
@@ -195,9 +213,7 @@ export function OcrScanControls({
           }}
         >
           <FileText size={ICON_SIZE.md} />
-          {scanMode === 'mrz'
-            ? t('ocr:select_image')
-            : t('ocr:select_image_or_pdf')}
+          {scanMode === 'mrz' ? t('ocr:select_image') : t('ocr:select_image_or_pdf')}
         </button>
       </div>
 

@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import styles from './DropdownSelect.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export interface DropdownSelectOption {
   value: string | number;
   label: string;

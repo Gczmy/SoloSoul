@@ -13,18 +13,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
-import {
-  LayoutTemplate,
-  Pencil,
-  Plus,
-  BookOpen,
-  Search,
-} from 'lucide-react';
-import type {
-  UserTemplate,
-  TemplateProperty,
-  PropertyType,
-} from '@/types/template';
+import { LayoutTemplate, Pencil, Plus, BookOpen, Search } from 'lucide-react';
+import type { UserTemplate, TemplateProperty, PropertyType } from '@/types/template';
 import { resolveCustomIcon } from '@/lib/pageIcons';
 import { SampleTemplateGallery } from '@/components/template/SampleTemplateGallery';
 import { SampleTemplateDetail } from '@/components/template/SampleTemplateDetail';
@@ -37,7 +27,6 @@ import { SensitivityBadges } from '@/components/template/SensitivityBadges';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { retentionPeriodDays } from '@/stores/trashStore';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 const SYSTEM_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;
 
@@ -95,10 +84,11 @@ export function TemplateManagerPage() {
 
   useEffect(() => {
     loadTemplates().catch((err) => console.warn('[TemplateManager] Load templates failed:', err));
-    if (accountId) loadCustomPages(accountId).catch((err) => console.warn('[TemplateManager] Load custom pages failed:', err));
+    if (accountId)
+      loadCustomPages(accountId).catch((err) =>
+        console.warn('[TemplateManager] Load custom pages failed:', err),
+      );
   }, [loadTemplates, accountId, loadCustomPages]);
-
-
 
   // Load field usage for deprecated fields
   const loadFieldUsage = useCallback(async () => {
@@ -256,7 +246,10 @@ export function TemplateManagerPage() {
     setEditProperties((prev) => prev.map((p, i) => (i === index ? { ...p, type: newType } : p)));
   };
 
-  const updatePropertySensitivity = (index: number, level: 'public' | 'internal' | 'sensitive' | 'critical') => {
+  const updatePropertySensitivity = (
+    index: number,
+    level: 'public' | 'internal' | 'sensitive' | 'critical',
+  ) => {
     setEditProperties((prev) =>
       prev.map((p, i) => (i === index ? { ...p, sensitivityLevel: level } : p)),
     );
@@ -347,7 +340,11 @@ export function TemplateManagerPage() {
             <BookOpen size={ICON_SIZE.md} style={{ marginRight: 4 }} />
             {t('settings:sample_templates') || '模板示例'}
           </Button>
-          <Button variant="secondary" style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }} onClick={openCreate}>
+          <Button
+            variant="secondary"
+            style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
+            onClick={openCreate}
+          >
             <Plus size={ICON_SIZE.md} style={{ marginRight: 4 }} />
             {t('settings:new_template') || '新建模板'}
           </Button>
@@ -376,19 +373,32 @@ export function TemplateManagerPage() {
                     type="button"
                     onClick={() => setPageFilter(opt.id)}
                     aria-pressed={isActive}
-                    onMouseEnter={!isActive ? (e) => {
-                      e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    } : undefined}
-                    onMouseLeave={!isActive ? (e) => {
-                      e.currentTarget.style.background = 'var(--bg-toolbar)';
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    } : undefined}
+                    onMouseEnter={
+                      !isActive
+                        ? (e) => {
+                            e.currentTarget.style.background =
+                              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                            e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                          }
+                        : undefined
+                    }
+                    onMouseLeave={
+                      !isActive
+                        ? (e) => {
+                            e.currentTarget.style.background = 'var(--bg-toolbar)';
+                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                          }
+                        : undefined
+                    }
                     style={{
                       padding: '5px 12px',
                       borderRadius: 6,
-                      border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                      background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                      border: isActive
+                        ? '1px solid var(--accent-primary)'
+                        : '1px solid var(--border-subtle)',
+                      background: isActive
+                        ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                        : 'var(--bg-toolbar)',
                       color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                       boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
                       fontSize: 'var(--text-sm)',
@@ -421,79 +431,85 @@ export function TemplateManagerPage() {
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
-        {filteredTemplates.map((tpl) => {
-          const ut = templates.find((u) => u.id === tpl.id);
-          const TemplateIcon = ut?.iconId ? resolveCustomIcon(ut.iconId) : LayoutTemplate;
-          return (
-          <Card key={tpl.id} interactive onClick={() => setDetailTemplate(tpl)}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <TemplateIcon size={ICON_SIZE.xl} />
-                <div>
-                  <div
-                    style={{
-                      fontSize: 'var(--text-sm)',
-                      fontWeight: 500,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                    }}
-                  >
-                    {tpl.name}
-                    <PluginBadge
-                      contractTypeId={templates.find((u) => u.id === tpl.id)?.contractTypeId}
+          {filteredTemplates.map((tpl) => {
+            const ut = templates.find((u) => u.id === tpl.id);
+            const TemplateIcon = ut?.iconId ? resolveCustomIcon(ut.iconId) : LayoutTemplate;
+            return (
+              <Card key={tpl.id} interactive onClick={() => setDetailTemplate(tpl)}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <TemplateIcon size={ICON_SIZE.xl} />
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 'var(--text-sm)',
+                          fontWeight: 500,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        {tpl.name}
+                        <PluginBadge
+                          contractTypeId={templates.find((u) => u.id === tpl.id)?.contractTypeId}
+                          size="sm"
+                        />
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 'var(--text-badge)',
+                          color: 'var(--text-tertiary)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        {(() => {
+                          const page = resolvePageLabel(tpl.category);
+                          return (
+                            <span
+                              style={
+                                page.deleted
+                                  ? { textDecoration: 'line-through', opacity: 0.6 }
+                                  : undefined
+                              }
+                            >
+                              {page.name}
+                            </span>
+                          );
+                        })()}
+                        <span>·</span>
+                        <span>
+                          {tpl.properties.length} {t('settings:template_fields') || '个字段'}
+                        </span>
+                        <SensitivityBadges properties={tpl.properties} />
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="tertiary"
                       size="sm"
+                      onClick={() => {
+                        const ut = templates.find((u) => u.id === tpl.id);
+                        if (ut) openEdit(ut);
+                      }}
+                    >
+                      <Pencil size={ICON_SIZE.md} />
+                    </Button>
+                    <DeleteButton
+                      onClick={() => handleDelete(tpl.id, tpl.name)}
+                      title={t('common:delete')}
+                      iconOnly
                     />
                   </div>
-                  <div
-                    style={{
-                      fontSize: 'var(--text-badge)',
-                      color: 'var(--text-tertiary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {(() => {
-                      const page = resolvePageLabel(tpl.category);
-                      return (
-                        <span
-                          style={
-                            page.deleted
-                              ? { textDecoration: 'line-through', opacity: 0.6 }
-                              : undefined
-                          }
-                        >
-                          {page.name}
-                        </span>
-                      );
-                    })()}
-                    <span>·</span>
-                    <span>
-                      {tpl.properties.length} {t('settings:template_fields') || '个字段'}
-                    </span>
-                    <SensitivityBadges properties={tpl.properties} />
-                  </div>
                 </div>
-              </div>
-              <div style={{ display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
-                <Button
-                  variant="tertiary"
-                  size="sm"
-                  onClick={() => {
-                    const ut = templates.find((u) => u.id === tpl.id);
-                    if (ut) openEdit(ut);
-                  }}
-                >
-                  <Pencil size={ICON_SIZE.md} />
-                </Button>
-                <DeleteButton onClick={() => handleDelete(tpl.id, tpl.name)} title={t('common:delete')} iconOnly />
-              </div>
-            </div>
-          </Card>
-        );}
-        )}
+              </Card>
+            );
+          })}
         </div>
       </PageContainer>
 
@@ -509,7 +525,6 @@ export function TemplateManagerPage() {
       >
         <TemplateEditor
           editingTemplate={editingTemplate}
-
           editName={editName}
           editCategory={editCategory}
           editIconId={editIconId}
@@ -590,24 +605,26 @@ export function TemplateManagerPage() {
       {confirmDialog}
 
       {/* Delete confirmation dialog */}
-      {confirmDelete && (() => {
-        const retentionDays = retentionPeriodDays(trashRetention);
-        const bodyKey = retentionDays > 0
-          ? 'settings:template_delete_confirm_body'
-          : 'settings:template_delete_confirm_body_never';
-        return (
-          <DeleteConfirmDialog
-            name={confirmDelete.name}
-            title={t('settings:template_delete_confirm_title')}
-            body={t(bodyKey, {
-              name: confirmDelete.name,
-              days: retentionDays > 0 ? String(retentionDays) : '',
-            })}
-            onCancel={() => setConfirmDelete(null)}
-            onConfirm={doDelete}
-          />
-        );
-      })()}
+      {confirmDelete &&
+        (() => {
+          const retentionDays = retentionPeriodDays(trashRetention);
+          const bodyKey =
+            retentionDays > 0
+              ? 'settings:template_delete_confirm_body'
+              : 'settings:template_delete_confirm_body_never';
+          return (
+            <DeleteConfirmDialog
+              name={confirmDelete.name}
+              title={t('settings:template_delete_confirm_title')}
+              body={t(bodyKey, {
+                name: confirmDelete.name,
+                days: retentionDays > 0 ? String(retentionDays) : '',
+              })}
+              onCancel={() => setConfirmDelete(null)}
+              onConfirm={doDelete}
+            />
+          );
+        })()}
     </AppShell>
   );
 }

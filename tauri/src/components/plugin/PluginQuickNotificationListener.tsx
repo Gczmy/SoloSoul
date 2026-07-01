@@ -37,7 +37,8 @@ export function PluginQuickNotificationListener() {
         // If this plugin just completed while panel is closed
         // AND runPlugin hasn't already shown a toast for it (toastShown dedup)
         if (!prevCompletedRef.current.has(id) && !isOpen && !plugin.toastShown) {
-          const hasFailed = !!plugin.error || (typeof plugin.exitCode === 'number' && plugin.exitCode !== 0);
+          const hasFailed =
+            !!plugin.error || (typeof plugin.exitCode === 'number' && plugin.exitCode !== 0);
           if (hasFailed) {
             showToast({
               type: 'error',

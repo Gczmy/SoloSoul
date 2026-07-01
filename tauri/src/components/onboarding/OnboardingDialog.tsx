@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Sparkles, PlusSquare, LayoutTemplate, ShieldCheck, CheckCircle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface OnboardingDialogProps {
   onComplete: () => void;
   onSkip: () => void;
@@ -120,8 +119,10 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
             }}
             className="interactive-toolbar"
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-warm) 8%, transparent)';
-              e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent-warm) 30%, var(--border-subtle))';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-warm) 8%, transparent)';
+              e.currentTarget.style.borderColor =
+                'color-mix(in srgb, var(--accent-warm) 30%, var(--border-subtle))';
               e.currentTarget.style.color = 'var(--accent-warm)';
             }}
             onMouseLeave={(e) => {
@@ -151,7 +152,8 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
                 }}
                 className="interactive-toolbar"
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                   e.currentTarget.style.color = 'var(--accent-primary)';
                 }}
@@ -186,7 +188,8 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
               }}

@@ -20,7 +20,6 @@ import { motion } from 'framer-motion';
 import { BookOpen, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export function HelpPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -138,7 +137,9 @@ export function HelpPage() {
       title={content ? content.title : t('settings:items.help_docs')}
       onBack={handleBack}
       actions={
-        guideId ? undefined : <BookOpen size={ICON_SIZE.xl} style={{ color: 'var(--text-secondary)' }} />
+        guideId ? undefined : (
+          <BookOpen size={ICON_SIZE.xl} style={{ color: 'var(--text-secondary)' }} />
+        )
       }
     >
       <PageContainer variant="wide" gap="default">
@@ -200,8 +201,12 @@ export function HelpPage() {
                         justifyContent: 'space-between',
                       }}
                     >
-                      <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{t('common:tutorial')}</span>
-                      <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-md)' }}>›</span>
+                      <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
+                        {t('common:tutorial')}
+                      </span>
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-md)' }}>
+                        ›
+                      </span>
                     </div>
                   </Card>
                 ),
@@ -211,7 +216,11 @@ export function HelpPage() {
         )}
 
         {guideId && content && !loading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+          >
             <GuideRenderer
               content={content.content}
               onLinkClick={(href) => {

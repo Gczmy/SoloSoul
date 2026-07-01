@@ -38,7 +38,14 @@ export function TrashConfirmDialog({ action, onClose, onConfirm }: TrashConfirmD
             ? t('settings:confirm_delete_title')
             : t('settings:confirm_restore_title')}
         </h3>
-        <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.5 }}>
+        <p
+          style={{
+            fontSize: 'var(--text-body)',
+            color: 'var(--text-secondary)',
+            marginBottom: 20,
+            lineHeight: 1.5,
+          }}
+        >
           {action.type === 'delete'
             ? t('settings:confirm_delete_desc', { count: action.count })
             : t('settings:confirm_restore_desc', { count: action.count })}

@@ -2,7 +2,18 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
-import { X, Clock, Paperclip, Pencil, Lock, Eye, Copy, Check, Maximize2, Upload } from 'lucide-react';
+import {
+  X,
+  Clock,
+  Paperclip,
+  Pencil,
+  Lock,
+  Eye,
+  Copy,
+  Check,
+  Maximize2,
+  Upload,
+} from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
@@ -24,7 +35,6 @@ import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { PageGuide } from '@/components/guide/PageGuide';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 interface ObjectDetailModalProps {
   /** 已加载的对象摘要/完整数据。与 objectId 二选一，优先使用此值。 */
@@ -106,7 +116,11 @@ export function ObjectDetailModal({
 
   const [showPwDialog, setShowPwDialog] = useState(false);
   const pwResolveRef = useRef<
-    ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin' }) => void) | null
+    | ((result: {
+        ok: boolean;
+        method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
+      }) => void)
+    | null
   >(null);
   const pendingRevealRef = useRef<{ fieldId: string; fieldName: string } | null>(null);
   const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
@@ -190,10 +204,10 @@ export function ObjectDetailModal({
     });
   }, []);
 
-  const resolveCollectionLabelLocal = useCallback((collectionType: string) =>
-    resolveCollectionLabel(collectionType, customPages, t),
-  [customPages, t]);
-
+  const resolveCollectionLabelLocal = useCallback(
+    (collectionType: string) => resolveCollectionLabel(collectionType, customPages, t),
+    [customPages, t],
+  );
 
   const writeCriticalAccessLog = useCallback(
     async (method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin') => {
@@ -236,7 +250,8 @@ export function ObjectDetailModal({
         action: 'unlock',
         biometryType: bioAvailable.biometryType,
       });
-      const method = (bioAvailable.biometryType as 'touchId' | 'faceId' | 'windowsHello') || 'touchId';
+      const method =
+        (bioAvailable.biometryType as 'touchId' | 'faceId' | 'windowsHello') || 'touchId';
       pwResolveRef.current?.({ ok: true, method });
       return true;
     } catch {
@@ -323,11 +338,12 @@ export function ObjectDetailModal({
     }
   };
 
-
   const detailTpl = obj?.templateId ? templates.find((t) => t.id === obj.templateId) : undefined;
   // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
   const detailTplMatch = detailTpl && (detailTpl.category || 'identity') === obj?.collectionType;
-  const ObjectDetailIcon = detailTpl?.iconId ? resolveCustomIcon(detailTpl.iconId) : PAGE_ICON_MAP.custom;
+  const ObjectDetailIcon = detailTpl?.iconId
+    ? resolveCustomIcon(detailTpl.iconId)
+    : PAGE_ICON_MAP.custom;
   const fieldOrder = templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id);
   const fields = flattenProperties(obj?.properties, fieldOrder);
 
@@ -374,25 +390,25 @@ export function ObjectDetailModal({
         onClick={onClose}
       >
         {!loading && obj && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-          ref={detailDragRef}
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            background: 'var(--bg-elevated)',
-            borderRadius: 16,
-            padding: '28px 32px',
-            maxWidth: 560,
-            width: '90%',
-            maxHeight: '80vh',
-            overflowY: 'auto',
-            boxShadow: 'var(--shadow-lg)',
-            border: '1px solid var(--border-subtle)',
-            position: 'relative',
-          }}
-        >
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            ref={detailDragRef}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--bg-elevated)',
+              borderRadius: 16,
+              padding: '28px 32px',
+              maxWidth: 560,
+              width: '90%',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              boxShadow: 'var(--shadow-lg)',
+              border: '1px solid var(--border-subtle)',
+              position: 'relative',
+            }}
+          >
             <>
               {/* Header */}
               <div
@@ -408,30 +424,53 @@ export function ObjectDetailModal({
                     <ObjectDetailIcon size={ICON_SIZE['2xl']} />
                   </span>
                   <div>
-                    <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{obj.name}</h2>
+                    <h2
+                      style={{
+                        fontSize: 'var(--text-md)',
+                        fontWeight: 700,
+                        margin: 0,
+                        overflowWrap: 'break-word',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {obj.name}
+                    </h2>
                     <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                       {resolveCollectionLabelLocal(obj.collectionType)}
                       {obj.contractTypeId && (
-                        <span style={{ marginLeft: 4, display: 'inline-flex', verticalAlign: 'middle' }}>
-                          <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
+                        <span
+                          style={{ marginLeft: 4, display: 'inline-flex', verticalAlign: 'middle' }}
+                        >
+                          <PluginBadge
+                            contractTypeId={obj.contractTypeId}
+                            size="sm"
+                            variant="full"
+                          />
                         </span>
                       )}
                       {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
-                      {obj.templateId && (() => {
-                        const tplName = (obj.properties as Record<string, unknown>)?.__templateName as string | undefined;
-                        const tid = obj.templateId || '';
-                        const label = detailTplMatch
-                          ? (detailTpl?.name || tid)
-                          : (tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid);
-                        return (
-                          <span style={{ textDecoration: detailTplMatch ? 'none' : 'line-through' }}>
-                            {' · '}{label}
-                          </span>
-                        );
-                      })()}
-                      {' · '}{t('common:created')}:{' '}
-                      {obj.createdAt?.slice(0, 10) || '—'} · {t('common:updated')}:{' '}
-                      {obj.updatedAt?.slice(0, 10) || '—'}
+                      {obj.templateId &&
+                        (() => {
+                          const tplName = (obj.properties as Record<string, unknown>)
+                            ?.__templateName as string | undefined;
+                          const tid = obj.templateId || '';
+                          const label = detailTplMatch
+                            ? detailTpl?.name || tid
+                            : tplName
+                              ? `${tplName} (${tid.slice(0, 8)}…)`
+                              : tid;
+                          return (
+                            <span
+                              style={{ textDecoration: detailTplMatch ? 'none' : 'line-through' }}
+                            >
+                              {' · '}
+                              {label}
+                            </span>
+                          );
+                        })()}
+                      {' · '}
+                      {t('common:created')}: {obj.createdAt?.slice(0, 10) || '—'} ·{' '}
+                      {t('common:updated')}: {obj.updatedAt?.slice(0, 10) || '—'}
                     </span>
                   </div>
                 </div>
@@ -447,7 +486,8 @@ export function ObjectDetailModal({
                     transition: 'all 0.15s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                     e.currentTarget.style.color = 'var(--accent-primary)';
                   }}
                   onMouseLeave={(e) => {
@@ -516,7 +556,13 @@ export function ObjectDetailModal({
                               {getFieldName(f.key)}
                             </span>
                             <SensitivityBadge level={sens} />
-                            {obj.contractTypeId && <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />}
+                            {obj.contractTypeId && (
+                              <PluginBadge
+                                contractTypeId={obj.contractTypeId}
+                                size="sm"
+                                variant="full"
+                              />
+                            )}
                             {deprecated && <DeprecatedBadge />}
                           </div>
                           <div
@@ -560,7 +606,8 @@ export function ObjectDetailModal({
                                 if (sens === 'critical') {
                                   e.currentTarget.style.background = 'rgba(220,38,38,0.12)';
                                 } else {
-                                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                                  e.currentTarget.style.background =
+                                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                                   e.currentTarget.style.color = 'var(--accent-primary)';
                                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                                 }
@@ -575,7 +622,11 @@ export function ObjectDetailModal({
                                 }
                               }}
                             >
-                              {sens === 'critical' ? <Lock size={ICON_SIZE.xs} /> : <Eye size={ICON_SIZE.xs} />}{' '}
+                              {sens === 'critical' ? (
+                                <Lock size={ICON_SIZE.xs} />
+                              ) : (
+                                <Eye size={ICON_SIZE.xs} />
+                              )}{' '}
                               {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
                             </button>
                           )}
@@ -592,26 +643,38 @@ export function ObjectDetailModal({
                             style={{
                               padding: '4px 10px',
                               borderRadius: 6,
-                              border: '1px solid ' + (copiedField === f.key ? 'var(--accent-primary)' : 'var(--border-subtle)'),
+                              border:
+                                '1px solid ' +
+                                (copiedField === f.key
+                                  ? 'var(--accent-primary)'
+                                  : 'var(--border-subtle)'),
                               background:
                                 hoveredField === f.key && copiedField !== f.key
                                   ? 'color-mix(in srgb, var(--accent-primary) 12%, transparent)'
                                   : 'transparent',
                               cursor: 'pointer',
                               fontSize: 'var(--text-badge)',
-                              color: copiedField === f.key
-                                ? 'var(--accent-primary)'
-                                : hoveredField === f.key
+                              color:
+                                copiedField === f.key
                                   ? 'var(--accent-primary)'
-                                  : 'var(--text-tertiary)',
+                                  : hoveredField === f.key
+                                    ? 'var(--accent-primary)'
+                                    : 'var(--text-tertiary)',
                               display: 'flex',
                               alignItems: 'center',
                               gap: 4,
-                              boxShadow: copiedField === f.key ? '0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent)' : 'none',
+                              boxShadow:
+                                copiedField === f.key
+                                  ? '0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent)'
+                                  : 'none',
                               transition: 'all var(--duration-fast) var(--ease-smooth)',
                             }}
                           >
-                            {copiedField === f.key ? <Check size={ICON_SIZE.xs} /> : <Copy size={ICON_SIZE.xs} />}
+                            {copiedField === f.key ? (
+                              <Check size={ICON_SIZE.xs} />
+                            ) : (
+                              <Copy size={ICON_SIZE.xs} />
+                            )}
                             {copiedField === f.key ? t('common:copied') : t('common:copy')}
                           </button>
                         </div>
@@ -742,7 +805,7 @@ export function ObjectDetailModal({
                 </DeleteButton>
               </div>
             </>
-        </motion.div>
+          </motion.div>
         )}
       </div>
 
@@ -772,7 +835,9 @@ export function ObjectDetailModal({
               border: '1px solid var(--border-subtle)',
             }}
           >
-            <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>
+            <h3
+              style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}
+            >
               {t('common:object_delete_confirm_title')}
             </h3>
             <p
@@ -783,7 +848,9 @@ export function ObjectDetailModal({
                 lineHeight: 1.5,
               }}
             >
-              {t('common:object_delete_confirm_body', { name: obj.name.length > 28 ? obj.name.slice(0, 27) + '…' : obj.name })}
+              {t('common:object_delete_confirm_body', {
+                name: obj.name.length > 28 ? obj.name.slice(0, 27) + '…' : obj.name,
+              })}
             </p>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={() => setConfirmDelete(false)}>

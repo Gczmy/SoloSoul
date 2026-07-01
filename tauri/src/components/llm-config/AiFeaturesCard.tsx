@@ -42,7 +42,13 @@ export function AiFeaturesCard({ features, onToggle }: AiFeaturesCardProps) {
           />
           {t('settings:ai_' + key)}
           {key !== 'chat' && (
-            <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginLeft: 4 }}>
+            <span
+              style={{
+                fontSize: 'var(--text-badge)',
+                color: 'var(--text-tertiary)',
+                marginLeft: 4,
+              }}
+            >
               ({t('settings:ai_in_development')})
             </span>
           )}

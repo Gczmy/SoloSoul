@@ -21,7 +21,6 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import type { SyncConflict } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 function formatNodeId(bytes: number[]): string {
   return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
@@ -119,7 +118,8 @@ export function SyncPage() {
               disabled={store.isLoading}
               onMouseEnter={(e) => {
                 if (!store.isLoading) {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                   e.currentTarget.style.color = 'var(--accent-primary)';
                 }
@@ -128,7 +128,9 @@ export function SyncPage() {
                 if (!store.isLoading) {
                   e.currentTarget.style.background = 'var(--bg-toolbar)';
                   e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = store.syncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)';
+                  e.currentTarget.style.color = store.syncEnabled
+                    ? 'var(--accent-primary)'
+                    : 'var(--text-primary)';
                 }
               }}
               style={{
@@ -178,7 +180,13 @@ export function SyncPage() {
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
             {t('settings:sync_with_device', { defaultValue: 'Sync with Device' })}
           </h3>
-          <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 12 }}>
+          <p
+            style={{
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-tertiary)',
+              marginBottom: 12,
+            }}
+          >
             {t('settings:sync_device_input_hint', {
               defaultValue: 'Enter a discovered device ID or a host:port address.',
             })}
@@ -195,7 +203,8 @@ export function SyncPage() {
               disabled={!manualAddr.trim() || store.isLoading}
               onMouseEnter={(e) => {
                 if (manualAddr.trim() && !store.isLoading) {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                   e.currentTarget.style.color = 'var(--accent-primary)';
                 }
@@ -228,12 +237,20 @@ export function SyncPage() {
             </button>
           </div>
           {store.lastResult && (
-            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)', marginTop: 8 }}>
+            <p
+              style={{
+                fontSize: 'var(--text-caption)',
+                color: 'var(--text-secondary)',
+                marginTop: 8,
+              }}
+            >
               {t('settings:sync_result', { defaultValue: 'Result' })}: {store.lastResult.summary}
             </p>
           )}
           {store.error && (
-            <p style={{ fontSize: 'var(--text-caption)', color: '#e74c3c', marginTop: 8 }}>{store.error}</p>
+            <p style={{ fontSize: 'var(--text-caption)', color: '#e74c3c', marginTop: 8 }}>
+              {store.error}
+            </p>
           )}
         </Card>
 
@@ -265,7 +282,11 @@ export function SyncPage() {
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
                 {t('settings:sync_activity_title', { defaultValue: 'Sync Activity' })}
               </h3>
-              {activityOpen ? <ChevronUp size={ICON_SIZE.lg} /> : <ChevronDown size={ICON_SIZE.lg} />}
+              {activityOpen ? (
+                <ChevronUp size={ICON_SIZE.lg} />
+              ) : (
+                <ChevronDown size={ICON_SIZE.lg} />
+              )}
             </button>
 
             {activityOpen && (
@@ -377,7 +398,9 @@ export function SyncPage() {
                 >
                   <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{peer.name || peer.id}</div>
+                    <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                      {peer.name || peer.id}
+                    </div>
                     <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                       {peer.addr || 'offline'} · {peer.lastSeen || 'never'}
                     </div>
@@ -403,13 +426,23 @@ export function SyncPage() {
                         <ShieldOff size={ICON_SIZE.sm} />
                       </Button>
                     )}
-                    <DeleteButton onClick={() => store.forgetPeer(peer.id)} title={t('settings:sync_forget', { defaultValue: 'Forget' })} iconOnly />
+                    <DeleteButton
+                      onClick={() => store.forgetPeer(peer.id)}
+                      title={t('settings:sync_forget', { defaultValue: 'Forget' })}
+                      iconOnly
+                    />
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginTop: 8 }}>
+            <p
+              style={{
+                fontSize: 'var(--text-caption)',
+                color: 'var(--text-tertiary)',
+                marginTop: 8,
+              }}
+            >
               {t('settings:sync_no_devices', {
                 defaultValue:
                   'No devices known yet. Enable sync and sync with another device to add it.',

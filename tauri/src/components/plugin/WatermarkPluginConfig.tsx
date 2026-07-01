@@ -65,9 +65,7 @@ interface WatermarkPluginConfigProps {
   onParamsChange: (params: Record<string, string>) => void;
 }
 
-export function WatermarkPluginConfig({
-  onParamsChange,
-}: WatermarkPluginConfigProps) {
+export function WatermarkPluginConfig({ onParamsChange }: WatermarkPluginConfigProps) {
   const { t } = useTranslation(['plugin', 'common', 'navigation']);
 
   const [config, setConfig] = useState<WatermarkConfig>(DEFAULT_CONFIG);
@@ -221,7 +219,10 @@ export function WatermarkPluginConfig({
       </div>
 
       {/* ── 当前配置摘要（始终可见，文本部分过长时单独截断） ────────── */}
-      <div className={styles.configSummary} title={`${configSummaryParts.textPart}${configSummaryParts.restPart}`}>
+      <div
+        className={styles.configSummary}
+        title={`${configSummaryParts.textPart}${configSummaryParts.restPart}`}
+      >
         <span className={styles.configSummaryText}>{configSummaryParts.textPart}</span>
         <span className={styles.configSummaryRest}>{configSummaryParts.restPart}</span>
       </div>
@@ -332,9 +333,7 @@ export function WatermarkPluginConfig({
         count={selectedAttachments.length > 0 ? selectedAttachments.length : undefined}
       >
         {loadingAttachments ? (
-          <div className={styles.loading}>
-            {t('common:loading', { defaultValue: '加载中...' })}
-          </div>
+          <div className={styles.loading}>{t('common:loading', { defaultValue: '加载中...' })}</div>
         ) : attachments.length === 0 ? (
           <div className={styles.empty}>
             {t('watermark.no_attachments', {

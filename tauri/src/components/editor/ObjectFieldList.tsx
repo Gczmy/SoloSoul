@@ -57,15 +57,26 @@ export function ObjectFieldList({
             Object.entries(values)
               .filter(([k]) => !k.startsWith('__'))
               .map(([key, val]) => {
-                const fieldDefs = (currentObject?.properties as Record<string, unknown>)?.__fields as
-                  | Record<string, { name: string; type: string; options?: string[]; deprecatedAt?: string; contractField?: boolean }>
+                const fieldDefs = (currentObject?.properties as Record<string, unknown>)
+                  ?.__fields as
+                  | Record<
+                      string,
+                      {
+                        name: string;
+                        type: string;
+                        options?: string[];
+                        deprecatedAt?: string;
+                        contractField?: boolean;
+                      }
+                    >
                   | undefined;
                 const fieldDef = fieldDefs?.[key];
                 const fieldName = fieldDef?.name || key;
-                const propType: PropertyType =
-                  (fieldDef?.type as PropertyType) || 'text';
+                const propType: PropertyType = (fieldDef?.type as PropertyType) || 'text';
                 const isDeprecated = !!fieldDef?.deprecatedAt;
-                const objLabels = currentObject?.propertyLabels as Record<string, string> | undefined;
+                const objLabels = currentObject?.propertyLabels as
+                  | Record<string, string>
+                  | undefined;
                 const sensitivity: SensitivityLevel =
                   (objLabels?.[key] as SensitivityLevel) || 'public';
                 const isContractField = fieldDef?.contractField === true;
@@ -83,7 +94,11 @@ export function ObjectFieldList({
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <SensitivityBadge level={sensitivity} />
                           {isContractField && objContractTypeId && (
-                            <PluginBadge contractTypeId={objContractTypeId} size="sm" variant="full" />
+                            <PluginBadge
+                              contractTypeId={objContractTypeId}
+                              size="sm"
+                              variant="full"
+                            />
                           )}
                           {isDeprecated && <DeprecatedBadge />}
                         </div>
@@ -99,7 +114,9 @@ export function ObjectFieldList({
                       }}
                     />
                     {validationErrors[key] && (
-                      <div style={{ fontSize: 'var(--text-badge)', color: '#ef4444', marginTop: 4 }}>
+                      <div
+                        style={{ fontSize: 'var(--text-badge)', color: '#ef4444', marginTop: 4 }}
+                      >
                         {validationErrors[key]}
                       </div>
                     )}

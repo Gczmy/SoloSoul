@@ -198,5 +198,6 @@ export const useObjectStore = create<ObjectState>((set) => ({
     }
   },
 
-  clearOnVaultLock: () => set({ objects: [], trashObjects: [], currentObjectCache: {}, error: null }),
+  clearOnVaultLock: () =>
+    set({ objects: [], trashObjects: [], currentObjectCache: {}, error: null }),
 }));

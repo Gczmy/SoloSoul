@@ -5,7 +5,6 @@ import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
 import type { TFunction } from 'i18next';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface StatsGridProps {
   usageCount: number;
   totalTokens: number;
@@ -88,10 +87,17 @@ const StatTile = memo(function StatTile({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
           {icon}
-          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>{label}</span>
+          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+            {label}
+          </span>
         </div>
         <div
-          style={{ fontSize: 'var(--text-md)', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}
+          style={{
+            fontSize: 'var(--text-md)',
+            fontWeight: 700,
+            color: 'var(--text-primary)',
+            lineHeight: 1.2,
+          }}
         >
           {value}
         </div>

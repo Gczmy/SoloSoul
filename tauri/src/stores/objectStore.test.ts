@@ -23,15 +23,32 @@ describe('objectStore', () => {
   describe('loadObjects', () => {
     it('加载对象列表成功时设置 objects', async () => {
       const objects = [
-        { id: '1', name: 'Obj1', collectionType: 'address', sensitivityLevel: 'public', createdAt: '2026-01-01', updatedAt: '2026-01-01' },
-        { id: '2', name: 'Obj2', collectionType: 'address', sensitivityLevel: 'private', createdAt: '2026-01-02', updatedAt: '2026-01-02' },
+        {
+          id: '1',
+          name: 'Obj1',
+          collectionType: 'address',
+          sensitivityLevel: 'public',
+          createdAt: '2026-01-01',
+          updatedAt: '2026-01-01',
+        },
+        {
+          id: '2',
+          name: 'Obj2',
+          collectionType: 'address',
+          sensitivityLevel: 'private',
+          createdAt: '2026-01-02',
+          updatedAt: '2026-01-02',
+        },
       ];
       mockInvoke.mockResolvedValue(objects);
 
       const { useObjectStore } = await import('./objectStore');
       await useObjectStore.getState().loadObjects('acc-1', { collectionType: 'address' });
 
-      expect(mockInvoke).toHaveBeenCalledWith('object_list', { accountId: 'acc-1', filter: { collectionType: 'address' } });
+      expect(mockInvoke).toHaveBeenCalledWith('object_list', {
+        accountId: 'acc-1',
+        filter: { collectionType: 'address' },
+      });
       expect(useObjectStore.getState().objects).toEqual(objects);
       expect(useObjectStore.getState().isLoading).toBe(false);
       expect(useObjectStore.getState().error).toBeNull();
@@ -59,7 +76,16 @@ describe('objectStore', () => {
 
   describe('getObject', () => {
     it('获取单个对象成功', async () => {
-      const obj = { id: '1', accountId: 'acc-1', name: 'Obj1', collectionType: 'address', properties: { street: 'Main St' }, sensitivityLevel: 'public', createdAt: '', updatedAt: '' };
+      const obj = {
+        id: '1',
+        accountId: 'acc-1',
+        name: 'Obj1',
+        collectionType: 'address',
+        properties: { street: 'Main St' },
+        sensitivityLevel: 'public',
+        createdAt: '',
+        updatedAt: '',
+      };
       mockInvoke.mockResolvedValue(obj);
 
       const { useObjectStore } = await import('./objectStore');
@@ -82,7 +108,17 @@ describe('objectStore', () => {
 
   describe('createObject', () => {
     it('创建对象成功并追加到列表', async () => {
-      const created = { id: 'new-1', accountId: 'acc-1', name: 'New', collectionType: 'address', properties: {}, sensitivityLevel: 'public', createdAt: '2026-01-01', updatedAt: '2026-01-01', contractTypeId: undefined };
+      const created = {
+        id: 'new-1',
+        accountId: 'acc-1',
+        name: 'New',
+        collectionType: 'address',
+        properties: {},
+        sensitivityLevel: 'public',
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+        contractTypeId: undefined,
+      };
       mockInvoke.mockResolvedValue(created);
 
       const { useObjectStore } = await import('./objectStore');
@@ -112,12 +148,14 @@ describe('objectStore', () => {
       mockInvoke.mockRejectedValue(new Error('Name required'));
 
       const { useObjectStore } = await import('./objectStore');
-      await expect(useObjectStore.getState().createObject({
-        accountId: 'acc-1',
-        name: '',
-        collectionType: 'address',
-        properties: {},
-      })).rejects.toThrow('Name required');
+      await expect(
+        useObjectStore.getState().createObject({
+          accountId: 'acc-1',
+          name: '',
+          collectionType: 'address',
+          properties: {},
+        }),
+      ).rejects.toThrow('Name required');
 
       expect(useObjectStore.getState().error).toBe('Error: Name required');
     });
@@ -125,13 +163,27 @@ describe('objectStore', () => {
 
   describe('updateObject', () => {
     it('更新对象成功', async () => {
-      const updated = { id: '1', accountId: 'acc-1', name: 'Updated', collectionType: 'address', properties: { street: 'New St' }, sensitivityLevel: 'public', createdAt: '', updatedAt: '2026-02-01' };
+      const updated = {
+        id: '1',
+        accountId: 'acc-1',
+        name: 'Updated',
+        collectionType: 'address',
+        properties: { street: 'New St' },
+        sensitivityLevel: 'public',
+        createdAt: '',
+        updatedAt: '2026-02-01',
+      };
       mockInvoke.mockResolvedValue(updated);
 
       const { useObjectStore } = await import('./objectStore');
-      await useObjectStore.getState().updateObject('1', { name: 'Updated', properties: { street: 'New St' } });
+      await useObjectStore
+        .getState()
+        .updateObject('1', { name: 'Updated', properties: { street: 'New St' } });
 
-      expect(mockInvoke).toHaveBeenCalledWith('object_update', { objectId: '1', input: { name: 'Updated', properties: { street: 'New St' } } });
+      expect(mockInvoke).toHaveBeenCalledWith('object_update', {
+        objectId: '1',
+        input: { name: 'Updated', properties: { street: 'New St' } },
+      });
       expect(useObjectStore.getState().currentObjectCache['1']).toEqual(updated);
     });
   });
@@ -144,8 +196,22 @@ describe('objectStore', () => {
       // 先设置对象列表
       useObjectStore.setState({
         objects: [
-          { id: '1', name: 'Obj1', collectionType: 'x', sensitivityLevel: 'public', createdAt: '', updatedAt: '' },
-          { id: '2', name: 'Obj2', collectionType: 'x', sensitivityLevel: 'public', createdAt: '', updatedAt: '' },
+          {
+            id: '1',
+            name: 'Obj1',
+            collectionType: 'x',
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '',
+          },
+          {
+            id: '2',
+            name: 'Obj2',
+            collectionType: 'x',
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '',
+          },
         ],
       });
       await useObjectStore.getState().deleteObject('1');
@@ -158,7 +224,17 @@ describe('objectStore', () => {
 
   describe('trash lifecycle', () => {
     it('loadTrashObjects 加载回收站列表', async () => {
-      const trash = [{ id: 'del-1', name: 'Deleted', collectionType: 'x', sensitivityLevel: 'public', createdAt: '', updatedAt: '', isDeleted: true }];
+      const trash = [
+        {
+          id: 'del-1',
+          name: 'Deleted',
+          collectionType: 'x',
+          sensitivityLevel: 'public',
+          createdAt: '',
+          updatedAt: '',
+          isDeleted: true,
+        },
+      ];
       mockInvoke.mockResolvedValue(trash);
 
       const { useObjectStore } = await import('./objectStore');
@@ -174,7 +250,14 @@ describe('objectStore', () => {
       const { useObjectStore } = await import('./objectStore');
       useObjectStore.setState({
         trashObjects: [
-          { id: 'del-1', name: 'Del1', collectionType: 'x', sensitivityLevel: 'public', createdAt: '', updatedAt: '' },
+          {
+            id: 'del-1',
+            name: 'Del1',
+            collectionType: 'x',
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '',
+          },
         ],
       });
       await useObjectStore.getState().restoreObject('del-1');
@@ -188,7 +271,16 @@ describe('objectStore', () => {
 
       const { useObjectStore } = await import('./objectStore');
       useObjectStore.setState({
-        trashObjects: [{ id: 'del-1', name: 'Del1', collectionType: 'x', sensitivityLevel: 'public', createdAt: '', updatedAt: '' }],
+        trashObjects: [
+          {
+            id: 'del-1',
+            name: 'Del1',
+            collectionType: 'x',
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '',
+          },
+        ],
       });
       await useObjectStore.getState().purgeObject('del-1');
 
@@ -201,9 +293,38 @@ describe('objectStore', () => {
     it('清空所有敏感状态', async () => {
       const { useObjectStore } = await import('./objectStore');
       useObjectStore.setState({
-        objects: [{ id: '1', name: 'X', collectionType: 'x', sensitivityLevel: 'public', createdAt: '', updatedAt: '' }],
-        trashObjects: [{ id: '2', name: 'Y', collectionType: 'x', sensitivityLevel: 'public', createdAt: '', updatedAt: '' }],
-        currentObjectCache: { '3': { id: '3', accountId: 'a', name: 'Z', collectionType: 'x', properties: {}, sensitivityLevel: 'public', createdAt: '', updatedAt: '' } },
+        objects: [
+          {
+            id: '1',
+            name: 'X',
+            collectionType: 'x',
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '',
+          },
+        ],
+        trashObjects: [
+          {
+            id: '2',
+            name: 'Y',
+            collectionType: 'x',
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '',
+          },
+        ],
+        currentObjectCache: {
+          '3': {
+            id: '3',
+            accountId: 'a',
+            name: 'Z',
+            collectionType: 'x',
+            properties: {},
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '',
+          },
+        },
         error: 'some error',
       });
 

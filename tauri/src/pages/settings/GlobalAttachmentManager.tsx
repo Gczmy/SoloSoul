@@ -32,15 +32,11 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import type { PageIconKey, CustomIconId } from '@/lib/pageIcons';
 import type { LucideIcon } from 'lucide-react';
-import {
-  truncateFileName,
-  formatSize,
-} from '@/lib/attachmentUtils';
+import { truncateFileName, formatSize } from '@/lib/attachmentUtils';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 /** Resolve icon from either PAGE_ICON_MAP (built-in) or CUSTOM_ICON_MAP (user-selectable). */
 function resolvePageIcon(iconKey?: string | null): LucideIcon {
@@ -281,7 +277,10 @@ export function GlobalAttachmentManager() {
       });
       if (!destPath) return;
       await invoke('attachment_download', { srcPath: filePath, destPath });
-      showToast({ type: 'success', message: t('common:download_result') || 'Downloaded successfully' });
+      showToast({
+        type: 'success',
+        message: t('common:download_result') || 'Downloaded successfully',
+      });
     } catch (e) {
       showToast({ type: 'error', message: `${t('common:download_failed')}: ${e}` });
     }
@@ -300,13 +299,18 @@ export function GlobalAttachmentManager() {
     setPermDeleteItem({ ...item, _objectId: objectId });
   };
 
-  const [permDeleteItem, setPermDeleteItem] = useState<(AttachmentMeta & { _objectId: string }) | null>(null);
+  const [permDeleteItem, setPermDeleteItem] = useState<
+    (AttachmentMeta & { _objectId: string }) | null
+  >(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const doPermanentDelete = async () => {
     if (!permDeleteItem) return;
     try {
-      await invoke('attachment_delete', { objectId: permDeleteItem._objectId, attachmentId: permDeleteItem.id });
+      await invoke('attachment_delete', {
+        objectId: permDeleteItem._objectId,
+        attachmentId: permDeleteItem.id,
+      });
       await loadData();
     } catch (e) {
       showToast({ type: 'error', message: `${t('common:perm_delete_failed')}: ${e}` });
@@ -316,7 +320,7 @@ export function GlobalAttachmentManager() {
 
   // ── Display data ───────────────────────────────────────────
 
-  const rawPages = showTrash ? (data?.trashPages || []) : (data?.pages || []);
+  const rawPages = showTrash ? data?.trashPages || [] : data?.pages || [];
   const sortedPages = useAttachmentPageSort(rawPages);
 
   // Filter pages/objects/attachments by search query (matches against file name)
@@ -329,9 +333,7 @@ export function GlobalAttachmentManager() {
         objects: page.objects
           .map((obj) => ({
             ...obj,
-            attachments: obj.attachments.filter((att) =>
-              att.fileName.toLowerCase().includes(q),
-            ),
+            attachments: obj.attachments.filter((att) => att.fileName.toLowerCase().includes(q)),
           }))
           .filter((obj) => obj.attachments.length > 0),
       }))
@@ -374,7 +376,11 @@ export function GlobalAttachmentManager() {
 
     try {
       const { open } = await import('@tauri-apps/plugin-dialog');
-      const dirPath = await open({ directory: true, multiple: false, title: t('common:select_download_directory') || 'Select download directory' });
+      const dirPath = await open({
+        directory: true,
+        multiple: false,
+        title: t('common:select_download_directory') || 'Select download directory',
+      });
       if (!dirPath) return;
 
       // Map entries to actual attachment items
@@ -404,8 +410,11 @@ export function GlobalAttachmentManager() {
 
       showToast({
         type: successCount === selectedItems.length ? 'success' : 'warning',
-        message: t('common:batch_download_result', { success: successCount, total: selectedItems.length }) ||
-          `Downloaded ${successCount}/${selectedItems.length} files`,
+        message:
+          t('common:batch_download_result', {
+            success: successCount,
+            total: selectedItems.length,
+          }) || `Downloaded ${successCount}/${selectedItems.length} files`,
       });
       clearSelection();
     } catch {
@@ -527,7 +536,9 @@ export function GlobalAttachmentManager() {
   const summaryStats = useMemo(() => {
     const activePages = data?.pages || [];
     const trashPages = data?.trashPages || [];
-    let activeAttachments = 0, activeBytes = 0, activeObjects = 0;
+    let activeAttachments = 0,
+      activeBytes = 0,
+      activeObjects = 0;
     for (const page of activePages) {
       for (const obj of page.objects) {
         activeObjects++;
@@ -537,7 +548,9 @@ export function GlobalAttachmentManager() {
         }
       }
     }
-    let trashAttachments = 0, trashBytes = 0, trashObjects = 0;
+    let trashAttachments = 0,
+      trashBytes = 0,
+      trashObjects = 0;
     for (const page of trashPages) {
       for (const obj of page.objects) {
         trashObjects++;
@@ -547,10 +560,24 @@ export function GlobalAttachmentManager() {
         }
       }
     }
-    return { activeAttachments, activeBytes, activeObjects, trashAttachments, trashBytes, trashObjects };
+    return {
+      activeAttachments,
+      activeBytes,
+      activeObjects,
+      trashAttachments,
+      trashBytes,
+      trashObjects,
+    };
   }, [data]);
 
-  const { activeAttachments: activeCount, activeBytes, activeObjects, trashAttachments: trashCount, trashBytes, trashObjects } = summaryStats;
+  const {
+    activeAttachments: activeCount,
+    activeBytes,
+    activeObjects,
+    trashAttachments: trashCount,
+    trashBytes,
+    trashObjects,
+  } = summaryStats;
 
   // ── Render attachment row ──────────────────────────────────
 
@@ -574,7 +601,10 @@ export function GlobalAttachmentManager() {
       >
         <SelectCheckbox
           checked={isChecked}
-          onClick={(e) => { e.stopPropagation(); toggleSelect(compositeKey); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleSelect(compositeKey);
+          }}
         />
         <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
 
@@ -696,20 +726,37 @@ export function GlobalAttachmentManager() {
           }}
           className="interactive-accent-light"
         >
-          {isExpanded ? <ChevronDown size={ICON_SIZE.sm} style={{ flexShrink: 0 }} /> : <ChevronRight size={ICON_SIZE.sm} style={{ flexShrink: 0 }} />}
+          {isExpanded ? (
+            <ChevronDown size={ICON_SIZE.sm} style={{ flexShrink: 0 }} />
+          ) : (
+            <ChevronRight size={ICON_SIZE.sm} style={{ flexShrink: 0 }} />
+          )}
           <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
             {obj.templateName}
           </span>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+          <span
+            style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}
+          >
             {obj.objectName}
           </span>
-          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', flexShrink: 0, whiteSpace: 'nowrap' }}>
-            {t('settings:attachments_count', { n: obj.attachments.length })} · {formatSize(obj.attachments.reduce((sum, a) => sum + a.sizeBytes, 0))}
+          <span
+            style={{
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-tertiary)',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {t('settings:attachments_count', { n: obj.attachments.length })} ·{' '}
+            {formatSize(obj.attachments.reduce((sum, a) => sum + a.sizeBytes, 0))}
           </span>
           {!showTrash && (
             <BadgeIconButton
               Icon={Upload}
-              onClick={(e) => { e.stopPropagation(); handleUpload(obj.objectId); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleUpload(obj.objectId);
+              }}
               title={t('common:upload') || 'Upload'}
               iconSize={ICON_SIZE.sm}
             />
@@ -754,10 +801,31 @@ export function GlobalAttachmentManager() {
           }}
           className="interactive-toolbar"
         >
-          <PageIconComp size={ICON_SIZE.xl} style={{ flexShrink: 0, color: 'var(--accent-primary)' }} />
-          <span style={{ flex: 1 }}>{page.pageId ? page.pageName : t(`navigation:${page.pageName}`)}</span>
-          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
-            {t('settings:objects_count', { n: page.objects.length })} · {t('settings:attachments_count', { n: page.objects.reduce((sum, o) => sum + o.attachments.length, 0) })} · {formatSize(page.objects.reduce((sum, o) => sum + o.attachments.reduce((s, a) => s + a.sizeBytes, 0), 0))}
+          <PageIconComp
+            size={ICON_SIZE.xl}
+            style={{ flexShrink: 0, color: 'var(--accent-primary)' }}
+          />
+          <span style={{ flex: 1 }}>
+            {page.pageId ? page.pageName : t(`navigation:${page.pageName}`)}
+          </span>
+          <span
+            style={{
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-tertiary)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {t('settings:objects_count', { n: page.objects.length })} ·{' '}
+            {t('settings:attachments_count', {
+              n: page.objects.reduce((sum, o) => sum + o.attachments.length, 0),
+            })}{' '}
+            ·{' '}
+            {formatSize(
+              page.objects.reduce(
+                (sum, o) => sum + o.attachments.reduce((s, a) => s + a.sizeBytes, 0),
+                0,
+              ),
+            )}
           </span>
           {isExpanded ? <ChevronDown size={ICON_SIZE.sm} /> : <ChevronRight size={ICON_SIZE.sm} />}
         </div>
@@ -769,7 +837,8 @@ export function GlobalAttachmentManager() {
   // ── Main render ────────────────────────────────────────────
 
   return (
-    <AppShell title={t('settings:items.global_attachments') || 'Attachments'}
+    <AppShell
+      title={t('settings:items.global_attachments') || 'Attachments'}
       onBack={() => {
         const state = location.state as { from?: string } | undefined;
         if (state?.from === '/home') navigate('/home');
@@ -779,7 +848,11 @@ export function GlobalAttachmentManager() {
       <PageContainer variant="medium" gap="default">
         {/* Search */}
         <Input
-          placeholder={showTrash ? t('common:search_trash') || 'Search trash...' : t('common:search_attachments') || 'Search attachments...'}
+          placeholder={
+            showTrash
+              ? t('common:search_trash') || 'Search trash...'
+              : t('common:search_attachments') || 'Search attachments...'
+          }
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onClear={() => setSearchQuery('')}
@@ -788,157 +861,206 @@ export function GlobalAttachmentManager() {
 
         {/* Tab pills */}
         {!loading && data && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}
-        >
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => { setShowTrash(false); clearSelection(); }}
-            style={!showTrash ? {
-              background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-              borderColor: 'var(--accent-primary)',
-              color: 'var(--accent-primary)',
-              boxShadow: '0 0 0 1px var(--accent-primary)',
-            } : undefined}
-          >
-            {t('common:attachments_active', { n: activeCount }) || `Attachments (${activeCount})`}
-            <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>{formatSize(activeBytes)}</span>
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => { setShowTrash(true); clearSelection(); }}
-            style={showTrash ? {
-              background: 'color-mix(in srgb, #e74c3c 10%, transparent)',
-              borderColor: '#e74c3c',
-              color: '#e74c3c',
-              boxShadow: '0 0 0 1px #e74c3c',
-            } : undefined}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#e74c3c';
-              e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
-            }}
-            onMouseLeave={(e) => {
-              if (!showTrash) {
-                e.currentTarget.style.borderColor = '';
-                e.currentTarget.style.background = '';
-              }
-            }}
-          >
-            {t('common:attachments_trash', { n: trashCount }) || `Trash (${trashCount})`}
-            <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>{formatSize(trashBytes)}</span>
-          </Button>
-
-          <div style={{ flex: 1 }} />
-
-          <Button variant="secondary" size="sm" onClick={loadData}>
-            <RotateCcw size={ICON_SIZE.sm} /> {t('common:refresh') || 'Refresh'}
-          </Button>
-        </div>
-
-        {/* Summary card */}
-          <Card style={{ padding: '12px 16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 'var(--text-sm)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
-                <span style={{ color: 'var(--text-tertiary)' }}>{t('common:attachments')}</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{showTrash ? trashCount : activeCount}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ color: 'var(--text-tertiary)' }}>{t('common:size')}</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{formatSize(showTrash ? trashBytes : activeBytes)}</span>
-              </div>
-              <div style={{ flex: 1 }} />
-              <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}>
-                {t('settings:objects_count', { n: showTrash ? trashObjects : activeObjects })}
-              </div>
-            </div>
-          </Card>
-
-        {/* Batch toolbar */}
-          <Card style={{ padding: '8px 14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 'var(--text-sm)' }}>
-              <div
-                onClick={() => handleSelectAll(allVisibleKeys)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  cursor: displayPages.length > 0 ? 'pointer' : 'default',
-                  color: 'var(--text-secondary)',
-                  userSelect: 'none',
-                }}
-              >
-                <SelectCheckbox
-                  checked={allSelected}
-                  indeterminate={selectedIds.size > 0 && !allSelected}
-                  disabled={displayPages.length === 0}
-                />
-                {allSelected ? t('common:deselect_all') : t('common:select_all')}
-              </div>
-
-              <div style={{ flex: 1 }} />
-
-              <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}>
-                {t('common:selected_count', { n: selectedIds.size })}
-              </span>
-
-              {selectedIds.size > 0 && !showTrash ? (
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
-                    <Download size={ICON_SIZE.sm} /> {t('common:download')}
-                  </Button>
-                  <DeleteButton onClick={() => setBatchDeleteConfirm(true)} title={t('common:delete')}>
-                    {t('common:delete')}
-                  </DeleteButton>
-                </div>
-              ) : selectedIds.size > 0 && showTrash ? (
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
-                    <RotateCcw size={ICON_SIZE.sm} /> {t('common:restore')}
-                  </Button>
-                  <DeleteButton onClick={() => setBatchPermanentDeleteConfirm(true)} title={t('common:delete_permanently')}>
-                    {t('common:delete_permanently')}
-                  </DeleteButton>
-                </div>
-              ) : null}
-            </div>
-          </Card>
-
-        {/* Content */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}
           >
-            {displayPages.length === 0 ? (
-              <Card>
-                <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-                  <Paperclip
-                    size={ICON_SIZE['5xl']}
-                    style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
-                  />
-                  <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                    {searchQuery.trim()
-                      ? (t('common:no_search_results') || 'No matching attachments found.')
-                      : showTrash
-                        ? (t('settings:trash_empty') || 'Trash is empty.')
-                        : (t('common:no_attachments') || 'No attachments found.')}
-                  </p>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setShowTrash(false);
+                  clearSelection();
+                }}
+                style={
+                  !showTrash
+                    ? {
+                        background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                        borderColor: 'var(--accent-primary)',
+                        color: 'var(--accent-primary)',
+                        boxShadow: '0 0 0 1px var(--accent-primary)',
+                      }
+                    : undefined
+                }
+              >
+                {t('common:attachments_active', { n: activeCount }) ||
+                  `Attachments (${activeCount})`}
+                <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
+                  {formatSize(activeBytes)}
+                </span>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setShowTrash(true);
+                  clearSelection();
+                }}
+                style={
+                  showTrash
+                    ? {
+                        background: 'color-mix(in srgb, #e74c3c 10%, transparent)',
+                        borderColor: '#e74c3c',
+                        color: '#e74c3c',
+                        boxShadow: '0 0 0 1px #e74c3c',
+                      }
+                    : undefined
+                }
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#e74c3c';
+                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!showTrash) {
+                    e.currentTarget.style.borderColor = '';
+                    e.currentTarget.style.background = '';
+                  }
+                }}
+              >
+                {t('common:attachments_trash', { n: trashCount }) || `Trash (${trashCount})`}
+                <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
+                  {formatSize(trashBytes)}
+                </span>
+              </Button>
+
+              <div style={{ flex: 1 }} />
+
+              <Button variant="secondary" size="sm" onClick={loadData}>
+                <RotateCcw size={ICON_SIZE.sm} /> {t('common:refresh') || 'Refresh'}
+              </Button>
+            </div>
+
+            {/* Summary card */}
+            <Card style={{ padding: '12px 16px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 20,
+                  fontSize: 'var(--text-sm)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
+                  <span style={{ color: 'var(--text-tertiary)' }}>{t('common:attachments')}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {showTrash ? trashCount : activeCount}
+                  </span>
                 </div>
-              </Card>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}>
-                {displayPages.map(renderPage)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: 'var(--text-tertiary)' }}>{t('common:size')}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {formatSize(showTrash ? trashBytes : activeBytes)}
+                  </span>
+                </div>
+                <div style={{ flex: 1 }} />
+                <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}>
+                  {t('settings:objects_count', { n: showTrash ? trashObjects : activeObjects })}
+                </div>
               </div>
-            )}
+            </Card>
+
+            {/* Batch toolbar */}
+            <Card style={{ padding: '8px 14px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  fontSize: 'var(--text-sm)',
+                }}
+              >
+                <div
+                  onClick={() => handleSelectAll(allVisibleKeys)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    cursor: displayPages.length > 0 ? 'pointer' : 'default',
+                    color: 'var(--text-secondary)',
+                    userSelect: 'none',
+                  }}
+                >
+                  <SelectCheckbox
+                    checked={allSelected}
+                    indeterminate={selectedIds.size > 0 && !allSelected}
+                    disabled={displayPages.length === 0}
+                  />
+                  {allSelected ? t('common:deselect_all') : t('common:select_all')}
+                </div>
+
+                <div style={{ flex: 1 }} />
+
+                <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}>
+                  {t('common:selected_count', { n: selectedIds.size })}
+                </span>
+
+                {selectedIds.size > 0 && !showTrash ? (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
+                      <Download size={ICON_SIZE.sm} /> {t('common:download')}
+                    </Button>
+                    <DeleteButton
+                      onClick={() => setBatchDeleteConfirm(true)}
+                      title={t('common:delete')}
+                    >
+                      {t('common:delete')}
+                    </DeleteButton>
+                  </div>
+                ) : selectedIds.size > 0 && showTrash ? (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setBatchRestoreConfirm(true)}
+                    >
+                      <RotateCcw size={ICON_SIZE.sm} /> {t('common:restore')}
+                    </Button>
+                    <DeleteButton
+                      onClick={() => setBatchPermanentDeleteConfirm(true)}
+                      title={t('common:delete_permanently')}
+                    >
+                      {t('common:delete_permanently')}
+                    </DeleteButton>
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+
+            {/* Content */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              {displayPages.length === 0 ? (
+                <Card>
+                  <div style={{ textAlign: 'center', padding: '48px 24px' }}>
+                    <Paperclip
+                      size={ICON_SIZE['5xl']}
+                      style={{ marginBottom: 12, opacity: 0.25, color: 'var(--text-tertiary)' }}
+                    />
+                    <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                      {searchQuery.trim()
+                        ? t('common:no_search_results') || 'No matching attachments found.'
+                        : showTrash
+                          ? t('settings:trash_empty') || 'Trash is empty.'
+                          : t('common:no_attachments') || 'No attachments found.'}
+                    </p>
+                  </div>
+                </Card>
+              ) : (
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}
+                >
+                  {displayPages.map(renderPage)}
+                </div>
+              )}
+            </motion.div>
           </motion.div>
-        </motion.div>
         )}
       </PageContainer>
 
@@ -949,7 +1071,10 @@ export function GlobalAttachmentManager() {
       <ConfirmDialog
         open={batchRestoreConfirm}
         title={t('common:batch_restore_title') || 'Batch restore'}
-        body={t('common:batch_restore_body', { n: selectedIds.size }) || `Restore ${selectedIds.size} selected attachment(s) from trash?`}
+        body={
+          t('common:batch_restore_body', { n: selectedIds.size }) ||
+          `Restore ${selectedIds.size} selected attachment(s) from trash?`
+        }
         confirmLabel={t('common:restore')}
         cancelLabel={t('common:cancel')}
         confirmStyle="primary"
@@ -959,7 +1084,10 @@ export function GlobalAttachmentManager() {
       <ConfirmDialog
         open={batchDeleteConfirm}
         title={t('common:batch_delete_title') || 'Batch delete'}
-        body={t('common:batch_delete_body', { n: selectedIds.size }) || `Delete ${selectedIds.size} selected attachment(s)? They will be moved to trash.`}
+        body={
+          t('common:batch_delete_body', { n: selectedIds.size }) ||
+          `Delete ${selectedIds.size} selected attachment(s)? They will be moved to trash.`
+        }
         confirmLabel={t('common:delete')}
         cancelLabel={t('common:cancel')}
         confirmStyle="danger"
@@ -969,7 +1097,10 @@ export function GlobalAttachmentManager() {
       <ConfirmDialog
         open={batchPermanentDeleteConfirm}
         title={t('common:batch_perm_delete_title') || 'Permanently delete selected?'}
-        body={t('common:batch_perm_delete_body', { n: selectedIds.size }) || `Permanently delete ${selectedIds.size} selected attachment(s)? This cannot be undone.`}
+        body={
+          t('common:batch_perm_delete_body', { n: selectedIds.size }) ||
+          `Permanently delete ${selectedIds.size} selected attachment(s)? This cannot be undone.`
+        }
         confirmLabel={t('common:delete_permanently')}
         cancelLabel={t('common:cancel')}
         confirmStyle="danger"
@@ -979,7 +1110,12 @@ export function GlobalAttachmentManager() {
       <ConfirmDialog
         open={!!permDeleteItem}
         title={t('common:perm_delete_title') || 'Permanently delete?'}
-        body={permDeleteItem ? (t('common:perm_delete_body', { name: truncateFileName(permDeleteItem.fileName) }) || `Delete "${truncateFileName(permDeleteItem.fileName)}"? This cannot be undone.`) : ''}
+        body={
+          permDeleteItem
+            ? t('common:perm_delete_body', { name: truncateFileName(permDeleteItem.fileName) }) ||
+              `Delete "${truncateFileName(permDeleteItem.fileName)}"? This cannot be undone.`
+            : ''
+        }
         confirmLabel={t('common:delete_permanently')}
         cancelLabel={t('common:cancel')}
         confirmStyle="danger"

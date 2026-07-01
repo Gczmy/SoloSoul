@@ -3,7 +3,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { X } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface AttachmentPreviewProps {
   fileName: string;
   mimeType: string;

@@ -196,10 +196,16 @@ export function SettingsPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <item.icon size={20} />
                       <div>
-                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>{item.label}</span>
+                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
+                          {item.label}
+                        </span>
                         {'desc' in item && item.desc && (
                           <div
-                            style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 1 }}
+                            style={{
+                              fontSize: 'var(--text-badge)',
+                              color: 'var(--text-tertiary)',
+                              marginTop: 1,
+                            }}
                           >
                             {item.desc}
                           </div>
@@ -220,7 +226,9 @@ export function SettingsPage() {
                           {item.badge}
                         </span>
                       )}
-                      <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-md)' }}>›</span>
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-md)' }}>
+                        ›
+                      </span>
                     </div>
                   </div>
                 </Card>

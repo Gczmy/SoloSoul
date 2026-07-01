@@ -5,7 +5,6 @@ import type { LucideIcon } from 'lucide-react';
 import styles from './NavButton.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export type NavPosition = 'left' | 'right' | 'top' | 'bottom';
 
 interface NavButtonProps {

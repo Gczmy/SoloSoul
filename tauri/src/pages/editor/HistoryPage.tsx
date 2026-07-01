@@ -12,7 +12,6 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { Clock, RotateCcw, ChevronRight } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface SnapshotEntry {
   id: string;
   timestamp: number;
@@ -84,39 +83,46 @@ export function HistoryPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
               {snapshots.map((s, i) => (
                 <Card key={s.id}>
-                <div
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                >
-                  <div>
-                    <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                      {i === 0 ? t('common:snapshot_current') : new Date(s.timestamp).toLocaleString()}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                        {i === 0
+                          ? t('common:snapshot_current')
+                          : new Date(s.timestamp).toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                        {s.triggeredBy === 'user_edit'
+                          ? t('common:trigger_user_edit')
+                          : s.triggeredBy === 'rollback'
+                            ? t('common:trigger_rollback')
+                            : s.diffSummary || s.triggeredBy}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                      {s.triggeredBy === 'user_edit'
-                        ? t('common:trigger_user_edit')
-                        : s.triggeredBy === 'rollback'
-                          ? t('common:trigger_rollback')
-                          : s.diffSummary || s.triggeredBy}
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {i > 0 && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleRollback(s)}
+                          loading={restoring === s.id}
+                        >
+                          <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 3 }} />{' '}
+                          {t('common:restore')}
+                        </Button>
+                      )}
+                      <ChevronRight
+                        size={ICON_SIZE.md}
+                        style={{ color: 'var(--text-tertiary)', marginTop: 4 }}
+                      />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    {i > 0 && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => handleRollback(s)}
-                        loading={restoring === s.id}
-                      >
-                        <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 3 }} /> {t('common:restore')}
-                      </Button>
-                    )}
-                    <ChevronRight
-                      size={ICON_SIZE.md}
-                      style={{ color: 'var(--text-tertiary)', marginTop: 4 }}
-                    />
-                  </div>
-                </div>
-              </Card>
+                </Card>
               ))}
             </div>
           </>

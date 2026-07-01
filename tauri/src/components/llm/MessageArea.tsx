@@ -4,8 +4,6 @@ import { Send, RotateCw, RefreshCw, MessageSquare } from 'lucide-react';
 import { ChatMessageBubble, type ChatMsg } from '@/pages/ai/ChatMessageBubble';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
-
 interface ActiveProvider {
   name: string;
   model: string;
@@ -150,9 +148,7 @@ export function MessageArea({
                   {t('settings:ai_checking')}
                 </span>
               ) : isOnline === true ? (
-                <span
-                  style={{ color: '#27ae60', display: 'flex', alignItems: 'center', gap: 2 }}
-                >
+                <span style={{ color: '#27ae60', display: 'flex', alignItems: 'center', gap: 2 }}>
                   <span
                     style={{
                       width: 6,
@@ -165,9 +161,7 @@ export function MessageArea({
                   {t('settings:ai_online')}
                 </span>
               ) : isOnline === false ? (
-                <span
-                  style={{ color: '#e74c3c', display: 'flex', alignItems: 'center', gap: 2 }}
-                >
+                <span style={{ color: '#e74c3c', display: 'flex', alignItems: 'center', gap: 2 }}>
                   <span
                     style={{
                       width: 6,
@@ -236,13 +230,15 @@ export function MessageArea({
                   ? 'var(--border-subtle)'
                   : 'var(--accent-primary)',
               color:
-                isSending || !input.trim() || isOnline === false
-                  ? 'var(--text-tertiary)'
-                  : 'white',
+                isSending || !input.trim() || isOnline === false ? 'var(--text-tertiary)' : 'white',
               cursor: 'pointer',
             }}
           >
-            {isSending ? <span style={{ display: 'flex', gap: 2 }} /> : <Send size={ICON_SIZE.md} />}
+            {isSending ? (
+              <span style={{ display: 'flex', gap: 2 }} />
+            ) : (
+              <Send size={ICON_SIZE.md} />
+            )}
           </button>
         </div>
       </div>

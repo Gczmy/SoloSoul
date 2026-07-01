@@ -11,7 +11,6 @@ import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 /** Extract displayable key-value pairs from object properties (filters internal __ fields). */
 function flattenProperties(
   props: Record<string, unknown> | undefined,
@@ -77,18 +76,13 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   const tplMatch = tpl && (tpl.category || 'identity') === obj.collectionType;
   const fieldOrder = tpl?.properties.map((p) => p.id);
   const fields = useMemo(
-    () =>
-      flattenProperties(
-        obj.properties as Record<string, unknown> | undefined,
-        fieldOrder,
-      ),
+    () => flattenProperties(obj.properties as Record<string, unknown> | undefined, fieldOrder),
     [obj.properties, fieldOrder],
   );
 
   const TemplateIcon = tpl?.iconId ? resolveCustomIcon(tpl.iconId) : PAGE_ICON_MAP.custom;
 
-  const getFieldProperty = (fieldKey: string) =>
-    tpl?.properties.find((p) => p.id === fieldKey);
+  const getFieldProperty = (fieldKey: string) => tpl?.properties.find((p) => p.id === fieldKey);
   const objLabels = obj.propertyLabels as Record<string, string> | undefined;
   // 从 properties 中提取 __fields（即使模板被删除，字段定义仍保留在对象上）
   const objFieldDefs = (obj.properties as Record<string, unknown>)?.__fields as
@@ -113,183 +107,199 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
 
   return (
     <div ref={dragRef} style={{ position: 'relative' }}>
-    <Card interactive onClick={onClick}>
-      {/* Header row */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: fields.length > 0 ? 8 : 0,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', minWidth: 0 }}>
-          <span style={{ flexShrink: 0, display: 'flex' }}>
-            <TemplateIcon size={ICON_SIZE['2xl']} />
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-            <span style={{ fontSize: 'var(--text-body)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
-            <span
-              style={{
-                fontSize: 'var(--text-badge)',
-                color: 'var(--text-tertiary)',
-                marginLeft: 2,
-                padding: '1px 5px',
-                borderRadius: 4,
-                background: 'var(--bg-elevated)',
-                flexShrink: 0,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {collectionLabel}
+      <Card interactive onClick={onClick}>
+        {/* Header row */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: fields.length > 0 ? 8 : 0,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              overflow: 'hidden',
+              minWidth: 0,
+            }}
+          >
+            <span style={{ flexShrink: 0, display: 'flex' }}>
+              <TemplateIcon size={ICON_SIZE['2xl']} />
             </span>
-            {obj.contractTypeId && (
-              <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
-            )}
-            {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
-            {obj.templateId && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+              <span
+                style={{
+                  fontSize: 'var(--text-body)',
+                  fontWeight: 600,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {obj.name}
+              </span>
               <span
                 style={{
                   fontSize: 'var(--text-badge)',
                   color: 'var(--text-tertiary)',
-                  textDecoration: tplMatch ? 'none' : 'line-through',
+                  marginLeft: 2,
+                  padding: '1px 5px',
+                  borderRadius: 4,
+                  background: 'var(--bg-elevated)',
                   flexShrink: 0,
                   whiteSpace: 'nowrap',
                 }}
               >
-                {tplMatch
-                  ? tpl!.name
-                  : (() => {
-                      const tplName = (obj.properties as Record<string, unknown>)?.__templateName as string | undefined;
-                      const tid = obj.templateId || '';
-                      return tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid;
-                    })()
-                }
+                {collectionLabel}
               </span>
-            )}
+              {obj.contractTypeId && (
+                <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
+              )}
+              {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
+              {obj.templateId && (
+                <span
+                  style={{
+                    fontSize: 'var(--text-badge)',
+                    color: 'var(--text-tertiary)',
+                    textDecoration: tplMatch ? 'none' : 'line-through',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {tplMatch
+                    ? tpl!.name
+                    : (() => {
+                        const tplName = (obj.properties as Record<string, unknown>)
+                          ?.__templateName as string | undefined;
+                        const tid = obj.templateId || '';
+                        return tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid;
+                      })()}
+                </span>
+              )}
+            </div>
+          </div>
+          {/* Action buttons — info (history/attachments) | divider | edit/delete */}
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <BadgeIconButton
+              Icon={Clock}
+              count={snapshotCount}
+              onClick={onHistory}
+              title="History"
+            />
+            <BadgeIconButton
+              Icon={Paperclip}
+              count={attachmentCount}
+              onClick={onAttachments}
+              title="Attachments"
+            />
+            <div
+              style={{
+                width: 3,
+                height: 20,
+                borderRadius: 9999,
+                background: 'var(--border-subtle)',
+                flexShrink: 0,
+              }}
+            />
+            <BadgeIconButton Icon={Pencil} onClick={onEdit} title="Edit" />
+            <BadgeIconButton Icon={Trash2} onClick={onDelete} title="Move to trash" dangerOutline />
           </div>
         </div>
-        {/* Action buttons — info (history/attachments) | divider | edit/delete */}
-        <div
-          style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <BadgeIconButton
-            Icon={Clock}
-            count={snapshotCount}
-            onClick={onHistory}
-            title="History"
-          />
-          <BadgeIconButton
-            Icon={Paperclip}
-            count={attachmentCount}
-            onClick={onAttachments}
-            title="Attachments"
-          />
-          <div
-            style={{
-              width: 3,
-              height: 20,
-              borderRadius: 9999,
-              background: 'var(--border-subtle)',
-              flexShrink: 0,
-            }}
-          />
-          <BadgeIconButton Icon={Pencil} onClick={onEdit} title="Edit" />
-          <BadgeIconButton
-            Icon={Trash2}
-            onClick={onDelete}
-            title="Move to trash"
-            dangerOutline
-          />
-        </div>
-      </div>
-      {/* Property chips — label always visible, value blurred when masked */}
-      {fields.length > 0 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {fields.map((f) => {
-            const sens = getFieldSensitivity(f.key);
-            const deprecated = isFieldDeprecated(f.key);
-            const isMasked = sens !== 'public';
-            const fieldLabel = getFieldName(f.key);
-            const fieldProp = getFieldProperty(f.key);
-            const isContractField = fieldProp?.contractField === true || objFieldDefs?.[f.key]?.contractField === true;
-            const s = getSensitivityStyle(sens);
-            return (
+        {/* Property chips — label always visible, value blurred when masked */}
+        {fields.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {fields.map((f) => {
+              const sens = getFieldSensitivity(f.key);
+              const deprecated = isFieldDeprecated(f.key);
+              const isMasked = sens !== 'public';
+              const fieldLabel = getFieldName(f.key);
+              const fieldProp = getFieldProperty(f.key);
+              const isContractField =
+                fieldProp?.contractField === true || objFieldDefs?.[f.key]?.contractField === true;
+              const s = getSensitivityStyle(sens);
+              return (
+                <span
+                  key={f.key}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: 6,
+                    fontSize: 'var(--text-badge)',
+                    background: 'var(--bg-toolbar)',
+                    color: 'var(--text-secondary)',
+                    border: `1px solid ${isMasked ? s.fg : s.fg}`,
+                    maxWidth: 220,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    opacity: deprecated ? 0.6 : 1,
+                    ...(isMasked
+                      ? { boxShadow: `0 0 3px ${s.fg}44` }
+                      : { boxShadow: `0 0 2px ${s.fg}33` }),
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      textDecoration: deprecated ? 'line-through' : 'none',
+                    }}
+                  >
+                    {isContractField && (
+                      <span style={{ marginRight: 4 }}>
+                        <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="icon" />
+                      </span>
+                    )}
+                    {fieldLabel}
+                  </span>
+                  <span style={{ margin: '0 3px' }}>:</span>
+                  <span
+                    style={{
+                      ...(isMasked
+                        ? {
+                            filter: 'blur(5px)',
+                            cursor: 'default',
+                            userSelect: 'none',
+                            background: 'var(--bg-subtle, rgba(128,128,128,0.12))',
+                            borderRadius: 2,
+                            padding: '0 2px',
+                          }
+                        : { color: 'var(--text-primary)' }),
+                    }}
+                  >
+                    {isMasked ? '••••' : f.value}
+                  </span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+        {/* Tag pills */}
+        {obj.tags && obj.tags.length > 0 && (
+          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+            {obj.tags.map((tag) => (
               <span
-                key={f.key}
+                key={tag}
                 style={{
-                  padding: '3px 8px',
-                  borderRadius: 6,
+                  padding: '1px 7px',
+                  borderRadius: 10,
                   fontSize: 'var(--text-badge)',
-                  background: 'var(--bg-toolbar)',
-                  color: 'var(--text-secondary)',
-                  border: `1px solid ${isMasked ? s.fg : s.fg}`,
-                  maxWidth: 220,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  opacity: deprecated ? 0.6 : 1,
-                  ...(isMasked
-                    ? { boxShadow: `0 0 3px ${s.fg}44` }
-                    : { boxShadow: `0 0 2px ${s.fg}33` }),
+                  background: 'rgba(91,124,153,0.08)',
+                  color: 'var(--accent-primary)',
+                  fontWeight: 500,
                 }}
               >
-                <span
-                  style={{
-                    fontWeight: 600,
-                    textDecoration: deprecated ? 'line-through' : 'none',
-                  }}
-                >
-                  {isContractField && <span style={{ marginRight: 4 }}><PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="icon" /></span>}
-                  {fieldLabel}
-                </span>
-                <span style={{ margin: '0 3px' }}>:</span>
-                <span
-                  style={{
-                    ...(isMasked
-                      ? {
-                          filter: 'blur(5px)',
-                          cursor: 'default',
-                          userSelect: 'none',
-                          background: 'var(--bg-subtle, rgba(128,128,128,0.12))',
-                          borderRadius: 2,
-                          padding: '0 2px',
-                        }
-                      : { color: 'var(--text-primary)' }),
-                  }}
-                >
-                  {isMasked ? '••••' : f.value}
-                </span>
+                {tag}
               </span>
-            );
-          })}
-        </div>
-      )}
-      {/* Tag pills */}
-      {obj.tags && obj.tags.length > 0 && (
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
-          {obj.tags.map((tag) => (
-            <span
-              key={tag}
-              style={{
-                padding: '1px 7px',
-                borderRadius: 10,
-                fontSize: 'var(--text-badge)',
-                background: 'rgba(91,124,153,0.08)',
-                color: 'var(--accent-primary)',
-                fontWeight: 500,
-              }}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
-    </Card>
+            ))}
+          </div>
+        )}
+      </Card>
       <DragUploadOverlay dragState={dragState} borderRadius={12} />
     </div>
   );
 });
-
-

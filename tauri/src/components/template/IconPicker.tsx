@@ -10,17 +10,32 @@ import {
 } from '@/lib/pageIcons';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface IconPickerProps {
   value: string;
   onChange: (iconId: string) => void;
 }
 
-const CATEGORY_ORDER = ['all', 'general', 'security', 'identity', 'finance', 'travel', 'work', 'communication', 'health', 'education', 'life', 'nature', 'special'] as const;
+const CATEGORY_ORDER = [
+  'all',
+  'general',
+  'security',
+  'identity',
+  'finance',
+  'travel',
+  'work',
+  'communication',
+  'health',
+  'education',
+  'life',
+  'nature',
+  'special',
+] as const;
 
 export function IconPicker({ value, onChange }: IconPickerProps) {
   const { t } = useTranslation('navigation');
-  const currentId = (value && value in CUSTOM_ICON_MAP ? value : DEFAULT_CUSTOM_ICON) as CustomIconId;
+  const currentId = (
+    value && value in CUSTOM_ICON_MAP ? value : DEFAULT_CUSTOM_ICON
+  ) as CustomIconId;
   const [categoryFilter, setCategoryFilter] = useState('all');
 
   const filteredEntries = useMemo(() => {
@@ -42,7 +57,8 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
               onClick={() => setCategoryFilter(cat)}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 }
               }}
@@ -102,13 +118,16 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
                   ? '2px solid var(--accent-primary)'
                   : '1px solid var(--border-subtle)',
               background:
-                currentId === id ? 'var(--accent-primary-soft, rgba(91,124,153,0.08))' : 'transparent',
+                currentId === id
+                  ? 'var(--accent-primary-soft, rgba(91,124,153,0.08))'
+                  : 'transparent',
               cursor: 'pointer',
               transition: 'all 0.1s ease',
             }}
             onMouseEnter={(e) => {
               if (currentId !== id) {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
               }
             }}
@@ -122,10 +141,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
             <IconComp
               size={ICON_SIZE.md}
               style={{
-                color:
-                  currentId === id
-                    ? 'var(--accent-primary)'
-                    : 'var(--text-secondary)',
+                color: currentId === id ? 'var(--accent-primary)' : 'var(--text-secondary)',
               }}
             />
           </button>

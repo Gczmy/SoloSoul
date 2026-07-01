@@ -19,7 +19,6 @@ import { ModelUsageCard } from '@/components/llm/ModelUsageCard';
 import { BarChart3, RotateCcw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface ProviderConfig {
   id: string;
   name: string;
@@ -133,7 +132,13 @@ export function LlmStatsPage() {
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
               {t('settings:llm_no_data')}
             </p>
-            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginTop: 4 }}>
+            <p
+              style={{
+                fontSize: 'var(--text-caption)',
+                color: 'var(--text-tertiary)',
+                marginTop: 4,
+              }}
+            >
               {t('settings:llm_no_data_hint')}
             </p>
           </div>
@@ -202,7 +207,8 @@ export function LlmStatsPage() {
                 onClick={() => setShowResetDialog(true)}
                 style={{ width: '100%' }}
               >
-                <RotateCcw size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('settings:llm_reset_stats')}
+                <RotateCcw size={ICON_SIZE.sm} style={{ marginRight: 4 }} />{' '}
+                {t('settings:llm_reset_stats')}
               </Button>
             </section>
           </>
@@ -215,7 +221,13 @@ export function LlmStatsPage() {
         onClose={() => setShowResetDialog(false)}
         title={t('settings:llm_reset_confirm_title')}
       >
-        <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
+        <p
+          style={{
+            fontSize: 'var(--text-body-sm)',
+            color: 'var(--text-secondary)',
+            marginBottom: 16,
+          }}
+        >
           {t('settings:llm_reset_confirm_desc')}
         </p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

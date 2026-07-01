@@ -249,7 +249,13 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       llmStore.reset();
       setIsSending(false);
     }
-  }, [llmStore, llmStore.isStreaming, llmStore.streamingConvId, llmStore.streamBuffer, onConversationSaved]);
+  }, [
+    llmStore,
+    llmStore.isStreaming,
+    llmStore.streamingConvId,
+    llmStore.streamBuffer,
+    onConversationSaved,
+  ]);
 
   /* Stream: error handling */
   useEffect(() => {
@@ -306,7 +312,12 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       }
     }
 
-    const assistantMsg: ChatMsg = { id: generateId(), role: 'assistant', content: '', createdAt: nowISO() };
+    const assistantMsg: ChatMsg = {
+      id: generateId(),
+      role: 'assistant',
+      content: '',
+      createdAt: nowISO(),
+    };
     const streamingMessages = [...updatedMessages, assistantMsg];
     setMessages(streamingMessages);
     llmStore.startStream(convId);

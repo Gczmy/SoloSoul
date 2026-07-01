@@ -78,7 +78,9 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  transition: max-width 0.18s ease, opacity 0.12s ease;
+  transition:
+    max-width 0.18s ease,
+    opacity 0.12s ease;
   max-width: 0;
   opacity: 0;
 }

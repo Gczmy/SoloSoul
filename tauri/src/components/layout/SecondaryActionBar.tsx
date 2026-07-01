@@ -25,13 +25,15 @@ import styles from './SideNavigation.module.css';
 import type { NavPosition } from './NavButton';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface SecondaryActionBarProps {
   sidebarPosition: NavPosition;
   isHorizontal: boolean;
 }
 
-export function SecondaryActionBar({ sidebarPosition, isHorizontal: _isHorizontal }: SecondaryActionBarProps) {
+export function SecondaryActionBar({
+  sidebarPosition,
+  isHorizontal: _isHorizontal,
+}: SecondaryActionBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation('navigation');
@@ -105,18 +107,19 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal: _isHorizonta
     [isAnyCardOpen, setHovering],
   );
 
-
-
   // ── Card positioning hooks ─────────────────────────────────────
-  const ocrQuickScanPlacement = sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
-  const pluginQuickPanelPlacement = sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
-  const aiQuickChatPlacement = sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
+  const ocrQuickScanPlacement =
+    sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
+  const pluginQuickPanelPlacement =
+    sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
+  const aiQuickChatPlacement =
+    sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
   const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, ocrQuickScanPlacement);
   const { pluginButtonRef, quickPanelPos } = usePluginQuickPanel(560, pluginQuickPanelPlacement);
   const { aiButtonRef, quickChatPos } = useAiQuickChat(520, aiQuickChatPlacement);
 
   // ── Render helpers ─────────────────────────────────────────────
-  const renderButtonWithCard = (item: typeof items[number]) => {
+  const renderButtonWithCard = (item: (typeof items)[number]) => {
     // Page mode (type === 'link'): render as plain navigation button.
     // Note: ai_chat always returns type: 'link' even in card mode, so exclude it.
     if (item.type === 'link' && item.iconKey !== 'ai_chat') {
@@ -130,7 +133,7 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal: _isHorizonta
             Icon={PAGE_ICON_MAP[item.iconKey]}
             label={t(item.labelKey)}
             isActive={isPluginPanelOpen}
-            onClick={item.type === 'action' ? (item as NavAction).action : (() => {})}
+            onClick={item.type === 'action' ? (item as NavAction).action : () => {}}
             position={sidebarPosition}
           />
           {isPluginPanelOpen &&
@@ -152,7 +155,7 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal: _isHorizonta
             Icon={PAGE_ICON_MAP[item.iconKey]}
             label={t(item.labelKey)}
             isActive={isOcrCardOpen}
-            onClick={item.type === 'action' ? (item as NavAction).action : (() => {})}
+            onClick={item.type === 'action' ? (item as NavAction).action : () => {}}
             position={sidebarPosition}
           />
           {isOcrCardOpen &&
@@ -174,14 +177,11 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal: _isHorizonta
             Icon={PAGE_ICON_MAP[item.iconKey]}
             label={t(item.labelKey)}
             isActive={showSearch}
-            onClick={item.type === 'action' ? (item as NavAction).action : (() => {})}
+            onClick={item.type === 'action' ? (item as NavAction).action : () => {}}
             position={sidebarPosition}
           />
           {showSearch &&
-            createPortal(
-              <SearchPopover onClose={() => setShowSearch(false)} />,
-              document.body,
-            )}
+            createPortal(<SearchPopover onClose={() => setShowSearch(false)} />, document.body)}
         </div>
       );
     }
@@ -217,7 +217,7 @@ export function SecondaryActionBar({ sidebarPosition, isHorizontal: _isHorizonta
     return null;
   };
 
-  const renderPlainButton = (item: typeof items[number]) => {
+  const renderPlainButton = (item: (typeof items)[number]) => {
     if (item.type === 'action') {
       return (
         <NavButton

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Scan, History, ArrowUpRight, X } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface OcrPopoverHeaderProps {
   showHistory: boolean;
   onToggleHistory: () => void;
@@ -36,7 +35,9 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <Scan size={ICON_SIZE.md} style={{ color: 'var(--accent-primary)' }} />
-        <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
+        <span
+          style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--text-primary)' }}
+        >
           {t('ocr:quick_scan_title')}
         </span>
       </div>
@@ -45,7 +46,8 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
           onClick={onToggleHistory}
           title={t('ocr:scan_history')}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            e.currentTarget.style.background =
+              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
             if (!showHistory) e.currentTarget.style.color = 'var(--accent-primary)';
           }}
           onMouseLeave={(e) => {
@@ -88,7 +90,8 @@ export function OcrPopoverHeader({ showHistory, onToggleHistory, onClose }: OcrP
           onClick={onClose}
           title={t('common:close')}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            e.currentTarget.style.background =
+              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
             e.currentTarget.style.color = 'var(--accent-primary)';
           }}
           onMouseLeave={(e) => {

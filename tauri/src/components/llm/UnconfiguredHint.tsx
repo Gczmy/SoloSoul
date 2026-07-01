@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Settings } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface UnconfiguredHintProps {
   onClose: () => void;
 }
@@ -24,9 +23,17 @@ export function UnconfiguredHint({ onClose }: UnconfiguredHintProps) {
         gap: 12,
       }}
     >
-      <MessageSquare size={ICON_SIZE['3xl']} style={{ opacity: 0.3, color: 'var(--text-tertiary)' }} />
+      <MessageSquare
+        size={ICON_SIZE['3xl']}
+        style={{ opacity: 0.3, color: 'var(--text-tertiary)' }}
+      />
       <p
-        style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', textAlign: 'center', margin: 0 }}
+        style={{
+          fontSize: 'var(--text-body-sm)',
+          color: 'var(--text-secondary)',
+          textAlign: 'center',
+          margin: 0,
+        }}
       >
         {t('settings:ai_quick_chat_configure_hint')}
       </p>
@@ -36,7 +43,8 @@ export function UnconfiguredHint({ onClose }: UnconfiguredHintProps) {
           navigate('/settings/llm');
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+          e.currentTarget.style.background =
+            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
           e.currentTarget.style.borderColor = 'var(--accent-primary)';
         }}
         onMouseLeave={(e) => {

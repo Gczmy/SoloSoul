@@ -9,7 +9,6 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export function BootstrapPage() {
   const navigate = useNavigate();
   const { bootstrap, isLoading, error } = useAuthStore();
@@ -57,7 +56,9 @@ export function BootstrapPage() {
         <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 600, marginBottom: 8 }}>
           {t('auth:bootstrap_title')}
         </h1>
-        <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)', marginBottom: 24 }}>
+        <p
+          style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)', marginBottom: 24 }}
+        >
           {t('auth:bootstrap_subtitle')}
         </p>
         <form
@@ -79,13 +80,18 @@ export function BootstrapPage() {
             autoComplete="new-password"
             onEnter={handleSubmit}
           />
-          <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: -12 }}>
+          <div
+            style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: -12 }}
+          >
             {t('auth:password_rule_hint')}
           </div>
           <SecurePasswordInput
             label={t('auth:confirm_password')}
             value={confirm}
-            onChange={(v) => { setConfirm(v); setPasswordMismatch(false); }}
+            onChange={(v) => {
+              setConfirm(v);
+              setPasswordMismatch(false);
+            }}
             placeholder={t('common:password_placeholder')}
             autoComplete="new-password"
             onEnter={handleSubmit}
@@ -105,7 +111,8 @@ export function BootstrapPage() {
             <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>
               {error.toLowerCase().includes('8 characters') || error.toLowerCase().includes('至少')
                 ? t('auth:password_too_short')
-                : error.toLowerCase().includes('password') || error.toLowerCase().includes('invalid')
+                : error.toLowerCase().includes('password') ||
+                    error.toLowerCase().includes('invalid')
                   ? t('auth:incorrect_password')
                   : error.toLowerCase().includes('required')
                     ? t('auth:password_required')

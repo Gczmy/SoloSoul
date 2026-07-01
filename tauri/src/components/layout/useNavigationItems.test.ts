@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { CUSTOMIZABLE_ACTION_IDS, CUSTOMIZABLE_LINKS, LOCK_ITEM, SETTINGS_ITEM } from './useNavigationItems';
+import {
+  CUSTOMIZABLE_ACTION_IDS,
+  CUSTOMIZABLE_LINKS,
+  LOCK_ITEM,
+  SETTINGS_ITEM,
+} from './useNavigationItems';
 
 describe('useNavigationItems constants', () => {
   it('includes ocr in customizable action ids', () => {

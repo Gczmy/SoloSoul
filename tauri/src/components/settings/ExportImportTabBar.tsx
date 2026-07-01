@@ -3,7 +3,6 @@ import { Download, Upload } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 import styles from './ExportImportTabBar.module.css';
 
-
 type TabKey = 'export' | 'import';
 
 interface ExportImportTabBarProps {

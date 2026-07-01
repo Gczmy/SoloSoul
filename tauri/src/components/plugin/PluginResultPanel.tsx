@@ -12,66 +12,65 @@ import styles from './PluginResultPanel.module.css';
 import type { PluginResultPayload, WatermarkResultItem } from '@/lib/plugin';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 // ─── 国家名称 → ISO 3166-1 alpha-2 代码映射 ───────────────────────────────
 const COUNTRY_NAME_TO_CODE: Record<string, string> = {
   'United Kingdom': 'GB',
   'Great Britain': 'GB',
-  'England': 'GB',
+  England: 'GB',
   'United States': 'US',
-  'USA': 'US',
-  'America': 'US',
-  'China': 'CN',
-  'Japan': 'JP',
-  'Germany': 'DE',
-  'France': 'FR',
-  'Italy': 'IT',
-  'Spain': 'ES',
-  'Canada': 'CA',
-  'Australia': 'AU',
-  'Brazil': 'BR',
-  'India': 'IN',
-  'Russia': 'RU',
+  USA: 'US',
+  America: 'US',
+  China: 'CN',
+  Japan: 'JP',
+  Germany: 'DE',
+  France: 'FR',
+  Italy: 'IT',
+  Spain: 'ES',
+  Canada: 'CA',
+  Australia: 'AU',
+  Brazil: 'BR',
+  India: 'IN',
+  Russia: 'RU',
   'South Korea': 'KR',
-  'Korea': 'KR',
-  'Netherlands': 'NL',
-  'Switzerland': 'CH',
-  'Sweden': 'SE',
-  'Norway': 'NO',
-  'Denmark': 'DK',
-  'Finland': 'FI',
-  'Singapore': 'SG',
+  Korea: 'KR',
+  Netherlands: 'NL',
+  Switzerland: 'CH',
+  Sweden: 'SE',
+  Norway: 'NO',
+  Denmark: 'DK',
+  Finland: 'FI',
+  Singapore: 'SG',
   'Hong Kong': 'HK',
-  'Taiwan': 'TW',
-  'Mexico': 'MX',
-  'Argentina': 'AR',
+  Taiwan: 'TW',
+  Mexico: 'MX',
+  Argentina: 'AR',
   'New Zealand': 'NZ',
-  'Ireland': 'IE',
-  'Poland': 'PL',
-  'Portugal': 'PT',
-  'Belgium': 'BE',
-  'Austria': 'AT',
-  'Turkey': 'TR',
-  'Thailand': 'TH',
-  'Vietnam': 'VN',
-  'Malaysia': 'MY',
-  'Indonesia': 'ID',
-  'Philippines': 'PH',
+  Ireland: 'IE',
+  Poland: 'PL',
+  Portugal: 'PT',
+  Belgium: 'BE',
+  Austria: 'AT',
+  Turkey: 'TR',
+  Thailand: 'TH',
+  Vietnam: 'VN',
+  Malaysia: 'MY',
+  Indonesia: 'ID',
+  Philippines: 'PH',
   'South Africa': 'ZA',
-  'Egypt': 'EG',
-  'Nigeria': 'NG',
-  'Kenya': 'KE',
-  'Ukraine': 'UA',
+  Egypt: 'EG',
+  Nigeria: 'NG',
+  Kenya: 'KE',
+  Ukraine: 'UA',
   'Czech Republic': 'CZ',
-  'Greece': 'GR',
-  'Hungary': 'HU',
-  'Romania': 'RO',
-  'Israel': 'IL',
-  'UAE': 'AE',
+  Greece: 'GR',
+  Hungary: 'HU',
+  Romania: 'RO',
+  Israel: 'IL',
+  UAE: 'AE',
   'Saudi Arabia': 'SA',
-  'Colombia': 'CO',
-  'Chile': 'CL',
-  'Peru': 'PE',
+  Colombia: 'CO',
+  Chile: 'CL',
+  Peru: 'PE',
 };
 
 // ─── ISO 代码 → 多语言短标签 ──────────────────────────────────────────────
@@ -217,7 +216,9 @@ function PerPairCopyRow({
             {badgeLabel}
           </span>
         )}
-        <span className={styles.pairKey} title={pair.key}>{pair.key}</span>
+        <span className={styles.pairKey} title={pair.key}>
+          {pair.key}
+        </span>
         <button
           type="button"
           className={`${styles.pairCopyBtn} ${copied ? styles.pairCopyBtnActive : ''}`}
@@ -243,7 +244,6 @@ function ResultContent({ payload }: { payload: PluginResultPayload }) {
     case 'key_value':
       return (
         <div className={styles.keyValueList}>
-          
           {payload.pairs.map((pair, idx) => (
             <PerPairCopyRow key={idx} pair={pair} />
           ))}
@@ -289,7 +289,11 @@ function ResultContent({ payload }: { payload: PluginResultPayload }) {
   }
 }
 
-function WatermarkResultContent({ payload }: { payload: PluginResultPayload & { type: 'watermark_result' } }) {
+function WatermarkResultContent({
+  payload,
+}: {
+  payload: PluginResultPayload & { type: 'watermark_result' };
+}) {
   const { t } = useTranslation('plugin');
   const items = payload.items;
 
@@ -299,7 +303,8 @@ function WatermarkResultContent({ payload }: { payload: PluginResultPayload & { 
     return `${item.objectId}-${item.attachmentId}`;
   }, []);
 
-  const allSelected = items.length > 0 && items.every((item) => selectedIds.has(resultItemId(item)));
+  const allSelected =
+    items.length > 0 && items.every((item) => selectedIds.has(resultItemId(item)));
   const someSelected = selectedIds.size > 0 && !allSelected;
 
   const handleToggle = (id: string) => {
@@ -361,10 +366,7 @@ function WatermarkResultContent({ payload }: { payload: PluginResultPayload & { 
       {/* 全选 + 批量操作（同一行） */}
       <div className={styles.watermarkSelectAll}>
         <div className={styles.watermarkSelectAllLeft} onClick={handleSelectAll}>
-          <SelectCheckbox
-            checked={allSelected}
-            indeterminate={someSelected}
-          />
+          <SelectCheckbox checked={allSelected} indeterminate={someSelected} />
           <span className={styles.watermarkSelectAllLabel}>
             {t('watermark.select_all', { defaultValue: '全选' })}
           </span>
@@ -398,10 +400,7 @@ function WatermarkResultContent({ payload }: { payload: PluginResultPayload & { 
       <div className={styles.watermarkList}>
         {items.map((item) => (
           <div key={resultItemId(item)} className={styles.watermarkItem}>
-            <div
-              className={styles.watermarkMain}
-              onClick={() => handleToggle(resultItemId(item))}
-            >
+            <div className={styles.watermarkMain} onClick={() => handleToggle(resultItemId(item))}>
               <SelectCheckbox checked={selectedIds.has(resultItemId(item))} />
               <div className={styles.watermarkInfo}>
                 <span className={styles.watermarkName} title={item.fileName}>
@@ -428,4 +427,3 @@ function WatermarkResultContent({ payload }: { payload: PluginResultPayload & { 
     </div>
   );
 }
-

@@ -60,7 +60,9 @@ export function ConfirmDialog({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>{title}</h3>
+        <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>
+          {title}
+        </h3>
         <div
           style={{
             margin: '0 0 20px',
@@ -75,7 +77,10 @@ export function ConfirmDialog({
           <Button variant="secondary" onClick={onCancel}>
             {cancelLabel}
           </Button>
-          <Button variant={confirmStyle === 'danger' ? 'danger-outline' : 'primary'} onClick={onConfirm}>
+          <Button
+            variant={confirmStyle === 'danger' ? 'danger-outline' : 'primary'}
+            onClick={onConfirm}
+          >
             {confirmLabel}
           </Button>
         </div>

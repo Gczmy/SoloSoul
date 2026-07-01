@@ -49,7 +49,11 @@ export const BadgeIconButton = memo(function BadgeIconButton({
   const hasBadge = count !== undefined && count > 0;
   const label = hasBadge ? `${title} (${count})` : title;
 
-  const variantClass = dangerOutline ? styles.dangerOutline : danger ? styles.danger : styles.accent;
+  const variantClass = dangerOutline
+    ? styles.dangerOutline
+    : danger
+      ? styles.danger
+      : styles.accent;
 
   return (
     <div className={styles.wrapper}>

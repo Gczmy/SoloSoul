@@ -2,7 +2,17 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
-import { Paperclip, X, RotateCw, Eye, Image, FileText, Edit2, Upload, Download } from 'lucide-react';
+import {
+  Paperclip,
+  X,
+  RotateCw,
+  Eye,
+  Image,
+  FileText,
+  Edit2,
+  Upload,
+  Download,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -11,13 +21,17 @@ import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
-import { truncateFileName, formatSize, isImageMime, type AttachmentItem } from '@/lib/attachmentUtils';
+import {
+  truncateFileName,
+  formatSize,
+  isImageMime,
+  type AttachmentItem,
+} from '@/lib/attachmentUtils';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 export type { AttachmentItem } from '@/lib/attachmentUtils';
 
@@ -46,7 +60,6 @@ export function AttachmentViewer({
   const { t } = useTranslation(['common', 'editor']);
   const showToast = useUiStore((s) => s.showToast);
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
-
 
   const openAttachmentExternal = async (item: AttachmentItem) => {
     try {
@@ -136,7 +149,10 @@ export function AttachmentViewer({
       });
       if (!destPath) return;
       await invoke('attachment_download', { srcPath: filePath, destPath });
-      showToast({ type: 'success', message: t('common:download_result') || 'Downloaded successfully' });
+      showToast({
+        type: 'success',
+        message: t('common:download_result') || 'Downloaded successfully',
+      });
     } catch (e) {
       showToast({ type: 'error', message: `${t('common:download_failed')}: ${e}` });
     }
@@ -246,7 +262,11 @@ export function AttachmentViewer({
 
     try {
       const { open } = await import('@tauri-apps/plugin-dialog');
-      const dirPath = await open({ directory: true, multiple: false, title: t('common:select_download_directory') || 'Select download directory' });
+      const dirPath = await open({
+        directory: true,
+        multiple: false,
+        title: t('common:select_download_directory') || 'Select download directory',
+      });
       if (!dirPath) return;
 
       let successCount = 0;
@@ -264,8 +284,11 @@ export function AttachmentViewer({
 
       showToast({
         type: successCount === selectedItems.length ? 'success' : 'warning',
-        message: t('common:batch_download_result', { success: successCount, total: selectedItems.length }) ||
-          `Downloaded ${successCount}/${selectedItems.length} files`,
+        message:
+          t('common:batch_download_result', {
+            success: successCount,
+            total: selectedItems.length,
+          }) || `Downloaded ${successCount}/${selectedItems.length} files`,
       });
       clearSelection();
     } catch {
@@ -320,7 +343,8 @@ export function AttachmentViewer({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
-          onClick={(e) => e.stopPropagation()}          ref={dragRef}
+          onClick={(e) => e.stopPropagation()}
+          ref={dragRef}
           style={{
             width: 500,
             maxHeight: '80vh',
@@ -333,262 +357,320 @@ export function AttachmentViewer({
             position: 'relative',
           }}
         >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '14px 18px',
-            borderBottom: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              style={{
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <Paperclip size={ICON_SIZE.sm} /> {t('common:attachments')}
-            </div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => { setShowTrash(false); clearSelection(); }}
-                style={{
-                  fontSize: 'var(--text-caption)',
-                  ...(!showTrash ? {
-                    background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                    borderColor: 'var(--accent-primary)',
-                    color: 'var(--accent-primary)',
-                    boxShadow: '0 0 0 1px var(--accent-primary)',
-                  } : {}),
-                }}
-              >
-                {t('common:attachments_active', { n: items.length })}
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => { setShowTrash(true); clearSelection(); }}
-                style={{
-                  fontSize: 'var(--text-caption)',
-                  ...(showTrash ? {
-                    background: 'color-mix(in srgb, #e74c3c 10%, transparent)',
-                    borderColor: '#e74c3c',
-                    color: '#e74c3c',
-                    boxShadow: '0 0 0 1px #e74c3c',
-                  } : {}),
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#e74c3c';
-                  e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
-                }}
-                onMouseLeave={(e) => {
-                  if (!showTrash) {
-                    e.currentTarget.style.borderColor = '';
-                    e.currentTarget.style.background = '';
-                  }
-                }}
-              >
-                {t('common:attachments_trash', { n: trashItems.length })}
-              </Button>
-            </div>
-          </div>
-          {!showTrash && (
-            <Button variant="secondary" size="sm" onClick={handleAdd}>
-              <Upload size={ICON_SIZE.sm} /> {t('common:upload')}
-            </Button>
-          )}
-          <BadgeIconButton Icon={X} onClick={onClose} title={t('common:close') || 'Close'} iconSize={ICON_SIZE.md} />
-        </div>
-        {/* 批量操作工具栏 — 常驻显示 */}
-        {displayItems.length > 0 && (
+          {/* Header */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              padding: '8px 12px',
+              padding: '14px 18px',
               borderBottom: '1px solid var(--border-subtle)',
-              background: selectedIds.size > 0
-                ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
-                : 'var(--bg-toolbar)',
-              fontSize: 'var(--text-body-sm)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <SelectCheckbox
-                checked={allSelected}
-                onClick={() => handleSelectAll(allVisibleKeys)}
-                indeterminate={selectedIds.size > 0 && !allSelected}
-              />
-              <span style={{ color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }} onClick={() => handleSelectAll(allVisibleKeys)}>
-                {allSelected ? t('common:deselect_all') : t('common:select_all')}
-              </span>
-              {selectedIds.size > 0 && (
-                <span style={{ color: 'var(--text-tertiary)' }}>
-                  {t('common:selected_count', { n: selectedIds.size })}
-                </span>
-              )}
-            </div>
-            {selectedIds.size > 0 && !showTrash ? (
-              <div style={{ display: 'flex', gap: 6 }}>
-                <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
-                  <Download size={ICON_SIZE.sm} /> {t('common:download')}
-                </Button>
-                <DeleteButton onClick={() => setBatchDeleteConfirm(true)} title={t('common:delete')}>
-                  {t('common:delete')}
-                </DeleteButton>
-              </div>
-            ) : selectedIds.size > 0 && showTrash ? (
-              <div style={{ display: 'flex', gap: 6 }}>
-                <Button variant="secondary" size="sm" onClick={() => setBatchRestoreConfirm(true)}>
-                  <RotateCw size={ICON_SIZE.sm} /> {t('common:restore')}
-                </Button>
-                <DeleteButton onClick={() => setBatchPermanentDeleteConfirm(true)} title={t('common:delete_permanently')}>
-                  {t('common:delete_permanently')}
-                </DeleteButton>
-              </div>
-            ) : null}
-          </div>
-        )}
-        {/* List */}
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          {displayItems.length === 0 ? (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: 48,
-                color: 'var(--text-secondary)',
-                fontSize: 'var(--text-body)',
-              }}
-            >
-              {showTrash ? t('common:attachments_trash_empty') : t('common:no_attachments')}
-            </div>
-          ) : (
-            displayItems.map((item, idx) => {
-              const compositeKey = `${objectId}::${item.id}`;
-              const checked = selectedIds.has(compositeKey);
-              return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div
-                key={item.id}
                 style={{
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 600,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  padding: '8px 12px',
-                  borderBottom: idx < displayItems.length - 1 ? '1px solid var(--border-subtle)' : 'none',
-                  fontSize: 'var(--text-body-sm)',
                 }}
               >
+                <Paperclip size={ICON_SIZE.sm} /> {t('common:attachments')}
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setShowTrash(false);
+                    clearSelection();
+                  }}
+                  style={{
+                    fontSize: 'var(--text-caption)',
+                    ...(!showTrash
+                      ? {
+                          background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                          borderColor: 'var(--accent-primary)',
+                          color: 'var(--accent-primary)',
+                          boxShadow: '0 0 0 1px var(--accent-primary)',
+                        }
+                      : {}),
+                  }}
+                >
+                  {t('common:attachments_active', { n: items.length })}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setShowTrash(true);
+                    clearSelection();
+                  }}
+                  style={{
+                    fontSize: 'var(--text-caption)',
+                    ...(showTrash
+                      ? {
+                          background: 'color-mix(in srgb, #e74c3c 10%, transparent)',
+                          borderColor: '#e74c3c',
+                          color: '#e74c3c',
+                          boxShadow: '0 0 0 1px #e74c3c',
+                        }
+                      : {}),
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#e74c3c';
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, #e74c3c 10%, transparent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!showTrash) {
+                      e.currentTarget.style.borderColor = '';
+                      e.currentTarget.style.background = '';
+                    }
+                  }}
+                >
+                  {t('common:attachments_trash', { n: trashItems.length })}
+                </Button>
+              </div>
+            </div>
+            {!showTrash && (
+              <Button variant="secondary" size="sm" onClick={handleAdd}>
+                <Upload size={ICON_SIZE.sm} /> {t('common:upload')}
+              </Button>
+            )}
+            <BadgeIconButton
+              Icon={X}
+              onClick={onClose}
+              title={t('common:close') || 'Close'}
+              iconSize={ICON_SIZE.md}
+            />
+          </div>
+          {/* 批量操作工具栏 — 常驻显示 */}
+          {displayItems.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 12px',
+                borderBottom: '1px solid var(--border-subtle)',
+                background:
+                  selectedIds.size > 0
+                    ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
+                    : 'var(--bg-toolbar)',
+                fontSize: 'var(--text-body-sm)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <SelectCheckbox
-                  checked={checked}
-                  onClick={(e) => { e.stopPropagation(); toggleSelect(compositeKey); }}
+                  checked={allSelected}
+                  onClick={() => handleSelectAll(allVisibleKeys)}
+                  indeterminate={selectedIds.size > 0 && !allSelected}
                 />
-                {item.mimeType.startsWith('image/') ? (
-                  <Image size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
-                ) : item.mimeType === 'application/pdf' ? (
-                  <FileText size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
-                ) : (
-                  <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0, opacity: showTrash ? 0.5 : 1 }} />
+                <span
+                  style={{ color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => handleSelectAll(allVisibleKeys)}
+                >
+                  {allSelected ? t('common:deselect_all') : t('common:select_all')}
+                </span>
+                {selectedIds.size > 0 && (
+                  <span style={{ color: 'var(--text-tertiary)' }}>
+                    {t('common:selected_count', { n: selectedIds.size })}
+                  </span>
                 )}
-                <div style={{ flex: 1, minWidth: 0 }}>
+              </div>
+              {selectedIds.size > 0 && !showTrash ? (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
+                    <Download size={ICON_SIZE.sm} /> {t('common:download')}
+                  </Button>
+                  <DeleteButton
+                    onClick={() => setBatchDeleteConfirm(true)}
+                    title={t('common:delete')}
+                  >
+                    {t('common:delete')}
+                  </DeleteButton>
+                </div>
+              ) : selectedIds.size > 0 && showTrash ? (
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setBatchRestoreConfirm(true)}
+                  >
+                    <RotateCw size={ICON_SIZE.sm} /> {t('common:restore')}
+                  </Button>
+                  <DeleteButton
+                    onClick={() => setBatchPermanentDeleteConfirm(true)}
+                    title={t('common:delete_permanently')}
+                  >
+                    {t('common:delete_permanently')}
+                  </DeleteButton>
+                </div>
+              ) : null}
+            </div>
+          )}
+          {/* List */}
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            {displayItems.length === 0 ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: 48,
+                  color: 'var(--text-secondary)',
+                  fontSize: 'var(--text-body)',
+                }}
+              >
+                {showTrash ? t('common:attachments_trash_empty') : t('common:no_attachments')}
+              </div>
+            ) : (
+              displayItems.map((item, idx) => {
+                const compositeKey = `${objectId}::${item.id}`;
+                const checked = selectedIds.has(compositeKey);
+                return (
                   <div
+                    key={item.id}
                     style={{
-                      fontWeight: 500,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      textDecoration: showTrash ? 'line-through' : 'none',
-                      opacity: showTrash ? 0.5 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 12px',
+                      borderBottom:
+                        idx < displayItems.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                      fontSize: 'var(--text-body-sm)',
                     }}
                   >
-                    {truncateFileName(item.fileName)}
-                  </div>
-                  <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                    {formatSize(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
-                  </div>
-                </div>
-                {showTrash ? (
-                  <>
-                    <BadgeIconButton
-                      Icon={RotateCw}
-                      onClick={() => handleRestore(item)}
-                      title={t('common:restore')}
-                      iconSize={ICON_SIZE.sm}
+                    <SelectCheckbox
+                      checked={checked}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(compositeKey);
+                      }}
                     />
-                    <DeleteButton
-                      iconOnly
-                      onClick={() => setPermDeleteItem(item)}
-                      title={t('common:delete_permanently')}
-                    />
-                  </>
-                ) : (
-                  <>
-                    {renamingId === item.id ? (
-                      <input
-                        ref={renameInputRef}
-                        value={renameValue}
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleConfirmRename();
-                          if (e.key === 'Escape') setRenamingId(null);
-                        }}
-                        onBlur={handleConfirmRename}
+                    {item.mimeType.startsWith('image/') ? (
+                      <Image
+                        size={ICON_SIZE.sm}
                         style={{
-                          width: 100,
-                          padding: '3px 6px',
-                          fontSize: 'var(--text-caption)',
-                          borderRadius: 4,
-                          border: '1px solid var(--accent-primary)',
-                          background: 'transparent',
-                          color: 'var(--text-primary)',
-                          outline: 'none',
+                          color: 'var(--text-tertiary)',
+                          flexShrink: 0,
+                          opacity: showTrash ? 0.5 : 1,
+                        }}
+                      />
+                    ) : item.mimeType === 'application/pdf' ? (
+                      <FileText
+                        size={ICON_SIZE.sm}
+                        style={{
+                          color: 'var(--text-tertiary)',
+                          flexShrink: 0,
+                          opacity: showTrash ? 0.5 : 1,
                         }}
                       />
                     ) : (
+                      <Paperclip
+                        size={ICON_SIZE.sm}
+                        style={{
+                          color: 'var(--text-tertiary)',
+                          flexShrink: 0,
+                          opacity: showTrash ? 0.5 : 1,
+                        }}
+                      />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontWeight: 500,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          textDecoration: showTrash ? 'line-through' : 'none',
+                          opacity: showTrash ? 0.5 : 1,
+                        }}
+                      >
+                        {truncateFileName(item.fileName)}
+                      </div>
+                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                        {formatSize(item.sizeBytes)} ·{' '}
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    {showTrash ? (
                       <>
                         <BadgeIconButton
-                          Icon={Eye}
-                          onClick={() => handlePreview(item)}
-                          title="Preview"
+                          Icon={RotateCw}
+                          onClick={() => handleRestore(item)}
+                          title={t('common:restore')}
                           iconSize={ICON_SIZE.sm}
                         />
-                        <BadgeIconButton
-                          Icon={Edit2}
-                          onClick={() => handleStartRename(item)}
-                          title={t('common:rename')}
-                          iconSize={ICON_SIZE.sm}
+                        <DeleteButton
+                          iconOnly
+                          onClick={() => setPermDeleteItem(item)}
+                          title={t('common:delete_permanently')}
                         />
-                        <BadgeIconButton
-                          Icon={Download}
-                          onClick={() => handleDownload(item)}
-                          title={t('common:download')}
-                          iconSize={ICON_SIZE.sm}
+                      </>
+                    ) : (
+                      <>
+                        {renamingId === item.id ? (
+                          <input
+                            ref={renameInputRef}
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleConfirmRename();
+                              if (e.key === 'Escape') setRenamingId(null);
+                            }}
+                            onBlur={handleConfirmRename}
+                            style={{
+                              width: 100,
+                              padding: '3px 6px',
+                              fontSize: 'var(--text-caption)',
+                              borderRadius: 4,
+                              border: '1px solid var(--accent-primary)',
+                              background: 'transparent',
+                              color: 'var(--text-primary)',
+                              outline: 'none',
+                            }}
+                          />
+                        ) : (
+                          <>
+                            <BadgeIconButton
+                              Icon={Eye}
+                              onClick={() => handlePreview(item)}
+                              title="Preview"
+                              iconSize={ICON_SIZE.sm}
+                            />
+                            <BadgeIconButton
+                              Icon={Edit2}
+                              onClick={() => handleStartRename(item)}
+                              title={t('common:rename')}
+                              iconSize={ICON_SIZE.sm}
+                            />
+                            <BadgeIconButton
+                              Icon={Download}
+                              onClick={() => handleDownload(item)}
+                              title={t('common:download')}
+                              iconSize={ICON_SIZE.sm}
+                            />
+                          </>
+                        )}
+                        <DeleteButton
+                          iconOnly
+                          onClick={() => handleDelete(item)}
+                          title={t('common:delete')}
                         />
                       </>
                     )}
-                    <DeleteButton
-                      iconOnly
-                      onClick={() => handleDelete(item)}
-                      title={t('common:delete')}
-                    />
-                  </>
-                )}
-              </div>
-            );            })
-           )}
-        </div>
-        {/* 拖拽上传覆盖层 */}
-        <DragUploadOverlay dragState={dragState} borderRadius={16} />
+                  </div>
+                );
+              })
+            )}
+          </div>
+          {/* 拖拽上传覆盖层 */}
+          <DragUploadOverlay dragState={dragState} borderRadius={16} />
         </motion.div>
-      )}      {/* Preview overlay */}
+      )}{' '}
+      {/* Preview overlay */}
       <AttachmentPreviewOverlay item={previewItem} onClose={() => setPreviewItem(null)} />
       {confirmDialog}
       {/* Confirmation dialogs */}
@@ -625,7 +707,9 @@ export function AttachmentViewer({
       <ConfirmDialog
         open={!!permDeleteItem}
         title={t('common:perm_delete_title')}
-        body={t('common:perm_delete_body', { name: permDeleteItem ? truncateFileName(permDeleteItem.fileName) : '' })}
+        body={t('common:perm_delete_body', {
+          name: permDeleteItem ? truncateFileName(permDeleteItem.fileName) : '',
+        })}
         confirmLabel={t('common:delete_permanently')}
         cancelLabel={t('common:cancel')}
         confirmStyle="danger"

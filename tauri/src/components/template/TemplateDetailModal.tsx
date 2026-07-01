@@ -9,7 +9,6 @@ import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface DetailProperty {
   id: string;
   name: string;
@@ -102,9 +101,7 @@ export function TemplateDetailModal({
               >
                 <span
                   style={
-                    page.deleted
-                      ? { textDecoration: 'line-through', opacity: 0.6 }
-                      : undefined
+                    page.deleted ? { textDecoration: 'line-through', opacity: 0.6 } : undefined
                   }
                 >
                   {page.name}

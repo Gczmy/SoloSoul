@@ -79,7 +79,9 @@ describe('llmStore', () => {
 
       const { useLlmStore } = await import('./llmStore');
       useLlmStore.getState().startStream('conv-1');
-      await vi.waitFor(() => { expect(useLlmStore.getState().unlisten).toBeDefined(); });
+      await vi.waitFor(() => {
+        expect(useLlmStore.getState().unlisten).toBeDefined();
+      });
 
       // 模拟收到 chunk
       useLlmStore.getState().onChunk({ conversationId: 'conv-1', chunk: 'Hello', isDone: false });
@@ -95,7 +97,9 @@ describe('llmStore', () => {
 
       const { useLlmStore } = await import('./llmStore');
       useLlmStore.getState().startStream('conv-1');
-      await vi.waitFor(() => { expect(useLlmStore.getState().unlisten).toBeDefined(); });
+      await vi.waitFor(() => {
+        expect(useLlmStore.getState().unlisten).toBeDefined();
+      });
 
       // 先发送内容（最后一块在 isDone 之前到达）
       useLlmStore.getState().onChunk({ conversationId: 'conv-1', chunk: 'Hello', isDone: false });
@@ -114,7 +118,9 @@ describe('llmStore', () => {
 
       const { useLlmStore } = await import('./llmStore');
       useLlmStore.getState().startStream('conv-1');
-      await vi.waitFor(() => { expect(useLlmStore.getState().unlisten).toBeDefined(); });
+      await vi.waitFor(() => {
+        expect(useLlmStore.getState().unlisten).toBeDefined();
+      });
 
       // 只发 isDone（没有前序内容）
       useLlmStore.getState().onChunk({ conversationId: 'conv-1', chunk: 'Orphan', isDone: true });
@@ -130,9 +136,13 @@ describe('llmStore', () => {
 
       const { useLlmStore } = await import('./llmStore');
       useLlmStore.getState().startStream('conv-1');
-      await vi.waitFor(() => { expect(useLlmStore.getState().unlisten).toBeDefined(); });
+      await vi.waitFor(() => {
+        expect(useLlmStore.getState().unlisten).toBeDefined();
+      });
 
-      useLlmStore.getState().onChunk({ conversationId: 'conv-1', chunk: '', isDone: false, error: 'API timeout' });
+      useLlmStore
+        .getState()
+        .onChunk({ conversationId: 'conv-1', chunk: '', isDone: false, error: 'API timeout' });
 
       const state = useLlmStore.getState();
       expect(state.isStreaming).toBe(false);
@@ -146,7 +156,9 @@ describe('llmStore', () => {
 
       const { useLlmStore } = await import('./llmStore');
       useLlmStore.getState().startStream('conv-1');
-      await vi.waitFor(() => { expect(useLlmStore.getState().unlisten).toBeDefined(); });
+      await vi.waitFor(() => {
+        expect(useLlmStore.getState().unlisten).toBeDefined();
+      });
 
       // 写入一些内容
       useLlmStore.getState().onChunk({ conversationId: 'conv-1', chunk: 'Keep', isDone: false });
@@ -164,7 +176,9 @@ describe('llmStore', () => {
 
       const { useLlmStore } = await import('./llmStore');
       useLlmStore.getState().startStream('conv-1');
-      await vi.waitFor(() => { expect(useLlmStore.getState().unlisten).toBeDefined(); });
+      await vi.waitFor(() => {
+        expect(useLlmStore.getState().unlisten).toBeDefined();
+      });
 
       // 先写入 buffer
       useLlmStore.getState().onChunk({ conversationId: 'conv-1', chunk: 'Partial', isDone: false });
@@ -187,7 +201,9 @@ describe('llmStore', () => {
 
       const { useLlmStore } = await import('./llmStore');
       useLlmStore.getState().startStream('conv-1');
-      await vi.waitFor(() => { expect(useLlmStore.getState().unlisten).toBeDefined(); });
+      await vi.waitFor(() => {
+        expect(useLlmStore.getState().unlisten).toBeDefined();
+      });
 
       useLlmStore.getState().onChunk({ conversationId: 'conv-1', chunk: 'Data', isDone: true });
 

@@ -1,7 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export interface GuideCardItem {
   title: string;
   href: string;
@@ -65,9 +64,18 @@ export function GuideCards({ items, onLinkClick }: GuideCardsProps) {
             }}
           >
             <span>{item.title}</span>
-            <ArrowRight size={ICON_SIZE.md} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
+            <ArrowRight
+              size={ICON_SIZE.md}
+              style={{ color: 'var(--accent-primary)', flexShrink: 0 }}
+            />
           </div>
-          <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <div
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.5,
+            }}
+          >
             {item.desc}
           </div>
         </button>

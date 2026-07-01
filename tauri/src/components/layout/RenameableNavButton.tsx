@@ -18,7 +18,6 @@ import {
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 // =============================================================================
 // RenameableNavButton — custom page button with double-click rename
 // =============================================================================
@@ -149,7 +148,7 @@ export function RenameableNavButton({
     };
     outsideClickTimeoutRef.current = setTimeout(
       () => document.addEventListener('mousedown', handler),
-      0
+      0,
     );
     return () => {
       if (outsideClickTimeoutRef.current) {
@@ -218,184 +217,204 @@ export function RenameableNavButton({
                 transformOrigin: 'top',
               }}
             >
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-              {/* Icon picker trigger */}
-              <button
-                onClick={() => setShowIconPicker(!showIconPicker)}
-                style={{
-                  width: 32,
-                  height: 32,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 6,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                }}
-                title={t('navigation:add_page_placeholder') ?? 'Choose icon'}
-              >
-                {React.createElement(CUSTOM_ICON_MAP[selectedIconId], {
-                  size: 18,
-                  style: { color: 'var(--accent-primary)' },
-                })}
-              </button>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <input
-                  ref={inputRef}
-                  value={renameValue}
-                  onChange={(e) => {
-                    setRenameValue(e.target.value.slice(0, 30));
-                    setRenameError(false);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleConfirmRename();
-                    if (e.key === 'Escape') handleCancelRename();
-                  }}
-                  maxLength={30}
-                  autoFocus
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                {/* Icon picker trigger */}
+                <button
+                  onClick={() => setShowIconPicker(!showIconPicker)}
                   style={{
-                    padding: '6px 10px',
-                    fontSize: 'var(--text-body)',
-                    border: renameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
+                    width: 32,
+                    height: 32,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     borderRadius: 6,
+                    border: '1px solid var(--border-subtle)',
                     background: 'transparent',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    width: 140,
-                    animation: renameError ? 'shake 0.4s ease' : 'none',
+                    cursor: 'pointer',
+                    flexShrink: 0,
                   }}
-                />
-                {renameError && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
+                  title={t('navigation:add_page_placeholder') ?? 'Choose icon'}
+                >
+                  {React.createElement(CUSTOM_ICON_MAP[selectedIconId], {
+                    size: 18,
+                    style: { color: 'var(--accent-primary)' },
+                  })}
+                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <input
+                    ref={inputRef}
+                    value={renameValue}
+                    onChange={(e) => {
+                      setRenameValue(e.target.value.slice(0, 30));
+                      setRenameError(false);
                     }}
-                  >
-                    <span style={{ fontSize: 'var(--text-badge)', color: '#e74c3c', whiteSpace: 'nowrap' }}>
-                      {t('page_name_exists')}
-                    </span>
-                    <button
-                      onClick={handleCancelRename}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = 'var(--accent-primary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'var(--text-tertiary)';
-                      }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleConfirmRename();
+                      if (e.key === 'Escape') handleCancelRename();
+                    }}
+                    maxLength={30}
+                    autoFocus
+                    style={{
+                      padding: '6px 10px',
+                      fontSize: 'var(--text-body)',
+                      border: renameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
+                      borderRadius: 6,
+                      background: 'transparent',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      width: 140,
+                      animation: renameError ? 'shake 0.4s ease' : 'none',
+                    }}
+                  />
+                  {renameError && (
+                    <div
                       style={{
-                        fontSize: 'var(--text-badge)',
-                        color: 'var(--text-tertiary)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 0,
-                        transition: 'color 0.15s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8,
                       }}
                     >
-                      {t('common:cancel')}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Icon picker grid — category sections (scrollable) */}
-            {showIconPicker && (
-              <div
-                style={{
-                  maxHeight: scrollMaxHeight,
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                }}
-              >
-                {['general','security','identity','finance','travel','work','communication','health','education','life','nature','special'].map((cat) => {
-                  const categoryIcons = (Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]).filter(
-                    ([id]) => ICON_CATEGORIES[id] === cat
-                  );
-                  if (categoryIcons.length === 0) return null;
-                  return (
-                    <div key={cat}>
-                      <div
+                      <span
                         style={{
                           fontSize: 'var(--text-badge)',
-                          fontWeight: 500,
-                          color: 'var(--text-tertiary)',
-                          padding: '2px 0 4px',
-                          borderBottom: '1px solid var(--border-subtle)',
-                          marginBottom: 4,
+                          color: '#e74c3c',
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        {t(`navigation:icon_category_${cat}`, CATEGORY_LABELS[cat])}
-                      </div>
-                      <div
+                        {t('page_name_exists')}
+                      </span>
+                      <button
+                        onClick={handleCancelRename}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = 'var(--accent-primary)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'var(--text-tertiary)';
+                        }}
                         style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(6, 1fr)',
-                          gap: 4,
+                          fontSize: 'var(--text-badge)',
+                          color: 'var(--text-tertiary)',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: 0,
+                          transition: 'color 0.15s ease',
                         }}
                       >
-                        {categoryIcons.map(([id, IconComp]) => (
-                          <button
-                            key={id}
-                            onClick={() => {
-                              setSelectedIconId(id);
-                              setShowIconPicker(false);
-                            }}
-                            onMouseEnter={(e) => {
-                              if (id !== selectedIconId) {
-                                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (id !== selectedIconId) {
-                                e.currentTarget.style.background = 'transparent';
-                                e.currentTarget.style.borderColor = 'transparent';
-                              }
-                            }}
-                            style={{
-                              width: 32,
-                              height: 32,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              borderRadius: 6,
-                              border:
-                                selectedIconId === id
-                                  ? '2px solid var(--accent-primary)'
-                                  : '1px solid transparent',
-                              background:
-                                selectedIconId === id ? 'rgba(91,124,153,0.08)' : 'transparent',
-                              cursor: 'pointer',
-                              transition: 'all 0.1s ease',
-                            }}
-                          >
-                            <IconComp
-                              size={ICON_SIZE.lg}
-                              style={{
-                                color:
-                                  selectedIconId === id
-                                    ? 'var(--accent-primary)'
-                                    : 'var(--text-secondary)',
-                              }}
-                            />
-                          </button>
-                        ))}
-                      </div>
+                        {t('common:cancel')}
+                      </button>
                     </div>
-                  );
-                })}
+                  )}
+                </div>
               </div>
-            )}
+
+              {/* Icon picker grid — category sections (scrollable) */}
+              {showIconPicker && (
+                <div
+                  style={{
+                    maxHeight: scrollMaxHeight,
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  {[
+                    'general',
+                    'security',
+                    'identity',
+                    'finance',
+                    'travel',
+                    'work',
+                    'communication',
+                    'health',
+                    'education',
+                    'life',
+                    'nature',
+                    'special',
+                  ].map((cat) => {
+                    const categoryIcons = (
+                      Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]
+                    ).filter(([id]) => ICON_CATEGORIES[id] === cat);
+                    if (categoryIcons.length === 0) return null;
+                    return (
+                      <div key={cat}>
+                        <div
+                          style={{
+                            fontSize: 'var(--text-badge)',
+                            fontWeight: 500,
+                            color: 'var(--text-tertiary)',
+                            padding: '2px 0 4px',
+                            borderBottom: '1px solid var(--border-subtle)',
+                            marginBottom: 4,
+                          }}
+                        >
+                          {t(`navigation:icon_category_${cat}`, CATEGORY_LABELS[cat])}
+                        </div>
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(6, 1fr)',
+                            gap: 4,
+                          }}
+                        >
+                          {categoryIcons.map(([id, IconComp]) => (
+                            <button
+                              key={id}
+                              onClick={() => {
+                                setSelectedIconId(id);
+                                setShowIconPicker(false);
+                              }}
+                              onMouseEnter={(e) => {
+                                if (id !== selectedIconId) {
+                                  e.currentTarget.style.background =
+                                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (id !== selectedIconId) {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.borderColor = 'transparent';
+                                }
+                              }}
+                              style={{
+                                width: 32,
+                                height: 32,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: 6,
+                                border:
+                                  selectedIconId === id
+                                    ? '2px solid var(--accent-primary)'
+                                    : '1px solid transparent',
+                                background:
+                                  selectedIconId === id ? 'rgba(91,124,153,0.08)' : 'transparent',
+                                cursor: 'pointer',
+                                transition: 'all 0.1s ease',
+                              }}
+                            >
+                              <IconComp
+                                size={ICON_SIZE.lg}
+                                style={{
+                                  color:
+                                    selectedIconId === id
+                                      ? 'var(--accent-primary)'
+                                      : 'var(--text-secondary)',
+                                }}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>,
@@ -404,4 +423,3 @@ export function RenameableNavButton({
     </div>
   );
 }
-

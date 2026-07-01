@@ -43,7 +43,6 @@ vi.mock('@/lib/i18n', () => ({
   },
 }));
 
-
 describe('pluginStore Toast behavior', () => {
   let storage: Record<string, string> = {};
 
@@ -154,11 +153,17 @@ describe('pluginStore Toast behavior', () => {
 
   it('场景5 — 事件通道发送 "completed" 后最终状态仍包含 toastShown', async () => {
     // 模拟插件运行时通过事件通道发送 'completed' 事件
-    mockRun.mockImplementation(async (_id: string, _params: Record<string, string>, onEvent: (event: { eventType: string; jsonData: string }) => void) => {
-      // 模拟 WASM 完成后发送 completed 事件（不设置 toastShown）
-      onEvent({ eventType: 'completed', jsonData: JSON.stringify({ exitCode: 0 }) });
-      return { exitCode: 0, logs: [], results: [], fuelConsumed: 100 };
-    });
+    mockRun.mockImplementation(
+      async (
+        _id: string,
+        _params: Record<string, string>,
+        onEvent: (event: { eventType: string; jsonData: string }) => void,
+      ) => {
+        // 模拟 WASM 完成后发送 completed 事件（不设置 toastShown）
+        onEvent({ eventType: 'completed', jsonData: JSON.stringify({ exitCode: 0 }) });
+        return { exitCode: 0, logs: [], results: [], fuelConsumed: 100 };
+      },
+    );
 
     const { usePluginStore } = await import('./pluginStore');
     await usePluginStore.getState().runPlugin('addr-fmt', 'Address Formatter');

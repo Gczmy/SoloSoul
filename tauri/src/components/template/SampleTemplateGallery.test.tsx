@@ -7,9 +7,9 @@ describe('SampleTemplateGallery', () => {
   // 筛选后卡片仍在 DOM 中，但被 visibility:hidden + data-visible="false" 屏蔽。
   // 关键产品行为是“可见卡”的数量，所以这里提供独立 helper 统计可见项。
   const getVisibleCards = () =>
-    screen.getAllByTestId('sample-template-card').filter(
-      (el) => el.getAttribute('data-visible') !== 'false',
-    );
+    screen
+      .getAllByTestId('sample-template-card')
+      .filter((el) => el.getAttribute('data-visible') !== 'false');
 
   it('does not render when closed', () => {
     const { container } = render(

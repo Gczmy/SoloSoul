@@ -5,7 +5,6 @@ import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
 import type { TFunction } from 'i18next';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface AccountStatsCardProps {
   usageCount: number;
   totalTokens: number;
@@ -77,11 +76,20 @@ const StatColumn = memo(function StatColumn({
     >
       <div style={{ marginBottom: 4 }}>{icon}</div>
       <div
-        style={{ fontSize: 'var(--text-page-title)', fontWeight: 700, color: 'var(--accent-primary)', lineHeight: 1.2 }}
+        style={{
+          fontSize: 'var(--text-page-title)',
+          fontWeight: 700,
+          color: 'var(--accent-primary)',
+          lineHeight: 1.2,
+        }}
       >
         {value}
       </div>
-      <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 4 }}>{label}</div>
+      <div
+        style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginBottom: 4 }}
+      >
+        {label}
+      </div>
       {modelUsages.length > 0 && (
         <div
           style={{

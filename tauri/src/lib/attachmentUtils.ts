@@ -39,13 +39,20 @@ export function formatSize(bytes: number): string {
 
 export function isImageMime(mimeType: string, fileName: string): boolean {
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
-  return mimeType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext);
+  return (
+    mimeType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)
+  );
 }
 
 export function previewItemByMime(item: AttachmentItem): 'image' | 'pdf' | 'text' | 'other' {
   const ext = item.fileName.split('.').pop()?.toLowerCase() || '';
-  if (item.mimeType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) return 'image';
+  if (
+    item.mimeType.startsWith('image/') ||
+    ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)
+  )
+    return 'image';
   if (item.mimeType === 'application/pdf' || ext === 'pdf') return 'pdf';
-  if (item.mimeType.startsWith('text/') || ['json', 'xml', 'csv', 'md', 'txt'].includes(ext)) return 'text';
+  if (item.mimeType.startsWith('text/') || ['json', 'xml', 'csv', 'md', 'txt'].includes(ext))
+    return 'text';
   return 'other';
 }

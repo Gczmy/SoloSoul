@@ -4,17 +4,12 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
-import {
-  MessageSquare,
-  Settings,
-  BarChart3,
-} from 'lucide-react';
+import { MessageSquare, Settings, BarChart3 } from 'lucide-react';
 import { ConversationSidebar } from '@/components/llm/ConversationSidebar';
 import { MessageArea } from '@/components/llm/MessageArea';
 import { TrashConversationCard } from '@/components/llm/TrashConversationCard';
 import { useLlmChat } from './useLlmChat';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 export { useLlmChat } from './useLlmChat';
 export { type Conversation, type ConversationSummary } from './useLlmChat';
@@ -88,7 +83,8 @@ export function LlmChatPage() {
               transition: 'all 0.15s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               e.currentTarget.style.borderColor = 'var(--accent-primary)';
               e.currentTarget.style.color = 'var(--accent-primary)';
             }}
@@ -111,7 +107,13 @@ export function LlmChatPage() {
             <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 600, margin: '0 0 8px' }}>
               {t('settings:ai_chat')}
             </h2>
-            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <p
+              style={{
+                fontSize: 'var(--text-sm)',
+                color: 'var(--text-secondary)',
+                marginBottom: 16,
+              }}
+            >
               {t('settings:ai_chat_disabled')}
             </p>
             <button
@@ -130,7 +132,8 @@ export function LlmChatPage() {
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
               }}

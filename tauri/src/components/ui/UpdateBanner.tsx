@@ -3,7 +3,6 @@ import { Download, CheckCircle2, X } from 'lucide-react';
 import { formatBytes } from '@/lib/format';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export type UpdateBannerState = 'available' | 'downloading' | 'downloaded' | 'error';
 
 interface UpdateBannerProps {
@@ -114,7 +113,14 @@ export function UpdateBanner({
               }}
             />
           </div>
-          <span style={{ fontSize: 'var(--text-caption)', whiteSpace: 'nowrap', minWidth: 90, textAlign: 'right' }}>
+          <span
+            style={{
+              fontSize: 'var(--text-caption)',
+              whiteSpace: 'nowrap',
+              minWidth: 90,
+              textAlign: 'right',
+            }}
+          >
             {formatBytes(downloadedBytes)} / {formatBytes(totalBytes)}
           </span>
         </>
@@ -146,7 +152,15 @@ export function UpdateBanner({
         <>
           <span style={{ fontWeight: 500 }}>{t('update_error', { version })}</span>
           {error && (
-            <span style={{ fontSize: 'var(--text-badge)', opacity: 0.9, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span
+              style={{
+                fontSize: 'var(--text-badge)',
+                opacity: 0.9,
+                maxWidth: 300,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
               {error}
             </span>
           )}

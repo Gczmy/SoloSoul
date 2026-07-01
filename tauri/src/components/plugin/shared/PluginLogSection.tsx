@@ -6,7 +6,6 @@ import type { RunningPlugin } from '@/stores/pluginStore';
 import styles from './PluginLogSection.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface PluginLogSectionProps {
   logs: RunningPlugin['logs'];
   error?: string;
@@ -41,8 +40,7 @@ export function PluginLogSection({
     : styles.statusRunning;
 
   // ─── Log copy handler ────────────────────────────────────────────
-  const getLogContent = () =>
-    logs.map((log) => `[${log.level}] ${log.message}`).join('\n');
+  const getLogContent = () => logs.map((log) => `[${log.level}] ${log.message}`).join('\n');
 
   // ─── inlineActions content (page variant) ─────────────────────────
   const pageActions = completed ? (
@@ -95,17 +93,17 @@ export function PluginLogSection({
           title={t('inline_output', { defaultValue: 'Plugin Log' })}
           count={logs.length}
           actions={
-            variant === 'page' ? (
-              pageActions
-            ) : (
-              completed && <CopyButton
-                getContent={getLogContent}
-                label={t('copy', { defaultValue: 'Copy' })}
-                copiedLabel={t('copied')}
-                icon={<Copy size={ICON_SIZE['2xs']} />}
-                size="sm"
-              />
-            )
+            variant === 'page'
+              ? pageActions
+              : completed && (
+                  <CopyButton
+                    getContent={getLogContent}
+                    label={t('copy', { defaultValue: 'Copy' })}
+                    copiedLabel={t('copied')}
+                    icon={<Copy size={ICON_SIZE['2xs']} />}
+                    size="sm"
+                  />
+                )
           }
         >
           <div className={styles.inlineLogs}>
@@ -120,9 +118,7 @@ export function PluginLogSection({
           </div>
 
           {/* Page variant: error inside collapsible */}
-          {variant === 'page' && error && (
-            <div className={styles.inlineError}>{error}</div>
-          )}
+          {variant === 'page' && error && <div className={styles.inlineError}>{error}</div>}
         </ExpandableSection>
       )}
     </>

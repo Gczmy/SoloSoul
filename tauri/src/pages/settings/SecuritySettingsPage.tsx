@@ -11,7 +11,6 @@ import { PasswordChangeForm } from '@/components/settings/PasswordChangeForm';
 import { AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export function SecuritySettingsPage() {
   const navigate = useNavigate();
   const currentAccount = useAuthStore((s) => s.currentAccount);
@@ -26,7 +25,13 @@ export function SecuritySettingsPage() {
           <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
             {t('settings:auto_lock')}
           </h3>
-          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+          <p
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              marginBottom: 12,
+            }}
+          >
             {t('settings:auto_lock_description')}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

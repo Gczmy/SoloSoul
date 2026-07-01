@@ -5,7 +5,9 @@
   z-index: 200;
   background: var(--bg-elevated);
   border-radius: 14px;
-  box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-subtle);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px var(--border-subtle);
   border: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
@@ -254,8 +256,6 @@
   color: var(--accent);
 }
 
-
-
 .runningInfo {
   display: flex;
   flex-direction: column;
@@ -264,8 +264,6 @@
   margin-top: 6px;
   border-top: 1px solid var(--border-subtle);
 }
-
-
 
 .loading,
 .empty {

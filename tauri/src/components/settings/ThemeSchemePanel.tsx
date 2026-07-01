@@ -4,7 +4,6 @@ import { X } from 'lucide-react';
 import { getSchemesByMode, type ThemeScheme } from '@/lib/themeSchemes';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface ThemeSchemePanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -64,7 +63,9 @@ export function ThemeSchemePanel({
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, margin: 0 }}>{t('settings:theme_schemes')}</h3>
+        <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, margin: 0 }}>
+          {t('settings:theme_schemes')}
+        </h3>
         <button
           onClick={onClose}
           style={{

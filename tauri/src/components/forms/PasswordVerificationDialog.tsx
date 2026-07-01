@@ -6,11 +6,8 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinInput } from '@/components/forms/PinInput';
 import { Button } from '@/components/ui/Button';
 import { useToastError } from '@/hooks/useToastError';
-import {
-  Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip,
-} from 'lucide-react';
+import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 interface PasswordVerificationDialogProps {
   open: boolean;
@@ -90,14 +87,19 @@ export function PasswordVerificationDialog({
   const hasBiometric = !!biometricType && !!onBiometric;
 
   // 当前显示的解锁方式（按优先级选择）
-  const [loginMethod, setLoginMethod] = useState<'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null>(null);
+  const [loginMethod, setLoginMethod] = useState<
+    'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null
+  >(null);
 
   // 从 loginMethod 推导生物识别类型标签（与当前卡片图标保持一致）
   const activeBioType =
     loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello'
       ? loginMethod
-      : (biometricType || '');
-  const biometricLabel = BIOMETRIC_LABEL[activeBioType] || activeBioType || t('auth:bio_default', { defaultValue: 'Biometric' });
+      : biometricType || '';
+  const biometricLabel =
+    BIOMETRIC_LABEL[activeBioType] ||
+    activeBioType ||
+    t('auth:bio_default', { defaultValue: 'Biometric' });
 
   // 卸载时清理悬停延迟定时器
   useEffect(() => {
@@ -154,31 +156,39 @@ export function PasswordVerificationDialog({
     }
   }, [open, pinChecked, hasBiometric, pinAvailable, biometricType]);
 
-  const handlePinComplete = useCallback(async (pin: string) => {
-    if (!pinAccountId) return;
-    setPinUnlocking(true);
-    setPinError(null);
-    try {
-      await invoke('pin_unlock', { accountId: pinAccountId, pin, location: 'critical_data_access', action: 'unlock' });
-      setPassword('');
+  const handlePinComplete = useCallback(
+    async (pin: string) => {
+      if (!pinAccountId) return;
+      setPinUnlocking(true);
       setPinError(null);
-      onPinSuccess?.();
-    } catch (e) {
-      const msg = String(e);
-      if (msg.includes('__PIN_ERR__:locked')) {
-        setPinError(t('auth:pin_locked'));
-        setPinAvailable(false);
-        setLoginMethod('password');
-      } else if (msg.includes('__PIN_ERR__:incorrect')) {
-        setPinError(t('auth:pin_incorrect'));
-      } else {
-        setPinError(t('auth:pin_error'));
+      try {
+        await invoke('pin_unlock', {
+          accountId: pinAccountId,
+          pin,
+          location: 'critical_data_access',
+          action: 'unlock',
+        });
+        setPassword('');
+        setPinError(null);
+        onPinSuccess?.();
+      } catch (e) {
+        const msg = String(e);
+        if (msg.includes('__PIN_ERR__:locked')) {
+          setPinError(t('auth:pin_locked'));
+          setPinAvailable(false);
+          setLoginMethod('password');
+        } else if (msg.includes('__PIN_ERR__:incorrect')) {
+          setPinError(t('auth:pin_incorrect'));
+        } else {
+          setPinError(t('auth:pin_error'));
+        }
+        setPinInputKey((k) => k + 1);
+      } finally {
+        setPinUnlocking(false);
       }
-      setPinInputKey((k) => k + 1);
-    } finally {
-      setPinUnlocking(false);
-    }
-  }, [pinAccountId, t, onPinSuccess]);
+    },
+    [pinAccountId, t, onPinSuccess],
+  );
 
   const handleConfirm = async () => {
     if (!password) {
@@ -341,7 +351,9 @@ export function PasswordVerificationDialog({
         )}
 
         {/* ===== 生物识别卡片 ===== */}
-        {(loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello') && (
+        {(loginMethod === 'faceId' ||
+          loginMethod === 'touchId' ||
+          loginMethod === 'windowsHello') && (
           <div
             style={{
               minHeight: 152,
@@ -369,19 +381,38 @@ export function PasswordVerificationDialog({
                 cursor: bioLoading ? 'wait' : 'pointer',
                 width: '100%',
                 fontFamily: 'inherit',
-                transition: 'box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease, background 0.15s ease',
+                transition:
+                  'box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease, background 0.15s ease',
               }}
             >
               {loginMethod === 'faceId' && (
-                <ScanFace size={ICON_SIZE['4xl']} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
+                <ScanFace
+                  size={ICON_SIZE['4xl']}
+                  color="var(--accent-primary)"
+                  style={{ opacity: bioLoading ? 0.5 : 1 }}
+                />
               )}
               {loginMethod === 'touchId' && (
-                <Fingerprint size={ICON_SIZE['4xl']} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
+                <Fingerprint
+                  size={ICON_SIZE['4xl']}
+                  color="var(--accent-primary)"
+                  style={{ opacity: bioLoading ? 0.5 : 1 }}
+                />
               )}
               {loginMethod === 'windowsHello' && (
-                <ShieldCheck size={ICON_SIZE['4xl']} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
+                <ShieldCheck
+                  size={ICON_SIZE['4xl']}
+                  color="var(--accent-primary)"
+                  style={{ opacity: bioLoading ? 0.5 : 1 }}
+                />
               )}
-              <span style={{ fontSize: 'var(--text-card-title)', fontWeight: 500, color: 'var(--text-primary)' }}>
+              <span
+                style={{
+                  fontSize: 'var(--text-card-title)',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)',
+                }}
+              >
                 {bioLoading
                   ? t('auth:bio_verifying')
                   : t('auth:bio_unlock_reason', { type: biometricLabel })}
@@ -416,7 +447,13 @@ export function PasswordVerificationDialog({
               }}
             >
               <Grip size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
-              <span style={{ fontSize: 'var(--text-card-title)', fontWeight: 500, color: 'var(--text-primary)' }}>
+              <span
+                style={{
+                  fontSize: 'var(--text-card-title)',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)',
+                }}
+              >
                 {t('auth:pin_enter_title')}
               </span>
               <PinInput
@@ -428,9 +465,7 @@ export function PasswordVerificationDialog({
                 verifying={pinUnlocking}
               />
               {pinError && (
-                <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>
-                  {pinError}
-                </div>
+                <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>{pinError}</div>
               )}
             </div>
           </div>
@@ -547,7 +582,10 @@ export function PasswordVerificationDialog({
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     maxWidth: isExpanded ? 200 : 40,
-                    transition: isExpanded || (!isHovered && !isExpanded) ? 'all 0.25s ease' : 'all 0.25s ease, max-width 0.01s linear 0.2s',
+                    transition:
+                      isExpanded || (!isHovered && !isExpanded)
+                        ? 'all 0.25s ease'
+                        : 'all 0.25s ease, max-width 0.01s linear 0.2s',
                     flexShrink: 0,
                     outline: 'none',
                   }}

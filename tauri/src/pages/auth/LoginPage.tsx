@@ -180,10 +180,9 @@ export function LoginPage() {
       });
 
     // Check PIN
-    invoke<{ configured: boolean; locked: boolean }>(
-      'pin_check_availability',
-      { accountId: selectedAccountId },
-    )
+    invoke<{ configured: boolean; locked: boolean }>('pin_check_availability', {
+      accountId: selectedAccountId,
+    })
       .then((r) => {
         if (isCancelled()) return;
         setPinAvailable(r.configured && !r.locked);
@@ -224,35 +223,43 @@ export function LoginPage() {
     }
   }, [bioChecked, pinChecked, bioAvailable, pinAvailable, biometryTypeRaw]);
 
-  const handlePinComplete = useCallback(async (pin: string) => {
-    if (!selectedAccountId || pinUnlocking) return;
-    setPinUnlocking(true);
-    setPinError(null);
-    const t0 = performance.now();
-    try {
-      // pin_unlock 直接返回账户信息（id + name），省去额外 vault_list_accounts 调用
-      const acc = await invoke<AccountInfo>('pin_unlock', { accountId: selectedAccountId, pin, location: 'login_page', action: 'unlock' });
-      console.warn('[PERF] PIN unlock total:', (performance.now() - t0).toFixed(1), 'ms');
-      useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
-      navigate('/');
-    } catch (e) {
-      console.warn('[PERF] PIN unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
-      const msg = String(e);
-      if (msg.includes('__PIN_ERR__:locked')) {
-        setPinError(t('auth:pin_locked'));
-        setPinAvailable(false);
-        // 锁定后降级到主密码
-        setLoginMethod('password');
-      } else if (msg.includes('__PIN_ERR__:incorrect')) {
-        setPinError(t('auth:pin_incorrect'));
-      } else {
-        setPinError(t('auth:pin_error'));
+  const handlePinComplete = useCallback(
+    async (pin: string) => {
+      if (!selectedAccountId || pinUnlocking) return;
+      setPinUnlocking(true);
+      setPinError(null);
+      const t0 = performance.now();
+      try {
+        // pin_unlock 直接返回账户信息（id + name），省去额外 vault_list_accounts 调用
+        const acc = await invoke<AccountInfo>('pin_unlock', {
+          accountId: selectedAccountId,
+          pin,
+          location: 'login_page',
+          action: 'unlock',
+        });
+        console.warn('[PERF] PIN unlock total:', (performance.now() - t0).toFixed(1), 'ms');
+        useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
+        navigate('/');
+      } catch (e) {
+        console.warn('[PERF] PIN unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
+        const msg = String(e);
+        if (msg.includes('__PIN_ERR__:locked')) {
+          setPinError(t('auth:pin_locked'));
+          setPinAvailable(false);
+          // 锁定后降级到主密码
+          setLoginMethod('password');
+        } else if (msg.includes('__PIN_ERR__:incorrect')) {
+          setPinError(t('auth:pin_incorrect'));
+        } else {
+          setPinError(t('auth:pin_error'));
+        }
+        // 清空 PinInput 控件状态
+        setPinInputKey((k) => k + 1);
+        setPinUnlocking(false);
       }
-      // 清空 PinInput 控件状态
-      setPinInputKey((k) => k + 1);
-      setPinUnlocking(false);
-    }
-  }, [selectedAccountId, pinUnlocking, t, navigate]);
+    },
+    [selectedAccountId, pinUnlocking, t, navigate],
+  );
 
   const handleBiometricUnlock = useCallback(async () => {
     if (!selectedAccountId || bioLoading) return;
@@ -331,7 +338,10 @@ export function LoginPage() {
       id: 'faceId',
       icon: <ScanFace size={ICON_SIZE.xl} />,
       label: 'Face ID',
-      onClick: () => { setLoginMethod('faceId'); setBioError(null); },
+      onClick: () => {
+        setLoginMethod('faceId');
+        setBioError(null);
+      },
     });
   }
   // 3. Touch ID
@@ -340,7 +350,10 @@ export function LoginPage() {
       id: 'touchId',
       icon: <Fingerprint size={ICON_SIZE.xl} />,
       label: 'Touch ID',
-      onClick: () => { setLoginMethod('touchId'); setBioError(null); },
+      onClick: () => {
+        setLoginMethod('touchId');
+        setBioError(null);
+      },
     });
   }
   // 4. Windows Hello
@@ -349,7 +362,10 @@ export function LoginPage() {
       id: 'windowsHello',
       icon: <ShieldCheck size={ICON_SIZE.xl} />,
       label: 'Windows Hello',
-      onClick: () => { setLoginMethod('windowsHello'); setBioError(null); },
+      onClick: () => {
+        setLoginMethod('windowsHello');
+        setBioError(null);
+      },
     });
   }
   // 5. PIN 码
@@ -358,7 +374,10 @@ export function LoginPage() {
       id: 'pin',
       icon: <Grip size={ICON_SIZE.xl} />,
       label: t('auth:pin_method', { defaultValue: 'PIN 码' }),
-      onClick: () => { setLoginMethod('pin'); setPinError(null); },
+      onClick: () => {
+        setLoginMethod('pin');
+        setPinError(null);
+      },
     });
   }
 
@@ -405,14 +424,25 @@ export function LoginPage() {
         }}
       >
         <ShieldLogo size={ICON_SIZE['5xl']} style={{ margin: '0 auto 16px' }} />
-        <h1 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>{t('auth:login_title')}</h1>
-        <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 4 }}>
+        <h1 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>
+          {t('auth:login_title')}
+        </h1>
+        <p
+          style={{
+            fontSize: 'var(--text-body-sm)',
+            color: 'var(--text-secondary)',
+            marginBottom: 4,
+          }}
+        >
           {t('auth:login_subtitle')}
         </p>
 
         {/* Account selector / name — 始终预留空间，避免切换登录方式时下方内容位移 */}
-        <div style={{ marginBottom: 20, width: '100%', minHeight: accounts.length > 0 ? 'auto' : 50 }}>
-            {accounts.length > 0 && (accounts.length > 1 ? (
+        <div
+          style={{ marginBottom: 20, width: '100%', minHeight: accounts.length > 0 ? 'auto' : 50 }}
+        >
+          {accounts.length > 0 &&
+            (accounts.length > 1 ? (
               <select
                 value={selectedAccountId}
                 onChange={(e) => setSelectedAccountId(e.target.value)}
@@ -464,10 +494,12 @@ export function LoginPage() {
                 </div>
               </div>
             ))}
-          </div>
+        </div>
 
         {/* Biometric unlock — highest-priority method */}
-        {(loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello') && (
+        {(loginMethod === 'faceId' ||
+          loginMethod === 'touchId' ||
+          loginMethod === 'windowsHello') && (
           <div
             style={{
               minHeight: 152,
@@ -496,21 +528,42 @@ export function LoginPage() {
               }}
             >
               {loginMethod === 'faceId' && (
-                <ScanFace size={ICON_SIZE['4xl']} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
+                <ScanFace
+                  size={ICON_SIZE['4xl']}
+                  color="var(--accent-primary)"
+                  style={{ opacity: bioLoading ? 0.5 : 1 }}
+                />
               )}
               {loginMethod === 'touchId' && (
-                <Fingerprint size={ICON_SIZE['4xl']} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
+                <Fingerprint
+                  size={ICON_SIZE['4xl']}
+                  color="var(--accent-primary)"
+                  style={{ opacity: bioLoading ? 0.5 : 1 }}
+                />
               )}
               {loginMethod === 'windowsHello' && (
-                <ShieldCheck size={ICON_SIZE['4xl']} color="var(--accent-primary)" style={{ opacity: bioLoading ? 0.5 : 1 }} />
+                <ShieldCheck
+                  size={ICON_SIZE['4xl']}
+                  color="var(--accent-primary)"
+                  style={{ opacity: bioLoading ? 0.5 : 1 }}
+                />
               )}
-              <span style={{ fontSize: 'var(--text-card-title)', fontWeight: 500, color: 'var(--text-primary)' }}>
+              <span
+                style={{
+                  fontSize: 'var(--text-card-title)',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)',
+                }}
+              >
                 {bioLoading
                   ? t('auth:bio_verifying')
                   : t('auth:bio_unlock_reason', {
-                      type: loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello'
-                        ? BIOMETRIC_LABEL[loginMethod] || loginMethod
-                        : biometryType,
+                      type:
+                        loginMethod === 'faceId' ||
+                        loginMethod === 'touchId' ||
+                        loginMethod === 'windowsHello'
+                          ? BIOMETRIC_LABEL[loginMethod] || loginMethod
+                          : biometryType,
                     })}
               </span>
             </button>
@@ -544,7 +597,13 @@ export function LoginPage() {
               }}
             >
               <Grip size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
-              <span style={{ fontSize: 'var(--text-card-title)', fontWeight: 500, color: 'var(--text-primary)' }}>
+              <span
+                style={{
+                  fontSize: 'var(--text-card-title)',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)',
+                }}
+              >
                 {t('auth:pin_enter_title')}
               </span>
               <PinInput
@@ -557,9 +616,7 @@ export function LoginPage() {
                 verifying={pinUnlocking}
               />
               {pinError && (
-                <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>
-                  {pinError}
-                </div>
+                <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>{pinError}</div>
               )}
             </div>
           </div>
@@ -576,68 +633,74 @@ export function LoginPage() {
               marginBottom: 16,
             }}
           >
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-          >
-            <SecurePasswordInput
-              value={password}
-              onChange={(v) => setPassword(v)}
-              placeholder={t('common:password_placeholder')}
-              hint={selectedAccount?.passwordHint || null}
-              autoComplete="current-password"
-              onEnter={handleSubmit}
-            />
-            {(error || bioError || submitError || pinError) && (
-              <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>
-                {pinError || submitError || bioError || (error
-                  ? error.toLowerCase().includes('8 characters') ||
-                    error.toLowerCase().includes('至少')
-                    ? t('auth:password_too_short')
-                    : error.toLowerCase().includes('password') ||
-                      error.toLowerCase().includes('invalid')
-                      ? t('auth:incorrect_password')
-                      : error.toLowerCase().includes('required')
-                        ? t('auth:password_required')
-                        : error
-                  : '')}
-              </div>
-            )}
-            <button
-              type="submit"
-              disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '8px 16px',
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: isLoading ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
-                color: isLoading ? 'var(--accent-primary)' : 'var(--text-primary)',
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 500,
-                fontFamily: 'inherit',
-                cursor: isLoading ? 'default' : 'pointer',
-                opacity: isLoading ? 0.6 : 1,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (!isLoading) {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isLoading) {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                }
-              }}
+            <form
+              onSubmit={handleSubmit}
+              style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
             >
-              {isLoading ? t('common:loading', { defaultValue: '...' }) : t('auth:login_button')}
-            </button>
-          </form>
+              <SecurePasswordInput
+                value={password}
+                onChange={(v) => setPassword(v)}
+                placeholder={t('common:password_placeholder')}
+                hint={selectedAccount?.passwordHint || null}
+                autoComplete="current-password"
+                onEnter={handleSubmit}
+              />
+              {(error || bioError || submitError || pinError) && (
+                <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>
+                  {pinError ||
+                    submitError ||
+                    bioError ||
+                    (error
+                      ? error.toLowerCase().includes('8 characters') ||
+                        error.toLowerCase().includes('至少')
+                        ? t('auth:password_too_short')
+                        : error.toLowerCase().includes('password') ||
+                            error.toLowerCase().includes('invalid')
+                          ? t('auth:incorrect_password')
+                          : error.toLowerCase().includes('required')
+                            ? t('auth:password_required')
+                            : error
+                      : '')}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={isLoading}
+                style={{
+                  width: '100%',
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: isLoading
+                    ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                    : 'var(--bg-toolbar)',
+                  color: isLoading ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  cursor: isLoading ? 'default' : 'pointer',
+                  opacity: isLoading ? 0.6 : 1,
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }
+                }}
+              >
+                {isLoading ? t('common:loading', { defaultValue: '...' }) : t('auth:login_button')}
+              </button>
+            </form>
           </div>
         )}
 
@@ -702,7 +765,10 @@ export function LoginPage() {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     maxWidth: isExpanded ? 200 : 40,
-                    transition: isExpanded || (!isHovered && !isExpanded) ? 'all 0.25s ease' : 'all 0.25s ease, max-width 0.01s linear 0.2s',
+                    transition:
+                      isExpanded || (!isHovered && !isExpanded)
+                        ? 'all 0.25s ease'
+                        : 'all 0.25s ease, max-width 0.01s linear 0.2s',
                     flexShrink: 0,
                     outline: 'none',
                   }}

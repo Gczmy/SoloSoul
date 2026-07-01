@@ -57,8 +57,6 @@ async function registerDragDropListener(
   }
 }
 
-
-
 /**
  * useDragToAttach
  *
@@ -71,10 +69,7 @@ async function registerDragDropListener(
  * @returns dragRef - 绑定到目标元素的 ref
  *          dragState - 当前拖拽/上传状态，用于渲染 UI 反馈
  */
-export function useDragToAttach(
-  objectId: string | null,
-  options?: UseDragToAttachOptions,
-) {
+export function useDragToAttach(objectId: string | null, options?: UseDragToAttachOptions) {
   const ref = useRef<HTMLDivElement>(null);
   const objectIdRef = useRef(objectId);
   const onCompleteRef = useRef(options?.onComplete);
@@ -90,7 +85,9 @@ export function useDragToAttach(
    * Tauri v2 的 onDragDropEvent 在某些场景下会触发重复 drop 事件。
    * 保存最近 1 秒内的签名以避免重复处理。
    */
-  const recentDropSignaturesRef = useRef<{ sig: string; timer: ReturnType<typeof setTimeout> }[]>([]);
+  const recentDropSignaturesRef = useRef<{ sig: string; timer: ReturnType<typeof setTimeout> }[]>(
+    [],
+  );
 
   /** 检查并记录 drop 签名，重复时返回 true */
   const isDuplicateDrop = useRef((paths: string[]): boolean => {
@@ -111,19 +108,15 @@ export function useDragToAttach(
   const processBatch = useRef(async (paths: string[], objId: string) => {
     const runningObjId = objId;
     try {
-      await uploadAttachmentsSequentially(
-        paths,
-        runningObjId,
-        (i, total, fileName) => {
-          if (mountedRef.current) {
-            setDragState((prev) => ({
-              ...prev,
-              currentIndex: i,
-              currentFileName: fileName,
-            }));
-          }
-        },
-      );
+      await uploadAttachmentsSequentially(paths, runningObjId, (i, total, fileName) => {
+        if (mountedRef.current) {
+          setDragState((prev) => ({
+            ...prev,
+            currentIndex: i,
+            currentFileName: fileName,
+          }));
+        }
+      });
     } catch (e) {
       // 保留 console.error 用于调试追溯（错误对象 e 仅在 catch 作用域内）
       console.error('Drag-drop upload failed:', e);
@@ -136,19 +129,13 @@ export function useDragToAttach(
       const nextBatch = pendingQueueRef.current.shift();
       if (nextBatch && mountedRef.current) {
         // 更新 pendingFiles 计数
-        const remaining = pendingQueueRef.current.reduce(
-          (sum, batch) => sum + batch.length,
-          0,
-        );
+        const remaining = pendingQueueRef.current.reduce((sum, batch) => sum + batch.length, 0);
         setDragState({
           isDraggingOver: false,
           isUploading: true,
           currentIndex: 0,
           totalFiles: nextBatch.length,
-          currentFileName:
-            nextBatch[0]?.split('/').pop() ||
-            nextBatch[0]?.split('\\').pop() ||
-            '',
+          currentFileName: nextBatch[0]?.split('/').pop() || nextBatch[0]?.split('\\').pop() || '',
           pendingFiles: remaining,
         });
         await processBatchRef.current(nextBatch, runningObjId);
@@ -187,13 +174,12 @@ export function useDragToAttach(
         // 当弹窗（如 AttachmentViewer/ObjectDetailModal）覆盖在工作区卡片上方时，
         // 被覆盖的卡片虽然 getBoundingClientRect() 仍然有效，但实际上不应接收 drop。
         // elementFromPoint(x, y) 返回视觉上最顶层的元素，检查它是否属于当前 ref 的子树。
-        const topEl = pos !== undefined
-          ? document.elementFromPoint(pos.x, pos.y)
-          : null;
+        const topEl = pos !== undefined ? document.elementFromPoint(pos.x, pos.y) : null;
         const isTopReceiver = topEl !== null && (topEl === el || el.contains(topEl));
 
         const rect = el.getBoundingClientRect();
-        const isOverBounds = isTopReceiver &&
+        const isOverBounds =
+          isTopReceiver &&
           pos !== undefined &&
           pos.x >= rect.left &&
           pos.x <= rect.right &&
@@ -249,10 +235,7 @@ export function useDragToAttach(
               isUploadingRef.current = true;
 
               const objId = currentObjectId;
-              const firstFileName =
-                files[0]?.split('/').pop() ||
-                files[0]?.split('\\').pop() ||
-                '';
+              const firstFileName = files[0]?.split('/').pop() || files[0]?.split('\\').pop() || '';
 
               setDragState({
                 isDraggingOver: false,

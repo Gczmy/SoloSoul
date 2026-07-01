@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 type GuideImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
 
 export function GuideImage(props: GuideImageProps) {

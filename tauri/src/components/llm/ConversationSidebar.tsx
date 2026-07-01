@@ -6,7 +6,6 @@ import { Plus, Pencil, Trash2, Undo2 } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface ConversationSummary {
   id: string;
   name: string;
@@ -85,12 +84,7 @@ export function ConversationSidebar({
           flexShrink: 0,
         }}
       >
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onNewConversation}
-          style={{ width: '100%' }}
-        >
+        <Button variant="secondary" size="sm" onClick={onNewConversation} style={{ width: '100%' }}>
           <Plus size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('settings:ai_new_conv')}
         </Button>
       </div>
@@ -162,7 +156,13 @@ export function ConversationSidebar({
                   >
                     {conv.name || t('settings:ai_untitled')}
                   </div>
-                  <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 'var(--text-badge)',
+                      color: 'var(--text-tertiary)',
+                      marginTop: 1,
+                    }}
+                  >
                     {formatRelative(conv.updatedAt)}
                   </div>
                 </>

@@ -37,7 +37,10 @@ function formatY(value: number): string {
   return value.toFixed(0);
 }
 
-export const DailySparklineCard = memo(function DailySparklineCard({ daily, t }: DailySparklineCardProps) {
+export const DailySparklineCard = memo(function DailySparklineCard({
+  daily,
+  t,
+}: DailySparklineCardProps) {
   const sorted = [...daily].sort((a, b) => a.date.localeCompare(b.date));
   const last14 = sorted.length > 14 ? sorted.slice(sorted.length - 14) : sorted;
   if (last14.length === 0) return null;
@@ -184,7 +187,9 @@ export const DailySparklineCard = memo(function DailySparklineCard({ daily, t }:
             return (
               <div key={s.name} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 10, height: 3, borderRadius: 2, background: color }} />
-                <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>{s.name}</span>
+                <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                  {s.name}
+                </span>
               </div>
             );
           })}

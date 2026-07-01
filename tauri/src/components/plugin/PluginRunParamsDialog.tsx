@@ -6,7 +6,6 @@ import type { PluginParam } from '@/lib/plugin';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface PluginRunParamsDialogProps {
   pluginName: string;
   params: PluginParam[];

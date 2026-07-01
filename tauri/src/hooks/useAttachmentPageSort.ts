@@ -39,8 +39,8 @@ export function useAttachmentPageSort<T extends SortableAttachmentPage>(pages: T
       if (bIsSystem) return 1;
 
       // Both are custom pages — sort by sortOrder from settings store
-      const aOrder = a.pageId ? customPageOrder.get(a.pageId) ?? 999 : 999;
-      const bOrder = b.pageId ? customPageOrder.get(b.pageId) ?? 999 : 999;
+      const aOrder = a.pageId ? (customPageOrder.get(a.pageId) ?? 999) : 999;
+      const bOrder = b.pageId ? (customPageOrder.get(b.pageId) ?? 999) : 999;
       return aOrder - bOrder;
     });
   }, [pages, customPageOrder]);

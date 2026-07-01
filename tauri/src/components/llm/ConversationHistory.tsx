@@ -4,7 +4,6 @@ import { MessageSquare } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface ConversationSummary {
   id: string;
   name: string;

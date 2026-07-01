@@ -96,10 +96,7 @@ export async function pickFileToAttach(): Promise<string | null> {
  * @param objectId  - 目标对象 ID
  * @returns 新创建的附件 ID
  */
-export async function uploadSingleAttachment(
-  filePath: string,
-  objectId: string,
-): Promise<string> {
+export async function uploadSingleAttachment(filePath: string, objectId: string): Promise<string> {
   const fileName = getFileName(filePath);
   const sizeBytes = await getFileSize(filePath);
   const id = crypto.randomUUID();

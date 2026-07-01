@@ -32,7 +32,9 @@
   font-size: var(--text-body);
   background: var(--bg-elevated);
   color: var(--text-primary);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .input:hover:not(:disabled),

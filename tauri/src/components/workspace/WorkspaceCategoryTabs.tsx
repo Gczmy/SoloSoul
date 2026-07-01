@@ -31,8 +31,7 @@ export function WorkspaceCategoryTabs({
 
   const onTabEnter = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     if (e.currentTarget.dataset.active === 'true') return;
-    e.currentTarget.style.background =
-      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
     e.currentTarget.style.borderColor = 'var(--accent-primary)';
   }, []);
   const onTabLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {

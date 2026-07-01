@@ -1,7 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface GuideStepperProps {
   title?: string;
   children: React.ReactNode;

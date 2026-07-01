@@ -77,7 +77,9 @@ export const useOcrInstallStore = create<OcrInstallState>((set, get) => ({
     const state = get();
     state.unlisten?.();
     if (state.unlistenPromise) {
-      state.unlistenPromise.then((fn) => fn()).catch((err) => console.warn('[ocrInstallStore] Failed to clean up listener:', err));
+      state.unlistenPromise
+        .then((fn) => fn())
+        .catch((err) => console.warn('[ocrInstallStore] Failed to clean up listener:', err));
     }
   },
 

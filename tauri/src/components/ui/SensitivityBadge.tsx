@@ -32,7 +32,11 @@ export function getSensitivityStyle(level: SensitivityLevel) {
   return STYLES[level] || STYLES.internal;
 }
 
-export const SensitivityBadge = memo(function SensitivityBadge({ level }: { level: SensitivityLevel }) {
+export const SensitivityBadge = memo(function SensitivityBadge({
+  level,
+}: {
+  level: SensitivityLevel;
+}) {
   const { t } = useTranslation('sensitivity');
   const s = getSensitivityStyle(level);
   const label = t(level);

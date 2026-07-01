@@ -17,9 +17,15 @@ function createLocalStorageMock() {
   let store: Record<string, string> = {};
   return {
     getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { store = {}; },
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
   };
 }
 
@@ -78,7 +84,13 @@ describe('ocrScanStore', () => {
     });
 
     it('MRZ 模式扫描成功', async () => {
-      const mrzResult = { documentType: 'P', documentNumber: 'AB123', rawLines: [], confidence: 0.95, checksumValid: true };
+      const mrzResult = {
+        documentType: 'P',
+        documentNumber: 'AB123',
+        rawLines: [],
+        confidence: 0.95,
+        checksumValid: true,
+      };
       mockScanMrz.mockResolvedValue(mrzResult);
 
       const { useOcrScanStore } = await import('./ocrScanStore');

@@ -28,9 +28,7 @@ export function PluginResultSection({
     results
       .map((r) => {
         if (r.type === 'key_value') {
-          const rows = r.pairs
-            .map((p) => `| ${p.key} | ${p.value} |`)
-            .join('\n');
+          const rows = r.pairs.map((p) => `| ${p.key} | ${p.value} |`).join('\n');
           const header = r.title ? `### ${r.title}\n\n` : '';
           return `${header}| Key | Value |\n| --- | --- |\n${rows}`;
         }

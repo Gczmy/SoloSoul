@@ -85,5 +85,3 @@ export async function initLlmNotificationListener(): Promise<void> {
 export function markConversationPending(convId: string): void {
   pendingConversations.add(convId);
 }
-
-

@@ -10,7 +10,6 @@ import type { MarketPluginInfo, PluginManifest } from '@/lib/plugin';
 import type { RunningPlugin } from '@/stores/pluginStore';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface PluginCardProps {
   info: MarketPluginInfo;
   manifest?: PluginManifest;
@@ -94,7 +93,9 @@ export function PluginCard({
           <h3 className={styles.name}>{displayName}</h3>
           <div className={styles.badgeGroup}>
             {statuses.map((s) => (
-              <span key={s.className} className={`${styles.status} ${s.className}`}>{s.label}</span>
+              <span key={s.className} className={`${styles.status} ${s.className}`}>
+                {s.label}
+              </span>
             ))}
           </div>
         </div>
@@ -114,7 +115,11 @@ export function PluginCard({
         <div className={styles.actionsLeft}>
           {installed && info.isCompatible && (
             <button className={styles.runBtn} onClick={onRun} disabled={isRunning}>
-              {isRunning ? <Loader2 size={ICON_SIZE.sm} className={styles.spin} /> : <Play size={ICON_SIZE.sm} />}
+              {isRunning ? (
+                <Loader2 size={ICON_SIZE.sm} className={styles.spin} />
+              ) : (
+                <Play size={ICON_SIZE.sm} />
+              )}
               {isRunning
                 ? t('status_running', { defaultValue: 'Running' })
                 : t('run', { defaultValue: 'Run' })}
@@ -141,11 +146,20 @@ export function PluginCard({
         </div>
         {installed && (
           <div className={styles.actionsRight}>
-            <DeleteButton onClick={() => requestConfirm(
-                t('uninstall_confirm_title', { defaultValue: 'Uninstall Plugin' }),
-                t('uninstall_confirm_message', { defaultValue: 'Are you sure you want to uninstall "{{name}}"? This action will remove the plugin and its local data.', name: displayName }),
-                onUninstall,
-              )} title={t('uninstall', { defaultValue: 'Uninstall' })}>
+            <DeleteButton
+              onClick={() =>
+                requestConfirm(
+                  t('uninstall_confirm_title', { defaultValue: 'Uninstall Plugin' }),
+                  t('uninstall_confirm_message', {
+                    defaultValue:
+                      'Are you sure you want to uninstall "{{name}}"? This action will remove the plugin and its local data.',
+                    name: displayName,
+                  }),
+                  onUninstall,
+                )
+              }
+              title={t('uninstall', { defaultValue: 'Uninstall' })}
+            >
               {t('uninstall', { defaultValue: 'Uninstall' })}
             </DeleteButton>
           </div>

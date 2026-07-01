@@ -193,10 +193,10 @@
   --page-content-gap-lg: var(--space-2xl); /* 24px */
 
   /* Card gaps — aligned with text scale */
-  --card-gap-xs: var(--space-md);   /* 8px  — ultra-compact / small text cards */
-  --card-gap-sm: var(--space-lg);   /* 12px — default card lists, matches --text-body */
-  --card-gap-md: var(--space-xl);   /* 16px — medium density, matches --text-section-title */
-  --card-gap-lg: var(--space-2xl);  /* 24px — loose / large cards, matches --text-page-title */
+  --card-gap-xs: var(--space-md); /* 8px  — ultra-compact / small text cards */
+  --card-gap-sm: var(--space-lg); /* 12px — default card lists, matches --text-body */
+  --card-gap-md: var(--space-xl); /* 16px — medium density, matches --text-section-title */
+  --card-gap-lg: var(--space-2xl); /* 24px — loose / large cards, matches --text-page-title */
 
   /* Card grids */
   --card-grid-min-width: 240px;

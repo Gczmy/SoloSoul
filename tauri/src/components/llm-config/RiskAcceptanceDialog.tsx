@@ -16,7 +16,8 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
   if (!open) return null;
 
   return (
-    <div        style={{
+    <div
+      style={{
         position: 'fixed',
         inset: 0,
         zIndex: 3000,
@@ -48,7 +49,8 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
             gap: 8,
           }}
         >
-          <span style={{ fontSize: 'var(--text-page-title)' }}>⚠</span> {t('settings:ai_risk_title')}
+          <span style={{ fontSize: 'var(--text-page-title)' }}>⚠</span>{' '}
+          {t('settings:ai_risk_title')}
         </h3>
         <p
           style={{
@@ -84,10 +86,7 @@ export function RiskAcceptanceDialog({ open, onClose, onAccept }: RiskAcceptance
             fontSize: 'var(--text-body-sm)',
           }}
         >
-          <SelectCheckbox
-            checked={riskChecked}
-            onChange={(v) => setRiskChecked(v)}
-          />
+          <SelectCheckbox checked={riskChecked} onChange={(v) => setRiskChecked(v)} />
           {t('settings:ai_risk_agree')}
         </label>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DeleteButton } from '@/components/ui/DeleteButton';
@@ -7,11 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SensitivityBadge as UiSensitivityBadge } from '@/components/ui/SensitivityBadge';
-import {
-  CUSTOM_ICON_MAP,
-  resolveCustomIcon,
-  type CustomIconId,
-} from '@/lib/pageIcons';
+import { CUSTOM_ICON_MAP, resolveCustomIcon, type CustomIconId } from '@/lib/pageIcons';
 import type {
   UserTemplate,
   TemplateProperty,
@@ -21,10 +16,9 @@ import type {
 import { TemplateTypeSelect } from './TemplateTypeSelect';
 import { TemplatePageSelect } from './TemplatePageSelect';
 import { IconPicker } from './IconPicker';
-import { OptionsEditor }  from './OptionsEditor';
+import { OptionsEditor } from './OptionsEditor';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 interface FieldUsage {
   active: number;
@@ -61,7 +55,6 @@ interface TemplateEditorProps {
 const SENSITIVITY_LEVELS: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 
 export function TemplateEditor({
-
   editName,
   editCategory,
   editIconId,
@@ -140,13 +133,11 @@ export function TemplateEditor({
               : resolveCustomIcon(editIconId),
             { size: 18, style: { color: 'var(--accent-primary)', flexShrink: 0 } },
           )}
-          <span style={{ flex: 1 }}>
-            {t('settings:template_icon') || '模板图标'}
-          </span>
+          <span style={{ flex: 1 }}>{t('settings:template_icon') || '模板图标'}</span>
           <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
             {showIconPicker
-              ? (t('common:collapse') || '收起')
-              : (t('settings:click_to_change_icon') || '点击选择图标')}
+              ? t('common:collapse') || '收起'
+              : t('settings:click_to_change_icon') || '点击选择图标'}
           </span>
         </button>
         {showIconPicker && <IconPicker value={editIconId} onChange={onEditIconIdChange} />}
@@ -174,7 +165,13 @@ export function TemplateEditor({
         >
           {editProperties.filter((p) => !p.deprecatedAt).length === 0 &&
             editProperties.filter((p) => p.deprecatedAt).length === 0 && (
-              <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', padding: '12px 0' }}>
+              <div
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  padding: '12px 0',
+                }}
+              >
                 {t('settings:empty_template_hint') || '此模板暂无字段，点击下方添加'}
               </div>
             )}
@@ -241,20 +238,22 @@ export function TemplateEditor({
                       minWidth: 90,
                     }}
                   >
-                    {([
-                      'text',
-                      'multiline',
-                      'number',
-                      'date',
-                      'datetime',
-                      'boolean',
-                      'select',
-                      'multiselect',
-                      'url',
-                      'email',
-                      'phone',
-                      'file',
-                    ] as PropertyType[]).map((pt) => (
+                    {(
+                      [
+                        'text',
+                        'multiline',
+                        'number',
+                        'date',
+                        'datetime',
+                        'boolean',
+                        'select',
+                        'multiselect',
+                        'url',
+                        'email',
+                        'phone',
+                        'file',
+                      ] as PropertyType[]
+                    ).map((pt) => (
                       <option key={pt} value={pt}>
                         {t(`editor:field_types.${pt}`, pt)}
                       </option>
@@ -319,7 +318,8 @@ export function TemplateEditor({
             type="button"
             onClick={onAddProperty}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               e.currentTarget.style.borderColor = 'var(--accent-primary)';
             }}
             onMouseLeave={(e) => {
@@ -444,7 +444,7 @@ function DeprecatedFieldsSection({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <FieldTypeIcon type={prop.type} size={ICON_SIZE.sm} />
+                  <FieldTypeIcon type={prop.type} size={ICON_SIZE.sm} />
                   <span
                     style={{
                       fontSize: 'var(--text-body)',

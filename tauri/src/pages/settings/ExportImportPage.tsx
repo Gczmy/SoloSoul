@@ -247,9 +247,10 @@ export function ExportImportPage() {
     setIsImporting(true);
     try {
       if (showStrategySelector && decryptedPreview) {
-        const selections = Array.from(importSelections.entries()).map(
-          ([objectId, selected]) => ({ objectId, selected }),
-        );
+        const selections = Array.from(importSelections.entries()).map(([objectId, selected]) => ({
+          objectId,
+          selected,
+        }));
         const result = await invoke<ImportResult>('import_execute_advanced', {
           accountId,
           req: {
@@ -259,20 +260,24 @@ export function ExportImportPage() {
             password: importPw,
           },
         });
-        onSuccess(t('settings:import_success_with_attachments', {
-          count: result.objectCount,
-          attachments: result.attachmentCount,
-        }));
+        onSuccess(
+          t('settings:import_success_with_attachments', {
+            count: result.objectCount,
+            attachments: result.attachmentCount,
+          }),
+        );
       } else {
         const result = await invoke<ImportResult>('import_execute', {
           accountId,
           filePath: importPath,
           password: importPw,
         });
-        onSuccess(t('settings:import_success_with_attachments', {
-          count: result.objectCount,
-          attachments: result.attachmentCount,
-        }));
+        onSuccess(
+          t('settings:import_success_with_attachments', {
+            count: result.objectCount,
+            attachments: result.attachmentCount,
+          }),
+        );
       }
       setImportPreview(null);
       setDecryptedPreview(null);
@@ -307,50 +312,50 @@ export function ExportImportPage() {
             transition={{ duration: 0.2 }}
             style={{ display: 'flex', flexDirection: 'column', gap: 'var(--page-gap)' }}
           >
-          <ExportSection
-            pageGroups={pageGroups}
-            selectedPageIds={selectedPageIds}
-            selectedObjectIds={selectedObjectIds}
-            expandedPages={expandedPages}
-            exportPassword={exportPassword}
-            exportPasswordConfirm={exportPasswordConfirm}
-            exportHint={exportHint}
-            savePath={savePath}
-            isExporting={isExporting}
-            showHintWarning={showHintWarning}
-            selectedTags={selectedTags}
-            includeAttachments={includeAttachments}
-            selectedAttachmentIds={selectedAttachmentIds}
-            objectAttachments={objectAttachments}
-            expandedObjects={expandedObjects}
-            includePreferences={includePreferences}
-            includeBehavioral={includeBehavioral}
-            exportEstimate={exportEstimate}
-            estimating={estimating}
-            hasSensitiveData={hasSensitiveData}
-            allTags={allTags}
-            totalSelected={totalSelected}
-            onTogglePage={togglePage}
-            onToggleObject={toggleObject}
-            onToggleObjectExpanded={toggleObjectExpanded}
-            onToggleAttachment={toggleAttachment}
-            onSetExportPassword={setExportPassword}
-            onSetExportPasswordConfirm={setExportPasswordConfirm}
-            onSetExportHint={setExportHint}
-            onSetSavePath={setSavePath}
-            onExport={handleExport}
-            onSetShowHintWarning={setShowHintWarning}
-            onSetSelectedTags={(updater) => setSelectedTags(updater)}
-            onSetIncludeAttachments={setIncludeAttachments}
-            onSetIncludePreferences={setIncludePreferences}
-            onSetIncludeBehavioral={setIncludeBehavioral}
-            onToggleExpandedPage={toggleExpandedPage}
-            onSetShowHintWarningAndExport={() => {
-              skipHintCheckRef.current = true;
-              setShowHintWarning(false);
-              handleExport();
-            }}
-          />
+            <ExportSection
+              pageGroups={pageGroups}
+              selectedPageIds={selectedPageIds}
+              selectedObjectIds={selectedObjectIds}
+              expandedPages={expandedPages}
+              exportPassword={exportPassword}
+              exportPasswordConfirm={exportPasswordConfirm}
+              exportHint={exportHint}
+              savePath={savePath}
+              isExporting={isExporting}
+              showHintWarning={showHintWarning}
+              selectedTags={selectedTags}
+              includeAttachments={includeAttachments}
+              selectedAttachmentIds={selectedAttachmentIds}
+              objectAttachments={objectAttachments}
+              expandedObjects={expandedObjects}
+              includePreferences={includePreferences}
+              includeBehavioral={includeBehavioral}
+              exportEstimate={exportEstimate}
+              estimating={estimating}
+              hasSensitiveData={hasSensitiveData}
+              allTags={allTags}
+              totalSelected={totalSelected}
+              onTogglePage={togglePage}
+              onToggleObject={toggleObject}
+              onToggleObjectExpanded={toggleObjectExpanded}
+              onToggleAttachment={toggleAttachment}
+              onSetExportPassword={setExportPassword}
+              onSetExportPasswordConfirm={setExportPasswordConfirm}
+              onSetExportHint={setExportHint}
+              onSetSavePath={setSavePath}
+              onExport={handleExport}
+              onSetShowHintWarning={setShowHintWarning}
+              onSetSelectedTags={(updater) => setSelectedTags(updater)}
+              onSetIncludeAttachments={setIncludeAttachments}
+              onSetIncludePreferences={setIncludePreferences}
+              onSetIncludeBehavioral={setIncludeBehavioral}
+              onToggleExpandedPage={toggleExpandedPage}
+              onSetShowHintWarningAndExport={() => {
+                skipHintCheckRef.current = true;
+                setShowHintWarning(false);
+                handleExport();
+              }}
+            />
           </motion.div>
         ) : tab === 'import' ? (
           <ImportSection

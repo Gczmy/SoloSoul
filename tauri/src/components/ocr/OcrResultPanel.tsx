@@ -4,7 +4,6 @@ import type { OcrScanEntry } from '@/stores/ocrScanStore';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface OcrResultPanelProps {
   currentEntry: OcrScanEntry | null;
   isScanning: boolean;
@@ -60,9 +59,7 @@ export function OcrResultPanel({ currentEntry, isScanning, lastScanError }: OcrR
         >
           {currentEntry.fileName}
         </span>
-        <span style={{ flexShrink: 0 }}>
-          {currentEntry.mode === 'mrz' ? 'MRZ' : 'OCR'}
-        </span>
+        <span style={{ flexShrink: 0 }}>{currentEntry.mode === 'mrz' ? 'MRZ' : 'OCR'}</span>
       </div>
 
       {/* Last transient error (if different from current entry error) */}

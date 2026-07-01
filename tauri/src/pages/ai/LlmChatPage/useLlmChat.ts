@@ -173,7 +173,8 @@ export function useLlmChat(): UseLlmChatReturn {
   );
 
   // Scroll to bottom on new messages
-  const lastMessageKey = core.messages.length > 0 ? core.messages[core.messages.length - 1].createdAt : null;
+  const lastMessageKey =
+    core.messages.length > 0 ? core.messages[core.messages.length - 1].createdAt : null;
   useEffect(() => {
     const el = document.querySelector('[data-chat-end]');
     el?.scrollIntoView({ behavior: 'auto' });

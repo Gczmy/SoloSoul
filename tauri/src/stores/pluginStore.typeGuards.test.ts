@@ -30,17 +30,23 @@ describe('isPluginLogLine', () => {
 
   it('returns false when message is not a string', async () => {
     const { isPluginLogLine } = await import('./pluginStore');
-    expect(isPluginLogLine({ id: 'log1', level: 'info', message: 123, timestamp: 1000 })).toBe(false);
+    expect(isPluginLogLine({ id: 'log1', level: 'info', message: 123, timestamp: 1000 })).toBe(
+      false,
+    );
   });
 
   it('returns false when timestamp is not a number', async () => {
     const { isPluginLogLine } = await import('./pluginStore');
-    expect(isPluginLogLine({ id: 'log1', level: 'info', message: 'hello', timestamp: '1000' })).toBe(false);
+    expect(
+      isPluginLogLine({ id: 'log1', level: 'info', message: 'hello', timestamp: '1000' }),
+    ).toBe(false);
   });
 
   it('returns false for an invalid level string', async () => {
     const { isPluginLogLine } = await import('./pluginStore');
-    expect(isPluginLogLine({ id: 'log1', level: 'critical', message: 'hello', timestamp: 1000 })).toBe(false);
+    expect(
+      isPluginLogLine({ id: 'log1', level: 'critical', message: 'hello', timestamp: 1000 }),
+    ).toBe(false);
   });
 
   it('returns true with extra properties', async () => {
@@ -99,14 +105,16 @@ describe('isPluginResultPayload', () => {
 
   it('rejects type "key_value" without title', async () => {
     const { isPluginResultPayload } = await import('./pluginStore');
-    expect(isPluginResultPayload({ type: 'key_value', pairs: [{ key: 'k', value: 'v' }] })).toBe(false);
+    expect(isPluginResultPayload({ type: 'key_value', pairs: [{ key: 'k', value: 'v' }] })).toBe(
+      false,
+    );
   });
 
   it('accepts type "table" with headers + rows arrays', async () => {
     const { isPluginResultPayload } = await import('./pluginStore');
-    expect(
-      isPluginResultPayload({ type: 'table', headers: ['A', 'B'], rows: [['1', '2']] }),
-    ).toBe(true);
+    expect(isPluginResultPayload({ type: 'table', headers: ['A', 'B'], rows: [['1', '2']] })).toBe(
+      true,
+    );
   });
 
   it('rejects type "table" without rows', async () => {

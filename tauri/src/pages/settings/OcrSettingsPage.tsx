@@ -10,7 +10,6 @@ import { getTierLabel } from '@/lib/ocr';
 import { Download, CheckCircle, AlertCircle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export function OcrSettingsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['ocr', 'settings', 'common']);
@@ -177,7 +176,8 @@ export function OcrSettingsPage() {
                         disabled={isInstalling}
                         onMouseEnter={(e) => {
                           if (!isInstalling) {
-                            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                            e.currentTarget.style.background =
+                              'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                             e.currentTarget.style.borderColor = 'var(--accent-primary)';
                             e.currentTarget.style.color = 'var(--accent-primary)';
                           }
@@ -218,7 +218,8 @@ export function OcrSettingsPage() {
                         disabled={isDownloading}
                         onMouseEnter={(e) => {
                           if (!isDownloading) {
-                            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                            e.currentTarget.style.background =
+                              'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                             e.currentTarget.style.borderColor = 'var(--accent-primary)';
                             e.currentTarget.style.color = 'var(--accent-primary)';
                           }

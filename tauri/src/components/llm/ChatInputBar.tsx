@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next';
 import { Send } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface ChatInputBarProps {
   input: string;
   onInputChange: (v: string) => void;
@@ -136,9 +135,7 @@ export function ChatInputBar({
                 ? 'var(--border-subtle)'
                 : 'var(--accent-primary)',
             color:
-              isSending || !input.trim() || isOnline === false
-                ? 'var(--text-tertiary)'
-                : 'white',
+              isSending || !input.trim() || isOnline === false ? 'var(--text-tertiary)' : 'white',
             cursor: 'pointer',
           }}
         >

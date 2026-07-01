@@ -8,7 +8,11 @@ interface KnowledgeBaseCardProps {
   onRebuild: () => void;
 }
 
-export function KnowledgeBaseCard({ embeddingAvailable, rebuilding, onRebuild }: KnowledgeBaseCardProps) {
+export function KnowledgeBaseCard({
+  embeddingAvailable,
+  rebuilding,
+  onRebuild,
+}: KnowledgeBaseCardProps) {
   const { t } = useTranslation(['settings', 'common']);
 
   return (

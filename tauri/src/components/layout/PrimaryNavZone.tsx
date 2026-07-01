@@ -160,10 +160,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
 
       {/* AddPageButton — vertical mode only (horizontal has it in SecondaryActionBar) */}
       {!isHorizontal && (
-        <div
-          onMouseEnter={() => setHovering(true)}
-          onMouseLeave={() => setHovering(false)}
-        >
+        <div onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)}>
           <AddPageButton
             onCreate={(page) => {
               navigate(`/workspace/custom/${page.id}`);

@@ -30,7 +30,9 @@ export function PinSection({ accountId }: PinSectionProps) {
 
   // Setup flow
   const [showSetup, setShowSetup] = useState(false);
-  const [setupStep, setSetupStep] = useState<'enter_password' | 'enter_pin' | 'confirm_pin'>('enter_password');
+  const [setupStep, setSetupStep] = useState<'enter_password' | 'enter_pin' | 'confirm_pin'>(
+    'enter_password',
+  );
   const [setupPassword, setSetupPassword] = useState('');
   const [setupPin1, setSetupPin1] = useState('');
   const [setupError, setSetupError] = useState<string | null>(null);
@@ -194,13 +196,17 @@ export function PinSection({ accountId }: PinSectionProps) {
             }}
           >
             <AlertTriangle size={ICON_SIZE.md} style={{ flexShrink: 0, marginTop: 1 }} />
-            <span>
-              {t('settings:pin_locked_warning')}
-            </span>
+            <span>{t('settings:pin_locked_warning')}</span>
           </div>
         )}
 
-        <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+        <p
+          style={{
+            fontSize: 'var(--text-body-sm)',
+            color: 'var(--text-secondary)',
+            marginBottom: 12,
+          }}
+        >
           {pinStatus.configured
             ? t('settings:pin_desc', { length: PIN_LENGTH })
             : t('settings:pin_not_configured_desc')}
@@ -277,20 +283,34 @@ export function PinSection({ accountId }: PinSectionProps) {
                 </h3>
                 <SecurePasswordInput
                   value={setupPassword}
-                  onChange={(v) => { setSetupPassword(v); setSetupError(null); }}
+                  onChange={(v) => {
+                    setSetupPassword(v);
+                    setSetupError(null);
+                  }}
                   placeholder={t('common:password_placeholder')}
                   hint={passwordHint}
                   autoComplete="current-password"
                   onEnter={handlePasswordSubmit}
                 />
                 {setupError && (
-                  <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', padding: '4px 0', marginTop: 8 }}>
+                  <div
+                    style={{
+                      color: '#dc2626',
+                      fontSize: 'var(--text-body-sm)',
+                      padding: '4px 0',
+                      marginTop: 8,
+                    }}
+                  >
                     {setupError}
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
-                  <Button variant="secondary" onClick={handleSetupCancel}>{t('common:cancel')}</Button>
-                  <Button onClick={handlePasswordSubmit} disabled={!setupPassword}>{t('common:next')}</Button>
+                  <Button variant="secondary" onClick={handleSetupCancel}>
+                    {t('common:cancel')}
+                  </Button>
+                  <Button onClick={handlePasswordSubmit} disabled={!setupPassword}>
+                    {t('common:next')}
+                  </Button>
                 </div>
               </>
             )}
@@ -311,15 +331,25 @@ export function PinSection({ accountId }: PinSectionProps) {
                   <KeyRound size={ICON_SIZE.xl} />
                   {t('settings:pin_enter_title')}
                 </h3>
-                <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 20 }}>
+                <p
+                  style={{
+                    fontSize: 'var(--text-body-sm)',
+                    color: 'var(--text-secondary)',
+                    marginBottom: 20,
+                  }}
+                >
                   {t('settings:pin_enter_desc', { length: PIN_LENGTH })}
                 </p>
-                <PinInput
-                  length={PIN_LENGTH}
-                  onComplete={handlePinEntered}
-                />
+                <PinInput length={PIN_LENGTH} onComplete={handlePinEntered} />
                 {setupError && (
-                  <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', padding: '4px 0', marginTop: 12 }}>
+                  <div
+                    style={{
+                      color: '#dc2626',
+                      fontSize: 'var(--text-body-sm)',
+                      padding: '4px 0',
+                      marginTop: 12,
+                    }}
+                  >
                     {setupError}
                   </div>
                 )}
@@ -347,7 +377,13 @@ export function PinSection({ accountId }: PinSectionProps) {
                   <KeyRound size={ICON_SIZE.xl} />
                   {t('settings:pin_confirm_title')}
                 </h3>
-                <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 20 }}>
+                <p
+                  style={{
+                    fontSize: 'var(--text-body-sm)',
+                    color: 'var(--text-secondary)',
+                    marginBottom: 20,
+                  }}
+                >
                   {t('settings:pin_confirm_desc')}
                 </p>
                 <PinInput
@@ -357,12 +393,26 @@ export function PinSection({ accountId }: PinSectionProps) {
                   error={!!setupError}
                 />
                 {setupError && (
-                  <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', padding: '4px 0', marginTop: 12 }}>
+                  <div
+                    style={{
+                      color: '#dc2626',
+                      fontSize: 'var(--text-body-sm)',
+                      padding: '4px 0',
+                      marginTop: 12,
+                    }}
+                  >
                     {setupError}
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
-                  <Button variant="secondary" onClick={() => { setSetupStep('enter_pin'); setSetupPin1(''); setSetupError(null); }}>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setSetupStep('enter_pin');
+                      setSetupPin1('');
+                      setSetupError(null);
+                    }}
+                  >
                     {t('common:back')}
                   </Button>
                 </div>
@@ -412,19 +462,35 @@ export function PinSection({ accountId }: PinSectionProps) {
               <Unlock size={ICON_SIZE.xl} />
               {t('settings:pin_disable_title')}
             </h3>
-            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <p
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                marginBottom: 16,
+              }}
+            >
               {t('settings:pin_disable_desc')}
             </p>
             <SecurePasswordInput
               value={disablePassword}
-              onChange={(v) => { setDisablePassword(v); setDisableError(null); }}
+              onChange={(v) => {
+                setDisablePassword(v);
+                setDisableError(null);
+              }}
               placeholder={t('common:password_placeholder')}
               hint={passwordHint}
               autoComplete="current-password"
               onEnter={handleDisableConfirm}
             />
             {disableError && (
-              <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', padding: '4px 0', marginTop: 8 }}>
+              <div
+                style={{
+                  color: '#dc2626',
+                  fontSize: 'var(--text-body-sm)',
+                  padding: '4px 0',
+                  marginTop: 8,
+                }}
+              >
                 {disableError}
               </div>
             )}
@@ -432,7 +498,11 @@ export function PinSection({ accountId }: PinSectionProps) {
               <Button variant="secondary" onClick={() => setShowDisableConfirm(false)}>
                 {t('common:cancel')}
               </Button>
-              <Button onClick={handleDisableConfirm} loading={pinLoading} disabled={!disablePassword}>
+              <Button
+                onClick={handleDisableConfirm}
+                loading={pinLoading}
+                disabled={!disablePassword}
+              >
                 {t('common:confirm')}
               </Button>
             </div>

@@ -12,7 +12,6 @@ import { HardDrive, RotateCcw, Plus } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface BackupInfo {
   id: string;
   name: string;
@@ -49,11 +48,9 @@ export function BackupConfigPage() {
     }
   }, [onError, t]);
 
-
   useEffect(() => {
     loadBackups();
   }, [loadBackups]);
-
 
   const handleCreate = async () => {
     if (!backupName.trim()) return;
@@ -111,7 +108,13 @@ export function BackupConfigPage() {
             <HardDrive size={ICON_SIZE.md} />
             {t('settings:create_backup_title')}
           </h3>
-          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: '0 0 12px' }}>
+          <p
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              margin: '0 0 12px',
+            }}
+          >
             {t('settings:backup_hint')}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -126,7 +129,8 @@ export function BackupConfigPage() {
               disabled={!backupName.trim() || isCreating}
               onMouseEnter={(e) => {
                 if (backupName.trim() && !isCreating) {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                   e.currentTarget.style.color = 'var(--accent-primary)';
                 }
@@ -159,7 +163,10 @@ export function BackupConfigPage() {
               {isCreating ? (
                 t('common:loading', { defaultValue: '...' })
               ) : (
-                <><Plus size={ICON_SIZE.sm} />{t('settings:create')}</>
+                <>
+                  <Plus size={ICON_SIZE.sm} />
+                  {t('settings:create')}
+                </>
               )}
             </button>
           </div>
@@ -176,8 +183,12 @@ export function BackupConfigPage() {
           ) : backups.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>
               <HardDrive size={ICON_SIZE['2xl']} style={{ marginBottom: 8, opacity: 0.4 }} />
-              <p style={{ fontSize: 'var(--text-sm)', margin: 0 }}>{t('settings:no_backups_yet')}</p>
-              <p style={{ fontSize: 'var(--text-caption)', margin: '4px 0 0' }}>{t('settings:create_first_backup')}</p>
+              <p style={{ fontSize: 'var(--text-sm)', margin: 0 }}>
+                {t('settings:no_backups_yet')}
+              </p>
+              <p style={{ fontSize: 'var(--text-caption)', margin: '4px 0 0' }}>
+                {t('settings:create_first_backup')}
+              </p>
             </div>
           ) : (
             <div style={{ marginTop: 4 }}>
@@ -193,8 +204,16 @@ export function BackupConfigPage() {
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 500 }}>{backup.name}</p>
-                    <p style={{ margin: '2px 0 0', fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                    <p style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 500 }}>
+                      {backup.name}
+                    </p>
+                    <p
+                      style={{
+                        margin: '2px 0 0',
+                        fontSize: 'var(--text-caption)',
+                        color: 'var(--text-tertiary)',
+                      }}
+                    >
                       {new Date(backup.created_at).toLocaleString()} &middot;{' '}
                       {formatSize(backup.size_bytes)} &middot;{' '}
                       {t('settings:objects_count', { n: backup.object_count })}
@@ -207,7 +226,8 @@ export function BackupConfigPage() {
                       title={t('settings:restore_title')}
                       onMouseEnter={(e) => {
                         if (restoringId !== backup.id) {
-                          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                          e.currentTarget.style.background =
+                            'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                           e.currentTarget.style.borderColor = 'var(--accent-primary)';
                           e.currentTarget.style.color = 'var(--accent-primary)';
                         }
@@ -237,7 +257,11 @@ export function BackupConfigPage() {
                     >
                       <RotateCcw size={ICON_SIZE.sm} />
                     </button>
-                    <DeleteButton onClick={() => handleDelete(backup.id)} title={t('settings:delete_title')} iconOnly />
+                    <DeleteButton
+                      onClick={() => handleDelete(backup.id)}
+                      title={t('settings:delete_title')}
+                      iconOnly
+                    />
                   </div>
                 </div>
               ))}
@@ -246,7 +270,13 @@ export function BackupConfigPage() {
         </Card>
 
         {/* Info */}
-        <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
+        <p
+          style={{
+            fontSize: 'var(--text-caption)',
+            color: 'var(--text-tertiary)',
+            textAlign: 'center',
+          }}
+        >
           {t('settings:backups_stored_locally')}
           <br />
           {t('settings:export_hint')}

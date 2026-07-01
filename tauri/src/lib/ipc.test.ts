@@ -28,7 +28,10 @@ describe('ipc commands', () => {
       const { commands } = await import('./ipc');
       const result = await commands.bootstrap('Test', 'pwd123', 'zh', 'hint');
       expect(mockInvoke).toHaveBeenCalledWith('bootstrap', {
-        accountName: 'Test', password: 'pwd123', locale: 'zh', passwordHint: 'hint',
+        accountName: 'Test',
+        password: 'pwd123',
+        locale: 'zh',
+        passwordHint: 'hint',
       });
       expect(result.name).toBe('Test');
     });
@@ -38,7 +41,10 @@ describe('ipc commands', () => {
       const { commands } = await import('./ipc');
       await commands.bootstrap('Test', 'pwd123', 'en');
       expect(mockInvoke).toHaveBeenCalledWith('bootstrap', {
-        accountName: 'Test', password: 'pwd123', locale: 'en', passwordHint: undefined,
+        accountName: 'Test',
+        password: 'pwd123',
+        locale: 'en',
+        passwordHint: undefined,
       });
     });
 
@@ -84,7 +90,9 @@ describe('ipc commands', () => {
       const { commands } = await import('./ipc');
       await commands.vaultChangePassword('acc-1', 'old', 'new');
       expect(mockInvoke).toHaveBeenCalledWith('change_password', {
-        accountId: 'acc-1', oldPassword: 'old', newPassword: 'new',
+        accountId: 'acc-1',
+        oldPassword: 'old',
+        newPassword: 'new',
       });
     });
 
@@ -92,11 +100,17 @@ describe('ipc commands', () => {
       mockInvoke.mockResolvedValue(undefined);
       const { commands } = await import('./ipc');
       await commands.vaultDeleteAccount('acc-1', 'pwd');
-      expect(mockInvoke).toHaveBeenCalledWith('delete_account', { accountId: 'acc-1', password: 'pwd' });
+      expect(mockInvoke).toHaveBeenCalledWith('delete_account', {
+        accountId: 'acc-1',
+        password: 'pwd',
+      });
     });
 
     it('vaultListAccounts 返回 AccountInfo[]', async () => {
-      const accounts = [{ id: '1', name: 'A' }, { id: '2', name: 'B' }];
+      const accounts = [
+        { id: '1', name: 'A' },
+        { id: '2', name: 'B' },
+      ];
       mockInvoke.mockResolvedValue(accounts);
       const { commands } = await import('./ipc');
       const result = await commands.vaultListAccounts();
@@ -106,7 +120,13 @@ describe('ipc commands', () => {
 
   describe('Profile', () => {
     it('profileSave 传递 payload 对象', async () => {
-      mockInvoke.mockResolvedValue({ id: 'p1', name: 'P', createdAt: '', updatedAt: '', version: 1 });
+      mockInvoke.mockResolvedValue({
+        id: 'p1',
+        name: 'P',
+        createdAt: '',
+        updatedAt: '',
+        version: 1,
+      });
       const { commands } = await import('./ipc');
       await commands.profileSave('acc-1', 'P', [1, 2, 3]);
       expect(mockInvoke).toHaveBeenCalledWith('profile_save', {
@@ -149,7 +169,11 @@ describe('ipc commands', () => {
       mockInvoke.mockResolvedValue([1, 2, 3]);
       await commands.deriveKey('pwd', [1, 2], 8192, 3, 4);
       expect(mockInvoke).toHaveBeenCalledWith('derive_key', {
-        password: 'pwd', salt: [1, 2], memoryKib: 8192, iterations: 3, parallelism: 4,
+        password: 'pwd',
+        salt: [1, 2],
+        memoryKib: 8192,
+        iterations: 3,
+        parallelism: 4,
       });
     });
 
@@ -200,13 +224,21 @@ describe('ipc commands', () => {
       mockInvoke.mockResolvedValue(undefined);
       const { commands } = await import('./ipc');
       await commands.mdnsAdvertise('MyMac', 5432);
-      expect(mockInvoke).toHaveBeenCalledWith('mdns_advertise', { deviceName: 'MyMac', port: 5432 });
+      expect(mockInvoke).toHaveBeenCalledWith('mdns_advertise', {
+        deviceName: 'MyMac',
+        port: 5432,
+      });
     });
   });
 
   describe('Sync', () => {
     it('syncGetStatus 调用 invoke("sync_get_status")', async () => {
-      const status = { isDiscovering: false, syncEnabled: true, localFingerprint: 'fp', connectedPeers: [] };
+      const status = {
+        isDiscovering: false,
+        syncEnabled: true,
+        localFingerprint: 'fp',
+        connectedPeers: [],
+      };
       mockInvoke.mockResolvedValue(status);
       const { commands } = await import('./ipc');
       const result = await commands.syncGetStatus();
@@ -221,7 +253,14 @@ describe('ipc commands', () => {
     });
 
     it('syncWithDevice 传递 deviceId', async () => {
-      const result = { summary: 'ok', examined: 1, applied: 1, skipped: 0, conflicts: [], per_table: [] };
+      const result = {
+        summary: 'ok',
+        examined: 1,
+        applied: 1,
+        skipped: 0,
+        conflicts: [],
+        per_table: [],
+      };
       mockInvoke.mockResolvedValue(result);
       const { commands } = await import('./ipc');
       const res = await commands.syncWithDevice('device-1');
@@ -236,7 +275,10 @@ describe('ipc commands', () => {
       mockInvoke.mockResolvedValue(result);
       const { commands } = await import('./ipc');
       const res = await commands.ocrScanImage('/img.png', 'en');
-      expect(mockInvoke).toHaveBeenCalledWith('ocr_scan_image', { filePath: '/img.png', language: 'en' });
+      expect(mockInvoke).toHaveBeenCalledWith('ocr_scan_image', {
+        filePath: '/img.png',
+        language: 'en',
+      });
       expect(res.text).toBe('hello');
     });
 
@@ -253,7 +295,10 @@ describe('ipc commands', () => {
       await commands.ocrInstallBundledModel('small');
       expect(mockInvoke).toHaveBeenCalledWith('ocr_install_bundled_model', { tier: 'small' });
       await commands.ocrDownloadModel('tiny', 'https://example.com/model');
-      expect(mockInvoke).toHaveBeenCalledWith('ocr_download_model', { tier: 'tiny', baseUrl: 'https://example.com/model' });
+      expect(mockInvoke).toHaveBeenCalledWith('ocr_download_model', {
+        tier: 'tiny',
+        baseUrl: 'https://example.com/model',
+      });
     });
   });
 });

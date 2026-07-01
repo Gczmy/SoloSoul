@@ -211,11 +211,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         // at least as fresh as the debounced disk write.
         const hasCachedSize = !!localStorage.getItem(ST_WINDOW_SIZE);
         if (!hasCachedSize) {
-          parsed.windowSize = prefs.windowSize;            try {
-              localStorage.setItem(ST_WINDOW_SIZE, JSON.stringify(prefs.windowSize));
-            } catch (e) {
-              console.warn('[settingsStore] Failed to cache window size:', e);
-            }
+          parsed.windowSize = prefs.windowSize;
+          try {
+            localStorage.setItem(ST_WINDOW_SIZE, JSON.stringify(prefs.windowSize));
+          } catch (e) {
+            console.warn('[settingsStore] Failed to cache window size:', e);
+          }
         }
       }
       await applyTheme({
@@ -274,7 +275,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (typeof prefs.autoLockTimeoutMinutes === 'number')
         parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
       if (prefs.trashRetention) parsed.trashRetention = prefs.trashRetention;
-      if (typeof prefs.biometricEnabled === 'boolean') parsed.biometricEnabled = prefs.biometricEnabled;
+      if (typeof prefs.biometricEnabled === 'boolean')
+        parsed.biometricEnabled = prefs.biometricEnabled;
       if (typeof prefs.confirmDelete === 'boolean') parsed.confirmDelete = prefs.confirmDelete;
       if (prefs.sidebarPosition) parsed.sidebarPosition = prefs.sidebarPosition;
       // sidebarButtonModes is stored in preferences; load it if present
@@ -332,9 +334,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         ) {
           invoke('user_data_update_preference', {
             payload: { accountId, preferences: { windowSize: effectiveWindowSize } },
-          }).catch((e) =>
-            console.warn('[settingsStore] Failed to sync window size:', e),
-          );
+          }).catch((e) => console.warn('[settingsStore] Failed to sync window size:', e));
         }
       }
       set({ settings: parsed, isLoading: false });
@@ -347,9 +347,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         if (parsed.language)
           await invoke('ui_update_preference', { key: 'language', value: parsed.language });
         if (parsed.defaultLightTheme)
-          await invoke('ui_update_preference', { key: 'defaultLightTheme', value: parsed.defaultLightTheme });
+          await invoke('ui_update_preference', {
+            key: 'defaultLightTheme',
+            value: parsed.defaultLightTheme,
+          });
         if (parsed.defaultDarkTheme)
-          await invoke('ui_update_preference', { key: 'defaultDarkTheme', value: parsed.defaultDarkTheme });
+          await invoke('ui_update_preference', {
+            key: 'defaultDarkTheme',
+            value: parsed.defaultDarkTheme,
+          });
       } catch (e) {
         console.warn('[settingsStore] Failed to sync UI prefs:', e);
       }

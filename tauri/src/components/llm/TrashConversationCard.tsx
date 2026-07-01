@@ -3,7 +3,6 @@ import { X } from 'lucide-react';
 import { ChatMessageBubble, type ChatMsg } from '@/pages/ai/ChatMessageBubble';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface Conversation {
   id: string;
   name: string;

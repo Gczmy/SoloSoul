@@ -22,9 +22,7 @@ const userTemplates: UserTemplate[] = [
     accountId: 'acc-1',
     name: 'Account',
     iconId: 'user',
-    properties: [
-      { id: 'username', name: 'Username', type: 'text', sensitivityLevel: 'public' },
-    ],
+    properties: [{ id: 'username', name: 'Username', type: 'text', sensitivityLevel: 'public' }],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },

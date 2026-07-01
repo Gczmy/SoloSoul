@@ -9,13 +9,22 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
-import { X, RotateCcw, ChevronLeft, ChevronRight, Image, FileText, Paperclip, FolderOpen, ArrowLeft } from 'lucide-react';
+import {
+  X,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  Image,
+  FileText,
+  Paperclip,
+  FolderOpen,
+  ArrowLeft,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatBytes } from '@/lib/format';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, SnapshotEntry, TrashAttachment, TrashChildSummary } from './types';
 import { ICON_SIZE } from '@/lib/iconSizes';
-
 
 /** Truncate long file names preserving extension: 'abcdefg…-.pdf' */
 function truncateFileName(fileName: string, maxLen: number = 28): string {
@@ -63,7 +72,9 @@ function ObjectDetailContent({
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [showTrashAttachments, setShowTrashAttachments] = useState(false);
   const [historySnapIndex, setHistorySnapIndex] = useState<Record<string, number>>({});
-  const [historySnapData, setHistorySnapData] = useState<Record<string, Record<string, unknown> | null>>({});
+  const [historySnapData, setHistorySnapData] = useState<
+    Record<string, Record<string, unknown> | null>
+  >({});
   const [historySnapLoading, setHistorySnapLoading] = useState<Record<string, boolean>>({});
 
   const toggleSection = (key: string) => {
@@ -73,7 +84,9 @@ function ObjectDetailContent({
   const loadSnapshotData = useCallback(async (detailId: string, snapshotId: string) => {
     setHistorySnapLoading((prev) => ({ ...prev, [detailId]: true }));
     try {
-      const data = await invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId });
+      const data = await invoke<Record<string, unknown> | null>('snapshot_get_data', {
+        snapshotId,
+      });
       setHistorySnapData((prev) => ({ ...prev, [detailId]: data }));
     } catch {
       setHistorySnapData((prev) => ({ ...prev, [detailId]: null }));
@@ -110,7 +123,8 @@ function ObjectDetailContent({
           onClick={onBack}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--accent-primary)';
-            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+            e.currentTarget.style.background =
+              'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.color = 'var(--text-secondary)';
@@ -146,7 +160,17 @@ function ObjectDetailContent({
         }}
       >
         <div>
-          <h3 style={{ fontSize: 'var(--text-section-title)', fontWeight: 600, margin: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{item.name}</h3>
+          <h3
+            style={{
+              fontSize: 'var(--text-section-title)',
+              fontWeight: 600,
+              margin: 0,
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+            }}
+          >
+            {item.name}
+          </h3>
           <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
             {t(`settings:trash_type_${item.itemType}`)}
           </span>
@@ -155,7 +179,8 @@ function ObjectDetailContent({
           onClick={onClose}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = 'var(--accent-primary)';
-            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+            e.currentTarget.style.background =
+              'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.color = 'var(--text-tertiary)';
@@ -175,23 +200,26 @@ function ObjectDetailContent({
         </button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 'var(--text-body-sm)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          fontSize: 'var(--text-body-sm)',
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:delete_time')}</span>
           <span>{new Date(item.deletedAt).toLocaleString()}</span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: 'var(--text-tertiary)' }}>
-            {t('settings:original_location')}
-          </span>
+          <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:original_location')}</span>
           <span>
             {resolveCollectionLabel(item.sectionType || item.originalLocation, customPages, t)}
           </span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ color: 'var(--text-tertiary)' }}>
-            {t('settings:remaining_retention')}
-          </span>
+          <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:remaining_retention')}</span>
           <span>
             {item.remainingDays != null
               ? t('settings:trash_expires_in', { days: item.remainingDays })
@@ -296,50 +324,82 @@ function ObjectDetailContent({
                   <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
                     <button
                       onClick={() => setShowTrashAttachments(false)}
-                      onMouseEnter={!showTrashAttachments ? undefined : (e) => {
-                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                      }}
-                      onMouseLeave={!showTrashAttachments ? undefined : (e) => {
-                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                        e.currentTarget.style.background = 'var(--bg-toolbar)';
-                      }}
+                      onMouseEnter={
+                        !showTrashAttachments
+                          ? undefined
+                          : (e) => {
+                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                              e.currentTarget.style.background =
+                                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                            }
+                      }
+                      onMouseLeave={
+                        !showTrashAttachments
+                          ? undefined
+                          : (e) => {
+                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                              e.currentTarget.style.background = 'var(--bg-toolbar)';
+                            }
+                      }
                       style={{
                         padding: '4px 10px',
                         borderRadius: 6,
                         fontSize: 'var(--text-badge)',
                         fontWeight: 500,
-                        border: showTrashAttachments ? '1px solid var(--border-subtle)' : '1px solid var(--accent-primary)',
-                        background: showTrashAttachments ? 'var(--bg-toolbar)' : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                        color: showTrashAttachments ? 'var(--text-primary)' : 'var(--accent-primary)',
-                        boxShadow: showTrashAttachments ? 'none' : '0 0 0 1px var(--accent-primary)',
+                        border: showTrashAttachments
+                          ? '1px solid var(--border-subtle)'
+                          : '1px solid var(--accent-primary)',
+                        background: showTrashAttachments
+                          ? 'var(--bg-toolbar)'
+                          : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                        color: showTrashAttachments
+                          ? 'var(--text-primary)'
+                          : 'var(--accent-primary)',
+                        boxShadow: showTrashAttachments
+                          ? 'none'
+                          : '0 0 0 1px var(--accent-primary)',
                         cursor: 'pointer',
-                        transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
+                        transition:
+                          'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                       }}
                     >
                       {t('common:active')} ({activeAttachments.length})
                     </button>
                     <button
                       onClick={() => setShowTrashAttachments(true)}
-                      onMouseEnter={showTrashAttachments ? undefined : (e) => {
-                        e.currentTarget.style.borderColor = '#e74c3c';
-                        e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
-                      }}
-                      onMouseLeave={showTrashAttachments ? undefined : (e) => {
-                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                        e.currentTarget.style.background = 'var(--bg-toolbar)';
-                      }}
+                      onMouseEnter={
+                        showTrashAttachments
+                          ? undefined
+                          : (e) => {
+                              e.currentTarget.style.borderColor = '#e74c3c';
+                              e.currentTarget.style.background =
+                                'color-mix(in srgb, #e74c3c 10%, transparent)';
+                            }
+                      }
+                      onMouseLeave={
+                        showTrashAttachments
+                          ? undefined
+                          : (e) => {
+                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                              e.currentTarget.style.background = 'var(--bg-toolbar)';
+                            }
+                      }
                       style={{
                         padding: '4px 10px',
                         borderRadius: 6,
                         fontSize: 'var(--text-badge)',
                         fontWeight: 500,
-                        border: showTrashAttachments ? '1px solid #e74c3c' : '1px solid var(--border-subtle)',
-                        background: showTrashAttachments ? 'color-mix(in srgb, #e74c3c 10%, transparent)' : 'var(--bg-toolbar)',
+                        border: showTrashAttachments
+                          ? '1px solid #e74c3c'
+                          : '1px solid var(--border-subtle)',
+                        background: showTrashAttachments
+                          ? 'color-mix(in srgb, #e74c3c 10%, transparent)'
+                          : 'var(--bg-toolbar)',
                         color: showTrashAttachments ? '#e74c3c' : 'var(--text-primary)',
                         boxShadow: showTrashAttachments ? '0 0 0 1px #e74c3c' : 'none',
                         cursor: 'pointer',
-                        transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
+                        transition:
+                          'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
                       }}
                     >
                       {t('common:trash')} ({deletedAttachments.length})
@@ -360,7 +420,9 @@ function ObjectDetailContent({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {(showTrashAttachments ? deletedAttachments : activeAttachments).map((a) => {
                       const ext = a.fileName.split('.').pop()?.toLowerCase() || '';
-                      const isImage = a.mimeType.startsWith('image/') || ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
+                      const isImage =
+                        a.mimeType.startsWith('image/') ||
+                        ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext);
                       const isPdf = a.mimeType === 'application/pdf' || ext === 'pdf';
                       const AttachIcon = isImage ? Image : isPdf ? FileText : Paperclip;
                       const iconColor = 'var(--text-tertiary)';
@@ -368,8 +430,10 @@ function ObjectDetailContent({
                         <div
                           key={a.id}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-                            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
+                            e.currentTarget.style.background =
+                              'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
+                            e.currentTarget.style.borderColor =
+                              'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.background = 'var(--bg-elevated-hover)';
@@ -388,7 +452,10 @@ function ObjectDetailContent({
                             transition: 'background 0.15s, border-color 0.15s',
                           }}
                         >
-                          <AttachIcon size={ICON_SIZE.md} style={{ color: iconColor, flexShrink: 0 }} />
+                          <AttachIcon
+                            size={ICON_SIZE.md}
+                            style={{ color: iconColor, flexShrink: 0 }}
+                          />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div
                               style={{
@@ -401,7 +468,12 @@ function ObjectDetailContent({
                             >
                               {truncateFileName(a.fileName)}
                             </div>
-                            <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-badge)' }}>
+                            <div
+                              style={{
+                                color: 'var(--text-tertiary)',
+                                fontSize: 'var(--text-badge)',
+                              }}
+                            >
                               {formatBytes(a.sizeBytes)} ·{' '}
                               {new Date(a.createdAt).toLocaleDateString()}
                             </div>
@@ -412,7 +484,8 @@ function ObjectDetailContent({
                               padding: '2px 6px',
                               borderRadius: 4,
                               fontWeight: 500,
-                              background: 'color-mix(in srgb, var(--text-tertiary) 10%, transparent)',
+                              background:
+                                'color-mix(in srgb, var(--text-tertiary) 10%, transparent)',
                               color: 'var(--text-tertiary)',
                               flexShrink: 0,
                               textDecoration: 'none',
@@ -449,7 +522,11 @@ function ObjectDetailContent({
                 userSelect: 'none',
                 ...(expandedSections.snapshots
                   ? {}
-                  : { borderBottom: '1px solid var(--border-subtle)', paddingBottom: 10, marginBottom: 10 }),
+                  : {
+                      borderBottom: '1px solid var(--border-subtle)',
+                      paddingBottom: 10,
+                      marginBottom: 10,
+                    }),
               }}
             >
               <span
@@ -471,9 +548,7 @@ function ObjectDetailContent({
                 data={historySnapData[item.id]}
                 loading={historySnapLoading[item.id]}
                 detailTemplate={detailTemplate}
-                onChangeSnapshot={(newIdx) =>
-                  changeSnapshot(item.id, item.snapshots, newIdx)
-                }
+                onChangeSnapshot={(newIdx) => changeSnapshot(item.id, item.snapshots, newIdx)}
               />
             )}
           </div>
@@ -613,7 +688,8 @@ export function TrashDetailPanel({
                   }}
                 >
                   <FolderOpen size={ICON_SIZE.sm} />
-                  {t('settings:page_contains_objects', { defaultValue: '页面包含的对象' })} ({detailItem.childItems.length})
+                  {t('settings:page_contains_objects', { defaultValue: '页面包含的对象' })} (
+                  {detailItem.childItems.length})
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {detailItem.childItems.map((child) => (
@@ -621,8 +697,10 @@ export function TrashDetailPanel({
                       key={child.id}
                       onClick={() => handleViewChild(child)}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
-                        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--accent-primary) 25%, transparent)';
+                        e.currentTarget.style.background =
+                          'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
+                        e.currentTarget.style.borderColor =
+                          'color-mix(in srgb, var(--accent-primary) 25%, transparent)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = 'var(--bg-elevated-hover)';
@@ -654,10 +732,23 @@ export function TrashDetailPanel({
                           flexShrink: 0,
                         }}
                       />
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span
+                        style={{
+                          flex: 1,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {child.name}
                       </span>
-                      <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                      <span
+                        style={{
+                          fontSize: 'var(--text-badge)',
+                          color: 'var(--text-tertiary)',
+                          flexShrink: 0,
+                        }}
+                      >
                         ▶
                       </span>
                     </button>
@@ -714,7 +805,10 @@ function SnapshotContent({
               cursor: clampedIdx >= snapshots.length - 1 ? 'default' : 'pointer',
               fontSize: 'var(--text-badge)',
               background: 'transparent',
-              color: clampedIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
+              color:
+                clampedIdx >= snapshots.length - 1
+                  ? 'var(--text-tertiary)'
+                  : 'var(--text-secondary)',
               opacity: clampedIdx >= snapshots.length - 1 ? 0.35 : 1,
               transition: 'all 0.15s ease',
             }}
@@ -728,7 +822,10 @@ function SnapshotContent({
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
               e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = clampedIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
+              e.currentTarget.style.color =
+                clampedIdx >= snapshots.length - 1
+                  ? 'var(--text-tertiary)'
+                  : 'var(--text-secondary)';
             }}
           >
             <ChevronLeft size={ICON_SIZE.sm} />
@@ -743,7 +840,14 @@ function SnapshotContent({
               color: 'var(--text-secondary)',
             }}
           >
-            <span style={{ color: 'var(--accent-primary)', fontWeight: 600, minWidth: 14, textAlign: 'center' }}>
+            <span
+              style={{
+                color: 'var(--accent-primary)',
+                fontWeight: 600,
+                minWidth: 14,
+                textAlign: 'center',
+              }}
+            >
               {clampedIdx + 1}
             </span>
             <span style={{ color: 'var(--text-tertiary)' }}>/</span>
@@ -777,7 +881,8 @@ function SnapshotContent({
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
               e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = clampedIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
+              e.currentTarget.style.color =
+                clampedIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
             }}
           >
             <ChevronRight size={ICON_SIZE.sm} />
@@ -906,7 +1011,15 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {snapName && (
-        <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', textAlign: 'right', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+        <div
+          style={{
+            fontSize: 'var(--text-badge)',
+            color: 'var(--text-tertiary)',
+            textAlign: 'right',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+          }}
+        >
           {snapName}
         </div>
       )}

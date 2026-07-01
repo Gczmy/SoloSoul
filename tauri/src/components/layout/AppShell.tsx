@@ -32,7 +32,16 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
       }}
     >
       {isHorizontal ? <TopFunctionBar sidebarPosition={sidebarPosition} /> : <SideNavigation />}
-      <div className={styles.main} style={isTop ? { paddingTop: FUNCTION_BAR_HEIGHT } : sidebarPosition === 'bottom' ? { paddingBottom: FUNCTION_BAR_HEIGHT } : undefined}>
+      <div
+        className={styles.main}
+        style={
+          isTop
+            ? { paddingTop: FUNCTION_BAR_HEIGHT }
+            : sidebarPosition === 'bottom'
+              ? { paddingBottom: FUNCTION_BAR_HEIGHT }
+              : undefined
+        }
+      >
         <AppBar
           title={title}
           actions={actions}

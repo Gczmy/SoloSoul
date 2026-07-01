@@ -28,7 +28,14 @@ export function SystemPromptCard({ checked, onToggle }: SystemPromptCardProps) {
         <SelectCheckbox checked={checked} onChange={() => onToggle()} />
         {t('settings:ai_system_prompt_software')}
       </label>
-      <p style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 4, paddingLeft: 26 }}>
+      <p
+        style={{
+          fontSize: 'var(--text-badge)',
+          color: 'var(--text-tertiary)',
+          marginTop: 4,
+          paddingLeft: 26,
+        }}
+      >
         {t('settings:ai_system_prompt_desc')}
       </p>
     </Card>

@@ -23,8 +23,8 @@ import {
 import { commands } from '@/lib/ipc';
 import { ST_SKIPPED_VERSION } from '@/lib/storageKeys';
 import { protectedRoutes, AuthGuard } from './routes';
-import { BootstrapPage }  from '@/pages/auth/BootstrapPage';
-import { LoginPage }  from '@/pages/auth/LoginPage';
+import { BootstrapPage } from '@/pages/auth/BootstrapPage';
+import { LoginPage } from '@/pages/auth/LoginPage';
 
 export function AppRoutes() {
   const navigate = useNavigate();
@@ -45,11 +45,7 @@ export function AppRoutes() {
   const { isInstalling, progress, error, startListening } = useOcrInstallStore();
 
   // Derive OCR banner phase from store state for the new banner component.
-  const ocrPhase: OcrInstallPhase = error
-    ? 'error'
-    : isInstalling
-      ? 'installing'
-      : 'completed';
+  const ocrPhase: OcrInstallPhase = error ? 'error' : isInstalling ? 'installing' : 'completed';
 
   // 启动时检查更新并显示非侵入式横幅
   useEffect(() => {
@@ -184,36 +180,36 @@ export function AppRoutes() {
     const account = useAuthStore.getState().currentAccount;
     if (isAuthenticated && account) {
       useProfileStore.getState().loadProfile(account.id);
-      useSettingsStore.getState().loadSettings(account.id).then(async () => {
-        // Re-apply theme with loaded settings (otherwise stays at defaults)
-        const s = useSettingsStore.getState().settings;
-        const resolvedSystemTheme =
-          s.theme === 'system'
-            ? await getSystemTheme()
-            : undefined;
-        await applyTheme({
-          preset:
-            s.theme === 'dark'
-              ? 'warm-stone-dark'
-              : s.theme === 'light'
-                ? 'warm-stone-light'
-                : 'system',
-          accentColor: s.accentColor,
-          backgroundType: s.backgroundType,
-          backgroundValue: s.backgroundValue,
-          defaultLightTheme: s.defaultLightTheme,
-          defaultDarkTheme: s.defaultDarkTheme,
-          resolvedSystemTheme:
-            typeof resolvedSystemTheme === 'string' ? resolvedSystemTheme : undefined,
+      useSettingsStore
+        .getState()
+        .loadSettings(account.id)
+        .then(async () => {
+          // Re-apply theme with loaded settings (otherwise stays at defaults)
+          const s = useSettingsStore.getState().settings;
+          const resolvedSystemTheme = s.theme === 'system' ? await getSystemTheme() : undefined;
+          await applyTheme({
+            preset:
+              s.theme === 'dark'
+                ? 'warm-stone-dark'
+                : s.theme === 'light'
+                  ? 'warm-stone-light'
+                  : 'system',
+            accentColor: s.accentColor,
+            backgroundType: s.backgroundType,
+            backgroundValue: s.backgroundValue,
+            defaultLightTheme: s.defaultLightTheme,
+            defaultDarkTheme: s.defaultDarkTheme,
+            resolvedSystemTheme:
+              typeof resolvedSystemTheme === 'string' ? resolvedSystemTheme : undefined,
+          });
+          // Language is correctly set by initI18n() via Rust IPC.
+          // User changes via settings are handled in settingsStore.
+          // Skip here — vault-stored locale may be stale (navigator.language fallback).
+          // P0-1: Load custom pages from objects table (separate from profile preferences)
+          // Must run AFTER loadSettings finishes to avoid race condition where
+          // loadSettings overwrites customPages with DEFAULT_SETTINGS.
+          useSettingsStore.getState().loadCustomPages(account.id);
         });
-        // Language is correctly set by initI18n() via Rust IPC.
-        // User changes via settings are handled in settingsStore.
-        // Skip here — vault-stored locale may be stale (navigator.language fallback).
-        // P0-1: Load custom pages from objects table (separate from profile preferences)
-        // Must run AFTER loadSettings finishes to avoid race condition where
-        // loadSettings overwrites customPages with DEFAULT_SETTINGS.
-        useSettingsStore.getState().loadCustomPages(account.id);
-      });
     }
   }, [isAuthenticated]);
 

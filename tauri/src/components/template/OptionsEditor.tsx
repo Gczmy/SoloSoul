@@ -63,7 +63,9 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
               border: '1px solid var(--border-subtle)',
             }}
           >
-            <h3 style={{ margin: '0 0 4px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>
+            <h3
+              style={{ margin: '0 0 4px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}
+            >
               {fieldType === 'multiselect' ? '编辑多选选项' : '编辑单选选项'}
               <span
                 style={{
@@ -76,7 +78,13 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
                 {fieldName}
               </span>
             </h3>
-            <p style={{ margin: '0 0 16px', fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+            <p
+              style={{
+                margin: '0 0 16px',
+                fontSize: 'var(--text-caption)',
+                color: 'var(--text-tertiary)',
+              }}
+            >
               {fieldType === 'multiselect'
                 ? '每行输入一个选项，可多选'
                 : '每行输入一个选项，只能选一项'}

@@ -4,7 +4,6 @@ import styles from './PluginConsentDialog.module.css';
 import type { ConsentRequestEvent } from '@/lib/plugin';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface PluginConsentDialogProps {
   pluginName: string;
   requests: ConsentRequestEvent[];

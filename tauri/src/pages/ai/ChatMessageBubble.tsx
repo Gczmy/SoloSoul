@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Copy, Check } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import rehypeHighlight from 'rehype-highlight';
 import { formatTimestamp } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/iconSizes';
@@ -10,10 +10,11 @@ function allowedUrl(url: string): string {
   try {
     const parsed = new URL(url);
     if (['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return url;
-  } catch { /* ignore invalid URLs */ }
+  } catch {
+    /* ignore invalid URLs */
+  }
   return '';
 }
-
 
 export interface ChatMsg {
   id?: string;
@@ -84,14 +85,13 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
           ) : msg.isError ? (
             <div style={{ color: '#e74c3c', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
           ) : (
-            <div className="markdown-content">
-              <ReactMarkdown
-                rehypePlugins={[rehypeHighlight]}
-                urlTransform={allowedUrl}
-              >
-                {msg.content}
-              </ReactMarkdown>
-            </div>
+            <SafeMarkdown
+              rehypePlugins={[rehypeHighlight]}
+              urlTransform={allowedUrl}
+              className="markdown-content"
+            >
+              {msg.content}
+            </SafeMarkdown>
           )}
         </div>
       </div>

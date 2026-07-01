@@ -1,4 +1,4 @@
-import ReactMarkdown from 'react-markdown';
+import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
 import { GuideCodeBlock } from './GuideCodeBlock';
@@ -163,31 +163,33 @@ export function GuideRenderer({ content, onLinkClick }: GuideRendererProps) {
   const markdownComponents = createMarkdownComponents(onLinkClick);
 
   return (
-    <div style={{ lineHeight: 1.7, color: 'var(--text-primary)', fontSize: 'var(--text-card-title)' }}>
+    <div
+      style={{ lineHeight: 1.7, color: 'var(--text-primary)', fontSize: 'var(--text-card-title)' }}
+    >
       {segments.map((seg, i) => {
         if (seg.type === 'markdown') {
           return (
-            <ReactMarkdown
+            <SafeMarkdown
               key={i}
               components={markdownComponents}
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight]}
             >
               {seg.content}
-            </ReactMarkdown>
+            </SafeMarkdown>
           );
         }
 
         if (seg.type === 'stepper') {
           return (
             <GuideStepper key={i} title={seg.title}>
-              <ReactMarkdown
+              <SafeMarkdown
                 components={markdownComponents}
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}
               >
                 {seg.content}
-              </ReactMarkdown>
+              </SafeMarkdown>
             </GuideStepper>
           );
         }
@@ -195,13 +197,13 @@ export function GuideRenderer({ content, onLinkClick }: GuideRendererProps) {
         if (seg.type === 'tip') {
           return (
             <GuideTip key={i} type="tip">
-              <ReactMarkdown
+              <SafeMarkdown
                 components={markdownComponents}
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}
               >
                 {seg.content}
-              </ReactMarkdown>
+              </SafeMarkdown>
             </GuideTip>
           );
         }
@@ -209,13 +211,13 @@ export function GuideRenderer({ content, onLinkClick }: GuideRendererProps) {
         if (seg.type === 'info') {
           return (
             <GuideTip key={i} type="info">
-              <ReactMarkdown
+              <SafeMarkdown
                 components={markdownComponents}
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}
               >
                 {seg.content}
-              </ReactMarkdown>
+              </SafeMarkdown>
             </GuideTip>
           );
         }
@@ -223,13 +225,13 @@ export function GuideRenderer({ content, onLinkClick }: GuideRendererProps) {
         if (seg.type === 'warning') {
           return (
             <GuideTip key={i} type="warning">
-              <ReactMarkdown
+              <SafeMarkdown
                 components={markdownComponents}
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}
               >
                 {seg.content}
-              </ReactMarkdown>
+              </SafeMarkdown>
             </GuideTip>
           );
         }

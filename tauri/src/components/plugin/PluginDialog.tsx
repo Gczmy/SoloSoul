@@ -5,7 +5,6 @@ import styles from './PluginDialog.module.css';
 import type { DialogConfig, DialogRequestEvent } from '@/lib/plugin';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface PluginDialogProps {
   pluginName: string;
   request: DialogRequestEvent;

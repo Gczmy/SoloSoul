@@ -12,7 +12,6 @@ import { resolveCollectionLabel } from '@/lib/pageLabels';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export interface SnapshotEntry {
   id: string;
   timestamp: number;
@@ -51,8 +50,6 @@ function flattenProperties(
   return entries;
 }
 
-
-
 function SnapshotCard({
   snap,
   index,
@@ -73,8 +70,14 @@ function SnapshotCard({
   isFieldDeprecated: (fieldKey: string) => boolean;
   getFieldName: (fieldKey: string) => string;
   fieldOrder?: string[];
-  verifyPassword: () => Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin' }>;
-  onCriticalAccess?: (fieldName: string, method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin') => void;
+  verifyPassword: () => Promise<{
+    ok: boolean;
+    method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
+  }>;
+  onCriticalAccess?: (
+    fieldName: string,
+    method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin',
+  ) => void;
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
   const { isRevealed, reveal } = useRevealState();
@@ -102,7 +105,19 @@ function SnapshotCard({
       {/* Version badge */}
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
         <SnapshotVersionBadge index={index} total={total} />
-        <div style={{ marginLeft: 'auto', fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', overflowWrap: 'break-word', wordBreak: 'break-word', textAlign: 'right', maxWidth: '70%' }}>{snapName}</div>
+        <div
+          style={{
+            marginLeft: 'auto',
+            fontSize: 'var(--text-badge)',
+            color: 'var(--text-tertiary)',
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+            textAlign: 'right',
+            maxWidth: '70%',
+          }}
+        >
+          {snapName}
+        </div>
       </div>
       {/* Properties — like detail panel, with sensitivity */}
       {fields.length > 0 && (
@@ -215,7 +230,10 @@ export interface HistoryViewerProps {
   objectName?: string;
   collectionType?: string;
   onClose: () => void;
-  passwordVerify: () => Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin' }>;
+  passwordVerify: () => Promise<{
+    ok: boolean;
+    method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
+  }>;
   getFieldSensitivity: (fieldKey: string) => SensitivityLevel;
   isFieldDeprecated: (fieldKey: string) => boolean;
   getFieldName: (fieldKey: string) => string;
@@ -332,115 +350,127 @@ export function HistoryViewer({
       onClick={onClose}
     >
       {!loading && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'relative',
-          width: 460,
-          maxHeight: '80vh',
-          display: 'flex',
-          flexDirection: 'column',
-          background: 'var(--bg-elevated)',
-          borderRadius: 16,
-          boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
-          border: '1px solid var(--border-subtle)',
-          transform:
-            animDir === 'left'
-              ? 'perspective(1200px) rotateY(-8deg)'
-              : animDir === 'right'
-                ? 'perspective(1200px) rotateY(8deg)'
-                : 'perspective(1200px) rotateY(0)',
-          transition: 'transform 0.15s ease',
-          transformOrigin:
-            animDir === 'left' ? 'left center' : animDir === 'right' ? 'right center' : 'center',
-        }}
-      >
-        {/* Header */}
-        <div
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          onClick={(e) => e.stopPropagation()}
           style={{
+            position: 'relative',
+            width: 460,
+            maxHeight: '80vh',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '14px 18px',
-            borderBottom: '1px solid var(--border-subtle)',
+            flexDirection: 'column',
+            background: 'var(--bg-elevated)',
+            borderRadius: 16,
+            boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
+            border: '1px solid var(--border-subtle)',
+            transform:
+              animDir === 'left'
+                ? 'perspective(1200px) rotateY(-8deg)'
+                : animDir === 'right'
+                  ? 'perspective(1200px) rotateY(8deg)'
+                  : 'perspective(1200px) rotateY(0)',
+            transition: 'transform 0.15s ease',
+            transformOrigin:
+              animDir === 'left' ? 'left center' : animDir === 'right' ? 'right center' : 'center',
           }}
         >
+          {/* Header */}
           <div
-            style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '14px 18px',
+              borderBottom: '1px solid var(--border-subtle)',
+            }}
           >
-            <Clock size={ICON_SIZE.sm} /> {t('common:history')}
-            <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', fontWeight: 400 }}>
-              {loading ? '' : `${currentIdx + 1} / ${total}`}
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <BadgeIconButton
-              Icon={ChevronLeft}
-              onClick={goPrev}
-              title={t('common:previous') || 'Previous'}
-              disabled={isOldest || loading}
-              iconSize={ICON_SIZE.md}
-            />
-            <BadgeIconButton
-              Icon={ChevronRight}
-              onClick={goNext}
-              title={t('common:next') || 'Next'}
-              disabled={isLatest || loading}
-              iconSize={ICON_SIZE.md}
-            />
-            <BadgeIconButton
-              Icon={X}
-              onClick={onClose}
-              title={t('common:close') || 'Close'}
-              iconSize={ICON_SIZE.md}
-            />
-          </div>
-        </div>
-        {/* Content */}
-        <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-          {!snap ? (
             <div
               style={{
-                textAlign: 'center',
-                padding: 48,
-                color: 'var(--text-secondary)',
-                fontSize: 'var(--text-body)',
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}
             >
-              {t('common:no_history')}
+              <Clock size={ICON_SIZE.sm} /> {t('common:history')}
+              <span
+                style={{
+                  fontSize: 'var(--text-badge)',
+                  color: 'var(--text-tertiary)',
+                  fontWeight: 400,
+                }}
+              >
+                {loading ? '' : `${currentIdx + 1} / ${total}`}
+              </span>
             </div>
-          ) : (
-            <SnapshotCard
-              snap={snap}
-              index={currentIdx}
-              total={total}
-              t={t}
-              getFieldSensitivity={getFieldSensitivity}
-              isFieldDeprecated={isFieldDeprecated}
-              getFieldName={getFieldName}
-              fieldOrder={fieldOrder}
-              verifyPassword={passwordVerify}
-              onCriticalAccess={writeCriticalAccessLog}
-            />
-          )}
-        </div>
-        {/* Footer */}
-        <div
-          style={{
-            padding: '10px 18px',
-            borderTop: '1px solid var(--border-subtle)',
-            fontSize: 'var(--text-badge)',
-            color: 'var(--text-tertiary)',
-            textAlign: 'center',
-          }}
-        >
-          {snap &&
-            `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${t(`common:trigger_${snap.triggeredBy}`)}`}
-        </div>
-      </motion.div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <BadgeIconButton
+                Icon={ChevronLeft}
+                onClick={goPrev}
+                title={t('common:previous') || 'Previous'}
+                disabled={isOldest || loading}
+                iconSize={ICON_SIZE.md}
+              />
+              <BadgeIconButton
+                Icon={ChevronRight}
+                onClick={goNext}
+                title={t('common:next') || 'Next'}
+                disabled={isLatest || loading}
+                iconSize={ICON_SIZE.md}
+              />
+              <BadgeIconButton
+                Icon={X}
+                onClick={onClose}
+                title={t('common:close') || 'Close'}
+                iconSize={ICON_SIZE.md}
+              />
+            </div>
+          </div>
+          {/* Content */}
+          <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+            {!snap ? (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: 48,
+                  color: 'var(--text-secondary)',
+                  fontSize: 'var(--text-body)',
+                }}
+              >
+                {t('common:no_history')}
+              </div>
+            ) : (
+              <SnapshotCard
+                snap={snap}
+                index={currentIdx}
+                total={total}
+                t={t}
+                getFieldSensitivity={getFieldSensitivity}
+                isFieldDeprecated={isFieldDeprecated}
+                getFieldName={getFieldName}
+                fieldOrder={fieldOrder}
+                verifyPassword={passwordVerify}
+                onCriticalAccess={writeCriticalAccessLog}
+              />
+            )}
+          </div>
+          {/* Footer */}
+          <div
+            style={{
+              padding: '10px 18px',
+              borderTop: '1px solid var(--border-subtle)',
+              fontSize: 'var(--text-badge)',
+              color: 'var(--text-tertiary)',
+              textAlign: 'center',
+            }}
+          >
+            {snap &&
+              `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${t(`common:trigger_${snap.triggeredBy}`)}`}
+          </div>
+        </motion.div>
       )}
     </div>
   );

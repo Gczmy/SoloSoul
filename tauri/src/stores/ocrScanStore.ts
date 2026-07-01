@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { commands, type OcrResult, type MrzResult } from '@/lib/ipc';
 
-
 export interface OcrScanEntry {
   id: string;
   timestamp: number;
@@ -84,9 +83,7 @@ export const useOcrScanStore = create<OcrScanState>()(
             if (res) {
               set((s) => ({
                 isScanning: false,
-                scanHistory: s.scanHistory.map((h) =>
-                  h.id === id ? { ...h, mrzResult: res } : h,
-                ),
+                scanHistory: s.scanHistory.map((h) => (h.id === id ? { ...h, mrzResult: res } : h)),
                 lastScanError: null,
               }));
             } else {
@@ -104,9 +101,7 @@ export const useOcrScanStore = create<OcrScanState>()(
             const res = await commands.ocrScanImage(filePath);
             set((s) => ({
               isScanning: false,
-              scanHistory: s.scanHistory.map((h) =>
-                h.id === id ? { ...h, result: res } : h,
-              ),
+              scanHistory: s.scanHistory.map((h) => (h.id === id ? { ...h, result: res } : h)),
               lastScanError: null,
             }));
           }
@@ -115,9 +110,7 @@ export const useOcrScanStore = create<OcrScanState>()(
           set((s) => ({
             isScanning: false,
             lastScanError: msg,
-            scanHistory: s.scanHistory.map((h) =>
-              h.id === id ? { ...h, error: msg } : h,
-            ),
+            scanHistory: s.scanHistory.map((h) => (h.id === id ? { ...h, error: msg } : h)),
           }));
         }
       },

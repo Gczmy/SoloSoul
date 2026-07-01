@@ -50,16 +50,14 @@ export function isPluginResultPayload(value: unknown): value is PluginResultPayl
 export function isConsentRequestEvent(event: unknown): event is ConsentRequestEvent {
   const e = event as Record<string, unknown>;
   return (
-    e?.eventType === 'consent_request' &&
-    typeof (event as ConsentRequestEvent).fieldId === 'string'
+    e?.eventType === 'consent_request' && typeof (event as ConsentRequestEvent).fieldId === 'string'
   );
 }
 
 export function isDialogRequestEvent(event: unknown): event is DialogRequestEvent {
   const e = event as Record<string, unknown>;
   return (
-    e?.eventType === 'dialog_request' &&
-    typeof (event as DialogRequestEvent).requestId === 'string'
+    e?.eventType === 'dialog_request' && typeof (event as DialogRequestEvent).requestId === 'string'
   );
 }
 
@@ -114,240 +112,256 @@ interface PluginState {
 }
 
 export const usePluginStore = create<PluginState>()((set, get) => ({
-      marketPlugins: [],
-      installedPlugins: [],
-      runningPlugins: {},
-      selectedTier: 'all',
-      enabledTiers: DEFAULT_ENABLED_TIERS,
-      isLoadingMarket: false,
-      isLoadingInstalled: false,
-      error: null,
+  marketPlugins: [],
+  installedPlugins: [],
+  runningPlugins: {},
+  selectedTier: 'all',
+  enabledTiers: DEFAULT_ENABLED_TIERS,
+  isLoadingMarket: false,
+  isLoadingInstalled: false,
+  error: null,
 
-      loadMarket: async () => {
-        set({ isLoadingMarket: true, error: null });
-        try {
-          const list = await pluginCommands.listAll();
-          set({ marketPlugins: list, isLoadingMarket: false });
-        } catch (err) {
-          set({ error: String(err), isLoadingMarket: false });
-        }
-      },
+  loadMarket: async () => {
+    set({ isLoadingMarket: true, error: null });
+    try {
+      const list = await pluginCommands.listAll();
+      set({ marketPlugins: list, isLoadingMarket: false });
+    } catch (err) {
+      set({ error: String(err), isLoadingMarket: false });
+    }
+  },
 
-      setSelectedTier: (tier) => {
-        set({ selectedTier: tier });
-      },
+  setSelectedTier: (tier) => {
+    set({ selectedTier: tier });
+  },
 
-      clearError: () => {
-        set({ error: null });
-      },
+  clearError: () => {
+    set({ error: null });
+  },
 
-      loadInstalled: async () => {
-        set({ isLoadingInstalled: true, error: null });
-        try {
-          const list = await pluginCommands.listInstalled();
-          set({ installedPlugins: list, isLoadingInstalled: false });
-        } catch (err) {
-          set({ error: String(err), isLoadingInstalled: false });
-        }
-      },
+  loadInstalled: async () => {
+    set({ isLoadingInstalled: true, error: null });
+    try {
+      const list = await pluginCommands.listInstalled();
+      set({ installedPlugins: list, isLoadingInstalled: false });
+    } catch (err) {
+      set({ error: String(err), isLoadingInstalled: false });
+    }
+  },
 
-      installPlugin: async (pluginId: string, version: string) => {
-        try {
-          await pluginCommands.install(pluginId, version);
-          await get().loadMarket();
-          await get().loadInstalled();
-        } catch (err) {
-          set({ error: String(err) });
-        }
-      },
+  installPlugin: async (pluginId: string, version: string) => {
+    try {
+      await pluginCommands.install(pluginId, version);
+      await get().loadMarket();
+      await get().loadInstalled();
+    } catch (err) {
+      set({ error: String(err) });
+    }
+  },
 
-      updatePlugin: async (pluginId: string) => {
-        try {
-          await pluginCommands.update(pluginId);
-          await get().loadMarket();
-          await get().loadInstalled();
-        } catch (err) {
-          set({ error: String(err) });
-        }
-      },
+  updatePlugin: async (pluginId: string) => {
+    try {
+      await pluginCommands.update(pluginId);
+      await get().loadMarket();
+      await get().loadInstalled();
+    } catch (err) {
+      set({ error: String(err) });
+    }
+  },
 
-      uninstallPlugin: async (pluginId: string) => {
-        try {
-          await pluginCommands.uninstall(pluginId);
-          await get().loadMarket();
-          await get().loadInstalled();
-        } catch (err) {
-          set({ error: String(err) });
-        }
-      },
+  uninstallPlugin: async (pluginId: string) => {
+    try {
+      await pluginCommands.uninstall(pluginId);
+      await get().loadMarket();
+      await get().loadInstalled();
+    } catch (err) {
+      set({ error: String(err) });
+    }
+  },
 
-      runPlugin: async (pluginId: string, pluginName: string, params?: Record<string, string>) => {
-        // 注入当前 UI locale，供插件国际化使用
-        const mergedParams: Record<string, string> = {
-          locale: i18next.language || 'en',
-          ...params,
-        };
-        const startTime = Date.now();
-        const running: RunningPlugin = {
-          pluginId,
-          pluginName,
-          startTime,
-          logs: [],
-          results: [],
-          consentRequests: [],
-          dialogRequests: [],
-          completed: false,
-        };
-        set((state) => ({
-          runningPlugins: { ...state.runningPlugins, [pluginId]: running },
-        }));
+  runPlugin: async (pluginId: string, pluginName: string, params?: Record<string, string>) => {
+    // 注入当前 UI locale，供插件国际化使用
+    const mergedParams: Record<string, string> = {
+      locale: i18next.language || 'en',
+      ...params,
+    };
+    const startTime = Date.now();
+    const running: RunningPlugin = {
+      pluginId,
+      pluginName,
+      startTime,
+      logs: [],
+      results: [],
+      consentRequests: [],
+      dialogRequests: [],
+      completed: false,
+    };
+    set((state) => ({
+      runningPlugins: { ...state.runningPlugins, [pluginId]: running },
+    }));
 
-        try {
-          const result = await pluginCommands.run(pluginId, mergedParams, (event) => {
-            set((state) => {
-              const next = { ...state.runningPlugins[pluginId] };
-              if (!next) return state;
-              switch (event.eventType) {
-                case 'log':
-                  try {
-                    const parsed = JSON.parse(event.jsonData);
-                    if (isPluginLogLine(parsed)) {
-                      next.logs = [...next.logs, parsed];
-                    }
-                  } catch {
-                    // ignore malformed log
-                  }
-                  break;
-                case 'result':
-                  try {
-                    const parsed = JSON.parse(event.jsonData);
-                    if (isPluginResultPayload(parsed)) {
-                      next.results = [...next.results, parsed];
-                    }
-                  } catch {
-                    // ignore malformed result
-                  }
-                  break;
-                case 'consent_request':
-                  if (isConsentRequestEvent(event)) {
-                    next.consentRequests = [...next.consentRequests, event];
-                  }
-                  break;
-                case 'dialog_request':
-                  if (isDialogRequestEvent(event)) {
-                    next.dialogRequests = [...next.dialogRequests, event];
-                  }
-                  break;
-                case 'completed':
-                  next.completed = true;
-                  next.toastShown = true;
-                  try {
-                    const parsed = JSON.parse(event.jsonData);
-                    if (isPluginCompletedEvent(parsed)) {
-                      next.exitCode = parsed.exitCode;
-                    }
-                  } catch {
-                    // ignore
-                  }
-                  break;
-                case 'error':
-                  next.completed = true;
-                  next.toastShown = true;
-                  next.error = event.jsonData;
-                  break;
-              }
-              return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
-            });
-          });
-
-          // 根据运行结果决定 Toast 类型（在同一个 set 中同时标记 completed + toastShown，
-          // 避免 PluginQuickNotificationListener 在两次 set 之间误触发重复 Toast）
-          const finalPlugin = get().runningPlugins[pluginId];
-          const hasError = result.exitCode !== 0 || !!finalPlugin?.error;
-          if (hasError) {
-            useUiStore.getState().showToast({
-              type: 'error',
-              message: i18next.t('plugin:run_failed', { pluginName, defaultValue: `「${pluginName}」plugin run failed` }),
-              duration: 5000,
-            });
-          } else {
-            useUiStore.getState().showToast({
-              type: 'success',
-              message: i18next.t('plugin:run_complete', { pluginName, defaultValue: `「${pluginName}」plugin run completed` }),
-              duration: 3000,
-            });
-          }
-          set((state) => {
-            const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true };
-            next.exitCode = result.exitCode;
-            // 结果已通过事件通道实时累积，此处不重复添加。
-            // 事件通道 + 最终 result.results 是同一份数据，再加会重复。
-            return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
-          });
-        } catch (err) {
-          set((state) => {
-            const next = { ...state.runningPlugins[pluginId], completed: true, error: String(err) };
-            return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
-          });
-          useUiStore.getState().showToast({
-            type: 'error',
-            message: i18next.t('plugin:run_error', { pluginName, defaultValue: `「${pluginName}」plugin run error` }),
-            duration: 5000,
-          });
-          set((state) => {
-            const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true, error: String(err) };
-            return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
-          });
-        }
-      },
-
-      stopPlugin: (pluginId: string) => {
-        set((state) => {
-          const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true };
-          return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
-        });
-      },
-
-      clearPluginOutput: (pluginId: string) => {
-        set((state) => ({
-          runningPlugins: Object.fromEntries(
-            Object.entries(state.runningPlugins).filter(([id]) => id !== pluginId),
-          ),
-        }));
-      },
-
-      resolveDialog: async (pluginId: string, requestId: string, value?: string) => {
-        try {
-          await pluginCommands.dialogResponse(requestId, value);
-        } catch (err) {
-          set({ error: String(err) });
-        }
+    try {
+      const result = await pluginCommands.run(pluginId, mergedParams, (event) => {
         set((state) => {
           const next = { ...state.runningPlugins[pluginId] };
           if (!next) return state;
-          next.dialogRequests = next.dialogRequests.filter((r) => r.requestId !== requestId);
+          switch (event.eventType) {
+            case 'log':
+              try {
+                const parsed = JSON.parse(event.jsonData);
+                if (isPluginLogLine(parsed)) {
+                  next.logs = [...next.logs, parsed];
+                }
+              } catch {
+                // ignore malformed log
+              }
+              break;
+            case 'result':
+              try {
+                const parsed = JSON.parse(event.jsonData);
+                if (isPluginResultPayload(parsed)) {
+                  next.results = [...next.results, parsed];
+                }
+              } catch {
+                // ignore malformed result
+              }
+              break;
+            case 'consent_request':
+              if (isConsentRequestEvent(event)) {
+                next.consentRequests = [...next.consentRequests, event];
+              }
+              break;
+            case 'dialog_request':
+              if (isDialogRequestEvent(event)) {
+                next.dialogRequests = [...next.dialogRequests, event];
+              }
+              break;
+            case 'completed':
+              next.completed = true;
+              next.toastShown = true;
+              try {
+                const parsed = JSON.parse(event.jsonData);
+                if (isPluginCompletedEvent(parsed)) {
+                  next.exitCode = parsed.exitCode;
+                }
+              } catch {
+                // ignore
+              }
+              break;
+            case 'error':
+              next.completed = true;
+              next.toastShown = true;
+              next.error = event.jsonData;
+              break;
+          }
           return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
         });
-      },
+      });
 
-      refreshRegistry: async () => {
-        set({ isLoadingMarket: true, error: null });
-        try {
-          await pluginCommands.updateRegistry();
-          await get().loadMarket();
-          await get().loadInstalled();
-          useUiStore.getState().showToast({
-            type: 'success',
-            message: i18next.t('plugin:refresh_success', { defaultValue: 'Plugin registry updated' }),
-            duration: 3000,
-          });
-        } catch (err) {
-          set({ error: String(err), isLoadingMarket: false });
-          useUiStore.getState().showToast({
-            type: 'error',
-            message: i18next.t('plugin:refresh_failed', { defaultValue: 'Failed to refresh plugin registry' }),
-            duration: 5000,
-          });
-        }
-      },
+      // 根据运行结果决定 Toast 类型（在同一个 set 中同时标记 completed + toastShown，
+      // 避免 PluginQuickNotificationListener 在两次 set 之间误触发重复 Toast）
+      const finalPlugin = get().runningPlugins[pluginId];
+      const hasError = result.exitCode !== 0 || !!finalPlugin?.error;
+      if (hasError) {
+        useUiStore.getState().showToast({
+          type: 'error',
+          message: i18next.t('plugin:run_failed', {
+            pluginName,
+            defaultValue: `「${pluginName}」plugin run failed`,
+          }),
+          duration: 5000,
+        });
+      } else {
+        useUiStore.getState().showToast({
+          type: 'success',
+          message: i18next.t('plugin:run_complete', {
+            pluginName,
+            defaultValue: `「${pluginName}」plugin run completed`,
+          }),
+          duration: 3000,
+        });
+      }
+      set((state) => {
+        const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true };
+        next.exitCode = result.exitCode;
+        // 结果已通过事件通道实时累积，此处不重复添加。
+        // 事件通道 + 最终 result.results 是同一份数据，再加会重复。
+        return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+      });
+    } catch (err) {
+      set((state) => {
+        const next = { ...state.runningPlugins[pluginId], completed: true, error: String(err) };
+        return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+      });
+      useUiStore.getState().showToast({
+        type: 'error',
+        message: i18next.t('plugin:run_error', {
+          pluginName,
+          defaultValue: `「${pluginName}」plugin run error`,
+        }),
+        duration: 5000,
+      });
+      set((state) => {
+        const next = {
+          ...state.runningPlugins[pluginId],
+          completed: true,
+          toastShown: true,
+          error: String(err),
+        };
+        return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+      });
+    }
+  },
+
+  stopPlugin: (pluginId: string) => {
+    set((state) => {
+      const next = { ...state.runningPlugins[pluginId], completed: true, toastShown: true };
+      return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+    });
+  },
+
+  clearPluginOutput: (pluginId: string) => {
+    set((state) => ({
+      runningPlugins: Object.fromEntries(
+        Object.entries(state.runningPlugins).filter(([id]) => id !== pluginId),
+      ),
     }));
+  },
+
+  resolveDialog: async (pluginId: string, requestId: string, value?: string) => {
+    try {
+      await pluginCommands.dialogResponse(requestId, value);
+    } catch (err) {
+      set({ error: String(err) });
+    }
+    set((state) => {
+      const next = { ...state.runningPlugins[pluginId] };
+      if (!next) return state;
+      next.dialogRequests = next.dialogRequests.filter((r) => r.requestId !== requestId);
+      return { runningPlugins: { ...state.runningPlugins, [pluginId]: next } };
+    });
+  },
+
+  refreshRegistry: async () => {
+    set({ isLoadingMarket: true, error: null });
+    try {
+      await pluginCommands.updateRegistry();
+      await get().loadMarket();
+      await get().loadInstalled();
+      useUiStore.getState().showToast({
+        type: 'success',
+        message: i18next.t('plugin:refresh_success', { defaultValue: 'Plugin registry updated' }),
+        duration: 3000,
+      });
+    } catch (err) {
+      set({ error: String(err), isLoadingMarket: false });
+      useUiStore.getState().showToast({
+        type: 'error',
+        message: i18next.t('plugin:refresh_failed', {
+          defaultValue: 'Failed to refresh plugin registry',
+        }),
+        duration: 5000,
+      });
+    }
+  },
+}));

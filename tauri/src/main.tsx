@@ -9,7 +9,9 @@ import { initLlmNotificationListener } from '@/lib/notification';
 import { restoreWindowSize } from '@/hooks/useWindowSize';
 
 // Start global LLM notification listener (non-blocking)
-initLlmNotificationListener().catch((err) => console.warn('[main] LLM notification listener failed:', err));
+initLlmNotificationListener().catch((err) =>
+  console.warn('[main] LLM notification listener failed:', err),
+);
 
 const rootEl = document.getElementById('root');
 

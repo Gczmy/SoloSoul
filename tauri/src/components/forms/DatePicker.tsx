@@ -24,7 +24,6 @@ import { DropdownSelect } from '@/components/ui/DropdownSelect';
 import styles from './DatePicker.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface DatePickerProps {
   value?: string;
   onChange: (value: string | undefined) => void;
@@ -181,7 +180,8 @@ export function DatePicker({
               aria-label="上个月"
             >
               ‹
-            </button>                <div className={styles.selects}>
+            </button>{' '}
+            <div className={styles.selects}>
               <DropdownSelect
                 value={getYear(viewDate)}
                 onChange={(v) => handleYearChange(Number(v))}

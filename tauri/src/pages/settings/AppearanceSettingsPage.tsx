@@ -19,7 +19,6 @@ import { ST_UI_PREFS } from '@/lib/storageKeys';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 const ACCENT_OPTIONS: { value: AccentPreset; label: string; color: string }[] = [
   { value: 'ocean', label: 'Ocean', color: '#5B7C99' },
   { value: 'amber', label: 'Amber', color: '#C4925C' },
@@ -52,8 +51,7 @@ export function AppearanceSettingsPage() {
   const { t } = useTranslation(['settings', 'common']);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
-  const isHorizontal =
-    settings.sidebarPosition === 'top' || settings.sidebarPosition === 'bottom';
+  const isHorizontal = settings.sidebarPosition === 'top' || settings.sidebarPosition === 'bottom';
   const contentHeight = isHorizontal
     ? 'calc(100vh - 48px - 56px - 32px)'
     : 'calc(100vh - 56px - 32px)';
@@ -84,7 +82,9 @@ export function AppearanceSettingsPage() {
 
   const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
-    invoke('ui_update_preference', { key: 'theme', value: preset }).catch((err) => console.warn('[Appearance] Update theme pref failed:', err));
+    invoke('ui_update_preference', { key: 'theme', value: preset }).catch((err) =>
+      console.warn('[Appearance] Update theme pref failed:', err),
+    );
     const resolvedSystemTheme = preset === 'system' ? await getSystemTheme() : undefined;
     await applyTheme({
       preset:
@@ -101,7 +101,9 @@ export function AppearanceSettingsPage() {
 
   const handleAccentChange = async (accent: AccentPreset) => {
     updateSetting(accountId, 'accentColor', accent);
-    invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch((err) => console.warn('[Appearance] Update accent pref failed:', err));
+    invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch((err) =>
+      console.warn('[Appearance] Update accent pref failed:', err),
+    );
     const resolvedSystemTheme = settings.theme === 'system' ? await getSystemTheme() : undefined;
     await applyTheme({
       preset:
@@ -120,7 +122,6 @@ export function AppearanceSettingsPage() {
     syncUiCache();
   };
 
-
   const handleSelectScheme = async (scheme: ThemeScheme) => {
     const currentMode = settings.theme === 'system' ? await getSystemTheme() : settings.theme;
     // If the selected scheme's mode differs from the current theme setting,
@@ -128,7 +129,9 @@ export function AppearanceSettingsPage() {
     if (scheme.mode !== currentMode) {
       const newTheme = scheme.mode;
       updateSetting(accountId, 'theme', newTheme);
-      invoke('ui_update_preference', { key: 'theme', value: newTheme }).catch((err) => console.warn('[Appearance] Update theme during scheme select failed:', err));
+      invoke('ui_update_preference', { key: 'theme', value: newTheme }).catch((err) =>
+        console.warn('[Appearance] Update theme during scheme select failed:', err),
+      );
       await applyTheme({
         preset: newTheme === 'dark' ? 'warm-stone-dark' : 'warm-stone-light',
         accentColor: settings.accentColor as AccentPreset,
@@ -144,7 +147,9 @@ export function AppearanceSettingsPage() {
     // Persist as default for the scheme's mode
     const key = scheme.mode === 'light' ? 'defaultLightTheme' : 'defaultDarkTheme';
     updateSetting(accountId, key, scheme.id);
-    invoke('ui_update_preference', { key, value: scheme.id }).catch((err) => console.warn('[Appearance] Update scheme pref failed:', err));
+    invoke('ui_update_preference', { key, value: scheme.id }).catch((err) =>
+      console.warn('[Appearance] Update scheme pref failed:', err),
+    );
     syncUiCache();
   };
 
@@ -340,7 +345,12 @@ export function AppearanceSettingsPage() {
                       }}
                     >
                       <Icon size={ICON_SIZE['2xl']} />
-                      <span style={{ fontSize: 'var(--text-caption)', fontWeight: isActive ? 500 : 400 }}>
+                      <span
+                        style={{
+                          fontSize: 'var(--text-caption)',
+                          fontWeight: isActive ? 500 : 400,
+                        }}
+                      >
                         {t(opt.labelKey)}
                       </span>
                     </button>
@@ -354,7 +364,13 @@ export function AppearanceSettingsPage() {
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 4 }}>
                 {t('settings:sidebar_button_mode')}
               </h3>
-              <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)', marginBottom: 12 }}>
+              <p
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-secondary)',
+                  marginBottom: 12,
+                }}
+              >
                 {t('settings:sidebar_button_mode_desc')}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -384,12 +400,17 @@ export function AppearanceSettingsPage() {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <Icon size={ICON_SIZE.md} style={{ color: 'var(--text-secondary)' }} />
-                        <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{label}</span>
+                        <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                          {label}
+                        </span>
                       </div>
                       <select
                         value={currentMode}
                         onChange={(e) => {
-                          const newModes: Record<string, 'card' | 'page'> = { ...settings.sidebarButtonModes, [id]: e.target.value as 'card' | 'page' };
+                          const newModes: Record<string, 'card' | 'page'> = {
+                            ...settings.sidebarButtonModes,
+                            [id]: e.target.value as 'card' | 'page',
+                          };
                           updateSetting(accountId, 'sidebarButtonModes', newModes);
                         }}
                         style={{

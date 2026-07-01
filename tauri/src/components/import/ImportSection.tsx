@@ -64,7 +64,13 @@ export function ImportSection({
         <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('settings:select_file')}
         </h3>
-        <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginBottom: 8 }}>
+        <div
+          style={{
+            fontSize: 'var(--text-body-sm)',
+            color: 'var(--text-secondary)',
+            marginBottom: 8,
+          }}
+        >
           {importPath || t('settings:no_file_selected')}
         </div>
         <button
@@ -96,7 +102,8 @@ export function ImportSection({
             transition: 'all 0.15s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+            e.currentTarget.style.background =
+              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
             e.currentTarget.style.borderColor = 'var(--accent-primary)';
             e.currentTarget.style.color = 'var(--accent-primary)';
           }}
@@ -119,7 +126,9 @@ export function ImportSection({
                 padding: '6px 12px',
                 borderRadius: 6,
                 border: '1px solid var(--border-subtle)',
-                background: isPreviewing ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                background: isPreviewing
+                  ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                  : 'var(--bg-toolbar)',
                 color: isPreviewing ? 'var(--accent-primary)' : 'var(--text-primary)',
                 cursor: isPreviewing ? 'default' : 'pointer',
                 fontFamily: 'inherit',
@@ -129,7 +138,8 @@ export function ImportSection({
               }}
               onMouseEnter={(e) => {
                 if (!isPreviewing) {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                   e.currentTarget.style.borderColor = 'var(--accent-primary)';
                   e.currentTarget.style.color = 'var(--accent-primary)';
                 }
@@ -154,7 +164,14 @@ export function ImportSection({
           <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
             {t('settings:import_preview')}
           </h3>
-          <div style={{ fontSize: 'var(--text-body-sm)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+            }}
+          >
             <p>
               {t('settings:version')}: {importPreview.version}
             </p>
@@ -163,9 +180,7 @@ export function ImportSection({
             </p>
             <p>{t('settings:objects_count', { n: importPreview.objectCount })}</p>
             {importPreview.hasAttachments && (
-              <p style={{ color: 'var(--accent-primary)' }}>
-                {t('settings:includes_attachments')}
-              </p>
+              <p style={{ color: 'var(--accent-primary)' }}>{t('settings:includes_attachments')}</p>
             )}
             {importPreview.extraFiles.length > 0 &&
               importPreview.extraFiles.includes('preferences.enc') && (
@@ -210,7 +225,9 @@ export function ImportSection({
                   padding: '6px 12px',
                   borderRadius: 6,
                   border: '1px solid var(--border-subtle)',
-                  background: isDecrypting ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                  background: isDecrypting
+                    ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                    : 'var(--bg-toolbar)',
                   color: isDecrypting ? 'var(--accent-primary)' : 'var(--text-primary)',
                   cursor: !importPw || isDecrypting ? 'default' : 'pointer',
                   fontFamily: 'inherit',
@@ -220,7 +237,8 @@ export function ImportSection({
                 }}
                 onMouseEnter={(e) => {
                   if (importPw && !isDecrypting) {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                     e.currentTarget.style.borderColor = 'var(--accent-primary)';
                     e.currentTarget.style.color = 'var(--accent-primary)';
                   }
@@ -233,7 +251,9 @@ export function ImportSection({
                   }
                 }}
               >
-                {isDecrypting ? t('common:loading', { defaultValue: '...' }) : t('settings:decrypt_and_preview')}
+                {isDecrypting
+                  ? t('common:loading', { defaultValue: '...' })
+                  : t('settings:decrypt_and_preview')}
               </button>
             </div>
           )}
@@ -272,7 +292,16 @@ export function ImportSection({
                           checked={isSelected}
                           onChange={() => onToggleSelection(obj.id)}
                         />
-                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{obj.name}</span>
+                        <span
+                          style={{
+                            flex: 1,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {obj.name}
+                        </span>
                         <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
                         {isConflict && (
                           <span
@@ -328,7 +357,8 @@ export function ImportSection({
                       transition: 'all 0.15s ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                      e.currentTarget.style.background =
+                        'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                       e.currentTarget.style.borderColor = 'var(--accent-primary)';
                       e.currentTarget.style.color = 'var(--accent-primary)';
                     }}
@@ -349,7 +379,9 @@ export function ImportSection({
                       padding: '6px 12px',
                       borderRadius: 6,
                       border: '1px solid var(--border-subtle)',
-                      background: isImporting ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                      background: isImporting
+                        ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                        : 'var(--bg-toolbar)',
                       color: isImporting ? 'var(--accent-primary)' : 'var(--text-primary)',
                       cursor: !importPw || isImporting ? 'default' : 'pointer',
                       fontFamily: 'inherit',
@@ -359,7 +391,8 @@ export function ImportSection({
                     }}
                     onMouseEnter={(e) => {
                       if (importPw && !isImporting) {
-                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                        e.currentTarget.style.background =
+                          'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                         e.currentTarget.style.borderColor = 'var(--accent-primary)';
                         e.currentTarget.style.color = 'var(--accent-primary)';
                       }
@@ -372,7 +405,9 @@ export function ImportSection({
                       }
                     }}
                   >
-                    {isImporting ? t('common:loading', { defaultValue: '...' }) : t('settings:quick_import')}
+                    {isImporting
+                      ? t('common:loading', { defaultValue: '...' })
+                      : t('settings:quick_import')}
                   </button>
                 </div>
               ) : (
@@ -407,7 +442,13 @@ export function ImportSection({
                       />
                       <div>
                         <strong>{t(`settings:strategy_${s}`)}</strong>
-                        <p style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', margin: 1 }}>
+                        <p
+                          style={{
+                            fontSize: 'var(--text-badge)',
+                            color: 'var(--text-tertiary)',
+                            margin: 1,
+                          }}
+                        >
                           {t(`settings:strategy_${s}_desc`)}
                         </p>
                       </div>
@@ -430,7 +471,8 @@ export function ImportSection({
                         transition: 'all 0.15s ease',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                        e.currentTarget.style.background =
+                          'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                         e.currentTarget.style.borderColor = 'var(--accent-primary)';
                         e.currentTarget.style.color = 'var(--accent-primary)';
                       }}
@@ -451,7 +493,9 @@ export function ImportSection({
                         padding: '6px 12px',
                         borderRadius: 6,
                         border: '1px solid var(--border-subtle)',
-                        background: isImporting ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                        background: isImporting
+                          ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                          : 'var(--bg-toolbar)',
                         color: isImporting ? 'var(--accent-primary)' : 'var(--text-primary)',
                         cursor: !importPw || isImporting ? 'default' : 'pointer',
                         fontFamily: 'inherit',
@@ -461,7 +505,8 @@ export function ImportSection({
                       }}
                       onMouseEnter={(e) => {
                         if (importPw && !isImporting) {
-                          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                          e.currentTarget.style.background =
+                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                           e.currentTarget.style.borderColor = 'var(--accent-primary)';
                           e.currentTarget.style.color = 'var(--accent-primary)';
                         }
@@ -474,7 +519,9 @@ export function ImportSection({
                         }
                       }}
                     >
-                      {isImporting ? t('common:loading', { defaultValue: '...' }) : `${t('settings:import_action')} (${importSelections.size})`}
+                      {isImporting
+                        ? t('common:loading', { defaultValue: '...' })
+                        : `${t('settings:import_action')} (${importSelections.size})`}
                     </button>
                   </div>
                 </div>
@@ -484,7 +531,13 @@ export function ImportSection({
         </Card>
       )}
       {importPreview && !decryptedPreview && (
-        <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', textAlign: 'center' }}>
+        <p
+          style={{
+            fontSize: 'var(--text-caption)',
+            color: 'var(--text-tertiary)',
+            textAlign: 'center',
+          }}
+        >
           {t('settings:password_required_for_decrypt')}
         </p>
       )}

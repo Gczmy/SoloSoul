@@ -5,7 +5,6 @@ import type { TFunction } from 'i18next';
 import styles from './ModelInfoCard.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface ModelInfoCardProps {
   providerName: string;
   modelName: string;

@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import type { MrzResult } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface MrzResultCardProps {
   result: MrzResult;
 }
@@ -39,7 +38,11 @@ export function MrzResultCard({ result }: MrzResultCardProps) {
           fontWeight: 500,
         }}
       >
-        {result.checksumValid ? <ShieldCheck size={ICON_SIZE.md} /> : <ShieldAlert size={ICON_SIZE.md} />}
+        {result.checksumValid ? (
+          <ShieldCheck size={ICON_SIZE.md} />
+        ) : (
+          <ShieldAlert size={ICON_SIZE.md} />
+        )}
         {result.checksumValid ? t('ocr:mrz_checksum_valid') : t('ocr:mrz_checksum_invalid')}
       </div>
 
@@ -60,10 +63,18 @@ export function MrzResultCard({ result }: MrzResultCardProps) {
               background: 'var(--bg-toolbar)',
             }}
           >
-            <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginBottom: 2 }}>
+            <div
+              style={{
+                fontSize: 'var(--text-badge)',
+                color: 'var(--text-tertiary)',
+                marginBottom: 2,
+              }}
+            >
               {field.label}
             </div>
-            <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, wordBreak: 'break-word' }}>
+            <div
+              style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, wordBreak: 'break-word' }}
+            >
               {field.value || '-'}
             </div>
           </div>

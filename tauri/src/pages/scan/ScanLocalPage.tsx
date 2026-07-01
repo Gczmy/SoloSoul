@@ -13,7 +13,6 @@ import { useToastError } from '@/hooks/useToastError';
 import { FolderOpen, FileText, Upload, Search } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface ScannedFile {
   path: string;
   name: string;
@@ -163,27 +162,35 @@ export function ScanLocalPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
               {files.map((file) => (
                 <Card key={file.path}>
-                <div
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <FileText size={ICON_SIZE.xl} style={{ color: 'var(--text-tertiary)' }} />
-                    <div>
-                      <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{file.name}</div>
-                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                        {file.ext.toUpperCase()} · {formatFileSize(file.size)}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <FileText size={ICON_SIZE.xl} style={{ color: 'var(--text-tertiary)' }} />
+                      <div>
+                        <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                          {file.name}
+                        </div>
+                        <div
+                          style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
+                        >
+                          {file.ext.toUpperCase()} · {formatFileSize(file.size)}
+                        </div>
                       </div>
                     </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleImport(file)}
+                      loading={importing.has(file.path)}
+                    >
+                      Import
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => handleImport(file)}
-                    loading={importing.has(file.path)}
-                  >
-                    Import
-                  </Button>
-                </div>
-              </Card>
+                </Card>
               ))}
             </div>
           </>

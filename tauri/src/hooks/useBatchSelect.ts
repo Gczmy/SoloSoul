@@ -64,17 +64,14 @@ export function useBatchSelect(
     });
   }, []);
 
-  const handleSelectAll = useCallback(
-    (visibleKeys: string[]) => {
-      setSelectedIds((prev) => {
-        if (visibleKeys.length > 0 && visibleKeys.every((k) => prev.has(k))) {
-          return new Set();
-        }
-        return new Set(visibleKeys);
-      });
-    },
-    [],
-  );
+  const handleSelectAll = useCallback((visibleKeys: string[]) => {
+    setSelectedIds((prev) => {
+      if (visibleKeys.length > 0 && visibleKeys.every((k) => prev.has(k))) {
+        return new Set();
+      }
+      return new Set(visibleKeys);
+    });
+  }, []);
 
   const clearSelection = useCallback(() => {
     setSelectedIds(new Set());

@@ -14,7 +14,6 @@ import { useLlmChatCore } from '@/hooks/useLlmChatCore';
 import { ST_QUICK_CHAT_PREFIX } from '@/lib/storageKeys';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 // =============================================================================
 // AiQuickChatPopover — quick AI chat floating card beside sidebar
 // =============================================================================
@@ -134,8 +133,7 @@ export function AiQuickChatPopover({
   };
 
   const hoverBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background =
-      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
     e.currentTarget.style.color = 'var(--accent-primary)';
   };
   const hoverBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -184,7 +182,13 @@ export function AiQuickChatPopover({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <MessageSquare size={ICON_SIZE.md} style={{ color: 'var(--accent-primary)' }} />
-          <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, color: 'var(--text-primary)' }}>
+          <span
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+            }}
+          >
             {t('settings:ai_quick_chat_title')}
           </span>
         </div>

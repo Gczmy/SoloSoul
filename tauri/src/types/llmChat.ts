@@ -32,9 +32,7 @@ export function nowISO(): string {
 }
 
 export function isOllama(baseUrl: string): boolean {
-  return (
-    baseUrl.toLowerCase().includes('localhost') || baseUrl.toLowerCase().includes('127.0.0.1')
-  );
+  return baseUrl.toLowerCase().includes('localhost') || baseUrl.toLowerCase().includes('127.0.0.1');
 }
 
 export function generateId(): string {

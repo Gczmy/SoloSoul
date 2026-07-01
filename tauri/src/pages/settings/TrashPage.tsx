@@ -22,7 +22,6 @@ import { TrashConfirmDialog } from '@/components/trash/TrashConfirmDialog';
 import type { TrashDetail, TrashConfirmAction } from '@/components/trash/types';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 const TIME_OPTIONS: { value: TrashTimeFilter; labelKey: string }[] = [
   { value: 'all', labelKey: 'all' },
   { value: '1d', labelKey: '1d' },
@@ -116,7 +115,9 @@ export function TrashPage() {
           useSettingsStore
             .getState()
             .loadCustomPages(accountId)
-            .catch((err) => console.warn('[TrashPage] Load custom pages after restore failed:', err));
+            .catch((err) =>
+              console.warn('[TrashPage] Load custom pages after restore failed:', err),
+            );
       },
     });
   };
@@ -153,14 +154,17 @@ export function TrashPage() {
   };
 
   return (
-    <AppShell title={t('settings:trash')} onBack={() => {
-            const state = location.state as { fromHome?: boolean } | undefined;
-            if (state?.fromHome) {
-              navigate('/home');
-            } else {
-              navigate('/settings');
-            }
-          }}>
+    <AppShell
+      title={t('settings:trash')}
+      onBack={() => {
+        const state = location.state as { fromHome?: boolean } | undefined;
+        if (state?.fromHome) {
+          navigate('/home');
+        } else {
+          navigate('/settings');
+        }
+      }}
+    >
       <PageContainer variant="medium" gap="default">
         <Input
           placeholder={t('settings:search_trash')}
@@ -178,27 +182,40 @@ export function TrashPage() {
                 <button
                   key={opt.value}
                   onClick={() => setTimeFilter(opt.value)}
-                  onMouseEnter={!isActive ? (e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  } : undefined}
-                  onMouseLeave={!isActive ? (e) => {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  } : undefined}
+                  onMouseEnter={
+                    !isActive
+                      ? (e) => {
+                          e.currentTarget.style.background =
+                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                        }
+                      : undefined
+                  }
+                  onMouseLeave={
+                    !isActive
+                      ? (e) => {
+                          e.currentTarget.style.background = 'var(--bg-toolbar)';
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        }
+                      : undefined
+                  }
                   style={{
                     padding: '5px 12px',
                     borderRadius: 6,
-                    border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                    background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                    border: isActive
+                      ? '1px solid var(--accent-primary)'
+                      : '1px solid var(--border-subtle)',
+                    background: isActive
+                      ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                      : 'var(--bg-toolbar)',
                     color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                     boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                  fontSize: 'var(--text-sm)',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                }}
-              >
-                {t(`settings:${opt.labelKey}`, opt.labelKey)}
+                    fontSize: 'var(--text-sm)',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
+                  }}
+                >
+                  {t(`settings:${opt.labelKey}`, opt.labelKey)}
                 </button>
               );
             })}
@@ -210,27 +227,40 @@ export function TrashPage() {
                 <button
                   key={opt.value}
                   onClick={() => setTypeFilter(opt.value)}
-                  onMouseEnter={!isActive ? (e) => {
-                    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  } : undefined}
-                  onMouseLeave={!isActive ? (e) => {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  } : undefined}
+                  onMouseEnter={
+                    !isActive
+                      ? (e) => {
+                          e.currentTarget.style.background =
+                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                        }
+                      : undefined
+                  }
+                  onMouseLeave={
+                    !isActive
+                      ? (e) => {
+                          e.currentTarget.style.background = 'var(--bg-toolbar)';
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        }
+                      : undefined
+                  }
                   style={{
                     padding: '5px 12px',
                     borderRadius: 6,
-                    border: isActive ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
-                    background: isActive ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'var(--bg-toolbar)',
+                    border: isActive
+                      ? '1px solid var(--accent-primary)'
+                      : '1px solid var(--border-subtle)',
+                    background: isActive
+                      ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                      : 'var(--bg-toolbar)',
                     color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
                     boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                  fontSize: 'var(--text-sm)',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                }}
-              >
-                {t(`settings:trash_type_${opt.value}`)}
+                    fontSize: 'var(--text-sm)',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
+                  }}
+                >
+                  {t(`settings:trash_type_${opt.value}`)}
                 </button>
               );
             })}
@@ -268,7 +298,14 @@ export function TrashPage() {
 
         {error && (
           <Card>
-            <p style={{ textAlign: 'center', color: 'var(--error)', padding: 16, fontSize: 'var(--text-body-sm)' }}>
+            <p
+              style={{
+                textAlign: 'center',
+                color: 'var(--error)',
+                padding: 16,
+                fontSize: 'var(--text-body-sm)',
+              }}
+            >
               {error}
             </p>
           </Card>
@@ -308,7 +345,10 @@ export function TrashPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <SelectCheckbox
                       checked={selectedIds.has(item.id)}
-                      onClick={(e) => { e.stopPropagation(); toggleSelection(item.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelection(item.id);
+                      }}
                     />
                     <div
                       style={{
@@ -320,8 +360,18 @@ export function TrashPage() {
                       }}
                     >
                       {(() => {
-                        const Icon = item.itemType === 'template' ? LayoutTemplate : item.itemType === 'page' ? Folder : FileText;
-                        return <Icon size={ICON_SIZE.xl} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />;
+                        const Icon =
+                          item.itemType === 'template'
+                            ? LayoutTemplate
+                            : item.itemType === 'page'
+                              ? Folder
+                              : FileText;
+                        return (
+                          <Icon
+                            size={ICON_SIZE.xl}
+                            style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+                          />
+                        );
                       })()}
                       <div style={{ minWidth: 0 }}>
                         <div
@@ -376,7 +426,8 @@ export function TrashPage() {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.color = 'var(--accent-primary)';
-                        e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                        e.currentTarget.style.background =
+                          'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.color = 'var(--text-tertiary)';
@@ -417,13 +468,22 @@ export function TrashPage() {
               boxShadow: '0 -2px 12px rgba(0,0,0,0.08)',
             }}
           >
-            <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', marginRight: 'auto' }}>
+            <span
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                marginRight: 'auto',
+              }}
+            >
               {selectedIds.size} {t('settings:selected')}
             </span>
             <Button size="sm" variant="tertiary" onClick={() => doRestore(Array.from(selectedIds))}>
               <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} /> {t('common:restore')}
             </Button>
-            <DeleteButton onClick={() => doDelete(Array.from(selectedIds))} title={t('common:delete_permanently')}>
+            <DeleteButton
+              onClick={() => doDelete(Array.from(selectedIds))}
+              title={t('common:delete_permanently')}
+            >
               {t('common:delete_permanently')}
             </DeleteButton>
           </div>

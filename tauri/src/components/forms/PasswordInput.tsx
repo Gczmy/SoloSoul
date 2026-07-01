@@ -5,7 +5,6 @@ import { Lock, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface SecurePasswordInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -100,7 +99,11 @@ export function SecurePasswordInput({
       {label && (
         <label
           htmlFor={inputId}
-          style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, color: 'var(--text-secondary)' }}
+          style={{
+            fontSize: 'var(--text-body-sm)',
+            fontWeight: 500,
+            color: 'var(--text-secondary)',
+          }}
         >
           {label}
         </label>
@@ -223,7 +226,8 @@ export function SecurePasswordInput({
                 transition: 'all 0.15s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
               }}
               onMouseLeave={(e) => {
@@ -259,7 +263,8 @@ export function SecurePasswordInput({
                   transition: 'all 0.15s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                   e.currentTarget.style.color = 'var(--accent-primary)';
                 }}
                 onMouseLeave={(e) => {

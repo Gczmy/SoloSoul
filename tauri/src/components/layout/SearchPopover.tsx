@@ -27,7 +27,6 @@ import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityB
 import styles from './SearchPopover.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 const FILTER_PAGES = [
   { key: 'identity', labelKey: 'navigation:identity', icon: User },
   { key: 'travel', labelKey: 'navigation:travel', icon: Plane },
@@ -120,9 +119,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const { t } = useTranslation(['common', 'navigation', 'settings', 'sensitivity', 'editor']);
 
   /** Resolve display name: translate system page keys via i18n. */
-  function resolveResultName(
-    item: { itemType: string; objectId: string; name: string },
-  ): string {
+  function resolveResultName(item: { itemType: string; objectId: string; name: string }): string {
     if (item.itemType === 'page') {
       const system = FILTER_PAGES.find((f) => f.key === item.objectId);
       if (system) return t(system.labelKey);
@@ -133,17 +130,20 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   }
 
   /** Detect if the query matches a translated system page name. */
-  const matchPageTranslation = useCallback((q: string): string | null => {
-    const trimmed = q.toLowerCase().trim();
-    const systemKeys = ['identity', 'travel', 'financial', 'professional'] as const;
-    for (const key of systemKeys) {
-      const label = t(`navigation:${key}`).toLowerCase();
-      if (label === trimmed || label.includes(trimmed) || trimmed.includes(label)) {
-        return key;
+  const matchPageTranslation = useCallback(
+    (q: string): string | null => {
+      const trimmed = q.toLowerCase().trim();
+      const systemKeys = ['identity', 'travel', 'financial', 'professional'] as const;
+      for (const key of systemKeys) {
+        const label = t(`navigation:${key}`).toLowerCase();
+        if (label === trimmed || label.includes(trimmed) || trimmed.includes(label)) {
+          return key;
+        }
       }
-    }
-    return null;
-  }, [t]);
+      return null;
+    },
+    [t],
+  );
 
   /** Resolve icon for a search result item. */
   function resolveResultIcon(
@@ -240,24 +240,24 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
 
         let items = res.items;
         if (pageKey) {
-            const pageExists = items.some((i) => i.itemType === 'page' && i.objectId === pageKey);
-            if (!pageExists) {
-              items = [
-                {
-                  objectId: pageKey,
-                  name: pageKey,
-                  collectionType: pageKey,
-                  itemType: 'page',
-                  objectCount: undefined,
-                  matchedField: undefined,
-                  matchedValue: undefined,
-                  matchType: undefined,
-                  sensitivityLevels: undefined,
-                  relevance: 99,
-                } as SearchItem,
-                ...items,
-              ];
-            }
+          const pageExists = items.some((i) => i.itemType === 'page' && i.objectId === pageKey);
+          if (!pageExists) {
+            items = [
+              {
+                objectId: pageKey,
+                name: pageKey,
+                collectionType: pageKey,
+                itemType: 'page',
+                objectCount: undefined,
+                matchedField: undefined,
+                matchedValue: undefined,
+                matchType: undefined,
+                sensitivityLevels: undefined,
+                relevance: 99,
+              } as SearchItem,
+              ...items,
+            ];
+          }
         }
 
         searchCache.set(cacheKey, items);
@@ -477,76 +477,105 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                   </div>
                 )}
                 {results.map((item) => {
-                    const ResultIcon = resolveResultIcon(item, customPages);
-                    return (
-                  <button
-                    key={`${item.itemType}-${item.objectId}`}
-                    className={styles.resultItem}
-                    onClick={() => handleClickResult(item)}
-                  >
-                    <ResultIcon size={16} />
-                    <div className={styles.resultText}>
-                      <div className={styles.resultName}>{item.itemType === 'page' || item.itemType === 'template' || item.matchType === 'template' ? <Highlight text={resolveResultName(item)} query={query} /> : resolveResultName(item)}</div>
-                      <div className={styles.resultMeta}>
-                        {item.itemType === 'page' ? (
-                          <>
-                            <span className={styles.typeTag}>{t('settings:search_type_page')}</span>
-                            <span> · {resolvePageName(item)}</span>
-                            {item.objectCount !== undefined && (
+                  const ResultIcon = resolveResultIcon(item, customPages);
+                  return (
+                    <button
+                      key={`${item.itemType}-${item.objectId}`}
+                      className={styles.resultItem}
+                      onClick={() => handleClickResult(item)}
+                    >
+                      <ResultIcon size={16} />
+                      <div className={styles.resultText}>
+                        <div className={styles.resultName}>
+                          {item.itemType === 'page' ||
+                          item.itemType === 'template' ||
+                          item.matchType === 'template' ? (
+                            <Highlight text={resolveResultName(item)} query={query} />
+                          ) : (
+                            resolveResultName(item)
+                          )}
+                        </div>
+                        <div className={styles.resultMeta}>
+                          {item.itemType === 'page' ? (
+                            <>
+                              <span className={styles.typeTag}>
+                                {t('settings:search_type_page')}
+                              </span>
+                              <span> · {resolvePageName(item)}</span>
+                              {item.objectCount !== undefined && (
+                                <span>
+                                  {' '}
+                                  · {item.objectCount} {t('settings:search_objects_count')}
+                                </span>
+                              )}
+                            </>
+                          ) : item.itemType === 'template' ? (
+                            <>
+                              <span className={styles.typeTag}>
+                                {t('settings:search_type_template', 'Template')}
+                              </span>
+                              {item.fieldCount !== undefined && (
+                                <span>
+                                  {' · '}
+                                  {item.fieldCount} {t('settings:search_fields_count')}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <span className={styles.typeTag}>
+                                {t('settings:search_type_object')}
+                              </span>
                               <span>
                                 {' '}
-                                · {item.objectCount} {t('settings:search_objects_count')}
+                                ·{' '}
+                                {item.matchType === 'template' ? (
+                                  <Highlight text={resolvePageName(item)} query={query} />
+                                ) : (
+                                  resolvePageName(item)
+                                )}
                               </span>
-                            )}
-                          </>
-                        ) : item.itemType === 'template' ? (
-                          <>
-                            <span className={styles.typeTag}>{t('settings:search_type_template', 'Template')}</span>
-                            {item.fieldCount !== undefined && (
-                              <span>
-                                {' · '}{item.fieldCount} {t('settings:search_fields_count')}
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <span className={styles.typeTag}>
-                              {t('settings:search_type_object')}
-                            </span>
-                            <span> · {item.matchType === 'template' ? <Highlight text={resolvePageName(item)} query={query} /> : resolvePageName(item)}</span>
-                            {item.templateName && (
-                              <span>
-                                {' · '}
-                                <span style={item.templateDeleted ? { textDecoration: 'line-through' } : undefined}>{item.templateName}</span>
-                              </span>
-                            )}
-                            {item.fieldCount !== undefined && (
-                              <span>
-                                {' '}
-                                · {item.fieldCount} {t('settings:search_fields_count')}
-                              </span>
-                            )}
-                            {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
-                              <span
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  marginLeft: 4,
-                                }}
-                              >
-                                {' · '}
-                                {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
-                                  <SensitivityBadge key={lvl} level={lvl} />
-                                ))}
-                              </span>
-                            )}
-                          </>
-                        )}
-                        {renderMatchHint(item)}
+                              {item.templateName && (
+                                <span>
+                                  {' · '}
+                                  <span
+                                    style={
+                                      item.templateDeleted
+                                        ? { textDecoration: 'line-through' }
+                                        : undefined
+                                    }
+                                  >
+                                    {item.templateName}
+                                  </span>
+                                </span>
+                              )}
+                              {item.fieldCount !== undefined && (
+                                <span>
+                                  {' '}
+                                  · {item.fieldCount} {t('settings:search_fields_count')}
+                                </span>
+                              )}
+                              {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    marginLeft: 4,
+                                  }}
+                                >
+                                  {' · '}
+                                  {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
+                                    <SensitivityBadge key={lvl} level={lvl} />
+                                  ))}
+                                </span>
+                              )}
+                            </>
+                          )}
+                          {renderMatchHint(item)}
+                        </div>
                       </div>
-                    </div>
-                  </button>
+                    </button>
                   );
                 })}
               </>

@@ -131,7 +131,14 @@ export interface ConsentRequestEvent {
 }
 
 export interface PluginEvent {
-  eventType: 'log' | 'result' | 'consent_request' | 'dialog_request' | 'completed' | 'error' | 'custom_event';
+  eventType:
+    | 'log'
+    | 'result'
+    | 'consent_request'
+    | 'dialog_request'
+    | 'completed'
+    | 'error'
+    | 'custom_event';
   jsonData: string;
   customType?: string;
   requestId?: string;

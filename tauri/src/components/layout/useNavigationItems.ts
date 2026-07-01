@@ -182,7 +182,8 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
       }
     }
 
-    const link = CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search' | 'ocr' | 'plugins'>];
+    const link =
+      CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search' | 'ocr' | 'plugins'>];
     if (!link) {
       // Fallback for unknown ID
       return {

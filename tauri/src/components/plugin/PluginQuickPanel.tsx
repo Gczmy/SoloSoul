@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';import { Puzzle, RefreshCw, X, Play, Download, Loader2, ArrowUpRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Puzzle, RefreshCw, X, Play, Download, Loader2, ArrowUpRight } from 'lucide-react';
 import { usePluginStore, type RunningPlugin } from '@/stores/pluginStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { usePluginQuickStore, type QuickPanelTab } from '@/stores/pluginQuickStore';
@@ -13,18 +14,13 @@ import { isDevOrDebug } from '@/lib/env';
 import styles from './PluginQuickPanel.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface PluginQuickPanelProps {
   position: { top: number } | null;
   onClose: () => void;
   placement?: 'left' | 'right' | 'bottom' | 'top';
 }
 
-export function PluginQuickPanel({
-  position,
-  onClose,
-  placement = 'left',
-}: PluginQuickPanelProps) {
+export function PluginQuickPanel({ position, onClose, placement = 'left' }: PluginQuickPanelProps) {
   const { t, i18n } = useTranslation(['plugin', 'common']);
   const navigate = useNavigate();
   const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
@@ -113,8 +109,7 @@ export function PluginQuickPanel({
   }, [marketPlugins, runningPlugins, activeTab]);
 
   const activeRunningCount = useMemo(
-    () =>
-      Object.values(runningPlugins).filter((rp) => !rp.completed).length,
+    () => Object.values(runningPlugins).filter((rp) => !rp.completed).length,
     [runningPlugins],
   );
 
@@ -153,10 +148,7 @@ export function PluginQuickPanel({
             disabled={isLoadingMarket}
             title={t('plugin:refresh', { defaultValue: 'Refresh registry' })}
           >
-            <RefreshCw
-              size={ICON_SIZE.sm}
-              className={isLoadingMarket ? undefined : undefined}
-            />
+            <RefreshCw size={ICON_SIZE.sm} className={isLoadingMarket ? undefined : undefined} />
           </button>
           <button
             className={styles.headerBtn}
@@ -165,11 +157,7 @@ export function PluginQuickPanel({
           >
             <ArrowUpRight size={ICON_SIZE.sm} />
           </button>
-          <button
-            className={styles.headerBtn}
-            onClick={onClose}
-            title={t('common:close')}
-          >
+          <button className={styles.headerBtn} onClick={onClose} title={t('common:close')}>
             <X size={ICON_SIZE.sm} />
           </button>
         </div>
@@ -209,8 +197,7 @@ export function PluginQuickPanel({
             const installed = !!info.installedVersion;
             const running = runningPlugins[info.pluginId];
             const isRunning = running && !running.completed;
-            const displayName =
-              info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
+            const displayName = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
             return (
               <div key={info.pluginId} className={styles.pluginCard}>
                 <div className={styles.pluginRow}>
@@ -237,8 +224,7 @@ export function PluginQuickPanel({
                         className={styles.runBtn}
                         onClick={() => {
                           const name =
-                            info.registryEntry.i18n?.[locale]?.name ??
-                            info.registryEntry.name;
+                            info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
                           const savedParams = pluginRunParamsRef.current[info.pluginId];
                           // 水印插件：检查是否已选择附件，无附件时提示用户
                           if (info.pluginId === 'com.solosoul.official.watermark') {
@@ -265,11 +251,7 @@ export function PluginQuickPanel({
                         }}
                         disabled={isRunning}
                       >
-                        {isRunning ? (
-                          <Loader2 size={ICON_SIZE.xs} />
-                        ) : (
-                          <Play size={ICON_SIZE.xs} />
-                        )}
+                        {isRunning ? <Loader2 size={ICON_SIZE.xs} /> : <Play size={ICON_SIZE.xs} />}
                         {t('plugin:run', { defaultValue: 'Run' })}
                       </button>
                     )}
@@ -277,10 +259,7 @@ export function PluginQuickPanel({
                       <button
                         className={styles.installBtn}
                         onClick={() =>
-                          installPlugin(
-                            info.pluginId,
-                            info.registryEntry.latestVersion,
-                          )
+                          installPlugin(info.pluginId, info.registryEntry.latestVersion)
                         }
                       >
                         <Download size={ICON_SIZE.xs} />
@@ -289,11 +268,19 @@ export function PluginQuickPanel({
                     )}
                     {installed && (
                       <DeleteButton
-                        onClick={() => requestConfirm(
-                          t('plugin:uninstall_confirm_title', { defaultValue: 'Uninstall Plugin' }),
-                          t('plugin:uninstall_confirm_message', { defaultValue: 'Are you sure you want to uninstall "{{name}}"? This action will remove the plugin and its local data.', name: displayName }),
-                          () => uninstallPlugin(info.pluginId),
-                        )}
+                        onClick={() =>
+                          requestConfirm(
+                            t('plugin:uninstall_confirm_title', {
+                              defaultValue: 'Uninstall Plugin',
+                            }),
+                            t('plugin:uninstall_confirm_message', {
+                              defaultValue:
+                                'Are you sure you want to uninstall "{{name}}"? This action will remove the plugin and its local data.',
+                              name: displayName,
+                            }),
+                            () => uninstallPlugin(info.pluginId),
+                          )
+                        }
                         title={t('plugin:uninstall', { defaultValue: 'Uninstall' })}
                         iconOnly
                       />
@@ -358,11 +345,7 @@ function QuickRunningInfo({
         variant="sidebar"
       />
       {running.results.length > 0 && (
-        <PluginResultSection
-          results={running.results}
-          defaultExpanded
-          variant="sidebar"
-        />
+        <PluginResultSection results={running.results} defaultExpanded variant="sidebar" />
       )}
     </div>
   );

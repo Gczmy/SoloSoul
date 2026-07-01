@@ -4,7 +4,6 @@ import { FileText, RotateCcw } from 'lucide-react';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface OcrHistoryTrashDropdownProps {
   showTrash: boolean;
   onShowTrashChange: (v: boolean) => void;
@@ -57,7 +56,8 @@ export function OcrHistoryTrashDropdown({
           onClick={() => onShowTrashChange(false)}
           onMouseEnter={(e) => {
             if (showTrash) {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               e.currentTarget.style.color = 'var(--accent-primary)';
             }
           }}
@@ -84,7 +84,8 @@ export function OcrHistoryTrashDropdown({
           onClick={() => onShowTrashChange(true)}
           onMouseEnter={(e) => {
             if (!showTrash) {
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
               e.currentTarget.style.color = 'var(--accent-primary)';
             }
           }}
@@ -130,7 +131,9 @@ export function OcrHistoryTrashDropdown({
               return (
                 <div
                   key={entry.id}
-                  className={isSelected ? 'ocr-history-item ocr-history-item--selected' : 'ocr-history-item'}
+                  className={
+                    isSelected ? 'ocr-history-item ocr-history-item--selected' : 'ocr-history-item'
+                  }
                   onClick={() => onSelectEntry(entry)}
                   title={entry.fileName}
                   style={{
@@ -168,7 +171,8 @@ export function OcrHistoryTrashDropdown({
                         marginTop: 1,
                       }}
                     >
-                      {new Date(entry.timestamp).toLocaleString()} · {entry.mode === 'mrz' ? 'MRZ' : 'OCR'}
+                      {new Date(entry.timestamp).toLocaleString()} ·{' '}
+                      {entry.mode === 'mrz' ? 'MRZ' : 'OCR'}
                       {hasError ? ` · ${t('common:error')}` : ''}
                     </div>
                   </div>
@@ -183,14 +187,14 @@ export function OcrHistoryTrashDropdown({
                       }}
                     />
                   )}
-              <DeleteButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  store.softDeleteEntry(entry.id);
-                }}
-                title={t('common:delete')}
-                iconOnly
-              />
+                  <DeleteButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      store.softDeleteEntry(entry.id);
+                    }}
+                    title={t('common:delete')}
+                    iconOnly
+                  />
                 </div>
               );
             })}
@@ -221,7 +225,10 @@ export function OcrHistoryTrashDropdown({
                 fontSize: 'var(--text-caption)',
               }}
             >
-              <FileText size={ICON_SIZE.xs} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+              <FileText
+                size={ICON_SIZE.xs}
+                style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+              />
               <div style={{ flex: 1, overflow: 'hidden' }}>
                 <div
                   style={{
@@ -233,7 +240,13 @@ export function OcrHistoryTrashDropdown({
                 >
                   {entry.fileName}
                 </div>
-                <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 1 }}>
+                <div
+                  style={{
+                    fontSize: 'var(--text-badge)',
+                    color: 'var(--text-tertiary)',
+                    marginTop: 1,
+                  }}
+                >
                   {new Date(entry.timestamp).toLocaleString()}
                 </div>
               </div>
@@ -241,7 +254,8 @@ export function OcrHistoryTrashDropdown({
                 onClick={() => store.restoreEntry(entry.id)}
                 title={t('ocr:restore')}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';

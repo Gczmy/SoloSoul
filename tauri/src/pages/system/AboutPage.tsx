@@ -12,7 +12,6 @@ import { checkForUpdate, downloadAndInstallUpdate, type UpdateProgress } from '@
 import { formatBytes } from '@/lib/format';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface AppInfo {
   appName: string;
   version: string;
@@ -101,7 +100,11 @@ export function AboutPage() {
   }, []);
 
   const links = [
-    { labelKey: 'github_repo', url: 'https://github.com/Gczmy/SoloSoul', icon: <Code size={ICON_SIZE.sm} /> },
+    {
+      labelKey: 'github_repo',
+      url: 'https://github.com/Gczmy/SoloSoul',
+      icon: <Code size={ICON_SIZE.sm} />,
+    },
     {
       labelKey: 'privacy_policy',
       url: `https://github.com/Gczmy/SoloSoul/blob/master/docs/${docLang}/PRIVACY_POLICY.md`,
@@ -125,7 +128,14 @@ export function AboutPage() {
             size={ICON_SIZE['6xl']}
             style={{ margin: '0 auto 14px', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
           />
-          <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
+          <h1
+            style={{
+              fontSize: 'var(--text-xl)',
+              fontWeight: 700,
+              margin: 0,
+              letterSpacing: '-0.02em',
+            }}
+          >
             SoloSoul
           </h1>
           <p
@@ -161,7 +171,13 @@ export function AboutPage() {
                     {t('settings:version')}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-primary)' }}>
+                    <span
+                      style={{
+                        fontSize: 'var(--text-sm)',
+                        fontWeight: 500,
+                        color: 'var(--text-primary)',
+                      }}
+                    >
                       v{info.version}
                     </span>
                     {versionInfo?.state === 'available' ? (
@@ -231,7 +247,8 @@ export function AboutPage() {
                           gap: 6,
                         }}
                       >
-                        <Download size={ICON_SIZE.sm} />v{info.version} → v{versionInfo.latestVersion}
+                        <Download size={ICON_SIZE.sm} />v{info.version} → v
+                        {versionInfo.latestVersion}
                       </div>
                       {versionInfo.body && (
                         <div
@@ -268,7 +285,9 @@ export function AboutPage() {
                               }}
                             />
                           </div>
-                          <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                          <span
+                            style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
+                          >
                             {downloadProgress?.event === 'Finished'
                               ? t('settings:installing') || 'Installing...'
                               : `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} (${progressPercent}%)`}
@@ -279,7 +298,8 @@ export function AboutPage() {
                           type="button"
                           onClick={handleUpdate}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                            e.currentTarget.style.background =
+                              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                             e.currentTarget.style.borderColor = 'var(--accent-primary)';
                             e.currentTarget.style.color = 'var(--accent-primary)';
                           }}
@@ -310,7 +330,9 @@ export function AboutPage() {
                         </button>
                       )}
                       {downloadError && (
-                        <div style={{ fontSize: 'var(--text-caption)', color: 'var(--error)' }}>{downloadError}</div>
+                        <div style={{ fontSize: 'var(--text-caption)', color: 'var(--error)' }}>
+                          {downloadError}
+                        </div>
                       )}
                     </div>
                   </>
@@ -328,7 +350,13 @@ export function AboutPage() {
                   <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
                     {t('settings:platform')}
                   </span>
-                  <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-primary)' }}>
+                  <span
+                    style={{
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 500,
+                      color: 'var(--text-primary)',
+                    }}
+                  >
                     {friendlyPlatform(info.os, info.arch)}
                   </span>
                 </div>
@@ -379,7 +407,10 @@ export function AboutPage() {
                     {link.icon}
                   </span>
                   <span style={{ flex: 1 }}>{t('settings:' + link.labelKey)}</span>
-                  <ExternalLink size={ICON_SIZE.xs} style={{ color: 'var(--text-tertiary)', opacity: 0.5 }} />
+                  <ExternalLink
+                    size={ICON_SIZE.xs}
+                    style={{ color: 'var(--text-tertiary)', opacity: 0.5 }}
+                  />
                 </a>
               </div>
             ))}

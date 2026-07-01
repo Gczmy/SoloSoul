@@ -9,7 +9,13 @@ interface CardProps {
   style?: React.CSSProperties;
 }
 
-export const Card = memo(function Card({ children, className, interactive, onClick, style }: CardProps) {
+export const Card = memo(function Card({
+  children,
+  className,
+  interactive,
+  onClick,
+  style,
+}: CardProps) {
   return (
     <div
       className={`${styles.card} ${interactive ? styles.interactive : ''} ${className || ''}`}

@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Loader2, AlertTriangle, RotateCcw, CheckCircle, X } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 export type OcrInstallPhase = 'installing' | 'completed' | 'error';
 
 interface OcrInstallBannerProps {

@@ -3,7 +3,6 @@ import { ChevronDown } from 'lucide-react';
 import styles from './ExpandableSection.module.css';
 import { ICON_SIZE } from '@/lib/iconSizes';
 
-
 interface ExpandableSectionProps {
   title: string;
   defaultExpanded?: boolean;
@@ -34,9 +33,7 @@ export function ExpandableSection({
             className={`${styles.chevron} ${expanded ? styles.chevronOpen : ''}`}
           />
           <span className={styles.inlineTitle}>{title}</span>
-          {count !== undefined && (
-            <span className={styles.count}>{count}</span>
-          )}
+          {count !== undefined && <span className={styles.count}>{count}</span>}
         </div>
         {actions && (
           <div className={styles.inlineActions} onClick={(e) => e.stopPropagation()}>

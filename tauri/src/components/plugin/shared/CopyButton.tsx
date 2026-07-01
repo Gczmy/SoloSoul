@@ -10,7 +10,13 @@ interface CopyButtonProps {
   size?: 'sm' | 'md';
 }
 
-export function CopyButton({ getContent, label, copiedLabel = 'Copied', icon, size = 'sm' }: CopyButtonProps) {
+export function CopyButton({
+  getContent,
+  label,
+  copiedLabel = 'Copied',
+  icon,
+  size = 'sm',
+}: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
