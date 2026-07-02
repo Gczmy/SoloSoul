@@ -233,6 +233,32 @@ pub enum AppPhase {
     Quit,
 }
 
+// ── 通用列表导航 ──────────────────────────────────────────
+
+/// 列表导航操作结果。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NavAction {
+    /// 返回上一页。
+    Back,
+    /// 导航到新索引。
+    Moved(usize),
+    /// 未处理（保留选中不变）。
+    None,
+}
+
+/// 通用列表上下移动导航处理。
+///
+/// 处理 Up/Down（移动选中）、Esc/q（返回）。
+/// 不需要处理 Enter 的纯列表通过 `NavAction` 返回结果供调用方处理。
+pub fn handle_list_nav(selected: usize, count: usize, key: KeyEvent) -> NavAction {
+    match key.code {
+        KeyCode::Esc | KeyCode::Char('q') => NavAction::Back,
+        KeyCode::Up if selected > 0 => NavAction::Moved(selected - 1),
+        KeyCode::Down if selected + 1 < count => NavAction::Moved(selected + 1),
+        _ => NavAction::None,
+    }
+}
+
 /// 创建对象向导步骤。
 #[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
@@ -1871,34 +1897,29 @@ impl App {
             total_scanned,
         } = &self.phase
         {
-            let mut selected = *selected;
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    commands::core::back(self);
-                    return Ok(false);
-                }
-                KeyCode::Up if selected > 0 => selected -= 1,
-                KeyCode::Down if selected + 1 < items.len() => selected += 1,
-                KeyCode::Enter => {
+            match handle_list_nav(*selected, items.len(), key) {
+                NavAction::Back => { commands::core::back(self); return Ok(false); }
+                NavAction::Moved(sel) => {
                     self.phase = AppPhase::SearchResults {
                         query: query.clone(),
                         items: items.clone(),
-                        selected,
+                        selected: sel,
+                        truncated: *truncated,
+                        total_scanned: *total_scanned,
+                    };
+                }
+                NavAction::None if key.code == KeyCode::Enter && *selected < items.len() => {
+                    self.phase = AppPhase::SearchResults {
+                        query: query.clone(),
+                        items: items.clone(),
+                        selected: *selected,
                         truncated: *truncated,
                         total_scanned: *total_scanned,
                     };
                     commands::search::open_selected(self)?;
-                    return Ok(false);
                 }
                 _ => {}
             }
-            self.phase = AppPhase::SearchResults {
-                query: query.clone(),
-                items: items.clone(),
-                selected,
-                truncated: *truncated,
-                total_scanned: *total_scanned,
-            };
         }
         Ok(false)
     }
@@ -1911,20 +1932,17 @@ impl App {
             selected,
         } = &self.phase
         {
-            let mut selected = *selected;
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    commands::core::back(self);
-                    return Ok(false);
+            return match handle_list_nav(*selected, snapshots.len(), key) {
+                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Moved(sel) => {
+                    self.phase = AppPhase::HistoryList {
+                        object_id: object_id.clone(),
+                        snapshots: snapshots.clone(),
+                        selected: sel,
+                    };
+                    Ok(false)
                 }
-                KeyCode::Up if selected > 0 => selected -= 1,
-                KeyCode::Down if selected + 1 < snapshots.len() => selected += 1,
-                _ => {}
-            }
-            self.phase = AppPhase::HistoryList {
-                object_id: object_id.clone(),
-                snapshots: snapshots.clone(),
-                selected,
+                NavAction::None => Ok(false),
             };
         }
         Ok(false)
@@ -1939,21 +1957,18 @@ impl App {
             selected,
         } = &self.phase
         {
-            let mut selected = *selected;
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    commands::core::back(self);
-                    return Ok(false);
+            return match handle_list_nav(*selected, items.len(), key) {
+                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Moved(sel) => {
+                    self.phase = AppPhase::AttachmentList {
+                        object_id: object_id.clone(),
+                        items: items.clone(),
+                        show_deleted: *show_deleted,
+                        selected: sel,
+                    };
+                    Ok(false)
                 }
-                KeyCode::Up if selected > 0 => selected -= 1,
-                KeyCode::Down if selected + 1 < items.len() => selected += 1,
-                _ => {}
-            }
-            self.phase = AppPhase::AttachmentList {
-                object_id: object_id.clone(),
-                items: items.clone(),
-                show_deleted: *show_deleted,
-                selected,
+                NavAction::None => Ok(false),
             };
         }
         Ok(false)
@@ -1962,19 +1977,16 @@ impl App {
     /// 备份列表页的键盘处理。
     fn handle_backup_list_key(&mut self, key: KeyEvent) -> Result<bool> {
         if let AppPhase::BackupList { items, selected } = &self.phase {
-            let mut selected = *selected;
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    commands::core::back(self);
-                    return Ok(false);
+            return match handle_list_nav(*selected, items.len(), key) {
+                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Moved(sel) => {
+                    self.phase = AppPhase::BackupList {
+                        items: items.clone(),
+                        selected: sel,
+                    };
+                    Ok(false)
                 }
-                KeyCode::Up if selected > 0 => selected -= 1,
-                KeyCode::Down if selected + 1 < items.len() => selected += 1,
-                _ => {}
-            }
-            self.phase = AppPhase::BackupList {
-                items: items.clone(),
-                selected,
+                NavAction::None => Ok(false),
             };
         }
         Ok(false)
@@ -1988,20 +2000,18 @@ impl App {
             selected,
         } = &self.phase
         {
-            let mut selected = *selected;
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    commands::core::back(self);
-                    return Ok(false);
+            // Profile 页没有明确的上限计数，但 Down 仍应受限制——用 999 作为保底上限。
+            return match handle_list_nav(*selected, 999, key) {
+                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Moved(sel) => {
+                    self.phase = AppPhase::Profile {
+                        profile: profile.clone(),
+                        data: data.clone(),
+                        selected: sel,
+                    };
+                    Ok(false)
                 }
-                KeyCode::Up if selected > 0 => selected -= 1,
-                KeyCode::Down => selected += 1,
-                _ => {}
-            }
-            self.phase = AppPhase::Profile {
-                profile: profile.clone(),
-                data: data.clone(),
-                selected,
+                NavAction::None => Ok(false),
             };
         }
         Ok(false)
@@ -2067,20 +2077,17 @@ impl App {
             selected,
         } = &self.phase
         {
-            let mut sel = *selected;
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    commands::core::back(self);
-                    return Ok(false);
+            return match handle_list_nav(*selected, config.providers.len(), key) {
+                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Moved(sel) => {
+                    self.phase = AppPhase::LlmConfig {
+                        config: config.clone(),
+                        account_id: account_id.clone(),
+                        selected: sel,
+                    };
+                    Ok(false)
                 }
-                KeyCode::Up if sel > 0 => sel -= 1,
-                KeyCode::Down if sel + 1 < config.providers.len() => sel += 1,
-                _ => {}
-            }
-            self.phase = AppPhase::LlmConfig {
-                config: config.clone(),
-                account_id: account_id.clone(),
-                selected: sel,
+                NavAction::None => Ok(false),
             };
         }
         Ok(false)
@@ -2089,19 +2096,16 @@ impl App {
     /// LLM 统计页的键盘处理。
     fn handle_llm_stats_key(&mut self, key: KeyEvent) -> Result<bool> {
         if let AppPhase::LlmStats { stats, selected } = &self.phase {
-            let mut sel = *selected;
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    commands::core::back(self);
-                    return Ok(false);
+            return match handle_list_nav(*selected, stats.per_model_stats.len(), key) {
+                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Moved(sel) => {
+                    self.phase = AppPhase::LlmStats {
+                        stats: stats.clone(),
+                        selected: sel,
+                    };
+                    Ok(false)
                 }
-                KeyCode::Up if sel > 0 => sel -= 1,
-                KeyCode::Down if sel + 1 < stats.per_model_stats.len() => sel += 1,
-                _ => {}
-            }
-            self.phase = AppPhase::LlmStats {
-                stats: stats.clone(),
-                selected: sel,
+                NavAction::None => Ok(false),
             };
         }
         Ok(false)
@@ -2114,19 +2118,16 @@ impl App {
             selected,
         } = &self.phase
         {
-            let mut sel = *selected;
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    commands::core::back(self);
-                    return Ok(false);
+            return match handle_list_nav(*selected, conversations.len(), key) {
+                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Moved(sel) => {
+                    self.phase = AppPhase::ConversationList {
+                        conversations: conversations.clone(),
+                        selected: sel,
+                    };
+                    Ok(false)
                 }
-                KeyCode::Up if sel > 0 => sel -= 1,
-                KeyCode::Down if sel + 1 < conversations.len() => sel += 1,
-                _ => {}
-            }
-            self.phase = AppPhase::ConversationList {
-                conversations: conversations.clone(),
-                selected: sel,
+                NavAction::None => Ok(false),
             };
         }
         Ok(false)
@@ -2486,56 +2487,48 @@ impl App {
     }
 
     fn handle_settings_language_select_key(&mut self, key: KeyEvent) -> Result<bool> {
-        let mut selected = match &self.phase {
+        let selected = match &self.phase {
             AppPhase::SettingsLanguageSelect { selected } => *selected,
             _ => return Ok(false),
         };
         let count = crate::screens::settings_language_select::OPTIONS.len();
-        match key.code {
-            KeyCode::Esc | KeyCode::Char('q') => {
-                commands::core::back(self);
-                return Ok(false);
+        match handle_list_nav(selected, count, key) {
+            NavAction::Back => { commands::core::back(self); }
+            NavAction::Moved(sel) => {
+                self.phase = AppPhase::SettingsLanguageSelect { selected: sel };
             }
-            KeyCode::Up if selected > 0 => selected -= 1,
-            KeyCode::Down if selected + 1 < count => selected += 1,
-            KeyCode::Enter => {
+            NavAction::None if key.code == KeyCode::Enter && selected < count => {
                 if let Some((code, _)) =
                     crate::screens::settings_language_select::OPTIONS.get(selected)
                 {
                     commands::settings::apply_language(self, code);
                 }
-                return Ok(false);
             }
             _ => {}
         }
-        self.phase = AppPhase::SettingsLanguageSelect { selected };
         Ok(false)
     }
 
     fn handle_settings_theme_select_key(&mut self, key: KeyEvent) -> Result<bool> {
-        let mut selected = match &self.phase {
+        let selected = match &self.phase {
             AppPhase::SettingsThemeSelect { selected } => *selected,
             _ => return Ok(false),
         };
         let count = crate::screens::settings_theme_select::OPTIONS.len();
-        match key.code {
-            KeyCode::Esc | KeyCode::Char('q') => {
-                commands::core::back(self);
-                return Ok(false);
+        match handle_list_nav(selected, count, key) {
+            NavAction::Back => { commands::core::back(self); }
+            NavAction::Moved(sel) => {
+                self.phase = AppPhase::SettingsThemeSelect { selected: sel };
             }
-            KeyCode::Up if selected > 0 => selected -= 1,
-            KeyCode::Down if selected + 1 < count => selected += 1,
-            KeyCode::Enter => {
+            NavAction::None if key.code == KeyCode::Enter && selected < count => {
                 if let Some((name, _)) =
                     crate::screens::settings_theme_select::OPTIONS.get(selected)
                 {
                     commands::settings::apply_theme(self, name);
                 }
-                return Ok(false);
             }
             _ => {}
         }
-        self.phase = AppPhase::SettingsThemeSelect { selected };
         Ok(false)
     }
 
