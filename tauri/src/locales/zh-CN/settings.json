@@ -689,5 +689,6 @@
   "click_to_configure": "点击配置",
   "select_plugin_contract": "选择插件契约",
   "select_role": "选择角色",
-  "no_plugin_contracts_available": "暂无已安装的插件契约（需安装含有角色定义的插件）"
+  "no_plugin_contracts_available": "暂无已安装的插件契约（需安装含有角色定义的插件）",
+  "contract_type_id": "契约类型"
 }

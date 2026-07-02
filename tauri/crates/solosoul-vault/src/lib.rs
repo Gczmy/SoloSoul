@@ -409,7 +409,11 @@ pub struct TemplateProperty {
     )]
     pub contract_field: Option<bool>,
     /// 新版绑定：一个字段可绑定到多个插件契约的多个角色。
-    #[serde(default, skip_serializing_if = "Option::is_none", rename = "contractBindings")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "contractBindings"
+    )]
     pub contract_bindings: Option<Vec<ContractRoleBinding>>,
 }
 

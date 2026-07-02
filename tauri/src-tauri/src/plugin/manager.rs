@@ -283,6 +283,16 @@ impl PluginManager {
                         p.extend(local.optional_fields.clone());
                         p
                     };
+                    // 为旧插件推导 effective roles（从 field_bindings）
+                    let contracts: Vec<_> = local
+                        .contracts
+                        .iter()
+                        .map(|c| {
+                            let mut c2 = c.clone();
+                            c2.roles = c.effective_roles(&local.field_bindings);
+                            c2
+                        })
+                        .collect();
                     let manifest = PluginManifest {
                         id: local.plugin_id,
                         name: local.name,
@@ -299,7 +309,7 @@ impl PluginManager {
                         tier: local.tier,
                         category: local.category,
                         params: local.params,
-                        contracts: local.contracts,
+                        contracts,
                         field_bindings: local.field_bindings,
                         custom_ui: local.custom_ui,
                     };
@@ -350,6 +360,16 @@ impl PluginManager {
         let mut permissions = manifest_raw.required_fields;
         permissions.extend(manifest_raw.optional_fields);
 
+        // 为旧插件推导 effective roles（从 field_bindings），使前端能展示旧插件的角色列表
+        let contracts: Vec<_> = manifest_raw
+            .contracts
+            .iter()
+            .map(|c| {
+                let mut c2 = c.clone();
+                c2.roles = c.effective_roles(&manifest_raw.field_bindings);
+                c2
+            })
+            .collect();
         let manifest = PluginManifest {
             id: manifest_raw.plugin_id,
             name: manifest_raw.name,
@@ -366,7 +386,7 @@ impl PluginManager {
             tier: manifest_raw.tier,
             category: manifest_raw.category,
             params: manifest_raw.params,
-            contracts: manifest_raw.contracts,
+            contracts,
             field_bindings: manifest_raw.field_bindings,
             custom_ui: manifest_raw.custom_ui,
         };

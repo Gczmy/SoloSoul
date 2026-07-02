@@ -292,9 +292,7 @@ export function ExportImportPage() {
         selected,
       }));
       const selAttIds =
-        importSelectedAttachmentIds.size > 0
-          ? Array.from(importSelectedAttachmentIds)
-          : [];
+        importSelectedAttachmentIds.size > 0 ? Array.from(importSelectedAttachmentIds) : [];
 
       if (showStrategySelector && decryptedPreview) {
         const result = await invoke<ImportResult>('import_execute_advanced', {

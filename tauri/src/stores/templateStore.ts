@@ -17,7 +17,7 @@ interface TemplateState {
   ) => Promise<string>;
   updateTemplate: (
     id: string,
-    updates: Partial<Pick<UserTemplate, 'name' | 'iconId' | 'category' | 'properties'>>,
+    updates: Partial<Pick<UserTemplate, 'name' | 'iconId' | 'category' | 'properties' | 'contractTypeId'>>,
   ) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
   getTemplate: (id: string) => Promise<UserTemplate | null>;
@@ -63,6 +63,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
       iconId: updates.iconId,
       category: updates.category,
       properties: updates.properties,
+      contractTypeId: updates.contractTypeId,
     });
     await get().loadTemplates();
   },

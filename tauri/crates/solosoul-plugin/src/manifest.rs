@@ -168,7 +168,10 @@ pub struct PluginContractBinding {
 
 impl PluginContractBinding {
     /// 若 manifest 没有声明 roles，从 field_bindings 推导 legacy roles。
-    pub fn effective_roles(&self, manifest_field_bindings: &[PluginFieldBinding]) -> Vec<PluginContractRole> {
+    pub fn effective_roles(
+        &self,
+        manifest_field_bindings: &[PluginFieldBinding],
+    ) -> Vec<PluginContractRole> {
         if !self.roles.is_empty() {
             return self.roles.clone();
         }

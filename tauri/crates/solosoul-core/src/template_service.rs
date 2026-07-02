@@ -137,7 +137,7 @@ pub fn seed_default_templates(
         let properties: Vec<solosoul_vault::TemplateProperty> = st
             .properties
             .iter()
-            .map(|p|                solosoul_vault::TemplateProperty {
+            .map(|p| solosoul_vault::TemplateProperty {
                 contract_field: p.contract_field,
                 contract_bindings: None,
                 id: p.id.clone(),

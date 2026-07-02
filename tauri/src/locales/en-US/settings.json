@@ -689,5 +689,6 @@
   "click_to_configure": "Click to configure",
   "select_plugin_contract": "Select plugin contract",
   "select_role": "Select role",
-  "no_plugin_contracts_available": "No installed plugin contracts available (install a plugin with role definitions)"
+  "no_plugin_contracts_available": "No installed plugin contracts available (install a plugin with role definitions)",
+  "contract_type_id": "Contract Type"
 }

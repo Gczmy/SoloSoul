@@ -166,9 +166,10 @@ impl FieldResolver {
     ) -> Option<&'a TemplateProperty> {
         // 1. 新版：字段声明了 contract_bindings 且包含 (ctid, role_id)
         let role_match = template.properties.iter().find(|p| {
-            p.contract_bindings
-                .as_ref()
-                .map_or(false, |bs| bs.iter().any(|b| b.contract_type_id == ctid && b.role_id == role_id))
+            p.contract_bindings.as_ref().is_some_and(|bs| {
+                bs.iter()
+                    .any(|b| b.contract_type_id == ctid && b.role_id == role_id)
+            })
         });
         if role_match.is_some() {
             return role_match;
@@ -233,12 +234,13 @@ impl FieldResolver {
 
         // 4. 通过 role binding 查询：新版 contract_bindings 优先，旧版 contract_field 兜底
         let prop_first = prop_path.split('.').next().unwrap_or("");
-        let prop = Self::find_property_for_role(&template, &ctid, prop_first).ok_or_else(|| {
-            PluginError::InvalidField(format!(
-                "contract {} 没有角色 {} 的绑定字段",
-                ctid, prop_first
-            ))
-        })?;
+        let _prop =
+            Self::find_property_for_role(&template, &ctid, prop_first).ok_or_else(|| {
+                PluginError::InvalidField(format!(
+                    "contract {} 没有角色 {} 的绑定字段",
+                    ctid, prop_first
+                ))
+            })?;
 
         Ok(extract_property(&objects[0].properties, &prop_path))
     }
@@ -941,6 +943,7 @@ mod tests {
                 },
                 TemplateProperty {
                     contract_field: None,
+                    contract_bindings: None,
                     id: "country".to_string(),
                     name: "国家".to_string(),
                     prop_type: PropertyType::Text,
@@ -1000,6 +1003,7 @@ mod tests {
                 },
                 TemplateProperty {
                     contract_field: None,
+                    contract_bindings: None,
                     id: "country".to_string(),
                     name: "国家".to_string(),
                     prop_type: PropertyType::Text,
@@ -1168,6 +1172,7 @@ mod tests {
             icon_id: None,
             properties: vec![TemplateProperty {
                 contract_field: None, // 未标记为 contract_field
+                contract_bindings: None,
                 id: "street".to_string(),
                 name: "街道".to_string(),
                 prop_type: PropertyType::Text,
@@ -1178,7 +1183,7 @@ mod tests {
             }],
             category: Some("identity".to_string()),
             created_at: now.clone(),
-            updated_at: Some(now),
+            updated_at: Some(now.clone()),
         };
         vault.save_user_template(&template).unwrap();
 
@@ -1244,6 +1249,7 @@ mod tests {
             icon_id: Some("map-pin".to_string()),
             properties: vec![TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "street".to_string(),
                 name: "街道".to_string(),
                 prop_type: PropertyType::Text,

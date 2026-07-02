@@ -4470,6 +4470,7 @@ mod tests {
             properties: vec![
                 crate::TemplateProperty {
                     contract_field: None,
+                    contract_bindings: None,
                     id: "full_name".to_string(),
                     name: "姓名".to_string(),
                     prop_type: crate::PropertyType::Text,
@@ -4480,6 +4481,7 @@ mod tests {
                 },
                 crate::TemplateProperty {
                     contract_field: None,
+                    contract_bindings: None,
                     id: "passport_number".to_string(),
                     name: "护照号码".to_string(),
                     prop_type: crate::PropertyType::Text,
@@ -4490,6 +4492,7 @@ mod tests {
                 },
                 crate::TemplateProperty {
                     contract_field: None,
+                    contract_bindings: None,
                     id: "expiry_date".to_string(),
                     name: "过期日期".to_string(),
                     prop_type: crate::PropertyType::Date,
@@ -4547,6 +4550,7 @@ mod tests {
         tpl.icon_id = Some("passport".to_string());
         tpl.properties.push(crate::TemplateProperty {
             contract_field: None,
+            contract_bindings: None,
             id: "new_field".to_string(),
             name: "新字段".to_string(),
             prop_type: crate::PropertyType::Boolean,
@@ -4645,6 +4649,7 @@ mod tests {
             icon_id: Some("document".to_string()),
             properties: vec![crate::TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "field1".to_string(),
                 name: "field1".to_string(),
                 prop_type: crate::PropertyType::Text,

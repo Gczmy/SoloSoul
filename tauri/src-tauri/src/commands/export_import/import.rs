@@ -346,8 +346,7 @@ async fn import_execute_internal(
         };
         if let Some(ref tid) = resolved_template_id {
             // 合并 property_labels：payload 原有值优先，模板值作为兜底
-            let tpl_labels =
-                crate::commands::object::inherit_property_labels(&vault, Some(tid));
+            let tpl_labels = crate::commands::object::inherit_property_labels(vault, Some(tid));
             match (tpl_labels, &mut property_labels) {
                 (Some(tpl), Some(ref mut existing)) => {
                     // 模板值作为兜底，不覆盖已有值
@@ -366,16 +365,11 @@ async fn import_execute_internal(
             }
 
             // 注入 __fields（字段名称 + 类型）
-            let fields =
-                crate::commands::object::inherit_property_fields(&vault, Some(tid));
+            let fields = crate::commands::object::inherit_property_fields(vault, Some(tid));
             crate::commands::object::inject_property_fields(&mut properties, &fields);
 
             // 注入 __templateName
-            crate::commands::object::inject_template_meta(
-                &vault,
-                Some(tid),
-                &mut properties,
-            );
+            crate::commands::object::inject_template_meta(vault, Some(tid), &mut properties);
         }
 
         let record = solosoul_vault::ObjectRecord {

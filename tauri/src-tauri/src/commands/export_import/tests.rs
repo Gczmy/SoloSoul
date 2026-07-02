@@ -536,6 +536,7 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
         properties: vec![
             TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "fullName".to_string(),
                 name: "姓名".to_string(),
                 prop_type: PropertyType::Text,
@@ -546,6 +547,7 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
             },
             TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "passportNumber".to_string(),
                 name: "护照号码".to_string(),
                 prop_type: PropertyType::Text,
@@ -553,13 +555,14 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
-            },            TemplateProperty {
-                    contract_field: None,
-                    contract_bindings: None,
-                    id: "email".to_string(),
-                    name: "邮箱".to_string(),
-                    prop_type: PropertyType::Text,
-                    sensitivity_level: Some("sensitive".to_string()),
+            },
+            TemplateProperty {
+                contract_field: None,
+                contract_bindings: None,
+                id: "email".to_string(),
+                name: "邮箱".to_string(),
+                prop_type: PropertyType::Text,
+                sensitivity_level: Some("sensitive".to_string()),
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
@@ -619,9 +622,18 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
     let updated = vault.load_object("imported_obj").unwrap().unwrap();
     let labels = updated.property_labels.as_ref().unwrap();
     let labels_obj = labels.as_object().unwrap();
-    assert_eq!(labels_obj.get("fullName").and_then(|v| v.as_str()), Some("internal"));
-    assert_eq!(labels_obj.get("passportNumber").and_then(|v| v.as_str()), Some("critical"));
-    assert_eq!(labels_obj.get("email").and_then(|v| v.as_str()), Some("sensitive"));
+    assert_eq!(
+        labels_obj.get("fullName").and_then(|v| v.as_str()),
+        Some("internal")
+    );
+    assert_eq!(
+        labels_obj.get("passportNumber").and_then(|v| v.as_str()),
+        Some("critical")
+    );
+    assert_eq!(
+        labels_obj.get("email").and_then(|v| v.as_str()),
+        Some("sensitive")
+    );
 
     // 5. 验证 __fields 已注入
     let props = &updated.properties;
@@ -630,7 +642,10 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
     assert!(fields.contains_key("passportNumber"));
     assert!(fields.contains_key("email"));
     assert_eq!(
-        fields.get("fullName").and_then(|f| f.get("name")).and_then(|n| n.as_str()),
+        fields
+            .get("fullName")
+            .and_then(|f| f.get("name"))
+            .and_then(|n| n.as_str()),
         Some("姓名")
     );
 
@@ -648,8 +663,16 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
     let after_delete = vault.load_object("imported_obj").unwrap().unwrap();
     let labels_after = after_delete.property_labels.as_ref().unwrap();
     let labels_obj_after = labels_after.as_object().unwrap();
-    assert_eq!(labels_obj_after.get("passportNumber").and_then(|v| v.as_str()), Some("critical"));
-    assert_eq!(labels_obj_after.get("email").and_then(|v| v.as_str()), Some("sensitive"));
+    assert_eq!(
+        labels_obj_after
+            .get("passportNumber")
+            .and_then(|v| v.as_str()),
+        Some("critical")
+    );
+    assert_eq!(
+        labels_obj_after.get("email").and_then(|v| v.as_str()),
+        Some("sensitive")
+    );
 
     // 9. __fields 和 __templateName 也继续保留
     let props_after = &after_delete.properties;

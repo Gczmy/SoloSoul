@@ -201,7 +201,10 @@ pub(crate) fn inherit_property_fields(
 }
 
 /// 将 `__fields` 注入到 properties JSON 对象中。
-pub(crate) fn inject_property_fields(properties: &mut serde_json::Value, fields: &serde_json::Value) {
+pub(crate) fn inject_property_fields(
+    properties: &mut serde_json::Value,
+    fields: &serde_json::Value,
+) {
     if fields.is_null() {
         return;
     }

@@ -29,6 +29,7 @@ fn test_field_metadata() {
         properties: vec![
             TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "street".to_string(),
                 name: "街道".to_string(),
                 prop_type: PropertyType::Text,
@@ -39,6 +40,7 @@ fn test_field_metadata() {
             },
             TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "country".to_string(),
                 name: "国家".to_string(),
                 prop_type: PropertyType::Text,
@@ -50,7 +52,7 @@ fn test_field_metadata() {
         ],
         category: Some("identity".to_string()),
         created_at: now.clone(),
-        updated_at: Some(now),
+        updated_at: Some(now.clone()),
     };
     vault.save_user_template(&template).unwrap();
 
@@ -87,6 +89,7 @@ fn test_build_structure_tree() {
         properties: vec![
             TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "street".to_string(),
                 name: "街道".to_string(),
                 prop_type: PropertyType::Text,
@@ -97,6 +100,7 @@ fn test_build_structure_tree() {
             },
             TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "country".to_string(),
                 name: "国家".to_string(),
                 prop_type: PropertyType::Text,
@@ -108,7 +112,7 @@ fn test_build_structure_tree() {
         ],
         category: Some("identity".to_string()),
         created_at: now.clone(),
-        updated_at: Some(now),
+        updated_at: Some(now.clone()),
     };
     vault.save_user_template(&template).unwrap();
 
@@ -167,11 +171,12 @@ fn test_resolve_typed_happy_path() {
         id: "addr".to_string(),
         account_id: account_id.to_string(),
         name: "地址".to_string(),
-        icon_id: Some("map-pin".to_string()),        properties: vec![TemplateProperty {
-                contract_field: Some(true),
-                contract_bindings: None,
-                id: "street".to_string(),
-                name: "街道".to_string(),
+        icon_id: Some("map-pin".to_string()),
+        properties: vec![TemplateProperty {
+            contract_field: Some(true),
+            contract_bindings: None,
+            id: "street".to_string(),
+            name: "街道".to_string(),
             prop_type: PropertyType::Text,
             sensitivity_level: Some("internal".to_string()),
             sensitive: None,
@@ -180,7 +185,7 @@ fn test_resolve_typed_happy_path() {
         }],
         category: Some("identity".to_string()),
         created_at: now.clone(),
-        updated_at: Some(now),
+        updated_at: Some(now.clone()),
     };
     vault.save_user_template(&template).unwrap();
 
@@ -257,11 +262,12 @@ fn test_resolve_typed_contract_field_false() {
         id: "addr".to_string(),
         account_id: account_id.to_string(),
         name: "地址".to_string(),
-        icon_id: None,        properties: vec![TemplateProperty {
-                contract_field: None, // 未标记为 contract_field
-                contract_bindings: None,
-                id: "street".to_string(),
-                name: "街道".to_string(),
+        icon_id: None,
+        properties: vec![TemplateProperty {
+            contract_field: None, // 未标记为 contract_field
+            contract_bindings: None,
+            id: "street".to_string(),
+            name: "街道".to_string(),
             prop_type: PropertyType::Text,
             sensitivity_level: Some("internal".to_string()),
             sensitive: None,
@@ -270,7 +276,7 @@ fn test_resolve_typed_contract_field_false() {
         }],
         category: Some("identity".to_string()),
         created_at: now.clone(),
-        updated_at: Some(now),
+        updated_at: Some(now.clone()),
     };
     vault.save_user_template(&template).unwrap();
 
@@ -310,8 +316,8 @@ fn test_resolve_typed_contract_field_false() {
     assert!(result.is_err());
     let err = result.unwrap_err().to_string();
     assert!(
-        err.contains("gate") || err.contains("contract_field"),
-        "Expected gate rejection error, got: {}",
+        err.contains("没有角色") || err.contains("gate") || err.contains("contract_field"),
+        "Expected role binding rejection error, got: {}",
         err
     );
 }
@@ -331,6 +337,7 @@ fn test_resolve_legacy_unchanged() {
         icon_id: Some("map-pin".to_string()),
         properties: vec![TemplateProperty {
             contract_field: None,
+            contract_bindings: None,
             id: "street".to_string(),
             name: "街道".to_string(),
             prop_type: PropertyType::Text,
@@ -341,7 +348,7 @@ fn test_resolve_legacy_unchanged() {
         }],
         category: Some("identity".to_string()),
         created_at: now.clone(),
-        updated_at: Some(now),
+        updated_at: Some(now.clone()),
     };
     vault.save_user_template(&template).unwrap();
 
@@ -403,6 +410,7 @@ fn test_list_objects_typed_lookup_with_legacy_objects() {
         icon_id: Some("map-pin".to_string()),
         properties: vec![TemplateProperty {
             contract_field: None,
+            contract_bindings: None,
             id: "street".to_string(),
             name: "街道".to_string(),
             prop_type: PropertyType::Text,
@@ -482,7 +490,6 @@ fn test_resolve_typed_with_contract_bindings() {
     let (_tmp, vault) = test_vault(account_id);
 
     let now = chrono::Utc::now().to_rfc3339();
-    let now2 = now.clone();
     // 用户自定义模板：字段 ID 为 "specificAddress"（不是 street），
     // 通过 contract_bindings 声明绑定到 address-fmt/v1 的 street role
     let template = UserTemplate {
@@ -507,7 +514,7 @@ fn test_resolve_typed_with_contract_bindings() {
         }],
         category: Some("identity".to_string()),
         created_at: now.clone(),
-        updated_at: Some(now),
+        updated_at: Some(now.clone()),
     };
     vault.save_user_template(&template).unwrap();
 
@@ -547,7 +554,8 @@ fn test_resolve_typed_with_contract_bindings() {
         contracts,
     );
 
-    let result = resolver.resolve("addr_tpl.specificAddress").unwrap();
+    // 插件请求 street role，通过 role binding 映射到 specificAddress 字段
+    let result = resolver.resolve("addr_tpl.street").unwrap();
     assert_eq!(result, "123 Main St");
 }
 
@@ -577,7 +585,7 @@ fn test_resolve_typed_legacy_contract_field_still_works() {
         }],
         category: Some("identity".to_string()),
         created_at: now.clone(),
-        updated_at: Some(now),
+        updated_at: Some(now.clone()),
     };
     vault.save_user_template(&template).unwrap();
 
@@ -665,7 +673,7 @@ fn test_resolve_typed_role_binding_overrides_legacy_id() {
         ],
         category: Some("identity".to_string()),
         created_at: now.clone(),
-        updated_at: Some(now),
+        updated_at: Some(now.clone()),
     };
     vault.save_user_template(&template).unwrap();
 
@@ -708,7 +716,10 @@ fn test_resolve_typed_role_binding_overrides_legacy_id() {
 
     // 解析 street role → 应返回 specificAddress（新版 binding 优先）而不是旧版 street 字段
     let result = resolver.resolve("addr.street").unwrap();
-    assert_eq!(result, "456 Oak Ave", "新版 role binding 应优先于旧版 contract_field");
+    assert_eq!(
+        result, "456 Oak Ave",
+        "新版 role binding 应优先于旧版 contract_field"
+    );
 }
 
 /// field_metadata_typed 通过 role binding 正确返回字段标签和敏感度
@@ -740,7 +751,7 @@ fn test_field_metadata_typed_with_role_binding() {
         }],
         category: Some("identity".to_string()),
         created_at: now.clone(),
-        updated_at: Some(now),
+        updated_at: Some(now.clone()),
     };
     vault.save_user_template(&template).unwrap();
 
@@ -780,7 +791,8 @@ fn test_field_metadata_typed_with_role_binding() {
         contracts,
     );
 
-    let (label, sensitivity) = resolver.field_metadata("addr.specificAddress").unwrap();
+    // 插件请求 street role，返回绑定字段 specificAddress 的元数据
+    let (label, sensitivity) = resolver.field_metadata("addr.street").unwrap();
     assert_eq!(label, "具体地址");
     assert_eq!(sensitivity, "sensitive");
 }

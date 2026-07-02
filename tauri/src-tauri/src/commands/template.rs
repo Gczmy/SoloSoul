@@ -193,6 +193,7 @@ pub async fn template_update(
     icon_id: Option<String>,
     category: Option<String>,
     properties: Option<Vec<TemplateProperty>>,
+    contract_type_id: Option<String>,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
 
@@ -219,6 +220,14 @@ pub async fn template_update(
     }
     if let Some(p) = properties {
         template.properties = p;
+    }
+    if let Some(ct) = contract_type_id {
+        // 传入空字符串表示清除 contract_type_id
+        if ct.is_empty() {
+            template.contract_type_id = None;
+        } else {
+            template.contract_type_id = Some(ct);
+        }
     }
     template.updated_at = Some(chrono::Utc::now().to_rfc3339());
 

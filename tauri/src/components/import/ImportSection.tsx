@@ -355,7 +355,9 @@ export function ImportSection({
                   {importPageGroups.length > 0 && (
                     <button
                       type="button"
-                      onClick={() => onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)}
+                      onClick={() =>
+                        onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)
+                      }
                       style={{
                         fontSize: 'var(--text-badge)',
                         background: 'none',
@@ -387,7 +389,9 @@ export function ImportSection({
                     {t('common:no_data')}
                   </p>
                 ) : (
-                  <div style={{ maxHeight: 320, overflowY: 'auto', fontSize: 'var(--text-body-sm)' }}>
+                  <div
+                    style={{ maxHeight: 320, overflowY: 'auto', fontSize: 'var(--text-body-sm)' }}
+                  >
                     {importPageGroups.map((group) => {
                       const allIds = group.objects.map((o) => o.id);
                       const pageChecked = importSelectedPageIds.has(group.sectionType);
@@ -443,7 +447,10 @@ export function ImportSection({
                               </span>
                             </span>
                             <span
-                              style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}
+                              style={{
+                                fontSize: 'var(--text-caption)',
+                                color: 'var(--text-tertiary)',
+                              }}
                             >
                               {t('common:object_count', { n: group.objects.length })}
                             </span>
@@ -577,7 +584,9 @@ export function ImportSection({
                                                   flexShrink: 0,
                                                 }}
                                               />
-                                              <span style={{ fontSize: 'var(--text-caption)', flex: 1 }}>
+                                              <span
+                                                style={{ fontSize: 'var(--text-caption)', flex: 1 }}
+                                              >
                                                 {att.fileName}
                                               </span>
                                               <span
@@ -672,8 +681,7 @@ export function ImportSection({
                           : 'pointer',
                       fontFamily: 'inherit',
                       fontWeight: 500,
-                      opacity:
-                        !importPw || isImporting || importTotalSelected === 0 ? 0.5 : 1,
+                      opacity: !importPw || isImporting || importTotalSelected === 0 ? 0.5 : 1,
                       transition: 'all 0.15s ease',
                     }}
                     onMouseEnter={(e) => {
@@ -790,8 +798,7 @@ export function ImportSection({
                             : 'pointer',
                         fontFamily: 'inherit',
                         fontWeight: 500,
-                        opacity:
-                          !importPw || isImporting || importTotalSelected === 0 ? 0.5 : 1,
+                        opacity: !importPw || isImporting || importTotalSelected === 0 ? 0.5 : 1,
                         transition: 'all 0.15s ease',
                       }}
                       onMouseEnter={(e) => {

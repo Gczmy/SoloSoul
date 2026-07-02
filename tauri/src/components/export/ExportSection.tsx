@@ -159,7 +159,11 @@ export function ExportSection({
           {pageGroups.length > 0 && (
             <button
               type="button"
-              onClick={() => onSelectAllExport(totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0))}
+              onClick={() =>
+                onSelectAllExport(
+                  totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0),
+                )
+              }
               style={{
                 fontSize: 'var(--text-badge)',
                 background: 'none',
@@ -699,9 +703,7 @@ export function ExportSection({
             color: 'var(--warning)',
           }}
         >
-          <p style={{ marginBottom: 8, fontWeight: 600 }}>
-            {t('settings:weak_password_title')}
-          </p>
+          <p style={{ marginBottom: 8, fontWeight: 600 }}>{t('settings:weak_password_title')}</p>
           <p style={{ marginBottom: 10 }}>{t('settings:weak_password_confirm')}</p>
           <div style={{ display: 'flex', gap: 8 }}>
             <WarningCancelButton onClick={() => onSetShowWeakPasswordWarning(false)}>

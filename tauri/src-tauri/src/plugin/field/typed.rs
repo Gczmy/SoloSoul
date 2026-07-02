@@ -5,19 +5,35 @@ use std::sync::Arc;
 
 /// 查找提供指定 contract role 的模板属性。
 /// 优先新版 contract_bindings；其次回退 legacy contract_field + 字段 ID 匹配。
+/// 若多个字段绑定到同一 role，取第一个匹配项，并在 tracing 中记录 warning。
 fn find_property_for_role<'a>(
     template: &'a UserTemplate,
     ctid: &str,
     role_id: &str,
 ) -> Option<&'a TemplateProperty> {
     // 1. 新版：字段声明了 contract_bindings 且包含 (ctid, role_id)
-    let role_match = template.properties.iter().find(|p| {
-        p.contract_bindings
-            .as_ref()
-            .map_or(false, |bs| bs.iter().any(|b| b.contract_type_id == ctid && b.role_id == role_id))
-    });
-    if role_match.is_some() {
-        return role_match;
+    let all_matches: Vec<&TemplateProperty> = template
+        .properties
+        .iter()
+        .filter(|p| {
+            p.contract_bindings.as_ref().is_some_and(|bs| {
+                bs.iter()
+                    .any(|b| b.contract_type_id == ctid && b.role_id == role_id)
+            })
+        })
+        .collect();
+
+    if !all_matches.is_empty() {
+        if all_matches.len() > 1 {
+            tracing::warn!(
+                "contract {} 的角色 {} 被 {} 个字段绑定，取第一个（id={}），请检查模板配置",
+                ctid,
+                role_id,
+                all_matches.len(),
+                all_matches[0].id,
+            );
+        }
+        return Some(all_matches[0]);
     }
 
     // 2. 旧版兼容：字段 ID 等于 role_id 且 contract_field == true
@@ -128,7 +144,15 @@ impl FieldResolver {
             ))
         })?;
 
-        Ok(extract_property(&objects[0].properties, &prop_path))
+        // 若 role 绑定到了不同字段 id，将 prop_path 中的 role 前缀替换为实际字段 id
+        let actual_prop_path = if prop.id != prop_first {
+            let suffix = &prop_path[prop_first.len()..];
+            format!("{}{}", prop.id, suffix)
+        } else {
+            prop_path.to_string()
+        };
+
+        Ok(extract_property(&objects[0].properties, &actual_prop_path))
     }
 
     /// Typed-lookup 获取字段元数据（Stage 4-B）
@@ -169,13 +193,12 @@ impl FieldResolver {
             .clone();
 
         // 通过 role binding 查询
-        let property =
-            find_property_for_role(&template, &ctid, &prop_first).ok_or_else(|| {
-                PluginError::InvalidField(format!(
-                    "contact {} 没有角色 {} 的绑定字段",
-                    ctid, prop_first
-                ))
-            })?;
+        let property = find_property_for_role(&template, &ctid, &prop_first).ok_or_else(|| {
+            PluginError::InvalidField(format!(
+                "contract {} 没有角色 {} 的绑定字段",
+                ctid, prop_first
+            ))
+        })?;
 
         let label = property.name.clone();
         let sensitivity = property

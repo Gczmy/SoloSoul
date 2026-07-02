@@ -14,7 +14,12 @@ import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { LayoutTemplate, Pencil, Plus, BookOpen, Search } from 'lucide-react';
-import type { UserTemplate, TemplateProperty, PropertyType, ContractRoleBinding } from '@/types/template';
+import type {
+  UserTemplate,
+  TemplateProperty,
+  PropertyType,
+  ContractRoleBinding,
+} from '@/types/template';
 import { resolveCustomIcon } from '@/lib/pageIcons';
 import { SampleTemplateGallery } from '@/components/template/SampleTemplateGallery';
 import { SampleTemplateDetail } from '@/components/template/SampleTemplateDetail';
@@ -68,6 +73,7 @@ export function TemplateManagerPage() {
   const [editName, setEditName] = useState('');
   const [editCategory, setEditCategory] = useState<string>('identity');
   const [editIconId, setEditIconId] = useState<string>('document');
+  const [editContractTypeId, setEditContractTypeId] = useState<string>('');
   const [editProperties, setEditProperties] = useState<TemplateProperty[]>([]);
 
   const [newFieldType, setNewFieldType] = useState<PropertyType>('text');
@@ -185,6 +191,7 @@ export function TemplateManagerPage() {
     setEditName(tpl.name);
     setEditCategory(tpl.category || 'identity');
     setEditIconId(tpl.iconId || 'document');
+    setEditContractTypeId(tpl.contractTypeId || '');
     setEditProperties([...tpl.properties]);
   };
 
@@ -201,6 +208,7 @@ export function TemplateManagerPage() {
     setEditName('');
     setEditCategory('identity');
     setEditIconId('document');
+    setEditContractTypeId('');
     setEditProperties([]);
   };
 
@@ -210,6 +218,7 @@ export function TemplateManagerPage() {
     setEditName('');
     setEditCategory('identity');
     setEditIconId('document');
+    setEditContractTypeId('');
     setEditProperties([]);
   };
 
@@ -221,7 +230,13 @@ export function TemplateManagerPage() {
     }
     try {
       if (isNewTemplate) {
-        await createTemplate(name, editIconId, editCategory, editProperties);
+        await createTemplate(
+          name,
+          editIconId,
+          editCategory,
+          editProperties,
+          editContractTypeId || undefined,
+        );
         await loadTemplates();
         closeEdit();
       } else if (editingTemplate) {
@@ -230,6 +245,7 @@ export function TemplateManagerPage() {
           iconId: editIconId,
           category: editCategory,
           properties: editProperties,
+          contractTypeId: editContractTypeId || undefined,
         });
         closeEdit();
       }
@@ -266,9 +282,7 @@ export function TemplateManagerPage() {
   const updatePropertyContractBindings = (index: number, bindings: ContractRoleBinding[]) => {
     setEditProperties((prev) =>
       prev.map((p, i) =>
-        i === index
-          ? { ...p, contractBindings: bindings.length > 0 ? bindings : undefined }
-          : p,
+        i === index ? { ...p, contractBindings: bindings.length > 0 ? bindings : undefined } : p,
       ),
     );
   };
@@ -538,6 +552,7 @@ export function TemplateManagerPage() {
           editName={editName}
           editCategory={editCategory}
           editIconId={editIconId}
+          editContractTypeId={editContractTypeId}
           editProperties={editProperties}
           newFieldType={newFieldType}
           showDeprecated={showDeprecated}
@@ -545,6 +560,7 @@ export function TemplateManagerPage() {
           onEditNameChange={setEditName}
           onEditCategoryChange={setEditCategory}
           onEditIconIdChange={setEditIconId}
+          onContractTypeIdChange={setEditContractTypeId}
           onNewFieldTypeChange={setNewFieldType}
           onAddProperty={addProperty}
           onUpdatePropertyName={updatePropertyName}

@@ -34,6 +34,7 @@ interface TemplateEditorProps {
   editName: string;
   editCategory: string;
   editIconId: string;
+  editContractTypeId: string;
   editProperties: TemplateProperty[];
   newFieldType: PropertyType;
   showDeprecated: boolean;
@@ -41,6 +42,7 @@ interface TemplateEditorProps {
   onEditNameChange: (v: string) => void;
   onEditCategoryChange: (v: string) => void;
   onEditIconIdChange: (v: string) => void;
+  onContractTypeIdChange: (v: string) => void;
   onNewFieldTypeChange: (v: PropertyType) => void;
   onAddProperty: () => void;
   onUpdatePropertyName: (index: number, name: string) => void;
@@ -62,6 +64,7 @@ export function TemplateEditor({
   editName,
   editCategory,
   editIconId,
+  editContractTypeId,
   editProperties,
   newFieldType,
   showDeprecated,
@@ -76,6 +79,7 @@ export function TemplateEditor({
   onUpdatePropertySensitivity,
   onUpdatePropertyOptions,
   onRemoveProperty,
+  onContractTypeIdChange,
   onUpdatePropertyContractBindings,
   onRestoreProperty,
   onPermanentlyRemoveProperty,
@@ -148,6 +152,30 @@ export function TemplateEditor({
         onChange={onEditCategoryChange}
         label={t('settings:template_category') || '所属页面'}
       />
+
+      {/* 插件契约类型 ID（自动绑定到字段时设置） */}
+      {editContractTypeId && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 10px',
+            borderRadius: 8,
+            border: '1px solid var(--border-subtle)',
+            background: 'color-mix(in srgb, var(--accent-primary) 5%, transparent)',
+            fontSize: 'var(--text-body-sm)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <span style={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
+            {t('settings:contract_type_id') || '契约类型'}:
+          </span>
+          <span style={{ fontFamily: 'monospace', fontSize: 'var(--text-badge)' }}>
+            {editContractTypeId}
+          </span>
+        </div>
+      )}
 
       {/* Icon picker — collapsible, default collapsed */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -266,11 +294,12 @@ export function TemplateEditor({
                     (b) => b.contractTypeId === contractTypeId && b.roleId === currentRoleId,
                   );
                   if (exists) return;
-                  const newBindings = [
-                    ...bindings,
-                    { contractTypeId, roleId: currentRoleId },
-                  ];
+                  const newBindings = [...bindings, { contractTypeId, roleId: currentRoleId }];
                   onUpdatePropertyContractBindings(idx, newBindings);
+                  // 自动设置模板 contractTypeId（首次或不同时更新）
+                  if (editContractTypeId !== contractTypeId) {
+                    onContractTypeIdChange(contractTypeId);
+                  }
                 };
 
                 const handleRemoveBinding = (contractTypeId: string, roleId: string) => {
@@ -280,12 +309,26 @@ export function TemplateEditor({
                   onUpdatePropertyContractBindings(idx, newBindings);
                 };
 
-                // 根据 contractTypeId 查找插件名称
-                const getPluginNameForContract = (ctid: string): string => {
-                  for (const fc of flattenContracts) {
-                    if (fc.contract.typeId === ctid) return fc.pluginName;
-                  }
-                  return ctid;
+                // 根据 contractTypeId 查找插件名称、displayName
+                const getContractInfo = (ctid: string) => {
+                  const fc = flattenContracts.find((x) => x.contract.typeId === ctid);
+                  return fc
+                    ? {
+                        pluginName: fc.pluginName,
+                        displayName: fc.contract.displayName || ctid,
+                      }
+                    : { pluginName: ctid, displayName: ctid };
+                };
+
+                // 根据 contractTypeId + roleId 查找角色标签和 required 标记
+                const getRoleInfo = (ctid: string, roleId: string) => {
+                  const fc = flattenContracts.find((x) => x.contract.typeId === ctid);
+                  if (!fc) return { label: roleId, required: false };
+                  const role = fc.contract.roles.find((r) => r.roleId === roleId);
+                  return {
+                    label: role?.label || roleId,
+                    required: role?.required || false,
+                  };
                 };
 
                 return (
@@ -448,16 +491,26 @@ export function TemplateEditor({
                         )}
                         <span style={{ flex: 1 }} />
                         {bindings.length > 0 ? (
-                          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                          <span
+                            style={{
+                              fontSize: 'var(--text-caption)',
+                              color: 'var(--text-tertiary)',
+                            }}
+                          >
                             {isExpanded
-                              ? (t('common:collapse') || '收起')
-                              : (t('settings:click_to_configure') || '点击配置')}
+                              ? t('common:collapse') || '收起'
+                              : t('settings:click_to_configure') || '点击配置'}
                           </span>
                         ) : flattenContracts.length > 0 ? (
-                          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                          <span
+                            style={{
+                              fontSize: 'var(--text-caption)',
+                              color: 'var(--text-tertiary)',
+                            }}
+                          >
                             {isExpanded
-                              ? (t('common:collapse') || '收起')
-                              : (t('settings:click_to_configure') || '点击配置')}
+                              ? t('common:collapse') || '收起'
+                              : t('settings:click_to_configure') || '点击配置'}
                           </span>
                         ) : null}
                       </button>
@@ -481,55 +534,71 @@ export function TemplateEditor({
                                 marginBottom: 4,
                               }}
                             >
-                              {bindings.map((b) => (
-                                <span
-                                  key={`${b.contractTypeId}::${b.roleId}`}
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                    padding: '2px 8px',
-                                    borderRadius: 4,
-                                    fontSize: 'var(--text-badge)',
-                                    background:
-                                      'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
-                                    color: 'var(--accent-primary)',
-                                    border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
-                                  }}
-                                >
-                                  <span style={{ fontWeight: 500 }}>
-                                    {getPluginNameForContract(b.contractTypeId)}
-                                  </span>
-                                  <span style={{ opacity: 0.6 }}>/</span>
-                                  <span>{b.roleId}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleRemoveBinding(b.contractTypeId, b.roleId)
-                                    }
+                              {bindings.map((b) => {
+                                const ci = getContractInfo(b.contractTypeId);
+                                const ri = getRoleInfo(b.contractTypeId, b.roleId);
+                                return (
+                                  <span
+                                    key={`${b.contractTypeId}::${b.roleId}`}
                                     style={{
-                                      background: 'none',
-                                      border: 'none',
-                                      cursor: 'pointer',
-                                      padding: '0 2px',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: 4,
+                                      padding: '2px 8px',
+                                      borderRadius: 4,
+                                      fontSize: 'var(--text-badge)',
+                                      background:
+                                        'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
                                       color: 'var(--accent-primary)',
-                                      fontSize: 14,
-                                      lineHeight: 1,
-                                      opacity: 0.7,
-                                      transition: 'opacity 0.15s',
+                                      border:
+                                        '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
                                     }}
-                                    onMouseEnter={(e) => {
-                                      e.currentTarget.style.opacity = '1';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.opacity = '0.7';
-                                    }}
-                                    title={t('common:remove') || '移除'}
                                   >
-                                    ✕
-                                  </button>
-                                </span>
-                              ))}
+                                    <span style={{ fontWeight: 500 }}>{ci.pluginName}</span>
+                                    <span style={{ opacity: 0.5 }}>—</span>
+                                    <span>{ci.displayName}</span>
+                                    <span style={{ opacity: 0.6 }}>/</span>
+                                    <span>{ri.label}</span>
+                                    {ri.required && (
+                                      <span
+                                        style={{
+                                          color: 'var(--warning)',
+                                          fontWeight: 600,
+                                          fontSize: 11,
+                                        }}
+                                      >
+                                        *
+                                      </span>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleRemoveBinding(b.contractTypeId, b.roleId)
+                                      }
+                                      style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        padding: '0 2px',
+                                        color: 'var(--accent-primary)',
+                                        fontSize: 14,
+                                        lineHeight: 1,
+                                        opacity: 0.7,
+                                        transition: 'opacity 0.15s',
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.opacity = '1';
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.opacity = '0.7';
+                                      }}
+                                      title={t('common:remove') || '移除'}
+                                    >
+                                      ✕
+                                    </button>
+                                  </span>
+                                );
+                              })}
                             </div>
                           )}
 
@@ -609,9 +678,7 @@ export function TemplateEditor({
                                   opacity: currentContractId ? 1 : 0.5,
                                 }}
                               >
-                                <option value="">
-                                  {t('settings:select_role') || '选择角色'}
-                                </option>
+                                <option value="">{t('settings:select_role') || '选择角色'}</option>
                                 {availableRoles.map((role) => (
                                   <option key={role.roleId} value={role.roleId}>
                                     {role.label || role.roleId}
@@ -629,12 +696,14 @@ export function TemplateEditor({
                                   padding: '0 12px',
                                   borderRadius: 6,
                                   border: '1px solid var(--accent-primary)',
-                                  background: !currentContractId || !currentRoleId
-                                    ? 'var(--bg-toolbar)'
-                                    : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                                  color: !currentContractId || !currentRoleId
-                                    ? 'var(--text-tertiary)'
-                                    : 'var(--accent-primary)',
+                                  background:
+                                    !currentContractId || !currentRoleId
+                                      ? 'var(--bg-toolbar)'
+                                      : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                                  color:
+                                    !currentContractId || !currentRoleId
+                                      ? 'var(--text-tertiary)'
+                                      : 'var(--accent-primary)',
                                   fontSize: 'var(--text-body-sm)',
                                   cursor:
                                     !currentContractId || !currentRoleId
