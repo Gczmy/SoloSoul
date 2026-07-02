@@ -372,7 +372,7 @@
                     "contractField": true
                 },
                 {
-                    "id": "province",
+                    "id": "state",
                     "nameI18nKey": "editor:fields.province",
                     "nameFallback": "省/自治区/直辖市/特别行政区",
                     "type": "text",

@@ -26,7 +26,7 @@ const mockAddressFmtPlugin: PluginManifest = {
         { roleId: 'street', label: '街道', defaultPropertyId: 'street' },
         { roleId: 'district', label: '区/县', defaultPropertyId: 'district' },
         { roleId: 'city', label: '城市', defaultPropertyId: 'city' },
-        { roleId: 'province', label: '省份', defaultPropertyId: 'province' },
+        { roleId: 'state', label: '省份', defaultPropertyId: 'state' },
         { roleId: 'country', label: '国家', defaultPropertyId: 'country' },
         { roleId: 'postalCode', label: '邮编', defaultPropertyId: 'postalCode' },
       ],

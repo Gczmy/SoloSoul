@@ -179,7 +179,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
         contractField: true,
       },
       {
-        id: 'province',
+        id: 'state',
         name: '省/自治区/直辖市/特别行政区',
         type: 'text',
         sensitivityLevel: 'public',
@@ -369,7 +369,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
         contractField: true,
       },
       {
-        id: 'province',
+        id: 'state',
         name: 'Province / State',
         type: 'text',
         sensitivityLevel: 'public',
