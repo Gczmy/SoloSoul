@@ -25,9 +25,6 @@ crossterm = "0.28.1"
 inquire = { version = "0.7.5", features = ["date", "editor"] }
 color-eyre = "0.6.3"
 
-# 进程锁
-fs2 = "0.4.3"
-
 # 日志
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
@@ -53,7 +50,6 @@ sys-locale = "0.3"
 tokio = { version = "1.42.0", features = ["rt-multi-thread", "macros", "time", "sync"] }
 
 # 错误处理
-anyhow = "1.0.95"
 thiserror = "1.0"
 
 # 加密导出/导入

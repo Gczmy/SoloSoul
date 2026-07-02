@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use color_eyre::Result;
-use solosoul_cli::cli::{Cli, Commands};
+use solosoul_cli::cli::Cli;
 use solosoul_cli::tui::{restore_terminal, Tui};
 use solosoul_core::VaultService;
 use tracing_appender::non_blocking::WorkerGuard;
@@ -18,18 +18,7 @@ fn main() -> Result<()> {
     // 初始化日志文件输出，避免污染 TUI 界面。
     let _log_guard = init_logging(&data_dir)?;
 
-    // 根据子命令快速路径执行（如 upgrade）。
-    if let Some(cmd) = cli.command {
-        match cmd {
-            Commands::Upgrade => {
-                println!(
-                    "升级功能将在 Phase 4 实现。当前版本：{}",
-                    env!("CARGO_PKG_VERSION")
-                );
-                return Ok(());
-            }
-        }
-    }
+    // 根据子命令快速路径执行。
 
     // 设置数据目录环境变量，供 VaultService 读取。
     if let Ok(dir) = data_dir.canonicalize() {

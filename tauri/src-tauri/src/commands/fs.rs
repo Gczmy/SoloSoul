@@ -1,7 +1,7 @@
 use crate::state::AppState;
 use serde::Serialize;
-use std::fs::{self as fs_std, File};
-use std::io::{BufReader, BufWriter, Read, Write};
+use std::fs::{self as fs_std};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use tauri::State;
 
@@ -84,67 +84,6 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
 fn resolve_allowed_path(path: &str) -> Result<PathBuf, String> {
     let base = allowed_fs_base()?;
     resolve_within(&base, path)
-}
-
-/// Encrypt a file using chunked AES-256-GCM (SOLO blob v3)
-#[tauri::command]
-pub async fn encrypt_file(
-    state: State<'_, AppState>,
-    src_path: String,
-    dst_path: String,
-) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
-    let key: [u8; 32] = session_key
-        .as_slice()
-        .try_into()
-        .map_err(|_| "Invalid key")?;
-
-    let base = svc.base_path();
-    let src = resolve_within(base, &src_path)?;
-    let dst = resolve_within(base, &dst_path)?;
-
-    let chunk_size = solosoul_crypto::aes::DEFAULT_CHUNK_SIZE;
-    let mut reader = BufReader::new(File::open(&src).map_err(|e| format!("Open failed: {}", e))?);
-    let mut writer =
-        BufWriter::new(File::create(&dst).map_err(|e| format!("Create failed: {}", e))?);
-    solosoul_crypto::aes::encrypt_chunked_stream(&key, &mut reader, &mut writer, chunk_size)
-        .map_err(|e| format!("Encryption failed: {}", e))?;
-    writer.flush().map_err(|e| format!("Flush failed: {}", e))?;
-    Ok(())
-}
-
-/// Decrypt a SOLO blob file
-#[tauri::command]
-pub async fn decrypt_file(
-    state: State<'_, AppState>,
-    src_path: String,
-    dst_path: String,
-) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
-    let key: [u8; 32] = session_key
-        .as_slice()
-        .try_into()
-        .map_err(|_| "Invalid key")?;
-
-    let base = svc.base_path();
-    let src = resolve_within(base, &src_path)?;
-    let dst = resolve_within(base, &dst_path)?;
-
-    let mut reader = BufReader::new(File::open(&src).map_err(|e| format!("Open failed: {}", e))?);
-    let mut writer =
-        BufWriter::new(File::create(&dst).map_err(|e| format!("Create failed: {}", e))?);
-    solosoul_crypto::aes::decrypt_chunked_stream(&key, &mut reader, &mut writer)
-        .map_err(|e| format!("Decryption failed: {}", e))?;
-    writer.flush().map_err(|e| format!("Flush failed: {}", e))?;
-    Ok(())
 }
 
 /// Inspect a backup file and return metadata about its contents

@@ -131,6 +131,7 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
         params: vec![],
         contracts: vec![],
         field_bindings: vec![],
+        i18n: None,
         custom_ui: None,
     };
 

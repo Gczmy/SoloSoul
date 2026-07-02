@@ -161,7 +161,7 @@ mod tests {
 
     #[test]
     fn test_render_home_smoke() {
-        let _theme = Theme::with_level(ColorLevel::Indexed, true);
+        let _theme = Theme::with_level(ColorLevel::Indexed);
         // 使用足够高度以完整显示全部 6 个选项
         let backend = TestBackend::new(80, 36);
         let mut terminal = ratatui::Terminal::new(backend).unwrap();

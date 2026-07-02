@@ -23,20 +23,17 @@ pub struct Theme {
     pub warning: Color,
     pub error: Color,
     pub bg: Color,
-    /// 是否使用 Unicode 图标（emoji / 符号）。
-    pub use_icons: bool,
 }
 
 impl Theme {
     /// 根据环境自动选择颜色级别并加载主题。
     pub fn load() -> Self {
         let color_level = detect_color_level();
-        let use_icons = should_use_icons();
-        Self::with_level(color_level, use_icons)
+        Self::with_level(color_level)
     }
 
     /// 按指定颜色级别构造 GUI 品牌蓝主题。
-    pub fn with_level(level: ColorLevel, use_icons: bool) -> Self {
+    pub fn with_level(level: ColorLevel) -> Self {
         match level {
             ColorLevel::TrueColor => Self {
                 brand: Color::Rgb(79, 168, 255),      // #4fa8ff
@@ -49,7 +46,6 @@ impl Theme {
                 warning: Color::Rgb(255, 200, 100),
                 error: Color::Rgb(255, 120, 100),
                 bg: Color::Rgb(26, 32, 38), // #1a2026
-                use_icons,
             },
             ColorLevel::Indexed => Self {
                 brand: Color::Indexed(75), // 最接近 #4fa8ff 的 256 色
@@ -62,7 +58,6 @@ impl Theme {
                 warning: Color::Indexed(221),
                 error: Color::Indexed(203),
                 bg: Color::Indexed(234),
-                use_icons,
             },
             ColorLevel::Ansi => Self {
                 brand: Color::LightBlue, // ANSI 下最接近 #4fa8ff 的亮色蓝
@@ -75,7 +70,6 @@ impl Theme {
                 warning: Color::Yellow,
                 error: Color::Red,
                 bg: Color::Black,
-                use_icons,
             },
         }
     }
@@ -173,14 +167,6 @@ impl Theme {
         Style::default().fg(self.border)
     }
 
-    /// 根据 `use_icons` 返回图标或 ASCII 回退文本。
-    pub fn icon_or_text(&self, icon: &str, fallback: &str) -> String {
-        if self.use_icons {
-            icon.to_string()
-        } else {
-            fallback.to_string()
-        }
-    }
 }
 
 impl Default for Theme {
@@ -230,37 +216,16 @@ fn detect_color_level() -> ColorLevel {
     ColorLevel::Indexed
 }
 
-/// 判断是否应使用 Unicode 图标。
-///
-/// 默认关闭，避免 emoji 或宽字符符号在不同终端出现显示问题。
-fn should_use_icons() -> bool {
-    if let Ok(v) = std::env::var("SOLOSOUL_CLI_ICONS") {
-        return v == "1";
-    }
-    false
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_theme_with_level() {
-        let t = Theme::with_level(ColorLevel::Ansi, true);
+        let t = Theme::with_level(ColorLevel::Ansi);
         assert_eq!(t.brand, Color::LightBlue);
-        assert!(t.use_icons);
 
-        let t = Theme::with_level(ColorLevel::TrueColor, false);
+        let t = Theme::with_level(ColorLevel::TrueColor);
         assert_eq!(t.brand, Color::Rgb(79, 168, 255));
-        assert!(!t.use_icons);
-    }
-
-    #[test]
-    fn test_icon_or_text() {
-        let with_icon = Theme::with_level(ColorLevel::Indexed, true);
-        assert_eq!(with_icon.icon_or_text(">", "[浏览]"), ">");
-
-        let no_icon = Theme::with_level(ColorLevel::Indexed, false);
-        assert_eq!(no_icon.icon_or_text(">", "[浏览]"), "[浏览]");
     }
 }

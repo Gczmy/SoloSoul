@@ -18,7 +18,4 @@ pub struct Cli {
 }
 
 #[derive(Subcommand, Debug)]
-pub enum Commands {
-    /// 检查并安装新版本（Phase 4 实现，Phase 1 仅占位输出提示）
-    Upgrade,
-}
+pub enum Commands {}

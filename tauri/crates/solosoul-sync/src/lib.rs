@@ -6,7 +6,6 @@
 //! - mDNS 服务发现
 
 pub mod attachments;
-pub mod crdt;
 pub mod delta;
 pub mod hlc;
 pub mod manager;

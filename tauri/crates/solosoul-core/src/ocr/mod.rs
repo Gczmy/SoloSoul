@@ -5,7 +5,6 @@
 pub mod engine;
 pub mod model;
 pub mod mrz;
-pub mod mrz_templates;
 pub mod pdf;
 pub mod postprocess;
 pub mod preprocess;

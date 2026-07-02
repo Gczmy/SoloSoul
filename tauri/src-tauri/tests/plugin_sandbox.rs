@@ -63,6 +63,7 @@ async fn test_hello_world_plugin_runs() {
         params: vec![],
         contracts: vec![],
         field_bindings: vec![],
+        i18n: None,
         custom_ui: None,
     };
 
@@ -134,6 +135,7 @@ async fn test_plugin_trap_is_isolated() {
         params: vec![],
         contracts: vec![],
         field_bindings: vec![],
+        i18n: None,
         custom_ui: None,
     };
 

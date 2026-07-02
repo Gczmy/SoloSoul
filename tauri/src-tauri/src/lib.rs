@@ -57,79 +57,9 @@ fn setup_panic_hook() {
         // 也写入 stderr（调试构建中可见）
         eprintln!("{}", msg);
 
-        // Windows：弹出友好的错误消息框
-        #[cfg(target_os = "windows")]
-        {
-            let box_text = format!(
-                "SoloSoul 启动时发生致命错误。\n\n\
-                 错误: {}\n\
-                 位置: {}\n\n\
-                 请将日志文件 %APPDATA%\\com.solosoul.app\\logs\\app.log\n\
-                 发送给开发团队以协助排查。",
-                payload, location
-            );
-            // SAFETY: show_message_box 封装了 Windows MessageBoxW API，
-            // 使用从 panic 信息生成的字符串；在 panic hook 中调用是安全的最佳实践。
-            // 该函数接收的字符串在此处分配且在调用期间保持有效。
-            unsafe {
-                show_message_box("SoloSoul 错误", &box_text);
-            }
-        }
-
         // 调用之前的 hook（默认行为，会打印 backtrace 到 stderr）
         previous_hook(panic_info);
     }));
-}
-
-/// Windows MessageBox 辅助函数（仅 Windows 编译）
-#[cfg(target_os = "windows")]
-unsafe fn show_message_box(title: &str, text: &str) {
-    use windows::core::PCWSTR;
-    use windows::Win32::UI::WindowsAndMessaging::{MessageBoxW, MB_ICONERROR, MB_OK};
-    let title_wide: Vec<u16> = title.encode_utf16().chain(std::iter::once(0)).collect();
-    let text_wide: Vec<u16> = text.encode_utf16().chain(std::iter::once(0)).collect();
-    let _ = MessageBoxW(
-        None,
-        PCWSTR::from_raw(text_wide.as_ptr()),
-        PCWSTR::from_raw(title_wide.as_ptr()),
-        MB_OK | MB_ICONERROR,
-    );
-}
-
-/// Windows: 检查 WebView2 运行时是否安装
-/// 通过检查 Edge WebView2 Runtime 文件系统路径
-#[cfg(target_os = "windows")]
-fn check_webview2_installed() -> bool {
-    // 检查常见 WebView2 Runtime 安装路径
-    let candidate_dirs = [
-        "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application",
-        "C:\\Program Files\\Microsoft\\EdgeWebView\\Application",
-    ];
-    for dir in &candidate_dirs {
-        let p = std::path::Path::new(dir);
-        if p.exists() {
-            // 检查目录中有子目录（版本号），确认不是空目录
-            if let Ok(entries) = std::fs::read_dir(p) {
-                if entries.count() > 0 {
-                    tracing::info!("[check] WebView2 安装路径存在: {}", dir);
-                    return true;
-                }
-            }
-        }
-    }
-
-    // 检查 System32 中的 WebView2Loader.dll
-    if let Ok(root) = std::env::var("SystemRoot") {
-        let dll_path = std::path::PathBuf::from(root)
-            .join("System32")
-            .join("WebView2Loader.dll");
-        if dll_path.exists() {
-            tracing::info!("[check] WebView2Loader.dll 存在: {}", dll_path.display());
-            return true;
-        }
-    }
-
-    false
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -212,18 +142,7 @@ pub fn run() {
                 }
             }
 
-            // 2. 检查 WebView2 是否安装（仅 Windows）
-            #[cfg(target_os = "windows")]
-            {
-                if !check_webview2_installed() {
-                    tracing::error!(
-                        "[setup] ❌ WebView2 运行时未检测到，应用窗口可能无法创建。\n\
-                         请访问 https://go.microsoft.com/fwlink/p/?LinkId=2124703 下载安装。"
-                    );
-                }
-            }
-
-            // 3. 检查资源目录与关键子目录
+            // 2. 检查资源目录与关键子目录
             match app.path().resource_dir() {
                 Ok(resource_dir) => {
                     if !resource_dir.join("SoloSoul_plugin_market").exists() {

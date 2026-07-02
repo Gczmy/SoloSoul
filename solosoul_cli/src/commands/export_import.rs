@@ -1268,6 +1268,7 @@ mod tests {
             icon_id: Some("passport".to_string()),
             properties: vec![solosoul_core::TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "fullName".to_string(),
                 name: "姓名".to_string(),
                 prop_type: solosoul_core::PropertyType::Text,
@@ -1330,6 +1331,7 @@ mod tests {
             icon_id: Some("passport".to_string()),
             properties: vec![solosoul_core::TemplateProperty {
                 contract_field: None,
+                contract_bindings: None,
                 id: "fullName".to_string(),
                 name: "Full Name".to_string(),
                 prop_type: solosoul_core::PropertyType::Text,
