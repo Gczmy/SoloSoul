@@ -12,6 +12,7 @@
 pub mod auth;
 pub mod biometric;
 pub mod export_import;
+pub mod objects;
 pub mod llm;
 pub mod ocr;
 pub mod path_util;

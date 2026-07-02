@@ -5,7 +5,7 @@ use ratatui::style::{Style, Stylize};
 use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
 
-use crate::commands::attachment::AttachmentMeta;
+use solosoul_core::objects::AttachmentMeta;
 
 /// 渲染附件列表。
 pub fn render(

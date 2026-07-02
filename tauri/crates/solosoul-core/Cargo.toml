@@ -44,6 +44,9 @@ sha2 = { workspace = true }
 # 进程级文件锁
 fs2 = "0.4.3"
 
+# 加密导出/导入 ZIP 包
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
 # 本地 OCR（PP-OCRv6 ONNX）
 ort = { workspace = true }
 image = { workspace = true }

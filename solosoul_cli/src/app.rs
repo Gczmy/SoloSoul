@@ -12,6 +12,7 @@ use ratatui::Frame;
 use solosoul_core::llm::config::{ConversationSummary, LlmConfig, LlmUsageStats};
 use solosoul_core::llm::service::LlmService;
 use solosoul_core::process_lock::ProcessLock;
+use solosoul_core::objects::AttachmentMeta;
 use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, UserTemplate, VaultService};
 use zeroize::Zeroizing;
 
@@ -141,7 +142,7 @@ pub enum AppPhase {
     /// 附件列表页
     AttachmentList {
         object_id: String,
-        items: Vec<crate::commands::attachment::AttachmentMeta>,
+        items: Vec<AttachmentMeta>,
         show_deleted: bool,
         selected: usize,
     },
