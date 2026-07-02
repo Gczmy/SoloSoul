@@ -147,6 +147,9 @@ impl PluginStore {
     }
 
     /// 列出所有已安装插件的 manifest
+    ///
+    /// 加载后会为旧插件（有 field_bindings 但 contracts.roles 为空）自动推导
+    /// effective roles，保证前端绑定 UI 与运行时看到的角色列表一致。
     pub fn installed_manifests(&self) -> Result<Vec<PluginManifest>, PluginError> {
         let mut manifests = Vec::new();
         if !self.base_dir.exists() {
@@ -156,7 +159,11 @@ impl PluginStore {
             let entry = entry?;
             if entry.file_type()?.is_dir() {
                 let id = entry.file_name().to_string_lossy().to_string();
-                if let Ok(manifest) = self.load_manifest(&id) {
+                if let Ok(mut manifest) = self.load_manifest(&id) {
+                    let field_bindings = manifest.field_bindings.clone();
+                    for contract in &mut manifest.contracts {
+                        contract.roles = contract.effective_roles(&field_bindings);
+                    }
                     manifests.push(manifest);
                 }
             }
