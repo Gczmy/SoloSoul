@@ -42,17 +42,71 @@ pub async fn plugin_list_attachments(state: State<'_, AppState>) -> Result<Strin
     resolver.list_attachments().map_err(|e| e.to_string())
 }
 
+/// 从 PluginManifest 的 contracts 中提取 (type_id, role_id, default_property_id) 元组列表。
+fn extract_binding_candidates(
+    manifest: &PluginManifest,
+) -> Vec<(String, String, String)> {
+    let mut candidates = Vec::new();
+    for contract in &manifest.contracts {
+        for role in &contract.roles {
+            if let Some(ref default_pid) = role.default_property_id {
+                candidates.push((
+                    contract.type_id.clone(),
+                    role.role_id.clone(),
+                    default_pid.clone(),
+                ));
+            }
+        }
+    }
+    candidates
+}
+
 #[command]
 pub async fn plugin_install(
     state: State<'_, AppState>,
     plugin_id: String,
     version: String,
 ) -> Result<PluginInstallResult, String> {
-    state
+    let result = state
         .plugin_manager
         .install_from_registry(&plugin_id, &version)
         .await
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    // 安装成功后，对已解锁的 Vault 执行种子模板 contract_bindings 迁移
+    if let Ok(vault) = vault_handle(&state) {
+        if let Some(account_id) = current_account_optional(&state) {
+            if let Ok(installed) = state.plugin_manager.list_installed() {
+                if let Some(manifest) = installed.iter().find(|m| m.id == plugin_id) {
+                    let candidates = extract_binding_candidates(manifest);
+                    if !candidates.is_empty() {
+                        match solosoul_core::template_service::migrate_contract_bindings(
+                            &vault,
+                            &account_id,
+                            &candidates,
+                        ) {
+                            Ok(count) => {
+                                tracing::info!(
+                                    "Plugin install: migrated {} seed template field bindings for {}",
+                                    count,
+                                    plugin_id
+                                );
+                            }
+                            Err(e) => {
+                                tracing::warn!(
+                                    "Plugin install: seed template migration failed for {}: {}",
+                                    plugin_id,
+                                    e
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(result)
 }
 
 #[command]

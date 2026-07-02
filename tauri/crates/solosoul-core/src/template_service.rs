@@ -178,6 +178,89 @@ pub fn seed_default_templates(
 }
 
 // ---------------------------------------------------------------------------
+// Plugin install migration — seed templates contract_bindings 补齐
+// ---------------------------------------------------------------------------
+
+/// 插件安装后迁移种子模板的 contract_bindings。
+/// 对模板中 contractField: true 但 contract_bindings 为空的字段，
+/// 根据已安装插件的合同合约 roles[].defaultPropertyId 自动推导绑定并持久化。
+///
+/// # 参数
+/// - `contracts`: 插件声明的合同列表，每项为 `(type_id, role_id, default_property_id)` 元组。
+pub fn migrate_contract_bindings(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+    contracts: &[(String, String, String)],
+) -> Result<usize, String> {
+    // 构建 contract_type_id → [(role_id, default_property_id)] 映射
+    let mut contract_map: std::collections::HashMap<
+        &str,
+        Vec<(&str, &str)>,
+    > = std::collections::HashMap::new();
+    for (ctid, role_id, default_pid) in contracts {
+        contract_map
+            .entry(ctid.as_str())
+            .or_default()
+            .push((role_id.as_str(), default_pid.as_str()));
+    }
+
+    if contract_map.is_empty() {
+        return Ok(0);
+    }
+
+    let templates = vault.list_user_templates(account_id)?;
+    let mut migrated_count = 0usize;
+
+    for mut tpl in templates {
+        // 跳过无 contract_type_id 的模板
+        let ctid = match &tpl.contract_type_id {
+            Some(id) => id.clone(),
+            None => continue,
+        };
+
+        // 检查插件是否声明了此 type_id
+        let Some(roles) = contract_map.get(ctid.as_str()) else {
+            continue;
+        };
+
+        let mut changed = false;
+        let mut new_properties = tpl.properties.clone();
+
+        for prop in &mut new_properties {
+            // 跳过无 contractField 或已有 bindings 的字段
+            if !prop.contract_field.unwrap_or(false) {
+                continue;
+            }
+            if prop.contract_bindings.as_ref().is_some_and(|b| !b.is_empty()) {
+                continue;
+            }
+
+            // 在插件的 roles 中查找 defaultPropertyId 匹配
+            for (role_id, default_pid) in roles {
+                if *default_pid == prop.id {
+                    let binding = solosoul_vault::ContractRoleBinding {
+                        contract_type_id: ctid.clone(),
+                        role_id: (*role_id).to_string(),
+                    };
+                    prop.contract_bindings = Some(vec![binding]);
+                    changed = true;
+                    migrated_count += 1;
+                    break; // 一个字段只绑定一个 role
+                }
+            }
+        }
+
+        if changed {
+            tpl.properties = new_properties;
+            tpl.updated_at = Some(chrono::Utc::now().to_rfc3339());
+            vault.save_user_template(&tpl)?;
+        }
+    }
+
+    Ok(migrated_count)
+}
+
+// ---------------------------------------------------------------------------
 // detect_for_object — now a pure function over a slice of UserTemplates
 // ---------------------------------------------------------------------------
 
