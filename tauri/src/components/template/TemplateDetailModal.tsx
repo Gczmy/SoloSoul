@@ -216,7 +216,7 @@ export function TemplateDetailModal({
                     {prop.name}
                   </span>
                   {(() => {
-                    const effectiveBindings = prop.contractBindings && prop.contractBindings.length > 0
+                    const resolvedBindings = prop.contractBindings && prop.contractBindings.length > 0
                       ? prop.contractBindings
                       : (prop.contractField && detailTemplate.contractTypeId
                           ? deriveContractBindings(
@@ -225,13 +225,30 @@ export function TemplateDetailModal({
                               installedPlugins,
                             )
                           : []);
-                    if (effectiveBindings.length > 0) {
+                    if (resolvedBindings.length > 0) {
                       return (
                         <PluginBadge
-                          contractTypeId={effectiveBindings[0].contractTypeId}
+                          contractTypeId={resolvedBindings[0].contractTypeId}
                           size="sm"
                           variant="icon"
                         />
+                      );
+                    }
+                    // 插件未安装但字段标记为 contractField ——显示灰色占位
+                    if (prop.contractField) {
+                      return (
+                        <span
+                          style={{
+                            fontSize: 'var(--text-badge)',
+                            padding: '1px 4px',
+                            borderRadius: 3,
+                            background: 'var(--accent-primary-soft, rgba(99,102,241,0.12))',
+                            color: 'var(--accent-primary, #6366f1)',
+                            opacity: 0.6,
+                          }}
+                        >
+                          {t('settings:plugin_badge_label', '插件')}
+                        </span>
                       );
                     }
                     return null;
