@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -6,8 +7,14 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { PluginBadge } from './PluginBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
+import { deriveSampleTemplateBindings } from '@/lib/sampleTemplates';
 import type { SensitivityLevel } from '@/types/template';
 import { ICON_SIZE } from '@/lib/iconSizes';
+import { usePluginStore } from '@/stores/pluginStore';
+import type { PluginManifest } from '@/lib/plugin';
+
+// 模块级空数组常量，避免 ?? [] 每次创建新引用导致 ESLint useMemo 依赖 warning
+const EMPTY_PLUGINS: PluginManifest[] = [];
 
 interface SampleTemplateDetailProps {
   template: SampleTemplate;
@@ -17,6 +24,21 @@ interface SampleTemplateDetailProps {
 
 export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplateDetailProps) {
   const { t } = useTranslation(['settings', 'editor', 'navigation']);
+  const installedPlugins = usePluginStore((s) => s.installedPlugins) ?? EMPTY_PLUGINS;
+  const loadInstalled = usePluginStore((s) => s.loadInstalled);
+
+  // 确保插件列表已加载（用于 deriveContractBindings）
+  useEffect(() => {
+    if (installedPlugins.length === 0) {
+      loadInstalled().catch(() => {});
+    }
+  }, [installedPlugins.length, loadInstalled]);
+
+  // 保存推导结果的副本用于展示
+  const derivedProperties = useMemo(
+    () => deriveSampleTemplateBindings(template, installedPlugins),
+    [template, installedPlugins],
+  );
 
   return (
     <div
@@ -110,58 +132,68 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-          {template.properties.map((prop) => (
-            <div
-              key={prop.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                padding: '10px 14px',
-                borderRadius: 8,
-                background: 'var(--bg-toolbar)',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                <span
-                  style={{ color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' }}
-                >
-                  <FieldTypeIcon type={prop.type} size={ICON_SIZE.sm} />
-                </span>
-                <span
-                  style={{
-                    fontSize: 'var(--text-body)',
-                    fontWeight: 500,
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  {prop.name}
-                </span>
-                {prop.contractField && (
+          {derivedProperties.map((prop) => {
+            const bindings = prop.contractBindings;
+            const hasPluginBadge = bindings && bindings.length > 0;
+            return (
+              <div
+                key={prop.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  background: 'var(--bg-toolbar)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
                   <span
-                    title={t('settings:plugin_badge_tooltip', { pluginName: '插件' })}
+                    style={{ color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' }}
+                  >
+                    <FieldTypeIcon type={prop.type} size={ICON_SIZE.sm} />
+                  </span>
+                  <span
                     style={{
-                      fontSize: 'var(--text-badge)',
-                      padding: '1px 4px',
-                      borderRadius: 3,
-                      background: 'var(--accent-primary-soft, rgba(99,102,241,0.12))',
-                      color: 'var(--accent-primary, #6366f1)',
+                      fontSize: 'var(--text-body)',
+                      fontWeight: 500,
+                      color: 'var(--text-primary)',
                     }}
                   >
-                    {t('settings:plugin_badge_label')}
+                    {prop.name}
                   </span>
-                )}
+                  {hasPluginBadge ? (
+                    <PluginBadge
+                      contractTypeId={bindings![0].contractTypeId}
+                      size="sm"
+                      variant="icon"
+                    />
+                  ) : prop.contractField ? (
+                    <span
+                      style={{
+                        fontSize: 'var(--text-badge)',
+                        padding: '1px 4px',
+                        borderRadius: 3,
+                        background: 'var(--accent-primary-soft, rgba(99,102,241,0.12))',
+                        color: 'var(--accent-primary, #6366f1)',
+                        opacity: 0.6,
+                      }}
+                    >
+                      {t('settings:plugin_badge_label', '插件')}
+                    </span>
+                  ) : null}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                    {t(`editor:field_types.${prop.type}`, prop.type)}
+                  </span>
+                  <SensitivityBadge level={prop.sensitivityLevel as SensitivityLevel} />
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                  {t(`editor:field_types.${prop.type}`, prop.type)}
-                </span>
-                <SensitivityBadge level={prop.sensitivityLevel as SensitivityLevel} />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

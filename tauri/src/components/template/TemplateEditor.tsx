@@ -21,7 +21,11 @@ import { OptionsEditor } from './OptionsEditor';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { ICON_SIZE } from '@/lib/iconSizes';
 import { usePluginStore } from '@/stores/pluginStore';
-import type { PluginContractBinding as PluginContractBindingType } from '@/lib/plugin';
+import {
+  resolvePluginName,
+  deriveContractBindings,
+  type PluginContractBinding as PluginContractBindingType,
+} from '@/lib/plugin';
 
 interface FieldUsage {
   active: number;
@@ -96,6 +100,7 @@ export function TemplateEditor({
 
   const installedPlugins = usePluginStore((s) => s.installedPlugins);
   const loadInstalled = usePluginStore((s) => s.loadInstalled);
+  const { t, i18n } = useTranslation(['settings', 'common', 'editor']);
 
   // 加载已安装插件列表（用于展示契约角色）
   React.useEffect(() => {
@@ -106,6 +111,7 @@ export function TemplateEditor({
 
   // 将已安装插件的所有契约展平为一个列表
   const flattenContracts = React.useMemo(() => {
+    const currentLocale = i18n.language || 'zh-CN';
     const list: Array<{
       pluginId: string;
       pluginName: string;
@@ -116,29 +122,40 @@ export function TemplateEditor({
         if (contract.roles && contract.roles.length > 0) {
           list.push({
             pluginId: plugin.id,
-            pluginName: plugin.name,
+            pluginName: resolvePluginName(plugin, currentLocale),
             contract,
           });
         }
       }
     }
     return list;
-  }, [installedPlugins]);
+  }, [installedPlugins, i18n.language]);
 
-  const toggleBindingExpanded = (fieldKey: string) => {
+  const toggleBindingExpanded = (fieldKey: string, fieldIdx: number) => {
+    const willExpand = !expandedBindingFields.has(fieldKey);
     setExpandedBindingFields((prev) => {
       const next = new Set(prev);
       if (next.has(fieldKey)) {
         next.delete(fieldKey);
       } else {
         next.add(fieldKey);
-        // 默认选中第一个契约和角色的初始值由用户后续选择
       }
       return next;
     });
+    // 展开时自动推导并持久化 contractField: true 但无硬编码 bindings 的字段
+    if (willExpand) {
+      const prop = editProperties[fieldIdx];
+      if (prop) {
+        const existingBindings = prop.contractBindings || [];
+        if (existingBindings.length === 0 && prop.contractField && editContractTypeId) {
+          const derived = deriveContractBindings(editContractTypeId, prop.id, installedPlugins);
+          if (derived.length > 0) {
+            onUpdatePropertyContractBindings(fieldIdx, derived);
+          }
+        }
+      }
+    }
   };
-
-  const { t } = useTranslation(['settings', 'common', 'editor']);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
@@ -276,6 +293,12 @@ export function TemplateEditor({
                 const bindings = prop.contractBindings || [];
                 const fieldKey = prop.id;
                 const isExpanded = expandedBindingFields.has(fieldKey);
+
+                // 自动推导：contractField: true 但无硬编码 bindings 时，从已安装插件 manifest 匹配
+                const derivedBindings = (bindings.length === 0 && prop.contractField && editContractTypeId)
+                  ? deriveContractBindings(editContractTypeId, prop.id, installedPlugins)
+                  : [];
+                const effectiveBindings = bindings.length > 0 ? bindings : derivedBindings;
                 const currentContractId = selectedContractId[fieldKey] || '';
                 const currentRoleId = selectedRoleId[fieldKey] || '';
 
@@ -442,7 +465,7 @@ export function TemplateEditor({
                     <div style={{ paddingLeft: 10, marginTop: 2, marginBottom: 6 }}>
                       <button
                         type="button"
-                        onClick={() => toggleBindingExpanded(fieldKey)}
+                        onClick={() => toggleBindingExpanded(fieldKey, idx)}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
@@ -478,7 +501,7 @@ export function TemplateEditor({
                           <ChevronRight size={14} />
                         </span>
                         {t('settings:plugin_binding') || '插件绑定'}
-                        {bindings.length > 0 && (
+                        {effectiveBindings.length > 0 && (
                           <span
                             style={{
                               fontSize: 'var(--text-badge)',
@@ -486,22 +509,11 @@ export function TemplateEditor({
                               marginLeft: 4,
                             }}
                           >
-                            ({bindings.length})
+                            ({effectiveBindings.length})
                           </span>
                         )}
                         <span style={{ flex: 1 }} />
-                        {bindings.length > 0 ? (
-                          <span
-                            style={{
-                              fontSize: 'var(--text-caption)',
-                              color: 'var(--text-tertiary)',
-                            }}
-                          >
-                            {isExpanded
-                              ? t('common:collapse') || '收起'
-                              : t('settings:click_to_configure') || '点击配置'}
-                          </span>
-                        ) : flattenContracts.length > 0 ? (
+                        {effectiveBindings.length > 0 || flattenContracts.length > 0 ? (
                           <span
                             style={{
                               fontSize: 'var(--text-caption)',
@@ -525,7 +537,7 @@ export function TemplateEditor({
                           }}
                         >
                           {/* 已绑定标签列表 */}
-                          {bindings.length > 0 && (
+                          {effectiveBindings.length > 0 && (
                             <div
                               style={{
                                 display: 'flex',
@@ -534,9 +546,10 @@ export function TemplateEditor({
                                 marginBottom: 4,
                               }}
                             >
-                              {bindings.map((b) => {
+                              {effectiveBindings.map((b) => {
                                 const ci = getContractInfo(b.contractTypeId);
                                 const ri = getRoleInfo(b.contractTypeId, b.roleId);
+                                const isDerived = bindings.length === 0;
                                 return (
                                   <span
                                     key={`${b.contractTypeId}::${b.roleId}`}
@@ -547,11 +560,13 @@ export function TemplateEditor({
                                       padding: '2px 8px',
                                       borderRadius: 4,
                                       fontSize: 'var(--text-badge)',
-                                      background:
-                                        'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
+                                      background: isDerived
+                                        ? 'color-mix(in srgb, var(--accent-primary) 4%, transparent)'
+                                        : 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
                                       color: 'var(--accent-primary)',
-                                      border:
-                                        '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+                                      border: isDerived
+                                        ? '1px dashed color-mix(in srgb, var(--accent-primary) 30%, transparent)'
+                                        : '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
                                     }}
                                   >
                                     <span style={{ fontWeight: 500 }}>{ci.pluginName}</span>
@@ -570,32 +585,34 @@ export function TemplateEditor({
                                         *
                                       </span>
                                     )}
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        handleRemoveBinding(b.contractTypeId, b.roleId)
-                                      }
-                                      style={{
-                                        background: 'none',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        padding: '0 2px',
-                                        color: 'var(--accent-primary)',
-                                        fontSize: 14,
-                                        lineHeight: 1,
-                                        opacity: 0.7,
-                                        transition: 'opacity 0.15s',
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.opacity = '1';
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.opacity = '0.7';
-                                      }}
-                                      title={t('common:remove') || '移除'}
-                                    >
-                                      ✕
-                                    </button>
+                                    {!isDerived && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleRemoveBinding(b.contractTypeId, b.roleId)
+                                        }
+                                        style={{
+                                          background: 'none',
+                                          border: 'none',
+                                          cursor: 'pointer',
+                                          padding: '0 2px',
+                                          color: 'var(--accent-primary)',
+                                          fontSize: 14,
+                                          lineHeight: 1,
+                                          opacity: 0.7,
+                                          transition: 'opacity 0.15s',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.currentTarget.style.opacity = '1';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.opacity = '0.7';
+                                        }}
+                                        title={t('common:remove') || '移除'}
+                                      >
+                                        ✕
+                                      </button>
+                                    )}
                                   </span>
                                 );
                               })}
@@ -713,7 +730,7 @@ export function TemplateEditor({
                                   transition: 'background 0.15s',
                                 }}
                               >
-                                {t('common:add') || '添加'}
+                                {t('common:add') || 'Add'}
                               </button>
                             </div>
                           ) : (

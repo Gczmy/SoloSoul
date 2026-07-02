@@ -93,6 +93,8 @@ struct MarketManifestRaw {
     field_bindings: Vec<super::manifest::PluginFieldBinding>,
     #[serde(default)]
     pub custom_ui: Option<String>,
+    #[serde(default)]
+    pub i18n: Option<HashMap<String, HashMap<String, String>>>,
 }
 
 /// 插件管理器
@@ -311,6 +313,7 @@ impl PluginManager {
                         params: local.params,
                         contracts,
                         field_bindings: local.field_bindings,
+                        i18n: local.i18n.clone(),
                         custom_ui: local.custom_ui,
                     };
                     self.store.save_plugin(&manifest, &wasm_bytes)?;
@@ -388,6 +391,7 @@ impl PluginManager {
             params: manifest_raw.params,
             contracts,
             field_bindings: manifest_raw.field_bindings,
+            i18n: manifest_raw.i18n.clone(),
             custom_ui: manifest_raw.custom_ui,
         };
 

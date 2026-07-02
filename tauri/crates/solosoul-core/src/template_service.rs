@@ -28,9 +28,16 @@ pub struct SystemTemplateProperty {
     pub sensitive: Option<bool>,
     pub required: Option<bool>,
     pub options: Option<Vec<String>>,
-    /// 插件合约字段映射 — 当此属性映射到插件合约中的字段时为 true。
+    /// 插件合约字段映射 — 当此属性映射到插件合约中的字段时为 true（旧版）。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub contract_field: Option<bool>,
+    /// 新版插件契约角色绑定。
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "contractBindings"
+    )]
+    pub contract_bindings: Option<Vec<solosoul_vault::ContractRoleBinding>>,
 }
 
 impl SystemTemplateProperty {
@@ -139,7 +146,7 @@ pub fn seed_default_templates(
             .iter()
             .map(|p| solosoul_vault::TemplateProperty {
                 contract_field: p.contract_field,
-                contract_bindings: None,
+                contract_bindings: p.contract_bindings.clone(),
                 id: p.id.clone(),
                 name: p.name_fallback.clone(),
                 prop_type: solosoul_vault::PropertyType::parse(&p.prop_type)

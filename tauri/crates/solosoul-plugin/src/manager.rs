@@ -82,6 +82,8 @@ struct MarketManifestRaw {
     field_bindings: Vec<super::manifest::PluginFieldBinding>,
     #[serde(default)]
     pub custom_ui: Option<String>,
+    #[serde(default)]
+    pub i18n: Option<HashMap<String, HashMap<String, String>>>,
 }
 
 /// 插件管理器
@@ -202,6 +204,7 @@ impl PluginManager {
             params: manifest_raw.params,
             contracts: manifest_raw.contracts,
             field_bindings: manifest_raw.field_bindings,
+            i18n: manifest_raw.i18n.clone(),
             custom_ui: manifest_raw.custom_ui,
         };
 

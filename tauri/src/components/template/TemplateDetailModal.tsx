@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Pencil, LayoutTemplate } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -5,9 +6,17 @@ import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SensitivityBadges } from './SensitivityBadges';
+import { PluginBadge } from './PluginBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
-import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
+import type {
+  PropertyType,
+  SensitivityLevel,
+  UserTemplate,
+  ContractRoleBinding,
+} from '@/types/template';
 import { ICON_SIZE } from '@/lib/iconSizes';
+import { usePluginStore } from '@/stores/pluginStore';
+import { deriveContractBindings } from '@/lib/plugin';
 
 interface DetailProperty {
   id: string;
@@ -15,12 +24,15 @@ interface DetailProperty {
   type: string;
   sensitivityLevel?: string;
   deprecatedAt?: string;
+  contractField?: boolean;
+  contractBindings?: ContractRoleBinding[];
 }
 
 interface ListTemplate {
   id: string;
   name: string;
   category: string;
+  contractTypeId?: string;
   properties: DetailProperty[];
 }
 
@@ -40,6 +52,16 @@ export function TemplateDetailModal({
   onEdit,
 }: TemplateDetailModalProps) {
   const { t } = useTranslation(['common', 'settings']);
+  const installedPlugins = usePluginStore((s) => s.installedPlugins);
+  const loadInstalled = usePluginStore((s) => s.loadInstalled);
+
+  // 确保插件列表已加载（用于 contractField 推导）
+  useEffect(() => {
+    if (installedPlugins.length === 0) {
+      loadInstalled().catch(() => {});
+    }
+  }, [installedPlugins.length, loadInstalled]);
+
   if (!detailTemplate) return null;
 
   const page = pageLabel(detailTemplate.category || 'identity');
@@ -99,6 +121,10 @@ export function TemplateDetailModal({
                   gap: 8,
                 }}
               >
+                <PluginBadge
+                  contractTypeId={detailTemplate.contractTypeId}
+                  size="sm"
+                />
                 <span
                   style={
                     page.deleted ? { textDecoration: 'line-through', opacity: 0.6 } : undefined
@@ -189,6 +215,27 @@ export function TemplateDetailModal({
                   >
                     {prop.name}
                   </span>
+                  {(() => {
+                    const effectiveBindings = prop.contractBindings && prop.contractBindings.length > 0
+                      ? prop.contractBindings
+                      : (prop.contractField && detailTemplate.contractTypeId
+                          ? deriveContractBindings(
+                              detailTemplate.contractTypeId,
+                              prop.id,
+                              installedPlugins,
+                            )
+                          : []);
+                    if (effectiveBindings.length > 0) {
+                      return (
+                        <PluginBadge
+                          contractTypeId={effectiveBindings[0].contractTypeId}
+                          size="sm"
+                          variant="icon"
+                        />
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <SensitivityBadge

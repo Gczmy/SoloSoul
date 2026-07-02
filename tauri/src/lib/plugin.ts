@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { Channel } from '@tauri-apps/api/core';
+import type { ContractRoleBinding } from '@/types/template';
 
 export interface RegistryEntry {
   id: string;
@@ -77,6 +78,8 @@ export interface PluginManifest {
   params: PluginParam[];
   /** 插件声明的合约列表（V2 新增字段，可为空/缺省） */
   contracts?: PluginContractBinding[];
+  /** 插件国际化文本。key 为 locale，value 为 { name, description, ... } */
+  i18n?: Record<string, Record<string, string>>;
   customUi?: string;
 }
 
@@ -193,6 +196,48 @@ export type PluginAuditAction =
 export interface PluginInstallResult {
   pluginId: string;
   version: string;
+}
+
+/**
+ * 运行时推导插件契约角色绑定。
+ * 当字段有 contractField: true 但无硬编码 contractBindings 时，
+ * 从已安装插件 manifest 的 contracts[].roles[].defaultPropertyId 自动匹配。
+ */
+export function deriveContractBindings(
+  contractTypeId: string | undefined,
+  propertyId: string,
+  installedPlugins: PluginManifest[],
+): ContractRoleBinding[] {
+  if (!contractTypeId) return [];
+
+  for (const plugin of installedPlugins) {
+    for (const contract of plugin.contracts || []) {
+      if (contract.typeId !== contractTypeId) continue;
+      for (const role of contract.roles || []) {
+        if (role.defaultPropertyId === propertyId) {
+          return [{ contractTypeId, roleId: role.roleId }];
+        }
+      }
+    }
+  }
+  return [];
+}
+
+/** 根据当前 locale 解析插件国际化名称；若无匹配则返回插件默认 name。 */
+export function resolvePluginName(
+  plugin: Pick<PluginManifest, 'name' | 'i18n'>,
+  locale: string,
+): string {
+  const map = plugin.i18n;
+  if (!map) return plugin.name;
+  const exact = map[locale]?.name;
+  if (exact) return exact;
+  const lang = locale.split('-')[0];
+  const langMatch = map[lang]?.name;
+  if (langMatch) return langMatch;
+  const en = map['en-US']?.name ?? map['en']?.name;
+  if (en) return en;
+  return plugin.name;
 }
 
 export const pluginCommands = {

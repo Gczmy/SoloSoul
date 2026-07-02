@@ -24,6 +24,7 @@ import { resolveCustomIcon } from '@/lib/pageIcons';
 import { SampleTemplateGallery } from '@/components/template/SampleTemplateGallery';
 import { SampleTemplateDetail } from '@/components/template/SampleTemplateDetail';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
+import { deriveSampleTemplateBindings } from '@/lib/sampleTemplates';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { TemplateEditor } from '@/components/template/TemplateEditor';
 import { TemplateDetailModal } from '@/components/template/TemplateDetailModal';
@@ -32,6 +33,10 @@ import { SensitivityBadges } from '@/components/template/SensitivityBadges';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { retentionPeriodDays } from '@/stores/trashStore';
 import { ICON_SIZE } from '@/lib/iconSizes';
+import { deriveContractBindings, type PluginManifest } from '@/lib/plugin';
+import { usePluginStore } from '@/stores/pluginStore';
+
+const EMPTY_PLUGINS: PluginManifest[] = [];
 
 const SYSTEM_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;
 
@@ -39,12 +44,14 @@ interface ListTemplate {
   id: string;
   name: string;
   category: string;
+  contractTypeId?: string;
   properties: Array<{
     id: string;
     name: string;
     type: string;
     sensitivityLevel?: string;
     deprecatedAt?: string;
+    contractBindings?: ContractRoleBinding[];
   }>;
 }
 
@@ -85,6 +92,8 @@ export function TemplateManagerPage() {
   >({});
   const [showSampleGallery, setShowSampleGallery] = useState(false);
   const [selectedSample, setSelectedSample] = useState<SampleTemplate | null>(null);
+  const installedPlugins = usePluginStore((s) => s.installedPlugins) ?? EMPTY_PLUGINS;
+  const loadInstalled = usePluginStore((s) => s.loadInstalled);
   const [pageFilter, setPageFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -95,6 +104,13 @@ export function TemplateManagerPage() {
         console.warn('[TemplateManager] Load custom pages failed:', err),
       );
   }, [loadTemplates, accountId, loadCustomPages]);
+
+  // 独立的 useEffect 加载插件列表（与模板/页面加载无关，避免 installedPlugins 变化触发不必要的重载）
+  useEffect(() => {
+    if (installedPlugins.length === 0) {
+      loadInstalled().catch(() => {});
+    }
+  }, [installedPlugins.length, loadInstalled]);
 
   // Load field usage for deprecated fields
   const loadFieldUsage = useCallback(async () => {
@@ -127,12 +143,15 @@ export function TemplateManagerPage() {
       id: ut.id,
       name: ut.name,
       category: ut.category || 'identity',
-      properties: ut.properties.map((p) => ({
+      contractTypeId: ut.contractTypeId,
+        properties: ut.properties.map((p) => ({
         id: p.id,
         name: p.name,
         type: p.type,
         sensitivityLevel: p.sensitivityLevel || 'internal',
         deprecatedAt: p.deprecatedAt,
+        contractField: p.contractField,
+        contractBindings: p.contractBindings,
       })),
     }));
   }, [templates]);
@@ -228,13 +247,23 @@ export function TemplateManagerPage() {
       showToast({ type: 'warning', message: t('common:name_required') || '请输入模板名称' });
       return;
     }
+    // 保存前：对 contractField: true 但尚无 contractBindings 的字段，自动推导并持久化
+    const finalProperties = editProperties.map((p) => {
+      if (p.contractField && (!p.contractBindings || p.contractBindings.length === 0) && editContractTypeId) {
+        const derived = deriveContractBindings(editContractTypeId, p.id, installedPlugins);
+        if (derived.length > 0) {
+          return { ...p, contractBindings: derived };
+        }
+      }
+      return p;
+    });
     try {
       if (isNewTemplate) {
         await createTemplate(
           name,
           editIconId,
           editCategory,
-          editProperties,
+          finalProperties,
           editContractTypeId || undefined,
         );
         await loadTemplates();
@@ -244,7 +273,7 @@ export function TemplateManagerPage() {
           name: name || editingTemplate.name,
           iconId: editIconId,
           category: editCategory,
-          properties: editProperties,
+          properties: finalProperties,
           contractTypeId: editContractTypeId || undefined,
         });
         closeEdit();
@@ -606,18 +635,23 @@ export function TemplateManagerPage() {
           onUse={async () => {
             if (!selectedSample) return;
             try {
-              await createTemplate(
-                selectedSample.name,
-                selectedSample.icon,
-                selectedSample.category,
-                selectedSample.properties.map((p) => ({
+              // 从示例模板创建时，使用共享推导函数补齐 contractBindings
+              const derivedProperties = deriveSampleTemplateBindings(selectedSample, installedPlugins).map(
+                (p) => ({
                   id: p.id,
                   name: p.name,
                   type: p.type,
                   sensitivityLevel: p.sensitivityLevel,
                   options: p.options,
                   contractField: p.contractField,
-                })),
+                  contractBindings: p.contractBindings,
+                }),
+              );
+              await createTemplate(
+                selectedSample.name,
+                selectedSample.icon,
+                selectedSample.category,
+                derivedProperties,
                 selectedSample.contractTypeId,
               );
               setSelectedSample(null);

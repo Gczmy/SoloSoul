@@ -1,4 +1,9 @@
-import type { PropertyType, SensitivityLevel } from '@/types/template';
+import type {
+  PropertyType,
+  SensitivityLevel,
+  ContractRoleBinding,
+} from '@/types/template';
+import { deriveContractBindings, type PluginManifest } from '@/lib/plugin';
 
 export type SampleTemplateLocale = 'zh' | 'en';
 
@@ -9,8 +14,10 @@ export interface SampleTemplateProperty {
   sensitivityLevel: SensitivityLevel;
   required?: boolean;
   options?: string[];
-  /** 插件合约字段映射 — 当此属性映射到插件合约中的字段时为 true。 */
+  /** 插件合约字段映射 — 当此属性映射到插件合约中的字段时为 true（旧版）。 */
   contractField?: boolean;
+  /** 新版插件契约角色绑定。 */
+  contractBindings?: ContractRoleBinding[];
 }
 
 export interface SampleTemplate {
@@ -164,7 +171,13 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
         sensitivityLevel: 'internal',
         contractField: true,
       },
-      { id: 'city', name: '城市', type: 'text', sensitivityLevel: 'public', contractField: true },
+      {
+        id: 'city',
+        name: '城市',
+        type: 'text',
+        sensitivityLevel: 'public',
+        contractField: true,
+      },
       {
         id: 'province',
         name: '省/自治区/直辖市/特别行政区',
@@ -348,7 +361,13 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
         sensitivityLevel: 'internal',
         contractField: true,
       },
-      { id: 'city', name: 'City', type: 'text', sensitivityLevel: 'public', contractField: true },
+      {
+        id: 'city',
+        name: 'City',
+        type: 'text',
+        sensitivityLevel: 'public',
+        contractField: true,
+      },
       {
         id: 'province',
         name: 'Province / State',
@@ -385,4 +404,24 @@ export const SAMPLE_TEMPLATES: SampleTemplate[] = [...SAMPLE_TEMPLATES_ZH, ...SA
 export function getDefaultLocaleTab(language?: string): SampleTemplateLocale {
   if (language && language.toLowerCase().startsWith('zh')) return 'zh';
   return 'en';
+}
+
+/**
+ * 为示例模板的字段补齐插件契约角色绑定。
+ * 对 contractField: true 且无 contractBindings 的字段，
+ * 根据已安装插件 manifest 的 defaultPropertyId 自动推导并持久化。
+ */
+export function deriveSampleTemplateBindings(
+  sample: SampleTemplate,
+  installedPlugins: PluginManifest[],
+): SampleTemplateProperty[] {
+  return sample.properties.map((p) => {
+    if (p.contractField && (!p.contractBindings || p.contractBindings.length === 0) && sample.contractTypeId) {
+      const derived = deriveContractBindings(sample.contractTypeId, p.id, installedPlugins);
+      if (derived.length > 0) {
+        return { ...p, contractBindings: derived };
+      }
+    }
+    return p;
+  });
 }
