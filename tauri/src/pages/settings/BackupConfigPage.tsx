@@ -10,8 +10,8 @@ import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import { HardDrive, RotateCcw, Plus } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
-import { ICON_SIZE } from '@/lib/iconSizes';
-import { formatBytes } from '@/lib/format';
+import { ICON_SIZE } from '@/lib/constants';
+import { formatBytes } from '@/lib/utils';
 
 interface BackupInfo {
   id: string;

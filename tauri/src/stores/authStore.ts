@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { commands, AccountInfo } from '@/lib/ipc';
+import { invoke } from '@tauri-apps/api/core';
+import type { AccountInfo } from '@/lib/ipc';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -35,7 +36,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   checkHasAccount: async () => {
     try {
-      const result = await commands.checkHasAccount();
+      const result = await invoke<boolean>('check_has_account');
       set({ hasAccount: result, backendError: false });
     } catch {
       // Backend unavailable — don't jump to bootstrap
@@ -46,7 +47,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   listAccounts: async () => {
     try {
-      const accounts = await commands.vaultListAccounts();
+      const accounts = await invoke<AccountInfo[]>('vault_list_accounts');
       const currentId = get().currentAccount?.id;
       const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
       set({
@@ -66,7 +67,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   refreshCurrentAccount: async () => {
     try {
-      const accounts = await commands.vaultListAccounts();
+      const accounts = await invoke<AccountInfo[]>('vault_list_accounts');
       const currentId = get().currentAccount?.id;
       const refreshed = currentId ? accounts.find((a) => a.id === currentId) : null;
       if (refreshed) {
@@ -80,7 +81,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   bootstrap: async (name, password, locale, passwordHint) => {
     set({ isLoading: true, error: null });
     try {
-      const account = await commands.bootstrap(name, password, locale, passwordHint);
+      const account = await invoke<AccountInfo>('bootstrap', { accountName: name, password, locale, passwordHint });
       set({
         isAuthenticated: true,
         currentAccount: account,
@@ -97,12 +98,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (accountId, password) => {
     set({ isLoading: true, error: null });
     try {
-      await commands.login(accountId, password);
+      await invoke<void>('login', { accountId, password });
       // Try to refresh account list, but do not fail authentication if the
       // refresh request errors (e.g. transient backend lock contention).
       let accounts: AccountInfo[] = [];
       try {
-        accounts = (await commands.vaultListAccounts()) || [];
+        accounts = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
       } catch {
         // Keep authentication state even if the account-list refresh fails.
       }
@@ -122,7 +123,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
-    await commands.logout();
+    await invoke<void>('logout');
     // 登出仅重置认证状态，hasAccount 保持为 null（未知），
     // 由 BootstrapGuard 重新调用 checkHasAccount 确认后端账户状态。
     set({

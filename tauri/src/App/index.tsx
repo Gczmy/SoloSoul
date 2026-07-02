@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import type { AccountInfo } from '@/lib/ipc';
-import { ST_ONBOARDING_SEEN } from '@/lib/storageKeys';
+import { ST_ONBOARDING_SEEN } from '@/lib/constants';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { OcrScanNotificationListener } from '@/components/layout/OcrScanNotificationListener';
 import { PluginQuickNotificationListener } from '@/components/plugin/PluginQuickNotificationListener';

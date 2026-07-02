@@ -14,7 +14,7 @@ import type {
   UserTemplate,
   ContractRoleBinding,
 } from '@/types/template';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 import { usePluginStore } from '@/stores/pluginStore';
 import { deriveContractBindings } from '@/lib/plugin';
 

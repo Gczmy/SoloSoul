@@ -1,15 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// 模拟 ipc commands
-const mockScanImage = vi.fn();
-const mockScanMrz = vi.fn();
-vi.mock('@/lib/ipc', () => ({
-  commands: {
-    ocrScanImage: (...args: unknown[]) => mockScanImage(...args),
-    ocrScanMrz: (...args: unknown[]) => mockScanMrz(...args),
-  },
-  OcrResult: {} as never, // type only
-  MrzResult: {} as never,
+// 模拟 invoke（替代旧的 commands 对象）
+const mockInvoke = vi.fn();
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: (...args: unknown[]) => mockInvoke(...args),
 }));
 
 // 模拟 localStorage（用于 zustand persist）
@@ -35,8 +29,7 @@ describe('ocrScanStore', () => {
   beforeEach(() => {
     storage = createLocalStorageMock();
     vi.stubGlobal('localStorage', storage);
-    mockScanImage.mockReset();
-    mockScanMrz.mockReset();
+    mockInvoke.mockReset();
   });
 
   afterEach(() => {
@@ -69,7 +62,10 @@ describe('ocrScanStore', () => {
   describe('performScan', () => {
     it('通用模式扫描成功', async () => {
       const result = { text: 'Hello', confidence: 0.95, boxes: [] };
-      mockScanImage.mockResolvedValue(result);
+      mockInvoke.mockImplementation(async (cmd: string) => {
+        if (cmd === 'ocr_scan_image') return result;
+        return undefined;
+      });
 
       const { useOcrScanStore } = await import('./ocrScanStore');
       await useOcrScanStore.getState().performScan('/img.png');
@@ -91,7 +87,10 @@ describe('ocrScanStore', () => {
         confidence: 0.95,
         checksumValid: true,
       };
-      mockScanMrz.mockResolvedValue(mrzResult);
+      mockInvoke.mockImplementation(async (cmd: string) => {
+        if (cmd === 'ocr_scan_mrz') return mrzResult;
+        return undefined;
+      });
 
       const { useOcrScanStore } = await import('./ocrScanStore');
       useOcrScanStore.getState().setScanMode('mrz');
@@ -105,21 +104,27 @@ describe('ocrScanStore', () => {
     });
 
     it('MRZ 未检测到时 fallback 到通用 OCR', async () => {
-      mockScanMrz.mockResolvedValue(null); // MRZ 无结果
       const fallback = { text: 'Fallback', confidence: 0.8, boxes: [] };
-      mockScanImage.mockResolvedValue(fallback);
+      mockInvoke.mockImplementation(async (cmd: string) => {
+        if (cmd === 'ocr_scan_mrz') return null;
+        if (cmd === 'ocr_scan_image') return fallback;
+        return undefined;
+      });
 
       const { useOcrScanStore } = await import('./ocrScanStore');
       useOcrScanStore.getState().setScanMode('mrz');
       await useOcrScanStore.getState().performScan('/no-mrz.png');
 
       const state = useOcrScanStore.getState();
-      expect(mockScanImage).toHaveBeenCalled(); // fallback 被调用
+      expect(mockInvoke).toHaveBeenCalledWith('ocr_scan_image', expect.anything()); // fallback 被调用
       expect(state.scanHistory[0].result).toEqual(fallback); // 存储在 result 而非 mrzResult
     });
 
     it('扫描失败时设置错误信息', async () => {
-      mockScanImage.mockRejectedValue(new Error('OCR engine error'));
+      mockInvoke.mockImplementation(async (cmd: string) => {
+        if (cmd === 'ocr_scan_image') throw new Error('OCR engine error');
+        return undefined;
+      });
 
       const { useOcrScanStore } = await import('./ocrScanStore');
       await useOcrScanStore.getState().performScan('/bad.png');
@@ -132,7 +137,10 @@ describe('ocrScanStore', () => {
 
     it('历史记录不超过 50 条', async () => {
       const result = { text: 'X', confidence: 0.9, boxes: [] };
-      mockScanImage.mockResolvedValue(result);
+      mockInvoke.mockImplementation(async (cmd: string) => {
+        if (cmd === 'ocr_scan_image') return result;
+        return undefined;
+      });
 
       const { useOcrScanStore } = await import('./ocrScanStore');
       // 先填满 50 条
@@ -151,7 +159,10 @@ describe('ocrScanStore', () => {
   describe('trash lifecycle', () => {
     async function seedScan(ocrScanStoreModule: typeof import('./ocrScanStore')) {
       const result = { text: 'X', confidence: 0.9, boxes: [] };
-      mockScanImage.mockResolvedValue(result);
+      mockInvoke.mockImplementation(async (cmd: string) => {
+        if (cmd === 'ocr_scan_image') return result;
+        return undefined;
+      });
       await ocrScanStoreModule.useOcrScanStore.getState().performScan('/test.png');
     }
 
@@ -210,7 +221,10 @@ describe('ocrScanStore', () => {
   describe('getCurrentEntry', () => {
     it('返回当前扫描条目', async () => {
       const result = { text: 'X', confidence: 0.9, boxes: [] };
-      mockScanImage.mockResolvedValue(result);
+      mockInvoke.mockImplementation(async (cmd: string) => {
+        if (cmd === 'ocr_scan_image') return result;
+        return undefined;
+      });
 
       const { useOcrScanStore } = await import('./ocrScanStore');
       await useOcrScanStore.getState().performScan('/img.png');

@@ -21,7 +21,7 @@ import {
 import { LocalEmbeddingsPanel } from '@/components/llm-config/LocalEmbeddingsPanel';
 import { KnowledgeBaseCard } from '@/components/llm-config/KnowledgeBaseCard';
 import { RiskAcceptanceDialog } from '@/components/llm-config/RiskAcceptanceDialog';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface AiFeatures {
   chat: boolean;

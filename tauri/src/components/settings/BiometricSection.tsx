@@ -9,7 +9,7 @@ import { useToastError } from '@/hooks/useToastError';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { invoke } from '@tauri-apps/api/core';
 import { Fingerprint, ShieldCheck } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface BiometricSectionProps {
   accountId: string;

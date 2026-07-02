@@ -4,7 +4,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import { Button } from '@/components/ui/Button';
 import { Plus, Pencil, Trash2, Undo2 } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface ConversationSummary {
   id: string;

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { ST_OCR_FIRST_INSTALL } from '@/lib/storageKeys';
+import { ST_OCR_FIRST_INSTALL } from '@/lib/constants';
 
 export interface OcrInstallProgressPayload {
   tier: string;

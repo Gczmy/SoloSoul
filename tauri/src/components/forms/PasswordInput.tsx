@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Lock, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface SecurePasswordInputProps {
   value: string;

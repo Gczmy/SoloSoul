@@ -9,7 +9,7 @@ import { ConversationSidebar } from '@/components/llm/ConversationSidebar';
 import { MessageArea } from '@/components/llm/MessageArea';
 import { TrashConversationCard } from '@/components/llm/TrashConversationCard';
 import { useLlmChat } from './useLlmChat';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export { useLlmChat } from './useLlmChat';
 export { type Conversation, type ConversationSummary } from './useLlmChat';

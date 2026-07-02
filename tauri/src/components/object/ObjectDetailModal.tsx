@@ -27,14 +27,14 @@ import { PluginBadge } from '@/components/template/PluginBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
-import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { resolveCollectionLabel } from '@/lib/utils';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { PageGuide } from '@/components/guide/PageGuide';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface ObjectDetailModalProps {
   /** 已加载的对象摘要/完整数据。与 objectId 二选一，优先使用此值。 */

@@ -10,7 +10,7 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Clock, RotateCcw, ChevronRight } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface SnapshotEntry {
   id: string;

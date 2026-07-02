@@ -5,7 +5,7 @@ import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import type { TrashRetentionPeriod } from '@/stores/trashStore';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
-import { ST_UI_PREFS } from '@/lib/storageKeys';
+import { ST_UI_PREFS } from '@/lib/constants';
 
 // 9.8.3 — Custom page data structure
 // Custom pages are now stored in the objects table (P0-1), not in preferences.

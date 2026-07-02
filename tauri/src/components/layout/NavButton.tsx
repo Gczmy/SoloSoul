@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
 import styles from './NavButton.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export type NavPosition = 'left' | 'right' | 'top' | 'bottom';
 

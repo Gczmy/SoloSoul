@@ -17,7 +17,7 @@ import { TokenBreakdownCard } from '@/components/llm/TokenBreakdownCard';
 import { DailySparklineCard } from '@/components/llm/DailySparklineCard';
 import { ModelUsageCard } from '@/components/llm/ModelUsageCard';
 import { BarChart3, RotateCcw } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface ProviderConfig {
   id: string;

@@ -7,7 +7,7 @@ import { PinInput } from '@/components/forms/PinInput';
 import { Button } from '@/components/ui/Button';
 import { useToastError } from '@/hooks/useToastError';
 import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PasswordVerificationDialogProps {
   open: boolean;

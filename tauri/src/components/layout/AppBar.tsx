@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './AppBar.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface AppBarProps {
   title: string;

@@ -4,7 +4,7 @@ import { ExpandableSection } from './ExpandableSection';
 import { CopyButton } from './CopyButton';
 import type { RunningPlugin } from '@/stores/pluginStore';
 import styles from './PluginLogSection.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PluginLogSectionProps {
   logs: RunningPlugin['logs'];

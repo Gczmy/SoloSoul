@@ -2,7 +2,7 @@ import { ShieldCheck, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MrzResult } from '@/lib/ipc';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface MrzResultCardProps {
   result: MrzResult;

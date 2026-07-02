@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { Cpu } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import styles from './ModelInfoCard.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface ModelInfoCardProps {
   providerName: string;

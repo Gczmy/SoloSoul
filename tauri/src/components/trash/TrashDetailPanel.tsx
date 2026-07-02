@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { resolveCollectionLabel } from '@/lib/utils';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -21,10 +21,10 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { formatBytes } from '@/lib/format';
+import { formatBytes } from '@/lib/utils';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, SnapshotEntry, TrashAttachment, TrashChildSummary } from './types';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 /** Truncate long file names preserving extension: 'abcdefg…-.pdf' */
 function truncateFileName(fileName: string, maxLen: number = 28): string {

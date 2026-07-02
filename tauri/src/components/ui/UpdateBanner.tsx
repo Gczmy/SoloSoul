@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Download, CheckCircle2, X } from 'lucide-react';
-import { formatBytes } from '@/lib/format';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { formatBytes } from '@/lib/utils';
+import { ICON_SIZE } from '@/lib/constants';
 
 export type UpdateBannerState = 'available' | 'downloading' | 'downloaded' | 'error';
 

@@ -5,8 +5,8 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { Paperclip } from 'lucide-react';
-import { formatBytes } from '@/lib/format';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { formatBytes } from '@/lib/utils';
+import { ICON_SIZE } from '@/lib/constants';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import type {
   AttachmentImportInfo,

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { getTierLabel } from './ocr';
+import { getTierLabel } from './utils';
 import type { OcrTierInfo } from '@/lib/ipc';
 import i18n from '@/lib/i18n';
 

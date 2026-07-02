@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { MessageSquare, Hash, Download, Clock } from 'lucide-react';
 import { formatTokens, type ModelUsage } from '@/lib/llm/statsApi';
 import type { TFunction } from 'i18next';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface StatsGridProps {
   usageCount: number;

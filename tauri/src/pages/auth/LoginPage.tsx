@@ -12,7 +12,7 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinInput, type PinInputHandle } from '@/components/forms/PinInput';
 import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
 import styles from './LoginPage.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 /** 生物识别类型的可读标签映射 */
 const BIOMETRIC_LABEL: Record<string, string> = {

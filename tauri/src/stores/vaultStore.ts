@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { commands, VaultStateStr } from '@/lib/ipc';
+import { invoke } from '@tauri-apps/api/core';
+import type { VaultStateStr } from '@/lib/ipc';
 
 interface VaultStoreState {
   vaultState: VaultStateStr;
@@ -19,7 +20,7 @@ export const useVaultStore = create<VaultStoreState>((set, _get) => ({
   loadVaultState: async () => {
     set({ isLoading: true });
     try {
-      const state = await commands.vaultGetState();
+      const state = await invoke<VaultStateStr>('get_state');
       set({ vaultState: state, isLoading: false });
     } catch (err) {
       set({ error: String(err), isLoading: false });
@@ -29,7 +30,7 @@ export const useVaultStore = create<VaultStoreState>((set, _get) => ({
   unlock: async (accountId, password) => {
     set({ isLoading: true, error: null });
     try {
-      await commands.vaultUnlock(accountId, password);
+      await invoke<void>('unlock', { accountId, password });
       set({ vaultState: 'unlocked', isLoading: false });
     } catch (err) {
       set({ error: String(err), isLoading: false });
@@ -37,7 +38,7 @@ export const useVaultStore = create<VaultStoreState>((set, _get) => ({
   },
 
   lock: async () => {
-    await commands.vaultLock();
+    await invoke<void>('lock');
     set({ vaultState: 'locked' });
   },
 }));

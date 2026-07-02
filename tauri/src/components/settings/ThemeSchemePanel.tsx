@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { getSchemesByMode, type ThemeScheme } from '@/lib/themeSchemes';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface ThemeSchemePanelProps {
   isOpen: boolean;

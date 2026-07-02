@@ -11,8 +11,8 @@ import { ChatInputBar } from '@/components/llm/ChatInputBar';
 import { ConversationHistory } from '@/components/llm/ConversationHistory';
 import { UnconfiguredHint } from '@/components/llm/UnconfiguredHint';
 import { useLlmChatCore } from '@/hooks/useLlmChatCore';
-import { ST_QUICK_CHAT_PREFIX } from '@/lib/storageKeys';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ST_QUICK_CHAT_PREFIX } from '@/lib/constants';
+import { ICON_SIZE } from '@/lib/constants';
 
 // =============================================================================
 // AiQuickChatPopover — quick AI chat floating card beside sidebar

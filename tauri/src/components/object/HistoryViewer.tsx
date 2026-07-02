@@ -8,9 +8,9 @@ import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { useRevealState } from '@/hooks/useRevealState';
-import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export interface SnapshotEntry {
   id: string;

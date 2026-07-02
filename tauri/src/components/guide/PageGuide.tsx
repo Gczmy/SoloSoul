@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CircleHelp, X, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 import type { LucideIcon } from 'lucide-react';
 
 export interface GuideStep {

@@ -18,7 +18,7 @@ import {
 } from '@/lib/guideApi';
 import { motion } from 'framer-motion';
 import { BookOpen, RefreshCw } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export function HelpPage() {
   const navigate = useNavigate();

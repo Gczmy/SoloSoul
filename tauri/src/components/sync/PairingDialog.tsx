@@ -3,7 +3,7 @@ import { ShieldAlert, Smartphone } from 'lucide-react';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import type { SyncPeer } from '@/stores/syncStore';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PairingDialogProps {
   isOpen: boolean;

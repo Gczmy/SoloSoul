@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import type { MouseEventHandler } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 import styles from './BadgeIconButton.module.css';
 
 interface BadgeIconButtonProps {

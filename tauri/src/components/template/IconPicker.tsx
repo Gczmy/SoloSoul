@@ -8,7 +8,7 @@ import {
   CATEGORY_LABELS,
   type CustomIconId,
 } from '@/lib/pageIcons';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface IconPickerProps {
   value: string;

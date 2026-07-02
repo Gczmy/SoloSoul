@@ -5,10 +5,11 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useToastError } from '@/hooks/useToastError';
-import { commands, type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
-import { getTierLabel } from '@/lib/ocr';
+import { invoke } from '@tauri-apps/api/core';
+import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
+import { getTierLabel } from '@/lib/utils';
 import { Download, CheckCircle, AlertCircle } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export function OcrSettingsPage() {
   const navigate = useNavigate();
@@ -27,8 +28,8 @@ export function OcrSettingsPage() {
     try {
       setLoading(true);
       const [tierList, currentTier] = await Promise.all([
-        commands.ocrListAvailableTiers(),
-        commands.ocrGetActiveTier(),
+        invoke<OcrTierInfo[]>('ocr_list_available_tiers'),
+        invoke<string>('ocr_get_active_tier'),
       ]);
       setTiers(tierList);
       setActiveTier(currentTier);
@@ -36,7 +37,7 @@ export function OcrSettingsPage() {
       const statuses: Record<string, OcrModelStatus> = {};
       await Promise.all(
         tierList.map(async (tier) => {
-          const status = await commands.ocrGetModelStatus(tier.tier);
+          const status = await invoke<OcrModelStatus>('ocr_get_model_status', { tier: tier.tier });
           statuses[tier.tier] = status;
         }),
       );
@@ -56,7 +57,7 @@ export function OcrSettingsPage() {
 
   const handleTierChange = async (tier: string) => {
     try {
-      await commands.ocrSetActiveTier(tier);
+      await invoke<void>('ocr_set_active_tier', { tier });
       setActiveTier(tier);
       onSuccess(t('ocr:set_tier_success', { tier }));
     } catch (e) {
@@ -67,7 +68,7 @@ export function OcrSettingsPage() {
   const handleInstallBundled = async (tier: string) => {
     setInstallingTier(tier);
     try {
-      await commands.ocrInstallBundledModel(tier);
+      await invoke<void>('ocr_install_bundled_model', { tier });
       await loadTiersAndStatus();
       onSuccess(t('ocr:install_success', { tier }));
     } catch (e) {
@@ -84,7 +85,7 @@ export function OcrSettingsPage() {
     }
     setDownloadingTier(tier);
     try {
-      await commands.ocrDownloadModel(tier, downloadUrl.trim());
+      await invoke<void>('ocr_download_model', { tier, baseUrl: downloadUrl.trim() });
       await loadTiersAndStatus();
       onSuccess(t('ocr:download_success', { tier }));
     } catch (e) {

@@ -58,13 +58,6 @@ struct DiscoveredPeer {
     last_seen: Instant,
 }
 
-#[derive(Debug, Clone)]
-#[allow(dead_code)]
-struct PeerSession {
-    node_id: String,
-    started_at: Instant,
-}
-
 /// Central manager for peer-to-peer synchronization.
 pub struct SyncManager {
     node_id: String,
@@ -75,7 +68,6 @@ pub struct SyncManager {
     listen_port: AtomicU16,
     running: Arc<AtomicBool>,
     discovered: Arc<Mutex<HashMap<String, DiscoveredPeer>>>,
-    sessions: Arc<Mutex<HashMap<String, PeerSession>>>,
     mdns_daemon: Mutex<Option<ServiceDaemon>>,
     worker_handles: Mutex<Vec<JoinHandle<()>>>,
 }
@@ -97,7 +89,7 @@ impl SyncManager {
             listen_port: AtomicU16::new(0),
             running: Arc::new(AtomicBool::new(false)),
             discovered: Arc::new(Mutex::new(HashMap::new())),
-            sessions: Arc::new(Mutex::new(HashMap::new())),
+
             mdns_daemon: Mutex::new(None),
             worker_handles: Mutex::new(Vec::new()),
         }
@@ -136,8 +128,6 @@ impl SyncManager {
         let keys = self.keys.clone();
         let vault = self.vault.clone();
         let discovered = self.discovered.clone();
-        let sessions = self.sessions.clone();
-
         // TCP accept loop (blocking std listener)
         let accept_handle = spawn_blocking(move || loop {
             if !running.load(Ordering::SeqCst) {
@@ -153,7 +143,6 @@ impl SyncManager {
                     let keys = keys.clone();
                     let vault = vault.clone();
                     let discovered = discovered.clone();
-                    let sessions = sessions.clone();
                     spawn_blocking(move || {
                         let mut transport = SyncTransport::from_stream(stream);
                         let _ = handle_inbound(
@@ -163,7 +152,6 @@ impl SyncManager {
                             &keys,
                             vault,
                             discovered,
-                            sessions,
                             addr.to_string(),
                         );
                     });
@@ -582,7 +570,6 @@ fn handle_inbound(
     keys: &NoiseKeys,
     vault: Arc<VaultStore>,
     discovered: Arc<Mutex<HashMap<String, DiscoveredPeer>>>,
-    sessions: Arc<Mutex<HashMap<String, PeerSession>>>,
     peer_addr: String,
 ) -> Result<SyncSessionResult, String> {
     let mut session = NoiseSession::handshake_responder(transport, keys)?;
@@ -652,17 +639,6 @@ fn handle_inbound(
         );
     }
 
-    {
-        let mut sess = sessions.lock().map_err(|e| e.to_string())?;
-        sess.insert(
-            peer_node_id.clone(),
-            PeerSession {
-                node_id: peer_node_id.clone(),
-                started_at: Instant::now(),
-            },
-        );
-    }
-
     // Receive peer changes first and apply incrementally.
     let mut apply_stats = ApplyStats::default();
     loop {
@@ -724,10 +700,6 @@ fn handle_inbound(
         attachment_stats.received
     );
 
-    {
-        let mut sess = sessions.lock().map_err(|e| e.to_string())?;
-        sess.remove(&peer_node_id);
-    }
     Ok(SyncSessionResult {
         data: apply_stats,
         attachments: attachment_stats,
@@ -1040,7 +1012,6 @@ mod tests {
                 &server_keys,
                 vault_b2,
                 Arc::new(Mutex::new(HashMap::new())),
-                Arc::new(Mutex::new(HashMap::new())),
                 peer_addr.to_string(),
             )
             .unwrap()
@@ -1089,7 +1060,6 @@ mod tests {
                 "acc_tomb",
                 &server_keys2,
                 vault_b3,
-                Arc::new(Mutex::new(HashMap::new())),
                 Arc::new(Mutex::new(HashMap::new())),
                 peer_addr.to_string(),
             )
@@ -1159,7 +1129,6 @@ mod tests {
                 "acc_pag",
                 &server_keys,
                 vault_b2,
-                Arc::new(Mutex::new(HashMap::new())),
                 Arc::new(Mutex::new(HashMap::new())),
                 peer_addr.to_string(),
             )

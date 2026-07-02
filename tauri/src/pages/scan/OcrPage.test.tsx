@@ -38,20 +38,11 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-vi.mock('@/lib/ipc', () => ({
-  commands: {
-    ocrListAvailableTiers: vi.fn(),
-    ocrGetActiveTier: vi.fn(),
-    ocrGetModelStatus: vi.fn(),
-    ocrSetActiveTier: vi.fn(),
-    ocrInstallBundledModel: vi.fn(),
-    ocrDownloadModel: vi.fn(),
-    ocrScanImage: vi.fn(),
-    ocrScanMrz: vi.fn(),
-  },
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(),
 }));
 
-import { commands } from '@/lib/ipc';
+import { invoke } from '@tauri-apps/api/core';
 
 vi.mock('@/stores/authStore', () => ({
   useAuthStore: (selector: (s: { currentAccount: { id: string } | null }) => unknown) =>
@@ -79,30 +70,24 @@ vi.mock('@tauri-apps/plugin-dialog', () => ({
   open: () => mockOpen(),
 }));
 
-const mockCmd = commands as unknown as {
-  ocrListAvailableTiers: ReturnType<typeof vi.fn>;
-  ocrGetActiveTier: ReturnType<typeof vi.fn>;
-  ocrGetModelStatus: ReturnType<typeof vi.fn>;
-  ocrSetActiveTier: ReturnType<typeof vi.fn>;
-  ocrInstallBundledModel: ReturnType<typeof vi.fn>;
-  ocrDownloadModel: ReturnType<typeof vi.fn>;
-  ocrScanImage: ReturnType<typeof vi.fn>;
-  ocrScanMrz: ReturnType<typeof vi.fn>;
-};
+const mockInvoke = vi.mocked(invoke);
 
 describe('OcrPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCmd.ocrListAvailableTiers.mockResolvedValue([
-      { tier: 'tiny', name: 'Tiny', description: 'Fast' },
-      { tier: 'small', name: 'Small', description: 'Default' },
-      { tier: 'medium', name: 'Medium', description: 'Accurate' },
-    ]);
-    mockCmd.ocrGetActiveTier.mockResolvedValue('small');
-    mockCmd.ocrGetModelStatus.mockResolvedValue({
-      tier: 'small',
-      installed: true,
-      bundled: true,
+    mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
+      if (cmd === 'ocr_list_available_tiers') return [
+        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+        { tier: 'small', name: 'Small', description: 'Default' },
+        { tier: 'medium', name: 'Medium', description: 'Accurate' },
+      ];
+      if (cmd === 'ocr_get_active_tier') return 'small';
+      if (cmd === 'ocr_get_model_status') return {
+        tier: (args as any)?.tier ?? 'small',
+        installed: true,
+        bundled: true,
+      };
+      return undefined;
     });
   });
 
@@ -125,18 +110,28 @@ describe('OcrPage', () => {
     );
 
     await waitFor(() => {
-      expect(mockCmd.ocrListAvailableTiers).toHaveBeenCalled();
-      expect(mockCmd.ocrGetActiveTier).toHaveBeenCalled();
-      expect(mockCmd.ocrGetModelStatus).toHaveBeenCalledWith('small');
+      expect(mockInvoke).toHaveBeenCalledWith('ocr_list_available_tiers');
+      expect(mockInvoke).toHaveBeenCalledWith('ocr_get_active_tier');
+      expect(mockInvoke).toHaveBeenCalledWith('ocr_get_model_status', { tier: 'small' });
     });
   });
 
   it('scans selected image and displays result', async () => {
     mockOpen.mockResolvedValue('/test/image.png');
-    mockCmd.ocrScanImage.mockResolvedValue({
-      text: 'Hello World',
-      confidence: 0.95,
-      boxes: [{ text: 'Hello World', confidence: 0.95, points: [] }],
+    mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
+      if (cmd === 'ocr_scan_image') return {
+        text: 'Hello World',
+        confidence: 0.95,
+        boxes: [{ text: 'Hello World', confidence: 0.95, points: [] }],
+      };
+      if (cmd === 'ocr_list_available_tiers') return [
+        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+        { tier: 'small', name: 'Small', description: 'Default' },
+        { tier: 'medium', name: 'Medium', description: 'Accurate' },
+      ];
+      if (cmd === 'ocr_get_active_tier') return 'small';
+      if (cmd === 'ocr_get_model_status') return { tier: 'small', installed: true, bundled: true };
+      return undefined;
     });
 
     render(
@@ -152,7 +147,7 @@ describe('OcrPage', () => {
     fireEvent.click(screen.getByText('ocr:select_image_or_pdf'));
 
     await waitFor(() => {
-      expect(mockCmd.ocrScanImage).toHaveBeenCalledWith('/test/image.png');
+      expect(mockInvoke).toHaveBeenCalledWith('ocr_scan_image', { filePath: '/test/image.png' });
     });
 
     const results = await screen.findAllByText('Hello World');
@@ -161,10 +156,20 @@ describe('OcrPage', () => {
 
   it('imports scan result as object', async () => {
     mockOpen.mockResolvedValue('/test/image.png');
-    mockCmd.ocrScanImage.mockResolvedValue({
-      text: 'Hello World',
-      confidence: 0.95,
-      boxes: [{ text: 'Hello World', confidence: 0.95, points: [] }],
+    mockInvoke.mockImplementation(async (cmd: string) => {
+      if (cmd === 'ocr_scan_image') return {
+        text: 'Hello World',
+        confidence: 0.95,
+        boxes: [{ text: 'Hello World', confidence: 0.95, points: [] }],
+      };
+      if (cmd === 'ocr_list_available_tiers') return [
+        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+        { tier: 'small', name: 'Small', description: 'Default' },
+        { tier: 'medium', name: 'Medium', description: 'Accurate' },
+      ];
+      if (cmd === 'ocr_get_active_tier') return 'small';
+      if (cmd === 'ocr_get_model_status') return { tier: 'small', installed: true, bundled: true };
+      return undefined;
     });
     mockCreateObject.mockResolvedValue({});
 
@@ -190,11 +195,21 @@ describe('OcrPage', () => {
   });
 
   it('shows not-installed toast when active model is not installed', async () => {
-    mockCmd.ocrGetActiveTier.mockResolvedValue('tiny');
-    mockCmd.ocrGetModelStatus.mockResolvedValue({
-      tier: 'tiny',
-      installed: false,
-      bundled: true,
+    mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
+      if (cmd === 'ocr_list_available_tiers') return [
+        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+        { tier: 'small', name: 'Small', description: 'Default' },
+        { tier: 'medium', name: 'Medium', description: 'Accurate' },
+      ];
+      if (cmd === 'ocr_get_active_tier') return 'tiny';
+      if (cmd === 'ocr_get_model_status') return {
+        tier: (args as any)?.tier ?? 'tiny',
+        installed: false,
+        bundled: true,
+      };
+      if (cmd === 'ocr_set_active_tier') return undefined;
+      if (cmd === 'ocr_get_supported_languages') return ['en'];
+      return undefined;
     });
     mockOpen.mockResolvedValue('/test/image.png');
 
@@ -214,13 +229,26 @@ describe('OcrPage', () => {
         }),
       );
     });
-    expect(mockCmd.ocrScanImage).not.toHaveBeenCalled();
+    expect(mockInvoke).not.toHaveBeenCalledWith('ocr_scan_image', expect.anything());
   });
 
   it('shows error toast when scan fails', async () => {
     mockOpen.mockResolvedValue('/test/image.png');
-    mockCmd.ocrScanImage.mockRejectedValue(new Error('model not found'));
-
+    mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
+      if (cmd === 'ocr_scan_image') throw new Error('model not found');
+      if (cmd === 'ocr_list_available_tiers') return [
+        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+        { tier: 'small', name: 'Small', description: 'Default' },
+        { tier: 'medium', name: 'Medium', description: 'Accurate' },
+      ];
+      if (cmd === 'ocr_get_active_tier') return 'small';
+      if (cmd === 'ocr_get_model_status') return {
+        tier: (args as any)?.tier ?? 'small',
+        installed: true,
+        bundled: true,
+      };
+      return undefined;
+    });
     render(
       <MemoryRouter>
         <OcrPage />

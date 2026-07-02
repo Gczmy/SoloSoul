@@ -8,7 +8,7 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
 import { Grip, KeyRound, Lock, Unlock, AlertTriangle } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PinSectionProps {
   accountId: string;

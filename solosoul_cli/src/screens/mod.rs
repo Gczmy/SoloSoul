@@ -28,6 +28,7 @@ pub mod profile;
 pub mod search_results;
 pub mod settings_language_select;
 pub mod settings_menu;
+pub mod settings_select;
 pub mod settings_theme_select;
 pub mod size;
 pub mod sync_status;

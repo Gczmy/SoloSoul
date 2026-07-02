@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MessageSquare } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface ConversationSummary {
   id: string;

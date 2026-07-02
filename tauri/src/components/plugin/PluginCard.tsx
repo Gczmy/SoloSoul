@@ -8,7 +8,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import styles from './PluginCard.module.css';
 import type { MarketPluginInfo, PluginManifest } from '@/lib/plugin';
 import type { RunningPlugin } from '@/stores/pluginStore';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PluginCardProps {
   info: MarketPluginInfo;

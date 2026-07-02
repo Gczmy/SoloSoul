@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { FileText, Loader2 } from 'lucide-react';
 import { type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
 import { OCR_MODEL_SERIES } from '@/lib/constants';
-import { getTierLabel } from '@/lib/ocr';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { getTierLabel } from '@/lib/utils';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface OcrScanControlsProps {
   activeTier: string;

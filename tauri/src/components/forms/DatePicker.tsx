@@ -22,7 +22,7 @@ import { zhCN, enUS } from 'date-fns/locale';
 import { Calendar, X } from 'lucide-react';
 import { DropdownSelect } from '@/components/ui/DropdownSelect';
 import styles from './DatePicker.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface DatePickerProps {
   value?: string;

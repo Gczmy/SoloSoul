@@ -282,7 +282,7 @@ pub fn list_sessions(app: &mut App) -> Result<()> {
                     .map(|s| {
                         format!(
                             "- {} (plugin: {}, created: {})",
-                            s.session_id, s.plugin_id, s.created_at
+                            s.id, s.plugin_id, s.created_at
                         )
                     })
                     .collect();

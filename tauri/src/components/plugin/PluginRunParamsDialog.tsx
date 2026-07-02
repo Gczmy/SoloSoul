@@ -4,7 +4,7 @@ import { Settings2 } from 'lucide-react';
 import styles from './PluginRunParamsDialog.module.css';
 import type { PluginParam } from '@/lib/plugin';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PluginRunParamsDialogProps {
   pluginName: string;

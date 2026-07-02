@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
-import { commands, type OcrTierInfo, type OcrModelStatus } from '@/lib/ipc';
+import { invoke } from '@tauri-apps/api/core';
+import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import { useToastError } from '@/hooks/useToastError';
 import { OcrPopoverHeader } from '@/components/ocr/OcrPopoverHeader';
 import { OcrHistoryTrashDropdown } from '@/components/ocr/OcrHistoryTrashDropdown';
@@ -43,13 +44,13 @@ export function OcrQuickScanPopover({
     async function load() {
       try {
         setLoadingStatus(true);
-        const list = await commands.ocrListAvailableTiers();
+        const list = await invoke<OcrTierInfo[]>('ocr_list_available_tiers');
         if (cancelled) return;
         setTiers(list);
         const statuses: Record<string, OcrModelStatus> = {};
         await Promise.all(
           list.map(async (tier) => {
-            const st = await commands.ocrGetModelStatus(tier.tier);
+            const st = await invoke<OcrModelStatus>('ocr_get_model_status', { tier: tier.tier });
             statuses[tier.tier] = st;
           }),
         );
@@ -146,7 +147,7 @@ export function OcrQuickScanPopover({
 
   const handleTierChange = async (tier: string) => {
     try {
-      await commands.ocrSetActiveTier(tier);
+      await invoke<void>('ocr_set_active_tier', { tier });
       store.setActiveTier(tier);
     } catch (e) {
       onError(e, t('ocr:set_tier_failed'));

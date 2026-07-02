@@ -25,7 +25,7 @@ import { searchCache } from '@/lib/searchCache';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import styles from './SearchPopover.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 const FILTER_PAGES = [
   { key: 'identity', labelKey: 'navigation:identity', icon: User },

@@ -9,7 +9,7 @@ import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
 import { deriveSampleTemplateBindings } from '@/lib/sampleTemplates';
 import type { SensitivityLevel } from '@/types/template';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 import { usePluginStore } from '@/stores/pluginStore';
 import type { PluginManifest } from '@/lib/plugin';
 

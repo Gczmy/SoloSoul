@@ -10,9 +10,9 @@ import { PluginLogSection } from './shared/PluginLogSection';
 import { PluginResultSection } from './shared/PluginResultSection';
 import { WatermarkPluginConfig } from './WatermarkPluginConfig';
 import { useUiStore } from '@/stores/uiStore';
-import { isDevOrDebug } from '@/lib/env';
+import { isDevOrDebug } from '@/lib/utils';
 import styles from './PluginQuickPanel.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PluginQuickPanelProps {
   position: { top: number } | null;

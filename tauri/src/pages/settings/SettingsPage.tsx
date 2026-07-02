@@ -5,8 +5,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
-import { isDevOrDebug } from '@/lib/env';
-import { formatBytes } from '@/lib/format';
+import { isDevOrDebug } from '@/lib/utils';
+import { formatBytes } from '@/lib/utils';
 import {
   Shield,
   HardDrive,

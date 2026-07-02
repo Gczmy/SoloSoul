@@ -19,7 +19,7 @@ import { TemplatePageSelect } from './TemplatePageSelect';
 import { IconPicker } from './IconPicker';
 import { OptionsEditor } from './OptionsEditor';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 import { usePluginStore } from '@/stores/pluginStore';
 import {
   resolvePluginName,

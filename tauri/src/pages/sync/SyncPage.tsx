@@ -19,7 +19,7 @@ import {
 import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import type { SyncConflict } from '@/lib/ipc';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 function formatNodeId(bytes: number[]): string {
   return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');

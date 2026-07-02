@@ -3,7 +3,7 @@
 use crate::commands::{current_account_optional, vault_handle};
 use crate::plugin::{
     MarketPluginInfo, PluginAuditEntry, PluginEvent, PluginInstallResult, PluginManifest,
-    PluginResult, PluginSessionInfo, PluginTier,
+    PluginResult, PluginSession, PluginTier,
 };
 use crate::state::AppState;
 use std::collections::HashMap;
@@ -176,7 +176,7 @@ pub async fn plugin_dialog_response(
 #[command]
 pub async fn plugin_list_sessions(
     state: State<'_, AppState>,
-) -> Result<Vec<PluginSessionInfo>, String> {
+) -> Result<Vec<PluginSession>, String> {
     state
         .plugin_manager
         .list_sessions()

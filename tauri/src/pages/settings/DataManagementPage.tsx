@@ -7,8 +7,8 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 
 import { HardDrive, PieChart, X } from 'lucide-react';
-import { formatBytes } from '@/lib/format';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { formatBytes } from '@/lib/utils';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface VaultStats {
   profileCount: number;

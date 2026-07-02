@@ -9,7 +9,7 @@ import { PrimaryNavZone } from './PrimaryNavZone';
 import { SecondaryActionBar } from './SecondaryActionBar';
 import { NavButton } from './NavButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export { RenameableNavButton } from './RenameableNavButton';
 export { AddPageButton } from './AddPageButton';

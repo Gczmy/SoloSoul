@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Download, Upload } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 import styles from './ExportImportTabBar.module.css';
 
 type TabKey = 'export' | 'import';

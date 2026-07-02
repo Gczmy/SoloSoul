@@ -5,7 +5,7 @@
 use super::{
     compute_sha256, ConsentManager, FieldResolver, MarketPluginInfo, PluginAuditAction,
     PluginAuditLogger, PluginError, PluginEvent, PluginInstallResult, PluginManifest,
-    PluginRegistry, PluginResult, PluginSessionInfo, PluginSessionManager, PluginStore, PluginTier,
+    PluginRegistry, PluginResult, PluginSession, PluginSessionManager, PluginStore, PluginTier,
     RateLimiter, WasmSandbox,
 };
 use semver::Version;
@@ -636,7 +636,7 @@ impl PluginManager {
     }
 
     /// 列出活跃会话
-    pub fn list_sessions(&self) -> Result<Vec<PluginSessionInfo>, PluginError> {
+    pub fn list_sessions(&self) -> Result<Vec<PluginSession>, PluginError> {
         Ok(self
             .session_manager
             .list_active()

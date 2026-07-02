@@ -33,5 +33,5 @@ pub use manifest::{
 pub use rate_limiter::{RateLimiter, RateLimiterMap};
 pub use registry::PluginRegistry;
 pub use sandbox::WasmSandbox;
-pub use session::{PluginSession, PluginSessionInfo, PluginSessionManager};
+pub use session::{PluginSession, PluginSessionManager};
 pub use store::{compute_sha256, PluginStore};

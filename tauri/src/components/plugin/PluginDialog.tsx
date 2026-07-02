@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { MessageSquareText, CircleAlert, CircleHelp } from 'lucide-react';
 import styles from './PluginDialog.module.css';
 import type { DialogConfig, DialogRequestEvent } from '@/lib/plugin';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PluginDialogProps {
   pluginName: string;

@@ -14,11 +14,11 @@ import { PluginDialog } from '@/components/plugin/PluginDialog';
 import { PluginRunParamsDialog } from '@/components/plugin/PluginRunParamsDialog';
 import { usePluginStore } from '@/stores/pluginStore';
 import { pluginCommands, PluginParam, PluginTier } from '@/lib/plugin';
-import { isDevOrDebug } from '@/lib/env';
+import { isDevOrDebug } from '@/lib/utils';
 import { useUiStore } from '@/stores/uiStore';
 import { useToastError } from '@/hooks/useToastError';
 import styles from './PluginDashboardPage.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 type Tab = 'all' | 'installed' | 'running' | 'logs';
 const TIERS: PluginTier[] = ['p0', 'p1', 'p2', 'p3', 'p4'];

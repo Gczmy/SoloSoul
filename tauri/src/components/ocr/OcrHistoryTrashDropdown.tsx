@@ -2,7 +2,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTranslation } from 'react-i18next';
 import { FileText, RotateCcw } from 'lucide-react';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface OcrHistoryTrashDropdownProps {
   showTrash: boolean;

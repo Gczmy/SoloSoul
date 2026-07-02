@@ -32,7 +32,7 @@ import { DeleteConfirmDialog } from '@/components/template/DeleteConfirmDialog';
 import { SensitivityBadges } from '@/components/template/SensitivityBadges';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { retentionPeriodDays } from '@/stores/trashStore';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 import { deriveContractBindings, type PluginManifest } from '@/lib/plugin';
 import { usePluginStore } from '@/stores/pluginStore';
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { commands, type OcrResult, type MrzResult } from '@/lib/ipc';
+import { invoke } from '@tauri-apps/api/core';
+import type { OcrResult, MrzResult } from '@/lib/ipc';
 
 export interface OcrScanEntry {
   id: string;
@@ -79,7 +80,7 @@ export const useOcrScanStore = create<OcrScanState>()(
 
         try {
           if (state.scanMode === 'mrz') {
-            const res = await commands.ocrScanMrz(filePath);
+            const res = await invoke<MrzResult | null>('ocr_scan_mrz', { filePath });
             if (res) {
               set((s) => ({
                 isScanning: false,
@@ -88,7 +89,7 @@ export const useOcrScanStore = create<OcrScanState>()(
               }));
             } else {
               // 未检测到 MRZ 时自动 fallback 到通用 OCR
-              const fallback = await commands.ocrScanImage(filePath);
+              const fallback = await invoke<OcrResult>('ocr_scan_image', { filePath });
               set((s) => ({
                 isScanning: false,
                 scanHistory: s.scanHistory.map((h) =>
@@ -98,7 +99,7 @@ export const useOcrScanStore = create<OcrScanState>()(
               }));
             }
           } else {
-            const res = await commands.ocrScanImage(filePath);
+            const res = await invoke<OcrResult>('ocr_scan_image', { filePath });
             set((s) => ({
               isScanning: false,
               scanHistory: s.scanHistory.map((h) => (h.id === id ? { ...h, result: res } : h)),

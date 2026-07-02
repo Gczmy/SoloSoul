@@ -1,7 +1,7 @@
 import React, { InputHTMLAttributes, forwardRef, useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import styles from './Input.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;

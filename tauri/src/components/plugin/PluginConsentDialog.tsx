@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Shield, Eye, Lock } from 'lucide-react';
 import styles from './PluginConsentDialog.module.css';
 import type { ConsentRequestEvent } from '@/lib/plugin';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PluginConsentDialogProps {
   pluginName: string;

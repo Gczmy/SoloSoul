@@ -19,7 +19,7 @@ pub use solosoul_plugin::manifest::{
     RegistryVersion,
 };
 pub use solosoul_plugin::rate_limiter::{RateLimiter, RateLimiterMap};
-pub use solosoul_plugin::session::{PluginSession, PluginSessionInfo, PluginSessionManager};
+pub use solosoul_plugin::session::{PluginSession, PluginSessionManager};
 pub use solosoul_plugin::store::{compute_sha256, PluginStore};
 
 // Tauri 特有本地模块

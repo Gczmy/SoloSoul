@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface AttachmentPreviewOverlayProps {
   item: AttachmentItem | null;

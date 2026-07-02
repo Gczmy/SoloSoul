@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { AlertTriangle } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export function BootstrapPage() {
   const navigate = useNavigate();

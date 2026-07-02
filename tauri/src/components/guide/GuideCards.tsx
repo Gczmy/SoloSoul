@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export interface GuideCardItem {
   title: string;

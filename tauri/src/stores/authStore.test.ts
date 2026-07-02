@@ -1,18 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAuthStore } from './authStore';
 
-// Mock the IPC commands module
-vi.mock('@/lib/ipc', () => ({
-  commands: {
-    checkHasAccount: vi.fn(),
-    vaultListAccounts: vi.fn(),
-    bootstrap: vi.fn(),
-    login: vi.fn(),
-    logout: vi.fn(),
-  },
+// Mock the IPC invoke function
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(),
 }));
 
-import { commands } from '@/lib/ipc';
+import { invoke } from '@tauri-apps/api/core';
 
 describe('authStore', () => {
   beforeEach(() => {
@@ -30,21 +24,21 @@ describe('authStore', () => {
 
   describe('checkHasAccount', () => {
     it('should set hasAccount to true when backend returns true', async () => {
-      vi.mocked(commands.checkHasAccount).mockResolvedValue(true);
+      vi.mocked(invoke).mockResolvedValue(true);
       await useAuthStore.getState().checkHasAccount();
       expect(useAuthStore.getState().hasAccount).toBe(true);
       expect(useAuthStore.getState().backendError).toBe(false);
     });
 
     it('should set hasAccount to false when backend returns false', async () => {
-      vi.mocked(commands.checkHasAccount).mockResolvedValue(false);
+      vi.mocked(invoke).mockResolvedValue(false);
       await useAuthStore.getState().checkHasAccount();
       expect(useAuthStore.getState().hasAccount).toBe(false);
       expect(useAuthStore.getState().backendError).toBe(false);
     });
 
     it('should set backendError on exception', async () => {
-      vi.mocked(commands.checkHasAccount).mockRejectedValue(new Error('backend down'));
+      vi.mocked(invoke).mockRejectedValue(new Error('backend down'));
       await useAuthStore.getState().checkHasAccount();
       expect(useAuthStore.getState().hasAccount).toBeNull();
       expect(useAuthStore.getState().backendError).toBe(true);
@@ -57,7 +51,10 @@ describe('authStore', () => {
         { id: 'acc-1', name: 'Alice' },
         { id: 'acc-2', name: 'Bob' },
       ];
-      vi.mocked(commands.vaultListAccounts).mockResolvedValue(accounts);
+      vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+        if (cmd === 'vault_list_accounts') return accounts;
+        return undefined;
+      });
       await useAuthStore.getState().listAccounts();
       expect(useAuthStore.getState().accounts).toEqual(accounts);
       expect(useAuthStore.getState().hasAccount).toBe(true);
@@ -69,7 +66,10 @@ describe('authStore', () => {
         { id: 'acc-1', name: 'Alice Updated' },
         { id: 'acc-2', name: 'Bob' },
       ];
-      vi.mocked(commands.vaultListAccounts).mockResolvedValue(refreshed);
+      vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+        if (cmd === 'vault_list_accounts') return refreshed;
+        return undefined;
+      });
       await useAuthStore.getState().listAccounts();
       expect(useAuthStore.getState().currentAccount).toEqual({
         id: 'acc-1',
@@ -78,7 +78,7 @@ describe('authStore', () => {
     });
 
     it('should silently fail when vault is locked', async () => {
-      vi.mocked(commands.vaultListAccounts).mockRejectedValue(new Error('locked'));
+      vi.mocked(invoke).mockRejectedValue(new Error('locked'));
       await useAuthStore.getState().listAccounts();
       expect(useAuthStore.getState().accounts).toEqual([]);
     });
@@ -87,7 +87,10 @@ describe('authStore', () => {
   describe('bootstrap', () => {
     it('should create account and set authenticated state', async () => {
       const account = { id: 'new-acc', name: 'Charlie' };
-      vi.mocked(commands.bootstrap).mockResolvedValue(account);
+      vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+        if (cmd === 'bootstrap') return account;
+        return undefined;
+      });
       await useAuthStore.getState().bootstrap('Charlie', 'password123', 'en-US');
       expect(useAuthStore.getState().isAuthenticated).toBe(true);
       expect(useAuthStore.getState().currentAccount).toEqual(account);
@@ -97,7 +100,7 @@ describe('authStore', () => {
     });
 
     it('should set error on bootstrap failure', async () => {
-      vi.mocked(commands.bootstrap).mockRejectedValue(new Error('name taken'));
+      vi.mocked(invoke).mockRejectedValue(new Error('name taken'));
       await useAuthStore.getState().bootstrap('Charlie', 'password123', 'en-US');
       expect(useAuthStore.getState().isAuthenticated).toBe(false);
       expect(useAuthStore.getState().error).toBe('Error: name taken');
@@ -107,9 +110,12 @@ describe('authStore', () => {
 
   describe('login', () => {
     it('should authenticate and load accounts', async () => {
-      vi.mocked(commands.login).mockResolvedValue(undefined);
       const accounts = [{ id: 'acc-1', name: 'Alice' }];
-      vi.mocked(commands.vaultListAccounts).mockResolvedValue(accounts);
+      vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+        if (cmd === 'login') return undefined;
+        if (cmd === 'vault_list_accounts') return accounts;
+        return undefined;
+      });
       await useAuthStore.getState().login('acc-1', 'password123');
       expect(useAuthStore.getState().isAuthenticated).toBe(true);
       expect(useAuthStore.getState().currentAccount).toEqual({ id: 'acc-1', name: 'Alice' });
@@ -118,14 +124,17 @@ describe('authStore', () => {
     });
 
     it('should use fallback account info when list returns empty', async () => {
-      vi.mocked(commands.login).mockResolvedValue(undefined);
-      vi.mocked(commands.vaultListAccounts).mockResolvedValue([]);
+      vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+        if (cmd === 'login') return undefined;
+        if (cmd === 'vault_list_accounts') return [];
+        return undefined;
+      });
       await useAuthStore.getState().login('acc-1', 'password123');
       expect(useAuthStore.getState().currentAccount).toEqual({ id: 'acc-1', name: 'acc-1' });
     });
 
     it('should set error on login failure', async () => {
-      vi.mocked(commands.login).mockRejectedValue(new Error('wrong password'));
+      vi.mocked(invoke).mockRejectedValue(new Error('wrong password'));
       await useAuthStore.getState().login('acc-1', 'wrong');
       expect(useAuthStore.getState().isAuthenticated).toBe(false);
       expect(useAuthStore.getState().error).toBe('Error: wrong password');
@@ -139,7 +148,7 @@ describe('authStore', () => {
         isAuthenticated: true,
         currentAccount: { id: 'acc-1', name: 'Alice' },
       });
-      vi.mocked(commands.logout).mockResolvedValue(undefined);
+      vi.mocked(invoke).mockResolvedValue(undefined);
       await useAuthStore.getState().logout();
       expect(useAuthStore.getState().isAuthenticated).toBe(false);
       expect(useAuthStore.getState().currentAccount).toBeNull();

@@ -2,12 +2,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { PluginBadge } from '@/components/template/PluginBadge';
-import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { resolveCollectionLabel } from '@/lib/utils';
 import { LayoutTemplate } from 'lucide-react';
 import type { UserTemplate } from '@/types/template';
 import type { ObjectData } from '@/stores/objectStore';
 import type { CustomPage } from '@/stores/settingsStore';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface ObjectTemplateSelectorProps {
   isNew: boolean;

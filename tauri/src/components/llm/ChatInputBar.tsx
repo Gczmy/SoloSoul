@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Send } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface ChatInputBarProps {
   input: string;

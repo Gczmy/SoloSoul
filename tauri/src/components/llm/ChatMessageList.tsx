@@ -5,7 +5,7 @@ import { Copy, Check, MessageSquare } from 'lucide-react';
 import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import rehypeHighlight from 'rehype-highlight';
 import { formatTimestamp } from '@/lib/time';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 import { type ChatMsg } from '@/types/llmChat';
 
 /** URL 协议白名单：仅允许安全的 HTTP(S)/mailto 链接 */

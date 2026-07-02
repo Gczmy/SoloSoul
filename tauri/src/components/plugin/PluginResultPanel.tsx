@@ -10,7 +10,7 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { Button } from '@/components/ui/Button';
 import styles from './PluginResultPanel.module.css';
 import type { PluginResultPayload, WatermarkResultItem } from '@/lib/plugin';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 // ─── 国家名称 → ISO 3166-1 alpha-2 代码映射 ───────────────────────────────
 const COUNTRY_NAME_TO_CODE: Record<string, string> = {

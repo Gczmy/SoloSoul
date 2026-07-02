@@ -1,5 +1,5 @@
 import i18n from './i18n';
-import { tryParsePrefixedError } from './format';
+import { tryParsePrefixedError } from './utils';
 
 const EXPORT_PREFIX = '__EXPORT_ERR__:';
 const IMPORT_PREFIX = '__IMPORT_ERR__:';

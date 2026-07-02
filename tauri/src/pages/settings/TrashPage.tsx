@@ -20,7 +20,7 @@ import type { UserTemplate } from '@/types/template';
 import { TrashDetailPanel } from '@/components/trash/TrashDetailPanel';
 import { TrashConfirmDialog } from '@/components/trash/TrashConfirmDialog';
 import type { TrashDetail, TrashConfirmAction } from '@/components/trash/types';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 const TIME_OPTIONS: { value: TrashTimeFilter; labelKey: string }[] = [
   { value: 'all', labelKey: 'all' },

@@ -28,7 +28,7 @@ import { useSidebarHoverStore } from '@/stores/sidebarHoverStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import type { CustomPage } from '@/stores/settingsStore';
 import type { WheelEvent, UIEvent } from 'react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 const FUNCTION_BAR_HEIGHT = 48;
 

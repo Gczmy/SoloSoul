@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { commands, type SyncResult } from '@/lib/ipc';
+import { invoke } from '@tauri-apps/api/core';
+import type { SyncResult } from '@/lib/ipc';
 
 export interface SyncPeer {
   id: string;
@@ -42,7 +43,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
 
   loadStatus: async () => {
     try {
-      const status = await commands.syncGetStatus();
+      const status = await invoke<SyncStatus>('sync_get_status');
       set({ ...status, error: null });
     } catch (err) {
       set({ error: String(err) });
@@ -52,8 +53,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   enable: async (enabled) => {
     set({ isLoading: true, error: null, lastResult: null });
     try {
-      await commands.syncEnable(enabled);
-      const status = await commands.syncGetStatus();
+      await invoke<void>('sync_enable', { enable: enabled });
+      const status = await invoke<SyncStatus>('sync_get_status');
       set({ ...status, isLoading: false, error: null });
     } catch (err) {
       set({ isLoading: false, error: String(err) });
@@ -63,7 +64,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   syncWithDevice: async (deviceId) => {
     set({ isLoading: true, error: null, lastResult: null });
     try {
-      const result = await commands.syncWithDevice(deviceId);
+      const result = await invoke<SyncResult>('sync_with_device', { deviceId });
       await get().loadStatus();
       set((state) => ({
         isLoading: false,
@@ -78,7 +79,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   trustPeer: async (peerNodeId, trusted) => {
     set({ isLoading: true, error: null });
     try {
-      await commands.syncTrustPeer(peerNodeId, trusted);
+      await invoke<void>('sync_trust_peer', { peerNodeId, trusted });
       await get().loadStatus();
       set({ isLoading: false });
     } catch (err) {
@@ -89,7 +90,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   forgetPeer: async (peerNodeId) => {
     set({ isLoading: true, error: null });
     try {
-      await commands.syncForgetPeer(peerNodeId);
+      await invoke<void>('sync_forget_peer', { peerNodeId });
       await get().loadStatus();
       set({ isLoading: false });
     } catch (err) {

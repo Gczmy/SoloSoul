@@ -9,7 +9,7 @@ import type { UserTemplate } from '@/types/template';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 /** Extract displayable key-value pairs from object properties (filters internal __ fields). */
 function flattenProperties(

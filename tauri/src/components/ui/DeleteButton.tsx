@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button } from './Button';
 import { BadgeIconButton } from './BadgeIconButton';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface DeleteButtonProps {
   /** Click handler — receives the mouse event for e.stopPropagation */

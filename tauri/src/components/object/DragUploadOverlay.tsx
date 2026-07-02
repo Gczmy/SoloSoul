@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Upload } from 'lucide-react';
 import type { DragUploadState } from '@/hooks/useDragToAttach';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface DragUploadOverlayProps {
   dragState: DragUploadState;

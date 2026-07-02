@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './DropdownSelect.module.css';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export interface DropdownSelectOption {
   value: string | number;

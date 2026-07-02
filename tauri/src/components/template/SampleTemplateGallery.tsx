@@ -13,7 +13,7 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { PluginBadge } from './PluginBadge';
 import { Input } from '@/components/ui/Input';
 import type { SensitivityLevel } from '@/types/template';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 const SAMPLE_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;

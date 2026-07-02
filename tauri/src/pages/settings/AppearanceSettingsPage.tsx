@@ -15,9 +15,9 @@ import type { SupportedLang } from '@/lib/i18n';
 import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
 import type { AppSettings } from '@/stores/settingsStore';
-import { ST_UI_PREFS } from '@/lib/storageKeys';
+import { ST_UI_PREFS } from '@/lib/constants';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 const ACCENT_OPTIONS: { value: AccentPreset; label: string; color: string }[] = [
   { value: 'ocean', label: 'Ocean', color: '#5B7C99' },

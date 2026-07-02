@@ -26,12 +26,12 @@ import {
   isImageMime,
   type AttachmentItem,
 } from '@/lib/attachmentUtils';
-import { formatBytes } from '@/lib/format';
+import { formatBytes } from '@/lib/utils';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export type { AttachmentItem } from '@/lib/attachmentUtils';
 

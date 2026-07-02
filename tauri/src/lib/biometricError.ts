@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import { tryParsePrefixedError } from './format';
+import { tryParsePrefixedError } from './utils';
 
 const PREFIX = '__BIO_ERR__:';
 

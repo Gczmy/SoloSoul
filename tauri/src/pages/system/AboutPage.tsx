@@ -9,8 +9,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { ExternalLink, Code, Shield, Info, Download } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { checkForUpdate, downloadAndInstallUpdate, type UpdateProgress } from '@/lib/updater';
-import { formatBytes } from '@/lib/format';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { formatBytes } from '@/lib/utils';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface AppInfo {
   appName: string;

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface GuideCodeBlockProps {
   children?: React.ReactNode;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, AlertTriangle, RotateCcw, CheckCircle, X } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export type OcrInstallPhase = 'installing' | 'completed' | 'error';
 

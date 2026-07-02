@@ -7,33 +7,16 @@ use std::sync::Mutex;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 /// 插件会话
+///
+/// 序列化为 camelCase 供前端使用，前端字段为 `sessionId`。
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PluginSession {
+    #[serde(rename = "sessionId")]
     pub id: String,
     pub plugin_id: String,
     pub created_at: i64,
     pub expires_at: i64,
-}
-
-/// 返回给前端的会话信息
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PluginSessionInfo {
-    pub session_id: String,
-    pub plugin_id: String,
-    pub created_at: i64,
-    pub expires_at: i64,
-}
-
-impl From<PluginSession> for PluginSessionInfo {
-    fn from(s: PluginSession) -> Self {
-        Self {
-            session_id: s.id,
-            plugin_id: s.plugin_id,
-            created_at: s.created_at,
-            expires_at: s.expires_at,
-        }
-    }
 }
 
 /// 会话管理器
@@ -155,17 +138,15 @@ mod tests {
     }
 
     #[test]
-    fn test_session_info_conversion() {
+    fn test_session_serialization() {
         let session = PluginSession {
             id: "s1".to_string(),
             plugin_id: "p1".to_string(),
             created_at: 1000,
             expires_at: 2000,
         };
-        let info: PluginSessionInfo = session.into();
-        assert_eq!(info.session_id, "s1");
-        assert_eq!(info.plugin_id, "p1");
-        assert_eq!(info.created_at, 1000);
-        assert_eq!(info.expires_at, 2000);
+        // 验证 JSON 序列化使用 sessionId (camelCase)
+        let json = serde_json::to_string(&session).unwrap();
+        assert!(json.contains("\"sessionId\""));
     }
 }

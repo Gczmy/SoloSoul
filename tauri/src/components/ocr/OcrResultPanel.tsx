@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { FileText, AlertCircle, Scan } from 'lucide-react';
 import type { OcrScanEntry } from '@/stores/ocrScanStore';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface OcrResultPanelProps {
   currentEntry: OcrScanEntry | null;

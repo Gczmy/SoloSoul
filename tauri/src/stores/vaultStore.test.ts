@@ -1,15 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useVaultStore } from './vaultStore';
 
-vi.mock('@/lib/ipc', () => ({
-  commands: {
-    vaultGetState: vi.fn(),
-    vaultUnlock: vi.fn(),
-    vaultLock: vi.fn(),
-  },
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(),
 }));
 
-import { commands } from '@/lib/ipc';
+import { invoke } from '@tauri-apps/api/core';
 
 describe('vaultStore', () => {
   beforeEach(() => {
@@ -23,7 +19,7 @@ describe('vaultStore', () => {
 
   describe('loadAccounts', () => {
     it('should load vault state successfully', async () => {
-      vi.mocked(commands.vaultGetState).mockResolvedValue('unlocked');
+      vi.mocked(invoke).mockResolvedValue('unlocked');
       await useVaultStore.getState().loadVaultState();
       expect(useVaultStore.getState().vaultState).toBe('unlocked');
       expect(useVaultStore.getState().isLoading).toBe(false);
@@ -31,7 +27,7 @@ describe('vaultStore', () => {
     });
 
     it('should handle error during load', async () => {
-      vi.mocked(commands.vaultGetState).mockRejectedValue(new Error('db corrupt'));
+      vi.mocked(invoke).mockRejectedValue(new Error('db corrupt'));
       await useVaultStore.getState().loadVaultState();
       expect(useVaultStore.getState().vaultState).toBe('locked');
       expect(useVaultStore.getState().error).toBe('Error: db corrupt');
@@ -41,7 +37,7 @@ describe('vaultStore', () => {
 
   describe('unlock', () => {
     it('should unlock vault and update state', async () => {
-      vi.mocked(commands.vaultUnlock).mockResolvedValue(undefined);
+      vi.mocked(invoke).mockResolvedValue(undefined);
       await useVaultStore.getState().unlock('acc-1', 'password123');
       expect(useVaultStore.getState().vaultState).toBe('unlocked');
       expect(useVaultStore.getState().isLoading).toBe(false);
@@ -49,7 +45,7 @@ describe('vaultStore', () => {
     });
 
     it('should set error on wrong password', async () => {
-      vi.mocked(commands.vaultUnlock).mockRejectedValue(new Error('wrong password'));
+      vi.mocked(invoke).mockRejectedValue(new Error('wrong password'));
       await useVaultStore.getState().unlock('acc-1', 'wrong');
       expect(useVaultStore.getState().vaultState).toBe('locked');
       expect(useVaultStore.getState().error).toBe('Error: wrong password');
@@ -60,7 +56,7 @@ describe('vaultStore', () => {
   describe('lock', () => {
     it('should lock vault', async () => {
       useVaultStore.setState({ vaultState: 'unlocked' });
-      vi.mocked(commands.vaultLock).mockResolvedValue(undefined);
+      vi.mocked(invoke).mockResolvedValue(undefined);
       await useVaultStore.getState().lock();
       expect(useVaultStore.getState().vaultState).toBe('locked');
     });

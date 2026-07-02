@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Sparkles, PlusSquare, LayoutTemplate, ShieldCheck, CheckCircle } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface OnboardingDialogProps {
   onComplete: () => void;

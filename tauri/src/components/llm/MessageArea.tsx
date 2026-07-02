@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Send, RotateCw, RefreshCw, MessageSquare } from 'lucide-react';
 import { ChatMessageBubble, type ChatMsg } from '@/pages/ai/ChatMessageBubble';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface ActiveProvider {
   name: string;

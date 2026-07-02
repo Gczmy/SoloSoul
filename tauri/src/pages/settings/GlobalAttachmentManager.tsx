@@ -33,11 +33,11 @@ import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import type { PageIconKey, CustomIconId } from '@/lib/pageIcons';
 import type { LucideIcon } from 'lucide-react';
 import { truncateFileName } from '@/lib/attachmentUtils';
-import { formatBytes } from '@/lib/format';
+import { formatBytes } from '@/lib/utils';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 /** Resolve icon from either PAGE_ICON_MAP (built-in) or CUSTOM_ICON_MAP (user-selectable). */
 function resolvePageIcon(iconKey?: string | null): LucideIcon {

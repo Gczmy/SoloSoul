@@ -11,9 +11,9 @@ import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { Search, Download, X } from 'lucide-react';
-import { resolveCollectionLabel } from '@/lib/pageLabels';
+import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface AuditLogEntry {
   id: number;

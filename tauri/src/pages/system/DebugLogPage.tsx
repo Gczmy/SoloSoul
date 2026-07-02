@@ -9,7 +9,7 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { Bug, Download, RefreshCw } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface AuditLogEntry {
   id: number;

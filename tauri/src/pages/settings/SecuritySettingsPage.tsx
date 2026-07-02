@@ -9,7 +9,7 @@ import { BiometricSection } from '@/components/settings/BiometricSection';
 import { PinSection } from '@/components/settings/PinSection';
 import { PasswordChangeForm } from '@/components/settings/PasswordChangeForm';
 import { AlertTriangle } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 export function SecuritySettingsPage() {
   const navigate = useNavigate();

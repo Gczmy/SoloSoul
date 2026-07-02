@@ -23,7 +23,7 @@ import {
 } from './useNavigationItems';
 import styles from './SideNavigation.module.css';
 import type { NavPosition } from './NavButton';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface SecondaryActionBarProps {
   sidebarPosition: NavPosition;

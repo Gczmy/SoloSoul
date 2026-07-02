@@ -16,7 +16,7 @@ import {
   type CustomIconId,
 } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 // =============================================================================
 // RenameableNavButton — custom page button with double-click rename

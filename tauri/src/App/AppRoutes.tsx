@@ -19,8 +19,9 @@ import {
   isOcrFirstInstallDone,
   markOcrFirstInstallDone,
 } from '@/stores/ocrInstallStore';
-import { commands } from '@/lib/ipc';
-import { ST_SKIPPED_VERSION } from '@/lib/storageKeys';
+import { invoke } from '@tauri-apps/api/core';
+import { ST_SKIPPED_VERSION } from '@/lib/constants';
+import type { OcrModelStatus } from '@/lib/ipc';
 import { protectedRoutes, AuthGuard } from './routes';
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
@@ -117,7 +118,7 @@ export function AppRoutes() {
   const triggerOcrFirstInstall = useCallback(async () => {
     if (isOcrFirstInstallDone()) return;
     try {
-      const status = await commands.ocrGetModelStatus('small');
+      const status = await invoke<OcrModelStatus>('ocr_get_model_status', { tier: 'small' });
       if (status.installed) {
         markOcrFirstInstallDone();
         return;
@@ -129,7 +130,7 @@ export function AppRoutes() {
       }
       setShowOcrBanner(true);
       startListening();
-      await commands.ocrInstallBundledModelWithProgress('small');
+      await invoke<void>('ocr_install_bundled_model_with_progress', { tier: 'small' });
     } catch {
       // 错误会通过 ocr-install-progress 事件进入 store；这里兜底确保 banner 不消失。
       setShowOcrBanner(true);

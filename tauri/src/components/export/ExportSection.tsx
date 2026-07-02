@@ -3,12 +3,12 @@ import { Card } from '@/components/ui/Card';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { Paperclip } from 'lucide-react';
-import { formatBytes } from '@/lib/format';
+import { formatBytes } from '@/lib/utils';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { AttachmentLimitsInfo } from './AttachmentLimitsInfo';
 import { WarningCancelButton } from './WarningCancelButton';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
-import { ICON_SIZE } from '@/lib/iconSizes';
+import { ICON_SIZE } from '@/lib/constants';
 
 interface PageGroup {
   sectionType: string;
