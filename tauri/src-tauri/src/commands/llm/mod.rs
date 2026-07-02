@@ -285,6 +285,7 @@ pub fn save_api_key(
 
 pub mod chat_http;
 pub mod conversation;
+pub mod request;
 pub mod guide;
 pub mod provider;
 pub mod rag;

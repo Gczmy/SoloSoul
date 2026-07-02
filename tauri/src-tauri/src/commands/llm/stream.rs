@@ -11,6 +11,8 @@ use unicode_segmentation::UnicodeSegmentation;
 use tauri::Emitter;
 
 use super::*;
+use super::request;
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LlmStreamPayload {
@@ -87,51 +89,15 @@ pub async fn send_chat_stream(
         .build()
         .map_err(|e| format!("Client: {}", e))?;
 
-    let (url, body, auth_header, auth_value): (String, serde_json::Value, &str, String) =
-        if is_anthropic(&api_type) {
-            let system = messages
-                .iter()
-                .find(|m| m.get("role").and_then(|r| r.as_str()) == Some("system"))
-                .and_then(|m| m.get("content").and_then(|c| c.as_str()))
-                .map(|s| s.to_string());
-            let chat_msgs: Vec<serde_json::Value> = messages
-                .into_iter()
-                .filter(|m| m.get("role").and_then(|r| r.as_str()) != Some("system"))
-                .collect();
-            let mut b = serde_json::json!({
-                "model": model,
-                "max_tokens": DEFAULT_MAX_TOKENS,
-                "messages": chat_msgs,
-                "stream": true,
-            });
-            if let Some(sys) = &system {
-                b["system"] = serde_json::Value::String(sys.clone());
-            }
-            (
-                format!("{}/messages", base_url.trim_end_matches('/')),
-                b,
-                "x-api-key",
-                api_key,
-            )
-        } else {
-            let mut b = serde_json::json!({"model": model, "messages": messages, "stream": true});
-            b["stream_options"] = serde_json::json!({"include_usage": true});
-            (
-                format!("{}/chat/completions", base_url.trim_end_matches('/')),
-                b,
-                "Authorization",
-                format!("Bearer {}", api_key),
-            )
-        };
+    // 使用共享 helper 构建 URL、请求体和认证头
+    let url = request::build_api_url(&base_url, &api_type);
+    let body = request::build_request_body(&model, messages, &api_type, DEFAULT_MAX_TOKENS, true);
+    let req = request::add_auth_headers(client.post(&url).json(&body), &api_key, &api_type);
 
-    let resp = client
-        .post(&url)
-        .header(auth_header, &auth_value)
-        .header("Content-Type", "application/json")
-        .json(&body)
+    let resp = req
         .send()
         .await
-        .map_err(|e| format!("Request: {}", e))?;
+        .map_err(|e| format!("Request to {} failed: {}", url, e))?;
 
     let status = resp.status();
     if !status.is_success() {
@@ -357,39 +323,16 @@ pub async fn send_chat_stream(
         // ===================== 非 SSE：完整获取 + 打字机效果 =====================
         let result: serde_json::Value = resp.json().await.map_err(|e| format!("Parse: {}", e))?;
 
-        let full_text = if is_anthropic(&api_type) {
-            result["content"]
-                .as_array()
-                .and_then(|arr| {
-                    arr.iter()
-                        .find(|c| {
-                            c.get("type").and_then(|t| t.as_str()) == Some("text")
-                                || c.get("type").is_none()
-                        })
-                        .and_then(|c| c.get("text").and_then(|v| v.as_str()))
-                })
-                .unwrap_or("")
-                .to_string()
-        } else {
-            result["choices"][0]["message"]["content"]
-                .as_str()
-                .unwrap_or("")
-                .to_string()
-        };
+        // 使用共享 helper 提取响应文本
+        let full_text = request::extract_response_text(&result, &api_type).unwrap_or_default();
 
-        // 提取非 SSE 的真实 usage
+        // 提取非 SSE 的真实 usage（仅 OpenAI 有 usage 字段）
         let mut token_usage = TokenUsage::default();
         if !is_anthropic(&api_type) {
-            if let Some(usage) = result.get("usage") {
-                if let Some(prompt) = usage.get("prompt_tokens").and_then(|v| v.as_u64()) {
-                    token_usage.prompt_tokens = prompt;
-                }
-                if let Some(completion) = usage.get("completion_tokens").and_then(|v| v.as_u64()) {
-                    token_usage.completion_tokens = completion;
-                }
-            }
+            let (prompt, completion) = request::extract_openai_usage(&result);
+            token_usage.prompt_tokens = prompt;
+            token_usage.completion_tokens = completion;
         }
-        // Anthropic 非流式响应通常也有 usage（如果需要可以后续补充）
 
         emit_typing_effect(&app, &conversation_id, &full_text).await;
         let usage = if token_usage.prompt_tokens > 0 || token_usage.completion_tokens > 0 {
