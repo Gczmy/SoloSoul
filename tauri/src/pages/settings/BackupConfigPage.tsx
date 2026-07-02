@@ -11,6 +11,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { HardDrive, RotateCcw, Plus } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ICON_SIZE } from '@/lib/iconSizes';
+import { formatBytes } from '@/lib/format';
 
 interface BackupInfo {
   id: string;
@@ -18,12 +19,6 @@ interface BackupInfo {
   created_at: string;
   size_bytes: number;
   object_count: number;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function BackupConfigPage() {
@@ -57,7 +52,7 @@ export function BackupConfigPage() {
     setIsCreating(true);
     try {
       const result = await invoke<BackupInfo>('backup_create', { name: backupName.trim() });
-      onSuccess(`Backup "${result.name}" created (${formatSize(result.size_bytes)})`);
+      onSuccess(`Backup "${result.name}" created (${formatBytes(result.size_bytes)})`);
       setBackupName('');
       loadBackups();
     } catch (e) {
@@ -215,7 +210,7 @@ export function BackupConfigPage() {
                       }}
                     >
                       {new Date(backup.created_at).toLocaleString()} &middot;{' '}
-                      {formatSize(backup.size_bytes)} &middot;{' '}
+                      {formatBytes(backup.size_bytes)} &middot;{' '}
                       {t('settings:objects_count', { n: backup.object_count })}
                     </p>
                   </div>

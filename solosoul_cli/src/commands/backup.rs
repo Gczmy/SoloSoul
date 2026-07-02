@@ -7,6 +7,7 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::app::{App, AppPhase};
+use crate::commands::{map_err, require_unlocked};
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 备份信息，与 GUI 的 `BackupInfo` 字段保持一致。
@@ -66,20 +67,6 @@ struct RestoreProfileEntry {
 struct BackupManifestHeader {
     created_at: String,
     profile_count: usize,
-}
-
-fn map_err(e: String) -> color_eyre::Report {
-    color_eyre::eyre::eyre!(e)
-}
-
-fn require_unlocked(app: &mut App) -> Result<String> {
-    if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err(color_eyre::eyre::eyre!("Vault is locked"));
-    }
-    app.vault_service
-        .get_current_account()
-        .ok_or_else(|| color_eyre::eyre::eyre!("No current account"))
 }
 
 fn backups_dir(app: &App) -> PathBuf {

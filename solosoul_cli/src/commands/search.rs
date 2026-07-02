@@ -12,6 +12,7 @@ use solosoul_core::{
 };
 
 use crate::app::{App, AppPhase};
+use crate::commands::{map_err, require_unlocked, vault};
 
 /// 最大返回结果数。
 const RESULT_LIMIT: usize = 200;
@@ -52,26 +53,6 @@ struct FieldMatch {
     display_value: String,
     match_type: FieldMatchType,
     score: f64,
-}
-
-fn map_err(e: String) -> color_eyre::Report {
-    color_eyre::eyre::eyre!(e)
-}
-
-fn require_unlocked(app: &mut App) -> Result<String> {
-    if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err(color_eyre::eyre::eyre!("Vault is locked"));
-    }
-    app.vault_service
-        .get_current_account()
-        .ok_or_else(|| color_eyre::eyre::eyre!("No current account"))
-}
-
-fn vault(app: &mut App) -> Result<std::sync::Arc<VaultStore>> {
-    app.vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))
 }
 
 /// 从命令参数中提取搜索关键词。

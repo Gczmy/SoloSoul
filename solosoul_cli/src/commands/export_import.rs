@@ -78,16 +78,7 @@ struct ManifestData {
     pub password_hint: Option<String>,
 }
 
-/// 确保 Vault 已解锁，返回当前账户 ID（给 `handle` 使用）。
-fn require_unlocked(app: &mut App) -> Result<String> {
-    if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err(color_eyre::eyre::eyre!("Vault is locked"));
-    }
-    app.vault_service
-        .get_current_account()
-        .ok_or_else(|| color_eyre::eyre::eyre!("No current account"))
-}
+use crate::commands::require_unlocked;
 
 /// 确保 Vault 已解锁，返回账户 ID（给内部 String 错误函数使用）。
 fn require_account_id(app: &mut App) -> Result<String, CliError> {

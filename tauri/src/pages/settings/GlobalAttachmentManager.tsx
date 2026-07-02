@@ -32,7 +32,8 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import type { PageIconKey, CustomIconId } from '@/lib/pageIcons';
 import type { LucideIcon } from 'lucide-react';
-import { truncateFileName, formatSize } from '@/lib/attachmentUtils';
+import { truncateFileName } from '@/lib/attachmentUtils';
+import { formatBytes } from '@/lib/format';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
@@ -648,7 +649,7 @@ export function GlobalAttachmentManager() {
               {truncateFileName(item.fileName)}
             </div>
             <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-              {formatSize(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
+              {formatBytes(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
             </div>
           </div>
         )}
@@ -748,7 +749,7 @@ export function GlobalAttachmentManager() {
             }}
           >
             {t('settings:attachments_count', { n: obj.attachments.length })} ·{' '}
-            {formatSize(obj.attachments.reduce((sum, a) => sum + a.sizeBytes, 0))}
+            {formatBytes(obj.attachments.reduce((sum, a) => sum + a.sizeBytes, 0))}
           </span>
           {!showTrash && (
             <BadgeIconButton
@@ -820,7 +821,7 @@ export function GlobalAttachmentManager() {
               n: page.objects.reduce((sum, o) => sum + o.attachments.length, 0),
             })}{' '}
             ·{' '}
-            {formatSize(
+            {formatBytes(
               page.objects.reduce(
                 (sum, o) => sum + o.attachments.reduce((s, a) => s + a.sizeBytes, 0),
                 0,
@@ -889,7 +890,7 @@ export function GlobalAttachmentManager() {
                 {t('common:attachments_active', { n: activeCount }) ||
                   `Attachments (${activeCount})`}
                 <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
-                  {formatSize(activeBytes)}
+                  {formatBytes(activeBytes)}
                 </span>
               </Button>
               <Button
@@ -922,7 +923,7 @@ export function GlobalAttachmentManager() {
               >
                 {t('common:attachments_trash', { n: trashCount }) || `Trash (${trashCount})`}
                 <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
-                  {formatSize(trashBytes)}
+                  {formatBytes(trashBytes)}
                 </span>
               </Button>
 
@@ -953,7 +954,7 @@ export function GlobalAttachmentManager() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ color: 'var(--text-tertiary)' }}>{t('common:size')}</span>
                   <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                    {formatSize(showTrash ? trashBytes : activeBytes)}
+                    {formatBytes(showTrash ? trashBytes : activeBytes)}
                   </span>
                 </div>
                 <div style={{ flex: 1 }} />

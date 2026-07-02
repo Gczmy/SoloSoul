@@ -5,11 +5,7 @@ use solosoul_core::template_service::SystemTemplateRegistry;
 use solosoul_core::UserTemplate;
 
 use crate::app::{App, AppPhase};
-use crate::commands::CliError;
-
-fn map_err(e: String) -> color_eyre::Report {
-    color_eyre::eyre::eyre!(e)
-}
+use crate::commands::{map_err, require_unlocked_with_vault, CliError};
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -26,23 +22,6 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
     }
 }
 
-/// 确保 Vault 已解锁，返回当前账户 ID 与 VaultStore 引用。
-fn require_unlocked(app: &mut App) -> Result<(String, std::sync::Arc<solosoul_core::VaultStore>)> {
-    if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err(color_eyre::eyre::eyre!("Vault is locked"));
-    }
-    let account_id = app
-        .vault_service
-        .get_current_account()
-        .ok_or_else(|| color_eyre::eyre::eyre!("No current account"))?;
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
-    Ok((account_id, vault))
-}
-
 /// 加载系统模板注册表，使用当前 UI 语言。
 fn load_system_templates(app: &App) -> Result<SystemTemplateRegistry, CliError> {
     let locale = crate::commands::settings::load_ui_prefs(app)
@@ -55,7 +34,7 @@ fn load_system_templates(app: &App) -> Result<SystemTemplateRegistry, CliError> 
 
 /// 执行 `/template`：打开模板列表屏幕。
 fn list_templates(app: &mut App) -> Result<()> {
-    let (account_id, vault) = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let user_templates = vault.list_user_templates(&account_id).map_err(map_err)?;
     let system_registry = match load_system_templates(app) {
         Ok(r) => r,
@@ -107,7 +86,7 @@ fn show_template(app: &mut App, id: Option<&str>) -> Result<()> {
         }
     };
 
-    let (account_id, vault) = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let user_templates = vault.list_user_templates(&account_id).map_err(map_err)?;
     let system_registry = match load_system_templates(app) {
         Ok(r) => r,
@@ -154,7 +133,7 @@ fn delete_template(app: &mut App, id: Option<&str>) -> Result<()> {
         }
     };
 
-    let (_account_id, vault) = require_unlocked(app)?;
+    let (_account_id, vault) = require_unlocked_with_vault(app)?;
     match vault.delete_user_template(id).map_err(map_err) {
         Ok(()) => {
             app.error_message = Some(format!("已删除用户模板: {}", id));

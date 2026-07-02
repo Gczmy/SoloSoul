@@ -1,13 +1,13 @@
 //! 附件命令：管理对象关联文件（与 GUI attachment.rs 保持行为一致）。
 
 use std::collections::HashSet;
-use std::sync::Arc;
 
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::app::{App, AppPhase};
+use crate::commands::{map_err, require_unlocked, vault};
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 单对象最大活跃附件数（与 GUI 保持一致）。
@@ -29,27 +29,6 @@ pub struct AttachmentMeta {
     pub src_path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vault_path: Option<String>,
-}
-
-fn map_err(e: String) -> color_eyre::Report {
-    color_eyre::eyre::eyre!(e)
-}
-
-/// 确保 Vault 已解锁，返回当前账户 ID。
-fn require_unlocked(app: &mut App) -> Result<String> {
-    if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err(color_eyre::eyre::eyre!("Vault is locked"));
-    }
-    app.vault_service
-        .get_current_account()
-        .ok_or_else(|| color_eyre::eyre::eyre!("No current account"))
-}
-
-fn vault(app: &mut App) -> Result<Arc<solosoul_core::VaultStore>> {
-    app.vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))
 }
 
 /// 从对象 properties 中读取附件列表。

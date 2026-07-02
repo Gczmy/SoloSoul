@@ -7,31 +7,9 @@ use color_eyre::Result;
 use solosoul_core::{ObjectRecord, ObjectSummary, TrashItem, UserTemplate};
 
 use crate::app::{App, AppPhase, EditObjectStep, NewObjectStep, TrashFilter};
+use crate::commands::{map_err, require_unlocked, vault};
 use crate::widgets::field_editor::EditableField;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
-
-fn map_err(e: String) -> color_eyre::Report {
-    color_eyre::eyre::eyre!(e)
-}
-
-/// 确保 Vault 已解锁，返回当前账户 ID。
-fn require_unlocked(app: &mut App) -> Result<String> {
-    if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err(color_eyre::eyre::eyre!("Vault is locked"));
-    }
-    app.vault_service
-        .get_current_account()
-        .ok_or_else(|| color_eyre::eyre::eyre!("No current account"))
-}
-
-fn vault(app: &mut App) -> Result<Arc<solosoul_core::VaultStore>> {
-    app.vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))
-}
-
-use std::sync::Arc;
 
 const DEFAULT_TRASH_RETENTION_MS: i64 = 30 * 24 * 3600 * 1000;
 

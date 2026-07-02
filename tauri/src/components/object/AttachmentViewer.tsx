@@ -23,10 +23,10 @@ import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import {
   truncateFileName,
-  formatSize,
   isImageMime,
   type AttachmentItem,
 } from '@/lib/attachmentUtils';
+import { formatBytes } from '@/lib/format';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
@@ -591,7 +591,7 @@ export function AttachmentViewer({
                         {truncateFileName(item.fileName)}
                       </div>
                       <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                        {formatSize(item.sizeBytes)} ·{' '}
+                        {formatBytes(item.sizeBytes)} ·{' '}
                         {new Date(item.createdAt).toLocaleDateString()}
                       </div>
                     </div>

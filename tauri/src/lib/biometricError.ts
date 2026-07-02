@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next';
+import { tryParsePrefixedError } from './format';
 
 const PREFIX = '__BIO_ERR__:';
 
@@ -10,9 +11,8 @@ const PREFIX = '__BIO_ERR__:';
  */
 export function getBiometricErrorMessage(error: unknown, t: TFunction): string {
   const msg = String(error ?? '');
-  const idx = msg.indexOf(PREFIX);
-  if (idx !== -1) {
-    const code = msg.slice(idx + PREFIX.length).trim();
+  const code = tryParsePrefixedError(msg, PREFIX);
+  if (code !== null) {
     const localized = t(`settings:biometric_error_${code}`, {
       defaultValue: '',
     });

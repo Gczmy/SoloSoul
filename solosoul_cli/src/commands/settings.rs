@@ -12,11 +12,8 @@ use color_eyre::Result;
 use serde_json::{Map, Value};
 
 use crate::app::{App, AppPhase};
+use crate::commands::{map_err, require_unlocked};
 use crate::widgets::prompt::{PromptResult, PromptSpec};
-
-fn map_err(e: String) -> color_eyre::Report {
-    color_eyre::eyre::eyre!(e)
-}
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -306,17 +303,6 @@ fn theme(app: &mut App, theme: Option<&str>) -> Result<()> {
         }
     }
     Ok(())
-}
-
-/// 确保 Vault 已解锁，返回当前账户 ID。
-fn require_unlocked(app: &mut App) -> Result<String> {
-    if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err(color_eyre::eyre::eyre!("Vault is locked"));
-    }
-    app.vault_service
-        .get_current_account()
-        .ok_or_else(|| color_eyre::eyre::eyre!("No current account"))
 }
 
 /// 尝试将字符串解析为 JSON，失败则回退为字符串。

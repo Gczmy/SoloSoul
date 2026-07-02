@@ -5,11 +5,7 @@ use serde_json::{Map, Value};
 use solosoul_core::Profile;
 
 use crate::app::{App, AppPhase};
-use crate::commands::CliError;
-
-fn map_err(e: String) -> color_eyre::Report {
-    color_eyre::eyre::eyre!(e)
-}
+use crate::commands::{map_err, require_unlocked_with_vault, CliError};
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -31,26 +27,9 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
     }
 }
 
-/// 确保 Vault 已解锁，返回当前账户 ID 与 VaultStore 引用。
-fn require_unlocked(app: &mut App) -> Result<(String, std::sync::Arc<solosoul_core::VaultStore>)> {
-    if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err(color_eyre::eyre::eyre!("Vault is locked"));
-    }
-    let account_id = app
-        .vault_service
-        .get_current_account()
-        .ok_or_else(|| color_eyre::eyre::eyre!("No current account"))?;
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
-    Ok((account_id, vault))
-}
-
 /// 加载当前账户的 Profile，不存在则创建空 Profile。
 fn load_or_create_profile(app: &mut App) -> Result<Profile> {
-    let (account_id, vault) = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     match vault.load_profile(&account_id).map_err(map_err)? {
         Some(p) => Ok(p),
         None => {
@@ -73,7 +52,7 @@ fn profile_data_value(profile: &Profile) -> Result<Value> {
 
 /// 保存 Profile 数据。
 fn save_profile_data(app: &mut App, profile: &mut Profile, data: &Value) -> Result<()> {
-    let (_, vault) = require_unlocked(app)?;
+    let (_, vault) = require_unlocked_with_vault(app)?;
     profile.data = serde_json::to_vec(data).map_err(|e| {
         app.error_message = Some(format!("序列化 profile 数据失败: {}", e));
         color_eyre::eyre::eyre!(e)
@@ -107,7 +86,7 @@ fn rename_profile(app: &mut App, name: Option<&str>) -> Result<()> {
         }
     };
 
-    let (account_id, vault) = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let mut profile = match vault.load_profile(&account_id).map_err(map_err)? {
         Some(p) => p,
         None => Profile::new_with_id(&account_id, &name, Vec::new()),

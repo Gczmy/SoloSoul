@@ -3,20 +3,7 @@
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
-
-fn map_err(e: String) -> color_eyre::Report {
-    color_eyre::eyre::eyre!(e)
-}
-
-fn require_unlocked(app: &mut App) -> Result<String> {
-    if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
-        return Err(color_eyre::eyre::eyre!("Vault is locked"));
-    }
-    app.vault_service
-        .get_current_account()
-        .ok_or_else(|| color_eyre::eyre::eyre!("No current account"))
-}
+use crate::commands::{map_err, require_unlocked};
 
 /// 执行 `/operation_log [limit]`：列出审计日志。
 pub fn operation_log(app: &mut App, limit: Option<&str>) -> Result<()> {

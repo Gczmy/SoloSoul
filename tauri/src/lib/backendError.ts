@@ -1,4 +1,5 @@
 import i18n from './i18n';
+import { tryParsePrefixedError } from './format';
 
 const EXPORT_PREFIX = '__EXPORT_ERR__:';
 const IMPORT_PREFIX = '__IMPORT_ERR__:';
@@ -16,8 +17,8 @@ function tryParse(message: string): ParsedBackendError | null {
     [EXPORT_PREFIX, 'export'],
     [IMPORT_PREFIX, 'import'],
   ] as const) {
-    if (message.startsWith(prefix)) {
-      const rest = message.slice(prefix.length);
+    const rest = tryParsePrefixedError(message, prefix);
+    if (rest !== null) {
       const sep = rest.indexOf(':');
       const code = sep >= 0 ? rest.slice(0, sep) : rest;
       const payload = sep >= 0 ? rest.slice(sep + 1) : null;
