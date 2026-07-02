@@ -6,19 +6,12 @@ import './styles/global.css';
 import './styles/themes.css';
 import { initI18n } from './lib/i18n';
 import { initLlmNotificationListener } from '@/lib/notification';
-import { restoreWindowSize } from '@/hooks/useWindowSize';
-
 // Start global LLM notification listener (non-blocking)
 initLlmNotificationListener().catch((err) =>
   console.warn('[main] LLM notification listener failed:', err),
 );
 
 const rootEl = document.getElementById('root');
-
-// Try to restore the last known window geometry as early as possible using the
-// synchronous localStorage cache. This reduces the chance of the window briefly
-// showing at the default size before the async init sequence finishes.
-restoreWindowSize().catch((err) => console.warn('[main] Window size restore failed:', err));
 
 // Block initial render until i18n (system language detection via Rust) and
 // UI prefs are loaded — by the time login page shows, the correct language,
@@ -30,7 +23,6 @@ initI18n()
       .then((m) => m.useSettingsStore.getState())
       .then((store) => store.loadUiPreferences()),
   )
-  .then(() => restoreWindowSize())
   .then(() => {
     ReactDOM.createRoot(rootEl!).render(
       <React.StrictMode>

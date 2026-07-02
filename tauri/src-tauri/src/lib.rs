@@ -121,6 +121,7 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             // ════════════════════════════════════════════════════════
@@ -246,28 +247,7 @@ pub fn run() {
                 locale_flag
             );
 
-            // 9. 恢复窗口大小（通过 Tauri API 设置窗口尺寸）
-            //     此前通过 window.eval 注入 localStorage 的方式已被移除（P005），
-            //     前端已通过 IPC ui_get_preferences + localStorage 自管理窗口尺寸。
-            let managed_state = app.state::<AppState>();
-            if let Ok(svc) = managed_state.vault_service.read() {
-                let prefs_path = svc.base_path().join("ui_preferences.json");
-                if let Ok(content) = std::fs::read_to_string(&prefs_path) {
-                    if let Ok(prefs) =
-                        serde_json::from_str::<commands::settings::UiPreferences>(&content)
-                    {
-                        if let Some(ws) = prefs.window_size {
-                            if let Some(win) = app.get_webview_window("main") {
-                                let _ = win.set_size(tauri::Size::Physical(
-                                    tauri::PhysicalSize::new(ws.width, ws.height),
-                                ));
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 10. 启动系统主题轮询任务，当检测到主题变化时通过 Tauri Event 通知前端
+            // 9. 启动系统主题轮询任务，当检测到主题变化时通过 Tauri Event 通知前端
             {
                 let app_handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {

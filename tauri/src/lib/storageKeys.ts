@@ -8,9 +8,6 @@
 /** 用户界面偏好缓存（主题、强调色等） */
 export const ST_UI_PREFS = 'solosoul_ui_prefs';
 
-/** 窗口大小缓存 */
-export const ST_WINDOW_SIZE = 'solosoul_window_size';
-
 /** 用户已跳过的版本号（更新提示） */
 export const ST_SKIPPED_VERSION = 'solosoul_skipped_version';
 

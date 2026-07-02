@@ -14,19 +14,10 @@ fn ui_prefs_path(svc: &crate::services::vault_service::VaultService) -> PathBuf 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct WindowSize {
-    pub width: u32,
-    pub height: u32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct UiPreferences {
     pub theme: String,
     pub accent_color: String,
     pub language: String,
-    #[serde(default)]
-    pub window_size: Option<WindowSize>,
     #[serde(default)]
     pub has_seen_onboarding: bool,
 }
@@ -37,7 +28,6 @@ impl Default for UiPreferences {
             theme: "system".to_string(),
             accent_color: "ocean".to_string(),
             language: String::new(),
-            window_size: None,
             has_seen_onboarding: false,
         }
     }
@@ -200,7 +190,6 @@ mod tests {
             theme: "dark".to_string(),
             accent_color: "rose".to_string(),
             language: "zh-CN".to_string(),
-            window_size: None,
             has_seen_onboarding: true,
         };
         let json = serde_json::to_string(&original).unwrap();

@@ -7,7 +7,6 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
-import { useWindowSize } from '@/hooks/useWindowSize';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { confirm } from '@tauri-apps/plugin-dialog';
 import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
@@ -212,9 +211,6 @@ export function AppRoutes() {
         });
     }
   }, [isAuthenticated]);
-
-  // Listen to window resize and save size to UI preferences (available before login)
-  useWindowSize();
 
   // Apply theme on mount (4.3.5 — instant, no refresh needed)
   useEffect(() => {

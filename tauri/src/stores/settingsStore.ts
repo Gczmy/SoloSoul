@@ -1,13 +1,11 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import { z } from 'zod';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { PhysicalSize } from '@tauri-apps/api/dpi';
 import i18next, { detectSystemLanguage } from '@/lib/i18n';
 import type { TrashRetentionPeriod } from '@/stores/trashStore';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
-import { ST_UI_PREFS, ST_WINDOW_SIZE } from '@/lib/storageKeys';
+import { ST_UI_PREFS } from '@/lib/storageKeys';
 
 // 9.8.3 — Custom page data structure
 // Custom pages are now stored in the objects table (P0-1), not in preferences.
@@ -19,11 +17,6 @@ export interface CustomPage {
   createdAt: string;
   sortOrder: number;
   deletedAt?: string;
-}
-
-export interface WindowSize {
-  width: number;
-  height: number;
 }
 
 export interface AppSettings {
@@ -43,7 +36,6 @@ export interface AppSettings {
   sidebarPosition: 'left' | 'right' | 'top' | 'bottom';
   /** Per-button mode: 'card' (floating panel) or 'page' (navigate to dedicated page) */
   sidebarButtonModes: Record<string, 'card' | 'page'>;
-  windowSize?: WindowSize;
   trashRetention: TrashRetentionPeriod;
 }
 
@@ -72,12 +64,6 @@ const uiPrefsSchema = z.object({
   accentColor: z.enum(['ocean', 'amber', 'forest', 'rose', 'purple', 'custom']).optional(),
   defaultLightTheme: z.string().optional(),
   defaultDarkTheme: z.string().optional(),
-  windowSize: z
-    .object({
-      width: z.number(),
-      height: z.number(),
-    })
-    .optional(),
 });
 
 const customPageSchema = z.object({
@@ -87,11 +73,6 @@ const customPageSchema = z.object({
   createdAt: z.string(),
   sortOrder: z.number(),
   deletedAt: z.string().optional(),
-});
-
-const windowSizeSchema = z.object({
-  width: z.number(),
-  height: z.number(),
 });
 
 const accountPrefsSchema = z
@@ -111,7 +92,6 @@ const accountPrefsSchema = z
     sidebarPosition: z.enum(['left', 'right', 'top', 'bottom']).optional(),
     trashRetention: z.enum(['30d', '60d', 'half_year', 'one_year', 'never']).optional(),
     customPages: z.array(customPageSchema).optional(),
-    windowSize: windowSizeSchema.optional(),
   })
   .passthrough();
 
@@ -160,11 +140,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           if (cached.accentColor) p.accentColor = cached.accentColor;
           if (cached.defaultLightTheme) p.defaultLightTheme = cached.defaultLightTheme;
           if (cached.defaultDarkTheme) p.defaultDarkTheme = cached.defaultDarkTheme;
-          if (cached.windowSize) {
-            p.windowSize = cached.windowSize;
-            // Do not mirror back to solosoul_window_size here; restoreWindowSize()
-            // owns that key and it may be newer than the ui_prefs snapshot.
-          }
           await applyTheme({
             preset:
               p.theme === 'dark'
@@ -193,7 +168,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         language?: string;
         defaultLightTheme?: string;
         defaultDarkTheme?: string;
-        windowSize?: WindowSize;
       }>('ui_get_preferences');
       const parsed = { ...get().settings };
       if (prefs.theme) parsed.theme = prefs.theme as AppSettings['theme'];
@@ -201,24 +175,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.language) parsed.language = prefs.language;
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
       if (prefs.defaultDarkTheme) parsed.defaultDarkTheme = prefs.defaultDarkTheme;
-      if (
-        prefs.windowSize &&
-        typeof prefs.windowSize.width === 'number' &&
-        typeof prefs.windowSize.height === 'number'
-      ) {
-        // Only fall back to the on-disk UI preference when there is no localStorage
-        // cache. The cache is updated synchronously on every resize, so it is always
-        // at least as fresh as the debounced disk write.
-        const hasCachedSize = !!localStorage.getItem(ST_WINDOW_SIZE);
-        if (!hasCachedSize) {
-          parsed.windowSize = prefs.windowSize;
-          try {
-            localStorage.setItem(ST_WINDOW_SIZE, JSON.stringify(prefs.windowSize));
-          } catch (e) {
-            console.warn('[settingsStore] Failed to cache window size:', e);
-          }
-        }
-      }
       await applyTheme({
         preset:
           parsed.theme === 'dark'
@@ -241,7 +197,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             accentColor: parsed.accentColor,
             defaultLightTheme: parsed.defaultLightTheme,
             defaultDarkTheme: parsed.defaultDarkTheme,
-            windowSize: parsed.windowSize,
           }),
         );
       } catch (e) {
@@ -291,52 +246,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // Load old-format customPages from preferences for migration.
       // Once loaded, also try the new objects-table source via loadCustomPages().
       if (prefs.customPages) parsed.customPages = prefs.customPages;
-      // Window size: plaintext UI preference / localStorage cache is the freshest source
-      // because it is updated synchronously on every resize. Prefer it over the encrypted
-      // account preference to avoid reverting to a stale size after login.
-      let effectiveWindowSize: WindowSize | undefined;
-      try {
-        const cachedRaw = localStorage.getItem(ST_WINDOW_SIZE);
-        if (cachedRaw) {
-          const cached = windowSizeSchema.safeParse(JSON.parse(cachedRaw));
-          if (cached.success) effectiveWindowSize = cached.data;
-        }
-      } catch (e) {
-        console.warn('[settingsStore] Failed to parse cached window size:', e);
-      }
-      if (!effectiveWindowSize) {
-        effectiveWindowSize = prefs.windowSize;
-      }
-      if (
-        effectiveWindowSize &&
-        typeof effectiveWindowSize.width === 'number' &&
-        typeof effectiveWindowSize.height === 'number'
-      ) {
-        parsed.windowSize = effectiveWindowSize;
-        try {
-          const window = getCurrentWindow();
-          const current = await window.innerSize();
-          if (
-            Math.abs(current.width - effectiveWindowSize.width) > 1 ||
-            Math.abs(current.height - effectiveWindowSize.height) > 1
-          ) {
-            await window.setSize(new PhysicalSize(effectiveWindowSize));
-          }
-        } catch (e) {
-          console.warn('[settingsStore] Failed to restore window size:', e);
-        }
-        // Sync the effective size back to encrypted account prefs if it differs from what was stored.
-        const encryptedWindowSize = prefs.windowSize as WindowSize | undefined;
-        if (
-          !encryptedWindowSize ||
-          encryptedWindowSize.width !== effectiveWindowSize.width ||
-          encryptedWindowSize.height !== effectiveWindowSize.height
-        ) {
-          invoke('user_data_update_preference', {
-            payload: { accountId, preferences: { windowSize: effectiveWindowSize } },
-          }).catch((e) => console.warn('[settingsStore] Failed to sync window size:', e));
-        }
-      }
       set({ settings: parsed, isLoading: false });
       // Sync UI prefs to plaintext file so next startup shows correct theme
       try {
@@ -438,22 +347,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const oldValue = get().settings[key];
     set((s) => ({ settings: { ...s.settings, [key]: value } }));
     try {
-      // Window size is a non-sensitive UI preference that must be available before login.
-      if (key === 'windowSize') {
-        try {
-          localStorage.setItem(ST_WINDOW_SIZE, JSON.stringify(value));
-        } catch (e) {
-          console.warn('[settingsStore] Failed to cache window size:', e);
-        }
-        await invoke('ui_update_preference', {
-          key: 'windowSize',
-          value: JSON.stringify(value),
-        });
-      } else {
-        await invoke('user_data_update_preference', {
-          payload: { accountId, preferences: { [key]: value } },
-        });
-      }
+      await invoke('user_data_update_preference', {
+        payload: { accountId, preferences: { [key]: value } },
+      });
       if (key === 'language' && typeof value === 'string') {
         await i18next.changeLanguage(value);
         // Sync to plaintext UI prefs so backend can read the current language immediately
@@ -541,7 +437,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         defaultDarkTheme: state.settings.defaultDarkTheme,
         sidebarPosition: state.settings.sidebarPosition,
         sidebarButtonModes: state.settings.sidebarButtonModes,
-        windowSize: state.settings.windowSize,
       },
       isLoading: false,
     })),
