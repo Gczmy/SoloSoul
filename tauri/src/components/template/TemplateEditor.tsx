@@ -288,7 +288,7 @@ export function TemplateEditor({
 
                 const handleAddBinding = () => {
                   if (!currentContractId || !currentRoleId) return;
-                  const [pluginId, contractTypeId] = currentContractId.split('::');
+                  const [, contractTypeId] = currentContractId.split('::');
                   // 去重检查
                   const exists = bindings.some(
                     (b) => b.contractTypeId === contractTypeId && b.roleId === currentRoleId,

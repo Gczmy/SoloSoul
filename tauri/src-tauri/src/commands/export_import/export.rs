@@ -268,6 +268,7 @@ pub async fn export_execute(
             "properties": r.properties,
             "property_labels": r.property_labels,
             "sensitivity_level": r.sensitivity_level,
+            "contract_type_id": r.contract_type_id,
             "tags": r.tags_json,
             "created_at": r.created_at,
             "updated_at": r.updated_at,

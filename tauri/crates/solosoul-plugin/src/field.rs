@@ -159,20 +159,35 @@ impl FieldResolver {
     /// Typed-lookup 解析字段值（Stage 4-B 核心路径）
     /// 查找提供指定 contract role 的模板属性。
     /// 优先新版 contract_bindings；其次回退 legacy contract_field + 字段 ID 匹配。
+    /// 若多个字段绑定到同一 role，取第一个匹配项，并在 tracing 中记录 warning。
     fn find_property_for_role<'a>(
         template: &'a UserTemplate,
         ctid: &str,
         role_id: &str,
     ) -> Option<&'a TemplateProperty> {
         // 1. 新版：字段声明了 contract_bindings 且包含 (ctid, role_id)
-        let role_match = template.properties.iter().find(|p| {
-            p.contract_bindings.as_ref().is_some_and(|bs| {
-                bs.iter()
-                    .any(|b| b.contract_type_id == ctid && b.role_id == role_id)
+        let all_matches: Vec<&TemplateProperty> = template
+            .properties
+            .iter()
+            .filter(|p| {
+                p.contract_bindings.as_ref().is_some_and(|bs| {
+                    bs.iter()
+                        .any(|b| b.contract_type_id == ctid && b.role_id == role_id)
+                })
             })
-        });
-        if role_match.is_some() {
-            return role_match;
+            .collect();
+
+        if !all_matches.is_empty() {
+            if all_matches.len() > 1 {
+                tracing::warn!(
+                    "contract {} 的角色 {} 被 {} 个字段绑定，取第一个（id={}），请检查模板配置",
+                    ctid,
+                    role_id,
+                    all_matches.len(),
+                    all_matches[0].id,
+                );
+            }
+            return Some(all_matches[0]);
         }
 
         // 2. 旧版兼容：字段 ID 等于 role_id 且 contract_field == true
@@ -234,15 +249,22 @@ impl FieldResolver {
 
         // 4. 通过 role binding 查询：新版 contract_bindings 优先，旧版 contract_field 兜底
         let prop_first = prop_path.split('.').next().unwrap_or("");
-        let _prop =
-            Self::find_property_for_role(&template, &ctid, prop_first).ok_or_else(|| {
-                PluginError::InvalidField(format!(
-                    "contract {} 没有角色 {} 的绑定字段",
-                    ctid, prop_first
-                ))
-            })?;
+        let prop = Self::find_property_for_role(&template, &ctid, prop_first).ok_or_else(|| {
+            PluginError::InvalidField(format!(
+                "contract {} 没有角色 {} 的绑定字段",
+                ctid, prop_first
+            ))
+        })?;
 
-        Ok(extract_property(&objects[0].properties, &prop_path))
+        // 若 role 绑定到了不同字段 id，将 prop_path 中的 role 前缀替换为实际字段 id
+        let actual_prop_path = if prop.id != prop_first {
+            let suffix = &prop_path[prop_first.len()..];
+            format!("{}{}", prop.id, suffix)
+        } else {
+            prop_path.to_string()
+        };
+
+        Ok(extract_property(&objects[0].properties, &actual_prop_path))
     }
 
     /// Typed-lookup 获取字段元数据（Stage 4-B）
@@ -905,7 +927,10 @@ fn extract_property(props: &serde_json::Value, prop_path: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use solosoul_vault::{ObjectRecord, PropertyType, TemplateProperty, UserTemplate, VaultConfig};
+    use solosoul_vault::{
+        ContractRoleBinding, ObjectRecord, PropertyType, TemplateProperty, UserTemplate,
+        VaultConfig,
+    };
     use tempfile::TempDir;
 
     fn test_vault(account_id: &str) -> (TempDir, Arc<VaultStore>) {
@@ -1227,8 +1252,8 @@ mod tests {
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
         assert!(
-            err.contains("gate") || err.contains("contract_field"),
-            "Expected gate rejection error, got: {}",
+            err.contains("没有角色") || err.contains("gate") || err.contains("contract_field"),
+            "Expected role binding rejection error, got: {}",
             err
         );
     }
@@ -1303,6 +1328,80 @@ mod tests {
             items[0]["properties"]["street"].as_str().unwrap(),
             "长安街1号"
         );
+    }
+
+    /// 新版 contract_bindings 解析：用户模板字段通过 contract_bindings 绑定到 plugin role
+    #[test]
+    fn test_resolve_typed_with_contract_bindings() {
+        let account_id = "acc_bindings";
+        let (_tmp, vault) = test_vault(account_id);
+
+        let now = chrono::Utc::now().to_rfc3339();
+        let template = UserTemplate {
+            contract_type_id: Some("com.solosoul.address/v1".to_string()),
+            id: "addr_tpl".to_string(),
+            account_id: account_id.to_string(),
+            name: "临时地址".to_string(),
+            icon_id: Some("map-pin".to_string()),
+            properties: vec![TemplateProperty {
+                contract_field: None,
+                contract_bindings: Some(vec![ContractRoleBinding {
+                    contract_type_id: "com.solosoul.address/v1".to_string(),
+                    role_id: "street".to_string(),
+                }]),
+                id: "specificAddress".to_string(),
+                name: "具体地址".to_string(),
+                prop_type: PropertyType::Text,
+                sensitivity_level: Some("internal".to_string()),
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+            }],
+            category: Some("identity".to_string()),
+            created_at: now.clone(),
+            updated_at: Some(now.clone()),
+        };
+        vault.save_user_template(&template).unwrap();
+
+        let record = ObjectRecord {
+            contract_type_id: Some("com.solosoul.address/v1".to_string()),
+            id: "addr_1".to_string(),
+            account_id: account_id.to_string(),
+            type_id: "addr_tpl".to_string(),
+            section_type: "identity".to_string(),
+            name: "家".to_string(),
+            icon_name: "map-pin".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"specificAddress": "123 Main St"}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            created_at: now.clone(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+        vault.save_object(&record).unwrap();
+
+        let contracts = vec![PluginContractBinding {
+            type_id: "com.solosoul.address/v1".to_string(),
+            type_id_aliases: vec!["addr_tpl".to_string()],
+            ..Default::default()
+        }];
+        let resolver = FieldResolver::with_vault_and_contracts(
+            vault,
+            account_id.to_string(),
+            vec!["addr_tpl.*".to_string()],
+            contracts,
+        );
+
+        // 插件请求 street role，通过 role binding 映射到 specificAddress 字段
+        let result = resolver.resolve("addr_tpl.street").unwrap();
+        assert_eq!(result, "123 Main St");
     }
 
     /// parse_typed_field SECONDARY alias 路径（无 vault 模式）
