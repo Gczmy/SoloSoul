@@ -1,0 +1,142 @@
+.container {
+  padding: 8px 0;
+  font-size: var(--text-body-sm);
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: var(--text-caption);
+  border: 1px solid transparent;
+}
+
+.summaryEmoji {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.summaryCount {
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.summaryLabel {
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+
+.urgencyExpired {
+  background: #fff0f0;
+  border-color: #ffccc7;
+  color: #cf1322;
+}
+
+.urgencyCritical {
+  background: #fff7e6;
+  border-color: #ffd591;
+  color: #d46b08;
+}
+
+.urgencyWarning {
+  background: #ffffe6;
+  border-color: #ffe58f;
+  color: #ad8b00;
+}
+
+.urgencyNotice {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+  color: #096dd9;
+}
+
+.urgencySafe {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: #389e0d;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  border-radius: 8px;
+  padding: 10px 12px;
+  border-left: 4px solid transparent;
+  transition: background 0.15s ease;
+}
+
+.item:hover {
+  filter: brightness(0.97);
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.itemKind {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: var(--bg-hover);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.itemName {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemBadge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.itemMeta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding-left: 8px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-tertiary);
+  padding: 24px;
+  font-size: var(--text-body-sm);
+}

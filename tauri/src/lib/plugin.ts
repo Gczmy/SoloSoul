@@ -104,6 +104,32 @@ export interface WatermarkResultPayload {
   items: WatermarkResultItem[];
 }
 
+export interface ExpiryGuardianItem {
+  objectId: string;
+  objectName: string;
+  kind: string;
+  expiryDate: string;
+  daysRemaining: number;
+  urgency: 'expired' | 'critical' | 'warning' | 'notice' | 'safe';
+}
+
+export interface ExpiryGuardianSummary {
+  total: number;
+  expired: number;
+  critical: number;
+  warning: number;
+  notice: number;
+  safe: number;
+}
+
+export interface ExpiryGuardianPayload {
+  type: 'expiry_guardian';
+  title: string;
+  locale: string;
+  items: ExpiryGuardianItem[];
+  summary: ExpiryGuardianSummary;
+}
+
 export type PluginResultPayload =
   | { type: 'text'; content: string }
   | {
@@ -113,7 +139,8 @@ export type PluginResultPayload =
     }
   | { type: 'table'; headers: string[]; rows: string[][] }
   | { type: 'markdown'; content: string }
-  | WatermarkResultPayload;
+  | WatermarkResultPayload
+  | ExpiryGuardianPayload;
 
 export interface PluginResult {
   exitCode: number;
