@@ -144,6 +144,39 @@ pub struct PluginContractRole {
     pub default_property_id: Option<String>,
 }
 
+/// 自定义反序列化 `displayName`：接受字符串直接值或本地化对象 `{"zh": "...", "en": "..."}`。
+/// 若为对象，按 zh → en → 首个值的优先级提取字符串。
+fn deserialize_display_name_opt<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de::Error;
+    let v: Option<serde_json::Value> = Option::deserialize(deserializer)?;
+    match v {
+        None => Ok(None),
+        Some(serde_json::Value::String(s)) => Ok(Some(s)),
+        Some(serde_json::Value::Object(map)) => {
+            if let Some(serde_json::Value::String(s)) = map.get("zh") {
+                Ok(Some(s.clone()))
+            } else if let Some(serde_json::Value::String(s)) = map.get("en") {
+                Ok(Some(s.clone()))
+            } else {
+                map.values()
+                    .find_map(|val| match val {
+                        serde_json::Value::String(s) => Some(s.clone()),
+                        _ => None,
+                    })
+                    .ok_or_else(|| D::Error::custom("displayName object has no string values"))
+                    .map(Some)
+            }
+        }
+        Some(other) => Err(D::Error::custom(format!(
+            "displayName must be a string or object, got: {}",
+            other
+        ))),
+    }
+}
+
 /// 插件绑定的契约类型。空 vec 表示走 legacy `parse_type_property` 路径。
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
@@ -152,7 +185,7 @@ pub struct PluginContractBinding {
     pub type_id: String,
     #[serde(default = "default_contract_version")]
     pub version: u32,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none", deserialize_with = "deserialize_display_name_opt")]
     pub display_name: Option<String>,
     /// 是否启用 contract_field strict-gate（默认 false，兼容 legacy 路径）。
     /// 严格模式下，若请求的属性未标记 contract_field，则返回 InvalidField。
@@ -303,7 +336,7 @@ pub struct RegistryEntry {
     #[serde(default)]
     pub contracts: Vec<PluginContractBinding>,
     /// Stage 4 typed-lookup 字段绑定
-    #[serde(default)]
+    #[serde(default, alias = "field_bindings")]
     pub field_bindings: Vec<PluginFieldBinding>,
     /// 自定义 UI 标识
     #[serde(default, alias = "custom_ui", skip_serializing_if = "Option::is_none")]
@@ -373,6 +406,108 @@ mod tests {
         let m: PluginManifest = serde_json::from_str(json).unwrap();
         assert!(m.contracts.is_empty());
         assert!(m.field_bindings.is_empty());
+    }
+
+    #[test]
+    fn test_deserialize_display_name_as_string() {
+        let json = r#"{"typeId": "test/v1", "displayName": "到期提醒"}"#;
+        let binding: PluginContractBinding = serde_json::from_str(json).unwrap();
+        assert_eq!(binding.display_name.as_deref(), Some("到期提醒"));
+    }
+
+    #[test]
+    fn test_deserialize_display_name_as_object() {
+        let json = r#"{"typeId": "test/v1", "displayName": {"zh": "到期提醒", "en": "Expiry Guardian"}}"#;
+        let binding: PluginContractBinding = serde_json::from_str(json).unwrap();
+        assert_eq!(binding.display_name.as_deref(), Some("到期提醒"));
+    }
+
+    #[test]
+    fn test_deserialize_display_name_missing() {
+        let json = r#"{"typeId": "test/v1"}"#;
+        let binding: PluginContractBinding = serde_json::from_str(json).unwrap();
+        assert!(binding.display_name.is_none());
+    }
+
+    #[test]
+    fn test_deserialize_display_name_object_fallsback_to_en() {
+        let json = r#"{"typeId": "test/v1", "displayName": {"en": "Expiry Guardian"}}"#;
+        let binding: PluginContractBinding = serde_json::from_str(json).unwrap();
+        assert_eq!(binding.display_name.as_deref(), Some("Expiry Guardian"));
+    }
+
+    #[test]
+    fn test_deserialize_display_name_accepts_null() {
+        let json = r#"{"typeId": "test/v1", "displayName": null}"#;
+        let binding: PluginContractBinding = serde_json::from_str(json).unwrap();
+        assert!(binding.display_name.is_none());
+    }
+
+    #[test]
+    fn test_deserialize_registry_entry_with_field_bindings_snake_case() {
+        let json = r#"{
+            "name": "Test",
+            "versions": {},
+            "description": "desc",
+            "tier": "p0",
+            "category": "test",
+            "field_bindings": [{"contractTypeId": "test/v1", "propertyId": "email"}]
+        }"#;
+        let entry: RegistryEntry = serde_json::from_str(json).unwrap();
+        assert_eq!(entry.field_bindings.len(), 1);
+        assert_eq!(entry.field_bindings[0].property_id, "email");
+    }
+
+    #[test]
+    fn test_deserialize_registry_entry_with_field_bindings_camel_case() {
+        let json = r#"{
+            "name": "Test",
+            "versions": {},
+            "description": "desc",
+            "tier": "p0",
+            "category": "test",
+            "fieldBindings": [{"contractTypeId": "test/v1", "propertyId": "phone"}]
+        }"#;
+        let entry: RegistryEntry = serde_json::from_str(json).unwrap();
+        assert_eq!(entry.field_bindings.len(), 1);
+        assert_eq!(entry.field_bindings[0].property_id, "phone");
+    }
+
+    #[test]
+    fn test_deserialize_full_registry_entry_with_expiry_guardian_style() {
+        // 模拟 expiry-guardian registry entry 结构
+        let json = r#"{
+            "name": "Expiry Guardian",
+            "versions": {"1.1.0": {
+                "sha256": "aa9aa668f85360a256249afd8c149efb9660ff02d6965dc66c8a52bf14b5d6ed",
+                "min_app_version": "2.5.0",
+                "max_app_version": "999.999.999"
+            }},
+            "description": "desc",
+            "tier": "p0",
+            "category": "reminder",
+            "contracts": [{
+                "typeId": "com.solosoul.expiry/guardian/v1",
+                "version": 1,
+                "displayName": {"zh": "到期提醒", "en": "Expiry Guardian"},
+                "strictContractGate": true,
+                "roles": [
+                    {"roleId": "document", "label": "证件", "required": true, "defaultPropertyId": "__name__"},
+                    {"roleId": "expiryDate", "label": "到期日", "required": true, "defaultPropertyId": "expiryDate"}
+                ]
+            }],
+            "field_bindings": [{
+                "contractTypeId": "com.solosoul.expiry/guardian/v1",
+                "propertyId": "expiryDate",
+                "abiName": "expiryDate"
+            }]
+        }"#;
+        let entry: RegistryEntry = serde_json::from_str(json).unwrap();
+        assert_eq!(entry.name, "Expiry Guardian");
+        assert_eq!(entry.contracts.len(), 1);
+        assert_eq!(entry.contracts[0].display_name.as_deref(), Some("到期提醒"));
+        assert_eq!(entry.field_bindings.len(), 1);
+        assert_eq!(entry.field_bindings[0].property_id, "expiryDate");
     }
 
     #[test]
