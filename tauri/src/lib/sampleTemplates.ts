@@ -67,6 +67,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     category: 'travel',
     icon: 'bookmarked',
     name: '护照',
+    contractTypeId: 'com.solosoul.expiry/guardian/v1',
     properties: [
       { id: 'fullName', name: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
       {
@@ -79,7 +80,7 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
       { id: 'nationality', name: '国籍', type: 'text', sensitivityLevel: 'public' },
       { id: 'dateOfBirth', name: '出生日期', type: 'date', sensitivityLevel: 'internal' },
       { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal', contractField: true },
     ],
   },
   {
@@ -88,12 +89,13 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     category: 'travel',
     icon: 'ticket',
     name: '签证',
+    contractTypeId: 'com.solosoul.expiry/guardian/v1',
     properties: [
       { id: 'country', name: '国家', type: 'text', sensitivityLevel: 'public' },
       { id: 'visaType', name: '签证类型', type: 'text', sensitivityLevel: 'public' },
       { id: 'number', name: '签证号码', type: 'text', sensitivityLevel: 'critical' },
       { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal', contractField: true },
     ],
   },
   {
@@ -115,11 +117,12 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     category: 'financial',
     icon: 'credit_card',
     name: '银行卡',
+    contractTypeId: 'com.solosoul.expiry/guardian/v1',
     properties: [
       { id: 'cardNumber', name: '卡号', type: 'text', sensitivityLevel: 'critical' },
       { id: 'cardType', name: '卡类型', type: 'text', sensitivityLevel: 'public' },
       { id: 'holderName', name: '持卡人', type: 'text', sensitivityLevel: 'public' },
-      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal', contractField: true },
     ],
   },
   {
@@ -251,6 +254,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     category: 'travel',
     icon: 'bookmarked',
     name: 'Passport',
+    contractTypeId: 'com.solosoul.expiry/guardian/v1',
     properties: [
       {
         id: 'fullName',
@@ -269,7 +273,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
       { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
       { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
       { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal', contractField: true },
     ],
   },
   {
@@ -278,12 +282,13 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     category: 'travel',
     icon: 'ticket',
     name: 'Visa',
+    contractTypeId: 'com.solosoul.expiry/guardian/v1',
     properties: [
       { id: 'country', name: 'Country', type: 'text', sensitivityLevel: 'public' },
       { id: 'visaType', name: 'Visa Type', type: 'text', sensitivityLevel: 'public' },
       { id: 'number', name: 'Number', type: 'text', sensitivityLevel: 'critical' },
       { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal', contractField: true },
     ],
   },
   {
@@ -305,11 +310,12 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     category: 'financial',
     icon: 'credit_card',
     name: 'Credit Card',
+    contractTypeId: 'com.solosoul.expiry/guardian/v1',
     properties: [
       { id: 'cardNumber', name: 'Card Number', type: 'text', sensitivityLevel: 'critical' },
       { id: 'cardType', name: 'Card Type', type: 'text', sensitivityLevel: 'public' },
       { id: 'holderName', name: 'Holder Name', type: 'text', sensitivityLevel: 'public' },
-      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal', contractField: true },
     ],
   },
   {

@@ -13,10 +13,12 @@ interface PluginBadgeProps {
 
 const PLUGIN_NAME_MAP: Record<string, string> = {
   'com.solosoul.official.address-fmt/v1': '地址格式化器',
+  'com.solosoul.expiry/guardian/v1': '到期卫士',
 };
 
 const PLUGIN_NAME_MAP_EN: Record<string, string> = {
   'com.solosoul.official.address-fmt/v1': 'Address Formatter',
+  'com.solosoul.expiry/guardian/v1': 'Expiry Guardian',
 };
 
 export function PluginBadge({ contractTypeId, size = 'sm', variant = 'full' }: PluginBadgeProps) {
