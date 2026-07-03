@@ -7,6 +7,7 @@
             "icon": "identity",
             "nameI18nKey": "editor:templates.identity",
             "nameFallback": "Identity",
+            "contractTypeId": "com.solosoul.expiry/guardian/v1",
             "properties": [
                 {
                     "id": "fullName",
@@ -39,6 +40,29 @@
                     "type": "text",
                     "sensitivityLevel": "critical",
                     "required": false
+                },
+                {
+                    "id": "issueDate",
+                    "nameI18nKey": "editor:fields.issueDate",
+                    "nameFallback": "Issue Date",
+                    "type": "date",
+                    "sensitivityLevel": "internal",
+                    "required": false
+                },
+                {
+                    "id": "expiryDate",
+                    "nameI18nKey": "editor:fields.expiryDate",
+                    "nameFallback": "Expiry Date",
+                    "type": "date",
+                    "sensitivityLevel": "internal",
+                    "required": false,
+                    "contractField": true,
+                    "contractBindings": [
+                        {
+                            "contractTypeId": "com.solosoul.expiry/guardian/v1",
+                            "roleId": "expiryDate"
+                        }
+                    ]
                 },
                 {
                     "id": "email",
