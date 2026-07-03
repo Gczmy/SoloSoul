@@ -133,8 +133,6 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
           {derivedProperties.map((prop) => {
-            const bindings = prop.contractBindings;
-            const hasPluginBadge = bindings && bindings.length > 0;
             return (
               <div
                 key={prop.id}
@@ -164,25 +162,12 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                   >
                     {prop.name}
                   </span>
-                  {hasPluginBadge ? (
+                  {prop.contractField ? (
                     <PluginBadge
-                      contractTypeId={bindings![0].contractTypeId}
+                      contractTypeId={template.contractTypeId}
                       size="sm"
                       variant="icon"
                     />
-                  ) : prop.contractField ? (
-                    <span
-                      style={{
-                        fontSize: 'var(--text-badge)',
-                        padding: '1px 4px',
-                        borderRadius: 3,
-                        background: 'var(--accent-primary-soft, rgba(99,102,241,0.12))',
-                        color: 'var(--accent-primary, #6366f1)',
-                        opacity: 0.6,
-                      }}
-                    >
-                      {t('settings:plugin_badge_label', '插件')}
-                    </span>
                   ) : null}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
