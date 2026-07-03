@@ -64,6 +64,7 @@
             "icon": "passport",
             "nameI18nKey": "editor:templates.passport",
             "nameFallback": "护照",
+            "contractTypeId": "com.solosoul.expiry/guardian/v1",
             "properties": [
                 {
                     "id": "fullName",
@@ -111,7 +112,14 @@
                     "nameFallback": "有效期至",
                     "type": "date",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true,
+                    "contractBindings": [
+                        {
+                            "contractTypeId": "com.solosoul.expiry/guardian/v1",
+                            "roleId": "expiryDate"
+                        }
+                    ]
                 }
             ]
         },
@@ -121,6 +129,7 @@
             "icon": "visa",
             "nameI18nKey": "editor:templates.visa",
             "nameFallback": "签证",
+            "contractTypeId": "com.solosoul.expiry/guardian/v1",
             "properties": [
                 {
                     "id": "country",
@@ -160,7 +169,14 @@
                     "nameFallback": "有效期至",
                     "type": "date",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true,
+                    "contractBindings": [
+                        {
+                            "contractTypeId": "com.solosoul.expiry/guardian/v1",
+                            "roleId": "expiryDate"
+                        }
+                    ]
                 }
             ]
         },
@@ -211,6 +227,7 @@
             "icon": "card",
             "nameI18nKey": "editor:templates.card",
             "nameFallback": "银行卡",
+            "contractTypeId": "com.solosoul.expiry/guardian/v1",
             "properties": [
                 {
                     "id": "cardNumber",
@@ -242,7 +259,14 @@
                     "nameFallback": "有效期至",
                     "type": "date",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true,
+                    "contractBindings": [
+                        {
+                            "contractTypeId": "com.solosoul.expiry/guardian/v1",
+                            "roleId": "expiryDate"
+                        }
+                    ]
                 }
             ]
         },
