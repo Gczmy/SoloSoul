@@ -7,6 +7,7 @@
             "icon": "identity",
             "nameI18nKey": "editor:templates.identity",
             "nameFallback": "Identity",
+            "contractTypeId": "com.solosoul.expiry/guardian/v1",
             "properties": [
                 {
                     "id": "fullName",
@@ -41,6 +42,29 @@
                     "required": false
                 },
                 {
+                    "id": "issueDate",
+                    "nameI18nKey": "editor:fields.issueDate",
+                    "nameFallback": "Issue Date",
+                    "type": "date",
+                    "sensitivityLevel": "internal",
+                    "required": false
+                },
+                {
+                    "id": "expiryDate",
+                    "nameI18nKey": "editor:fields.expiryDate",
+                    "nameFallback": "Expiry Date",
+                    "type": "date",
+                    "sensitivityLevel": "internal",
+                    "required": false,
+                    "contractField": true,
+                    "contractBindings": [
+                        {
+                            "contractTypeId": "com.solosoul.expiry/guardian/v1",
+                            "roleId": "expiryDate"
+                        }
+                    ]
+                },
+                {
                     "id": "email",
                     "nameI18nKey": "editor:fields.email",
                     "nameFallback": "Email",
@@ -64,6 +88,7 @@
             "icon": "passport",
             "nameI18nKey": "editor:templates.passport",
             "nameFallback": "Passport",
+            "contractTypeId": "com.solosoul.expiry/guardian/v1",
             "properties": [
                 {
                     "id": "fullName",
@@ -111,7 +136,14 @@
                     "nameFallback": "Expiry Date",
                     "type": "date",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true,
+                    "contractBindings": [
+                        {
+                            "contractTypeId": "com.solosoul.expiry/guardian/v1",
+                            "roleId": "expiryDate"
+                        }
+                    ]
                 }
             ]
         },
@@ -121,6 +153,7 @@
             "icon": "visa",
             "nameI18nKey": "editor:templates.visa",
             "nameFallback": "Visa",
+            "contractTypeId": "com.solosoul.expiry/guardian/v1",
             "properties": [
                 {
                     "id": "country",
@@ -160,7 +193,14 @@
                     "nameFallback": "Expiry Date",
                     "type": "date",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true,
+                    "contractBindings": [
+                        {
+                            "contractTypeId": "com.solosoul.expiry/guardian/v1",
+                            "roleId": "expiryDate"
+                        }
+                    ]
                 }
             ]
         },
@@ -211,6 +251,7 @@
             "icon": "card",
             "nameI18nKey": "editor:templates.card",
             "nameFallback": "Card",
+            "contractTypeId": "com.solosoul.expiry/guardian/v1",
             "properties": [
                 {
                     "id": "cardNumber",
@@ -242,7 +283,14 @@
                     "nameFallback": "Expiry Date",
                     "type": "date",
                     "sensitivityLevel": "internal",
-                    "required": false
+                    "required": false,
+                    "contractField": true,
+                    "contractBindings": [
+                        {
+                            "contractTypeId": "com.solosoul.expiry/guardian/v1",
+                            "roleId": "expiryDate"
+                        }
+                    ]
                 }
             ]
         },
