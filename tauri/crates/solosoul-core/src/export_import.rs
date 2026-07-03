@@ -39,46 +39,8 @@ const MAX_ZIP_ENTRY_SIZE: u64 = 100 * 1024 * 1024;
 
 /// 计算 UserTemplate 的内容哈希，用于判断是否是同一份"快照模板"。
 /// 忽略 account_id、id、created_at、updated_at 等随账户/时间变化的字段。
-fn template_properties_sorted(tpl: &solosoul_vault::UserTemplate) -> Vec<serde_json::Value> {
-    let mut sorted: Vec<&solosoul_vault::TemplateProperty> = tpl.properties.iter().collect();
-    sorted.sort_by(|a, b| a.id.cmp(&b.id));
-    sorted
-        .iter()
-        .map(|p| {
-            serde_json::json!({
-                "id": p.id,
-                "name": p.name,
-                "prop_type": p.prop_type,
-                "sensitivity_level": p.sensitivity_level,
-                "options": p.options,
-                "contract_field": p.contract_field,
-            })
-        })
-        .collect()
-}
-
-/// 计算 UserTemplate 的内容哈希，用于判断是否是同一份"快照模板"。
-/// 忽略 account_id、id、created_at、updated_at 等随账户/时间变化的字段。
-pub fn user_template_content_hash(tpl: &solosoul_vault::UserTemplate) -> String {
-    use sha2::Digest;
-
-    let sorted_props = template_properties_sorted(tpl);
-    let canonical = serde_json::json!({
-        "name": tpl.name,
-        "icon_id": tpl.icon_id,
-        "category": tpl.category,
-        "contract_type_id": tpl.contract_type_id,
-        "properties": sorted_props,
-    });
-    let bytes = serde_json::to_vec(&canonical).unwrap_or_default();
-    hex::encode(sha2::Sha256::digest(&bytes))
-}
-
-/// 生成导入模板的本地 ID，格式：`imported:<content_hash_prefix>:<original_id>`。
-pub fn imported_template_id(original_id: &str, content_hash: &str) -> String {
-    let prefix = &content_hash[..content_hash.len().min(12)];
-    format!("imported:{}:{}", prefix, original_id)
-}
+/// 重新导出 solosoul-vault 的模板哈希函数（单⼀真理来源）。
+pub use solosoul_vault::template_hash::{imported_template_id, user_template_content_hash};
 
 // ── Public types ─────────────────────────────────────────
 
@@ -358,22 +320,31 @@ pub fn import_vault(
                 Ok(mut tpl) => {
                     let original_id = tpl.id.clone();
                     let hash = user_template_content_hash(&tpl);
-                    let imported_id = imported_template_id(&original_id, &hash);
 
-                    if vault
-                        .load_user_template(&imported_id)
-                        .ok()
-                        .flatten()
-                        .is_none()
+                    // 去重：检查是否有完全一致的已有模板（含系统预置模板）
+                    let local_id = if let Some(existing) = vault
+                        .find_user_template_by_content_hash(account_id, &hash)
+                        .map_err(|e| e.to_string())?
                     {
-                        tpl.id = imported_id.clone();
-                        tpl.account_id = account_id.to_string();
-                        tpl.created_at = now.clone();
-                        tpl.updated_at = Some(now.clone());
-                        let _ = vault.save_user_template(&tpl);
-                    }
+                        existing.id
+                    } else {
+                        let imported_id = imported_template_id(&original_id, &hash);
+                        if vault
+                            .load_user_template(&imported_id)
+                            .ok()
+                            .flatten()
+                            .is_none()
+                        {
+                            tpl.id = imported_id.clone();
+                            tpl.account_id = account_id.to_string();
+                            tpl.created_at = now.clone();
+                            tpl.updated_at = Some(now.clone());
+                            let _ = vault.save_user_template(&tpl);
+                        }
+                        imported_id
+                    };
 
-                    template_id_map.insert(original_id, imported_id);
+                    template_id_map.insert(original_id, local_id);
                 }
                 Err(e) => {
                     tracing::warn!(
@@ -933,7 +904,6 @@ fn import_preferences(
 mod tests {
     use super::*;
     use crate::VaultService;
-    use std::sync::Arc;
 
     /// 测试范围的全局锁，串行化涉及同一数据目录的测试。
     static CORE_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());

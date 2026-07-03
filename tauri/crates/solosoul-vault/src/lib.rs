@@ -15,6 +15,7 @@ pub mod migration;
 pub mod profile;
 pub mod safe_storage;
 pub mod storage;
+pub mod template_hash;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

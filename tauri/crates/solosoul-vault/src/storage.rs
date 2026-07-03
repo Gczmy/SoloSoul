@@ -3048,6 +3048,26 @@ impl VaultStore {
         }
         Ok(result)
     }
+    /// Find a user template by content hash.
+    ///
+    /// Scans all user templates for the given account, computing the content hash
+    /// for each and returning the first match. Two templates with identical content
+    /// (same name, icon_id, category, contract_type_id, and properties) produce the
+    /// same hash regardless of their database IDs.
+    pub fn find_user_template_by_content_hash(
+        &self,
+        account_id: &str,
+        hash: &str,
+    ) -> Result<Option<crate::UserTemplate>, String> {
+        let templates = self.list_user_templates(account_id)?;
+        for tpl in templates {
+            if crate::template_hash::user_template_content_hash(&tpl) == hash {
+                return Ok(Some(tpl));
+            }
+        }
+        Ok(None)
+    }
+
 
     /// Check if a user template exists (any account).
     pub fn user_template_exists(&self, template_id: &str) -> Result<bool, String> {

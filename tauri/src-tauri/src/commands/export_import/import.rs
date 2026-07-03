@@ -264,24 +264,32 @@ async fn import_execute_internal(
                 Ok(mut tpl) => {
                     let original_id = tpl.id.clone();
                     let hash = solosoul_core::export_import::user_template_content_hash(&tpl);
-                    let imported_id =
-                        solosoul_core::export_import::imported_template_id(&original_id, &hash);
 
-                    // 复用或新建快照模板
-                    if vault
-                        .load_user_template(&imported_id)
-                        .ok()
-                        .flatten()
-                        .is_none()
+                    // 去重：检查是否有完全一致的已有模板（含系统预置模板）
+                    let local_id = if let Some(existing) = vault
+                        .find_user_template_by_content_hash(&account_id, &hash)
+                        .map_err(|e| e.to_string())?
                     {
-                        tpl.id = imported_id.clone();
-                        tpl.account_id = account_id.clone();
-                        tpl.created_at = now.clone();
-                        tpl.updated_at = Some(now.clone());
-                        let _ = vault.save_user_template(&tpl);
-                    }
+                        existing.id
+                    } else {
+                        let imported_id =
+                            solosoul_core::export_import::imported_template_id(&original_id, &hash);
+                        if vault
+                            .load_user_template(&imported_id)
+                            .ok()
+                            .flatten()
+                            .is_none()
+                        {
+                            tpl.id = imported_id.clone();
+                            tpl.account_id = account_id.clone();
+                            tpl.created_at = now.clone();
+                            tpl.updated_at = Some(now.clone());
+                            let _ = vault.save_user_template(&tpl);
+                        }
+                        imported_id
+                    };
 
-                    template_id_map.insert(original_id, imported_id);
+                    template_id_map.insert(original_id, local_id);
                 }
                 Err(e) => {
                     tracing::warn!(
