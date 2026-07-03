@@ -53,12 +53,14 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
     category: 'identity',
     icon: 'id_card',
     name: '身份证',
+    contractTypeId: 'com.solosoul.expiry/guardian/v1',
     properties: [
       { id: 'fullName', name: '姓名', type: 'text', sensitivityLevel: 'public', required: true },
       { id: 'idNumber', name: '身份证号', type: 'text', sensitivityLevel: 'critical' },
       { id: 'dateOfBirth', name: '出生日期', type: 'date', sensitivityLevel: 'internal' },
       { id: 'nationality', name: '国籍', type: 'text', sensitivityLevel: 'public' },
       { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal', contractField: true },
     ],
   },
   {
@@ -234,6 +236,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
     category: 'identity',
     icon: 'id_card',
     name: 'ID Card',
+    contractTypeId: 'com.solosoul.expiry/guardian/v1',
     properties: [
       {
         id: 'fullName',
@@ -246,6 +249,7 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
       { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
       { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
       { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },
+      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal', contractField: true },
     ],
   },
   {
