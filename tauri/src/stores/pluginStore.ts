@@ -43,6 +43,8 @@ export function isPluginResultPayload(value: unknown): value is PluginResultPayl
       return Array.isArray(v.headers) && Array.isArray(v.rows);
     case 'watermark_result':
       return typeof v.outputDir === 'string' && Array.isArray(v.items);
+    case 'expiry_guardian':
+      return typeof v.title === 'string' && Array.isArray(v.items);
     default:
       return false;
   }
