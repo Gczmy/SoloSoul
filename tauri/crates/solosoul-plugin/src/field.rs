@@ -236,11 +236,15 @@ impl FieldResolver {
         let all_objects = vault
             .list_objects(account_id, None, None, None, false, false)
             .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?;
+
         let mut objects: Vec<_> = all_objects
             .into_iter()
             .filter(|o| {
-                o.contract_type_id.as_deref() == target_ctid.as_deref()
-                    || o.template_id.as_deref() == Some(&target_tpl_id)
+                // 通过 template_id 匹配（避免 contract_type_id 跨模板污染）。
+                // 对于无 template_id 的旧对象，回退到 contract_type_id 匹配。
+                o.template_id.as_deref() == Some(&target_tpl_id)
+                    || (o.template_id.is_none()
+                        && o.contract_type_id.as_deref() == target_ctid.as_deref())
                     || o.collection_type == alias
             })
             .collect();
@@ -365,8 +369,11 @@ impl FieldResolver {
                     let mut objects: Vec<_> = all
                         .into_iter()
                         .filter(|o| {
-                            o.contract_type_id.as_deref() == Some(&ctid)
-                                || o.template_id.as_deref() == Some(alias)
+                            // 通过 template_id 匹配（避免 contract_type_id 跨模板污染）。
+                            // 对于无 template_id 的旧对象，回退到 contract_type_id 匹配。
+                            o.template_id.as_deref() == Some(alias)
+                                || (o.template_id.is_none()
+                                    && o.contract_type_id.as_deref() == Some(&ctid))
                                 || o.collection_type == alias
                         })
                         .collect();
@@ -664,8 +671,12 @@ impl FieldResolver {
                 let mut objects: Vec<_> = all
                     .into_iter()
                     .filter(|o| {
-                        o.contract_type_id.as_deref() == Some(&ctid)
-                            || o.template_id.as_deref() == Some(type_id)
+                        // 通过 template_id（即 type_id 别名）匹配对象，避免跨模板污染。
+                        // 多个模板可能共享同一 contract_type_id，因此不能仅用 contract_type_id 过滤。
+                        // 对于无 template_id 的旧对象，回退到 contract_type_id 匹配。
+                        o.template_id.as_deref() == Some(type_id)
+                            || (o.template_id.is_none()
+                                && o.contract_type_id.as_deref() == Some(&ctid))
                             || o.collection_type == type_id
                     })
                     .collect();
