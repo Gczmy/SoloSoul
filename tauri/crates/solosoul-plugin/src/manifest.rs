@@ -134,7 +134,7 @@ pub struct PluginContractRole {
     /// 角色标识，如 "street"、"city"、"country"。
     pub role_id: String,
     /// 用户可见的标签，如 "街道 / Street"。
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none", deserialize_with = "deserialize_display_name_opt")]
     pub label: Option<String>,
     /// 该角色是否为插件运行所必需。
     #[serde(default)]
@@ -474,6 +474,34 @@ mod tests {
     }
 
     #[test]
+    fn test_deserialize_role_label_as_string() {
+        let json = r#"{"roleId": "street", "label": "街道 / Street"}"#;
+        let role: PluginContractRole = serde_json::from_str(json).unwrap();
+        assert_eq!(role.label.as_deref(), Some("街道 / Street"));
+    }
+
+    #[test]
+    fn test_deserialize_role_label_as_object() {
+        let json = r#"{"roleId": "document", "label": {"zh": "证件", "en": "Document"}}"#;
+        let role: PluginContractRole = serde_json::from_str(json).unwrap();
+        assert_eq!(role.label.as_deref(), Some("证件"));
+    }
+
+    #[test]
+    fn test_deserialize_role_label_missing() {
+        let json = r#"{"roleId": "test"}"#;
+        let role: PluginContractRole = serde_json::from_str(json).unwrap();
+        assert!(role.label.is_none());
+    }
+
+    #[test]
+    fn test_deserialize_role_label_accepts_null() {
+        let json = r#"{"roleId": "test", "label": null}"#;
+        let role: PluginContractRole = serde_json::from_str(json).unwrap();
+        assert!(role.label.is_none());
+    }
+
+    #[test]
     fn test_deserialize_full_registry_entry_with_expiry_guardian_style() {
         // 模拟 expiry-guardian registry entry 结构
         let json = r#"{
@@ -492,8 +520,8 @@ mod tests {
                 "displayName": {"zh": "到期提醒", "en": "Expiry Guardian"},
                 "strictContractGate": true,
                 "roles": [
-                    {"roleId": "document", "label": "证件", "required": true, "defaultPropertyId": "__name__"},
-                    {"roleId": "expiryDate", "label": "到期日", "required": true, "defaultPropertyId": "expiryDate"}
+                    {"roleId": "document", "label": {"zh": "证件", "en": "Document"}, "required": true, "defaultPropertyId": "__name__"},
+                    {"roleId": "expiryDate", "label": {"zh": "到期日", "en": "Expiry Date"}, "required": true, "defaultPropertyId": "expiryDate"}
                 ]
             }],
             "field_bindings": [{
