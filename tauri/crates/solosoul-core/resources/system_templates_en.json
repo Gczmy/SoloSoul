@@ -7,7 +7,6 @@
             "icon": "identity",
             "nameI18nKey": "editor:templates.identity",
             "nameFallback": "Identity",
-            "contractTypeId": "com.solosoul.expiry/guardian/v1",
             "properties": [
                 {
                     "id": "fullName",
@@ -42,6 +41,64 @@
                     "required": false
                 },
                 {
+                    "id": "email",
+                    "nameI18nKey": "editor:fields.email",
+                    "nameFallback": "Email",
+                    "type": "email",
+                    "sensitivityLevel": "internal",
+                    "required": false
+                },
+                {
+                    "id": "phone",
+                    "nameI18nKey": "editor:fields.phone",
+                    "nameFallback": "Phone",
+                    "type": "phone",
+                    "sensitivityLevel": "internal",
+                    "required": false
+                }
+            ]
+        },
+        {
+            "key": "id_card",
+            "category": "identity",
+            "icon": "id_card",
+            "nameI18nKey": "editor:templates.idCard",
+            "nameFallback": "ID Card",
+            "contractTypeId": "com.solosoul.expiry/guardian/v1",
+            "properties": [
+                {
+                    "id": "fullName",
+                    "nameI18nKey": "editor:fields.fullName",
+                    "nameFallback": "Full Name",
+                    "type": "text",
+                    "sensitivityLevel": "public",
+                    "required": true
+                },
+                {
+                    "id": "idNumber",
+                    "nameI18nKey": "editor:fields.idNumber",
+                    "nameFallback": "ID Number",
+                    "type": "text",
+                    "sensitivityLevel": "critical",
+                    "required": false
+                },
+                {
+                    "id": "dateOfBirth",
+                    "nameI18nKey": "editor:fields.dateOfBirth",
+                    "nameFallback": "Date of Birth",
+                    "type": "date",
+                    "sensitivityLevel": "internal",
+                    "required": false
+                },
+                {
+                    "id": "nationality",
+                    "nameI18nKey": "editor:fields.nationality",
+                    "nameFallback": "Nationality",
+                    "type": "text",
+                    "sensitivityLevel": "public",
+                    "required": false
+                },
+                {
                     "id": "issueDate",
                     "nameI18nKey": "editor:fields.issueDate",
                     "nameFallback": "Issue Date",
@@ -63,22 +120,6 @@
                             "roleId": "expiryDate"
                         }
                     ]
-                },
-                {
-                    "id": "email",
-                    "nameI18nKey": "editor:fields.email",
-                    "nameFallback": "Email",
-                    "type": "email",
-                    "sensitivityLevel": "internal",
-                    "required": false
-                },
-                {
-                    "id": "phone",
-                    "nameI18nKey": "editor:fields.phone",
-                    "nameFallback": "Phone",
-                    "type": "phone",
-                    "sensitivityLevel": "internal",
-                    "required": false
                 }
             ]
         },
