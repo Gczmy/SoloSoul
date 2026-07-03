@@ -1,4 +1,5 @@
 import React from 'react';
+import { XCircle, AlertTriangle, Clock, Info, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './ExpiryGuardianView.module.css';
 
@@ -34,13 +35,21 @@ interface Props {
 
 const URGENCY_LABELS: Record<
   string,
-  { zh: string; en: string; emoji: string }
+  { zh: string; en: string }
 > = {
-  expired: { zh: '已过期', en: 'Expired', emoji: '❌' },
-  critical: { zh: '紧急', en: 'Critical', emoji: '🔴' },
-  warning: { zh: '警告', en: 'Warning', emoji: '⚠️' },
-  notice: { zh: '注意', en: 'Notice', emoji: 'ℹ️' },
-  safe: { zh: '安全', en: 'Safe', emoji: '✅' },
+  expired: { zh: '已过期', en: 'Expired' },
+  critical: { zh: '紧急', en: 'Critical' },
+  warning: { zh: '警告', en: 'Warning' },
+  notice: { zh: '注意', en: 'Notice' },
+  safe: { zh: '安全', en: 'Safe' },
+};
+
+const URGENCY_ICON: Record<string, React.ReactNode> = {
+  expired: <XCircle size={14} />,
+  critical: <AlertTriangle size={14} />,
+  warning: <Clock size={14} />,
+  notice: <Info size={14} />,
+  safe: <CheckCircle size={14} />,
 };
 
 const URGENCY_CLASS: Record<string, string> = {
@@ -66,7 +75,7 @@ export const ExpiryGuardianView: React.FC<Props> = ({ payload }) => {
           const label = URGENCY_LABELS[key];
           return (
             <div key={key} className={`${styles.summaryItem} ${URGENCY_CLASS[key]}`}>
-              <span className={styles.summaryEmoji}>{label.emoji}</span>
+              <span className={styles.summaryIcon}>{URGENCY_ICON[key]}</span>
               <strong className={styles.summaryCount}>{count}</strong>
               <span className={styles.summaryLabel}>
                 {isZh ? label.zh : label.en}
@@ -87,7 +96,7 @@ export const ExpiryGuardianView: React.FC<Props> = ({ payload }) => {
                 <span className={styles.itemKind}>{item.kind}</span>
                 <span className={styles.itemName}>{item.objectName}</span>
                 <span className={styles.itemBadge}>
-                  {URGENCY_LABELS[item.urgency]?.emoji}{' '}
+                  <span className={styles.itemBadgeIcon}>{URGENCY_ICON[item.urgency]}</span>
                   {isZh
                     ? URGENCY_LABELS[item.urgency]?.zh
                     : URGENCY_LABELS[item.urgency]?.en}

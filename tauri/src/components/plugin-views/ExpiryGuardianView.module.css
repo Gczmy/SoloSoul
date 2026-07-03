@@ -27,8 +27,9 @@
   border: 1px solid transparent;
 }
 
-.summaryEmoji {
-  font-size: 14px;
+.summaryIcon {
+  display: inline-flex;
+  align-items: center;
   line-height: 1;
 }
 
@@ -43,35 +44,39 @@
   font-size: 11px;
 }
 
+/* ── Urgency levels (theme-aware via CSS variables) ── */
+
 .urgencyExpired {
-  background: #fff0f0;
-  border-color: #ffccc7;
-  color: #cf1322;
+  background: var(--danger-subtle);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  color: var(--danger);
 }
 
 .urgencyCritical {
-  background: #fff7e6;
-  border-color: #ffd591;
-  color: #d46b08;
+  background: var(--warning-subtle);
+  border-color: color-mix(in srgb, var(--warning) 40%, transparent);
+  color: var(--warning);
 }
 
 .urgencyWarning {
-  background: #ffffe6;
-  border-color: #ffe58f;
-  color: #ad8b00;
+  background: color-mix(in srgb, var(--warning-subtle) 60%, transparent);
+  border-color: color-mix(in srgb, var(--warning) 25%, transparent);
+  color: var(--warning);
 }
 
 .urgencyNotice {
-  background: #e6f7ff;
-  border-color: #91d5ff;
-  color: #096dd9;
+  background: var(--info-subtle);
+  border-color: color-mix(in srgb, var(--info) 40%, transparent);
+  color: var(--info);
 }
 
 .urgencySafe {
-  background: #f6ffed;
-  border-color: #b7eb8f;
-  color: #389e0d;
+  background: var(--success-subtle);
+  border-color: color-mix(in srgb, var(--success) 40%, transparent);
+  color: var(--success);
 }
+
+/* ── List ── */
 
 .list {
   list-style: none;
@@ -85,12 +90,35 @@
 .item {
   border-radius: 8px;
   padding: 10px 12px;
-  border-left: 4px solid transparent;
-  transition: background 0.15s ease;
+  border-left: 4px solid;
+  border-color: transparent;
+  background: var(--bg-elevated);
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .item:hover {
-  filter: brightness(0.97);
+  background: var(--bg-hover);
+}
+
+/* Left border per urgency */
+.urgencyExpired.item {
+  border-left-color: var(--danger);
+}
+
+.urgencyCritical.item {
+  border-left-color: var(--warning);
+}
+
+.urgencyWarning.item {
+  border-left-color: color-mix(in srgb, var(--warning) 60%, transparent);
+}
+
+.urgencyNotice.item {
+  border-left-color: var(--info);
+}
+
+.urgencySafe.item {
+  border-left-color: var(--success);
 }
 
 .itemHeader {
@@ -120,12 +148,21 @@
 }
 
 .itemBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   flex-shrink: 0;
   font-size: 11px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 4px;
   white-space: nowrap;
+}
+
+.itemBadgeIcon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
 }
 
 .itemMeta {
