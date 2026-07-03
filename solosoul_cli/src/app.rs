@@ -956,17 +956,10 @@ impl App {
                 accounts,
                 mut selected,
             } => {
-                match key.code {
-                    KeyCode::Esc => {
-                        commands::core::back(self);
-                    }
-                    KeyCode::Up if selected > 0 => {
-                        selected = selected.saturating_sub(1);
-                    }
-                    KeyCode::Down if selected + 1 < accounts.len() => {
-                        selected += 1;
-                    }
-                    KeyCode::Enter => {
+                match handle_list_nav(selected, accounts.len(), key) {
+                    NavAction::Back => { commands::core::back(self); }
+                    NavAction::Moved(sel) => { selected = sel; }
+                    NavAction::None if key.code == KeyCode::Enter && selected < accounts.len() => {
                         let account = &accounts[selected];
                         let account_id = account.id.clone();
                         let account_name = account.name.clone();
@@ -1692,13 +1685,10 @@ impl App {
                 pages,
                 mut selected,
             } => {
-                match key.code {
-                    KeyCode::Esc | KeyCode::Char('q') => {
-                        self.cancel_wizard();
-                    }
-                    KeyCode::Up if selected > 0 => selected -= 1,
-                    KeyCode::Down if selected + 1 < pages.len() => selected += 1,
-                    KeyCode::Enter => {
+                match handle_list_nav(selected, pages.len(), key) {
+                    NavAction::Back => { self.cancel_wizard(); }
+                    NavAction::Moved(sel) => { selected = sel; }
+                    NavAction::None if key.code == KeyCode::Enter && selected < pages.len() => {
                         let page = &pages[selected];
                         commands::vault_write::start_select_template(
                             self,
@@ -1719,13 +1709,11 @@ impl App {
                 templates,
                 mut selected,
             } => {
-                match key.code {
-                    KeyCode::Esc | KeyCode::Char('q') => {
-                        self.cancel_wizard();
-                    }
-                    KeyCode::Up if selected > 0 => selected -= 1,
-                    KeyCode::Down if selected < templates.len() => selected += 1,
-                    KeyCode::Enter => {
+                let count = templates.len() + 1; // +1 for "无模板" option at index 0
+                match handle_list_nav(selected, count, key) {
+                    NavAction::Back => { self.cancel_wizard(); }
+                    NavAction::Moved(sel) => { selected = sel; }
+                    NavAction::None if key.code == KeyCode::Enter && selected < count => {
                         let template = if selected == 0 {
                             None
                         } else {
@@ -2028,30 +2016,28 @@ impl App {
         {
             let total = user_templates.len() + system_templates.len();
             let mut selected = *selected;
-            match key.code {
-                KeyCode::Esc | KeyCode::Char('q') => {
-                    commands::core::back(self);
-                    return Ok(false);
-                }
-                KeyCode::Up if selected > 0 => selected -= 1,
-                KeyCode::Down if selected + 1 < total => selected += 1,
-                KeyCode::Enter if selected < total => {
-                    let id = if selected < user_templates.len() {
-                        user_templates[selected].id.clone()
-                    } else {
-                        system_templates[selected - user_templates.len()]
-                            .key
-                            .clone()
-                    };
-                    commands::template::handle(self, &["/template", "show", &id])?;
-                    return Ok(false);
-                }
-                KeyCode::Char('d') if selected < user_templates.len() => {
-                    let id = user_templates[selected].id.clone();
-                    commands::template::handle(self, &["/template", "delete", &id])?;
-                    return Ok(false);
-                }
-                _ => {}
+            match handle_list_nav(selected, total, key) {
+                NavAction::Back => { commands::core::back(self); return Ok(false); }
+                NavAction::Moved(sel) => { selected = sel; }
+                NavAction::None => match key.code {
+                    KeyCode::Enter if selected < total => {
+                        let id = if selected < user_templates.len() {
+                            user_templates[selected].id.clone()
+                        } else {
+                            system_templates[selected - user_templates.len()]
+                                .key
+                                .clone()
+                        };
+                        commands::template::handle(self, &["/template", "show", &id])?;
+                        return Ok(false);
+                    }
+                    KeyCode::Char('d') if selected < user_templates.len() => {
+                        let id = user_templates[selected].id.clone();
+                        commands::template::handle(self, &["/template", "delete", &id])?;
+                        return Ok(false);
+                    }
+                    _ => {}
+                },
             }
             self.phase = AppPhase::TemplateList {
                 user_templates: user_templates.clone(),
@@ -2453,8 +2439,8 @@ impl App {
             _ => return Ok(false),
         };
         let num_items = crate::screens::settings_menu::NUM_ITEMS;
-        match key.code {
-            KeyCode::Esc | KeyCode::Char('q') => {
+        match handle_list_nav(selected, num_items, key) {
+            NavAction::Back => {
                 // SettingsMenu 是顶层菜单：Esc 约定俗成 = 退出整个菜单。
                 // previous_phase=None 会在 apply_* 成功路径上发生（为避免栈死循环手动清栈）；
                 // 此时 Esc 不走 core::back（避免返回 Home/Locked 路径上丢失选中状态）。
@@ -2471,9 +2457,8 @@ impl App {
                 }
                 return Ok(false);
             }
-            KeyCode::Up if selected > 0 => selected -= 1,
-            KeyCode::Down if selected + 1 < num_items => selected += 1,
-            KeyCode::Enter => {
+            NavAction::Moved(sel) => { selected = sel; }
+            NavAction::None if key.code == KeyCode::Enter && selected < num_items => {
                 commands::settings::dispatch_item(self, selected);
                 return Ok(false);
             }

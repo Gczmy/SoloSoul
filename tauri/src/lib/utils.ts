@@ -68,3 +68,37 @@ export function resolveCollectionLabel(
   }
   return customPages.find((p) => p.id === collectionType)?.name || collectionType;
 }
+
+// ============================================================================
+// Shared backend error prefix resolution (Phase 2.4)
+// ============================================================================
+
+/** 解析后的后端错误前缀信息。 */
+export interface ResolvedErrorPrefix {
+  kind: string;
+  code: string;
+  payload: string | null;
+}
+
+const ERROR_PREFIXES: Array<{ prefix: string; kind: string }> = [
+  { prefix: '__EXPORT_ERR__:', kind: 'export' },
+  { prefix: '__IMPORT_ERR__:', kind: 'import' },
+  { prefix: '__BIO_ERR__:', kind: 'biometric' },
+];
+
+/**
+ * 解析后端错误消息中已知的前缀，提取 kind / code / payload。
+ * 若未匹配任何已知前缀，返回 null。
+ */
+export function resolveI18nPrefix(message: string): ResolvedErrorPrefix | null {
+  for (const { prefix, kind } of ERROR_PREFIXES) {
+    const rest = tryParsePrefixedError(message, prefix);
+    if (rest !== null) {
+      const sep = rest.indexOf(':');
+      const code = sep >= 0 ? rest.slice(0, sep) : rest;
+      const payload = sep >= 0 ? rest.slice(sep + 1) : null;
+      return { kind, code, payload };
+    }
+  }
+  return null;
+}

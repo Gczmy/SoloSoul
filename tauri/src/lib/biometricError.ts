@@ -1,7 +1,5 @@
 import type { TFunction } from 'i18next';
-import { tryParsePrefixedError } from './utils';
-
-const PREFIX = '__BIO_ERR__:';
+import { resolveI18nPrefix } from './utils';
 
 /**
  * 把生物识别相关的后端错误转换为前端可读的本地化消息。
@@ -11,9 +9,9 @@ const PREFIX = '__BIO_ERR__:';
  */
 export function getBiometricErrorMessage(error: unknown, t: TFunction): string {
   const msg = String(error ?? '');
-  const code = tryParsePrefixedError(msg, PREFIX);
-  if (code !== null) {
-    const localized = t(`settings:biometric_error_${code}`, {
+  const parsed = resolveI18nPrefix(msg);
+  if (parsed !== null) {
+    const localized = t(`settings:biometric_error_${parsed.code}`, {
       defaultValue: '',
     });
     if (localized) return localized;
