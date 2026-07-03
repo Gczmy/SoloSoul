@@ -39,7 +39,8 @@
     "fileName": "File Name"
   },
   "templates": {
-    "address": "Address"
+    "address": "Address",
+    "idCard": "ID Card"
   },
   "in_section": "in {{section}}",
   "field_types": {

@@ -39,7 +39,8 @@
     "fileName": "文件名"
   },
   "templates": {
-    "address": "地址"
+    "address": "地址",
+    "idCard": "身份证"
   },
   "in_section": "位于{{section}}",
   "field_types": {
