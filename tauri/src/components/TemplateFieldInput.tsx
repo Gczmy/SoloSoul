@@ -1,6 +1,5 @@
 import React from 'react';
 import type { PropertyType } from '@/types/template';
-import { DatePicker } from '@/components/forms/DatePicker';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import styles from './TemplateFieldInput.module.css';
 
@@ -53,9 +52,12 @@ export function TemplateFieldInput({
             {labelRow}
           </label>
           {hint && <div className={styles.hint}>{hint}</div>}
-          <DatePicker
+          <input
+            id={propertyId}
+            type="date"
+            className={styles.input}
             value={String(value ?? '')}
-            onChange={(v) => onChange(v ?? '')}
+            onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
           />
         </div>
@@ -68,10 +70,12 @@ export function TemplateFieldInput({
             {labelRow}
           </label>
           {hint && <div className={styles.hint}>{hint}</div>}
-          <DatePicker
+          <input
+            id={propertyId}
+            type="datetime-local"
+            className={styles.input}
             value={String(value ?? '')}
-            onChange={(v) => onChange(v ?? '')}
-            includeTime
+            onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
           />
         </div>
