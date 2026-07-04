@@ -83,7 +83,9 @@ pub fn dispatch_item(app: &mut App, idx: usize) {
         0 => open_language_select(app),
         1 => open_theme_select(app),
         2 => start_settings_preference_edit(app),
-        3 => trigger_debug_log_export(app),
+        3 => {
+            let _ = debug_log(app, None);
+        }
         _ => {}
     }
 }
@@ -213,15 +215,6 @@ fn open_preference_value_prompt(app: &mut App, key: String) {
     );
 }
 
-/// 在 SettingsMenu 中点击「导出调试包」时调用。
-///
-/// 等价于无参 `/debug_log`。成功路径由 `debug_log` 内部直接写入
-/// `success_message`（绿色 toast），失败保留在 `error_message`（红色 overlay）。
-/// 调用方无需再做任何字符串转译，从而避免脆性文案检测。
-pub fn trigger_debug_log_export(app: &mut App) {
-    let _ = debug_log(app, None);
-}
-
 /// UI 偏好设置文件路径。
 fn ui_prefs_path(app: &App) -> std::path::PathBuf {
     app.vault_service.base_path().join("ui_preferences.json")
@@ -305,52 +298,6 @@ fn theme(app: &mut App, theme: Option<&str>) -> Result<()> {
     Ok(())
 }
 
-/// 尝试将字符串解析为 JSON，失败则回退为字符串。
-fn parse_value(raw: &str) -> Value {
-    serde_json::from_str(raw).unwrap_or_else(|_| Value::String(raw.to_string()))
-}
-
-/// 更新当前账户加密偏好中的单个键值。
-fn update_profile_preference(app: &mut App, key: &str, value: Value) -> Result<()> {
-    let account_id = require_unlocked(app)?;
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
-
-    let mut profile = match vault.load_profile(&account_id).map_err(map_err)? {
-        Some(p) => p,
-        None => solosoul_core::Profile::new_with_id(&account_id, &account_id, Vec::new()),
-    };
-
-    let mut data: Value = if profile.data.is_empty() {
-        Value::Object(Map::new())
-    } else {
-        serde_json::from_slice(&profile.data)
-            .map_err(|e| color_eyre::eyre::eyre!("解析 profile 数据失败: {}", e))?
-    };
-
-    if let Some(obj) = data.as_object_mut() {
-        let prefs = obj
-            .entry("preferences")
-            .or_insert_with(|| Value::Object(Map::new()));
-        if let Some(p) = prefs.as_object_mut() {
-            p.insert(key.to_string(), value);
-        }
-    }
-
-    profile.data = serde_json::to_vec(&data).map_err(|e| {
-        app.error_message = Some(format!("序列化 profile 数据失败: {}", e));
-        color_eyre::eyre::eyre!(e)
-    })?;
-    profile.updated_at = chrono::Utc::now();
-    profile.version += 1;
-
-    vault.save_profile(&profile).map_err(map_err)?;
-    Ok(())
-}
-
 /// 执行 `/setting <key> <value>`：更新加密用户偏好。
 fn setting(app: &mut App, key: Option<&str>, value: Option<&str>) -> Result<()> {
     let key = match key {
@@ -361,14 +308,14 @@ fn setting(app: &mut App, key: Option<&str>, value: Option<&str>) -> Result<()> 
         }
     };
     let value = match value {
-        Some(v) => parse_value(v),
+        Some(v) => crate::commands::parse_value(v),
         None => {
             app.error_message = Some("用法: /setting <key> <value>".to_string());
             return Ok(());
         }
     };
 
-    update_profile_preference(app, key, value)?;
+    crate::commands::update_profile_preference(app, key, value)?;
     app.error_message = Some(format!("偏好已更新: {}", key));
     Ok(())
 }

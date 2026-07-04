@@ -107,11 +107,6 @@ fn rename_profile(app: &mut App, name: Option<&str>) -> Result<()> {
     Ok(())
 }
 
-/// 尝试将字符串解析为 JSON，失败则回退为字符串。
-fn parse_value(raw: &str) -> Value {
-    serde_json::from_str(raw).unwrap_or_else(|_| Value::String(raw.to_string()))
-}
-
 /// 执行 `/profile set <路径> <值>`：使用点号路径设置 Profile 数据。
 /// 示例: `/profile set identity.fullName 张三`
 fn set_profile_value(app: &mut App, path: Option<&str>, value: Option<String>) -> Result<()> {
@@ -123,7 +118,7 @@ fn set_profile_value(app: &mut App, path: Option<&str>, value: Option<String>) -
         }
     };
     let value = match value {
-        Some(v) => parse_value(&v),
+        Some(v) => crate::commands::parse_value(&v),
         None => {
             app.error_message = Some("用法: /profile set <路径> <值>".to_string());
             return Ok(());

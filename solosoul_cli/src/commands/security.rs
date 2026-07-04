@@ -1,11 +1,11 @@
 //! 安全相关命令：/security password、/security hint、/security trash-retention、/security delete-account、/security biometric。
 
 use color_eyre::Result;
-use serde_json::{Map, Value};
+use serde_json::Value;
 use solosoul_core::biometric::BiometricManager;
 
 use crate::app::{App, AppPhase};
-use crate::commands::{map_err, require_unlocked};
+use crate::commands::require_unlocked;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 命令入口。
@@ -29,47 +29,6 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
 
 fn biometric_manager(app: &App) -> BiometricManager {
     BiometricManager::new(app.vault_service.base_path().to_path_buf())
-}
-
-/// 更新当前账户加密偏好中的单个键值。
-fn update_profile_preference(app: &mut App, key: &str, value: Value) -> Result<()> {
-    let account_id = require_unlocked(app)?;
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
-
-    let mut profile = match vault.load_profile(&account_id).map_err(map_err)? {
-        Some(p) => p,
-        None => solosoul_core::Profile::new_with_id(&account_id, &account_id, Vec::new()),
-    };
-
-    let mut data: Value = if profile.data.is_empty() {
-        Value::Object(Map::new())
-    } else {
-        serde_json::from_slice(&profile.data)
-            .map_err(|e| color_eyre::eyre::eyre!("解析 profile 数据失败: {}", e))?
-    };
-
-    if let Some(obj) = data.as_object_mut() {
-        let prefs = obj
-            .entry("preferences")
-            .or_insert_with(|| Value::Object(Map::new()));
-        if let Some(p) = prefs.as_object_mut() {
-            p.insert(key.to_string(), value);
-        }
-    }
-
-    profile.data = serde_json::to_vec(&data).map_err(|e| {
-        app.error_message = Some(format!("序列化 profile 数据失败: {}", e));
-        color_eyre::eyre::eyre!(e)
-    })?;
-    profile.updated_at = chrono::Utc::now();
-    profile.version += 1;
-
-    vault.save_profile(&profile).map_err(map_err)?;
-    Ok(())
 }
 
 /// 执行 `/security password`：通过连续提示修改主密码。
@@ -206,7 +165,7 @@ fn handle_trash_retention(app: &mut App, days: Option<&str>) -> Result<()> {
 
     // 转换为毫秒，便于与 GUI 偏好保持一致。
     let ms = days.saturating_mul(24 * 60 * 60 * 1000);
-    update_profile_preference(app, "trashRetention", Value::Number(ms.into()))?;
+    crate::commands::update_profile_preference(app, "trashRetention", Value::Number(ms.into()))?;
     app.error_message = Some(format!("回收站保留天数已设置为: {}", days));
     Ok(())
 }

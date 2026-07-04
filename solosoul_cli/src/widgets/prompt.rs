@@ -314,12 +314,7 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> bool {
     }
 }
 
-fn byte_position(s: &str, char_index: usize) -> usize {
-    s.char_indices()
-        .nth(char_index)
-        .map(|(idx, _)| idx)
-        .unwrap_or(s.len())
-}
+use crate::util::byte_position;
 
 /// 渲染提示 overlay。
 pub fn render(app: &App, frame: &mut ratatui::Frame) {

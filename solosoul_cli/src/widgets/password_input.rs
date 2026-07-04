@@ -164,11 +164,7 @@ impl PasswordInput {
 
     /// 将字符索引转换为字节位置。
     fn byte_position(&self, char_index: usize) -> usize {
-        self.value
-            .char_indices()
-            .nth(char_index)
-            .map(|(idx, _)| idx)
-            .unwrap_or(self.value.len())
+        crate::util::byte_position(&self.value, char_index)
     }
 }
 

@@ -67,14 +67,9 @@ impl CommandPalette {
         self.selected
     }
 
-    /// 是否应该显示面板。
-    pub fn should_show(input: &CommandInput) -> bool {
-        input.value.starts_with('/')
-    }
-
     /// 是否应该渲染面板（未被临时隐藏）。
     pub fn should_render(&self, input: &CommandInput) -> bool {
-        Self::should_show(input) && !self.suppressed
+        input.value.starts_with('/') && !self.suppressed
     }
 
     /// 根据当前阶段可用命令和输入值生成候选列表。
@@ -237,11 +232,12 @@ mod tests {
     }
 
     #[test]
-    fn test_should_show() {
+    fn test_should_render() {
+        let palette = CommandPalette::new();
         let mut input = CommandInput::new();
-        assert!(!CommandPalette::should_show(&input));
+        assert!(!palette.should_render(&input));
         input.set_value("/li".to_string());
-        assert!(CommandPalette::should_show(&input));
+        assert!(palette.should_render(&input));
     }
 
     #[test]

@@ -17,4 +17,5 @@ pub mod plugin_sink;
 pub mod screens;
 pub mod theme;
 pub mod tui;
+pub mod util;
 pub mod widgets;
