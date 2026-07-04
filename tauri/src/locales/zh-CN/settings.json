@@ -253,8 +253,6 @@
   "strategy_skipExisting_desc": "跳过保险库中已存在的对象",
   "strategy_overwrite": "覆盖",
   "strategy_overwrite_desc": "用导入数据替换所有现有数据",
-  "strategy_merge": "合并",
-  "strategy_merge_desc": "覆盖冲突项，保留非冲突项",
   "password_required_for_decrypt": "请输入导出密码后解密预览",
   "estimating": "正在估算大小…",
   "attachments_count": "{{n}} 个附件",

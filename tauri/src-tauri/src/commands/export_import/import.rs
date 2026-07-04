@@ -366,7 +366,7 @@ async fn import_execute_internal(
                     }
                 }
                 ImportStrategy::Overwrite => { /* always overwrite — fall through */ }
-                ImportStrategy::Merge => { /* overwrite always — fall through */ }
+
                 ImportStrategy::KeepBoth => { /* handled above */ }
             }
         }

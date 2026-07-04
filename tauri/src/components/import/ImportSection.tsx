@@ -799,7 +799,7 @@ export function ImportSection({
                   <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 8 }}>
                     {t('settings:import_strategy_title')}
                   </h4>
-                  {(['skipExisting', 'overwrite', 'merge', 'keepBoth'] as ImportStrategy[]).map((s) => (
+                  {(['skipExisting', 'overwrite', 'keepBoth'] as ImportStrategy[]).map((s) => (
                     <label
                       key={s}
                       style={{

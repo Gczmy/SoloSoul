@@ -182,8 +182,7 @@ pub enum ImportStrategy {
     SkipExisting,
     /// Overwrite all (imported data replaces existing)
     Overwrite,
-    /// Merge: overwrite conflicts, keep non-conflicting originals
-    Merge,
+
     /// Keep both: import object gets new UUID, name suffixed with （导入）
     KeepBoth,
 }
@@ -193,9 +192,7 @@ pub enum ImportStrategy {
 pub struct ImportSelection {
     pub object_id: String,
     pub selected: bool,
-}
-
-/// 默认 locale，当前端未传时兜底使用英文。
+}    /// 默认 locale，当前端未传时兜底使用英文。
 pub(crate) fn default_locale() -> String {
     "en-US".to_string()
 }

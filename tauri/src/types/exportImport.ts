@@ -65,7 +65,7 @@ export interface ConflictInfo {
   kind: ConflictKind;
 }
 
-export type ImportStrategy = 'skipExisting' | 'overwrite' | 'merge' | 'keepBoth';
+export type ImportStrategy = 'skipExisting' | 'overwrite' | 'keepBoth';
 
 export interface ImportSelection {
   objectId: string;

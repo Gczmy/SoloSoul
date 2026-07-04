@@ -253,8 +253,6 @@
   "strategy_skipExisting_desc": "Skip objects that already exist in the vault",
   "strategy_overwrite": "Overwrite",
   "strategy_overwrite_desc": "Replace all existing data with imported data",
-  "strategy_merge": "Merge",
-  "strategy_merge_desc": "Overwrite conflicts, keep non-conflicting originals",
   "password_required_for_decrypt": "Enter the export password above to decrypt and preview",
   "estimating": "Estimating size…",
   "attachments_count": "{{n}} attachment(s)",
