@@ -1,0 +1,201 @@
+.datePicker {
+  position: relative;
+  width: 100%;
+}
+
+.trigger {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: var(--text-body);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.trigger:hover:not(:focus):not(:disabled) {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
+.trigger:focus {
+  border-color: var(--accent-primary);
+  box-shadow: var(--state-focus-ring);
+}
+
+.trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.placeholder {
+  color: var(--text-tertiary);
+}
+
+.clearButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: var(--text-body);
+  line-height: 1;
+}
+
+.clearButton:hover:not(:disabled) {
+  background: var(--state-hover);
+  color: var(--text-primary);
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: var(--z-popover, 500);
+  width: 280px;
+  padding: 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid var(--border-subtle);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 0.5px 0 color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.navButton:hover:not(:disabled) {
+  background: var(--state-hover);
+}
+
+.selects {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  padding: 4px 0;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.day {
+  width: 100%;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--text-body-sm);
+  cursor: pointer;
+}
+
+.day:hover:not(:disabled) {
+  background: var(--state-hover);
+}
+
+.day:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.selectedDay {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.selectedDay:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.today {
+  box-shadow: inset 0 0 0 1px var(--accent-primary);
+}
+
+.otherMonth {
+  color: var(--text-tertiary);
+}
+
+.timeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.timeInput {
+  width: 48px;
+  padding: 6px 8px;
+  font-size: var(--text-body-sm);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-toolbar);
+  color: var(--text-primary);
+  font-family: inherit;
+  text-align: center;
+  outline: none;
+}
+
+.timeInput:focus {
+  border-color: var(--accent-primary);
+}
+
+.timeSeparator {
+  color: var(--text-tertiary);
+  font-size: var(--text-body-sm);
+}

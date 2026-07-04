@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PropertyType } from '@/types/template';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
+import { DatePicker } from '@/components/forms/DatePicker';
 import styles from './TemplateFieldInput.module.css';
 
 interface TemplateFieldInputProps {
@@ -48,16 +49,13 @@ export function TemplateFieldInput({
     case 'date':
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>
+          <label className={styles.label}>
             {labelRow}
           </label>
           {hint && <div className={styles.hint}>{hint}</div>}
-          <input
-            id={propertyId}
-            type="date"
-            className={styles.input}
+          <DatePicker
             value={String(value ?? '')}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(v) => onChange(v)}
             disabled={disabled}
           />
         </div>
@@ -66,16 +64,14 @@ export function TemplateFieldInput({
     case 'datetime':
       return (
         <div className={styles.field}>
-          <label htmlFor={propertyId} className={styles.label}>
+          <label className={styles.label}>
             {labelRow}
           </label>
           {hint && <div className={styles.hint}>{hint}</div>}
-          <input
-            id={propertyId}
-            type="datetime-local"
-            className={styles.input}
+          <DatePicker
             value={String(value ?? '')}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(v) => onChange(v)}
+            includeTime
             disabled={disabled}
           />
         </div>
