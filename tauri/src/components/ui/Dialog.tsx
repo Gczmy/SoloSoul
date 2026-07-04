@@ -11,34 +11,41 @@ interface DialogProps {
 }
 
 export function Dialog({ isOpen, onClose, children, title, dialogStyle }: DialogProps) {
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [isOpen, onClose]);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   if (!isOpen) return null;
 
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    if (isOpen && !el.open) {
+      el.showModal();
+    } else if (!isOpen && el.open) {
+      el.close();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    const handler = () => onClose();
+    el.addEventListener('close', handler);
+    return () => el.removeEventListener('close', handler);
+  }, [onClose]);
+
   return (
-    <div
-      ref={overlayRef}
-      className={styles.overlay}
+    <dialog
+      ref={dialogRef}
+      className={styles.dialog}
+      style={dialogStyle}
       onClick={(e) => {
-        if (e.target === overlayRef.current) {
-          e.stopPropagation();
+        if (e.target === dialogRef.current) {
           onClose();
         }
       }}
     >
-      <div className={styles.dialog} style={dialogStyle} onClick={(e) => e.stopPropagation()}>
-        {title && <h2 className={styles.title}>{title}</h2>}
-        {children}
-      </div>
-    </div>
+      {title && <h2 className={styles.title}>{title}</h2>}
+      {children}
+    </dialog>
   );
 }

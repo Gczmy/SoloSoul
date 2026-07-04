@@ -1,15 +1,6 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 5000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-overlay);
-  backdrop-filter: blur(4px);
-}
 .dialog {
   background: var(--bg-elevated);
+  border: none;
   border-radius: 16px;
   padding: 24px;
   min-width: 360px;
@@ -21,6 +12,12 @@
   box-shadow: 0 12px 40px var(--shadow-color-lg);
   animation: dialogIn 0.25s ease;
 }
+
+.dialog::backdrop {
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+}
+
 @keyframes dialogIn {
   from {
     opacity: 0;
@@ -31,17 +28,20 @@
     transform: scale(1) translateY(0);
   }
 }
+
 .title {
   font-size: var(--text-section-title);
   font-weight: 600;
   margin: 0 0 8px;
 }
+
 .message {
   font-size: var(--text-body);
   line-height: 1.5;
   margin: 0 0 20px;
   color: var(--text-secondary);
 }
+
 .actions {
   display: flex;
   justify-content: flex-end;

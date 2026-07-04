@@ -37,6 +37,17 @@ Object.defineProperty(window, 'ResizeObserver', {
   value: MockResizeObserver,
 });
 
+// Polyfill HTMLDialogElement.showModal/close (not available in jsdom)
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function () {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close = function () {
+    this.open = false;
+    this.dispatchEvent(new Event('close'));
+  };
+}
+
 // Mock react-i18next for component tests
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({

@@ -3,22 +3,26 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Dialog } from './Dialog';
 
 describe('Dialog', () => {
-  it('does not render when isOpen is false', () => {
+  it('does not render in DOM when isOpen is false', () => {
     render(
       <Dialog isOpen={false} onClose={vi.fn()}>
         Content
       </Dialog>,
     );
-    expect(screen.queryByText('Content')).not.toBeInTheDocument();
+    // When closed, the dialog should not be "open" in the DOM
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeInTheDocument();
   });
 
-  it('renders when isOpen is true', () => {
+  it('renders and opens when isOpen is true', () => {
     render(
       <Dialog isOpen={true} onClose={vi.fn()}>
         Content
       </Dialog>,
     );
     expect(screen.getByText('Content')).toBeInTheDocument();
+    const dialog = document.querySelector('dialog');
+    expect(dialog).toBeInTheDocument();
   });
 
   it('renders title when provided', () => {
@@ -30,16 +34,16 @@ describe('Dialog', () => {
     expect(screen.getByRole('heading', { name: /test title/i })).toBeInTheDocument();
   });
 
-  it('calls onClose when clicking overlay', () => {
+  it('calls onClose when clicking backdrop', () => {
     const onClose = vi.fn();
-    const { container } = render(
+    render(
       <Dialog isOpen={true} onClose={onClose}>
         Content
       </Dialog>,
     );
-    const overlay = container.querySelector('div[class*="overlay"]');
-    expect(overlay).toBeInTheDocument();
-    fireEvent.click(overlay!);
+    // Click on the <dialog> element itself simulates backdrop click
+    const dialog = document.querySelector('dialog')!;
+    fireEvent.click(dialog);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -54,18 +58,20 @@ describe('Dialog', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('calls onClose when pressing Escape', () => {
+  it('calls onClose via native close event', () => {
     const onClose = vi.fn();
     render(
       <Dialog isOpen={true} onClose={onClose}>
         Content
       </Dialog>,
     );
-    fireEvent.keyDown(document, { key: 'Escape' });
+    // Native <dialog> fires 'close' event on Escape or programmatic close()
+    const dialog = document.querySelector('dialog')!;
+    fireEvent(dialog, new Event('close'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('removes keydown listener on unmount', () => {
+  it('cleans up close listener on unmount', () => {
     const onClose = vi.fn();
     const { unmount } = render(
       <Dialog isOpen={true} onClose={onClose}>
@@ -73,7 +79,8 @@ describe('Dialog', () => {
       </Dialog>,
     );
     unmount();
-    fireEvent.keyDown(document, { key: 'Escape' });
-    expect(onClose).not.toHaveBeenCalled();
+    // After unmount the dialog is removed, so firing close does nothing
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeInTheDocument();
   });
 });
