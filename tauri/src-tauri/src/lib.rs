@@ -4,7 +4,6 @@ use tauri::Emitter;
 use tauri::Manager;
 
 pub mod commands;
-pub mod db;
 pub mod ipc;
 pub mod local_embed;
 pub mod plugin;
