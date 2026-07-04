@@ -5,7 +5,7 @@ use solosoul_core::template_service::SystemTemplateRegistry;
 use solosoul_core::UserTemplate;
 
 use crate::app::{App, AppPhase};
-use crate::commands::{map_err, require_unlocked_with_vault};
+use crate::commands::{require_unlocked_with_vault};
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -35,7 +35,7 @@ fn load_system_templates(app: &App) -> Result<SystemTemplateRegistry, String> {
 /// 执行 `/template`：打开模板列表屏幕。
 fn list_templates(app: &mut App) -> Result<()> {
     let (account_id, vault) = require_unlocked_with_vault(app)?;
-    let user_templates = vault.list_user_templates(&account_id).map_err(map_err)?;
+    let user_templates = vault.list_user_templates(&account_id).map_err(|e| color_eyre::eyre::eyre!(e))?;
     let system_registry = match load_system_templates(app) {
         Ok(r) => r,
         Err(e) => {
@@ -87,7 +87,7 @@ fn show_template(app: &mut App, id: Option<&str>) -> Result<()> {
     };
 
     let (account_id, vault) = require_unlocked_with_vault(app)?;
-    let user_templates = vault.list_user_templates(&account_id).map_err(map_err)?;
+    let user_templates = vault.list_user_templates(&account_id).map_err(|e| color_eyre::eyre::eyre!(e))?;
     let system_registry = match load_system_templates(app) {
         Ok(r) => r,
         Err(e) => {
@@ -134,7 +134,7 @@ fn delete_template(app: &mut App, id: Option<&str>) -> Result<()> {
     };
 
     let (_account_id, vault) = require_unlocked_with_vault(app)?;
-    match vault.delete_user_template(id).map_err(map_err) {
+    match vault.delete_user_template(id).map_err(|e| color_eyre::eyre::eyre!(e)) {
         Ok(()) => {
             app.error_message = Some(format!("已删除用户模板: {}", id));
             list_templates(app)?;

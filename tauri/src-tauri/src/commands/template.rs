@@ -464,32 +464,14 @@ pub async fn template_save_from_object(
     Ok(template.id)
 }
 
-// ── Trash retention helpers (mirrored from object.rs) ────────
+// ── Trash retention helpers (delegated to shared snapshot.rs) ─
 
 fn load_trash_retention(vault: &solosoul_vault::VaultStore, account_id: &str) -> String {
-    if let Ok(Some(profile)) = vault.load_profile(account_id) {
-        if !profile.data.is_empty() {
-            if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
-                if let Some(ret) = data
-                    .pointer("/preferences/trashRetention")
-                    .and_then(|v| v.as_str())
-                {
-                    return ret.to_string();
-                }
-            }
-        }
-    }
-    "30d".to_string()
+    super::object::snapshot::load_trash_retention(vault, account_id)
 }
 
 fn retention_ms(period: &str) -> i64 {
-    match period {
-        "60d" => 60 * 24 * 3600 * 1000i64,
-        "half_year" => 180 * 24 * 3600 * 1000i64,
-        "one_year" => 365 * 24 * 3600 * 1000i64,
-        "never" => i64::MAX,
-        _ => 30 * 24 * 3600 * 1000i64,
-    }
+    super::object::snapshot::retention_ms(period)
 }
 
 #[cfg(test)]

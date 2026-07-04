@@ -1,8 +1,9 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Circle, CircleDot, Lock } from 'lucide-react';
+import type { SensitivityLevel } from '@/types/template';
 
-export type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
+export type { SensitivityLevel };
 
 // §12 敏感度等级系统重构 + §9.4 视觉规范 — 唯一真理来源
 // Icons use Lucide SVG (no emoji, per §9.4)

@@ -12,7 +12,7 @@ use solosoul_core::{
 };
 
 use crate::app::{App, AppPhase};
-use crate::commands::{map_err, require_unlocked, vault};
+use crate::commands::require_unlocked;
 
 /// 最大返回结果数。
 const RESULT_LIMIT: usize = 200;
@@ -84,7 +84,7 @@ pub fn search(app: &mut App, input: Option<&str>) -> Result<()> {
         }
     };
 
-    let vault = vault(app)?;
+    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let (items, truncated, total_scanned) = perform_search(&vault, &account_id, &query)?;
 
     app.previous_phase = Some(app.phase.clone());
@@ -110,7 +110,7 @@ fn perform_search(
     // 预加载模板，用于字段级敏感度兜底
     let templates: std::collections::HashMap<String, UserTemplate> = vault
         .list_user_templates(account_id)
-        .map_err(map_err)?
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
         .into_iter()
         .map(|t| (t.id.clone(), t))
         .collect();
@@ -121,7 +121,7 @@ fn perform_search(
     items.append(&mut page_items);
 
     // 2. 对象：通过 search_objects 获取候选，再细粒度匹配字段
-    let records = vault.search_objects(account_id, &q).map_err(map_err)?;
+    let records = vault.search_objects(account_id, &q).map_err(|e| color_eyre::eyre::eyre!(e))?;
     for rec in records {
         total_scanned += 1;
         if rec.type_id == "page" {
@@ -157,7 +157,7 @@ fn search_pages(
     // 自定义页面
     let custom_pages = vault
         .list_objects(account_id, Some("page"), None, Some(query), false, false)
-        .map_err(map_err)?;
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
     for page in custom_pages {
         let score = if page.name.to_lowercase() == query {
             5.0
@@ -381,11 +381,7 @@ fn truncate_value(s: &str, max_len: usize) -> String {
     if s.chars().count() <= max_len {
         s.to_string()
     } else {
-        let mut end = max_len;
-        while !s.is_char_boundary(end) && end > 0 {
-            end -= 1;
-        }
-        format!("{}...", &s[..end])
+        format!("{}...", s.chars().take(max_len).collect::<String>())
     }
 }
 
@@ -454,11 +450,11 @@ pub fn open_selected(app: &mut App) -> Result<()> {
             let objects = if item.object_id.starts_with("page_") {
                 vault
                     .list_objects(&account_id, None, Some(&item.object_id), None, false, false)
-                    .map_err(map_err)?
+                    .map_err(|e| color_eyre::eyre::eyre!(e))?
             } else {
                 vault
                     .list_objects(&account_id, Some(&item.object_id), None, None, false, false)
-                    .map_err(map_err)?
+                    .map_err(|e| color_eyre::eyre::eyre!(e))?
             };
             app.previous_phase = Some(app.phase.clone());
             app.phase = AppPhase::ObjectList {
@@ -466,7 +462,7 @@ pub fn open_selected(app: &mut App) -> Result<()> {
                 items: objects,
             };
         } else {
-            match vault.load_object(&item.object_id).map_err(map_err)? {
+            match vault.load_object(&item.object_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
                 Some(record) if record.account_id == account_id && !record.is_deleted => {
                     app.previous_phase = Some(app.phase.clone());
                     app.phase = AppPhase::ObjectDetail { object: record };

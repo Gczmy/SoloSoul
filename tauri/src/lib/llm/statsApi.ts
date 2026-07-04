@@ -38,8 +38,12 @@ export async function llmPersistStats(accountId: string): Promise<void> {
   return invoke('llm_persist_stats', { accountId });
 }
 
+const formatTokensFormatter = new Intl.NumberFormat(undefined, {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
 export function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toString();
+  if (n < 0) return '0';
+  return formatTokensFormatter.format(n);
 }

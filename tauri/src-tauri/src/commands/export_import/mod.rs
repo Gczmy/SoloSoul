@@ -185,7 +185,8 @@ pub enum ImportStrategy {
 pub struct ImportSelection {
     pub object_id: String,
     pub selected: bool,
-}    /// 默认 locale，当前端未传时兜底使用英文。
+}
+/// 默认 locale，当前端未传时兜底使用英文。
 pub(crate) fn default_locale() -> String {
     "en-US".to_string()
 }

@@ -5,8 +5,8 @@ use std::collections::HashMap;
 // Help Guide Retrieval (§7)
 // =============================================================================
 
-use std::sync::LazyLock;
 use std::path::PathBuf;
+use std::sync::LazyLock;
 use std::sync::{Mutex, OnceLock};
 
 /// 应用资源目录，由 `lib.rs` 在 setup 阶段通过 `app.path().resource_dir()` 初始化。
@@ -97,7 +97,8 @@ static GUIDE_SUMMARY_CACHE: LazyLock<Mutex<HashMap<String, String>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// 缓存的全文搜索索引
-static SEARCH_INDEX_CACHE: LazyLock<Mutex<Option<SearchIndex>>> = LazyLock::new(|| Mutex::new(None));
+static SEARCH_INDEX_CACHE: LazyLock<Mutex<Option<SearchIndex>>> =
+    LazyLock::new(|| Mutex::new(None));
 
 /// 获取缓存内容，容忍毒化锁（poisoned lock recovery）
 fn get_index_cache() -> Option<GuideIndex> {

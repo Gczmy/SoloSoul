@@ -32,8 +32,8 @@ pub mod sandbox;
 
 // 从本地模块重新导出（保持 super::xxx 兼容）
 pub use event::PluginEvent;
-pub use solosoul_plugin::FieldResolver;
 pub use host::{register_host_functions, SoloHostFunctions, SoloHostState};
 pub use manager::PluginManager;
 pub use registry::PluginRegistry;
 pub use sandbox::WasmSandbox;
+pub use solosoul_plugin::FieldResolver;

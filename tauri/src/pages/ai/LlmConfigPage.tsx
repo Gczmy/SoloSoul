@@ -23,13 +23,6 @@ import { KnowledgeBaseCard } from '@/components/llm-config/KnowledgeBaseCard';
 import { RiskAcceptanceDialog } from '@/components/llm-config/RiskAcceptanceDialog';
 import { ICON_SIZE } from '@/lib/constants';
 
-interface AiFeatures {
-  chat: boolean;
-  smartFill: boolean;
-  commandGen: boolean;
-  naturalLanguageSearch: boolean;
-}
-
 interface EmbedModelInfo {
   id: string;
   name: string;
@@ -56,12 +49,7 @@ export function LlmConfigPage() {
 
   const [providers, setProviders] = useState<ProviderConfig[]>([]);
   const [activeId, setActiveId] = useState<string>('');
-  const [features, setFeatures] = useState<AiFeatures>({
-    chat: false,
-    smartFill: false,
-    commandGen: false,
-    naturalLanguageSearch: false,
-  });
+  const [chatEnabled, setChatEnabled] = useState(false);
   const [includeSystemPrompt, setIncludeSystemPrompt] = useState(true);
   const [hasAcceptedRisk, setHasAcceptedRisk] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -81,7 +69,7 @@ export function LlmConfigPage() {
       invoke<ProviderConfig[]>('llm_get_providers', { accountId }),
       invoke<{
         activeProviderId?: string;
-        aiFeaturesEnabled?: AiFeatures;
+        aiFeaturesEnabled?: { chat: boolean }
         includeSystemPrompt?: boolean;
         hasAcceptedRisk?: boolean;
         useLocalEmbedding?: boolean;
@@ -91,7 +79,7 @@ export function LlmConfigPage() {
       .then(([provs, cfg]) => {
         setProviders(provs);
         if (cfg.activeProviderId) setActiveId(cfg.activeProviderId);
-        if (cfg.aiFeaturesEnabled) setFeatures(cfg.aiFeaturesEnabled);
+        if (cfg.aiFeaturesEnabled) setChatEnabled(cfg.aiFeaturesEnabled.chat);
         if (cfg.includeSystemPrompt !== undefined) setIncludeSystemPrompt(cfg.includeSystemPrompt);
         if (cfg.hasAcceptedRisk) setHasAcceptedRisk(true);
         if (cfg.useLocalEmbedding !== undefined) setUseLocalEmbedding(cfg.useLocalEmbedding);
@@ -234,15 +222,18 @@ export function LlmConfigPage() {
     );
   };
 
-  const handleFeatureToggle = async (key: keyof AiFeatures) => {
-    const next = { ...features, [key]: !features[key] };
-    if (!hasAcceptedRisk && next[key]) {
+  const handleFeatureToggle = async () => {
+    const next = !chatEnabled;
+    if (!hasAcceptedRisk && next) {
       setShowRiskDialog(true);
       return;
     }
-    setFeatures(next);
+    setChatEnabled(next);
     if (accountId)
-      await invoke('llm_set_ai_features', { accountId, features: next }).catch((err) =>
+      await invoke('llm_set_ai_features', {
+        accountId,
+        features: { chat: next, smartFill: false, commandGen: false, naturalLanguageSearch: false },
+      }).catch((err) =>
         console.warn('[LLMConfig] Set AI features failed:', err),
       );
   };
@@ -254,9 +245,11 @@ export function LlmConfigPage() {
     );
     setHasAcceptedRisk(true);
     setShowRiskDialog(false);
-    const next = { ...features, chat: true };
-    setFeatures(next);
-    await invoke('llm_set_ai_features', { accountId, features: next }).catch((err) =>
+    setChatEnabled(true);
+    await invoke('llm_set_ai_features', {
+      accountId,
+      features: { chat: true, smartFill: false, commandGen: false, naturalLanguageSearch: false },
+    }).catch((err) =>
       console.warn('[LLMConfig] Set features after risk accept failed:', err),
     );
   };
@@ -339,7 +332,7 @@ export function LlmConfigPage() {
           </Card>
         )}
 
-        <AiFeaturesCard features={features} onToggle={handleFeatureToggle} />
+        <AiFeaturesCard chatEnabled={chatEnabled} onToggle={handleFeatureToggle} />
 
         <SystemPromptCard checked={includeSystemPrompt} onToggle={handleSystemPromptToggle} />
 

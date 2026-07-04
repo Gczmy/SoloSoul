@@ -426,7 +426,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     )
                 };
 
-                if write_u32(&mut caller, out_handle_ptr, handle) != code::SUCCESS {
+                if write_handle(&mut caller, out_handle_ptr, handle) != code::SUCCESS {
                     return code::INVALID_ARGUMENT;
                 }
 
@@ -700,17 +700,16 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     PluginAuditAction::PluginRunStarted,
                 );
 
-                let rx = match block_on(consent_manager.request_consent(&request_id)) {
-                    Ok(rx) => rx,
+                let handle = match tokio::runtime::Handle::try_current() {
+                    Ok(h) => h,
                     Err(_) => return code::NOT_IMPLEMENTED,
                 };
+                let rx = handle.block_on(consent_manager.request_consent(&request_id));
 
-                match block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
-                    Ok(Ok(Ok(Some(value)))) => {
-                        write_buffer(&mut caller, out_ptr, out_len, &value, -1)
-                    }
-                    Ok(Ok(Ok(None))) => code::USER_DENIED,
-                    Ok(Ok(Err(_))) | Ok(Err(_)) | Err(_) => code::TTL_EXPIRED,
+                match handle.block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
+                    Ok(Ok(Some(value))) => write_buffer(&mut caller, out_ptr, out_len, &value, -1),
+                    Ok(Ok(None)) => code::USER_DENIED,
+                    Ok(Err(_)) | Err(_) => code::TTL_EXPIRED,
                 }
             },
         )
@@ -818,13 +817,14 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                 );
 
                 // 阻塞等待用户响应，超时 5 分钟
-                let rx = match block_on(consent_manager.request_consent(&request_id)) {
-                    Ok(rx) => rx,
+                let handle = match tokio::runtime::Handle::try_current() {
+                    Ok(h) => h,
                     Err(_) => return code::NOT_IMPLEMENTED,
                 };
+                let rx = handle.block_on(consent_manager.request_consent(&request_id));
 
-                match block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
-                    Ok(Ok(Ok(Some(_value)))) => {
+                match handle.block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
+                    Ok(Ok(Some(_value))) => {
                         caller.data().host.audit.log(
                             &plugin_id,
                             Some(&session_id),
@@ -832,7 +832,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                         );
                         code::SUCCESS
                     }
-                    Ok(Ok(Ok(None))) => {
+                    Ok(Ok(None)) => {
                         caller.data().host.audit.log(
                             &plugin_id,
                             Some(&session_id),
@@ -840,7 +840,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                         );
                         code::USER_DENIED
                     }
-                    Ok(Ok(Err(_))) | Ok(Err(_)) | Err(_) => {
+                    Ok(Err(_)) | Err(_) => {
                         caller.data().host.audit.log(
                             &plugin_id,
                             Some(&session_id),
@@ -1386,6 +1386,24 @@ fn plugin_error_code(err: &PluginError) -> i32 {
     }
 }
 
+/// 将 u32 handle 值以 little-endian 写入 Wasm 内存
+fn write_handle(caller: &mut Caller<'_, SoloHostState>, ptr: i32, value: u32) -> i32 {
+    if ptr < 0 {
+        return code::INVALID_ARGUMENT;
+    }
+    let mem = match get_memory(caller) {
+        Ok(m) => m,
+        Err(_) => return code::WASM_TRAP,
+    };
+    if mem
+        .write(&mut *caller, ptr as usize, &value.to_le_bytes())
+        .is_err()
+    {
+        return code::WASM_TRAP;
+    }
+    code::SUCCESS
+}
+
 /// 检查域名是否在白名单中
 fn is_domain_allowed(domain: &str, allowed: &[String]) -> bool {
     if allowed.is_empty() {
@@ -1396,42 +1414,6 @@ fn is_domain_allowed(domain: &str, allowed: &[String]) -> bool {
         .any(|pattern| super::manifest::matches_domain(domain, pattern))
 }
 
-/// 将 u16 以 little-endian 写入 Wasm 内存
-fn write_u16(caller: &mut Caller<'_, SoloHostState>, ptr: i32, value: u16) -> i32 {
-    if ptr < 0 {
-        return code::INVALID_ARGUMENT;
-    }
-    let mem = match get_memory(caller) {
-        Ok(m) => m,
-        Err(_) => return code::WASM_TRAP,
-    };
-    if mem
-        .write(&mut *caller, ptr as usize, &value.to_le_bytes())
-        .is_err()
-    {
-        return code::WASM_TRAP;
-    }
-    code::SUCCESS
-}
-
-/// 将 u32 以 little-endian 写入 Wasm 内存
-fn write_u32(caller: &mut Caller<'_, SoloHostState>, ptr: i32, value: u32) -> i32 {
-    if ptr < 0 {
-        return code::INVALID_ARGUMENT;
-    }
-    let mem = match get_memory(caller) {
-        Ok(m) => m,
-        Err(_) => return code::WASM_TRAP,
-    };
-    if mem
-        .write(&mut *caller, ptr as usize, &value.to_le_bytes())
-        .is_err()
-    {
-        return code::WASM_TRAP;
-    }
-    code::SUCCESS
-}
-
 /// 将异步 HTTP 轮询结果写入 Wasm 内存
 fn write_http_poll_result(
     caller: &mut Caller<'_, SoloHostState>,
@@ -1439,8 +1421,26 @@ fn write_http_poll_result(
     len_ptr: i32,
     result: &HttpResult,
 ) -> i32 {
-    let _ = write_u16(caller, status_ptr, result.status);
-    let _ = write_u32(caller, len_ptr, result.body.len() as u32);
+    // inline u16 write
+    if status_ptr >= 0 {
+        if let Ok(mem) = get_memory(caller) {
+            let _ = mem.write(
+                &mut *caller,
+                status_ptr as usize,
+                &result.status.to_le_bytes(),
+            );
+        }
+    }
+    // inline u32 write
+    if len_ptr >= 0 {
+        if let Ok(mem) = get_memory(caller) {
+            let _ = mem.write(
+                &mut *caller,
+                len_ptr as usize,
+                &(result.body.len() as u32).to_le_bytes(),
+            );
+        }
+    }
     result.error_code.unwrap_or(code::SUCCESS)
 }
 
@@ -1487,26 +1487,20 @@ fn perform_http_post(client: &reqwest::Client, url: &str, body: &str) -> Result<
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     }
 
-    block_on(async {
-        let resp = client
-            .post(url)
-            .headers(headers)
-            .body(body.to_string())
-            .timeout(Duration::from_secs(30))
-            .send()
-            .await
-            .map_err(|e| e.to_string())?;
-        let text = resp.text().await.map_err(|e| e.to_string())?;
-        Ok(text)
-    })
-    .map_err(|_| "无法在当前线程执行网络请求".to_string())?
-}
-
-/// 在当前 Tokio 运行时上阻塞执行 Future（插件 Host Function 运行在 spawn_blocking 线程）
-fn block_on<F: std::future::Future>(future: F) -> Result<F::Output, ()> {
     tokio::runtime::Handle::try_current()
-        .map_err(|_| ())
-        .map(|handle| handle.block_on(future))
+        .map_err(|_| "无法在当前线程执行网络请求".to_string())?
+        .block_on(async {
+            let resp = client
+                .post(url)
+                .headers(headers)
+                .body(body.to_string())
+                .timeout(Duration::from_secs(30))
+                .send()
+                .await
+                .map_err(|e| e.to_string())?;
+            let text = resp.text().await.map_err(|e| e.to_string())?;
+            Ok(text)
+        })
 }
 
 #[cfg(test)]

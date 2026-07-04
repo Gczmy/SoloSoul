@@ -134,7 +134,11 @@ pub struct PluginContractRole {
     /// 角色标识，如 "street"、"city"、"country"。
     pub role_id: String,
     /// 用户可见的标签，如 "街道 / Street"。
-    #[serde(default, skip_serializing_if = "Option::is_none", deserialize_with = "deserialize_display_name_opt")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_display_name_opt"
+    )]
     pub label: Option<String>,
     /// 该角色是否为插件运行所必需。
     #[serde(default)]
@@ -185,7 +189,11 @@ pub struct PluginContractBinding {
     pub type_id: String,
     #[serde(default = "default_contract_version")]
     pub version: u32,
-    #[serde(default, skip_serializing_if = "Option::is_none", deserialize_with = "deserialize_display_name_opt")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_display_name_opt"
+    )]
     pub display_name: Option<String>,
     /// 是否启用 contract_field strict-gate（默认 false，兼容 legacy 路径）。
     /// 严格模式下，若请求的属性未标记 contract_field，则返回 InvalidField。
@@ -417,7 +425,8 @@ mod tests {
 
     #[test]
     fn test_deserialize_display_name_as_object() {
-        let json = r#"{"typeId": "test/v1", "displayName": {"zh": "到期提醒", "en": "Expiry Guardian"}}"#;
+        let json =
+            r#"{"typeId": "test/v1", "displayName": {"zh": "到期提醒", "en": "Expiry Guardian"}}"#;
         let binding: PluginContractBinding = serde_json::from_str(json).unwrap();
         assert_eq!(binding.display_name.as_deref(), Some("到期提醒"));
     }

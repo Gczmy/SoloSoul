@@ -37,9 +37,7 @@ pub fn encrypt_blob(key: &[u8; 32], plaintext: &[u8]) -> Result<Zeroizing<Vec<u8
     let cipher = Aes256Gcm::new_from_slice(key).map_err(key_err)?;
     let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
 
-    let ciphertext = cipher
-        .encrypt(&nonce, plaintext)
-        .map_err(enc_err)?;
+    let ciphertext = cipher.encrypt(&nonce, plaintext).map_err(enc_err)?;
 
     let mut blob = Vec::with_capacity(4 + 1 + NONCE_SIZE + ciphertext.len());
     blob.extend_from_slice(&BLOB_MAGIC);
@@ -63,9 +61,7 @@ pub fn decrypt_blob(key: &[u8; 32], blob: &[u8]) -> Result<Zeroizing<Vec<u8>>, C
 
     let cipher = Aes256Gcm::new_from_slice(key).map_err(key_err)?;
     let nonce = Nonce::from_slice(&blob[5..17]);
-    let plaintext = cipher
-        .decrypt(nonce, &blob[17..])
-        .map_err(enc_err)?;
+    let plaintext = cipher.decrypt(nonce, &blob[17..]).map_err(enc_err)?;
     Ok(Zeroizing::new(plaintext))
 }
 
@@ -109,7 +105,10 @@ pub fn encrypt_chunked_blob(
 }
 
 /// Decrypt v3 chunked blob
-pub fn decrypt_chunked_blob(key: &[u8; 32], blob: &[u8]) -> Result<Zeroizing<Vec<u8>>, CipherError> {
+pub fn decrypt_chunked_blob(
+    key: &[u8; 32],
+    blob: &[u8],
+) -> Result<Zeroizing<Vec<u8>>, CipherError> {
     if blob.len() < 21 {
         return Err(fmt_err("v3 头部过短"));
     }

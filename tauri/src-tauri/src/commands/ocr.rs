@@ -175,7 +175,7 @@ pub async fn ocr_scan_image(
     let vault = vault_handle(&state)?;
     let account_id = current_account(&state)?;
 
-    let app = state.app_handle();
+    let app = &state.handle;
     let tier = active_tier(app);
     let models_dir = ensure_model_available(app, tier)?;
 
@@ -236,7 +236,7 @@ pub async fn ocr_scan_mrz(
     let vault = vault_handle(&state)?;
     let account_id = current_account(&state)?;
 
-    let app = state.app_handle();
+    let app = &state.handle;
     let tier = active_tier(app);
     let models_dir = ensure_model_available(app, tier)?;
 
@@ -311,7 +311,7 @@ pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
 /// 获取当前激活的模型档位。
 #[tauri::command]
 pub async fn ocr_get_active_tier(state: tauri::State<'_, AppState>) -> Result<String, String> {
-    Ok(active_tier(state.app_handle()).to_string())
+    Ok(active_tier(&state.handle).to_string())
 }
 
 /// 设置当前激活的模型档位。
@@ -324,9 +324,9 @@ pub async fn ocr_set_active_tier(
     let account_id = current_account(&state)?;
 
     let tier: OcrModelTier = tier.parse()?;
-    let mut prefs = load_preferences(state.app_handle());
+    let mut prefs = load_preferences(&state.handle);
     prefs.active_tier = tier;
-    save_preferences(state.app_handle(), &prefs)?;
+    save_preferences(&state.handle, &prefs)?;
 
     let _ = vault.log_structured(
         "ocr_set_active_tier",
@@ -346,7 +346,7 @@ pub async fn ocr_get_model_status(
     tier: String,
 ) -> Result<OcrModelStatus, String> {
     let tier: OcrModelTier = tier.parse()?;
-    let models_dir = models_dir(state.app_handle())?;
+    let models_dir = models_dir(&state.handle)?;
     let bundled_dir = bundled_models_dir().unwrap_or_else(|_| PathBuf::new());
 
     Ok(OcrModelStatus {
@@ -377,9 +377,9 @@ pub async fn ocr_install_bundled_model_with_progress(
     tier: String,
 ) -> Result<(), String> {
     let tier: OcrModelTier = tier.parse()?;
-    let models_dir = models_dir(state.app_handle())?;
+    let models_dir = models_dir(&state.handle)?;
     let bundled_dir = bundled_models_dir()?;
-    let app = state.app_handle().clone();
+    let app = state.handle.clone();
     let tier_str = tier.to_string();
 
     let emit_progress = move |progress: u8| {
@@ -398,7 +398,7 @@ pub async fn ocr_install_bundled_model_with_progress(
         install_model_from_bundled_with_progress(&bundled_dir, &models_dir, tier, emit_progress);
 
     if let Err(ref e) = result {
-        let _ = state.app_handle().emit(
+        let _ = state.handle.emit(
             "ocr-install-progress",
             OcrInstallProgress {
                 tier: tier.to_string(),
@@ -422,7 +422,7 @@ pub async fn ocr_install_bundled_model(
     let account_id = current_account(&state)?;
 
     let tier: OcrModelTier = tier.parse()?;
-    let models_dir = models_dir(state.app_handle())?;
+    let models_dir = models_dir(&state.handle)?;
     let bundled_dir = bundled_models_dir()?;
     install_model_from_bundled(&bundled_dir, &models_dir, tier)?;
 
@@ -454,7 +454,7 @@ pub async fn ocr_download_model(
     let account_id = current_account(&state)?;
 
     let tier: OcrModelTier = tier.parse()?;
-    let models_dir = models_dir(state.app_handle())?;
+    let models_dir = models_dir(&state.handle)?;
     download_model_files(&base_url, &models_dir, tier).await?;
 
     let details = json!({ "baseUrl": base_url }).to_string();

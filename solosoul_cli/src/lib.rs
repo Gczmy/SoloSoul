@@ -13,7 +13,6 @@ pub mod app;
 pub mod cli;
 pub mod commands;
 pub mod events;
-pub mod plugin_sink;
 pub mod screens;
 pub mod theme;
 pub mod tui;

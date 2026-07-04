@@ -1,5 +1,3 @@
-export type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
-
 export interface PageGroup {
   sectionType: string;
   pageName: string;

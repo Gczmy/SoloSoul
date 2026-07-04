@@ -9,7 +9,6 @@ use super::{
     RateLimiter, WasmSandbox,
 };
 use crate::event::PluginEventSink;
-use semver::Version;
 use serde::Deserialize;
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
@@ -164,7 +163,10 @@ impl PluginManager {
             .get(version)
             .ok_or_else(|| PluginError::NotFound(format!("版本 {} 不存在", version)))?;
 
-        if !is_version_compatible(version_info, &current_app_version()?) {
+        if !crate::version::is_version_compatible(
+            version_info,
+            &crate::version::current_app_version()?,
+        ) {
             return Err(PluginError::IncompatibleVersion(version.to_string()));
         }
 
@@ -374,12 +376,7 @@ impl PluginManager {
 
     /// 列出活跃会话
     pub fn list_sessions(&self) -> Result<Vec<PluginSession>, PluginError> {
-        Ok(self
-            .session_manager
-            .list_active()
-            .into_iter()
-            .map(Into::into)
-            .collect())
+        Ok(self.session_manager.list_active())
     }
 
     /// 获取审计日志
@@ -394,23 +391,4 @@ impl PluginManager {
     pub async fn update_registry(&self) -> Result<(), PluginError> {
         self.registry.update_from_remote().await
     }
-}
-
-/// 当前应用版本
-fn current_app_version() -> Result<Version, PluginError> {
-    let s = env!("CARGO_PKG_VERSION");
-    Version::parse(s).map_err(|e| PluginError::RegistryError(format!("版本解析失败: {}", e)))
-}
-
-/// 解析注册表版本兼容性
-fn is_version_compatible(version: &super::RegistryVersion, app_version: &Version) -> bool {
-    let min = match Version::parse(&version.min_app_version) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    let max = match Version::parse(&version.max_app_version) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    app_version >= &min && app_version <= &max
 }

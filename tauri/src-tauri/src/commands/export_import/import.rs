@@ -226,6 +226,7 @@ pub async fn import_execute_advanced(
     .await
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn import_execute_internal(
     state: State<'_, AppState>,
     account_id: String,
@@ -349,10 +350,7 @@ async fn import_execute_internal(
         }
 
         // Check conflict & apply strategy (per-object override first, then global)
-        let effective_strategy = object_strategies
-            .get(id)
-            .copied()
-            .unwrap_or(strategy);
+        let effective_strategy = object_strategies.get(id).copied().unwrap_or(strategy);
         // 如果是 KeepBoth，不需要 load_object 做冲突判断（永远继续往下走）
         if effective_strategy == ImportStrategy::KeepBoth {
             // KeepBoth 分支：在此继续处理，不走 conflict skip/overwrite 逻辑
@@ -425,13 +423,22 @@ async fn import_execute_internal(
         }
 
         // ── KeepBoth: 使用预先生成的新 ID + 新名称 ────────────────────
-        let (final_id, final_name): (String, String) = if effective_strategy == ImportStrategy::KeepBoth {
-            let new_id = id_map.get(id).cloned().unwrap_or_else(generate_id);
-            let new_name = unique_object_name(&vault, &account_id, obj_val["name"].as_str().unwrap_or("Imported"), locale)?;
-            (new_id, new_name)
-        } else {
-            (id.to_string(), obj_val["name"].as_str().unwrap_or("Imported").to_string())
-        };
+        let (final_id, final_name): (String, String) =
+            if effective_strategy == ImportStrategy::KeepBoth {
+                let new_id = id_map.get(id).cloned().unwrap_or_else(generate_id);
+                let new_name = unique_object_name(
+                    vault,
+                    &account_id,
+                    obj_val["name"].as_str().unwrap_or("Imported"),
+                    locale,
+                )?;
+                (new_id, new_name)
+            } else {
+                (
+                    id.to_string(),
+                    obj_val["name"].as_str().unwrap_or("Imported").to_string(),
+                )
+            };
 
         let record = solosoul_vault::ObjectRecord {
             contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
@@ -636,12 +643,18 @@ async fn import_execute_internal(
         let mut remapped_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> =
             std::collections::HashMap::new();
         for (old_obj_id, atts) in &imported_atts {
-            let actual_obj_id = id_map.get(old_obj_id).cloned().unwrap_or_else(|| old_obj_id.clone());
+            let actual_obj_id = id_map
+                .get(old_obj_id)
+                .cloned()
+                .unwrap_or_else(|| old_obj_id.clone());
             let mut new_atts = atts.clone();
             for att in &mut new_atts {
                 att.object_id = actual_obj_id.clone();
             }
-            remapped_atts.entry(actual_obj_id).or_default().append(&mut new_atts);
+            remapped_atts
+                .entry(actual_obj_id)
+                .or_default()
+                .append(&mut new_atts);
         }
 
         // Replace each imported object's __attachments with the newly imported list

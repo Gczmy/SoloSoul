@@ -19,15 +19,6 @@ pub async fn snapshot_count_batch(
 // ── Snapshot / History commands (§25.5) ─────────────────────
 
 #[tauri::command]
-pub async fn snapshot_get(
-    state: State<'_, AppState>,
-    object_id: String,
-) -> Result<Vec<serde_json::Value>, String> {
-    let vault = vault_handle(&state)?;
-    vault.list_snapshots(&object_id)
-}
-
-#[tauri::command]
 pub async fn snapshot_get_data(
     state: State<'_, AppState>,
     snapshot_id: String,

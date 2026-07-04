@@ -11,10 +11,6 @@ description = "SoloSoul plugin runtime — Wasm-based plugin execution engine"
 name = "solosoul_plugin"
 path = "src/mod.rs"
 
-[features]
-default = ["legacy_field_parse"]
-legacy_field_parse = []
-
 [dependencies]
 # Internal
 solosoul-vault = { path = "../solosoul-vault" }

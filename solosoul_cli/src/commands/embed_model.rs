@@ -16,7 +16,6 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use solosoul_core::VaultService;
 
 const DEFAULT_REGISTRY_URL: &str = "https://models.solosoul.dev/embed-registry.json";
 
@@ -262,14 +261,13 @@ fn remove(app: &mut App, model_id: &str) {
             app.error_message = Some(format!("/embed_model remove 失败: {}", e));
         }
     }
-    // 让 VaultService 仍然出现在 use 列表(供 tests),防止 unused-import 警告。
-    let _vault: VaultService = VaultService::new();
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::app::{App, AppPhase};
+    use solosoul_core::VaultService;
     use std::sync::Arc;
     use tempfile::TempDir;
 

@@ -84,14 +84,6 @@ impl WatermarkConfig {
     }
 }
 
-/// 根据输入文件扩展名判断是否为 PDF
-fn is_pdf(path: &Path) -> bool {
-    path.extension()
-        .and_then(|e| e.to_str())
-        .map(|e| e.eq_ignore_ascii_case("pdf"))
-        .unwrap_or(false)
-}
-
 /// 尝试加载系统等宽字体文件（供图片水印使用）
 fn load_font_bytes() -> Result<Vec<u8>, String> {
     let candidates: &[&str] = &[
@@ -144,16 +136,6 @@ fn extract_first_from_ttc(data: &[u8]) -> Result<Vec<u8>, String> {
         data.len().saturating_sub(offset)
     };
     Ok(data[offset..offset + size].to_vec())
-}
-
-/// 对文件添加水印，根据扩展名自动选择图片或 PDF 路径
-pub fn apply_to_file(input: &Path, output: &Path, cfg: &str) -> Result<(), String> {
-    let config = WatermarkConfig::from_json(cfg)?;
-    if is_pdf(input) {
-        apply_to_pdf(input, output, &config)
-    } else {
-        apply_to_image(input, output, &config)
-    }
 }
 
 /// 对图片添加文本水印

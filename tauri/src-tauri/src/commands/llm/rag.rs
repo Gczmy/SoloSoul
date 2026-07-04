@@ -286,7 +286,8 @@ pub async fn llm_search_guide_chunks(
     account_id: String,
     query: String,
     language: String,
-    top_k: Option<usize>,    ) -> Result<Vec<GuideChunk>, String> {
+    top_k: Option<usize>,
+) -> Result<Vec<GuideChunk>, String> {
     let top_k = top_k.unwrap_or(3);
 
     // 1. Load embedding source and existing chunks (sync block)
@@ -642,7 +643,8 @@ fn split_section(
             format!("\n\n{}", para)
         };
 
-        if current_chunk.len() + para_with_sep.len() > MAX_CHUNK_LEN && !in_code_block && !in_table {
+        if current_chunk.len() + para_with_sep.len() > MAX_CHUNK_LEN && !in_code_block && !in_table
+        {
             let idx = start_index + chunks.len();
             chunks.push(RawChunk {
                 guide_id: guide_id.to_string(),

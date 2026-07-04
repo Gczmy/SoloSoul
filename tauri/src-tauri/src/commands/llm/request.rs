@@ -103,9 +103,7 @@ pub fn extract_response_text(result: &serde_json::Value, api_type: &ApiType) -> 
 }
 
 /// 检查 HTTP 响应状态，失败时返回格式化错误。
-pub async fn check_response(
-    resp: reqwest::Response,
-) -> Result<reqwest::Response, String> {
+pub async fn check_response(resp: reqwest::Response) -> Result<reqwest::Response, String> {
     let status = resp.status();
     if status.is_success() {
         return Ok(resp);
@@ -130,9 +128,14 @@ pub async fn send_json_request(
 ) -> Result<serde_json::Value, String> {
     let req = client.post(url).json(body);
     let req = add_auth_headers(req, api_key, api_type);
-    let resp = req.send().await.map_err(|e| format!("Request to {} failed: {}", url, e))?;
+    let resp = req
+        .send()
+        .await
+        .map_err(|e| format!("Request to {} failed: {}", url, e))?;
     let resp = check_response(resp).await?;
-    resp.json().await.map_err(|e| format!("Parse response from {}: {}", url, e))
+    resp.json()
+        .await
+        .map_err(|e| format!("Parse response from {}: {}", url, e))
 }
 
 /// 从非流式响应中提取 token usage（OpenAI 格式）。

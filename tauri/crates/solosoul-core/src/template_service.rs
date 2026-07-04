@@ -193,10 +193,8 @@ pub fn migrate_contract_bindings(
     contracts: &[(String, String, String)],
 ) -> Result<usize, String> {
     // 构建 contract_type_id → [(role_id, default_property_id)] 映射
-    let mut contract_map: std::collections::HashMap<
-        &str,
-        Vec<(&str, &str)>,
-    > = std::collections::HashMap::new();
+    let mut contract_map: std::collections::HashMap<&str, Vec<(&str, &str)>> =
+        std::collections::HashMap::new();
     for (ctid, role_id, default_pid) in contracts {
         contract_map
             .entry(ctid.as_str())
@@ -231,7 +229,11 @@ pub fn migrate_contract_bindings(
             if !prop.contract_field.unwrap_or(false) {
                 continue;
             }
-            if prop.contract_bindings.as_ref().is_some_and(|b| !b.is_empty()) {
+            if prop
+                .contract_bindings
+                .as_ref()
+                .is_some_and(|b| !b.is_empty())
+            {
                 continue;
             }
 

@@ -1,5 +1,5 @@
-use super::*;
 use super::request;
+use super::*;
 
 #[tauri::command]
 pub async fn llm_check_connection(
@@ -68,11 +68,13 @@ pub async fn llm_send_message(
     let url = request::build_api_url(&base_url, &api_type);
     let body = request::build_request_body(&model, messages, &api_type, DEFAULT_MAX_TOKENS, false);
     let result = request::send_json_request(&client, &url, &body, &api_key, &api_type).await?;
-    request::extract_response_text(&result, &api_type).map(|s| s.to_string()).ok_or_else(|| {
-        let raw = result.to_string();
-        format!(
-            "No response — raw: {}",
-            &raw[..MAX_PREVIEW_CHARS.min(raw.len())]
-        )
-    })
+    request::extract_response_text(&result, &api_type)
+        .map(|s| s.to_string())
+        .ok_or_else(|| {
+            let raw = result.to_string();
+            format!(
+                "No response — raw: {}",
+                &raw[..MAX_PREVIEW_CHARS.min(raw.len())]
+            )
+        })
 }

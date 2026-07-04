@@ -73,19 +73,17 @@ mod tests {
             account_id: "ignored_account".to_string(),
             name: name.to_string(),
             icon_id: None,
-            properties: vec![
-                TemplateProperty {
-                    contract_field: None,
-                    contract_bindings: None,
-                    id: "f1".to_string(),
-                    name: "Field 1".to_string(),
-                    prop_type: PropertyType::Text,
-                    sensitivity_level: Some("internal".to_string()),
-                    options: None,
-                    sensitive: None,
-                    deprecated_at: None,
-                },
-            ],
+            properties: vec![TemplateProperty {
+                contract_field: None,
+                contract_bindings: None,
+                id: "f1".to_string(),
+                name: "Field 1".to_string(),
+                prop_type: PropertyType::Text,
+                sensitivity_level: Some("internal".to_string()),
+                options: None,
+                sensitive: None,
+                deprecated_at: None,
+            }],
             category: None,
             created_at: "2024-01-01T00:00:00Z".to_string(),
             updated_at: None,
@@ -96,14 +94,20 @@ mod tests {
     fn test_same_content_same_hash() {
         let a = make_template("Test");
         let b = make_template("Test");
-        assert_eq!(user_template_content_hash(&a), user_template_content_hash(&b));
+        assert_eq!(
+            user_template_content_hash(&a),
+            user_template_content_hash(&b)
+        );
     }
 
     #[test]
     fn test_different_content_different_hash() {
         let a = make_template("Alpha");
         let b = make_template("Beta");
-        assert_ne!(user_template_content_hash(&a), user_template_content_hash(&b));
+        assert_ne!(
+            user_template_content_hash(&a),
+            user_template_content_hash(&b)
+        );
     }
 
     #[test]
@@ -114,7 +118,10 @@ mod tests {
         b.id = "id_B".to_string();
         a.account_id = "acc_A".to_string();
         b.account_id = "acc_B".to_string();
-        assert_eq!(user_template_content_hash(&a), user_template_content_hash(&b));
+        assert_eq!(
+            user_template_content_hash(&a),
+            user_template_content_hash(&b)
+        );
     }
 
     #[test]

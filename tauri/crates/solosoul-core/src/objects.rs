@@ -29,8 +29,7 @@ pub fn create_page(
         return Err("页面名称不能为空".to_string());
     }
 
-    let pages = vault
-        .list_objects(account_id, Some("page"), None, None, false, false)?;
+    let pages = vault.list_objects(account_id, Some("page"), None, None, false, false)?;
     if pages.iter().any(|p| p.name.eq_ignore_ascii_case(name)) {
         return Err(format!("页面 '{}' 已存在", name));
     }
@@ -145,10 +144,7 @@ pub fn create_object(
 }
 
 /// 保存编辑后的对象（含 snapshot 和日志）。
-pub fn update_object(
-    vault: &VaultStore,
-    object: &mut ObjectRecord,
-) -> Result<(), String> {
+pub fn update_object(vault: &VaultStore, object: &mut ObjectRecord) -> Result<(), String> {
     object.updated_at = chrono::Utc::now().to_rfc3339();
     object.version += 1;
 
@@ -224,30 +220,58 @@ pub fn move_to_trash(
 
 /// 从 TrashItem 恢复 ObjectRecord。用于从回收站还原对象。
 pub fn object_record_from_trash(trash: &TrashItem) -> Result<ObjectRecord, String> {
-    let data: serde_json::Value = serde_json::from_slice(&trash.data)
-        .map_err(|e| format!("回收站数据损坏: {}", e))?;
+    let data: serde_json::Value =
+        serde_json::from_slice(&trash.data).map_err(|e| format!("回收站数据损坏: {}", e))?;
     let now = chrono::Utc::now().to_rfc3339();
     Ok(ObjectRecord {
-        id: data["id"].as_str().unwrap_or(&trash.original_id).to_string(),
-        account_id: data["account_id"].as_str().unwrap_or("imported").to_string(),
+        id: data["id"]
+            .as_str()
+            .unwrap_or(&trash.original_id)
+            .to_string(),
+        account_id: data["account_id"]
+            .as_str()
+            .unwrap_or("imported")
+            .to_string(),
         type_id: data["type_id"].as_str().unwrap_or("note").to_string(),
-        section_type: trash.original_section_type.as_deref()
+        section_type: trash
+            .original_section_type
+            .as_deref()
             .or(data["section_type"].as_str())
             .unwrap_or("identity")
             .to_string(),
-        name: data["name"].as_str().unwrap_or(&trash.name_snapshot).to_string(),
+        name: data["name"]
+            .as_str()
+            .unwrap_or(&trash.name_snapshot)
+            .to_string(),
         icon_name: data["icon_name"].as_str().unwrap_or("document").to_string(),
         parent_id: data["parent_id"].as_str().map(String::from),
-        children_ids: data["children_ids"].as_array()
-            .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        children_ids: data["children_ids"]
+            .as_array()
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_default(),
         properties: data["properties"].clone(),
-        property_labels: if data["property_labels"].is_null() { None } else { Some(data["property_labels"].clone()) },
-        sensitivity_level: data["sensitivity_level"].as_str().unwrap_or("internal").to_string(),
+        property_labels: if data["property_labels"].is_null() {
+            None
+        } else {
+            Some(data["property_labels"].clone())
+        },
+        sensitivity_level: data["sensitivity_level"]
+            .as_str()
+            .unwrap_or("internal")
+            .to_string(),
         is_deleted: false,
         deleted_at: None,
-        tags_json: data["tags"].as_array()
-            .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        tags_json: data["tags"]
+            .as_array()
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
             .unwrap_or_default(),
         template_id: data["template_id"].as_str().map(String::from),
         contract_type_id: data["contract_type_id"].as_str().map(String::from),
@@ -264,7 +288,8 @@ pub fn restore_from_trash(
     account_id: &str,
     trash_id: &str,
 ) -> Result<RestoreResult, String> {
-    let trash = vault.get_trash_item(trash_id)?
+    let trash = vault
+        .get_trash_item(trash_id)?
         .ok_or_else(|| "回收站项目不存在".to_string())?;
 
     let new_id = match trash.item_type.as_str() {
@@ -273,19 +298,34 @@ pub fn restore_from_trash(
 
             // 如果原父页面不存在或已删除，清除 parent_id
             if let Some(ref pid) = record.parent_id.clone() {
-                if vault.load_object(pid).ok().flatten().is_none_or(|p| p.is_deleted) {
+                if vault
+                    .load_object(pid)
+                    .ok()
+                    .flatten()
+                    .is_none_or(|p| p.is_deleted)
+                {
                     record.parent_id = None;
                 }
             }
 
             // 检查冲突：同 section 下同名
-            let conflict = vault.list_objects(account_id, None, None, Some(&record.name), false, false)
+            let conflict = vault
+                .list_objects(account_id, None, None, Some(&record.name), false, false)
                 .map_err(|e| e.to_string())?
                 .into_iter()
-                .any(|o| o.name == record.name && o.section_type == record.section_type && o.id != record.id);
+                .any(|o| {
+                    o.name == record.name
+                        && o.section_type == record.section_type
+                        && o.id != record.id
+                });
 
             let new_id = if conflict {
-                let suffix = uuid::Uuid::new_v4().to_string().split('-').next().unwrap_or("restored").to_string();
+                let suffix = uuid::Uuid::new_v4()
+                    .to_string()
+                    .split('-')
+                    .next()
+                    .unwrap_or("restored")
+                    .to_string();
                 format!("{}_{}", record.id, suffix)
             } else {
                 record.id.clone()
@@ -300,19 +340,26 @@ pub fn restore_from_trash(
             vault.delete_trash_item(trash_id)?;
             let _ = vault.log_structured(
                 "object_restore",
-                if record.type_id == "page" { "page" } else { "object" },
+                if record.type_id == "page" {
+                    "page"
+                } else {
+                    "object"
+                },
                 Some(&trash.original_id),
                 Some(&trash.name_snapshot),
                 "user",
-                Some(&format!("section={} was_conflict={}", record.section_type, conflict)),
+                Some(&format!(
+                    "section={} was_conflict={}",
+                    record.section_type, conflict
+                )),
             );
 
             new_id
         }
         "template" => {
             // 模板恢复：直接还原数据
-            let template: solosoul_vault::UserTemplate = serde_json::from_slice(&trash.data)
-                .map_err(|e| format!("模板数据损坏: {}", e))?;
+            let template: solosoul_vault::UserTemplate =
+                serde_json::from_slice(&trash.data).map_err(|e| format!("模板数据损坏: {}", e))?;
             vault.save_user_template(&template)?;
             vault.delete_trash_item(trash_id)?;
             template.name
@@ -329,11 +376,9 @@ pub struct RestoreResult {
 }
 
 /// 彻底删除回收站项目（含底层对象）。
-pub fn purge_trash(
-    vault: &VaultStore,
-    trash_id: &str,
-) -> Result<String, String> {
-    let trash = vault.get_trash_item(trash_id)?
+pub fn purge_trash(vault: &VaultStore, trash_id: &str) -> Result<String, String> {
+    let trash = vault
+        .get_trash_item(trash_id)?
         .ok_or_else(|| format!("回收站项目 '{}' 不存在", trash_id))?;
     let name = trash.name_snapshot.clone();
 
@@ -381,7 +426,8 @@ pub fn add_attachments(
     file_path: &Path,
     base_path: &Path,
 ) -> Result<AttachmentMeta, String> {
-    let mut record = vault.load_object(object_id)?
+    let mut record = vault
+        .load_object(object_id)?
         .ok_or_else(|| format!("对象 '{}' 不存在", object_id))?;
     if record.account_id != account_id || record.is_deleted {
         return Err("对象不存在或已被删除".to_string());
@@ -390,7 +436,10 @@ pub fn add_attachments(
     let mut atts = load_attachments(&record.properties);
     let active_count = atts.iter().filter(|a| a.deleted_at.is_none()).count();
     if active_count >= MAX_ACTIVE_ATTACHMENTS {
-        return Err(format!("单个对象最多保留 {} 个活跃附件", MAX_ACTIVE_ATTACHMENTS));
+        return Err(format!(
+            "单个对象最多保留 {} 个活跃附件",
+            MAX_ACTIVE_ATTACHMENTS
+        ));
     }
 
     if !file_path.exists() || !file_path.is_file() {
@@ -398,7 +447,8 @@ pub fn add_attachments(
     }
 
     let file_name = sanitize_file_name(
-        file_path.file_name()
+        file_path
+            .file_name()
             .map(|s| s.to_string_lossy().to_string())
             .unwrap_or_else(|| "unnamed".to_string())
             .as_str(),
@@ -409,7 +459,8 @@ pub fn add_attachments(
     let created_at = chrono::Utc::now().to_rfc3339();
 
     // 复制文件到 vault 附件目录
-    let vault_path = copy_file_to_vault(file_path, base_path, object_id, &attachment_id, &file_name)?;
+    let vault_path =
+        copy_file_to_vault(file_path, base_path, object_id, &attachment_id, &file_name)?;
 
     let meta = AttachmentMeta {
         id: attachment_id,
@@ -449,7 +500,8 @@ pub fn rename_attachment(
     attachment_id: &str,
     new_name: &str,
 ) -> Result<(), String> {
-    let mut record = vault.load_object(object_id)?
+    let mut record = vault
+        .load_object(object_id)?
         .ok_or_else(|| format!("对象 '{}' 不存在", object_id))?;
     if record.account_id != account_id || record.is_deleted {
         return Err("对象不存在或已被删除".to_string());
@@ -487,7 +539,8 @@ pub fn soft_delete_attachment(
     object_id: &str,
     attachment_id: &str,
 ) -> Result<(), String> {
-    let mut record = vault.load_object(object_id)?
+    let mut record = vault
+        .load_object(object_id)?
         .ok_or_else(|| "对象不存在".to_string())?;
     if record.account_id != account_id || record.is_deleted {
         return Err("对象不存在或已被删除".to_string());
@@ -524,7 +577,8 @@ pub fn restore_attachment(
     object_id: &str,
     attachment_id: &str,
 ) -> Result<(), String> {
-    let mut record = vault.load_object(object_id)?
+    let mut record = vault
+        .load_object(object_id)?
         .ok_or_else(|| "对象不存在".to_string())?;
     if record.account_id != account_id || record.is_deleted {
         return Err("对象不存在或已被删除".to_string());
@@ -562,7 +616,8 @@ pub fn purge_attachment(
     attachment_id: &str,
     base_path: &Path,
 ) -> Result<(), String> {
-    let mut record = vault.load_object(object_id)?
+    let mut record = vault
+        .load_object(object_id)?
         .ok_or_else(|| "对象不存在".to_string())?;
     if record.account_id != account_id || record.is_deleted {
         return Err("对象不存在或已被删除".to_string());
@@ -697,13 +752,11 @@ fn copy_file_to_vault(
         .join("attachments")
         .join(object_id)
         .join(attachment_id);
-    std::fs::create_dir_all(&dest_dir)
-        .map_err(|e| format!("创建目录失败: {}", e))?;
+    std::fs::create_dir_all(&dest_dir).map_err(|e| format!("创建目录失败: {}", e))?;
 
     let safe_name = sanitize_file_name(file_name);
     let dest_path = dest_dir.join(&safe_name);
-    std::fs::copy(&src, &dest_path)
-        .map_err(|e| format!("复制文件失败: {}", e))?;
+    std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e))?;
     Ok(dest_path.to_string_lossy().to_string())
 }
 
@@ -822,7 +875,9 @@ mod tests {
         assert_eq!(page.name, "旅行");
         assert_eq!(page.type_id, "page");
 
-        let pages = vault.list_objects(&account_id, Some("page"), None, None, false, false).unwrap();
+        let pages = vault
+            .list_objects(&account_id, Some("page"), None, None, false, false)
+            .unwrap();
         assert_eq!(pages.len(), 1);
         assert_eq!(pages[0].name, "旅行");
     }
@@ -841,9 +896,15 @@ mod tests {
         let page = create_page(&vault, &account_id, "旅行").unwrap();
 
         let obj = create_object(
-            &vault, &account_id, &page.id, "我的笔记",
-            serde_json::json!({"content": "hello"}), None, None,
-        ).unwrap();
+            &vault,
+            &account_id,
+            &page.id,
+            "我的笔记",
+            serde_json::json!({"content": "hello"}),
+            None,
+            None,
+        )
+        .unwrap();
 
         assert_eq!(obj.name, "我的笔记");
         assert!(obj.id.starts_with("obj_"));
@@ -858,9 +919,15 @@ mod tests {
         let (vault, account_id, _dir) = test_setup();
         let page = create_page(&vault, &account_id, "旅行").unwrap();
         let mut obj = create_object(
-            &vault, &account_id, &page.id, "旧名称",
-            serde_json::json!({"title": "old"}), None, None,
-        ).unwrap();
+            &vault,
+            &account_id,
+            &page.id,
+            "旧名称",
+            serde_json::json!({"title": "old"}),
+            None,
+            None,
+        )
+        .unwrap();
 
         obj.name = "新名称".to_string();
         update_object(&vault, &mut obj).unwrap();
@@ -875,9 +942,15 @@ mod tests {
         let (vault, account_id, _dir) = test_setup();
         let page = create_page(&vault, &account_id, "旅行").unwrap();
         let obj = create_object(
-            &vault, &account_id, &page.id, "待删除",
-            serde_json::json!({}), None, None,
-        ).unwrap();
+            &vault,
+            &account_id,
+            &page.id,
+            "待删除",
+            serde_json::json!({}),
+            None,
+            None,
+        )
+        .unwrap();
 
         // 移入回收站
         move_to_trash(&vault, &obj, "object", None, 3600000).unwrap();
@@ -900,9 +973,15 @@ mod tests {
         let (vault, account_id, dir) = test_setup();
         let page = create_page(&vault, &account_id, "测试").unwrap();
         let obj = create_object(
-            &vault, &account_id, &page.id, "测试对象",
-            serde_json::json!({}), None, None,
-        ).unwrap();
+            &vault,
+            &account_id,
+            &page.id,
+            "测试对象",
+            serde_json::json!({}),
+            None,
+            None,
+        )
+        .unwrap();
 
         // 源文件必须在 vault 目录之外
         let src_dir = tempfile::TempDir::new().unwrap();

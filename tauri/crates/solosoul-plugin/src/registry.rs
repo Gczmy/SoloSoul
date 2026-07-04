@@ -2,9 +2,8 @@
 //!
 //! 解析 `SoloSoul_plugin_market/registry.json`，提供与当前应用版本的兼容性判断。
 
-use super::{MarketPluginInfo, PluginError, PluginManifest, RegistryEntry, RegistryVersion};
+use super::{MarketPluginInfo, PluginError, PluginManifest, RegistryEntry};
 use minisign_verify::{PublicKey, Signature};
-use semver::Version;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -118,7 +117,7 @@ impl PluginRegistry {
         let content = std::fs::read_to_string(&self.path)
             .map_err(|e| PluginError::RegistryError(format!("读取注册表失败: {}", e)))?;
         let file: RegistryFile = serde_json::from_str(&content)?;
-        let app_version = current_app_version()?;
+        let app_version = crate::version::current_app_version()?;
 
         let installed_map: HashMap<String, PluginManifest> = installed
             .iter()
@@ -130,15 +129,14 @@ impl PluginRegistry {
             let installed_version = installed_map.get(&plugin_id).map(|m| m.version.clone());
             let latest = entry.latest_version.clone();
             let has_update = match (&installed_version, &latest) {
-                (Some(inst), Some(latest)) => {
-                    parse_version(latest).is_ok_and(|l| parse_version(inst).is_ok_and(|i| l > i))
-                }
+                (Some(inst), Some(latest)) => crate::version::parse_version(latest)
+                    .is_ok_and(|l| crate::version::parse_version(inst).is_ok_and(|i| l > i)),
                 _ => false,
             };
             let is_compatible = latest
                 .as_ref()
                 .and_then(|v| entry.versions.get(v))
-                .map(|ver| is_version_compatible(ver, &app_version))
+                .map(|ver| crate::version::is_version_compatible(ver, &app_version))
                 .unwrap_or(false);
 
             infos.push(MarketPluginInfo {
@@ -166,37 +164,13 @@ impl PluginRegistry {
     }
 }
 
-/// 当前应用版本
-fn current_app_version() -> Result<Version, PluginError> {
-    parse_version(env!("CARGO_PKG_VERSION"))
-        .map_err(|e| PluginError::RegistryError(format!("应用版本解析失败: {}", e)))
-}
-
-/// 解析 semver 版本，忽略可能的前缀 `v`
-fn parse_version(s: &str) -> Result<Version, PluginError> {
-    let s = s.strip_prefix('v').unwrap_or(s);
-    Version::parse(s).map_err(|e| PluginError::InvalidManifest(format!("版本解析失败: {}", e)))
-}
-
-/// 判断注册表版本是否与当前应用版本兼容
-fn is_version_compatible(version: &RegistryVersion, app_version: &Version) -> bool {
-    let min = match parse_version(&version.min_app_version) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    let max = match parse_version(&version.max_app_version) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    app_version >= &min && app_version <= &max
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use semver::Version;
 
-    fn version(min: &str, max: &str) -> RegistryVersion {
-        RegistryVersion {
+    fn version(min: &str, max: &str) -> crate::RegistryVersion {
+        crate::RegistryVersion {
             sha256: "00".to_string(),
             plugin_api_version: None,
             min_app_version: min.to_string(),
@@ -212,20 +186,20 @@ mod tests {
     fn test_is_version_compatible_within_range() {
         let app = Version::parse("2.1.0").unwrap();
         let v = version("1.0.0", "3.0.0");
-        assert!(is_version_compatible(&v, &app));
+        assert!(crate::version::is_version_compatible(&v, &app));
     }
 
     #[test]
     fn test_is_version_compatible_out_of_range() {
         let app = Version::parse("0.5.0").unwrap();
         let v = version("1.0.0", "3.0.0");
-        assert!(!is_version_compatible(&v, &app));
+        assert!(!crate::version::is_version_compatible(&v, &app));
     }
 
     #[test]
     fn test_parse_version_strips_v_prefix() {
         assert_eq!(
-            parse_version("v1.2.3").unwrap(),
+            crate::version::parse_version("v1.2.3").unwrap(),
             Version::parse("1.2.3").unwrap()
         );
     }

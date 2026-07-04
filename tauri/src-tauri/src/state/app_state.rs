@@ -42,8 +42,4 @@ impl AppState {
             plugin_manager,
         })
     }
-
-    pub fn app_handle(&self) -> &tauri::AppHandle {
-        &self.handle
-    }
 }

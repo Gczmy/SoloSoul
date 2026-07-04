@@ -137,13 +137,10 @@ pub fn chat(app: &mut App, conversation_id: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
-    let _vault = match app.vault_service.get_vault_store() {
-        Some(v) => v,
-        None => {
-            app.error_message = Some("Vault 未解锁".to_string());
-            return Ok(());
-        }
-    };
+    if app.vault_service.get_vault_store().is_none() {
+        app.error_message = Some("Vault 未解锁".to_string());
+        return Ok(());
+    }
 
     let mut state = crate::screens::llm_chat::LlmChatState::new();
     if let Some(conv_id) = conversation_id {

@@ -33,7 +33,7 @@ impl Theme {
     }
 
     /// 按指定颜色级别构造 GUI 品牌蓝主题。
-    pub fn with_level(level: ColorLevel) -> Self {
+    fn with_level(level: ColorLevel) -> Self {
         match level {
             ColorLevel::TrueColor => Self {
                 brand: Color::Rgb(79, 168, 255),      // #4fa8ff
@@ -177,7 +177,7 @@ impl Default for Theme {
 
 /// 颜色支持级别。
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ColorLevel {
+enum ColorLevel {
     /// 24-bit 真色。
     TrueColor,
     /// 256 色。

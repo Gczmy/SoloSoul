@@ -25,18 +25,6 @@ pub fn require_unlocked_with_vault(app: &mut App) -> color_eyre::Result<(String,
     Ok((account_id, vault))
 }
 
-/// 将 String 错误转换为 color_eyre::Report。
-pub fn map_err(e: String) -> color_eyre::Report {
-    color_eyre::eyre::eyre!(e)
-}
-
-/// 获取 VaultStore 引用。
-pub fn vault(app: &mut App) -> color_eyre::Result<std::sync::Arc<solosoul_core::VaultStore>> {
-    app.vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))
-}
-
 /// 尝试将字符串解析为 JSON，失败则回退为字符串。
 pub fn parse_value(raw: &str) -> serde_json::Value {
     serde_json::from_str(raw).unwrap_or_else(|_| serde_json::Value::String(raw.to_string()))
@@ -52,7 +40,7 @@ pub fn update_profile_preference(app: &mut App, key: &str, value: serde_json::Va
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
-    let mut profile = match vault.load_profile(&account_id).map_err(map_err)? {
+    let mut profile = match vault.load_profile(&account_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
         Some(p) => p,
         None => solosoul_core::Profile::new_with_id(&account_id, &account_id, Vec::new()),
     };
@@ -80,7 +68,7 @@ pub fn update_profile_preference(app: &mut App, key: &str, value: serde_json::Va
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;
 
-    vault.save_profile(&profile).map_err(map_err)?;
+    vault.save_profile(&profile).map_err(|e| color_eyre::eyre::eyre!(e))?;
     Ok(())
 }
 

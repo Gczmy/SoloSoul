@@ -1,7 +1,10 @@
 //! 插件系统 Tauri Commands
 
 use crate::commands::{current_account_optional, vault_handle};
-use crate::plugin::{MarketPluginInfo, PluginAuditEntry, PluginEvent, PluginInstallResult, PluginManifest, PluginResult, PluginSession, PluginTier};
+use crate::plugin::{
+    MarketPluginInfo, PluginAuditEntry, PluginEvent, PluginInstallResult, PluginManifest,
+    PluginResult, PluginSession, PluginTier,
+};
 use crate::state::AppState;
 use std::collections::HashMap;
 use tauri::{command, ipc::Channel, State};
@@ -40,9 +43,7 @@ pub async fn plugin_list_attachments(state: State<'_, AppState>) -> Result<Strin
 }
 
 /// 从 PluginManifest 的 contracts 中提取 (type_id, role_id, default_property_id) 元组列表。
-fn extract_binding_candidates(
-    manifest: &PluginManifest,
-) -> Vec<(String, String, String)> {
+fn extract_binding_candidates(manifest: &PluginManifest) -> Vec<(String, String, String)> {
     let mut candidates = Vec::new();
     for contract in &manifest.contracts {
         for role in &contract.roles {

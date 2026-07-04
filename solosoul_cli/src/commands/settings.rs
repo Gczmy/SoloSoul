@@ -12,7 +12,7 @@ use color_eyre::Result;
 use serde_json::{Map, Value};
 
 use crate::app::{App, AppPhase};
-use crate::commands::{map_err, require_unlocked};
+use crate::commands::{require_unlocked};
 use crate::widgets::prompt::{PromptResult, PromptSpec};
 
 /// 命令入口。
@@ -235,12 +235,8 @@ pub(crate) fn load_ui_prefs(app: &App) -> Map<String, Value> {
 
     map.entry("theme")
         .or_insert_with(|| Value::String("system".to_string()));
-    map.entry("accentColor")
-        .or_insert_with(|| Value::String("ocean".to_string()));
     map.entry("language")
         .or_insert_with(|| Value::String(String::new()));
-    map.entry("hasSeenOnboarding")
-        .or_insert_with(|| Value::Bool(false));
 
     map
 }
@@ -330,7 +326,7 @@ fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
-    let entries = vault.list_audit_log(10000).map_err(map_err)?;
+    let entries = vault.list_audit_log(10000).map_err(|e| color_eyre::eyre::eyre!(e))?;
 
     // 脱敏系统信息：不包含密码、会话密钥等敏感字段。
     let system_info = serde_json::json!({

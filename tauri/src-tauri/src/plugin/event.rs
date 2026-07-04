@@ -2,8 +2,8 @@
 //!
 //! 插件运行期间通过 Tauri Channel 向前端发送日志、结果、授权请求与生命周期事件。
 
+use super::host::memory::now_millis;
 use serde::{Deserialize, Serialize};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 /// 插件事件
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,13 +17,6 @@ pub struct PluginEvent {
     pub field_id: Option<String>,
     pub field_label: Option<String>,
     pub sensitivity_level: Option<String>,
-}
-
-fn now_millis() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as i64
 }
 
 fn make_id() -> String {

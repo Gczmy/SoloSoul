@@ -298,7 +298,7 @@ export function HistoryViewer({
   };
 
   useEffect(() => {
-    invoke<SnapshotEntry[]>('snapshot_get', { objectId })
+    invoke<SnapshotEntry[]>('snapshot_list', { objectId })
       .then(setSnapshots)
       .finally(() => setLoading(false));
   }, [objectId]);

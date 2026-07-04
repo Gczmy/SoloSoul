@@ -6,12 +6,20 @@ import type { CustomPage } from '@/stores/settingsStore';
 // From format.ts
 // ============================================================================
 
-/** 将字节数格式化为人类可读字符串（B / KB / MB / GB）。 */
+const formatBytesNumberFormatter = new Intl.NumberFormat(undefined, {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+/** 将字节数格式化为人类可读字符串（B / KB / MB / GB）。
+ *  使用 1024 进制（二进制），通过 Intl.NumberFormat 实现本地化数字格式。 */
 export function formatBytes(bytes: number): string {
+  if (bytes < 0) return '0 B';
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  if (bytes < 1024 * 1024) return `${formatBytesNumberFormatter.format(bytes / 1024)} KB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${formatBytesNumberFormatter.format(bytes / (1024 * 1024))} MB`;
+  return `${formatBytesNumberFormatter.format(bytes / (1024 * 1024 * 1024))} GB`;
 }
 
 /** 从字符串中提取前缀后的内容。 */

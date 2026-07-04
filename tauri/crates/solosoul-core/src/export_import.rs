@@ -25,8 +25,6 @@ use zip::{ZipArchive, ZipWriter};
 
 use solosoul_vault::{ObjectRecord, UserTemplate, VaultStore};
 
-
-
 // ── Constants ────────────────────────────────────────────
 
 /// 导出包大小限制（与 GUI 一致）。
@@ -126,8 +124,6 @@ impl From<&str> for ExportError {
     }
 }
 
-
-
 /// 导入预览信息。
 #[derive(Debug, Clone)]
 pub struct ImportPreviewData {
@@ -177,8 +173,8 @@ pub fn export_vault(
     }
 
     let payload = build_payload(vault, &records);
-    let payload_bytes = serde_json::to_vec(&payload)
-        .map_err(|e| format!("序列化负载失败: {}", e))?;
+    let payload_bytes =
+        serde_json::to_vec(&payload).map_err(|e| format!("序列化负载失败: {}", e))?;
 
     let salt = solosoul_crypto::kdf::generate_salt();
     let key = derive_export_key(password, &salt)?;
@@ -199,12 +195,8 @@ pub fn export_vault(
 
     let att_key = if !attachment_entries.is_empty() {
         Some(
-            solosoul_crypto::hkdf_ext::derive_hkdf_key(
-                &key,
-                &salt,
-                b"solosoul:attachments:v1",
-            )
-            .map_err(|e| format!("派生附件密钥失败: {}", e))?,
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&key, &salt, b"solosoul:attachments:v1")
+                .map_err(|e| format!("派生附件密钥失败: {}", e))?,
         )
     } else {
         None
@@ -215,8 +207,7 @@ pub fn export_vault(
     }
     let file = File::create(path)?;
     let mut zip = ZipWriter::new(file);
-    let options = SimpleFileOptions::default()
-        .compression_method(zip::CompressionMethod::Deflated);
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     // 写入附件（流式加密避免完整明文和密文同时驻留内存）。
     if let Some(ref ak) = att_key {
@@ -227,13 +218,8 @@ pub fn export_vault(
                 .map_err(|e| format!("写入 ZIP 附件条目失败: {}", e))?;
             let mut f = File::open(src_path)?;
             let mut reader = std::io::BufReader::new(&mut f);
-            solosoul_crypto::cipher::encrypt_chunked_stream(
-                ak,
-                file_size,
-                &mut reader,
-                &mut zip,
-            )
-            .map_err(|e| format!("加密附件失败: {}", e))?;
+            solosoul_crypto::cipher::encrypt_chunked_stream(ak, file_size, &mut reader, &mut zip)
+                .map_err(|e| format!("加密附件失败: {}", e))?;
         }
     }
 
@@ -271,7 +257,11 @@ pub fn export_vault(
         None,
         None,
         "user",
-        Some(&format!("exported {} objects to {}", records.len(), path.display())),
+        Some(&format!(
+            "exported {} objects to {}",
+            records.len(),
+            path.display()
+        )),
     );
 
     Ok(records.len())
@@ -300,8 +290,7 @@ pub fn import_vault(
     }
 
     let manifest = read_manifest(path)?;
-    let salt = hex::decode(&manifest.salt_hex)
-        .map_err(|e| format!("salt 解码失败: {}", e))?;
+    let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("salt 解码失败: {}", e))?;
     let key = derive_export_key(password, &salt)?;
 
     let enc_bytes = read_file_from_zip(path, "payload.enc")?;
@@ -396,7 +385,11 @@ pub fn import_vault(
             parent_id: obj_val["parent_id"].as_str().map(String::from),
             children_ids: obj_val["children_ids"]
                 .as_array()
-                .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|v| v.as_str().map(String::from))
+                        .collect()
+                })
                 .unwrap_or_default(),
             properties,
             property_labels: if obj_val["property_labels"].is_null() {
@@ -412,7 +405,11 @@ pub fn import_vault(
             deleted_at: None,
             tags_json: obj_val["tags"]
                 .as_array()
-                .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|v| v.as_str().map(String::from))
+                        .collect()
+                })
                 .unwrap_or_default(),
             contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
             template_id: obj_val["template_id"].as_str().map(|tid| {
@@ -434,11 +431,22 @@ pub fn import_vault(
 
     // 导入附件。
     if manifest.has_attachments {
-        import_attachments(vault, base_path, path, &key, &salt, &imported_object_ids, &payload)?;
+        import_attachments(
+            vault,
+            base_path,
+            path,
+            &key,
+            &salt,
+            &imported_object_ids,
+            &payload,
+        )?;
     }
 
     // 导入偏好设置。
-    if manifest.extra_files.contains(&"preferences.enc".to_string()) {
+    if manifest
+        .extra_files
+        .contains(&"preferences.enc".to_string())
+    {
         import_preferences(vault, account_id, &key, &salt, path)?;
     }
 
@@ -506,8 +514,7 @@ fn collect_scope_objects(
     let ids: Vec<String> = if scope.full {
         all.iter().map(|s| s.id.clone()).collect()
     } else {
-        let mut selected_ids: HashSet<String> =
-            scope.selected_object_ids.iter().cloned().collect();
+        let mut selected_ids: HashSet<String> = scope.selected_object_ids.iter().cloned().collect();
         for summary in &all {
             if scope.selected_page_ids.contains(&summary.section_type) {
                 selected_ids.insert(summary.id.clone());
@@ -654,7 +661,11 @@ fn read_manifest(path: &Path) -> Result<ManifestData, ExportError> {
     let extra_files: Vec<String> = v
         .get("extra_files")
         .and_then(|x| x.as_array())
-        .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        .map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
         .unwrap_or_default();
 
     Ok(ManifestData {
@@ -689,22 +700,19 @@ fn read_file_from_zip(path: &Path, name: &str) -> Result<Vec<u8>, ExportError> {
     }
 
     let mut buf = Vec::new();
-    entry
-        .take(MAX_ZIP_ENTRY_SIZE + 1)
-        .read_to_end(&mut buf)?;
+    entry.take(MAX_ZIP_ENTRY_SIZE + 1).read_to_end(&mut buf)?;
     Ok(buf)
-}
-
-/// 生成新的唯一 ID。
-fn generate_id() -> String {
-    uuid::Uuid::new_v4().to_string()
 }
 
 /// 构建包内所有对象 ID 集合。
 fn build_package_ids(payload: &serde_json::Value) -> HashSet<String> {
     payload["objects"]
         .as_array()
-        .map(|arr| arr.iter().filter_map(|o| o["id"].as_str().map(String::from)).collect())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|o| o["id"].as_str().map(String::from))
+                .collect()
+        })
         .unwrap_or_default()
 }
 
@@ -766,9 +774,8 @@ fn import_attachments(
     imported_object_ids: &HashSet<String>,
     payload: &serde_json::Value,
 ) -> Result<(), ExportError> {
-    let att_key =
-        solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
-            .map_err(|e| format!("派生附件密钥失败: {}", e))?;
+    let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
+        .map_err(|e| format!("派生附件密钥失败: {}", e))?;
 
     let mut att_meta_map: HashMap<(String, String), AttachmentMeta> = HashMap::new();
     if let Some(arr) = payload["objects"].as_array() {
@@ -821,7 +828,7 @@ fn import_attachments(
             None => continue,
         };
 
-        let new_att_id = generate_id();
+        let new_att_id = uuid::Uuid::new_v4().to_string();
         let dest = base_path.join("attachments").join(obj_id).join(&new_att_id);
         std::fs::create_dir_all(&dest)?;
 
@@ -949,11 +956,25 @@ mod tests {
     #[test]
     fn test_export_full_creates_valid_package() {
         let (vault, account_id, dir) = test_setup();
-        vault.save_object(&make_test_record(&account_id, "obj_1", "Test Object")).unwrap();
+        vault
+            .save_object(&make_test_record(&account_id, "obj_1", "Test Object"))
+            .unwrap();
 
         let path = dir.path().join("test_export_full.solosoul");
-        let scope = ExportScope { full: true, include_attachments: false, ..Default::default() };
-        let count = export_vault(&vault, &account_id, TEST_EXPORT_PASSWORD, &path, &scope, dir.path()).unwrap();
+        let scope = ExportScope {
+            full: true,
+            include_attachments: false,
+            ..Default::default()
+        };
+        let count = export_vault(
+            &vault,
+            &account_id,
+            TEST_EXPORT_PASSWORD,
+            &path,
+            &scope,
+            dir.path(),
+        )
+        .unwrap();
         assert_eq!(count, 1);
         assert!(path.exists());
 
@@ -965,17 +986,39 @@ mod tests {
     #[test]
     fn test_import_with_correct_password_restores_objects() {
         let (vault, account_id, dir) = test_setup();
-        vault.save_object(&make_test_record(&account_id, "obj_1", "Test Object")).unwrap();
+        vault
+            .save_object(&make_test_record(&account_id, "obj_1", "Test Object"))
+            .unwrap();
 
         let path = dir.path().join("test_import_restore.solosoul");
-        let scope = ExportScope { full: true, include_attachments: false, ..Default::default() };
-        export_vault(&vault, &account_id, TEST_EXPORT_PASSWORD, &path, &scope, dir.path()).unwrap();
+        let scope = ExportScope {
+            full: true,
+            include_attachments: false,
+            ..Default::default()
+        };
+        export_vault(
+            &vault,
+            &account_id,
+            TEST_EXPORT_PASSWORD,
+            &path,
+            &scope,
+            dir.path(),
+        )
+        .unwrap();
 
         // 删除本地对象后重新导入
         vault.delete_object("obj_1", false).unwrap();
         assert!(vault.load_object("obj_1").unwrap().is_none());
 
-        let imported = import_vault(&vault, &account_id, &path, TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite, dir.path()).unwrap();
+        let imported = import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+            dir.path(),
+        )
+        .unwrap();
         assert_eq!(imported, 1);
 
         let restored = vault.load_object("obj_1").unwrap().unwrap();
@@ -986,13 +1029,34 @@ mod tests {
     #[test]
     fn test_import_with_wrong_password_fails() {
         let (vault, account_id, dir) = test_setup();
-        vault.save_object(&make_test_record(&account_id, "obj_1", "Test Object")).unwrap();
+        vault
+            .save_object(&make_test_record(&account_id, "obj_1", "Test Object"))
+            .unwrap();
 
         let path = dir.path().join("test_import_wrong.solosoul");
-        let scope = ExportScope { full: true, include_attachments: false, ..Default::default() };
-        export_vault(&vault, &account_id, TEST_EXPORT_PASSWORD, &path, &scope, dir.path()).unwrap();
+        let scope = ExportScope {
+            full: true,
+            include_attachments: false,
+            ..Default::default()
+        };
+        export_vault(
+            &vault,
+            &account_id,
+            TEST_EXPORT_PASSWORD,
+            &path,
+            &scope,
+            dir.path(),
+        )
+        .unwrap();
 
-        let result = import_vault(&vault, &account_id, &path, "WrongPass1", ImportStrategy::Overwrite, dir.path());
+        let result = import_vault(
+            &vault,
+            &account_id,
+            &path,
+            "WrongPass1",
+            ImportStrategy::Overwrite,
+            dir.path(),
+        );
         assert!(result.is_err(), "应返回密码错误: {:?}", result);
     }
 
@@ -1030,8 +1094,20 @@ mod tests {
         vault.save_object(&rec).unwrap();
 
         let path = dir.path().join("test_export_tmpl.solosoul");
-        let scope = ExportScope { full: true, include_attachments: false, ..Default::default() };
-        export_vault(&vault, &account_id, TEST_EXPORT_PASSWORD, &path, &scope, dir.path()).unwrap();
+        let scope = ExportScope {
+            full: true,
+            include_attachments: false,
+            ..Default::default()
+        };
+        export_vault(
+            &vault,
+            &account_id,
+            TEST_EXPORT_PASSWORD,
+            &path,
+            &scope,
+            dir.path(),
+        )
+        .unwrap();
 
         // 验证导出的 payload 包含 templates
         let manifest = read_manifest(&path).unwrap();
@@ -1118,12 +1194,24 @@ mod tests {
 
         write_test_package(&path, &payload, &key, &salt).unwrap();
 
-        let imported = import_vault(&vault, &account_id, &path, TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite, dir.path()).unwrap();
+        let imported = import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+            dir.path(),
+        )
+        .unwrap();
         assert_eq!(imported, 1);
 
         let imported_obj = vault.load_object("obj_cn").unwrap().unwrap();
         let tid = imported_obj.template_id.unwrap();
-        assert!(tid.starts_with("imported:"), "template_id 应被重定向到 imported:..., 实际为: {}", tid);
+        assert!(
+            tid.starts_with("imported:"),
+            "template_id 应被重定向到 imported:..., 实际为: {}",
+            tid
+        );
         assert!(tid.ends_with(":passport_tpl"), "应保留原始 ID 后缀");
 
         let snapshot_tpl = vault.load_user_template(&tid).unwrap().unwrap();
@@ -1160,7 +1248,15 @@ mod tests {
 
         write_test_package(&path, &payload, &key, &salt).unwrap();
 
-        let imported = import_vault(&vault, &account_id, &path, TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite, dir.path()).unwrap();
+        let imported = import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+            dir.path(),
+        )
+        .unwrap();
         assert_eq!(imported, 1);
 
         let imported_obj = vault.load_object("obj_old").unwrap().unwrap();
@@ -1192,14 +1288,25 @@ mod tests {
         });
 
         write_test_package(&path, &payload, &key, &salt).unwrap();
-        import_vault(&vault, &account_id, &path, TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite, dir.path()).unwrap();
+        import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+            dir.path(),
+        )
+        .unwrap();
 
         let imported_1 = vault.load_object("obj_1").unwrap().unwrap();
         let snapshot_id = imported_1.template_id.unwrap();
         assert!(snapshot_id.starts_with("imported:"));
 
         let all_before = vault.list_user_templates(&account_id).unwrap();
-        let snapshot_count_before = all_before.iter().filter(|t| t.id.starts_with("imported:")).count();
+        let snapshot_count_before = all_before
+            .iter()
+            .filter(|t| t.id.starts_with("imported:"))
+            .count();
 
         // 第二次导入 — 同一模板内容，不同对象
         let path2 = dir.path().join("test_dedup_2.solosoul");
@@ -1222,14 +1329,32 @@ mod tests {
         });
 
         write_test_package(&path2, &payload2, &key2, &salt2).unwrap();
-        import_vault(&vault, &account_id, &path2, TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite, dir.path()).unwrap();
+        import_vault(
+            &vault,
+            &account_id,
+            &path2,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+            dir.path(),
+        )
+        .unwrap();
 
         let imported_2 = vault.load_object("obj_2").unwrap().unwrap();
-        assert_eq!(imported_2.template_id.unwrap(), snapshot_id, "同一模板内容应复用同一个快照模板 ID");
+        assert_eq!(
+            imported_2.template_id.unwrap(),
+            snapshot_id,
+            "同一模板内容应复用同一个快照模板 ID"
+        );
 
         let all_after = vault.list_user_templates(&account_id).unwrap();
-        let snapshot_count_after = all_after.iter().filter(|t| t.id.starts_with("imported:")).count();
-        assert_eq!(snapshot_count_after, snapshot_count_before, "同样内容的模板不应产生新的快照模板");
+        let snapshot_count_after = all_after
+            .iter()
+            .filter(|t| t.id.starts_with("imported:"))
+            .count();
+        assert_eq!(
+            snapshot_count_after, snapshot_count_before,
+            "同样内容的模板不应产生新的快照模板"
+        );
     }
 
     #[test]
@@ -1258,7 +1383,15 @@ mod tests {
         });
 
         write_test_package(&path, &payload, &key, &salt).unwrap();
-        import_vault(&vault, &account_id, &path, TEST_EXPORT_PASSWORD, ImportStrategy::Overwrite, dir.path()).unwrap();
+        import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+            dir.path(),
+        )
+        .unwrap();
 
         let imported = vault.load_object("custom_page_1").unwrap().unwrap();
         assert_eq!(imported.name, "我的中文页面");
@@ -1278,8 +1411,8 @@ mod tests {
         let payload_bytes = serde_json::to_vec(payload)?;
         let file = File::create(path)?;
         let mut zip = ZipWriter::new(file);
-        let options = SimpleFileOptions::default()
-            .compression_method(zip::CompressionMethod::Deflated);
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
         let manifest = serde_json::json!({
             "version": "2.0",

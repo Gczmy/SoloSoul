@@ -30,9 +30,6 @@ export function UpdateBanner({
 }: UpdateBannerProps) {
   const { t } = useTranslation('common');
 
-  const progressPercent =
-    totalBytes > 0 ? Math.min(Math.round((downloadedBytes / totalBytes) * 100), 100) : 0;
-
   return (
     <div
       style={{
@@ -93,26 +90,17 @@ export function UpdateBanner({
           <span style={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
             {t('update_downloading', { version })}
           </span>
-          <div
+          <progress
+            value={downloadedBytes}
+            max={totalBytes}
             style={{
               flex: 1,
               maxWidth: 240,
               height: 6,
               borderRadius: 3,
-              background: 'rgba(255,255,255,0.25)',
-              overflow: 'hidden',
+              accentColor: 'white',
             }}
-          >
-            <div
-              style={{
-                width: `${progressPercent}%`,
-                height: '100%',
-                background: 'white',
-                borderRadius: 3,
-                transition: 'width 0.2s ease',
-              }}
-            />
-          </div>
+          />
           <span
             style={{
               fontSize: 'var(--text-caption)',

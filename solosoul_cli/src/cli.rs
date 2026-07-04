@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(name = "solosoul")]
@@ -12,10 +12,4 @@ pub struct Cli {
     /// 指定数据目录，覆盖 SOLOSOUL_DATA_DIR 与默认目录
     #[arg(long, value_name = "PATH")]
     pub data_dir: Option<PathBuf>,
-
-    #[command(subcommand)]
-    pub command: Option<Commands>,
 }
-
-#[derive(Subcommand, Debug)]
-pub enum Commands {}

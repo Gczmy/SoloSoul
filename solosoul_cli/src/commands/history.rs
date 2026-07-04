@@ -3,7 +3,7 @@
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
-use crate::commands::{map_err, require_unlocked};
+use crate::commands::{require_unlocked};
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 执行 `/history <object-id>`：列出对象快照。
@@ -23,9 +23,9 @@ pub fn history(app: &mut App, object_id: Option<&str>) -> Result<()> {
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
     // 校验对象存在且属于当前账户
-    match vault.load_object(&object_id).map_err(map_err)? {
+    match vault.load_object(&object_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
         Some(record) if record.account_id == account_id && !record.is_deleted => {
-            let snapshots = vault.list_snapshots(&object_id).map_err(map_err)?;
+            let snapshots = vault.list_snapshots(&object_id).map_err(|e| color_eyre::eyre::eyre!(e))?;
             app.previous_phase = Some(app.phase.clone());
             app.phase = AppPhase::HistoryList {
                 object_id,
@@ -90,14 +90,14 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
 
     let data = vault
         .get_snapshot(snapshot_id)
-        .map_err(map_err)?
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
         .ok_or_else(|| color_eyre::eyre::eyre!("快照不存在"))?;
     let snapshot: serde_json::Value = serde_json::from_slice(&data)
         .map_err(|e| color_eyre::eyre::eyre!("解析快照失败: {}", e))?;
 
     let mut record = vault
         .load_object(object_id)
-        .map_err(map_err)?
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
         .ok_or_else(|| color_eyre::eyre::eyre!("对象不存在"))?;
 
     if let Some(name) = snapshot["name"].as_str() {
@@ -115,7 +115,7 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
 
-    vault.save_object(&record).map_err(map_err)?;
+    vault.save_object(&record).map_err(|e| color_eyre::eyre::eyre!(e))?;
 
     // 保存回滚快照
     let rollback_data = serde_json::to_vec(&serde_json::json!({

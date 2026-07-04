@@ -637,12 +637,7 @@ impl PluginManager {
 
     /// 列出活跃会话
     pub fn list_sessions(&self) -> Result<Vec<PluginSession>, PluginError> {
-        Ok(self
-            .session_manager
-            .list_active()
-            .into_iter()
-            .map(Into::into)
-            .collect())
+        Ok(self.session_manager.list_active())
     }
 
     /// 获取审计日志

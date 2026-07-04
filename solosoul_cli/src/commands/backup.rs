@@ -7,7 +7,7 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::app::{App, AppPhase};
-use crate::commands::{map_err, require_unlocked};
+use crate::commands::{require_unlocked};
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 备份信息，与 GUI 的 `BackupInfo` 字段保持一致。
@@ -219,7 +219,7 @@ fn backup_create(app: &mut App, name: &str) -> Result<()> {
     let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
     let backup_path = backup_dir.join(format!("{}_{}.solosoul_backup", safe_name, timestamp));
 
-    let profiles = vault.list_profiles().map_err(map_err)?;
+    let profiles = vault.list_profiles().map_err(|e| color_eyre::eyre::eyre!(e))?;
     let mut backup_profiles = Vec::new();
     for summary in &profiles {
         if let Ok(Some(profile)) = vault.load_profile(&summary.id) {
@@ -329,7 +329,7 @@ fn do_restore(app: &mut App, backup_id: &str) -> Result<()> {
                 .unwrap_or_else(|_| chrono::Utc::now()),
             version: entry.version,
         };
-        vault.save_profile(&profile).map_err(map_err)?;
+        vault.save_profile(&profile).map_err(|e| color_eyre::eyre::eyre!(e))?;
     }
 
     Ok(())

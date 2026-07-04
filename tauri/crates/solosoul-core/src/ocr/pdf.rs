@@ -15,7 +15,12 @@ pub fn extract_pdf_text(path: &Path) -> Result<Vec<String>, String> {
     for page_index in 0..total_pages {
         match document.pages().get(page_index as i32) {
             Ok(page) => {
-                let text = page.text().map(|t| t.to_string()).unwrap_or_default().trim().to_string();
+                let text = page
+                    .text()
+                    .map(|t| t.to_string())
+                    .unwrap_or_default()
+                    .trim()
+                    .to_string();
                 pages.push(text);
             }
             Err(e) => {

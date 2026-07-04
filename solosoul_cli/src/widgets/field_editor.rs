@@ -79,10 +79,7 @@ impl EditableField {
 
     /// 编辑前是否需要主密码验证（sensitive / critical / restricted）。
     pub fn requires_password_verification(&self) -> bool {
-        matches!(
-            self.sensitivity.to_lowercase().as_str(),
-            "sensitive" | "critical" | "restricted"
-        )
+        self.is_sensitive()
     }
 
     /// 是否为 critical 级别（需要更严格审计日志）。

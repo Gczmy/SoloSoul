@@ -16,6 +16,7 @@ pub mod registry;
 pub mod sandbox;
 pub mod session;
 pub mod store;
+pub mod version;
 
 pub use audit::PluginAuditLogger;
 pub use consent::ConsentManager;

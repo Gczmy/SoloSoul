@@ -3,7 +3,7 @@
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase, SizeReport};
-use crate::commands::{map_err, require_unlocked};
+use crate::commands::{require_unlocked};
 
 /// 执行 `/list [page_name]`：列出页面或页面内对象。
 pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
@@ -18,7 +18,7 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
         None => {
             let pages = vault
                 .list_objects(&account_id, Some("page"), None, None, false, false)
-                .map_err(map_err)?;
+                .map_err(|e| color_eyre::eyre::eyre!(e))?;
             app.previous_phase = Some(app.phase.clone());
             app.phase = AppPhase::ObjectList {
                 title: "页面列表".to_string(),
@@ -29,7 +29,7 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
             // 精确匹配页面名（忽略大小写）
             let pages = vault
                 .list_objects(&account_id, Some("page"), None, None, false, false)
-                .map_err(map_err)?;
+                .map_err(|e| color_eyre::eyre::eyre!(e))?;
             let matched = pages
                 .iter()
                 .find(|p| p.name.eq_ignore_ascii_case(name))
@@ -39,7 +39,7 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
                 Some(page) => {
                     let objects = vault
                         .list_objects(&account_id, None, Some(&page.id), None, false, false)
-                        .map_err(map_err)?;
+                        .map_err(|e| color_eyre::eyre::eyre!(e))?;
                     app.previous_phase = Some(app.phase.clone());
                     app.phase = AppPhase::ObjectList {
                         title: format!("页面: {}", page.name),
@@ -73,7 +73,7 @@ pub fn open(app: &mut App, object_id: Option<&str>) -> Result<()> {
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
-    match vault.load_object(id).map_err(map_err)? {
+    match vault.load_object(id).map_err(|e| color_eyre::eyre::eyre!(e))? {
         Some(record) if record.account_id == account_id && !record.is_deleted => {
             app.previous_phase = Some(app.phase.clone());
             app.phase = AppPhase::ObjectDetail { object: record };
@@ -95,16 +95,16 @@ pub fn size(app: &mut App) -> Result<()> {
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
-    let stats = vault.stats().map_err(map_err)?;
+    let stats = vault.stats().map_err(|e| color_eyre::eyre::eyre!(e))?;
     let pages = vault
         .list_objects(&account_id, Some("page"), None, None, false, false)
-        .map_err(map_err)?;
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
     let objects = vault
         .list_objects(&account_id, None, None, None, false, false)
-        .map_err(map_err)?;
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
     let trash = vault
         .list_objects(&account_id, None, None, None, false, true)
-        .map_err(map_err)?;
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
 
     let report = SizeReport {
         page_count: pages.len(),

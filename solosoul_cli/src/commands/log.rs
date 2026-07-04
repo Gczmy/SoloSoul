@@ -3,7 +3,7 @@
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
-use crate::commands::{map_err, require_unlocked};
+use crate::commands::{require_unlocked};
 
 /// 执行 `/operation_log [limit]`：列出审计日志。
 pub fn operation_log(app: &mut App, limit: Option<&str>) -> Result<()> {
@@ -18,7 +18,7 @@ pub fn operation_log(app: &mut App, limit: Option<&str>) -> Result<()> {
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
-    let entries = vault.list_audit_log(limit).map_err(map_err)?;
+    let entries = vault.list_audit_log(limit).map_err(|e| color_eyre::eyre::eyre!(e))?;
     app.previous_phase = Some(app.phase.clone());
     app.phase = AppPhase::OperationLog {
         account_id,
@@ -36,7 +36,7 @@ pub fn export_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
-    let entries = vault.list_audit_log(10000).map_err(map_err)?;
+    let entries = vault.list_audit_log(10000).map_err(|e| color_eyre::eyre::eyre!(e))?;
     let json = serde_json::to_string_pretty(&entries).map_err(|e| {
         app.error_message = Some(format!("序列化日志失败: {}", e));
         color_eyre::eyre::eyre!(e)

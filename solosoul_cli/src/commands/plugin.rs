@@ -7,7 +7,20 @@ use std::sync::{Arc, Mutex};
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
-use crate::plugin_sink::TerminalPluginSink;
+
+use solosoul_plugin::{PluginEvent, PluginEventSink};
+
+/// 终端插件事件接收器（no-op 实现）。
+///
+/// 插件运行结果通过 PluginManager::run() 的返回值获取，
+/// 此 sink 仅满足 trait 约束，不缓冲事件。
+pub struct TerminalPluginSink;
+
+impl PluginEventSink for TerminalPluginSink {
+    fn send(&self, _event: PluginEvent) -> Result<(), String> {
+        Ok(())
+    }
+}
 
 /// 以安装插件的摘要信息（用定列表展示）。
 #[derive(Debug, Clone)]
@@ -145,7 +158,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
                 return format!("安装插件 {} 失败: {}", plugin_id_clone, e);
             }
 
-            let sink = Arc::new(TerminalPluginSink);
+            let sink: Arc<TerminalPluginSink> = Arc::new(TerminalPluginSink);
 
             match manager
                 .run(

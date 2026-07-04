@@ -32,24 +32,7 @@ export function hexToRgb(hex: string): [number, number, number] | null {
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 }
 
-export function rgbToHex(r: number, g: number, b: number): string {
-  return `#${[r, g, b]
-    .map((v) =>
-      Math.max(0, Math.min(255, Math.round(v)))
-        .toString(16)
-        .padStart(2, '0'),
-    )
-    .join('')}`;
-}
 
-/** Generate a slightly darker hover variant for a custom accent hex. */
-export function adjustAccentHover(hex: string): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-  const factor = -0.12;
-  const [r, g, b] = rgb.map((c) => c + c * factor);
-  return rgbToHex(r, g, b);
-}
 
 /** Sync the native window background color with the active scheme so the
  *  system title bar (traffic lights area) matches the app theme. */
@@ -81,7 +64,7 @@ export function applyAccentColor(accent: AccentPreset, customHex?: string) {
   if (accent === 'custom' && customHex) {
     root.setAttribute('data-accent', 'custom');
     root.style.setProperty('--accent-primary', customHex);
-    root.style.setProperty('--accent-hover', adjustAccentHover(customHex));
+    root.style.setProperty('--accent-hover', 'color-mix(in srgb, var(--accent-primary), black 12%)');
     return;
   }
   const preset = accent && ACCENT_COLORS[accent] ? accent : 'ocean';

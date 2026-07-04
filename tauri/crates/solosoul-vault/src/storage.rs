@@ -2790,16 +2790,6 @@ impl VaultStore {
         Ok(())
     }
 
-    #[allow(dead_code)]
-    fn delete_metadata(&self, key: &str, prefix: &str) -> Result<(), String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let full_key = format!("{}_{}", prefix, key);
-        conn.execute("DELETE FROM metadata WHERE key = ?1", params![full_key])
-            .map_err(|e| format!("Failed to delete metadata: {}", e))?;
-        Ok(())
-    }
-
     // ── Guide embeddings for RAG (§RAG-1) ────────────────────────
 
     /// Save a guide embedding chunk. Overwrites if id already exists.
@@ -3068,7 +3058,6 @@ impl VaultStore {
         Ok(None)
     }
 
-
     /// Check if a user template exists (any account).
     pub fn user_template_exists(&self, template_id: &str) -> Result<bool, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
@@ -3080,22 +3069,6 @@ impl VaultStore {
             .query_row(params![template_id], |row| row.get(0))
             .optional()
             .map_err(|e| format!("user_template_exists query: {}", e))?;
-        Ok(exists.is_some())
-    }
-
-    /// Check if a template is in trash (soft-deleted).
-    pub fn is_template_in_trash(&self, template_id: &str) -> Result<bool, String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let mut stmt = conn
-            .prepare(
-                "SELECT 1 FROM trash WHERE item_type = 'template' AND original_id = ?1 LIMIT 1",
-            )
-            .map_err(|e| format!("prepare is_template_in_trash: {}", e))?;
-        let exists: Option<i32> = stmt
-            .query_row(params![template_id], |row| row.get(0))
-            .optional()
-            .map_err(|e| format!("is_template_in_trash query: {}", e))?;
         Ok(exists.is_some())
     }
 
@@ -4399,9 +4372,6 @@ mod tests {
         vault.write_metadata("k1", "pfx", b"hello bytes").unwrap();
         let loaded = vault.read_metadata("k1", "pfx").unwrap().unwrap();
         assert_eq!(loaded, b"hello bytes");
-
-        vault.delete_metadata("k1", "pfx").unwrap();
-        assert!(vault.read_metadata("k1", "pfx").unwrap().is_none());
     }
 
     #[test]

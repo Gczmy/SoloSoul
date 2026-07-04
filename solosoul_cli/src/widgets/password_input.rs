@@ -76,7 +76,7 @@ impl PasswordInput {
     }
 
     fn insert_char(&mut self, c: char) {
-        let byte_pos = self.byte_position(self.cursor);
+        let byte_pos = crate::util::byte_position(&self.value, self.cursor);
         self.value.insert(byte_pos, c);
         self.cursor += 1;
     }
@@ -86,7 +86,7 @@ impl PasswordInput {
             return;
         }
         let remove_at = self.cursor - 1;
-        let byte_pos = self.byte_position(remove_at);
+        let byte_pos = crate::util::byte_position(&self.value, remove_at);
         let char_len = self.value[byte_pos..]
             .chars()
             .next()
@@ -100,7 +100,7 @@ impl PasswordInput {
         if self.cursor >= self.value.chars().count() {
             return;
         }
-        let byte_pos = self.byte_position(self.cursor);
+        let byte_pos = crate::util::byte_position(&self.value, self.cursor);
         let char_len = self.value[byte_pos..]
             .chars()
             .next()
@@ -162,10 +162,6 @@ impl PasswordInput {
         frame.set_cursor_position((cursor_x, cursor_y));
     }
 
-    /// 将字符索引转换为字节位置。
-    fn byte_position(&self, char_index: usize) -> usize {
-        crate::util::byte_position(&self.value, char_index)
-    }
 }
 
 #[cfg(test)]
