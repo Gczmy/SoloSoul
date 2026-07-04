@@ -2,6 +2,47 @@
 
 ## [2.5.9] - 2026-07-01
 
+## [2.5.10] - 2026-07-05
+
+### Added
+
+- **模板字段级契约角色绑定** — 字段级 `contractField` + `contractBindings`，插件安装时自动注册合约绑定。
+- **expiry-guardian 插件重写** — typed contract + 自定义 UI，Passport/Visa/ID Card/银行卡系统模板绑定。
+- **导入 KeepBoth 冲突策略** — 重复对象自动附加本地化后缀保留双方数据。
+- **导入三级树预览** — 「页面 → 对象 → 附件」树形结构预览 + 附件级选择过滤。
+- **导入内容哈希去重** — 按模板 properties 哈希自动去重。
+- **导出全选/取消全选** — 导出区批量选择操作。
+- **窗口状态持久化** — 使用 `plugin-window-state` 替代自定义 hook。
+
+### Changed
+
+- **Dialog → 原生 `<dialog>`** — 移除 93 行自定义实现。
+- **ExpandableSection → 原生 `<details>/<summary>`** — 移除 137 行自定义折叠组件。
+- **DatePicker/DropdownSelect → 原生 `input[type=date]`** — 移除 509 行自定义日期选择器。
+- **合并 `rag.rs` + 删除废弃 `db/` 模块** — 减少 605 行死代码。
+- **统一 AES 错误类型** — 用 `CipherError` 枚举替换 `String`。
+- **Windows 导出密码校验移除** — 不再强制 8 位复杂度。
+
+### Fixed
+
+- **P0.5 架构审计 85 项全部完成** — 移除 ~3,120 行代码，减少 9 个依赖。
+- **6 个 ESLint `no-explicit-any` 错误清零** — OcrPage/OcrSettingsPage/PluginResultPanel 全面修复。
+- **2 个 React Hooks 顺序回归** — Dialog/PluginBadge early return 修复。
+- **插件契约反序列化兼容** — `label`/`displayName` 支持 String 或 Object 格式。
+- **导入创建初始 Snapshot** — 修复历史记录版本号显示问题。
+
+### Refactored
+
+- **P0.5 Phase 1-4 完成** — 死代码清理、CLI 去重、`solosoul-core` 下沉、`FieldResolver` 插件兼容性提升。
+- **P2 前端重构** — `useCancellable` → `AbortController` 迁移，死代码内联。
+
+### Chores
+
+- 版本号同步升级到 2.5.10。
+- 60 个 commit 自 v2.5.9。
+- expiry-guardian 子模块更新。
+
+
 ### Added
 
 - **SafeMarkdown 安全组件** — 统一配置 XSS 防护，替换 ReactMarkdown 调用。
