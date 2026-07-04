@@ -200,15 +200,3 @@ export function buildMessagesWithSystemPromptAndGuide(
   return buildMessagesWithSystemPrompt(userPrompt, history, combinedSystem);
 }
 
-/**
- * 将多个文档片段合并到单条 system message 中。
- * 用于 RAG 向量检索结果注入。
- */
-export function buildMessagesWithSystemPromptAndChunks(
-  userPrompt: string,
-  history: ChatMessage[],
-  systemPrompt: string,
-  chunkContent: string | null,
-): ChatMessage[] {
-  return buildMessagesWithSystemPromptAndGuide(userPrompt, history, systemPrompt, chunkContent);
-}

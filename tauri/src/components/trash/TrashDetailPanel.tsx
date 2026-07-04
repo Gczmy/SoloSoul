@@ -22,24 +22,10 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatBytes } from '@/lib/utils';
+import { truncateFileName } from '@/lib/attachmentUtils';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, SnapshotEntry, TrashAttachment, TrashChildSummary } from './types';
 import { ICON_SIZE } from '@/lib/constants';
-
-/** Truncate long file names preserving extension: 'abcdefg…-.pdf' */
-function truncateFileName(fileName: string, maxLen: number = 28): string {
-  const dotIndex = fileName.lastIndexOf('.');
-  if (dotIndex <= 0) {
-    if (fileName.length <= maxLen) return fileName;
-    return fileName.slice(0, maxLen - 1) + '…';
-  }
-  const baseName = fileName.slice(0, dotIndex);
-  const ext = fileName.slice(dotIndex);
-  if (fileName.length <= maxLen) return fileName;
-  const available = maxLen - ext.length - 2;
-  if (available <= 1) return fileName.slice(0, maxLen - 1) + '…';
-  return baseName.slice(0, available) + '…-' + ext;
-}
 
 interface TrashDetailPanelProps {
   detailItem: TrashDetail;

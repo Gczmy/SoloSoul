@@ -169,8 +169,3 @@ export async function listenForSystemTheme(
   }
 }
 
-/** Legacy no-op; unlisten is now returned by listenForSystemTheme. Kept for
- *  backward compatibility with existing call sites that may still invoke it. */
-export function stopListeningForSystemTheme() {
-  // No-op: the unlisten function is returned by listenForSystemTheme.
-}

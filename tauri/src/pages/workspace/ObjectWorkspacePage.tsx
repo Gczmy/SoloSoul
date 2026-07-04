@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { useCancellable } from '@/hooks/useCancellable';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -73,7 +72,7 @@ export function ObjectWorkspacePage() {
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const removeCustomPage = useSettingsStore((s) => s.removeCustomPage);
   const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
-  const makeCancellable = useCancellable();
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     loadUserTemplates().catch((err) => console.warn('[Workspace] Load templates failed:', err));
@@ -261,19 +260,20 @@ export function ObjectWorkspacePage() {
 
   // Load attachment counts for visible objects
   const refreshAttachmentCounts = useCallback(() => {
-    const { isCancelled, cancel } = makeCancellable();
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     const ids = visibleObjects.map((o) => o.id);
     if (ids.length === 0) {
-      cancel();
-      return cancel;
+      return () => controller.abort();
     }
     invoke<Record<string, number>>('attachment_count_batch', { objectIds: ids })
       .then((counts) => {
-        if (!isCancelled()) setAttachmentCounts(counts);
+        if (!controller.signal.aborted) setAttachmentCounts(counts);
       })
       .catch((err) => console.warn('[Workspace] Attachment count batch failed:', err));
-    return cancel;
-  }, [visibleObjects, makeCancellable]);
+    return () => controller.abort();
+  }, [visibleObjects]);
 
   useEffect(() => {
     return refreshAttachmentCounts();

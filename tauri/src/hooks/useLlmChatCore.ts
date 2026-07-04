@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
-import { useCancellable } from '@/hooks/useCancellable';
 import i18n from '@/lib/i18n';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { useTranslation } from 'react-i18next';
 import {
   buildSystemPrompt,
-  buildMessagesWithSystemPromptAndChunks,
+  buildMessagesWithSystemPromptAndGuide,
 } from '@/lib/llm/systemPromptBuilder';
 import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
 import { markConversationPending } from '@/lib/notification';
@@ -62,7 +61,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
 
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
-  const makeCancellable = useCancellable();
+  const abortRef = useRef<AbortController | null>(null);
   const llmStore = useLlmStore();
 
   const [activeProvider, setActiveProvider] = useState<ActiveProvider | null>(null);
@@ -133,14 +132,16 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   /* Load conversation list */
   const loadConversationList = useCallback(async () => {
     if (!accountId || !isAiEnabled || !isConfigured) return;
-    const { isCancelled } = makeCancellable();
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const list = await invoke<ConversationSummary[]>('llm_list_conversations', { accountId });
-      if (!isCancelled()) setConversations(list);
+      if (!controller.signal.aborted) setConversations(list);
     } catch {
       /* ignore */
     }
-  }, [accountId, isAiEnabled, isConfigured, makeCancellable]);
+  }, [accountId, isAiEnabled, isConfigured]);
 
   useEffect(() => {
     loadConversationList();
@@ -149,7 +150,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   /* Online status */
   const checkOnline = useCallback(() => {
     if (!activeProvider || !accountId) return;
-    const { isCancelled } = makeCancellable();
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setCheckingOnline(true);
     (async () => {
       try {
@@ -168,14 +171,14 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
           model: activeProvider.model,
           apiType: activeProvider.apiType,
         });
-        if (!isCancelled()) setIsOnline(online);
+        if (!controller.signal.aborted) setIsOnline(online);
       } catch {
-        if (!isCancelled()) setIsOnline(false);
+        if (!controller.signal.aborted) setIsOnline(false);
       } finally {
-        if (!isCancelled()) setCheckingOnline(false);
+        if (!controller.signal.aborted) setCheckingOnline(false);
       }
     })();
-  }, [activeProvider, accountId, makeCancellable]);
+  }, [activeProvider, accountId]);
 
   useEffect(() => {
     if (activeProvider && accountId) checkOnline();
@@ -334,7 +337,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         const systemPrompt = buildSystemPrompt();
         const chunks = await searchGuideChunks(text, i18n.language || 'zh-CN');
         const docPrompt = formatChunksAsSystemMessage(chunks);
-        allMessages = buildMessagesWithSystemPromptAndChunks(
+        allMessages = buildMessagesWithSystemPromptAndGuide(
           text,
           updatedMessages,
           systemPrompt,

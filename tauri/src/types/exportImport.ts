@@ -77,10 +77,3 @@ export interface ImportResult {
   attachmentCount: number;
 }
 
-export type PasswordStrength = 'none' | 'weak' | 'medium' | 'strong';
-
-export function assessPasswordStrength(pw: string): PasswordStrength {
-  if (!pw) return 'none';
-  // 不再限制密码复杂度 — 由用户自行决定密码难度
-  return 'strong';
-}

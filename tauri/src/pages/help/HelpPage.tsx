@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useCancellable } from '@/hooks/useCancellable';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -28,8 +27,8 @@ export function HelpPage() {
   const backTo = (location.state as { from?: string } | null)?.from;
   const { t, i18n } = useTranslation(['common', 'settings']);
   const language = i18n.language || 'zh-CN';
-  const makeIndexCancellable = useCancellable();
-  const makeContentCancellable = useCancellable();
+  const abortIndexRef = useRef<AbortController | null>(null);
+  const abortContentRef = useRef<AbortController | null>(null);
 
   const [index, setIndex] = useState<GuideIndexType | null>(null);
   const [content, setContent] = useState<GuideContent | null>(null);
@@ -67,51 +66,57 @@ export function HelpPage() {
   };
 
   const loadIndex = useCallback(() => {
-    const { isCancelled } = makeIndexCancellable();
+    abortIndexRef.current?.abort();
+    const controller = new AbortController();
+    abortIndexRef.current = controller;
     setError(null);
     loadGuideIndex()
       .then((idx) => {
-        if (!isCancelled()) setIndex(idx);
+        if (!controller.signal.aborted) setIndex(idx);
       })
       .catch((e) => {
-        if (!isCancelled()) setError(formatIndexError(e));
+        if (!controller.signal.aborted) setError(formatIndexError(e));
       });
-  }, [makeIndexCancellable]);
+  }, []);
 
   const loadContent = useCallback(
     (id: string) => {
-      const { isCancelled } = makeContentCancellable();
+      abortContentRef.current?.abort();
+      const controller = new AbortController();
+      abortContentRef.current = controller;
       if (!id) {
-        if (!isCancelled()) setContent(null);
+        if (!controller.signal.aborted) setContent(null);
         return;
       }
       setLoading(true);
       loadGuideContent(id, language)
         .then((c) => {
-          if (!isCancelled()) {
+          if (!controller.signal.aborted) {
             setContent(c);
             setError(null);
           }
         })
         .catch((e) => {
-          if (!isCancelled()) {
+          if (!controller.signal.aborted) {
             const msg = e instanceof Error ? e.message : String(e);
             setError({ title: '无法加载文档内容', message: msg, isTimeout: false });
           }
         })
         .finally(() => {
-          if (!isCancelled()) setLoading(false);
+          if (!controller.signal.aborted) setLoading(false);
         });
     },
-    [language, makeContentCancellable],
+    [language],
   );
 
   useEffect(() => {
     loadIndex();
+    return () => abortIndexRef.current?.abort();
   }, [loadIndex]);
 
   useEffect(() => {
     loadContent(guideId);
+    return () => abortContentRef.current?.abort();
   }, [guideId, loadContent]);
 
   const handleSelect = (id: string) => {

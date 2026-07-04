@@ -6,6 +6,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
+import { formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
@@ -18,12 +19,6 @@ interface ScannedFile {
   name: string;
   size: number;
   ext: string;
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 const SUPPORTED_EXTS = new Set([
@@ -178,7 +173,7 @@ export function ScanLocalPage() {
                         <div
                           style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
                         >
-                          {file.ext.toUpperCase()} · {formatFileSize(file.size)}
+                          {file.ext.toUpperCase()} · {formatBytes(file.size)}
                         </div>
                       </div>
                     </div>

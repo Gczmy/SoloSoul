@@ -5,7 +5,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
-import { useCancellable } from '@/hooks/useCancellable';
 
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
@@ -53,7 +52,7 @@ export function LoginPage() {
   const [bioError, setBioError] = useState<string | null>(null);
   const [bioChecked, setBioChecked] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const makeCancellable = useCancellable();
+  const abortRef = useRef<AbortController | null>(null);
 
   // PIN state
   const [pinAvailable, setPinAvailable] = useState(false);
@@ -79,9 +78,11 @@ export function LoginPage() {
       .catch(() => {
         // Fall through to the store-level loader below.
       });
-    const { isCancelled, cancel } = makeCancellable();
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     checkHasAccount().then(() => {
-      if (!isCancelled()) listAccounts();
+      if (!ctrl.signal.aborted) listAccounts();
     });
     // Probe device biometry type early (do not set bioAvailable here — configured
     // status is account-specific and decided in the selectedAccountId effect).
@@ -89,7 +90,7 @@ export function LoginPage() {
       accountId: '',
     })
       .then((r) => {
-        if (isCancelled()) return;
+        if (ctrl.signal.aborted) return;
         if (r.biometryType === 'touchId') {
           setBiometryType('Touch ID');
           setBiometryTypeRaw('touchId');
@@ -104,8 +105,8 @@ export function LoginPage() {
       .catch(() => {
         // Ignore: account-specific check will handle availability.
       });
-    return cancel;
-  }, [checkHasAccount, listAccounts, makeCancellable]);
+    return () => ctrl.abort();
+  }, [checkHasAccount, listAccounts]);
 
   useEffect(() => {
     if (hasAccount === false) navigate('/bootstrap');
@@ -133,10 +134,12 @@ export function LoginPage() {
 
   // Check biometric and PIN availability for selected account
   useEffect(() => {
-    const { isCancelled, cancel } = makeCancellable();
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     if (!selectedAccountId) {
       // 尚未选中账户时保持缓存值，不触发优先级设置 effect，避免覆盖缓存
-      return cancel;
+      return () => controller.abort();
     }
 
     // Reset state when account changes — 不重置 loginMethod，保留缓存值避免闪烁
@@ -154,7 +157,7 @@ export function LoginPage() {
       { accountId: selectedAccountId },
     )
       .then((r) => {
-        if (isCancelled()) return;
+        if (controller.signal.aborted) return;
         if (r.available && r.configured) {
           setBioAvailable(true);
           if (r.biometryType === 'touchId') {
@@ -172,11 +175,11 @@ export function LoginPage() {
         }
       })
       .catch(() => {
-        if (isCancelled()) return;
+        if (controller.signal.aborted) return;
         setBioAvailable(false);
       })
       .finally(() => {
-        if (!isCancelled()) setBioChecked(true);
+        if (!controller.signal.aborted) setBioChecked(true);
       });
 
     // Check PIN
@@ -184,19 +187,19 @@ export function LoginPage() {
       accountId: selectedAccountId,
     })
       .then((r) => {
-        if (isCancelled()) return;
+        if (controller.signal.aborted) return;
         setPinAvailable(r.configured && !r.locked);
       })
       .catch(() => {
-        if (isCancelled()) return;
+        if (controller.signal.aborted) return;
         setPinAvailable(false);
       })
       .finally(() => {
-        if (!isCancelled()) setPinChecked(true);
+        if (!controller.signal.aborted) setPinChecked(true);
       });
 
-    return cancel;
-  }, [selectedAccountId, makeCancellable]);
+    return () => controller.abort();
+  }, [selectedAccountId]);
 
   // 卸载时清理悬停延迟定时器
   useEffect(() => {
