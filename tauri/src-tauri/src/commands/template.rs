@@ -292,8 +292,8 @@ pub async fn template_delete(
     }
 
     // Load retention period and build TrashItem
-    let period = load_trash_retention(&vault, &account_id);
-    let retention_ms = retention_ms(&period);
+    let period = super::object::snapshot::load_trash_retention(&vault, &account_id);
+    let retention_ms = super::object::snapshot::retention_ms(&period);
     let now_ms = chrono::Utc::now().timestamp_millis();
 
     let template_data =
@@ -464,19 +464,10 @@ pub async fn template_save_from_object(
     Ok(template.id)
 }
 
-// ── Trash retention helpers (delegated to shared snapshot.rs) ─
-
-fn load_trash_retention(vault: &solosoul_vault::VaultStore, account_id: &str) -> String {
-    super::object::snapshot::load_trash_retention(vault, account_id)
-}
-
-fn retention_ms(period: &str) -> i64 {
-    super::object::snapshot::retention_ms(period)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::object::snapshot::{load_trash_retention, retention_ms};
 
     // ── retention_ms ──────────────────────────────────────────────
 

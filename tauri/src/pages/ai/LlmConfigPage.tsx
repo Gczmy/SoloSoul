@@ -23,6 +23,13 @@ import { KnowledgeBaseCard } from '@/components/llm-config/KnowledgeBaseCard';
 import { RiskAcceptanceDialog } from '@/components/llm-config/RiskAcceptanceDialog';
 import { ICON_SIZE } from '@/lib/constants';
 
+/** AI 功能中始终处于禁用状态的功能（UI 尚未提供开关） */
+const ALWAYS_DISABLED_FEATURES = {
+  smartFill: false,
+  commandGen: false,
+  naturalLanguageSearch: false,
+} as const;
+
 interface EmbedModelInfo {
   id: string;
   name: string;
@@ -232,7 +239,7 @@ export function LlmConfigPage() {
     if (accountId)
       await invoke('llm_set_ai_features', {
         accountId,
-        features: { chat: next, smartFill: false, commandGen: false, naturalLanguageSearch: false },
+        features: { chat: next, ...ALWAYS_DISABLED_FEATURES },
       }).catch((err) =>
         console.warn('[LLMConfig] Set AI features failed:', err),
       );
@@ -247,8 +254,7 @@ export function LlmConfigPage() {
     setShowRiskDialog(false);
     setChatEnabled(true);
     await invoke('llm_set_ai_features', {
-      accountId,
-      features: { chat: true, smartFill: false, commandGen: false, naturalLanguageSearch: false },
+      accountId,        features: { chat: true, ...ALWAYS_DISABLED_FEATURES },
     }).catch((err) =>
       console.warn('[LLMConfig] Set features after risk accept failed:', err),
     );
