@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import styles from './ExpandableSection.module.css';
 import { ICON_SIZE } from '@/lib/constants';
@@ -18,32 +17,29 @@ export function ExpandableSection({
   actions,
   children,
 }: ExpandableSectionProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
-
   return (
-    <>
-      <button
-        className={styles.inlineHeader}
-        onClick={() => setExpanded(!expanded)}
-        aria-expanded={expanded}
+    <details className={styles.details} open={defaultExpanded}>
+      <summary
+        className={styles.summary}
+        onClick={(e) => {
+          // Prevent toggle when clicking on action buttons inside summary
+          if ((e.target as HTMLElement).closest('[data-actions]')) {
+            e.preventDefault();
+          }
+        }}
       >
-        <div className={styles.inlineTitleRow}>
-          <ChevronDown
-            size={ICON_SIZE.xs}
-            className={`${styles.chevron} ${expanded ? styles.chevronOpen : ''}`}
-          />
-          <span className={styles.inlineTitle}>{title}</span>
+        <div className={styles.headerRow}>
+          <ChevronDown size={ICON_SIZE.xs} className={styles.chevron} />
+          <span className={styles.title}>{title}</span>
           {count !== undefined && <span className={styles.count}>{count}</span>}
         </div>
         {actions && (
-          <div className={styles.inlineActions} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.actions} data-actions>
             {actions}
           </div>
         )}
-      </button>
-      <div className={`${styles.collapsible} ${expanded ? styles.collapsibleOpen : ''}`}>
-        {children}
-      </div>
-    </>
+      </summary>
+      <div className={styles.content}>{children}</div>
+    </details>
   );
 }

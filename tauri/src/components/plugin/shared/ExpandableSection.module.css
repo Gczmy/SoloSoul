@@ -1,4 +1,8 @@
-.inlineHeader {
+.details {
+  border: none;
+}
+
+.summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -7,26 +11,29 @@
   user-select: none;
   padding: 2px 4px;
   margin: -2px -4px;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  font-family: inherit;
-  color: inherit;
   border-radius: 6px;
   transition: background 0.15s ease;
 }
 
-.inlineHeader:hover {
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::marker {
+  display: none;
+  content: '';
+}
+
+.summary:hover {
   background: var(--bg-hover);
 }
 
-.inlineHeader:focus-visible {
+.summary:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
-.inlineTitleRow {
+.headerRow {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -39,11 +46,11 @@
   transform: rotate(-90deg);
 }
 
-.chevronOpen {
+.details[open] .chevron {
   transform: rotate(0deg);
 }
 
-.inlineTitle {
+.title {
   font-size: var(--text-caption);
   font-weight: 600;
   color: var(--text-secondary);
@@ -63,26 +70,15 @@
   line-height: 1.4;
 }
 
-.inlineActions {
+.actions {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.collapsible {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition:
-    max-height 0.3s ease,
-    opacity 0.3s ease;
+.content {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.collapsibleOpen {
-  max-height: 9999px;
-  opacity: 1;
-  overflow: visible;
+  margin-top: 4px;
 }
