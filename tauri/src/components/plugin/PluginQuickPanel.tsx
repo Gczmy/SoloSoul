@@ -88,7 +88,8 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
       filtered = filtered.filter(
         (p) =>
           p.pluginId === 'com.solosoul.official.address-fmt' ||
-          p.pluginId === 'com.solosoul.official.watermark',
+          p.pluginId === 'com.solosoul.official.watermark' ||
+          p.pluginId === 'com.solosoul.official.expiry-guardian',
       );
     }
     switch (activeTab) {

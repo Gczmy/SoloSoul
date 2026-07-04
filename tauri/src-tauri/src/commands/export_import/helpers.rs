@@ -124,6 +124,113 @@ const MAX_ZIP_ENTRY_SIZE: u64 = 100 * 1024 * 1024;
 /// # 安全
 /// - 读取前检查 `entry.size()`（未压缩大小），超过 `MAX_ZIP_ENTRY_SIZE` 则拒绝。
 /// - 使用 `.take()` 限制实际读取字节数，即使 `size()` 返回 0/错误也有第二道防线。
+/// 为导入的副本生成不冲突的名称，参考回收站命名冲突机制。
+/// 根据 locale 选择后缀：
+/// - 中文（zh-* / cmn-*）："(原始名称)（导入）" → "(原始名称)（导入 2）"
+/// - 其他（默认 en-US）："(原始名称) (Imported)" → "(原始名称) (Imported 2)"
+///
+/// # 性能
+/// 只查询数据库一次，将结果缓存在 HashSet 中做后续判断。
+pub(crate) fn unique_object_name(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+    base_name: &str,
+    locale: &str,
+) -> Result<String, String> {
+    use std::collections::HashSet;
+    let (suffix, sep) = if locale.starts_with("zh") || locale.starts_with("cmn") {
+        ("（导入）", " ")
+    } else {
+        (" (Imported)", " ")
+    };
+    let names: HashSet<String> = vault
+        .list_objects(account_id, None, None, None, false, false)
+        .map_err(|e| e.to_string())?
+        .into_iter()
+        .map(|o| o.name)
+        .collect();
+
+    let candidate = format!("{}{}", base_name, suffix);
+    if !names.contains(&candidate) {
+        return Ok(candidate);
+    }
+
+    let mut counter = 2u32;
+    loop {
+        let candidate = format!("{}{}{}{}", base_name, suffix, sep, counter);
+        if !names.contains(&candidate) {
+            return Ok(candidate);
+        }
+        counter += 1;
+    }
+}
+
+/// 递归扫描 JSON 值，将旧 ID 引用替换为新 ID。
+/// 处理以下模式：
+/// - `"parentId"` 或 `"parent_id"` 字符串字段
+/// - `"childrenIds"` 或 `"children_ids"` 数组字段
+/// - RelationProperty 对象中的 `"targetId"` / `"id"` / `"objectId"`
+pub(crate) fn rewrite_id_references(
+    value: &mut serde_json::Value,
+    id_map: &std::collections::HashMap<String, String>,
+) {
+    match value {
+        serde_json::Value::Object(obj) => {
+            // 检查是否为 RelationProperty
+            let is_relation = obj
+                .get("type")
+                .or_else(|| obj.get("__type"))
+                .or_else(|| obj.get("kind"))
+                .and_then(|v| v.as_str())
+                == Some("relation");
+            if is_relation {
+                for key in ["targetId", "id", "objectId"] {
+                    if let Some(val) = obj.get_mut(key) {
+                        if let Some(s) = val.as_str() {
+                            if let Some(new_id) = id_map.get(s) {
+                                *val = serde_json::Value::String(new_id.clone());
+                            }
+                        }
+                    }
+                }
+            }
+            // 递归处理子对象
+            let keys: Vec<String> = obj.keys().cloned().collect();
+            for key in &keys {
+                if key == "parent_id" || key == "parentId" {
+                    if let Some(val) = obj.get_mut(key) {
+                        if let Some(s) = val.as_str() {
+                            if let Some(new_id) = id_map.get(s) {
+                                *val = serde_json::Value::String(new_id.clone());
+                            }
+                        }
+                    }
+                } else if key == "children_ids" || key == "childrenIds" {
+                    if let Some(arr) = obj.get_mut(key).and_then(|v| v.as_array_mut()) {
+                        for item in arr.iter_mut() {
+                            if let Some(s) = item.as_str() {
+                                if let Some(new_id) = id_map.get(s) {
+                                    *item = serde_json::Value::String(new_id.clone());
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if let Some(val) = obj.get_mut(key) {
+                        rewrite_id_references(val, id_map);
+                    }
+                }
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for item in arr.iter_mut() {
+                rewrite_id_references(item, id_map);
+            }
+        }
+        _ => {}
+    }
+}
+
 pub fn read_file_from_zip(file_path: &str, name: &str) -> Result<Vec<u8>, String> {
     let path = std::path::Path::new(file_path);
     let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;

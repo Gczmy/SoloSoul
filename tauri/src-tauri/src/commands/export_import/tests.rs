@@ -683,6 +683,103 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
     );
 }
 
+// ── 11. unique_object_name locale suffix ────────────────────
+
+#[test]
+fn test_unique_object_name_english_suffix() -> Result<(), String> {
+    let account_id = "acc_unique_en";
+    let (_tmp, vault) = test_vault(account_id);
+
+    let name = unique_object_name(&vault, account_id, "Passport", "en-US")?;
+    assert_eq!(name, "Passport (Imported)");
+    Ok(())
+}
+
+#[test]
+fn test_unique_object_name_chinese_suffix() -> Result<(), String> {
+    let account_id = "acc_unique_zh";
+    let (_tmp, vault) = test_vault(account_id);
+
+    let name = unique_object_name(&vault, account_id, "护照", "zh-CN")?;
+    assert_eq!(name, "护照（导入）");
+    Ok(())
+}
+
+#[test]
+fn test_unique_object_name_english_increment() -> Result<(), String> {
+    let account_id = "acc_unique_en2";
+    let (_tmp, vault) = test_vault(account_id);
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // 创建两个同名对象来触发递增
+    for i in 0..2 {
+        let rec = ObjectRecord {
+            contract_type_id: None,
+            id: format!("pre_{}", i),
+            account_id: account_id.to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "Doc (Imported)".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            created_at: now.clone(),
+            updated_at: now.clone(),
+            version: 1,
+        };
+        vault.save_object(&rec).map_err(|e| e.to_string())?;
+    }
+
+    let name = unique_object_name(&vault, account_id, "Doc", "en-US")?;
+    // "Doc (Imported)" 已存在 2 个 → 首次避开冲突用 counter=2: "Doc (Imported) 2"
+    assert_eq!(name, "Doc (Imported) 2");
+    Ok(())
+}
+
+#[test]
+fn test_unique_object_name_chinese_increment() -> Result<(), String> {
+    let account_id = "acc_unique_zh2";
+    let (_tmp, vault) = test_vault(account_id);
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // 创建 "文档（导入）" 对象
+    let rec = ObjectRecord {
+        contract_type_id: None,
+        id: "pre_zh".to_string(),
+        account_id: account_id.to_string(),
+        type_id: "note".to_string(),
+        section_type: "identity".to_string(),
+        name: "文档（导入）".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        created_at: now.clone(),
+        updated_at: now.clone(),
+        version: 1,
+    };
+    vault.save_object(&rec).map_err(|e| e.to_string())?;
+
+    let name = unique_object_name(&vault, account_id, "文档", "zh-CN")?;
+    assert_eq!(name, "文档（导入） 2");
+    Ok(())
+}
+
 /// 回归测试：无模板对象导入后不受影响
 #[test]
 fn test_import_no_template_object_unchanged() {

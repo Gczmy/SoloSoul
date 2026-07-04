@@ -26,7 +26,7 @@ type TabKey = 'export' | 'import';
 export function ExportImportPage() {
   const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
-  const { t } = useTranslation(['settings', 'common']);
+  const { t, i18n } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id ?? '');
 
   const [tab, setTab] = useState<TabKey>('export');
@@ -80,6 +80,9 @@ export function ExportImportPage() {
   );
   const [importExpandedPages, setImportExpandedPages] = useState<Set<string>>(new Set());
   const [importExpandedObjects, setImportExpandedObjects] = useState<Set<string>>(new Set());
+  const [objectConflictStrategies, setObjectConflictStrategies] = useState<
+    Map<string, ImportStrategy>
+  >(new Map());
 
   // Load scope tree
   const [scopeLoaded, setScopeLoaded] = useState(false);
@@ -275,6 +278,8 @@ export function ExportImportPage() {
         const st = obj.sectionType || 'uncategorized';
         pageIds.add(st);
       }
+      // 重置冲突策略
+      setObjectConflictStrategies(new Map());
       setImportSelectedPageIds(pageIds);
     } catch (e) {
       onError(new Error(resolveBackendErrorMessage(e)), t('common:decrypt_failed'));
@@ -294,6 +299,17 @@ export function ExportImportPage() {
       const selAttIds =
         importSelectedAttachmentIds.size > 0 ? Array.from(importSelectedAttachmentIds) : [];
 
+      // 构建 per-object 策略（仅对有显式覆盖设置的冲突对象）
+      const objectStrategies: Record<string, ImportStrategy> = {};
+      if (decryptedPreview) {
+        for (const conflict of decryptedPreview.conflicts) {
+          const strategy = objectConflictStrategies.get(conflict.objectId);
+          if (strategy && strategy !== importStrategy) {
+            objectStrategies[conflict.objectId] = strategy;
+          }
+        }
+      }
+
       if (showStrategySelector && decryptedPreview) {
         const result = await invoke<ImportResult>('import_execute_advanced', {
           accountId,
@@ -303,6 +319,8 @@ export function ExportImportPage() {
             sourcePath: importPath,
             password: importPw,
             selectedAttachmentIds: selAttIds.length > 0 ? selAttIds : null,
+            objectStrategies,
+            locale: i18n.language,
           },
         });
         onSuccess(
@@ -321,6 +339,8 @@ export function ExportImportPage() {
             sourcePath: importPath,
             password: importPw,
             selectedAttachmentIds: selAttIds.length > 0 ? selAttIds : null,
+            objectStrategies,
+            locale: i18n.language,
           },
         });
         onSuccess(
@@ -335,6 +355,7 @@ export function ExportImportPage() {
       setImportPath('');
       setImportPw('');
       setShowStrategySelector(false);
+      setObjectConflictStrategies(new Map());
       loadScope();
     } catch (e) {
       onError(new Error(resolveBackendErrorMessage(e)), t('common:import_failed'));
@@ -392,6 +413,14 @@ export function ExportImportPage() {
         return next;
       });
     }
+  };
+
+  const handleSetObjectConflictStrategy = (objectId: string, strategy: ImportStrategy) => {
+    setObjectConflictStrategies((prev) => {
+      const next = new Map(prev);
+      next.set(objectId, strategy);
+      return next;
+    });
   };
 
   const toggleImportAttachment = (attId: string) => {
@@ -568,6 +597,8 @@ export function ExportImportPage() {
             onToggleImportObjectExpanded={toggleImportObjectExpanded}
             onSelectAllImport={handleSelectAllImport}
             onSetStrategy={setImportStrategy}
+            objectConflictStrategies={objectConflictStrategies}
+            onSetObjectConflictStrategy={handleSetObjectConflictStrategy}
           />
         ) : null}
       </PageContainer>

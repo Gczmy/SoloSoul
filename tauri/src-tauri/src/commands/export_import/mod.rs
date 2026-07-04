@@ -10,7 +10,7 @@ use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_vault::ObjectSummary;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::fs::File;
 use std::io::{Read, Write};
 use tauri::State;
@@ -156,15 +156,26 @@ pub struct DecryptedImportPreview {
     pub attachments: Vec<AttachmentImportInfo>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ConflictKind {
+    /// ID 相同、名称相同
+    Identical,
+    /// ID 相同、名称不同（无法判断是本地改名还是导入包名称被修改）
+    RenamedLocal,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConflictInfo {
     pub object_id: String,
-    pub name: String,
+    pub imported_name: String,
+    pub existing_name: String,
+    pub kind: ConflictKind,
 }
 
 /// P2: import strategy for conflict resolution
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ImportStrategy {
     /// Skip conflicting objects (keep existing)
@@ -173,6 +184,8 @@ pub enum ImportStrategy {
     Overwrite,
     /// Merge: overwrite conflicts, keep non-conflicting originals
     Merge,
+    /// Keep both: import object gets new UUID, name suffixed with （导入）
+    KeepBoth,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -180,6 +193,11 @@ pub enum ImportStrategy {
 pub struct ImportSelection {
     pub object_id: String,
     pub selected: bool,
+}
+
+/// 默认 locale，当前端未传时兜底使用英文。
+pub(crate) fn default_locale() -> String {
+    "en-US".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -191,6 +209,12 @@ pub struct AdvancedImportRequest {
     pub password: String,
     /// 选中的附件 ID（旧 ID，来自导出包）。None = 导入所有附件，Some([]) = 不导入附件。
     pub selected_attachment_ids: Option<Vec<String>>,
+    /// 单对象策略覆盖（object_id → ImportStrategy）
+    #[serde(default)]
+    pub object_strategies: HashMap<String, ImportStrategy>,
+    /// 当前界面语言（如 "en-US"、"zh-CN"），用于生成副本名称后缀
+    #[serde(default = "default_locale")]
+    pub locale: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -56,12 +56,16 @@ export interface DecryptedImportPreview {
   attachments: AttachmentImportInfo[];
 }
 
+export type ConflictKind = 'identical' | 'renamedLocal';
+
 export interface ConflictInfo {
   objectId: string;
-  name: string;
+  importedName: string;
+  existingName: string;
+  kind: ConflictKind;
 }
 
-export type ImportStrategy = 'skipExisting' | 'overwrite' | 'merge';
+export type ImportStrategy = 'skipExisting' | 'overwrite' | 'merge' | 'keepBoth';
 
 export interface ImportSelection {
   objectId: string;

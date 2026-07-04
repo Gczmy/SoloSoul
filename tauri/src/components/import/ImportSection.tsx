@@ -14,6 +14,8 @@ import type {
   ImportPreview,
   DecryptedImportPreview,
   ObjectSummary,
+  ConflictInfo,
+  ConflictKind,
 } from '@/types/exportImport';
 
 interface ImportSectionProps {
@@ -47,6 +49,9 @@ interface ImportSectionProps {
   onToggleImportObjectExpanded: (objectId: string) => void;
   onSelectAllImport: (selectAll: boolean) => void;
   onSetStrategy: (s: ImportStrategy) => void;
+  // Per-object strategy for conflicts
+  objectConflictStrategies: Map<string, ImportStrategy>;
+  onSetObjectConflictStrategy: (objectId: string, strategy: ImportStrategy) => void;
 }
 
 /** Group decrypted preview objects by section_type into pages */
@@ -95,6 +100,8 @@ export function ImportSection({
   onToggleImportObjectExpanded,
   onSelectAllImport,
   onSetStrategy,
+  objectConflictStrategies,
+  onSetObjectConflictStrategy,
 }: ImportSectionProps) {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
 
@@ -109,6 +116,20 @@ export function ImportSection({
     () => new Set(decryptedPreview?.conflicts.map((c) => c.objectId) ?? []),
     [decryptedPreview],
   );
+
+  // Build a conflict lookup map for quick access
+  const conflictMap = useMemo(
+    () => new Map(decryptedPreview?.conflicts.map((c) => [c.objectId, c]) ?? []),
+    [decryptedPreview],
+  );
+
+  // Text for conflict kind
+  const conflictKindText = (kind: ConflictKind): string => {
+    switch (kind) {
+      case 'identical': return t('settings:conflict_kind_identical');
+      case 'renamedLocal': return t('settings:conflict_kind_renamed_local');
+    }
+  };
 
   // Attachments grouped by object ID
   const attachmentsByObject = useMemo(() => {
@@ -492,19 +513,23 @@ export function ImportSection({
                                     <SensitivityBadge
                                       level={obj.sensitivityLevel as SensitivityLevel}
                                     />
-                                    {isConflict && (
-                                      <span
-                                        style={{
-                                          fontSize: 'var(--text-badge)',
-                                          color: 'var(--warning)',
-                                          border: '1px solid var(--warning)',
-                                          borderRadius: 3,
-                                          padding: '0 4px',
-                                        }}
-                                      >
-                                        {t('settings:conflict')}
-                                      </span>
-                                    )}
+                                    {isConflict && (() => {
+                                      const cinfo = conflictMap.get(obj.id);
+                                      return (
+                                        <span
+                                          title={cinfo ? conflictKindText(cinfo.kind) : ''}
+                                          style={{
+                                            fontSize: 'var(--text-badge)',
+                                            color: 'var(--warning)',
+                                            border: '1px solid var(--warning)',
+                                            borderRadius: 3,
+                                            padding: '0 4px',
+                                          }}
+                                        >
+                                          {t('settings:conflict')}
+                                        </span>
+                                      );
+                                    })()}
                                     {hasAtts && (
                                       <button
                                         type="button"
@@ -623,8 +648,65 @@ export function ImportSection({
                       color: 'var(--warning)',
                     }}
                   >
-                    {t('settings:conflict_warning', {
-                      count: decryptedPreview.conflicts.length,
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                      {t('settings:conflict_warning', {
+                        count: decryptedPreview.conflicts.length,
+                      })}
+                    </div>
+                    {/* Per-object conflict strategy selector */}
+                    {decryptedPreview.conflicts.map((c) => {
+                      const currentStrategy = objectConflictStrategies.get(c.objectId) ?? importStrategy;
+                      return (
+                        <div
+                          key={c.objectId}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            padding: '4px 0',
+                            borderBottom: '1px solid var(--border-subtle)',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <span style={{ flex: 1, minWidth: 120, fontSize: 'var(--text-badge)' }}>
+                            {c.importedName}
+                            {c.importedName !== c.existingName && (
+                              <span style={{ color: 'var(--text-tertiary)' }}>
+                                {' '}← 本地: {c.existingName}
+                              </span>
+                            )}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 'var(--text-badge)',
+                              color: 'var(--warning)',
+                              padding: '0 4px',
+                            }}
+                          >
+                            {conflictKindText(c.kind)}
+                          </span>
+                          <select
+                            value={currentStrategy}
+                            onChange={(e) =>
+                              onSetObjectConflictStrategy(c.objectId, e.target.value as ImportStrategy)
+                            }
+                            style={{
+                              fontSize: 'var(--text-caption)',
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              border: '1px solid var(--border-subtle)',
+                              background: 'var(--bg-toolbar)',
+                              color: 'var(--text-primary)',
+                              fontFamily: 'inherit',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <option value="skipExisting">{t('settings:strategy_skipExisting')}</option>
+                            <option value="overwrite">{t('settings:strategy_overwrite')}</option>
+                            <option value="keepBoth">{t('settings:strategy_keepBoth')}</option>
+                          </select>
+                        </div>
+                      );
                     })}
                   </div>
                 )}
@@ -717,7 +799,7 @@ export function ImportSection({
                   <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 8 }}>
                     {t('settings:import_strategy_title')}
                   </h4>
-                  {(['skipExisting', 'overwrite', 'merge'] as ImportStrategy[]).map((s) => (
+                  {(['skipExisting', 'overwrite', 'merge', 'keepBoth'] as ImportStrategy[]).map((s) => (
                     <label
                       key={s}
                       style={{

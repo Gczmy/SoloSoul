@@ -133,9 +133,18 @@ pub async fn import_decrypt_preview(
         if let Ok(Some(existing)) = vault.load_object(&obj.id) {
             // Soft-deleted objects are in trash and should not be treated as conflicts.
             if !existing.is_deleted {
+                // 比较名称判断冲突类型：名称相同为 Identical，否则为 RenamedLocal
+                //（只能区分名称是否相同，无法判断是本地改名还是导入包名称被修改）
+                let kind = if obj.name == existing.name {
+                    ConflictKind::Identical
+                } else {
+                    ConflictKind::RenamedLocal
+                };
                 conflicts.push(ConflictInfo {
                     object_id: obj.id.clone(),
-                    name: obj.name.clone(),
+                    imported_name: obj.name.clone(),
+                    existing_name: existing.name.clone(),
+                    kind,
                 });
             }
         }
@@ -181,6 +190,7 @@ pub async fn import_execute(
     file_path: String,
     password: String,
 ) -> Result<ImportResult, String> {
+    let locale = default_locale();
     import_execute_internal(
         state,
         account_id,
@@ -189,6 +199,8 @@ pub async fn import_execute(
         ImportStrategy::SkipExisting,
         None,
         None,
+        HashMap::new(),
+        &locale,
     )
     .await
 }
@@ -208,6 +220,8 @@ pub async fn import_execute_advanced(
         req.strategy,
         Some(req.selections),
         req.selected_attachment_ids,
+        req.object_strategies,
+        &req.locale,
     )
     .await
 }
@@ -220,6 +234,8 @@ async fn import_execute_internal(
     strategy: ImportStrategy,
     selections: Option<Vec<ImportSelection>>,
     selected_attachment_ids: Option<Vec<String>>,
+    object_strategies: HashMap<String, ImportStrategy>,
+    locale: &str,
 ) -> Result<ImportResult, String> {
     let svc = state
         .vault_service
@@ -307,6 +323,18 @@ async fn import_execute_internal(
         std::collections::HashSet::new();
     let now = chrono::Utc::now().to_rfc3339();
 
+    // ── 预构建 KeepBoth ID 映射表（解决前向引用问题）────────────────
+    let mut id_map: HashMap<String, String> = HashMap::new();
+    for obj_val in objects {
+        let id = obj_val["id"].as_str().unwrap_or("");
+        if id.is_empty() {
+            continue;
+        }
+        if object_strategies.get(id).copied() == Some(ImportStrategy::KeepBoth) {
+            id_map.insert(id.to_string(), generate_id());
+        }
+    }
+
     for obj_val in objects {
         let id = obj_val["id"].as_str().unwrap_or("");
         if id.is_empty() {
@@ -320,17 +348,27 @@ async fn import_execute_internal(
             }
         }
 
-        // Check conflict & apply strategy
-        let existing = vault.load_object(id).ok().flatten();
-        match &strategy {
-            ImportStrategy::SkipExisting => {
-                // Soft-deleted objects are not considered existing; import will restore them.
-                if existing.is_some_and(|e| !e.is_deleted) {
-                    continue;
+        // Check conflict & apply strategy (per-object override first, then global)
+        let effective_strategy = object_strategies
+            .get(id)
+            .copied()
+            .unwrap_or(strategy);
+        // 如果是 KeepBoth，不需要 load_object 做冲突判断（永远继续往下走）
+        if effective_strategy == ImportStrategy::KeepBoth {
+            // KeepBoth 分支：在此继续处理，不走 conflict skip/overwrite 逻辑
+        } else {
+            let existing = vault.load_object(id).ok().flatten();
+            match &effective_strategy {
+                ImportStrategy::SkipExisting => {
+                    // Soft-deleted objects are not considered existing; import will restore them.
+                    if existing.is_some_and(|e| !e.is_deleted) {
+                        continue;
+                    }
                 }
+                ImportStrategy::Overwrite => { /* always overwrite — fall through */ }
+                ImportStrategy::Merge => { /* overwrite always — fall through */ }
+                ImportStrategy::KeepBoth => { /* handled above */ }
             }
-            ImportStrategy::Overwrite => { /* always overwrite — fall through */ }
-            ImportStrategy::Merge => { /* overwrite always — fall through */ }
         }
 
         // Resolve cross-scope RelationProperty references
@@ -380,29 +418,56 @@ async fn import_execute_internal(
             crate::commands::object::inject_template_meta(vault, Some(tid), &mut properties);
         }
 
+        // ── 重写 KeepBoth ID 引用（所有对象都需要，不仅仅是 KeepBoth 对象）
+        // 这样如果 Object A（overwrite）引用 Object B（KeepBoth），A 的引用也会被更新
+        if !id_map.is_empty() {
+            rewrite_id_references(&mut properties, &id_map);
+        }
+
+        // ── KeepBoth: 使用预先生成的新 ID + 新名称 ────────────────────
+        let (final_id, final_name): (String, String) = if effective_strategy == ImportStrategy::KeepBoth {
+            let new_id = id_map.get(id).cloned().unwrap_or_else(generate_id);
+            let new_name = unique_object_name(&vault, &account_id, obj_val["name"].as_str().unwrap_or("Imported"), locale)?;
+            (new_id, new_name)
+        } else {
+            (id.to_string(), obj_val["name"].as_str().unwrap_or("Imported").to_string())
+        };
+
         let record = solosoul_vault::ObjectRecord {
             contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
-            id: id.to_string(),
+            id: final_id.clone(),
             account_id: account_id.clone(),
             type_id: obj_val["type_id"].as_str().unwrap_or("note").to_string(),
             section_type: obj_val["section_type"]
                 .as_str()
                 .unwrap_or("identity")
                 .to_string(),
-            name: obj_val["name"].as_str().unwrap_or("Imported").to_string(),
+            name: final_name,
             icon_name: obj_val["icon_name"]
                 .as_str()
                 .unwrap_or("document")
                 .to_string(),
-            parent_id: obj_val["parent_id"].as_str().map(String::from),
-            children_ids: obj_val["children_ids"]
-                .as_array()
-                .map(|a| {
-                    a.iter()
-                        .filter_map(|v| v.as_str().map(String::from))
-                        .collect()
-                })
-                .unwrap_or_default(),
+            parent_id: obj_val["parent_id"].as_str().map(|pid| {
+                // 无条件重写引用：如果父对象被 KeepBoth 重写了 ID，使用新 ID
+                id_map.get(pid).cloned().unwrap_or_else(|| pid.to_string())
+            }),
+            children_ids: {
+                // 无条件重写 children_ids 引用
+                let mut cids: Vec<String> = obj_val["children_ids"]
+                    .as_array()
+                    .map(|a| {
+                        a.iter()
+                            .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                for cid in &mut cids {
+                    if let Some(new_cid) = id_map.get(cid) {
+                        *cid = new_cid.clone();
+                    }
+                }
+                cids
+            },
             properties,
             property_labels,
             sensitivity_level: obj_val["sensitivity_level"]
@@ -433,10 +498,19 @@ async fn import_execute_internal(
         // 为导入对象创建初始 snapshot，使历史记录 badge 正常显示
         let snapshot_data =
             serde_json::to_vec(&record).map_err(|e| format!("snapshot ser: {}", e))?;
-        let _ = vault.save_snapshot(id, "import", &snapshot_data, "Imported");
+        let snapshot_key = if effective_strategy == ImportStrategy::KeepBoth {
+            &final_id
+        } else {
+            id
+        };
+        let _ = vault.save_snapshot(snapshot_key, "import", &snapshot_data, "Imported");
 
         imported += 1;
-        imported_object_ids.insert(id.to_string());
+        imported_object_ids.insert(final_id.clone());
+        // 也记录旧 ID 以便附件查找（KeepBoth 场景）
+        if effective_strategy == ImportStrategy::KeepBoth {
+            imported_object_ids.insert(id.to_string());
+        }
     }
 
     // 构建选中附件 ID 集合，用于附件过滤
@@ -515,10 +589,15 @@ async fn import_execute_internal(
             // Use streaming decryption to avoid holding the full ciphertext
             // and plaintext in memory simultaneously (P1-024).
             let new_att_id = generate_id();
+            // KeepBoth 场景下附件目录应使用新对象 ID，否则后续 load_object 基于新 ID 查找会找不到
+            let att_obj_id = id_map
+                .get(obj_id)
+                .cloned()
+                .unwrap_or_else(|| obj_id.to_string());
             let dest = svc
                 .base_path()
                 .join("attachments")
-                .join(obj_id)
+                .join(&att_obj_id)
                 .join(&new_att_id);
             std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
 
@@ -553,8 +632,20 @@ async fn import_execute_internal(
                 });
         }
 
+        // 对于 KeepBoth 对象，将附件 key 从旧 ID 映射到新 ID
+        let mut remapped_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> =
+            std::collections::HashMap::new();
+        for (old_obj_id, atts) in &imported_atts {
+            let actual_obj_id = id_map.get(old_obj_id).cloned().unwrap_or_else(|| old_obj_id.clone());
+            let mut new_atts = atts.clone();
+            for att in &mut new_atts {
+                att.object_id = actual_obj_id.clone();
+            }
+            remapped_atts.entry(actual_obj_id).or_default().append(&mut new_atts);
+        }
+
         // Replace each imported object's __attachments with the newly imported list
-        for (obj_id, atts) in &imported_atts {
+        for (obj_id, atts) in &remapped_atts {
             let mut obj = vault
                 .load_object(obj_id)
                 .map_err(|e| format!("get object: {}", e))?

@@ -106,7 +106,8 @@ export function PluginDashboardPage() {
       filtered = filtered.filter(
         (p) =>
           p.pluginId === 'com.solosoul.official.address-fmt' ||
-          p.pluginId === 'com.solosoul.official.watermark',
+          p.pluginId === 'com.solosoul.official.watermark' ||
+          p.pluginId === 'com.solosoul.official.expiry-guardian',
       );
     }
 
