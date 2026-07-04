@@ -282,7 +282,7 @@ function ResultContent({ payload }: { payload: PluginResultPayload }) {
       return <WatermarkResultContent payload={payload} />;
 
     case 'expiry_guardian':
-      return <ExpiryGuardianView payload={payload as any} />;
+      return <ExpiryGuardianView payload={payload} />;
 
     default:
       return (

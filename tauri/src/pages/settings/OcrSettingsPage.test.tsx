@@ -56,7 +56,7 @@ describe('OcrSettingsPage', () => {
       ];
       if (cmd === 'ocr_get_active_tier') return 'small';
       if (cmd === 'ocr_get_model_status') {
-        const tier = (args as any)?.tier ?? 'small';
+        const tier = (args as Record<string, unknown>).tier as string ?? 'small';
         return { tier, installed: tier === 'small', bundled: tier === 'small' };
       }
       return undefined;
@@ -125,7 +125,7 @@ describe('OcrSettingsPage', () => {
       ];
       if (cmd === 'ocr_get_active_tier') return 'small';
       if (cmd === 'ocr_get_model_status') {
-        const tier = (args as any)?.tier ?? 'small';
+        const tier = (args as Record<string, unknown>).tier as string ?? 'small';
         return { tier, installed: tier === 'small', bundled: tier === 'small' || tier === 'medium' };
       }
       return undefined;

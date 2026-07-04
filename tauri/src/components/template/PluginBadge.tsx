@@ -34,9 +34,10 @@ function isContractTypeInstalled(
 
 export function PluginBadge({ contractTypeId, size = 'sm', variant = 'full' }: PluginBadgeProps) {
   const { t, i18n } = useTranslation(['settings']);
+  const installedPlugins = usePluginStore((s) => s.installedPlugins);
+
   if (!contractTypeId) return null;
 
-  const installedPlugins = usePluginStore((s) => s.installedPlugins);
   const isInstalled = isContractTypeInstalled(contractTypeId, installedPlugins);
 
   const pluginName = i18n.language.startsWith('zh')

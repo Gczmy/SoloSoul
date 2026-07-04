@@ -13,8 +13,6 @@ interface DialogProps {
 export function Dialog({ isOpen, onClose, children, title, dialogStyle }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  if (!isOpen) return null;
-
   useEffect(() => {
     const el = dialogRef.current;
     if (!el) return;
@@ -32,6 +30,8 @@ export function Dialog({ isOpen, onClose, children, title, dialogStyle }: Dialog
     el.addEventListener('close', handler);
     return () => el.removeEventListener('close', handler);
   }, [onClose]);
+
+  if (!isOpen) return null;
 
   return (
     <dialog

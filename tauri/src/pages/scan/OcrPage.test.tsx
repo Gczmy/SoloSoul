@@ -83,7 +83,7 @@ describe('OcrPage', () => {
       ];
       if (cmd === 'ocr_get_active_tier') return 'small';
       if (cmd === 'ocr_get_model_status') return {
-        tier: (args as any)?.tier ?? 'small',
+        tier: (args as Record<string, unknown>).tier as string ?? 'small',
         installed: true,
         bundled: true,
       };
@@ -118,7 +118,7 @@ describe('OcrPage', () => {
 
   it('scans selected image and displays result', async () => {
     mockOpen.mockResolvedValue('/test/image.png');
-    mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
+    mockInvoke.mockImplementation(async (cmd: string, _args?: unknown) => {
       if (cmd === 'ocr_scan_image') return {
         text: 'Hello World',
         confidence: 0.95,
@@ -203,7 +203,7 @@ describe('OcrPage', () => {
       ];
       if (cmd === 'ocr_get_active_tier') return 'tiny';
       if (cmd === 'ocr_get_model_status') return {
-        tier: (args as any)?.tier ?? 'tiny',
+        tier: (args as Record<string, unknown>).tier as string ?? 'tiny',
         installed: false,
         bundled: true,
       };
@@ -243,7 +243,7 @@ describe('OcrPage', () => {
       ];
       if (cmd === 'ocr_get_active_tier') return 'small';
       if (cmd === 'ocr_get_model_status') return {
-        tier: (args as any)?.tier ?? 'small',
+        tier: (args as Record<string, unknown>).tier as string ?? 'small',
         installed: true,
         bundled: true,
       };
