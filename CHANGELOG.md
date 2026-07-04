@@ -4,6 +4,69 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.10] - 2026-07-05
+
+### Added
+
+- **模板字段级契约角色绑定** — 新增字段级 `contractField` 标记与 `contractBindings` 声明，支持将字段绑定到插件的 typed contract role。后端新增 Schema v18 migration（`object_templates.contract_bindings`、`user_templates.contract_bindings`、`objects.contract_bindings`），前端 `TemplateFieldInput` 新增契约绑定 UI 面板。
+- **插件自动注册合约绑定** — 插件安装时自动扫描 manifest 中 `contracts[].roles[].defaultPropertyId`，自动写入系统模板和用户模板的字段级 `contract_bindings`。删除插件时自动清除对应绑定。
+- **导入 KeepBoth 策略** — 模板/对象冲突时支持 KeepBoth 策略，自动附加本地化后缀（如 `（已恢复）`/` (restored)）并重写 ID，保留双方数据不丢失。
+- **导入模板内容哈希去重** — 导入时按模板 properties 的内容哈希自动去重，避免重复导入相同模板。
+- **导入三级树预览** — 导入预览改为「页面 → 对象 → 附件」三级树形结构，后端增加附件级选择过滤。
+- **导入继承模板字段敏感度** — 导入对象时模板字段的敏感度设置自动继承到导入结果。
+- **导入创建初始 Snapshot** — 导入对象时自动创建初始历史快照，修复历史记录显示为 0 的问题。
+- **导出全选/取消全选** — 导出区新增全选/取消全选按钮，搭配 `useExportScope` bulkSelect 钩子。
+- **expiry-guardian 插件重写（方案 B）** — 使用 typed contract + 自定义 UI 完全重写 expiry-guardian 插件，持多语言过期标签渲染与到期提醒。
+- **系统模板绑定 expiry-guardian** — Passport、Visa、ID Card、Bank Card 等系统模板增加 `expiryDate` 字段并绑定 expiry-guardian 插件。
+- **expiry-guardian 自定义 UI 集成** — `PluginResultPanel` 新增 `expiry_guardian` case 渲染 `ExpiryGuardianView` 组件，支持多语言过期标签与摘要统计。
+- **契约绑定元数据增强** — `PluginResultPayload` type 增加 `ExpiryGuardianPayload` variant，`deriveContractBindings` 运行时推导函数从 installed plugins manifest 自动匹配绑定。
+- **Tauri 窗口状态持久化** — 用 `@tauri-apps/plugin-window-state` 替换自定义窗口大小 hook，跨重启自动恢复窗口位置和尺寸。
+
+### Changed
+
+- **内置 Dialog 替换为原生 `<dialog>`** — 移除自定义 Dialog CSS 实现，改用原生 HTML `<dialog>` 元素（-93 行）。
+- **内置 ExpandableSection 替换为原生 `<details>/<summary>`** — 移除 `ExpandableSection` 自定义实现，改用原生折叠元素（-137 行）。
+- **内置 DatePicker + DropdownSelect 替换为原生 `input[type=date]`** — 移除 509 行自定义日期选择器和下拉选择组件。
+- **合并 `commands/rag.rs` 到 `commands/llm/rag.rs`** — 消除重复的 RAG 模块（-384 行）。
+- **删除废弃的 `db/` 模块** — 移除已不再使用的旧式数据库模块（-221 行）。
+- **统一 AES 错误类型** — 用 `CipherError` 枚举替换所有 `String` 类型 AES 错误，统一返回类型。
+- **插件徽章 UI 统一** — 未安装合约时显示灰色徽章，已安装时使用主题色；`PluginBadge` 在所有组件中样式统一。
+- **expiry-guardian UI 深色/浅色模式适配** — 移除 emoji，改用 Lucide 图标。
+- **Windows 导出/导入密码校验移除** — 导出密码不再强制 8 位字母+数字组合，用户自行负责密码强度。
+- **导出警告防重复触发** — `skipRef` 在导出成功后重置，防止重复弹窗。
+- **PIN 图标 grip 调整** — 侧边栏 PIN 配置图标从 grip 改为更直观的图标。
+
+### Fixed
+
+- **P0.5 架构审计全部 85 项完成** — 移除 ~3,120 行代码，减少 9 个依赖，完成 CLI wrapper 内联、VaultService 参数合并、dead code 清理等全部 P0/P1/P2 项。
+- **6 个 ESLint `no-explicit-any` 错误** — PluginResultPanel、OcrPage.test、OcrSettingsPage.test 中移除所有 `as any` 断言，改用 `Record<string, unknown>` 类型。
+- **2 个 React Hooks 顺序回归** — Dialog.tsx 和 PluginBadge.tsx 中 early return 移到 Hooks 调用之后，符合 React Hooks 规则。
+- **ESLint + React Hooks 回归修复** — 解决 P0-3c 重构中引入的 Dialog early return 在 `useEffect` 之前的违规。
+- **插件契约角色反序列化** — `PluginContractRole.label` 和 `displayName` 支持 String 或 object 两种格式的兼容反序列化。
+- **插件 typed-lookup 跨模板污染** — 通过 `contract_type_id` 隔离，防止不同模板的字段查找互相干扰。
+- **导入对象 snapshot 缺失** — 导入时自动创建初始 snapshot，修复历史记录版本号显示问题。
+- **模板 contract_type_id 导入导出** — contractTypeId 在导入导出中正确持久化。
+- **AiFeatures 硬编码值折叠** — 将 `smartFill/commandGen/naturalLanguageSearch: false` 提取为常量。
+- **template.rs 包装函数移除** — 移除 `load_trash_retention`/`retention_ms` 私有包装函数，直接委托到 `snapshot.rs`。
+
+### Refactored
+
+- **P0.5 Phase 1-4 全部完成**：
+  - Phase 1：清理死代码、废弃模块和依赖（`rag.rs`合并、`db/`删除、`CustomDropdown` 替换）
+  - Phase 2：CLI 和前端去重（泛型列表导航、`vault_write`/`attachment`/`export_import` 下沉到 `solosoul-core`）
+  - Phase 3：ESM 兼容性、统一 `escape_json`/`truncate` SDK helper、`plugin-window-state` 集成
+  - Phase 4：代码库最终清理（CLI `plugin_sink.rs` 删除、`DisposeModule`/`AppLifecycle`/`StreamSink` 残留清理）
+- **`FieldResolver` 下沉到 `solosoul-plugin`** — 运行时推导旧插件的 `effective_roles`，提升插件兼容性。
+- **P2 前端重构** — `useCancellable` → `AbortController` 迁移、死代码清理、内联优化。
+- **CLI 包装器内联去重** — 通用列表导航 key handler、`settings_language_select`/`settings_theme_select` 委托、`Theme::with_level` 私有化。
+
+### Chores
+
+- 版本号同步升级到 2.5.10。
+- 60 个 commit 自 v2.5.9（`3f57ca4f`）到 v2.5.10。
+- expiry-guardian 子模块指针更新到最终修复版本。
+- i18n 补全 `editor:templates.idCard` 中英文翻译。
+
 ## [2.5.9] - 2026-07-01
 
 ### Added
