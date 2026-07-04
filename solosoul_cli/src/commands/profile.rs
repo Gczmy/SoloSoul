@@ -5,7 +5,7 @@ use serde_json::{Map, Value};
 use solosoul_core::Profile;
 
 use crate::app::{App, AppPhase};
-use crate::commands::{map_err, require_unlocked_with_vault, CliError};
+use crate::commands::{map_err, require_unlocked_with_vault};
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -153,15 +153,15 @@ fn set_profile_value(app: &mut App, path: Option<&str>, value: Option<String>) -
 }
 
 /// 在 JSON 对象的点号路径上设置值，仅支持对象层级。
-fn set_value_at_path(data: &mut Value, path: &str, value: Value) -> Result<(), CliError> {
+fn set_value_at_path(data: &mut Value, path: &str, value: Value) -> Result<(), String> {
     let parts: Vec<&str> = path.split('.').collect();
     if parts.is_empty() {
-        return Err(CliError::Msg("路径为空".to_string()));
+        return Err("路径为空".to_string());
     }
 
     let obj = data
         .as_object_mut()
-        .ok_or(CliError::Msg("Profile 数据不是对象".to_string()))?;
+        .ok_or_else(|| "Profile 数据不是对象".to_string())?;
     let (last, parents) = parts.split_last().unwrap();
 
     let mut current = obj;

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 // Help Guide Retrieval (§7)
 // =============================================================================
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use std::path::PathBuf;
 use std::sync::{Mutex, OnceLock};
 
@@ -90,14 +90,14 @@ pub fn resource_path(rel: &str) -> PathBuf {
 }
 
 /// 缓存的指南索引
-static GUIDE_INDEX_CACHE: Lazy<Mutex<Option<GuideIndex>>> = Lazy::new(|| Mutex::new(None));
+static GUIDE_INDEX_CACHE: LazyLock<Mutex<Option<GuideIndex>>> = LazyLock::new(|| Mutex::new(None));
 
 /// 指南摘要缓存：guideId -> 前 200 字摘要（用于 AI 快速匹配）
-static GUIDE_SUMMARY_CACHE: Lazy<Mutex<HashMap<String, String>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
+static GUIDE_SUMMARY_CACHE: LazyLock<Mutex<HashMap<String, String>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// 缓存的全文搜索索引
-static SEARCH_INDEX_CACHE: Lazy<Mutex<Option<SearchIndex>>> = Lazy::new(|| Mutex::new(None));
+static SEARCH_INDEX_CACHE: LazyLock<Mutex<Option<SearchIndex>>> = LazyLock::new(|| Mutex::new(None));
 
 /// 获取缓存内容，容忍毒化锁（poisoned lock recovery）
 fn get_index_cache() -> Option<GuideIndex> {

@@ -154,6 +154,12 @@ mod tests {
     use super::*;
     use solosoul_core::{ObjectRecord, VaultService};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    static OBJ_COUNTER: AtomicUsize = AtomicUsize::new(0);
+    fn obj_counter() -> usize {
+        OBJ_COUNTER.fetch_add(1, Ordering::SeqCst)
+    }
 
     fn unlocked_app() -> (App, String, tempfile::TempDir) {
         let _guard = crate::VAULT_TEST_LOCK
@@ -181,7 +187,7 @@ mod tests {
         let (mut app, account_id, _dir) = unlocked_app();
         let vault = app.vault_service.get_vault_store().unwrap();
         let obj = ObjectRecord {
-            id: format!("obj_{}", uuid::Uuid::new_v4()),
+            id: format!("obj_test_{}", obj_counter()),
             account_id: account_id.clone(),
             type_id: "note".to_string(),
             section_type: "identity".to_string(),

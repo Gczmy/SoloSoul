@@ -8,7 +8,7 @@ use tauri::State;
 
 // ── Plaintext UI preferences (§4.1) ─────────────────────────
 
-fn ui_prefs_path(svc: &crate::services::vault_service::VaultService) -> PathBuf {
+fn ui_prefs_path(svc: &solosoul_core::vault_service::VaultService) -> PathBuf {
     svc.base_path().join("ui_preferences.json")
 }
 

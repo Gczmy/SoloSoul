@@ -17,4 +17,4 @@ pub use cipher::{
     decrypt, decrypt_from_bytes, encrypt, encrypt_to_bytes, CipherError, EncryptedData,
 };
 pub use kdf::{derive_key, generate_salt, KdfConfig, KdfError};
-pub use secure::{secure_compare, secure_wipe, SecureBytes, SecureString};
+pub use secure::secure_compare;

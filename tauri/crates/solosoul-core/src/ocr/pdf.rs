@@ -5,9 +5,26 @@ use std::path::{Path, PathBuf};
 
 /// 提取 PDF 文本层，返回每页文本。
 pub fn extract_pdf_text(path: &Path) -> Result<Vec<String>, String> {
-    pdf_extract::extract_text_by_pages(path)
-        .map(|pages| pages.into_iter().map(|p| p.trim().to_string()).collect())
-        .map_err(|e| format!("PDF 文本提取失败: {e}"))
+    let pdfium = crate::pdfium::init_pdfium()?;
+    let document = pdfium
+        .load_pdf_from_file(path, None)
+        .map_err(|e| format!("无法加载 PDF: {e}"))?;
+
+    let total_pages = document.pages().len() as usize;
+    let mut pages = Vec::with_capacity(total_pages);
+    for page_index in 0..total_pages {
+        match document.pages().get(page_index as i32) {
+            Ok(page) => {
+                let text = page.text().map(|t| t.to_string()).unwrap_or_default().trim().to_string();
+                pages.push(text);
+            }
+            Err(e) => {
+                pages.push(String::new());
+                tracing::warn!("获取 PDF 第 {} 页文本失败: {e}", page_index + 1);
+            }
+        }
+    }
+    Ok(pages)
 }
 
 /// 判断文本层是否"有意义"。
@@ -103,8 +120,15 @@ mod tests {
         ));
     }
 
+    fn pdfium_available() -> bool {
+        crate::pdfium::init_pdfium().is_ok()
+    }
+
     #[test]
     fn test_extract_pdf_text() {
+        if !pdfium_available() {
+            return;
+        }
         let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         let path = manifest_dir.join("tests/fixtures/text_only.pdf");
         if !path.exists() {
@@ -121,6 +145,9 @@ mod tests {
 
     #[test]
     fn test_extract_pdf_text_scanned_empty() {
+        if !pdfium_available() {
+            return;
+        }
         let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         let path = manifest_dir.join("tests/fixtures/scanned.pdf");
         if !path.exists() {

@@ -2,8 +2,6 @@ use crate::state::AppState;
 use serde::Serialize;
 use tauri::State;
 
-use unicode_segmentation::UnicodeSegmentation;
-
 // =============================================================================
 // Streaming Response (§5.3)
 // =============================================================================
@@ -26,8 +24,8 @@ pub struct LlmStreamPayload {
 /// P111: 改为按 CHUNK_SIZE 个字符批量发送，减少 IPC 事件数量。
 async fn emit_typing_effect(app: &tauri::AppHandle, conversation_id: &str, full_text: &str) {
     const CHUNK_SIZE: usize = 20;
-    let graphemes: Vec<String> = full_text.graphemes(true).map(|g| g.to_string()).collect();
-    let total = graphemes.len();
+    let chars: Vec<String> = full_text.chars().map(|c| c.to_string()).collect();
+    let total = chars.len();
     let max_typing_ms = 3000u64;
     let delay_ms = if total <= 50 { 10u64 } else { 30u64 };
 
@@ -35,7 +33,7 @@ async fn emit_typing_effect(app: &tauri::AppHandle, conversation_id: &str, full_
     while pos < total {
         let elapsed = (pos as u64 / CHUNK_SIZE as u64) * delay_ms;
         if elapsed >= max_typing_ms {
-            let remaining: String = graphemes[pos..].concat();
+            let remaining: String = chars[pos..].concat();
             let _ = app.emit(
                 "llm-stream-chunk",
                 LlmStreamPayload {
@@ -48,7 +46,7 @@ async fn emit_typing_effect(app: &tauri::AppHandle, conversation_id: &str, full_
             return;
         }
         let end = std::cmp::min(pos + CHUNK_SIZE, total);
-        let chunk: String = graphemes[pos..end].concat();
+        let chunk: String = chars[pos..end].concat();
         let _ = app.emit(
             "llm-stream-chunk",
             LlmStreamPayload {

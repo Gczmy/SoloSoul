@@ -12,7 +12,7 @@ use tauri::State;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenUsage {
@@ -53,8 +53,8 @@ pub struct DailyUsage {
 }
 
 /// 内存中的使用统计（按账户隔离）
-pub static STATS_MAP: Lazy<Arc<RwLock<HashMap<String, LlmUsageStats>>>> =
-    Lazy::new(|| Arc::new(RwLock::new(HashMap::new())));
+pub static STATS_MAP: LazyLock<Arc<RwLock<HashMap<String, LlmUsageStats>>>> =
+    LazyLock::new(|| Arc::new(RwLock::new(HashMap::new())));
 
 /// 估算 Token 数（保守策略：所有字符按 1 token）
 pub fn estimate_tokens(text: &str) -> u64 {

@@ -24,7 +24,6 @@ pub use solosoul_plugin::store::{compute_sha256, PluginStore};
 
 // Tauri 特有本地模块
 pub mod event;
-pub mod field;
 pub mod host;
 pub mod manager;
 pub mod paths;
@@ -33,7 +32,7 @@ pub mod sandbox;
 
 // 从本地模块重新导出（保持 super::xxx 兼容）
 pub use event::PluginEvent;
-pub use field::FieldResolver;
+pub use solosoul_plugin::FieldResolver;
 pub use host::{register_host_functions, SoloHostFunctions, SoloHostState};
 pub use manager::PluginManager;
 pub use registry::PluginRegistry;

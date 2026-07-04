@@ -15,7 +15,7 @@ pub async fn object_trash_list(
 }
 
 /// Read the user's language setting from plaintext UI preferences.
-fn get_ui_language(svc: &crate::services::vault_service::VaultService) -> String {
+fn get_ui_language(svc: &solosoul_core::vault_service::VaultService) -> String {
     let path = svc.base_path().join("ui_preferences.json");
     if path.exists() {
         if let Ok(content) = std::fs::read_to_string(&path) {

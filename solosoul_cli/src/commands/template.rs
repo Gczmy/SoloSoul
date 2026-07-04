@@ -5,7 +5,7 @@ use solosoul_core::template_service::SystemTemplateRegistry;
 use solosoul_core::UserTemplate;
 
 use crate::app::{App, AppPhase};
-use crate::commands::{map_err, require_unlocked_with_vault, CliError};
+use crate::commands::{map_err, require_unlocked_with_vault};
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -23,7 +23,7 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
 }
 
 /// 加载系统模板注册表，使用当前 UI 语言。
-fn load_system_templates(app: &App) -> Result<SystemTemplateRegistry, CliError> {
+fn load_system_templates(app: &App) -> Result<SystemTemplateRegistry, String> {
     let locale = crate::commands::settings::load_ui_prefs(app)
         .get("language")
         .and_then(|v| v.as_str())

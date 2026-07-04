@@ -14,7 +14,6 @@ solosoul-vault = { path = "../solosoul-vault" }
 solosoul-core = { path = "../solosoul-core" }
 
 tokio = { workspace = true }
-tokio-util = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

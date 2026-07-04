@@ -3,7 +3,7 @@
 //! 负责在 Rust 端查询 Vault 数据、组装 7 Section 系统提示词。
 //! 隐私过滤在 Rust 端强制完成，不可被绕过。
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use solosoul_vault::{ObjectSummary, VaultStore};
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -17,8 +17,8 @@ struct CachedPrompt {
     created_at: Instant,
 }
 
-static PROMPT_CACHE: Lazy<Mutex<HashMap<String, CachedPrompt>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
+static PROMPT_CACHE: LazyLock<Mutex<HashMap<String, CachedPrompt>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 
 // ── 长度限制常量 ─────────────────────────────────────────────
 

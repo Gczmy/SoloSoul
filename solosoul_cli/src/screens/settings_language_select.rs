@@ -1,6 +1,6 @@
 //! 设置 → 语言选择屏幕。
 //!
-//! 委托给泛型 `settings_select::render_option_list`。
+//! 渲染委托给泛型 `settings_select::render_option_list`。
 
 use ratatui::layout::Rect;
 

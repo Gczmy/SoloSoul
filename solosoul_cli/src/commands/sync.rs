@@ -12,7 +12,6 @@
 //! - `/sync help` —— 帮助
 
 use crate::app::App;
-use crate::commands::CliError;
 use color_eyre::Result;
 use rand::rngs::OsRng;
 use rand::RngCore;
@@ -110,13 +109,13 @@ fn sync_with(app: &mut App, peer: &str) {
 async fn run_one_shot_sync(
     vault_service: &Arc<VaultService>,
     peer: &str,
-) -> Result<String, CliError> {
+) -> Result<String, String> {
     let vault = vault_service
         .get_vault_store()
-        .ok_or_else(|| CliError::Msg("Vault 未解锁，请先 /unlock".to_string()))?;
+        .ok_or_else(|| "Vault 未解锁，请先 /unlock".to_string())?;
     let account_id = vault_service
         .get_current_account()
-        .ok_or_else(|| CliError::Msg("无当前账户".to_string()))?;
+        .ok_or_else(|| "无当前账户".to_string())?;
 
     let (node_id, keys) = sync_identity(&vault);
 
@@ -142,7 +141,7 @@ async fn run_one_shot_sync(
             sr.attachments.received,
             sr.data.errors.len()
         )),
-        Err(e) => Err(CliError::Msg(e)),
+        Err(e) => Err(e),
     }
 }
 
@@ -155,7 +154,7 @@ fn trust_peer(app: &mut App, peer_node_id: &str, trusted: bool) {
         return;
     }
     let result = build_manager_for_manage(&app.vault_service)
-        .and_then(|mgr| mgr.trust_peer(peer_node_id, trusted).map_err(CliError::Msg));
+        .and_then(|mgr| mgr.trust_peer(peer_node_id, trusted));
     match result {
         Ok(()) => {
             app.error_message = Some(format!(
@@ -176,7 +175,7 @@ fn forget_peer(app: &mut App, peer_node_id: &str) {
         return;
     }
     let result = build_manager_for_manage(&app.vault_service)
-        .and_then(|mgr| mgr.forget_peer(peer_node_id).map_err(CliError::Msg));
+        .and_then(|mgr| mgr.forget_peer(peer_node_id));
     match result {
         Ok(()) => {
             app.error_message = Some(format!("已从 vault 中删除 peer {}", peer_node_id));
@@ -188,13 +187,13 @@ fn forget_peer(app: &mut App, peer_node_id: &str) {
 }
 
 /// 构造一个 SyncManager（仅用于 trust/forget 等管理类调用，不启动 listener）。
-fn build_manager_for_manage(vault_service: &Arc<VaultService>) -> Result<SyncManager, CliError> {
+fn build_manager_for_manage(vault_service: &Arc<VaultService>) -> Result<SyncManager, String> {
     let vault = vault_service
         .get_vault_store()
-        .ok_or_else(|| CliError::Msg("Vault 未解锁".to_string()))?;
+        .ok_or_else(|| "Vault 未解锁".to_string())?;
     let account_id = vault_service
         .get_current_account()
-        .ok_or_else(|| CliError::Msg("无当前账户".to_string()))?;
+        .ok_or_else(|| "无当前账户".to_string())?;
     let (node_id, keys) = sync_identity(&vault);
     Ok(SyncManager::new(
         node_id,
@@ -240,7 +239,7 @@ fn sync_identity(vault: &Arc<solosoul_vault::VaultStore>) -> (String, NoiseKeys)
     } else {
         let mut bytes = [0u8; 16];
         OsRng.fill_bytes(&mut bytes);
-        let id = format!("node_{}", hex::encode(bytes));
+        let id = format!("node_{}", bytes.iter().map(|b| format!("{:02x}", b)).collect::<String>());
         let _ = vault.set_sync_node_id(&id);
         id
     };

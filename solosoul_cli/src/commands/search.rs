@@ -485,6 +485,16 @@ mod tests {
     use super::*;
     use solosoul_core::{ObjectRecord, VaultService};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    static PAGE_COUNTER: AtomicUsize = AtomicUsize::new(0);
+    static OBJ_COUNTER: AtomicUsize = AtomicUsize::new(0);
+    fn page_counter() -> usize {
+        PAGE_COUNTER.fetch_add(1, Ordering::SeqCst)
+    }
+    fn obj_counter() -> usize {
+        OBJ_COUNTER.fetch_add(1, Ordering::SeqCst)
+    }
 
     fn unlocked_app() -> (App, String, tempfile::TempDir) {
         let _guard = crate::VAULT_TEST_LOCK
@@ -568,7 +578,7 @@ mod tests {
 
         // 创建页面
         let page = ObjectRecord {
-            id: format!("page_{}", uuid::Uuid::new_v4()),
+            id: format!("page_test_{}", page_counter()),
             account_id: account_id.clone(),
             type_id: "page".to_string(),
             section_type: "page".to_string(),
@@ -593,7 +603,7 @@ mod tests {
 
         // 创建对象
         let obj = ObjectRecord {
-            id: format!("obj_{}", uuid::Uuid::new_v4()),
+            id: format!("obj_test_{}", obj_counter()),
             account_id: account_id.clone(),
             type_id: "note".to_string(),
             section_type: "identity".to_string(),
