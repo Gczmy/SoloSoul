@@ -35,7 +35,9 @@ pub fn encrypt_field(key: &DataEncryptionKey, plaintext: &[u8]) -> Result<Vec<u8
     if plaintext.is_empty() {
         return Ok(Vec::new());
     }
-    encrypt_blob(&key.0, plaintext).map(|z| z.to_vec())
+    encrypt_blob(&key.0, plaintext)
+        .map(|z| z.to_vec())
+        .map_err(|e| e.to_string())
 }
 
 /// 解密字段。如果数据不是 SOLO blob（旧版本明文），直接返回原数据。
@@ -44,7 +46,9 @@ pub fn decrypt_field(key: &DataEncryptionKey, ciphertext: &[u8]) -> Result<Vec<u
         return Ok(Vec::new());
     }
     if is_encrypted_blob(ciphertext) {
-        decrypt_blob(&key.0, ciphertext).map(|z| z.to_vec())
+        decrypt_blob(&key.0, ciphertext)
+            .map(|z| z.to_vec())
+            .map_err(|e| e.to_string())
     } else {
         Ok(ciphertext.to_vec())
     }

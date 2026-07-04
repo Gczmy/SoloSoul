@@ -13,7 +13,9 @@ pub async fn encrypt_bytes(state: State<'_, AppState>, data: Vec<u8>) -> Result<
         .as_slice()
         .try_into()
         .map_err(|_| "Invalid key length")?;
-    solosoul_crypto::aes::encrypt_blob(&key, &data).map(|b| b.to_vec())
+    solosoul_crypto::aes::encrypt_blob(&key, &data)
+        .map(|b| b.to_vec())
+        .map_err(|e| e.to_string())
 }
 
 /// Decrypt SOLO blob bytes using the vault's session key
@@ -28,7 +30,9 @@ pub async fn decrypt_bytes(state: State<'_, AppState>, data: Vec<u8>) -> Result<
         .as_slice()
         .try_into()
         .map_err(|_| "Invalid key length")?;
-    solosoul_crypto::aes::decrypt_blob(&key, &data).map(|b| b.to_vec())
+    solosoul_crypto::aes::decrypt_blob(&key, &data)
+        .map(|b| b.to_vec())
+        .map_err(|e| e.to_string())
 }
 
 /// Encrypt data with an explicit 32-byte key (no vault needed)
@@ -42,7 +46,9 @@ pub async fn encrypt_with_key(key: Vec<u8>, plaintext: Vec<u8>) -> Result<Vec<u8
                 key.len()
             )
         })?;
-    solosoul_crypto::aes::encrypt_blob(&key_arr, &plaintext).map(|b| b.to_vec())
+    solosoul_crypto::aes::encrypt_blob(&key_arr, &plaintext)
+        .map(|b| b.to_vec())
+        .map_err(|e| e.to_string())
 }
 
 /// Decrypt data with an explicit 32-byte key (no vault needed)
@@ -56,7 +62,9 @@ pub async fn decrypt_with_key(key: Vec<u8>, ciphertext: Vec<u8>) -> Result<Vec<u
                 key.len()
             )
         })?;
-    solosoul_crypto::aes::decrypt_blob(&key_arr, &ciphertext).map(|b| b.to_vec())
+    solosoul_crypto::aes::decrypt_blob(&key_arr, &ciphertext)
+        .map(|b| b.to_vec())
+        .map_err(|e| e.to_string())
 }
 
 /// Maximum Argon2 parameters accepted from the frontend to prevent DoS.

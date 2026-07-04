@@ -337,6 +337,8 @@ pub enum CipherError {
     InvalidCiphertext,
     #[error("IO 错误: {0}")]
     Io(String),
+    #[error("Blob 格式错误: {0}")]
+    BlobFormat(String),
 }
 
 #[cfg(test)]
