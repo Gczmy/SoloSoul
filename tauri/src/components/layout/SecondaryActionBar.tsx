@@ -99,9 +99,21 @@ export function SecondaryActionBar({
   const handleMouseEnter = useCallback(() => setHovering(true), [setHovering]);
   const handleMouseLeave = useCallback(
     (e: MouseEvent) => {
-      // Only collapse if mouse actually left the wrapper (not a re-render artifact)
       if (wrapperRef.current && !wrapperRef.current.contains(e.relatedTarget as Node)) {
-        if (!isAnyCardOpen) setHovering(false);
+        const relatedTarget = e.relatedTarget as HTMLElement | null;
+        const addPageZone = relatedTarget?.closest('[data-add-page-zone="true"]');
+        if (addPageZone) {
+          // Moving to AddPageButton: register one-time mouseleave to collapse
+          // when mouse leaves the add page zone (unless re-entering wrapper).
+          const handleLeaveAddPage = (leaveEvent: globalThis.MouseEvent) => {
+            const leaveTarget = leaveEvent.relatedTarget as HTMLElement | null;
+            if (wrapperRef.current?.contains(leaveTarget as Node)) return;
+            if (!isAnyCardOpenRef.current) setHovering(false);
+          };
+          (addPageZone as HTMLElement).addEventListener('mouseleave', handleLeaveAddPage, { once: true });
+        } else if (!isAnyCardOpen) {
+          setHovering(false);
+        }
       }
     },
     [isAnyCardOpen, setHovering],

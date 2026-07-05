@@ -67,6 +67,7 @@ export function TopFunctionBar({
   const isHovering = useSidebarHoverStore((s) => s.isHovering);
   const setHovering = useSidebarHoverStore((s) => s.setHovering);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const hoverZoneRef = useRef<HTMLDivElement>(null);
   const horizontalScrollLeft = useSidebarHoverStore((s) => s.horizontalScrollLeft);
   const setHorizontalScrollLeft = useSidebarHoverStore((s) => s.setHorizontalScrollLeft);
 
@@ -114,11 +115,16 @@ export function TopFunctionBar({
     }
   }, [expanded]);
 
+  // Only wrapperRef triggers expansion (arrow toggle is inside it).
+  // AddPageButton is outside wrapperRef, so hovering the + button alone never expands.
   const handleMouseEnter = useCallback(() => setHovering(true), [setHovering]);
+
+  // hoverZone wraps AddPageButton + wrapperRef, so moving between them stays inside
+  // the zone and never triggers collapse. Only leaving to Lock/Settings or outside
+  // the header triggers collapse.
   const handleMouseLeave = useCallback(
     (e: MouseEvent) => {
-      // Only collapse if mouse actually left the wrapper (not a re-render artifact)
-      if (wrapperRef.current && !wrapperRef.current.contains(e.relatedTarget as Node)) {
+      if (hoverZoneRef.current && !hoverZoneRef.current.contains(e.relatedTarget as Node)) {
         if (!isAnyCardOpen) setHovering(false);
       }
     },
@@ -360,45 +366,55 @@ export function TopFunctionBar({
 
       {/* Right zone: add page + foldable function buttons + lock + settings */}
       <div className={styles.rightZone} data-tauri-drag-region="false">
-        <AddPageButton
-          onCreate={(page) => navigate(`/workspace/custom/${page.id}`)}
-          position={POSITION}
-        />
-
-        {/* Horizontal foldable area */}
+        {/**
+         * hoverZone wraps AddPageButton + the foldable area. handleMouseLeave is on
+         * this wrapper so moving between + and arrow/buttons never triggers collapse.
+         * handleMouseEnter stays on wrapperRef so only the arrow (not +) triggers expansion.
+         */}
         <div
-          ref={wrapperRef}
-          className={styles.horizontalFoldableWrapper}
-          onMouseEnter={handleMouseEnter}
+          ref={hoverZoneRef}
           onMouseLeave={handleMouseLeave}
+          style={{ display: 'flex', alignItems: 'center' }}
         >
-          {/* Arrow toggle — full-size button */}
-          <div className={styles.horizontalArrowToggle}>
-            <ChevronRight
-              size={ICON_SIZE.xl}
-              className={`${styles.horizontalArrowIcon} ${!expanded ? styles.horizontalArrowIconExpanded : ''}`}
-            />
-          </div>
+          <AddPageButton
+            onCreate={(page) => navigate(`/workspace/custom/${page.id}`)}
+            position={POSITION}
+          />
 
-          {/* Scrollable function buttons — always rendered for smooth CSS transition */}
+          {/* Horizontal foldable area */}
           <div
-            className={`${styles.horizontalButtonArea} ${expanded ? styles.horizontalButtonAreaOpen : ''}`}
+            ref={wrapperRef}
+            className={styles.horizontalFoldableWrapper}
+            onMouseEnter={handleMouseEnter}
           >
+            {/* Arrow toggle — full-size button */}
+            <div className={styles.horizontalArrowToggle}>
+              <ChevronRight
+                size={ICON_SIZE.xl}
+                className={`${styles.horizontalArrowIcon} ${!expanded ? styles.horizontalArrowIconExpanded : ''}`}
+              />
+            </div>
+
+            {/* Scrollable function buttons — always rendered for smooth CSS transition */}
             <div
-              ref={funcScrollRef}
-              className={styles.horizontalButtonScroll}
-              onWheel={handleFuncWheel}
-              onScroll={handleFuncScroll}
-              style={isTransitioning ? { pointerEvents: 'none' as const } : undefined}
+              className={`${styles.horizontalButtonArea} ${expanded ? styles.horizontalButtonAreaOpen : ''}`}
             >
-              {items.map((item) => {
-                const isCardButton = (CARD_ACTION_IDS as readonly string[]).includes(item.iconKey);
-                if (isCardButton) {
-                  const cardEl = renderButtonWithCard(item);
-                  if (cardEl) return cardEl;
-                }
-                return renderPlainButton(item);
-              })}
+              <div
+                ref={funcScrollRef}
+                className={styles.horizontalButtonScroll}
+                onWheel={handleFuncWheel}
+                onScroll={handleFuncScroll}
+                style={isTransitioning ? { pointerEvents: 'none' as const } : undefined}
+              >
+                {items.map((item) => {
+                  const isCardButton = (CARD_ACTION_IDS as readonly string[]).includes(item.iconKey);
+                  if (isCardButton) {
+                    const cardEl = renderButtonWithCard(item);
+                    if (cardEl) return cardEl;
+                  }
+                  return renderPlainButton(item);
+                })}
+              </div>
             </div>
           </div>
         </div>

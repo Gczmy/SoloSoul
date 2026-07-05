@@ -194,7 +194,7 @@ export function AddPageButton({
     ) : null;
 
   return (
-    <div className={styles.addPageRow} style={isHorizontal ? { flexDirection: 'row' } : {}}>
+    <div className={styles.addPageRow} data-add-page-zone="true" style={isHorizontal ? { flexDirection: 'row' } : {}}>
       {/* + button */}
       <div
         ref={wrapperRef}
