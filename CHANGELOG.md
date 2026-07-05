@@ -4,6 +4,25 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.5.11] - 2026-07-05
+
+### Fixed
+
+- **侧边栏悬停展开逻辑修复（水平模式）** — 水平模式（上/下）下功能区与 AddPageButton 之间的 4px flex gap 导致鼠标穿过间隙时功能区误折叠。改用 hoverZone 外层包裹 AddPageButton + 折叠功能区，handleMouseLeave 移到外层，彻底消除 gap 引起的事件检测失败。涉及 TopFunctionBar.tsx、SecondaryActionBar.tsx、AddPageButton.tsx。
+- **AI 对话卡片弹出位置修复** — 垂直模式（左/右）下 AI 对话卡片弹出位置偏上的问题修复。useAiQuickChat/useOcrQuickScan/usePluginQuickPanel 三处定位逻辑从居中改为顶部对齐（rect.top）；SecondaryActionBar.tsx 中 AI chat 使用本地 state 导致 quickChatPos 始终为 null，手动触发 updateQuickChatPos + 附加 scroll/resize 监听器。
+- **水平模式添加页面卡片右侧溢出修复** — 功能区折叠时 AddPageButton 靠近窗口右边缘，弹出卡片右半部分超出视口。添加 horizontalPopoverLeft 检测右侧溢出并自动左移，保证卡片完整显示。
+- **Dialog 模态框居中修正** — 修复 Dialog 组件居中样式（Dialog.module.css）。
+- **Dialog 标题主题色修正** — 修复 Dialog 标题颜色正确跟随主题。
+
+### Changed
+
+- **恢复自定义 DatePicker + DropdownSelect** — 用自定义日期选择器和下拉选择组件替换原生 input[type=date]，恢复统一的视觉风格和交互体验。
+
+### Chores
+
+- 版本号同步升级到 2.5.11。
+- 5 个 commit 自 v2.5.10（f4fbb380）到 v2.5.11（c9fd00d0）。
+
 ## [2.5.10] - 2026-07-05
 
 ### Added
