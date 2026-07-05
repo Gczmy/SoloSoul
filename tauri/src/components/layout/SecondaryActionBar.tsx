@@ -128,7 +128,25 @@ export function SecondaryActionBar({
     sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
   const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, ocrQuickScanPlacement);
   const { pluginButtonRef, quickPanelPos } = usePluginQuickPanel(560, pluginQuickPanelPlacement);
-  const { aiButtonRef, quickChatPos } = useAiQuickChat(520, aiQuickChatPlacement);
+  const {
+    aiButtonRef,
+    quickChatPos,
+    updateQuickChatPos,
+  } = useAiQuickChat(520, aiQuickChatPlacement);
+
+  // AI chat uses local state (not Zustand), so trigger position update and
+  // attach scroll/resize listeners manually (hook's internal useEffect never
+  // fires because its internal showQuickChat is always false here).
+  useEffect(() => {
+    if (!showQuickChat) return;
+    updateQuickChatPos();
+    window.addEventListener('scroll', updateQuickChatPos, true);
+    window.addEventListener('resize', updateQuickChatPos);
+    return () => {
+      window.removeEventListener('scroll', updateQuickChatPos, true);
+      window.removeEventListener('resize', updateQuickChatPos);
+    };
+  }, [showQuickChat, updateQuickChatPos]);
 
   // ── Render helpers ─────────────────────────────────────────────
   const renderButtonWithCard = (item: (typeof items)[number]) => {

@@ -55,6 +55,21 @@ export function AddPageButton({
     return Math.max(120, Math.min(280, available));
   }, [buttonRect, isHorizontal, isBottom]);
 
+  // Compute popover left position for horizontal mode with right-edge overflow protection.
+  // When the + button is near the right edge (function area collapsed), clamp left so
+  // the entire popover stays within the viewport.
+  const horizontalPopoverLeft = useMemo(() => {
+    if (!buttonRect || !isCreating) return 56;
+    const ESTIMATED_WIDTH = 276; // ~212px icon grid + 24px padding + 40px buffer
+    const MARGIN = 12;
+    const idealLeft = buttonRect.left;
+    const rightEdge = idealLeft + ESTIMATED_WIDTH + MARGIN;
+    if (rightEdge > window.innerWidth) {
+      return Math.max(MARGIN, window.innerWidth - ESTIMATED_WIDTH - MARGIN);
+    }
+    return idealLeft;
+  }, [buttonRect, isCreating]);
+
   const { t } = useTranslation(['navigation', 'common']);
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const addCustomPage = useSettingsStore((s) => s.addCustomPage);
@@ -232,9 +247,7 @@ export function AddPageButton({
               style={{
                 position: 'fixed',
                 left: isHorizontal
-                  ? buttonRect
-                    ? buttonRect.left
-                    : 56
+                  ? horizontalPopoverLeft
                   : isRight
                     ? 'auto'
                     : buttonRect

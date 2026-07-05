@@ -226,8 +226,9 @@ export function useAiQuickChat(
       } else if (placement === 'top') {
         top = Math.max(rect.top - cardHeight - 8, 8);
       } else {
+        // left or right placement — align card top with button top
         top = Math.min(
-          Math.max(rect.top + rect.height / 2 - cardHeight / 2, 8),
+          Math.max(rect.top, 8),
           window.innerHeight - cardHeight - 8,
         );
       }
@@ -274,8 +275,9 @@ export function useOcrQuickScan(
       } else if (placement === 'top') {
         top = Math.max(rect.top - cardHeight - 8, 8);
       } else {
+        // left or right placement — align card top with button top
         top = Math.min(
-          Math.max(rect.top + rect.height / 2 - cardHeight / 2, 8),
+          Math.max(rect.top, 8),
           window.innerHeight - cardHeight - 8,
         );
       }
@@ -322,8 +324,9 @@ export function usePluginQuickPanel(
       } else if (placement === 'top') {
         top = Math.max(rect.top - cardHeight - 8, 8);
       } else {
+        // left or right placement — align card top with button top
         top = Math.min(
-          Math.max(rect.top + rect.height / 2 - cardHeight / 2, 8),
+          Math.max(rect.top, 8),
           window.innerHeight - cardHeight - 8,
         );
       }
