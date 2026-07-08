@@ -208,9 +208,9 @@ export function DynamicGroupEditor({
                   }
                   disabled={disabled}
                 >
-                  {availableTypes.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
+                  {availableTypes.map((pt) => (
+                    <option key={pt} value={pt}>
+                      {t(`editor:field_types.${pt}`, pt)}
                     </option>
                   ))}
                 </select>

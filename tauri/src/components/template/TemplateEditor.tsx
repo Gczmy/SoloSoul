@@ -372,24 +372,44 @@ export function TemplateEditor({
                       }}
                     >
                       <div style={{ flex: 1, minWidth: 80 }}>
-                        <input
-                          value={prop.name}
-                          onChange={(e) => onUpdatePropertyName(idx, e.target.value)}
-                          placeholder={t('settings:field_name') || '字段名称'}
-                          style={{
-                            width: '100%',
-                            height: 36,
-                            padding: '0 10px',
-                            borderRadius: 6,
-                            border: '1px solid var(--border-subtle)',
-                            background: 'var(--bg-elevated)',
-                            color: 'var(--text-primary)',
-                            fontSize: 'var(--text-body)',
-                            fontFamily: 'inherit',
-                            outline: 'none',
-                            boxSizing: 'border-box',
-                          }}
-                        />
+                        {prop.type === 'dynamic_group' ? (
+                          <div
+                            style={{
+                              width: '100%',
+                              height: 36,
+                              padding: '0 10px',
+                              borderRadius: 6,
+                              border: '1px solid var(--border-subtle)',
+                              background: 'var(--bg-subtle)',
+                              color: 'var(--text-secondary)',
+                              fontSize: 'var(--text-body)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              boxSizing: 'border-box',
+                            }}
+                          >
+                            {t('editor:field_types.dynamic_group', '动态字段组')}
+                          </div>
+                        ) : (
+                          <input
+                            value={prop.name}
+                            onChange={(e) => onUpdatePropertyName(idx, e.target.value)}
+                            placeholder={t('settings:field_name') || '字段名称'}
+                            style={{
+                              width: '100%',
+                              height: 36,
+                              padding: '0 10px',
+                              borderRadius: 6,
+                              border: '1px solid var(--border-subtle)',
+                              background: 'var(--bg-elevated)',
+                              color: 'var(--text-primary)',
+                              fontSize: 'var(--text-body)',
+                              fontFamily: 'inherit',
+                              outline: 'none',
+                              boxSizing: 'border-box',
+                            }}
+                          />
+                        )}
                       </div>
                       <select
                         value={prop.type}
