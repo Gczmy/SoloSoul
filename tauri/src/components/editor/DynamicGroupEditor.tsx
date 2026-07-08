@@ -71,7 +71,7 @@ export function DynamicGroupEditor({
   value,
   allowedTypes,
   maxItems,
-  sensitivity: _sensitivity,
+  sensitivity,
   onChange,
   disabled,
 }: DynamicGroupEditorProps) {
@@ -87,10 +87,11 @@ export function DynamicGroupEditor({
       id: crypto.randomUUID(),
       name: t('editor:dynamic_group_new_item', { defaultValue: '新字段' }),
       type: availableTypes[0] || 'text',
+      sensitivity,
       value: defaultForType(availableTypes[0] || 'text'),
     };
     onChange([...items, newItem]);
-  }, [items, onChange, availableTypes, t]);
+  }, [items, onChange, availableTypes, t, sensitivity]);
 
   const handleRemove = useCallback(
     (id: string) => {

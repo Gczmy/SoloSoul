@@ -18,6 +18,7 @@ import type {
   UserTemplate,
   TemplateProperty,
   PropertyType,
+  SensitivityLevel,
   ContractRoleBinding,
 } from '@/types/template';
 import { resolveCustomIcon } from '@/lib/pageIcons';
@@ -89,6 +90,7 @@ export function TemplateManagerPage() {
   const [dynamicGroupEnabled, setDynamicGroupEnabled] = useState(false);
   const [dynamicGroupAllowedTypes, setDynamicGroupAllowedTypes] = useState<PropertyType[] | undefined>();
   const [dynamicGroupMaxItems, setDynamicGroupMaxItems] = useState<number | undefined>();
+  const [dynamicGroupSensitivity, setDynamicGroupSensitivity] = useState<SensitivityLevel>('internal');
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [detailTemplate, setDetailTemplate] = useState<ListTemplate | null>(null);
   const [showDeprecated, setShowDeprecated] = useState(false);
@@ -224,6 +226,7 @@ export function TemplateManagerPage() {
     setDynamicGroupEnabled(!!dg);
     setDynamicGroupAllowedTypes(dg?.allowedTypes);
     setDynamicGroupMaxItems(dg?.maxItems);
+    setDynamicGroupSensitivity(dg?.sensitivityLevel || 'internal');
   };
 
   const openCreate = () => {
@@ -244,6 +247,7 @@ export function TemplateManagerPage() {
     setDynamicGroupEnabled(false);
     setDynamicGroupAllowedTypes(undefined);
     setDynamicGroupMaxItems(undefined);
+    setDynamicGroupSensitivity('internal');
   };
 
   const closeEdit = () => {
@@ -258,6 +262,7 @@ export function TemplateManagerPage() {
     setDynamicGroupEnabled(false);
     setDynamicGroupAllowedTypes(undefined);
     setDynamicGroupMaxItems(undefined);
+    setDynamicGroupSensitivity('internal');
   };
 
   const saveEdit = async () => {
@@ -330,6 +335,7 @@ export function TemplateManagerPage() {
         id: crypto.randomUUID(),
         name: '__dynamic_group__',
         type: 'dynamic_group',
+        sensitivityLevel: dynamicGroupSensitivity,
         allowedTypes: dynamicGroupAllowedTypes,
         maxItems: dynamicGroupMaxItems,
       };
@@ -356,6 +362,15 @@ export function TemplateManagerPage() {
     setEditProperties((prev) =>
       prev.map((p) =>
         p.type === 'dynamic_group' ? { ...p, maxItems } : p,
+      ),
+    );
+  };
+
+  const handleDynamicGroupSensitivityChange = (level: SensitivityLevel) => {
+    setDynamicGroupSensitivity(level);
+    setEditProperties((prev) =>
+      prev.map((p) =>
+        p.type === 'dynamic_group' ? { ...p, sensitivityLevel: level } : p,
       ),
     );
   };
@@ -678,9 +693,11 @@ export function TemplateManagerPage() {
           dynamicGroupEnabled={dynamicGroupEnabled}
           dynamicGroupAllowedTypes={dynamicGroupAllowedTypes}
           dynamicGroupMaxItems={dynamicGroupMaxItems}
+          dynamicGroupSensitivity={dynamicGroupSensitivity}
           onDynamicGroupEnabledChange={handleDynamicGroupEnabledChange}
           onDynamicGroupAllowedTypesChange={handleDynamicGroupAllowedTypesChange}
           onDynamicGroupMaxItemsChange={handleDynamicGroupMaxItemsChange}
+          onDynamicGroupSensitivityChange={handleDynamicGroupSensitivityChange}
         />
       </Dialog>
 

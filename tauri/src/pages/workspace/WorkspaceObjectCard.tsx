@@ -11,16 +11,40 @@ import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { ICON_SIZE } from '@/lib/constants';
 
-/** Extract displayable key-value pairs from object properties (filters internal __ fields). */
+/** Extract displayable key-value pairs from object properties (filters internal __ fields).
+ * 对于 dynamic_group 类型，每个子字段作为独立条目返回，使用子字段名称作为 label。
+ */
 function flattenProperties(
   props: Record<string, unknown> | undefined,
   fieldOrder?: string[],
-): { key: string; value: string }[] {
+): { key: string; value: string; label?: string }[] {
   if (!props) return [];
-  const entries: { key: string; value: string }[] = [];
+  // 从 properties 中提取 __fields 定义，用于识别 dynamic_group 字段
+  const fieldDefs = props.__fields as
+    | Record<string, { type?: string }>
+    | undefined;
+  const entries: { key: string; value: string; label?: string }[] = [];
   for (const [k, v] of Object.entries(props)) {
     if (k.startsWith('__')) continue;
     if (v === null || v === undefined || v === '') continue;
+
+    // dynamic_group 字段：每个子字段作为独立 chip 展示
+    if (fieldDefs?.[k]?.type === 'dynamic_group' && Array.isArray(v)) {
+      for (const item of v) {
+        if (!item || typeof item !== 'object') continue;
+        const { name, value: itemVal } = item as Record<string, unknown>;
+        if (name === undefined || name === null || name === '') continue;
+        let displayVal = '';
+        if (Array.isArray(itemVal)) {
+          displayVal = itemVal.join(', ');
+        } else if (itemVal !== null && itemVal !== undefined) {
+          displayVal = String(itemVal);
+        }
+        entries.push({ key: k, value: displayVal, label: String(name) });
+      }
+      continue;
+    }
+
     if (typeof v === 'string') {
       entries.push({ key: k, value: v });
     } else if (typeof v === 'number' || typeof v === 'boolean') {
@@ -94,7 +118,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
       return objLabels[fieldKey] as SensitivityLevel;
     }
     // 2. 回退到模板定义
-    return (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public';
+    return (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'internal';
   };
   const isFieldDeprecated = (fieldKey: string): boolean =>
     !!getFieldProperty(fieldKey)?.deprecatedAt;
@@ -218,7 +242,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
               const sens = getFieldSensitivity(f.key);
               const deprecated = isFieldDeprecated(f.key);
               const isMasked = sens !== 'public';
-              const fieldLabel = getFieldName(f.key);
+              const fieldLabel = f.label || getFieldName(f.key);
               const fieldProp = getFieldProperty(f.key);
               const isContractField =
                 fieldProp?.contractField === true || objFieldDefs?.[f.key]?.contractField === true;

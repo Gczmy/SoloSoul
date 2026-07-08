@@ -324,7 +324,7 @@ export function ObjectDetailModal({
       return labels[fieldKey] as SensitivityLevel;
     }
     // 2. 回退到模板定义
-    return (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public';
+    return (getFieldProperty(fieldKey)?.sensitivityLevel as SensitivityLevel) || 'internal';
   };
 
   const isFieldDeprecated = (fieldKey: string): boolean => {

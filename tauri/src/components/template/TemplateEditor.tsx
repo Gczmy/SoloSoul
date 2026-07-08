@@ -69,9 +69,11 @@ interface TemplateEditorProps {
   dynamicGroupEnabled: boolean;
   dynamicGroupAllowedTypes?: PropertyType[];
   dynamicGroupMaxItems?: number;
+  dynamicGroupSensitivity?: SensitivityLevel;
   onDynamicGroupEnabledChange: (enabled: boolean) => void;
   onDynamicGroupAllowedTypesChange: (types: PropertyType[]) => void;
   onDynamicGroupMaxItemsChange: (maxItems: number | undefined) => void;
+  onDynamicGroupSensitivityChange: (level: SensitivityLevel) => void;
 }
 
 const SENSITIVITY_LEVELS: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
@@ -106,9 +108,11 @@ export function TemplateEditor({
   dynamicGroupEnabled,
   dynamicGroupAllowedTypes,
   dynamicGroupMaxItems,
+  dynamicGroupSensitivity,
   onDynamicGroupEnabledChange,
   onDynamicGroupAllowedTypesChange,
   onDynamicGroupMaxItemsChange,
+  onDynamicGroupSensitivityChange,
 }: TemplateEditorProps) {
   const [showIconPicker, setShowIconPicker] = useState(false);
 
@@ -847,8 +851,10 @@ export function TemplateEditor({
             <DynamicGroupConfig
               allowedTypes={dynamicGroupAllowedTypes}
               maxItems={dynamicGroupMaxItems}
+              sensitivity={dynamicGroupSensitivity}
               onAllowedTypesChange={onDynamicGroupAllowedTypesChange}
               onMaxItemsChange={onDynamicGroupMaxItemsChange}
+              onSensitivityChange={onDynamicGroupSensitivityChange}
             />
           )}
         </div>

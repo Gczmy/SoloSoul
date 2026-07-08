@@ -22,12 +22,34 @@ export interface SnapshotEntry {
 function flattenProperties(
   props: Record<string, unknown> | undefined,
   fieldOrder?: string[],
-): { key: string; value: string }[] {
+): { key: string; value: string; label?: string }[] {
   if (!props) return [];
-  const entries: { key: string; value: string }[] = [];
+  // 从 properties 中提取 __fields 定义，用于识别 dynamic_group 字段
+  const fieldDefs = props.__fields as
+    | Record<string, { type?: string }>
+    | undefined;
+  const entries: { key: string; value: string; label?: string }[] = [];
   for (const [k, v] of Object.entries(props)) {
     if (k.startsWith('__')) continue;
     if (v === null || v === undefined || v === '') continue;
+
+    // dynamic_group 字段：每个子字段作为独立条目
+    if (fieldDefs?.[k]?.type === 'dynamic_group' && Array.isArray(v)) {
+      for (const item of v) {
+        if (!item || typeof item !== 'object') continue;
+        const { name, value: itemVal } = item as Record<string, unknown>;
+        if (name === undefined || name === null || name === '') continue;
+        let displayVal = '';
+        if (Array.isArray(itemVal)) {
+          displayVal = itemVal.join(', ');
+        } else if (itemVal !== null && itemVal !== undefined) {
+          displayVal = String(itemVal);
+        }
+        entries.push({ key: k, value: displayVal, label: String(name) });
+      }
+      continue;
+    }
+
     if (typeof v === 'string') {
       entries.push({ key: k, value: v });
     } else if (typeof v === 'number' || typeof v === 'boolean') {
@@ -151,7 +173,7 @@ function SnapshotCard({
                       textDecoration: deprecated ? 'line-through' : 'none',
                     }}
                   >
-                    {getFieldName(f.key)}
+                    {f.label || getFieldName(f.key)}
                   </span>
                   <SensitivityBadge level={sens} />
                   {deprecated && <DeprecatedBadge />}

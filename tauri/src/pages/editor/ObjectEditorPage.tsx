@@ -102,7 +102,7 @@ export function ObjectEditorPage() {
    *  Template default is the single source of truth.
    */
   const getSensitivity = (_fieldKey: string, templateDefault?: string): SensitivityLevel => {
-    return (templateDefault as SensitivityLevel) || 'public';
+    return (templateDefault as SensitivityLevel) || 'internal';
   };
 
   // Filter templates to only show those belonging to the current section/page

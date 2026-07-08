@@ -50,7 +50,7 @@ export function TemplateDetailModal({
   onClose,
   onEdit,
 }: TemplateDetailModalProps) {
-  const { t } = useTranslation(['common', 'settings']);
+  const { t } = useTranslation(['common', 'settings', 'editor']);
   const installedPlugins = usePluginStore((s) => s.installedPlugins);
   const loadInstalled = usePluginStore((s) => s.loadInstalled);
 
@@ -212,7 +212,9 @@ export function TemplateDetailModal({
                       textDecoration: prop.deprecatedAt ? 'line-through' : 'none',
                     }}
                   >
-                    {prop.name}
+                    {prop.name === '__dynamic_group__'
+                      ? t('editor:field_types.dynamic_group')
+                      : prop.name}
                   </span>
                   {prop.contractField ? (
                     <PluginBadge
