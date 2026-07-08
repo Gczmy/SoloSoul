@@ -181,12 +181,21 @@ export function DataManagementPage() {
             <button
               onClick={() => setShowBreakdown(!showBreakdown)}
               style={{
-                background: 'none',
+                background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
                 padding: 6,
                 borderRadius: 6,
                 color: 'var(--text-tertiary)',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--text-tertiary)';
               }}
               title={t('settings:view_breakdown')}
             >
