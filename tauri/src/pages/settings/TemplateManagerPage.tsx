@@ -95,6 +95,7 @@ export function TemplateManagerPage() {
   const [fieldUsageMap, setFieldUsageMap] = useState<
     Record<string, { active: number; softDeleted: number }>
   >({});
+  const [showNameError, setShowNameError] = useState(false);
   const [showSampleGallery, setShowSampleGallery] = useState(false);
   const [selectedSample, setSelectedSample] = useState<SampleTemplate | null>(null);
   const installedPlugins = usePluginStore((s) => s.installedPlugins) ?? EMPTY_PLUGINS;
@@ -246,6 +247,7 @@ export function TemplateManagerPage() {
   };
 
   const closeEdit = () => {
+    setShowNameError(false);
     setIsNewTemplate(false);
     setEditingTemplate(null);
     setEditName('');
@@ -262,8 +264,10 @@ export function TemplateManagerPage() {
     const name = editName.trim();
     if (!name) {
       showToast({ type: 'warning', message: t('common:name_required') || '请输入模板名称' });
+      setShowNameError(true);
       return;
     }
+    setShowNameError(false);
     // 保存前：对 contractField: true 但尚无 contractBindings 的字段，自动推导并持久化
     const finalProperties = editProperties.map((p) => {
       if (p.contractField && (!p.contractBindings || p.contractBindings.length === 0) && editContractTypeId) {
@@ -670,6 +674,7 @@ export function TemplateManagerPage() {
           onToggleShowDeprecated={() => setShowDeprecated((v) => !v)}
           onSave={saveEdit}
           onClose={closeEdit}
+          nameError={showNameError}
           dynamicGroupEnabled={dynamicGroupEnabled}
           dynamicGroupAllowedTypes={dynamicGroupAllowedTypes}
           dynamicGroupMaxItems={dynamicGroupMaxItems}

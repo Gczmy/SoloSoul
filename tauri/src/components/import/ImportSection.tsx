@@ -14,7 +14,6 @@ import type {
   ImportPreview,
   DecryptedImportPreview,
   ObjectSummary,
-  ConflictInfo,
   ConflictKind,
 } from '@/types/exportImport';
 
@@ -354,56 +353,49 @@ export function ImportSection({
 
           {/* Decrypted preview — Page → Object → Attachment tree */}
           {decryptedPreview && (
-            <>
-              <div
-                style={{
-                  marginTop: 12,
-                  borderTop: '1px solid var(--border-subtle)',
-                  paddingTop: 12,
-                }}
-              >
-                <div
+            <>                <div
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: 6,
+                    marginTop: 12,
+                    borderTop: '1px solid var(--border-subtle)',
+                    paddingTop: 12,
                   }}
                 >
-                  <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600 }}>
+                  <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 6 }}>
                     {t('settings:select_objects')}
                   </h4>
                   {importPageGroups.length > 0 && (
-                    <button
-                      type="button"
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '4px 0',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        borderBottom: '1px solid var(--border-subtle)',
+                        marginBottom: 4,
+                      }}
                       onClick={() =>
                         onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)
                       }
-                      style={{
-                        fontSize: 'var(--text-badge)',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        color: 'var(--accent-primary)',
-                        padding: '2px 6px',
-                        borderRadius: 4,
-                        fontFamily: 'inherit',
-                        transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background =
-                          'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'none';
-                      }}
                     >
-                      {importTotalSelected === decryptedPreview.objects.length
-                        ? t('common:deselect_all')
-                        : t('common:select_all')}
-                    </button>
+                      <SelectCheckbox
+                        checked={importTotalSelected > 0 && importTotalSelected === decryptedPreview.objects.length}
+                        indeterminate={importTotalSelected > 0 && importTotalSelected < decryptedPreview.objects.length}
+                        onChange={() =>
+                          onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)
+                        }
+                      />
+                      <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, flex: 1 }}>
+                        {importTotalSelected === decryptedPreview.objects.length
+                          ? t('common:deselect_all')
+                          : t('common:select_all')}
+                      </span>
+                      <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                        {t('common:object_count', { n: importTotalSelected })}
+                      </span>
+                    </div>
                   )}
-                </div>
 
                 {importPageGroups.length === 0 ? (
                   <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>

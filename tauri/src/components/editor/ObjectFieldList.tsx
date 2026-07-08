@@ -49,6 +49,8 @@ export function ObjectFieldList({
 }: ObjectFieldListProps) {
   const { t } = useTranslation(['common', 'editor', 'navigation']);
 
+  const dynamicGroupLabel = t('editor:field_types.dynamic_group');
+
   const renderFieldInput = (field: FieldDef) => {
     const sensitivity = getSensitivity(field.key, field.sensitivityLevel);
     const propType: PropertyType =
@@ -62,7 +64,7 @@ export function ObjectFieldList({
       return (
         <DynamicGroupEditor
           propertyId={field.key}
-          label={field.label}
+          label={field.label === '__dynamic_group__' ? dynamicGroupLabel : field.label}
           value={values[field.key]}
           allowedTypes={field.allowedTypes}
           maxItems={field.maxItems}
@@ -149,7 +151,7 @@ export function ObjectFieldList({
                     <div key={key}>
                       <DynamicGroupEditor
                         propertyId={key}
-                        label={fieldName}
+                        label={fieldName === '__dynamic_group__' ? dynamicGroupLabel : fieldName}
                         value={val}
                         allowedTypes={fieldDef?.allowedTypes}
                         maxItems={fieldDef?.maxItems}

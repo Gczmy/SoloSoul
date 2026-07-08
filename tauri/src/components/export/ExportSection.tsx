@@ -145,50 +145,46 @@ export function ExportSection({
 
       {/* Page & Object tree */}
       <Card>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 8,
-          }}
-        >
-          <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600 }}>
-            {t('settings:select_objects')}
-          </h3>
-          {pageGroups.length > 0 && (
-            <button
-              type="button"
-              onClick={() =>
+        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
+          {t('settings:select_objects')}
+        </h3>
+        {pageGroups.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '4px 0',
+              cursor: 'pointer',
+              userSelect: 'none',
+              borderBottom: '1px solid var(--border-subtle)',
+              marginBottom: 4,
+            }}
+            onClick={() =>
+              onSelectAllExport(
+                totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0),
+              )
+            }
+          >
+            <SelectCheckbox
+              checked={totalSelected > 0 && totalSelected === pageGroups.reduce((s, g) => s + g.objects.length, 0)}
+              indeterminate={totalSelected > 0 && totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0)}
+              onChange={() =>
                 onSelectAllExport(
                   totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0),
                 )
               }
-              style={{
-                fontSize: 'var(--text-badge)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--accent-primary)',
-                padding: '2px 6px',
-                borderRadius: 4,
-                fontFamily: 'inherit',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'none';
-              }}
-            >
+            />
+            <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, flex: 1 }}>
               {totalSelected === pageGroups.reduce((s, g) => s + g.objects.length, 0)
                 ? t('common:deselect_all')
                 : t('common:select_all')}
-            </button>
-          )}
-        </div>
+            </span>
+            <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+              {t('common:object_count', { n: totalSelected })}
+            </span>
+          </div>
+        )}
         {pageGroups.length === 0 ? (
           <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>
             {t('common:no_data')}

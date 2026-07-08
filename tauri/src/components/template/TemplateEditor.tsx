@@ -62,6 +62,9 @@ interface TemplateEditorProps {
   onSave: () => void;
   onClose: () => void;
 
+  // 名称输入错误提示
+  nameError?: boolean;
+
   // 动态字段组（模板级开关）
   dynamicGroupEnabled: boolean;
   dynamicGroupAllowedTypes?: PropertyType[];
@@ -99,6 +102,7 @@ export function TemplateEditor({
   onToggleShowDeprecated,
   onSave,
   onClose,
+  nameError,
   dynamicGroupEnabled,
   dynamicGroupAllowedTypes,
   dynamicGroupMaxItems,
@@ -174,11 +178,30 @@ export function TemplateEditor({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
-      <Input
-        label={t('common:name') || '名称'}
-        value={editName}
-        onChange={(e) => onEditNameChange(e.target.value)}
-      />
+      <div className={nameError ? 'name-input-error' : ''} >
+        <Input
+          label={t('common:name') || '名称'}
+          value={editName}
+          onChange={(e) => {
+            onEditNameChange(e.target.value);
+          }}
+        />
+      </div>
+      {nameError && (
+        <style>{`
+          @keyframes nameInputShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+          }
+          .name-input-error input {
+            border-color: #ef4444 !important;
+            animation: nameInputShake 0.4s ease-in-out;
+          }
+        `}</style>
+      )}
       <TemplatePageSelect
         value={editCategory}
         onChange={onEditCategoryChange}

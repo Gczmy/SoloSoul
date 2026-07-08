@@ -349,7 +349,6 @@ export function DataManagementPage() {
             <button
               type="button"
               onClick={() => navigate('/settings/backup')}
-              className="interactive-toolbar"
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
@@ -360,6 +359,17 @@ export function DataManagementPage() {
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               {t('settings:create_backup')}
@@ -367,7 +377,6 @@ export function DataManagementPage() {
             <button
               type="button"
               onClick={() => navigate('/settings/backup')}
-              className="interactive-toolbar"
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
@@ -378,6 +387,17 @@ export function DataManagementPage() {
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               {t('settings:restore')}
@@ -402,7 +422,6 @@ export function DataManagementPage() {
             <button
               type="button"
               onClick={() => navigate('/settings/export-import')}
-              className="interactive-toolbar"
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
@@ -413,6 +432,17 @@ export function DataManagementPage() {
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               {t('settings:export')}
@@ -420,7 +450,6 @@ export function DataManagementPage() {
             <button
               type="button"
               onClick={() => navigate('/settings/export-import')}
-              className="interactive-toolbar"
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
@@ -431,6 +460,17 @@ export function DataManagementPage() {
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               {t('settings:import')}
