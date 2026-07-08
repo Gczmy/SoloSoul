@@ -1,5 +1,22 @@
+.wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
 .dialog {
-  margin: auto;
+  position: relative;
   background: var(--bg-elevated);
   border: none;
   border-radius: 16px;
@@ -12,11 +29,7 @@
   overflow-x: hidden;
   box-shadow: 0 12px 40px var(--shadow-color-lg);
   animation: dialogIn 0.25s ease;
-}
-
-.dialog::backdrop {
-  background: var(--bg-overlay);
-  backdrop-filter: blur(4px);
+  z-index: 1;
 }
 
 @keyframes dialogIn {

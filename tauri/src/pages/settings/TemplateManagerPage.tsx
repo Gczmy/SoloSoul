@@ -84,6 +84,11 @@ export function TemplateManagerPage() {
   const [editProperties, setEditProperties] = useState<TemplateProperty[]>([]);
 
   const [newFieldType, setNewFieldType] = useState<PropertyType>('text');
+
+  // 动态字段组（模板级开关）
+  const [dynamicGroupEnabled, setDynamicGroupEnabled] = useState(false);
+  const [dynamicGroupAllowedTypes, setDynamicGroupAllowedTypes] = useState<PropertyType[] | undefined>();
+  const [dynamicGroupMaxItems, setDynamicGroupMaxItems] = useState<number | undefined>();
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [detailTemplate, setDetailTemplate] = useState<ListTemplate | null>(null);
   const [showDeprecated, setShowDeprecated] = useState(false);
@@ -212,6 +217,12 @@ export function TemplateManagerPage() {
     setEditIconId(tpl.iconId || 'document');
     setEditContractTypeId(tpl.contractTypeId || '');
     setEditProperties([...tpl.properties]);
+
+    // 初始化动态字段组状态
+    const dg = tpl.properties.find((p) => p.type === 'dynamic_group');
+    setDynamicGroupEnabled(!!dg);
+    setDynamicGroupAllowedTypes(dg?.allowedTypes);
+    setDynamicGroupMaxItems(dg?.maxItems);
   };
 
   const openCreate = () => {
@@ -229,6 +240,9 @@ export function TemplateManagerPage() {
     setEditIconId('document');
     setEditContractTypeId('');
     setEditProperties([]);
+    setDynamicGroupEnabled(false);
+    setDynamicGroupAllowedTypes(undefined);
+    setDynamicGroupMaxItems(undefined);
   };
 
   const closeEdit = () => {
@@ -239,6 +253,9 @@ export function TemplateManagerPage() {
     setEditIconId('document');
     setEditContractTypeId('');
     setEditProperties([]);
+    setDynamicGroupEnabled(false);
+    setDynamicGroupAllowedTypes(undefined);
+    setDynamicGroupMaxItems(undefined);
   };
 
   const saveEdit = async () => {
@@ -293,32 +310,49 @@ export function TemplateManagerPage() {
         if (i !== index) return p;
         const next: TemplateProperty = { ...p, type: newType };
         // 切换为/退出 dynamic_group 时清理或初始化相关配置
-        if (newType === 'dynamic_group') {
-          if (!next.allowedTypes) {
-            next.allowedTypes = undefined;
-          }
-          if (!next.maxItems) {
-            next.maxItems = undefined;
-          }
-        } else {
-          delete (next as Partial<TemplateProperty>).allowedTypes;
-          delete (next as Partial<TemplateProperty>).maxItems;
-        }
+        delete (next as Partial<TemplateProperty>).allowedTypes;
+        delete (next as Partial<TemplateProperty>).maxItems;
         return next;
       }),
     );
   };
 
-  const updatePropertyAllowedTypes = (index: number, types: PropertyType[]) => {
+  // 动态字段组回调：同步 editProperties 中的 dynamic_group 字段
+  const handleDynamicGroupEnabledChange = (enabled: boolean) => {
+    setDynamicGroupEnabled(enabled);
+    if (enabled) {
+      // 追加一个 dynamic_group 字段
+      const newDg: TemplateProperty = {
+        id: crypto.randomUUID(),
+        name: '__dynamic_group__',
+        type: 'dynamic_group',
+        allowedTypes: dynamicGroupAllowedTypes,
+        maxItems: dynamicGroupMaxItems,
+      };
+      setEditProperties((prev) => [...prev, newDg]);
+    } else {
+      // 移除 dynamic_group 字段
+      setEditProperties((prev) => prev.filter((p) => p.type !== 'dynamic_group'));
+    }
+  };
+
+  const handleDynamicGroupAllowedTypesChange = (types: PropertyType[]) => {
+    setDynamicGroupAllowedTypes(types);
     setEditProperties((prev) =>
-      prev.map((p, i) =>
-        i === index ? { ...p, allowedTypes: types.length > 0 ? types : undefined } : p,
+      prev.map((p) =>
+        p.type === 'dynamic_group'
+          ? { ...p, allowedTypes: types.length > 0 ? types : undefined }
+          : p,
       ),
     );
   };
 
-  const updatePropertyMaxItems = (index: number, maxItems: number | undefined) => {
-    setEditProperties((prev) => prev.map((p, i) => (i === index ? { ...p, maxItems } : p)),
+  const handleDynamicGroupMaxItemsChange = (maxItems: number | undefined) => {
+    setDynamicGroupMaxItems(maxItems);
+    setEditProperties((prev) =>
+      prev.map((p) =>
+        p.type === 'dynamic_group' ? { ...p, maxItems } : p,
+      ),
     );
   };
 
@@ -399,8 +433,8 @@ export function TemplateManagerPage() {
       name: t('settings:new_field_name') || '新字段',
       type: newFieldType,
       sensitivityLevel: 'internal',
-      allowedTypes: newFieldType === 'dynamic_group' ? undefined : undefined,
-      maxItems: newFieldType === 'dynamic_group' ? undefined : undefined,
+      allowedTypes: undefined,
+      maxItems: undefined,
     };
     setEditProperties((prev) => [...prev, newProp]);
   };
@@ -629,8 +663,6 @@ export function TemplateManagerPage() {
           onUpdatePropertyType={updatePropertyType}
           onUpdatePropertySensitivity={updatePropertySensitivity}
           onUpdatePropertyOptions={updatePropertyOptions}
-          onUpdatePropertyAllowedTypes={updatePropertyAllowedTypes}
-          onUpdatePropertyMaxItems={updatePropertyMaxItems}
           onUpdatePropertyContractBindings={updatePropertyContractBindings}
           onRemoveProperty={removeProperty}
           onRestoreProperty={restoreProperty}
@@ -638,6 +670,12 @@ export function TemplateManagerPage() {
           onToggleShowDeprecated={() => setShowDeprecated((v) => !v)}
           onSave={saveEdit}
           onClose={closeEdit}
+          dynamicGroupEnabled={dynamicGroupEnabled}
+          dynamicGroupAllowedTypes={dynamicGroupAllowedTypes}
+          dynamicGroupMaxItems={dynamicGroupMaxItems}
+          onDynamicGroupEnabledChange={handleDynamicGroupEnabledChange}
+          onDynamicGroupAllowedTypesChange={handleDynamicGroupAllowedTypesChange}
+          onDynamicGroupMaxItemsChange={handleDynamicGroupMaxItemsChange}
         />
       </Dialog>
 

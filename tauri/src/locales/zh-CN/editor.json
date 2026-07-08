@@ -89,6 +89,7 @@
   "dynamic_group_max_items_label": "最大数量",
   "dynamic_group_no_limit": "不限制",
   "dynamic_group_select_all": "全选",
+  "enable_dynamic_group": "启用动态字段组",
   "no_template_for_section": "此页面暂无模板，",
   "go_create_template": "前往模板管理新建",
   "manage_templates": "管理模板",

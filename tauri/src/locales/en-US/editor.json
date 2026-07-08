@@ -89,6 +89,7 @@
   "dynamic_group_max_items_label": "Max items",
   "dynamic_group_no_limit": "No limit",
   "dynamic_group_select_all": "Select all",
+  "enable_dynamic_group": "Enable dynamic field group",
   "no_template_for_section": "No templates for this page. ",
   "go_create_template": "Go to Template Manager to create one",
   "manage_templates": "Manage Templates",

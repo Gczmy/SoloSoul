@@ -1,31 +1,92 @@
-.container {
+.wrapper {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 10px;
+  gap: 0;
+}
+
+/* Trigger button */
+.triggerBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
   border: 1px solid var(--border-subtle);
   border-radius: 6px;
+  background: var(--bg-toolbar);
+  color: var(--text-primary);
+  font-size: var(--text-body-sm);
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  box-sizing: border-box;
+}
+
+.triggerBtn:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-subtle);
+}
+
+.triggerBtn:focus-visible {
+  border-color: var(--accent-primary);
+}
+
+.chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition: transform 0.15s ease;
+}
+
+.triggerText {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.separator {
+  margin: 0 6px;
+  color: var(--text-tertiary);
+}
+
+/* Inline expandable config area */
+.configArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 12px;
+  margin-top: 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
   background: var(--bg-elevated);
 }
 
-.section {
+.configSection {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  padding: 10px 0;
 }
 
-.label {
+.configSectionLabel {
   font-size: var(--text-body-sm);
   font-weight: 500;
   color: var(--text-secondary);
+}
+
+.divider {
+  height: 1px;
+  background: var(--border-subtle);
 }
 
 .typeGrid {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-height: 120px;
-  overflow-y: auto;
   padding-right: 4px;
 }
 
@@ -41,6 +102,11 @@
   font-size: var(--text-body-sm);
   color: var(--text-primary);
   user-select: none;
+  transition: border-color 0.12s;
+}
+
+.typeChip:hover {
+  border-color: var(--border-hover);
 }
 
 .typeChip input {
@@ -57,35 +123,103 @@
   cursor: pointer;
 }
 
-.maxItemsRow {
+.toggleAll:hover {
+  text-decoration: underline;
+}
+
+.stepperRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
 }
 
-.maxInput {
-  width: 100px;
-  padding: 6px 10px;
+.stepperGroup {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.stepperBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--border-subtle);
-  border-radius: 6px;
-  font-size: var(--text-body);
   background: var(--bg-toolbar);
   color: var(--text-primary);
-}
-
-.maxInput:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-}
-
-.clearBtn {
-  background: transparent;
-  border: none;
-  font-size: var(--text-body-sm);
-  color: var(--text-tertiary);
+  font-size: 16px;
   cursor: pointer;
+  outline: none;
+  transition: background 0.12s, border-color 0.12s;
+  box-sizing: border-box;
+  user-select: none;
 }
 
-.clearBtn:hover {
+.stepperGroup > .stepperBtn:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.stepperGroup > .stepperBtn:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.stepperBtn:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  border-color: var(--border-hover);
+}
+
+.stepperBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stepperInput {
+  width: 72px;
+  height: 34px;
+  padding: 0 8px;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  border-left: none;
+  border-right: none;
+  font-size: var(--text-body);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  text-align: center;
+  outline: none;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+}
+
+.stepperInput::-webkit-outer-spin-button,
+.stepperInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stepperInput::placeholder {
+  color: var(--text-tertiary);
+}
+
+.unlimitedBtn {
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
   color: var(--accent-primary);
+  font-size: var(--text-body-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+  margin-left: 8px;
+}
+
+.unlimitedBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+}
+
+.unlimitedBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

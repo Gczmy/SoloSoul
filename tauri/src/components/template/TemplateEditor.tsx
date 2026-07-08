@@ -54,8 +54,6 @@ interface TemplateEditorProps {
   onUpdatePropertyType: (index: number, type: PropertyType) => void;
   onUpdatePropertySensitivity: (index: number, level: SensitivityLevel) => void;
   onUpdatePropertyOptions: (index: number, options: string[]) => void;
-  onUpdatePropertyAllowedTypes: (index: number, types: PropertyType[]) => void;
-  onUpdatePropertyMaxItems: (index: number, maxItems: number | undefined) => void;
   onRemoveProperty: (index: number) => void;
   onUpdatePropertyContractBindings: (index: number, bindings: ContractRoleBinding[]) => void;
   onRestoreProperty: (index: number) => void;
@@ -63,6 +61,14 @@ interface TemplateEditorProps {
   onToggleShowDeprecated: () => void;
   onSave: () => void;
   onClose: () => void;
+
+  // 动态字段组（模板级开关）
+  dynamicGroupEnabled: boolean;
+  dynamicGroupAllowedTypes?: PropertyType[];
+  dynamicGroupMaxItems?: number;
+  onDynamicGroupEnabledChange: (enabled: boolean) => void;
+  onDynamicGroupAllowedTypesChange: (types: PropertyType[]) => void;
+  onDynamicGroupMaxItemsChange: (maxItems: number | undefined) => void;
 }
 
 const SENSITIVITY_LEVELS: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
@@ -85,8 +91,6 @@ export function TemplateEditor({
   onUpdatePropertyType,
   onUpdatePropertySensitivity,
   onUpdatePropertyOptions,
-  onUpdatePropertyAllowedTypes,
-  onUpdatePropertyMaxItems,
   onRemoveProperty,
   onContractTypeIdChange,
   onUpdatePropertyContractBindings,
@@ -95,6 +99,12 @@ export function TemplateEditor({
   onToggleShowDeprecated,
   onSave,
   onClose,
+  dynamicGroupEnabled,
+  dynamicGroupAllowedTypes,
+  dynamicGroupMaxItems,
+  onDynamicGroupEnabledChange,
+  onDynamicGroupAllowedTypesChange,
+  onDynamicGroupMaxItemsChange,
 }: TemplateEditorProps) {
   const [showIconPicker, setShowIconPicker] = useState(false);
 
@@ -267,7 +277,7 @@ export function TemplateEditor({
             border: '1px solid var(--border-subtle)',
           }}
         >
-          {editProperties.filter((p) => !p.deprecatedAt).length === 0 &&
+          {editProperties.filter((p) => !p.deprecatedAt && p.type !== 'dynamic_group').length === 0 &&
             editProperties.filter((p) => p.deprecatedAt).length === 0 && (
               <div
                 style={{
@@ -293,7 +303,7 @@ export function TemplateEditor({
           >
             {editProperties
               .map((prop, idx) => ({ prop, idx }))
-              .filter(({ prop }) => !prop.deprecatedAt)
+              .filter(({ prop }) => !prop.deprecatedAt && prop.type !== 'dynamic_group')
               .map(({ prop, idx }) => {
                 const bindings = prop.contractBindings || [];
                 const fieldKey = prop.id;
@@ -372,44 +382,24 @@ export function TemplateEditor({
                       }}
                     >
                       <div style={{ flex: 1, minWidth: 80 }}>
-                        {prop.type === 'dynamic_group' ? (
-                          <div
-                            style={{
-                              width: '100%',
-                              height: 36,
-                              padding: '0 10px',
-                              borderRadius: 6,
-                              border: '1px solid var(--border-subtle)',
-                              background: 'var(--bg-subtle)',
-                              color: 'var(--text-secondary)',
-                              fontSize: 'var(--text-body)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              boxSizing: 'border-box',
-                            }}
-                          >
-                            {t('editor:field_types.dynamic_group', '动态字段组')}
-                          </div>
-                        ) : (
-                          <input
-                            value={prop.name}
-                            onChange={(e) => onUpdatePropertyName(idx, e.target.value)}
-                            placeholder={t('settings:field_name') || '字段名称'}
-                            style={{
-                              width: '100%',
-                              height: 36,
-                              padding: '0 10px',
-                              borderRadius: 6,
-                              border: '1px solid var(--border-subtle)',
-                              background: 'var(--bg-elevated)',
-                              color: 'var(--text-primary)',
-                              fontSize: 'var(--text-body)',
-                              fontFamily: 'inherit',
-                              outline: 'none',
-                              boxSizing: 'border-box',
-                            }}
-                          />
-                        )}
+                        <input
+                          value={prop.name}
+                          onChange={(e) => onUpdatePropertyName(idx, e.target.value)}
+                          placeholder={t('settings:field_name') || '字段名称'}
+                          style={{
+                            width: '100%',
+                            height: 36,
+                            padding: '0 10px',
+                            borderRadius: 6,
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-elevated)',
+                            color: 'var(--text-primary)',
+                            fontSize: 'var(--text-body)',
+                            fontFamily: 'inherit',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        />
                       </div>
                       <select
                         value={prop.type}
@@ -441,7 +431,6 @@ export function TemplateEditor({
                             'email',
                             'phone',
                             'file',
-                            'dynamic_group',
                           ] as PropertyType[]
                         ).map((pt) => (
                           <option key={pt} value={pt}>
@@ -455,14 +444,6 @@ export function TemplateEditor({
                           onChange={(opts) => onUpdatePropertyOptions(idx, opts)}
                           fieldName={prop.name}
                           fieldType={prop.type === 'multiselect' ? 'multiselect' : 'select'}
-                        />
-                      )}
-                      {prop.type === 'dynamic_group' && (
-                        <DynamicGroupConfig
-                          allowedTypes={prop.allowedTypes}
-                          maxItems={prop.maxItems}
-                          onAllowedTypesChange={(types) => onUpdatePropertyAllowedTypes(idx, types)}
-                          onMaxItemsChange={(max) => onUpdatePropertyMaxItems(idx, max)}
                         />
                       )}
                       <select
@@ -796,6 +777,55 @@ export function TemplateEditor({
               onToggleShowDeprecated={onToggleShowDeprecated}
               onRestoreProperty={onRestoreProperty}
               onPermanentlyRemoveProperty={onPermanentlyRemoveProperty}
+            />
+          )}
+        </div>
+
+        {/* 动态字段组（模板级开关） */}
+        <div
+          style={{
+            marginTop: 10,
+            padding: '10px',
+            borderRadius: 8,
+            border: '1px solid var(--border-subtle)',
+            background: 'var(--bg-elevated)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+          }}
+        >
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              cursor: 'pointer',
+              userSelect: 'none',
+              fontSize: 'var(--text-body-sm)',
+              fontWeight: 500,
+              color: 'var(--text-primary)',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={dynamicGroupEnabled}
+              onChange={(e) => onDynamicGroupEnabledChange(e.target.checked)}
+              style={{
+                width: 16,
+                height: 16,
+                cursor: 'pointer',
+                accentColor: 'var(--accent-primary)',
+              }}
+            />
+            {t('editor:enable_dynamic_group')}
+          </label>
+
+          {dynamicGroupEnabled && (
+            <DynamicGroupConfig
+              allowedTypes={dynamicGroupAllowedTypes}
+              maxItems={dynamicGroupMaxItems}
+              onAllowedTypesChange={onDynamicGroupAllowedTypesChange}
+              onMaxItemsChange={onDynamicGroupMaxItemsChange}
             />
           )}
         </div>

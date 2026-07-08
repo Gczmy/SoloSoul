@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './Dialog.module.css';
 
 interface DialogProps {
@@ -11,41 +12,42 @@ interface DialogProps {
 }
 
 export function Dialog({ isOpen, onClose, children, title, dialogStyle }: DialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
   useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    if (isOpen && !el.open) {
-      el.showModal();
-    } else if (!isOpen && el.open) {
-      el.close();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    const el = dialogRef.current;
-    if (!el) return;
-    const handler = () => onClose();
-    el.addEventListener('close', handler);
-    return () => el.removeEventListener('close', handler);
-  }, [onClose]);
+    if (!isOpen) return;
+    // 锁定背景滚动
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    // Escape 键关闭
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  return (
-    <dialog
-      ref={dialogRef}
-      className={styles.dialog}
-      style={dialogStyle}
-      onClick={(e) => {
-        if (e.target === dialogRef.current) {
-          onClose();
-        }
-      }}
-    >
-      {title && <h2 className={styles.title}>{title}</h2>}
-      {children}
-    </dialog>
+  return createPortal(
+    <div className={styles.wrapper}>
+      {/* Backdrop overlay */}
+      <div className={styles.backdrop} onClick={onClose} />
+      {/* Dialog content */}
+      <div
+        className={styles.dialog}
+        style={dialogStyle}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+      >
+        {title && <h2 className={styles.title}>{title}</h2>}
+        {children}
+      </div>
+    </div>,
+    document.body,
   );
 }
