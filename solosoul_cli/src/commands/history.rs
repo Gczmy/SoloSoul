@@ -3,7 +3,7 @@
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
-use crate::commands::{require_unlocked};
+use crate::commands::require_unlocked;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 执行 `/history <object-id>`：列出对象快照。
@@ -23,9 +23,14 @@ pub fn history(app: &mut App, object_id: Option<&str>) -> Result<()> {
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
     // 校验对象存在且属于当前账户
-    match vault.load_object(&object_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+    match vault
+        .load_object(&object_id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
+    {
         Some(record) if record.account_id == account_id && !record.is_deleted => {
-            let snapshots = vault.list_snapshots(&object_id).map_err(|e| color_eyre::eyre::eyre!(e))?;
+            let snapshots = vault
+                .list_snapshots(&object_id)
+                .map_err(|e| color_eyre::eyre::eyre!(e))?;
             app.previous_phase = Some(app.phase.clone());
             app.phase = AppPhase::HistoryList {
                 object_id,
@@ -115,7 +120,9 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
 
-    vault.save_object(&record).map_err(|e| color_eyre::eyre::eyre!(e))?;
+    vault
+        .save_object(&record)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
 
     // 保存回滚快照
     let rollback_data = serde_json::to_vec(&serde_json::json!({
@@ -153,8 +160,8 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
 mod tests {
     use super::*;
     use solosoul_core::{ObjectRecord, VaultService};
-    use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
 
     static OBJ_COUNTER: AtomicUsize = AtomicUsize::new(0);
     fn obj_counter() -> usize {

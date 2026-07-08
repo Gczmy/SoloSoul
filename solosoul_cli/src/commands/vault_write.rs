@@ -12,7 +12,6 @@ use crate::commands::require_unlocked;
 use crate::widgets::field_editor::EditableField;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
-
 // ============================================================================
 // /newpage
 // ============================================================================
@@ -27,7 +26,10 @@ pub fn newpage(app: &mut App, name: Option<&str>) -> Result<()> {
         }
     };
 
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     match objects::create_page(&vault, &account_id, &name) {
         Ok(record) => {
             app.previous_phase = Some(app.phase.clone());
@@ -46,7 +48,10 @@ pub fn newpage(app: &mut App, name: Option<&str>) -> Result<()> {
 
 pub fn newobject(app: &mut App, page_name: Option<&str>) -> Result<()> {
     let account_id = require_unlocked(app)?;
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
     let pages = vault
         .list_objects(&account_id, Some("page"), None, None, false, false)
@@ -75,8 +80,13 @@ pub fn newobject(app: &mut App, page_name: Option<&str>) -> Result<()> {
 
 pub fn start_select_template(app: &mut App, page_id: String, page_name: String) -> Result<()> {
     let account_id = require_unlocked(app)?;
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
-    let templates = vault.list_user_templates(&account_id).map_err(|e| color_eyre::eyre::eyre!(e))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let templates = vault
+        .list_user_templates(&account_id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
 
     app.previous_phase = Some(AppPhase::Home {
         account_id: account_id.clone(),
@@ -126,7 +136,10 @@ pub fn save_new_object(
     fields: Vec<EditableField>,
 ) -> Result<()> {
     let account_id = require_unlocked(app)?;
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
     let mut properties = serde_json::Map::new();
     for f in &fields {
@@ -172,8 +185,14 @@ pub fn edit(app: &mut App, object_id: Option<&str>) -> Result<()> {
         }
     };
 
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
-    match vault.load_object(id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    match vault
+        .load_object(id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
+    {
         Some(record) if record.account_id == account_id && !record.is_deleted => {
             let template = record
                 .template_id
@@ -199,7 +218,10 @@ pub fn edit(app: &mut App, object_id: Option<&str>) -> Result<()> {
 }
 
 pub fn save_edited_object(app: &mut App, mut object: ObjectRecord) -> Result<()> {
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     match objects::update_object(&vault, &mut object) {
         Ok(()) => {
             app.phase = AppPhase::ObjectDetail { object };
@@ -225,8 +247,14 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
         }
     };
 
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
-    let record = match vault.load_object(id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let record = match vault
+        .load_object(id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
+    {
         Some(r) if r.account_id == account_id && !r.is_deleted => r,
         _ => {
             app.error_message = Some(format!("对象 '{}' 不存在或已被删除", id));
@@ -262,28 +290,43 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
         if let Err(e) = objects::move_to_trash(&vault, &record, "object", None, retention_ms) {
             app.error_message = Some(format!("删除失败: {}", e));
         } else {
-            vault.log_structured(
-                "object_delete",
-                "object",
-                Some(&record.id),
-                Some(&record.name),
-                "user",
-                Some(&format!("section={}", record.section_type)),
-            ).ok();
+            vault
+                .log_structured(
+                    "object_delete",
+                    "object",
+                    Some(&record.id),
+                    Some(&record.name),
+                    "user",
+                    Some(&format!("section={}", record.section_type)),
+                )
+                .ok();
             app.error_message = Some(format!("对象 '{}' 已删除", record.name));
         }
     }
     Ok(())
 }
 
-fn delete_page(app: &mut App, page: &ObjectRecord, children: &[solosoul_core::ObjectSummary]) -> Result<()> {
+fn delete_page(
+    app: &mut App,
+    page: &ObjectRecord,
+    children: &[solosoul_core::ObjectSummary],
+) -> Result<()> {
     let account_id = page.account_id.clone();
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let retention_ms = objects::load_trash_retention(&vault, &account_id);
 
     for child_summary in children {
         if let Ok(Some(child)) = vault.load_object(&child_summary.id) {
-            let _ = objects::move_to_trash(&vault, &child, "object", Some(page.id.clone()), retention_ms);
+            let _ = objects::move_to_trash(
+                &vault,
+                &child,
+                "object",
+                Some(page.id.clone()),
+                retention_ms,
+            );
         }
     }
 
@@ -295,14 +338,16 @@ fn delete_page(app: &mut App, page: &ObjectRecord, children: &[solosoul_core::Ob
         }
     }
 
-    vault.log_structured(
-        "page_delete",
-        "page",
-        Some(&page.id),
-        Some(&page.name),
-        "user",
-        Some(&format!("count={}", children.len())),
-    ).ok();
+    vault
+        .log_structured(
+            "page_delete",
+            "page",
+            Some(&page.id),
+            Some(&page.name),
+            "user",
+            Some(&format!("count={}", children.len())),
+        )
+        .ok();
 
     app.phase = AppPhase::Home { account_id };
     app.error_message = Some(format!(
@@ -363,8 +408,14 @@ fn parse_trash_since(s: &str) -> Option<i64> {
     Some(now - ms)
 }
 
-fn load_trash_items(app: &mut App, filter: &TrashFilter) -> Result<Vec<solosoul_core::TrashItemSummary>> {
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+fn load_trash_items(
+    app: &mut App,
+    filter: &TrashFilter,
+) -> Result<Vec<solosoul_core::TrashItemSummary>> {
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let mut items = vault
         .list_trash_items(filter.item_type.as_deref(), filter.since_ms)
         .map_err(|e| color_eyre::eyre::eyre!(e))?;
@@ -395,7 +446,10 @@ pub fn trash(app: &mut App, args: &[&str]) -> Result<()> {
 
 pub fn batch_restore(app: &mut App, ids: &[String]) -> Result<()> {
     let account_id = require_unlocked(app)?;
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let mut success = Vec::new();
     let mut failed = Vec::new();
     for id in ids {
@@ -408,14 +462,21 @@ pub fn batch_restore(app: &mut App, ids: &[String]) -> Result<()> {
         "恢复完成：成功 {} 项；失败 {} 项{}",
         success.len(),
         failed.len(),
-        if failed.is_empty() { String::new() } else { format!("\n{}", failed.join("\n")) }
+        if failed.is_empty() {
+            String::new()
+        } else {
+            format!("\n{}", failed.join("\n"))
+        }
     ));
     Ok(())
 }
 
 pub fn batch_purge(app: &mut App, ids: &[String]) -> Result<()> {
     require_unlocked(app)?;
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let mut success = 0usize;
     let mut failed = Vec::new();
     for id in ids {
@@ -428,7 +489,11 @@ pub fn batch_purge(app: &mut App, ids: &[String]) -> Result<()> {
         "彻底删除完成：成功 {} 项；失败 {} 项{}",
         success,
         failed.len(),
-        if failed.is_empty() { String::new() } else { format!("\n{}", failed.join("\n")) }
+        if failed.is_empty() {
+            String::new()
+        } else {
+            format!("\n{}", failed.join("\n"))
+        }
     ));
     Ok(())
 }
@@ -443,7 +508,10 @@ pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
         }
     };
 
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     match objects::restore_from_trash(&vault, &account_id, trash_id) {
         Ok(result) => app.error_message = Some(format!("已恢复: {}", result.new_id)),
         Err(e) => app.error_message = Some(format!("恢复失败: {}", e)),
@@ -460,8 +528,14 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
         }
     };
 
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
-    let trash = match vault.get_trash_item(&trash_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let trash = match vault
+        .get_trash_item(&trash_id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
+    {
         Some(t) => t,
         None => {
             app.error_message = Some(format!("回收站项目 '{}' 不存在", trash_id));
@@ -477,7 +551,11 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
         },
         Box::new(move |app, result| {
             if let PromptResult::Confirm(true) = result {
-                let vault = match app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开")) {
+                let vault = match app
+                    .vault_service
+                    .get_vault_store()
+                    .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))
+                {
                     Ok(v) => v,
                     Err(_) => return,
                 };
@@ -505,7 +583,9 @@ mod tests {
             .unwrap_or_else(|e| e.into_inner());
         let dir = tempfile::TempDir::new().unwrap();
         let vault = VaultService::with_base_path(dir.path().to_path_buf());
-        let account = vault.create_account("Test", crate::TEST_PASSWORD, None).unwrap();
+        let account = vault
+            .create_account("Test", crate::TEST_PASSWORD, None)
+            .unwrap();
         let account_id = account["id"].as_str().unwrap().to_string();
         let app = App::new(Arc::new(vault)).unwrap();
         (app, account_id, dir)
@@ -517,7 +597,9 @@ mod tests {
         super::newpage(&mut app, Some("旅行")).unwrap();
 
         let vault = app.vault_service.get_vault_store().unwrap();
-        let pages = vault.list_objects(&account_id, Some("page"), None, None, false, false).unwrap();
+        let pages = vault
+            .list_objects(&account_id, Some("page"), None, None, false, false)
+            .unwrap();
         assert_eq!(pages.len(), 1);
         assert_eq!(pages[0].name, "旅行");
         assert!(matches!(app.phase, AppPhase::ObjectDetail { .. }));
@@ -539,9 +621,15 @@ mod tests {
         // 创建页面和对象
         let page = objects::create_page(&vault, &account_id, "旅行").unwrap();
         let obj = objects::create_object(
-            &vault, &account_id, &page.id, "待删除",
-            serde_json::json!({}), None, None,
-        ).unwrap();
+            &vault,
+            &account_id,
+            &page.id,
+            "待删除",
+            serde_json::json!({}),
+            None,
+            None,
+        )
+        .unwrap();
 
         // 删除
         super::delete(&mut app, Some(&obj.id)).unwrap();
@@ -576,15 +664,23 @@ mod tests {
         let vault = app.vault_service.get_vault_store().unwrap();
         let page = objects::create_page(&vault, &account_id, "旅行").unwrap();
         let mut obj = objects::create_object(
-            &vault, &account_id, &page.id, "原名称",
-            serde_json::json!({"title": "old"}), None, None,
-        ).unwrap();
+            &vault,
+            &account_id,
+            &page.id,
+            "原名称",
+            serde_json::json!({"title": "old"}),
+            None,
+            None,
+        )
+        .unwrap();
 
         obj.name = "新名称".to_string();
         super::save_edited_object(&mut app, obj).unwrap();
 
         // 检查是否更新
-        let objects_list = vault.list_objects(&account_id, None, Some(&page.id), None, false, false).unwrap();
+        let objects_list = vault
+            .list_objects(&account_id, None, Some(&page.id), None, false, false)
+            .unwrap();
         assert_eq!(objects_list[0].name, "新名称");
     }
 }

@@ -288,7 +288,38 @@ export function TemplateManagerPage() {
   };
 
   const updatePropertyType = (index: number, newType: PropertyType) => {
-    setEditProperties((prev) => prev.map((p, i) => (i === index ? { ...p, type: newType } : p)));
+    setEditProperties((prev) =>
+      prev.map((p, i) => {
+        if (i !== index) return p;
+        const next: TemplateProperty = { ...p, type: newType };
+        // 切换为/退出 dynamic_group 时清理或初始化相关配置
+        if (newType === 'dynamic_group') {
+          if (!next.allowedTypes) {
+            next.allowedTypes = undefined;
+          }
+          if (!next.maxItems) {
+            next.maxItems = undefined;
+          }
+        } else {
+          delete (next as Partial<TemplateProperty>).allowedTypes;
+          delete (next as Partial<TemplateProperty>).maxItems;
+        }
+        return next;
+      }),
+    );
+  };
+
+  const updatePropertyAllowedTypes = (index: number, types: PropertyType[]) => {
+    setEditProperties((prev) =>
+      prev.map((p, i) =>
+        i === index ? { ...p, allowedTypes: types.length > 0 ? types : undefined } : p,
+      ),
+    );
+  };
+
+  const updatePropertyMaxItems = (index: number, maxItems: number | undefined) => {
+    setEditProperties((prev) => prev.map((p, i) => (i === index ? { ...p, maxItems } : p)),
+    );
   };
 
   const updatePropertySensitivity = (
@@ -368,6 +399,8 @@ export function TemplateManagerPage() {
       name: t('settings:new_field_name') || '新字段',
       type: newFieldType,
       sensitivityLevel: 'internal',
+      allowedTypes: newFieldType === 'dynamic_group' ? undefined : undefined,
+      maxItems: newFieldType === 'dynamic_group' ? undefined : undefined,
     };
     setEditProperties((prev) => [...prev, newProp]);
   };
@@ -596,6 +629,8 @@ export function TemplateManagerPage() {
           onUpdatePropertyType={updatePropertyType}
           onUpdatePropertySensitivity={updatePropertySensitivity}
           onUpdatePropertyOptions={updatePropertyOptions}
+          onUpdatePropertyAllowedTypes={updatePropertyAllowedTypes}
+          onUpdatePropertyMaxItems={updatePropertyMaxItems}
           onUpdatePropertyContractBindings={updatePropertyContractBindings}
           onRemoveProperty={removeProperty}
           onRestoreProperty={restoreProperty}

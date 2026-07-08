@@ -16,7 +16,6 @@ use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-
 const DEFAULT_REGISTRY_URL: &str = "https://models.solosoul.dev/embed-registry.json";
 
 pub fn handle(app: &mut App, argv: &[&str]) -> Result<()> {

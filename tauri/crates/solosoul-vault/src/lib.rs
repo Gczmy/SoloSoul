@@ -287,6 +287,9 @@ pub enum PropertyType {
     Phone,
     #[serde(rename = "file")]
     FileReference,
+    /// 动态字段组：模板中仅为容器，对象级可添加任意数量、任意类型的子字段。
+    #[serde(rename = "dynamic_group")]
+    DynamicGroup,
 }
 
 impl PropertyType {
@@ -304,6 +307,7 @@ impl PropertyType {
             "email" => Some(Self::Email),
             "phone" => Some(Self::Phone),
             "file" => Some(Self::FileReference),
+            "dynamic_group" => Some(Self::DynamicGroup),
             _ => None,
         }
     }
@@ -322,6 +326,7 @@ impl PropertyType {
             PropertyType::Email => "email",
             PropertyType::Phone => "phone",
             PropertyType::FileReference => "file",
+            PropertyType::DynamicGroup => "dynamic_group",
         }
     }
 
@@ -336,7 +341,26 @@ impl PropertyType {
                     PropertyType::Text
                 }
             }
-            serde_json::Value::Array(arr) if arr.len() > 1 => PropertyType::MultiSelect,
+            serde_json::Value::Array(arr) => {
+                // 动态字段组：数组元素均为含 id/name/type/value 的对象
+                if !arr.is_empty()
+                    && arr.iter().all(|item| {
+                        item.as_object().is_some_and(|o| {
+                            o.contains_key("id")
+                                && o.contains_key("name")
+                                && o.contains_key("type")
+                                && o.contains_key("value")
+                        })
+                    })
+                {
+                    return PropertyType::DynamicGroup;
+                }
+                if arr.len() > 1 {
+                    PropertyType::MultiSelect
+                } else {
+                    PropertyType::Text
+                }
+            }
             serde_json::Value::String(s) => {
                 let lower = key.to_lowercase();
                 let s_lower = s.to_lowercase();
@@ -416,6 +440,16 @@ pub struct TemplateProperty {
         rename = "contractBindings"
     )]
     pub contract_bindings: Option<Vec<ContractRoleBinding>>,
+    /// 动态字段组允许创建的子字段类型；空/缺失表示不限制。
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowedTypes"
+    )]
+    pub allowed_types: Option<Vec<PropertyType>>,
+    /// 动态字段组允许的最大子字段数量；缺失表示无限制。
+    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxItems")]
+    pub max_items: Option<u32>,
 }
 
 /// A user-defined object template stored in the vault.
@@ -440,4 +474,29 @@ pub struct UserTemplate {
         skip_serializing_if = "Option::is_none"
     )]
     pub contract_type_id: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn property_type_dynamic_group_roundtrip() {
+        assert_eq!(
+            PropertyType::parse("dynamic_group"),
+            Some(PropertyType::DynamicGroup)
+        );
+        assert_eq!(PropertyType::DynamicGroup.as_str(), "dynamic_group");
+    }
+
+    #[test]
+    fn infer_from_value_dynamic_group() {
+        let value = serde_json::json!([
+            { "id": "1", "name": "手机", "type": "phone", "value": "123" }
+        ]);
+        assert_eq!(
+            PropertyType::infer_from_value(&value, "contactMethods"),
+            PropertyType::DynamicGroup
+        );
+    }
 }

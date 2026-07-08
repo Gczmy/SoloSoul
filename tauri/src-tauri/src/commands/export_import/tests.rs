@@ -544,6 +544,8 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             },
             TemplateProperty {
                 contract_field: None,
@@ -555,6 +557,8 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             },
             TemplateProperty {
                 contract_field: None,
@@ -566,6 +570,8 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             },
         ],
         category: Some("travel".to_string()),

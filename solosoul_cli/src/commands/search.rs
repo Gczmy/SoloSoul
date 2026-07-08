@@ -84,7 +84,10 @@ pub fn search(app: &mut App, input: Option<&str>) -> Result<()> {
         }
     };
 
-    let vault = app.vault_service.get_vault_store().ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let vault = app
+        .vault_service
+        .get_vault_store()
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let (items, truncated, total_scanned) = perform_search(&vault, &account_id, &query)?;
 
     app.previous_phase = Some(app.phase.clone());
@@ -121,7 +124,9 @@ fn perform_search(
     items.append(&mut page_items);
 
     // 2. 对象：通过 search_objects 获取候选，再细粒度匹配字段
-    let records = vault.search_objects(account_id, &q).map_err(|e| color_eyre::eyre::eyre!(e))?;
+    let records = vault
+        .search_objects(account_id, &q)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
     for rec in records {
         total_scanned += 1;
         if rec.type_id == "page" {
@@ -462,7 +467,10 @@ pub fn open_selected(app: &mut App) -> Result<()> {
                 items: objects,
             };
         } else {
-            match vault.load_object(&item.object_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+            match vault
+                .load_object(&item.object_id)
+                .map_err(|e| color_eyre::eyre::eyre!(e))?
+            {
                 Some(record) if record.account_id == account_id && !record.is_deleted => {
                     app.previous_phase = Some(app.phase.clone());
                     app.phase = AppPhase::ObjectDetail { object: record };
@@ -480,8 +488,8 @@ pub fn open_selected(app: &mut App) -> Result<()> {
 mod tests {
     use super::*;
     use solosoul_core::{ObjectRecord, VaultService};
-    use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
 
     static PAGE_COUNTER: AtomicUsize = AtomicUsize::new(0);
     static OBJ_COUNTER: AtomicUsize = AtomicUsize::new(0);

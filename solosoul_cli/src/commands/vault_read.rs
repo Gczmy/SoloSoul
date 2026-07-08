@@ -3,7 +3,7 @@
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase, SizeReport};
-use crate::commands::{require_unlocked};
+use crate::commands::require_unlocked;
 
 /// 执行 `/list [page_name]`：列出页面或页面内对象。
 pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
@@ -73,7 +73,10 @@ pub fn open(app: &mut App, object_id: Option<&str>) -> Result<()> {
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
-    match vault.load_object(id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+    match vault
+        .load_object(id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
+    {
         Some(record) if record.account_id == account_id && !record.is_deleted => {
             app.previous_phase = Some(app.phase.clone());
             app.phase = AppPhase::ObjectDetail { object: record };

@@ -232,8 +232,8 @@ pub fn command_usage(command: &str) -> Option<&'static str> {
     USAGE_MAP.get(cmd).copied()
 }
 
-use std::sync::LazyLock;
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
 /// 命令 → 详细用法映射（与 HELP_GROUPS 数据源同步维护）。
 ///
@@ -244,45 +244,105 @@ static USAGE_MAP: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(
     // 别名映射：保持与 HELP_GROUPS 中命令名的关系。
     // 主命令名（无斜杠）→ 用法文本
     macro_rules! usage {
-        ($cmd:expr, $text:expr) => { m.insert($cmd, $text); };
+        ($cmd:expr, $text:expr) => {
+            m.insert($cmd, $text);
+        };
     }
     usage!("account_list", "/account_list\n  列出本地已创建的账户。");
-    usage!("unlock", "/unlock 或 /login\n  启动登录向导。单账户时直接进入密码输入。");
-    usage!("lock", "/lock 或 /logout\n  立即锁定 Vault 并清除内存中的会话密钥。");
+    usage!(
+        "unlock",
+        "/unlock 或 /login\n  启动登录向导。单账户时直接进入密码输入。"
+    );
+    usage!(
+        "lock",
+        "/lock 或 /logout\n  立即锁定 Vault 并清除内存中的会话密钥。"
+    );
     usage!("exit", "/exit\n  锁定 Vault 并退出 CLI。");
-    usage!("list", "/list [页面名]\n  列出所有页面；若提供页面名则列出该页面下的对象。");
+    usage!(
+        "list",
+        "/list [页面名]\n  列出所有页面；若提供页面名则列出该页面下的对象。"
+    );
     usage!("open", "/open <对象ID>\n  查看指定对象的详情。");
     usage!("size", "/size (或 /status /state)\n  显示账户统计信息。");
     usage!("search", "/search <关键词>\n  按名称或属性值搜索对象与页面。\n  支持引号包裹多词关键词，例如 /search \"project alpha\"。");
     usage!("history", "/history <对象ID>\n  列出对象的历史快照。");
-    usage!("rollback", "/rollback <对象ID> <快照ID>\n  将对象恢复到指定快照。操作前会要求确认。");
+    usage!(
+        "rollback",
+        "/rollback <对象ID> <快照ID>\n  将对象恢复到指定快照。操作前会要求确认。"
+    );
     usage!("newpage", "/newpage <名称>\n  创建新页面。");
-    usage!("newobject", "/newobject [页面名]\n  启动创建对象向导；若指定页面名则跳过页面选择。");
+    usage!(
+        "newobject",
+        "/newobject [页面名]\n  启动创建对象向导；若指定页面名则跳过页面选择。"
+    );
     usage!("edit", "/edit <对象ID>\n  启动对象编辑向导。");
     usage!("delete", "/delete <对象ID>\n  将对象或页面移入回收站。");
     usage!("trash", "/trash (或 /bin)\n  列出回收站项目。");
     usage!("restore", "/restore <trash_id>\n  从回收站恢复对象或页面。");
-    usage!("purge", "/purge <trash_id>\n  彻底删除回收站项目，不可恢复。");
-    usage!("operation_log", "/operation_log [条数]\n  列出审计日志，默认 100 条。需要已解锁。");
-    usage!("export_log", "/export_log [文件名]\n  将审计日志导出到数据目录的 logs/ 文件夹。");
+    usage!(
+        "purge",
+        "/purge <trash_id>\n  彻底删除回收站项目，不可恢复。"
+    );
+    usage!(
+        "operation_log",
+        "/operation_log [条数]\n  列出审计日志，默认 100 条。需要已解锁。"
+    );
+    usage!(
+        "export_log",
+        "/export_log [文件名]\n  将审计日志导出到数据目录的 logs/ 文件夹。"
+    );
     usage!("debug_log", "/debug_log [文件名]\n  导出诊断包到 logs/。");
-    usage!("attach", "/attach list|add|rename|delete|restore|purge|cleanup\n  管理对象附件。");
-    usage!("backup", "/backup list|create|restore|delete\n  创建、列出、恢复或删除 Vault 备份。");
+    usage!(
+        "attach",
+        "/attach list|add|rename|delete|restore|purge|cleanup\n  管理对象附件。"
+    );
+    usage!(
+        "backup",
+        "/backup list|create|restore|delete\n  创建、列出、恢复或删除 Vault 备份。"
+    );
     usage!("export", "/export [文件] --full|--pages|--objects [--include-attachments]\n  加密导出为 .solosoul 包。");
-    usage!("import", "/import [文件] --preview|--strategy skip|overwrite|merge\n  从 .solosoul 包导入对象。");
-    usage!("language", "/language [语言]\n  获取或设置界面语言，保存于 ui_preferences.json。");
-    usage!("theme", "/theme [主题]\n  获取或设置界面主题，保存于 ui_preferences.json。");
-    usage!("setting", "/setting <键> <值>\n  更新当前账户的加密偏好设置。");
-    usage!("security", "/security password|hint|trash-retention|delete-account|biometric\n  安全设置。");
-    usage!("profile", "/profile | /profile rename|set\n  查看、重命名或编辑当前账户的加密 Profile。");
+    usage!(
+        "import",
+        "/import [文件] --preview|--strategy skip|overwrite|merge\n  从 .solosoul 包导入对象。"
+    );
+    usage!(
+        "language",
+        "/language [语言]\n  获取或设置界面语言，保存于 ui_preferences.json。"
+    );
+    usage!(
+        "theme",
+        "/theme [主题]\n  获取或设置界面主题，保存于 ui_preferences.json。"
+    );
+    usage!(
+        "setting",
+        "/setting <键> <值>\n  更新当前账户的加密偏好设置。"
+    );
+    usage!(
+        "security",
+        "/security password|hint|trash-retention|delete-account|biometric\n  安全设置。"
+    );
+    usage!(
+        "profile",
+        "/profile | /profile rename|set\n  查看、重命名或编辑当前账户的加密 Profile。"
+    );
     usage!("doctor", "/doctor\n  生成数据目录健康诊断报告。");
-    usage!("template", "/template | /template show|delete\n  列出、查看或删除对象模板。");
-    usage!("about", "/about (或 /version)\n  显示应用版本、系统与数据目录信息。");
+    usage!(
+        "template",
+        "/template | /template show|delete\n  列出、查看或删除对象模板。"
+    );
+    usage!(
+        "about",
+        "/about (或 /version)\n  显示应用版本、系统与数据目录信息。"
+    );
     usage!("help", "/help [命令]\n  显示命令分组列表或指定命令的用法。");
     // 别名映射
     for (alias, primary) in &[
-        ("login", "unlock"), ("logout", "lock"), ("status", "size"),
-        ("state", "size"), ("version", "about"), ("bin", "trash"),
+        ("login", "unlock"),
+        ("logout", "lock"),
+        ("status", "size"),
+        ("state", "size"),
+        ("version", "about"),
+        ("bin", "trash"),
     ] {
         if let Some(usage) = m.get(primary) {
             m.insert(alias, usage);
@@ -291,15 +351,15 @@ static USAGE_MAP: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(
     m
 });
 
-    #[test]
-    fn test_command_usage_from_groups() {
-        assert!(command_usage("search").is_some());
-        assert!(command_usage("/search").is_some());
-        assert!(command_usage("/foobar").is_none());
-        // 别名
-        assert!(command_usage("login").is_some());
-        assert!(command_usage("status").is_some());
-    }
+#[test]
+fn test_command_usage_from_groups() {
+    assert!(command_usage("search").is_some());
+    assert!(command_usage("/search").is_some());
+    assert!(command_usage("/foobar").is_none());
+    // 别名
+    assert!(command_usage("login").is_some());
+    assert!(command_usage("status").is_some());
+}
 
 #[cfg(test)]
 mod tests {

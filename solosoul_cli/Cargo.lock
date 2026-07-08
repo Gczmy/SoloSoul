@@ -4378,13 +4378,14 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+ "uuid",
  "zeroize",
  "zip",
 ]
 
 [[package]]
 name = "solosoul-core"
-version = "2.5.9"
+version = "2.5.11"
 dependencies = [
  "ab_glyph",
  "anyhow",
@@ -4421,7 +4422,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-crypto"
-version = "2.5.9"
+version = "2.5.11"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -4437,7 +4438,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-plugin"
-version = "2.5.9"
+version = "2.5.11"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4464,7 +4465,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-sync"
-version = "2.5.9"
+version = "2.5.11"
 dependencies = [
  "base64",
  "chrono",
@@ -4487,7 +4488,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-vault"
-version = "2.5.9"
+version = "2.5.11"
 dependencies = [
  "base64",
  "chrono",

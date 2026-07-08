@@ -5,7 +5,7 @@ use serde_json::{Map, Value};
 use solosoul_core::Profile;
 
 use crate::app::{App, AppPhase};
-use crate::commands::{require_unlocked_with_vault};
+use crate::commands::require_unlocked_with_vault;
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -30,11 +30,16 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
 /// 加载当前账户的 Profile，不存在则创建空 Profile。
 fn load_or_create_profile(app: &mut App) -> Result<Profile> {
     let (account_id, vault) = require_unlocked_with_vault(app)?;
-    match vault.load_profile(&account_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+    match vault
+        .load_profile(&account_id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
+    {
         Some(p) => Ok(p),
         None => {
             let p = Profile::new_with_id(&account_id, &account_id, Vec::new());
-            vault.save_profile(&p).map_err(|e| color_eyre::eyre::eyre!(e))?;
+            vault
+                .save_profile(&p)
+                .map_err(|e| color_eyre::eyre::eyre!(e))?;
             Ok(p)
         }
     }
@@ -59,7 +64,9 @@ fn save_profile_data(app: &mut App, profile: &mut Profile, data: &Value) -> Resu
     })?;
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;
-    vault.save_profile(profile).map_err(|e| color_eyre::eyre::eyre!(e))?;
+    vault
+        .save_profile(profile)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
     Ok(())
 }
 
@@ -87,14 +94,19 @@ fn rename_profile(app: &mut App, name: Option<&str>) -> Result<()> {
     };
 
     let (account_id, vault) = require_unlocked_with_vault(app)?;
-    let mut profile = match vault.load_profile(&account_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+    let mut profile = match vault
+        .load_profile(&account_id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
+    {
         Some(p) => p,
         None => Profile::new_with_id(&account_id, &name, Vec::new()),
     };
     profile.name = name.clone();
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;
-    vault.save_profile(&profile).map_err(|e| color_eyre::eyre::eyre!(e))?;
+    vault
+        .save_profile(&profile)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
 
     let data = profile_data_value(&profile)?;
     app.previous_phase = Some(app.phase.clone());

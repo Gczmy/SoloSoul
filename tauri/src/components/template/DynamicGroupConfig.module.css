@@ -1,0 +1,88 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-elevated);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.typeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.typeChip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-toolbar);
+  cursor: pointer;
+  font-size: var(--text-body-sm);
+  color: var(--text-primary);
+  user-select: none;
+}
+
+.typeChip input {
+  cursor: pointer;
+}
+
+.toggleAll {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: var(--text-body-sm);
+  color: var(--accent-primary);
+  cursor: pointer;
+}
+
+.maxItemsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.maxInput {
+  width: 100px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  font-size: var(--text-body);
+  background: var(--bg-toolbar);
+  color: var(--text-primary);
+}
+
+.maxInput:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.clearBtn {
+  background: transparent;
+  border: none;
+  font-size: var(--text-body-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.clearBtn:hover {
+  color: var(--accent-primary);
+}

@@ -4,6 +4,7 @@ import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/Sensiti
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
+import { DynamicGroupEditor } from '@/components/editor/DynamicGroupEditor';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import type { PropertyType } from '@/types/template';
 import type { ObjectData } from '@/stores/objectStore';
@@ -17,6 +18,8 @@ interface FieldDef {
   required?: boolean;
   deprecatedAt?: string;
   contractField?: boolean;
+  allowedTypes?: PropertyType[];
+  maxItems?: number;
 }
 
 interface ObjectFieldListProps {
@@ -46,6 +49,63 @@ export function ObjectFieldList({
 }: ObjectFieldListProps) {
   const { t } = useTranslation(['common', 'editor', 'navigation']);
 
+  const renderFieldInput = (field: FieldDef) => {
+    const sensitivity = getSensitivity(field.key, field.sensitivityLevel);
+    const propType: PropertyType =
+      field.type === 'tel'
+        ? 'phone'
+        : field.type === 'datetime-local'
+          ? 'datetime'
+          : (field.type as PropertyType) || 'text';
+
+    if (propType === 'dynamic_group') {
+      return (
+        <DynamicGroupEditor
+          propertyId={field.key}
+          label={field.label}
+          value={values[field.key]}
+          allowedTypes={field.allowedTypes}
+          maxItems={field.maxItems}
+          sensitivity={sensitivity}
+          onChange={(val) => {
+            onChange(field.key, val);
+            if (validationErrors[field.key]) onClearError(field.key);
+          }}
+        />
+      );
+    }
+
+    const isDeprecated = !!field.deprecatedAt;
+    return (
+      <TemplateFieldInput
+        propertyId={field.key}
+        label={field.label}
+        type={propType}
+        options={field.options}
+        value={values[field.key]}
+        icon={<FieldTypeIcon type={propType} />}
+        badge={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <SensitivityBadge level={sensitivity} />
+            {field.contractField && contractTypeId && (
+              <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
+            )}
+            {isDeprecated && <DeprecatedBadge />}
+          </div>
+        }
+        hint={
+          ['email', 'url', 'phone', 'date', 'number'].includes(propType)
+            ? t(`editor:validation_hint_${propType}`)
+            : undefined
+        }
+        onChange={(val) => {
+          onChange(field.key, val);
+          if (validationErrors[field.key]) onClearError(field.key);
+        }}
+      />
+    );
+  };
+
   return (
     <Card>
       <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 12 }}>
@@ -67,6 +127,8 @@ export function ObjectFieldList({
                         options?: string[];
                         deprecatedAt?: string;
                         contractField?: boolean;
+                        allowedTypes?: PropertyType[];
+                        maxItems?: number;
                       }
                     >
                   | undefined;
@@ -81,6 +143,26 @@ export function ObjectFieldList({
                   (objLabels?.[key] as SensitivityLevel) || 'internal';
                 const isContractField = fieldDef?.contractField === true;
                 const objContractTypeId = currentObject?.contractTypeId;
+
+                if (propType === 'dynamic_group') {
+                  return (
+                    <div key={key}>
+                      <DynamicGroupEditor
+                        propertyId={key}
+                        label={fieldName}
+                        value={val}
+                        allowedTypes={fieldDef?.allowedTypes}
+                        maxItems={fieldDef?.maxItems}
+                        sensitivity={sensitivity}
+                        onChange={(newVal) => {
+                          onChange(key, newVal);
+                          if (validationErrors[key]) onClearError(key);
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={key}>
                     <TemplateFieldInput
@@ -108,8 +190,8 @@ export function ObjectFieldList({
                           ? t(`editor:validation_hint_${propType}`)
                           : undefined
                       }
-                      onChange={(val) => {
-                        onChange(key, val);
+                      onChange={(v) => {
+                        onChange(key, v);
                         if (validationErrors[key]) onClearError(key);
                       }}
                     />
@@ -123,52 +205,16 @@ export function ObjectFieldList({
                   </div>
                 );
               })
-          : displayFields.map((field) => {
-              const sensitivity = getSensitivity(field.key, field.sensitivityLevel);
-              const fieldLabel = field.label;
-              const propType: PropertyType =
-                field.type === 'tel'
-                  ? 'phone'
-                  : field.type === 'datetime-local'
-                    ? 'datetime'
-                    : (field.type as PropertyType) || 'text';
-              const isDeprecated = !!field.deprecatedAt;
-              return (
-                <div key={field.key}>
-                  <TemplateFieldInput
-                    propertyId={field.key}
-                    label={fieldLabel}
-                    type={propType}
-                    options={field.options}
-                    value={values[field.key]}
-                    icon={<FieldTypeIcon type={propType} />}
-                    badge={
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <SensitivityBadge level={sensitivity} />
-                        {field.contractField && contractTypeId && (
-                          <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />
-                        )}
-                        {isDeprecated && <DeprecatedBadge />}
-                      </div>
-                    }
-                    hint={
-                      ['email', 'url', 'phone', 'date', 'number'].includes(propType)
-                        ? t(`editor:validation_hint_${propType}`)
-                        : undefined
-                    }
-                    onChange={(val) => {
-                      onChange(field.key, val);
-                      if (validationErrors[field.key]) onClearError(field.key);
-                    }}
-                  />
-                  {validationErrors[field.key] && (
-                    <div style={{ fontSize: 'var(--text-badge)', color: '#ef4444', marginTop: 4 }}>
-                      {validationErrors[field.key]}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          : displayFields.map((field) => (
+              <div key={field.key}>
+                {renderFieldInput(field)}
+                {validationErrors[field.key] && (
+                  <div style={{ fontSize: 'var(--text-badge)', color: '#ef4444', marginTop: 4 }}>
+                    {validationErrors[field.key]}
+                  </div>
+                )}
+              </div>
+            ))}
       </div>
     </Card>
   );

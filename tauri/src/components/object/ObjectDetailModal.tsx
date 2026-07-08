@@ -53,13 +53,35 @@ interface ObjectDetailModalProps {
 function flattenProperties(
   props: Record<string, unknown> | undefined,
   fieldOrder?: string[],
-): { key: string; value: string }[] {
+  fieldDefs?: Record<string, { type?: string }>,
+): { key: string; label?: string; value: string; fieldId?: string }[] {
   if (!props) return [];
-  const entries: { key: string; value: string }[] = [];
+  const entries: { key: string; label?: string; value: string; fieldId?: string }[] = [];
+  const defs = fieldDefs ??
+    ((props.__fields as Record<string, { type?: string }> | undefined) || {});
   for (const [k, v] of Object.entries(props)) {
     if (k.startsWith('__')) continue;
     if (v === null || v === undefined || v === '') continue;
-    if (typeof v === 'string') {
+    const fieldType = defs[k]?.type;
+    if (fieldType === 'dynamic_group' && Array.isArray(v)) {
+      for (const item of v) {
+        if (!item || typeof item !== 'object') continue;
+        const { id, name, value } = item as Record<string, unknown>;
+        if (name === undefined || name === null || name === '') continue;
+        let displayValue = '';
+        if (Array.isArray(value)) {
+          displayValue = value.join(', ');
+        } else if (value !== null && value !== undefined) {
+          displayValue = String(value);
+        }
+        entries.push({
+          key: k,
+          label: String(name),
+          value: displayValue,
+          fieldId: id ? `${k}.${id}` : `${k}.${name}`,
+        });
+      }
+    } else if (typeof v === 'string') {
       entries.push({ key: k, value: v });
     } else if (typeof v === 'number' || typeof v === 'boolean') {
       entries.push({ key: k, value: String(v) });
@@ -291,6 +313,10 @@ export function ObjectDetailModal({
     return fieldMap.get(fieldKey);
   };
 
+  const getFieldType = (fieldKey: string): string => {
+    return getFieldProperty(fieldKey)?.type || objFieldDefs?.[fieldKey]?.type || 'text';
+  };
+
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
     // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
     const labels = obj?.propertyLabels as Record<string, string> | undefined;
@@ -305,7 +331,8 @@ export function ObjectDetailModal({
     return !!getFieldProperty(fieldKey)?.deprecatedAt;
   };
 
-  const getFieldName = (fieldKey: string): string => {
+  const getFieldName = (fieldKey: string, label?: string): string => {
+    if (label) return label;
     return getFieldProperty(fieldKey)?.name || objFieldDefs?.[fieldKey]?.name || fieldKey;
   };
 
@@ -345,7 +372,7 @@ export function ObjectDetailModal({
     ? resolveCustomIcon(detailTpl.iconId)
     : PAGE_ICON_MAP.custom;
   const fieldOrder = templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id);
-  const fields = flattenProperties(obj?.properties, fieldOrder);
+  const fields = flattenProperties(obj?.properties, fieldOrder, objFieldDefs);
 
   const actionBtnStyle: React.CSSProperties = {
     display: 'flex',
@@ -518,7 +545,7 @@ export function ObjectDetailModal({
                   {fields.map((f) => {
                     const sens = getFieldSensitivity(f.key);
                     const deprecated = isFieldDeprecated(f.key);
-                    const fieldId = `${obj.collectionType}.${f.key}`;
+                    const fieldId = f.fieldId || `${obj.collectionType}.${f.key}`;
                     const revealed = isRevealed(fieldId);
                     const needsReveal = sens === 'sensitive' || sens === 'critical';
                     return (
@@ -553,7 +580,7 @@ export function ObjectDetailModal({
                                 textDecoration: deprecated ? 'line-through' : 'none',
                               }}
                             >
-                              {getFieldName(f.key)}
+                              {getFieldName(f.key, f.label)}
                             </span>
                             <SensitivityBadge level={sens} />
                             {obj.contractTypeId && (

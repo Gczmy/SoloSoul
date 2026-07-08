@@ -12,6 +12,7 @@ import {
   Mail,
   Phone,
   File,
+  Layers,
 } from 'lucide-react';
 import type { PropertyType } from '@/types/template';
 
@@ -51,6 +52,8 @@ export const FieldTypeIcon = memo(function FieldTypeIcon({
       return <Phone size={size} style={style} />;
     case 'file':
       return <File size={size} style={style} />;
+    case 'dynamic_group':
+      return <Layers size={size} style={style} />;
     default:
       return <Type size={size} style={style} />;
   }

@@ -488,6 +488,32 @@
                     "contractField": true
                 }
             ]
+        },
+        {
+            "key": "contact",
+            "category": "identity",
+            "icon": "contact",
+            "nameI18nKey": "editor:templates.contact",
+            "nameFallback": "联系人",
+            "properties": [
+                {
+                    "id": "fullName",
+                    "nameI18nKey": "editor:fields.fullName",
+                    "nameFallback": "姓名",
+                    "type": "text",
+                    "sensitivityLevel": "public",
+                    "required": true
+                },
+                {
+                    "id": "contactMethods",
+                    "nameI18nKey": "editor:fields.contactMethods",
+                    "nameFallback": "联系方式",
+                    "type": "dynamic_group",
+                    "sensitivityLevel": "internal",
+                    "required": false,
+                    "allowedTypes": ["phone", "email", "url", "text"]
+                }
+            ]
         }
     ]
 }

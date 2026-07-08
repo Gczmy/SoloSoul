@@ -1,0 +1,118 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  color: var(--text-secondary, #666);
+}
+
+.count {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary, #999);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--bg-elevated);
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.nameButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  transition: background 0.15s;
+  flex: 1;
+  min-width: 0;
+}
+
+.nameButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+}
+
+.nameButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.nameButton span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nameInput {
+  flex: 1;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.itemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.typeSelectRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.typeSelect {
+  padding: 6px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  font-size: var(--text-body-sm);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  flex: 1;
+}
+
+.typeSelect:focus {
+  outline: none;
+  border-color: var(--accent-primary, #5b7c99);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+}
+
+.addButton {
+  align-self: flex-start;
+}

@@ -14,6 +14,7 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { ObjectTemplateSelector } from '@/components/editor/ObjectTemplateSelector';
 import { ObjectFieldList } from '@/components/editor/ObjectFieldList';
+import type { PropertyType } from '@/types/template';
 
 // Each template belongs to a workspace section.
 // collectionType is the section (for filtering), not the template name.
@@ -76,6 +77,8 @@ export function ObjectEditorPage() {
         required?: boolean;
         deprecatedAt?: string;
         contractField?: boolean;
+        allowedTypes?: PropertyType[];
+        maxItems?: number;
       }[]
     > = {};
     for (const tpl of userTemplates) {
@@ -88,6 +91,8 @@ export function ObjectEditorPage() {
         required: false,
         deprecatedAt: p.deprecatedAt,
         contractField: p.contractField,
+        allowedTypes: p.allowedTypes,
+        maxItems: p.maxItems,
       }));
     }
     return map;
@@ -181,11 +186,23 @@ export function ObjectEditorPage() {
     // Populate property values
     const vals: Record<string, unknown> = {};
     if (currentObject.properties && typeof currentObject.properties === 'object') {
+      const fieldDefs = (currentObject.properties as Record<string, unknown>).__fields as
+        | Record<string, { type?: string }>
+        | undefined;
       for (const [k, v] of Object.entries(currentObject.properties)) {
-        if (typeof v === 'string') vals[k] = v;
-        else if (typeof v === 'number' || typeof v === 'boolean') vals[k] = String(v);
-        else if (Array.isArray(v)) vals[k] = v;
-        else if (v !== null && v !== undefined) vals[k] = String(v);
+        if (k.startsWith('__')) continue;
+        const fieldType = fieldDefs?.[k]?.type;
+        if (fieldType === 'dynamic_group' && Array.isArray(v)) {
+          vals[k] = v;
+        } else if (typeof v === 'string') {
+          vals[k] = v;
+        } else if (typeof v === 'number' || typeof v === 'boolean') {
+          vals[k] = String(v);
+        } else if (Array.isArray(v)) {
+          vals[k] = v;
+        } else if (v !== null && v !== undefined) {
+          vals[k] = String(v);
+        }
       }
     }
     setValues(vals);
@@ -242,6 +259,100 @@ export function ObjectEditorPage() {
     const errors: Record<string, string> = {};
     for (const field of fields) {
       const val = values[field.key];
+
+      if (field.type === 'dynamic_group') {
+        const items = Array.isArray(val) ? val : [];
+        if (field.maxItems !== undefined && items.length > field.maxItems) {
+          errors[field.key] = t('editor:dynamic_group_max_items', {
+            max: field.maxItems,
+          });
+          continue;
+        }
+        const names = new Set<string>();
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (!item || typeof item !== 'object') continue;
+          const { name, type, value } = item as Record<string, unknown>;
+          if (!name || String(name).trim() === '') {
+            errors[field.key] = t('editor:dynamic_group_empty_name', { index: i + 1 });
+            break;
+          }
+          const key = String(name).trim();
+          if (names.has(key)) {
+            errors[field.key] = t('editor:dynamic_group_duplicate_name', { name: key });
+            break;
+          }
+          names.add(key);
+          if (
+            field.allowedTypes?.length &&
+            !field.allowedTypes.includes(type as PropertyType)
+          ) {
+            errors[field.key] = t('editor:dynamic_group_disallowed_type', {
+              type,
+            });
+            break;
+          }
+          // 按子字段类型做值校验
+          const strVal = String(value ?? '').trim();
+          if (!strVal) continue;
+          switch (type as PropertyType) {
+            case 'email': {
+              const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (!emailRe.test(strVal)) {
+                errors[field.key] = t('editor:dynamic_group_invalid_value', {
+                  index: i + 1,
+                  hint: t('editor:validation_email'),
+                });
+              }
+              break;
+            }
+            case 'url': {
+              const urlStr = /^https?:\/\//i.test(strVal) ? strVal : `https://${strVal}`;
+              try {
+                new URL(urlStr);
+              } catch {
+                errors[field.key] = t('editor:dynamic_group_invalid_value', {
+                  index: i + 1,
+                  hint: t('editor:validation_url'),
+                });
+              }
+              break;
+            }
+            case 'phone': {
+              const phoneRe = /^[\d\s\-+()]{3,20}$/;
+              if (!phoneRe.test(strVal)) {
+                errors[field.key] = t('editor:dynamic_group_invalid_value', {
+                  index: i + 1,
+                  hint: t('editor:validation_phone'),
+                });
+              }
+              break;
+            }
+            case 'date': {
+              const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+              if (!dateRe.test(strVal)) {
+                errors[field.key] = t('editor:dynamic_group_invalid_value', {
+                  index: i + 1,
+                  hint: t('editor:validation_date'),
+                });
+              }
+              break;
+            }
+            case 'number': {
+              if (Number.isNaN(Number(strVal))) {
+                errors[field.key] = t('editor:dynamic_group_invalid_value', {
+                  index: i + 1,
+                  hint: t('editor:validation_number'),
+                });
+              }
+              break;
+            }
+          }
+          if (errors[field.key]) break;
+        }
+        continue;
+      }
+
       const strVal = typeof val === 'string' ? val.trim() : String(val ?? '').trim();
 
       if (field.required && !strVal) {

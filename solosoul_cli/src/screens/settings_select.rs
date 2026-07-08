@@ -127,8 +127,7 @@ pub fn render_option_list<'a>(
     }
 
     frame.render_widget(
-        Paragraph::new(Line::from(config.help.dark_gray()))
-            .alignment(Alignment::Center),
+        Paragraph::new(Line::from(config.help.dark_gray())).alignment(Alignment::Center),
         layout[2],
     );
 }

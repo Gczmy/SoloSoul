@@ -174,8 +174,8 @@ fn forget_peer(app: &mut App, peer_node_id: &str) {
         app.error_message = Some("用法: /sync forget <peer>".to_string());
         return;
     }
-    let result = build_manager_for_manage(&app.vault_service)
-        .and_then(|mgr| mgr.forget_peer(peer_node_id));
+    let result =
+        build_manager_for_manage(&app.vault_service).and_then(|mgr| mgr.forget_peer(peer_node_id));
     match result {
         Ok(()) => {
             app.error_message = Some(format!("已从 vault 中删除 peer {}", peer_node_id));
@@ -239,7 +239,13 @@ fn sync_identity(vault: &Arc<solosoul_vault::VaultStore>) -> (String, NoiseKeys)
     } else {
         let mut bytes = [0u8; 16];
         OsRng.fill_bytes(&mut bytes);
-        let id = format!("node_{}", bytes.iter().map(|b| format!("{:02x}", b)).collect::<String>());
+        let id = format!(
+            "node_{}",
+            bytes
+                .iter()
+                .map(|b| format!("{:02x}", b))
+                .collect::<String>()
+        );
         let _ = vault.set_sync_node_id(&id);
         id
     };

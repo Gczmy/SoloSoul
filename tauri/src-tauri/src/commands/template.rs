@@ -81,6 +81,8 @@ fn migrate_legacy_templates_if_needed(
                             sensitive: None,
                             options: None,
                             deprecated_at: None,
+                            allowed_types: None,
+                            max_items: None,
                         })
                     })
                     .collect()
@@ -431,6 +433,8 @@ pub async fn template_save_from_object(
                         sensitive: None,
                         options: None,
                         deprecated_at: None,
+                        allowed_types: None,
+                        max_items: None,
                     }
                 })
                 .collect()
@@ -466,8 +470,8 @@ pub async fn template_save_from_object(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::object::snapshot::{load_trash_retention, retention_ms};
+    use super::*;
 
     // ── retention_ms ──────────────────────────────────────────────
 

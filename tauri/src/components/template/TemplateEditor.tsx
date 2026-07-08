@@ -18,6 +18,7 @@ import { TemplateTypeSelect } from './TemplateTypeSelect';
 import { TemplatePageSelect } from './TemplatePageSelect';
 import { IconPicker } from './IconPicker';
 import { OptionsEditor } from './OptionsEditor';
+import { DynamicGroupConfig } from './DynamicGroupConfig';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { ICON_SIZE } from '@/lib/constants';
 import { usePluginStore } from '@/stores/pluginStore';
@@ -53,6 +54,8 @@ interface TemplateEditorProps {
   onUpdatePropertyType: (index: number, type: PropertyType) => void;
   onUpdatePropertySensitivity: (index: number, level: SensitivityLevel) => void;
   onUpdatePropertyOptions: (index: number, options: string[]) => void;
+  onUpdatePropertyAllowedTypes: (index: number, types: PropertyType[]) => void;
+  onUpdatePropertyMaxItems: (index: number, maxItems: number | undefined) => void;
   onRemoveProperty: (index: number) => void;
   onUpdatePropertyContractBindings: (index: number, bindings: ContractRoleBinding[]) => void;
   onRestoreProperty: (index: number) => void;
@@ -82,6 +85,8 @@ export function TemplateEditor({
   onUpdatePropertyType,
   onUpdatePropertySensitivity,
   onUpdatePropertyOptions,
+  onUpdatePropertyAllowedTypes,
+  onUpdatePropertyMaxItems,
   onRemoveProperty,
   onContractTypeIdChange,
   onUpdatePropertyContractBindings,
@@ -416,6 +421,7 @@ export function TemplateEditor({
                             'email',
                             'phone',
                             'file',
+                            'dynamic_group',
                           ] as PropertyType[]
                         ).map((pt) => (
                           <option key={pt} value={pt}>
@@ -429,6 +435,14 @@ export function TemplateEditor({
                           onChange={(opts) => onUpdatePropertyOptions(idx, opts)}
                           fieldName={prop.name}
                           fieldType={prop.type === 'multiselect' ? 'multiselect' : 'select'}
+                        />
+                      )}
+                      {prop.type === 'dynamic_group' && (
+                        <DynamicGroupConfig
+                          allowedTypes={prop.allowedTypes}
+                          maxItems={prop.maxItems}
+                          onAllowedTypesChange={(types) => onUpdatePropertyAllowedTypes(idx, types)}
+                          onMaxItemsChange={(max) => onUpdatePropertyMaxItems(idx, max)}
                         />
                       )}
                       <select

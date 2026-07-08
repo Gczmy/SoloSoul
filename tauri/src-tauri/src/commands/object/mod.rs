@@ -7,11 +7,96 @@
 use crate::commands::{current_account_optional, vault_handle};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
-use solosoul_vault::ObjectRecord;
+use solosoul_vault::{ObjectRecord, PropertyType};
 use tauri::State;
 use uuid::Uuid;
 
-/// 一天的毫秒数。
+/// 校验 properties 中的 dynamic_group 字段值。
+/// 要求：数组；每个元素含 id/name/type/value；type 可被解析；不超出 maxItems；类型在 allowedTypes 内。
+pub fn validate_dynamic_groups(properties: &serde_json::Value) -> Result<(), String> {
+    let fields = match properties.get("__fields").and_then(|v| v.as_object()) {
+        Some(f) => f,
+        None => return Ok(()),
+    };
+    let props = match properties.as_object() {
+        Some(p) => p,
+        None => return Ok(()),
+    };
+
+    for (key, field_def) in fields {
+        if field_def.get("type").and_then(|v| v.as_str()) != Some("dynamic_group") {
+            continue;
+        }
+        let value = match props.get(key) {
+            Some(v) => v,
+            None => continue,
+        };
+        let items = value
+            .as_array()
+            .ok_or_else(|| format!("字段 '{}' 是动态字段组，其值必须是数组", key))?;
+
+        let allowed: Option<Vec<&str>> = field_def
+            .get("allowedTypes")
+            .and_then(|v| v.as_array())
+            .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect());
+        let max_items = field_def
+            .get("maxItems")
+            .and_then(|v| v.as_u64())
+            .map(|n| n as usize);
+
+        if let Some(max) = max_items {
+            if items.len() > max {
+                return Err(format!(
+                    "字段 '{}' 最多允许 {} 个子字段，当前 {} 个",
+                    key,
+                    max,
+                    items.len()
+                ));
+            }
+        }
+
+        for (idx, item) in items.iter().enumerate() {
+            let obj = item
+                .as_object()
+                .ok_or_else(|| format!("字段 '{}' 的第 {} 个子字段必须是对象", key, idx + 1))?;
+            for required in ["id", "name", "type", "value"] {
+                if !obj.contains_key(required) {
+                    return Err(format!(
+                        "字段 '{}' 的第 {} 个子字段缺少 '{}'",
+                        key,
+                        idx + 1,
+                        required
+                    ));
+                }
+            }
+            let child_type = obj
+                .get("type")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| format!("字段 '{}' 的第 {} 个子字段 type 无效", key, idx + 1))?;
+            if PropertyType::parse(child_type).is_none() {
+                return Err(format!(
+                    "字段 '{}' 的第 {} 个子字段类型 '{}' 不存在",
+                    key,
+                    idx + 1,
+                    child_type
+                ));
+            }
+            if let Some(ref allowed) = allowed {
+                if !allowed.contains(&child_type) {
+                    return Err(format!(
+                        "字段 '{}' 的第 {} 个子字段类型 '{}' 不在允许列表 {:?} 中",
+                        key,
+                        idx + 1,
+                        child_type,
+                        allowed
+                    ));
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 pub const MS_PER_DAY: i64 = 24 * 3600 * 1000;
 
 /// 回收站保留期选项。
@@ -173,6 +258,25 @@ fn inherit_template_properties(
         if let Some(ref cf) = prop.contract_field {
             field_def.insert("contractField".to_string(), serde_json::Value::Bool(*cf));
         }
+        if let PropertyType::DynamicGroup = prop.prop_type {
+            if let Some(ref allowed) = prop.allowed_types {
+                field_def.insert(
+                    "allowedTypes".to_string(),
+                    serde_json::Value::Array(
+                        allowed
+                            .iter()
+                            .map(|t| serde_json::Value::String(t.as_str().to_string()))
+                            .collect(),
+                    ),
+                );
+            }
+            if let Some(max) = prop.max_items {
+                field_def.insert(
+                    "maxItems".to_string(),
+                    serde_json::Value::Number(max.into()),
+                );
+            }
+        }
         fields_map.insert(prop.id.clone(), serde_json::Value::Object(field_def));
     }
 
@@ -332,6 +436,8 @@ pub async fn object_create(
     inject_property_fields(&mut properties, &property_fields);
     // §Bugfix: 保存模板名称，模板删除后仍可显示
     inject_template_meta(&vault, input.template_id.as_deref(), &mut properties);
+    // 校验 dynamic_group 字段
+    validate_dynamic_groups(&properties)?;
 
     let record = ObjectRecord {
         contract_type_id,
@@ -442,6 +548,8 @@ pub async fn object_update(
             }
         }
     }
+    // 校验 dynamic_group 字段
+    validate_dynamic_groups(&record.properties)?;
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
 

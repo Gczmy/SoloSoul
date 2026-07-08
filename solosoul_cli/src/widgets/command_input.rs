@@ -181,7 +181,6 @@ impl CommandInput {
         let cursor_y = area.y + 1;
         frame.set_cursor_position((cursor_x, cursor_y));
     }
-
 }
 
 #[cfg(test)]

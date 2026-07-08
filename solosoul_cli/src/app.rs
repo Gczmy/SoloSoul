@@ -11,8 +11,8 @@ use ratatui::style::Stylize;
 use ratatui::Frame;
 use solosoul_core::llm::config::{ConversationSummary, LlmConfig, LlmUsageStats};
 use solosoul_core::llm::service::LlmService;
-use solosoul_core::process_lock::ProcessLock;
 use solosoul_core::objects::AttachmentMeta;
+use solosoul_core::process_lock::ProcessLock;
 use solosoul_core::{AccountSummary, ObjectRecord, ObjectSummary, UserTemplate, VaultService};
 use zeroize::Zeroizing;
 
@@ -350,6 +350,7 @@ pub enum ExternalEditRequest {
     Select(EditableField),
     MultiSelect(EditableField),
     Textarea(EditableField),
+    DynamicGroup(EditableField),
 }
 
 pub struct App {
@@ -489,6 +490,7 @@ pub fn build_external_edit_request(field: EditableField) -> ExternalEditRequest 
         PropertyType::Select => ExternalEditRequest::Select(field),
         PropertyType::MultiSelect => ExternalEditRequest::MultiSelect(field),
         PropertyType::MultilineText => ExternalEditRequest::Textarea(field),
+        PropertyType::DynamicGroup => ExternalEditRequest::DynamicGroup(field),
         _ => ExternalEditRequest::Textarea(field),
     }
 }
@@ -957,8 +959,12 @@ impl App {
                 mut selected,
             } => {
                 match handle_list_nav(selected, accounts.len(), key) {
-                    NavAction::Back => { commands::core::back(self); }
-                    NavAction::Moved(sel) => { selected = sel; }
+                    NavAction::Back => {
+                        commands::core::back(self);
+                    }
+                    NavAction::Moved(sel) => {
+                        selected = sel;
+                    }
                     NavAction::None if key.code == KeyCode::Enter && selected < accounts.len() => {
                         let account = &accounts[selected];
                         let account_id = account.id.clone();
@@ -1686,8 +1692,12 @@ impl App {
                 mut selected,
             } => {
                 match handle_list_nav(selected, pages.len(), key) {
-                    NavAction::Back => { self.cancel_wizard(); }
-                    NavAction::Moved(sel) => { selected = sel; }
+                    NavAction::Back => {
+                        self.cancel_wizard();
+                    }
+                    NavAction::Moved(sel) => {
+                        selected = sel;
+                    }
                     NavAction::None if key.code == KeyCode::Enter && selected < pages.len() => {
                         let page = &pages[selected];
                         commands::vault_write::start_select_template(
@@ -1711,8 +1721,12 @@ impl App {
             } => {
                 let count = templates.len() + 1; // +1 for "无模板" option at index 0
                 match handle_list_nav(selected, count, key) {
-                    NavAction::Back => { self.cancel_wizard(); }
-                    NavAction::Moved(sel) => { selected = sel; }
+                    NavAction::Back => {
+                        self.cancel_wizard();
+                    }
+                    NavAction::Moved(sel) => {
+                        selected = sel;
+                    }
                     NavAction::None if key.code == KeyCode::Enter && selected < count => {
                         let template = if selected == 0 {
                             None
@@ -1887,7 +1901,10 @@ impl App {
         } = &self.phase
         {
             match handle_list_nav(*selected, items.len(), key) {
-                NavAction::Back => { commands::core::back(self); return Ok(false); }
+                NavAction::Back => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
                 NavAction::Moved(sel) => {
                     self.phase = AppPhase::SearchResults {
                         query: query.clone(),
@@ -1922,7 +1939,10 @@ impl App {
         } = &self.phase
         {
             return match handle_list_nav(*selected, snapshots.len(), key) {
-                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Back => {
+                    commands::core::back(self);
+                    Ok(false)
+                }
                 NavAction::Moved(sel) => {
                     self.phase = AppPhase::HistoryList {
                         object_id: object_id.clone(),
@@ -1947,7 +1967,10 @@ impl App {
         } = &self.phase
         {
             return match handle_list_nav(*selected, items.len(), key) {
-                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Back => {
+                    commands::core::back(self);
+                    Ok(false)
+                }
                 NavAction::Moved(sel) => {
                     self.phase = AppPhase::AttachmentList {
                         object_id: object_id.clone(),
@@ -1967,7 +1990,10 @@ impl App {
     fn handle_backup_list_key(&mut self, key: KeyEvent) -> Result<bool> {
         if let AppPhase::BackupList { items, selected } = &self.phase {
             return match handle_list_nav(*selected, items.len(), key) {
-                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Back => {
+                    commands::core::back(self);
+                    Ok(false)
+                }
                 NavAction::Moved(sel) => {
                     self.phase = AppPhase::BackupList {
                         items: items.clone(),
@@ -1991,7 +2017,10 @@ impl App {
         {
             // Profile 页没有明确的上限计数，但 Down 仍应受限制——用 999 作为保底上限。
             return match handle_list_nav(*selected, 999, key) {
-                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Back => {
+                    commands::core::back(self);
+                    Ok(false)
+                }
                 NavAction::Moved(sel) => {
                     self.phase = AppPhase::Profile {
                         profile: profile.clone(),
@@ -2017,8 +2046,13 @@ impl App {
             let total = user_templates.len() + system_templates.len();
             let mut selected = *selected;
             match handle_list_nav(selected, total, key) {
-                NavAction::Back => { commands::core::back(self); return Ok(false); }
-                NavAction::Moved(sel) => { selected = sel; }
+                NavAction::Back => {
+                    commands::core::back(self);
+                    return Ok(false);
+                }
+                NavAction::Moved(sel) => {
+                    selected = sel;
+                }
                 NavAction::None => match key.code {
                     KeyCode::Enter if selected < total => {
                         let id = if selected < user_templates.len() {
@@ -2065,7 +2099,10 @@ impl App {
         } = &self.phase
         {
             return match handle_list_nav(*selected, config.providers.len(), key) {
-                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Back => {
+                    commands::core::back(self);
+                    Ok(false)
+                }
                 NavAction::Moved(sel) => {
                     self.phase = AppPhase::LlmConfig {
                         config: config.clone(),
@@ -2084,7 +2121,10 @@ impl App {
     fn handle_llm_stats_key(&mut self, key: KeyEvent) -> Result<bool> {
         if let AppPhase::LlmStats { stats, selected } = &self.phase {
             return match handle_list_nav(*selected, stats.per_model_stats.len(), key) {
-                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Back => {
+                    commands::core::back(self);
+                    Ok(false)
+                }
                 NavAction::Moved(sel) => {
                     self.phase = AppPhase::LlmStats {
                         stats: stats.clone(),
@@ -2106,7 +2146,10 @@ impl App {
         } = &self.phase
         {
             return match handle_list_nav(*selected, conversations.len(), key) {
-                NavAction::Back => { commands::core::back(self); Ok(false) }
+                NavAction::Back => {
+                    commands::core::back(self);
+                    Ok(false)
+                }
                 NavAction::Moved(sel) => {
                     self.phase = AppPhase::ConversationList {
                         conversations: conversations.clone(),
@@ -2457,7 +2500,9 @@ impl App {
                 }
                 return Ok(false);
             }
-            NavAction::Moved(sel) => { selected = sel; }
+            NavAction::Moved(sel) => {
+                selected = sel;
+            }
             NavAction::None if key.code == KeyCode::Enter && selected < num_items => {
                 commands::settings::dispatch_item(self, selected);
                 return Ok(false);
@@ -2479,7 +2524,9 @@ impl App {
         };
         let count = crate::screens::settings_language_select::OPTIONS.len();
         match handle_list_nav(selected, count, key) {
-            NavAction::Back => { commands::core::back(self); }
+            NavAction::Back => {
+                commands::core::back(self);
+            }
             NavAction::Moved(sel) => {
                 self.phase = AppPhase::SettingsLanguageSelect { selected: sel };
             }
@@ -2502,7 +2549,9 @@ impl App {
         };
         let count = crate::screens::settings_theme_select::OPTIONS.len();
         match handle_list_nav(selected, count, key) {
-            NavAction::Back => { commands::core::back(self); }
+            NavAction::Back => {
+                commands::core::back(self);
+            }
             NavAction::Moved(sel) => {
                 self.phase = AppPhase::SettingsThemeSelect { selected: sel };
             }

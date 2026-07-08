@@ -166,7 +166,6 @@ impl Theme {
     pub fn style_command_border(&self) -> Style {
         Style::default().fg(self.border)
     }
-
 }
 
 impl Default for Theme {

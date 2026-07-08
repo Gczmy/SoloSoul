@@ -93,6 +93,7 @@ fn default_value(prop_type: &PropertyType) -> serde_json::Value {
         PropertyType::Boolean => serde_json::Value::Bool(false),
         PropertyType::Number => serde_json::Value::Number(0.into()),
         PropertyType::MultiSelect => serde_json::Value::Array(vec![]),
+        PropertyType::DynamicGroup => serde_json::Value::Array(vec![]),
         _ => serde_json::Value::String(String::new()),
     }
 }
@@ -104,9 +105,46 @@ pub fn format_value(value: &serde_json::Value) -> String {
         serde_json::Value::Number(n) => n.to_string(),
         serde_json::Value::Null => "-".to_string(),
         serde_json::Value::Array(arr) => {
+            // 动态字段组：展示每个子字段的 name/type/value
+            if is_dynamic_group_array(value) {
+                return format_dynamic_group(arr);
+            }
             arr.iter().map(format_value).collect::<Vec<_>>().join(", ")
         }
         serde_json::Value::Object(_) => serde_json::to_string(value).unwrap_or_default(),
+    }
+}
+
+/// 判断一个 JSON 数组是否是动态字段组的子字段列表。
+fn is_dynamic_group_array(value: &serde_json::Value) -> bool {
+    let Some(arr) = value.as_array() else {
+        return false;
+    };
+    if arr.is_empty() {
+        return false;
+    }
+    arr.iter().all(|item| {
+        item.as_object().is_some_and(|o| {
+            o.contains_key("id") && o.contains_key("name") && o.contains_key("type")
+        })
+    })
+}
+
+fn format_dynamic_group(arr: &[serde_json::Value]) -> String {
+    let parts: Vec<String> = arr
+        .iter()
+        .filter_map(|item| {
+            let obj = item.as_object()?;
+            let name = obj.get("name")?.as_str()?;
+            let typ = obj.get("type")?.as_str()?;
+            let value = format_value(obj.get("value").unwrap_or(&serde_json::Value::Null));
+            Some(format!("{}({}): {}", name, typ, value))
+        })
+        .collect();
+    if parts.is_empty() {
+        "(空)".to_string()
+    } else {
+        parts.join("; ")
     }
 }
 
@@ -119,6 +157,7 @@ pub fn needs_external_editor(field: &EditableField) -> bool {
             | PropertyType::Select
             | PropertyType::MultiSelect
             | PropertyType::MultilineText
+            | PropertyType::DynamicGroup
     )
 }
 
@@ -219,6 +258,10 @@ pub fn parse_value(input: &str, field: &EditableField) -> Result<serde_json::Val
                 .collect();
             Ok(serde_json::Value::Array(parts))
         }
+        PropertyType::DynamicGroup => {
+            // 动态字段组通过外部编辑器处理，内部输入框仅做占位
+            Ok(serde_json::Value::Array(vec![]))
+        }
         _ => Ok(serde_json::Value::String(input.to_string())),
     }
 }
@@ -277,5 +320,42 @@ pub fn value_from_result(
         }
         PromptResult::Confirm(b) => Some(serde_json::Value::Bool(*b)),
         PromptResult::Cancel => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn format_dynamic_group_value() {
+        let value = serde_json::json!([
+            { "id": "1", "name": "手机", "type": "phone", "value": "13800138000" },
+            { "id": "2", "name": "邮箱", "type": "email", "value": "a@b.com" }
+        ]);
+        let s = format_value(&value);
+        assert!(s.contains("手机(phone): 13800138000"));
+        assert!(s.contains("邮箱(email): a@b.com"));
+    }
+
+    #[test]
+    fn needs_external_editor_includes_dynamic_group() {
+        let field = EditableField {
+            key: "contactMethods".to_string(),
+            label: "联系方式".to_string(),
+            prop_type: PropertyType::DynamicGroup,
+            sensitivity: "internal".to_string(),
+            value: serde_json::Value::Array(vec![]),
+            options: vec![],
+        };
+        assert!(needs_external_editor(&field));
+    }
+
+    #[test]
+    fn default_value_for_dynamic_group_is_empty_array() {
+        assert_eq!(
+            default_value(&PropertyType::DynamicGroup),
+            serde_json::Value::Array(vec![])
+        );
     }
 }

@@ -16,7 +16,9 @@ pub fn require_unlocked(app: &mut App) -> color_eyre::Result<String> {
 }
 
 /// 确保 Vault 已解锁，返回 (账户 ID, VaultStore)。
-pub fn require_unlocked_with_vault(app: &mut App) -> color_eyre::Result<(String, std::sync::Arc<solosoul_core::VaultStore>)> {
+pub fn require_unlocked_with_vault(
+    app: &mut App,
+) -> color_eyre::Result<(String, std::sync::Arc<solosoul_core::VaultStore>)> {
     let account_id = require_unlocked(app)?;
     let vault = app
         .vault_service
@@ -31,7 +33,11 @@ pub fn parse_value(raw: &str) -> serde_json::Value {
 }
 
 /// 更新当前账户加密偏好中的单个键值。
-pub fn update_profile_preference(app: &mut App, key: &str, value: serde_json::Value) -> color_eyre::Result<()> {
+pub fn update_profile_preference(
+    app: &mut App,
+    key: &str,
+    value: serde_json::Value,
+) -> color_eyre::Result<()> {
     use serde_json::{Map, Value};
     let account_id = require_unlocked(app)?;
 
@@ -40,7 +46,10 @@ pub fn update_profile_preference(app: &mut App, key: &str, value: serde_json::Va
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
-    let mut profile = match vault.load_profile(&account_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+    let mut profile = match vault
+        .load_profile(&account_id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
+    {
         Some(p) => p,
         None => solosoul_core::Profile::new_with_id(&account_id, &account_id, Vec::new()),
     };
@@ -68,7 +77,9 @@ pub fn update_profile_preference(app: &mut App, key: &str, value: serde_json::Va
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;
 
-    vault.save_profile(&profile).map_err(|e| color_eyre::eyre::eyre!(e))?;
+    vault
+        .save_profile(&profile)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
     Ok(())
 }
 

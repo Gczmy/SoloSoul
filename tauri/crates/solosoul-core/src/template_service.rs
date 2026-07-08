@@ -38,6 +38,16 @@ pub struct SystemTemplateProperty {
         rename = "contractBindings"
     )]
     pub contract_bindings: Option<Vec<solosoul_vault::ContractRoleBinding>>,
+    /// 动态字段组允许创建的子字段类型；空/缺失表示不限制。
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        rename = "allowedTypes"
+    )]
+    pub allowed_types: Option<Vec<String>>,
+    /// 动态字段组允许的最大子字段数量；缺失表示无限制。
+    #[serde(default, skip_serializing_if = "Option::is_none", rename = "maxItems")]
+    pub max_items: Option<u32>,
 }
 
 impl SystemTemplateProperty {
@@ -144,17 +154,27 @@ pub fn seed_default_templates(
         let properties: Vec<solosoul_vault::TemplateProperty> = st
             .properties
             .iter()
-            .map(|p| solosoul_vault::TemplateProperty {
-                contract_field: p.contract_field,
-                contract_bindings: p.contract_bindings.clone(),
-                id: p.id.clone(),
-                name: p.name_fallback.clone(),
-                prop_type: solosoul_vault::PropertyType::parse(&p.prop_type)
-                    .unwrap_or(solosoul_vault::PropertyType::Text),
-                sensitivity_level: Some(p.effective_sensitivity_level()),
-                options: p.options.clone(),
-                sensitive: None,
-                deprecated_at: None,
+            .map(|p| {
+                let prop_type = solosoul_vault::PropertyType::parse(&p.prop_type)
+                    .unwrap_or(solosoul_vault::PropertyType::Text);
+                let allowed_types = p.allowed_types.as_ref().map(|list| {
+                    list.iter()
+                        .filter_map(|s| solosoul_vault::PropertyType::parse(s))
+                        .collect()
+                });
+                solosoul_vault::TemplateProperty {
+                    contract_field: p.contract_field,
+                    contract_bindings: p.contract_bindings.clone(),
+                    id: p.id.clone(),
+                    name: p.name_fallback.clone(),
+                    prop_type,
+                    sensitivity_level: Some(p.effective_sensitivity_level()),
+                    options: p.options.clone(),
+                    sensitive: None,
+                    deprecated_at: None,
+                    allowed_types,
+                    max_items: p.max_items,
+                }
             })
             .collect();
 

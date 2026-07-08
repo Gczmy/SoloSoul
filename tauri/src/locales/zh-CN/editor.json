@@ -36,11 +36,13 @@
     "city": "城市",
     "province": "省/自治区/直辖市/特别行政区",
     "title": "标题",
-    "fileName": "文件名"
+    "fileName": "文件名",
+    "contactMethods": "联系方式"
   },
   "templates": {
     "address": "地址",
-    "idCard": "身份证"
+    "idCard": "身份证",
+    "contact": "联系人"
   },
   "in_section": "位于{{section}}",
   "field_types": {
@@ -55,7 +57,8 @@
     "url": "链接",
     "email": "邮箱",
     "phone": "电话",
-    "file": "文件"
+    "file": "文件",
+    "dynamic_group": "动态字段组"
   },
   "sensitivity_levels": {
     "public": "公开",
@@ -75,6 +78,17 @@
   "validation_hint_date": "格式示例：YYYY-MM-DD",
   "validation_hint_number": "仅支持数字",
   "validation_failed": "字段类型填写错误，请检查后重试",
+  "dynamic_group_add": "添加字段",
+  "dynamic_group_new_item": "新字段",
+  "dynamic_group_max_items": "子字段数量不能超过 {{max}} 个",
+  "dynamic_group_empty_name": "第 {{index}} 个子字段名称不能为空",
+  "dynamic_group_duplicate_name": "子字段名称重复：{{name}}",
+  "dynamic_group_disallowed_type": "不允许的子字段类型：{{type}}",
+  "dynamic_group_invalid_value": "第 {{index}} 个子字段值无效（{{hint}}）",
+  "dynamic_group_allowed_types": "允许类型",
+  "dynamic_group_max_items_label": "最大数量",
+  "dynamic_group_no_limit": "不限制",
+  "dynamic_group_select_all": "全选",
   "no_template_for_section": "此页面暂无模板，",
   "go_create_template": "前往模板管理新建",
   "manage_templates": "管理模板",

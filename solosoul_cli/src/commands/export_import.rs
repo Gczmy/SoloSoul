@@ -186,17 +186,9 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
         },
         Box::new(move |app, result| {
             if let PromptResult::Text(password) = result {
-                match import_vault(
-                    &vault,
-                    &account_id,
-                    &path,
-                    &password,
-                    strategy,
-                    &base,
-                ) {
+                match import_vault(&vault, &account_id, &path, &password, strategy, &base) {
                     Ok(count) => {
-                        app.error_message =
-                            Some(format!("成功导入 {} 个对象", count));
+                        app.error_message = Some(format!("成功导入 {} 个对象", count));
                     }
                     Err(e) => {
                         app.error_message = Some(format!("导入失败: {}", e));
@@ -211,7 +203,9 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
 
 // ── 参数解析 ──────────────────────────────────────────────
 
-fn parse_export_args<'a>(args: &[&'a str]) -> std::result::Result<(Option<&'a str>, ExportScope), String> {
+fn parse_export_args<'a>(
+    args: &[&'a str],
+) -> std::result::Result<(Option<&'a str>, ExportScope), String> {
     let mut file_arg: Option<&str> = None;
     let mut scope = ExportScope::default();
     let mut iter = args.iter().peekable();
@@ -226,7 +220,9 @@ fn parse_export_args<'a>(args: &[&'a str]) -> std::result::Result<(Option<&'a st
                     scope.selected_page_ids = list.split(',').map(String::from).collect();
                 }
                 "--objects" => {
-                    let list = iter.next().ok_or("--objects 后需要逗号分隔的对象 ID 列表")?;
+                    let list = iter
+                        .next()
+                        .ok_or("--objects 后需要逗号分隔的对象 ID 列表")?;
                     scope.selected_object_ids = list.split(',').map(String::from).collect();
                 }
                 other => return Err(format!("未知导出选项: {}", other)),
@@ -280,7 +276,10 @@ fn parse_import_args<'a>(
 
 // ── 路径解析 ──────────────────────────────────────────────
 
-fn resolve_export_path(base: &Path, file_arg: Option<&str>) -> std::result::Result<PathBuf, String> {
+fn resolve_export_path(
+    base: &Path,
+    file_arg: Option<&str>,
+) -> std::result::Result<PathBuf, String> {
     match file_arg {
         None => {
             let cwd = std::env::current_dir().unwrap_or_else(|_| base.to_path_buf());
@@ -359,7 +358,11 @@ mod tests {
         // validate_export_password 需要 App 引用，这里直接验证逻辑。
         // 主密码本身应通过 validate_export_password （返回错误即通过）。
         let result = validate_export_password(&app, crate::TEST_PASSWORD);
-        assert!(result.is_err(), "应拒绝与主密码相同的导出密码: {:?}", result);
+        assert!(
+            result.is_err(),
+            "应拒绝与主密码相同的导出密码: {:?}",
+            result
+        );
 
         // 正确的导出密码应通过校验
         let result = validate_export_password(&app, crate::TEST_EXPORT_PASSWORD);

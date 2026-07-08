@@ -15,7 +15,8 @@ export type PropertyType =
   | 'url'
   | 'email'
   | 'phone'
-  | 'file';
+  | 'file'
+  | 'dynamic_group';
 
 export type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
 
@@ -39,6 +40,10 @@ export interface TemplateProperty {
   contractField?: boolean;
   /** 新版绑定：一个字段可绑定到多个插件契约的多个角色。 */
   contractBindings?: ContractRoleBinding[];
+  /** 动态字段组允许创建的子字段类型；空/缺失表示不限制。 */
+  allowedTypes?: PropertyType[];
+  /** 动态字段组允许的最大子字段数量；缺失表示无限制。 */
+  maxItems?: number;
 }
 
 export interface UserTemplate {

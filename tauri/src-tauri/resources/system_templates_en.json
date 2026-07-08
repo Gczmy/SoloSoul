@@ -488,6 +488,32 @@
                     "contractField": true
                 }
             ]
+        },
+        {
+            "key": "contact",
+            "category": "identity",
+            "icon": "contact",
+            "nameI18nKey": "editor:templates.contact",
+            "nameFallback": "Contact",
+            "properties": [
+                {
+                    "id": "fullName",
+                    "nameI18nKey": "editor:fields.fullName",
+                    "nameFallback": "Full Name",
+                    "type": "text",
+                    "sensitivityLevel": "public",
+                    "required": true
+                },
+                {
+                    "id": "contactMethods",
+                    "nameI18nKey": "editor:fields.contactMethods",
+                    "nameFallback": "Contact Methods",
+                    "type": "dynamic_group",
+                    "sensitivityLevel": "internal",
+                    "required": false,
+                    "allowedTypes": ["phone", "email", "url", "text"]
+                }
+            ]
         }
     ]
 }

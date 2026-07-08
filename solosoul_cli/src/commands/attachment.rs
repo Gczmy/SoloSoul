@@ -60,7 +60,10 @@ fn list(app: &mut App, object_id: Option<&str>) -> Result<()> {
         },
     };
 
-    let record = match vault.load_object(&object_id).map_err(|e| color_eyre::eyre::eyre!(e))? {
+    let record = match vault
+        .load_object(&object_id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?
+    {
         Some(r) if r.account_id == account_id && !r.is_deleted => r,
         _ => {
             app.error_message = Some(format!("对象 '{}' 不存在或已被删除", object_id));
@@ -87,7 +90,8 @@ fn add(app: &mut App, file_path: Option<&str>) -> Result<()> {
     let file_path = match file_path {
         Some(p) => p,
         None => {
-            app.error_message = Some("请提供文件路径，例如 /attach add /path/to/file.pdf".to_string());
+            app.error_message =
+                Some("请提供文件路径，例如 /attach add /path/to/file.pdf".to_string());
             return Ok(());
         }
     };
@@ -118,7 +122,8 @@ fn rename(app: &mut App, attachment_id: Option<&str>, new_name: Option<&str>) ->
     let attachment_id = match attachment_id {
         Some(id) => id,
         None => {
-            app.error_message = Some("请提供附件 ID，例如 /attach rename att_xxx new.pdf".to_string());
+            app.error_message =
+                Some("请提供附件 ID，例如 /attach rename att_xxx new.pdf".to_string());
             return Ok(());
         }
     };
@@ -172,7 +177,12 @@ fn delete(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
                     Ok(v) => v,
                     Err(_) => return,
                 };
-                match objects::soft_delete_attachment(&vault, &account_id, &object_id, &attachment_id) {
+                match objects::soft_delete_attachment(
+                    &vault,
+                    &account_id,
+                    &object_id,
+                    &attachment_id,
+                ) {
                     Ok(()) => app.error_message = Some(format!("已删除附件: {}", attachment_id)),
                     Err(e) => app.error_message = Some(format!("删除附件失败: {}", e)),
                 }
@@ -240,8 +250,16 @@ fn purge(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
                     Some(id) => id,
                     None => return,
                 };
-                match objects::purge_attachment(&vault, &account_id, &object_id, &attachment_id, &base) {
-                    Ok(()) => app.error_message = Some(format!("已彻底删除附件: {}", attachment_id)),
+                match objects::purge_attachment(
+                    &vault,
+                    &account_id,
+                    &object_id,
+                    &attachment_id,
+                    &base,
+                ) {
+                    Ok(()) => {
+                        app.error_message = Some(format!("已彻底删除附件: {}", attachment_id))
+                    }
                     Err(e) => app.error_message = Some(format!("彻底删除附件失败: {}", e)),
                 }
             }
@@ -267,5 +285,3 @@ fn cleanup(app: &mut App) -> Result<()> {
     }
     Ok(())
 }
-
-

@@ -1148,3 +1148,56 @@ fn test_load_trash_retention_from_profile() {
     let period = load_trash_retention(&vault, account_id);
     assert_eq!(period, "60d");
 }
+
+#[test]
+fn test_validate_dynamic_groups_ok() {
+    let properties = serde_json::json!({
+        "__fields": {
+            "contactMethods": {
+                "name": "联系方式",
+                "type": "dynamic_group",
+                "allowedTypes": ["phone", "email"]
+            }
+        },
+        "contactMethods": [
+            { "id": "1", "name": "手机", "type": "phone", "value": "123" },
+            { "id": "2", "name": "邮箱", "type": "email", "value": "a@b.com" }
+        ]
+    });
+    assert!(validate_dynamic_groups(&properties).is_ok());
+}
+
+#[test]
+fn test_validate_dynamic_groups_invalid_type() {
+    let properties = serde_json::json!({
+        "__fields": {
+            "contactMethods": {
+                "name": "联系方式",
+                "type": "dynamic_group",
+                "allowedTypes": ["phone"]
+            }
+        },
+        "contactMethods": [
+            { "id": "1", "name": "邮箱", "type": "email", "value": "a@b.com" }
+        ]
+    });
+    assert!(validate_dynamic_groups(&properties).is_err());
+}
+
+#[test]
+fn test_validate_dynamic_groups_exceeds_max_items() {
+    let properties = serde_json::json!({
+        "__fields": {
+            "contactMethods": {
+                "name": "联系方式",
+                "type": "dynamic_group",
+                "maxItems": 1
+            }
+        },
+        "contactMethods": [
+            { "id": "1", "name": "手机", "type": "phone", "value": "123" },
+            { "id": "2", "name": "邮箱", "type": "email", "value": "a@b.com" }
+        ]
+    });
+    assert!(validate_dynamic_groups(&properties).is_err());
+}

@@ -36,11 +36,13 @@
     "city": "City",
     "province": "Province / State",
     "title": "Title",
-    "fileName": "File Name"
+    "fileName": "File Name",
+    "contactMethods": "Contact Methods"
   },
   "templates": {
     "address": "Address",
-    "idCard": "ID Card"
+    "idCard": "ID Card",
+    "contact": "Contact"
   },
   "in_section": "in {{section}}",
   "field_types": {
@@ -55,7 +57,8 @@
     "url": "URL",
     "email": "Email",
     "phone": "Phone",
-    "file": "File"
+    "file": "File",
+    "dynamic_group": "Dynamic Group"
   },
   "sensitivity_levels": {
     "public": "Public",
@@ -75,6 +78,17 @@
   "validation_hint_date": "e.g. YYYY-MM-DD",
   "validation_hint_number": "Numbers only",
   "validation_failed": "Some fields contain invalid values, please check and retry",
+  "dynamic_group_add": "Add field",
+  "dynamic_group_new_item": "New field",
+  "dynamic_group_max_items": "Cannot add more than {{max}} items",
+  "dynamic_group_empty_name": "Item {{index}} name is required",
+  "dynamic_group_duplicate_name": "Duplicate item name: {{name}}",
+  "dynamic_group_disallowed_type": "Item type not allowed: {{type}}",
+  "dynamic_group_invalid_value": "Item {{index}} value is invalid ({{hint}})",
+  "dynamic_group_allowed_types": "Allowed types",
+  "dynamic_group_max_items_label": "Max items",
+  "dynamic_group_no_limit": "No limit",
+  "dynamic_group_select_all": "Select all",
   "no_template_for_section": "No templates for this page. ",
   "go_create_template": "Go to Template Manager to create one",
   "manage_templates": "Manage Templates",
