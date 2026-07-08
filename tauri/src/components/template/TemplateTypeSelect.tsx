@@ -15,6 +15,7 @@ const PROPERTY_TYPES: PropertyType[] = [
   'email',
   'phone',
   'file',
+  'dynamic_group',
 ];
 
 interface TemplateTypeSelectProps {
