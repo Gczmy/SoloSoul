@@ -1516,3 +1516,95 @@ fn test_apply_sync_changes_preserves_safe_type_conversion() {
                 .unwrap_or(true)
     );
 }
+
+#[test]
+fn test_compute_sync_changes_uses_property_labels_as_sensitivity_baseline() {
+    let record = ObjectRecord {
+        id: "obj-1".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "Test".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        // __fields 中动态字段组敏感度为旧值 internal，但 property_labels 已为 public
+        properties: serde_json::json!({
+            "__fields": {
+                "textField": { "name": "Text Field", "type": "text", "sensitivityLevel": "internal" },
+                "dynamicGroup": { "name": "Dynamic Group", "type": "dynamic_group", "sensitivityLevel": "internal" }
+            },
+            "textField": "hello",
+            "dynamicGroup": []
+        }),
+        property_labels: Some(serde_json::json!({
+            "textField": "internal",
+            "dynamicGroup": "public"
+        })),
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("tpl-1".to_string()),
+        template_type: Some("user".to_string()),
+        contract_type_id: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+
+    let tpl = UserTemplate {
+        id: "tpl-1".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Contact".to_string(),
+        icon_id: None,
+        properties: vec![
+            solosoul_vault::TemplateProperty {
+                id: "textField".to_string(),
+                name: "Text Field".to_string(),
+                prop_type: solosoul_vault::PropertyType::Text,
+                sensitive: None,
+                sensitivity_level: Some("public".to_string()),
+                options: None,
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            },
+            solosoul_vault::TemplateProperty {
+                id: "dynamicGroup".to_string(),
+                name: "Dynamic Group".to_string(),
+                prop_type: solosoul_vault::PropertyType::DynamicGroup,
+                sensitive: None,
+                sensitivity_level: Some("public".to_string()),
+                options: None,
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            },
+        ],
+        category: Some("identity".to_string()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: Some(chrono::Utc::now().to_rfc3339()),
+        contract_type_id: None,
+    };
+
+    let result = compute_sync_changes(&record, &tpl);
+
+    // 只有 textField 的敏感度真正从 internal 变到 public
+    assert_eq!(result.fields_updated.len(), 1);
+    assert_eq!(result.fields_updated[0].id, "textField");
+    assert!(
+        result.fields_updated[0]
+            .changes
+            .iter()
+            .any(|c| matches!(c, SyncFieldChangeItem::Sensitivity { old_level, new_level } if old_level == "internal" && new_level == "public"))
+    );
+
+    // dynamicGroup 在 property_labels 中已经是 public，不应被误报
+    assert!(!result.fields_updated.iter().any(|f| f.id == "dynamicGroup"));
+}

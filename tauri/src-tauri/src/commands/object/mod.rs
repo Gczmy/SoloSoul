@@ -953,6 +953,14 @@ fn compute_sync_changes(
         .cloned()
         .unwrap_or_default();
     let props_obj = record.properties.as_object().cloned().unwrap_or_default();
+    // 对象的字段级敏感度真实来源是 property_labels；__fields 中的敏感度仅为创建/上次同步时的快照，
+    // 直接用它作基准会导致已更新过的敏感度被误报。
+    let labels_map = record
+        .property_labels
+        .as_ref()
+        .and_then(|v| v.as_object())
+        .cloned()
+        .unwrap_or_default();
 
     let mut fields_added = Vec::new();
     let mut fields_deprecated = Vec::new();
@@ -1053,9 +1061,10 @@ fn compute_sync_changes(
                 new_name: prop.name.clone(),
             });
         }
-        let old_sl = old_def
-            .get("sensitivityLevel")
+        let old_sl = labels_map
+            .get(&prop.id)
             .and_then(|v| v.as_str())
+            .or_else(|| old_def.get("sensitivityLevel").and_then(|v| v.as_str()))
             .unwrap_or("internal");
         let new_sl = prop.sensitivity_level.as_deref().unwrap_or("internal");
         if old_sl != new_sl {
