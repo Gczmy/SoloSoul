@@ -1114,7 +1114,20 @@ fn apply_sync_changes(
     result: &TemplateSyncResult,
     dry_run: bool,
 ) {
-    if dry_run || !result.has_changes {
+    if dry_run {
+        return;
+    }
+
+    // 无论是否有字段差异，都刷新 template_hash，防止对象已是最新但仍因旧 hash 重复提示同步。
+    record.template_hash = Some(result.template_hash.clone());
+    if let Some(obj) = record.properties.as_object_mut() {
+        obj.insert(
+            "__templateHash".to_string(),
+            serde_json::Value::String(result.template_hash.clone()),
+        );
+    }
+
+    if !result.has_changes {
         return;
     }
 
@@ -1306,7 +1319,7 @@ pub async fn object_sync_with_template(
 
     let result = compute_sync_changes(&record, &tpl);
 
-    if dry_run || !result.has_changes {
+    if dry_run {
         return Ok(result);
     }
 
@@ -1319,31 +1332,34 @@ pub async fn object_sync_with_template(
     record.version += 1;
     vault.save_object(&record)?;
 
-    // §25.5 — Save snapshot for history
-    let snapshot_data = serde_json::to_vec(&serde_json::json!({
-        "name": record.name,
-        "tags": record.tags_json,
-        "properties": record.properties,
-    }))
-    .unwrap_or_default();
-    let _ = vault.save_snapshot(
-        &object_id,
-        "template_sync",
-        &snapshot_data,
-        "Synced with template",
-    );
+    // 只有真正发生字段变更时才记录快照与审计日志
+    if result.has_changes {
+        // §25.5 — Save snapshot for history
+        let snapshot_data = serde_json::to_vec(&serde_json::json!({
+            "name": record.name,
+            "tags": record.tags_json,
+            "properties": record.properties,
+        }))
+        .unwrap_or_default();
+        let _ = vault.save_snapshot(
+            &object_id,
+            "template_sync",
+            &snapshot_data,
+            "Synced with template",
+        );
 
-    let _ = vault.log_structured(
-        "object_sync_template",
-        "object",
-        Some(&object_id),
-        Some(&record.name),
-        "user",
-        Some(&format!(
-            "templateName={} templateId={}",
-            tpl.name, template_id
-        )),
-    );
+        let _ = vault.log_structured(
+            "object_sync_template",
+            "object",
+            Some(&object_id),
+            Some(&record.name),
+            "user",
+            Some(&format!(
+                "templateName={} templateId={}",
+                tpl.name, template_id
+            )),
+        );
+    }
 
     Ok(result)
 }
