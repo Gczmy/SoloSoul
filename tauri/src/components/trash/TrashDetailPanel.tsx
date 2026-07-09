@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -959,44 +959,93 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
   const tags: string[] = Array.isArray(data.tags) ? (data.tags as string[]) : [];
   const snapName = typeof data.name === 'string' ? data.name : '';
 
-  const orderedFields: {
-    key: string;
-    value: string;
-    type?: PropertyType;
-    sensitivityLevel?: SensitivityLevel;
-  }[] = [];
-
-  if (rawProps && typeof rawProps === 'object' && detailTemplate) {
-    for (const p of detailTemplate.properties) {
-      const v = rawProps[p.id];
-      if (v !== null && v !== undefined && v !== '' && !String(p.id).startsWith('__')) {
-        orderedFields.push({
-          key: p.name,
-          value: typeof v === 'string' ? v : JSON.stringify(v),
+  // 优先使用对象自带的 __fields 字段定义；模板存在时用于排序和补充。
+  const fieldDefs = useMemo(() => {
+    const defs = new Map<
+      string,
+      { name: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }
+    >();
+    const rawFields = rawProps?.__fields as Record<string, { name?: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }> | undefined;
+    if (rawFields && typeof rawFields === 'object') {
+      for (const [id, def] of Object.entries(rawFields)) {
+        defs.set(id, {
+          name: def?.name || id,
+          type: def?.type,
+          sensitivityLevel: def?.sensitivityLevel,
+        });
+      }
+    }
+    if (detailTemplate) {
+      for (const p of detailTemplate.properties) {
+        if (defs.has(p.id)) continue;
+        defs.set(p.id, {
+          name: p.name,
           type: p.type,
           sensitivityLevel: (p.sensitivityLevel || 'internal') as SensitivityLevel,
         });
       }
     }
-    const known = new Set(detailTemplate.properties.map((p) => p.id));
+    return defs;
+  }, [rawProps, detailTemplate]);
+
+  const orderedFields = useMemo(() => {
+    const result: {
+      key: string;
+      value: string;
+      type?: PropertyType;
+      sensitivityLevel?: SensitivityLevel;
+    }[] = [];
+    if (!rawProps || typeof rawProps !== 'object') return result;
+
+    const seen = new Set<string>();
+
+    // 1. 模板顺序
+    if (detailTemplate) {
+      for (const p of detailTemplate.properties) {
+        const v = rawProps[p.id];
+        if (v !== null && v !== undefined && v !== '' && !String(p.id).startsWith('__')) {
+          seen.add(p.id);
+          const def = fieldDefs.get(p.id);
+          result.push({
+            key: def?.name || p.name,
+            value: typeof v === 'string' ? v : JSON.stringify(v),
+            type: def?.type || p.type,
+            sensitivityLevel: def?.sensitivityLevel || ((p.sensitivityLevel || 'internal') as SensitivityLevel),
+          });
+        }
+      }
+    }
+
+    // 2. __fields 顺序（模板不存在时尤为重要）
+    const rawFields = rawProps.__fields as Record<string, { name?: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }> | undefined;
+    if (rawFields && typeof rawFields === 'object') {
+      for (const id of Object.keys(rawFields)) {
+        if (seen.has(id) || String(id).startsWith('__')) continue;
+        const v = rawProps[id];
+        if (v === null || v === undefined || v === '') continue;
+        seen.add(id);
+        const def = fieldDefs.get(id);
+        result.push({
+          key: def?.name || id,
+          value: typeof v === 'string' ? v : JSON.stringify(v),
+          type: def?.type,
+          sensitivityLevel: def?.sensitivityLevel,
+        });
+      }
+    }
+
+    // 3. 其余未定义字段
     for (const [k, v] of Object.entries(rawProps)) {
-      if (!k.startsWith('__') && !known.has(k) && v !== null && v !== undefined && v !== '') {
-        orderedFields.push({
+      if (!k.startsWith('__') && !seen.has(k) && v !== null && v !== undefined && v !== '') {
+        result.push({
           key: k,
           value: typeof v === 'string' ? v : JSON.stringify(v),
         });
       }
     }
-  } else if (rawProps && typeof rawProps === 'object') {
-    for (const [k, v] of Object.entries(rawProps)) {
-      if (!k.startsWith('__') && v !== null && v !== undefined && v !== '') {
-        orderedFields.push({
-          key: k,
-          value: typeof v === 'string' ? v : JSON.stringify(v),
-        });
-      }
-    }
-  }
+
+    return result;
+  }, [rawProps, detailTemplate, fieldDefs]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>

@@ -253,54 +253,104 @@ pub async fn trash_get_detail(
         })()
         .unwrap_or_default()
     } else {
+        // 生成对象 preview_properties：优先使用对象自身保存的 __fields 字段定义，
+        // 模板删除后仍可显示正确的本地化字段名；模板可用时仅作为排序与补充。
         (|| -> Option<Vec<serde_json::Value>> {
             let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
             let props = data.get("properties")?.as_object()?;
-            // Load template to get field metadata and ordering
-            let tpl_fields: Vec<(String, String, String, String)> =
-                if let Some(tpl_id) = data.get("template_id").and_then(|v| v.as_str()) {
-                    vault
-                        .load_user_template(tpl_id)
-                        .ok()
-                        .flatten()
-                        .map(|tpl| {
-                            tpl.properties
-                                .into_iter()
-                                .map(|p| {
-                                    let sens = p
-                                        .sensitivity_level
-                                        .unwrap_or_else(|| "internal".to_string());
-                                    let ptype = serde_json::to_string(&p.prop_type)
-                                        .ok()
-                                        .and_then(|s| serde_json::from_str::<String>(&s).ok())
-                                        .unwrap_or_else(|| "text".to_string());
-                                    (p.id, p.name, ptype, sens)
-                                })
-                                .collect()
-                        })
-                        .unwrap_or_default()
-                } else {
-                    Vec::new()
-                };
-            let mut result = Vec::new();
-            // Follow template order
-            for (field_id, field_name, field_type, sensitivity) in &tpl_fields {
-                if let Some(v) = props.get(field_id) {
-                    result.push(serde_json::json!({
-                        "key": field_name,
-                        "value": v,
-                        "type": field_type,
-                        "sensitivityLevel": sensitivity
-                    }));
+            let fields_def = props.get("__fields").and_then(|v| v.as_object());
+
+            // 1. 加载模板（用于排序和补充字段定义）
+            let tpl = data
+                .get("template_id")
+                .and_then(|v| v.as_str())
+                .and_then(|tpl_id| vault.load_user_template(tpl_id).ok().flatten());
+
+            // 2. 构建字段定义映射：field_id -> (显示名, 类型, 敏感度)
+            let mut field_defs: std::collections::HashMap<String, (String, String, String)> =
+                std::collections::HashMap::new();
+
+            // 2.1 优先从对象自带的 __fields 读取
+            if let Some(fields) = fields_def {
+                for (field_id, def) in fields {
+                    let name = def
+                        .get("name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(field_id)
+                        .to_string();
+                    let ptype = def
+                        .get("type")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("text")
+                        .to_string();
+                    let sens = def
+                        .get("sensitivityLevel")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("internal")
+                        .to_string();
+                    field_defs.insert(field_id.clone(), (name, ptype, sens));
                 }
             }
-            // Fallback: any properties not in template (orphaned fields)
-            let known: std::collections::HashSet<String> =
-                tpl_fields.iter().map(|(id, _, _, _)| id.clone()).collect();
-            for (k, v) in props.iter() {
-                if !k.starts_with("__") && !known.contains(k) {
-                    result.push(serde_json::json!({"key": k, "value": v}));
+
+            // 2.2 模板作为补充（排序优先）
+            let tpl_order: Vec<String> = tpl
+                .as_ref()
+                .map(|t| t.properties.iter().map(|p| p.id.clone()).collect())
+                .unwrap_or_default();
+            if let Some(t) = tpl {
+                for prop in t.properties {
+                    if field_defs.contains_key(&prop.id) {
+                        continue;
+                    }
+                    let sens = prop
+                        .sensitivity_level
+                        .unwrap_or_else(|| "internal".to_string());
+                    let ptype = serde_json::to_string(&prop.prop_type)
+                        .ok()
+                        .and_then(|s| serde_json::from_str::<String>(&s).ok())
+                        .unwrap_or_else(|| "text".to_string());
+                    field_defs.insert(prop.id.clone(), (prop.name, ptype, sens));
                 }
+            }
+
+            // 3. 确定字段顺序：模板顺序 -> __fields 顺序 -> properties 顺序
+            let mut ordered_ids: Vec<String> = Vec::new();
+            let mut seen = std::collections::HashSet::new();
+            for id in &tpl_order {
+                if seen.insert(id.clone()) {
+                    ordered_ids.push(id.clone());
+                }
+            }
+            if let Some(fields) = fields_def {
+                for id in fields.keys() {
+                    if seen.insert(id.clone()) {
+                        ordered_ids.push(id.clone());
+                    }
+                }
+            }
+            for id in props.keys() {
+                if !id.starts_with("__") && seen.insert(id.clone()) {
+                    ordered_ids.push(id.clone());
+                }
+            }
+
+            // 4. 生成结果
+            let mut result = Vec::new();
+            for field_id in ordered_ids {
+                let v = match props.get(&field_id) {
+                    Some(v) => v,
+                    None => continue,
+                };
+                let (name, ptype, sens) = match field_defs.get(&field_id) {
+                    Some(def) => def.clone(),
+                    None => (field_id.clone(), "text".to_string(), "internal".to_string()),
+                };
+                result.push(serde_json::json!({
+                    "key": name,
+                    "value": v,
+                    "type": ptype,
+                    "sensitivityLevel": sens
+                }));
             }
             Some(result.into_iter().take(5).collect())
         })()
