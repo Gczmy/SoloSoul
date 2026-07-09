@@ -83,6 +83,8 @@ mod tests {
                 options: None,
                 sensitive: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             }],
             category: None,
             created_at: "2024-01-01T00:00:00Z".to_string(),

@@ -2113,7 +2113,7 @@ impl VaultStore {
         }
 
         // properties 已加密，无法使用 SQL LIKE。所有 keyword 匹配在解密后的内存数据上进行。
-        sql.push_str(" ORDER BY updated_at DESC");
+        sql.push_str(" ORDER BY created_at DESC");
 
         let mut stmt = conn
             .prepare(&sql)
@@ -3854,6 +3854,7 @@ mod tests {
             tags_json: vec![],
             template_id: Some("passport".to_string()),
             template_type: Some("system".to_string()),
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -4490,6 +4491,8 @@ mod tests {
                     sensitive: Some(false),
                     options: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
                 crate::TemplateProperty {
                     contract_field: None,
@@ -4501,6 +4504,8 @@ mod tests {
                     sensitive: Some(true),
                     options: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
                 crate::TemplateProperty {
                     contract_field: None,
@@ -4512,6 +4517,8 @@ mod tests {
                     sensitive: Some(false),
                     options: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
             ],
             category: Some("identity".to_string()),
@@ -4570,6 +4577,8 @@ mod tests {
             sensitive: Some(false),
             options: None,
             deprecated_at: None,
+            allowed_types: None,
+            max_items: None,
         });
         tpl.updated_at = Some(chrono::Utc::now().to_rfc3339());
         vault.save_user_template(&tpl).unwrap();
@@ -4669,6 +4678,8 @@ mod tests {
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             }],
             category: Some("identity".to_string()),
             created_at: "2024-01-01T00:00:00Z".to_string(),

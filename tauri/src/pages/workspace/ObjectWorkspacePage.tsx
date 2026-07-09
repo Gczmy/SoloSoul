@@ -14,7 +14,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import type { TemplateProperty } from '@/types/template';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { buildTemplateHashMap, type TemplateSyncResult, type DeprecatedField } from '@/lib/templateSync';
+import { buildTemplateHashMap, objectNeedsSync, type TemplateSyncResult, type DeprecatedField } from '@/lib/templateSync';
 
 // Labels resolved at render time via t() so they support i18n
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
@@ -360,9 +360,14 @@ export function ObjectWorkspacePage() {
     if (!syncDialog || !accountId) return;
     setSyncDialog((prev) => (prev ? { ...prev, loading: true } : null));
     try {
-      await applySyncTemplate(accountId, syncDialog.objectId);
+      const result = await applySyncTemplate(accountId, syncDialog.objectId);
       setSyncDialog(null);
-      // 同步成功后对象 fingerprint 已更新，无需再加入 dismissedSyncHashes。
+      // 同步成功后对象 fingerprint 已更新；为防列表刷新延迟导致提示条仍显示，
+      // 立即将该对象标记为已忽略当前模板指纹。
+      setDismissedSyncHashes((prev) => ({
+        ...prev,
+        [syncDialog.objectId]: result.templateHash,
+      }));
       // 刷新对象列表与同步状态
       if (pageId) {
         await loadObjects(accountId, { parentId: pageId });
@@ -702,9 +707,9 @@ export function ObjectWorkspacePage() {
               object={detailObj}
               needsSync={
                 (() => {
-                  const latestHash = detailObj.templateId
-                    ? templateHashMap.get(detailObj.templateId)
-                    : undefined;
+                  if (!templateHashMap || !detailObj.templateId) return false;
+                  if (!objectNeedsSync(detailObj, templateHashMap)) return false;
+                  const latestHash = templateHashMap.get(detailObj.templateId);
                   return !!latestHash && dismissedSyncHashes[detailObj.id] !== latestHash;
                 })()
               }
