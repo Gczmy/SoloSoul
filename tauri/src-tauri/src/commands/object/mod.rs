@@ -204,15 +204,21 @@ pub struct SyncFieldInfo {
 #[serde(tag = "kind", content = "payload")]
 pub enum SyncFieldChangeItem {
     Type {
+        #[serde(rename = "oldType")]
         old_type: String,
+        #[serde(rename = "newType")]
         new_type: String,
     },
     Name {
+        #[serde(rename = "oldName")]
         old_name: String,
+        #[serde(rename = "newName")]
         new_name: String,
     },
     Sensitivity {
+        #[serde(rename = "oldLevel")]
         old_level: String,
+        #[serde(rename = "newLevel")]
         new_level: String,
     },
     Options,
