@@ -97,18 +97,21 @@ export async function computeTemplateFingerprint(tpl: UserTemplate): Promise<str
 }
 
 function propertyToCanonical(p: TemplateProperty): Record<string, unknown> {
-  return {
+  const def: Record<string, unknown> = {
     id: p.id,
     name: p.name,
     type: p.type,
-    sensitivityLevel: p.sensitivityLevel ?? null,
-    options: p.options ?? null,
-    deprecatedAt: p.deprecatedAt ?? null,
-    contractField: p.contractField ?? null,
-    contractBindings: p.contractBindings ?? null,
-    allowedTypes: p.allowedTypes ?? null,
-    maxItems: p.maxItems ?? null,
   };
+  // 与后端 TemplateProperty 的 skip_serializing_if = "Option::is_none" 保持一致，
+  // 缺失字段不输出 null，避免指纹不一致导致同步后仍提示需要同步。
+  if (p.sensitivityLevel != null) def.sensitivityLevel = p.sensitivityLevel;
+  if (p.options != null) def.options = p.options;
+  if (p.deprecatedAt != null) def.deprecatedAt = p.deprecatedAt;
+  if (p.contractField != null) def.contractField = p.contractField;
+  if (p.contractBindings != null) def.contractBindings = p.contractBindings;
+  if (p.allowedTypes != null) def.allowedTypes = p.allowedTypes;
+  if (p.maxItems != null) def.maxItems = p.maxItems;
+  return def;
 }
 
 /**

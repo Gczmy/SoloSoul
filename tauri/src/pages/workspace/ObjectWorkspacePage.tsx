@@ -360,14 +360,23 @@ export function ObjectWorkspacePage() {
     if (!syncDialog || !accountId) return;
     setSyncDialog((prev) => (prev ? { ...prev, loading: true } : null));
     try {
-      const result = await applySyncTemplate(accountId, syncDialog.objectId);
+      await applySyncTemplate(accountId, syncDialog.objectId);
       setSyncDialog(null);
       // 同步成功后对象 fingerprint 已更新；为防列表刷新延迟导致提示条仍显示，
-      // 立即将该对象标记为已忽略当前模板指纹。
-      setDismissedSyncHashes((prev) => ({
-        ...prev,
-        [syncDialog.objectId]: result.templateHash,
-      }));
+      // 立即将该对象标记为已忽略当前模板指纹（使用前端 templateHashMap 中的最新值，
+      // 保证与 WorkspaceObjectCard 的 needsSync 判断完全一致）。
+      const syncedObj = useObjectStore
+        .getState()
+        .objects.find((o) => o.id === syncDialog.objectId);
+      const latestHash = syncedObj?.templateId
+        ? templateHashMap.get(syncedObj.templateId)
+        : undefined;
+      if (latestHash) {
+        setDismissedSyncHashes((prev) => ({
+          ...prev,
+          [syncDialog.objectId]: latestHash,
+        }));
+      }
       // 刷新对象列表与同步状态
       if (pageId) {
         await loadObjects(accountId, { parentId: pageId });
@@ -378,7 +387,7 @@ export function ObjectWorkspacePage() {
       console.warn('[Workspace] Apply sync failed:', err);
       setSyncDialog((prev) => (prev ? { ...prev, loading: false } : null));
     }
-  }, [syncDialog, accountId, applySyncTemplate, loadObjects, pageId, sectionFilter]);
+  }, [syncDialog, accountId, applySyncTemplate, loadObjects, pageId, sectionFilter, templateHashMap]);
 
   const handleDismissSync = useCallback((objectId: string, latestHash?: string) => {
     if (!latestHash) return;
