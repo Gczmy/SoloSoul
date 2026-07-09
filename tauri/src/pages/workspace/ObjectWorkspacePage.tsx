@@ -14,7 +14,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import type { TemplateProperty } from '@/types/template';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { buildTemplateHashMap, objectNeedsSync, type TemplateSyncResult, type DeprecatedField } from '@/lib/templateSync';
+import { buildTemplateHashMap, type TemplateSyncResult, type DeprecatedField } from '@/lib/templateSync';
 
 // Labels resolved at render time via t() so they support i18n
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
@@ -70,7 +70,8 @@ export function ObjectWorkspacePage() {
 
   // 模板指纹映射：仅在模板列表变化时异步计算一次，避免切换页面时批量重算导致闪烁。
   const [templateHashMap, setTemplateHashMap] = useState<Map<string, string>>(new Map());
-  const [dismissedSyncIds, setDismissedSyncIds] = useState<Set<string>>(new Set());
+  // 用户点击“否”时记录当时模板的最新指纹；模板再次变更后提示条重新出现。
+  const [dismissedSyncHashes, setDismissedSyncHashes] = useState<Record<string, string>>({});
 
   // 模板同步确认弹窗状态
   const [syncDialog, setSyncDialog] = useState<{
@@ -361,7 +362,7 @@ export function ObjectWorkspacePage() {
     try {
       await applySyncTemplate(accountId, syncDialog.objectId);
       setSyncDialog(null);
-      setDismissedSyncIds((prev) => new Set(prev).add(syncDialog.objectId));
+      // 同步成功后对象 fingerprint 已更新，无需再加入 dismissedSyncHashes。
       // 刷新对象列表与同步状态
       if (pageId) {
         await loadObjects(accountId, { parentId: pageId });
@@ -374,8 +375,9 @@ export function ObjectWorkspacePage() {
     }
   }, [syncDialog, accountId, applySyncTemplate, loadObjects, pageId, sectionFilter]);
 
-  const handleDismissSync = useCallback((objectId: string) => {
-    setDismissedSyncIds((prev) => new Set(prev).add(objectId));
+  const handleDismissSync = useCallback((objectId: string, latestHash?: string) => {
+    if (!latestHash) return;
+    setDismissedSyncHashes((prev) => ({ ...prev, [objectId]: latestHash }));
   }, []);
 
   const handleViewDeprecatedFields = useCallback(
@@ -648,6 +650,7 @@ export function ObjectWorkspacePage() {
                   snapshotCount={snapshotCounts[obj.id]}
                   attachmentCount={attachmentCounts[obj.id]}
                   templateHashMap={templateHashMap}
+                  dismissedSyncHashes={dismissedSyncHashes}
                   onClick={() => setDetailObj(obj)}
                   onHistory={() =>
                     setHistoryObj({
@@ -662,7 +665,9 @@ export function ObjectWorkspacePage() {
                   onEdit={() => navigate(`/editor/${obj.id}`)}
                   onDelete={() => setConfirmDelete({ id: obj.id, name: obj.name })}
                   onSync={() => handleStartSync(obj.id, obj.name)}
-                  onDismissSync={() => handleDismissSync(obj.id)}
+                  onDismissSync={() =>
+                    handleDismissSync(obj.id, obj.templateId ? templateHashMap.get(obj.templateId) : undefined)
+                  }
                 />
               ))}
             </div>
@@ -696,8 +701,12 @@ export function ObjectWorkspacePage() {
             <ObjectDetailModal
               object={detailObj}
               needsSync={
-                !dismissedSyncIds.has(detailObj.id) &&
-                objectNeedsSync(detailObj, templateHashMap)
+                (() => {
+                  const latestHash = detailObj.templateId
+                    ? templateHashMap.get(detailObj.templateId)
+                    : undefined;
+                  return !!latestHash && dismissedSyncHashes[detailObj.id] !== latestHash;
+                })()
               }
               onClose={() => setDetailObj(null)}
               onEdit={() => {
@@ -709,7 +718,12 @@ export function ObjectWorkspacePage() {
                 setDetailObj(null);
               }}
               onSyncTemplate={() => handleStartSync(detailObj.id, detailObj.name)}
-              onDismissSync={() => handleDismissSync(detailObj.id)}
+              onDismissSync={() =>
+                handleDismissSync(
+                  detailObj.id,
+                  detailObj.templateId ? templateHashMap.get(detailObj.templateId) : undefined,
+                )
+              }
               onViewDeprecatedFields={() => handleViewDeprecatedFields(detailObj.id, detailObj.name)}
               onAttachmentsChange={refreshAttachmentCounts}
             />
