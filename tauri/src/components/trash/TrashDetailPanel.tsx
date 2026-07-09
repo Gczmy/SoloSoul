@@ -250,10 +250,14 @@ function ObjectDetailContent({
               const typeLabel = propType
                 ? t(`editor:field_types.${propType}`, propType)
                 : String(p.value);
+              const displayKey =
+                p.key === '__dynamic_group__'
+                  ? t('editor:field_types.dynamic_group', p.key)
+                  : p.key;
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {propType && <FieldTypeIcon type={propType} size={ICON_SIZE.sm} />}
-                  <span style={{ fontWeight: 500, flexShrink: 0 }}>{p.key}</span>
+                  <span style={{ fontWeight: 500, flexShrink: 0 }}>{displayKey}</span>
                   {sensitivity && <SensitivityBadge level={sensitivity} />}
                   <span
                     style={{
@@ -1009,28 +1013,34 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
           {snapName}
         </div>
       )}
-      {orderedFields.slice(0, 8).map((f) => (
-        <div
-          key={f.key}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            fontSize: 'var(--text-caption)',
-            padding: '3px 0',
-            borderBottom: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {f.type && <FieldTypeIcon type={f.type} size={ICON_SIZE.sm} />}
-            <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{f.key}</span>
-            {f.sensitivityLevel && <SensitivityBadge level={f.sensitivityLevel} />}
+      {orderedFields.slice(0, 8).map((f) => {
+        const displayKey =
+          f.key === '__dynamic_group__'
+            ? t('editor:field_types.dynamic_group', f.key)
+            : f.key;
+        return (
+          <div
+            key={f.key}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: 'var(--text-caption)',
+              padding: '3px 0',
+              borderBottom: '1px solid var(--border-subtle)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {f.type && <FieldTypeIcon type={f.type} size={ICON_SIZE.sm} />}
+              <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{displayKey}</span>
+              {f.sensitivityLevel && <SensitivityBadge level={f.sensitivityLevel} />}
+            </div>
+            <span style={{ color: 'var(--text-primary)', marginLeft: 'auto', textAlign: 'right' }}>
+              {f.value}
+            </span>
           </div>
-          <span style={{ color: 'var(--text-primary)', marginLeft: 'auto', textAlign: 'right' }}>
-            {f.value}
-          </span>
-        </div>
-      ))}
+        );
+      })}
       {tags.length > 0 && (
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
           {tags.map((tag) => (
