@@ -1330,7 +1330,10 @@ pub async fn object_sync_with_template(
         Some(&object_id),
         Some(&record.name),
         "user",
-        Some(&format!("template_id={}", template_id)),
+        Some(&format!(
+            "templateName={} templateId={}",
+            tpl.name, template_id
+        )),
     );
 
     Ok(result)
