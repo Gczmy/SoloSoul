@@ -21,11 +21,19 @@ export interface SyncFieldInfo {
   fieldType: string;
 }
 
+export interface SyncFieldChangeItem {
+  kind: 'type' | 'name' | 'sensitivity' | 'options';
+  payload?:
+    | { oldType: string; newType: string }
+    | { oldName: string; newName: string }
+    | { oldLevel: string; newLevel: string };
+}
+
 export interface SyncFieldChange {
   id: string;
   name: string;
   fieldType: string;
-  changes: string[];
+  changes: SyncFieldChangeItem[];
 }
 
 export interface SyncFieldIncompatible {

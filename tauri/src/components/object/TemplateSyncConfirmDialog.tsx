@@ -5,6 +5,7 @@ import type {
   TemplateSyncResult,
   SyncFieldInfo,
   SyncFieldChange,
+  SyncFieldChangeItem,
   SyncFieldIncompatible,
 } from '@/lib/templateSync';
 
@@ -39,12 +40,48 @@ function FieldList({
   );
 }
 
+function formatChangeItem(
+  item: SyncFieldChangeItem,
+  t: (key: string, options?: Record<string, string | number>) => string,
+  getFieldTypeLabel: (type: string) => string,
+  getSensitivityLabel: (level: string) => string,
+): string {
+  switch (item.kind) {
+    case 'type': {
+      const p = item.payload as { oldType: string; newType: string };
+      return t('editor:template_sync_change_type', {
+        old: getFieldTypeLabel(p.oldType),
+        new: getFieldTypeLabel(p.newType),
+      });
+    }
+    case 'name': {
+      const p = item.payload as { oldName: string; newName: string };
+      return t('editor:template_sync_change_name', { old: p.oldName, new: p.newName });
+    }
+    case 'sensitivity': {
+      const p = item.payload as { oldLevel: string; newLevel: string };
+      return t('editor:template_sync_change_sensitivity', {
+        old: getSensitivityLabel(p.oldLevel),
+        new: getSensitivityLabel(p.newLevel),
+      });
+    }
+    case 'options':
+      return t('editor:template_sync_change_options');
+    default:
+      return '';
+  }
+}
+
 function UpdatedFieldList({
   fields,
   getFieldTypeLabel,
+  getSensitivityLabel,
+  t,
 }: {
   fields: SyncFieldChange[];
   getFieldTypeLabel: (type: string) => string;
+  getSensitivityLabel: (level: string) => string;
+  t: (key: string, options?: Record<string, string | number>) => string;
 }) {
   if (fields.length === 0) return null;
   return (
@@ -57,7 +94,9 @@ function UpdatedFieldList({
             ({getFieldTypeLabel(f.fieldType)})
           </span>
           <span style={{ display: 'block', fontSize: 'var(--text-caption)' }}>
-            {f.changes.join(' · ')}
+            {f.changes
+              .map((c) => formatChangeItem(c, t, getFieldTypeLabel, getSensitivityLabel))
+              .join(' · ')}
           </span>
         </li>
       ))}
@@ -103,6 +142,9 @@ export function TemplateSyncConfirmDialog({
 
   const getFieldTypeLabel = (type: string) =>
     t(`editor:field_types.${type}` as const, { defaultValue: type });
+
+  const getSensitivityLabel = (level: string) =>
+    t(`editor:sensitivity_levels.${level}` as const, { defaultValue: level });
 
   const sectionTitleStyle: React.CSSProperties = {
     fontSize: 'var(--text-body-sm)',
@@ -164,6 +206,8 @@ export function TemplateSyncConfirmDialog({
                 <UpdatedFieldList
                   fields={result.fieldsUpdated}
                   getFieldTypeLabel={getFieldTypeLabel}
+                  getSensitivityLabel={getSensitivityLabel}
+                  t={t}
                 />
               </>
             )}

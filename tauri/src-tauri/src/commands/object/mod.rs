@@ -195,8 +195,27 @@ pub struct TemplateSyncStatus {
 pub struct SyncFieldInfo {
     pub id: String,
     pub name: String,
-    #[serde(rename = "type")]
     pub field_type: String,
+}
+
+/// 模板同步中某一项字段变更的描述，结构化后交给前端做本地化显示。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[serde(tag = "kind", content = "payload")]
+pub enum SyncFieldChangeItem {
+    Type {
+        old_type: String,
+        new_type: String,
+    },
+    Name {
+        old_name: String,
+        new_name: String,
+    },
+    Sensitivity {
+        old_level: String,
+        new_level: String,
+    },
+    Options,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -204,9 +223,8 @@ pub struct SyncFieldInfo {
 pub struct SyncFieldChange {
     pub id: String,
     pub name: String,
-    #[serde(rename = "type")]
     pub field_type: String,
-    pub changes: Vec<String>,
+    pub changes: Vec<SyncFieldChangeItem>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -235,7 +253,6 @@ pub struct TemplateSyncResult {
 pub struct DeprecatedField {
     pub id: String,
     pub name: String,
-    #[serde(rename = "type")]
     pub field_type: String,
     pub value: serde_json::Value,
     pub deprecated_at: String,
@@ -999,7 +1016,10 @@ fn compute_sync_changes(
                     id: prop.id.clone(),
                     name: prop.name.clone(),
                     field_type: new_type.to_string(),
-                    changes: vec![format!("type: {} -> {}", old_type, new_type)],
+                    changes: vec![SyncFieldChangeItem::Type {
+                        old_type: old_type.to_string(),
+                        new_type: new_type.to_string(),
+                    }],
                 });
             } else {
                 let preview = match &old_value {
@@ -1020,9 +1040,12 @@ fn compute_sync_changes(
         }
 
         // 同类型下的元数据变化
-        let mut changes = Vec::new();
+        let mut changes: Vec<SyncFieldChangeItem> = Vec::new();
         if old_name != prop.name {
-            changes.push(format!("name: {} -> {}", old_name, prop.name));
+            changes.push(SyncFieldChangeItem::Name {
+                old_name: old_name.to_string(),
+                new_name: prop.name.clone(),
+            });
         }
         let old_sl = old_def
             .get("sensitivityLevel")
@@ -1030,7 +1053,10 @@ fn compute_sync_changes(
             .unwrap_or("internal");
         let new_sl = prop.sensitivity_level.as_deref().unwrap_or("internal");
         if old_sl != new_sl {
-            changes.push(format!("sensitivity: {} -> {}", old_sl, new_sl));
+            changes.push(SyncFieldChangeItem::Sensitivity {
+                old_level: old_sl.to_string(),
+                new_level: new_sl.to_string(),
+            });
         }
         let old_opts = old_def.get("options").and_then(|v| v.as_array());
         let new_opts = prop.options.as_ref().map(|opts| {
@@ -1039,7 +1065,7 @@ fn compute_sync_changes(
                 .collect::<Vec<_>>()
         });
         if old_opts != new_opts.as_ref() {
-            changes.push("options changed".to_string());
+            changes.push(SyncFieldChangeItem::Options);
         }
         if !changes.is_empty() {
             fields_updated.push(SyncFieldChange {
