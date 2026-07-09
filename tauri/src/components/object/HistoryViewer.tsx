@@ -103,6 +103,7 @@ function SnapshotCard({
 }) {
   const [snapData, setSnapData] = useState<Record<string, unknown> | null>(null);
   const { isRevealed, reveal } = useRevealState();
+  const { t } = useTranslation(['common', 'editor']);
 
   useEffect(() => {
     invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id }).then(
@@ -188,7 +189,10 @@ function SnapshotCard({
                                 const result = await verifyPassword();
                                 if (result.ok) {
                                   reveal(fieldId);
-                                  onCriticalAccess?.(getFieldName(f.key), result.method);
+                                  const criticalFieldName = f.label
+                                    ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
+                                    : getFieldName(f.key);
+                                  onCriticalAccess?.(criticalFieldName, result.method);
                                 }
                               } else {
                                 reveal(fieldId);

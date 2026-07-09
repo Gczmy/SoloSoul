@@ -704,7 +704,10 @@ export function ObjectDetailModal({
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                handleRevealField(fieldId, sens, getFieldName(f.key));
+                                const revealName = f.label
+                                  ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
+                                  : getFieldName(f.key);
+                                handleRevealField(fieldId, sens, revealName);
                               }}
                               style={{
                                 padding: '4px 10px',
