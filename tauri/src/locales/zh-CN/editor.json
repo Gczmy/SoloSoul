@@ -101,6 +101,8 @@
   "template_sync_loading": "正在计算变更...",
   "template_sync_no_changes": "无变更",
   "template_sync_apply": "应用",
+  "template_sync_dismiss_title": "忽略模板更新",
+  "template_sync_dismiss_body": "本次模板更新将被忽略。同步提示条将在该模板下次更新后再次出现。",
   "template_sync_added": "新增字段",
   "template_sync_deprecated": "已删除/废弃字段",
   "template_sync_updated": "已更新字段",

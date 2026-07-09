@@ -79,6 +79,13 @@ export function ObjectWorkspacePage() {
     loading: boolean;
   } | null>(null);
 
+  // 忽略模板更新二次确认弹窗状态
+  const [dismissConfirm, setDismissConfirm] = useState<{
+    objectId: string;
+    objectName: string;
+    latestHash: string;
+  } | null>(null);
+
   // 历史字段查看器状态
   const [deprecatedViewer, setDeprecatedViewer] = useState<{
     objectId: string;
@@ -411,6 +418,20 @@ export function ObjectWorkspacePage() {
     setDismissedSyncHashes((prev) => ({ ...prev, [objectId]: latestHash }));
   }, []);
 
+  const handleRequestDismissSync = useCallback(
+    (objectId: string, objectName: string, latestHash?: string) => {
+      if (!latestHash) return;
+      setDismissConfirm({ objectId, objectName, latestHash });
+    },
+    [],
+  );
+
+  const handleConfirmDismissSync = useCallback(() => {
+    if (!dismissConfirm) return;
+    handleDismissSync(dismissConfirm.objectId, dismissConfirm.latestHash);
+    setDismissConfirm(null);
+  }, [dismissConfirm, handleDismissSync]);
+
   const handleViewDeprecatedFields = useCallback(
     async (objectId: string, objectName: string) => {
       if (!accountId) return;
@@ -697,7 +718,11 @@ export function ObjectWorkspacePage() {
                   onDelete={() => setConfirmDelete({ id: obj.id, name: obj.name })}
                   onSync={() => handleStartSync(obj.id, obj.name)}
                   onDismissSync={() =>
-                    handleDismissSync(obj.id, obj.templateId ? templateHashMap.get(obj.templateId) : undefined)
+                    handleRequestDismissSync(
+                      obj.id,
+                      obj.name,
+                      obj.templateId ? templateHashMap.get(obj.templateId) : undefined,
+                    )
                   }
                 />
               ))}
@@ -750,8 +775,9 @@ export function ObjectWorkspacePage() {
               }}
               onSyncTemplate={() => handleStartSync(detailObj.id, detailObj.name)}
               onDismissSync={() =>
-                handleDismissSync(
+                handleRequestDismissSync(
                   detailObj.id,
+                  detailObj.name,
                   detailObj.templateId ? templateHashMap.get(detailObj.templateId) : undefined,
                 )
               }
@@ -820,6 +846,19 @@ export function ObjectWorkspacePage() {
           loading={syncDialog.loading}
           onConfirm={handleConfirmSync}
           onCancel={() => setSyncDialog(null)}
+        />
+      )}
+
+      {/* 忽略模板更新二次确认弹窗 */}
+      {dismissConfirm && (
+        <ConfirmDeleteDialog
+          isOpen={true}
+          title={t('editor:template_sync_dismiss_title')}
+          body={t('editor:template_sync_dismiss_body')}
+          confirmLabel={t('common:confirm')}
+          cancelLabel={t('common:cancel')}
+          onCancel={() => setDismissConfirm(null)}
+          onConfirm={handleConfirmDismissSync}
         />
       )}
 

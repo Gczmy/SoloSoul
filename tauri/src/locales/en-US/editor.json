@@ -101,6 +101,8 @@
   "template_sync_loading": "Calculating changes...",
   "template_sync_no_changes": "No changes",
   "template_sync_apply": "Apply",
+  "template_sync_dismiss_title": "Ignore Template Update",
+  "template_sync_dismiss_body": "This template update will be ignored. The sync reminder will appear again after the template is updated next time.",
   "template_sync_added": "Added fields",
   "template_sync_deprecated": "Removed/Deprecated fields",
   "template_sync_updated": "Updated fields",
