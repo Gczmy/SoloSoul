@@ -70,8 +70,6 @@ export function ObjectWorkspacePage() {
 
   // 模板指纹映射：仅在模板列表变化时异步计算一次，避免切换页面时批量重算导致闪烁。
   const [templateHashMap, setTemplateHashMap] = useState<Map<string, string>>(new Map());
-  // 用户点击“否”时记录当时模板的最新指纹；模板再次变更后提示条重新出现。
-  const [dismissedSyncHashes, setDismissedSyncHashes] = useState<Record<string, string>>({});
 
   // 模板同步确认弹窗状态
   const [syncDialog, setSyncDialog] = useState<{
@@ -89,6 +87,25 @@ export function ObjectWorkspacePage() {
   const [deprecatedFields, setDeprecatedFields] = useState<DeprecatedField[]>([]);
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
+  // 用户点击“否”或应用同步后记录当时模板的最新指纹；切换到设置/锁定等页面再回来时不重复提示。
+  // 使用 sessionStorage 按账户隔离，模板再次变更后提示条会重新出现。
+  const [dismissedSyncHashes, setDismissedSyncHashes] = useState<Record<string, string>>(() => {
+    if (!accountId) return {};
+    try {
+      const raw = sessionStorage.getItem(`solosoul_dismissed_sync_${accountId}`);
+      return raw ? (JSON.parse(raw) as Record<string, string>) : {};
+    } catch {
+      return {};
+    }
+  });
+  useEffect(() => {
+    if (!accountId) return;
+    sessionStorage.setItem(
+      `solosoul_dismissed_sync_${accountId}`,
+      JSON.stringify(dismissedSyncHashes),
+    );
+  }, [dismissedSyncHashes, accountId]);
+
   const { t } = useTranslation(['common', 'navigation', 'editor']);
   const {
     objects,
