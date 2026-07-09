@@ -55,6 +55,7 @@ fn create_address_record(account_id: &str, idx: usize) -> ObjectRecord {
         tags_json: vec![],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: now.clone(),
         updated_at: now,
         version: 1,

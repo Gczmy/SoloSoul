@@ -1346,7 +1346,7 @@ impl VaultStore {
                     "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                      children_ids, properties, property_labels, sensitivity_level,
                      is_deleted, deleted_at, tags_json, template_id, template_type,
-                     contract_type_id, created_at, updated_at, version
+                     contract_type_id, template_hash, created_at, updated_at, version
                      FROM objects WHERE account_id = ?1",
                 )
                 .map_err(|e| format!("list_object_changes: {}", e))?;
@@ -1407,9 +1407,10 @@ impl VaultStore {
                         template_id: row.get(14)?,
                         template_type: row.get(15)?,
                         contract_type_id: row.get(16)?,
-                        created_at: row.get(17)?,
-                        updated_at: row.get(18)?,
-                        version: row.get(19)?,
+                        template_hash: row.get(17)?,
+                        created_at: row.get(18)?,
+                        updated_at: row.get(19)?,
+                        version: row.get(20)?,
                     };
                     Ok(obj)
                 })
@@ -1814,8 +1815,8 @@ impl VaultStore {
             "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name, parent_id,
              children_ids, properties, property_labels, sensitivity_level,
              is_deleted, deleted_at, tags_json, template_id, template_type,
-             contract_type_id, created_at, updated_at, version)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20)
+             contract_type_id, template_hash, created_at, updated_at, version)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21)
              ON CONFLICT(id) DO UPDATE SET
                type_id=excluded.type_id, section_type=excluded.section_type, name=excluded.name, icon_name=excluded.icon_name,
                parent_id=excluded.parent_id, children_ids=excluded.children_ids,
@@ -1824,14 +1825,14 @@ impl VaultStore {
                is_deleted=excluded.is_deleted, deleted_at=excluded.deleted_at,
                tags_json=excluded.tags_json,
                template_id=excluded.template_id, template_type=excluded.template_type,
-               contract_type_id=excluded.contract_type_id,
+               contract_type_id=excluded.contract_type_id, template_hash=excluded.template_hash,
                updated_at=excluded.updated_at, version=excluded.version",
             params![
                 obj.id, obj.account_id, obj.type_id, obj.section_type, obj.name, obj.icon_name,
                 obj.parent_id, children_json, encrypted_props, encrypted_labels,
                 obj.sensitivity_level, obj.is_deleted as i32, obj.deleted_at,
                 tags_str, obj.template_id, obj.template_type,
-                obj.contract_type_id.clone(),
+                obj.contract_type_id.clone(), obj.template_hash.clone(),
                 obj.created_at, obj.updated_at, obj.version,
             ],
         )
@@ -1848,7 +1849,7 @@ impl VaultStore {
                 "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
                  is_deleted, deleted_at, tags_json, template_id, template_type,
-                 contract_type_id, created_at, updated_at, version
+                 contract_type_id, template_hash, created_at, updated_at, version
                  FROM objects WHERE id = ?1",
             )
             .map_err(|e| format!("load_object: {}", e))?;
@@ -1907,9 +1908,10 @@ impl VaultStore {
                     template_id: row.get(14)?,
                     template_type: row.get(15)?,
                     contract_type_id: row.get(16)?,
-                    created_at: row.get(17)?,
-                    updated_at: row.get(18)?,
-                    version: row.get(19)?,
+                    template_hash: row.get(17)?,
+                    created_at: row.get(18)?,
+                    updated_at: row.get(19)?,
+                    version: row.get(20)?,
                 })
             })
             .ok();
@@ -1935,7 +1937,7 @@ impl VaultStore {
             "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
              children_ids, properties, property_labels, sensitivity_level,
              is_deleted, deleted_at, tags_json, template_id, template_type,
-             contract_type_id, created_at, updated_at, version
+             contract_type_id, template_hash, created_at, updated_at, version
              FROM objects WHERE id IN ({})",
             placeholders.join(",")
         );
@@ -2005,9 +2007,10 @@ impl VaultStore {
                     template_id: row.get(14)?,
                     template_type: row.get(15)?,
                     contract_type_id: row.get(16)?,
-                    created_at: row.get(17)?,
-                    updated_at: row.get(18)?,
-                    version: row.get(19)?,
+                    template_hash: row.get(17)?,
+                    created_at: row.get(18)?,
+                    updated_at: row.get(19)?,
+                    version: row.get(20)?,
                 })
             })
             .map_err(|e| format!("load_objects_batch query: {}", e))?
@@ -2085,7 +2088,7 @@ impl VaultStore {
 
         let lower_kw = keyword.map(|k| k.to_lowercase());
         let mut sql = String::from(
-            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, contract_type_id, icon_name, property_labels
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, contract_type_id, template_hash, icon_name, property_labels
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
@@ -2125,7 +2128,7 @@ impl VaultStore {
                 let props_str: String = row.get(8)?;
                 let tags_str: String = row.get(9)?;
                 let decrypted_props = decrypt_text_field(&key, &props_str).unwrap_or_default();
-                let labels_str: String = row.get::<_, String>(14).unwrap_or_default();
+                let labels_str: String = row.get::<_, String>(15).unwrap_or_default();
                 let decrypted_labels = if labels_str.is_empty() {
                     Ok(String::new())
                 } else {
@@ -2149,7 +2152,8 @@ impl VaultStore {
                     template_id: row.get(10)?,
                     template_type: row.get(11)?,
                     contract_type_id: row.get(12)?,
-                    icon_name: row.get(13)?,
+                    template_hash: row.get(13)?,
+                    icon_name: row.get(14)?,
                     properties: serde_json::from_str(&decrypted_props)
                         .unwrap_or(serde_json::Value::Null),
                     property_labels,
@@ -2221,7 +2225,7 @@ impl VaultStore {
                 "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
                  is_deleted, deleted_at, tags_json, template_id, template_type,
-                 contract_type_id, created_at, updated_at, version
+                 contract_type_id, template_hash, created_at, updated_at, version
                  FROM objects
                  WHERE account_id = ?1 AND is_deleted = 0
                  ORDER BY updated_at DESC",
@@ -2281,9 +2285,10 @@ impl VaultStore {
                     template_id: row.get(14)?,
                     template_type: row.get(15)?,
                     contract_type_id: row.get(16)?,
-                    created_at: row.get(17)?,
-                    updated_at: row.get(18)?,
-                    version: row.get(19)?,
+                    template_hash: row.get(17)?,
+                    created_at: row.get(18)?,
+                    updated_at: row.get(19)?,
+                    version: row.get(20)?,
                 })
             })
             .map_err(|e| format!("search_objects query: {}", e))?
@@ -3275,6 +3280,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3329,6 +3335,7 @@ mod tests {
             tags_json: vec!["tag-with-dash".to_string()],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3363,6 +3370,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3410,6 +3418,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3445,6 +3454,7 @@ mod tests {
                 tags_json: vec![],
                 template_id: None,
                 template_type: None,
+                template_hash: None,
                 created_at: chrono::Utc::now().to_rfc3339(),
                 updated_at: chrono::Utc::now().to_rfc3339(),
                 version: 1,
@@ -3525,6 +3535,7 @@ mod tests {
             tags_json: vec!["tag1".to_string()],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3561,6 +3572,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3607,6 +3619,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3651,6 +3664,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3689,6 +3703,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3733,6 +3748,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3772,6 +3788,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3804,6 +3821,7 @@ mod tests {
             tags_json: vec!["タグ".to_string()],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3883,6 +3901,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -3914,6 +3933,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -4151,6 +4171,7 @@ mod tests {
             template_id: None,
             template_type: None,
             contract_type_id: None,
+            template_hash: None,
             created_at: now.clone(),
             updated_at: now,
             version: 1,
@@ -4418,6 +4439,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -4745,6 +4767,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -4939,6 +4962,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -5085,6 +5109,7 @@ mod tests {
             tags_json: Vec::new(),
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -5115,7 +5140,7 @@ mod tests {
         );
         assert_eq!(
             summary.icon_name, "doc",
-            "icon_name column (index 13 after widening) must round-trip too",
+            "icon_name column (index 14 after widening) must round-trip too",
         );
     }
 
@@ -5139,6 +5164,7 @@ mod tests {
             tags_json: Vec::new(),
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -5169,7 +5195,7 @@ mod tests {
         assert_eq!(loaded.name, "no-contract", "name must round-trip");
         assert_eq!(loaded.account_id, "acc-1", "account_id must round-trip");
         assert_eq!(loaded.icon_name, "doc", "icon_name must round-trip");
-        assert_eq!(loaded.version, 1, "version (col 19) must round-trip");
+        assert_eq!(loaded.version, 1, "version (col 20) must round-trip");
 
         let summaries = vault
             .list_objects("acc-1", None, None, None, false, false)
@@ -5184,7 +5210,7 @@ mod tests {
         );
         assert_eq!(
             summary.icon_name, "doc",
-            "ObjectSummary.icon_name (index 13 after widening) must round-trip too",
+            "ObjectSummary.icon_name (index 14 after widening) must round-trip too",
         );
     }
 

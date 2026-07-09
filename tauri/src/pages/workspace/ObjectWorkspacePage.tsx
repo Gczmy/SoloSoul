@@ -14,11 +14,14 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import type { TemplateProperty } from '@/types/template';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { buildTemplateHashMap, objectNeedsSync, type TemplateSyncResult, type DeprecatedField } from '@/lib/templateSync';
 
 // Labels resolved at render time via t() so they support i18n
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
+import { TemplateSyncConfirmDialog } from '@/components/object/TemplateSyncConfirmDialog';
+import { DeprecatedFieldsViewer } from '@/components/object/DeprecatedFieldsViewer';
 import {
   Trash,
   Search,
@@ -65,9 +68,37 @@ export function ObjectWorkspacePage() {
   const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
   const [detailObj, setDetailObj] = useState<(typeof visibleObjects)[number] | null>(null);
 
+  // 模板同步状态：记录每个可见对象是否需要同步
+  const [syncStatusMap, setSyncStatusMap] = useState<Record<string, boolean>>({});
+  const [dismissedSyncIds, setDismissedSyncIds] = useState<Set<string>>(new Set());
+
+  // 模板同步确认弹窗状态
+  const [syncDialog, setSyncDialog] = useState<{
+    objectId: string;
+    objectName: string;
+    result: TemplateSyncResult | null;
+    loading: boolean;
+  } | null>(null);
+
+  // 历史字段查看器状态
+  const [deprecatedViewer, setDeprecatedViewer] = useState<{
+    objectId: string;
+    objectName: string;
+  } | null>(null);
+  const [deprecatedFields, setDeprecatedFields] = useState<DeprecatedField[]>([]);
+
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
-  const { objects, loadObjects, deleteObject, isLoading, error } = useObjectStore();
+  const {
+    objects,
+    loadObjects,
+    deleteObject,
+    previewSyncTemplate,
+    applySyncTemplate,
+    loadDeprecatedFields,
+    isLoading,
+    error,
+  } = useObjectStore();
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const removeCustomPage = useSettingsStore((s) => s.removeCustomPage);
@@ -235,6 +266,26 @@ export function ObjectWorkspacePage() {
 
   const snapshotReqRef = useRef(0);
 
+  // 计算可见对象的模板同步状态
+  useEffect(() => {
+    if (userTemplates.length === 0 || visibleObjects.length === 0) {
+      setSyncStatusMap({});
+      return;
+    }
+    let cancelled = false;
+    buildTemplateHashMap(userTemplates).then((hashMap) => {
+      if (cancelled) return;
+      const next: Record<string, boolean> = {};
+      for (const obj of visibleObjects) {
+        next[obj.id] = objectNeedsSync(obj, hashMap);
+      }
+      setSyncStatusMap(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [visibleObjects, userTemplates]);
+
   // Load snapshot counts for visible objects
   useEffect(() => {
     const ids = visibleObjects.map((o) => o.id);
@@ -292,6 +343,59 @@ export function ObjectWorkspacePage() {
       setDeletingId(null);
     }
   };
+
+  const handleStartSync = useCallback(
+    async (objectId: string, objectName: string) => {
+      if (!accountId) return;
+      setSyncDialog({ objectId, objectName, result: null, loading: true });
+      try {
+        const result = await previewSyncTemplate(accountId, objectId);
+        setSyncDialog((prev) => (prev ? { ...prev, result, loading: false } : null));
+      } catch (err) {
+        console.warn('[Workspace] Preview sync failed:', err);
+        setSyncDialog(null);
+      }
+    },
+    [accountId, previewSyncTemplate],
+  );
+
+  const handleConfirmSync = useCallback(async () => {
+    if (!syncDialog || !accountId) return;
+    setSyncDialog((prev) => (prev ? { ...prev, loading: true } : null));
+    try {
+      await applySyncTemplate(accountId, syncDialog.objectId);
+      setSyncDialog(null);
+      setDismissedSyncIds((prev) => new Set(prev).add(syncDialog.objectId));
+      // 刷新对象列表与同步状态
+      if (pageId) {
+        await loadObjects(accountId, { parentId: pageId });
+      } else {
+        await loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
+      }
+    } catch (err) {
+      console.warn('[Workspace] Apply sync failed:', err);
+      setSyncDialog((prev) => (prev ? { ...prev, loading: false } : null));
+    }
+  }, [syncDialog, accountId, applySyncTemplate, loadObjects, pageId, sectionFilter]);
+
+  const handleDismissSync = useCallback((objectId: string) => {
+    setDismissedSyncIds((prev) => new Set(prev).add(objectId));
+  }, []);
+
+  const handleViewDeprecatedFields = useCallback(
+    async (objectId: string, objectName: string) => {
+      if (!accountId) return;
+      setDeprecatedViewer({ objectId, objectName });
+      try {
+        const fields = await loadDeprecatedFields(accountId, objectId);
+        setDeprecatedFields(fields);
+      } catch (err) {
+        console.warn('[Workspace] Load deprecated fields failed:', err);
+        setDeprecatedFields([]);
+      }
+    },
+    [accountId, loadDeprecatedFields],
+  );
 
   return (
     <AppShell
@@ -547,6 +651,7 @@ export function ObjectWorkspacePage() {
                   userTemplates={userTemplates}
                   snapshotCount={snapshotCounts[obj.id]}
                   attachmentCount={attachmentCounts[obj.id]}
+                  needsSync={!dismissedSyncIds.has(obj.id) && syncStatusMap[obj.id]}
                   onClick={() => setDetailObj(obj)}
                   onHistory={() =>
                     setHistoryObj({
@@ -560,6 +665,8 @@ export function ObjectWorkspacePage() {
                   onAttachments={() => setAttachmentObjId(obj.id)}
                   onEdit={() => navigate(`/editor/${obj.id}`)}
                   onDelete={() => setConfirmDelete({ id: obj.id, name: obj.name })}
+                  onSync={() => handleStartSync(obj.id, obj.name)}
+                  onDismissSync={() => handleDismissSync(obj.id)}
                 />
               ))}
             </div>
@@ -592,6 +699,7 @@ export function ObjectWorkspacePage() {
           {detailObj && (
             <ObjectDetailModal
               object={detailObj}
+              needsSync={!dismissedSyncIds.has(detailObj.id) && syncStatusMap[detailObj.id]}
               onClose={() => setDetailObj(null)}
               onEdit={() => {
                 navigate(`/editor/${detailObj.id}`);
@@ -601,6 +709,9 @@ export function ObjectWorkspacePage() {
                 setConfirmDelete({ id: detailObj.id, name: detailObj.name });
                 setDetailObj(null);
               }}
+              onSyncTemplate={() => handleStartSync(detailObj.id, detailObj.name)}
+              onDismissSync={() => handleDismissSync(detailObj.id)}
+              onViewDeprecatedFields={() => handleViewDeprecatedFields(detailObj.id, detailObj.name)}
               onAttachmentsChange={refreshAttachmentCounts}
             />
           )}
@@ -654,6 +765,33 @@ export function ObjectWorkspacePage() {
           objectId={attachmentObjId}
           onClose={() => setAttachmentObjId(null)}
           onCountChange={refreshAttachmentCounts}
+        />
+      )}
+
+      {/* 模板同步确认弹窗 */}
+      {syncDialog && (
+        <TemplateSyncConfirmDialog
+          isOpen={true}
+          result={syncDialog.result}
+          loading={syncDialog.loading}
+          onConfirm={handleConfirmSync}
+          onCancel={() => {
+            if (syncDialog.objectId) handleDismissSync(syncDialog.objectId);
+            setSyncDialog(null);
+          }}
+        />
+      )}
+
+      {/* 历史字段查看器 */}
+      {deprecatedViewer && (
+        <DeprecatedFieldsViewer
+          isOpen={true}
+          objectName={deprecatedViewer.objectName}
+          fields={deprecatedFields}
+          onClose={() => {
+            setDeprecatedViewer(null);
+            setDeprecatedFields([]);
+          }}
         />
       )}
 

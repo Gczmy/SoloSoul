@@ -7,6 +7,7 @@
 use crate::commands::{current_account_optional, vault_handle};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use solosoul_vault::{ObjectRecord, PropertyType};
 use tauri::State;
 use uuid::Uuid;
@@ -180,6 +181,67 @@ pub struct ObjectFilter {
     pub include_deleted: Option<bool>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TemplateSyncStatus {
+    pub needs_sync: bool,
+    pub current_hash: Option<String>,
+    pub latest_hash: Option<String>,
+    pub template_exists: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SyncFieldInfo {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub field_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SyncFieldChange {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub field_type: String,
+    pub changes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SyncFieldIncompatible {
+    pub id: String,
+    pub name: String,
+    pub old_type: String,
+    pub new_type: String,
+    pub old_value_preview: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TemplateSyncResult {
+    pub has_changes: bool,
+    pub template_hash: String,
+    pub fields_added: Vec<SyncFieldInfo>,
+    pub fields_deprecated: Vec<SyncFieldInfo>,
+    pub fields_updated: Vec<SyncFieldChange>,
+    pub fields_incompatible: Vec<SyncFieldIncompatible>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeprecatedField {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub field_type: String,
+    pub value: serde_json::Value,
+    pub deprecated_at: String,
+    pub reason: String,
+}
+
 /// 从模板继承 contract_type_id。
 /// 若创建对象时指定了模板 ID，且对应模板存在 `contract_type_id`，则自动复制到对象上。
 pub fn inherit_contract_type_id(
@@ -291,6 +353,23 @@ fn inherit_template_properties(
         serde_json::Value::Object(fields_map)
     };
     (labels, fields)
+}
+
+/// 计算模板指纹，用于判断对象是否需要同步模板更新。
+/// 排除 id/account_id/created_at/updated_at，按字段 id 稳定排序后序列化再取 SHA-256 前 16 位。
+pub fn template_fingerprint(tpl: &solosoul_vault::UserTemplate) -> String {
+    let mut props: Vec<&solosoul_vault::TemplateProperty> = tpl.properties.iter().collect();
+    props.sort_by(|a, b| a.id.cmp(&b.id));
+    let canonical = serde_json::json!({
+        "name": tpl.name,
+        "iconId": tpl.icon_id,
+        "category": tpl.category,
+        "contractTypeId": tpl.contract_type_id,
+        "properties": props,
+    });
+    let bytes = serde_json::to_vec(&canonical).unwrap_or_default();
+    let hash = Sha256::digest(&bytes);
+    hex::encode(&hash[..8])
 }
 
 /// 从模板继承字段定义（字段名 + 类型等），嵌入到 `properties` 的 `__fields` 键中。
@@ -436,6 +515,20 @@ pub async fn object_create(
     inject_property_fields(&mut properties, &property_fields);
     // §Bugfix: 保存模板名称，模板删除后仍可显示
     inject_template_meta(&vault, input.template_id.as_deref(), &mut properties);
+    // 计算并保存模板指纹，用于后续检测模板是否更新
+    let template_hash = input
+        .template_id
+        .as_deref()
+        .and_then(|tid| vault.load_user_template(tid).ok().flatten())
+        .map(|tpl| template_fingerprint(&tpl));
+    if let Some(ref hash) = template_hash {
+        if let Some(obj) = properties.as_object_mut() {
+            obj.insert(
+                "__templateHash".to_string(),
+                serde_json::Value::String(hash.clone()),
+            );
+        }
+    }
     // 校验 dynamic_group 字段
     validate_dynamic_groups(&properties)?;
 
@@ -457,6 +550,7 @@ pub async fn object_create(
         tags_json: vec![],
         template_id: input.template_id.clone(),
         template_type: input.template_type.clone(),
+        template_hash,
         created_at: now.clone(),
         updated_at: now,
         version: 1,
@@ -521,30 +615,17 @@ pub async fn object_update(
     if let Some(icon_name) = input.icon_name {
         record.icon_name = icon_name;
     }
-    // §Bugfix: 更新时重新从模板同步字段敏感度
-    if record.template_id.is_some() {
-        if let Some(labels) = inherit_property_labels(&vault, record.template_id.as_deref()) {
-            record.property_labels = Some(labels);
-        }
-        // §Bugfix: 重新注入 __fields（前端不发送 __fields，需从模板重新继承）
-        let fields = inherit_property_fields(&vault, record.template_id.as_deref());
-        if !fields.is_null() {
-            inject_property_fields(&mut record.properties, &fields);
-        } else if let Some(f) = old_fields {
-            // 模板已被删除 — 保留已有的 __fields
+    // 普通更新不再自动同步模板字段定义与敏感度；仅在用户主动同步时更新。
+    // 这里只恢复前端未发送的 __fields 与 __templateName，确保对象结构完整。
+    if record.properties.get("__fields").is_none() {
+        if let Some(f) = old_fields {
             inject_property_fields(&mut record.properties, &f);
         }
-        // §Bugfix: 更新模板名称（模板已删除时保留旧值）
-        inject_template_meta(
-            &vault,
-            record.template_id.as_deref(),
-            &mut record.properties,
-        );
-        if record.properties.get("__templateName").is_none() {
-            if let Some(name) = old_tpl_name {
-                if let Some(obj) = record.properties.as_object_mut() {
-                    obj.insert("__templateName".to_string(), name);
-                }
+    }
+    if record.properties.get("__templateName").is_none() {
+        if let Some(name) = old_tpl_name {
+            if let Some(obj) = record.properties.as_object_mut() {
+                obj.insert("__templateName".to_string(), name);
             }
         }
     }
@@ -661,6 +742,622 @@ pub async fn object_backfill_property_fields(
     Ok(count)
 }
 
+/// 获取对象当前保存的模板指纹，优先从根字段 template_hash 读取，否则回退到 properties.__templateHash。
+fn get_object_template_hash(record: &ObjectRecord) -> Option<String> {
+    record.template_hash.clone().or_else(|| {
+        record
+            .properties
+            .get("__templateHash")
+            .and_then(|v| v.as_str().map(|s| s.to_string()))
+    })
+}
+
+/// 将旧字段定义与值移入 properties.__deprecatedFields。
+fn deprecate_field(
+    properties: &mut serde_json::Value,
+    field_id: &str,
+    field_def: &serde_json::Map<String, serde_json::Value>,
+    old_value: serde_json::Value,
+    reason: &str,
+) {
+    let deprecated = properties
+        .as_object_mut()
+        .and_then(|obj| obj.get_mut("__deprecatedFields"))
+        .and_then(|v| v.as_object_mut());
+    let deprecated_map = match deprecated {
+        Some(m) => m,
+        None => {
+            if let Some(obj) = properties.as_object_mut() {
+                obj.insert(
+                    "__deprecatedFields".to_string(),
+                    serde_json::Value::Object(serde_json::Map::new()),
+                );
+            }
+            properties
+                .as_object_mut()
+                .and_then(|obj| obj.get_mut("__deprecatedFields"))
+                .and_then(|v| v.as_object_mut())
+                .expect("__deprecatedFields should exist")
+        }
+    };
+    let mut entry = field_def.clone();
+    entry.insert("value".to_string(), old_value);
+    entry.insert(
+        "deprecatedAt".to_string(),
+        serde_json::Value::String(chrono::Utc::now().to_rfc3339()),
+    );
+    entry.insert(
+        "reason".to_string(),
+        serde_json::Value::String(reason.to_string()),
+    );
+    deprecated_map.insert(field_id.to_string(), serde_json::Value::Object(entry));
+}
+
+/// 尝试将旧值转换为新类型；若无法转换则返回 None。
+fn convert_value_for_type(
+    old_type: &str,
+    new_type: &str,
+    value: serde_json::Value,
+) -> Option<serde_json::Value> {
+    match (old_type, new_type) {
+        (a, b) if a == b => Some(value),
+        ("text", "multiline") => Some(value),
+        ("text", "url") | ("text", "email") | ("text", "phone") => value
+            .as_str()
+            .map(|s| serde_json::Value::String(s.to_string())),
+        ("number", "text") | ("boolean", "text") => {
+            Some(serde_json::Value::String(value.to_string()))
+        }
+        ("text", "number") => value.as_str().and_then(|s| s.parse::<f64>().ok()).map(|n| {
+            if n.fract() == 0.0 {
+                serde_json::Value::Number(serde_json::Number::from(n as i64))
+            } else {
+                serde_json::json!(n)
+            }
+        }),
+        ("text", "date") => value.as_str().and_then(|s| {
+            if s.len() >= 10 {
+                Some(serde_json::Value::String(s[..10].to_string()))
+            } else {
+                None
+            }
+        }),
+        ("text", "datetime") => value.as_str().and_then(|s| {
+            chrono::DateTime::parse_from_rfc3339(s)
+                .ok()
+                .map(|dt| serde_json::Value::String(dt.to_rfc3339()))
+                .or_else(|| {
+                    if s.len() >= 10 {
+                        Some(serde_json::Value::String(format!(
+                            "{}T00:00:00+00:00",
+                            &s[..10]
+                        )))
+                    } else {
+                        None
+                    }
+                })
+        }),
+        ("date", "datetime") => value.as_str().map(|s| {
+            let base = if s.len() >= 10 { &s[..10] } else { s };
+            serde_json::Value::String(format!("{}T00:00:00+00:00", base))
+        }),
+        ("datetime", "date") => value
+            .as_str()
+            .map(|s| serde_json::Value::String(s.chars().take(10).collect())),
+        ("select", "multiselect") => Some(serde_json::Value::Array(vec![value])),
+        _ => None,
+    }
+}
+
+/// 返回某字段类型的空默认值。
+fn default_value_for_type(field_type: &str) -> serde_json::Value {
+    match field_type {
+        "number" => serde_json::Value::Number(0.into()),
+        "boolean" => serde_json::Value::Bool(false),
+        "multiselect" | "dynamic_group" => serde_json::Value::Array(vec![]),
+        _ => serde_json::Value::String(String::new()),
+    }
+}
+
+/// 将模板字段定义转为 properties.__fields 中的单个字段定义对象。
+fn template_prop_to_field_def(prop: &solosoul_vault::TemplateProperty) -> serde_json::Value {
+    let mut def = serde_json::Map::new();
+    def.insert(
+        "name".to_string(),
+        serde_json::Value::String(prop.name.clone()),
+    );
+    def.insert(
+        "type".to_string(),
+        serde_json::Value::String(prop.prop_type.as_str().to_string()),
+    );
+    if let Some(ref opts) = prop.options {
+        def.insert(
+            "options".to_string(),
+            serde_json::Value::Array(
+                opts.iter()
+                    .map(|o| serde_json::Value::String(o.clone()))
+                    .collect(),
+            ),
+        );
+    }
+    if let Some(ref sl) = prop.sensitivity_level {
+        def.insert(
+            "sensitivityLevel".to_string(),
+            serde_json::Value::String(sl.clone()),
+        );
+    }
+    if let Some(ref cf) = prop.contract_field {
+        def.insert("contractField".to_string(), serde_json::Value::Bool(*cf));
+    }
+    if let Some(ref da) = prop.deprecated_at {
+        def.insert(
+            "deprecatedAt".to_string(),
+            serde_json::Value::String(da.clone()),
+        );
+    }
+    if let solosoul_vault::PropertyType::DynamicGroup = prop.prop_type {
+        if let Some(ref allowed) = prop.allowed_types {
+            def.insert(
+                "allowedTypes".to_string(),
+                serde_json::Value::Array(
+                    allowed
+                        .iter()
+                        .map(|t| serde_json::Value::String(t.as_str().to_string()))
+                        .collect(),
+                ),
+            );
+        }
+        if let Some(max) = prop.max_items {
+            def.insert(
+                "maxItems".to_string(),
+                serde_json::Value::Number(max.into()),
+            );
+        }
+    }
+    serde_json::Value::Object(def)
+}
+
+/// 计算对象与模板之间的同步差异。
+fn compute_sync_changes(
+    record: &ObjectRecord,
+    tpl: &solosoul_vault::UserTemplate,
+) -> TemplateSyncResult {
+    let latest_hash = template_fingerprint(tpl);
+    let current_fields = record
+        .properties
+        .get("__fields")
+        .and_then(|v| v.as_object())
+        .cloned()
+        .unwrap_or_default();
+    let props_obj = record.properties.as_object().cloned().unwrap_or_default();
+
+    let mut fields_added = Vec::new();
+    let mut fields_deprecated = Vec::new();
+    let mut fields_updated = Vec::new();
+    let mut fields_incompatible = Vec::new();
+
+    // 模板字段集合
+    let tpl_field_ids: std::collections::HashSet<String> =
+        tpl.properties.iter().map(|p| p.id.clone()).collect();
+
+    // 新增字段：模板中有，对象中没有
+    for prop in &tpl.properties {
+        if !current_fields.contains_key(&prop.id) {
+            fields_added.push(SyncFieldInfo {
+                id: prop.id.clone(),
+                name: prop.name.clone(),
+                field_type: prop.prop_type.as_str().to_string(),
+            });
+        }
+    }
+
+    // 废弃字段：对象中有，模板中没有
+    for (field_id, def) in &current_fields {
+        if field_id.starts_with("__") {
+            continue;
+        }
+        if !tpl_field_ids.contains(field_id) {
+            let name = def
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or(field_id)
+                .to_string();
+            let field_type = def
+                .get("type")
+                .and_then(|v| v.as_str())
+                .unwrap_or("text")
+                .to_string();
+            fields_deprecated.push(SyncFieldInfo {
+                id: field_id.clone(),
+                name,
+                field_type,
+            });
+        }
+    }
+
+    // 更新与不兼容字段
+    for prop in &tpl.properties {
+        let Some(old_def) = current_fields.get(&prop.id) else {
+            continue;
+        };
+        let old_type = old_def
+            .get("type")
+            .and_then(|v| v.as_str())
+            .unwrap_or("text");
+        let new_type = prop.prop_type.as_str();
+        let old_name = old_def.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        let old_value = props_obj
+            .get(&prop.id)
+            .cloned()
+            .unwrap_or(serde_json::Value::Null);
+
+        // 类型改变
+        if old_type != new_type {
+            if convert_value_for_type(old_type, new_type, old_value.clone()).is_some() {
+                // 可安全转换：视为普通更新
+                fields_updated.push(SyncFieldChange {
+                    id: prop.id.clone(),
+                    name: prop.name.clone(),
+                    field_type: new_type.to_string(),
+                    changes: vec![format!("type: {} -> {}", old_type, new_type)],
+                });
+            } else {
+                let preview = match &old_value {
+                    serde_json::Value::String(s) => s.chars().take(40).collect(),
+                    serde_json::Value::Number(n) => n.to_string(),
+                    serde_json::Value::Bool(b) => b.to_string(),
+                    _ => "(complex value)".to_string(),
+                };
+                fields_incompatible.push(SyncFieldIncompatible {
+                    id: prop.id.clone(),
+                    name: prop.name.clone(),
+                    old_type: old_type.to_string(),
+                    new_type: new_type.to_string(),
+                    old_value_preview: preview,
+                });
+            }
+            continue;
+        }
+
+        // 同类型下的元数据变化
+        let mut changes = Vec::new();
+        if old_name != prop.name {
+            changes.push(format!("name: {} -> {}", old_name, prop.name));
+        }
+        let old_sl = old_def
+            .get("sensitivityLevel")
+            .and_then(|v| v.as_str())
+            .unwrap_or("internal");
+        let new_sl = prop.sensitivity_level.as_deref().unwrap_or("internal");
+        if old_sl != new_sl {
+            changes.push(format!("sensitivity: {} -> {}", old_sl, new_sl));
+        }
+        let old_opts = old_def.get("options").and_then(|v| v.as_array());
+        let new_opts = prop.options.as_ref().map(|opts| {
+            opts.iter()
+                .map(|o| serde_json::Value::String(o.clone()))
+                .collect::<Vec<_>>()
+        });
+        if old_opts != new_opts.as_ref() {
+            changes.push("options changed".to_string());
+        }
+        if !changes.is_empty() {
+            fields_updated.push(SyncFieldChange {
+                id: prop.id.clone(),
+                name: prop.name.clone(),
+                field_type: new_type.to_string(),
+                changes,
+            });
+        }
+    }
+
+    let has_changes = !fields_added.is_empty()
+        || !fields_deprecated.is_empty()
+        || !fields_updated.is_empty()
+        || !fields_incompatible.is_empty();
+
+    TemplateSyncResult {
+        has_changes,
+        template_hash: latest_hash,
+        fields_added,
+        fields_deprecated,
+        fields_updated,
+        fields_incompatible,
+    }
+}
+
+/// 将同步结果应用到对象 properties 上。dry_run=true 时不修改。
+fn apply_sync_changes(
+    record: &mut ObjectRecord,
+    tpl: &solosoul_vault::UserTemplate,
+    result: &TemplateSyncResult,
+    dry_run: bool,
+) {
+    if dry_run || !result.has_changes {
+        return;
+    }
+
+    let mut props_obj = record.properties.as_object().cloned().unwrap_or_default();
+    let current_fields = record
+        .properties
+        .get("__fields")
+        .and_then(|v| v.as_object())
+        .cloned()
+        .unwrap_or_default();
+
+    let tpl_map: std::collections::HashMap<String, &solosoul_vault::TemplateProperty> =
+        tpl.properties.iter().map(|p| (p.id.clone(), p)).collect();
+
+    // 1. 处理模板中已删除的字段：移入 __deprecatedFields
+    for dep in &result.fields_deprecated {
+        if let Some(old_def) = current_fields.get(&dep.id) {
+            let old_value = props_obj
+                .get(&dep.id)
+                .cloned()
+                .unwrap_or(serde_json::Value::Null);
+            deprecate_field(
+                &mut record.properties,
+                &dep.id,
+                old_def.as_object().unwrap_or(&serde_json::Map::new()),
+                old_value,
+                "removed_by_template",
+            );
+            props_obj.remove(&dep.id);
+        }
+    }
+
+    // 2. 处理新增与更新字段
+    for (field_id, prop) in &tpl_map {
+        let old_def = current_fields.get(field_id);
+        let old_type = old_def
+            .and_then(|d| d.get("type"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        let new_type = prop.prop_type.as_str();
+        let new_def = template_prop_to_field_def(prop);
+
+        if let Some(old) = old_def {
+            // 字段已存在：检查类型是否变化
+            if old_type != new_type {
+                let old_value = props_obj
+                    .get(field_id)
+                    .cloned()
+                    .unwrap_or(serde_json::Value::Null);
+                if let Some(converted) =
+                    convert_value_for_type(old_type, new_type, old_value.clone())
+                {
+                    // 安全转换：保留转换后的值
+                    props_obj.insert(field_id.clone(), converted);
+                } else {
+                    // 不安全：归档旧字段并设置新默认值
+                    deprecate_field(
+                        &mut record.properties,
+                        field_id,
+                        old.as_object().unwrap_or(&serde_json::Map::new()),
+                        old_value,
+                        "type_incompatible",
+                    );
+                    props_obj.insert(field_id.clone(), default_value_for_type(new_type));
+                }
+            } else {
+                // 同类型：保留原值，仅更新定义
+                if !props_obj.contains_key(field_id) {
+                    props_obj.insert(field_id.clone(), default_value_for_type(new_type));
+                }
+            }
+        } else {
+            // 新增字段
+            props_obj.insert(field_id.clone(), default_value_for_type(new_type));
+        }
+
+        // 更新 __fields 定义
+        if let Some(fields) = record
+            .properties
+            .as_object_mut()
+            .and_then(|obj| obj.get_mut("__fields"))
+            .and_then(|v| v.as_object_mut())
+        {
+            fields.insert(field_id.clone(), new_def);
+        }
+    }
+
+    // 3. 重新生成 property_labels
+    rebuild_property_labels(record, tpl);
+
+    // 4. 将更新后的 props_obj 写回 record.properties
+    if let Some(obj) = record.properties.as_object_mut() {
+        for (k, v) in props_obj {
+            obj.insert(k, v);
+        }
+    }
+
+    // 5. 更新 template_hash
+    record.template_hash = Some(result.template_hash.clone());
+    if let Some(obj) = record.properties.as_object_mut() {
+        obj.insert(
+            "__templateHash".to_string(),
+            serde_json::Value::String(result.template_hash.clone()),
+        );
+    }
+}
+
+/// 根据模板重新生成对象的 property_labels。
+fn rebuild_property_labels(record: &mut ObjectRecord, tpl: &solosoul_vault::UserTemplate) {
+    let mut labels_map = serde_json::Map::new();
+    for prop in &tpl.properties {
+        if let Some(ref sl) = prop.sensitivity_level {
+            labels_map.insert(prop.id.clone(), serde_json::Value::String(sl.clone()));
+        }
+    }
+    record.property_labels = if labels_map.is_empty() {
+        None
+    } else {
+        Some(serde_json::Value::Object(labels_map))
+    };
+}
+
+#[tauri::command]
+pub async fn object_get_template_sync_status(
+    state: State<'_, AppState>,
+    object_id: String,
+) -> Result<TemplateSyncStatus, String> {
+    let vault = vault_handle(&state)?;
+    let record = vault
+        .load_object(&object_id)?
+        .ok_or("Object not found".to_string())?;
+
+    let template_id = match record.template_id.as_deref() {
+        Some(tid) => tid,
+        None => {
+            return Ok(TemplateSyncStatus {
+                needs_sync: false,
+                current_hash: None,
+                latest_hash: None,
+                template_exists: false,
+            });
+        }
+    };
+
+    let current_hash = get_object_template_hash(&record);
+    let tpl = vault.load_user_template(template_id).ok().flatten();
+
+    match tpl {
+        Some(tpl) => {
+            let latest_hash = template_fingerprint(&tpl);
+            let needs_sync = current_hash.as_ref() != Some(&latest_hash);
+            Ok(TemplateSyncStatus {
+                needs_sync,
+                current_hash,
+                latest_hash: Some(latest_hash),
+                template_exists: true,
+            })
+        }
+        None => Ok(TemplateSyncStatus {
+            needs_sync: false,
+            current_hash,
+            latest_hash: None,
+            template_exists: false,
+        }),
+    }
+}
+
+#[tauri::command]
+pub async fn object_sync_with_template(
+    state: State<'_, AppState>,
+    object_id: String,
+    dry_run: bool,
+) -> Result<TemplateSyncResult, String> {
+    let vault = vault_handle(&state)?;
+    let mut record = vault
+        .load_object(&object_id)?
+        .ok_or("Object not found".to_string())?;
+
+    let template_id = record
+        .template_id
+        .as_deref()
+        .ok_or("Object has no associated template".to_string())?
+        .to_string();
+    let tpl = vault
+        .load_user_template(&template_id)
+        .ok()
+        .flatten()
+        .ok_or("Template not found".to_string())?;
+
+    let result = compute_sync_changes(&record, &tpl);
+
+    if dry_run || !result.has_changes {
+        return Ok(result);
+    }
+
+    apply_sync_changes(&mut record, &tpl, &result, false);
+
+    // 校验 dynamic_group 字段
+    validate_dynamic_groups(&record.properties)?;
+
+    record.updated_at = chrono::Utc::now().to_rfc3339();
+    record.version += 1;
+    vault.save_object(&record)?;
+
+    // §25.5 — Save snapshot for history
+    let snapshot_data = serde_json::to_vec(&serde_json::json!({
+        "name": record.name,
+        "tags": record.tags_json,
+        "properties": record.properties,
+    }))
+    .unwrap_or_default();
+    let _ = vault.save_snapshot(
+        &object_id,
+        "template_sync",
+        &snapshot_data,
+        "Synced with template",
+    );
+
+    let _ = vault.log_structured(
+        "object_sync_template",
+        "object",
+        Some(&object_id),
+        Some(&record.name),
+        "user",
+        Some(&format!("template_id={}", template_id)),
+    );
+
+    Ok(result)
+}
+
+#[tauri::command]
+pub async fn object_list_deprecated_fields(
+    state: State<'_, AppState>,
+    object_id: String,
+) -> Result<Vec<DeprecatedField>, String> {
+    let vault = vault_handle(&state)?;
+    let record = vault
+        .load_object(&object_id)?
+        .ok_or("Object not found".to_string())?;
+
+    let deprecated = record
+        .properties
+        .get("__deprecatedFields")
+        .and_then(|v| v.as_object())
+        .cloned()
+        .unwrap_or_default();
+
+    let mut result = Vec::new();
+    for (field_id, entry) in deprecated {
+        let obj = match entry.as_object() {
+            Some(o) => o,
+            None => continue,
+        };
+        result.push(DeprecatedField {
+            id: field_id,
+            name: obj
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string(),
+            field_type: obj
+                .get("type")
+                .and_then(|v| v.as_str())
+                .unwrap_or("text")
+                .to_string(),
+            value: obj.get("value").cloned().unwrap_or(serde_json::Value::Null),
+            deprecated_at: obj
+                .get("deprecatedAt")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string(),
+            reason: obj
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string(),
+        });
+    }
+
+    // 按废弃时间倒序排列
+    result.sort_by(|a, b| b.deprecated_at.cmp(&a.deprecated_at));
+    Ok(result)
+}
+
 #[tauri::command]
 pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
     let vault = vault_handle(&state)?;
@@ -684,6 +1381,7 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
             "created_at": rec.created_at, "updated_at": rec.updated_at, "version": rec.version,
             "template_id": rec.template_id, "template_type": rec.template_type,
             "contract_type_id": rec.contract_type_id,
+            "template_hash": rec.template_hash,
         });
         let trash = solosoul_vault::TrashItem {
             id: format!("trash_{}", uuid::Uuid::new_v4()),

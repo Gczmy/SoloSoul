@@ -78,6 +78,7 @@ fn test_record_to_data_conversion() {
         tags_json: vec!["tag1".to_string()],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: "2024-01-01T00:00:00Z".to_string(),
         updated_at: "2024-01-02T00:00:00Z".to_string(),
         version: 1,
@@ -174,6 +175,7 @@ fn test_vault_object_save_and_load() {
         tags_json: vec![],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
@@ -206,6 +208,7 @@ fn test_vault_object_list_and_soft_delete() {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -258,6 +261,7 @@ fn test_object_create_with_parent() {
         tags_json: vec![],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
@@ -282,6 +286,7 @@ fn test_object_create_with_parent() {
         tags_json: vec![],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
@@ -350,6 +355,7 @@ fn test_object_soft_delete_with_trash_item() {
         tags_json: vec![],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
@@ -418,6 +424,7 @@ fn test_hard_delete_purges_object() {
         tags_json: vec![],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
@@ -469,6 +476,7 @@ fn test_trash_permanent_delete_flow() {
         tags_json: vec![],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
@@ -523,6 +531,7 @@ fn test_snapshot_operations() {
         tags_json: vec![],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
@@ -580,6 +589,7 @@ fn test_copy_snapshots() {
         tags_json: vec![],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
@@ -624,6 +634,7 @@ fn test_snapshot_rollback_via_vault() {
         tags_json: vec!["tag1".to_string()],
         template_id: None,
         template_type: None,
+        template_hash: None,
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
@@ -715,6 +726,7 @@ fn test_page_section_delete_and_restore() {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -797,6 +809,7 @@ fn test_page_restore_from_trash_reconstruction() {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -920,6 +933,7 @@ fn test_page_restore_from_trash_reconstruction() {
                         tags_json: Vec::new(),
                         template_id: None,
                         template_type: None,
+                        template_hash: None,
                         created_at: record_data["created_at"]
                             .as_str()
                             .unwrap_or(&now)
@@ -1014,6 +1028,7 @@ fn test_trash_page_detail_includes_children() {
             tags_json: vec![],
             template_id: None,
             template_type: None,
+            template_hash: None,
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
@@ -1200,4 +1215,304 @@ fn test_validate_dynamic_groups_exceeds_max_items() {
         ]
     });
     assert!(validate_dynamic_groups(&properties).is_err());
+}
+
+#[test]
+fn test_template_fingerprint_stable_and_sensitive() {
+    let tpl = UserTemplate {
+        id: "tpl-1".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Contact".to_string(),
+        icon_id: None,
+        properties: vec![solosoul_vault::TemplateProperty {
+            id: "name".to_string(),
+            name: "Name".to_string(),
+            prop_type: solosoul_vault::PropertyType::Text,
+            sensitive: None,
+            sensitivity_level: Some("internal".to_string()),
+            options: None,
+            deprecated_at: None,
+            contract_field: None,
+            contract_bindings: None,
+            allowed_types: None,
+            max_items: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: "2024-01-01T00:00:00Z".to_string(),
+        updated_at: Some("2024-01-01T00:00:00Z".to_string()),
+        contract_type_id: None,
+    };
+
+    let hash1 = template_fingerprint(&tpl);
+    let hash2 = template_fingerprint(&tpl);
+    assert_eq!(hash1, hash2);
+    assert_eq!(hash1.len(), 16);
+
+    let mut tpl_modified = tpl.clone();
+    tpl_modified.name = "Contact Updated".to_string();
+    let hash3 = template_fingerprint(&tpl_modified);
+    assert_ne!(hash1, hash3);
+}
+
+#[test]
+fn test_compute_sync_changes_categorizes_fields() {
+    let record = ObjectRecord {
+        id: "obj-1".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "Test".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "__fields": {
+                "oldField": { "name": "Old Field", "type": "text" },
+                "textField": { "name": "Text Field", "type": "text" },
+                "numberField": { "name": "Number Field", "type": "number" }
+            },
+            "oldField": "old value",
+            "textField": "hello",
+            "numberField": 42
+        }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("tpl-1".to_string()),
+        template_type: Some("user".to_string()),
+        contract_type_id: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+
+    let tpl = UserTemplate {
+        id: "tpl-1".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Contact".to_string(),
+        icon_id: None,
+        properties: vec![
+            solosoul_vault::TemplateProperty {
+                id: "textField".to_string(),
+                name: "Text Field".to_string(),
+                prop_type: solosoul_vault::PropertyType::Text,
+                sensitive: None,
+                sensitivity_level: Some("sensitive".to_string()),
+                options: None,
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            },
+            solosoul_vault::TemplateProperty {
+                id: "numberField".to_string(),
+                name: "Number Field".to_string(),
+                prop_type: solosoul_vault::PropertyType::Text,
+                sensitive: None,
+                sensitivity_level: Some("internal".to_string()),
+                options: None,
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            },
+            solosoul_vault::TemplateProperty {
+                id: "newField".to_string(),
+                name: "New Field".to_string(),
+                prop_type: solosoul_vault::PropertyType::Text,
+                sensitive: None,
+                sensitivity_level: Some("internal".to_string()),
+                options: None,
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            },
+        ],
+        category: Some("identity".to_string()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: Some(chrono::Utc::now().to_rfc3339()),
+        contract_type_id: None,
+    };
+
+    let result = compute_sync_changes(&record, &tpl);
+    assert!(result.has_changes);
+
+    // oldField removed
+    assert_eq!(result.fields_deprecated.len(), 1);
+    assert_eq!(result.fields_deprecated[0].id, "oldField");
+
+    // newField added
+    assert_eq!(result.fields_added.len(), 1);
+    assert_eq!(result.fields_added[0].id, "newField");
+
+    // textField sensitivity updated; numberField number->text safe conversion
+    assert_eq!(result.fields_updated.len(), 2);
+    let updated_ids: std::collections::HashSet<_> = result
+        .fields_updated
+        .iter()
+        .map(|f| f.id.as_str())
+        .collect();
+    assert!(updated_ids.contains("textField"));
+    assert!(updated_ids.contains("numberField"));
+
+    // no incompatible fields in this scenario
+    assert!(result.fields_incompatible.is_empty());
+}
+
+#[test]
+fn test_apply_sync_changes_archives_incompatible_field() {
+    let mut record = ObjectRecord {
+        id: "obj-1".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "Test".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "__fields": {
+                "numberField": { "name": "Number Field", "type": "number" }
+            },
+            "numberField": 42
+        }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("tpl-1".to_string()),
+        template_type: Some("user".to_string()),
+        contract_type_id: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+
+    let tpl = UserTemplate {
+        id: "tpl-1".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Contact".to_string(),
+        icon_id: None,
+        properties: vec![solosoul_vault::TemplateProperty {
+            id: "numberField".to_string(),
+            name: "Number Field".to_string(),
+            prop_type: solosoul_vault::PropertyType::Date,
+            sensitive: None,
+            sensitivity_level: Some("internal".to_string()),
+            options: None,
+            deprecated_at: None,
+            contract_field: None,
+            contract_bindings: None,
+            allowed_types: None,
+            max_items: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: Some(chrono::Utc::now().to_rfc3339()),
+        contract_type_id: None,
+    };
+
+    let result = compute_sync_changes(&record, &tpl);
+    apply_sync_changes(&mut record, &tpl, &result, false);
+
+    // 原字段应被重置为空字符串（date 默认值）
+    assert_eq!(record.properties.get("numberField").unwrap(), "");
+
+    // 旧字段应被归档到 __deprecatedFields
+    let deprecated = record
+        .properties
+        .get("__deprecatedFields")
+        .and_then(|v| v.as_object())
+        .unwrap();
+    assert!(deprecated.contains_key("numberField"));
+    let archived = deprecated.get("numberField").unwrap().as_object().unwrap();
+    assert_eq!(archived.get("value").unwrap(), 42);
+    assert_eq!(
+        archived.get("reason").and_then(|v| v.as_str()).unwrap(),
+        "type_incompatible"
+    );
+
+    // template_hash 应已更新
+    assert_eq!(record.template_hash, Some(result.template_hash));
+}
+
+#[test]
+fn test_apply_sync_changes_preserves_safe_type_conversion() {
+    let mut record = ObjectRecord {
+        id: "obj-1".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "Test".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "__fields": {
+                "textField": { "name": "Text Field", "type": "text" }
+            },
+            "textField": "hello"
+        }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("tpl-1".to_string()),
+        template_type: Some("user".to_string()),
+        contract_type_id: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+
+    let tpl = UserTemplate {
+        id: "tpl-1".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Contact".to_string(),
+        icon_id: None,
+        properties: vec![solosoul_vault::TemplateProperty {
+            id: "textField".to_string(),
+            name: "Text Field".to_string(),
+            prop_type: solosoul_vault::PropertyType::MultilineText,
+            sensitive: None,
+            sensitivity_level: Some("internal".to_string()),
+            options: None,
+            deprecated_at: None,
+            contract_field: None,
+            contract_bindings: None,
+            allowed_types: None,
+            max_items: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: Some(chrono::Utc::now().to_rfc3339()),
+        contract_type_id: None,
+    };
+
+    let result = compute_sync_changes(&record, &tpl);
+    assert!(result.fields_incompatible.is_empty());
+    apply_sync_changes(&mut record, &tpl, &result, false);
+
+    // 安全转换：text -> multiline 应保留原值
+    assert_eq!(record.properties.get("textField").unwrap(), "hello");
+    assert!(
+        record.properties.get("__deprecatedFields").is_none()
+            || record
+                .properties
+                .get("__deprecatedFields")
+                .and_then(|v| v.as_object())
+                .map(|m| m.is_empty())
+                .unwrap_or(true)
+    );
 }

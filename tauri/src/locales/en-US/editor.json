@@ -94,5 +94,21 @@
   "no_template_for_section": "No templates for this page. ",
   "go_create_template": "Go to Template Manager to create one",
   "manage_templates": "Manage Templates",
-  "no_properties": "No properties"
+  "no_properties": "No properties",
+  "template_updated_hint": "The template for this object has been updated. Apply the latest template settings?",
+  "template_sync_title": "Template Updated",
+  "template_sync_body": "The template structure differs from the object's current fields. Applying will update fields to match the latest template. Fields with incompatible type changes will be archived to historical fields and not lost.",
+  "template_sync_loading": "Calculating changes...",
+  "template_sync_no_changes": "No changes",
+  "template_sync_apply": "Apply",
+  "template_sync_added": "Added fields",
+  "template_sync_deprecated": "Removed/Deprecated fields",
+  "template_sync_updated": "Updated fields",
+  "template_sync_incompatible": "Incompatible type changes",
+  "template_sync_incompatible_hint": "These fields have been archived because their type could not be converted. Original values can be viewed in Historical Fields.",
+  "deprecated_fields_title": "Historical fields for {{name}}",
+  "deprecated_fields_body": "The following fields were archived because they became incompatible or were removed by a template update.",
+  "deprecated_fields_empty": "No historical fields",
+  "deprecated_fields_button": "Historical fields ({{count}})",
+  "deprecated_fields_archived_at": "Archived on {{date}}"
 }

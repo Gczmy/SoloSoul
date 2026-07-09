@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
+import type {
+  DeprecatedField,
+  TemplateSyncResult,
+} from '@/lib/templateSync';
 
 export interface ObjectSummary {
   id: string;
@@ -15,6 +19,8 @@ export interface ObjectSummary {
   tags?: string[];
   templateId?: string;
   templateType?: 'system' | 'user';
+  /** 创建对象时模板的指纹；用于检测模板后续是否发生变更。 */
+  templateHash?: string;
   /** 插件合约类型 ID — 继承自模板的插件绑定标识。 */
   contractTypeId?: string;
   /** 字段级敏感度覆盖：fieldName -> sensitivityLevel。即使模板被删除，对象仍保留自己的敏感度副本。 */
@@ -30,6 +36,8 @@ export interface ObjectData {
   sensitivityLevel: string;
   templateId?: string;
   templateType?: 'system' | 'user';
+  /** 创建对象时模板的指纹；用于检测模板后续是否发生变更。 */
+  templateHash?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -70,6 +78,21 @@ interface ObjectState {
   loadTrashObjects: (accountId: string) => Promise<void>;
   restoreObject: (objectId: string) => Promise<void>;
   purgeObject: (objectId: string) => Promise<void>;
+  /** 预览对象按当前模板同步后的变更（dryRun=true）。 */
+  previewSyncTemplate: (
+    accountId: string,
+    objectId: string,
+  ) => Promise<TemplateSyncResult>;
+  /** 应用当前模板设置到对象。 */
+  applySyncTemplate: (
+    accountId: string,
+    objectId: string,
+  ) => Promise<TemplateSyncResult>;
+  /** 列出对象中已归档的历史字段。 */
+  loadDeprecatedFields: (
+    accountId: string,
+    objectId: string,
+  ) => Promise<DeprecatedField[]>;
   trashObjects: ObjectSummary[];
   clearOnVaultLock: () => void;
 }
@@ -122,6 +145,9 @@ export const useObjectStore = create<ObjectState>((set) => ({
             sensitivityLevel: obj.sensitivityLevel,
             createdAt: obj.createdAt,
             updatedAt: obj.updatedAt,
+            templateId: obj.templateId,
+            templateType: obj.templateType,
+            templateHash: obj.templateHash,
             contractTypeId: obj.contractTypeId,
           },
         ],
@@ -196,6 +222,32 @@ export const useObjectStore = create<ObjectState>((set) => ({
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }
+  },
+
+  previewSyncTemplate: async (accountId, objectId) => {
+    return invoke<TemplateSyncResult>('object_sync_with_template', {
+      accountId,
+      objectId,
+      dryRun: true,
+    });
+  },
+
+  applySyncTemplate: async (accountId, objectId) => {
+    const result = await invoke<TemplateSyncResult>('object_sync_with_template', {
+      accountId,
+      objectId,
+      dryRun: false,
+    });
+    // 同步成功后刷新该对象缓存，使 UI 立即反映最新字段与敏感度。
+    await useObjectStore.getState().getObject(accountId, objectId);
+    return result;
+  },
+
+  loadDeprecatedFields: async (accountId, objectId) => {
+    return invoke<DeprecatedField[]>('object_list_deprecated_fields', {
+      accountId,
+      objectId,
+    });
   },
 
   clearOnVaultLock: () =>

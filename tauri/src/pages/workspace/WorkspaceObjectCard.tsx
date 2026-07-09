@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { Clock, Paperclip, Pencil, Trash2 } from 'lucide-react';
@@ -73,11 +74,17 @@ interface WorkspaceObjectCardProps {
   userTemplates: UserTemplate[];
   snapshotCount?: number;
   attachmentCount?: number;
+  /** 模板已更新且对象尚未同步时显示提示条。 */
+  needsSync?: boolean;
   onClick: () => void;
   onHistory: () => void;
   onAttachments: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  /** 用户确认应用模板更新。 */
+  onSync?: () => void;
+  /** 用户选择暂不应用模板更新。 */
+  onDismissSync?: () => void;
   /** 拖拽文件上传完成后的回调，用于刷新附件计数 */
   onUploadComplete?: () => void;
 }
@@ -88,13 +95,17 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   userTemplates,
   snapshotCount,
   attachmentCount,
+  needsSync,
   onClick,
   onHistory,
   onAttachments,
   onEdit,
   onDelete,
+  onSync,
+  onDismissSync,
   onUploadComplete,
 }: WorkspaceObjectCardProps) {
+  const { t } = useTranslation(['editor', 'common']);
   const tpl = userTemplates.find((t) => t.id === obj.templateId);
   // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
   const tplMatch = tpl && (tpl.category || 'identity') === obj.collectionType;
@@ -132,6 +143,59 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   return (
     <div ref={dragRef} style={{ position: 'relative' }}>
       <Card interactive onClick={onClick}>
+        {/* 模板更新提示条 */}
+        {needsSync && onSync && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              marginBottom: 12,
+              padding: '10px 12px',
+              borderRadius: 8,
+              background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
+            }}
+          >
+            <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-primary)' }}>
+              {t('editor:template_updated_hint')}
+            </span>
+            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+              <button
+                onClick={onSync}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: 'var(--accent-primary)',
+                  color: '#fff',
+                  fontSize: 'var(--text-caption)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {t('common:yes')}
+              </button>
+              <button
+                onClick={onDismissSync}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-secondary)',
+                  fontSize: 'var(--text-caption)',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                {t('common:no')}
+              </button>
+            </div>
+          </div>
+        )}
         {/* Header row */}
         <div
           style={{

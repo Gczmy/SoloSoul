@@ -162,6 +162,7 @@ pub async fn object_restore(
             .unwrap_or_default(),
         template_id: record_data["template_id"].as_str().map(String::from),
         template_type: record_data["template_type"].as_str().map(String::from),
+        template_hash: record_data["template_hash"].as_str().map(String::from),
         created_at: record_data["created_at"]
             .as_str()
             .unwrap_or(&now)
@@ -457,6 +458,7 @@ pub async fn page_restore(
                         tags_json: Vec::new(),
                         template_id: record_data["template_id"].as_str().map(String::from),
                         template_type: record_data["template_type"].as_str().map(String::from),
+                        template_hash: record_data["template_hash"].as_str().map(String::from),
                         created_at: record_data["created_at"]
                             .as_str()
                             .unwrap_or(&now)

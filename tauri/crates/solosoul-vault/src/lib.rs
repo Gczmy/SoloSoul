@@ -212,6 +212,12 @@ pub struct ObjectRecord {
         skip_serializing_if = "Option::is_none"
     )]
     pub contract_type_id: Option<String>,
+    #[serde(
+        rename = "templateHash",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub template_hash: Option<String>,
     pub created_at: String,
     pub updated_at: String,
     pub version: u32,
@@ -245,6 +251,12 @@ pub struct ObjectSummary {
         skip_serializing_if = "Option::is_none"
     )]
     pub contract_type_id: Option<String>,
+    #[serde(
+        rename = "templateHash",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub template_hash: Option<String>,
     #[serde(rename = "iconName")]
     pub icon_name: String,
     /// First few property key-value pairs for card previews

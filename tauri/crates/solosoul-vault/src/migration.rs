@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 17;
+pub const CURRENT_SCHEMA_VERSION: u32 = 18;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -379,6 +379,14 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         }
         set_schema_version(&tx, 17)?;
         tx.commit().map_err(|e| format!("Commit v17: {}", e))?;
+    }
+    if current < 18 {
+        apply_migration(
+            conn,
+            18,
+            "ALTER TABLE objects ADD COLUMN template_hash TEXT;",
+            "Add template_hash to objects table for template sync tracking",
+        )?;
     }
     Ok(())
 }

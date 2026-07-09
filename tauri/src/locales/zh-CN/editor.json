@@ -94,5 +94,21 @@
   "no_template_for_section": "此页面暂无模板，",
   "go_create_template": "前往模板管理新建",
   "manage_templates": "管理模板",
-  "no_properties": "无属性数据"
+  "no_properties": "无属性数据",
+  "template_updated_hint": "该对象使用模板已更新，是否使用最新模板设置？",
+  "template_sync_title": "模板已更新",
+  "template_sync_body": "模板结构与对象当前字段存在差异，应用后将按模板最新设置更新字段。不兼容类型变更的旧字段将被归档到历史字段中，不会丢失。",
+  "template_sync_loading": "正在计算变更...",
+  "template_sync_no_changes": "无变更",
+  "template_sync_apply": "应用",
+  "template_sync_added": "新增字段",
+  "template_sync_deprecated": "已删除/废弃字段",
+  "template_sync_updated": "已更新字段",
+  "template_sync_incompatible": "不兼容类型变更",
+  "template_sync_incompatible_hint": "以上字段因类型无法转换已被归档，原值可在“历史字段”中查看。",
+  "deprecated_fields_title": "{{name}} 的历史字段",
+  "deprecated_fields_body": "以下字段因模板更新导致类型不兼容或已被删除，其原值已被安全归档。",
+  "deprecated_fields_empty": "暂无历史字段",
+  "deprecated_fields_button": "历史字段 ({{count}})",
+  "deprecated_fields_archived_at": "归档于 {{date}}"
 }

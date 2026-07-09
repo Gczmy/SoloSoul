@@ -41,11 +41,19 @@ interface ObjectDetailModalProps {
   object?: ObjectSummary | ObjectData;
   /** 若未提供 object，则通过 objectId 自动拉取完整对象数据。 */
   objectId?: string;
+  /** 模板已更新且对象尚未同步时显示提示条。 */
+  needsSync?: boolean;
   onClose: () => void;
   onHistory?: () => void;
   onAttachments?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  /** 用户确认应用模板更新。 */
+  onSyncTemplate?: () => void;
+  /** 用户选择暂不应用模板更新。 */
+  onDismissSync?: () => void;
+  /** 查看已归档历史字段。 */
+  onViewDeprecatedFields?: () => void;
   /** 附件增删后的回调，用于外部（workspace）刷新计数 badge */
   onAttachmentsChange?: () => void;
 }
@@ -106,11 +114,15 @@ function flattenProperties(
 export function ObjectDetailModal({
   object,
   objectId,
+  needsSync,
   onClose,
   onHistory,
   onAttachments,
   onEdit,
   onDelete,
+  onSyncTemplate,
+  onDismissSync,
+  onViewDeprecatedFields,
   onAttachmentsChange,
 }: ObjectDetailModalProps) {
   const accountId = useAuthStore((s) => s.currentAccount?.id);
@@ -307,6 +319,12 @@ export function ObjectDetailModal({
   const objFieldDefs = useMemo(() => {
     const raw = (obj?.properties as Record<string, unknown>)?.__fields;
     return raw as Record<string, { name: string; type: string }> | undefined;
+  }, [obj?.properties]);
+
+  // 已归档的历史字段（模板字段类型不兼容变更时产生）
+  const deprecatedFields = useMemo(() => {
+    const raw = (obj?.properties as Record<string, unknown>)?.__deprecatedFields;
+    return Array.isArray(raw) ? raw : [];
   }, [obj?.properties]);
 
   const getFieldProperty = (fieldKey: string): TemplateProperty | undefined => {
@@ -527,6 +545,79 @@ export function ObjectDetailModal({
               </div>
 
               <div style={{ height: 1, background: 'var(--border-subtle)', marginBottom: 16 }} />
+
+              {/* 模板更新提示条 */}
+              {needsSync && onSyncTemplate && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    marginBottom: 16,
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                    border: '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
+                  }}
+                >
+                  <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-primary)' }}>
+                    {t('editor:template_updated_hint')}
+                  </span>
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                    <button
+                      onClick={onSyncTemplate}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: 6,
+                        border: 'none',
+                        background: 'var(--accent-primary)',
+                        color: '#fff',
+                        fontSize: 'var(--text-caption)',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {t('common:yes')}
+                    </button>
+                    <button
+                      onClick={onDismissSync}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-elevated)',
+                        color: 'var(--text-secondary)',
+                        fontSize: 'var(--text-caption)',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {t('common:no')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 历史字段入口 */}
+              {deprecatedFields.length > 0 && onViewDeprecatedFields && (
+                <div style={{ marginBottom: 12 }}>
+                  <button
+                    onClick={onViewDeprecatedFields}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: 6,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-toolbar)',
+                      color: 'var(--text-secondary)',
+                      fontSize: 'var(--text-caption)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {t('editor:deprecated_fields_button', { count: deprecatedFields.length })}
+                  </button>
+                </div>
+              )}
 
               {/* Fields */}
               {fields.length === 0 ? (

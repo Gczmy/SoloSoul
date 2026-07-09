@@ -9,9 +9,7 @@ describe('Dialog', () => {
         Content
       </Dialog>,
     );
-    // When closed, the dialog should not be "open" in the DOM
-    const dialog = document.querySelector('dialog');
-    expect(dialog).not.toBeInTheDocument();
+    expect(screen.queryByText('Content')).not.toBeInTheDocument();
   });
 
   it('renders and opens when isOpen is true', () => {
@@ -21,8 +19,6 @@ describe('Dialog', () => {
       </Dialog>,
     );
     expect(screen.getByText('Content')).toBeInTheDocument();
-    const dialog = document.querySelector('dialog');
-    expect(dialog).toBeInTheDocument();
   });
 
   it('renders title when provided', () => {
@@ -41,9 +37,9 @@ describe('Dialog', () => {
         Content
       </Dialog>,
     );
-    // Click on the <dialog> element itself simulates backdrop click
-    const dialog = document.querySelector('dialog')!;
-    fireEvent.click(dialog);
+    const backdrop = document.querySelector('[class*="backdrop"]');
+    expect(backdrop).toBeInTheDocument();
+    fireEvent.click(backdrop!);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -58,16 +54,14 @@ describe('Dialog', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('calls onClose via native close event', () => {
+  it('calls onClose when pressing Escape', () => {
     const onClose = vi.fn();
     render(
       <Dialog isOpen={true} onClose={onClose}>
         Content
       </Dialog>,
     );
-    // Native <dialog> fires 'close' event on Escape or programmatic close()
-    const dialog = document.querySelector('dialog')!;
-    fireEvent(dialog, new Event('close'));
+    fireEvent.keyDown(document, { key: 'Escape' });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -79,8 +73,7 @@ describe('Dialog', () => {
       </Dialog>,
     );
     unmount();
-    // After unmount the dialog is removed, so firing close does nothing
-    const dialog = document.querySelector('dialog');
-    expect(dialog).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
   });
 });
