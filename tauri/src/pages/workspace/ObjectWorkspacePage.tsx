@@ -775,10 +775,7 @@ export function ObjectWorkspacePage() {
           result={syncDialog.result}
           loading={syncDialog.loading}
           onConfirm={handleConfirmSync}
-          onCancel={() => {
-            if (syncDialog.objectId) handleDismissSync(syncDialog.objectId);
-            setSyncDialog(null);
-          }}
+          onCancel={() => setSyncDialog(null)}
         />
       )}
 
