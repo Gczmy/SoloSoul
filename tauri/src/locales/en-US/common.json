@@ -140,6 +140,8 @@
   "no_history": "No history snapshots yet.",
   "trigger_user_edit": "User edit",
   "trigger_rollback": "Rollback",
+  "trigger_template_sync": "Template sync",
+  "trigger_import": "Import",
   "diff_Created": "Initial snapshot",
   "rollback_confirm_title": "Restore version",
   "rollback_confirm_body": "Rollback to version from {{date}}?",

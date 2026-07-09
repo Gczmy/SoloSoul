@@ -139,6 +139,8 @@
   "no_history": "暂无历史记录",
   "trigger_user_edit": "用户编辑",
   "trigger_rollback": "回滚",
+  "trigger_template_sync": "模板同步",
+  "trigger_import": "导入",
   "diff_Created": "初始版本",
   "rollback_confirm_title": "恢复版本",
   "rollback_confirm_body": "回滚到 {{date}} 的版本？",

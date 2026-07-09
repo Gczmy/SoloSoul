@@ -97,11 +97,9 @@ export function HistoryPage() {
                           : new Date(s.timestamp).toLocaleString()}
                       </div>
                       <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                        {s.triggeredBy === 'user_edit'
-                          ? t('common:trigger_user_edit')
-                          : s.triggeredBy === 'rollback'
-                            ? t('common:trigger_rollback')
-                            : s.diffSummary || s.triggeredBy}
+                        {t(`common:trigger_${s.triggeredBy}` as const, {
+                          defaultValue: s.diffSummary || s.triggeredBy,
+                        })}
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: 6 }}>
