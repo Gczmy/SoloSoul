@@ -68,8 +68,8 @@ export function ObjectWorkspacePage() {
   const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
   const [detailObj, setDetailObj] = useState<(typeof visibleObjects)[number] | null>(null);
 
-  // 模板同步状态：记录每个可见对象是否需要同步
-  const [syncStatusMap, setSyncStatusMap] = useState<Record<string, boolean>>({});
+  // 模板指纹映射：仅在模板列表变化时异步计算一次，避免切换页面时批量重算导致闪烁。
+  const [templateHashMap, setTemplateHashMap] = useState<Map<string, string>>(new Map());
   const [dismissedSyncIds, setDismissedSyncIds] = useState<Set<string>>(new Set());
 
   // 模板同步确认弹窗状态
@@ -266,25 +266,21 @@ export function ObjectWorkspacePage() {
 
   const snapshotReqRef = useRef(0);
 
-  // 计算可见对象的模板同步状态
+  // 仅在模板列表变化时计算指纹映射，页面切换时复用，避免同步提示条闪烁。
   useEffect(() => {
-    if (userTemplates.length === 0 || visibleObjects.length === 0) {
-      setSyncStatusMap({});
+    if (userTemplates.length === 0) {
+      setTemplateHashMap(new Map());
       return;
     }
     let cancelled = false;
     buildTemplateHashMap(userTemplates).then((hashMap) => {
       if (cancelled) return;
-      const next: Record<string, boolean> = {};
-      for (const obj of visibleObjects) {
-        next[obj.id] = objectNeedsSync(obj, hashMap);
-      }
-      setSyncStatusMap(next);
+      setTemplateHashMap(hashMap);
     });
     return () => {
       cancelled = true;
     };
-  }, [visibleObjects, userTemplates]);
+  }, [userTemplates]);
 
   // Load snapshot counts for visible objects
   useEffect(() => {
@@ -651,7 +647,7 @@ export function ObjectWorkspacePage() {
                   userTemplates={userTemplates}
                   snapshotCount={snapshotCounts[obj.id]}
                   attachmentCount={attachmentCounts[obj.id]}
-                  needsSync={!dismissedSyncIds.has(obj.id) && syncStatusMap[obj.id]}
+                  templateHashMap={templateHashMap}
                   onClick={() => setDetailObj(obj)}
                   onHistory={() =>
                     setHistoryObj({
@@ -699,7 +695,10 @@ export function ObjectWorkspacePage() {
           {detailObj && (
             <ObjectDetailModal
               object={detailObj}
-              needsSync={!dismissedSyncIds.has(detailObj.id) && syncStatusMap[detailObj.id]}
+              needsSync={
+                !dismissedSyncIds.has(detailObj.id) &&
+                objectNeedsSync(detailObj, templateHashMap)
+              }
               onClose={() => setDetailObj(null)}
               onEdit={() => {
                 navigate(`/editor/${detailObj.id}`);

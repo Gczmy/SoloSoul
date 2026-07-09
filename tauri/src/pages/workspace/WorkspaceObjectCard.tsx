@@ -7,6 +7,7 @@ import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/Sens
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
+import { objectNeedsSync } from '@/lib/templateSync';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
@@ -74,8 +75,8 @@ interface WorkspaceObjectCardProps {
   userTemplates: UserTemplate[];
   snapshotCount?: number;
   attachmentCount?: number;
-  /** 模板已更新且对象尚未同步时显示提示条。 */
-  needsSync?: boolean;
+  /** 模板指纹映射；卡片据此懒计算是否需要同步。 */
+  templateHashMap?: Map<string, string>;
   onClick: () => void;
   onHistory: () => void;
   onAttachments: () => void;
@@ -95,7 +96,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   userTemplates,
   snapshotCount,
   attachmentCount,
-  needsSync,
+  templateHashMap,
   onClick,
   onHistory,
   onAttachments,
@@ -107,6 +108,12 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
 }: WorkspaceObjectCardProps) {
   const { t } = useTranslation(['editor', 'common']);
   const tpl = userTemplates.find((t) => t.id === obj.templateId);
+
+  // 懒加载：每张卡片根据模板指纹映射独立计算同步状态，避免父级批量计算导致切换页面闪烁。
+  const needsSync = useMemo(
+    () => (templateHashMap ? objectNeedsSync(obj, templateHashMap) : false),
+    [obj, templateHashMap],
+  );
   // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
   const tplMatch = tpl && (tpl.category || 'identity') === obj.collectionType;
   const fieldOrder = tpl?.properties.map((p) => p.id);
