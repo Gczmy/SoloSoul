@@ -1239,7 +1239,6 @@ function DynamicGroupSnapshotRow({
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
             <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{child.key}</span>
-            {child.sensitivityLevel && <SensitivityBadge level={child.sensitivityLevel} />}
           </div>
           <span style={{ color: 'var(--text-primary)', marginLeft: 'auto', textAlign: 'right' }}>
             {child.value}
