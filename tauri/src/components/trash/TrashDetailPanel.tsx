@@ -894,25 +894,6 @@ function SnapshotContent({
             }}
           >
             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-              {currentSnap.diffSummary &&
-                !(
-                  snapshots.length > 2 &&
-                  clampedIdx === snapshots.length - 1 &&
-                  currentSnap.diffSummary === 'Created'
-                ) && (
-                  <span
-                    style={{
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      fontSize: 'var(--text-badge)',
-                      fontWeight: 500,
-                      background: 'rgba(91,124,153,0.08)',
-                      color: 'var(--accent-primary)',
-                    }}
-                  >
-                    {t(`common:diff_${currentSnap.diffSummary}`, currentSnap.diffSummary)}
-                  </span>
-                )}
               <SnapshotVersionBadge index={currentSnapIdx} total={snapshots.length} />
               <span
                 style={{
@@ -999,12 +980,23 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
   }, [rawProps, detailTemplate]);
 
   const orderedFields = useMemo(() => {
-    const result: {
+    type FieldChild = {
       key: string;
       value: string;
       type?: PropertyType;
       sensitivityLevel?: SensitivityLevel;
-    }[] = [];
+    };
+    type FieldEntry =
+      | { kind: 'field'; key: string; value: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }
+      | {
+          kind: 'dynamicGroup';
+          key: string;
+          type?: PropertyType;
+          sensitivityLevel?: SensitivityLevel;
+          children: FieldChild[];
+        };
+
+    const result: FieldEntry[] = [];
     if (!rawProps || typeof rawProps !== 'object') return result;
 
     const seen = new Set<string>();
@@ -1016,19 +1008,34 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
         if (v !== null && v !== undefined && v !== '' && !String(p.id).startsWith('__')) {
           seen.add(p.id);
           const def = fieldDefs.get(p.id);
-          result.push({
-            key: def?.name || p.name,
-            value: typeof v === 'string' ? v : JSON.stringify(v),
-            type: def?.type || p.type,
-            sensitivityLevel:
-              sensitivityMap.get(p.id) || ((p.sensitivityLevel || 'internal') as SensitivityLevel),
-          });
+          const sensitivityLevel =
+            sensitivityMap.get(p.id) || ((p.sensitivityLevel || 'internal') as SensitivityLevel);
+          if ((def?.type || p.type) === 'dynamic_group') {
+            result.push({
+              kind: 'dynamicGroup',
+              key: def?.name || p.name,
+              type: 'dynamic_group',
+              sensitivityLevel,
+              children: parseDynamicGroupValue(v),
+            });
+          } else {
+            result.push({
+              kind: 'field',
+              key: def?.name || p.name,
+              value: typeof v === 'string' ? v : JSON.stringify(v),
+              type: def?.type || p.type,
+              sensitivityLevel,
+            });
+          }
         }
       }
     }
 
     // 2. __fields 顺序（模板不存在时尤为重要）
-    const rawFields = rawProps.__fields as Record<string, { name?: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }> | undefined;
+    const rawFields = rawProps.__fields as Record<
+      string,
+      { name?: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }
+    > | undefined;
     if (rawFields && typeof rawFields === 'object') {
       for (const id of Object.keys(rawFields)) {
         if (seen.has(id) || String(id).startsWith('__')) continue;
@@ -1037,12 +1044,24 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
         seen.add(id);
         const def = fieldDefs.get(id);
         const snapshotLevel = rawFields[id]?.sensitivityLevel;
-        result.push({
-          key: def?.name || id,
-          value: typeof v === 'string' ? v : JSON.stringify(v),
-          type: def?.type,
-          sensitivityLevel: sensitivityMap.get(id) || snapshotLevel,
-        });
+        const sensitivityLevel = sensitivityMap.get(id) || snapshotLevel;
+        if ((def?.type || rawFields[id]?.type) === 'dynamic_group') {
+          result.push({
+            kind: 'dynamicGroup',
+            key: def?.name || id,
+            type: 'dynamic_group',
+            sensitivityLevel,
+            children: parseDynamicGroupValue(v),
+          });
+        } else {
+          result.push({
+            kind: 'field',
+            key: def?.name || id,
+            value: typeof v === 'string' ? v : JSON.stringify(v),
+            type: def?.type,
+            sensitivityLevel,
+          });
+        }
       }
     }
 
@@ -1050,6 +1069,7 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
     for (const [k, v] of Object.entries(rawProps)) {
       if (!k.startsWith('__') && !seen.has(k) && v !== null && v !== undefined && v !== '') {
         result.push({
+          kind: 'field',
           key: k,
           value: typeof v === 'string' ? v : JSON.stringify(v),
           sensitivityLevel: sensitivityMap.get(k),
@@ -1076,6 +1096,16 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
         </div>
       )}
       {orderedFields.slice(0, 8).map((f) => {
+        if (f.kind === 'dynamicGroup') {
+          return (
+            <DynamicGroupSnapshotRow
+              key={f.key}
+              groupKey={f.key}
+              sensitivityLevel={f.sensitivityLevel}
+              children={f.children}
+            />
+          );
+        }
         const displayKey =
           f.key === '__dynamic_group__'
             ? t('editor:field_types.dynamic_group', f.key)
@@ -1122,6 +1152,100 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function parseDynamicGroupValue(v: unknown): {
+  key: string;
+  value: string;
+  type?: PropertyType;
+  sensitivityLevel?: SensitivityLevel;
+}[] {
+  let arr: unknown[] | undefined;
+  if (Array.isArray(v)) {
+    arr = v;
+  } else if (typeof v === 'string') {
+    try {
+      const parsed = JSON.parse(v);
+      if (Array.isArray(parsed)) arr = parsed;
+    } catch {
+      arr = undefined;
+    }
+  }
+  if (!arr) return [];
+  return arr
+    .filter(
+      (item): item is Record<string, unknown> => item !== null && typeof item === 'object',
+    )
+    .map((item) => ({
+      key: typeof item.name === 'string' ? item.name : String(item.id || ''),
+      value:
+        typeof item.value === 'string'
+          ? item.value
+          : item.value !== undefined && item.value !== null
+            ? JSON.stringify(item.value)
+            : '',
+      type: typeof item.type === 'string' ? (item.type as PropertyType) : undefined,
+      sensitivityLevel:
+        typeof item.sensitivity === 'string' ? (item.sensitivity as SensitivityLevel) : undefined,
+    }));
+}
+
+function DynamicGroupSnapshotRow({
+  groupKey,
+  sensitivityLevel,
+  children,
+}: {
+  groupKey: string;
+  sensitivityLevel?: SensitivityLevel;
+  children: { key: string; value: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }[];
+}) {
+  const { t } = useTranslation(['editor']);
+  const displayKey =
+    groupKey === '__dynamic_group__'
+      ? t('editor:field_types.dynamic_group', groupKey)
+      : groupKey;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontSize: 'var(--text-caption)',
+          padding: '3px 0',
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <FieldTypeIcon type="dynamic_group" size={ICON_SIZE.sm} />
+          <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{displayKey}</span>
+          {sensitivityLevel && <SensitivityBadge level={sensitivityLevel} />}
+        </div>
+      </div>
+      {children.map((child) => (
+        <div
+          key={child.key}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 'var(--text-caption)',
+            padding: '3px 0 3px 20px',
+            borderBottom: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
+            <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{child.key}</span>
+            {child.sensitivityLevel && <SensitivityBadge level={child.sensitivityLevel} />}
+          </div>
+          <span style={{ color: 'var(--text-primary)', marginLeft: 'auto', textAlign: 'right' }}>
+            {child.value}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
