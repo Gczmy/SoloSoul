@@ -959,19 +959,30 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
   const tags: string[] = Array.isArray(data.tags) ? (data.tags as string[]) : [];
   const snapName = typeof data.name === 'string' ? data.name : '';
 
-  // 优先使用对象自带的 __fields 字段定义；模板存在时用于排序和补充。
+  // 字段级敏感度的真实来源是 propertyLabels（对象当前敏感度副本），__fields 中仅为快照。
+  const sensitivityMap = useMemo(() => {
+    const map = new Map<string, SensitivityLevel>();
+    const labels = data.propertyLabels as Record<string, SensitivityLevel> | undefined;
+    if (labels && typeof labels === 'object') {
+      for (const [id, level] of Object.entries(labels)) {
+        if (level) map.set(id, level);
+      }
+    }
+    return map;
+  }, [data.propertyLabels]);
+
+  // 优先使用对象自带的 __fields 字段定义获取名称/类型；模板存在时用于排序和补充。
   const fieldDefs = useMemo(() => {
     const defs = new Map<
       string,
-      { name: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }
+      { name: string; type?: PropertyType }
     >();
-    const rawFields = rawProps?.__fields as Record<string, { name?: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }> | undefined;
+    const rawFields = rawProps?.__fields as Record<string, { name?: string; type?: PropertyType }> | undefined;
     if (rawFields && typeof rawFields === 'object') {
       for (const [id, def] of Object.entries(rawFields)) {
         defs.set(id, {
           name: def?.name || id,
           type: def?.type,
-          sensitivityLevel: def?.sensitivityLevel,
         });
       }
     }
@@ -981,7 +992,6 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
         defs.set(p.id, {
           name: p.name,
           type: p.type,
-          sensitivityLevel: (p.sensitivityLevel || 'internal') as SensitivityLevel,
         });
       }
     }
@@ -1010,7 +1020,8 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
             key: def?.name || p.name,
             value: typeof v === 'string' ? v : JSON.stringify(v),
             type: def?.type || p.type,
-            sensitivityLevel: def?.sensitivityLevel || ((p.sensitivityLevel || 'internal') as SensitivityLevel),
+            sensitivityLevel:
+              sensitivityMap.get(p.id) || ((p.sensitivityLevel || 'internal') as SensitivityLevel),
           });
         }
       }
@@ -1025,11 +1036,12 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
         if (v === null || v === undefined || v === '') continue;
         seen.add(id);
         const def = fieldDefs.get(id);
+        const snapshotLevel = rawFields[id]?.sensitivityLevel;
         result.push({
           key: def?.name || id,
           value: typeof v === 'string' ? v : JSON.stringify(v),
           type: def?.type,
-          sensitivityLevel: def?.sensitivityLevel,
+          sensitivityLevel: sensitivityMap.get(id) || snapshotLevel,
         });
       }
     }
@@ -1040,12 +1052,13 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
         result.push({
           key: k,
           value: typeof v === 'string' ? v : JSON.stringify(v),
+          sensitivityLevel: sensitivityMap.get(k),
         });
       }
     }
 
     return result;
-  }, [rawProps, detailTemplate, fieldDefs]);
+  }, [rawProps, detailTemplate, fieldDefs, sensitivityMap]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>

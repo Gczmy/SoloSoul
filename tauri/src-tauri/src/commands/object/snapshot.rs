@@ -253,12 +253,19 @@ pub async fn trash_get_detail(
         })()
         .unwrap_or_default()
     } else {
-        // 生成对象 preview_properties：优先使用对象自身保存的 __fields 字段定义，
-        // 模板删除后仍可显示正确的本地化字段名；模板可用时仅作为排序与补充。
+        // 生成对象 preview_properties：优先使用对象自身保存的 __fields 字段定义获取名称/类型，
+        // 敏感度以 property_labels 为真实来源；模板删除后仍可显示正确的本地化字段名与敏感度。
         (|| -> Option<Vec<serde_json::Value>> {
             let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
             let props = data.get("properties")?.as_object()?;
             let fields_def = props.get("__fields").and_then(|v| v.as_object());
+
+            // 字段级敏感度的真实来源是 property_labels（对象当前敏感度副本）
+            let sensitivity_map = data
+                .get("property_labels")
+                .and_then(|v| v.as_object())
+                .cloned()
+                .unwrap_or_default();
 
             // 1. 加载模板（用于排序和补充字段定义）
             let tpl = data
@@ -266,11 +273,11 @@ pub async fn trash_get_detail(
                 .and_then(|v| v.as_str())
                 .and_then(|tpl_id| vault.load_user_template(tpl_id).ok().flatten());
 
-            // 2. 构建字段定义映射：field_id -> (显示名, 类型, 敏感度)
-            let mut field_defs: std::collections::HashMap<String, (String, String, String)> =
+            // 2. 构建字段定义映射：field_id -> (显示名, 类型)
+            let mut field_defs: std::collections::HashMap<String, (String, String)> =
                 std::collections::HashMap::new();
 
-            // 2.1 优先从对象自带的 __fields 读取
+            // 2.1 优先从对象自带的 __fields 读取名称和类型
             if let Some(fields) = fields_def {
                 for (field_id, def) in fields {
                     let name = def
@@ -283,12 +290,7 @@ pub async fn trash_get_detail(
                         .and_then(|v| v.as_str())
                         .unwrap_or("text")
                         .to_string();
-                    let sens = def
-                        .get("sensitivityLevel")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("internal")
-                        .to_string();
-                    field_defs.insert(field_id.clone(), (name, ptype, sens));
+                    field_defs.insert(field_id.clone(), (name, ptype));
                 }
             }
 
@@ -297,19 +299,16 @@ pub async fn trash_get_detail(
                 .as_ref()
                 .map(|t| t.properties.iter().map(|p| p.id.clone()).collect())
                 .unwrap_or_default();
-            if let Some(t) = tpl {
-                for prop in t.properties {
+            if let Some(ref t) = tpl {
+                for prop in &t.properties {
                     if field_defs.contains_key(&prop.id) {
                         continue;
                     }
-                    let sens = prop
-                        .sensitivity_level
-                        .unwrap_or_else(|| "internal".to_string());
                     let ptype = serde_json::to_string(&prop.prop_type)
                         .ok()
                         .and_then(|s| serde_json::from_str::<String>(&s).ok())
                         .unwrap_or_else(|| "text".to_string());
-                    field_defs.insert(prop.id.clone(), (prop.name, ptype, sens));
+                    field_defs.insert(prop.id.clone(), (prop.name.clone(), ptype));
                 }
             }
 
@@ -334,17 +333,37 @@ pub async fn trash_get_detail(
                 }
             }
 
-            // 4. 生成结果
+            // 4. 生成结果：敏感度从 property_labels 读取，fallback 到 __fields/模板/internal
             let mut result = Vec::new();
             for field_id in ordered_ids {
                 let v = match props.get(&field_id) {
                     Some(v) => v,
                     None => continue,
                 };
-                let (name, ptype, sens) = match field_defs.get(&field_id) {
+                let (name, ptype) = match field_defs.get(&field_id) {
                     Some(def) => def.clone(),
-                    None => (field_id.clone(), "text".to_string(), "internal".to_string()),
+                    None => (field_id.clone(), "text".to_string()),
                 };
+                let sens = sensitivity_map
+                    .get(&field_id)
+                    .and_then(|v| v.as_str())
+                    .map(String::from)
+                    .or_else(|| {
+                        fields_def
+                            .and_then(|f| f.get(&field_id))
+                            .and_then(|d| d.get("sensitivityLevel"))
+                            .and_then(|v| v.as_str())
+                            .map(String::from)
+                    })
+                    .or_else(|| {
+                        tpl.as_ref().and_then(|t| {
+                            t.properties
+                                .iter()
+                                .find(|p| p.id == field_id)
+                                .and_then(|p| p.sensitivity_level.clone())
+                        })
+                    })
+                    .unwrap_or_else(|| "internal".to_string());
                 result.push(serde_json::json!({
                     "key": name,
                     "value": v,
