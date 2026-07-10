@@ -76,7 +76,6 @@ export function TrashPage() {
   const [detailItem, setDetailItem] = useState<TrashDetail | null>(null);
   const [detailTemplate, setDetailTemplate] = useState<UserTemplate | null>(null);
   const [, setLoadingDetail] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
   const { getTemplate } = useTemplateStore();
 
   const [confirmAction, setConfirmAction] = useState<TrashConfirmAction | null>(null);
@@ -88,12 +87,6 @@ export function TrashPage() {
   useEffect(() => {
     if (accountId) loadItems(accountId);
   }, [accountId, timeFilter, loadItems]);
-
-  useEffect(() => {
-    if (!isLoading && !error) {
-      setHasLoaded(true);
-    }
-  }, [isLoading, error]);
 
   const filtered = items
     .filter((i) => typeFilter === 'all' || i.itemType === typeFilter)
@@ -311,7 +304,7 @@ export function TrashPage() {
           </Card>
         )}
 
-        {isLoading && !hasLoaded ? (
+        {isLoading && items.length === 0 ? (
           <Card>
             <LoadingPlaceholder variant="elevated" minHeight={120} />
           </Card>

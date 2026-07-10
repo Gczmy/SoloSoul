@@ -106,7 +106,10 @@ export function TemplateManagerPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    loadTemplates().catch((err) => console.warn('[TemplateManager] Load templates failed:', err));
+    // 避免切换页面时重复触发 loading 导致闪烁；只在首次无数据时加载
+    if (templates.length === 0) {
+      loadTemplates().catch((err) => console.warn('[TemplateManager] Load templates failed:', err));
+    }
     if (accountId)
       loadCustomPages(accountId).catch((err) =>
         console.warn('[TemplateManager] Load custom pages failed:', err),
@@ -491,7 +494,7 @@ export function TemplateManagerPage() {
       }
     >
       <PageContainer variant="medium" gap="default">
-        {isLoading && <LoadingPlaceholder variant="base" minHeight={120} />}
+        {isLoading && templates.length === 0 && <LoadingPlaceholder variant="base" minHeight={120} />}
         {error && <div style={{ color: 'var(--error)' }}>{error}</div>}
 
         {!isLoading && !error && allTemplates.length > 0 && (
