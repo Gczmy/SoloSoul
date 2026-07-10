@@ -371,13 +371,33 @@ export function ObjectWorkspacePage() {
       setSyncDialog({ objectId, objectName, result: null, loading: true });
       try {
         const result = await previewSyncTemplate(accountId, objectId);
+        if (!result.hasChanges) {
+          // 无实际字段差异时直接应用同步（仅刷新 template_hash），避免提示条反复出现。
+          setSyncDialog(null);
+          await applySyncTemplate(accountId, objectId);
+          const syncedObj = useObjectStore
+            .getState()
+            .objects.find((o) => o.id === objectId);
+          const latestHash = syncedObj?.templateId
+            ? templateHashMap.get(syncedObj.templateId)
+            : undefined;
+          if (latestHash) {
+            setDismissedSyncHashes((prev) => ({ ...prev, [objectId]: latestHash }));
+          }
+          if (pageId) {
+            await loadObjects(accountId, { parentId: pageId });
+          } else {
+            await loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
+          }
+          return;
+        }
         setSyncDialog((prev) => (prev ? { ...prev, result, loading: false } : null));
       } catch (err) {
         console.warn('[Workspace] Preview sync failed:', err);
         setSyncDialog(null);
       }
     },
-    [accountId, previewSyncTemplate],
+    [accountId, previewSyncTemplate, applySyncTemplate, loadObjects, pageId, sectionFilter, templateHashMap],
   );
 
   const handleConfirmSync = useCallback(async () => {
