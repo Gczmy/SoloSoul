@@ -124,6 +124,9 @@ function SnapshotCard({
     snapData && typeof snapData === 'object' && 'propertyLabels' in snapData
       ? (snapData.propertyLabels as Record<string, string> | undefined)
       : undefined;
+  const fieldDefs = rawProps?.__fields as
+    | Record<string, { type?: string; sensitivityLevel?: string }>
+    | undefined;
   const fields = flattenProperties(rawProps, fieldOrder);
   const snapName =
     snapData && typeof snapData === 'object' && 'name' in snapData ? String(snapData.name) : '';
@@ -136,6 +139,7 @@ function SnapshotCard({
     return (
       field.sensitivity ||
       (snapPropertyLabels?.[field.key] as SensitivityLevel | undefined) ||
+      (fieldDefs?.[field.key]?.sensitivityLevel as SensitivityLevel | undefined) ||
       getFieldSensitivity(field.key) ||
       'internal'
     );

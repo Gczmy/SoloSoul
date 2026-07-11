@@ -145,4 +145,57 @@ describe('HistoryViewer', () => {
     expect(screen.getByText('critical')).toBeInTheDocument();
     expect(screen.queryByText('sensitive')).not.toBeInTheDocument();
   });
+
+  it('falls back to snapshot __fields sensitivity when dynamic_group child lacks sensitivity', async () => {
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === 'snapshot_list') {
+        return [
+          {
+            id: 'snap-3',
+            timestamp: Date.now(),
+            triggeredBy: 'user_edit',
+            diffSummary: 'diff_updated',
+          },
+        ];
+      }
+      if (cmd === 'snapshot_get_data') {
+        return {
+          name: 'Test Object',
+          tags: [],
+          properties: {
+            __fields: { contacts: { type: 'dynamic_group', sensitivityLevel: 'critical' } },
+            contacts: [
+              // 子项未保存 sensitivity，应使用快照 __fields 中的敏感度
+              { id: 'c1', name: '手机', type: 'phone', value: '123' },
+            ],
+          },
+          propertyLabels: {},
+        };
+      }
+      return null;
+    });
+
+    render(
+      <HistoryViewer
+        objectId="obj-3"
+        objectName="Test Object"
+        collectionType="identity"
+        onClose={() => {}}
+        passwordVerify={async () => ({ ok: true, method: 'password' })}
+        // 外部回调返回 public，用于验证不会被它覆盖
+        getFieldSensitivity={() => 'public'}
+        isFieldDeprecated={() => false}
+        getFieldName={(k) => k}
+        fieldOrder={['contacts']}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('手机')).toBeInTheDocument();
+    });
+
+    // 应使用快照 __fields 中的 critical，而不是外部 getFieldSensitivity 的 public
+    expect(screen.getByText('critical')).toBeInTheDocument();
+    expect(screen.queryByText('public')).not.toBeInTheDocument();
+  });
 });
