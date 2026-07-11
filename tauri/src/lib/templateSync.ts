@@ -1,12 +1,9 @@
 /**
  * Template sync utilities (§29 模板更新后对象手动同步).
  *
- * Mirrors the Rust fingerprint algorithm in `commands/object/mod.rs` so the
- * frontend can cheaply detect whether an object is still based on the latest
- * version of its template without an IPC round-trip per card.
+ * 模板指纹由后端 `template_hash_map` 命令统一计算，前端仅消费结果，
+ * 避免前后端序列化细节不一致导致误判。
  */
-
-import type { UserTemplate, TemplateProperty } from '@/types/template';
 
 export interface TemplateSyncStatus {
   needsSync: boolean;
@@ -68,62 +65,6 @@ export interface SyncableObject {
   templateId?: string;
   templateHash?: string;
   ignoredTemplateHash?: string;
-}
-
-async function sha256Hex(input: string): Promise<string> {
-  const data = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  const bytes = Array.from(new Uint8Array(digest));
-  return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-/**
- * 计算模板指纹，与后端 `template_fingerprint` 使用相同的规范：
- * - 忽略 id、accountId、createdAt、updatedAt
- * - 字段按 id 稳定排序
- * - Option 字段缺失时以 null 参与序列化
- * - SHA-256 后取前 8 字节（16 个 hex 字符）
- */
-export async function computeTemplateFingerprint(tpl: UserTemplate): Promise<string> {
-  const sortedProps = [...tpl.properties].sort((a, b) => a.id.localeCompare(b.id));
-  const canonical = {
-    properties: sortedProps.map((p) => propertyToCanonical(p)),
-  };
-  const fullHash = await sha256Hex(JSON.stringify(canonical));
-  return fullHash.slice(0, 16);
-}
-
-function propertyToCanonical(p: TemplateProperty): Record<string, unknown> {
-  const def: Record<string, unknown> = {
-    id: p.id,
-    name: p.name,
-    type: p.type,
-  };
-  // 与后端 TemplateProperty 的 serde 序列化名保持一致：
-  // 后端 struct 使用 #[serde(rename_all = "camelCase")]，因此 sensitivity_level / deprecated_at
-  // 实际序列化为 sensitivityLevel / deprecatedAt；其余字段与前端 camelCase 一致。
-  if (p.sensitivityLevel != null) def.sensitivityLevel = p.sensitivityLevel;
-  if (p.options != null) def.options = p.options;
-  if (p.deprecatedAt != null) def.deprecatedAt = p.deprecatedAt;
-  if (p.contractField != null) def.contractField = p.contractField;
-  if (p.contractBindings != null) def.contractBindings = p.contractBindings;
-  if (p.allowedTypes != null) def.allowedTypes = p.allowedTypes;
-  if (p.maxItems != null) def.maxItems = p.maxItems;
-  return def;
-}
-
-/**
- * 为模板列表预计算指纹映射，用于批量判断对象是否需要同步。
- */
-export async function buildTemplateHashMap(
-  templates: UserTemplate[],
-): Promise<Map<string, string>> {
-  const map = new Map<string, string>();
-  for (const tpl of templates) {
-    const hash = await computeTemplateFingerprint(tpl);
-    map.set(tpl.id, hash);
-  }
-  return map;
 }
 
 /**

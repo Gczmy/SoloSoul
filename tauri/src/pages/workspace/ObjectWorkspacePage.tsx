@@ -14,7 +14,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import type { TemplateProperty } from '@/types/template';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { buildTemplateHashMap, objectNeedsSync, type TemplateSyncResult, type DeprecatedField } from '@/lib/templateSync';
+import { objectNeedsSync, type TemplateSyncResult, type DeprecatedField } from '@/lib/templateSync';
 
 // Labels resolved at render time via t() so they support i18n
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
@@ -279,19 +279,24 @@ export function ObjectWorkspacePage() {
 
   // 仅在模板列表变化时计算指纹映射，页面切换时复用，避免同步提示条闪烁。
   useEffect(() => {
-    if (userTemplates.length === 0) {
+    if (!accountId || userTemplates.length === 0) {
       setTemplateHashMap(new Map());
       return;
     }
     let cancelled = false;
-    buildTemplateHashMap(userTemplates).then((hashMap) => {
-      if (cancelled) return;
-      setTemplateHashMap(hashMap);
-    });
+    invoke<Record<string, string>>('template_hash_map', { accountId })
+      .then((map) => {
+        if (cancelled) return;
+        setTemplateHashMap(new Map(Object.entries(map)));
+      })
+      .catch((err) => {
+        console.warn('[Workspace] Load template hash map failed:', err);
+        if (!cancelled) setTemplateHashMap(new Map());
+      });
     return () => {
       cancelled = true;
     };
-  }, [userTemplates]);
+  }, [accountId, userTemplates]);
 
   // Load snapshot counts for visible objects
   useEffect(() => {

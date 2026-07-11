@@ -9,6 +9,7 @@
 use crate::commands::{current_account, vault_handle};
 use crate::state::AppState;
 use solosoul_vault::{PropertyType, TemplateProperty, UserTemplate};
+use std::collections::HashMap;
 use tauri::State;
 
 // ---------------------------------------------------------------------------
@@ -402,6 +403,23 @@ pub async fn template_list(state: State<'_, AppState>) -> Result<Vec<UserTemplat
     Ok(templates)
 }
 
+/// 返回当前账户下所有用户模板的指纹映射。
+/// 使用与对象创建/同步相同的 `template_fingerprint`，确保前后端 hash 同源。
+#[tauri::command]
+pub async fn template_hash_map(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<HashMap<String, String>, String> {
+    let vault = vault_handle(&state)?;
+
+    let templates = vault.list_user_templates(&account_id)?;
+    let mut map = HashMap::new();
+    for tpl in templates {
+        map.insert(tpl.id.clone(), crate::commands::object::template_fingerprint(&tpl));
+    }
+    Ok(map)
+}
+
 #[tauri::command]
 pub async fn template_save_from_object(
     state: State<'_, AppState>,
@@ -728,6 +746,53 @@ mod tests {
         let templates = vault.list_user_templates("acc-1").unwrap();
         assert_eq!(templates.len(), 1);
         assert_eq!(templates[0].properties.len(), 0);
+    }
+
+    // ── template_hash_map ────────────────────────────────────────
+
+    #[test]
+    fn test_template_hash_map_matches_backend_fingerprint() {
+        use std::collections::HashMap;
+
+        let (vault, _dir) = setup_vault();
+        let tpl = solosoul_vault::UserTemplate {
+            contract_type_id: None,
+            id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
+            account_id: "acc-1".to_string(),
+            name: "Contact".to_string(),
+            icon_id: Some("user".to_string()),
+            category: Some("identity".to_string()),
+            properties: vec![solosoul_vault::TemplateProperty {
+                id: "name".to_string(),
+                name: "Name".to_string(),
+                prop_type: solosoul_vault::PropertyType::Text,
+                sensitive: None,
+                sensitivity_level: Some("internal".to_string()),
+                options: Some(vec!["a".to_string(), "b".to_string()]),
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            }],
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: None,
+        };
+        vault.save_user_template(&tpl).unwrap();
+
+        let templates = vault.list_user_templates("acc-1").unwrap();
+        let mut map = HashMap::new();
+        for t in &templates {
+            map.insert(t.id.clone(), crate::commands::object::template_fingerprint(t));
+        }
+
+        assert_eq!(map.len(), 1);
+        assert_eq!(
+            map.get(&tpl.id),
+            Some(&crate::commands::object::template_fingerprint(
+                &templates[0]
+            ))
+        );
     }
 
     // ── Helpers ──────────────────────────────────────────────────

@@ -310,6 +310,7 @@ pub fn run() {
             commands::template::template_restore,
             commands::template::template_get,
             commands::template::template_list,
+            commands::template::template_hash_map,
             commands::template::template_save_from_object,
             commands::template::template_check_field_usage,
             // Search commands
