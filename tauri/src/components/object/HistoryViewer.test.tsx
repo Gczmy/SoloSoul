@@ -11,20 +11,23 @@ vi.mock('@tauri-apps/api/core', () => ({
 const mockInvoke = vi.mocked(invokeModule.invoke);
 
 describe('flattenProperties', () => {
-  it('extracts sensitivity from dynamic_group child items', () => {
+  it('does not use stale sensitivity from dynamic_group child items', () => {
     const props = {
       __fields: {
-        contacts: { type: 'dynamic_group' },
+        contacts: { type: 'dynamic_group', sensitivityLevel: 'sensitive' },
       },
       contacts: [
+        // 子项可能存有过期敏感度（例如模板同步前创建），不应被 flattenProperties 采用
         { id: 'c1', name: '手机', type: 'phone', value: '123', sensitivity: 'critical' },
-        { id: 'c2', name: '邮箱', type: 'email', value: 'a@b.com', sensitivity: 'sensitive' },
+        { id: 'c2', name: '邮箱', type: 'email', value: 'a@b.com', sensitivity: 'public' },
       ],
     };
     const result = flattenProperties(props as Record<string, unknown>);
     expect(result).toHaveLength(2);
-    expect(result[0]).toMatchObject({ key: 'contacts', label: '手机', sensitivity: 'critical' });
-    expect(result[1]).toMatchObject({ key: 'contacts', label: '邮箱', sensitivity: 'sensitive' });
+    expect(result[0]).toMatchObject({ key: 'contacts', label: '手机' });
+    expect(result[1]).toMatchObject({ key: 'contacts', label: '邮箱' });
+    expect(result[0].sensitivity).toBeUndefined();
+    expect(result[1].sensitivity).toBeUndefined();
   });
 
   it('returns empty array for empty dynamic_group', () => {
@@ -49,7 +52,7 @@ describe('flattenProperties', () => {
 });
 
 describe('HistoryViewer', () => {
-  it('renders dynamic_group child sensitivity from snapshot instead of current template', async () => {
+  it('renders dynamic_group child sensitivity from snapshot __fields instead of current template', async () => {
     mockInvoke.mockImplementation(async (cmd) => {
       if (cmd === 'snapshot_list') {
         return [
@@ -66,9 +69,11 @@ describe('HistoryViewer', () => {
           name: 'Test Object',
           tags: [],
           properties: {
-            __fields: { contacts: { type: 'dynamic_group' } },
+            // 快照保存的是模板同步后的新敏感度
+            __fields: { contacts: { type: 'dynamic_group', sensitivityLevel: 'critical' } },
             contacts: [
-              { id: 'c1', name: '手机', type: 'phone', value: '123', sensitivity: 'critical' },
+              // 子项仍保留旧敏感度，不应被采用
+              { id: 'c1', name: '手机', type: 'phone', value: '123', sensitivity: 'sensitive' },
             ],
           },
           propertyLabels: {},
@@ -84,7 +89,7 @@ describe('HistoryViewer', () => {
         collectionType="identity"
         onClose={() => {}}
         passwordVerify={async () => ({ ok: true, method: 'password' })}
-        getFieldSensitivity={() => 'sensitive'}
+        getFieldSensitivity={() => 'public'}
         isFieldDeprecated={() => false}
         getFieldName={(k) => k}
         fieldOrder={['contacts']}
@@ -95,9 +100,10 @@ describe('HistoryViewer', () => {
       expect(screen.getByText('手机')).toBeInTheDocument();
     });
 
-    // 动态字段组子字段应使用快照中的 critical，而不是 getFieldSensitivity 返回的 sensitive
+    // 动态字段组子字段应使用快照 __fields 中的 critical，而不是子项的 sensitive 或外部回调的 public
     expect(screen.getByText('critical')).toBeInTheDocument();
     expect(screen.queryByText('sensitive')).not.toBeInTheDocument();
+    expect(screen.queryByText('public')).not.toBeInTheDocument();
   });
 
   it('renders regular field sensitivity from snapshot propertyLabels', async () => {
@@ -196,6 +202,60 @@ describe('HistoryViewer', () => {
 
     // 应使用快照 __fields 中的 critical，而不是外部 getFieldSensitivity 的 public
     expect(screen.getByText('critical')).toBeInTheDocument();
+    expect(screen.queryByText('public')).not.toBeInTheDocument();
+  });
+
+  it('ignores stale child sensitivity after template sync and uses updated __fields', async () => {
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === 'snapshot_list') {
+        return [
+          {
+            id: 'snap-4',
+            timestamp: Date.now(),
+            triggeredBy: 'template_sync',
+            diffSummary: 'diff_template_sync',
+          },
+        ];
+      }
+      if (cmd === 'snapshot_get_data') {
+        return {
+          name: 'Test Object',
+          tags: [],
+          properties: {
+            // 模板同步后父字段敏感度从 critical 更新为 sensitive
+            __fields: { contacts: { type: 'dynamic_group', sensitivityLevel: 'sensitive' } },
+            // 子项仍保留同步前的旧敏感度 critical
+            contacts: [
+              { id: 'c1', name: '手机', type: 'phone', value: '123', sensitivity: 'critical' },
+            ],
+          },
+          propertyLabels: { contacts: 'sensitive' },
+        };
+      }
+      return null;
+    });
+
+    render(
+      <HistoryViewer
+        objectId="obj-4"
+        objectName="Test Object"
+        collectionType="identity"
+        onClose={() => {}}
+        passwordVerify={async () => ({ ok: true, method: 'password' })}
+        getFieldSensitivity={() => 'public'}
+        isFieldDeprecated={() => false}
+        getFieldName={(k) => k}
+        fieldOrder={['contacts']}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('手机')).toBeInTheDocument();
+    });
+
+    // 应使用快照 propertyLabels / __fields 中同步后的 sensitive，而不是子项里的旧 critical
+    expect(screen.getByText('sensitive')).toBeInTheDocument();
+    expect(screen.queryByText('critical')).not.toBeInTheDocument();
     expect(screen.queryByText('public')).not.toBeInTheDocument();
   });
 });

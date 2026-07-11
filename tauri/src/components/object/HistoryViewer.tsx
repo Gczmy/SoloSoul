@@ -37,7 +37,7 @@ export function flattenProperties(
     if (fieldDefs?.[k]?.type === 'dynamic_group' && Array.isArray(v)) {
       for (const item of v) {
         if (!item || typeof item !== 'object') continue;
-        const { name, value: itemVal, sensitivity } = item as Record<string, unknown>;
+        const { name, value: itemVal } = item as Record<string, unknown>;
         if (name === undefined || name === null || name === '') continue;
         let displayVal = '';
         if (Array.isArray(itemVal)) {
@@ -45,11 +45,12 @@ export function flattenProperties(
         } else if (itemVal !== null && itemVal !== undefined) {
           displayVal = String(itemVal);
         }
+        // 动态字段组子项不保留自身 sensitivity；统一由父字段的 __fields / propertyLabels 决定，
+        // 避免模板同步后子项里存留的旧敏感度覆盖新设置。
         entries.push({
           key: k,
           value: displayVal,
           label: String(name),
-          sensitivity: sensitivity as SensitivityLevel | undefined,
         });
       }
       continue;
