@@ -88,6 +88,25 @@ describe('templateSync', () => {
       expect(hash).toBe('ca53fd3a572675e8');
     });
 
+    it('matches backend property field order (options before deprecatedAt)', async () => {
+      const tpl = makeTemplate({
+        properties: [
+          {
+            id: 'a',
+            name: 'A',
+            type: 'select',
+            sensitivityLevel: 'internal',
+            options: ['x', 'y'],
+            deprecatedAt: '2024-01-01T00:00:00Z',
+          },
+        ],
+      });
+      const hash = await computeTemplateFingerprint(tpl);
+      // 后端 struct 顺序：id → name → type → sensitivity_level → options → deprecated_at → ...
+      // 对应 JSON：{"properties":[{"id":"a","name":"A","type":"select","sensitivityLevel":"internal","options":["x","y"],"deprecatedAt":"2024-01-01T00:00:00Z"}]}
+      expect(hash).toBe('0fb63198abec968f');
+    });
+
     it('returns a different hash when contractBindings change', async () => {
       const original = makeTemplate({
         properties: [
