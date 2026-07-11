@@ -100,10 +100,10 @@ function propertyToCanonical(p: TemplateProperty): Record<string, unknown> {
     type: p.type,
   };
   // 与后端 TemplateProperty 的 serde 序列化名保持一致：
-  // 后端未对 sensitivity_level / deprecated_at 使用 rename，因此是 snake_case；
-  // 其余字段已通过 #[serde(rename)] 与前端 camelCase 对齐。
-  if (p.sensitivityLevel != null) def.sensitivity_level = p.sensitivityLevel;
-  if (p.deprecatedAt != null) def.deprecated_at = p.deprecatedAt;
+  // 后端 struct 使用 #[serde(rename_all = "camelCase")]，因此 sensitivity_level / deprecated_at
+  // 实际序列化为 sensitivityLevel / deprecatedAt；其余字段与前端 camelCase 一致。
+  if (p.sensitivityLevel != null) def.sensitivityLevel = p.sensitivityLevel;
+  if (p.deprecatedAt != null) def.deprecatedAt = p.deprecatedAt;
   if (p.options != null) def.options = p.options;
   if (p.contractField != null) def.contractField = p.contractField;
   if (p.contractBindings != null) def.contractBindings = p.contractBindings;

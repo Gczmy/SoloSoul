@@ -70,6 +70,46 @@ describe('templateSync', () => {
       expect(hashOriginal).not.toBe(hashChanged);
     });
 
+    it('matches backend serialization keys (camelCase sensitivityLevel / deprecatedAt)', async () => {
+      const tpl = makeTemplate({
+        properties: [
+          {
+            id: 'a',
+            name: 'A',
+            type: 'text',
+            sensitivityLevel: 'internal',
+            deprecatedAt: '2024-01-01T00:00:00Z',
+          },
+        ],
+      });
+      const hash = await computeTemplateFingerprint(tpl);
+      // 后端 TemplateProperty 使用 #[serde(rename_all = "camelCase")] 序列化，
+      // 因此敏感度与废弃时间字段应为 sensitivityLevel / deprecatedAt。
+      expect(hash).toBe('ca53fd3a572675e8');
+    });
+
+    it('returns a different hash when contractBindings change', async () => {
+      const original = makeTemplate({
+        properties: [
+          { id: 'name', name: 'Name', type: 'text', sensitivityLevel: 'internal' },
+        ],
+      });
+      const changed = makeTemplate({
+        properties: [
+          {
+            id: 'name',
+            name: 'Name',
+            type: 'text',
+            sensitivityLevel: 'internal',
+            contractBindings: [{ contractTypeId: 'plugin', roleId: 'role' }],
+          },
+        ],
+      });
+      const hashOriginal = await computeTemplateFingerprint(original);
+      const hashChanged = await computeTemplateFingerprint(changed);
+      expect(hashOriginal).not.toBe(hashChanged);
+    });
+
     it('returns the same hash regardless of property order', async () => {
       const a = makeTemplate();
       const b = makeTemplate({
