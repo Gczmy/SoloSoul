@@ -94,24 +94,9 @@ export function ObjectWorkspacePage() {
   const [deprecatedFields, setDeprecatedFields] = useState<DeprecatedField[]>([]);
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
-  // 用户点击“否”或应用同步后记录当时模板的最新指纹；切换到设置/锁定等页面再回来时不重复提示。
-  // 使用 sessionStorage 按账户隔离，模板再次变更后提示条会重新出现。
-  const [dismissedSyncHashes, setDismissedSyncHashes] = useState<Record<string, string>>(() => {
-    if (!accountId) return {};
-    try {
-      const raw = sessionStorage.getItem(`solosoul_dismissed_sync_${accountId}`);
-      return raw ? (JSON.parse(raw) as Record<string, string>) : {};
-    } catch {
-      return {};
-    }
-  });
-  useEffect(() => {
-    if (!accountId) return;
-    sessionStorage.setItem(
-      `solosoul_dismissed_sync_${accountId}`,
-      JSON.stringify(dismissedSyncHashes),
-    );
-  }, [dismissedSyncHashes, accountId]);
+
+  // 模板同步确认弹窗打开期间，对应对象的提示条应临时隐藏，避免被弹窗遮罩盖住。
+  const [syncDialogOpenForObjectId, setSyncDialogOpenForObjectId] = useState<string | null>(null);
 
   const { t } = useTranslation(['common', 'navigation', 'editor']);
   const {
@@ -120,6 +105,7 @@ export function ObjectWorkspacePage() {
     deleteObject,
     previewSyncTemplate,
     applySyncTemplate,
+    ignoreTemplateSync,
     loadDeprecatedFields,
     isLoading,
     error,
@@ -368,22 +354,15 @@ export function ObjectWorkspacePage() {
   const handleStartSync = useCallback(
     async (objectId: string, objectName: string) => {
       if (!accountId) return;
+      setSyncDialogOpenForObjectId(objectId);
       setSyncDialog({ objectId, objectName, result: null, loading: true });
       try {
         const result = await previewSyncTemplate(accountId, objectId);
         if (!result.hasChanges) {
           // 无实际字段差异时直接应用同步（仅刷新 template_hash），避免提示条反复出现。
           setSyncDialog(null);
+          setSyncDialogOpenForObjectId(null);
           await applySyncTemplate(accountId, objectId);
-          const syncedObj = useObjectStore
-            .getState()
-            .objects.find((o) => o.id === objectId);
-          const latestHash = syncedObj?.templateId
-            ? templateHashMap.get(syncedObj.templateId)
-            : undefined;
-          if (latestHash) {
-            setDismissedSyncHashes((prev) => ({ ...prev, [objectId]: latestHash }));
-          }
           if (pageId) {
             await loadObjects(accountId, { parentId: pageId });
           } else {
@@ -395,9 +374,10 @@ export function ObjectWorkspacePage() {
       } catch (err) {
         console.warn('[Workspace] Preview sync failed:', err);
         setSyncDialog(null);
+        setSyncDialogOpenForObjectId(null);
       }
     },
-    [accountId, previewSyncTemplate, applySyncTemplate, loadObjects, pageId, sectionFilter, templateHashMap],
+    [accountId, previewSyncTemplate, applySyncTemplate, loadObjects, pageId, sectionFilter],
   );
 
   const handleConfirmSync = useCallback(async () => {
@@ -406,22 +386,8 @@ export function ObjectWorkspacePage() {
     try {
       await applySyncTemplate(accountId, syncDialog.objectId);
       setSyncDialog(null);
-      // 同步成功后对象 fingerprint 已更新；为防列表刷新延迟导致提示条仍显示，
-      // 立即将该对象标记为已忽略当前模板指纹（使用前端 templateHashMap 中的最新值，
-      // 保证与 WorkspaceObjectCard 的 needsSync 判断完全一致）。
-      const syncedObj = useObjectStore
-        .getState()
-        .objects.find((o) => o.id === syncDialog.objectId);
-      const latestHash = syncedObj?.templateId
-        ? templateHashMap.get(syncedObj.templateId)
-        : undefined;
-      if (latestHash) {
-        setDismissedSyncHashes((prev) => ({
-          ...prev,
-          [syncDialog.objectId]: latestHash,
-        }));
-      }
-      // 刷新对象列表与同步状态
+      setSyncDialogOpenForObjectId(null);
+      // 同步成功后对象 fingerprint 已更新；刷新对象列表。
       if (pageId) {
         await loadObjects(accountId, { parentId: pageId });
       } else {
@@ -431,12 +397,24 @@ export function ObjectWorkspacePage() {
       console.warn('[Workspace] Apply sync failed:', err);
       setSyncDialog((prev) => (prev ? { ...prev, loading: false } : null));
     }
-  }, [syncDialog, accountId, applySyncTemplate, loadObjects, pageId, sectionFilter, templateHashMap]);
+  }, [syncDialog, accountId, applySyncTemplate, loadObjects, pageId, sectionFilter]);
 
-  const handleDismissSync = useCallback((objectId: string, latestHash?: string) => {
+  const handleDismissSync = useCallback(async (objectId: string, latestHash?: string) => {
     if (!latestHash) return;
-    setDismissedSyncHashes((prev) => ({ ...prev, [objectId]: latestHash }));
-  }, []);
+    try {
+      await ignoreTemplateSync(objectId, latestHash);
+      // 后端已持久化 ignoredTemplateHash；刷新列表使提示条立即消失。
+      if (accountId) {
+        if (pageId) {
+          await loadObjects(accountId, { parentId: pageId });
+        } else {
+          await loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
+        }
+      }
+    } catch (err) {
+      console.warn('[Workspace] Ignore template sync failed:', err);
+    }
+  }, [ignoreTemplateSync, loadObjects, accountId, pageId, sectionFilter]);
 
   const handleRequestDismissSync = useCallback(
     (objectId: string, objectName: string, latestHash?: string) => {
@@ -722,7 +700,7 @@ export function ObjectWorkspacePage() {
                   snapshotCount={snapshotCounts[obj.id]}
                   attachmentCount={attachmentCounts[obj.id]}
                   templateHashMap={templateHashMap}
-                  dismissedSyncHashes={dismissedSyncHashes}
+                  isSyncDialogOpen={syncDialogOpenForObjectId === obj.id}
                   onClick={() => setDetailObj(obj)}
                   onHistory={() =>
                     setHistoryObj({
@@ -778,10 +756,8 @@ export function ObjectWorkspacePage() {
               object={detailObj}
               needsSync={
                 (() => {
-                  if (!templateHashMap || !detailObj.templateId) return false;
-                  if (!objectNeedsSync(detailObj, templateHashMap)) return false;
-                  const latestHash = templateHashMap.get(detailObj.templateId);
-                  return !!latestHash && dismissedSyncHashes[detailObj.id] !== latestHash;
+                  if (!templateHashMap || !detailObj.templateId || syncDialogOpenForObjectId === detailObj.id) return false;
+                  return objectNeedsSync(detailObj, templateHashMap);
                 })()
               }
               onClose={() => setDetailObj(null)}

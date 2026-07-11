@@ -75,10 +75,10 @@ interface WorkspaceObjectCardProps {
   userTemplates: UserTemplate[];
   snapshotCount?: number;
   attachmentCount?: number;
-  /** 已忽略同步提示的对象映射：objectId -> 忽略时的模板指纹。 */
-  dismissedSyncHashes?: Record<string, string>;
   /** 模板指纹映射；卡片据此懒计算是否需要同步。 */
   templateHashMap?: Map<string, string>;
+  /** 当前对象是否正在打开模板同步确认弹窗；打开期间临时隐藏提示条。 */
+  isSyncDialogOpen?: boolean;
   onClick: () => void;
   onHistory: () => void;
   onAttachments: () => void;
@@ -99,7 +99,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   snapshotCount,
   attachmentCount,
   templateHashMap,
-  dismissedSyncHashes,
+  isSyncDialogOpen,
   onClick,
   onHistory,
   onAttachments,
@@ -115,11 +115,9 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   // 懒加载：每张卡片根据模板指纹映射独立计算同步状态，避免父级批量计算导致切换页面闪烁。
   // 用户点击“否”后记录当时模板指纹；模板再次变更时提示条重新出现。
   const needsSync = useMemo(() => {
-    if (!templateHashMap) return false;
-    if (!objectNeedsSync(obj, templateHashMap)) return false;
-    const latestHash = obj.templateId ? templateHashMap.get(obj.templateId) : undefined;
-    return !!latestHash && dismissedSyncHashes?.[obj.id] !== latestHash;
-  }, [obj, templateHashMap, dismissedSyncHashes]);
+    if (!templateHashMap || isSyncDialogOpen) return false;
+    return objectNeedsSync(obj, templateHashMap);
+  }, [obj, templateHashMap, isSyncDialogOpen]);
   // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
   const tplMatch = tpl && (tpl.category || 'identity') === obj.collectionType;
   const fieldOrder = tpl?.properties.map((p) => p.id);

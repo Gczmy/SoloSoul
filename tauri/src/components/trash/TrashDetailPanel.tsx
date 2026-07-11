@@ -538,6 +538,7 @@ function ObjectDetailContent({
                 data={historySnapData[item.id]}
                 loading={historySnapLoading[item.id]}
                 detailTemplate={detailTemplate}
+                currentPropertyLabels={item.propertyLabels}
                 onChangeSnapshot={(newIdx) => changeSnapshot(item.id, item.snapshots, newIdx)}
               />
             )}
@@ -760,6 +761,7 @@ interface SnapshotContentProps {
   data: Record<string, unknown> | null | undefined;
   loading: boolean | undefined;
   detailTemplate: UserTemplate | null;
+  currentPropertyLabels?: Record<string, SensitivityLevel>;
   onChangeSnapshot: (newIdx: number) => void;
 }
 
@@ -770,6 +772,7 @@ function SnapshotContent({
   data,
   loading,
   detailTemplate,
+  currentPropertyLabels,
   onChangeSnapshot,
 }: SnapshotContentProps) {
   const { t } = useTranslation(['settings', 'common', 'editor']);
@@ -905,7 +908,11 @@ function SnapshotContent({
                   color: 'var(--accent-primary)',
                 }}
               >
-                {t(`common:trigger_${currentSnap.triggeredBy}`, currentSnap.triggeredBy)}
+                {t(`common:trigger_${currentSnap.triggeredBy}`, {
+                defaultValue: currentSnap.diffSummary
+                  ? t(`common:diff_${currentSnap.diffSummary}`, { defaultValue: currentSnap.triggeredBy })
+                  : currentSnap.triggeredBy,
+              })}
               </span>
             </div>
             <span
@@ -920,7 +927,7 @@ function SnapshotContent({
           </div>
           <div style={{ minHeight: 60 }}>
             {loading && !data && <LoadingPlaceholder variant="base" minHeight={60} />}
-            {data && <SnapshotDataView data={data} detailTemplate={detailTemplate} />}
+            {data && <SnapshotDataView data={data} detailTemplate={detailTemplate} currentPropertyLabels={currentPropertyLabels} />}
           </div>
         </div>
       )}
@@ -931,9 +938,10 @@ function SnapshotContent({
 interface SnapshotDataViewProps {
   data: Record<string, unknown>;
   detailTemplate: UserTemplate | null;
+  currentPropertyLabels?: Record<string, SensitivityLevel>;
 }
 
-function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
+function SnapshotDataView({ data, detailTemplate, currentPropertyLabels }: SnapshotDataViewProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { t } = useTranslation(['editor']);
   const rawProps = data.properties as Record<string, unknown> | undefined;
@@ -941,6 +949,7 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
   const snapName = typeof data.name === 'string' ? data.name : '';
 
   // 字段级敏感度的真实来源是 propertyLabels（对象当前敏感度副本），__fields 中仅为快照。
+  // 回收站详情会额外传入对象被删除前的当前 propertyLabels，优先使用。
   const sensitivityMap = useMemo(() => {
     const map = new Map<string, SensitivityLevel>();
     const labels = data.propertyLabels as Record<string, SensitivityLevel> | undefined;
@@ -949,8 +958,13 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
         if (level) map.set(id, level);
       }
     }
+    if (currentPropertyLabels) {
+      for (const [id, level] of Object.entries(currentPropertyLabels)) {
+        if (level) map.set(id, level);
+      }
+    }
     return map;
-  }, [data.propertyLabels]);
+  }, [data.propertyLabels, currentPropertyLabels]);
 
   // 优先使用对象自带的 __fields 字段定义获取名称/类型；模板存在时用于排序和补充。
   const fieldDefs = useMemo(() => {
@@ -984,7 +998,6 @@ function SnapshotDataView({ data, detailTemplate }: SnapshotDataViewProps) {
       key: string;
       value: string;
       type?: PropertyType;
-      sensitivityLevel?: SensitivityLevel;
     };
     type FieldEntry =
       | { kind: 'field'; key: string; value: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }
@@ -1160,7 +1173,6 @@ function parseDynamicGroupValue(v: unknown): {
   key: string;
   value: string;
   type?: PropertyType;
-  sensitivityLevel?: SensitivityLevel;
 }[] {
   let arr: unknown[] | undefined;
   if (Array.isArray(v)) {
@@ -1187,8 +1199,6 @@ function parseDynamicGroupValue(v: unknown): {
             ? JSON.stringify(item.value)
             : '',
       type: typeof item.type === 'string' ? (item.type as PropertyType) : undefined,
-      sensitivityLevel:
-        typeof item.sensitivity === 'string' ? (item.sensitivity as SensitivityLevel) : undefined,
     }));
 }
 
@@ -1199,7 +1209,7 @@ function DynamicGroupSnapshotRow({
 }: {
   groupKey: string;
   sensitivityLevel?: SensitivityLevel;
-  children: { key: string; value: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }[];
+  children: { key: string; value: string; type?: PropertyType }[];
 }) {
   const { t } = useTranslation(['editor']);
   const displayKey =

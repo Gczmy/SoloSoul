@@ -55,13 +55,14 @@ pub fn create_page(
         template_type: None,
         contract_type_id: None,
         template_hash: None,
+        ignored_template_hash: None,
         created_at: now.clone(),
         updated_at: now.clone(),
         version: 1,
     };
 
     vault.save_object(&record)?;
-    save_creation_snapshot(vault, &id, name, &serde_json::json!({}))?;
+    save_creation_snapshot(vault, &id, name, &serde_json::json!({}), None)?;
     let _ = vault.log_structured(
         "page_create",
         "page",
@@ -115,6 +116,7 @@ pub fn create_object(
         contract_type_id: None,
         template_type: template_id.map(|_| "user".to_string()),
         template_hash: None,
+        ignored_template_hash: None,
         created_at: now.clone(),
         updated_at: now.clone(),
         version: 1,
@@ -132,7 +134,7 @@ pub fn create_object(
         }
     }
 
-    save_creation_snapshot(vault, &id, &name, &record.properties)?;
+    save_creation_snapshot(vault, &id, &name, &record.properties, record.property_labels.as_ref())?;
     let _ = vault.log_structured(
         "object_create",
         "object",
@@ -156,9 +158,10 @@ pub fn update_object(vault: &VaultStore, object: &mut ObjectRecord) -> Result<()
         "name": object.name,
         "tags": object.tags_json,
         "properties": object.properties,
+        "propertyLabels": object.property_labels,
     }))
     .unwrap_or_default();
-    let _ = vault.save_snapshot(&object.id, "user_edit", &snapshot_data, "Updated");
+    let _ = vault.save_snapshot(&object.id, "user_edit", &snapshot_data, "diff_updated");
     let _ = vault.log_structured(
         "object_update",
         "object",
@@ -279,6 +282,7 @@ pub fn object_record_from_trash(trash: &TrashItem) -> Result<ObjectRecord, Strin
         contract_type_id: data["contract_type_id"].as_str().map(String::from),
         template_type: data["template_type"].as_str().map(String::from),
         template_hash: data["template_hash"].as_str().map(String::from),
+        ignored_template_hash: data["ignored_template_hash"].as_str().map(String::from),
         created_at: data["created_at"].as_str().unwrap_or(&now).to_string(),
         updated_at: now,
         version: data["version"].as_u64().unwrap_or(1) as u32,
@@ -721,14 +725,16 @@ fn save_creation_snapshot(
     object_id: &str,
     name: &str,
     properties: &serde_json::Value,
+    property_labels: Option<&serde_json::Value>,
 ) -> Result<(), String> {
     let snapshot_data = serde_json::to_vec(&serde_json::json!({
         "name": name,
         "tags": Vec::<String>::new(),
         "properties": properties,
+        "propertyLabels": property_labels,
     }))
     .unwrap_or_default();
-    let _ = vault.save_snapshot(object_id, "user_edit", &snapshot_data, "Created");
+    let _ = vault.save_snapshot(object_id, "user_edit", &snapshot_data, "diff_created");
     Ok(())
 }
 

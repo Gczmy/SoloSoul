@@ -9,9 +9,11 @@ interface DialogProps {
   title?: string;
   /** 可选的内联样式，用于覆盖 .dialog 的默认样式（如 width、maxWidth） */
   dialogStyle?: React.CSSProperties;
+  /** 层级优先级：普通弹窗用默认，重要弹窗用 'important'，密码/认证弹窗用 'auth' */
+  priority?: 'default' | 'important' | 'auth';
 }
 
-export function Dialog({ isOpen, onClose, children, title, dialogStyle }: DialogProps) {
+export function Dialog({ isOpen, onClose, children, title, dialogStyle, priority = 'default' }: DialogProps) {
   useEffect(() => {
     if (!isOpen) return;
     // 锁定背景滚动
@@ -31,7 +33,7 @@ export function Dialog({ isOpen, onClose, children, title, dialogStyle }: Dialog
   if (!isOpen) return null;
 
   return createPortal(
-    <div className={styles.wrapper}>
+    <div className={styles.wrapper} data-priority={priority}>
       {/* Backdrop overlay */}
       <div className={styles.backdrop} onClick={onClose} />
       {/* Dialog content */}

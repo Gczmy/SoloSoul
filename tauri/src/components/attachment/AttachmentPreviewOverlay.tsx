@@ -100,7 +100,7 @@ export function AttachmentPreviewOverlay({ item, onClose }: AttachmentPreviewOve
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        zIndex: 'var(--z-preview-overlay)',
         display: 'flex',
         flexDirection: 'column',
         background: 'rgba(0,0,0,0.8)',

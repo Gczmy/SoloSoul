@@ -4,7 +4,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 4000;
+  z-index: var(--z-modal);
+}
+
+.wrapper[data-priority='important'] {
+  z-index: var(--z-modal-important);
+}
+
+.wrapper[data-priority='auth'] {
+  z-index: var(--z-auth-modal);
 }
 
 .backdrop {

@@ -26,7 +26,7 @@ export function GuideImage(props: GuideImageProps) {
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 9999,
+            zIndex: 'var(--z-preview-overlay)',
             background: 'rgba(0,0,0,0.9)',
             backdropFilter: 'blur(4px)',
             display: 'flex',

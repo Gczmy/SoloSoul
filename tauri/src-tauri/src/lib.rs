@@ -286,6 +286,7 @@ pub fn run() {
             commands::object::object_delete,
             commands::object::object_get_template_sync_status,
             commands::object::object_sync_with_template,
+            commands::object::object_ignore_template_sync,
             commands::object::object_list_deprecated_fields,
             commands::object::object_backfill_property_labels,
             commands::object::object_backfill_property_fields,

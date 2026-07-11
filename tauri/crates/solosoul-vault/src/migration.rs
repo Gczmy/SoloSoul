@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 18;
+pub const CURRENT_SCHEMA_VERSION: u32 = 19;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -165,13 +165,39 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         )?;
     }
     if current < 8 {
-        apply_migration(
-            conn,
-            8,
-            "ALTER TABLE objects ADD COLUMN template_id TEXT;
-             ALTER TABLE objects ADD COLUMN template_type TEXT CHECK(template_type IN ('system', 'user'));",
-            "Add template_id and template_type to objects table",
-        )?;
+        // Idempotent: init_schema for new DBs already includes these columns.
+        let has_template_id: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'template_id'",
+                [],
+                |r| r.get::<_, i32>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        let has_template_type: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'template_type'",
+                [],
+                |r| r.get::<_, i32>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_template_id && !has_template_type {
+            apply_migration(
+                conn,
+                8,
+                "ALTER TABLE objects ADD COLUMN template_id TEXT;
+                 ALTER TABLE objects ADD COLUMN template_type TEXT CHECK(template_type IN ('system', 'user'));",
+                "Add template_id and template_type to objects table",
+            )?;
+        } else {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![8, now, "template_id/template_type already present on objects (no-op)"],
+            ).ok();
+            set_schema_version(conn, 8)?;
+        }
     }
     if current < 9 {
         apply_migration(
@@ -381,12 +407,54 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         tx.commit().map_err(|e| format!("Commit v17: {}", e))?;
     }
     if current < 18 {
-        apply_migration(
-            conn,
-            18,
-            "ALTER TABLE objects ADD COLUMN template_hash TEXT;",
-            "Add template_hash to objects table for template sync tracking",
-        )?;
+        let has_template_hash: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'template_hash'",
+                [],
+                |r| r.get::<_, i32>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_template_hash {
+            apply_migration(
+                conn,
+                18,
+                "ALTER TABLE objects ADD COLUMN template_hash TEXT;",
+                "Add template_hash to objects table for template sync tracking",
+            )?;
+        } else {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![18, now, "template_hash already present on objects (no-op)"],
+            ).ok();
+            set_schema_version(conn, 18)?;
+        }
+    }
+    if current < 19 {
+        let has_ignored: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'ignored_template_hash'",
+                [],
+                |r| r.get::<_, i32>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_ignored {
+            apply_migration(
+                conn,
+                19,
+                "ALTER TABLE objects ADD COLUMN ignored_template_hash TEXT;",
+                "Add ignored_template_hash to objects table for persistent sync dismissal",
+            )?;
+        } else {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![19, now, "ignored_template_hash already present on objects (no-op)"],
+            ).ok();
+            set_schema_version(conn, 19)?;
+        }
     }
     Ok(())
 }

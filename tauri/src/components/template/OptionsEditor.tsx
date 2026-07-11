@@ -42,7 +42,7 @@ export function OptionsEditor({ options, onChange, fieldName, fieldType }: Optio
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 99999,
+            zIndex: 'var(--z-modal-important)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

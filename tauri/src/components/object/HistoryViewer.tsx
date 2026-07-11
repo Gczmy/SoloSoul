@@ -493,8 +493,14 @@ export function HistoryViewer({
               textAlign: 'center',
             }}
           >
-            {snap &&
-              `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${t(`common:trigger_${snap.triggeredBy}`)}`}
+          {snap && (() => {
+            const triggerLabel = t(`common:trigger_${snap.triggeredBy}`, {
+              defaultValue: snap.diffSummary
+                ? t(`common:diff_${snap.diffSummary}`, { defaultValue: snap.triggeredBy })
+                : snap.triggeredBy,
+            });
+            return `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${triggerLabel}`;
+          })()}
           </div>
         </motion.div>
       )}

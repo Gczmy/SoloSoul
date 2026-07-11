@@ -425,7 +425,7 @@ export function ObjectDetailModal({
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 3000,
+          zIndex: 'var(--z-modal)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -935,7 +935,7 @@ export function ObjectDetailModal({
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 3100,
+            zIndex: 'var(--z-modal-important)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

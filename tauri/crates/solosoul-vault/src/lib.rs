@@ -176,7 +176,7 @@ pub use storage::VaultStore;
 
 /// A single unified object stored in the objects table.
 /// This is the canonical representation of a user-visible "thing" in SoloSoul.
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ObjectRecord {
     pub id: String,
     pub account_id: String,
@@ -218,6 +218,12 @@ pub struct ObjectRecord {
         skip_serializing_if = "Option::is_none"
     )]
     pub template_hash: Option<String>,
+    #[serde(
+        rename = "ignoredTemplateHash",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub ignored_template_hash: Option<String>,
     pub created_at: String,
     pub updated_at: String,
     pub version: u32,
@@ -257,6 +263,12 @@ pub struct ObjectSummary {
         skip_serializing_if = "Option::is_none"
     )]
     pub template_hash: Option<String>,
+    #[serde(
+        rename = "ignoredTemplateHash",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub ignored_template_hash: Option<String>,
     #[serde(rename = "iconName")]
     pub icon_name: String,
     /// First few property key-value pairs for card previews

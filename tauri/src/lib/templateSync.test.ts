@@ -84,7 +84,7 @@ describe('templateSync', () => {
   describe('buildTemplateHashMap', () => {
     it('builds a map of template id to hash', async () => {
       const t1 = makeTemplate({ id: 'tpl-1' });
-      const t2 = makeTemplate({ id: 'tpl-2', name: 'ID Card' });
+      const t2 = makeTemplate({ id: 'tpl-2', properties: [{ id: 'f2', name: 'Field 2', type: 'text' }] });
       const map = await buildTemplateHashMap([t1, t2]);
       expect(map.size).toBe(2);
       expect(map.get('tpl-1')).toHaveLength(16);
@@ -116,10 +116,13 @@ describe('templateSync', () => {
       ).toBe(true);
     });
 
-    it('returns false when the hash matches', () => {
-      const map = new Map([['tpl-1', 'same-hash']]);
+    it('returns false when the ignored hash matches the latest hash', () => {
+      const map = new Map([['tpl-1', 'latest-hash']]);
       expect(
-        objectNeedsSync({ id: 'obj-1', templateId: 'tpl-1', templateHash: 'same-hash' }, map),
+        objectNeedsSync(
+          { id: 'obj-1', templateId: 'tpl-1', templateHash: 'old-hash', ignoredTemplateHash: 'latest-hash' },
+          map,
+        ),
       ).toBe(false);
     });
   });

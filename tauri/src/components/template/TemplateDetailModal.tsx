@@ -70,7 +70,7 @@ export function TemplateDetailModal({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        zIndex: 'var(--z-modal-important)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

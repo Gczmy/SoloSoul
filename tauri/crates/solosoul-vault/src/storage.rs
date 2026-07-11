@@ -172,6 +172,11 @@ impl VaultStore {
                 is_deleted INTEGER NOT NULL DEFAULT 0,
                 deleted_at TEXT,
                 tags_json TEXT NOT NULL DEFAULT '[]',
+                template_id TEXT,
+                template_type TEXT CHECK(template_type IN ('system', 'user')),
+                contract_type_id TEXT,
+                template_hash TEXT,
+                ignored_template_hash TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 version INTEGER DEFAULT 1
@@ -1346,7 +1351,7 @@ impl VaultStore {
                     "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                      children_ids, properties, property_labels, sensitivity_level,
                      is_deleted, deleted_at, tags_json, template_id, template_type,
-                     contract_type_id, template_hash, created_at, updated_at, version
+                     contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version
                      FROM objects WHERE account_id = ?1",
                 )
                 .map_err(|e| format!("list_object_changes: {}", e))?;
@@ -1408,9 +1413,10 @@ impl VaultStore {
                         template_type: row.get(15)?,
                         contract_type_id: row.get(16)?,
                         template_hash: row.get(17)?,
-                        created_at: row.get(18)?,
-                        updated_at: row.get(19)?,
-                        version: row.get(20)?,
+                        ignored_template_hash: row.get(18)?,
+                        created_at: row.get(19)?,
+                        updated_at: row.get(20)?,
+                        version: row.get(21)?,
                     };
                     Ok(obj)
                 })
@@ -1815,8 +1821,8 @@ impl VaultStore {
             "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name, parent_id,
              children_ids, properties, property_labels, sensitivity_level,
              is_deleted, deleted_at, tags_json, template_id, template_type,
-             contract_type_id, template_hash, created_at, updated_at, version)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21)
+             contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version)
+             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22)
              ON CONFLICT(id) DO UPDATE SET
                type_id=excluded.type_id, section_type=excluded.section_type, name=excluded.name, icon_name=excluded.icon_name,
                parent_id=excluded.parent_id, children_ids=excluded.children_ids,
@@ -1826,13 +1832,14 @@ impl VaultStore {
                tags_json=excluded.tags_json,
                template_id=excluded.template_id, template_type=excluded.template_type,
                contract_type_id=excluded.contract_type_id, template_hash=excluded.template_hash,
+               ignored_template_hash=excluded.ignored_template_hash,
                updated_at=excluded.updated_at, version=excluded.version",
             params![
                 obj.id, obj.account_id, obj.type_id, obj.section_type, obj.name, obj.icon_name,
                 obj.parent_id, children_json, encrypted_props, encrypted_labels,
                 obj.sensitivity_level, obj.is_deleted as i32, obj.deleted_at,
                 tags_str, obj.template_id, obj.template_type,
-                obj.contract_type_id.clone(), obj.template_hash.clone(),
+                obj.contract_type_id.clone(), obj.template_hash.clone(), obj.ignored_template_hash.clone(),
                 obj.created_at, obj.updated_at, obj.version,
             ],
         )
@@ -1849,7 +1856,7 @@ impl VaultStore {
                 "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
                  is_deleted, deleted_at, tags_json, template_id, template_type,
-                 contract_type_id, template_hash, created_at, updated_at, version
+                 contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version
                  FROM objects WHERE id = ?1",
             )
             .map_err(|e| format!("load_object: {}", e))?;
@@ -1909,9 +1916,10 @@ impl VaultStore {
                     template_type: row.get(15)?,
                     contract_type_id: row.get(16)?,
                     template_hash: row.get(17)?,
-                    created_at: row.get(18)?,
-                    updated_at: row.get(19)?,
-                    version: row.get(20)?,
+                    ignored_template_hash: row.get(18)?,
+                    created_at: row.get(19)?,
+                    updated_at: row.get(20)?,
+                    version: row.get(21)?,
                 })
             })
             .ok();
@@ -1937,7 +1945,7 @@ impl VaultStore {
             "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
              children_ids, properties, property_labels, sensitivity_level,
              is_deleted, deleted_at, tags_json, template_id, template_type,
-             contract_type_id, template_hash, created_at, updated_at, version
+             contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version
              FROM objects WHERE id IN ({})",
             placeholders.join(",")
         );
@@ -2008,9 +2016,10 @@ impl VaultStore {
                     template_type: row.get(15)?,
                     contract_type_id: row.get(16)?,
                     template_hash: row.get(17)?,
-                    created_at: row.get(18)?,
-                    updated_at: row.get(19)?,
-                    version: row.get(20)?,
+                    ignored_template_hash: row.get(18)?,
+                    created_at: row.get(19)?,
+                    updated_at: row.get(20)?,
+                    version: row.get(21)?,
                 })
             })
             .map_err(|e| format!("load_objects_batch query: {}", e))?
@@ -2088,7 +2097,7 @@ impl VaultStore {
 
         let lower_kw = keyword.map(|k| k.to_lowercase());
         let mut sql = String::from(
-            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, contract_type_id, template_hash, icon_name, property_labels
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, contract_type_id, template_hash, ignored_template_hash, icon_name, property_labels
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
@@ -2128,7 +2137,7 @@ impl VaultStore {
                 let props_str: String = row.get(8)?;
                 let tags_str: String = row.get(9)?;
                 let decrypted_props = decrypt_text_field(&key, &props_str).unwrap_or_default();
-                let labels_str: String = row.get::<_, String>(15).unwrap_or_default();
+                let labels_str: String = row.get::<_, String>(16).unwrap_or_default();
                 let decrypted_labels = if labels_str.is_empty() {
                     Ok(String::new())
                 } else {
@@ -2153,7 +2162,8 @@ impl VaultStore {
                     template_type: row.get(11)?,
                     contract_type_id: row.get(12)?,
                     template_hash: row.get(13)?,
-                    icon_name: row.get(14)?,
+                    ignored_template_hash: row.get(14)?,
+                    icon_name: row.get(15)?,
                     properties: serde_json::from_str(&decrypted_props)
                         .unwrap_or(serde_json::Value::Null),
                     property_labels,
@@ -2225,7 +2235,7 @@ impl VaultStore {
                 "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
                  children_ids, properties, property_labels, sensitivity_level,
                  is_deleted, deleted_at, tags_json, template_id, template_type,
-                 contract_type_id, template_hash, created_at, updated_at, version
+                 contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version
                  FROM objects
                  WHERE account_id = ?1 AND is_deleted = 0
                  ORDER BY updated_at DESC",
@@ -2286,9 +2296,10 @@ impl VaultStore {
                     template_type: row.get(15)?,
                     contract_type_id: row.get(16)?,
                     template_hash: row.get(17)?,
-                    created_at: row.get(18)?,
-                    updated_at: row.get(19)?,
-                    version: row.get(20)?,
+                    ignored_template_hash: row.get(18)?,
+                    created_at: row.get(19)?,
+                    updated_at: row.get(20)?,
+                    version: row.get(21)?,
                 })
             })
             .map_err(|e| format!("search_objects query: {}", e))?
@@ -2657,6 +2668,82 @@ impl VaultStore {
         Ok(())
     }
 
+    /// 将 details 字符串规范化为 JSON 对象（如果它是 `key=value ...` 格式）或保留原样。
+    /// 这样前端可以直接解析结构化字段，而无需再用正则拆分 key=value。
+    fn normalize_details_text(details: Option<&str>) -> Option<String> {
+        let text = details?;
+        // 若已经是合法 JSON（可能是调用方直接传入的对象/数组），按原样保留。
+        if let Ok(value) = serde_json::from_str::<serde_json::Value>(text) {
+            return Some(value.to_string());
+        }
+        // 尝试解析 `key=value` 序列。
+        let mut obj = serde_json::Map::new();
+        let bytes = text.as_bytes();
+        let len = bytes.len();
+        let mut pos = 0usize;
+        // 跳过前导空白。
+        while pos < len && bytes[pos].is_ascii_whitespace() {
+            pos += 1;
+        }
+        let start = pos;
+        while pos < len {
+            // key
+            let key_start = pos;
+            while pos < len {
+                let c = bytes[pos];
+                if c == b'=' || c.is_ascii_whitespace() {
+                    break;
+                }
+                pos += 1;
+            }
+            if pos >= len || bytes[pos] != b'=' {
+                break;
+            }
+            let key = std::str::from_utf8(&bytes[key_start..pos]).ok()?;
+            if key.is_empty() {
+                break;
+            }
+            pos += 1; // skip '='
+            let value_start = pos;
+            // 查找下一个 ` key=` 位置作为 value 结束。
+            let mut value_end = len;
+            let mut scan = pos;
+            while scan < len {
+                if bytes[scan].is_ascii_whitespace() {
+                    let mut after = scan + 1;
+                    while after < len && bytes[after].is_ascii_whitespace() {
+                        after += 1;
+                    }
+                    let key2_start = after;
+                    while after < len && !bytes[after].is_ascii_whitespace() && bytes[after] != b'=' {
+                        after += 1;
+                    }
+                    if after < len && bytes[after] == b'=' {
+                        let key2 = std::str::from_utf8(&bytes[key2_start..after]).ok()?;
+                        if !key2.is_empty() {
+                            value_end = scan;
+                            break;
+                        }
+                    }
+                }
+                scan += 1;
+            }
+            let value = std::str::from_utf8(&bytes[value_start..value_end])
+                .ok()?
+                .trim_end();
+            obj.insert(key.to_string(), serde_json::Value::String(value.to_string()));
+            pos = value_end;
+            while pos < len && bytes[pos].is_ascii_whitespace() {
+                pos += 1;
+            }
+        }
+        if start == 0 && !obj.is_empty() && pos == len {
+            Some(serde_json::Value::Object(obj).to_string())
+        } else {
+            Some(text.to_string())
+        }
+    }
+
     /// Write a structured audit log entry with full fields.
     pub fn log_structured(
         &self,
@@ -2674,7 +2761,11 @@ impl VaultStore {
         let encrypted_name = entity_name
             .map(|n| encrypt_text_field(&key, n))
             .transpose()?;
-        let encrypted_details = details.map(|d| encrypt_text_field(&key, d)).transpose()?;
+        let normalized = Self::normalize_details_text(details);
+        let encrypted_details = normalized
+            .as_deref()
+            .map(|d| encrypt_text_field(&key, d))
+            .transpose()?;
         conn.execute(
             "INSERT INTO audit_log (timestamp, action, entity_type, entity_id, entity_name, performed_by, details)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
@@ -3284,6 +3375,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         assert!(vault.save_object(&obj).is_err());
         assert!(vault.load_object("obj-1").is_err());
@@ -3339,6 +3431,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-special").unwrap().unwrap();
@@ -3374,6 +3467,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3422,6 +3516,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         vault.delete_object("obj-hard", false).unwrap();
@@ -3458,6 +3553,7 @@ mod tests {
                 created_at: chrono::Utc::now().to_rfc3339(),
                 updated_at: chrono::Utc::now().to_rfc3339(),
                 version: 1,
+                            ..Default::default()
             };
             vault.save_object(&obj).unwrap();
         }
@@ -3539,6 +3635,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3576,6 +3673,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3623,6 +3721,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         vault.delete_object("obj-del-1", true).unwrap();
@@ -3668,6 +3767,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3707,6 +3807,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3752,6 +3853,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         vault.delete_object("obj-s-del", true).unwrap();
@@ -3792,6 +3894,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         vault.restore_object("obj-active").unwrap();
@@ -3825,6 +3928,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-uni").unwrap().unwrap();
@@ -3858,6 +3962,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-tpl").unwrap().unwrap();
@@ -3906,6 +4011,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-long").unwrap().unwrap();
@@ -3938,6 +4044,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-empty-name").unwrap().unwrap();
@@ -4176,6 +4283,7 @@ mod tests {
             created_at: now.clone(),
             updated_at: now,
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&record).unwrap();
 
@@ -4444,6 +4552,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -4782,6 +4891,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -4977,6 +5087,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -5124,6 +5235,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault
@@ -5179,6 +5291,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+            ..Default::default()
         }
     }
 

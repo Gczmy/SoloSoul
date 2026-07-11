@@ -49,6 +49,29 @@ function formatDetail(
 ): string {
   const raw = entry.details || '';
 
+  // 优先解析后端已结构化的 JSON details（key=value 被规范化成对象），
+  // 解析失败时退回到旧的 key=value 正则解析。
+  const vars: Record<string, string | number> = {};
+  let parsedObject = false;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      Object.assign(vars, parsed);
+      parsedObject = true;
+    }
+  } catch {
+    // ignore
+  }
+  if (!parsedObject) {
+    // Parse key=value pairs where values may contain spaces (e.g. objectName=My Passport)
+    const re = /(\w+)=([^]*?)(?=(?:\s+\w+=|$))/g;
+    let match;
+    while ((match = re.exec(raw)) !== null) {
+      const val = match[2].trim();
+      vars[match[1]] = /^\d+$/.test(val) ? parseInt(val, 10) : val;
+    }
+  }
+
   // Normalize touch_id_unlock / face_id_unlock to biometric_unlock with explicit type
   const bioTypeFromAction =
     entry.actionType === 'touch_id_unlock'
@@ -65,14 +88,6 @@ function formatDetail(
   const translated = t(key, { defaultValue: raw });
   if (translated === key || translated === raw) {
     return raw;
-  }
-  // Parse key=value pairs where values may contain spaces (e.g. objectName=My Passport)
-  const re = /(\w+)=([^]*?)(?=(?:\s+\w+=|$))/g;
-  const vars: Record<string, string | number> = {};
-  let match;
-  while ((match = re.exec(raw)) !== null) {
-    const val = match[2].trim();
-    vars[match[1]] = /^\d+$/.test(val) ? parseInt(val, 10) : val;
   }
   if (entry.entityName) {
     vars.name = entry.entityName;

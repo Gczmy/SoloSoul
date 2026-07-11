@@ -141,7 +141,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 5000,
+            zIndex: 'var(--z-onboarding)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

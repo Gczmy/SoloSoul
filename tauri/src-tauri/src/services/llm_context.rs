@@ -601,6 +601,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 

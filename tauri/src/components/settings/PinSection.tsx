@@ -249,7 +249,7 @@ export function PinSection({ accountId }: PinSectionProps) {
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 2000,
+            zIndex: 'var(--z-modal-important)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -434,7 +434,7 @@ export function PinSection({ accountId }: PinSectionProps) {
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 2000,
+            zIndex: 'var(--z-modal-important)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -82,6 +82,7 @@ fn test_record_to_data_conversion() {
         created_at: "2024-01-01T00:00:00Z".to_string(),
         updated_at: "2024-01-02T00:00:00Z".to_string(),
         version: 1,
+            ..Default::default()
     };
     let data = record_to_data(&record);
     assert_eq!(data.id, "obj-1");
@@ -179,6 +180,7 @@ fn test_vault_object_save_and_load() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&record).unwrap();
     let loaded = vault.load_object("obj-1").unwrap().unwrap();
@@ -212,6 +214,7 @@ fn test_vault_object_list_and_soft_delete() {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&record).unwrap();
     }
@@ -265,6 +268,7 @@ fn test_object_create_with_parent() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&parent).unwrap();
 
@@ -290,6 +294,7 @@ fn test_object_create_with_parent() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&child).unwrap();
 
@@ -359,6 +364,7 @@ fn test_object_soft_delete_with_trash_item() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -428,6 +434,7 @@ fn test_hard_delete_purges_object() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -480,6 +487,7 @@ fn test_trash_permanent_delete_flow() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -535,6 +543,7 @@ fn test_snapshot_operations() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -593,6 +602,7 @@ fn test_copy_snapshots() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -638,6 +648,7 @@ fn test_snapshot_rollback_via_vault() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -730,6 +741,7 @@ fn test_page_section_delete_and_restore() {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&record).unwrap();
     }
@@ -813,6 +825,7 @@ fn test_page_restore_from_trash_reconstruction() {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&record).unwrap();
     }
@@ -940,6 +953,7 @@ fn test_page_restore_from_trash_reconstruction() {
                             .to_string(),
                         updated_at: now,
                         version: record_data["version"].as_u64().unwrap_or(1) as u32,
+                                            ..Default::default()
                     };
                     if vault.save_object(&record).is_ok() {
                         if new_id != trash.original_id {
@@ -974,6 +988,7 @@ fn test_trash_detail_serialization() {
         remaining_days: Some(29),
         original_location: "From page: identity".to_string(),
         template_id: None,
+        property_labels: None,
         preview_properties: vec![serde_json::json!({"key": "title", "value": "Hello"})],
         attachments: vec![TrashAttachmentInfo {
             id: "att-1".to_string(),
@@ -1032,6 +1047,7 @@ fn test_trash_page_detail_includes_children() {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&record).unwrap();
     }
@@ -1249,9 +1265,15 @@ fn test_template_fingerprint_stable_and_sensitive() {
     assert_eq!(hash1.len(), 16);
 
     let mut tpl_modified = tpl.clone();
+    // 指纹排除模板名称/图标/分类等元数据，只反映字段定义
     tpl_modified.name = "Contact Updated".to_string();
     let hash3 = template_fingerprint(&tpl_modified);
-    assert_ne!(hash1, hash3);
+    assert_eq!(hash1, hash3);
+
+    // 修改字段敏感度应改变指纹
+    tpl_modified.properties[0].sensitivity_level = Some("sensitive".to_string());
+    let hash4 = template_fingerprint(&tpl_modified);
+    assert_ne!(hash1, hash4);
 }
 
 #[test]
@@ -1287,6 +1309,7 @@ fn test_compute_sync_changes_categorizes_fields() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
 
     let tpl = UserTemplate {
@@ -1395,6 +1418,7 @@ fn test_apply_sync_changes_archives_incompatible_field() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
 
     let tpl = UserTemplate {
@@ -1474,6 +1498,7 @@ fn test_apply_sync_changes_preserves_safe_type_conversion() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
 
     let tpl = UserTemplate {
@@ -1552,6 +1577,7 @@ fn test_compute_sync_changes_uses_property_labels_as_sensitivity_baseline() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
+            ..Default::default()
     };
 
     let tpl = UserTemplate {

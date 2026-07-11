@@ -36,7 +36,7 @@ export function ConfirmDialog({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        zIndex: 'var(--z-modal-important)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

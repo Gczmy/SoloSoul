@@ -420,6 +420,7 @@ pub fn import_vault(
             }),
             template_type: obj_val["template_type"].as_str().map(String::from),
             template_hash: obj_val["template_hash"].as_str().map(String::from),
+            ignored_template_hash: obj_val["ignored_template_hash"].as_str().map(String::from),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
             updated_at: now.clone(),
             version: obj_val["version"].as_u64().unwrap_or(1) as u32,

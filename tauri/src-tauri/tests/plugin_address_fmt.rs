@@ -59,6 +59,7 @@ fn create_address_record(account_id: &str, idx: usize) -> ObjectRecord {
         created_at: now.clone(),
         updated_at: now,
         version: 1,
+        ..Default::default()
     }
 }
 

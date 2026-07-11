@@ -384,10 +384,6 @@ pub fn template_fingerprint(tpl: &solosoul_vault::UserTemplate) -> String {
     let mut props: Vec<&solosoul_vault::TemplateProperty> = tpl.properties.iter().collect();
     props.sort_by(|a, b| a.id.cmp(&b.id));
     let canonical = serde_json::json!({
-        "name": tpl.name,
-        "iconId": tpl.icon_id,
-        "category": tpl.category,
-        "contractTypeId": tpl.contract_type_id,
         "properties": props,
     });
     let bytes = serde_json::to_vec(&canonical).unwrap_or_default();
@@ -574,6 +570,7 @@ pub async fn object_create(
         template_id: input.template_id.clone(),
         template_type: input.template_type.clone(),
         template_hash,
+        ignored_template_hash: None,
         created_at: now.clone(),
         updated_at: now,
         version: 1,
@@ -594,10 +591,13 @@ pub async fn object_create(
     vault.save_object(&record)?;
     // §25.5 — Initial snapshot on create
     let snapshot_data = serde_json::to_vec(&serde_json::json!({
-        "name": record.name, "tags": record.tags_json, "properties": record.properties,
+        "name": record.name,
+        "tags": record.tags_json,
+        "properties": record.properties,
+        "propertyLabels": record.property_labels,
     }))
     .unwrap_or_default();
-    let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "Created");
+    let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "diff_created");
     let is_page = input.collection_type == "page";
     let _ = vault.log_structured(
         if is_page {
@@ -673,9 +673,10 @@ pub async fn object_update(
         "name": record.name,
         "tags": record.tags_json,
         "properties": record.properties,
+        "propertyLabels": record.property_labels,
     }))
     .unwrap_or_default();
-    let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "");
+    let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "diff_updated");
 
     let _ = vault.log_structured(
         "object_update",
@@ -1330,6 +1331,8 @@ pub async fn object_sync_with_template(
 
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
+    // 应用同步后清除已忽略指纹，避免旧忽略状态干扰未来检测。
+    record.ignored_template_hash = None;
     vault.save_object(&record)?;
 
     // 只有真正发生字段变更时才记录快照与审计日志
@@ -1339,13 +1342,14 @@ pub async fn object_sync_with_template(
             "name": record.name,
             "tags": record.tags_json,
             "properties": record.properties,
+            "propertyLabels": record.property_labels,
         }))
         .unwrap_or_default();
         let _ = vault.save_snapshot(
             &object_id,
             "template_sync",
             &snapshot_data,
-            "Synced with template",
+            "diff_template_sync",
         );
 
         let _ = vault.log_structured(
@@ -1362,6 +1366,25 @@ pub async fn object_sync_with_template(
     }
 
     Ok(result)
+}
+
+/// 忽略当前模板指纹：用户点击「否」后，将 latestHash 持久化到对象，
+/// 避免重启后再次提示，直到模板再次变更。
+#[tauri::command]
+pub async fn object_ignore_template_sync(
+    state: State<'_, AppState>,
+    object_id: String,
+    hash: String,
+) -> Result<(), String> {
+    let vault = vault_handle(&state)?;
+    let mut record = vault
+        .load_object(&object_id)?
+        .ok_or("Object not found".to_string())?;
+    record.ignored_template_hash = Some(hash);
+    record.updated_at = chrono::Utc::now().to_rfc3339();
+    record.version += 1;
+    vault.save_object(&record)?;
+    Ok(())
 }
 
 #[tauri::command]

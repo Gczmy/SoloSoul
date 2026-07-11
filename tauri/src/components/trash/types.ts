@@ -12,6 +12,7 @@ export interface TrashDetail {
   remainingDays?: number;
   originalLocation: string;
   templateId?: string;
+  propertyLabels?: Record<string, SensitivityLevel>;
   previewProperties: {
     key: string;
     value: unknown;

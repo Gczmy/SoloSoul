@@ -45,7 +45,7 @@ export function AttachmentLimitsInfo() {
               position: 'fixed',
               top: pos.top,
               left: pos.left,
-              zIndex: 5000,
+              zIndex: 'var(--z-popover)',
               background: 'var(--bg-elevated)',
               border: '1px solid var(--border-subtle)',
               borderRadius: 8,

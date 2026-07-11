@@ -607,6 +607,7 @@ fn test_import_object_keeps_sensitivity_after_template_delete() {
         created_at: now.clone(),
         updated_at: now,
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -742,6 +743,7 @@ fn test_unique_object_name_english_increment() -> Result<(), String> {
             created_at: now.clone(),
             updated_at: now.clone(),
             version: 1,
+                    ..Default::default()
         };
         vault.save_object(&rec).map_err(|e| e.to_string())?;
     }
@@ -781,6 +783,7 @@ fn test_unique_object_name_chinese_increment() -> Result<(), String> {
         created_at: now.clone(),
         updated_at: now.clone(),
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&rec).map_err(|e| e.to_string())?;
 
@@ -820,6 +823,7 @@ fn test_import_no_template_object_unchanged() {
         created_at: now.clone(),
         updated_at: now,
         version: 1,
+            ..Default::default()
     };
     vault.save_object(&record).unwrap();
 

@@ -76,14 +76,17 @@ pub async fn snapshot_rollback(
 
     // Save rollback snapshot
     let rollback_data = serde_json::to_vec(&serde_json::json!({
-        "name": record.name, "tags": record.tags_json, "properties": record.properties,
+        "name": record.name,
+        "tags": record.tags_json,
+        "properties": record.properties,
+        "propertyLabels": record.property_labels,
     }))
     .unwrap_or_default();
     let _ = vault.save_snapshot(
         &object_id,
         "rollback",
         &rollback_data,
-        "Rolled back to previous version",
+        "diff_rollback",
     );
     let _ = vault.log_structured(
         "object_rollback",
@@ -180,6 +183,7 @@ pub struct TrashDetail {
     pub remaining_days: Option<i64>,
     pub original_location: String,
     pub template_id: Option<String>,
+    pub property_labels: Option<serde_json::Value>,
     pub preview_properties: Vec<serde_json::Value>,
     /// Attachments parsed from stored data (active + soft-deleted)
     pub attachments: Vec<TrashAttachmentInfo>,
@@ -441,13 +445,15 @@ pub async fn trash_get_detail(
     // Fetch snapshots
     let snapshots = vault.list_snapshots(&trash.original_id).unwrap_or_default();
 
-    // Extract template_id from stored data
-    let template_id = (|| -> Option<String> {
+    // Extract template_id and property_labels from stored data
+    let (template_id, property_labels) = (|| -> Option<(String, Option<serde_json::Value>)> {
         let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
-        data.get("template_id")
-            .and_then(|v| v.as_str())
-            .map(String::from)
-    })();
+        let tpl_id = data.get("template_id").and_then(|v| v.as_str()).map(String::from);
+        let labels = data.get("property_labels").cloned();
+        Some((tpl_id?, labels))
+    })()
+    .map(|(id, labels)| (Some(id), labels))
+    .unwrap_or((None, None));
 
     Ok(TrashDetail {
         id: trash.id,
@@ -461,6 +467,7 @@ pub async fn trash_get_detail(
         remaining_days,
         original_location,
         template_id,
+        property_labels,
         preview_properties,
         attachments,
         deleted_attachments,

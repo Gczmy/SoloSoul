@@ -112,6 +112,7 @@ pub async fn import_decrypt_preview(
                         template_id: o["template_id"].as_str().map(String::from),
                         template_type: o["template_type"].as_str().map(String::from),
                         template_hash: o["template_hash"].as_str().map(String::from),
+                        ignored_template_hash: o["ignored_template_hash"].as_str().map(String::from),
                         icon_name: o["icon_name"].as_str().unwrap_or("document").to_string(),
                         properties: o["properties"].clone(),
                         property_labels: None,
@@ -495,6 +496,7 @@ async fn import_execute_internal(
             template_id: resolved_template_id,
             template_type: obj_val["template_type"].as_str().map(String::from),
             template_hash: obj_val["template_hash"].as_str().map(String::from),
+            ignored_template_hash: obj_val["ignored_template_hash"].as_str().map(String::from),
             created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
             updated_at: now.clone(),
             version: obj_val["version"].as_u64().unwrap_or(1) as u32,
@@ -512,7 +514,7 @@ async fn import_execute_internal(
         } else {
             id
         };
-        let _ = vault.save_snapshot(snapshot_key, "import", &snapshot_data, "Imported");
+        let _ = vault.save_snapshot(snapshot_key, "import", &snapshot_data, "diff_imported");
 
         imported += 1;
         imported_object_ids.insert(final_id.clone());

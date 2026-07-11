@@ -67,6 +67,7 @@ export interface SyncableObject {
   id: string;
   templateId?: string;
   templateHash?: string;
+  ignoredTemplateHash?: string;
 }
 
 async function sha256Hex(input: string): Promise<string> {
@@ -86,10 +87,6 @@ async function sha256Hex(input: string): Promise<string> {
 export async function computeTemplateFingerprint(tpl: UserTemplate): Promise<string> {
   const sortedProps = [...tpl.properties].sort((a, b) => a.id.localeCompare(b.id));
   const canonical = {
-    name: tpl.name,
-    iconId: tpl.iconId ?? null,
-    category: tpl.category ?? null,
-    contractTypeId: tpl.contractTypeId ?? null,
     properties: sortedProps.map((p) => propertyToCanonical(p)),
   };
   const fullHash = await sha256Hex(JSON.stringify(canonical));
@@ -142,5 +139,6 @@ export function objectNeedsSync(
   if (!obj.templateId) return false;
   const latestHash = templateHashMap.get(obj.templateId);
   if (!latestHash) return false;
-  return obj.templateHash !== latestHash;
+  if (obj.templateHash === latestHash || obj.ignoredTemplateHash === latestHash) return false;
+  return true;
 }

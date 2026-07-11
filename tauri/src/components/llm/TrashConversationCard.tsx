@@ -30,7 +30,7 @@ export function TrashConversationCard({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 2000,
+        zIndex: 'var(--z-modal)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

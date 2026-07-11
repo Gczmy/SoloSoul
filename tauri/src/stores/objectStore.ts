@@ -21,6 +21,8 @@ export interface ObjectSummary {
   templateType?: 'system' | 'user';
   /** 创建对象时模板的指纹；用于检测模板后续是否发生变更。 */
   templateHash?: string;
+  /** 用户选择忽略同步时记录的模板指纹；持久化到后端。 */
+  ignoredTemplateHash?: string;
   /** 插件合约类型 ID — 继承自模板的插件绑定标识。 */
   contractTypeId?: string;
   /** 字段级敏感度覆盖：fieldName -> sensitivityLevel。即使模板被删除，对象仍保留自己的敏感度副本。 */
@@ -38,6 +40,8 @@ export interface ObjectData {
   templateType?: 'system' | 'user';
   /** 创建对象时模板的指纹；用于检测模板后续是否发生变更。 */
   templateHash?: string;
+  /** 用户选择忽略同步时记录的模板指纹；持久化到后端。 */
+  ignoredTemplateHash?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -88,6 +92,8 @@ interface ObjectState {
     accountId: string,
     objectId: string,
   ) => Promise<TemplateSyncResult>;
+  /** 忽略当前模板同步提示，将指纹持久化到对象。 */
+  ignoreTemplateSync: (objectId: string, hash: string) => Promise<void>;
   /** 列出对象中已归档的历史字段。 */
   loadDeprecatedFields: (
     accountId: string,
@@ -241,6 +247,10 @@ export const useObjectStore = create<ObjectState>((set) => ({
     // 同步成功后刷新该对象缓存，使 UI 立即反映最新字段与敏感度。
     await useObjectStore.getState().getObject(accountId, objectId);
     return result;
+  },
+
+  ignoreTemplateSync: async (objectId: string, hash: string) => {
+    await invoke('object_ignore_template_sync', { objectId, hash });
   },
 
   loadDeprecatedFields: async (accountId, objectId) => {

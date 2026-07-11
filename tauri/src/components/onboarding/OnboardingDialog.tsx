@@ -30,7 +30,7 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 10000,
+        zIndex: 'var(--z-onboarding)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
