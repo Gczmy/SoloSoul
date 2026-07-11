@@ -935,21 +935,21 @@ function SnapshotContent({
   );
 }
 
-interface SnapshotDataViewProps {
+export interface SnapshotDataViewProps {
   data: Record<string, unknown>;
   detailTemplate: UserTemplate | null;
   currentPropertyLabels?: Record<string, SensitivityLevel>;
 }
 
-function SnapshotDataView({ data, detailTemplate, currentPropertyLabels }: SnapshotDataViewProps) {
+export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: _currentPropertyLabels }: SnapshotDataViewProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { t } = useTranslation(['editor']);
   const rawProps = data.properties as Record<string, unknown> | undefined;
   const tags: string[] = Array.isArray(data.tags) ? (data.tags as string[]) : [];
   const snapName = typeof data.name === 'string' ? data.name : '';
 
-  // 字段级敏感度的真实来源是 propertyLabels（对象当前敏感度副本），__fields 中仅为快照。
-  // 回收站详情会额外传入对象被删除前的当前 propertyLabels，优先使用。
+  // 字段级敏感度的真实来源是快照自身的 propertyLabels；对象当前标签（currentPropertyLabels）
+  // 只用于主内容预览，不能混入历史快照，否则旧版本会显示成对象被删除时的最新敏感度。
   const sensitivityMap = useMemo(() => {
     const map = new Map<string, SensitivityLevel>();
     const labels = data.propertyLabels as Record<string, SensitivityLevel> | undefined;
@@ -958,13 +958,8 @@ function SnapshotDataView({ data, detailTemplate, currentPropertyLabels }: Snaps
         if (level) map.set(id, level);
       }
     }
-    if (currentPropertyLabels) {
-      for (const [id, level] of Object.entries(currentPropertyLabels)) {
-        if (level) map.set(id, level);
-      }
-    }
     return map;
-  }, [data.propertyLabels, currentPropertyLabels]);
+  }, [data.propertyLabels]);
 
   // 优先使用对象自带的 __fields 字段定义获取名称/类型；模板存在时用于排序和补充。
   const fieldDefs = useMemo(() => {
