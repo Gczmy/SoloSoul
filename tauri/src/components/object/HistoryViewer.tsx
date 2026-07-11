@@ -19,16 +19,16 @@ export interface SnapshotEntry {
   diffSummary: string;
 }
 
-function flattenProperties(
+export function flattenProperties(
   props: Record<string, unknown> | undefined,
   fieldOrder?: string[],
-): { key: string; value: string; label?: string }[] {
+): { key: string; value: string; label?: string; sensitivity?: SensitivityLevel }[] {
   if (!props) return [];
   // 从 properties 中提取 __fields 定义，用于识别 dynamic_group 字段
   const fieldDefs = props.__fields as
     | Record<string, { type?: string }>
     | undefined;
-  const entries: { key: string; value: string; label?: string }[] = [];
+  const entries: { key: string; value: string; label?: string; sensitivity?: SensitivityLevel }[] = [];
   for (const [k, v] of Object.entries(props)) {
     if (k.startsWith('__')) continue;
     if (v === null || v === undefined || v === '') continue;
@@ -37,7 +37,7 @@ function flattenProperties(
     if (fieldDefs?.[k]?.type === 'dynamic_group' && Array.isArray(v)) {
       for (const item of v) {
         if (!item || typeof item !== 'object') continue;
-        const { name, value: itemVal } = item as Record<string, unknown>;
+        const { name, value: itemVal, sensitivity } = item as Record<string, unknown>;
         if (name === undefined || name === null || name === '') continue;
         let displayVal = '';
         if (Array.isArray(itemVal)) {
@@ -45,7 +45,12 @@ function flattenProperties(
         } else if (itemVal !== null && itemVal !== undefined) {
           displayVal = String(itemVal);
         }
-        entries.push({ key: k, value: displayVal, label: String(name) });
+        entries.push({
+          key: k,
+          value: displayVal,
+          label: String(name),
+          sensitivity: sensitivity as SensitivityLevel | undefined,
+        });
       }
       continue;
     }
@@ -115,6 +120,10 @@ function SnapshotCard({
     snapData && typeof snapData === 'object' && 'properties' in snapData
       ? (snapData.properties as Record<string, unknown> | undefined)
       : undefined;
+  const snapPropertyLabels =
+    snapData && typeof snapData === 'object' && 'propertyLabels' in snapData
+      ? (snapData.propertyLabels as Record<string, string> | undefined)
+      : undefined;
   const fields = flattenProperties(rawProps, fieldOrder);
   const snapName =
     snapData && typeof snapData === 'object' && 'name' in snapData ? String(snapData.name) : '';
@@ -122,6 +131,15 @@ function SnapshotCard({
     snapData && typeof snapData === 'object' && 'tags' in snapData && Array.isArray(snapData.tags)
       ? (snapData.tags as string[])
       : [];
+
+  const resolveFieldSensitivity = (field: (typeof fields)[number]): SensitivityLevel => {
+    return (
+      field.sensitivity ||
+      (snapPropertyLabels?.[field.key] as SensitivityLevel | undefined) ||
+      getFieldSensitivity(field.key) ||
+      'internal'
+    );
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -146,7 +164,7 @@ function SnapshotCard({
       {fields.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
           {fields.map((f) => {
-            const sens = getFieldSensitivity(f.key);
+            const sens = resolveFieldSensitivity(f);
             const deprecated = isFieldDeprecated(f.key);
             const fieldId = f.key;
             const revealed = isRevealed(fieldId);
