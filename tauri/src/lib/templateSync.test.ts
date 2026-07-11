@@ -57,6 +57,19 @@ describe('templateSync', () => {
       expect(hashOriginal).not.toBe(hashChanged);
     });
 
+    it('returns a different hash when a property sensitivity changes', async () => {
+      const original = makeTemplate();
+      const changed = makeTemplate({
+        properties: [
+          { id: 'name', name: 'Name', type: 'text', sensitivityLevel: 'sensitive' },
+          { id: 'email', name: 'Email', type: 'email', sensitivityLevel: 'internal' },
+        ],
+      });
+      const hashOriginal = await computeTemplateFingerprint(original);
+      const hashChanged = await computeTemplateFingerprint(changed);
+      expect(hashOriginal).not.toBe(hashChanged);
+    });
+
     it('returns the same hash regardless of property order', async () => {
       const a = makeTemplate();
       const b = makeTemplate({

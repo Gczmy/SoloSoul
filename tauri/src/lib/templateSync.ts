@@ -99,11 +99,12 @@ function propertyToCanonical(p: TemplateProperty): Record<string, unknown> {
     name: p.name,
     type: p.type,
   };
-  // 与后端 TemplateProperty 的 skip_serializing_if = "Option::is_none" 保持一致，
-  // 缺失字段不输出 null，避免指纹不一致导致同步后仍提示需要同步。
-  if (p.sensitivityLevel != null) def.sensitivityLevel = p.sensitivityLevel;
+  // 与后端 TemplateProperty 的 serde 序列化名保持一致：
+  // 后端未对 sensitivity_level / deprecated_at 使用 rename，因此是 snake_case；
+  // 其余字段已通过 #[serde(rename)] 与前端 camelCase 对齐。
+  if (p.sensitivityLevel != null) def.sensitivity_level = p.sensitivityLevel;
+  if (p.deprecatedAt != null) def.deprecated_at = p.deprecatedAt;
   if (p.options != null) def.options = p.options;
-  if (p.deprecatedAt != null) def.deprecatedAt = p.deprecatedAt;
   if (p.contractField != null) def.contractField = p.contractField;
   if (p.contractBindings != null) def.contractBindings = p.contractBindings;
   if (p.allowedTypes != null) def.allowedTypes = p.allowedTypes;
