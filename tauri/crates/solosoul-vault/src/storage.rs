@@ -59,6 +59,12 @@ impl VaultStore {
             let _ = store.repair_restored_objects();
         }
 
+        // 为旧版恢复对象补齐丢失的字段级敏感度副本 property_labels。
+        // 仅在 Vault 已解锁时执行；已标记过的 Vault 会自动跳过。
+        if store.data_key().is_ok() {
+            let _ = store.backfill_missing_property_labels();
+        }
+
         Ok(store)
     }
 
@@ -2701,6 +2707,81 @@ impl VaultStore {
         drop(guard);
         let _ = self.set_sys_config(REPAIR_FLAG, "1");
         Ok(fixed)
+    }
+
+    /// 为旧版 object_restore 恢复出来的对象补齐缺失的 property_labels。
+    /// 这些对象的字段级敏感度副本在旧 bug 中丢失，导致所有字段都显示为“内部”。
+    /// 本方法只读取模板并为 property_labels 为空的对象写入敏感度映射，不会覆盖已有数据。
+    /// 通过 sys_config 标记确保每个 Vault 只执行一次。
+    pub fn backfill_missing_property_labels(&self) -> Result<usize, String> {
+        const BACKFILL_FLAG: &str = "property_labels_backfill_v1";
+        if self
+            .get_sys_config(BACKFILL_FLAG)?
+            .map(|v| v == "1")
+            .unwrap_or(false)
+        {
+            return Ok(0);
+        }
+
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+
+        let ids: Vec<String> = conn
+            .prepare(
+                "SELECT id FROM objects
+                 WHERE is_deleted = 0 AND template_id IS NOT NULL",
+            )
+            .map_err(|e| e.to_string())?
+            .query_map([], |row| row.get::<_, String>(0))
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
+
+        drop(guard);
+
+        let mut filled = 0usize;
+        for id in ids {
+            let mut record = match self.load_object(&id)? {
+                Some(r) => r,
+                None => continue,
+            };
+
+            // 已有非空 property_labels 时不覆盖
+            let needs_fill = match record.property_labels.as_ref() {
+                None => true,
+                Some(v) => v.as_object().map(|m| m.is_empty()).unwrap_or(true),
+            };
+            if !needs_fill {
+                continue;
+            }
+
+            let Some(ref template_id) = record.template_id else {
+                continue;
+            };
+            let tpl = match self.load_user_template(template_id)? {
+                Some(t) => t,
+                None => continue,
+            };
+
+            let mut labels = serde_json::Map::new();
+            for prop in &tpl.properties {
+                if let Some(ref sl) = prop.sensitivity_level {
+                    labels.insert(prop.id.clone(), serde_json::Value::String(sl.clone()));
+                }
+            }
+            if labels.is_empty() {
+                continue;
+            }
+
+            record.property_labels = Some(serde_json::Value::Object(labels));
+            record.updated_at = chrono::Utc::now().to_rfc3339();
+            record.version += 1;
+            self.save_object(&record)?;
+            filled += 1;
+        }
+
+        let _ = self.set_sys_config(BACKFILL_FLAG, "1");
+        Ok(filled)
     }
 
     /// §25.5 — Save an object snapshot for history
