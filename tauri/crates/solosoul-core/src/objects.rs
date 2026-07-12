@@ -134,7 +134,13 @@ pub fn create_object(
         }
     }
 
-    save_creation_snapshot(vault, &id, &name, &record.properties, record.property_labels.as_ref())?;
+    save_creation_snapshot(
+        vault,
+        &id,
+        &name,
+        &record.properties,
+        record.property_labels.as_ref(),
+    )?;
     let _ = vault.log_structured(
         "object_create",
         "object",

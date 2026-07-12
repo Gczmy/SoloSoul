@@ -53,6 +53,12 @@ impl VaultStore {
             let _ = store.backfill_missing_snapshots();
         }
 
+        // 修复旧版 object_restore 因字段名大小写不一致导致的“隐形”对象。
+        // 仅在 Vault 已解锁时执行；已标记过的 Vault 会自动跳过。
+        if store.data_key().is_ok() {
+            let _ = store.repair_restored_objects();
+        }
+
         Ok(store)
     }
 
@@ -2588,6 +2594,115 @@ impl VaultStore {
         Ok(created)
     }
 
+    /// 修复因旧版 object_restore 用 snake_case 读取 camelCase trash 数据导致的“隐形”对象。
+    /// 这些对象仍在数据库中，但 account_id / type_id / parent_id 错误，导致前端按页面筛选时看不到。
+    /// 通过 sys_config 标记确保每个 Vault 只执行一次。
+    pub fn repair_restored_objects(&self) -> Result<usize, String> {
+        const REPAIR_FLAG: &str = "restored_objects_repair_v1";
+        if self
+            .get_sys_config(REPAIR_FLAG)?
+            .map(|v| v == "1")
+            .unwrap_or(false)
+        {
+            return Ok(0);
+        }
+
+        let account_id = self.config.account_id.clone();
+        let built_in_sections = ["identity", "travel", "financial", "professional"];
+
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, section_type, type_id, parent_id, account_id
+                 FROM objects
+                 WHERE is_deleted = 0
+                   AND (account_id = 'imported'
+                        OR (type_id = 'note' AND section_type != 'note')
+                        OR (parent_id IS NULL AND section_type NOT IN ('identity','travel','financial','professional') AND id != section_type))",
+            )
+            .map_err(|e| e.to_string())?;
+
+        #[derive(Debug)]
+        struct Row {
+            id: String,
+            section_type: String,
+            type_id: String,
+            parent_id: Option<String>,
+            account_id: String,
+        }
+
+        let rows: Vec<Row> = stmt
+            .query_map([], |row| {
+                Ok(Row {
+                    id: row.get(0)?,
+                    section_type: row.get(1)?,
+                    type_id: row.get(2)?,
+                    parent_id: row.get(3)?,
+                    account_id: row.get(4)?,
+                })
+            })
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
+
+        let mut fixed = 0usize;
+        let now = chrono::Utc::now().to_rfc3339();
+
+        for row in rows {
+            let mut new_account_id = row.account_id.clone();
+            let mut new_type_id = row.type_id.clone();
+            let mut new_parent_id = row.parent_id.clone();
+
+            if new_account_id == "imported" {
+                new_account_id = account_id.clone();
+            }
+            if new_type_id == "note" && row.section_type != "note" {
+                new_type_id = row.section_type.clone();
+            }
+            if new_parent_id.is_none() && !built_in_sections.contains(&row.section_type.as_str()) {
+                // 自定义页面：尝试把 section_type 对应的页面对象 ID 作为 parent_id
+                let page_id: Option<String> = conn
+                    .query_row(
+                        "SELECT id FROM objects WHERE id = ?1 AND is_deleted = 0 LIMIT 1",
+                        rusqlite::params![&row.section_type],
+                        |r| r.get(0),
+                    )
+                    .optional()
+                    .unwrap_or(None);
+                if page_id.is_some() {
+                    new_parent_id = page_id;
+                }
+            }
+
+            if new_account_id != row.account_id
+                || new_type_id != row.type_id
+                || new_parent_id != row.parent_id
+            {
+                conn.execute(
+                    "UPDATE objects
+                     SET account_id = ?1, type_id = ?2, parent_id = ?3, updated_at = ?4, version = version + 1
+                     WHERE id = ?5",
+                    rusqlite::params![
+                        new_account_id,
+                        new_type_id,
+                        new_parent_id,
+                        &now,
+                        &row.id
+                    ],
+                )
+                .map_err(|e| format!("repair object {}: {}", row.id, e))?;
+                fixed += 1;
+            }
+        }
+
+        drop(stmt);
+        drop(guard);
+        let _ = self.set_sys_config(REPAIR_FLAG, "1");
+        Ok(fixed)
+    }
+
     /// §25.5 — Save an object snapshot for history
     pub fn save_snapshot(
         &self,
@@ -2715,7 +2830,8 @@ impl VaultStore {
                         after += 1;
                     }
                     let key2_start = after;
-                    while after < len && !bytes[after].is_ascii_whitespace() && bytes[after] != b'=' {
+                    while after < len && !bytes[after].is_ascii_whitespace() && bytes[after] != b'='
+                    {
                         after += 1;
                     }
                     if after < len && bytes[after] == b'=' {
@@ -2731,7 +2847,10 @@ impl VaultStore {
             let value = std::str::from_utf8(&bytes[value_start..value_end])
                 .ok()?
                 .trim_end();
-            obj.insert(key.to_string(), serde_json::Value::String(value.to_string()));
+            obj.insert(
+                key.to_string(),
+                serde_json::Value::String(value.to_string()),
+            );
             pos = value_end;
             while pos < len && bytes[pos].is_ascii_whitespace() {
                 pos += 1;
@@ -3375,7 +3494,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         assert!(vault.save_object(&obj).is_err());
         assert!(vault.load_object("obj-1").is_err());
@@ -3431,7 +3550,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-special").unwrap().unwrap();
@@ -3467,7 +3586,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3516,7 +3635,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         vault.delete_object("obj-hard", false).unwrap();
@@ -3553,7 +3672,7 @@ mod tests {
                 created_at: chrono::Utc::now().to_rfc3339(),
                 updated_at: chrono::Utc::now().to_rfc3339(),
                 version: 1,
-                            ..Default::default()
+                ..Default::default()
             };
             vault.save_object(&obj).unwrap();
         }
@@ -3635,7 +3754,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3673,7 +3792,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3721,7 +3840,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         vault.delete_object("obj-del-1", true).unwrap();
@@ -3767,7 +3886,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3807,7 +3926,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -3853,7 +3972,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         vault.delete_object("obj-s-del", true).unwrap();
@@ -3894,7 +4013,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         vault.restore_object("obj-active").unwrap();
@@ -3928,7 +4047,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-uni").unwrap().unwrap();
@@ -3962,7 +4081,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-tpl").unwrap().unwrap();
@@ -4011,7 +4130,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-long").unwrap().unwrap();
@@ -4044,7 +4163,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault.load_object("obj-empty-name").unwrap().unwrap();
@@ -4283,7 +4402,7 @@ mod tests {
             created_at: now.clone(),
             updated_at: now,
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&record).unwrap();
 
@@ -4552,7 +4671,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -4891,7 +5010,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -5087,7 +5206,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
 
@@ -5235,7 +5354,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&obj).unwrap();
         let loaded = vault

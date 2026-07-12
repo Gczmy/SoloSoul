@@ -2171,3 +2171,103 @@ fn test_trash_detail_object_data_camel_case_and_snake_case_fallback() {
         .and_then(|v| v.as_str());
     assert_eq!(old_template_id, Some("tpl-old"));
 }
+
+#[test]
+fn test_repair_restored_objects_fixes_legacy_fields() {
+    let (vault, _dir) = setup_vault();
+
+    // 创建一个自定义页面对象，作为后续子对象的 parent 目标
+    let page = ObjectRecord {
+        id: "custom-page".to_string(),
+        account_id: "test_account".to_string(),
+        type_id: "custom-page".to_string(),
+        section_type: "custom-page".to_string(),
+        name: "Custom Page".to_string(),
+        icon_name: "folder".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&page).unwrap();
+
+    // 模拟旧版 object_restore 错误写入的对象：
+    // account_id = 'imported'、type_id = 'note'、parent_id 丢失
+    let corrupted_identity = ObjectRecord {
+        id: "obj-repair-identity".to_string(),
+        account_id: "imported".to_string(),
+        type_id: "note".to_string(),
+        section_type: "identity".to_string(),
+        name: "Corrupted Identity".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({"content": "hello"}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&corrupted_identity).unwrap();
+
+    let corrupted_custom = ObjectRecord {
+        id: "obj-repair-custom".to_string(),
+        account_id: "imported".to_string(),
+        type_id: "note".to_string(),
+        section_type: "custom-page".to_string(),
+        name: "Corrupted Custom".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({"content": "world"}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&corrupted_custom).unwrap();
+
+    // 重置标记，使修复逻辑可以再次执行
+    vault
+        .set_sys_config("restored_objects_repair_v1", "0")
+        .unwrap();
+    let fixed = vault.repair_restored_objects().unwrap();
+    assert_eq!(fixed, 2, "should repair both corrupted objects");
+
+    let repaired_identity = vault.load_object("obj-repair-identity").unwrap().unwrap();
+    assert_eq!(repaired_identity.account_id, "test_account");
+    assert_eq!(repaired_identity.type_id, "identity");
+    assert_eq!(repaired_identity.parent_id, None);
+
+    let repaired_custom = vault.load_object("obj-repair-custom").unwrap().unwrap();
+    assert_eq!(repaired_custom.account_id, "test_account");
+    assert_eq!(repaired_custom.type_id, "custom-page");
+    assert_eq!(repaired_custom.parent_id, Some("custom-page".to_string()));
+}
