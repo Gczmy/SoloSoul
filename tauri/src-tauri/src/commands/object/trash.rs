@@ -62,15 +62,28 @@ pub async fn object_restore(
     let record_data: serde_json::Value =
         serde_json::from_slice(&trash.data).map_err(|e| format!("Invalid trash data: {}", e))?;
 
+    // 回收站中保存的对象数据使用 camelCase 键，需兼容旧版 snake_case fallback。
+    let get_str = |snake: &str, camel: &str| {
+        record_data[camel]
+            .as_str()
+            .or_else(|| record_data[snake].as_str())
+    };
+    let get_array = |snake: &str, camel: &str| -> Option<&Vec<serde_json::Value>> {
+        record_data[camel]
+            .as_array()
+            .or_else(|| record_data[snake].as_array())
+    };
+
     // Use original_section_type if present, fall back to stored data
     let target_section = trash
         .original_section_type
         .as_deref()
-        .or(record_data["section_type"].as_str())
+        .or_else(|| record_data["sectionType"].as_str())
+        .or_else(|| record_data["section_type"].as_str())
         .unwrap_or("identity");
 
     // Check if a non-deleted object with the same name exists in the target section (conflict)
-    let account_id = record_data["account_id"].as_str().unwrap_or("imported");
+    let account_id = get_str("account_id", "accountId").unwrap_or("imported");
     let objects = vault
         .list_objects(
             account_id,
@@ -111,63 +124,58 @@ pub async fn object_restore(
 
     // §13.10.3: 从模板继承 contract_type_id
     let restore_contract_type_id =
-        inherit_contract_type_id(vault, record_data["template_id"].as_str());
+        inherit_contract_type_id(vault, get_str("template_id", "templateId"));
 
     let now = chrono::Utc::now().to_rfc3339();
     let record = solosoul_vault::ObjectRecord {
         contract_type_id: restore_contract_type_id,
         id: new_id.clone(),
-        account_id: record_data["account_id"]
-            .as_str()
+        account_id: get_str("account_id", "accountId")
             .unwrap_or("imported")
             .to_string(),
-        type_id: record_data["type_id"]
-            .as_str()
-            .unwrap_or("note")
-            .to_string(),
+        type_id: get_str("type_id", "typeId").unwrap_or("note").to_string(),
         section_type: target_section.to_string(),
         name: new_name,
-        icon_name: record_data["icon_name"]
-            .as_str()
+        icon_name: get_str("icon_name", "iconName")
             .unwrap_or("document")
             .to_string(),
-        parent_id: record_data["parent_id"].as_str().map(String::from),
-        children_ids: record_data["children_ids"]
-            .as_array()
-            .map(|a| {
+        parent_id: get_str("parent_id", "parentId").map(String::from),
+        children_ids: get_array("children_ids", "childrenIds")
+            .map(|a: &Vec<serde_json::Value>| {
                 a.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
+                    .filter_map(|v: &serde_json::Value| v.as_str().map(String::from))
                     .collect()
             })
             .unwrap_or_default(),
         properties: record_data["properties"].clone(),
-        property_labels: if record_data["property_labels"].is_null() {
-            None
+        property_labels: if record_data["propertyLabels"].is_null() {
+            if record_data["property_labels"].is_null() {
+                None
+            } else {
+                Some(record_data["property_labels"].clone())
+            }
         } else {
-            Some(record_data["property_labels"].clone())
+            Some(record_data["propertyLabels"].clone())
         },
-        sensitivity_level: record_data["sensitivity_level"]
-            .as_str()
+        sensitivity_level: get_str("sensitivity_level", "sensitivityLevel")
             .unwrap_or("internal")
             .to_string(),
         is_deleted: false,
         deleted_at: None,
         tags_json: record_data["tags"]
             .as_array()
-            .map(|a| {
+            .map(|a: &Vec<serde_json::Value>| {
                 a.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
+                    .filter_map(|v: &serde_json::Value| v.as_str().map(String::from))
                     .collect()
             })
             .unwrap_or_default(),
-        template_id: record_data["template_id"].as_str().map(String::from),
-        template_type: record_data["template_type"].as_str().map(String::from),
-        template_hash: record_data["template_hash"].as_str().map(String::from),
-        ignored_template_hash: record_data["ignored_template_hash"]
-            .as_str()
+        template_id: get_str("template_id", "templateId").map(String::from),
+        template_type: get_str("template_type", "templateType").map(String::from),
+        template_hash: get_str("template_hash", "templateHash").map(String::from),
+        ignored_template_hash: get_str("ignored_template_hash", "ignoredTemplateHash")
             .map(String::from),
-        created_at: record_data["created_at"]
-            .as_str()
+        created_at: get_str("created_at", "createdAt")
             .unwrap_or(&now)
             .to_string(),
         updated_at: now,
