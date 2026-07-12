@@ -243,6 +243,7 @@ function ObjectDetailContent({
             }}
           >
             {item.previewProperties.map((p, i) => {
+              const isTemplate = item.itemType === 'template';
               const propType = (p as Record<string, unknown>).type as PropertyType | undefined;
               const explicitSensitivity = (p as Record<string, unknown>).sensitivityLevel as
                 | SensitivityLevel
@@ -256,6 +257,9 @@ function ObjectDetailContent({
                 p.key === '__dynamic_group__'
                   ? t('editor:field_types.dynamic_group', p.key)
                   : p.key;
+
+              const formatTypeLabel = (type?: PropertyType) =>
+                type ? t(`editor:field_types.${type}`, type) : '';
 
               if (propType === 'dynamic_group') {
                 const rawValue = (p as Record<string, unknown>).value;
@@ -318,7 +322,7 @@ function ObjectDetailContent({
                             textAlign: 'right',
                           }}
                         >
-                          {child.value}
+                          {isTemplate ? formatTypeLabel(child.type) : child.value}
                         </span>
                       </div>
                     ))}
@@ -326,8 +330,9 @@ function ObjectDetailContent({
                 );
               }
 
-              const displayValue =
-                typeof p.value === 'string'
+              const displayValue = isTemplate
+                ? formatTypeLabel(propType)
+                : typeof p.value === 'string'
                   ? p.value
                   : p.value !== undefined && p.value !== null
                     ? JSON.stringify(p.value)
