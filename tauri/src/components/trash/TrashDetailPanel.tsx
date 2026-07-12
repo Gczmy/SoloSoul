@@ -1027,7 +1027,6 @@ function isMetaPropertyKey(key: string): boolean {
 }
 
 export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: _currentPropertyLabels }: SnapshotDataViewProps) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { t } = useTranslation(['editor']);
   const rawProps = data.properties as Record<string, unknown> | undefined;
   const tags: string[] = Array.isArray(data.tags) ? (data.tags as string[]) : [];
