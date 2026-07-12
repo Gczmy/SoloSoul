@@ -252,13 +252,83 @@ function ObjectDetailContent({
                 ? item.propertyLabels?.[fieldId]
                 : undefined;
               const sensitivity = explicitSensitivity || fallbackSensitivity;
-              const typeLabel = propType
-                ? t(`editor:field_types.${propType}`, propType)
-                : String(p.value);
               const displayKey =
                 p.key === '__dynamic_group__'
                   ? t('editor:field_types.dynamic_group', p.key)
                   : p.key;
+
+              if (propType === 'dynamic_group') {
+                const rawValue = (p as Record<string, unknown>).value;
+                let arr: unknown[] | undefined;
+                if (Array.isArray(rawValue)) {
+                  arr = rawValue;
+                } else if (typeof rawValue === 'string') {
+                  try {
+                    const parsed = JSON.parse(rawValue);
+                    if (Array.isArray(parsed)) arr = parsed;
+                  } catch {
+                    arr = undefined;
+                  }
+                }
+                const childItems =
+                  arr
+                    ?.filter(
+                      (child): child is Record<string, unknown> =>
+                        child !== null && typeof child === 'object',
+                    )
+                    .map((child) => ({
+                      name: typeof child.name === 'string' ? child.name : String(child.id || ''),
+                      value:
+                        typeof child.value === 'string'
+                          ? child.value
+                          : child.value !== undefined && child.value !== null
+                            ? JSON.stringify(child.value)
+                            : '',
+                      type: typeof child.type === 'string' ? (child.type as PropertyType) : undefined,
+                    })) ?? [];
+
+                return (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {/* Parent dynamic group row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <FieldTypeIcon type="dynamic_group" size={ICON_SIZE.sm} />
+                      <span style={{ fontWeight: 500, flexShrink: 0 }}>{displayKey}</span>
+                      {sensitivity && <SensitivityBadge level={sensitivity} />}
+                    </div>
+                    {/* Child fields */}
+                    {childItems.map((child) => (
+                      <div
+                        key={child.name}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          marginLeft: 16,
+                          fontSize: 'var(--text-caption)',
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
+                        <span style={{ fontWeight: 500, flexShrink: 0 }}>{child.name}</span>
+                        <span
+                          style={{
+                            color: 'var(--text-tertiary)',
+                            marginLeft: 'auto',
+                            flexShrink: 0,
+                            textAlign: 'right',
+                          }}
+                        >
+                          {child.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+
+              const typeLabel = propType
+                ? t(`editor:field_types.${propType}`, propType)
+                : String(p.value);
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {propType && <FieldTypeIcon type={propType} size={ICON_SIZE.sm} />}
