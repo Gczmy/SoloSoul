@@ -14,6 +14,8 @@ import { Search, Download, X } from 'lucide-react';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { ICON_SIZE } from '@/lib/constants';
+import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
+
 
 interface AuditLogEntry {
   id: number;
@@ -152,8 +154,17 @@ export function OperationLogPage() {
         filters: [{ name: 'JSON', extensions: ['json'] }],
       });
       if (!filePath) return; // User cancelled
-      const result = await invoke<string>('log_export', { exportPath: filePath });
-      onSuccess(`${t('common:export')} → ${result}`);
+
+      // Android 保存对话框返回 content:// URI，Rust 只能写到应用私有目录，
+      // 先导出到默认位置再用 plugin-fs 中转。
+      if (isUriPath(filePath)) {
+        const exportedPath = await invoke<string>('log_export', {});
+        await copyStagedFileToDest(exportedPath, filePath);
+        onSuccess(`${t('common:export')} → ${filePath}`);
+      } else {
+        const result = await invoke<string>('log_export', { exportPath: filePath });
+        onSuccess(`${t('common:export')} → ${result}`);
+      }
     } catch (e) {
       onError(e, t('common:logs_export_failed'));
     }

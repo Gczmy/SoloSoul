@@ -8,7 +8,6 @@
     "core:default",
     "core:window:allow-set-size",
     "core:window:allow-inner-size",
-    "updater:default",
     "process:default",
     {
       "identifier": "shell:allow-open",
@@ -20,7 +19,20 @@
       "identifier": "fs:allow-copy-file",
       "allow": [{ "path": "**" }]
     },
+    {
+      "identifier": "fs:allow-stat",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-mkdir",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [{ "path": "**" }]
+    },
     "http:default",
-    "notification:default"
+    "notification:default",
+    "os:default"
   ]
 }

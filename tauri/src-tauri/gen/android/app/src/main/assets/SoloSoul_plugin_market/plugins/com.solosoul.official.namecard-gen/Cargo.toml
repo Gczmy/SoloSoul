@@ -1,0 +1,12 @@
+[package]
+name = "namecard-gen"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Namecard Generator — Generate vCard digital business cards from Vault contact data"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

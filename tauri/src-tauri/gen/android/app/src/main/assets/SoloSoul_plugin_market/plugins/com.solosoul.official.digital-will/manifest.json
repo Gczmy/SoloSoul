@@ -1,0 +1,44 @@
+{
+  "plugin_id": "com.solosoul.official.digital-will",
+  "name": "Digital Will",
+  "version": "1.0.1",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "数字遗产指示 — 基于 Vault 数据生成紧急情况下的资产与账户处理建议（仅供参考，非法律文件）",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.digital-will",
+  "required_fields": [
+    "identity.fullName"
+  ],
+  "optional_fields": [
+    "contact.emergencyName",
+    "contact.emergencyPhone",
+    "contact.emergencyRelationship",
+    "address.street",
+    "address.city",
+    "financial.bankStatement",
+    "financial.investment",
+    "insurance.life",
+    "digitalAccounts.email",
+    "digitalAccounts.socialMedia",
+    "digitalAccounts.crypto"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "数字遗嘱",
+      "description": "基于 Vault 数据生成数字遗产分配建议。"
+    },
+    "en": {
+      "name": "Digital Will",
+      "description": "Generate digital estate allocation suggestions based on data stored in the Vault."
+    }
+  },
+  "tier": "p2",
+  "category": "legal"
+}

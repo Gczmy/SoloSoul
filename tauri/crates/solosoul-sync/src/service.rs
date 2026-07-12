@@ -16,8 +16,9 @@
 //   let manager = guard.as_ref().ok_or("Sync is not enabled")?;
 //   // manager: &SyncManager, 调用方法 .await / .x() 全部明确
 
-use crate::manager::{SyncManager, SyncPeerInfo, SyncSessionResult};
+use crate::manager::SyncManager;
 use crate::noise::NoiseKeys;
+use crate::types::{SyncPeerInfo, SyncSessionResult};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 

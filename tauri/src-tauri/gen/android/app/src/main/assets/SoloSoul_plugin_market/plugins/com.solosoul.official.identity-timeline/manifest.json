@@ -1,0 +1,62 @@
+{
+  "plugin_id": "com.solosoul.official.identity-timeline",
+  "name": "Identity Timeline",
+  "version": "1.0.1",
+  "plugin_api_version": "1.1",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "身份时间线 — 按时间顺序展示教育、工作、证件等人生里程碑",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.identity-timeline",
+  "required_fields": [],
+  "optional_fields": [
+    "identity.fullName",
+    "identity.dateOfBirth",
+    "education.institution",
+    "education.degree",
+    "education.year",
+    "employment.company",
+    "employment.position",
+    "employment.startDate",
+    "passport.issueDate",
+    "passport.expiryDate",
+    "visa.type",
+    "visa.issueDate"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.identity/timeline/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "fullName" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "dateOfBirth" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "institution" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "degree" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "year" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "company" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "position" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "startDate" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "issueDate" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "expiryDate" },
+    { "contractTypeId": "com.solosoul.identity/timeline/v1", "propertyId": "type" }
+  ],
+  "i18n": {
+    "zh": {
+      "name": "身份时间线",
+      "description": "按时间线展示用户身份变迁历程。"
+    },
+    "en": {
+      "name": "Identity Timeline",
+      "description": "Display the user's identity evolution over time, including education, work, visas, and asset acquisition milestones."
+    }
+  },
+  "tier": "p0",
+  "category": "report"
+}

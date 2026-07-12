@@ -1,0 +1,41 @@
+{
+  "plugin_id": "com.solosoul.official.emergency-card",
+  "name": "Emergency Card",
+  "version": "1.0.1",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "紧急联系卡 — 生成包含医疗信息和紧急联系人的应急卡片",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.emergency-card",
+  "required_fields": [
+    "identity.fullName"
+  ],
+  "optional_fields": [
+    "identity.dateOfBirth",
+    "medical.bloodType",
+    "medical.allergies",
+    "medical.medications",
+    "medical.conditions",
+    "contact.emergencyName",
+    "contact.emergencyPhone",
+    "contact.emergencyRelationship"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "紧急联系卡",
+      "description": "生成紧急情况下使用的医疗/联系信息卡片，纯本地运行。"
+    },
+    "en": {
+      "name": "Emergency Card",
+      "description": "Generate an emergency medical/contact information card. Data is stored locally with no network required."
+    }
+  },
+  "tier": "p2",
+  "category": "generator"
+}

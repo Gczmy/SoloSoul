@@ -55,6 +55,7 @@
   "download_result": "下载成功",
   "download_failed": "下载失败",
   "batch_download_result": "已下载 {{success}}/{{total}} 个文件",
+  "batch_download_mobile_unsupported": "移动端暂不支持批量下载到目录，请逐个下载文件。",
   "select_download_directory": "选择下载目录",
   "upload": "上传",
   "refresh": "刷新",

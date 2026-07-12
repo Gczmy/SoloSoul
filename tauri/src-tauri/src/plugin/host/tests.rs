@@ -15,7 +15,7 @@ async fn test_perform_http_async_get() {
     });
 
     let url = format!("http://{}", addr);
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder().no_proxy().build().unwrap();
     let result = perform_http_async(&client, "GET", &url, "").await.unwrap();
     assert_eq!(result.status, 200);
     assert_eq!(result.body, "hello");
@@ -35,7 +35,7 @@ async fn test_perform_http_async_post_json() {
     });
 
     let url = format!("http://{}", addr);
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder().no_proxy().build().unwrap();
     let result = perform_http_async(&client, "POST", &url, r#"{"name":"Alice"}"#)
         .await
         .unwrap();

@@ -1,0 +1,14 @@
+[package]
+name = "watermark-plugin"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "附件水印添加插件 — 为图片/PDF 附件批量添加文本水印"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[lib]
+crate-type = ["cdylib"]

@@ -202,6 +202,7 @@ pub async fn export_estimate_size(
 
 #[tauri::command]
 pub async fn export_execute(
+    #[allow(unused_variables)] app: tauri::AppHandle,
     state: State<'_, AppState>,
     account_id: String,
     req: ExportRequest,
@@ -285,10 +286,23 @@ pub async fn export_execute(
 
     // ── Build ZIP ──────────────────────────────────────────────
     let save_path = if req.save_path.starts_with("~/") {
-        let home = std::env::var("HOME").map_err(|_| {
-            "HOME environment variable not set; cannot resolve ~/ in save path".to_string()
-        })?;
-        home + &req.save_path[1..]
+        #[cfg(mobile)]
+        {
+            app.path()
+                .resolve(&req.save_path[2..],
+                    tauri::path::BaseDirectory::Data,
+                )
+                .map_err(|e| format!("无法解析应用数据目录: {e}"))?
+                .to_string_lossy()
+                .to_string()
+        }
+        #[cfg(desktop)]
+        {
+            let home = std::env::var("HOME").map_err(|_| {
+                "HOME environment variable not set; cannot resolve ~/ in save path".to_string()
+            })?;
+            home + &req.save_path[1..]
+        }
     } else {
         req.save_path.clone()
     };

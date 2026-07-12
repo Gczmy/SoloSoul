@@ -50,3 +50,15 @@ pub fn current_account_optional(state: &AppState) -> Option<String> {
     let svc = state.vault_service.read().ok()?;
     svc.get_current_account()
 }
+
+/// 移动端未支持功能的统一错误提示。
+#[cfg(mobile)]
+pub fn mobile_not_supported() -> Result<(), String> {
+    Err("当前平台暂不支持该功能".to_string())
+}
+
+/// 移动端未支持功能的统一错误提示（带返回值）。
+#[cfg(mobile)]
+pub fn mobile_not_supported_with<T>() -> Result<T, String> {
+    Err("当前平台暂不支持该功能".to_string())
+}

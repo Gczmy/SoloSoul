@@ -1,0 +1,34 @@
+{
+  "scenarios": [
+    {
+      "id": "japan-visa",
+      "name": {"zh": "日本签证", "en": "Japan Visa"},
+      "fields": ["passport.number", "identity.idPhoto", "employment.company", "financial.bankStatement", "travel.itinerary", "travel.hotelBooking"]
+    },
+    {
+      "id": "us-visa",
+      "name": {"zh": "美国签证 (B1/B2)", "en": "US Visa (B1/B2)"},
+      "fields": ["passport.number", "identity.idPhoto", "visa.ds160Confirmation", "visa.interviewAppointment", "financial.bankStatement", "employment.company"]
+    },
+    {
+      "id": "schengen-visa",
+      "name": {"zh": "申根签证", "en": "Schengen Visa"},
+      "fields": ["passport.number", "identity.idPhoto", "insurance.travel", "travel.itinerary", "travel.hotelBooking", "financial.bankStatement", "employment.company"]
+    },
+    {
+      "id": "uk-visa",
+      "name": {"zh": "英国签证", "en": "UK Visa"},
+      "fields": ["passport.number", "identity.idPhoto", "medical.tbTest", "visa.casLetter", "financial.bankStatement", "travel.hotelBooking"]
+    },
+    {
+      "id": "bank-account",
+      "name": {"zh": "银行开户", "en": "Bank Account"},
+      "fields": ["passport.number", "address.street", "employment.company"]
+    },
+    {
+      "id": "hotel-checkin",
+      "name": {"zh": "酒店入住", "en": "Hotel Check-in"},
+      "fields": ["passport.number", "travel.hotelBooking", "card.number"]
+    }
+  ]
+}

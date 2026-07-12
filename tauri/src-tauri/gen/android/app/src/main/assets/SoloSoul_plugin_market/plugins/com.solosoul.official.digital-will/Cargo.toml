@@ -1,0 +1,12 @@
+[package]
+name = "digital-will"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Digital Will — Generate emergency asset and account disposition guidance"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

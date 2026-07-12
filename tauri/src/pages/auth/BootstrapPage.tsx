@@ -49,8 +49,10 @@ export function BootstrapPage() {
           background: 'var(--bg-elevated)',
           borderRadius: 16,
           padding: 32,
-          width: 400,
+          width: '100%',
+          maxWidth: 400,
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          margin: '0 16px',
         }}
       >
         <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 600, marginBottom: 8 }}>

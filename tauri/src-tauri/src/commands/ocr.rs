@@ -3,10 +3,17 @@
 //! 基于 `solosoul-core::ocr` 的本地 PP-OCRv6 引擎。
 //! 模型文件存放在应用数据目录的 `models/` 下，支持从打包资源复制或运行时下载。
 
-use crate::commands::{current_account, vault_handle};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
+
+#[cfg(desktop)]
+use crate::commands::{current_account, vault_handle};
+#[cfg(mobile)]
+use crate::commands::{mobile_not_supported, mobile_not_supported_with};
+
+#[cfg(desktop)]
 use serde_json::json;
+#[cfg(desktop)]
 use solosoul_core::ocr::{
     engine::OcrEngine,
     model::{
@@ -15,13 +22,103 @@ use solosoul_core::ocr::{
     },
     types::{MrzResult, OcrModelTier, OcrResult},
 };
+#[cfg(desktop)]
 use std::path::{Path, PathBuf};
+#[cfg(desktop)]
 use tauri::{Emitter, Manager};
 
 // Re-export core types so callers can rely on a stable Tauri-facing name.
+#[cfg(desktop)]
 pub use solosoul_core::ocr::types::{OcrBox, OcrResult as OcrScanResult};
 
+// 移动端：提供与桌面端同名的轻量类型，保证命令签名与前端序列化格式不变。
+#[cfg(mobile)]
+mod mobile_types {
+    use serde::{Deserialize, Serialize};
+
+    /// 单条文本检测结果。
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OcrBox {
+        pub text: String,
+        pub confidence: f64,
+        /// 文本框四个角点，顺序为左上、右上、右下、左下（原始图像坐标）。
+        pub points: [(f32, f32); 4],
+    }
+
+    /// 单张图片的 OCR 结果。
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct OcrResult {
+        /// 按阅读顺序拼接的完整文本。
+        pub text: String,
+        /// 整体平均置信度。
+        pub confidence: f64,
+        /// 检测到的文本块列表。
+        pub boxes: Vec<OcrBox>,
+    }
+
+    /// OCR 模型档位。
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+    #[serde(rename_all = "lowercase")]
+    pub enum OcrModelTier {
+        Tiny,
+        #[default]
+        Small,
+        Medium,
+    }
+
+    impl std::fmt::Display for OcrModelTier {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                OcrModelTier::Tiny => write!(f, "tiny"),
+                OcrModelTier::Small => write!(f, "small"),
+                OcrModelTier::Medium => write!(f, "medium"),
+            }
+        }
+    }
+
+    impl std::str::FromStr for OcrModelTier {
+        type Err = String;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            match s.to_lowercase().as_str() {
+                "tiny" => Ok(OcrModelTier::Tiny),
+                "small" => Ok(OcrModelTier::Small),
+                "medium" => Ok(OcrModelTier::Medium),
+                _ => Err(format!("Unknown OCR model tier: {s}")),
+            }
+        }
+    }
+
+    /// MRZ（机读区）识别结果。
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct MrzResult {
+        pub document_type: String,
+        pub document_type_sub: String,
+        pub issuing_country: String,
+        pub document_number: String,
+        pub check_digit_document_number: char,
+        pub nationality: String,
+        pub date_of_birth: String,
+        pub check_digit_date_of_birth: char,
+        pub sex: String,
+        pub expiry_date: String,
+        pub check_digit_expiry: char,
+        pub optional_data: String,
+        pub composite_check_digit: String,
+        pub raw_lines: Vec<String>,
+        pub confidence: f64,
+        pub checksum_valid: bool,
+    }
+}
+
+#[cfg(mobile)]
+pub use mobile_types::{MrzResult, OcrBox, OcrModelTier, OcrResult, OcrResult as OcrScanResult};
+
 /// OCR 应用偏好设置。
+#[cfg(desktop)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct OcrPreferences {
@@ -30,6 +127,7 @@ struct OcrPreferences {
     active_tier: OcrModelTier,
 }
 
+#[cfg(desktop)]
 impl Default for OcrPreferences {
     fn default() -> Self {
         Self {
@@ -57,67 +155,128 @@ pub struct OcrModelStatus {
 }
 
 // =============================================================================
-// Paths and preferences
+// Paths and preferences (desktop only)
 // =============================================================================
+#[cfg(desktop)]
+mod desktop_impl {
+    use super::*;
 
-/// 解析应用本地数据目录下的 OCR 模型根目录。
-fn models_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    app.path()
-        .resolve("models", tauri::path::BaseDirectory::LocalData)
-        .map_err(|e| format!("无法解析模型目录: {e}"))
-}
-
-/// 解析打包资源中的模型根目录。
-fn bundled_models_dir() -> Result<PathBuf, String> {
-    // 优先使用 Tauri setup 阶段解析的资源目录，保证生产包路径正确。
-    if let Some(dir) = crate::commands::llm::RESOURCE_DIR.get() {
-        return Ok(dir.join("models"));
+    /// 解析应用本地数据目录下的 OCR 模型根目录。
+    pub fn models_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+        app.path()
+            .resolve("models", tauri::path::BaseDirectory::LocalData)
+            .map_err(|e| format!("无法解析模型目录: {e}"))
     }
 
-    if cfg!(debug_assertions) {
-        Ok(PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("resources")
-            .join("models"))
-    } else {
-        Err("未在 release 模式下初始化 RESOURCE_DIR".to_string())
+    /// 解析打包资源中的模型根目录。
+    pub fn bundled_models_dir() -> Result<PathBuf, String> {
+        // 优先使用 Tauri setup 阶段解析的资源目录，保证生产包路径正确。
+        if let Some(dir) = crate::commands::llm::RESOURCE_DIR.get() {
+            return Ok(dir.join("models"));
+        }
+
+        if cfg!(debug_assertions) {
+            Ok(PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("resources")
+                .join("models"))
+        } else {
+            Err("未在 release 模式下初始化 RESOURCE_DIR".to_string())
+        }
+    }
+
+    /// OCR 偏好设置文件路径。
+    pub fn preferences_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+        app.path()
+            .resolve(
+                "ocr_preferences.json",
+                tauri::path::BaseDirectory::LocalData,
+            )
+            .map_err(|e| format!("无法解析 OCR 偏好设置路径: {e}"))
+    }
+
+    pub fn load_preferences(app: &tauri::AppHandle) -> OcrPreferences {
+        let path = match preferences_path(app) {
+            Ok(p) => p,
+            Err(_) => return OcrPreferences::default(),
+        };
+        std::fs::read_to_string(&path)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default()
+    }
+
+    pub fn save_preferences(app: &tauri::AppHandle, prefs: &OcrPreferences) -> Result<(), String> {
+        let path = preferences_path(app)?;
+        let json =
+            serde_json::to_string_pretty(prefs).map_err(|e| format!("序列化偏好设置: {e}"))?;
+        std::fs::write(&path, json).map_err(|e| format!("写入偏好设置: {e}"))?;
+        Ok(())
+    }
+
+    pub fn active_tier(app: &tauri::AppHandle) -> OcrModelTier {
+        load_preferences(app).active_tier
+    }
+
+    /** 前端用于识别「模型未安装」错误并做国际化提示的前缀。 */
+    pub const OCR_MODEL_NOT_INSTALLED_PREFIX: &str = "__OCR_MODEL_NOT_INSTALLED__";
+
+    /// 确保目标档位的模型可用：优先从打包资源复制，否则返回机器可读错误码供前端国际化。
+    pub fn ensure_model_available(
+        app: &tauri::AppHandle,
+        tier: OcrModelTier,
+    ) -> Result<PathBuf, String> {
+        let models_dir = models_dir(app)?;
+
+        if is_model_installed(&models_dir, tier) {
+            return Ok(models_dir);
+        }
+
+        // 尝试从打包资源复制。
+        let bundled_dir = bundled_models_dir().unwrap_or_else(|_| PathBuf::new());
+        if bundled_dir.exists()
+            && install_model_from_bundled(&bundled_dir, &models_dir, tier).is_ok()
+        {
+            return Ok(models_dir);
+        }
+
+        Err(format!("{}:{}", OCR_MODEL_NOT_INSTALLED_PREFIX, tier))
+    }
+
+    /// 检查路径是否在允许的用户目录内（Desktop/Documents/Downloads）。
+    /// 用于防御性安全校验，防止路径遍历攻击。
+    pub fn is_path_in_allowed_dir(path: &Path) -> bool {
+        let canon = match path.canonicalize() {
+            Ok(p) => p,
+            Err(_) => return false,
+        };
+
+        let home_var = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
+        let home = match std::env::var(home_var) {
+            Ok(h) => PathBuf::from(h),
+            Err(_) => return false,
+        };
+
+        for dir_name in &["Desktop", "Documents", "Downloads"] {
+            let allowed = home.join(dir_name);
+            if let Ok(allowed_canon) = allowed.canonicalize() {
+                if canon.starts_with(&allowed_canon) {
+                    return true;
+                }
+            }
+        }
+
+        false
     }
 }
 
-/// OCR 偏好设置文件路径。
-fn preferences_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    app.path()
-        .resolve(
-            "ocr_preferences.json",
-            tauri::path::BaseDirectory::LocalData,
-        )
-        .map_err(|e| format!("无法解析 OCR 偏好设置路径: {e}"))
-}
+#[cfg(desktop)]
+use desktop_impl::*;
 
-fn load_preferences(app: &tauri::AppHandle) -> OcrPreferences {
-    let path = match preferences_path(app) {
-        Ok(p) => p,
-        Err(_) => return OcrPreferences::default(),
-    };
-    std::fs::read_to_string(&path)
-        .ok()
-        .and_then(|s| serde_json::from_str(&s).ok())
-        .unwrap_or_default()
-}
-
-fn save_preferences(app: &tauri::AppHandle, prefs: &OcrPreferences) -> Result<(), String> {
-    let path = preferences_path(app)?;
-    let json = serde_json::to_string_pretty(prefs).map_err(|e| format!("序列化偏好设置: {e}"))?;
-    std::fs::write(&path, json).map_err(|e| format!("写入偏好设置: {e}"))?;
-    Ok(())
-}
-
-fn active_tier(app: &tauri::AppHandle) -> OcrModelTier {
-    load_preferences(app).active_tier
-}
-
+#[cfg(desktop)]
 /// 尝试从 Tauri 资源目录定位 PDFium 动态库，并通过环境变量告知 `pdfium-render`。
 ///
 /// 该环境变量仅在当前进程内有效；若用户已手动设置，则保留原值。
+#[cfg(desktop)]
 pub(crate) fn ensure_pdfium_library_path(app: &tauri::AppHandle) {
     if std::env::var("PDFIUM_LIBRARY_PATH").is_ok() {
         return;
@@ -137,26 +296,6 @@ pub(crate) fn ensure_pdfium_library_path(app: &tauri::AppHandle) {
     }
 }
 
-/** 前端用于识别「模型未安装」错误并做国际化提示的前缀。 */
-const OCR_MODEL_NOT_INSTALLED_PREFIX: &str = "__OCR_MODEL_NOT_INSTALLED__";
-
-/// 确保目标档位的模型可用：优先从打包资源复制，否则返回机器可读错误码供前端国际化。
-fn ensure_model_available(app: &tauri::AppHandle, tier: OcrModelTier) -> Result<PathBuf, String> {
-    let models_dir = models_dir(app)?;
-
-    if is_model_installed(&models_dir, tier) {
-        return Ok(models_dir);
-    }
-
-    // 尝试从打包资源复制。
-    let bundled_dir = bundled_models_dir().unwrap_or_else(|_| PathBuf::new());
-    if bundled_dir.exists() && install_model_from_bundled(&bundled_dir, &models_dir, tier).is_ok() {
-        return Ok(models_dir);
-    }
-
-    Err(format!("{}:{}", OCR_MODEL_NOT_INSTALLED_PREFIX, tier))
-}
-
 // =============================================================================
 // Commands
 // =============================================================================
@@ -165,6 +304,7 @@ fn ensure_model_available(app: &tauri::AppHandle, tier: OcrModelTier) -> Result<
 ///
 /// 要求 Vault 已解锁；使用当前激活的模型档位。
 /// PDF 文件优先提取文本层，若无文本则逐页渲染为图片后 OCR。
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_scan_image(
     state: tauri::State<'_, AppState>,
@@ -225,9 +365,20 @@ pub async fn ocr_scan_image(
     Ok(result)
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_scan_image(
+    _state: tauri::State<'_, AppState>,
+    _file_path: String,
+    _language: Option<String>,
+) -> Result<OcrResult, String> {
+    mobile_not_supported_with()
+}
+
 /// 扫描图片中的 MRZ（机读区）并返回解析结果。
 ///
 /// 若未检测到 MRZ 区域，返回 `null`。
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_scan_mrz(
     state: tauri::State<'_, AppState>,
@@ -272,9 +423,19 @@ pub async fn ocr_scan_mrz(
     Ok(result)
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_scan_mrz(
+    _state: tauri::State<'_, AppState>,
+    _file_path: String,
+) -> Result<Option<MrzResult>, String> {
+    mobile_not_supported_with()
+}
+
 /// 返回 OCR 支持的识别语言列表。
 ///
 /// PP-OCRv6 识别模型本身支持多语言（中英文为主），这里返回稳定的 UI 选项。
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String> {
     Ok(vec![
@@ -286,7 +447,14 @@ pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String> {
     ])
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String> {
+    mobile_not_supported_with()
+}
+
 /// 返回所有可用的模型档位信息。
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
     Ok(vec![
@@ -308,13 +476,27 @@ pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
     ])
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
+    mobile_not_supported_with()
+}
+
 /// 获取当前激活的模型档位。
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_get_active_tier(state: tauri::State<'_, AppState>) -> Result<String, String> {
     Ok(active_tier(&state.handle).to_string())
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_get_active_tier(_state: tauri::State<'_, AppState>) -> Result<String, String> {
+    mobile_not_supported_with()
+}
+
 /// 设置当前激活的模型档位。
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_set_active_tier(
     state: tauri::State<'_, AppState>,
@@ -339,7 +521,17 @@ pub async fn ocr_set_active_tier(
     Ok(())
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_set_active_tier(
+    _state: tauri::State<'_, AppState>,
+    _tier: String,
+) -> Result<(), String> {
+    mobile_not_supported()
+}
+
 /// 查询指定档位的模型安装状态。
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_get_model_status(
     state: tauri::State<'_, AppState>,
@@ -354,6 +546,15 @@ pub async fn ocr_get_model_status(
         installed: is_model_installed(&models_dir, tier),
         bundled: resolve_model_bundle(&bundled_dir, tier).is_ok(),
     })
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_get_model_status(
+    _state: tauri::State<'_, AppState>,
+    _tier: String,
+) -> Result<OcrModelStatus, String> {
+    mobile_not_supported_with()
 }
 
 /// OCR 模型安装进度事件负载。
@@ -371,6 +572,7 @@ pub struct OcrInstallProgress {
 ///
 /// 注意：首次启动安装模型可能在用户登录前发生，因此本命令不依赖 Vault 解锁状态，
 /// 也不写入账户审计日志。
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_install_bundled_model_with_progress(
     state: tauri::State<'_, AppState>,
@@ -412,7 +614,17 @@ pub async fn ocr_install_bundled_model_with_progress(
     result
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_install_bundled_model_with_progress(
+    _state: tauri::State<'_, AppState>,
+    _tier: String,
+) -> Result<(), String> {
+    mobile_not_supported()
+}
+
 /// 从打包资源安装指定档位的模型到应用数据目录。
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_install_bundled_model(
     state: tauri::State<'_, AppState>,
@@ -437,6 +649,15 @@ pub async fn ocr_install_bundled_model(
     Ok(())
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_install_bundled_model(
+    _state: tauri::State<'_, AppState>,
+    _tier: String,
+) -> Result<(), String> {
+    mobile_not_supported()
+}
+
 /// 从远程 URL 下载指定档位的模型。
 ///
 /// `base_url` 应指向模型文件所在的根目录，目录结构为：
@@ -444,6 +665,7 @@ pub async fn ocr_install_bundled_model(
 /// `{base_url}/{tier}/det/inference.yml`
 /// `{base_url}/{tier}/rec/inference.onnx`
 /// `{base_url}/{tier}/rec/inference.yml`
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_download_model(
     state: tauri::State<'_, AppState>,
@@ -469,40 +691,21 @@ pub async fn ocr_download_model(
     Ok(())
 }
 
-// =============================================================================
-// Path validation helper
-// =============================================================================
-
-/// 检查路径是否在允许的用户目录内（Desktop/Documents/Downloads）。
-/// 用于防御性安全校验，防止路径遍历攻击。
-fn is_path_in_allowed_dir(path: &Path) -> bool {
-    let canon = match path.canonicalize() {
-        Ok(p) => p,
-        Err(_) => return false,
-    };
-
-    let home_var = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
-    let home = match std::env::var(home_var) {
-        Ok(h) => PathBuf::from(h),
-        Err(_) => return false,
-    };
-
-    for dir_name in &["Desktop", "Documents", "Downloads"] {
-        let allowed = home.join(dir_name);
-        if let Ok(allowed_canon) = allowed.canonicalize() {
-            if canon.starts_with(&allowed_canon) {
-                return true;
-            }
-        }
-    }
-
-    false
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_download_model(
+    _state: tauri::State<'_, AppState>,
+    _tier: String,
+    _base_url: String,
+) -> Result<(), String> {
+    mobile_not_supported()
 }
 
 // =============================================================================
-// Download helper
+// Download helper (desktop only)
 // =============================================================================
 
+#[cfg(desktop)]
 async fn download_model_files(
     base_url: &str,
     models_dir: &Path,
@@ -545,7 +748,7 @@ async fn download_model_files(
     Ok(())
 }
 
-#[cfg(test)]
+#[cfg(all(test, desktop))]
 mod tests {
     use super::*;
 

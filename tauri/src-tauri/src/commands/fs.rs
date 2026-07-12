@@ -3,6 +3,8 @@ use serde::Serialize;
 use std::fs::{self as fs_std};
 use std::io::Read;
 use std::path::{Path, PathBuf};
+#[cfg(mobile)]
+use tauri::Manager;
 use tauri::State;
 
 /// Maximum file size that can be read into memory for a data URL preview (10 MiB).
@@ -17,24 +19,37 @@ const MAX_SCAN_DEPTH: u32 = 8;
 /// Number of objects sampled from a backup for the type-id preview.
 const BACKUP_PREVIEW_SAMPLE: usize = 30;
 
-/// Return the allowed base directory for filesystem commands. The base is taken
-/// from the `SOLOSOUL_FS_BASE` environment variable if set, otherwise the user's
-/// home directory (`HOME` on Unix, `USERPROFILE` on Windows).
+/// Return the allowed base directory for filesystem commands.
+/// - 桌面端：优先使用 `SOLOSOUL_FS_BASE` 环境变量，否则使用用户 home 目录。
+/// - 移动端：使用 Tauri 应用私有数据目录，避免访问任意文件系统路径。
 #[cfg(not(test))]
-fn allowed_fs_base() -> Result<PathBuf, String> {
-    if let Ok(base) = std::env::var("SOLOSOUL_FS_BASE") {
-        return Ok(PathBuf::from(base));
+fn allowed_fs_base<R: tauri::Runtime>(
+    #[allow(unused_variables)] app: &tauri::AppHandle<R>,
+) -> Result<PathBuf, String> {
+    #[cfg(mobile)]
+    {
+        app.path()
+            .resolve(".", tauri::path::BaseDirectory::Data)
+            .map_err(|e| format!("无法解析应用数据目录: {e}"))
     }
-    let home_key = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
-    std::env::var(home_key)
-        .map(PathBuf::from)
-        .map_err(|_| "Could not determine user home directory; set SOLOSOUL_FS_BASE".to_string())
+    #[cfg(desktop)]
+    {
+        if let Ok(base) = std::env::var("SOLOSOUL_FS_BASE") {
+            return Ok(PathBuf::from(base));
+        }
+        let home_key = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
+        std::env::var(home_key)
+            .map(PathBuf::from)
+            .map_err(|_| "Could not determine user home directory; set SOLOSOUL_FS_BASE".to_string())
+    }
 }
 
 /// During tests, allow any absolute path by using the filesystem root as the
 /// base. This keeps unit tests simple while still exercising path logic.
 #[cfg(test)]
-fn allowed_fs_base() -> Result<PathBuf, String> {
+fn allowed_fs_base<R: tauri::Runtime>(
+    _app: &tauri::AppHandle<R>,
+) -> Result<PathBuf, String> {
     Ok(PathBuf::from(if cfg!(windows) { "C:\\" } else { "/" }))
 }
 
@@ -81,8 +96,11 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
 
 /// Resolve `path` within the allowed filesystem base directory. Filesystem
 /// commands that operate on user-selected paths must use this helper.
-fn resolve_allowed_path(path: &str) -> Result<PathBuf, String> {
-    let base = allowed_fs_base()?;
+fn resolve_allowed_path<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    path: &str,
+) -> Result<PathBuf, String> {
+    let base = allowed_fs_base(app)?;
     resolve_within(&base, path)
 }
 
@@ -92,7 +110,8 @@ fn resolve_allowed_path(path: &str) -> Result<PathBuf, String> {
 /// 使用流式解密（`decrypt_blob_stream`）逐块处理，避免将整个备份文件读入内存。
 /// 同时限制预览样本数为 `BACKUP_PREVIEW_SAMPLE`（30 条）。
 #[tauri::command]
-pub async fn inspect_backup(
+pub async fn inspect_backup<R: tauri::Runtime>(
+    #[allow(unused_variables)] app: tauri::AppHandle<R>,
     state: State<'_, AppState>,
     backup_path: String,
 ) -> Result<String, String> {
@@ -166,8 +185,11 @@ pub struct ScannedFile {
 }
 
 #[tauri::command]
-pub async fn fs_scan_directory(path: String) -> Result<Vec<ScannedFile>, String> {
-    let dir = resolve_allowed_path(&path)?;
+pub async fn fs_scan_directory<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    path: String,
+) -> Result<Vec<ScannedFile>, String> {
+    let dir = resolve_allowed_path(&app, &path)?;
     if !dir.is_dir() {
         return Err("Not a directory".to_string());
     }
@@ -213,23 +235,32 @@ fn scan_dir_recursive(
 }
 
 #[tauri::command]
-pub async fn fs_get_file_size(path: String) -> Result<u64, String> {
-    let p = resolve_allowed_path(&path)?;
+pub async fn fs_get_file_size<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    path: String,
+) -> Result<u64, String> {
+    let p = resolve_allowed_path(&app, &path)?;
     let meta = std::fs::metadata(&p).map_err(|e| format!("Read: {}", e))?;
     Ok(meta.len())
 }
 
 #[tauri::command]
-pub async fn fs_is_dir(path: String) -> Result<bool, String> {
-    let p = resolve_allowed_path(&path)?;
+pub async fn fs_is_dir<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    path: String,
+) -> Result<bool, String> {
+    let p = resolve_allowed_path(&app, &path)?;
     let meta = std::fs::metadata(&p).map_err(|e| format!("Read: {}", e))?;
     Ok(meta.is_dir())
 }
 
 #[tauri::command]
-pub async fn fs_read_file_as_data_url(path: String) -> Result<String, String> {
+pub async fn fs_read_file_as_data_url<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    path: String,
+) -> Result<String, String> {
     use std::io::Read;
-    let p = resolve_allowed_path(&path)?;
+    let p = resolve_allowed_path(&app, &path)?;
     let mut file = std::fs::File::open(&p).map_err(|e| format!("Open: {}", e))?;
     let meta = file.metadata().map_err(|e| format!("Metadata: {}", e))?;
     if meta.len() > MAX_DATA_URL_SIZE {
@@ -331,21 +362,26 @@ mod tests {
 
     #[test]
     fn test_fs_get_file_size() {
+        let app = tauri::test::mock_app();
         let dir = TempDir::new().unwrap();
         let path = dir.path().join("test.bin");
         fs::write(&path, vec![0u8; 1234]).unwrap();
-        let size =
-            futures::executor::block_on(fs_get_file_size(path.to_string_lossy().to_string()))
-                .unwrap();
+        let size = futures::executor::block_on(fs_get_file_size(
+            app.handle().clone(),
+            path.to_string_lossy().to_string(),
+        ))
+        .unwrap();
         assert_eq!(size, 1234);
     }
 
     #[test]
     fn test_fs_read_file_as_data_url() {
+        let app = tauri::test::mock_app();
         let dir = TempDir::new().unwrap();
         let path = dir.path().join("test.png");
         fs::write(&path, vec![0u8; 100]).unwrap();
         let url = futures::executor::block_on(fs_read_file_as_data_url(
+            app.handle().clone(),
             path.to_string_lossy().to_string(),
         ))
         .unwrap();
@@ -354,10 +390,12 @@ mod tests {
 
     #[test]
     fn test_fs_read_file_as_data_url_unknown_ext() {
+        let app = tauri::test::mock_app();
         let dir = TempDir::new().unwrap();
         let path = dir.path().join("test.xyz");
         fs::write(&path, "hello").unwrap();
         let url = futures::executor::block_on(fs_read_file_as_data_url(
+            app.handle().clone(),
             path.to_string_lossy().to_string(),
         ))
         .unwrap();

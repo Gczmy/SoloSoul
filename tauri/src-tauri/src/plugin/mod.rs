@@ -24,10 +24,26 @@ pub use solosoul_plugin::store::{compute_sha256, PluginStore};
 
 // Tauri 特有本地模块
 pub mod event;
+
+#[cfg(desktop)]
 pub mod host;
+#[cfg(mobile)]
+#[path = "host_mobile.rs"]
+pub mod host;
+
+#[cfg(desktop)]
 pub mod manager;
+#[cfg(mobile)]
+#[path = "manager_mobile.rs"]
+pub mod manager;
+
 pub mod paths;
 pub mod registry;
+
+#[cfg(desktop)]
+pub mod sandbox;
+#[cfg(mobile)]
+#[path = "sandbox_mobile.rs"]
 pub mod sandbox;
 
 // 从本地模块重新导出（保持 super::xxx 兼容）

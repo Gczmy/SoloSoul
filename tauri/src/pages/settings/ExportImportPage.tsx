@@ -6,7 +6,15 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useToastError } from '@/hooks/useToastError';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
+import {
+  cleanupStagedFile,
+  copyStagedFileToDest,
+  isUriPath,
+  prepareStagedDownloadPath,
+  stageImportPackage,
+} from '@/lib/mobileFileTransfer';
 import { invoke } from '@tauri-apps/api/core';
+
 import { useAuthStore } from '@/stores/authStore';
 import { ExportSection } from '@/components/export/ExportSection';
 import { ImportSection } from '@/components/import/ImportSection';
@@ -65,7 +73,9 @@ export function ExportImportPage() {
 
   // Import state
   const [importPath, setImportPath] = useState('');
+  const [stagedImportPath, setStagedImportPath] = useState<string | null>(null);
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
+
   const [importPw, setImportPw] = useState('');
   const [decryptedPreview, setDecryptedPreview] = useState<DecryptedImportPreview | null>(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
@@ -205,8 +215,16 @@ export function ExportImportPage() {
     }
 
     setIsExporting(true);
+    let stagedExportPath: string | null = null;
     try {
-      await invoke<string>('export_execute', {
+      let targetSavePath = savePath;
+      // Android 保存对话框返回 content:// URI，Rust 无法直接写入，需要先写到缓存再中转
+      if (savePath && isUriPath(savePath)) {
+        stagedExportPath = await prepareStagedDownloadPath('solosoul_export.solosoul');
+        targetSavePath = stagedExportPath;
+      }
+
+      const exportedPath = await invoke<string>('export_execute', {
         accountId,
         req: {
           scope: {
@@ -220,9 +238,14 @@ export function ExportImportPage() {
           },
           password: exportPassword,
           passwordHint: exportHint || null,
-          savePath,
+          savePath: targetSavePath,
         },
       });
+
+      if (stagedExportPath && savePath) {
+        await copyStagedFileToDest(exportedPath, savePath);
+      }
+
       // 导出成功后重置 skip ref，下次导出重新检查
       skipHintCheckRef.current = false;
       skipWeakPasswordCheckRef.current = false;
@@ -230,6 +253,9 @@ export function ExportImportPage() {
     } catch (e) {
       onError(new Error(resolveBackendErrorMessage(e)), t('common:export_failed'));
     } finally {
+      if (stagedExportPath) {
+        await cleanupStagedFile(stagedExportPath);
+      }
       setIsExporting(false);
     }
   };
@@ -239,8 +265,9 @@ export function ExportImportPage() {
     if (!importPath || isPreviewing) return;
     setIsPreviewing(true);
     try {
+      const sourcePath = await resolveImportSource();
       const preview = await invoke<ImportPreview>('import_parse_package', {
-        filePath: importPath,
+        filePath: sourcePath,
       });
       setImportPreview(preview);
       setDecryptedPreview(null);
@@ -255,8 +282,9 @@ export function ExportImportPage() {
     if (!importPath || !importPw || isDecrypting) return;
     setIsDecrypting(true);
     try {
+      const sourcePath = await resolveImportSource();
       const preview = await invoke<DecryptedImportPreview>('import_decrypt_preview', {
-        filePath: importPath,
+        filePath: sourcePath,
         password: importPw,
       });
       setDecryptedPreview(preview);
@@ -292,6 +320,7 @@ export function ExportImportPage() {
     if (!importPath || !importPw || importTotalSelected === 0) return;
     setIsImporting(true);
     try {
+      const sourcePath = await resolveImportSource();
       const selections = Array.from(importSelections.entries()).map(([objectId, selected]) => ({
         objectId,
         selected,
@@ -316,7 +345,7 @@ export function ExportImportPage() {
           req: {
             selections,
             strategy: importStrategy,
-            sourcePath: importPath,
+            sourcePath,
             password: importPw,
             selectedAttachmentIds: selAttIds.length > 0 ? selAttIds : null,
             objectStrategies,
@@ -336,7 +365,7 @@ export function ExportImportPage() {
           req: {
             selections,
             strategy: 'skipExisting',
-            sourcePath: importPath,
+            sourcePath,
             password: importPw,
             selectedAttachmentIds: selAttIds.length > 0 ? selAttIds : null,
             objectStrategies,
@@ -353,6 +382,10 @@ export function ExportImportPage() {
       setImportPreview(null);
       setDecryptedPreview(null);
       setImportPath('');
+      if (stagedImportPath) {
+        cleanupStagedFile(stagedImportPath);
+        setStagedImportPath(null);
+      }
       setImportPw('');
       setShowStrategySelector(false);
       setObjectConflictStrategies(new Map());
@@ -494,6 +527,31 @@ export function ExportImportPage() {
     return count;
   }, [importSelections]);
 
+  /**
+   * 获取导入命令实际使用的本地路径。
+   * Android 返回 content:// URI 时，先通过 plugin-fs 复制到应用缓存。
+   */
+  const resolveImportSource = useCallback(async () => {
+    if (stagedImportPath) return stagedImportPath;
+    if (isUriPath(importPath)) {
+      const local = await stageImportPackage(importPath);
+      setStagedImportPath(local);
+      return local;
+    }
+    return importPath;
+  }, [importPath, stagedImportPath]);
+
+  const handleSetImportPath = useCallback(
+    (path: string) => {
+      setImportPath(path);
+      if (stagedImportPath) {
+        cleanupStagedFile(stagedImportPath);
+        setStagedImportPath(null);
+      }
+    },
+    [stagedImportPath],
+  );
+
   return (
     <AppShell title={t('settings:export_import')} onBack={() => navigate('/settings')}>
       <PageContainer variant="medium" gap="default">
@@ -582,7 +640,7 @@ export function ExportImportPage() {
             importExpandedPages={importExpandedPages}
             importExpandedObjects={importExpandedObjects}
             importTotalSelected={importTotalSelected}
-            onSetImportPath={setImportPath}
+            onSetImportPath={handleSetImportPath}
             onSetImportPreview={setImportPreview}
             onSetDecryptedPreview={setDecryptedPreview}
             onSetImportPw={setImportPw}

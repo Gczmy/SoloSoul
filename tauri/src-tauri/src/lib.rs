@@ -60,21 +60,32 @@ fn setup_panic_hook() {
     }));
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    // ── 第 0 步：确定日志目录 ──
-    let log_dir = dirs::data_dir()
-        .unwrap_or_else(std::env::temp_dir)
-        .join("com.solosoul.app")
-        .join("logs");
-    let _ = std::fs::create_dir_all(&log_dir);
-    LOG_DIR.set(log_dir.clone()).ok();
+/// 解析应用数据目录。
+/// - 桌面端：使用 `dirs::data_dir()/com.solosoul.app`
+/// - 移动端：使用 Tauri 的 `BaseDirectory::Data`，通过 `app.path()` 解析
+fn resolve_app_data_dir(#[allow(unused_variables)] app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        app.path()
+            .resolve(".", tauri::path::BaseDirectory::Data)
+            .map_err(|e| format!("无法解析应用数据目录: {e}"))
+    }
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        Ok(dirs::data_dir()
+            .unwrap_or_else(std::env::temp_dir)
+            .join("com.solosoul.app"))
+    }
+}
 
-    // ── 第 0.5 步：注册 panic hook（在一切初始化之前）──
-    setup_panic_hook();
+/// 解析日志目录。
+fn resolve_log_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    resolve_app_data_dir(app).map(|d| d.join("logs"))
+}
 
-    // ── 第 1 步：初始化 tracing（文件 + stderr）──
-    let file_appender = tracing_appender::rolling::never(&log_dir, "app.log");
+/// 初始化 tracing（文件 + stderr）。在移动端于 setup 中调用，以获取正确的应用私有目录。
+fn init_tracing(log_dir: &PathBuf) {
+    let file_appender = tracing_appender::rolling::never(log_dir, "app.log");
     let (file_writer, guard) = tracing_appender::non_blocking(file_appender);
 
     // `ort` crate 2.x 会通过内置 tracing 输出 session 创建 / 算子分配日志，在开发模式下
@@ -106,32 +117,65 @@ pub fn run() {
             .with(env_filter)
             .init();
     }
+}
 
-    tracing::info!("[init] SoloSoul v{} 启动", env!("CARGO_PKG_VERSION"));
-    tracing::info!("[init] 日志目录: {}", log_dir.display());
-    tracing::info!("[init] 目标平台: {}", std::env::consts::OS);
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    // ── 第 0 步：注册 panic hook（在一切初始化之前）──
+    // 注意：此时可能还没有正确的日志目录（移动端需进入 setup 后才能解析），
+    // panic 信息会先写入 stderr；setup 中设置 LOG_DIR 后则可写入文件。
+    setup_panic_hook();
 
-    // ── 第 2 步：构建 Tauri 应用 ──
-    let result = tauri::Builder::default()
+    // ── 第 1 步：构建 Tauri 应用 ──
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_window_state::Builder::new().build())
-        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_os::init());
+
+    // 桌面端专属插件
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        builder = builder
+            .plugin(tauri_plugin_window_state::Builder::new().build())
+            .plugin(tauri_plugin_updater::Builder::new().build());
+    }
+
+    let result = builder
         .setup(|app| {
             // ════════════════════════════════════════════════════════
             // 启动前检查：ERROR/WARN 记录问题，正常路径不输出噪音
             // 设 RUST_LOG=solo_soul=debug 可看到完整步骤级日志
             // ════════════════════════════════════════════════════════
 
+            // 0. 解析日志目录并初始化 tracing
+            let log_dir = match resolve_log_dir(app.handle()) {
+                Ok(dir) => dir,
+                Err(e) => {
+                    eprintln!("[fatal] 无法解析日志目录: {e}");
+                    return Err(format!("无法解析日志目录: {e}").into());
+                }
+            };
+            let _ = std::fs::create_dir_all(&log_dir);
+            LOG_DIR.set(log_dir.clone()).ok();
+            init_tracing(&log_dir);
+
+            tracing::info!("[init] SoloSoul v{} 启动", env!("CARGO_PKG_VERSION"));
+            tracing::info!("[init] 日志目录: {}", log_dir.display());
+            tracing::info!("[init] 目标平台: {}", std::env::consts::OS);
+
             // 1. 检查数据目录是否可写
             {
-                let data_dir = dirs::data_dir()
-                    .unwrap_or_else(std::env::temp_dir)
-                    .join("com.solosoul.app");
+                let data_dir = match resolve_app_data_dir(app.handle()) {
+                    Ok(dir) => dir,
+                    Err(e) => {
+                        tracing::error!("[setup] ❌ 无法解析数据目录: {}", e);
+                        return Err(format!("无法解析数据目录: {e}").into());
+                    }
+                };
                 if let Err(e) = std::fs::create_dir_all(&data_dir) {
                     tracing::error!(
                         "[setup] ❌ 数据目录不可写: {} 错误: {}",
@@ -162,10 +206,11 @@ pub fn run() {
                 }
             }
 
-            // 4. 为当前进程设置 PDFium 动态库路径（OCR 与水印共用）。
+            // 3. 为当前进程设置 PDFium 动态库路径（OCR 与水印共用）— 桌面端先行
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             commands::ocr::ensure_pdfium_library_path(app.handle());
 
-            // 5. 初始化 AppState（关键步骤，失败时中止启动）
+            // 4. 初始化 AppState（关键步骤，失败时中止启动）
             tracing::debug!("[setup] 正在创建 AppState...");
             let app_state = match AppState::new(app.handle().clone()) {
                 Ok(state) => state,
@@ -175,7 +220,12 @@ pub fn run() {
                 }
             };
             app.manage(app_state);
-            app.manage(commands::discovery::SharedDaemon::new());
+
+            // 5. 初始化桌面端发现服务（mDNS）— 移动端暂不提供
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            {
+                app.manage(commands::discovery::SharedDaemon::new());
+            }
 
             // 6. 初始化 RESOURCE_DIR
             if let Ok(resource_dir) = app.path().resource_dir() {
@@ -184,7 +234,8 @@ pub fn run() {
                 tracing::error!("[setup] ❌ 无法获取 resource_dir，RESOURCE_DIR 未设置");
             }
 
-            // 7. 应用启动时后台静默刷新插件注册表（不阻塞启动，失败仅记录日志）
+            // 7. 应用启动时后台静默刷新插件注册表（不阻塞启动，失败仅记录日志）— 桌面端先行
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             {
                 let app_handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
@@ -196,9 +247,13 @@ pub fn run() {
                         return;
                     }
                     // 若 1 小时内已刷新过则跳过
-                    let data_dir = dirs::data_dir()
-                        .unwrap_or_else(std::env::temp_dir)
-                        .join("com.solosoul.app");
+                    let data_dir = match resolve_app_data_dir(&app_handle) {
+                        Ok(dir) => dir,
+                        Err(e) => {
+                            tracing::warn!("[plugin] 无法解析数据目录，跳过注册表刷新: {}", e);
+                            return;
+                        }
+                    };
                     let last_update_path = data_dir.join(".last_registry_update");
                     let should_refresh = if let Ok(meta) = std::fs::metadata(&last_update_path) {
                         meta.modified()
@@ -231,8 +286,6 @@ pub fn run() {
             }
 
             // 8. 检测系统 locale（前端通过 IPC get_system_locale + navigator.language 获取）
-            //     此前通过 window.eval 注入 __SOLOSOUL_LOCALE__ 的方式已被移除（P005），
-            //     改为前端通过 IPC 调用 get_system_locale 获取，无需后端提前注入。
             let locale = commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
             let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") {
                 "zh-CN"
@@ -245,7 +298,8 @@ pub fn run() {
                 locale_flag
             );
 
-            // 9. 启动系统主题轮询任务，当检测到主题变化时通过 Tauri Event 通知前端
+            // 9. 启动系统主题轮询任务 — 桌面端先行，移动端使用前端 CSS media query
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             {
                 let app_handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
@@ -276,7 +330,6 @@ pub fn run() {
             commands::auth::unlock_with_password,
             // Vault commands
             commands::vault::unlock,
-            commands::discovery::mdns_advertise,
             commands::vault::lock,
             // Object commands
             commands::object::object_list,
@@ -353,8 +406,6 @@ pub fn run() {
             commands::fs::fs_get_file_size,
             commands::fs::fs_is_dir,
             commands::fs::fs_read_file_as_data_url,
-            // Discovery commands
-            commands::discovery::mdns_discover,
             // System commands
             commands::system::get_app_info,
             commands::system::get_system_theme,
@@ -409,9 +460,6 @@ pub fn run() {
             commands::llm::llm_rebuild_guide_embeddings,
             commands::llm::llm_check_embedding_available,
             commands::llm::llm_set_local_embedding,
-            commands::embed_model::llm_get_embed_models,
-            commands::embed_model::llm_download_embed_model,
-            commands::embed_model::llm_delete_embed_model,
             // Biometric commands
             commands::biometric::biometric_check_availability,
             commands::biometric::biometric_save_credential,
@@ -470,8 +518,15 @@ pub fn run() {
             commands::plugin::plugin_list_sessions,
             commands::plugin::plugin_audit_log,
             commands::plugin::plugin_update_registry,
+            // Discovery commands
+            commands::discovery::mdns_advertise,
+            commands::discovery::mdns_discover,
             // Window chrome commands
             commands::window::set_titlebar_color,
+            // Embedding model commands
+            commands::embed_model::llm_get_embed_models,
+            commands::embed_model::llm_download_embed_model,
+            commands::embed_model::llm_delete_embed_model,
         ])
         .run(tauri::generate_context!());
 

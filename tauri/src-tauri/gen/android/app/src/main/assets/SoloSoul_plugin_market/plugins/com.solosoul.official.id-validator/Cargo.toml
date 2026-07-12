@@ -1,0 +1,12 @@
+[package]
+name = "id-validator"
+version = "1.0.2"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "ID Validator — Validate identity document numbers (CN ID, passport, etc.)"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

@@ -17,9 +17,11 @@ import { Button } from '@/components/ui/Button';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
+import { downloadViaStage, isUriPath } from '@/lib/mobileFileTransfer';
 import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
+
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import {
   truncateFileName,
@@ -148,7 +150,9 @@ export function AttachmentViewer({
         defaultPath: item.fileName,
       });
       if (!destPath) return;
-      await invoke('attachment_download', { srcPath: filePath, destPath });
+      await downloadViaStage(filePath, destPath, item.fileName, (src, dest) =>
+        invoke('attachment_download', { srcPath: src, destPath: dest }),
+      );
       showToast({
         type: 'success',
         message: t('common:download_result') || 'Downloaded successfully',
@@ -268,6 +272,17 @@ export function AttachmentViewer({
         title: t('common:select_download_directory') || 'Select download directory',
       });
       if (!dirPath) return;
+
+      // Android 目录选择器返回 tree URI，无法直接用 std::fs 写入，暂不支持批量下载
+      if (isUriPath(dirPath)) {
+        showToast({
+          type: 'warning',
+          message:
+            t('common:batch_download_mobile_unsupported') ||
+            'Batch download to a directory is not supported on mobile. Please download files individually.',
+        });
+        return;
+      }
 
       let successCount = 0;
       for (const item of selectedItems) {

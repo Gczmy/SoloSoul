@@ -1,0 +1,12 @@
+[package]
+name = "identity-timeline"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Identity Timeline — Display life milestones from Vault data in chronological order"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

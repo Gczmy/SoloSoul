@@ -1,0 +1,12 @@
+[package]
+name = "contact-exporter"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Contact Exporter — Export Vault contact data as CSV"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

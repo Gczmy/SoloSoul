@@ -26,6 +26,8 @@ import {
   Search,
 } from 'lucide-react';
 
+import { isMobilePlatformSync } from '@/lib/platform';
+
 export function SettingsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
@@ -36,6 +38,8 @@ export function SettingsPage() {
       .then((s) => setVaultSize(formatBytes(s.totalSizeBytes)))
       .catch(() => setVaultSize(null));
   }, []);
+
+  const isMobile = isMobilePlatformSync();
 
   const settingGroups = [
     {
@@ -106,13 +110,17 @@ export function SettingsPage() {
           path: '/settings/templates',
           desc: t('settings:desc.templates') || '管理自定义对象模板',
         },
-        {
-          label: t('settings:items.plugins') || '插件',
-          icon: Puzzle,
-          path: '/plugins',
-          desc: t('settings:desc.plugins') || '管理本地插件市场',
-        },
-        ...(isDevOrDebug()
+        ...(!isMobile
+          ? [
+              {
+                label: t('settings:items.plugins') || '插件',
+                icon: Puzzle,
+                path: '/plugins',
+                desc: t('settings:desc.plugins') || '管理本地插件市场',
+              },
+            ]
+          : []),
+        ...(isDevOrDebug() && !isMobile
           ? [
               {
                 label: t('settings:items.sync') || '设备同步',
@@ -133,12 +141,16 @@ export function SettingsPage() {
           path: '/search',
           desc: t('settings:desc.search') || '全局搜索',
         },
-        {
-          label: t('settings:items.ocr') || 'OCR',
-          icon: Scan,
-          path: '/settings/ocr',
-          desc: t('settings:desc.ocr') || 'Manage OCR models and preferences',
-        },
+        ...(!isMobile
+          ? [
+              {
+                label: t('settings:items.ocr') || 'OCR',
+                icon: Scan,
+                path: '/settings/ocr',
+                desc: t('settings:desc.ocr') || 'Manage OCR models and preferences',
+              },
+            ]
+          : []),
         {
           label: t('settings:items.help_docs'),
           icon: BookOpen,

@@ -3,12 +3,13 @@
 use crate::attachments::{
     collect_attachment_manifests, compute_needed_attachments, receive_attachment_manifests,
     receive_attachment_requests, receive_attachments, send_attachment_manifests,
-    send_attachment_requests, send_requested_attachments, AttachmentSyncStats,
+    send_attachment_requests, send_requested_attachments,
 };
 use crate::delta::{
     apply_sync_records, generate_delta_paginated, hlc_to_sync_watermark, max_record_hlc,
-    watermark_to_vault, ApplyStats, SYNC_TABLES,
+    watermark_to_vault, SYNC_TABLES,
 };
+use crate::types::{ApplyStats, AttachmentSyncStats, SyncPeerInfo, SyncSessionResult};
 
 const DELTA_PAGE_LIMIT: usize = 100;
 use crate::hlc::{Hlc, SyncWatermark};
@@ -28,25 +29,6 @@ use tokio::task::{spawn, spawn_blocking, JoinHandle};
 const SERVICE_TYPE: &str = "_solosoul._tcp.local.";
 const MDNS_TIMEOUT_MS: u64 = 200;
 const PEER_MAX_AGE_SECS: u64 = 300;
-
-/// Result of a full sync session, including database deltas and attachment transfers.
-#[derive(Debug, Clone, Default)]
-pub struct SyncSessionResult {
-    pub data: ApplyStats,
-    pub attachments: AttachmentSyncStats,
-}
-
-/// Information about a discovered or known peer.
-#[derive(Debug, Clone)]
-pub struct SyncPeerInfo {
-    pub node_id: String,
-    pub account_id: String,
-    pub name: String,
-    pub addr: String,
-    pub fingerprint: String,
-    pub trusted: bool,
-    pub last_seen: String,
-}
 
 #[derive(Debug, Clone)]
 struct DiscoveredPeer {

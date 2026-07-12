@@ -1,0 +1,52 @@
+{
+  "plugin_id": "com.solosoul.official.data-completeness",
+  "name": "Data Completeness",
+  "version": "1.0.2",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "档案完整度扫描 — 检查 Vault 各分区完成度并给出补充建议",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.data-completeness",
+  "required_fields": [],
+  "optional_fields": [
+    "identity.fullName",
+    "identity.dateOfBirth",
+    "identity.nationality",
+    "identity.sex",
+    "contact.email",
+    "contact.phone",
+    "address.street",
+    "address.city",
+    "address.country",
+    "passport.number",
+    "passport.expiryDate",
+    "idCard.number",
+    "education.institution",
+    "education.degree",
+    "employment.company",
+    "employment.position",
+    "financial.bankStatement",
+    "medical.bloodType",
+    "medical.allergies",
+    "travel.visitedCountries",
+    "security.totpSecret"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "档案完整度",
+      "description": "扫描 Vault 中的所有档案分区，计算完整度百分比并生成报告。"
+    },
+    "en": {
+      "name": "Data Completeness",
+      "description": "Scan all sections in the Vault, calculate completeness percentage, and generate a report highlighting missing key fields."
+    }
+  },
+  "tier": "p2",
+  "category": "report"
+}

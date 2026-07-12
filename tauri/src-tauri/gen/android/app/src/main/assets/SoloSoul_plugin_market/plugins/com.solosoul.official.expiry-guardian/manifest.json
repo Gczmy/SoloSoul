@@ -1,0 +1,61 @@
+{
+  "plugin_id": "com.solosoul.official.expiry-guardian",
+  "name": "Expiry Guardian",
+  "version": "1.1.0",
+  "plugin_api_version": "2.0",
+  "min_app_version": "2.5.0",
+  "max_app_version": "999.999.999",
+  "description": "证件到期卫士 — 基于契约扫描所有证件有效期并分级预警",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.expiry-guardian",
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.expiry/guardian/v1",
+      "version": 1,
+      "displayName": {
+        "zh": "到期提醒",
+        "en": "Expiry Guardian"
+      },
+      "strictContractGate": true,
+      "roles": [
+        {
+          "roleId": "document",
+          "label": { "zh": "证件", "en": "Document" },
+          "required": true,
+          "defaultPropertyId": "__name__"
+        },
+        {
+          "roleId": "expiryDate",
+          "label": { "zh": "到期日", "en": "Expiry Date" },
+          "required": true,
+          "defaultPropertyId": "expiryDate"
+        }
+      ]
+    }
+  ],
+  "field_bindings": [
+    {
+      "contractTypeId": "com.solosoul.expiry/guardian/v1",
+      "propertyId": "expiryDate",
+      "abiName": "expiryDate"
+    }
+  ],
+  "i18n": {
+    "zh": {
+      "name": "到期卫士",
+      "description": "基于契约扫描 Vault 中证件有效期，按 30/60/90/180 天分级提醒。"
+    },
+    "en": {
+      "name": "Expiry Guardian",
+      "description": "Scan all documents via typed contract for expiration dates and sort by urgency (30/60/90/180 days)."
+    }
+  },
+  "tier": "p0",
+  "category": "reminder",
+  "custom_ui": "expiry_guardian"
+}

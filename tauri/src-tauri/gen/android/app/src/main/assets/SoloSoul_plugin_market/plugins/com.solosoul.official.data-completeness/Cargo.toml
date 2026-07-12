@@ -1,0 +1,12 @@
+[package]
+name = "data-completeness"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Data Completeness — Scan Vault sections and calculate profile completion percentage"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

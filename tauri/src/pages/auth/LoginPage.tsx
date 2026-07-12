@@ -417,13 +417,15 @@ export function LoginPage() {
           background: 'var(--bg-elevated)',
           borderRadius: 16,
           padding: 32,
-          width: 360,
+          width: '100%',
+          maxWidth: 360,
           minHeight: 420,
           boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
           textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          margin: '0 16px',
         }}
       >
         <ShieldLogo size={ICON_SIZE['5xl']} style={{ margin: '0 auto 16px' }} />

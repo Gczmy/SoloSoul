@@ -1,0 +1,12 @@
+[package]
+name = "emergency-card"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Emergency Card — Generate emergency medical and contact information card"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

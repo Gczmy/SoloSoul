@@ -1,9 +1,18 @@
 //! Embedding model management — download, install, list local models.
 
 use serde::{Deserialize, Serialize};
+
+#[cfg(desktop)]
 use sha2::Digest;
+#[cfg(desktop)]
 use std::path::{Path, PathBuf};
+#[cfg(desktop)]
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
+
+#[cfg(mobile)]
+use crate::commands::{mobile_not_supported, mobile_not_supported_with};
+#[cfg(mobile)]
+use tauri::AppHandle;
 
 // ── Registry ─────────────────────────────────────────────────
 
@@ -25,6 +34,7 @@ pub struct EmbedRegistry {
     pub models: Vec<EmbedModelInfo>,
 }
 
+#[cfg(desktop)]
 /// Fetch the remote model registry.
 pub async fn fetch_registry() -> Result<EmbedRegistry, String> {
     let client = reqwest::Client::builder()
@@ -52,6 +62,7 @@ pub async fn fetch_registry() -> Result<EmbedRegistry, String> {
 
 // ── Local model storage ──────────────────────────────────────
 
+#[cfg(desktop)]
 /// Get the base directory where models are stored.
 /// `app_local_data_dir/models/`
 pub fn models_base_dir(app: &AppHandle) -> Result<PathBuf, String> {
@@ -62,6 +73,7 @@ pub fn models_base_dir(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(dir)
 }
 
+#[cfg(desktop)]
 /// R013: model IDs are used as directory names, so restrict them to safe
 /// characters to prevent path traversal.
 fn sanitize_model_id(model_id: &str) -> Result<String, String> {
@@ -78,6 +90,7 @@ fn sanitize_model_id(model_id: &str) -> Result<String, String> {
     }
 }
 
+#[cfg(desktop)]
 /// Check if a model is installed.
 pub fn is_model_installed(app: &AppHandle, model_id: &str) -> Result<bool, String> {
     let id = sanitize_model_id(model_id)?;
@@ -85,6 +98,7 @@ pub fn is_model_installed(app: &AppHandle, model_id: &str) -> Result<bool, Strin
     Ok(dir.join("model.onnx").exists() && dir.join("tokenizer.json").exists())
 }
 
+#[cfg(desktop)]
 /// List installed models by scanning the local directory.
 pub fn list_installed_models(app: &AppHandle) -> Result<Vec<String>, String> {
     let base = models_base_dir(app)?;
@@ -110,6 +124,7 @@ pub fn list_installed_models(app: &AppHandle) -> Result<Vec<String>, String> {
     Ok(models)
 }
 
+#[cfg(desktop)]
 /// Delete an installed model.
 pub fn delete_model(app: &AppHandle, model_id: &str) -> Result<(), String> {
     let id = sanitize_model_id(model_id)?;
@@ -122,6 +137,7 @@ pub fn delete_model(app: &AppHandle, model_id: &str) -> Result<(), String> {
 
 // ── Download ─────────────────────────────────────────────────
 
+#[cfg(desktop)]
 /// Download a model zip, verify checksum, and extract.
 pub async fn download_model(app: &AppHandle, model: &EmbedModelInfo) -> Result<(), String> {
     let base_dir = models_base_dir(app)?;
@@ -227,6 +243,7 @@ pub async fn download_model(app: &AppHandle, model: &EmbedModelInfo) -> Result<(
     Ok(())
 }
 
+#[cfg(desktop)]
 fn extract_zip(zip_path: &PathBuf, dest: &Path) -> Result<(), String> {
     let file = std::fs::File::open(zip_path).map_err(|e| format!("Open zip: {}", e))?;
     let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Read zip: {}", e))?;
@@ -274,6 +291,7 @@ pub struct EmbedModelWithStatus {
 }
 
 /// Fetch the remote registry and mark which models are locally installed.
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn llm_get_embed_models(app: AppHandle) -> Result<Vec<EmbedModelWithStatus>, String> {
     let registry = fetch_registry().await?;
@@ -289,7 +307,14 @@ pub async fn llm_get_embed_models(app: AppHandle) -> Result<Vec<EmbedModelWithSt
     Ok(result)
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn llm_get_embed_models(_app: AppHandle) -> Result<Vec<EmbedModelWithStatus>, String> {
+    mobile_not_supported_with()
+}
+
 /// Download and install an embedding model by ID.
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn llm_download_embed_model(app: AppHandle, model_id: String) -> Result<(), String> {
     let registry = fetch_registry().await?;
@@ -301,13 +326,26 @@ pub async fn llm_download_embed_model(app: AppHandle, model_id: String) -> Resul
     download_model(&app, &model).await
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn llm_download_embed_model(_app: AppHandle, _model_id: String) -> Result<(), String> {
+    mobile_not_supported()
+}
+
 /// Delete an installed embedding model.
+#[cfg(desktop)]
 #[tauri::command]
 pub fn llm_delete_embed_model(app: AppHandle, model_id: String) -> Result<(), String> {
     delete_model(&app, &model_id)
 }
 
-#[cfg(test)]
+#[cfg(mobile)]
+#[tauri::command]
+pub fn llm_delete_embed_model(_app: AppHandle, _model_id: String) -> Result<(), String> {
+    mobile_not_supported()
+}
+
+#[cfg(all(test, desktop))]
 mod tests {
     use super::*;
 

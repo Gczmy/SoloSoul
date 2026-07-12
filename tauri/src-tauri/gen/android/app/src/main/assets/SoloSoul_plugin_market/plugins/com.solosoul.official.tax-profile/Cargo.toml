@@ -1,0 +1,12 @@
+[package]
+name = "tax-profile"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Tax Profile — Summarize tax filing baseline data from Vault"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

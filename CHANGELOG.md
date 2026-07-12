@@ -4,6 +4,40 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **Android 客户端预研与 MVP 构建** — 基于 Tauri Mobile 将 SoloSoul 桌面端扩展至 Android：
+  - 新增 Rust Android target 交叉编译支持，解决 `openssl-sys`、`wasmtime`、`mdns-sd` 等桌面端依赖在 Android 上的编译问题。
+  - 新增 `solosoul-sync` 移动端占位模块、`solosoul-plugin` 移动端占位实现。
+  - 拆分 Tauri capabilities：`default.json` 移除 `updater:default`，新增 `desktop.json` 桌面端权限。
+  - `tauri/src-tauri/Cargo.toml` 新增 `[lib]` 块，支持生成 `libsolo_soul.so`。
+  - 初始化 `tauri/src-tauri/gen/android/` 工程，配置 `AndroidManifest.xml` 权限、`singleTask` 与软键盘模式。
+  - 前端响应式布局已适配移动端底部导航与安全区。
+  - 新增 `src/lib/mobileFileTransfer.ts`，通过 `tauri-apps/plugin-fs` 中转 Android `content://` URI，支持附件上传/下载、导入/导出在移动端的正常运行。
+  - 成功在 Android 模拟器上运行 `npm run tauri:android:dev` 并启动应用。
+
+### Changed
+
+- `reqwest` 改为 `rustls-tls`，避免 Android 交叉编译时依赖 OpenSSL。
+
+### Fixed
+
+- 修复 `solosoul-plugin` 与 `solosoul-sync` 在 Android target 下的编译错误。
+- 修复 `commands/system.rs` 中 `dark_light` 在移动端的未解析依赖。
+- 修复 Android 上附件与导入导出因 `content://` URI 无法被 Rust 标准库读取而失败的问题：前端通过 `tauri-apps/plugin-fs` 中转，`attachment_copy_to_vault` 增加路径 canonicalize 失败降级。
+- 补充 `fs:allow-stat`、`fs:allow-mkdir`、`fs:allow-remove` 权限，确保移动端缓存中转目录可操作；审计日志/调试日志导出同样支持 content URI 中转。
+- 修复 `cargo test` 在存在系统代理时本地 HTTP 测试失败的问题（`plugin::host::tests`、`plugin_registry_update` 测试设置 `NO_PROXY`/`no_proxy`）。
+
+### Changed
+
+- 移动端设置页隐藏插件、OCR、设备同步入口；关于页跳过桌面端自动更新检查。
+- `App` 初始化时预加载平台信息，供各页面同步判断是否为移动端。
+
+### Known Issues
+
+- Android 端 MVP 功能（账户/对象/附件/搜索/设置/备份/导入导出）需在模拟器/真机上手动验证。
+- 开发模式下 Vite HMR WebSocket 在 Android WebView 内连接失败，Release 构建无此问题。
+
 ## [2.5.12] - 2026-07-12
 
 ### Added

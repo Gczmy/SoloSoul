@@ -8,6 +8,7 @@
 use crate::noise::NoiseSession;
 use crate::protocol::{AttachmentInfo, SyncMessage};
 use crate::transport::SyncTransport;
+use crate::types::AttachmentSyncStats;
 use serde_json::Value;
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
@@ -16,14 +17,6 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 const CHUNK_SIZE: usize = 64 * 1024;
-
-#[derive(Debug, Clone, Default)]
-pub struct AttachmentSyncStats {
-    pub sent: u64,
-    pub received: u64,
-    pub bytes_transferred: u64,
-    pub errors: Vec<String>,
-}
 
 fn attachments_dir(base: &Path) -> PathBuf {
     base.join("attachments")

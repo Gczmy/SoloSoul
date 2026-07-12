@@ -1,0 +1,33 @@
+{
+  "plugin_id": "com.solosoul.official.id-validator",
+  "name": "ID Validator",
+  "version": "1.0.2",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "校验证件号码格式与校验位 — 支持中国居民身份证校验与护照格式检查",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.id-validator",
+  "required_fields": [],
+  "optional_fields": [
+    "idCard.number",
+    "passport.number"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "证件校验",
+      "description": "校验各国证件号码格式与校验位。当前版本完整支持中国居民身份证校验，护照格式检查为实验性功能。"
+    },
+    "en": {
+      "name": "ID Validator",
+      "description": "Validate ID number formats and check digits. Current version fully supports Chinese Resident ID Card validation, with experimental passport format checking."
+    }
+  },
+  "tier": "p0",
+  "category": "validator"
+}

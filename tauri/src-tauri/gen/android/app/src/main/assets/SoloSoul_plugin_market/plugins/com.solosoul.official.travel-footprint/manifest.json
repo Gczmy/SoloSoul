@@ -1,0 +1,44 @@
+{
+  "plugin_id": "com.solosoul.official.travel-footprint",
+  "name": "Travel Footprint",
+  "version": "1.0.2",
+  "plugin_api_version": "1.1",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "旅行足迹分析 — 统计到访国家、按大洲分类、生成旅行报告",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.travel-footprint",
+  "required_fields": [
+    "travel.visitedCountries"
+  ],
+  "optional_fields": [
+    "passport.nationality"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.travel/footprint/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.travel/footprint/v1", "propertyId": "visitedCountries" },
+    { "contractTypeId": "com.solosoul.travel/footprint/v1", "propertyId": "nationality" }
+  ],
+  "i18n": {
+    "zh": {
+      "name": "旅行足迹",
+      "description": "分析签证与旅行记录，生成到访国家统计与时间线。"
+    },
+    "en": {
+      "name": "Travel Footprint",
+      "description": "Analyze visa and travel records in the Vault to generate country visit statistics, favorite regions, and travel timeline reports."
+    }
+  },
+  "tier": "p0",
+  "category": "report"
+}

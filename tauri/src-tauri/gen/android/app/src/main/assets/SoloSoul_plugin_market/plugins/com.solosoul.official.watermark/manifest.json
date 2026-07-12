@@ -1,0 +1,33 @@
+{
+  "plugin_id": "com.solosoul.official.watermark",
+  "name": "附件水印添加",
+  "version": "1.0.0",
+  "plugin_api_version": "1.1",
+  "min_app_version": "2.5.0",
+  "max_app_version": "999.999.999",
+  "description": "为 Vault 中的图片/PDF 附件批量添加文本水印，所有修改仅作用于副本，不影响原始附件。",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.watermark",
+  "required_fields": [],
+  "optional_fields": [],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 300,
+  "require_user_confirmation": false,
+  "contracts": [],
+  "field_bindings": [],
+  "custom_ui": "WatermarkPluginPage",
+  "i18n": {
+    "zh": {
+      "name": "附件水印添加",
+      "description": "为图片/PDF 附件批量添加文本水印，仅修改副本。"
+    },
+    "en": {
+      "name": "Attachment Watermark",
+      "description": "Batch add text watermarks to image/PDF attachments; only copies are modified."
+    }
+  },
+  "tier": "p0",
+  "category": "utility"
+}

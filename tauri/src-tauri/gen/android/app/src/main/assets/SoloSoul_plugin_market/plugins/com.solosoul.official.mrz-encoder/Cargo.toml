@@ -1,0 +1,12 @@
+[package]
+name = "mrz-encoder"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "MRZ Encoder — Encode passport data into ICAO Doc 9303 TD3 machine-readable zone"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

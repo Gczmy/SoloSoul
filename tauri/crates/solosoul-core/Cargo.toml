@@ -41,18 +41,15 @@ tracing = { workspace = true }
 rand = { workspace = true }
 sha2 = { workspace = true }
 
-# 进程级文件锁
-fs2 = "0.4.3"
-
 # 加密导出/导入 ZIP 包
 zip = { version = "2", default-features = false, features = ["deflate"] }
 
-# 本地 OCR（PP-OCRv6 ONNX）
+# 桌面端专属依赖：进程锁 / OCR / MRZ / PDFium
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+fs2 = "0.4.3"
 ort = { workspace = true }
 image = { workspace = true }
 ndarray = { workspace = true }
-
-# MRZ 模板匹配（字符渲染）
 ab_glyph = "0.2"
 pdfium-render = "0.9.2"
 tempfile.workspace = true

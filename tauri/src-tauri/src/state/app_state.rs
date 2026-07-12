@@ -2,6 +2,7 @@ use crate::plugin::PluginManager;
 use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
 use std::sync::{Arc, RwLock};
+use tauri::Manager;
 
 pub struct AppState {
     pub handle: tauri::AppHandle,
@@ -12,7 +13,16 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(handle: tauri::AppHandle) -> Result<Self, anyhow::Error> {
-        let vault_service = Arc::new(RwLock::new(VaultService::new()));
+        // 移动端使用 Tauri 应用私有数据目录；桌面端沿用 VaultService 默认路径
+        let vault_service = if cfg!(mobile) {
+            let data_dir = handle
+                .path()
+                .resolve(".", tauri::path::BaseDirectory::Data)
+                .map_err(|e| anyhow::anyhow!("无法解析应用数据目录: {e}"))?;
+            Arc::new(RwLock::new(VaultService::with_base_path(data_dir)))
+        } else {
+            Arc::new(RwLock::new(VaultService::new()))
+        };
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
 
         // 插件管理器初始化失败不阻止应用启动，降级为无插件模式

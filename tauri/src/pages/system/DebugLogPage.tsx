@@ -10,6 +10,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { Bug, Download, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
+
 
 interface AuditLogEntry {
   id: number;
@@ -52,7 +54,15 @@ export function DebugLogPage() {
         filters: [{ name: 'JSON', extensions: ['json'] }],
       });
       if (!filePath) return;
-      await invoke<string>('log_export', { exportPath: filePath });
+
+      // Android 保存对话框返回 content:// URI，Rust 只能写到应用私有目录，
+      // 先导出到默认位置再用 plugin-fs 中转。
+      if (isUriPath(filePath)) {
+        const exportedPath = await invoke<string>('log_export', {});
+        await copyStagedFileToDest(exportedPath, filePath);
+      } else {
+        await invoke<string>('log_export', { exportPath: filePath });
+      }
     } catch {
       // silent
     }

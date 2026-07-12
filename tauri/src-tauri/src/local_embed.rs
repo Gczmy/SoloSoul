@@ -1,15 +1,25 @@
 //! Local embedding inference using ONNX Runtime.
 //! Loads sentence-transformer models (ONNX format) and runs CPU inference.
 
+#[cfg(desktop)]
 use ndarray::{Array2, Array3, Axis};
+#[cfg(desktop)]
 use ort::session::Session;
+#[cfg(desktop)]
 use ort::value::Tensor;
-use std::sync::{Arc, Mutex};
+#[cfg(desktop)]
 use tokenizers::Tokenizer;
+
+#[cfg(desktop)]
+use std::sync::{Arc, Mutex};
+
+#[cfg(mobile)]
+use std::sync::{Arc, Mutex};
 
 /// Global cache for the loaded embedder instance.
 static EMBEDDER_CACHE: Mutex<Option<Arc<LocalEmbedder>>> = Mutex::new(None);
 
+#[cfg(desktop)]
 /// 模型 ID 允许字符集，防止通过 model_id 构造路径遍历。
 fn validate_model_id(id: &str) -> Result<(), String> {
     if id.is_empty()
@@ -23,13 +33,25 @@ fn validate_model_id(id: &str) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(mobile)]
+fn validate_model_id(_id: &str) -> Result<(), String> {
+    Err("Local embedding is not supported on mobile".to_string())
+}
+
 /// A local embedding model instance.
+#[cfg(desktop)]
 pub struct LocalEmbedder {
     session: std::sync::Mutex<Session>,
     tokenizer: Tokenizer,
     model_id: String,
 }
 
+#[cfg(mobile)]
+pub struct LocalEmbedder {
+    model_id: String,
+}
+
+#[cfg(desktop)]
 impl LocalEmbedder {
     /// Load a model from the local models directory.
     pub fn load(model_dir: &std::path::Path, model_id: &str) -> Result<Self, String> {
@@ -163,6 +185,25 @@ impl LocalEmbedder {
     }
 }
 
+#[cfg(mobile)]
+impl LocalEmbedder {
+    pub fn load(_model_dir: &std::path::Path, model_id: &str) -> Result<Self, String> {
+        tracing::warn!(
+            "LocalEmbedder::load is not supported on mobile (model_id={})",
+            model_id
+        );
+        Err("Local embedding is not supported on mobile".to_string())
+    }
+
+    pub fn embed(&self, _text: &str) -> Result<Vec<f32>, String> {
+        Err("Local embedding is not supported on mobile".to_string())
+    }
+
+    pub fn embed_batch(&self, _texts: &[String]) -> Result<Vec<Vec<f32>>, String> {
+        Err("Local embedding is not supported on mobile".to_string())
+    }
+}
+
 /// Get or create a cached embedder for the given model.
 /// Returns an Arc so the caller can hold onto it without locking the cache.
 pub fn get_embedder(
@@ -195,9 +236,18 @@ pub async fn get_embedder_async(
     models_dir: std::path::PathBuf,
     model_id: String,
 ) -> Result<Arc<LocalEmbedder>, String> {
-    tokio::task::spawn_blocking(move || get_embedder(&models_dir, &model_id))
-        .await
-        .map_err(|e| format!("Embedder load task: {}", e))?
+    #[cfg(desktop)]
+    {
+        tokio::task::spawn_blocking(move || get_embedder(&models_dir, &model_id))
+            .await
+            .map_err(|e| format!("Embedder load task: {}", e))?
+    }
+    #[cfg(mobile)]
+    {
+        let _ = models_dir;
+        let _ = model_id;
+        Err("Local embedding is not supported on mobile".to_string())
+    }
 }
 
 /// Clear the cached embedder (e.g., when switching models).
@@ -215,7 +265,7 @@ pub fn is_model_installed(models_dir: &std::path::Path, model_id: &str) -> bool 
     model_dir.join("model.onnx").exists() && model_dir.join("tokenizer.json").exists()
 }
 
-#[cfg(test)]
+#[cfg(all(test, desktop))]
 mod tests {
     use super::*;
 

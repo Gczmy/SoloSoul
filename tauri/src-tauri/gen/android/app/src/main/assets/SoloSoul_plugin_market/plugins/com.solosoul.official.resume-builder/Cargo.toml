@@ -1,0 +1,12 @@
+[package]
+name = "resume-builder"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Resume Builder — Generate a standard resume from Vault profile data"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

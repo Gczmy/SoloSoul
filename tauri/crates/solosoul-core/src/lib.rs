@@ -14,14 +14,18 @@ pub mod biometric;
 pub mod export_import;
 pub mod llm;
 pub mod objects;
-pub mod ocr;
 pub mod path_util;
-pub mod pdfium;
 pub mod pin;
 pub mod process_lock;
 pub mod search_filter;
 pub mod template_service;
 pub mod vault_service;
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod ocr;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod pdfium;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub mod watermark;
 
 /// Crate version (from Cargo.toml at compile time).

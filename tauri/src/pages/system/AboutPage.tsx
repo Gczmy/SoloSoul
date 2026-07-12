@@ -11,6 +11,7 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { checkForUpdate, downloadAndInstallUpdate, type UpdateProgress } from '@/lib/updater';
 import { formatBytes } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
+import { isMobilePlatformSync } from '@/lib/platform';
 
 interface AppInfo {
   appName: string;
@@ -47,27 +48,30 @@ export function AboutPage() {
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
+    const isMobile = isMobilePlatformSync();
     Promise.all([
       invoke<AppInfo>('get_app_info'),
-      checkForUpdate().then((result) => {
-        if (result.kind === 'available') {
-          return {
-            currentVersion: '',
-            latestVersion: result.info.version,
-            state: 'available' as const,
-            body: result.info.body,
-          };
-        }
-        if (result.kind === 'error') {
-          return {
-            currentVersion: '',
-            latestVersion: null,
-            state: 'error' as const,
-            error: result.message,
-          };
-        }
-        return { currentVersion: '', latestVersion: null, state: 'up-to-date' as const };
-      }),
+      isMobile
+        ? Promise.resolve({ currentVersion: '', latestVersion: null, state: 'up-to-date' as const })
+        : checkForUpdate().then((result) => {
+            if (result.kind === 'available') {
+              return {
+                currentVersion: '',
+                latestVersion: result.info.version,
+                state: 'available' as const,
+                body: result.info.body,
+              };
+            }
+            if (result.kind === 'error') {
+              return {
+                currentVersion: '',
+                latestVersion: null,
+                state: 'error' as const,
+                error: result.message,
+              };
+            }
+            return { currentVersion: '', latestVersion: null, state: 'up-to-date' as const };
+          }),
     ])
       .then(([app, ver]) => {
         setInfo(app);

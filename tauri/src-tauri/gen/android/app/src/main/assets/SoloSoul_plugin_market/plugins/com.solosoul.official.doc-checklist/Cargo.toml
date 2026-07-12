@@ -1,0 +1,13 @@
+[package]
+name = "doc-checklist"
+version = "1.0.2"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Doc Checklist — Check required documents for visa/travel/bank scenarios"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+serde_json = "1.0"
+
+[lib]
+crate-type = ["cdylib"]

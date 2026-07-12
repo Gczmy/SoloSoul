@@ -9,6 +9,8 @@ import { PluginQuickNotificationListener } from '@/components/plugin/PluginQuick
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { AppRoutes } from './AppRoutes';
 
+import { initPlatform } from '@/lib/platform';
+
 function App() {
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
     try {
@@ -17,6 +19,12 @@ function App() {
       return true;
     }
   });
+
+  useEffect(() => {
+    initPlatform().catch(() => {
+      /* ignore */
+    });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

@@ -1,0 +1,72 @@
+{
+  "plugin_id": "com.solosoul.official.form-prefiller",
+  "name": "Form Prefiller",
+  "version": "1.0.3",
+  "plugin_api_version": "1.1",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "表单预填助手 — 根据签证/酒店/银行/航空等场景生成 Vault 字段映射表",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.form-prefiller",
+  "required_fields": [],
+  "optional_fields": [
+    "identity.full_name",
+    "identity.date_of_birth",
+    "identity.nationality",
+    "identity.gender",
+    "passport.number",
+    "passport.expiryDate",
+    "passport.dateOfBirth",
+    "passport.place_of_birth",
+    "passport.authority",
+    "contact.email",
+    "contact.phone",
+    "address.street",
+    "address.city",
+    "address.state",
+    "address.postalCode",
+    "address.country",
+    "employment.company",
+    "employment.position",
+    "card.cardNumber"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.forms/prefill/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "full_name" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "date_of_birth" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "nationality" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "gender" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "number" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "email" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "phone" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "street" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "city" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "state" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "postalCode" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "country" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "company" },
+    { "contractTypeId": "com.solosoul.forms/prefill/v1", "propertyId": "position" }
+  ],
+  "i18n": {
+    "zh": {
+      "name": "表单预填",
+      "description": "根据场景生成 Vault 字段到目标表单字段的映射表。"
+    },
+    "en": {
+      "name": "Form Prefiller",
+      "description": "Generate a mapping table from Vault fields to target form fields based on the scenario (visa, bank, hotel, etc.)."
+    }
+  },
+  "tier": "p2",
+  "category": "report"
+}

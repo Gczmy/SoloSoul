@@ -1,8 +1,10 @@
 import styles from './AppShell.module.css';
 import { SideNavigation } from './SideNavigation';
 import { TopFunctionBar } from './TopFunctionBar';
+import { MobileBottomNav } from './MobileBottomNav';
 import { AppBar } from './AppBar';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 const FUNCTION_BAR_HEIGHT = 48;
 
@@ -14,30 +16,39 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, title, actions, onBack }: AppShellProps) {
+  const isMobile = useIsMobile();
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
-  const isTop = sidebarPosition === 'top';
-  const isHorizontal = isTop || sidebarPosition === 'bottom';
+  // 移动端强制使用底部导航栏
+  const effectivePosition = isMobile ? 'bottom' : sidebarPosition;
+  const isTop = effectivePosition === 'top';
+  const isHorizontal = isTop || effectivePosition === 'bottom';
 
   return (
     <div
       className={styles.appShell}
       style={{
         flexDirection: isHorizontal
-          ? sidebarPosition === 'top'
+          ? effectivePosition === 'top'
             ? 'column'
             : 'column-reverse'
-          : sidebarPosition === 'right'
+          : effectivePosition === 'right'
             ? 'row-reverse'
             : 'row',
       }}
     >
-      {isHorizontal ? <TopFunctionBar sidebarPosition={sidebarPosition} /> : <SideNavigation />}
+      {isMobile ? (
+        <MobileBottomNav />
+      ) : isHorizontal ? (
+        <TopFunctionBar sidebarPosition={effectivePosition} />
+      ) : (
+        <SideNavigation />
+      )}
       <div
         className={styles.main}
         style={
           isTop
             ? { paddingTop: FUNCTION_BAR_HEIGHT }
-            : sidebarPosition === 'bottom'
+            : effectivePosition === 'bottom'
               ? { paddingBottom: FUNCTION_BAR_HEIGHT }
               : undefined
         }
@@ -47,7 +58,7 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
           actions={actions}
           onBack={onBack}
           topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0}
-          sidebarPosition={sidebarPosition}
+          sidebarPosition={effectivePosition}
         />
         <main className={styles.content}>{children}</main>
       </div>

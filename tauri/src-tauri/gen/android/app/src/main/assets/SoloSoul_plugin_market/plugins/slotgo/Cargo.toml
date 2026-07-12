@@ -1,0 +1,12 @@
+[package]
+name = "slotgo"
+version = "0.1.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "SlotGo — UK Visa appointment time query assistant"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

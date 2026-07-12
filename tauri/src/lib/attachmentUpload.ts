@@ -1,4 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
+import {
+  cleanupStagedFile,
+  isUriPath,
+  stageFileForUpload,
+} from './mobileFileTransfer';
 
 /** MIME 类型映射表（扩展名 → MIME type） */
 export const MIME_MAP: Record<string, string> = {
@@ -98,15 +103,32 @@ export async function pickFileToAttach(): Promise<string | null> {
  */
 export async function uploadSingleAttachment(filePath: string, objectId: string): Promise<string> {
   const fileName = getFileName(filePath);
-  const sizeBytes = await getFileSize(filePath);
   const id = crypto.randomUUID();
 
+  // Android 上 plugin-dialog 返回 content:// URI，Rust 标准库无法直接读取。
+  // 先通过 plugin-fs 中转，把 URI 复制到应用缓存后再交给 Rust。
+  let uploadPath = filePath;
+  let sizeBytes: number;
+  let stagedPath: string | null = null;
+  if (isUriPath(filePath)) {
+    const staged = await stageFileForUpload(filePath);
+    uploadPath = staged.localPath;
+    sizeBytes = staged.size;
+    stagedPath = staged.localPath;
+  } else {
+    sizeBytes = await getFileSize(filePath);
+  }
+
   const vaultPath = await invoke<string>('attachment_copy_to_vault', {
-    srcPath: filePath,
+    srcPath: uploadPath,
     objectId,
     attachmentId: id,
     fileName,
-  }).catch(() => filePath);
+  }).catch(() => uploadPath);
+
+  if (stagedPath) {
+    await cleanupStagedFile(stagedPath);
+  }
 
   await invoke('attachment_save', {
     objectId,

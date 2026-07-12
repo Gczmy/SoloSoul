@@ -1,0 +1,78 @@
+{
+  "plugin_id": "com.solosoul.official.resume-builder",
+  "name": "Resume Builder",
+  "version": "1.0.1",
+  "plugin_api_version": "1.1",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "简历生成器 — 从 Vault 档案生成标准 Markdown 格式简历",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.resume-builder",
+  "required_fields": [
+    "identity.fullName"
+  ],
+  "optional_fields": [
+    "identity.email",
+    "identity.phone",
+    "identity.address",
+    "identity.website",
+    "identity.linkedin",
+    "employment.company",
+    "employment.position",
+    "employment.startDate",
+    "employment.endDate",
+    "employment.description",
+    "education.institution",
+    "education.degree",
+    "education.field",
+    "education.year",
+    "skill.primary",
+    "skill.secondary",
+    "language.native",
+    "language.others"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.resume/builder/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "fullName" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "email" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "phone" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "address" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "website" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "linkedin" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "company" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "position" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "startDate" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "endDate" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "description" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "institution" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "degree" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "field" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "year" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "primary" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "secondary" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "native" },
+    { "contractTypeId": "com.solosoul.resume/builder/v1", "propertyId": "others" }
+  ],
+  "i18n": {
+    "zh": {
+      "name": "简历生成器",
+      "description": "从 Vault 提取信息自动生成标准简历。"
+    },
+    "en": {
+      "name": "Resume Builder",
+      "description": "Automatically generate a standard-format resume by extracting education, work experience, skills, and languages from the Vault."
+    }
+  },
+  "tier": "p2",
+  "category": "generator"
+}

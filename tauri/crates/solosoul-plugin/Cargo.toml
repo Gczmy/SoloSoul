@@ -16,10 +16,6 @@ path = "src/mod.rs"
 solosoul-vault = { path = "../solosoul-vault" }
 solosoul-core = { path = "../solosoul-core" }
 
-# Wasm runtime
-wasmtime = { version = "45.0.1", features = ["async", "cranelift"] }
-wasmtime-wasi = { version = "45.0.1", features = ["p1"] }
-
 # HTTP
 reqwest = { workspace = true }
 
@@ -64,6 +60,11 @@ uuid = { workspace = true }
 # SHA
 sha2 = { workspace = true }
 hex = { workspace = true }
+
+# Wasm runtime — 桌面端先行，移动端暂不支持
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+wasmtime = { version = "45.0.1", features = ["async", "cranelift"] }
+wasmtime-wasi = { version = "45.0.1", features = ["p1"] }
 
 [dev-dependencies]
 tempfile = { workspace = true }

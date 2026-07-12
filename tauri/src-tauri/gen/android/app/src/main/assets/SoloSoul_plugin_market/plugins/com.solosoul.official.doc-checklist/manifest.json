@@ -1,0 +1,62 @@
+{
+  "plugin_id": "com.solosoul.official.doc-checklist",
+  "name": "Doc Checklist",
+  "version": "1.0.2",
+  "plugin_api_version": "1.1",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "材料清单检查器 — 根据签证/旅行/银行场景检查 Vault 中已有/缺失的材料",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.doc-checklist",
+  "required_fields": [],
+  "optional_fields": [
+    "passport.number",
+    "passport.photo",
+    "identity.idPhoto",
+    "employment.company",
+    "financial.bankStatement",
+    "travel.itinerary",
+    "travel.hotelBooking",
+    "insurance.travel",
+    "visa.ds160Confirmation",
+    "visa.interviewAppointment",
+    "medical.tbTest",
+    "visa.casLetter",
+    "address.street",
+    "card.number"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "contracts": [
+    {
+      "typeId": "com.solosoul.document/checklist/v1",
+      "version": 1
+    }
+  ],
+  "field_bindings": [
+    { "contractTypeId": "com.solosoul.document/checklist/v1", "propertyId": "number" },
+    { "contractTypeId": "com.solosoul.document/checklist/v1", "propertyId": "photo" },
+    { "contractTypeId": "com.solosoul.document/checklist/v1", "propertyId": "idPhoto" },
+    { "contractTypeId": "com.solosoul.document/checklist/v1", "propertyId": "company" },
+    { "contractTypeId": "com.solosoul.document/checklist/v1", "propertyId": "bankStatement" },
+    { "contractTypeId": "com.solosoul.document/checklist/v1", "propertyId": "itinerary" },
+    { "contractTypeId": "com.solosoul.document/checklist/v1", "propertyId": "hotelBooking" },
+    { "contractTypeId": "com.solosoul.document/checklist/v1", "propertyId": "ds160Confirmation" },
+    { "contractTypeId": "com.solosoul.document/checklist/v1", "propertyId": "street" }
+  ],
+  "i18n": {
+    "zh": {
+      "name": "材料清单",
+      "description": "根据目标场景反推 Vault 中已有和缺失的材料清单。"
+    },
+    "en": {
+      "name": "Doc Checklist",
+      "description": "Infer existing and missing materials from the Vault based on target scenarios (visa application, bank account opening, etc.)."
+    }
+  },
+  "tier": "p0",
+  "category": "planner"
+}

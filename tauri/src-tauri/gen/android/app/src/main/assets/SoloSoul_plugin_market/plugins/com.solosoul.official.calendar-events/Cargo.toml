@@ -1,0 +1,12 @@
+[package]
+name = "calendar-events"
+version = "1.0.0"
+edition = "2021"
+authors = ["SoloSoul Official"]
+description = "Calendar Events — Generate iCalendar reminders for passport/visa/ID expirations"
+
+[dependencies]
+solosoul-plugin-sdk = { path = "../../SDK/rust" }
+
+[lib]
+crate-type = ["cdylib"]

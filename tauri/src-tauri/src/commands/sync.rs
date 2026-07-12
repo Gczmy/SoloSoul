@@ -1,7 +1,30 @@
 use crate::state::AppState;
 use serde::Serialize;
-use solosoul_sync::delta::{ApplyStats, ConflictRecord};
 use tauri::State;
+
+#[cfg(mobile)]
+use crate::commands::{mobile_not_supported, mobile_not_supported_with};
+#[cfg(desktop)]
+use solosoul_sync::types::{ApplyStats, ConflictRecord};
+
+// 移动端：提供与桌面端字段兼容的本地 ConflictRecord，使 SyncResult 签名不变。
+#[cfg(mobile)]
+#[derive(Debug, Clone, Serialize, serde::Deserialize)]
+pub struct ConflictRecord {
+    pub table: String,
+    pub id: String,
+    pub local_hlc: MobileHlc,
+    pub remote_hlc: MobileHlc,
+    pub winner: String,
+}
+
+#[cfg(mobile)]
+#[derive(Debug, Clone, Serialize, serde::Deserialize)]
+pub struct MobileHlc {
+    pub wall_time_ms: u64,
+    pub counter: u64,
+    pub node_id: String,
+}
 
 #[derive(Serialize)]
 pub struct SyncPeer {
@@ -39,6 +62,7 @@ pub struct TableResult {
     pub skipped: u64,
 }
 
+#[cfg(desktop)]
 impl From<&ApplyStats> for SyncResult {
     fn from(stats: &ApplyStats) -> Self {
         Self {
@@ -67,6 +91,7 @@ impl From<&ApplyStats> for SyncResult {
     }
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String> {
     let peers = state.sync_service.known_peers().await?;
@@ -89,16 +114,37 @@ pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, Str
     })
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_discover(_state: State<'_, AppState>) -> Result<SyncStatus, String> {
+    mobile_not_supported_with()
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
     sync_discover(state).await
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_get_status(_state: State<'_, AppState>) -> Result<SyncStatus, String> {
+    mobile_not_supported_with()
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(), String> {
     state.sync_service.enable(enable).await
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_enable(_state: State<'_, AppState>, _enable: bool) -> Result<(), String> {
+    mobile_not_supported()
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_with_device(
     state: State<'_, AppState>,
@@ -116,6 +162,16 @@ pub async fn sync_with_device(
     Ok(sync_result)
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_with_device(
+    _state: State<'_, AppState>,
+    _device_id: String,
+) -> Result<SyncResult, String> {
+    mobile_not_supported_with()
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_trust_peer(
     state: State<'_, AppState>,
@@ -125,6 +181,17 @@ pub async fn sync_trust_peer(
     state.sync_service.trust_peer(peer_node_id, trusted).await
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_trust_peer(
+    _state: State<'_, AppState>,
+    _peer_node_id: String,
+    _trusted: bool,
+) -> Result<(), String> {
+    mobile_not_supported()
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_forget_peer(
     state: State<'_, AppState>,
@@ -133,10 +200,19 @@ pub async fn sync_forget_peer(
     state.sync_service.forget_peer(peer_node_id).await
 }
 
-#[cfg(test)]
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_forget_peer(
+    _state: State<'_, AppState>,
+    _peer_node_id: String,
+) -> Result<(), String> {
+    mobile_not_supported()
+}
+
+#[cfg(all(test, desktop))]
 mod tests {
     use super::*;
-    use solosoul_sync::delta::{ApplyStats, TableStats};
+    use solosoul_sync::types::{ApplyStats, TableStats};
     use std::collections::HashMap;
 
     #[test]

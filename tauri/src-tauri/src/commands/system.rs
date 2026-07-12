@@ -34,15 +34,22 @@ pub fn get_ui_language() -> Option<String> {
 }
 
 /// 获取系统外观主题（light / dark）。
-/// dark_light::detect() returns Result<Mode, Error> in newer versions.
+/// 桌面端使用 dark_light 检测；移动端由前端 CSS media query 决定，此处返回固定值。
 #[tauri::command]
 pub fn get_system_theme() -> Result<String, String> {
-    use dark_light::Mode;
-    let mode = dark_light::detect().map_err(|e| format!("Failed to detect system theme: {}", e))?;
-    match mode {
-        Mode::Dark => Ok("dark".to_string()),
-        Mode::Light => Ok("light".to_string()),
-        _ => Ok("light".to_string()),
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        Ok("dark".to_string())
+    }
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        use dark_light::Mode;
+        let mode = dark_light::detect().map_err(|e| format!("Failed to detect system theme: {}", e))?;
+        match mode {
+            Mode::Dark => Ok("dark".to_string()),
+            Mode::Light => Ok("light".to_string()),
+            _ => Ok("light".to_string()),
+        }
     }
 }
 

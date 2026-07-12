@@ -48,3 +48,22 @@
   background: color-mix(in srgb, var(--text-primary) 12%, transparent);
   transform: scale(0.94);
 }
+
+/* Mobile: full-width app bar with smaller padding */
+@media (max-width: 767px) {
+  .appBar {
+    left: 0;
+    padding: 0 12px;
+    height: 48px;
+  }
+  .title {
+    font-size: var(--text-body);
+  }
+  .backButton {
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+}

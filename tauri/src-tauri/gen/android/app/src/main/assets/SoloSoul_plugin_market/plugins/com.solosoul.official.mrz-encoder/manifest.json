@@ -1,0 +1,40 @@
+{
+  "plugin_id": "com.solosoul.official.mrz-encoder",
+  "name": "MRZ Encoder",
+  "version": "1.0.2",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "MRZ 编码器 — 将护照信息编码为 ICAO Doc 9303 TD3 标准机读区格式",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.mrz-encoder",
+  "required_fields": [
+    "passport.number",
+    "passport.nationality",
+    "passport.surname",
+    "passport.givenNames",
+    "passport.dateOfBirth",
+    "passport.sex",
+    "passport.expiryDate"
+  ],
+  "optional_fields": [
+    "passport.personalNumber"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "MRZ 编码器",
+      "description": "将护照/身份证信息编码为 ICAO Doc 9303 MRZ 格式。"
+    },
+    "en": {
+      "name": "MRZ Encoder",
+      "description": "Encode passport/ID card information from the Vault into ICAO Doc 9303 standard Machine Readable Zone (MRZ) format."
+    }
+  },
+  "tier": "p0",
+  "category": "encoder"
+}

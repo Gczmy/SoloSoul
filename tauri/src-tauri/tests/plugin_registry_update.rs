@@ -127,6 +127,7 @@ async fn test_update_registry_from_remote() {
     let signature = sign_registry(&data, key_id, &keypair);
 
     std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
+    std::env::set_var("NO_PROXY", "127.0.0.1,localhost");
     std::env::set_var(
         "SOLOSOUL_REGISTRY_PUBKEY",
         public_key_base64(key_id, &public_key),
@@ -161,6 +162,7 @@ async fn test_update_registry_rejects_invalid_signature() {
     let corrupted = lines.join("\n");
 
     std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
+    std::env::set_var("NO_PROXY", "127.0.0.1,localhost");
     std::env::set_var(
         "SOLOSOUL_REGISTRY_PUBKEY",
         public_key_base64(key_id, &public_key),
@@ -189,6 +191,7 @@ async fn test_update_registry_rejects_mismatched_key() {
     let (_, other_pk, _) = generate_minisign_keypair();
 
     std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
+    std::env::set_var("NO_PROXY", "127.0.0.1,localhost");
     std::env::set_var(
         "SOLOSOUL_REGISTRY_PUBKEY",
         public_key_base64(key_id, &other_pk),

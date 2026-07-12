@@ -331,9 +331,22 @@ pub async fn attachment_copy_to_vault(
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let base = svc.base_path().clone();
 
-    // Canonicalize src_path to resolve relative path traversal
+    // Canonicalize src_path to resolve relative path traversal.
+    // 在 Android 上文件选择器可能返回缓存路径（或 content:// URI，已由前端中转为本地路径），
+    // 如果 canonicalize 失败但路径确实存在，则降级使用原始路径。
     let src = std::path::Path::new(&src_path)
         .canonicalize()
+        .or_else(|_| {
+            let p = std::path::PathBuf::from(&src_path);
+            if p.exists() {
+                Ok(p)
+            } else {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "source path does not exist",
+                ))
+            }
+        })
         .map_err(|e| format!("Invalid source path: {}", e))?;
 
     // Reject if source path is within vault storage (self-referencing)

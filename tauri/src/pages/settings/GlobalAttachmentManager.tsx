@@ -26,6 +26,9 @@ import {
 } from 'lucide-react';
 import { DEFAULT_CUSTOM_ICON, PAGE_ICON_MAP, CUSTOM_ICON_MAP } from '@/lib/pageIcons';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
+import { downloadViaStage, isUriPath } from '@/lib/mobileFileTransfer';
+
+
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
@@ -277,7 +280,9 @@ export function GlobalAttachmentManager() {
         defaultPath: item.fileName,
       });
       if (!destPath) return;
-      await invoke('attachment_download', { srcPath: filePath, destPath });
+      await downloadViaStage(filePath, destPath, item.fileName, (src, dest) =>
+        invoke('attachment_download', { srcPath: src, destPath: dest }),
+      );
       showToast({
         type: 'success',
         message: t('common:download_result') || 'Downloaded successfully',
@@ -383,6 +388,17 @@ export function GlobalAttachmentManager() {
         title: t('common:select_download_directory') || 'Select download directory',
       });
       if (!dirPath) return;
+
+      // Android 目录选择器返回 tree URI，无法直接用 std::fs 写入，暂不支持批量下载
+      if (isUriPath(dirPath)) {
+        showToast({
+          type: 'warning',
+          message:
+            t('common:batch_download_mobile_unsupported') ||
+            'Batch download to a directory is not supported on mobile. Please download files individually.',
+        });
+        return;
+      }
 
       // Map entries to actual attachment items
       const selectedItems: AttachmentMeta[] = [];

@@ -5,18 +5,24 @@
 //! that depends on the unlocked vault store.
 
 use crate::state::AppState;
-use solosoul_core::biometric::{
-    trigger_system_biometric, BiometricAvailability, BiometricError, BiometricManager,
-};
+use solosoul_core::biometric::BiometricAvailability;
 use tauri::State;
 
+#[cfg(mobile)]
+use crate::commands::{mobile_not_supported, mobile_not_supported_with};
+#[cfg(desktop)]
+use solosoul_core::biometric::{trigger_system_biometric, BiometricError, BiometricManager};
+
+#[cfg(desktop)]
 const BIO_ERR_PREFIX: &str = "__BIO_ERR__:";
 
+#[cfg(desktop)]
 fn bio_err(code: &str) -> String {
     format!("{}{}", BIO_ERR_PREFIX, code)
 }
 
 /// 将 BiometricError 映射为前端可国际化的短代码。
+#[cfg(desktop)]
 fn map_bio_error(e: BiometricError, operation: &str) -> String {
     let code = match &e {
         BiometricError::PlatformNotSupported => "platform_not_supported",
@@ -51,6 +57,7 @@ fn map_bio_error(e: BiometricError, operation: &str) -> String {
     bio_err(code)
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn biometric_check_availability(
     state: State<'_, AppState>,
@@ -78,6 +85,16 @@ pub async fn biometric_check_availability(
     Ok(result)
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn biometric_check_availability(
+    _state: State<'_, AppState>,
+    _account_id: String,
+) -> Result<BiometricAvailability, String> {
+    mobile_not_supported_with()
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn biometric_save_credential(
     state: State<'_, AppState>,
@@ -133,6 +150,20 @@ pub async fn biometric_save_credential(
     Ok(())
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn biometric_save_credential(
+    _state: State<'_, AppState>,
+    _account_id: String,
+    _password: String,
+    _location: Option<String>,
+    _action: Option<String>,
+    _biometry_type: Option<String>,
+) -> Result<(), String> {
+    mobile_not_supported()
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn biometric_unlock(
     state: State<'_, AppState>,
@@ -181,6 +212,19 @@ pub async fn biometric_unlock(
     Ok(())
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn biometric_unlock(
+    _state: State<'_, AppState>,
+    _account_id: String,
+    _location: Option<String>,
+    _action: Option<String>,
+    _biometry_type: Option<String>,
+) -> Result<(), String> {
+    mobile_not_supported()
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn biometric_delete_credential(
     state: State<'_, AppState>,
@@ -219,6 +263,20 @@ pub async fn biometric_delete_credential(
     Ok(())
 }
 
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn biometric_delete_credential(
+    _state: State<'_, AppState>,
+    _account_id: String,
+    _password: String,
+    _location: Option<String>,
+    _action: Option<String>,
+    _biometry_type: Option<String>,
+) -> Result<(), String> {
+    mobile_not_supported()
+}
+
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
     if !solosoul_core::biometric::is_macos() && std::env::consts::OS != "windows" {
@@ -234,7 +292,13 @@ pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
     Ok(true)
 }
 
-#[cfg(test)]
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
+    mobile_not_supported_with()
+}
+
+#[cfg(all(test, desktop))]
 mod tests {
     use super::*;
 

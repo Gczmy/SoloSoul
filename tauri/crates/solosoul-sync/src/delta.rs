@@ -5,41 +5,12 @@
 
 use crate::hlc::Hlc;
 use crate::protocol::SyncRecord;
-use serde::{Deserialize, Serialize};
+use crate::types::{ApplyStats, ConflictRecord};
 use solosoul_vault::{RecordHlc, SyncWatermark, VaultStore, VaultSyncRecord};
 use std::collections::HashMap;
 
 /// Tables synchronized in the first milestone (attachments excluded).
 pub const SYNC_TABLES: &[&str] = &["profiles", "objects", "user_templates", "trash_items"];
-
-/// Per-table statistics returned after applying a sync batch.
-#[derive(Debug, Clone, Default)]
-pub struct TableStats {
-    pub examined: u64,
-    pub applied: u64,
-    pub skipped: u64,
-}
-
-/// A conflict detected when the remote HLC is not newer than the local HLC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConflictRecord {
-    pub table: String,
-    pub id: String,
-    pub local_hlc: Hlc,
-    pub remote_hlc: Hlc,
-    pub winner: String,
-}
-
-/// Statistics returned after applying a sync batch.
-#[derive(Debug, Clone, Default)]
-pub struct ApplyStats {
-    pub examined: u64,
-    pub applied: u64,
-    pub skipped: u64,
-    pub errors: Vec<String>,
-    pub per_table: HashMap<String, TableStats>,
-    pub conflicts: Vec<ConflictRecord>,
-}
 
 fn hlc_to_record_hlc(hlc: &Hlc) -> RecordHlc {
     RecordHlc {

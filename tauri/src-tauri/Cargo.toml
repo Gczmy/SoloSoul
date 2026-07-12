@@ -16,9 +16,8 @@ tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-http = "2"
 tauri-plugin-notification = "2"
-tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
-tauri-plugin-window-state = "2"
+tauri-plugin-os = "2"
 opener = "0.7"
 
 # Workspace crates
@@ -58,24 +57,42 @@ rand = { workspace = true }
 zeroize = { workspace = true }
 sha2 = { workspace = true }
 zip = { version = "2.2", default-features = false, features = ["deflate"] }
-mdns-sd = "0.11"
 reqwest = { workspace = true }
 futures = "0.3"
-
-# 本地 Embedding (ONNX Runtime)
-ort = { workspace = true }
-tokenizers = { version = "0.21", default-features = false, features = ["onig"] }
-ndarray = { workspace = true }
 sys-locale = "0.3.2"
-
-# 插件系统 (Wasmtime 沙箱 + Host Functions)
-wasmtime = { version = "45.0.1", features = ["cranelift", "runtime", "component-model"] }
-wasmtime-wasi = { version = "45.0.1", default-features = false, features = ["p1"] }
 dirs = "6.0.0"
 semver = "1.0"
 url = "2.5"
 minisign-verify = "0.2"
+
+# 平台专属：桌面端（非 Android/iOS）
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-window-state = "2"
+tauri-plugin-updater = "2"
+mdns-sd = "0.11"
 dark-light = "2.0.0"
+
+# 本地 Embedding (ONNX Runtime) — 桌面端先行，移动端二期补齐
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.ort]
+workspace = true
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.tokenizers]
+version = "0.21"
+default-features = false
+features = ["onig"]
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.ndarray]
+workspace = true
+
+# 插件系统 (Wasmtime 沙箱 + Host Functions) — 桌面端先行，移动端暂不支持
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.wasmtime]
+version = "45.0.1"
+features = ["cranelift", "runtime", "component-model"]
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.wasmtime-wasi]
+version = "45.0.1"
+default-features = false
+features = ["p1"]
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { version = "0.6", default-features = false, features = ["std", "alloc"] }
@@ -90,9 +107,19 @@ tempfile = "3"
 ring = "0.17"
 blake2 = "0.10"
 wat = "1.0"
+tauri = { version = "2", features = ["test"] }
 
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+mobile = []
+
+[lib]
+name = "solo_soul"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "solo_soul"
+path = "src/main.rs"
 
 # HTTP client (LLM proxy)

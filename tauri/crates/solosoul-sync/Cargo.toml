@@ -28,10 +28,9 @@ hex = { workspace = true }
 base64 = { workspace = true }
 sha2 = { workspace = true }
 
-# mDNS
+# mDNS / Noise — 桌面端先行，移动端二期替换为 Android NSD
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 mdns-sd = "0.11"
-
-# Noise
 snow = "0.9"
 x25519-dalek = { version = "2", features = ["static_secrets"] }
 

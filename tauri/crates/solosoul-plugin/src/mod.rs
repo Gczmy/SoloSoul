@@ -7,12 +7,24 @@ pub mod consent;
 pub mod error;
 pub mod event;
 pub mod field;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub mod host;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+#[path = "host_mobile.rs"]
+pub mod host;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod manager;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+#[path = "manager_mobile.rs"]
 pub mod manager;
 pub mod manifest;
 pub mod paths;
 pub mod rate_limiter;
 pub mod registry;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod sandbox;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+#[path = "sandbox_mobile.rs"]
 pub mod sandbox;
 pub mod session;
 pub mod store;

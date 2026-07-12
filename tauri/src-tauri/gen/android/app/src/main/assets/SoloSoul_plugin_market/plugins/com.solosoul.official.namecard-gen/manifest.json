@@ -1,0 +1,43 @@
+{
+  "plugin_id": "com.solosoul.official.namecard-gen",
+  "name": "Namecard Generator",
+  "version": "1.0.1",
+  "plugin_api_version": "1.0",
+  "min_app_version": "1.0.0",
+  "max_app_version": "999.999.999",
+  "description": "数字名片生成器 — 从 Vault 联系信息生成标准 vCard 3.0 数字名片",
+  "publisher": "SoloSoul Official",
+  "homepage": "https://github.com/Gczmy/SoloSoul_plugin_market/tree/main/plugins/com.solosoul.official.namecard-gen",
+  "required_fields": [
+    "identity.fullName"
+  ],
+  "optional_fields": [
+    "contact.email",
+    "contact.phone",
+    "contact.website",
+    "identity.title",
+    "identity.organization",
+    "address.street",
+    "address.city",
+    "address.state",
+    "address.postalCode",
+    "address.country"
+  ],
+  "network_policy": {
+    "block_all_outbound": true
+  },
+  "data_ttl_seconds": 60,
+  "require_user_confirmation": false,
+  "i18n": {
+    "zh": {
+      "name": "名片生成器",
+      "description": "生成加密数字名片二维码，需 SoloSoul 扫码解密。"
+    },
+    "en": {
+      "name": "Namecard Generator",
+      "description": "Generate an encrypted digital business card as a QR code, decryptable only by scanning with SoloSoul."
+    }
+  },
+  "tier": "p0",
+  "category": "generator"
+}
