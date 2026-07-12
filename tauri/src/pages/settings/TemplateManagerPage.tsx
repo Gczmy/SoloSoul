@@ -114,7 +114,7 @@ export function TemplateManagerPage() {
       loadCustomPages(accountId).catch((err) =>
         console.warn('[TemplateManager] Load custom pages failed:', err),
       );
-  }, [loadTemplates, accountId, loadCustomPages]);
+  }, [loadTemplates, accountId, loadCustomPages, templates.length]);
 
   // 独立的 useEffect 加载插件列表（与模板/页面加载无关，避免 installedPlugins 变化触发不必要的重载）
   useEffect(() => {
