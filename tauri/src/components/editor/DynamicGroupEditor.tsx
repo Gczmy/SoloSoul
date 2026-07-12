@@ -137,9 +137,9 @@ export function DynamicGroupEditor({
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <FieldTypeIcon type="dynamic_group" />
           <span className={styles.label}>{label}</span>
+          {sensitivity && <SensitivityBadge level={sensitivity} />}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {sensitivity && <SensitivityBadge level={sensitivity} />}
           {maxItems !== undefined && (
             <span className={styles.count}>
               {items.length}/{maxItems}
