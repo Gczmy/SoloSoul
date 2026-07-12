@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { TemplateFieldInput } from '@/components/TemplateFieldInput';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import type { PropertyType, SensitivityLevel } from '@/types/template';
 import styles from './DynamicGroupEditor.module.css';
 
@@ -133,12 +134,18 @@ export function DynamicGroupEditor({
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <span className={styles.label}>{label}</span>
-        {maxItems !== undefined && (
-          <span className={styles.count}>
-            {items.length}/{maxItems}
-          </span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <FieldTypeIcon type="dynamic_group" />
+          <span className={styles.label}>{label}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {sensitivity && <SensitivityBadge level={sensitivity} />}
+          {maxItems !== undefined && (
+            <span className={styles.count}>
+              {items.length}/{maxItems}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className={styles.items}>
