@@ -901,7 +901,6 @@ mod tests {
         let bt = result.biometry_type;
         let err = result.error;
         // 只验证返回结构，不验证具体值（CI 可能无 Touch ID 硬件）
-        assert!(available == false || available == true);
         if let Some(ref bt_val) = bt {
             assert!(
                 bt_val == "touchId" || bt_val == "faceId" || bt_val == "opticId",
