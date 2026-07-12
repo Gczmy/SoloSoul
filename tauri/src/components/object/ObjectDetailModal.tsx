@@ -482,17 +482,6 @@ export function ObjectDetailModal({
                     </h2>
                     <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                       {resolveCollectionLabelLocal(obj.collectionType)}
-                      {obj.contractTypeId && (
-                        <span
-                          style={{ marginLeft: 4, display: 'inline-flex', verticalAlign: 'middle' }}
-                        >
-                          <PluginBadge
-                            contractTypeId={obj.contractTypeId}
-                            size="sm"
-                            variant="full"
-                          />
-                        </span>
-                      )}
                       {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
                       {obj.templateId &&
                         (() => {
@@ -513,6 +502,17 @@ export function ObjectDetailModal({
                             </span>
                           );
                         })()}
+                      {obj.contractTypeId && (
+                        <span
+                          style={{ marginLeft: 4, display: 'inline-flex', verticalAlign: 'middle' }}
+                        >
+                          <PluginBadge
+                            contractTypeId={obj.contractTypeId}
+                            size="sm"
+                            variant="full"
+                          />
+                        </span>
+                      )}
                       {' · '}
                       {t('common:created')}: {obj.createdAt?.slice(0, 10) || '—'} ·{' '}
                       {t('common:updated')}: {obj.updatedAt?.slice(0, 10) || '—'}

@@ -192,7 +192,6 @@ export function ObjectTemplateSelector({
         >
           {resolveCollectionLabel(collectionType, customPages, t)}
         </span>
-        {contractTypeId && <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />}
         {(selectedType || currentObject?.templateId) && (
           <span
             style={{
@@ -212,6 +211,7 @@ export function ObjectTemplateSelector({
                 })()}
           </span>
         )}
+        {contractTypeId && <PluginBadge contractTypeId={contractTypeId} size="sm" variant="full" />}
       </div>
     </Card>
   );
