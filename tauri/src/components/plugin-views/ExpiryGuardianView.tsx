@@ -61,7 +61,7 @@ const URGENCY_CLASS: Record<string, string> = {
 };
 
 export const ExpiryGuardianView: React.FC<Props> = ({ payload }) => {
-  const { i18n } = useTranslation();
+  useTranslation();
   const isZh = payload.locale.startsWith('zh');
 
   return (
