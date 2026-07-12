@@ -384,4 +384,59 @@ describe('HistoryViewer', () => {
     expect(screen.getByText('critical')).toBeInTheDocument();
     expect(screen.queryByText('sensitive')).not.toBeInTheDocument();
   });
+
+  it('localizes __dynamic_group__ label even when snapshot __fields name is the raw key', async () => {
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === 'snapshot_list') {
+        return [
+          {
+            id: 'snap-dg-raw',
+            timestamp: Date.now(),
+            triggeredBy: 'user_edit',
+            diffSummary: 'diff_updated',
+          },
+        ];
+      }
+      if (cmd === 'snapshot_get_data') {
+        return {
+          name: 'Test Object',
+          tags: [],
+          properties: {
+            __fields: {
+              // 某些旧快照/模板中动态字段组名称存成了原始 key
+              __dynamic_group__: { name: '__dynamic_group__', type: 'dynamic_group', sensitivityLevel: 'internal' },
+            },
+            __dynamic_group__: [
+              { id: 'c1', name: '新字段2', type: 'text', value: '1' },
+              { id: 'c2', name: '新字段', type: 'text', value: '1' },
+            ],
+          },
+          propertyLabels: {},
+        };
+      }
+      return null;
+    });
+
+    render(
+      <HistoryViewer
+        objectId="obj-dg-raw"
+        objectName="Test Object"
+        collectionType="identity"
+        onClose={() => {}}
+        passwordVerify={async () => ({ ok: true, method: 'password' })}
+        getFieldSensitivity={() => 'internal'}
+        isFieldDeprecated={() => false}
+        getFieldName={(k) => k}
+        fieldOrder={['__dynamic_group__']}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('新字段2')).toBeInTheDocument();
+    });
+
+    // 应显示国际化后的“动态字段组”，而不是原始 __dynamic_group__
+    expect(screen.queryByText('__dynamic_group__')).not.toBeInTheDocument();
+    expect(screen.getByText('动态字段组')).toBeInTheDocument();
+  });
 });

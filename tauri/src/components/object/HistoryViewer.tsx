@@ -42,7 +42,8 @@ export function flattenProperties(
     | undefined;
   const entries: FlattenedField[] = [];
   for (const [k, v] of Object.entries(props)) {
-    if (k.startsWith('__')) continue;
+    // 跳过对象元数据字段，但保留字段定义中存在的 key（如 __dynamic_group__）
+    if (k.startsWith('__') && !fieldDefs?.[k]) continue;
     if (v === null || v === undefined || v === '') continue;
 
     if (fieldDefs?.[k]?.type === 'dynamic_group' && Array.isArray(v)) {
@@ -219,10 +220,11 @@ function SnapshotCard({
   };
 
   const getFieldNameLabel = (field: FlattenedField): string => {
-    if (field.key === '__dynamic_group__') {
+    const rawLabel = field.label || getFieldName(field.key);
+    if (field.key === '__dynamic_group__' || rawLabel === '__dynamic_group__') {
       return t('editor:field_types.dynamic_group', { defaultValue: '动态字段组' });
     }
-    return field.label || getFieldName(field.key);
+    return rawLabel;
   };
 
   return (
