@@ -214,6 +214,8 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+            template_hash: None,
+            ignored_template_hash: None,
         };
         vault.save_object(&obj).unwrap();
 

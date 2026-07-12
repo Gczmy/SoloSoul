@@ -897,6 +897,8 @@ mod tests {
                     sensitive: None,
                     options: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
                 TemplateProperty {
                     contract_field: None,
@@ -908,6 +910,8 @@ mod tests {
                     sensitive: None,
                     options: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
             ],
             category: Some("identity".to_string()),
@@ -957,6 +961,8 @@ mod tests {
                     sensitive: None,
                     options: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
                 TemplateProperty {
                     contract_field: None,
@@ -968,6 +974,8 @@ mod tests {
                     sensitive: None,
                     options: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
             ],
             category: Some("identity".to_string()),
@@ -998,6 +1006,8 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+            template_hash: None,
+            ignored_template_hash: None,
         };
         vault.save_object(&record).unwrap();
 
@@ -1042,6 +1052,8 @@ mod tests {
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             }],
             category: Some("identity".to_string()),
             created_at: now.clone(),
@@ -1070,6 +1082,8 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+            template_hash: None,
+            ignored_template_hash: None,
         };
         vault.save_object(&record).unwrap();
 
@@ -1137,6 +1151,8 @@ mod tests {
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             }],
             category: Some("identity".to_string()),
             created_at: now.clone(),
@@ -1165,6 +1181,8 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+            template_hash: None,
+            ignored_template_hash: None,
         };
         vault.save_object(&record).unwrap();
 
@@ -1213,6 +1231,8 @@ mod tests {
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             }],
             category: Some("identity".to_string()),
             created_at: now.clone(),
@@ -1241,6 +1261,8 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+            template_hash: None,
+            ignored_template_hash: None,
         };
         vault.save_object(&record).unwrap();
 
@@ -1287,6 +1309,8 @@ mod tests {
                 sensitive: None,
                 options: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             }],
             category: Some("identity".to_string()),
             created_at: now.clone(),
@@ -1315,6 +1339,8 @@ mod tests {
             created_at: now.clone(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+            template_hash: None,
+            ignored_template_hash: None,
         };
         vault.save_object(&record).unwrap();
 

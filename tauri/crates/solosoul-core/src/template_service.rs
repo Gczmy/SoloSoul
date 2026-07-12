@@ -366,6 +366,8 @@ mod tests {
                     options: None,
                     sensitive: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
                 solosoul_vault::TemplateProperty {
                     contract_field: None,
@@ -377,6 +379,8 @@ mod tests {
                     options: None,
                     sensitive: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
                 solosoul_vault::TemplateProperty {
                     contract_field: None,
@@ -388,6 +392,8 @@ mod tests {
                     options: None,
                     sensitive: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
                 solosoul_vault::TemplateProperty {
                     contract_field: None,
@@ -399,6 +405,8 @@ mod tests {
                     options: None,
                     sensitive: None,
                     deprecated_at: None,
+                    allowed_types: None,
+                    max_items: None,
                 },
             ],
             category: Some("travel".to_string()),

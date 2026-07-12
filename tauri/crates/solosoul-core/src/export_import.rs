@@ -952,6 +952,8 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
+            template_hash: None,
+            ignored_template_hash: None,
         }
     }
 
@@ -1083,6 +1085,8 @@ mod tests {
                 options: None,
                 sensitive: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             }],
             category: Some("travel".to_string()),
             created_at: "2024-01-01T00:00:00Z".to_string(),
@@ -1149,6 +1153,8 @@ mod tests {
                 options: None,
                 sensitive: None,
                 deprecated_at: None,
+                allowed_types: None,
+                max_items: None,
             }],
             category: Some("travel".to_string()),
             created_at: "2024-01-01T00:00:00Z".to_string(),
