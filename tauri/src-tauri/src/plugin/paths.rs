@@ -12,7 +12,17 @@ use tauri::Manager;
 /// - 开发模式（`debug_assertions`）下若不存在，回退到 `CARGO_MANIFEST_DIR` 相对路径
 pub fn resolve_market_dir(app_handle: Option<&tauri::AppHandle>) -> Result<PathBuf, PluginError> {
     if let Some(app) = app_handle {
-        if let Ok(resource_dir) = app.path().resource_dir() {
+        // Android 上 Tauri 的 resource_dir 返回 asset:// URL，无法被 std::fs 直接读取。
+        // MainActivity 已将资源复制到 files/resources/，优先使用该私有目录。
+        #[cfg(target_os = "android")]
+        let resource_dir = app
+            .path()
+            .resolve("resources", tauri::path::BaseDirectory::Data)
+            .ok();
+        #[cfg(not(target_os = "android"))]
+        let resource_dir = app.path().resource_dir().ok();
+
+        if let Some(resource_dir) = resource_dir {
             let bundled = resource_dir.join("SoloSoul_plugin_market");
             if bundled.join("registry.json").exists() || bundled.join("plugins").exists() {
                 return Ok(bundled);
