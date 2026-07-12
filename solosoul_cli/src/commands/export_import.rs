@@ -74,8 +74,8 @@ fn handle_export(app: &mut App, args: &[&str]) -> Result<()> {
         }
     };
 
-    let path_clone = path.clone();
-    let base_clone = base.clone();
+    let path_clone = path;
+    let base_clone = base;
     prompt::open(
         app,
         PromptSpec::Text {

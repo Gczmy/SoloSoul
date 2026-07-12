@@ -287,9 +287,8 @@ async fn import_execute_internal(
                     let hash = solosoul_core::export_import::user_template_content_hash(&tpl);
 
                     // 去重：检查是否有完全一致的已有模板（含系统预置模板）
-                    let local_id = if let Some(existing) = vault
-                        .find_user_template_by_content_hash(&account_id, &hash)
-                        .map_err(|e| e.to_string())?
+                    let local_id = if let Some(existing) =
+                        vault.find_user_template_by_content_hash(&account_id, &hash)?
                     {
                         existing.id
                     } else {
@@ -680,7 +679,7 @@ async fn import_execute_internal(
                     obj.properties = serde_json::Value::Object(map);
                 }
             }
-            vault.save_object(&obj).map_err(|e| e.to_string())?;
+            vault.save_object(&obj)?;
         }
 
         imported_attachments_count = imported_atts.values().map(|v| v.len()).sum();

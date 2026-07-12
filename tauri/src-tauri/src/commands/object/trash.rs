@@ -325,7 +325,7 @@ pub async fn page_delete(
                 expires_at: Some(now_ms + retention_ms),
                 deleted_by: "user".to_string(),
                 name_snapshot: rec.name.clone(),
-                icon_snapshot: Some(rec.icon_name.clone()),
+                icon_snapshot: Some(rec.icon_name),
             };
             let _ = vault.save_trash_item(&trash);
             vault.delete_object(pid, true)?;

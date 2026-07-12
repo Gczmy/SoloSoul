@@ -195,7 +195,7 @@ mod tests {
         let vault = app.vault_service.get_vault_store().unwrap();
         let obj = ObjectRecord {
             id: format!("obj_test_{}", obj_counter()),
-            account_id: account_id.clone(),
+            account_id,
             type_id: "note".to_string(),
             section_type: "identity".to_string(),
             name: "原名称".to_string(),

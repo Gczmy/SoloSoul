@@ -610,12 +610,12 @@ mod tests {
         // 创建对象
         let obj = ObjectRecord {
             id: format!("obj_test_{}", obj_counter()),
-            account_id: account_id.clone(),
+            account_id,
             type_id: "note".to_string(),
             section_type: "identity".to_string(),
             name: "护照信息".to_string(),
             icon_name: "document".to_string(),
-            parent_id: Some(page.id.clone()),
+            parent_id: Some(page.id),
             children_ids: vec![],
             properties: serde_json::json!({ "number": "E12345678" }),
             property_labels: None,

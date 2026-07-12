@@ -913,7 +913,7 @@ pub async fn ensure_guide_embeddings_built(state: &AppState, account_id: &str, l
             return Ok(());
         }
 
-        vault.clear_guide_embeddings().map_err(|e| e.to_string())?;
+        vault.clear_guide_embeddings()?;
         drop(vg);
         drop(svc);
 
@@ -939,9 +939,7 @@ pub async fn ensure_guide_embeddings_built(state: &AppState, account_id: &str, l
                 model: model_name.clone(),
                 created_at: now.clone(),
             };
-            vault
-                .save_guide_embedding(&chunk)
-                .map_err(|e| e.to_string())?;
+            vault.save_guide_embedding(&chunk)?;
         }
 
         mark_rebuilt(vault, language)?;

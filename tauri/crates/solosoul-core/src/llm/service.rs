@@ -731,7 +731,7 @@ impl LlmService {
         conversation.messages.push(ChatMessage {
             role: "user".to_string(),
             content: user_message.to_string(),
-            created_at: now.clone(),
+            created_at: now,
         });
         conversation.messages.push(ChatMessage {
             role: "assistant".to_string(),

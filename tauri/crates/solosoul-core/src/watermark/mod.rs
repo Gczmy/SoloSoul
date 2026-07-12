@@ -209,7 +209,7 @@ pub fn apply_to_image(input: &Path, output: &Path, config: &WatermarkConfig) -> 
 
     // 旋转临时层（0° 时直接复用，避免无意义的重采样）
     let rotated = if config.angle == 0.0 {
-        layer.clone()
+        layer
     } else {
         rotate_rgba(&layer, config.angle)
     };

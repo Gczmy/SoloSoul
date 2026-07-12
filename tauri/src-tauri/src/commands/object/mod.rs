@@ -433,7 +433,7 @@ pub(crate) fn inject_template_meta(
     if let Some(obj) = properties.as_object_mut() {
         obj.insert(
             "__templateName".to_string(),
-            serde_json::Value::String(tpl.name.clone()),
+            serde_json::Value::String(tpl.name),
         );
     }
 }
@@ -1525,7 +1525,7 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
             expires_at: Some(now_ms + retention_ms),
             deleted_by: "user".to_string(),
             name_snapshot: rec.name.clone(),
-            icon_snapshot: Some(rec.icon_name.clone()),
+            icon_snapshot: Some(rec.icon_name),
         };
         let _ = vault.save_trash_item(&trash);
         vault.delete_object(&object_id, true)?;

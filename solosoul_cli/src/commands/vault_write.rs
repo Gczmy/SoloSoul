@@ -88,9 +88,7 @@ pub fn start_select_template(app: &mut App, page_id: String, page_name: String) 
         .list_user_templates(&account_id)
         .map_err(|e| color_eyre::eyre::eyre!(e))?;
 
-    app.previous_phase = Some(AppPhase::Home {
-        account_id: account_id.clone(),
-    });
+    app.previous_phase = Some(AppPhase::Home { account_id });
     app.phase = AppPhase::NewObjectWizard {
         step: NewObjectStep::SelectTemplate {
             page_id,

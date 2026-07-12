@@ -67,7 +67,7 @@ pub fn build_context(
     {
         let mut cache = PROMPT_CACHE.lock().map_err(|e| e.to_string())?;
         cache.insert(
-            cache_key.clone(),
+            cache_key,
             CachedPrompt {
                 static_prompt: static_prompt.clone(),
                 created_at: Instant::now(),

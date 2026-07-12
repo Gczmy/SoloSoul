@@ -183,7 +183,7 @@ pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<B
     let backup_path = backup_dir.join(format!("{}_{}.solosoul_backup", safe_name, timestamp));
 
     // Collect all profiles
-    let profiles = vault.list_profiles().map_err(|e| e.to_string())?;
+    let profiles = vault.list_profiles()?;
     let object_count = profiles.len();
 
     #[derive(Serialize)]
@@ -319,7 +319,7 @@ pub async fn backup_restore(
                 .unwrap_or_else(|_| chrono::Utc::now()),
             version: entry.version,
         };
-        vault.save_profile(&profile).map_err(|e| e.to_string())?;
+        vault.save_profile(&profile)?;
         restored += 1;
     }
 

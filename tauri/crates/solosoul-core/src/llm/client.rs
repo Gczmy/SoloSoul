@@ -314,9 +314,7 @@ fn process_non_streaming(
     };
 
     if !text.is_empty() {
-        on_event(LlmStreamEvent::Chunk {
-            content: text.clone(),
-        });
+        on_event(LlmStreamEvent::Chunk { content: text });
     }
 
     on_event(LlmStreamEvent::Done {

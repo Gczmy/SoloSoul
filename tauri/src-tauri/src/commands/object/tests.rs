@@ -1267,7 +1267,7 @@ fn test_template_fingerprint_stable_and_sensitive() {
     assert_eq!(hash1, hash2);
     assert_eq!(hash1.len(), 16);
 
-    let mut tpl_modified = tpl.clone();
+    let mut tpl_modified = tpl;
     // 指纹排除模板名称/图标/分类等元数据，只反映字段定义
     tpl_modified.name = "Contact Updated".to_string();
     let hash3 = template_fingerprint(&tpl_modified);
@@ -1701,7 +1701,7 @@ fn test_apply_sync_changes_preserves_multiline_value_on_rename() {
     vault.save_object(&record).unwrap();
 
     // 修改模板字段名 "1" -> "2"，类型不变
-    let mut modified_tpl = tpl.clone();
+    let mut modified_tpl = tpl;
     modified_tpl.properties[0].name = "2".to_string();
     modified_tpl.updated_at = Some(chrono::Utc::now().to_rfc3339());
     vault.save_user_template(&modified_tpl).unwrap();
@@ -1864,14 +1864,14 @@ fn test_dynamic_group_sensitivity_preserved_in_snapshots_after_template_sync() {
         parent_id: None,
         children_ids: vec![],
         properties: properties.clone(),
-        property_labels: property_labels.clone(),
+        property_labels,
         sensitivity_level: "internal".to_string(),
         is_deleted: false,
         deleted_at: None,
         tags_json: vec![],
         template_id: Some("tpl-dg".to_string()),
         template_type: Some("user".to_string()),
-        template_hash: template_hash.clone(),
+        template_hash,
         ignored_template_hash: None,
         contract_type_id: None,
         created_at: chrono::Utc::now().to_rfc3339(),
@@ -1892,7 +1892,7 @@ fn test_dynamic_group_sensitivity_preserved_in_snapshots_after_template_sync() {
         .unwrap();
 
     // 3. 修改模板动态字段组敏感度为 sensitive
-    let mut modified_tpl = tpl.clone();
+    let mut modified_tpl = tpl;
     modified_tpl.properties[0].sensitivity_level = Some("sensitive".to_string());
     modified_tpl.updated_at = Some(chrono::Utc::now().to_rfc3339());
     vault.save_user_template(&modified_tpl).unwrap();

@@ -111,7 +111,7 @@ pub async fn llm_list_trash(
             name: c.name,
             updated_at: c.updated_at,
             message_count: c.messages.len(),
-            deleted_at: c.deleted_at.clone(),
+            deleted_at: c.deleted_at,
         })
         .collect();
     summaries.sort_by(|a, b| {

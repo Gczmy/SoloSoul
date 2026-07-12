@@ -311,9 +311,8 @@ pub fn import_vault(
                     let hash = user_template_content_hash(&tpl);
 
                     // 去重：检查是否有完全一致的已有模板（含系统预置模板）
-                    let local_id = if let Some(existing) = vault
-                        .find_user_template_by_content_hash(account_id, &hash)
-                        .map_err(|e| e.to_string())?
+                    let local_id = if let Some(existing) =
+                        vault.find_user_template_by_content_hash(account_id, &hash)?
                     {
                         existing.id
                     } else {
@@ -866,8 +865,7 @@ fn import_attachments(
     // 更新已导入对象的 __attachments
     for (obj_id, atts) in imported_atts {
         let mut obj = vault
-            .load_object(&obj_id)
-            .map_err(|e| e.to_string())?
+            .load_object(&obj_id)?
             .ok_or_else(|| format!("找不到对象 {}", obj_id))?;
         let att_json = serde_json::to_value(&atts)?;
         match &mut obj.properties {

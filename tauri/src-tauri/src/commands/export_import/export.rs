@@ -225,10 +225,7 @@ pub async fn export_execute(
         }
         Ok(false) => { /* export password is different from master password — OK */ }
         Err(e) => {
-            return Err(export_err_with_detail(
-                "MASTER_VERIFY_FAILED",
-                &e.to_string(),
-            ));
+            return Err(export_err_with_detail("MASTER_VERIFY_FAILED", &e));
         }
     }
 
@@ -525,8 +522,7 @@ pub async fn export_get_attachments(
     let vault = vault_handle(&state)?;
 
     let obj = vault
-        .load_object(&object_id)
-        .map_err(|e| e.to_string())?
+        .load_object(&object_id)?
         .ok_or_else(|| format!("Object {} not found", object_id))?;
 
     let atts = load_attachments(&obj.properties);

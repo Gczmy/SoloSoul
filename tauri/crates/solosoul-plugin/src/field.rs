@@ -709,11 +709,7 @@ impl FieldResolver {
                 let template_name = record.template_id.as_ref().and_then(|tid| {
                     let mut cache = template_cache.borrow_mut();
                     cache.get(tid).cloned().unwrap_or_else(|| {
-                        let name = vault
-                            .load_user_template(tid)
-                            .ok()
-                            .flatten()
-                            .map(|t| t.name.clone());
+                        let name = vault.load_user_template(tid).ok().flatten().map(|t| t.name);
                         cache.insert(tid.clone(), name.clone());
                         name
                     })
@@ -1161,7 +1157,7 @@ mod tests {
             }],
             category: Some("identity".to_string()),
             created_at: now.clone(),
-            updated_at: Some(now.clone()),
+            updated_at: Some(now),
         };
         vault.save_user_template(&template).unwrap();
 
@@ -1341,7 +1337,7 @@ mod tests {
             tags_json: vec![],
             template_id: None,
             template_type: None,
-            created_at: now.clone(),
+            created_at: now,
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
             template_hash: None,

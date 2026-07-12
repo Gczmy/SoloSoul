@@ -783,7 +783,7 @@ mod tests {
             let target_base = base.join("migrated");
             std::fs::create_dir_all(&target_base).unwrap();
             let manager = BiometricManager::with_storage(
-                base.clone(),
+                base,
                 Box::new(NonLegacyFileStorage(legacy::FileBiometricStorage::new(
                     target_base.clone(),
                 ))),

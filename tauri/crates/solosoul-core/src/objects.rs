@@ -57,7 +57,7 @@ pub fn create_page(
         template_hash: None,
         ignored_template_hash: None,
         created_at: now.clone(),
-        updated_at: now.clone(),
+        updated_at: now,
         version: 1,
     };
 
@@ -118,7 +118,7 @@ pub fn create_object(
         template_hash: None,
         ignored_template_hash: None,
         created_at: now.clone(),
-        updated_at: now.clone(),
+        updated_at: now,
         version: 1,
     };
 
@@ -323,8 +323,7 @@ pub fn restore_from_trash(
 
             // 检查冲突：同 section 下同名
             let conflict = vault
-                .list_objects(account_id, None, None, Some(&record.name), false, false)
-                .map_err(|e| e.to_string())?
+                .list_objects(account_id, None, None, Some(&record.name), false, false)?
                 .into_iter()
                 .any(|o| {
                     o.name == record.name

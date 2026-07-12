@@ -165,7 +165,7 @@ pub async fn template_create(
     let template = UserTemplate {
         contract_type_id,
         id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
-        account_id: account_id.clone(),
+        account_id,
         name,
         icon_id,
         properties,
@@ -466,11 +466,11 @@ pub async fn template_save_from_object(
     let template = UserTemplate {
         contract_type_id: None,
         id: format!("utpl_{}", uuid::Uuid::new_v4().simple()),
-        account_id: account_id.clone(),
+        account_id,
         name: template_name,
         icon_id: icon_id.or(Some(record.icon_name)),
         properties,
-        category: Some(record.section_type.clone()),
+        category: Some(record.section_type),
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: None,
     };

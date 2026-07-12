@@ -494,47 +494,44 @@ fn build_attachment_tree_pages(
         .collect();
     let all_ids: Vec<String> = all_summaries.iter().map(|s| s.id.clone()).collect();
     let records_batch = vault.load_objects_batch(&all_ids).ok().unwrap_or_default();
-    let build_objects_with_attachments =
-        |objs: &[solosoul_vault::ObjectSummary], only_del: bool| -> Vec<AttachmentTreeObject> {
-            objs.iter()
-                .filter_map(|summary| {
-                    let record = records_batch.get(&summary.id)?;
-                    let all_atts = load_attachments(&record.properties);
-                    let filtered: Vec<AttachmentMeta> = all_atts
-                        .into_iter()
-                        .filter(|a| {
-                            if only_del {
-                                a.deleted_at.is_some()
-                            } else {
-                                a.deleted_at.is_none()
-                            }
+    let build_objects_with_attachments = |objs: &[solosoul_vault::ObjectSummary],
+                                          only_del: bool|
+     -> Vec<AttachmentTreeObject> {
+        objs.iter()
+            .filter_map(|summary| {
+                let record = records_batch.get(&summary.id)?;
+                let all_atts = load_attachments(&record.properties);
+                let filtered: Vec<AttachmentMeta> = all_atts
+                    .into_iter()
+                    .filter(|a| {
+                        if only_del {
+                            a.deleted_at.is_some()
+                        } else {
+                            a.deleted_at.is_none()
+                        }
+                    })
+                    .collect();
+                if filtered.is_empty() {
+                    None
+                } else {
+                    let template_name = record.template_id.as_ref().and_then(|tid| {
+                        let mut cache = template_cache.borrow_mut();
+                        cache.get(tid).cloned().unwrap_or_else(|| {
+                            let name = vault.load_user_template(tid).ok().flatten().map(|t| t.name);
+                            cache.insert(tid.clone(), name.clone());
+                            name
                         })
-                        .collect();
-                    if filtered.is_empty() {
-                        None
-                    } else {
-                        let template_name = record.template_id.as_ref().and_then(|tid| {
-                            let mut cache = template_cache.borrow_mut();
-                            cache.get(tid).cloned().unwrap_or_else(|| {
-                                let name = vault
-                                    .load_user_template(tid)
-                                    .ok()
-                                    .flatten()
-                                    .map(|t| t.name.clone());
-                                cache.insert(tid.clone(), name.clone());
-                                name
-                            })
-                        });
-                        Some(AttachmentTreeObject {
-                            object_id: summary.id.clone(),
-                            object_name: summary.name.clone(),
-                            template_name,
-                            attachments: filtered,
-                        })
-                    }
-                })
-                .collect()
-        };
+                    });
+                    Some(AttachmentTreeObject {
+                        object_id: summary.id.clone(),
+                        object_name: summary.name.clone(),
+                        template_name,
+                        attachments: filtered,
+                    })
+                }
+            })
+            .collect()
+    };
 
     let mut pages: Vec<AttachmentTreePage> = Vec::new();
     let mut child_ids_assigned: std::collections::HashSet<String> =

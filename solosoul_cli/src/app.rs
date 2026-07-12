@@ -1230,8 +1230,7 @@ impl App {
                 hint,
             } => {
                 if key.code == KeyCode::Esc {
-                    self.command_input
-                        .set_value(hint.clone().unwrap_or_default());
+                    self.command_input.set_value(hint.unwrap_or_default());
                     self.phase = AppPhase::Onboarding {
                         step: OnboardingStep::EnterHint { name, password },
                     };
@@ -1767,7 +1766,7 @@ impl App {
                         return Ok(false);
                     }
                     KeyCode::Char('n') => {
-                        let initial = name.clone();
+                        let initial = name;
                         prompt::open(
                             self,
                             PromptSpec::Text {
@@ -2454,7 +2453,7 @@ impl App {
         }
 
         if need_refresh {
-            commands::vault_write::apply_trash_filter(self, filter.clone())?;
+            commands::vault_write::apply_trash_filter(self, filter)?;
             return Ok(false);
         }
 
@@ -3456,9 +3455,7 @@ mod tests {
                 &Zeroizing::new(crate::TEST_PASSWORD.to_string()),
             )
             .unwrap();
-        app.phase = AppPhase::Home {
-            account_id: account_id.clone(),
-        };
+        app.phase = AppPhase::Home { account_id };
         crate::commands::settings::open_menu(&mut app);
         match &app.phase {
             AppPhase::SettingsMenu {

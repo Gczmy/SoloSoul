@@ -132,8 +132,8 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     app.plugin_run_pending = Some(result_holder.clone());
     app.error_message = Some(format!("正在后台运行插件: {} ...", plugin_id));
 
-    let plugin_id_clone = plugin_id.clone();
-    let market_dir_clone = market_dir.clone();
+    let plugin_id_clone = plugin_id;
+    let market_dir_clone = market_dir;
 
     std::thread::spawn(move || {
         let rt = match tokio::runtime::Runtime::new() {

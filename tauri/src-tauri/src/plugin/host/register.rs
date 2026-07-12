@@ -214,8 +214,8 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
 
                     let channel = host.channel.clone();
                     let client = host.http_client.clone();
-                    let method_clone = method.clone();
-                    let url_clone = url.clone();
+                    let method_clone = method;
+                    let url_clone = url;
                     let task = tokio::spawn(async move {
                         let result =
                             perform_http_async(&client, &method_clone, &url_clone, &body).await;
@@ -575,9 +575,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
              out_len: i32,
              written_ptr: i32|
              -> i32 {
-                let locale = sys_locale::get_locale()
-                    .map(|l| l.to_string())
-                    .unwrap_or_else(|| "en-US".to_string());
+                let locale = sys_locale::get_locale().unwrap_or_else(|| "en-US".to_string());
                 write_buffer(&mut caller, out_ptr, out_len, &locale, written_ptr)
             },
         )

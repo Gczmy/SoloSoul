@@ -145,8 +145,7 @@ pub(crate) fn unique_object_name(
         (" (Imported)", " ")
     };
     let names: HashSet<String> = vault
-        .list_objects(account_id, None, None, None, false, false)
-        .map_err(|e| e.to_string())?
+        .list_objects(account_id, None, None, None, false, false)?
         .into_iter()
         .map(|o| o.name)
         .collect();

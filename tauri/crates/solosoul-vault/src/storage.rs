@@ -563,7 +563,7 @@ impl VaultStore {
             ).map_err(|e| e.to_string())?;
             tx.execute(
                 "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES ('encryption_migrated_at', ?1, ?2)",
-                params![chrono::Utc::now().to_rfc3339(), now.clone()],
+                params![chrono::Utc::now().to_rfc3339(), now],
             ).map_err(|e| e.to_string())?;
 
             Ok(())
@@ -3877,7 +3877,7 @@ mod tests {
         };
         vault.save_object(&obj).unwrap();
 
-        let mut updated = obj.clone();
+        let mut updated = obj;
         updated.name = "Updated".to_string();
         updated.version = 2;
         vault.save_object(&updated).unwrap();
@@ -4195,7 +4195,7 @@ mod tests {
             account_id: "acc-1".to_string(),
             type_id: "note".to_string(),
             section_type: "identity".to_string(),
-            name: long_name.clone(),
+            name: long_name,
             icon_name: "doc".to_string(),
             parent_id: None,
             children_ids: vec![],
@@ -5299,7 +5299,7 @@ mod tests {
         // (Manually swap the internal key to simulate reopening.)
         {
             let mut guard = vault.data_key.lock().unwrap();
-            *guard = Some(new_key.clone());
+            *guard = Some(new_key);
         }
 
         let loaded_profile = vault.load_profile("reenc").unwrap().unwrap();
@@ -5564,7 +5564,7 @@ mod tests {
             Some("com.test.plugin/v1".to_string()),
             "initial Some(v1) save should be readable as Some(v1)",
         );
-        let pinned_created_at = loaded_v1.created_at.clone();
+        let pinned_created_at = loaded_v1.created_at;
 
         // v2 UPSERT -- contract_type_id overwritten via the widening
         // `ON CONFLICT(id) DO UPDATE SET contract_type_id = excluded.contract_type_id`.

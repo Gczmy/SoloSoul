@@ -745,7 +745,7 @@ fn test_unique_object_name_english_increment() -> Result<(), String> {
             version: 1,
             ..Default::default()
         };
-        vault.save_object(&rec).map_err(|e| e.to_string())?;
+        vault.save_object(&rec)?;
     }
 
     let name = unique_object_name(&vault, account_id, "Doc", "en-US")?;
@@ -781,11 +781,11 @@ fn test_unique_object_name_chinese_increment() -> Result<(), String> {
         template_type: None,
         template_hash: None,
         created_at: now.clone(),
-        updated_at: now.clone(),
+        updated_at: now,
         version: 1,
         ..Default::default()
     };
-    vault.save_object(&rec).map_err(|e| e.to_string())?;
+    vault.save_object(&rec)?;
 
     let name = unique_object_name(&vault, account_id, "文档", "zh-CN")?;
     assert_eq!(name, "文档（导入） 2");
