@@ -599,7 +599,7 @@ mod tests {
     fn test_ocr_get_supported_languages() {
         let _langs = ocr_get_supported_languages();
         // Actually call the sync logic inline
-        let expected = vec![
+        let expected = [
             "auto".to_string(),
             "en".to_string(),
             "zh-CN".to_string(),
@@ -615,7 +615,7 @@ mod tests {
     #[test]
     fn test_ocr_list_available_tiers_contains_three() {
         // The command returns a Vec<OcrTierInfo>; verify count and names
-        let tiers = vec![
+        let tiers = [
             OcrTierInfo {
                 tier: "tiny".to_string(),
                 name: "Tiny".to_string(),
