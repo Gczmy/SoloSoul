@@ -353,7 +353,7 @@ mod tests {
 
     #[test]
     fn test_export_password_same_as_master_rejected() {
-        let (mut app, _account_id, _dir) = unlocked_app();
+        let (app, _account_id, _dir) = unlocked_app();
 
         // validate_export_password 需要 App 引用，这里直接验证逻辑。
         // 主密码本身应通过 validate_export_password （返回错误即通过）。
